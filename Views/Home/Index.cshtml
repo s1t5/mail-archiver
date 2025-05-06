@@ -1,0 +1,303 @@
+﻿@model MailArchiver.Models.ViewModels.DashboardViewModel
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<div class="container-fluid fade-in">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="mb-0">Email Archive Dashboard</h1>
+        <div>
+            <a asp-controller="Emails" asp-action="Index" class="btn btn-primary">
+                <i class="bi bi-search"></i> Search Archive
+            </a>
+        </div>
+    </div>
+    
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white stat-card">
+                <div class="card-body">
+                    <div class="icon">
+                        <i class="bi bi-envelope"></i>
+                    </div>
+                    <h5 class="card-title">Archived Emails</h5>
+                    <p class="display-4">@Model.TotalEmails.ToString("N0")</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white stat-card">
+                <div class="card-body">
+                    <div class="icon">
+                        <i class="bi bi-person"></i>
+                    </div>
+                    <h5 class="card-title">Email Accounts</h5>
+                    <p class="display-4">@Model.TotalAccounts.ToString("N0")</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white stat-card">
+                <div class="card-body">
+                    <div class="icon">
+                        <i class="bi bi-paperclip"></i>
+                    </div>
+                    <h5 class="card-title">Attachments</h5>
+                    <p class="display-4">@Model.TotalAttachments.ToString("N0")</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-dark stat-card">
+                <div class="card-body">
+                    <div class="icon">
+                        <i class="bi bi-hdd"></i>
+                    </div>
+                    <h5 class="card-title">Storage Used</h5>
+                    <p class="display-4">@Model.TotalStorageUsed</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span>Emails per Month</span>
+                    <span class="badge bg-primary">Last 12 Months</span>
+                </div>
+                <div class="card-body chart-container">
+                    <canvas id="monthlyChart"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span>Top Senders</span>
+                    <span class="badge bg-primary">Incoming Emails</span>
+                </div>
+                <div class="card-body chart-container">
+                    <canvas id="topSendersChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span>Account Overview</span>
+                    <a asp-controller="MailAccounts" asp-action="Index" class="btn btn-sm btn-outline-primary">Show All</a>
+                </div>
+                <div class="card-body p-0">
+                    <table class="table table-sm table-striped table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Count</th>
+                                <th>Last Sync</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var account in Model.EmailsPerAccount)
+                            {
+                                <tr>
+                                    <td>@account.AccountName</td>
+                                    <td>@account.EmailAddress</td>
+                                    <td>@account.EmailCount.ToString("N0")</td>
+                                    <td>
+                                        @if (DateTime.Now.Subtract(account.LastSyncTime).TotalHours < 24)
+                                        {
+                                            <span class="badge bg-success">@account.LastSyncTime.ToString("MM/dd/yyyy HH:mm")</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-warning">@account.LastSyncTime.ToString("MM/dd/yyyy HH:mm")</span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                            @if (!Model.EmailsPerAccount.Any())
+                            {
+                                <tr>
+                                    <td colspan="4" class="text-center py-3 text-muted">
+                                        <i class="bi bi-info-circle me-2"></i>No email accounts found
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span>Recent Emails</span>
+                    <a asp-controller="Emails" asp-action="Index" class="btn btn-sm btn-outline-primary">Show All</a>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        @foreach (var email in Model.RecentEmails)
+                        {
+                            <a href="@Url.Action("Details", "Emails", new { id = email.Id })" class="list-group-item list-group-item-action">
+                                <div class="d-flex w-100 justify-content-between align-items-center">
+                                    <h6 class="mb-1 text-truncate" style="max-width: 400px;" title="@email.Subject">
+                                        @(email.IsOutgoing ? 
+                                            "<i class=\"bi bi-arrow-up-right text-primary\"></i> " : 
+                                            "<i class=\"bi bi-arrow-down-left text-success\"></i> ")@Html.Raw(email.Subject)
+                                    </h6>
+                                    <small class="text-muted">@email.SentDate.ToString("MM/dd HH:mm")</small>
+                                </div>
+                                <p class="mb-1 small text-truncate">@email.From</p>
+                                <small class="text-muted">
+                                    <i class="bi bi-person me-1"></i>@email.MailAccount.Name
+                                </small>
+                            </a>
+                        }
+                        @if (!Model.RecentEmails.Any())
+                        {
+                            <div class="list-group-item text-center py-4 text-muted">
+                                <i class="bi bi-inbox me-2"></i>No emails archived yet
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Chart colors
+        const chartColors = {
+            blue: 'rgba(52, 152, 219, 0.7)',
+            blueBorder: 'rgba(52, 152, 219, 1)',
+            green: 'rgba(46, 204, 113, 0.7)',
+            greenBorder: 'rgba(46, 204, 113, 1)',
+            colors: [
+                'rgba(255, 99, 132, 0.7)',
+                'rgba(54, 162, 235, 0.7)',
+                'rgba(255, 206, 86, 0.7)',
+                'rgba(75, 192, 192, 0.7)',
+                'rgba(153, 102, 255, 0.7)',
+                'rgba(255, 159, 64, 0.7)',
+                'rgba(199, 199, 199, 0.7)',
+                'rgba(83, 102, 255, 0.7)',
+                'rgba(40, 159, 64, 0.7)',
+                'rgba(210, 199, 199, 0.7)'
+            ],
+            colorsBorder: [
+                'rgba(255, 99, 132, 1)',
+                'rgba(54, 162, 235, 1)',
+                'rgba(255, 206, 86, 1)',
+                'rgba(75, 192, 192, 1)',
+                'rgba(153, 102, 255, 1)',
+                'rgba(255, 159, 64, 1)',
+                'rgba(199, 199, 199, 1)',
+                'rgba(83, 102, 255, 1)',
+                'rgba(40, 159, 64, 1)',
+                'rgba(210, 199, 199, 1)'
+            ]
+        };
+
+        // Initialize charts when document is ready
+        document.addEventListener('DOMContentLoaded', function() {
+            // Monthly Emails Chart
+            const monthlyChartCanvas = document.getElementById('monthlyChart');
+            const monthlyChartContainer = monthlyChartCanvas.parentElement;
+            
+            // Explicitly set the canvas parent div height
+            monthlyChartContainer.style.height = '300px';
+            
+            const monthlyChart = new Chart(monthlyChartCanvas.getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: [@Html.Raw(string.Join(",", Model.EmailsByMonth.Select(m => $"'{m.Period}'")))],
+                    datasets: [{
+                        label: 'Emails per month',
+                        data: [@string.Join(",", Model.EmailsByMonth.Select(m => m.Count))],
+                        backgroundColor: chartColors.blue,
+                        borderColor: chartColors.blueBorder,
+                        borderWidth: 1,
+                        borderRadius: 4,
+                        barPercentage: 0.7,
+                        categoryPercentage: 0.8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false, // This is crucial
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                precision: 0
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+            
+            // Top Senders Chart
+            const topSendersChartCanvas = document.getElementById('topSendersChart');
+            const topSendersChartContainer = topSendersChartCanvas.parentElement;
+            
+            // Explicitly set the canvas parent div height
+            topSendersChartContainer.style.height = '300px';
+            
+            const topSendersChart = new Chart(topSendersChartCanvas.getContext('2d'), {
+                type: 'doughnut',
+                data: {
+                    labels: [@Html.Raw(string.Join(",", Model.TopSenders.Select(s => $"'{(s.EmailAddress.Length > 20 ? s.EmailAddress.Substring(0, 20) + "..." : s.EmailAddress)}'")))],
+                    datasets: [{
+                        data: [@string.Join(",", Model.TopSenders.Select(s => s.Count))],
+                        backgroundColor: chartColors.colors,
+                        borderColor: chartColors.colorsBorder,
+                        borderWidth: 1,
+                        hoverOffset: 10
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false, // This is crucial
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            labels: {
+                                boxWidth: 15,
+                                font: {
+                                    size: 11
+                                }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.label || '';
+                                    let value = context.parsed || 0;
+                                    let total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    let percentage = total > 0 ? Math.round((value * 100) / total) : 0;
+                                    return `${label}: ${value} (${percentage}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+}

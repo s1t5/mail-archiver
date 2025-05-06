@@ -1,0 +1,136 @@
+@model MailArchiver.Models.ViewModels.EmailDetailViewModel
+@{
+    ViewData["Title"] = "Email Details";
+}
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1>Email Details</h1>
+        <div>
+            <a asp-action="Index" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Back to List
+            </a>
+            <div class="btn-group ms-2">
+                <a asp-action="Export" asp-route-id="@Model.Email.Id" asp-route-format="2" class="btn btn-outline-primary">
+                    <i class="bi bi-envelope"></i> Export as EML
+                </a>
+                <button type="button" class="btn btn-outline-primary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false">
+                    <span class="visually-hidden">Toggle Dropdown</span>
+                </button>
+                <ul class="dropdown-menu">
+                    <li><a asp-action="Export" asp-route-id="@Model.Email.Id" asp-route-format="0" class="dropdown-item">Export as CSV</a></li>
+                    <li><a asp-action="Export" asp-route-id="@Model.Email.Id" asp-route-format="1" class="dropdown-item">Export as JSON</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card mb-3">
+        <div class="card-header bg-light">
+            <div class="row align-items-center">
+                <div class="col-auto">
+                    @if (Model.Email.IsOutgoing)
+                    {
+                        <span class="badge bg-info fs-6">Outgoing</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-secondary fs-6">Incoming</span>
+                    }
+                </div>
+                <div class="col">
+                    <h5 class="mb-0">@Model.Email.Subject</h5>
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="row mb-2">
+                <div class="col-md-2 fw-bold">Account:</div>
+                <div class="col-md-10">@Model.AccountName</div>
+            </div>
+            
+            @if (!string.IsNullOrEmpty(Model.Email.FolderName))
+            {
+                <div class="row mb-2">
+                    <div class="col-md-2 fw-bold">Folder:</div>
+                    <div class="col-md-10">
+                        <span class="badge bg-light text-dark border">@Model.Email.FolderName</span>
+                    </div>
+                </div>
+            }
+            
+            <div class="row mb-2">
+                <div class="col-md-2 fw-bold">From:</div>
+                <div class="col-md-10">@Model.Email.From</div>
+            </div>
+            <div class="row mb-2">
+                <div class="col-md-2 fw-bold">To:</div>
+                <div class="col-md-10">@Model.Email.To</div>
+            </div>
+            
+            @if (!string.IsNullOrEmpty(Model.Email.Cc))
+            {
+                <div class="row mb-2">
+                    <div class="col-md-2 fw-bold">CC:</div>
+                    <div class="col-md-10">@Model.Email.Cc</div>
+                </div>
+            }
+            
+            <div class="row mb-2">
+                <div class="col-md-2 fw-bold">Date:</div>
+                <div class="col-md-10">@Model.Email.SentDate.ToString("MM/dd/yyyy HH:mm:ss")</div>
+            </div>
+            
+            @if (Model.Email.Attachments.Any())
+            {
+                <div class="row mb-3">
+                    <div class="col-md-2 fw-bold">Attachments:</div>
+                    <div class="col-md-10">
+                        <div class="list-group">
+                            @foreach (var attachment in Model.Email.Attachments)
+                            {
+                                <a asp-action="Attachment" asp-route-emailId="@Model.Email.Id" asp-route-attachmentId="@attachment.Id" 
+                                   class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                                    <span>@attachment.FileName</span>
+                                    <span class="badge bg-primary rounded-pill">@FormatFileSize(attachment.Size)</span>
+                                </a>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+            
+            <hr />
+            
+            <div class="email-content mt-3">
+                @if (!string.IsNullOrEmpty(Model.FormattedHtmlBody))
+                {
+                    <div class="email-html-body border p-3 rounded">
+                        @Html.Raw(Model.FormattedHtmlBody)
+                    </div>
+                }
+                else
+                {
+                    <pre class="email-text-body border p-3 rounded bg-light">@Model.Email.Body</pre>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@functions {
+    string FormatFileSize(long bytes)
+    {
+        string[] suffixes = { "B", "KB", "MB", "GB", "TB" };
+        int counter = 0;
+        decimal number = bytes;
+        
+        while (Math.Round(number / 1024) >= 1)
+        {
+            number /= 1024;
+            counter++;
+        }
+        
+        return $"{number:n1} {suffixes[counter]}";
+    }
+}

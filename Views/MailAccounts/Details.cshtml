@@ -1,0 +1,73 @@
+@model MailArchiver.Models.ViewModels.MailAccountViewModel
+@{
+    ViewData["Title"] = "Account Details";
+}
+
+<div class="container">
+    <h1>Account Details</h1>
+    
+    <div class="card">
+        <div class="card-body">
+            <dl class="row">
+                <dt class="col-sm-3">Name</dt>
+                <dd class="col-sm-9">@Model.Name</dd>
+                
+                <dt class="col-sm-3">Email Address</dt>
+                <dd class="col-sm-9">@Model.EmailAddress</dd>
+                
+                <dt class="col-sm-3">IMAP Server</dt>
+                <dd class="col-sm-9">@Model.ImapServer:@Model.ImapPort</dd>
+                
+                <dt class="col-sm-3">Username</dt>
+                <dd class="col-sm-9">@Model.Username</dd>
+                
+                <dt class="col-sm-3">Use SSL</dt>
+                <dd class="col-sm-9">@(Model.UseSSL ? "Yes" : "No")</dd>
+                
+                <dt class="col-sm-3">Status</dt>
+                <dd class="col-sm-9">
+                    @if (Model.IsEnabled)
+                    {
+                        <span class="badge bg-success">Enabled</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-secondary">Disabled</span>
+                    }
+                </dd>
+                
+                <dt class="col-sm-3">Last Synchronization</dt>
+                <dd class="col-sm-9">
+                    @if (Model.LastSync.HasValue)
+                    {
+                        @Model.LastSync.Value.ToString("MM/dd/yyyy HH:mm:ss")
+                    }
+                    else
+                    {
+                        <span class="text-muted">Not yet synchronized</span>
+                    }
+                </dd>
+            </dl>
+            
+            <div class="mt-3">
+                <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">Edit</a>
+                <a asp-action="Index" class="btn btn-outline-secondary">Back to List</a>
+                
+                <form asp-action="ToggleEnabled" asp-route-id="@Model.Id" method="post" style="display: inline;">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn @(Model.IsEnabled ? "btn-outline-secondary" : "btn-outline-success")">
+                        @(Model.IsEnabled ? "Disable Account" : "Enable Account")
+                    </button>
+                </form>
+                
+                @if (Model.IsEnabled)
+                {
+                    <form asp-action="Sync" asp-route-id="@Model.Id" method="post" style="display: inline;">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-success">Synchronize Now</button>
+                    </form>
+                }
+            </div>
+        </div>
+    </div>
+</div>

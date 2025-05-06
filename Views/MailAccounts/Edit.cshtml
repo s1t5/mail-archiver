@@ -1,0 +1,89 @@
+@model MailArchiver.Models.ViewModels.MailAccountViewModel
+@{
+    ViewData["Title"] = "Edit Email Account";
+}
+
+<div class="container">
+    <h1>Edit Email Account</h1>
+    
+    <div class="card">
+        <div class="card-body">
+            <form asp-action="Edit">
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+                
+                <input type="hidden" asp-for="Id" />
+                
+                <div class="mb-3">
+                    <label asp-for="Name" class="form-label">Account Name</label>
+                    <input asp-for="Name" class="form-control" />
+                    <span asp-validation-for="Name" class="text-danger"></span>
+                </div>
+                
+                <div class="mb-3">
+                    <label asp-for="EmailAddress" class="form-label">Email Address</label>
+                    <input asp-for="EmailAddress" class="form-control" type="email" />
+                    <span asp-validation-for="EmailAddress" class="text-danger"></span>
+                </div>
+                
+                <h4 class="mt-4">IMAP Settings</h4>
+                
+                <div class="row">
+                    <div class="col-md-8 mb-3">
+                        <label asp-for="ImapServer" class="form-label">IMAP Server</label>
+                        <input asp-for="ImapServer" class="form-control" />
+                        <span asp-validation-for="ImapServer" class="text-danger"></span>
+                    </div>
+                    
+                    <div class="col-md-4 mb-3">
+                        <label asp-for="ImapPort" class="form-label">IMAP Port</label>
+                        <input asp-for="ImapPort" class="form-control" />
+                        <span asp-validation-for="ImapPort" class="text-danger"></span>
+                    </div>
+                </div>
+                
+                <h4 class="mt-4">Authentication</h4>
+                
+                <div class="mb-3">
+                    <label asp-for="Username" class="form-label">Username</label>
+                    <input asp-for="Username" class="form-control" />
+                    <span asp-validation-for="Username" class="text-danger"></span>
+                </div>
+                
+                <div class="mb-3">
+                    <label asp-for="Password" class="form-label">Password</label>
+                    <input asp-for="Password" class="form-control" type="password" />
+                    <small class="text-muted">Leave empty if you don't want to change the password.</small>
+                    <span asp-validation-for="Password" class="text-danger"></span>
+                </div>
+                
+                <div class="mb-3 form-check">
+                    <input asp-for="UseSSL" class="form-check-input" />
+                    <label asp-for="UseSSL" class="form-check-label">Use SSL</label>
+                </div>
+                
+                <div class="mb-3 form-check">
+                    <input asp-for="IsEnabled" class="form-check-input" />
+                    <label asp-for="IsEnabled" class="form-check-label">Account Enabled</label>
+                    <div class="form-text">Disabled accounts will not be synchronized</div>
+                </div>
+                
+                @if (Model.LastSync.HasValue)
+                {
+                    <div class="mb-3">
+                        <label asp-for="LastSync" class="form-label">Last Synchronization</label>
+                        <input value="@Model.LastSync.Value.ToString("MM/dd/yyyy HH:mm:ss")" class="form-control" readonly />
+                    </div>
+                }
+                
+                <div class="mt-4">
+                    <button type="submit" class="btn btn-primary">Save</button>
+                    <a asp-action="Index" class="btn btn-outline-secondary">Back to List</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

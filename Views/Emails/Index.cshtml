@@ -1,0 +1,209 @@
+@model MailArchiver.Models.ViewModels.SearchViewModel
+@{
+    ViewData["Title"] = "Email Archive";
+}
+
+<div class="container-fluid">
+    <h1>Email Archive</h1>
+    
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5>Search</h5>
+        </div>
+        <div class="card-body">
+            <form asp-action="Index" method="get">
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label asp-for="SearchTerm" class="form-label">Search Term</label>
+                        <input asp-for="SearchTerm" class="form-control" placeholder="Subject, sender, content..." />
+                    </div>
+                    
+                    <div class="col-md-4 mb-3">
+                        <label asp-for="FromDate" class="form-label">From Date</label>
+                        <input asp-for="FromDate" class="form-control" type="date" />
+                    </div>
+                    
+                    <div class="col-md-4 mb-3">
+                        <label asp-for="ToDate" class="form-label">To Date</label>
+                        <input asp-for="ToDate" class="form-control" type="date" />
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="SelectedAccountId" class="form-label">Account</label>
+                        <select asp-for="SelectedAccountId" asp-items="Model.AccountOptions" class="form-select"></select>
+                    </div>
+                    
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="IsOutgoing" class="form-label">Direction</label>
+                        <select asp-for="IsOutgoing" asp-items="Model.DirectionOptions" class="form-select"></select>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-primary">Search</button>
+                        <a asp-action="Index" class="btn btn-outline-secondary">Reset</a>
+                        
+                        <button type="button" class="btn btn-success float-end" data-bs-toggle="modal" data-bs-target="#exportModal">
+                            <i class="bi bi-download"></i> Export
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    @if (Model.SearchResults != null && Model.SearchResults.Any())
+    {
+        <div class="card">
+            <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                <span>Search Results: <strong>@Model.TotalResults</strong> emails found</span>
+                <span>Page @Model.PageNumber of @Model.TotalPages</span>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped mb-0">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Subject</th>
+                                <th>From</th>
+                                <th>To</th>
+                                <th>Date</th>
+                                <th>Account</th>
+                                <th>Attachments</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var email in Model.SearchResults)
+                            {
+                                <tr>
+                                    <td>
+                                        @if (email.IsOutgoing)
+                                        {
+                                            <span class="badge bg-info">Outgoing</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">Incoming</span>
+                                        }
+                                        @email.Subject
+                                    </td>
+                                    <td>@email.From</td>
+                                    <td>@email.To</td>
+                                    <td>@email.SentDate.ToString("MM/dd/yyyy HH:mm")</td>
+                                    <td>@email.MailAccount.Name</td>
+                                    <td>
+                                        @if (email.HasAttachments)
+                                        {
+                                            <span class="badge bg-warning">With Attachments</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <a asp-action="Details" asp-route-id="@email.Id" class="btn btn-sm btn-outline-primary">Details</a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="card-footer">
+                <nav>
+                    <ul class="pagination justify-content-center mb-0">
+                        @if (Model.PageNumber > 1)
+                        {
+                            <li class="page-item">
+                                <a class="page-link" href="@Url.Action("Index", new { 
+                                    SearchTerm = Model.SearchTerm, 
+                                    FromDate = Model.FromDate?.ToString("yyyy-MM-dd"), 
+                                    ToDate = Model.ToDate?.ToString("yyyy-MM-dd"),
+                                    SelectedAccountId = Model.SelectedAccountId,
+                                    IsOutgoing = Model.IsOutgoing,
+                                    PageNumber = Model.PageNumber - 1,
+                                    PageSize = Model.PageSize
+                                })">Previous</a>
+                            </li>
+                        }
+                        
+                        @for (int i = Math.Max(1, Model.PageNumber - 2); i <= Math.Min(Model.TotalPages, Model.PageNumber + 2); i++)
+                        {
+                            <li class="page-item @(i == Model.PageNumber ? "active" : "")">
+                                <a class="page-link" href="@Url.Action("Index", new { 
+                                    SearchTerm = Model.SearchTerm, 
+                                    FromDate = Model.FromDate?.ToString("yyyy-MM-dd"), 
+                                    ToDate = Model.ToDate?.ToString("yyyy-MM-dd"),
+                                    SelectedAccountId = Model.SelectedAccountId,
+                                    IsOutgoing = Model.IsOutgoing,
+                                    PageNumber = i,
+                                    PageSize = Model.PageSize
+                                })">@i</a>
+                            </li>
+                        }
+                        
+                        @if (Model.PageNumber < Model.TotalPages)
+                        {
+                            <li class="page-item">
+                                <a class="page-link" href="@Url.Action("Index", new { 
+                                    SearchTerm = Model.SearchTerm, 
+                                    FromDate = Model.FromDate?.ToString("yyyy-MM-dd"), 
+                                    ToDate = Model.ToDate?.ToString("yyyy-MM-dd"),
+                                    SelectedAccountId = Model.SelectedAccountId,
+                                    IsOutgoing = Model.IsOutgoing,
+                                    PageNumber = Model.PageNumber + 1,
+                                    PageSize = Model.PageSize
+                                })">Next</a>
+                            </li>
+                        }
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    }
+    else if (Model.SearchResults != null)
+    {
+        <div class="alert alert-info">
+            <h4 class="alert-heading">No Emails Found!</h4>
+            <p>No emails were found for the specified search criteria. Please adjust your search and try again.</p>
+        </div>
+    }
+</div>
+
+<!-- Export Modal -->
+<div class="modal fade" id="exportModal" tabindex="-1" aria-labelledby="exportModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exportModalLabel">Export Search Results</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form asp-action="ExportSearchResults" method="post">
+                <div class="modal-body">
+                    <input type="hidden" name="SearchTerm" value="@Model.SearchTerm" />
+                    <input type="hidden" name="FromDate" value="@Model.FromDate?.ToString("yyyy-MM-dd")" />
+                    <input type="hidden" name="ToDate" value="@Model.ToDate?.ToString("yyyy-MM-dd")" />
+                    <input type="hidden" name="SelectedAccountId" value="@Model.SelectedAccountId" />
+                    <input type="hidden" name="IsOutgoing" value="@Model.IsOutgoing" />
+                    
+                    <div class="mb-3">
+                        <label for="exportFormat" class="form-label">Export Format</label>
+                        <select name="Format" id="exportFormat" class="form-select">
+                            <option value="0">CSV (Excel)</option>
+                            <option value="1">JSON (Data)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <small>Export may take some time for large numbers of emails. The exported file will contain up to 10,000 emails.</small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Export</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
