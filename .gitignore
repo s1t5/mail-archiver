@@ -26,9 +26,9 @@ msbuild.wrn
 /[Bb]in/
 /[Oo]bj/
 /[Oo]ut/
-bin
-obj
-packages
+bin/
+obj/
+packages/
 
 ## Logs
 *.log
