@@ -23,8 +23,13 @@ bld/
 msbuild.log
 msbuild.err
 msbuild.wrn
-**/bin/
-**/obj/
+/[Bb]in/
+/[Oo]bj/
+/[Oo]ut/
+
+## Logs
+*.log
+/Diagnostics/
 
 # Visual Studio Profiler und Trace
 *.psess
@@ -144,6 +149,15 @@ node_modules/
 **/*.Server/GeneratedArtifacts
 **/*.Server/ModelManifest.xml
 _Pvt_Extensions
+.vs/
+*.user
+*.suo
+*.sln.docstates
+*.userprefs
+*.psess
+*.vsp
+*.vspx
+*.sap
 
 # Backup-Dateien & Dateien vom lokalen Verlauf
 *Backup*.rdl
@@ -233,10 +247,25 @@ appsettings.Local.json
 *.Development.json
 *.Local.json
 
-# Secrets und Anmeldeinformationen
+
+## OS junk
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+## Secrets
 *.key
 secrets.json
 credentials.json
+appsettings.Local.json
+*.Development.json
+*.Local.json
+.localsettings.json
+.env.development.local
+.env.test.local
+.env.production.local
 
 # Temp-Verzeichnisse
 [Tt]emp/
