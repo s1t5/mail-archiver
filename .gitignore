@@ -26,6 +26,9 @@ msbuild.wrn
 /[Bb]in/
 /[Oo]bj/
 /[Oo]ut/
+bin
+obj
+packages
 
 ## Logs
 *.log
@@ -260,7 +263,6 @@ $RECYCLE.BIN/
 secrets.json
 credentials.json
 appsettings.Local.json
-*.Development.json
 *.Local.json
 .localsettings.json
 .env.development.local
