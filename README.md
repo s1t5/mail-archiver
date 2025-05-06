@@ -31,7 +31,7 @@
 - Attachment download with original filenames
 
 ## 🖼️ Screenshots
-![Mail-Archiver Screenshot](https://github.com/s1t5/mail-archiver/blob/main/dashboard.png?raw=true)
+![Mail-Archiver Screenshot](https://github.com/s1t5/mail-archiver/blob/main/Screenshots/dashboard.jpg?raw=true)
 
 ## 🚀 Quick Start
 
