@@ -36,6 +36,7 @@ namespace MailArchiver.Controllers
                     ImapPort = a.ImapPort,
                     Username = a.Username,
                     UseSSL = a.UseSSL,
+                    IsEnabled = a.IsEnabled,
                     LastSync = a.LastSync
                 })
                 .ToListAsync();
@@ -135,12 +136,14 @@ namespace MailArchiver.Controllers
                 ImapPort = account.ImapPort,
                 Username = account.Username,
                 UseSSL = account.UseSSL,
+                IsEnabled = account.IsEnabled,
                 LastSync = account.LastSync
             };
 
             return View(model);
         }
 
+        // MailAccountsController.cs
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ToggleEnabled(int id)
@@ -155,6 +158,7 @@ namespace MailArchiver.Controllers
             account.IsEnabled = !account.IsEnabled;
             await _context.SaveChangesAsync();
 
+            // Correct message based on the NEW status (after toggling)
             TempData["SuccessMessage"] = account.IsEnabled
                 ? $"Account '{account.Name}' has been enabled for synchronization."
                 : $"Account '{account.Name}' has been disabled for synchronization.";
@@ -170,6 +174,12 @@ namespace MailArchiver.Controllers
             if (id != model.Id)
             {
                 return NotFound();
+            }
+
+            // Remove password validation if left blank
+            if (string.IsNullOrEmpty(model.Password))
+            {
+                ModelState.Remove("Password");
             }
 
             if (ModelState.IsValid)
@@ -189,7 +199,7 @@ namespace MailArchiver.Controllers
                     account.Username = model.Username;
                     account.IsEnabled = model.IsEnabled;
 
-                    // Update password only if provided
+                    // Only update password if provided
                     if (!string.IsNullOrEmpty(model.Password))
                     {
                         account.Password = model.Password;

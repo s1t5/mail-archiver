@@ -5,7 +5,7 @@
 
 <div class="container-fluid">
     <h1>Email Accounts</h1>
-    
+
     @if (TempData["SuccessMessage"] != null)
     {
         <div class="alert alert-success alert-dismissible fade show" role="alert">
@@ -13,7 +13,7 @@
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     }
-    
+
     @if (TempData["ErrorMessage"] != null)
     {
         <div class="alert alert-danger alert-dismissible fade show" role="alert">
@@ -21,11 +21,11 @@
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     }
-    
+
     <p>
         <a asp-action="Create" class="btn btn-primary">Add New Account</a>
     </p>
-    
+
     <div class="card">
         <div class="card-body">
             <div class="table-responsive">
@@ -69,20 +69,25 @@
                                 </td>
                                 <td>
                                     <div class="btn-group">
-                                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info">Details</a>
+                                        <a asp-action="Details" asp-route-id="@item.Id"
+                                            class="btn btn-sm btn-info">Details</a>
                                         <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning">Edit</a>
-                                        <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger">Delete</a>
-                                        
-                                        <form asp-action="ToggleEnabled" asp-route-id="@item.Id" method="post" style="display: inline;">
+                                        <a asp-action="Delete" asp-route-id="@item.Id"
+                                            class="btn btn-sm btn-danger">Delete</a>
+
+                                        <form asp-action="ToggleEnabled" asp-route-id="@item.Id" method="post"
+                                            style="display: inline;">
                                             @Html.AntiForgeryToken()
-                                            <button type="submit" class="btn btn-sm @(item.IsEnabled ? "btn-outline-secondary" : "btn-outline-success")">
+                                            <button type="submit"
+                                                class="btn btn-sm @(item.IsEnabled ? "btn-outline-secondary" : "btn-outline-success")">
                                                 @(item.IsEnabled ? "Disable" : "Enable")
                                             </button>
                                         </form>
-                                        
+
                                         @if (item.IsEnabled)
                                         {
-                                            <form asp-action="Sync" asp-route-id="@item.Id" method="post" style="display: inline;">
+                                            <form asp-action="Sync" asp-route-id="@item.Id" method="post"
+                                                style="display: inline;">
                                                 @Html.AntiForgeryToken()
                                                 <button type="submit" class="btn btn-sm btn-success">Sync</button>
                                             </form>
