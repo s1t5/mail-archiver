@@ -81,7 +81,7 @@ services:
 4. Configure a reverse proxy of your choice with https ans authentification to secure access to the application. 
 
 <div style="background-color: #FFFFCC; padding: 10px; border: 1px solid black; color: black; font-weight: bold;">
-Attention: The application itself does not provide any authentication and also no encrypted access via https! Both must be set up via the reverse proxy!
+⚠️Attention⚠️ The application itself does not provide any authentication and also no encrypted access via https! Both must be set up via the reverse proxy!
 </div><br />
 
 4. Initial start of the containers:
