@@ -42,22 +42,51 @@
 
 ### 🛠️ Installation
 
-1. Clone the repository:
-```bash
-git clone https://github.com/s1t5/mail-archiver.git
-cd mail-archiver
+1. Install the prerequisites on your system
+
+2. Create a `docker-compose.yml` file 
+```yaml
+services:
+  mailarchive-app:
+    image: s1t5/mailarchiver:latest
+    restart: always
+    environment:
+      - ConnectionStrings__DefaultConnection=Host=postgres;Database=MailArchiver;Username=mailuser;Password=masterkey;
+    ports:
+      - "5000:5000"
+    depends_on:
+      - postgres
+
+  postgres:
+    image: postgres:14-alpine
+    restart: always
+    environment:
+      POSTGRES_DB: MailArchiver
+      POSTGRES_USER: mailuser
+      POSTGRES_PASSWORD: masterkey
+    volumes:
+      - ./postgres-data:/var/lib/postgresql/data
+    ports:
+      - "5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mailuser -d MailArchiver"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 ```
 
-2. Adapt the `docker-compose.yml` and store a secure database password. Beyond that the password must also be specified in the connection string found in the `appsettings.json` file. 
+3. Edit the database configuration in the `docker-compose.yml` and set a secure password in the `POSTGRES_PASSWORD` variable and the `ConnectionString`.
 
-3. Place your certificate in the certs folder which has to be created first and adjust the nginx.conf config. You may create a self singed cert if you're just using the app locally:
-```bash
-openssl req -x509 -nodes -days 3650 -newkey rsa:2048 -keyout certs/selfsigned.key -out certs/selfsigned.crt -subj "/CN=localhost"
-```
+4. Configure a reverse proxy of your choice with https ans authentification to secure access to the application. 
 
-4. Build and start containers:
+<div style="background-color: #FFFFCC; padding: 10px; border: 1px solid black; color: black; font-weight: bold;">
+Attention: The application itself does not provide any authentication and also no encrypted access via https! Both must be set up via the reverse proxy!
+</div><br />
+
+4. Initial start of the containers:
 ```bash
-docker compose up -d --build
+docker compose up -d
 ```
 
 5. Restart containers:
@@ -65,8 +94,7 @@ docker compose up -d --build
 docker compose restart
 ```
 
-6. Access the application:
-- Web Interface: https://localhost
+6. Access the application
 
 7. Add your first email account:
 - Navigate to "Email Accounts" section
@@ -80,13 +108,12 @@ docker compose restart
 |---------|------|-------------|
 | `mailarchive-app` | 5000 | ASP.NET Core Application |
 | `postgres` | 5432 | PostgreSQL Database |
-| `nginx` | 3003→3000 | Web Server / Reverse Proxy |
 
 ## 🔐 Security Note
 - 🔒 Use strong passwords for PostgreSQL and change default credentials
 - 🔐 Consider implementing HTTPS with a reverse proxy in production
 - 💾 Regular backups of the PostgreSQL database recommended
-- 🛡️ It is necessary to implement the authentication for the application via a reverse proxy as the application itself does not provide any authentication.
+- 🛡️ Implement the authentication for the application via a reverse proxy as the application itself does not provide any authentication.
 
 ## 📋 Technical Details
 
