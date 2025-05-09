@@ -17,11 +17,6 @@ RUN dotnet publish -c Release -o out
 # Verwende das offizielle .NET Runtime Image als Runtime-Umgebung
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
 
-# Installiere FFmpeg
-RUN apt-get update && \
-    apt-get install -y ffmpeg && \
-    rm -rf /var/lib/apt/lists/*
-    
 # Setze das Arbeitsverzeichnis für das Runtime-Image
 WORKDIR /app
 
