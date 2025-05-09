@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using System.Text.RegularExpressions;
+using System.Web;
 
 namespace MailArchiver.Controllers
 {
@@ -196,7 +197,44 @@ namespace MailArchiver.Controllers
             return File(fileBytes, contentType, fileName);
         }
 
+        // GET: Emails/RawContent/5
+        public async Task<IActionResult> RawContent(int id)
+        {
+            var email = await _context.ArchivedEmails
+                .FirstOrDefaultAsync(e => e.Id == id);
 
+            if (email == null)
+            {
+                return NotFound();
+            }
+
+            // Bereiten Sie das HTML für die direkte Anzeige vor
+            string html = !string.IsNullOrEmpty(email.HtmlBody)
+                ? SanitizeHtml(email.HtmlBody)
+                : $"<pre>{HttpUtility.HtmlEncode(email.Body)}</pre>";
+
+            // Fügen Sie die Basis-HTML-Struktur hinzu, wenn sie fehlt
+            if (!html.Contains("<!DOCTYPE") && !html.Contains("<html"))
+            {
+                html = $@"<!DOCTYPE html>
+                <html>
+                <head>
+                    <meta charset=""utf-8"">
+                    <meta name=""viewport"" content=""width=device-width, initial-scale=1.0"">
+                    <base target=""_blank"">
+                    <style>
+                        body {{ font-family: Arial, sans-serif; margin: 15px; }}
+                        pre {{ white-space: pre-wrap; }}
+                    </style>
+                </head>
+                <body>
+                    {html}
+                </body>
+                </html>";
+            }
+
+            return Content(html, "text/html");
+        }
 
         // Hilfsmethode zur Bereinigung von HTML für die sichere Darstellung
         private string SanitizeHtml(string html)
@@ -207,14 +245,20 @@ namespace MailArchiver.Controllers
             // Entfernen von potenziellen JavaScript-Elementen
             html = Regex.Replace(html, @"<script.*?</script>", "", RegexOptions.Singleline | RegexOptions.IgnoreCase);
 
-            // Entfernen von event handlers
+            // Entfernen von event handlers - behalte aber style-Attribute
             html = Regex.Replace(html, @"(on\w+)=([""']).*?\2", "", RegexOptions.IgnoreCase);
 
             // Entfernen von javascript: URLs
             html = Regex.Replace(html, @"href=([""'])javascript:.*?\1", "href=\"#\"", RegexOptions.IgnoreCase);
 
+            // WICHTIG: Style-Tags und inline-style Attribute NICHT entfernen
+            // Dadurch bleibt das originale Styling der E-Mail erhalten
+
             // Einfügen einer Base-URL für Bilder, die relativen Pfade verwenden
-            html = Regex.Replace(html, @"<head>", "<head><base target=\"_blank\">", RegexOptions.IgnoreCase);
+            if (!html.Contains("<base "))
+            {
+                html = Regex.Replace(html, @"<head>", "<head><base target=\"_blank\">", RegexOptions.IgnoreCase);
+            }
 
             return html;
         }

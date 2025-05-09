@@ -278,3 +278,5 @@ coverage/
 *.coverage
 *.coveragexml
 /obj
+/obj
+*.cache
