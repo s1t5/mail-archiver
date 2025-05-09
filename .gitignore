@@ -277,3 +277,4 @@ appsettings.Local.json
 coverage/
 *.coverage
 *.coveragexml
+/obj
