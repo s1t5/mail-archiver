@@ -123,7 +123,7 @@ docker compose restart
 - Bootstrap 5 and Chart.js for frontend
 
 ## 🤝 Contributing
-Contributions welcome! Please open an Issue or Pull Request.
+Contributions welcome! Please open an Issue or Pull Request or contact me per mail at mail@s1t5.dev.
 
 ## 🚀 Roadmap
 - Full-text search improvements
