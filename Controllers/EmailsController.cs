@@ -445,10 +445,22 @@ namespace MailArchiver.Controllers
         public async Task<JsonResult> GetFolders(int accountId)
         {
             if (accountId <= 0)
+            {
+                _logger.LogWarning("GetFolders called with invalid accountId: {AccountId}", accountId);
                 return Json(new List<string>());
+            }
 
-            var folders = await _emailService.GetMailFoldersAsync(accountId);
-            return Json(folders);
+            try
+            {
+                var folders = await _emailService.GetMailFoldersAsync(accountId);
+                _logger.LogInformation("Retrieved {Count} folders for account {AccountId}", folders.Count, accountId);
+                return Json(folders);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving folders for account {AccountId}", accountId);
+                return Json(new List<string> { "INBOX" });
+            }
         }
 
         // POST: Emails/ExportSearchResults
