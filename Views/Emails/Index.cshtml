@@ -146,12 +146,6 @@
                                         </td>
                                         <td>
                                             <a asp-action="Details" asp-route-id="@email.Id" class="btn btn-sm btn-outline-primary">Details</a>
-                                            @if (!Model.ShowSelectionControls)
-                                            {
-                                                <a asp-action="Restore" asp-route-id="@email.Id" class="btn btn-sm btn-success">
-                                                    <i class="bi bi-envelope-arrow-up"></i>
-                                                </a>
-                                            }
                                         </td>
                                     </tr>
                                 }
