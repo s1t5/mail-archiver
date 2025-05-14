@@ -102,65 +102,64 @@
         $(document).ready(function () {
             console.log("Restore view script initialized");
 
-            // Initialisierung - prüfen, ob bereits ein Konto ausgewählt ist
-            if ($('#accountSelect').val()) {
-                console.log("Initial account selected: " + $('#accountSelect').val());
-                loadFolders($('#accountSelect').val());
-            }
-
-            // Event-Handler für Änderungen am Konto-Dropdown
+            // Wenn das Konto geändert wird, lade die Ordner
             $('#accountSelect').change(function () {
                 var accountId = $(this).val();
-                console.log("Account changed to: " + accountId);
+                console.log("Account selected: " + accountId);
+
                 if (accountId) {
-                    loadFolders(accountId);
+                    // Anzeigen des Ladezustands
+                    $('#folderSelect').html('<option>Loading folders...</option>');
+
+                    // Ordner per AJAX laden
+                    $.ajax({
+                        url: '@Url.Action("GetFolders", "Emails")',
+                        data: { accountId: accountId },
+                        type: 'GET',
+                        dataType: 'json',
+                        success: function (data) {
+                            console.log("Folders loaded: " + data.length);
+
+                            var options = '<option value="">-- Select Folder --</option>';
+                            var inboxFound = false;
+
+                            // Optionen für alle Ordner erstellen
+                            $.each(data, function (index, folderName) {
+                                options += '<option value="' + folderName + '">' + folderName + '</option>';
+
+                                // INBOX erkennen
+                                if (folderName.toUpperCase() === 'INBOX') {
+                                    inboxFound = true;
+                                }
+                            });
+
+                            // Dropdown aktualisieren
+                            $('#folderSelect').html(options);
+
+                            // INBOX auswählen, wenn vorhanden
+                            if (inboxFound) {
+                                $("#folderSelect option").filter(function () {
+                                    return this.value.toUpperCase() === 'INBOX';
+                                }).prop('selected', true);
+
+                                console.log("INBOX automatically selected");
+                            }
+                        },
+                        error: function (xhr, status, error) {
+                            console.error("Error loading folders:", error);
+                            $('#folderSelect').html('<option value="">Error loading folders</option><option value="INBOX">INBOX</option>');
+                        }
+                    });
                 } else {
-                    // Zurücksetzen des Folder-Dropdowns, wenn kein Konto ausgewählt ist
+                    // Zurücksetzen, wenn kein Konto ausgewählt
                     $('#folderSelect').html('<option value="">-- Select Account First --</option>');
                 }
             });
 
-            // Funktion zum Laden der Ordner für ein bestimmtes Konto
-            function loadFolders(accountId) {
-                // Ladezustand anzeigen
-                $('#folderSelect').html('<option>Loading folders...</option>');
-
-                // AJAX-Anfrage zum Laden der Ordner
-                $.getJSON('@Url.Action("GetFolders", "Emails")?accountId=' + accountId, function (data) {
-                    console.log("Folders loaded: " + data.length + " folders");
-
-                    // Optionen für den Dropdown erstellen
-                    var options = '<option value="">-- Select Folder --</option>';
-
-                    // Prüfen, ob ein INBOX-Ordner existiert
-                    var hasInbox = false;
-                    var inboxOption = null;
-
-                    // Alle Ordner durchgehen und Optionen erstellen
-                    $.each(data, function (index, folder) {
-                        var option = '<option value="' + folder + '">' + folder + '</option>';
-                        options += option;
-
-                        // INBOX-Ordner identifizieren (case insensitive)
-                        if (folder.toUpperCase() === 'INBOX') {
-                            hasInbox = true;
-                            inboxOption = folder;
-                        }
-                    });
-
-                    // Dropdown aktualisieren
-                    $('#folderSelect').html(options);
-
-                    // INBOX automatisch auswählen, wenn vorhanden
-                    if (hasInbox) {
-                        $('#folderSelect').val(inboxOption);
-                        console.log("Auto-selected INBOX folder");
-                    }
-                })
-                    .fail(function (jqXHR, textStatus, errorThrown) {
-                        console.error("Error loading folders: " + textStatus + ", " + errorThrown);
-                        $('#folderSelect').html('<option value="">Error loading folders</option><option value="INBOX">INBOX</option>');
-                    });
+            // Initial die Ordner laden, wenn bereits ein Konto ausgewählt
+            if ($('#accountSelect').val()) {
+                console.log("Initial account selected, triggering change event");
+                $('#accountSelect').trigger('change');
             }
         });
     </script>

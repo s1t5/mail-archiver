@@ -440,25 +440,35 @@ namespace MailArchiver.Controllers
             }
         }
 
-        // GET: Emails/GetFolders/5 - AJAX endpoint to get folders for an account
         [HttpGet]
         public async Task<JsonResult> GetFolders(int accountId)
         {
+            _logger.LogInformation("GetFolders called with accountId: {AccountId}", accountId);
+
             if (accountId <= 0)
             {
-                _logger.LogWarning("GetFolders called with invalid accountId: {AccountId}", accountId);
-                return Json(new List<string>());
+                _logger.LogWarning("Invalid accountId provided: {AccountId}", accountId);
+                return Json(new List<string> { "INBOX" });
             }
 
             try
             {
                 var folders = await _emailService.GetMailFoldersAsync(accountId);
-                _logger.LogInformation("Retrieved {Count} folders for account {AccountId}", folders.Count, accountId);
+
+                if (folders == null || !folders.Any())
+                {
+                    _logger.LogWarning("No folders found for account {AccountId}, returning default", accountId);
+                    return Json(new List<string> { "INBOX" });
+                }
+
+                _logger.LogInformation("Successfully retrieved {Count} folders for account {AccountId}",
+                    folders.Count, accountId);
+
                 return Json(folders);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error retrieving folders for account {AccountId}", accountId);
+                _logger.LogError(ex, "Exception while retrieving folders for account {AccountId}", accountId);
                 return Json(new List<string> { "INBOX" });
             }
         }
