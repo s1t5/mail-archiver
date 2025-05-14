@@ -33,17 +33,15 @@ namespace MailArchiver.Controllers
             {
                 model = new SearchViewModel();
             }
-
             if (model.PageNumber <= 0) model.PageNumber = 1;
             if (model.PageSize <= 0) model.PageSize = 20;
 
             // Konten für die Dropdown-Liste laden
             var accounts = await _context.MailAccounts.ToListAsync();
             model.AccountOptions = new List<SelectListItem>
-            {
-                new SelectListItem { Text = "Alle Konten", Value = "" }
-            };
-
+    {
+        new SelectListItem { Text = "All Accounts", Value = "" }
+    };
             model.AccountOptions.AddRange(accounts.Select(a =>
                 new SelectListItem
                 {
@@ -67,6 +65,9 @@ namespace MailArchiver.Controllers
 
             model.SearchResults = emails;
             model.TotalResults = totalCount;
+
+            // Log the state of ShowSelectionControls for debugging
+            _logger.LogInformation("Selection mode is {SelectionMode}", model.ShowSelectionControls ? "enabled" : "disabled");
 
             return View(model);
         }
@@ -153,6 +154,301 @@ namespace MailArchiver.Controllers
             Response.Headers.Add("Content-Disposition", $"attachment; filename={fileName}");
 
             return File(fileBytes, contentType, fileName);
+        }
+
+        // Controllers/EmailsController.cs - Neue Methoden hinzufügen
+
+        // GET: Emails/Restore/5
+        [HttpGet]
+        public async Task<IActionResult> Restore(int id)
+        {
+            var email = await _context.ArchivedEmails
+                .Include(e => e.MailAccount)
+                .FirstOrDefaultAsync(e => e.Id == id);
+
+            if (email == null)
+            {
+                return NotFound();
+            }
+
+            // Liste aller aktiven E-Mail-Konten abrufen
+            var accounts = await _context.MailAccounts
+                .Where(a => a.IsEnabled)
+                .OrderBy(a => a.Name)
+                .ToListAsync();
+
+            var model = new EmailRestoreViewModel
+            {
+                EmailId = email.Id,
+                EmailSubject = email.Subject,
+                EmailDate = email.SentDate,
+                EmailSender = email.From,
+                AvailableAccounts = accounts.Select(a => new SelectListItem
+                {
+                    Value = a.Id.ToString(),
+                    Text = $"{a.Name} ({a.EmailAddress})"
+                }).ToList()
+            };
+
+            // If there's only one account, select it by default and load its folders
+            if (model.AvailableAccounts.Count == 1)
+            {
+                model.TargetAccountId = int.Parse(model.AvailableAccounts[0].Value);
+                model.AvailableAccounts[0].Selected = true;
+
+                // Load folders for this account
+                var folders = await _emailService.GetMailFoldersAsync(model.TargetAccountId);
+                model.AvailableFolders = folders.Select(f => new SelectListItem
+                {
+                    Value = f,
+                    Text = f
+                }).ToList();
+
+                // Select INBOX by default if available
+                var inbox = model.AvailableFolders.FirstOrDefault(f => f.Value.ToUpper() == "INBOX");
+                if (inbox != null)
+                {
+                    inbox.Selected = true;
+                    model.TargetFolder = inbox.Value;
+                }
+            }
+
+            return View(model);
+        }
+
+        // POST: Emails/Restore
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Restore(EmailRestoreViewModel model)
+        {
+            _logger.LogInformation("Restore POST method called with Email ID: {EmailId}, Target Account ID: {AccountId}, Target Folder: {Folder}",
+                model.EmailId, model.TargetAccountId, model.TargetFolder);
+
+            // Ignore validation errors for the display-only fields
+            if (ModelState.ContainsKey("EmailSender"))
+                ModelState.Remove("EmailSender");
+            if (ModelState.ContainsKey("EmailSubject"))
+                ModelState.Remove("EmailSubject");
+
+            if (!ModelState.IsValid)
+            {
+                _logger.LogWarning("Model validation failed for email restoration");
+                foreach (var modelState in ModelState.Values)
+                {
+                    foreach (var error in modelState.Errors)
+                    {
+                        _logger.LogWarning("Validation error: {ErrorMessage}", error.ErrorMessage);
+                    }
+                }
+
+                // Reload account list if validation fails
+                var accounts = await _context.MailAccounts
+                    .Where(a => a.IsEnabled)
+                    .OrderBy(a => a.Name)
+                    .ToListAsync();
+
+                model.AvailableAccounts = accounts.Select(a => new SelectListItem
+                {
+                    Value = a.Id.ToString(),
+                    Text = $"{a.Name} ({a.EmailAddress})",
+                    Selected = a.Id == model.TargetAccountId
+                }).ToList();
+
+                // Reload folders for the selected account
+                if (model.TargetAccountId > 0)
+                {
+                    var folders = await _emailService.GetMailFoldersAsync(model.TargetAccountId);
+                    model.AvailableFolders = folders.Select(f => new SelectListItem
+                    {
+                        Value = f,
+                        Text = f,
+                        Selected = f == model.TargetFolder
+                    }).ToList();
+                }
+
+                // Reload email details if needed
+                var email = await _context.ArchivedEmails.FindAsync(model.EmailId);
+                if (email != null)
+                {
+                    model.EmailSubject = email.Subject;
+                    model.EmailSender = email.From;
+                    model.EmailDate = email.SentDate;
+                }
+
+                return View(model);
+            }
+
+            try
+            {
+                _logger.LogInformation("Attempting to restore email {EmailId} to folder '{Folder}' of account {AccountId}",
+                    model.EmailId, model.TargetFolder, model.TargetAccountId);
+
+                var result = await _emailService.RestoreEmailToFolderAsync(
+                    model.EmailId,
+                    model.TargetAccountId,
+                    model.TargetFolder);
+
+                if (result)
+                {
+                    _logger.LogInformation("Email restoration successful");
+                    TempData["SuccessMessage"] = "The email has been successfully copied to the specified folder.";
+                    return RedirectToAction(nameof(Details), new { id = model.EmailId });
+                }
+                else
+                {
+                    _logger.LogWarning("Email restoration failed, but no exception was thrown");
+                    TempData["ErrorMessage"] = "The email could not be copied to the specified folder. Please check the logs.";
+                    return RedirectToAction(nameof(Details), new { id = model.EmailId });
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Exception occurred during email restoration");
+                TempData["ErrorMessage"] = $"An error occurred: {ex.Message}";
+                return RedirectToAction(nameof(Details), new { id = model.EmailId });
+            }
+        }
+
+        // Controllers/EmailsController.cs - Neue Methoden hinzufügen
+
+        // GET: Emails/BatchRestore
+        [HttpGet]
+        public async Task<IActionResult> BatchRestore(List<int> ids, string returnUrl = null)
+        {
+            if (ids == null || !ids.Any())
+            {
+                TempData["ErrorMessage"] = "No emails selected for batch operation.";
+                return Redirect(returnUrl ?? Url.Action("Index"));
+            }
+
+            // Get active email accounts for dropdown
+            var accounts = await _context.MailAccounts
+                .Where(a => a.IsEnabled)
+                .OrderBy(a => a.Name)
+                .ToListAsync();
+
+            var model = new BatchRestoreViewModel
+            {
+                SelectedEmailIds = ids,
+                ReturnUrl = returnUrl,
+                AvailableAccounts = accounts.Select(a => new SelectListItem
+                {
+                    Value = a.Id.ToString(),
+                    Text = $"{a.Name} ({a.EmailAddress})"
+                }).ToList()
+            };
+
+            // If there's only one account, select it by default and load its folders
+            if (model.AvailableAccounts.Count == 1)
+            {
+                model.TargetAccountId = int.Parse(model.AvailableAccounts[0].Value);
+
+                // Load folders for this account
+                var folders = await _emailService.GetMailFoldersAsync(model.TargetAccountId);
+                model.AvailableFolders = folders.Select(f => new SelectListItem
+                {
+                    Value = f,
+                    Text = f
+                }).ToList();
+
+                // Select INBOX by default if available
+                var inbox = model.AvailableFolders.FirstOrDefault(f => f.Value.ToUpper() == "INBOX");
+                if (inbox != null)
+                {
+                    inbox.Selected = true;
+                    model.TargetFolder = inbox.Value;
+                }
+            }
+
+            return View(model);
+        }
+
+        // POST: Emails/BatchRestore
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> BatchRestore(BatchRestoreViewModel model)
+        {
+            _logger.LogInformation("BatchRestore POST method called with {Count} emails, Target Account ID: {AccountId}, Target Folder: {Folder}",
+                model.SelectedEmailIds.Count, model.TargetAccountId, model.TargetFolder);
+
+            if (!ModelState.IsValid)
+            {
+                _logger.LogWarning("Model validation failed for batch email restoration");
+
+                // Reload account list if validation fails
+                var accounts = await _context.MailAccounts
+                    .Where(a => a.IsEnabled)
+                    .OrderBy(a => a.Name)
+                    .ToListAsync();
+
+                model.AvailableAccounts = accounts.Select(a => new SelectListItem
+                {
+                    Value = a.Id.ToString(),
+                    Text = $"{a.Name} ({a.EmailAddress})",
+                    Selected = a.Id == model.TargetAccountId
+                }).ToList();
+
+                // Reload folders for the selected account
+                if (model.TargetAccountId > 0)
+                {
+                    var folders = await _emailService.GetMailFoldersAsync(model.TargetAccountId);
+                    model.AvailableFolders = folders.Select(f => new SelectListItem
+                    {
+                        Value = f,
+                        Text = f,
+                        Selected = f == model.TargetFolder
+                    }).ToList();
+                }
+
+                return View(model);
+            }
+
+            try
+            {
+                _logger.LogInformation("Attempting to restore {Count} emails to folder '{Folder}' of account {AccountId}",
+                    model.SelectedEmailIds.Count, model.TargetFolder, model.TargetAccountId);
+
+                var (successful, failed) = await _emailService.RestoreMultipleEmailsAsync(
+                    model.SelectedEmailIds,
+                    model.TargetAccountId,
+                    model.TargetFolder);
+
+                if (successful > 0)
+                {
+                    if (failed == 0)
+                    {
+                        TempData["SuccessMessage"] = $"All {successful} emails have been successfully copied to the specified folder.";
+                    }
+                    else
+                    {
+                        TempData["SuccessMessage"] = $"{successful} emails have been copied, but {failed} could not be copied. Check the logs for details.";
+                    }
+                }
+                else
+                {
+                    TempData["ErrorMessage"] = "None of the selected emails could be copied. Please check the logs for details.";
+                }
+
+                // Redirect to the return URL if provided, otherwise to the index
+                return Redirect(model.ReturnUrl ?? Url.Action("Index"));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Exception occurred during batch email restoration");
+                TempData["ErrorMessage"] = $"An error occurred: {ex.Message}";
+                return Redirect(model.ReturnUrl ?? Url.Action("Index"));
+            }
+        }
+
+        // GET: Emails/GetFolders/5 - AJAX endpoint to get folders for an account
+        [HttpGet]
+        public async Task<JsonResult> GetFolders(int accountId)
+        {
+            if (accountId <= 0)
+                return Json(new List<string>());
+
+            var folders = await _emailService.GetMailFoldersAsync(accountId);
+            return Json(folders);
         }
 
         // POST: Emails/ExportSearchResults

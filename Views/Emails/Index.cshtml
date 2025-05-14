@@ -5,56 +5,60 @@
 
 <div class="container-fluid">
     <h1>Email Archive</h1>
-    
     <div class="card mb-4">
         <div class="card-header">
             <h5>Search</h5>
         </div>
         <div class="card-body">
-            <form asp-action="Index" method="get">
+            <form asp-action="Index" method="get" id="searchForm">
                 <div class="row">
                     <div class="col-md-4 mb-3">
                         <label asp-for="SearchTerm" class="form-label">Search Term</label>
                         <input asp-for="SearchTerm" class="form-control" placeholder="Subject, sender, content..." />
                     </div>
-                    
                     <div class="col-md-4 mb-3">
                         <label asp-for="FromDate" class="form-label">From Date</label>
                         <input asp-for="FromDate" class="form-control" type="date" />
                     </div>
-                    
                     <div class="col-md-4 mb-3">
                         <label asp-for="ToDate" class="form-label">To Date</label>
                         <input asp-for="ToDate" class="form-control" type="date" />
                     </div>
                 </div>
-                
                 <div class="row">
                     <div class="col-md-6 mb-3">
                         <label asp-for="SelectedAccountId" class="form-label">Account</label>
                         <select asp-for="SelectedAccountId" asp-items="Model.AccountOptions" class="form-select"></select>
                     </div>
-                    
                     <div class="col-md-6 mb-3">
                         <label asp-for="IsOutgoing" class="form-label">Direction</label>
                         <select asp-for="IsOutgoing" asp-items="Model.DirectionOptions" class="form-select"></select>
                     </div>
                 </div>
-                
                 <div class="row">
                     <div class="col-12">
-                        <button type="submit" class="btn btn-primary">Search</button>
-                        <a asp-action="Index" class="btn btn-outline-secondary">Reset</a>
-                        
-                        <button type="button" class="btn btn-success float-end" data-bs-toggle="modal" data-bs-target="#exportModal">
-                            <i class="bi bi-download"></i> Export
-                        </button>
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <button type="submit" class="btn btn-primary">Search</button>
+                                <a asp-action="Index" class="btn btn-outline-secondary">Reset</a>
+                                <div class="form-check form-check-inline ms-3">
+                                    <input class="form-check-input" type="checkbox" id="toggleSelectionMode" name="ShowSelectionControls" value="true"
+                                           @(Model.ShowSelectionControls ? "checked" : "")>
+                                    <label class="form-check-label" for="toggleSelectionMode">Enable Selection Mode</label>
+                                </div>
+                            </div>
+                            <div>
+                                <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#exportModal">
+                                    <i class="bi bi-download"></i> Export
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </form>
         </div>
     </div>
-    
+
     @if (Model.SearchResults != null && Model.SearchResults.Any())
     {
         <div class="card">
@@ -62,53 +66,99 @@
                 <span>Search Results: <strong>@Model.TotalResults</strong> emails found</span>
                 <span>Page @Model.PageNumber of @Model.TotalPages</span>
             </div>
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-hover table-striped mb-0">
-                        <thead class="table-dark">
-                            <tr>
-                                <th>Subject</th>
-                                <th>From</th>
-                                <th>To</th>
-                                <th>Date</th>
-                                <th>Account</th>
-                                <th>Attachments</th>
-                                <th></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var email in Model.SearchResults)
-                            {
-                                <tr>
-                                    <td>
-                                        @if (email.IsOutgoing)
-                                        {
-                                            <span class="badge bg-info">Outgoing</span>
-                                        }
-                                        else
-                                        {
-                                            <span class="badge bg-secondary">Incoming</span>
-                                        }
-                                        @email.Subject
-                                    </td>
-                                    <td>@email.From</td>
-                                    <td>@email.To</td>
-                                    <td>@email.SentDate.ToString("MM/dd/yyyy HH:mm")</td>
-                                    <td>@email.MailAccount.Name</td>
-                                    <td>
-                                        @if (email.HasAttachments)
-                                        {
-                                            <span class="badge bg-warning">With Attachments</span>
-                                        }
-                                    </td>
-                                    <td>
-                                        <a asp-action="Details" asp-route-id="@email.Id" class="btn btn-sm btn-outline-primary">Details</a>
-                                    </td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
+            
+            @if (Model.ShowSelectionControls)
+            {
+                <div class="p-2 bg-light border-bottom">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <button type="button" id="selectAllBtn" class="btn btn-sm btn-outline-primary">Select All</button>
+                            <button type="button" id="deselectAllBtn" class="btn btn-sm btn-outline-secondary">Deselect All</button>
+                            <span id="selectionCounter" class="ms-3 badge bg-primary">0 selected</span>
+                            
+                        </div>
+                        <div id="selectionActions" style="display:none;">
+                            <button type="button" id="batchRestoreBtn" class="btn btn-sm btn-success">
+                                <i class="bi bi-envelope-arrow-up"></i> Copy Selected to Mailbox
+                            </button>
+                        </div>
+                    </div>
                 </div>
+            }
+            
+            <div class="card-body p-0">
+                <form id="batchActionsForm" method="get">
+                    <input type="hidden" name="returnUrl" id="returnUrlInput" value="@Context.Request.Path@Context.Request.QueryString" />
+                    <div class="table-responsive">
+                        <table class="table table-hover table-striped mb-0">
+                            <thead class="table-dark">
+                                <tr>
+                                    @if (Model.ShowSelectionControls)
+                                    {
+                                        <th style="width: 50px;">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" id="selectAllCheckbox">
+                                            </div>
+                                        </th>
+                                    }
+                                    <th>Subject</th>
+                                    <th>From</th>
+                                    <th>To</th>
+                                    <th>Date</th>
+                                    <th>Account</th>
+                                    <th>Attachments</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var email in Model.SearchResults)
+                                {
+                                    <tr>
+                                        @if (Model.ShowSelectionControls)
+                                        {
+                                            <td>
+                                                <div class="form-check">
+                                                    <input class="form-check-input email-select-checkbox" type="checkbox" 
+                                                           name="ids" value="@email.Id">
+                                                </div>
+                                            </td>
+                                        }
+                                        <td>
+                                            @if (email.IsOutgoing)
+                                            {
+                                                <span class="badge bg-info">Outgoing</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-secondary">Incoming</span>
+                                            }
+                                            @email.Subject
+                                        </td>
+                                        <td>@email.From</td>
+                                        <td>@email.To</td>
+                                        <td>@email.SentDate.ToString("MM/dd/yyyy HH:mm")</td>
+                                        <td>@email.MailAccount.Name</td>
+                                        <td>
+                                            @if (email.HasAttachments)
+                                            {
+                                                <span class="badge bg-warning">With Attachments</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            <a asp-action="Details" asp-route-id="@email.Id" class="btn btn-sm btn-outline-primary">Details</a>
+                                            @if (!Model.ShowSelectionControls)
+                                            {
+                                                <a asp-action="Restore" asp-route-id="@email.Id" class="btn btn-sm btn-success">
+                                                    <i class="bi bi-envelope-arrow-up"></i>
+                                                </a>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </form>
             </div>
             <div class="card-footer">
                 <nav>
@@ -116,44 +166,45 @@
                         @if (Model.PageNumber > 1)
                         {
                             <li class="page-item">
-                                <a class="page-link" href="@Url.Action("Index", new { 
-                                    SearchTerm = Model.SearchTerm, 
-                                    FromDate = Model.FromDate?.ToString("yyyy-MM-dd"), 
+                                <a class="page-link" href="@Url.Action("Index", new {
+                                    SearchTerm = Model.SearchTerm,
+                                    FromDate = Model.FromDate?.ToString("yyyy-MM-dd"),
                                     ToDate = Model.ToDate?.ToString("yyyy-MM-dd"),
                                     SelectedAccountId = Model.SelectedAccountId,
                                     IsOutgoing = Model.IsOutgoing,
                                     PageNumber = Model.PageNumber - 1,
-                                    PageSize = Model.PageSize
+                                    PageSize = Model.PageSize,
+                                    ShowSelectionControls = Model.ShowSelectionControls
                                 })">Previous</a>
                             </li>
                         }
-                        
                         @for (int i = Math.Max(1, Model.PageNumber - 2); i <= Math.Min(Model.TotalPages, Model.PageNumber + 2); i++)
                         {
                             <li class="page-item @(i == Model.PageNumber ? "active" : "")">
-                                <a class="page-link" href="@Url.Action("Index", new { 
-                                    SearchTerm = Model.SearchTerm, 
-                                    FromDate = Model.FromDate?.ToString("yyyy-MM-dd"), 
+                                <a class="page-link" href="@Url.Action("Index", new {
+                                    SearchTerm = Model.SearchTerm,
+                                    FromDate = Model.FromDate?.ToString("yyyy-MM-dd"),
                                     ToDate = Model.ToDate?.ToString("yyyy-MM-dd"),
                                     SelectedAccountId = Model.SelectedAccountId,
                                     IsOutgoing = Model.IsOutgoing,
                                     PageNumber = i,
-                                    PageSize = Model.PageSize
+                                    PageSize = Model.PageSize,
+                                    ShowSelectionControls = Model.ShowSelectionControls
                                 })">@i</a>
                             </li>
                         }
-                        
                         @if (Model.PageNumber < Model.TotalPages)
                         {
                             <li class="page-item">
-                                <a class="page-link" href="@Url.Action("Index", new { 
-                                    SearchTerm = Model.SearchTerm, 
-                                    FromDate = Model.FromDate?.ToString("yyyy-MM-dd"), 
+                                <a class="page-link" href="@Url.Action("Index", new {
+                                    SearchTerm = Model.SearchTerm,
+                                    FromDate = Model.FromDate?.ToString("yyyy-MM-dd"),
                                     ToDate = Model.ToDate?.ToString("yyyy-MM-dd"),
                                     SelectedAccountId = Model.SelectedAccountId,
                                     IsOutgoing = Model.IsOutgoing,
                                     PageNumber = Model.PageNumber + 1,
-                                    PageSize = Model.PageSize
+                                    PageSize = Model.PageSize,
+                                    ShowSelectionControls = Model.ShowSelectionControls
                                 })">Next</a>
                             </li>
                         }
@@ -171,6 +222,25 @@
     }
 </div>
 
+<script>
+    function debugSelection() {
+        const checkboxes = document.querySelectorAll('.email-select-checkbox');
+        const checkedBoxes = document.querySelectorAll('.email-select-checkbox:checked');
+        console.log("Total checkboxes: " + checkboxes.length);
+        console.log("Checked checkboxes: " + checkedBoxes.length);
+        
+        // Show IDs of checked emails
+        var checkedIds = [];
+        checkedBoxes.forEach(function(checkbox) {
+            checkedIds.push(checkbox.value);
+        });
+        console.log("Checked email IDs: " + checkedIds.join(', '));
+        
+        alert("Found " + checkboxes.length + " checkboxes, " + 
+              checkedBoxes.length + " are checked. See console for details.");
+    }
+</script>
+
 <!-- Export Modal -->
 <div class="modal fade" id="exportModal" tabindex="-1" aria-labelledby="exportModalLabel" aria-hidden="true">
     <div class="modal-dialog">
@@ -186,7 +256,6 @@
                     <input type="hidden" name="ToDate" value="@Model.ToDate?.ToString("yyyy-MM-dd")" />
                     <input type="hidden" name="SelectedAccountId" value="@Model.SelectedAccountId" />
                     <input type="hidden" name="IsOutgoing" value="@Model.IsOutgoing" />
-                    
                     <div class="mb-3">
                         <label for="exportFormat" class="form-label">Export Format</label>
                         <select name="Format" id="exportFormat" class="form-select">
@@ -194,7 +263,6 @@
                             <option value="1">JSON (Data)</option>
                         </select>
                     </div>
-                    
                     <div class="alert alert-info">
                         <small>Export may take some time for large numbers of emails. The exported file will contain up to 10,000 emails.</small>
                     </div>
@@ -207,3 +275,137 @@
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log("Email selection script initialized");
+            
+            // Get elements
+            const toggleSelectionMode = document.getElementById('toggleSelectionMode');
+            const searchForm = document.getElementById('searchForm');
+            const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+            const selectAllBtn = document.getElementById('selectAllBtn');
+            const deselectAllBtn = document.getElementById('deselectAllBtn');
+            const selectionCounter = document.getElementById('selectionCounter');
+            const selectionActions = document.getElementById('selectionActions');
+            const batchRestoreBtn = document.getElementById('batchRestoreBtn');
+            const batchActionsForm = document.getElementById('batchActionsForm');
+            const emailCheckboxes = document.querySelectorAll('.email-select-checkbox');
+            
+            // Log initial state
+            console.log("Selection controls visible: " + @(Model.ShowSelectionControls ? "true" : "false"));
+            console.log("Email checkboxes count: " + emailCheckboxes.length);
+            
+            // Toggle selection mode using form submit
+            if (toggleSelectionMode) {
+                toggleSelectionMode.addEventListener('change', function() {
+                    console.log("Selection mode toggled: " + this.checked);
+                    searchForm.submit();
+                });
+            }
+            
+            // Update selection counter and actions visibility
+            function updateSelectionCounter() {
+                const checkedBoxes = document.querySelectorAll('.email-select-checkbox:checked');
+                const count = checkedBoxes.length;
+                console.log("Selected emails count: " + count);
+                
+                if (selectionCounter) {
+                    selectionCounter.textContent = count + ' selected';
+                }
+                
+                // Show/hide batch actions
+                if (selectionActions) {
+                    if (count > 0) {
+                        selectionActions.style.display = 'block';
+                        console.log("Showing selection actions");
+                    } else {
+                        selectionActions.style.display = 'none';
+                        console.log("Hiding selection actions");
+                    }
+                }
+            }
+            
+            // Initialize counter
+            updateSelectionCounter();
+            
+            // Select/deselect all checkboxes
+            if (selectAllCheckbox) {
+                selectAllCheckbox.addEventListener('change', function() {
+                    const isChecked = this.checked;
+                    console.log("Select all checkbox changed: " + isChecked);
+                    
+                    emailCheckboxes.forEach(function(checkbox) {
+                        checkbox.checked = isChecked;
+                    });
+                    
+                    updateSelectionCounter();
+                });
+            }
+            
+            // Individual checkbox change
+            emailCheckboxes.forEach(function(checkbox) {
+                checkbox.addEventListener('change', function() {
+                    console.log("Email checkbox changed");
+                    updateSelectionCounter();
+                    
+                    // Update select all checkbox
+                    if (selectAllCheckbox) {
+                        const allChecked = document.querySelectorAll('.email-select-checkbox:not(:checked)').length === 0;
+                        selectAllCheckbox.checked = allChecked;
+                    }
+                });
+            });
+            
+            // Select all button
+            if (selectAllBtn) {
+                selectAllBtn.addEventListener('click', function() {
+                    console.log("Select all button clicked");
+                    emailCheckboxes.forEach(function(checkbox) {
+                        checkbox.checked = true;
+                    });
+                    
+                    if (selectAllCheckbox) {
+                        selectAllCheckbox.checked = true;
+                    }
+                    
+                    updateSelectionCounter();
+                });
+            }
+            
+            // Deselect all button
+            if (deselectAllBtn) {
+                deselectAllBtn.addEventListener('click', function() {
+                    console.log("Deselect all button clicked");
+                    emailCheckboxes.forEach(function(checkbox) {
+                        checkbox.checked = false;
+                    });
+                    
+                    if (selectAllCheckbox) {
+                        selectAllCheckbox.checked = false;
+                    }
+                    
+                    updateSelectionCounter();
+                });
+            }
+            
+            // Batch restore button
+            if (batchRestoreBtn) {
+                batchRestoreBtn.addEventListener('click', function() {
+                    console.log("Batch restore button clicked");
+                    const checkedBoxes = document.querySelectorAll('.email-select-checkbox:checked');
+                    
+                    if (checkedBoxes.length === 0) {
+                        alert('Please select at least one email to copy.');
+                        return;
+                    }
+                    
+                    // Submit the form to the BatchRestore action
+                    batchActionsForm.action = '@Url.Action("BatchRestore")';
+                    batchActionsForm.submit();
+                });
+            }
+        });
+    </script>
+}

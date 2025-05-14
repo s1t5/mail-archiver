@@ -30,6 +30,9 @@
 - Bulk export search results to CSV or JSON
 - Attachment download with original filenames
 
+### 📤 Restore Function
+- Restore a selection of emails to a destination mailbox
+
 ## 🖼️ Screenshots
 ![Mail-Archiver Screenshot](https://github.com/s1t5/mail-archiver/blob/main/Screenshots/dashboard.jpg?raw=true)
 

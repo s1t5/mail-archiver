@@ -1,0 +1,158 @@
+@model MailArchiver.Models.ViewModels.BatchRestoreViewModel
+@{
+    ViewData["Title"] = "Batch Copy Emails";
+}
+
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1>Copy Multiple Emails to Mailbox</h1>
+        <a href="@(string.IsNullOrEmpty(Model.ReturnUrl) ? Url.Action("Index") : Model.ReturnUrl)" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Back
+        </a>
+    </div>
+    
+    <div class="card mb-4">
+        <div class="card-header bg-light">
+            <h5 class="mb-0">Selected Emails</h5>
+        </div>
+        <div class="card-body">
+            <p>You have selected <strong>@Model.EmailCount</strong> emails to copy to a mailbox folder.</p>
+            
+            @if (Model.EmailCount > 10)
+            {
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle-fill me-2"></i>
+                    This operation may take some time depending on the number of emails and their sizes.
+                </div>
+            }
+        </div>
+    </div>
+    
+    <div class="card">
+        <div class="card-header bg-light">
+            <h5 class="mb-0">Target Settings</h5>
+        </div>
+        <div class="card-body">
+            <form asp-action="BatchRestore" asp-controller="Emails" method="post">
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+                
+                @foreach (var id in Model.SelectedEmailIds)
+                {
+                    <input type="hidden" name="SelectedEmailIds" value="@id" />
+                }
+                <input type="hidden" asp-for="ReturnUrl" />
+                
+                <div class="mb-3">
+                    <label asp-for="TargetAccountId" class="form-label">Target Account</label>
+                    <select asp-for="TargetAccountId" asp-items="Model.AvailableAccounts" class="form-select" id="accountSelect">
+                        <option value="">-- Select Account --</option>
+                    </select>
+                    <span asp-validation-for="TargetAccountId" class="text-danger"></span>
+                </div>
+                
+                <div class="mb-3">
+                    <label asp-for="TargetFolder" class="form-label">Target Folder</label>
+                    <select asp-for="TargetFolder" class="form-select" id="folderSelect">
+                        @if (Model.AvailableFolders != null && Model.AvailableFolders.Any())
+                        {
+                            @foreach (var folder in Model.AvailableFolders)
+                            {
+                                <option value="@folder.Value" selected="@folder.Selected">@folder.Text</option>
+                            }
+                        }
+                        else
+                        {
+                            <option value="">-- Select Account First --</option>
+                            <option value="INBOX">INBOX</option>
+                        }
+                    </select>
+                    <div class="form-text">
+                        Select a mail account first to view available folders.
+                    </div>
+                    <span asp-validation-for="TargetFolder" class="text-danger"></span>
+                </div>
+                
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle-fill me-2"></i>
+                    This function copies the selected archived emails to the specified folder of the target account.
+                    The emails will remain in the archive.
+                </div>
+                
+                <div class="d-flex mt-4">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-envelope-arrow-up me-2"></i>Copy Emails
+                    </button>
+                    <a href="@(string.IsNullOrEmpty(Model.ReturnUrl) ? Url.Action("Index") : Model.ReturnUrl)" class="btn btn-outline-secondary ms-2">
+                        Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        $(document).ready(function() {
+            console.log("Batch restore view script initialized");
+            
+            // When account selection changes, load folders
+            $('#accountSelect').change(function() {
+                var accountId = $(this).val();
+                console.log("Account selected: " + accountId);
+                
+                if (accountId) {
+                    // Show loading state
+                    $('#folderSelect').html('<option>Loading folders...</option>');
+                    
+                    // Get folders via AJAX
+                    $.getJSON('@Url.Action("GetFolders", "Emails")?accountId=' + accountId, function(data) {
+                        console.log("Folders loaded: " + data.length);
+                        
+                        var options = '<option value="">-- Select Folder --</option>';
+                        var hasInbox = false;
+                        var inboxIndex = -1;
+                        
+                        // Generate options from data
+                        $.each(data, function(index, folder) {
+                            options += '<option value="' + folder + '">' + folder + '</option>';
+                            
+                            // Check for INBOX
+                            if (folder.toUpperCase() === 'INBOX') {
+                                hasInbox = true;
+                                inboxIndex = index;
+                            }
+                        });
+                        
+                        // Update select element
+                        $('#folderSelect').html(options);
+                        
+                        // Auto-select INBOX if available
+                        if (hasInbox) {
+                            $('#folderSelect option').each(function() {
+                                if ($(this).val().toUpperCase() === 'INBOX') {
+                                    $(this).prop('selected', true);
+                                    return false;
+                                }
+                            });
+                        }
+                    })
+                    .fail(function(jqXHR, textStatus, errorThrown) {
+                        console.error("Error loading folders: " + textStatus + ", " + errorThrown);
+                        $('#folderSelect').html('<option value="">Error loading folders</option><option value="INBOX">INBOX</option>');
+                    });
+                } else {
+                    // Clear folder select if no account selected
+                    $('#folderSelect').html('<option value="">-- Select Account First --</option>');
+                }
+            });
+            
+            // Initial load if an account is already selected
+            if ($('#accountSelect').val()) {
+                console.log("Account already selected, triggering change event");
+                $('#accountSelect').trigger('change');
+            }
+        });
+    </script>
+}

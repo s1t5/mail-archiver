@@ -20,10 +20,14 @@ namespace MailArchiver.Models.ViewModels
             new SelectListItem { Text = "Eingehend", Value = "false" },
             new SelectListItem { Text = "Ausgehend", Value = "true" }
         };
-        
+
         // Suchergebnisse
         public List<ArchivedEmail> SearchResults { get; set; }
         public int TotalResults { get; set; }
         public int TotalPages => (int)Math.Ceiling(TotalResults / (double)PageSize);
+
+        // Für die Batch-Operationen
+        public List<int> SelectedEmailIds { get; set; } = new List<int>();
+        public bool ShowSelectionControls { get; set; } = false;
     }
 }

@@ -2,7 +2,6 @@
 @{
     ViewData["Title"] = "Email Details";
 }
-
 <div class="container-fluid">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h1>Email Details</h1>
@@ -22,9 +21,11 @@
                     <li><a asp-action="Export" asp-route-id="@Model.Email.Id" asp-route-format="1" class="dropdown-item">Export as JSON</a></li>
                 </ul>
             </div>
+            <a asp-action="Restore" asp-route-id="@Model.Email.Id" class="btn btn-success ms-2">
+                <i class="bi bi-envelope-arrow-up"></i> Copy to Mailbox
+            </a>
         </div>
     </div>
-
     <div class="card mb-3">
         <div class="card-header bg-light">
             <div class="row align-items-center">
@@ -95,21 +96,18 @@
                 </div>
             }
             <hr />
-
             <div class="email-content mt-3">
                 @if (!string.IsNullOrEmpty(Model.Email.HtmlBody))
                 {
                     <div class="email-content-container">
                         <!-- Verwenden des neuen RawContent-Endpoints für den iFrame -->
-                        <iframe id="email-content-frame" src="@Url.Action("RawContent", new { id = Model.Email.Id })" 
-                                class="w-100 border p-0" style="height: 500px; border-radius: 0.25rem;" 
+                        <iframe id="email-content-frame" src="@Url.Action("RawContent", new { id = Model.Email.Id })"
+                                class="w-100 border p-0" style="height: 500px; border-radius: 0.25rem;"
                                 sandbox="allow-same-origin allow-popups"></iframe>
                     </div>
-                    
                     <script>
                         document.addEventListener('DOMContentLoaded', function() {
                             const iframe = document.getElementById('email-content-frame');
-                            
                             // iFrame-Höhe an Inhalt anpassen
                             iframe.onload = function() {
                                 setTimeout(function() {
@@ -132,7 +130,6 @@
         </div>
     </div>
 </div>
-
 @functions {
     string FormatFileSize(long bytes)
     {

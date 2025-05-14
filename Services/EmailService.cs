@@ -82,6 +82,355 @@ namespace MailArchiver.Services
             }
         }
 
+        // Services/EmailService.cs - Neue Methode hinzufügen, um alle Ordner eines Kontos zu holen
+        public async Task<List<string>> GetMailFoldersAsync(int accountId)
+        {
+            var account = await _context.MailAccounts.FindAsync(accountId);
+            if (account == null)
+            {
+                _logger.LogError("Account with ID {AccountId} not found", accountId);
+                return new List<string>();
+            }
+
+            try
+            {
+                using var client = new ImapClient();
+                await client.ConnectAsync(account.ImapServer, account.ImapPort, account.UseSSL);
+                await client.AuthenticateAsync(account.Username, account.Password);
+
+                var allFolders = new List<string>();
+
+                // Get all personal namespace folders
+                foreach (var folder in client.GetFolders(client.PersonalNamespaces[0]))
+                {
+                    // Add the main folder
+                    allFolders.Add(folder.FullName);
+
+                    // Add all subfolders recursively
+                    await AddSubfolderNamesRecursively(folder, allFolders);
+                }
+
+                await client.DisconnectAsync(true);
+
+                return allFolders.OrderBy(f => f).ToList();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving folders for account {AccountId}: {Message}", accountId, ex.Message);
+                return new List<string>();
+            }
+        }
+
+        // Helper method to add subfolder names recursively
+        private async Task AddSubfolderNamesRecursively(IMailFolder folder, List<string> folderNames)
+        {
+            try
+            {
+                // Get all subfolders of the current folder
+                var subfolders = folder.GetSubfolders(false);
+                foreach (var subfolder in subfolders)
+                {
+                    folderNames.Add(subfolder.FullName);
+                    // Recursively add this folder's subfolders
+                    await AddSubfolderNamesRecursively(subfolder, folderNames);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Error retrieving subfolders for {FolderName}: {Message}",
+                    folder.FullName, ex.Message);
+            }
+        }
+
+        // Services/EmailService.cs - Korrigierte Methode
+
+        public async Task<bool> RestoreEmailToFolderAsync(int emailId, int targetAccountId, string folderName)
+        {
+            _logger.LogInformation("RestoreEmailToFolderAsync called with parameters: emailId={EmailId}, targetAccountId={TargetAccountId}, folderName={FolderName}",
+                emailId, targetAccountId, folderName);
+
+            try
+            {
+                // 1. Load email with attachments from the archive
+                var email = await _context.ArchivedEmails
+                    .Include(e => e.Attachments)
+                    .FirstOrDefaultAsync(e => e.Id == emailId);
+
+                if (email == null)
+                {
+                    _logger.LogError("Email with ID {EmailId} not found", emailId);
+                    return false;
+                }
+
+                _logger.LogInformation("Found email: Subject='{Subject}', From='{From}', Attachments={AttachmentCount}",
+                    email.Subject, email.From, email.Attachments.Count);
+
+                // 2. Load the target account
+                var targetAccount = await _context.MailAccounts.FindAsync(targetAccountId);
+                if (targetAccount == null)
+                {
+                    _logger.LogError("Target account with ID {AccountId} not found", targetAccountId);
+                    return false;
+                }
+
+                _logger.LogInformation("Found target account: {AccountName}, {EmailAddress}",
+                    targetAccount.Name, targetAccount.EmailAddress);
+
+                // 3. Try to construct a valid MimeMessage
+                MimeMessage message = null;
+                try
+                {
+                    message = new MimeMessage();
+                    message.Subject = email.Subject;
+
+                    // Parse From address
+                    try
+                    {
+                        var fromAddresses = InternetAddressList.Parse(email.From);
+                        foreach (var address in fromAddresses)
+                        {
+                            message.From.Add(address);
+                        }
+
+                        if (message.From.Count == 0)
+                        {
+                            throw new FormatException("No valid From addresses");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Error parsing From address: {From}, using fallback", email.From);
+                        message.From.Add(new MailboxAddress("Sender", "sender@example.com"));
+                    }
+
+                    // Parse To addresses
+                    if (!string.IsNullOrEmpty(email.To))
+                    {
+                        try
+                        {
+                            var toAddresses = InternetAddressList.Parse(email.To);
+                            foreach (var address in toAddresses)
+                            {
+                                message.To.Add(address);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogWarning(ex, "Error parsing To addresses: {To}, using placeholder", email.To);
+                            // Add a placeholder address if parsing fails
+                            message.To.Add(new MailboxAddress("Recipient", "recipient@example.com"));
+                        }
+                    }
+                    else
+                    {
+                        // Ensure we have at least one recipient for the message to be valid
+                        message.To.Add(new MailboxAddress("Recipient", "recipient@example.com"));
+                    }
+
+                    // Parse CC addresses if any
+                    if (!string.IsNullOrEmpty(email.Cc))
+                    {
+                        try
+                        {
+                            var ccAddresses = InternetAddressList.Parse(email.Cc);
+                            foreach (var address in ccAddresses)
+                            {
+                                message.Cc.Add(address);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogWarning(ex, "Error parsing Cc addresses: {Cc}, ignoring", email.Cc);
+                            // Ignoring CC if parsing fails is acceptable
+                        }
+                    }
+
+                    // Set message body
+                    var bodyBuilder = new BodyBuilder();
+
+                    if (!string.IsNullOrEmpty(email.HtmlBody))
+                    {
+                        bodyBuilder.HtmlBody = email.HtmlBody;
+                    }
+
+                    if (!string.IsNullOrEmpty(email.Body))
+                    {
+                        bodyBuilder.TextBody = email.Body;
+                    }
+
+                    // Add attachments if any
+                    foreach (var attachment in email.Attachments)
+                    {
+                        try
+                        {
+                            bodyBuilder.Attachments.Add(attachment.FileName,
+                                                       attachment.Content,
+                                                       ContentType.Parse(attachment.ContentType));
+                            _logger.LogInformation("Added attachment: {FileName}", attachment.FileName);
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError(ex, "Error adding attachment {FileName}", attachment.FileName);
+                        }
+                    }
+
+                    // Set the message body
+                    message.Body = bodyBuilder.ToMessageBody();
+
+                    // Set other message properties
+                    message.Date = email.SentDate;
+
+                    if (!string.IsNullOrEmpty(email.MessageId) && email.MessageId.Contains('@'))
+                    {
+                        message.MessageId = email.MessageId;
+                    }
+
+                    _logger.LogInformation("Successfully created MimeMessage for email ID {EmailId}", emailId);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error creating MimeMessage for email ID {EmailId}", emailId);
+                    return false;
+                }
+
+                // 4. Connect to the IMAP server and send the message
+                try
+                {
+                    using var client = new ImapClient();
+
+                    _logger.LogInformation("Connecting to IMAP server {Server}:{Port} for account {AccountName}",
+                        targetAccount.ImapServer, targetAccount.ImapPort, targetAccount.Name);
+
+                    await client.ConnectAsync(targetAccount.ImapServer, targetAccount.ImapPort, targetAccount.UseSSL);
+
+                    _logger.LogInformation("Connected to IMAP server, authenticating as {Username}", targetAccount.Username);
+
+                    await client.AuthenticateAsync(targetAccount.Username, targetAccount.Password);
+
+                    _logger.LogInformation("Authenticated successfully, looking for folder: {FolderName}", folderName);
+
+                    // Try to get the specified folder
+                    IMailFolder folder;
+                    try
+                    {
+                        folder = await client.GetFolderAsync(folderName);
+                        _logger.LogInformation("Found folder: {FolderName}", folder.FullName);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Could not find folder '{FolderName}', trying INBOX instead", folderName);
+                        try
+                        {
+                            folder = client.Inbox;
+                            folderName = "INBOX";
+                            _logger.LogInformation("Using INBOX as fallback");
+                        }
+                        catch (Exception inboxEx)
+                        {
+                            _logger.LogError(inboxEx, "Could not access INBOX folder either");
+                            return false;
+                        }
+                    }
+
+                    // Open the folder in write mode
+                    try
+                    {
+                        _logger.LogInformation("Opening folder {FolderName} with ReadWrite access", folder.FullName);
+                        await folder.OpenAsync(FolderAccess.ReadWrite);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Error opening folder {FolderName} with ReadWrite access", folder.FullName);
+
+                        // Try with read-only access and then append
+                        try
+                        {
+                            await folder.OpenAsync(FolderAccess.ReadOnly);
+                            _logger.LogInformation("Opened folder {FolderName} with ReadOnly access", folder.FullName);
+                        }
+                        catch (Exception readEx)
+                        {
+                            _logger.LogError(readEx, "Could not open folder {FolderName} at all", folder.FullName);
+                            return false;
+                        }
+                    }
+
+                    // Append the message to the folder
+                    try
+                    {
+                        _logger.LogInformation("Appending message to folder {FolderName}", folder.FullName);
+                        await folder.AppendAsync(message, MessageFlags.Seen);
+                        _logger.LogInformation("Message successfully appended to folder {FolderName}", folder.FullName);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Error appending message to folder {FolderName}: {ErrorMessage}",
+                            folder.FullName, ex.Message);
+                        return false;
+                    }
+
+                    // Disconnect
+                    await client.DisconnectAsync(true);
+                    _logger.LogInformation("Successfully disconnected from IMAP server");
+
+                    _logger.LogInformation("Email with ID {EmailId} successfully copied to folder '{FolderName}' of account {AccountName}",
+                        emailId, folderName, targetAccount.Name);
+
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error during IMAP operations: {Message}", ex.Message);
+                    return false;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unhandled exception in RestoreEmailToFolderAsync: {Message}", ex.Message);
+                return false;
+            }
+        }
+
+        public async Task<(int Successful, int Failed)> RestoreMultipleEmailsAsync(
+            List<int> emailIds,
+            int targetAccountId,
+            string folderName)
+        {
+            int successCount = 0;
+            int failCount = 0;
+
+            _logger.LogInformation("Starting batch restore of {Count} emails to account {AccountId}, folder {Folder}",
+                emailIds.Count, targetAccountId, folderName);
+
+            foreach (var emailId in emailIds)
+            {
+                try
+                {
+                    var result = await RestoreEmailToFolderAsync(emailId, targetAccountId, folderName);
+                    if (result)
+                    {
+                        successCount++;
+                        _logger.LogInformation("Successfully restored email {EmailId}", emailId);
+                    }
+                    else
+                    {
+                        failCount++;
+                        _logger.LogWarning("Failed to restore email {EmailId}", emailId);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    failCount++;
+                    _logger.LogError(ex, "Error restoring email {EmailId}", emailId);
+                }
+            }
+
+            _logger.LogInformation("Batch restore completed. Success: {SuccessCount}, Failed: {FailCount}",
+                successCount, failCount);
+
+            return (successCount, failCount);
+        }
+
         private async Task SyncFolderAsync(IMailFolder folder, MailAccount account)
         {
             _logger.LogInformation("Syncing folder: {FolderName} for account: {AccountName}",
