@@ -16,9 +16,9 @@ namespace MailArchiver.Models.ViewModels
         public List<SelectListItem> AccountOptions { get; set; }
         public List<SelectListItem> DirectionOptions { get; set; } = new List<SelectListItem>
         {
-            new SelectListItem { Text = "Alle", Value = "" },
-            new SelectListItem { Text = "Eingehend", Value = "false" },
-            new SelectListItem { Text = "Ausgehend", Value = "true" }
+            new SelectListItem { Text = "All", Value = "" },
+            new SelectListItem { Text = "Incoming", Value = "false" },
+            new SelectListItem { Text = "Outgoing", Value = "true" }
         };
 
         // Suchergebnisse
