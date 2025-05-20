@@ -21,28 +21,52 @@ namespace MailArchiver.Data
             // Schema für PostgreSQL definieren
             modelBuilder.HasDefaultSchema("mail_archiver");
 
-            // PostgreSQL Case-Insensitive Suche für bestimmte Spalten aktivieren
+            // Verwenden Sie Text anstelle von varchar für unbegrenzte Länge
             modelBuilder.Entity<ArchivedEmail>()
                 .Property(e => e.Subject)
-                .HasColumnType("citext");
+                .HasColumnType("text");
 
             modelBuilder.Entity<ArchivedEmail>()
                 .Property(e => e.From)
-                .HasColumnType("citext");
+                .HasColumnType("text");
 
             modelBuilder.Entity<ArchivedEmail>()
                 .Property(e => e.To)
-                .HasColumnType("citext");
+                .HasColumnType("text");
 
-            // Indizes für schnelle Suche
             modelBuilder.Entity<ArchivedEmail>()
-                .HasIndex(e => e.Subject);
+                .Property(e => e.Cc)
+                .HasColumnType("text");
+
             modelBuilder.Entity<ArchivedEmail>()
-                .HasIndex(e => e.From);
+                .Property(e => e.Bcc)
+                .HasColumnType("text");
+
             modelBuilder.Entity<ArchivedEmail>()
-                .HasIndex(e => e.To);
+                .Property(e => e.Body)
+                .HasColumnType("text");
+
+            modelBuilder.Entity<ArchivedEmail>()
+                .Property(e => e.HtmlBody)
+                .HasColumnType("text");
+
+            modelBuilder.Entity<ArchivedEmail>()
+                .Property(e => e.MessageId)
+                .HasColumnType("text");
+
+            modelBuilder.Entity<ArchivedEmail>()
+                .Property(e => e.FolderName)
+                .HasColumnType("text");
+
+            // Indizes NUR auf kleine oder eindeutige Felder setzen, NICHT auf Text-Felder
+            // Entferne die Indizes von Subject, From, und To
+
+            // Behalte nur Indizes auf kleinere Felder bei
             modelBuilder.Entity<ArchivedEmail>()
                 .HasIndex(e => e.SentDate);
+
+            modelBuilder.Entity<ArchivedEmail>()
+                .HasIndex(e => e.MailAccountId);
 
             // Beziehungen
             modelBuilder.Entity<ArchivedEmail>()
@@ -61,6 +85,14 @@ namespace MailArchiver.Data
             modelBuilder.Entity<EmailAttachment>()
                 .Property(a => a.Content)
                 .HasColumnType("bytea");
+
+            modelBuilder.Entity<EmailAttachment>()
+                .Property(a => a.FileName)
+                .HasColumnType("text");
+
+            modelBuilder.Entity<EmailAttachment>()
+                .Property(a => a.ContentType)
+                .HasColumnType("text");
         }
     }
 }

@@ -29,8 +29,8 @@ builder.Services.AddControllersWithViews();
 builder.WebHost.ConfigureKestrel(options =>
 {
     options.Limits.MaxRequestBodySize = int.MaxValue; // Maximale Request-Größe (oder einen angemessenen Wert)
-    options.Limits.KeepAliveTimeout = TimeSpan.FromMinutes(30); 
-    options.Limits.RequestHeadersTimeout = TimeSpan.FromMinutes(20); 
+    options.Limits.KeepAliveTimeout = TimeSpan.FromMinutes(30);
+    options.Limits.RequestHeadersTimeout = TimeSpan.FromMinutes(20);
 });
 
 var app = builder.Build();
@@ -42,9 +42,13 @@ using (var scope = app.Services.CreateScope())
     try
     {
         var context = services.GetRequiredService<MailArchiverDbContext>();
+
         // Datenbank und Schema erstellen, wenn sie nicht existieren
         context.Database.EnsureCreated();
-        
+
+        // PostgreSQL citext-Erweiterung aktivieren (falls noch nicht vorhanden)
+        context.Database.ExecuteSqlRaw("CREATE EXTENSION IF NOT EXISTS citext;");
+
         // Log-Nachricht
         var logger = services.GetRequiredService<ILogger<Program>>();
         logger.LogInformation("Datenbank wurde initialisiert");
@@ -55,7 +59,6 @@ using (var scope = app.Services.CreateScope())
         logger.LogError(ex, "Ein Fehler ist bei der Datenbankinitialisierung aufgetreten");
     }
 }
-
 
 // Configure the HTTP request pipeline
 if (app.Environment.IsDevelopment())

@@ -461,66 +461,45 @@ namespace MailArchiver.Services
                 var lastSync = account.LastSync;
                 var query = SearchQuery.DeliveredAfter(lastSync);
 
-                // Batch-Verarbeitung für große Ordner
-                const int batchSize = 100;  // Verarbeite 100 E-Mails pro Batch
-                int startIdx = 0;
-                bool moreMessages = true;
-
-                while (moreMessages)
+                try
                 {
-                    // UIDs in Batches abrufen
                     var uids = await folder.SearchAsync(query);
                     _logger.LogInformation("Found {Count} new messages in folder {FolderName} for account: {AccountName}",
                         uids.Count, folder.FullName, account.Name);
 
-                    if (uids.Count == 0)
+                    // Batch-Verarbeitung: Maximal 20 E-Mails auf einmal verarbeiten
+                    const int batchSize = 20;
+                    for (int i = 0; i < uids.Count; i += batchSize)
                     {
-                        moreMessages = false;
-                        continue;
-                    }
+                        var batch = uids.Skip(i).Take(batchSize).ToList();
+                        _logger.LogInformation("Processing batch of {Count} messages (starting at {Start}) in folder {FolderName}",
+                            batch.Count, i, folder.FullName);
 
-                    // Verarbeite eine Teilmenge der gefundenen UIDs, um Speicherprobleme zu vermeiden
-                    var batchUids = uids.Skip(startIdx).Take(batchSize).ToList();
-                    if (batchUids.Count == 0)
-                    {
-                        moreMessages = false;
-                        continue;
-                    }
-
-                    startIdx += batchUids.Count;
-
-                    _logger.LogInformation("Processing batch of {Count} messages (starting from index {StartIdx}) in folder {FolderName}",
-                        batchUids.Count, startIdx - batchUids.Count, folder.FullName);
-
-                    foreach (var uid in batchUids)
-                    {
-                        try
+                        foreach (var uid in batch)
                         {
-                            var message = await folder.GetMessageAsync(uid);
-                            await ArchiveEmailAsync(account, message, isOutgoing, folder.FullName);
-
-                            // Manuelles Speicherbereinigen zwischendurch, um Speicherdruck zu reduzieren
-                            message = null;
-                            if (startIdx % 50 == 0)
+                            try
                             {
-                                GC.Collect(0, GCCollectionMode.Optimized);
+                                var message = await folder.GetMessageAsync(uid);
+                                await ArchiveEmailAsync(account, message, isOutgoing, folder.FullName);
+                            }
+                            catch (Exception ex)
+                            {
+                                _logger.LogError(ex, "Error archiving message {MessageNumber} from folder {FolderName}: {Message}",
+                                    uid, folder.FullName, ex.Message);
                             }
                         }
-                        catch (Exception ex)
+
+                        // Kurze Pause zwischen Batches, um Ressourcen zu schonen
+                        if (i + batchSize < uids.Count)
                         {
-                            _logger.LogError(ex, "Error archiving message from folder {FolderName}: {Message}",
-                                folder.FullName, ex.Message);
+                            await Task.Delay(1000);
                         }
                     }
-
-                    // Wenn wir weniger als die maximale Batchgröße erhalten haben, gibt es keine weiteren Nachrichten mehr
-                    if (batchUids.Count < batchSize)
-                    {
-                        moreMessages = false;
-                    }
-
-                    // Kleine Pause zwischen den Batches, um Ressourcen freizugeben
-                    await Task.Delay(1000);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error searching messages in folder {FolderName}: {Message}",
+                        folder.FullName, ex.Message);
                 }
             }
             catch (Exception ex)
@@ -617,88 +596,183 @@ namespace MailArchiver.Services
             if (existingEmail != null)
                 return;
 
-            // Make sure the DateTime is in UTC
-            DateTime sentDate = DateTime.SpecifyKind(message.Date.DateTime, DateTimeKind.Utc);
-
-            var archivedEmail = new ArchivedEmail
+            try
             {
-                MailAccountId = account.Id,
-                MessageId = messageId,
-                Subject = message.Subject ?? "(No Subject)",
-                From = message.From.ToString(),
-                To = message.To.ToString(),
-                Cc = message.Cc?.ToString() ?? string.Empty,
-                Bcc = message.Bcc?.ToString() ?? string.Empty,
-                SentDate = sentDate,
-                ReceivedDate = DateTime.UtcNow,
-                IsOutgoing = isOutgoing,
-                HasAttachments = message.Attachments.Any(),
-                Body = message.TextBody ?? string.Empty,
-                HtmlBody = message.HtmlBody ?? string.Empty,
-                FolderName = folderName
-            };
+                // Make sure the DateTime is in UTC
+                DateTime sentDate = DateTime.SpecifyKind(message.Date.DateTime, DateTimeKind.Utc);
 
-            _context.ArchivedEmails.Add(archivedEmail);
-            await _context.SaveChangesAsync();
+                // Reinige die Textdaten von Null-Bytes und anderen ungültigen UTF-8-Zeichen
+                var subject = CleanText(message.Subject ?? "(No Subject)");
+                var from = CleanText(message.From.ToString());
+                var to = CleanText(message.To.ToString());
+                var cc = CleanText(message.Cc?.ToString() ?? string.Empty);
+                var bcc = CleanText(message.Bcc?.ToString() ?? string.Empty);
 
-            // Anhänge speichern
-            if (message.Attachments.Any())
-            {
-                foreach (var attachment in message.Attachments)
+                // Speichere den Body immer als Text, aber HTML könnte zu lang sein für die Indizierung
+                var body = CleanText(message.TextBody ?? string.Empty);
+
+                // Speichere HTML separat nach spezieller Bereinigung
+                var htmlBody = string.Empty;
+                if (!string.IsNullOrEmpty(message.HtmlBody))
                 {
-                    if (attachment is MimePart mimePart)
+                    htmlBody = CleanHtmlForStorage(message.HtmlBody);
+                }
+
+                var cleanMessageId = CleanText(messageId);
+                var cleanFolderName = CleanText(folderName ?? string.Empty);
+
+                var archivedEmail = new ArchivedEmail
+                {
+                    MailAccountId = account.Id,
+                    MessageId = cleanMessageId,
+                    Subject = subject,
+                    From = from,
+                    To = to,
+                    Cc = cc,
+                    Bcc = bcc,
+                    SentDate = sentDate,
+                    ReceivedDate = DateTime.UtcNow,
+                    IsOutgoing = isOutgoing,
+                    HasAttachments = message.Attachments.Any(),
+                    Body = body,
+                    HtmlBody = htmlBody,
+                    FolderName = cleanFolderName
+                };
+
+                // Speichern in einem Try-Block
+                try
+                {
+                    _context.ArchivedEmails.Add(archivedEmail);
+                    await _context.SaveChangesAsync();
+
+                    // Anhänge speichern
+                    if (message.Attachments.Any())
                     {
+                        foreach (var attachment in message.Attachments)
+                        {
+                            if (attachment is MimePart mimePart)
+                            {
+                                try
+                                {
+                                    using var ms = new MemoryStream();
+                                    await mimePart.Content.DecodeToAsync(ms);
+
+                                    // Saubere Dateinamen für Anhänge
+                                    var fileName = CleanText(mimePart.FileName ?? "attachment.dat");
+                                    var contentType = CleanText(mimePart.ContentType?.MimeType ?? "application/octet-stream");
+
+                                    var emailAttachment = new EmailAttachment
+                                    {
+                                        ArchivedEmailId = archivedEmail.Id,
+                                        FileName = fileName,
+                                        ContentType = contentType,
+                                        Content = ms.ToArray(),
+                                        Size = ms.Length
+                                    };
+
+                                    _context.EmailAttachments.Add(emailAttachment);
+                                }
+                                catch (Exception ex)
+                                {
+                                    _logger.LogError(ex, "Error saving attachment: {FileName}", mimePart.FileName);
+                                }
+                            }
+                        }
+
+                        // Speichern der Anhänge in einem separaten Try-Block
                         try
                         {
-                            using var ms = new MemoryStream();
-                            await mimePart.Content.DecodeToAsync(ms);
-
-                            var emailAttachment = new EmailAttachment
-                            {
-                                ArchivedEmailId = archivedEmail.Id,
-                                FileName = mimePart.FileName ?? "attachment.dat",
-                                ContentType = mimePart.ContentType?.MimeType ?? "application/octet-stream",
-                                Content = ms.ToArray(),
-                                Size = ms.Length
-                            };
-
-                            _context.EmailAttachments.Add(emailAttachment);
+                            await _context.SaveChangesAsync();
                         }
                         catch (Exception ex)
                         {
-                            _logger.LogError(ex, "Error saving attachment: {FileName}", mimePart.FileName);
+                            _logger.LogError(ex, "Error saving attachments for email: {Subject}", subject);
                         }
                     }
+
+                    _logger.LogInformation(
+                        "Archived email: {Subject}, From: {From}, To: {To}, Account: {AccountName}",
+                        archivedEmail.Subject, archivedEmail.From, archivedEmail.To, account.Name);
                 }
-                await _context.SaveChangesAsync();
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error saving archived email to database: {Subject}, {Message}", subject, ex.Message);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error archiving email: Subject={Subject}, From={From}, Error={Message}",
+                    message.Subject, message.From, ex.Message);
+            }
+        }
+
+        // Verbesserte Methode zur Textbereinigung
+        private string CleanText(string text)
+        {
+            if (string.IsNullOrEmpty(text))
+                return string.Empty;
+
+            // Entferne Null-Bytes
+            text = text.Replace("\0", "");
+
+            // Ersetze ungültige Zeichen durch Fragezeichen oder entferne sie komplett
+            var cleanedText = new StringBuilder();
+
+            foreach (var c in text)
+            {
+                // Prüfe, ob das Zeichen ein gültiges UTF-8-Zeichen ist
+                if (c < 32 && c != '\r' && c != '\n' && c != '\t')
+                {
+                    // Steuerzeichen außer CR, LF und Tab durch Leerzeichen ersetzen
+                    cleanedText.Append(' ');
+                }
+                else
+                {
+                    cleanedText.Append(c);
+                }
             }
 
-            _logger.LogInformation(
-                "Archived email: {Subject}, From: {From}, To: {To}, Account: {AccountName}",
-                archivedEmail.Subject, archivedEmail.From, archivedEmail.To, account.Name);
+            return cleanedText.ToString();
+        }
+
+        // Spezielle Methode für HTML-Bereinigung
+        private string CleanHtmlForStorage(string html)
+        {
+            if (string.IsNullOrEmpty(html))
+                return string.Empty;
+
+            // Entferne Null-Bytes
+            html = html.Replace("\0", "");
+
+            // Für sehr große HTML-Inhalte (>1MB) speichern wir nur einen Hinweistext
+            if (html.Length > 1_000_000)
+            {
+                return "<html><body><p>Diese E-Mail enthält sehr großen HTML-Inhalt, der gekürzt wurde.</p></body></html>";
+            }
+
+            // Wir könnten hier auch HTML bereinigen (scripts entfernen etc.)
+            // aber das wichtigste ist die Entfernung von Null-Bytes
+
+            return html;
         }
 
         public async Task<(List<ArchivedEmail> Emails, int TotalCount)> SearchEmailsAsync(
-            string searchTerm,
-            DateTime? fromDate,
-            DateTime? toDate,
-            int? accountId,
-            bool? isOutgoing,
-            int skip,
-            int take)
+    string searchTerm,
+    DateTime? fromDate,
+    DateTime? toDate,
+    int? accountId,
+    bool? isOutgoing,
+    int skip,
+    int take)
         {
+            // Optimierte Grundabfrage, die nur sichere Filterbedingungen verwendet
             var query = _context.ArchivedEmails
                 .Include(e => e.MailAccount)
                 .AsQueryable();
 
-            if (!string.IsNullOrEmpty(searchTerm))
-            {
-                query = query.Where(e =>
-                    e.Subject.Contains(searchTerm) ||
-                    e.Body.Contains(searchTerm) ||
-                    e.From.Contains(searchTerm) ||
-                    e.To.Contains(searchTerm));
-            }
+            // Filtere nach den indizierten Feldern zuerst
+            if (accountId.HasValue)
+                query = query.Where(e => e.MailAccountId == accountId.Value);
 
             if (fromDate.HasValue)
                 query = query.Where(e => e.SentDate >= fromDate.Value);
@@ -706,14 +780,31 @@ namespace MailArchiver.Services
             if (toDate.HasValue)
                 query = query.Where(e => e.SentDate <= toDate.Value.AddDays(1).AddSeconds(-1)); // Bis Ende des Tages
 
-            if (accountId.HasValue)
-                query = query.Where(e => e.MailAccountId == accountId.Value);
-
             if (isOutgoing.HasValue)
                 query = query.Where(e => e.IsOutgoing == isOutgoing.Value);
 
+            // Wenn ein Suchbegriff vorhanden ist, optimiere die Suche für PostgreSQL
+            // mit speziellen Textsuchefunktionen
+            if (!string.IsNullOrEmpty(searchTerm))
+            {
+                // Wichtig: Begrenze die maximale Anzahl der E-Mails, die durchsucht werden
+                // PostgreSQL hat eine optimierte Textsuche, aber wir sollten die Menge begrenzen
+                searchTerm = searchTerm.Replace("'", "''"); // SQL-Injektion verhindern
+
+                // Verwende PostgreSQL's interne Funktionen für Textsuche mit ILIKE
+                // Dies ist effizienter als EF Core's Contains für große Datenmengen
+                query = query.Where(e =>
+                    EF.Functions.ILike(e.Subject, $"%{searchTerm}%") ||
+                    EF.Functions.ILike(e.From, $"%{searchTerm}%") ||
+                    EF.Functions.ILike(e.To, $"%{searchTerm}%") ||
+                    EF.Functions.ILike(e.Body, $"%{searchTerm}%")
+                );
+            }
+
+            // Zähle die Gesamtmenge
             var totalCount = await query.CountAsync();
 
+            // Hol die Ergebnisse sortiert und paginiert
             var emails = await query
                 .OrderByDescending(e => e.SentDate)
                 .Skip(skip)
