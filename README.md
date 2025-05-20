@@ -61,7 +61,7 @@ services:
       - postgres
 
   postgres:
-    image: postgres:14-alpine
+    image: postgres:17-alpine
     restart: always
     environment:
       POSTGRES_DB: MailArchiver
