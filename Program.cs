@@ -9,9 +9,14 @@ var builder = WebApplication.CreateBuilder(args);
 
 // PostgreSQL-Datenbankkontext hinzufügen
 builder.Services.AddDbContext<MailArchiverDbContext>(options =>
+{
     options.UseNpgsql(
-        builder.Configuration.GetConnectionString("DefaultConnection")
-    ));
+        builder.Configuration.GetConnectionString("DefaultConnection"),
+        npgsqlOptions => npgsqlOptions.CommandTimeout(
+            builder.Configuration.GetValue<int>("Npgsql:CommandTimeout", 600) // 10 Minuten Standardwert
+        )
+    );
+});
 
 // Services hinzufügen
 builder.Services.AddScoped<IEmailService, EmailService>();
@@ -19,6 +24,14 @@ builder.Services.AddHostedService<MailSyncBackgroundService>();
 
 // MVC hinzufügen
 builder.Services.AddControllersWithViews();
+
+// Kestrel-Server-Limits konfigurieren
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.Limits.MaxRequestBodySize = int.MaxValue; // Maximale Request-Größe (oder einen angemessenen Wert)
+    options.Limits.KeepAliveTimeout = TimeSpan.FromMinutes(30); 
+    options.Limits.RequestHeadersTimeout = TimeSpan.FromMinutes(20); 
+});
 
 var app = builder.Build();
 

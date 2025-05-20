@@ -97,7 +97,7 @@ namespace MailArchiver.Controllers
                     Password = model.Password,
                     UseSSL = model.UseSSL,
                     IsEnabled = model.IsEnabled,
-                    LastSync = DateTime.UtcNow.AddDays(-30)
+                    LastSync = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)
                 };
 
                 // Test connection before saving

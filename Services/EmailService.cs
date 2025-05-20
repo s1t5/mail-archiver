@@ -29,6 +29,10 @@ namespace MailArchiver.Services
             _logger.LogInformation("Starting sync for account: {AccountName}", account.Name);
 
             using var client = new ImapClient();
+            client.Timeout = 900000; // 15 Minuten
+            //client.ServerCertificateValidationCallback = (s, c, h, e) => true;
+
+
 
             try
             {
@@ -95,6 +99,7 @@ namespace MailArchiver.Services
             try
             {
                 using var client = new ImapClient();
+                client.Timeout = 60000; // 1 Minute
                 await client.ConnectAsync(account.ImapServer, account.ImapPort, account.UseSSL);
                 await client.AuthenticateAsync(account.Username, account.Password);
 
@@ -297,6 +302,7 @@ namespace MailArchiver.Services
                 try
                 {
                     using var client = new ImapClient();
+                    client.Timeout = 180000; // 3 Minuten
 
                     _logger.LogInformation("Connecting to IMAP server {Server}:{Port} for account {AccountName}",
                         targetAccount.ImapServer, targetAccount.ImapPort, targetAccount.Name);
@@ -437,7 +443,7 @@ namespace MailArchiver.Services
                 folder.FullName, account.Name);
             try
             {
-                // Nur Ordner überspringen, die nicht existieren oder nicht auswählbar sind
+                // Skip some special system folders that might cause issues
                 if (folder.Attributes.HasFlag(FolderAttributes.NonExistent) ||
                     folder.Attributes.HasFlag(FolderAttributes.NoSelect))
                 {
@@ -446,32 +452,75 @@ namespace MailArchiver.Services
                     return;
                 }
 
-                // Öffne jede Art von Ordner, auch Papierkorb und spezielle Systemordner
                 await folder.OpenAsync(FolderAccess.ReadOnly);
 
-                // Bestimme, ob dies ein ausgehender E-Mail-Ordner ist (z.B. Gesendete Elemente)
+                // Determine if this is an outgoing mail folder (like Sent Items)
                 bool isOutgoing = IsOutgoingFolder(folder);
 
-                // E-Mails abrufen, die seit der letzten Synchronisierung eingegangen sind
+                // Get messages newer than last sync
                 var lastSync = account.LastSync;
                 var query = SearchQuery.DeliveredAfter(lastSync);
-                var uids = await folder.SearchAsync(query);
 
-                _logger.LogInformation("Found {Count} new messages in folder {FolderName} for account: {AccountName}",
-                    uids.Count, folder.FullName, account.Name);
+                // Batch-Verarbeitung für große Ordner
+                const int batchSize = 100;  // Verarbeite 100 E-Mails pro Batch
+                int startIdx = 0;
+                bool moreMessages = true;
 
-                foreach (var uid in uids)
+                while (moreMessages)
                 {
-                    try
+                    // UIDs in Batches abrufen
+                    var uids = await folder.SearchAsync(query);
+                    _logger.LogInformation("Found {Count} new messages in folder {FolderName} for account: {AccountName}",
+                        uids.Count, folder.FullName, account.Name);
+
+                    if (uids.Count == 0)
                     {
-                        var message = await folder.GetMessageAsync(uid);
-                        await ArchiveEmailAsync(account, message, isOutgoing, folder.FullName);
+                        moreMessages = false;
+                        continue;
                     }
-                    catch (Exception ex)
+
+                    // Verarbeite eine Teilmenge der gefundenen UIDs, um Speicherprobleme zu vermeiden
+                    var batchUids = uids.Skip(startIdx).Take(batchSize).ToList();
+                    if (batchUids.Count == 0)
                     {
-                        _logger.LogError(ex, "Error archiving message from folder {FolderName}: {Message}",
-                            folder.FullName, ex.Message);
+                        moreMessages = false;
+                        continue;
                     }
+
+                    startIdx += batchUids.Count;
+
+                    _logger.LogInformation("Processing batch of {Count} messages (starting from index {StartIdx}) in folder {FolderName}",
+                        batchUids.Count, startIdx - batchUids.Count, folder.FullName);
+
+                    foreach (var uid in batchUids)
+                    {
+                        try
+                        {
+                            var message = await folder.GetMessageAsync(uid);
+                            await ArchiveEmailAsync(account, message, isOutgoing, folder.FullName);
+
+                            // Manuelles Speicherbereinigen zwischendurch, um Speicherdruck zu reduzieren
+                            message = null;
+                            if (startIdx % 50 == 0)
+                            {
+                                GC.Collect(0, GCCollectionMode.Optimized);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError(ex, "Error archiving message from folder {FolderName}: {Message}",
+                                folder.FullName, ex.Message);
+                        }
+                    }
+
+                    // Wenn wir weniger als die maximale Batchgröße erhalten haben, gibt es keine weiteren Nachrichten mehr
+                    if (batchUids.Count < batchSize)
+                    {
+                        moreMessages = false;
+                    }
+
+                    // Kleine Pause zwischen den Batches, um Ressourcen freizugeben
+                    await Task.Delay(1000);
                 }
             }
             catch (Exception ex)
@@ -894,6 +943,7 @@ namespace MailArchiver.Services
             try
             {
                 using var client = new ImapClient();
+                client.Timeout = 60000; // 1 Minute
                 await client.ConnectAsync(account.ImapServer, account.ImapPort, account.UseSSL);
                 await client.AuthenticateAsync(account.Username, account.Password);
                 await client.DisconnectAsync(true);
