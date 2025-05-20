@@ -55,6 +55,16 @@ services:
     restart: always
     environment:
       - ConnectionStrings__DefaultConnection=Host=postgres;Database=MailArchiver;Username=mailuser;Password=masterkey;
+
+      # MailSync Settings
+      - MailSync__IntervalMinutes=5
+      - MailSync__TimeoutMinutes=60
+      - MailSync__ConnectionTimeoutSeconds=180
+      - MailSync__CommandTimeoutSeconds=300
+
+      # Npgsql Settings
+      - Npgsql__CommandTimeout=600
+
     ports:
       - "5000:5000"
     depends_on:
