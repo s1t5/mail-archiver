@@ -100,21 +100,38 @@ namespace MailArchiver.Controllers
                     LastSync = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)
                 };
 
-                // Test connection before saving
-                var connectionResult = await _emailService.TestConnectionAsync(account);
-                if (!connectionResult)
+                try
                 {
-                    ModelState.AddModelError("", "Connection to email server could not be established. Please check your settings.");
+                    _logger.LogInformation("Testing connection for new account: {Name}, Server: {Server}:{Port}",
+                        model.Name, model.ImapServer, model.ImapPort);
+
+                    // Test connection before saving
+                    var connectionResult = await _emailService.TestConnectionAsync(account);
+
+                    if (!connectionResult)
+                    {
+                        _logger.LogWarning("Connection test failed for account {Name}", model.Name);
+                        ModelState.AddModelError("", "Connection to email server could not be established. Please check your settings and ensure the server is reachable.");
+                        return View(model);
+                    }
+
+                    _logger.LogInformation("Connection test successful, saving account");
+
+                    _context.MailAccounts.Add(account);
+                    await _context.SaveChangesAsync();
+
+                    TempData["SuccessMessage"] = "Email account created successfully.";
+                    return RedirectToAction(nameof(Index));
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error creating email account: {Message}", ex.Message);
+                    ModelState.AddModelError("", $"An error occurred: {ex.Message}");
                     return View(model);
                 }
-
-                _context.MailAccounts.Add(account);
-                await _context.SaveChangesAsync();
-
-                TempData["SuccessMessage"] = "Email account created successfully.";
-                return RedirectToAction(nameof(Index));
             }
 
+            // Wenn ModelState ungültig ist, zurück zur Ansicht mit Fehlern
             return View(model);
         }
 

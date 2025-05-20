@@ -5,9 +5,11 @@ using MailKit;
 using MailKit.Net.Imap;
 using MailKit.Net.Smtp;
 using MailKit.Search;
+using MailKit.Security; // Für AuthenticationException
 using Microsoft.EntityFrameworkCore;
 using MimeKit;
 using System.Globalization;
+using System.Net.Sockets; // Für SocketException
 using System.Text;
 using System.Text.Json;
 
@@ -1033,17 +1035,72 @@ namespace MailArchiver.Services
         {
             try
             {
+                _logger.LogInformation("Testing connection to IMAP server {Server}:{Port} for account {Name} ({Email})",
+                    account.ImapServer, account.ImapPort, account.Name, account.EmailAddress);
+
                 using var client = new ImapClient();
-                client.Timeout = 60000; // 1 Minute
+
+                // Timeout erhöhen
+                client.Timeout = 30000; // 30 Sekunden
+
+                // SSL/TLS-Zertifikatsvalidierung deaktivieren, falls selbstsignierte Zertifikate verwendet werden
+                client.ServerCertificateValidationCallback = (s, c, h, e) => true;
+
+                // Verbindungsdetails loggen
+                _logger.LogDebug("Connecting to {Server}:{Port}, SSL: {UseSSL}",
+                    account.ImapServer, account.ImapPort, account.UseSSL);
+
+                // Verbindung herstellen
                 await client.ConnectAsync(account.ImapServer, account.ImapPort, account.UseSSL);
+
+                _logger.LogDebug("Connection established, authenticating as {Username}", account.Username);
+
+                // Authentifizieren
                 await client.AuthenticateAsync(account.Username, account.Password);
+
+                _logger.LogInformation("Authentication successful for {Email}", account.EmailAddress);
+
+                // Prüfen, ob INBOX vorhanden und zugänglich ist
+                var inbox = client.Inbox;
+                await inbox.OpenAsync(FolderAccess.ReadOnly);
+
+                _logger.LogInformation("INBOX opened successfully with {Count} messages", inbox.Count);
+
+                // Ordentlich trennen
                 await client.DisconnectAsync(true);
+
+                _logger.LogInformation("Connection test passed for account {Name}", account.Name);
+
                 return true;
             }
             catch (Exception ex)
             {
+                // Detaillierte Fehlerinformationen loggen
                 _logger.LogError(ex, "Connection test failed for account {AccountName}: {Message}",
                     account.Name, ex.Message);
+
+                // Analysieren spezifischer Fehlertypen, um besseres Feedback zu geben
+                if (ex is ImapCommandException imapEx)
+                {
+                    _logger.LogError("IMAP command error: {Response}", imapEx.Response);
+                }
+                else if (ex is MailKit.Security.AuthenticationException)
+                {
+                    _logger.LogError("Authentication failed - incorrect username or password");
+                }
+                else if (ex is ImapProtocolException)
+                {
+                    _logger.LogError("IMAP protocol error - server responded unexpectedly");
+                }
+                else if (ex is SocketException socketEx)
+                {
+                    _logger.LogError("Socket error: {ErrorCode} - could not reach server", socketEx.ErrorCode);
+                }
+                else if (ex is TimeoutException)
+                {
+                    _logger.LogError("Connection timed out - server did not respond in time");
+                }
+
                 return false;
             }
         }
