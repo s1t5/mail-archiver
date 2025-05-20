@@ -435,10 +435,9 @@ namespace MailArchiver.Services
         {
             _logger.LogInformation("Syncing folder: {FolderName} for account: {AccountName}",
                 folder.FullName, account.Name);
-
             try
             {
-                // Skip some special system folders that might cause issues
+                // Nur Ordner überspringen, die nicht existieren oder nicht auswählbar sind
                 if (folder.Attributes.HasFlag(FolderAttributes.NonExistent) ||
                     folder.Attributes.HasFlag(FolderAttributes.NoSelect))
                 {
@@ -447,12 +446,13 @@ namespace MailArchiver.Services
                     return;
                 }
 
+                // Öffne jede Art von Ordner, auch Papierkorb und spezielle Systemordner
                 await folder.OpenAsync(FolderAccess.ReadOnly);
 
-                // Determine if this is an outgoing mail folder (like Sent Items)
+                // Bestimme, ob dies ein ausgehender E-Mail-Ordner ist (z.B. Gesendete Elemente)
                 bool isOutgoing = IsOutgoingFolder(folder);
 
-                // Get messages newer than last sync
+                // E-Mails abrufen, die seit der letzten Synchronisierung eingegangen sind
                 var lastSync = account.LastSync;
                 var query = SearchQuery.DeliveredAfter(lastSync);
                 var uids = await folder.SearchAsync(query);
@@ -502,14 +502,18 @@ namespace MailArchiver.Services
         {
             try
             {
-                // Get all subfolders of the current folder
+                // Alle Unterordner des aktuellen Ordners abrufen
                 var subfolders = folder.GetSubfolders(false);
-
                 foreach (var subfolder in subfolders)
                 {
-                    allFolders.Add(subfolder);
+                    // Nur nicht-auswählbare oder nicht-existierende Ordner überspringen
+                    if (!subfolder.Attributes.HasFlag(FolderAttributes.NonExistent) &&
+                        !subfolder.Attributes.HasFlag(FolderAttributes.NoSelect))
+                    {
+                        allFolders.Add(subfolder);
+                    }
 
-                    // Recursively add this folder's subfolders
+                    // Rekursiv die Unterordner dieses Ordners hinzufügen
                     await AddSubfoldersRecursively(subfolder, allFolders);
                 }
             }
