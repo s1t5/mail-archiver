@@ -2,10 +2,14 @@
 @{
     ViewData["Title"] = "Email Accounts";
 }
-
 <div class="container-fluid">
-    <h1>Email Accounts</h1>
-
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="h3">Email Accounts</h1>
+        <a asp-action="Create" class="btn btn-primary btn-sm">
+            <i class="bi bi-plus-circle"></i>
+            <span class="d-none d-sm-inline">Add Account</span>
+        </a>
+    </div>
     @if (TempData["SuccessMessage"] != null)
     {
         <div class="alert alert-success alert-dismissible fade show" role="alert">
@@ -13,7 +17,6 @@
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     }
-
     @if (TempData["ErrorMessage"] != null)
     {
         <div class="alert alert-danger alert-dismissible fade show" role="alert">
@@ -21,12 +24,8 @@
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     }
-
-    <p>
-        <a asp-action="Create" class="btn btn-primary">Add New Account</a>
-    </p>
-
-    <div class="card">
+    <!-- Desktop Tabelle -->
+    <div class="card d-none d-md-block">
         <div class="card-body">
             <div class="table-responsive">
                 <table class="table table-striped table-hover">
@@ -60,36 +59,32 @@
                                 <td>
                                     @if (item.LastSync.HasValue)
                                     {
-                                        @item.LastSync.Value.ToString("MM/dd/yyyy HH:mm:ss")
+                                        @item.LastSync.Value.ToString("MM/dd/yyyy HH:mm")
                                     }
                                     else
                                     {
-                                        <span class="text-muted">Not yet synchronized</span>
+                                        <span class="text-muted">Not synced</span>
                                     }
                                 </td>
                                 <td>
-                                    <div class="btn-group">
+                                    <div class="btn-group btn-group-sm">
                                         <a asp-action="Details" asp-route-id="@item.Id"
-                                            class="btn btn-sm btn-info">Details</a>
-                                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning">Edit</a>
-                                        <a asp-action="Delete" asp-route-id="@item.Id"
-                                            class="btn btn-sm btn-danger">Delete</a>
-
+                                            class="btn btn-info">Details</a>
+                                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-warning">Edit</a>
                                         <form asp-action="ToggleEnabled" asp-route-id="@item.Id" method="post"
                                             style="display: inline;">
                                             @Html.AntiForgeryToken()
                                             <button type="submit"
-                                                class="btn btn-sm @(item.IsEnabled ? "btn-outline-secondary" : "btn-outline-success")">
+                                                class="btn @(item.IsEnabled ? "btn-outline-secondary" : "btn-outline-success")">
                                                 @(item.IsEnabled ? "Disable" : "Enable")
                                             </button>
                                         </form>
-
                                         @if (item.IsEnabled)
                                         {
                                             <form asp-action="Sync" asp-route-id="@item.Id" method="post"
                                                 style="display: inline;">
                                                 @Html.AntiForgeryToken()
-                                                <button type="submit" class="btn btn-sm btn-success">Sync</button>
+                                                <button type="submit" class="btn btn-success">Sync</button>
                                             </form>
                                         }
                                     </div>
@@ -100,5 +95,101 @@
                 </table>
             </div>
         </div>
+    </div>
+    <!-- Mobile Cards -->
+    <div class="d-md-none">
+        @foreach (var item in Model)
+        {
+            <div class="card mb-3 @(!item.IsEnabled ? "border-secondary" : "")">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <h6 class="card-title mb-0">@item.Name</h6>
+                        @if (item.IsEnabled)
+                        {
+                            <span class="badge bg-success">Enabled</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-secondary">Disabled</span>
+                        }
+                    </div>
+                    <p class="card-text small text-muted mb-2">@item.EmailAddress</p>
+                    <p class="card-text small mb-2">
+                        <strong>Server:</strong> @item.ImapServer:@item.ImapPort
+                    </p>
+                    <p class="card-text small mb-3">
+                        <strong>Last Sync:</strong>
+                        @if (item.LastSync.HasValue)
+                        {
+                            @item.LastSync.Value.ToString("MM/dd/yyyy HH:mm")
+                        }
+                        else
+                        {
+                            <span class="text-muted">Not synced</span>
+                        }
+                    </p>
+                    <!-- Mobile Button Layout - Verbessert -->
+                    <div class="d-grid gap-2">
+                        <!-- Erste Reihe: Details und Edit -->
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-outline-info btn-sm w-100">
+                                    <i class="bi bi-eye"></i> Details
+                                </a>
+                            </div>
+                            <div class="col-6">
+                                <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-outline-warning btn-sm w-100">
+                                    <i class="bi bi-pencil"></i> Edit
+                                </a>
+                            </div>
+                        </div>
+                        <!-- Zweite Reihe: Enable/Disable und Sync -->
+                        <div class="row g-2">
+                            <div class="col">
+                                <form asp-action="ToggleEnabled" asp-route-id="@item.Id" method="post" class="w-100">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn @(item.IsEnabled ? "btn-outline-secondary" : "btn-outline-success") btn-sm w-100">
+                                        <i class="bi bi-@(item.IsEnabled ? "pause" : "play")"></i>
+                                        @(item.IsEnabled ? "Disable" : "Enable")
+                                    </button>
+                                </form>
+                            </div>
+                            @if (item.IsEnabled)
+                            {
+                                <div class="col">
+                                    <form asp-action="Sync" asp-route-id="@item.Id" method="post" class="w-100">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-success btn-sm w-100">
+                                            <i class="bi bi-arrow-clockwise"></i> Sync
+                                        </button>
+                                    </form>
+                                </div>
+                            }
+                        </div>
+                        <!-- Dritte Reihe: Delete Button zentriert -->
+                        <div class="row">
+                            <div class="col-8 offset-2">
+                                <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-outline-danger btn-sm w-100">
+                                    <i class="bi bi-trash"></i> Delete
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+        @if (!Model.Any())
+        {
+            <div class="text-center py-5">
+                <div class="mb-3">
+                    <i class="bi bi-envelope-x display-1 text-muted"></i>
+                </div>
+                <h5 class="text-muted">No email accounts configured</h5>
+                <p class="text-muted">Add your first email account to start archiving emails.</p>
+                <a asp-action="Create" class="btn btn-primary">
+                    <i class="bi bi-plus-circle"></i> Add Account
+                </a>
+                </div>
+        }
     </div>
 </div>

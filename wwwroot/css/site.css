@@ -313,3 +313,109 @@ body {
     font-size: 2rem;
   }
 }
+
+/* Bestehender Code bleibt... */
+
+body {
+  padding-top: 60px;
+  padding-bottom: 60px;
+}
+
+/* Mobile Optimierungen */
+@media (max-width: 768px) {
+  .container-fluid {
+      padding-left: 10px;
+      padding-right: 10px;
+  }
+  
+  .card {
+      margin-bottom: 1rem;
+  }
+  
+  .btn-group {
+      display: flex !important;
+      flex-direction: column;
+      gap: 2px;
+  }
+  
+  .btn-group > .btn {
+      border-radius: 0.25rem !important;
+      margin-bottom: 2px;
+  }
+  
+  /* Kompaktere Darstellung von Badges */
+  .badge {
+      font-size: 0.7em;
+  }
+  
+  /* Kleinere Buttons auf mobile */
+  .btn-sm {
+      font-size: 0.75rem;
+      padding: 0.25rem 0.5rem;
+  }
+  
+  /* Flexbox Utilities für mobile */
+  .d-flex.flex-column > * + * {
+      margin-top: 0.5rem;
+  }
+}
+
+/* Extra small screens */
+@media (max-width: 480px) {
+  .container-fluid {
+      padding-left: 5px;
+      padding-right: 5px;
+  }
+  
+  .card {
+      font-size: 0.9rem;
+  }
+  
+  .btn {
+      font-size: 0.8rem;
+  }
+  
+  h1, .h1 { font-size: 1.5rem; }
+  h3, .h3 { font-size: 1.25rem; }
+  h6, .h6 { font-size: 0.9rem; }
+}
+
+/* Chart Containers für responsive Charts */
+.chart-container {
+  position: relative;
+  height: 300px;
+  max-height: 300px;
+}
+
+@media (max-width: 768px) {
+  .chart-container {
+      height: 250px;
+      max-height: 250px;
+  }
+}
+
+/* Footer fix for mobile */
+.footer {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  white-space: nowrap;
+  line-height: 40px;
+  background-color: #f8f9fa;
+  border-top: 1px solid #dee2e6;
+  padding: 0 15px;
+  z-index: 1020;
+}
+
+@media (max-width: 768px) {
+  .footer {
+      font-size: 0.8rem;
+      line-height: 35px;
+      padding: 0 10px;
+  }
+  
+  .footer .d-flex {
+      flex-direction: column !important;
+      text-align: center;
+  }
+}

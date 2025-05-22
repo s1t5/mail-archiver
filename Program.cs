@@ -1,4 +1,6 @@
 using MailArchiver.Data;
+using MailArchiver.Models;
+using MailArchiver.Middleware;
 using MailArchiver.Services;
 using Microsoft.EntityFrameworkCore;
 
@@ -6,6 +8,20 @@ using Microsoft.EntityFrameworkCore;
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Add Authentication Options
+builder.Services.Configure<AuthenticationOptions>(
+    builder.Configuration.GetSection(AuthenticationOptions.Authentication));
+
+// Add Session support
+builder.Services.AddDistributedMemoryCache();
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(60);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+    options.Cookie.SameSite = SameSiteMode.Strict;
+});
 
 // PostgreSQL-Datenbankkontext hinzufügen
 builder.Services.AddDbContext<MailArchiverDbContext>(options =>
@@ -20,6 +36,7 @@ builder.Services.AddDbContext<MailArchiverDbContext>(options =>
 
 // Services hinzufügen
 builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<IAuthenticationService, SimpleAuthenticationService>();
 builder.Services.AddHostedService<MailSyncBackgroundService>();
 
 // MVC hinzufügen
@@ -28,7 +45,7 @@ builder.Services.AddControllersWithViews();
 // Kestrel-Server-Limits konfigurieren
 builder.WebHost.ConfigureKestrel(options =>
 {
-    options.Limits.MaxRequestBodySize = int.MaxValue; // Maximale Request-Größe (oder einen angemessenen Wert)
+    options.Limits.MaxRequestBodySize = int.MaxValue;
     options.Limits.KeepAliveTimeout = TimeSpan.FromMinutes(30);
     options.Limits.RequestHeadersTimeout = TimeSpan.FromMinutes(20);
 });
@@ -42,14 +59,9 @@ using (var scope = app.Services.CreateScope())
     try
     {
         var context = services.GetRequiredService<MailArchiverDbContext>();
-
-        // Datenbank und Schema erstellen, wenn sie nicht existieren
         context.Database.EnsureCreated();
-
-        // PostgreSQL citext-Erweiterung aktivieren (falls noch nicht vorhanden)
         context.Database.ExecuteSqlRaw("CREATE EXTENSION IF NOT EXISTS citext;");
-
-        // Log-Nachricht
+        
         var logger = services.GetRequiredService<ILogger<Program>>();
         logger.LogInformation("Datenbank wurde initialisiert");
     }
@@ -75,6 +87,10 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
+app.UseSession();
+
+// Add our custom authentication middleware
+app.UseMiddleware<AuthenticationMiddleware>();
 
 app.UseAuthorization();
 

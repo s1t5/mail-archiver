@@ -54,21 +54,33 @@ services:
     image: s1t5/mailarchiver:latest
     restart: always
     environment:
+      # Database Connection
       - ConnectionStrings__DefaultConnection=Host=postgres;Database=MailArchiver;Username=mailuser;Password=masterkey;
-
+  
+      # Authentication Settings
+      - Authentication__Enabled=true
+      - Authentication__Username=admin
+      - Authentication__Password=secure123!
+      - Authentication__SessionTimeoutMinutes=60
+      - Authentication__CookieName=MailArchiverAuth
+  
       # MailSync Settings
-      - MailSync__IntervalMinutes=5
+      - MailSync__IntervalMinutes=15
       - MailSync__TimeoutMinutes=60
       - MailSync__ConnectionTimeoutSeconds=180
       - MailSync__CommandTimeoutSeconds=300
-
+  
       # Npgsql Settings
       - Npgsql__CommandTimeout=600
-
+  
     ports:
       - "5000:5000"
+    volumes:
+      - ./logs:/app/logs
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
+
 
   postgres:
     image: postgres:17-alpine
@@ -91,9 +103,11 @@ services:
 
 3. Edit the database configuration in the `docker-compose.yml` and set a secure password in the `POSTGRES_PASSWORD` variable and the `ConnectionString`.
 
+4. If you want to use authentication (which i'd strongly recommend) definie a `Authentication__Username` and `Authentication__Password`.
+
 4. Configure a reverse proxy of your choice with https ans authentification to secure access to the application. 
 
-**⚠️Attention⚠️ The application itself does not provide any authentication and also no encrypted access via https! Both must be set up via the reverse proxy!**
+**⚠️Attention⚠️ The application itself does not provide encrypted access via https! It must be set up via a reverse proxy! Moreover the application is not build for public internet access!**
 
 4. Initial start of the containers:
 ```bash
@@ -107,7 +121,7 @@ docker compose restart
 
 6. Access the application
 
-7. Add your first email account:
+7. Login with your defined credentials and add your first email account:
 - Navigate to "Email Accounts" section
 - Click "New Account"
 - Enter your IMAP server details and credentials
@@ -121,10 +135,9 @@ docker compose restart
 | `postgres` | 5432 | PostgreSQL Database |
 
 ## 🔐 Security Note
-- 🔒 Use strong passwords for PostgreSQL and change default credentials
+- 🔒 Use strong passwords and change default credentials
 - 🔐 Consider implementing HTTPS with a reverse proxy in production
 - 💾 Regular backups of the PostgreSQL database recommended
-- 🛡️ Implement the authentication for the application via a reverse proxy as the application itself does not provide any authentication.
 
 ## 📋 Technical Details
 

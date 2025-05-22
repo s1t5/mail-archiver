@@ -1,0 +1,27 @@
+@using MailArchiver.Services
+@inject IAuthenticationService AuthService
+
+@if (AuthService.IsAuthenticationRequired())
+{
+    <div class="dropdown">
+        <button class="btn btn-outline-light btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="bi bi-person-circle me-1"></i>
+            <span class="d-none d-md-inline">@AuthService.GetCurrentUser(Context)</span>
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end">
+            <li>
+                <h6 class="dropdown-header">
+                    <i class="bi bi-person me-2"></i>@AuthService.GetCurrentUser(Context)
+                </h6>
+            </li>
+            <li><hr class="dropdown-divider"></li>
+            <li>
+                <form asp-controller="Auth" asp-action="Logout" method="post" class="d-inline">
+                    <button type="submit" class="dropdown-item">
+                        <i class="bi bi-box-arrow-right me-2"></i>Sign Out
+                    </button>
+                </form>
+            </li>
+        </ul>
+    </div>
+}
