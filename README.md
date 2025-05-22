@@ -56,27 +56,26 @@ services:
     environment:
       # Database Connection
       - ConnectionStrings__DefaultConnection=Host=postgres;Database=MailArchiver;Username=mailuser;Password=masterkey;
-  
+
       # Authentication Settings
       - Authentication__Enabled=true
       - Authentication__Username=admin
       - Authentication__Password=secure123!
       - Authentication__SessionTimeoutMinutes=60
       - Authentication__CookieName=MailArchiverAuth
-  
+
       # MailSync Settings
       - MailSync__IntervalMinutes=15
       - MailSync__TimeoutMinutes=60
       - MailSync__ConnectionTimeoutSeconds=180
       - MailSync__CommandTimeoutSeconds=300
-  
+
       # Npgsql Settings
       - Npgsql__CommandTimeout=600
-  
+
     ports:
       - "5000:5000"
-    volumes:
-      - ./logs:/app/logs
+
     depends_on:
       postgres:
         condition: service_healthy
