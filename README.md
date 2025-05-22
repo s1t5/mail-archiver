@@ -9,11 +9,12 @@
 
 ## ✨ Key Features
 
-### 📥 Email Archiving
+### 📌 General
 - Automated archiving of incoming and outgoing emails
 - Support for multiple IMAP accounts
 - Storage of email content and attachments
 - Scheduled synchronization at configurable intervals
+- Mobile and desktop optimized responsive UI
 
 ### 🔍 Advanced Search
 - Search across all archived emails
