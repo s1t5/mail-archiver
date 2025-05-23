@@ -10,22 +10,9 @@
             <span class="d-none d-sm-inline">Add Account</span>
         </a>
     </div>
-    @if (TempData["SuccessMessage"] != null)
-    {
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            @TempData["SuccessMessage"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    }
-    @if (TempData["ErrorMessage"] != null)
-    {
-        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            @TempData["ErrorMessage"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    }
-    <!-- Desktop Tabelle -->
-    <div class="card d-none d-md-block">
+
+    @* Desktop Tabelle - ERST ab großen Bildschirmen (gleich wie Archive) *@
+    <div class="card d-none d-lg-block">
         <div class="card-body">
             <div class="table-responsive">
                 <table class="table table-striped table-hover">
@@ -96,8 +83,9 @@
             </div>
         </div>
     </div>
-    <!-- Mobile Cards -->
-    <div class="d-md-none">
+
+    @* Mobile/Tablet Cards - bis große Bildschirme *@
+    <div class="d-lg-none">
         @foreach (var item in Model)
         {
             <div class="card mb-3 @(!item.IsEnabled ? "border-secondary" : "")">
@@ -128,7 +116,7 @@
                             <span class="text-muted">Not synced</span>
                         }
                     </p>
-                    <!-- Mobile Button Layout -->
+                    @* Mobile/Tablet Button Layout *@
                     <div class="d-grid gap-2">
                         <div class="row g-2">
                             <div class="col-6">

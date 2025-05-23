@@ -3,7 +3,6 @@
     .table-mobile {
         border: 0;
     }
-    
     .table-mobile thead {
         border: none;
         clip: rect(0 0 0 0);
@@ -14,7 +13,6 @@
         position: absolute;
         width: 1px;
     }
-    
     .table-mobile tr {
         border-bottom: 3px solid #ddd;
         display: block;
@@ -24,7 +22,6 @@
         box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         padding: 15px;
     }
-    
     .table-mobile td {
         border: none;
         border-bottom: 1px solid #eee;
@@ -33,7 +30,6 @@
         text-align: right;
         padding: 8px 0;
     }
-    
     .table-mobile td:before {
         content: attr(data-label) ": ";
         float: left;
@@ -42,24 +38,20 @@
         font-size: 12px;
         color: #666;
     }
-    
     .table-mobile td:last-child {
         border-bottom: 0;
     }
-
     /* Actions werden als Buttons dargestellt */
     .table-mobile .btn-group {
         display: flex;
         flex-direction: column;
         gap: 5px;
     }
-    
     .table-mobile .btn-group .btn {
         width: 100%;
         font-size: 12px;
         padding: 6px 12px;
     }
-
     /* Mobile Email Cards - ZEIGE diese auf Mobilgeräten */
     .email-card {
         display: block !important;
@@ -70,106 +62,86 @@
         background: #fff;
         box-shadow: 0 2px 4px rgba(0,0,0,0.05);
     }
-
     /* Email Details Mobile Optimierungen */
     /* Button-Gruppen für mobile optimieren */
     .d-grid {
         gap: 0.5rem !important;
     }
-    
     .d-grid .btn-group {
         width: 100%;
     }
-    
     .d-grid .btn-group .btn {
         border-radius: 0.375rem !important;
     }
-    
     .d-grid .btn-group .dropdown-toggle-split {
         border-left: 1px solid rgba(0,0,0,0.2);
     }
-    
     /* Email content verbesserungen */
     .email-content-container {
         margin: 0 -0.5rem;
     }
-    
     .email-iframe {
         height: 300px !important;
         min-height: 250px !important;
     }
-    
     /* Text-Breaking für E-Mail-Adressen */
     .email-text-break {
         word-break: break-all;
         line-height: 1.4;
     }
-    
     .email-text-content {
         white-space: pre-wrap;
         font-family: inherit;
         font-size: 0.9rem;
     }
-    
     /* Bessere Attachment-Darstellung */
     .mobile-attachments .btn.text-start {
         text-align: left !important;
     }
-    
     /* Card Header für mobile kompakter */
     .card-header {
         padding: 0.75rem;
     }
-    
     .card-header h5 {
         font-size: 1rem;
         line-height: 1.3;
     }
-    
     /* Meta-Info Rows kompakter */
     .row.g-2 > * {
         padding-top: 0.25rem;
         padding-bottom: 0.25rem;
     }
-    
     .row.g-2 {
         --bs-gutter-y: 0.25rem;
     }
-
     /* Container Mobile Optimierungen */
     .container-fluid {
         padding-left: 10px;
         padding-right: 10px;
     }
-    
     .card {
         margin-bottom: 1rem;
     }
-    
     .btn-group {
         display: flex !important;
         flex-direction: column;
         gap: 2px;
     }
-    
     .btn-group > .btn {
         border-radius: 0.25rem !important;
         margin-bottom: 2px;
     }
-    
     /* Kompaktere Darstellung von Badges */
     .badge {
         font-size: 0.7em;
     }
-    
     /* Kleinere Buttons auf mobile */
     .btn-sm {
         font-size: 0.75rem;
         padding: 0.25rem 0.5rem;
     }
-    
     /* Flexbox Utilities für mobile */
-    .d-flex.flex-column > * + * {
+    .d-flex.flex-column > _+_ {
         margin-top: 0.5rem;
     }
 }
@@ -179,12 +151,10 @@
     .email-card {
         display: none !important;
     }
-
     .email-iframe {
         height: 400px;
         min-height: 300px;
     }
-    
     .email-text-content {
         white-space: pre-wrap;
         font-family: inherit;
@@ -192,119 +162,20 @@
     }
 }
 
-/* Tablet Optimierungen (769px - 1024px) */
-@media (min-width: 769px) and (max-width: 1024px) {
-    /* Tablet-spezifische Optimierungen */
-    .container-fluid {
-        padding-left: 15px;
-        padding-right: 15px;
-    }
-    
-    /* Kompaktere Cards für Tablets */
-    .card {
-        margin-bottom: 1.5rem;
-    }
-    
-    .card-body {
-        padding: 1rem;
-    }
-    
-    /* Kleinere Buttons für Tablet */
-    .btn {
-        font-size: 0.85rem;
-        padding: 0.4rem 0.75rem;
-    }
-    
-    .btn-sm {
-        font-size: 0.75rem;
-        padding: 0.3rem 0.6rem;
-    }
-    
-    /* Chart Container für Tablets */
-    .chart-container {
-        height: 280px;
-        max-height: 280px;
-    }
-    
-    /* Email Details für Tablets */
-    .email-iframe {
-        height: 350px;
-        min-height: 300px;
-    }
-    
-    /* Kompaktere Navigation für Tablets */
-    .navbar-brand {
-        font-size: 1.1rem;
-    }
-    
-    .navbar-nav .nav-link {
-        padding: 0.4rem 0.8rem;
-        font-size: 0.9rem;
-    }
+/* Email Card Mobile Styling */
+.email-card-mobile {
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    background: #fff;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    transition: box-shadow 0.2s ease;
 }
 
-/* Extra kleine Bildschirme (unter 480px) */
-@media (max-width: 480px) {
-    .container-fluid {
-        padding-left: 5px;
-        padding-right: 5px;
-    }
-    
-    .card {
-        font-size: 0.9rem;
-        border-radius: 0.5rem;
-    }
-    
-    .card-body {
-        padding: 0.75rem;
-    }
-    
-    .btn {
-        font-size: 0.8rem;
-    }
-    
-    .btn-sm {
-        font-size: 0.7rem;
-        padding: 0.3rem 0.5rem;
-    }
-    
-    h1, .h1 { 
-        font-size: 1.5rem; 
-    }
-    
-    h3, .h3 { 
-        font-size: 1.25rem; 
-    }
-    
-    h6, .h6 { 
-        font-size: 0.9rem; 
-    }
-    
-    /* Noch kleinere iFrame auf sehr kleinen Bildschirmen */
-    .email-iframe {
-        height: 250px !important;
-        min-height: 200px !important;
-    }
-    
-    /* Kompaktere Navigation */
-    .navbar-brand {
-        font-size: 1rem;
-    }
-    
-    .navbar-nav .nav-link {
-        padding: 0.3rem 0.6rem;
-        font-size: 0.85rem;
-    }
-    
-    /* Footer für sehr kleine Bildschirme */
-    .footer {
-        font-size: 0.75rem;
-        line-height: 30px;
-        padding: 0 8px;
-    }
+.email-card-mobile:hover {
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
 }
 
-/* Email Card Styling (für alle Größen) */
 .email-card-header {
     display: flex;
     justify-content: space-between;
@@ -316,32 +187,177 @@
     font-weight: 600;
     font-size: 14px;
     color: #333;
-    margin-bottom: 5px;
+    margin-bottom: 8px;
     line-height: 1.3;
     flex-grow: 1;
-    margin-right: 10px;
 }
 
 .email-card-meta {
-    font-size: 12px;
+    font-size: 13px;
     color: #666;
-    margin-bottom: 8px;
+    margin-bottom: 12px;
 }
 
 .email-card-meta div {
-    margin-bottom: 3px;
+    margin-bottom: 4px;
+    word-break: break-word;
 }
 
 .email-card-actions {
-    margin-top: 10px;
+    margin-top: 12px;
     display: flex;
     gap: 8px;
     flex-wrap: wrap;
 }
 
-.email-card-actions .btn {
-    font-size: 12px;
-    padding: 4px 8px;
+/* Responsive Breakpoints für verschiedene Bildschirmgrößen */
+@media (max-width: 991px) {
+    /* Tablet und Mobile - Cards werden angezeigt */
+    .email-card-mobile {
+        display: block !important;
+    }
+}
+
+@media (min-width: 992px) {
+    /* Desktop - Cards werden versteckt */
+    .email-card-mobile {
+        display: none !important;
+    }
+}
+
+/* Tablet Optimierungen (769px - 1024px) */
+@media (min-width: 769px) and (max-width: 1024px) {
+    /* Tablet-spezifische Optimierungen */
+    .container-fluid {
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+    /* Kompaktere Cards für Tablets */
+    .card {
+        margin-bottom: 1.5rem;
+    }
+    .card-body {
+        padding: 1rem;
+    }
+    /* Kleinere Buttons für Tablet */
+    .btn {
+        font-size: 0.85rem;
+        padding: 0.4rem 0.75rem;
+    }
+    .btn-sm {
+        font-size: 0.75rem;
+        padding: 0.3rem 0.6rem;
+    }
+    /* Chart Container für Tablets */
+    .chart-container {
+        height: 280px;
+        max-height: 280px;
+    }
+    /* Email Details für Tablets */
+    .email-iframe {
+        height: 350px;
+        min-height: 300px;
+    }
+    /* Kompaktere Navigation für Tablets */
+    .navbar-brand {
+        font-size: 1.1rem;
+    }
+    .navbar-nav .nav-link {
+        padding: 0.4rem 0.8rem;
+        font-size: 0.9rem;
+    }
+}
+
+/* Tablet spezifische Email Card Optimierungen (768px - 991px) */
+@media (min-width: 768px) and (max-width: 991px) {
+    .email-card-mobile {
+        margin-bottom: 1rem;
+    }
+    
+    .email-card-mobile .card-body {
+        padding: 1rem;
+    }
+    
+    .email-card-title {
+        font-size: 15px;
+    }
+    
+    .email-card-meta {
+        font-size: 14px;
+    }
+}
+
+/* Mobile spezifische Email Card Optimierungen (unter 768px) */
+@media (max-width: 767px) {
+    .email-card-mobile {
+        margin-bottom: 12px;
+    }
+    
+    .email-card-mobile .card-body {
+        padding: 0.75rem;
+    }
+    
+    .email-card-title {
+        font-size: 14px;
+    }
+    
+    .email-card-meta {
+        font-size: 12px;
+    }
+    
+    .email-card-meta div {
+        margin-bottom: 3px;
+    }
+}
+
+/* Extra kleine Bildschirme (unter 480px) */
+@media (max-width: 480px) {
+    .container-fluid {
+        padding-left: 5px;
+        padding-right: 5px;
+    }
+    .card {
+        font-size: 0.9rem;
+        border-radius: 0.5rem;
+    }
+    .card-body {
+        padding: 0.75rem;
+    }
+    .btn {
+        font-size: 0.8rem;
+    }
+    .btn-sm {
+        font-size: 0.7rem;
+        padding: 0.3rem 0.5rem;
+    }
+    h1, .h1 {
+        font-size: 1.5rem;
+    }
+    h3, .h3 {
+        font-size: 1.25rem;
+    }
+    h6, .h6 {
+        font-size: 0.9rem;
+    }
+    /* Noch kleinere iFrame auf sehr kleinen Bildschirmen */
+    .email-iframe {
+        height: 250px !important;
+        min-height: 200px !important;
+    }
+    /* Kompaktere Navigation */
+    .navbar-brand {
+        font-size: 1rem;
+    }
+    .navbar-nav .nav-link {
+        padding: 0.3rem 0.6rem;
+        font-size: 0.85rem;
+    }
+    /* Footer für sehr kleine Bildschirme */
+    .footer {
+        font-size: 0.75rem;
+        line-height: 30px;
+        padding: 0 8px;
+    }
 }
 
 /* Chart Container Fixes */
@@ -350,14 +366,12 @@
     width: 100%;
     height: 300px;
 }
-
 .chart-container canvas {
     width: 100% !important;
     height: 100% !important;
     max-width: none !important;
     max-height: none !important;
 }
-
 @media (max-width: 768px) {
     .chart-container {
         height: 250px;
@@ -376,14 +390,12 @@
     padding: 0 15px;
     z-index: 1020;
 }
-
 @media (max-width: 768px) {
     .footer {
         font-size: 0.8rem;
         line-height: 35px;
         padding: 0 10px;
     }
-    
     .footer .d-flex {
         flex-direction: column !important;
         text-align: center;
@@ -396,39 +408,32 @@
     .table-responsive {
         -webkit-overflow-scrolling: touch;
     }
-    
     /* Modal-Optimierungen für mobile */
     .modal-dialog {
         margin: 0.5rem;
     }
-    
     .modal-body {
         padding: 1rem;
     }
-    
     /* Form-Optimierungen */
     .form-control,
     .form-select {
         font-size: 16px; /* Verhindert Zoom auf iOS */
     }
-    
     /* List-Group Optimierungen */
     .list-group-item {
         padding: 0.75rem;
     }
-    
     /* Alert Optimierungen */
     .alert {
         margin-bottom: 1rem;
         padding: 0.75rem;
         font-size: 0.9rem;
     }
-    
     /* Pagination Optimierungen */
     .pagination {
         margin-bottom: 0;
     }
-    
     .page-link {
         padding: 0.375rem 0.75rem;
         font-size: 0.875rem;
@@ -442,19 +447,16 @@
         min-height: 44px; /* Apple's minimale Touch-Target Größe */
         padding: 0.5rem 1rem;
     }
-    
     .btn-sm {
         min-height: 38px;
         padding: 0.4rem 0.8rem;
     }
-    
     /* Größere Checkboxes für Touch */
     .form-check-input {
         width: 1.2em;
         height: 1.2em;
         margin-top: 0.15em;
     }
-    
     /* Bessere Link-Targets */
     .nav-link,
     .list-group-item-action {
@@ -471,24 +473,20 @@
     .d-grid {
         display: block !important;
     }
-    
     .d-none,
     .d-md-none,
     .d-lg-none {
         display: none !important;
     }
-    
     .email-iframe {
         height: auto !important;
         min-height: auto !important;
         page-break-inside: avoid;
     }
-    
     .card {
         border: 1px solid #000 !important;
         box-shadow: none !important;
     }
-    
     .btn {
         display: none !important;
     }
@@ -501,21 +499,22 @@
         border-color: #4a5568;
         color: #e2e8f0;
     }
-    
     .email-card-title {
         color: #e2e8f0;
     }
-    
     .email-card-meta {
         color: #a0aec0;
     }
-    
     .table-mobile tr {
         background: #2d3748;
         color: #e2e8f0;
     }
-    
     .email-text-break {
+        color: #e2e8f0;
+    }
+    .email-card-mobile {
+        background: #2d3748;
+        border-color: #4a5568;
         color: #e2e8f0;
     }
 }
@@ -530,9 +529,11 @@
     .carousel-item {
         transition: none;
     }
-    
     .alert {
         animation: none;
+    }
+    .email-card-mobile {
+        transition: none;
     }
 }
 
@@ -541,11 +542,12 @@
     .email-card {
         border: 2px solid;
     }
-    
+    .email-card-mobile {
+        border: 2px solid;
+    }
     .badge {
         border: 1px solid;
     }
-    
     .btn-outline-primary,
     .btn-outline-secondary {
         border-width: 2px;

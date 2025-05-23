@@ -163,53 +163,52 @@
                 </form>
             </div>
 
-            <!-- Mobile Cards - Diese werden auf Mobilgeräten angezeigt -->
+            <!-- Mobile Cards - Diese werden auf Mobilgeräten UND Tablets angezeigt -->
             <div class="d-lg-none p-3">
                 <form id="batchActionsFormMobile" method="get">
                     <input type="hidden" name="returnUrl" id="returnUrlInputMobile" value="@Context.Request.Path@Context.Request.QueryString" />
                     @foreach (var email in Model.SearchResults)
                     {
-                        <div class="email-card">
+                        <div class="card mb-3 email-card-mobile">
                             @if (Model.ShowSelectionControls)
                             {
                                 <div class="form-check mb-2">
                                     <input class="form-check-input email-select-checkbox" type="checkbox"
-                                           name="ids" value="@email.Id" id="email-@email.Id">
-                                    <label class="form-check-label small text-muted" for="email-@email.Id">
+                                           name="ids" value="@email.Id" id="email-mobile-@email.Id">
+                                    <label class="form-check-label small text-muted" for="email-mobile-@email.Id">
                                         Select this email
                                     </label>
                                 </div>
                             }
-                            
-                            <div class="email-card-header">
-                                <div class="email-card-title">
-                                    @if (email.IsOutgoing)
-                                    {
-                                        <i class="bi bi-arrow-up-right text-primary me-1"></i>
-                                    }
-                                    else
-                                    {
-                                        <i class="bi bi-arrow-down-left text-success me-1"></i>
-                                    }
-                                    @email.Subject
-                                    @if (email.HasAttachments)
-                                    {
-                                        <i class="bi bi-paperclip text-warning ms-1"></i>
-                                    }
+                            <div class="card-body p-3">
+                                <div class="email-card-header">
+                                    <div class="email-card-title">
+                                        @if (email.IsOutgoing)
+                                        {
+                                            <i class="bi bi-arrow-up-right text-primary me-1"></i>
+                                        }
+                                        else
+                                        {
+                                            <i class="bi bi-arrow-down-left text-success me-1"></i>
+                                        }
+                                        @email.Subject
+                                        @if (email.HasAttachments)
+                                        {
+                                            <i class="bi bi-paperclip text-warning ms-1"></i>
+                                        }
+                                    </div>
                                 </div>
-                            </div>
-                            
-                            <div class="email-card-meta">
-                                <div><strong>From:</strong> @email.From</div>
-                                <div><strong>To:</strong> @(email.To.Length > 50 ? email.To.Substring(0, 50) + "..." : email.To)</div>
-                                <div><strong>Date:</strong> @email.SentDate.ToString("yyyy-MM-dd HH:mm")</div>
-                                <div><strong>Account:</strong> @email.MailAccount.Name</div>
-                            </div>
-                            
-                            <div class="email-card-actions">
-                                <a asp-action="Details" asp-route-id="@email.Id" class="btn btn-outline-primary btn-sm w-100">
-                                    <i class="bi bi-eye"></i> View Details
-                                </a>
+                                <div class="email-card-meta">
+                                    <div><strong>From:</strong> @email.From</div>
+                                    <div><strong>To:</strong> @(email.To.Length > 50 ? email.To.Substring(0, 50) + "..." : email.To)</div>
+                                    <div><strong>Date:</strong> @email.SentDate.ToString("yyyy-MM-dd HH:mm")</div>
+                                    <div><strong>Account:</strong> @email.MailAccount.Name</div>
+                                </div>
+                                <div class="email-card-actions">
+                                    <a asp-action="Details" asp-route-id="@email.Id" class="btn btn-outline-primary btn-sm w-100">
+                                        <i class="bi bi-eye"></i> View Details
+                                    </a>
+                                </div>
                             </div>
                         </div>
                     }
