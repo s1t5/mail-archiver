@@ -2,7 +2,6 @@
 @{
     ViewData["Title"] = "Account Details";
 }
-
 <div class="container">
     <h1>Email Account Details</h1>
     <div class="card">
@@ -10,19 +9,14 @@
             <dl class="row">
                 <dt class="col-sm-3">Name</dt>
                 <dd class="col-sm-9">@Model.Name</dd>
-                
                 <dt class="col-sm-3">Email Address</dt>
                 <dd class="col-sm-9">@Model.EmailAddress</dd>
-                
                 <dt class="col-sm-3">IMAP Server</dt>
                 <dd class="col-sm-9">@Model.ImapServer:@Model.ImapPort</dd>
-                
                 <dt class="col-sm-3">Username</dt>
                 <dd class="col-sm-9">@Model.Username</dd>
-                
                 <dt class="col-sm-3">SSL</dt>
                 <dd class="col-sm-9">@(Model.UseSSL ? "Enabled" : "Disabled")</dd>
-                
                 <dt class="col-sm-3">Status</dt>
                 <dd class="col-sm-9">
                     @if (Model.IsEnabled)
@@ -34,12 +28,11 @@
                         <span class="badge bg-secondary">Disabled</span>
                     }
                 </dd>
-                
                 <dt class="col-sm-3">Last Sync</dt>
                 <dd class="col-sm-9">
                     @if (Model.LastSync.HasValue)
                     {
-                        @Model.LastSync.Value.ToString("MM/dd/yyyy HH:mm:ss")
+                        @Model.LastSync.Value.ToString("yyyy-MM-dd HH:mm:ss")
                     }
                     else
                     {

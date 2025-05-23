@@ -59,7 +59,7 @@
                                 <td>
                                     @if (item.LastSync.HasValue)
                                     {
-                                        @item.LastSync.Value.ToString("MM/dd/yyyy HH:mm")
+                                        @item.LastSync.Value.ToString("yyyy-MM-dd HH:mm")
                                     }
                                     else
                                     {
@@ -121,16 +121,15 @@
                         <strong>Last Sync:</strong>
                         @if (item.LastSync.HasValue)
                         {
-                            @item.LastSync.Value.ToString("MM/dd/yyyy HH:mm")
+                            @item.LastSync.Value.ToString("yyyy-MM-dd HH:mm")
                         }
                         else
                         {
                             <span class="text-muted">Not synced</span>
                         }
                     </p>
-                    <!-- Mobile Button Layout - Verbessert -->
+                    <!-- Mobile Button Layout -->
                     <div class="d-grid gap-2">
-                        <!-- Erste Reihe: Details und Edit -->
                         <div class="row g-2">
                             <div class="col-6">
                                 <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-outline-info btn-sm w-100">
@@ -143,7 +142,6 @@
                                 </a>
                             </div>
                         </div>
-                        <!-- Zweite Reihe: Enable/Disable und Sync -->
                         <div class="row g-2">
                             <div class="col">
                                 <form asp-action="ToggleEnabled" asp-route-id="@item.Id" method="post" class="w-100">
@@ -166,7 +164,6 @@
                                 </div>
                             }
                         </div>
-                        <!-- Dritte Reihe: Delete Button zentriert -->
                         <div class="row">
                             <div class="col-8 offset-2">
                                 <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-outline-danger btn-sm w-100">
@@ -189,7 +186,7 @@
                 <a asp-action="Create" class="btn btn-primary">
                     <i class="bi bi-plus-circle"></i> Add Account
                 </a>
-                </div>
+            </div>
         }
     </div>
 </div>

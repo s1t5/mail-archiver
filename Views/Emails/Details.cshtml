@@ -3,9 +3,10 @@
     ViewData["Title"] = "Email Details";
 }
 <div class="container-fluid">
-    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-3 gap-2">
+    <div
+        class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-3 gap-2">
         <h1 class="h3 mb-0">Email Details</h1>
-        
+
         <!-- Mobile Button Layout -->
         <div class="d-md-none w-100">
             <div class="d-grid gap-2">
@@ -13,19 +14,23 @@
                     <i class="bi bi-arrow-left"></i> Back to List
                 </a>
                 <div class="btn-group btn-group-sm">
-                    <a asp-action="Export" asp-route-id="@Model.Email.Id" asp-route-format="2" class="btn btn-outline-primary">
+                    <a asp-action="Export" asp-route-id="@Model.Email.Id" asp-route-format="2"
+                        class="btn btn-outline-primary">
                         <i class="bi bi-envelope"></i> Export EML
                     </a>
-                    <button type="button" class="btn btn-outline-primary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false">
+                    <button type="button" class="btn btn-outline-primary dropdown-toggle dropdown-toggle-split"
+                        data-bs-toggle="dropdown" aria-expanded="false">
                         <span class="visually-hidden">More Export Options</span>
                     </button>
                     <ul class="dropdown-menu">
-                        <li><a asp-action="Export" asp-route-id="@Model.Email.Id" asp-route-format="0" class="dropdown-item">
-                            <i class="bi bi-filetype-csv me-2"></i>Export as CSV
-                        </a></li>
-                        <li><a asp-action="Export" asp-route-id="@Model.Email.Id" asp-route-format="1" class="dropdown-item">
-                            <i class="bi bi-filetype-json me-2"></i>Export as JSON
-                        </a></li>
+                        <li><a asp-action="Export" asp-route-id="@Model.Email.Id" asp-route-format="0"
+                                class="dropdown-item">
+                                <i class="bi bi-filetype-csv me-2"></i>Export as CSV
+                            </a></li>
+                        <li><a asp-action="Export" asp-route-id="@Model.Email.Id" asp-route-format="1"
+                                class="dropdown-item">
+                                <i class="bi bi-filetype-json me-2"></i>Export as JSON
+                            </a></li>
                     </ul>
                 </div>
                 <a asp-action="Restore" asp-route-id="@Model.Email.Id" class="btn btn-success btn-sm">
@@ -40,15 +45,19 @@
                 <i class="bi bi-arrow-left"></i> Back to List
             </a>
             <div class="btn-group">
-                <a asp-action="Export" asp-route-id="@Model.Email.Id" asp-route-format="2" class="btn btn-outline-primary">
+                <a asp-action="Export" asp-route-id="@Model.Email.Id" asp-route-format="2"
+                    class="btn btn-outline-primary">
                     <i class="bi bi-envelope"></i> Export as EML
                 </a>
-                <button type="button" class="btn btn-outline-primary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false">
+                <button type="button" class="btn btn-outline-primary dropdown-toggle dropdown-toggle-split"
+                    data-bs-toggle="dropdown" aria-expanded="false">
                     <span class="visually-hidden">Toggle Dropdown</span>
                 </button>
                 <ul class="dropdown-menu">
-                    <li><a asp-action="Export" asp-route-id="@Model.Email.Id" asp-route-format="0" class="dropdown-item">Export as CSV</a></li>
-                    <li><a asp-action="Export" asp-route-id="@Model.Email.Id" asp-route-format="1" class="dropdown-item">Export as JSON</a></li>
+                    <li><a asp-action="Export" asp-route-id="@Model.Email.Id" asp-route-format="0"
+                            class="dropdown-item">Export as CSV</a></li>
+                    <li><a asp-action="Export" asp-route-id="@Model.Email.Id" asp-route-format="1"
+                            class="dropdown-item">Export as JSON</a></li>
                 </ul>
             </div>
             <a asp-action="Restore" asp-route-id="@Model.Email.Id" class="btn btn-success">
@@ -137,7 +146,7 @@
                     <strong class="text-muted small">Date:</strong>
                 </div>
                 <div class="col-12 col-md-10">
-                    @Model.Email.SentDate.ToString("dddd, MMMM dd, yyyy 'at' HH:mm:ss")
+                    @Model.Email.SentDate.ToString("yyyy-MM-dd HH:mm:ss")
                 </div>
             </div>
 
@@ -152,8 +161,9 @@
                         <div class="d-md-none d-grid gap-2 mobile-attachments">
                             @foreach (var attachment in Model.Email.Attachments)
                             {
-                                <a asp-action="Attachment" asp-route-emailId="@Model.Email.Id" asp-route-attachmentId="@attachment.Id"
-                                   class="btn btn-outline-secondary btn-sm text-start d-flex justify-content-between align-items-center">
+                                <a asp-action="Attachment" asp-route-emailId="@Model.Email.Id"
+                                    asp-route-attachmentId="@attachment.Id"
+                                    class="btn btn-outline-secondary btn-sm text-start d-flex justify-content-between align-items-center">
                                     <span class="text-truncate me-2">
                                         <i class="bi bi-paperclip me-1"></i>@attachment.FileName
                                     </span>
@@ -161,14 +171,15 @@
                                 </a>
                             }
                         </div>
-                        
+
                         <!-- Desktop: List group -->
                         <div class="d-none d-md-block">
                             <div class="list-group">
                                 @foreach (var attachment in Model.Email.Attachments)
                                 {
-                                    <a asp-action="Attachment" asp-route-emailId="@Model.Email.Id" asp-route-attachmentId="@attachment.Id"
-                                       class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                                    <a asp-action="Attachment" asp-route-emailId="@Model.Email.Id"
+                                        asp-route-attachmentId="@attachment.Id"
+                                        class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
                                         <span><i class="bi bi-paperclip me-2"></i>@attachment.FileName</span>
                                         <span class="badge bg-primary rounded-pill">@FormatFileSize(attachment.Size)</span>
                                     </a>
@@ -180,24 +191,24 @@
             }
 
             <hr />
-            
+
             <!-- Email Content -->
             <div class="email-content mt-3">
                 <div class="d-flex justify-content-between align-items-center mb-2">
                     <h6 class="mb-0 text-muted">Email Content</h6>
                     <!-- Mobile: Smaller view button -->
-                    <a asp-action="RawContent" asp-route-id="@Model.Email.Id" target="_blank" class="btn btn-outline-secondary btn-sm">
+                    <a asp-action="RawContent" asp-route-id="@Model.Email.Id" target="_blank"
+                        class="btn btn-outline-secondary btn-sm">
                         <i class="bi bi-arrows-fullscreen"></i>
                         <span class="d-none d-sm-inline">Full View</span>
                     </a>
                 </div>
-                
+
                 @if (!string.IsNullOrEmpty(Model.Email.HtmlBody))
                 {
                     <div class="email-content-container">
                         <iframe id="email-content-frame" src="@Url.Action("RawContent", new { id = Model.Email.Id })"
-                                class="w-100 border rounded email-iframe"
-                                sandbox="allow-same-origin allow-popups"></iframe>
+                            class="w-100 border rounded email-iframe" sandbox="allow-same-origin allow-popups"></iframe>
                     </div>
                 }
                 else
@@ -212,7 +223,7 @@
 </div>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
         const iframe = document.getElementById('email-content-frame');
         if (iframe) {
             // Mobile-optimierte iFrame-Höhe
@@ -222,15 +233,15 @@
             } else {
                 iframe.style.height = '400px';
             }
-            
+
             // iFrame-Höhe an Inhalt anpassen (nur für Desktop)
-            iframe.onload = function() {
+            iframe.onload = function () {
                 if (!isMobile) {
-                    setTimeout(function() {
+                    setTimeout(function () {
                         try {
                             const iframeHeight = Math.min(iframe.contentWindow.document.body.scrollHeight + 30, 600);
                             iframe.style.height = iframeHeight + 'px';
-                        } catch(e) {
+                        } catch (e) {
                             console.error('Could not adjust iframe height:', e);
                         }
                     }, 300);

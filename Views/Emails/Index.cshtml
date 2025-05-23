@@ -144,7 +144,7 @@
                                         </td>
                                         <td>@email.From</td>
                                         <td>@email.To</td>
-                                        <td>@email.SentDate.ToString("MM/dd/yyyy HH:mm")</td>
+                                        <td>@email.SentDate.ToString("yyyy-MM-dd HH:mm")</td>
                                         <td>@email.MailAccount.Name</td>
                                         <td>
                                             @if (email.HasAttachments)
@@ -202,7 +202,7 @@
                             <div class="email-card-meta">
                                 <div><strong>From:</strong> @email.From</div>
                                 <div><strong>To:</strong> @(email.To.Length > 50 ? email.To.Substring(0, 50) + "..." : email.To)</div>
-                                <div><strong>Date:</strong> @email.SentDate.ToString("MM/dd/yyyy HH:mm")</div>
+                                <div><strong>Date:</strong> @email.SentDate.ToString("yyyy-MM-dd HH:mm")</div>
                                 <div><strong>Account:</strong> @email.MailAccount.Name</div>
                             </div>
                             
