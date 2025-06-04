@@ -43,6 +43,9 @@
             <div class="mt-3">
                 <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">Edit</a>
                 <a asp-action="Index" class="btn btn-outline-secondary">Back to List</a>
+                <a asp-action="MoveAllEmails" asp-route-id="@Model.Id" class="btn btn-outline-success">
+                    <i class="bi bi-envelope-arrow-up"></i> Copy All Emails to Another Mailbox
+                </a>
             </div>
         </div>
     </div>

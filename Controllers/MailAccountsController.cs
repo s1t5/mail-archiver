@@ -339,5 +339,26 @@ namespace MailArchiver.Controllers
 
             return RedirectToAction(nameof(Index));
         }
+
+        // GET: MailAccounts/MoveAllEmails/5
+        public async Task<IActionResult> MoveAllEmails(int id)
+        {
+            var account = await _context.MailAccounts.FindAsync(id);
+            if (account == null) return NotFound();
+
+            // Hole alle E-Mail-IDs dieses Accounts
+            var emailIds = await _context.ArchivedEmails
+                .Where(e => e.MailAccountId == id)
+                .Select(e => e.Id)
+                .ToListAsync();
+
+            if (!emailIds.Any())
+            {
+                TempData["ErrorMessage"] = "No emails found to copy for this account.";
+                return RedirectToAction(nameof(Details), new { id });
+            }
+            // Zu EmailsController → BatchRestore weiterleiten
+            return RedirectToAction("BatchRestore", "Emails", new { ids = emailIds, returnUrl = Url.Action("Details", new { id }) });
+        }
     }
 }
