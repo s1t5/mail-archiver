@@ -4,6 +4,7 @@ using MailArchiver.Models.ViewModels;
 using MailArchiver.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 
 namespace MailArchiver.Controllers
 {
@@ -12,15 +13,18 @@ namespace MailArchiver.Controllers
         private readonly MailArchiverDbContext _context;
         private readonly IEmailService _emailService;
         private readonly ILogger<MailAccountsController> _logger;
+        private readonly BatchRestoreOptions _batchOptions;
 
         public MailAccountsController(
             MailArchiverDbContext context,
             IEmailService emailService,
-            ILogger<MailAccountsController> logger)
+            ILogger<MailAccountsController> logger,
+            IOptions<BatchRestoreOptions> batchOptions)
         {
             _context = context;
             _emailService = emailService;
             _logger = logger;
+            _batchOptions = batchOptions.Value;
         }
 
         // GET: MailAccounts
@@ -348,7 +352,6 @@ namespace MailArchiver.Controllers
             var account = await _context.MailAccounts.FindAsync(id);
             if (account == null) return NotFound();
 
-            // Hole alle E-Mail-IDs dieses Accounts
             var emailIds = await _context.ArchivedEmails
                 .Where(e => e.MailAccountId == id)
                 .Select(e => e.Id)
@@ -360,11 +363,51 @@ namespace MailArchiver.Controllers
                 return RedirectToAction(nameof(Details), new { id });
             }
 
-            // Speichere IDs in Session
-            HttpContext.Session.SetString("BatchRestoreIds", string.Join(",", emailIds));
-            HttpContext.Session.SetString("BatchRestoreReturnUrl", Url.Action("Details", new { id }));
+            _logger.LogInformation("Account {AccountId} has {Count} emails. Thresholds: Async={AsyncThreshold}, MaxAsync={MaxAsync}",
+                id, emailIds.Count, _batchOptions.AsyncThreshold, _batchOptions.MaxAsyncEmails);
 
-            return RedirectToAction("BatchRestore", "Emails");
+            // Prüfe absolute Limits
+            if (emailIds.Count > _batchOptions.MaxAsyncEmails)
+            {
+                TempData["ErrorMessage"] = $"Too many emails in this account ({emailIds.Count:N0}). Maximum allowed is {_batchOptions.MaxAsyncEmails:N0} emails per operation. Please use manual selection with smaller batches.";
+                return RedirectToAction(nameof(Details), new { id });
+            }
+
+            // Entscheide basierend auf Schwellenwert
+            if (emailIds.Count > _batchOptions.AsyncThreshold)
+            {
+                // Für große Mengen: Direkt zum asynchronen Batch-Restore
+                _logger.LogInformation("Using background job for {Count} emails from account {AccountId}", emailIds.Count, id);
+                return RedirectToAction("StartAsyncBatchRestoreFromAccount", "Emails", new
+                {
+                    accountId = id,
+                    returnUrl = Url.Action("Details", new { id })
+                });
+            }
+            else
+            {
+                // Für kleinere Mengen: Session-basierte Verarbeitung
+                _logger.LogInformation("Using direct processing for {Count} emails from account {AccountId}", emailIds.Count, id);
+                try
+                {
+                    HttpContext.Session.SetString("BatchRestoreIds", string.Join(",", emailIds));
+                    HttpContext.Session.SetString("BatchRestoreReturnUrl", Url.Action("Details", new { id }));
+
+                    return RedirectToAction("BatchRestore", "Emails");
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to store {Count} email IDs in session for account {AccountId}", emailIds.Count, id);
+
+                    // Fallback zu Background Job
+                    _logger.LogWarning("Session storage failed, redirecting to background job");
+                    return RedirectToAction("StartAsyncBatchRestoreFromAccount", "Emails", new
+                    {
+                        accountId = id,
+                        returnUrl = Url.Action("Details", new { id })
+                    });
+                }
+            }
         }
     }
 }

@@ -1,0 +1,110 @@
+@model List<MailArchiver.Models.BatchRestoreJob>
+@{
+    ViewData["Title"] = "Batch Restore Jobs";
+}
+
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1>Active Batch Restore Jobs</h1>
+        <a asp-action="Index" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Archive
+        </a>
+    </div>
+
+    @if (Model.Any())
+    {
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Job ID</th>
+                                <th>Status</th>
+                                <th>Emails</th>
+                                <th>Progress</th>
+                                <th>Created</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var job in Model)
+                            {
+                                <tr>
+                                    <td><code>@job.JobId.Substring(0, 8)...</code></td>
+                                    <td>
+                                        <span class="badge bg-@(job.Status == BatchRestoreJobStatus.Running ? "primary" : 
+                                                               job.Status == BatchRestoreJobStatus.Completed ? "success" : 
+                                                               job.Status == BatchRestoreJobStatus.Failed ? "danger" : 
+                                                               job.Status == BatchRestoreJobStatus.Cancelled ? "warning" : "secondary")">
+                                            @job.Status
+                                        </span>
+                                    </td>
+                                    <td>@job.EmailIds.Count.ToString("N0")</td>
+                                    <td>
+                                        @{
+                                            var progressPercent = job.EmailIds.Count > 0 ? (job.ProcessedCount * 100.0 / job.EmailIds.Count) : 0;
+                                        }
+                                        <div class="progress" style="height: 20px;">
+                                            <div class="progress-bar" role="progressbar" 
+                                                 style="width: @progressPercent.ToString("F1")%">
+                                                @progressPercent.ToString("F0")%
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>@job.Created.ToString("MM-dd HH:mm")</td>
+                                    <td>
+                                        <a asp-action="BatchRestoreStatus" asp-route-jobId="@job.JobId" 
+                                           class="btn btn-outline-primary btn-sm">Details</a>
+                                        @if (job.Status == BatchRestoreJobStatus.Running || job.Status == BatchRestoreJobStatus.Queued)
+                                        {
+                                            <form asp-action="CancelBatchRestore" method="post" style="display: inline;" 
+                                                  onsubmit="return confirm('Cancel this job?');">
+                                                <input type="hidden" name="jobId" value="@job.JobId" />
+                                                <button type="submit" class="btn btn-outline-warning btn-sm ms-1">Cancel</button>
+                                            </form>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="text-center py-5">
+            <div class="mb-3">
+                <i class="bi bi-clock-history display-1 text-muted"></i>
+            </div>
+            <h5 class="text-muted">No Active Jobs</h5>
+            <p class="text-muted">There are currently no active batch restore jobs.</p>
+        </div>
+    }
+</div>
+
+@if (Model.Any(j => j.Status == BatchRestoreJobStatus.Running || j.Status == BatchRestoreJobStatus.Queued))
+{
+    @section Scripts {
+        <script>
+            // Auto-refresh page every 10 seconds if there are active jobs
+            setTimeout(function() {
+                location.reload();
+            }, 10000);
+            
+            // Show last refresh time
+            document.addEventListener('DOMContentLoaded', function() {
+                const refreshInfo = document.createElement('small');
+                refreshInfo.className = 'text-muted float-end';
+                refreshInfo.textContent = 'Last updated: ' + new Date().toLocaleTimeString();
+                
+                const cardHeader = document.querySelector('.card .card-body');
+                if (cardHeader) {
+                    cardHeader.insertBefore(refreshInfo, cardHeader.firstChild);
+                }
+            });
+        </script>
+    }
+}

@@ -9,16 +9,26 @@ namespace MailArchiver.Controllers
     {
         private readonly IEmailService _emailService;
         private readonly ILogger<HomeController> _logger;
+        private readonly IBatchRestoreService? _batchRestoreService;
 
-        public HomeController(IEmailService emailService, ILogger<HomeController> logger)
+        public HomeController(IEmailService emailService, ILogger<HomeController> logger, IBatchRestoreService? batchRestoreService = null)
         {
             _emailService = emailService;
             _logger = logger;
+            _batchRestoreService = batchRestoreService;
         }
 
         public async Task<IActionResult> Index()
         {
             var model = await _emailService.GetDashboardStatisticsAsync();
+
+            // Aktive Jobs für Dashboard anzeigen
+            if (_batchRestoreService != null)
+            {
+                var activeJobs = _batchRestoreService.GetActiveJobs();
+                ViewBag.ActiveJobsCount = activeJobs.Count;
+            }
+
             return View(model);
         }
 

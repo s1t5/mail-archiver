@@ -13,7 +13,26 @@
             <i class="bi bi-download"></i> Export
         </button>
     </div>
-    
+
+    @* Active Jobs Alert *@
+    @if (ViewBag.ActiveJobsCount != null && ViewBag.ActiveJobsCount > 0)
+    {
+        <div class="alert alert-info alert-dismissible fade show">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-2">
+                <div>
+                    <i class="bi bi-clock-history me-2"></i>
+                    <strong>@ViewBag.ActiveJobsCount</strong> background job(s) are currently running.
+                </div>
+                <div>
+                    <a asp-action="BatchRestoreJobs" class="btn btn-outline-primary btn-sm me-2">
+                        <i class="bi bi-eye me-1"></i> View Jobs
+                    </a>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            </div>
+        </div>
+    }
+
     <div class="card mb-4">
         <div class="card-header">
             <h6 class="mb-0">Search</h6>
@@ -68,6 +87,67 @@
         </div>
     </div>
 
+    @* Batch Operation Information *@
+    @if (Model.ShowSelectionControls)
+    {
+        <div class="card mb-4 border-info">
+            <div class="card-header bg-light">
+                <h6 class="mb-0 text-info">
+                    <i class="bi bi-info-circle me-1"></i>Batch Operation Information
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-12 col-lg-8">
+                        <div class="row">
+                            <div class="col-12 col-md-4 mb-2">
+                                <small class="text-muted d-block">Direct Processing</small>
+                                <strong class="text-success">1 - @ViewBag.AsyncThreshold emails</strong>
+                                <small class="d-block text-muted">Process on this page (wait for completion)</small>
+                            </div>
+                            <div class="col-12 col-md-4 mb-2">
+                                <small class="text-muted d-block">Background Job</small>
+                                <strong class="text-primary">@(ViewBag.AsyncThreshold + 1) - @ViewBag.MaxAsyncEmails.ToString("N0") emails</strong>
+                                <small class="d-block text-muted">Process in background (monitor separately)</small>
+                            </div>
+                            <div class="col-12 col-md-4 mb-2">
+                                <small class="text-muted d-block">Maximum Limit</small>
+                                <strong class="text-warning">@ViewBag.MaxAsyncEmails.ToString("N0") emails</strong>
+                                <small class="d-block text-muted">Split larger operations into multiple batches</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-lg-4">
+                        <div class="d-flex flex-column gap-2">
+                            @if (ViewBag.ActiveJobsCount != null && ViewBag.ActiveJobsCount > 0)
+                            {
+                                <div class="alert alert-warning mb-2 p-2">
+                                    <small>
+                                        <i class="bi bi-clock-history me-1"></i>
+                                        <strong>@ViewBag.ActiveJobsCount active job(s)</strong> currently running
+                                    </small>
+                                </div>
+                                <a asp-action="BatchRestoreJobs" class="btn btn-outline-primary btn-sm">
+                                    <i class="bi bi-eye me-1"></i>Monitor Background Jobs
+                                </a>
+                            }
+                            else
+                            {
+                                <small class="text-muted">
+                                    <i class="bi bi-check-circle me-1 text-success"></i>
+                                    No background jobs currently running
+                                </small>
+                                <a asp-action="BatchRestoreJobs" class="btn btn-outline-secondary btn-sm">
+                                    <i class="bi bi-clock-history me-1"></i>View Job History
+                                </a>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
     @if (Model.SearchResults != null && Model.SearchResults.Any())
     {
         <div class="card">
@@ -82,14 +162,15 @@
             {
                 <div class="p-2 bg-light border-bottom">
                     <div class="d-flex flex-column flex-md-row justify-content-between align-items-start gap-2">
-                        <div class="d-flex flex-wrap gap-2">
+                        <div class="d-flex flex-wrap gap-2 align-items-center">
                             <button type="button" id="selectAllBtn" class="btn btn-sm btn-outline-primary">Select All</button>
                             <button type="button" id="deselectAllBtn" class="btn btn-sm btn-outline-secondary">Deselect All</button>
-                            <span id="selectionCounter" class="badge bg-primary align-self-center">0 selected</span>
+                            <span id="selectionCounter" class="badge bg-primary">0 selected</span>
+                            <span id="operationMode" class="badge bg-info" style="display:none;"></span>
                         </div>
                         <div id="selectionActions" style="display:none;">
                             <button type="button" id="batchRestoreBtn" class="btn btn-sm btn-success">
-                                <i class="bi bi-envelope-arrow-up"></i> 
+                                <i class="bi bi-envelope-arrow-up"></i>
                                 <span class="d-none d-sm-inline">Copy Selected</span>
                             </button>
                         </div>
@@ -99,124 +180,118 @@
 
             <!-- Desktop Tabelle -->
             <div class="card-body p-0 d-none d-lg-block">
-                <form id="batchActionsForm" method="get">
-                    <input type="hidden" name="returnUrl" id="returnUrlInput" value="@Context.Request.Path@Context.Request.QueryString" />
-                    <div class="table-responsive">
-                        <table class="table table-hover table-striped mb-0">
-                            <thead class="table-dark">
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped mb-0">
+                        <thead class="table-dark">
+                            <tr>
+                                @if (Model.ShowSelectionControls)
+                                {
+                                    <th style="width: 50px;">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="selectAllCheckbox">
+                                        </div>
+                                    </th>
+                                }
+                                <th>Subject</th>
+                                <th>From</th>
+                                <th>To</th>
+                                <th>Date</th>
+                                <th>Account</th>
+                                <th>Attachments</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var email in Model.SearchResults)
+                            {
                                 <tr>
                                     @if (Model.ShowSelectionControls)
                                     {
-                                        <th style="width: 50px;">
+                                        <td>
                                             <div class="form-check">
-                                                <input class="form-check-input" type="checkbox" id="selectAllCheckbox">
+                                                <input class="form-check-input email-select-checkbox" type="checkbox"
+                                                       name="ids" value="@email.Id">
                                             </div>
-                                        </th>
+                                        </td>
                                     }
-                                    <th>Subject</th>
-                                    <th>From</th>
-                                    <th>To</th>
-                                    <th>Date</th>
-                                    <th>Account</th>
-                                    <th>Attachments</th>
-                                    <th></th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach (var email in Model.SearchResults)
-                                {
-                                    <tr>
-                                        @if (Model.ShowSelectionControls)
+                                    <td>
+                                        @if (email.IsOutgoing)
                                         {
-                                            <td>
-                                                <div class="form-check">
-                                                    <input class="form-check-input email-select-checkbox" type="checkbox"
-                                                           name="ids" value="@email.Id">
-                                                </div>
-                                            </td>
+                                            <span class="badge bg-info">Out</span>
                                         }
-                                        <td>
-                                            @if (email.IsOutgoing)
-                                            {
-                                                <span class="badge bg-info">Out</span>
-                                            }
-                                            else
-                                            {
-                                                <span class="badge bg-secondary">In</span>
-                                            }
-                                            @email.Subject
-                                        </td>
-                                        <td>@email.From</td>
-                                        <td>@email.To</td>
-                                        <td>@email.SentDate.ToString("yyyy-MM-dd HH:mm")</td>
-                                        <td>@email.MailAccount.Name</td>
-                                        <td>
-                                            @if (email.HasAttachments)
-                                            {
-                                                <i class="bi bi-paperclip text-warning"></i>
-                                            }
-                                        </td>
-                                        <td>
-                                            <a asp-action="Details" asp-route-id="@email.Id" class="btn btn-sm btn-outline-primary">Details</a>
-                                        </td>
-                                    </tr>
-                                }
-                            </tbody>
-                        </table>
-                    </div>
-                </form>
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">In</span>
+                                        }
+                                        @email.Subject
+                                    </td>
+                                    <td>@email.From</td>
+                                    <td>@email.To</td>
+                                    <td>@email.SentDate.ToString("yyyy-MM-dd HH:mm")</td>
+                                    <td>@email.MailAccount.Name</td>
+                                    <td>
+                                        @if (email.HasAttachments)
+                                        {
+                                            <i class="bi bi-paperclip text-warning"></i>
+                                        }
+                                    </td>
+                                    <td>
+                                        <a asp-action="Details" asp-route-id="@email.Id" class="btn btn-sm btn-outline-primary">Details</a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
             </div>
 
             <!-- Mobile Cards - Diese werden auf Mobilgeräten UND Tablets angezeigt -->
             <div class="d-lg-none p-3">
-                <form id="batchActionsFormMobile" method="get">
-                    <input type="hidden" name="returnUrl" id="returnUrlInputMobile" value="@Context.Request.Path@Context.Request.QueryString" />
-                    @foreach (var email in Model.SearchResults)
-                    {
-                        <div class="card mb-3 email-card-mobile">
-                            @if (Model.ShowSelectionControls)
-                            {
-                                <div class="form-check mb-2">
-                                    <input class="form-check-input email-select-checkbox" type="checkbox"
-                                           name="ids" value="@email.Id" id="email-mobile-@email.Id">
-                                    <label class="form-check-label small text-muted" for="email-mobile-@email.Id">
-                                        Select this email
-                                    </label>
-                                </div>
-                            }
-                            <div class="card-body p-3">
-                                <div class="email-card-header">
-                                    <div class="email-card-title">
-                                        @if (email.IsOutgoing)
-                                        {
-                                            <i class="bi bi-arrow-up-right text-primary me-1"></i>
-                                        }
-                                        else
-                                        {
-                                            <i class="bi bi-arrow-down-left text-success me-1"></i>
-                                        }
-                                        @email.Subject
-                                        @if (email.HasAttachments)
-                                        {
-                                            <i class="bi bi-paperclip text-warning ms-1"></i>
-                                        }
-                                    </div>
-                                </div>
-                                <div class="email-card-meta">
-                                    <div><strong>From:</strong> @email.From</div>
-                                    <div><strong>To:</strong> @(email.To.Length > 50 ? email.To.Substring(0, 50) + "..." : email.To)</div>
-                                    <div><strong>Date:</strong> @email.SentDate.ToString("yyyy-MM-dd HH:mm")</div>
-                                    <div><strong>Account:</strong> @email.MailAccount.Name</div>
-                                </div>
-                                <div class="email-card-actions">
-                                    <a asp-action="Details" asp-route-id="@email.Id" class="btn btn-outline-primary btn-sm w-100">
-                                        <i class="bi bi-eye"></i> View Details
-                                    </a>
+                @foreach (var email in Model.SearchResults)
+                {
+                    <div class="card mb-3 email-card-mobile">
+                        @if (Model.ShowSelectionControls)
+                        {
+                            <div class="form-check mb-2">
+                                <input class="form-check-input email-select-checkbox" type="checkbox"
+                                       name="ids" value="@email.Id" id="email-mobile-@email.Id">
+                                <label class="form-check-label small text-muted" for="email-mobile-@email.Id">
+                                    Select this email
+                                </label>
+                            </div>
+                        }
+                        <div class="card-body p-3">
+                            <div class="email-card-header">
+                                <div class="email-card-title">
+                                    @if (email.IsOutgoing)
+                                    {
+                                        <i class="bi bi-arrow-up-right text-primary me-1"></i>
+                                    }
+                                    else
+                                    {
+                                        <i class="bi bi-arrow-down-left text-success me-1"></i>
+                                    }
+                                    @email.Subject
+                                    @if (email.HasAttachments)
+                                    {
+                                        <i class="bi bi-paperclip text-warning ms-1"></i>
+                                    }
                                 </div>
                             </div>
+                            <div class="email-card-meta">
+                                <div><strong>From:</strong> @email.From</div>
+                                <div><strong>To:</strong> @(email.To.Length > 50 ? email.To.Substring(0, 50) + "..." : email.To)</div>
+                                <div><strong>Date:</strong> @email.SentDate.ToString("yyyy-MM-dd HH:mm")</div>
+                                <div><strong>Account:</strong> @email.MailAccount.Name</div>
+                            </div>
+                            <div class="email-card-actions">
+                                <a asp-action="Details" asp-route-id="@email.Id" class="btn btn-outline-primary btn-sm w-100">
+                                    <i class="bi bi-eye"></i> View Details
+                                </a>
+                            </div>
                         </div>
-                    }
-                </form>
+                    </div>
+                }
             </div>
 
             <!-- Pagination -->
@@ -238,12 +313,10 @@
                                 })">Previous</a>
                             </li>
                         }
-                        
                         @{
                             var startPage = Math.Max(1, Model.PageNumber - 1);
                             var endPage = Math.Min(Model.TotalPages, Model.PageNumber + 1);
                         }
-                        
                         @for (int i = startPage; i <= endPage; i++)
                         {
                             <li class="page-item @(i == Model.PageNumber ? "active" : "")">
@@ -259,7 +332,6 @@
                                 })">@i</a>
                             </li>
                         }
-                        
                         @if (Model.PageNumber < Model.TotalPages)
                         {
                             <li class="page-item">
@@ -332,6 +404,10 @@
         document.addEventListener('DOMContentLoaded', function() {
             console.log("Email selection script initialized");
             
+            // Configuration from ViewBag
+            const asyncThreshold = @ViewBag.AsyncThreshold;
+            const maxAsyncEmails = @ViewBag.MaxAsyncEmails;
+            
             // Get elements
             const toggleSelectionMode = document.getElementById('toggleSelectionMode');
             const searchForm = document.getElementById('searchForm');
@@ -341,12 +417,9 @@
             const selectionCounter = document.getElementById('selectionCounter');
             const selectionActions = document.getElementById('selectionActions');
             const batchRestoreBtn = document.getElementById('batchRestoreBtn');
-            const batchActionsForm = document.getElementById('batchActionsForm');
-            const batchActionsFormMobile = document.getElementById('batchActionsFormMobile');
-            const emailCheckboxes = document.querySelectorAll('.email-select-checkbox');
+            const operationMode = document.getElementById('operationMode');
 
             console.log("Selection controls visible: " + @(Model.ShowSelectionControls ? "true" : "false"));
-            console.log("Email checkboxes count: " + emailCheckboxes.length);
 
             // Toggle selection mode using form submit
             if (toggleSelectionMode) {
@@ -356,33 +429,84 @@
                 });
             }
 
-            // Update selection counter and actions visibility
+            // Update selection counter and mode indicator
             function updateSelectionCounter() {
+                const emailCheckboxes = document.querySelectorAll('.email-select-checkbox');
                 const checkedBoxes = document.querySelectorAll('.email-select-checkbox:checked');
                 const count = checkedBoxes.length;
+                
                 console.log("Selected emails count: " + count);
                 
                 if (selectionCounter) {
                     selectionCounter.textContent = count + ' selected';
                 }
 
+                // Update operation mode indicator
+                if (operationMode && count > 0) {
+                    operationMode.style.display = 'inline';
+                    if (count <= asyncThreshold) {
+                        operationMode.textContent = 'Direct Processing';
+                        operationMode.className = 'badge bg-success';
+                    } else if (count <= maxAsyncEmails) {
+                        operationMode.textContent = 'Background Job';
+                        operationMode.className = 'badge bg-primary';
+                    } else {
+                        operationMode.textContent = 'Too Many - Split Required';
+                        operationMode.className = 'badge bg-danger';
+                    }
+                } else if (operationMode) {
+                    operationMode.style.display = 'none';
+                }
+
                 // Show/hide batch actions
                 if (selectionActions) {
                     if (count > 0) {
                         selectionActions.style.display = 'block';
+                        
+                        // Update button state based on count
+                        if (batchRestoreBtn) {
+                            if (count > maxAsyncEmails) {
+                                batchRestoreBtn.disabled = true;
+                                batchRestoreBtn.innerHTML = '<i class="bi bi-exclamation-triangle"></i> <span class="d-none d-sm-inline">Too Many Selected</span>';
+                                batchRestoreBtn.className = 'btn btn-sm btn-danger';
+                            } else {
+                                batchRestoreBtn.disabled = false;
+                                batchRestoreBtn.innerHTML = '<i class="bi bi-envelope-arrow-up"></i> <span class="d-none d-sm-inline">Copy Selected</span>';
+                                batchRestoreBtn.className = 'btn btn-sm btn-success';
+                            }
+                        }
                     } else {
                         selectionActions.style.display = 'none';
                     }
                 }
+
+                // Update select all checkbox state
+                if (selectAllCheckbox && emailCheckboxes.length > 0) {
+                    selectAllCheckbox.checked = checkedBoxes.length === emailCheckboxes.length;
+                    selectAllCheckbox.indeterminate = checkedBoxes.length > 0 && checkedBoxes.length < emailCheckboxes.length;
+                }
             }
 
-            // Initialize counter
-            updateSelectionCounter();
+            // Initialize counter and attach events
+            function initializeSelectionHandlers() {
+                const emailCheckboxes = document.querySelectorAll('.email-select-checkbox');
+                console.log("Found email checkboxes: " + emailCheckboxes.length);
+
+                // Individual checkbox change
+                emailCheckboxes.forEach(function(checkbox) {
+                    checkbox.addEventListener('change', function() {
+                        updateSelectionCounter();
+                    });
+                });
+
+                updateSelectionCounter();
+            }
 
             // Select/deselect all checkboxes
             if (selectAllCheckbox) {
                 selectAllCheckbox.addEventListener('change', function() {
                     const isChecked = this.checked;
+                    const emailCheckboxes = document.querySelectorAll('.email-select-checkbox');
                     emailCheckboxes.forEach(function(checkbox) {
                         checkbox.checked = isChecked;
                     });
@@ -390,26 +514,13 @@
                 });
             }
 
-            // Individual checkbox change
-            emailCheckboxes.forEach(function(checkbox) {
-                checkbox.addEventListener('change', function() {
-                    updateSelectionCounter();
-                    if (selectAllCheckbox) {
-                        const allChecked = document.querySelectorAll('.email-select-checkbox:not(:checked)').length === 0;
-                        selectAllCheckbox.checked = allChecked && emailCheckboxes.length > 0;
-                    }
-                });
-            });
-
             // Select all button
             if (selectAllBtn) {
                 selectAllBtn.addEventListener('click', function() {
+                    const emailCheckboxes = document.querySelectorAll('.email-select-checkbox');
                     emailCheckboxes.forEach(function(checkbox) {
                         checkbox.checked = true;
                     });
-                    if (selectAllCheckbox) {
-                        selectAllCheckbox.checked = true;
-                    }
                     updateSelectionCounter();
                 });
             }
@@ -417,12 +528,10 @@
             // Deselect all button
             if (deselectAllBtn) {
                 deselectAllBtn.addEventListener('click', function() {
+                    const emailCheckboxes = document.querySelectorAll('.email-select-checkbox');
                     emailCheckboxes.forEach(function(checkbox) {
                         checkbox.checked = false;
                     });
-                    if (selectAllCheckbox) {
-                        selectAllCheckbox.checked = false;
-                    }
                     updateSelectionCounter();
                 });
             }
@@ -430,10 +539,31 @@
             // Batch restore button
             if (batchRestoreBtn) {
                 batchRestoreBtn.addEventListener('click', function() {
+                    if (this.disabled) {
+                        return;
+                    }
+
                     const checkedBoxes = document.querySelectorAll('.email-select-checkbox:checked');
                     if (checkedBoxes.length === 0) {
                         alert('Please select at least one email to copy.');
                         return;
+                    }
+
+                    if (checkedBoxes.length > maxAsyncEmails) {
+                        alert('Too many emails selected (' + checkedBoxes.length.toLocaleString() + '). Maximum allowed is ' + maxAsyncEmails.toLocaleString() + ' emails. Please reduce your selection or split into multiple operations.');
+                        return;
+                    }
+
+                    // Show confirmation for large operations
+                    if (checkedBoxes.length > asyncThreshold) {
+                        const confirmed = confirm(
+                            'You have selected ' + checkedBoxes.length.toLocaleString() + ' emails.\n' +
+                            'This will be processed as a background job that you can monitor separately.\n\n' +
+                            'Continue with this operation?'
+                        );
+                        if (!confirmed) {
+                            return;
+                        }
                     }
 
                     // Erstelle ein neues Form für POST-Request
@@ -445,7 +575,7 @@
                     const tokenInput = document.createElement('input');
                     tokenInput.type = 'hidden';
                     tokenInput.name = '__RequestVerificationToken';
-                    tokenInput.value = $('input[name="__RequestVerificationToken"]').val();
+                    tokenInput.value = document.querySelector('input[name="__RequestVerificationToken"]').value;
                     form.appendChild(tokenInput);
 
                     // ReturnUrl hinzufügen
@@ -468,6 +598,10 @@
                     document.body.appendChild(form);
                     form.submit();
                 });
+            }
+
+            // Initialize handlers after DOM is ready
+            initializeSelectionHandlers();
         });
     </script>
 }

@@ -71,6 +71,13 @@ services:
       - MailSync__ConnectionTimeoutSeconds=180
       - MailSync__CommandTimeoutSeconds=300
 
+      # BatchRestore Settings
+      - BatchRestore__AsyncThreshold=50
+      - BatchRestore__MaxSyncEmails=150
+      - BatchRestore__MaxAsyncEmails=50000
+      - BatchRestore__SessionTimeoutMinutes=30
+      - BatchRestore__DefaultBatchSize=50
+
       # Npgsql Settings
       - Npgsql__CommandTimeout=600
 

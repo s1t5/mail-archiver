@@ -1,0 +1,21 @@
+@using MailArchiver.Services
+@inject IServiceProvider ServiceProvider
+
+@{
+    try
+    {
+        var batchService = ServiceProvider.GetService<IBatchRestoreService>();
+        if (batchService != null)
+        {
+            var activeJobs = batchService.GetActiveJobs();
+            if (activeJobs.Count > 0)
+            {
+                <span class="badge bg-danger rounded-pill ms-1">@activeJobs.Count</span>
+            }
+        }
+    }
+    catch
+    {
+        // Ignore if service not available
+    }
+}

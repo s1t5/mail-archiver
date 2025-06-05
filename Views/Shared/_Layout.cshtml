@@ -36,9 +36,34 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link @(ViewContext.RouteData.Values["Controller"].ToString() == "Emails" ? "active" : "")"
+                            <a class="nav-link @(ViewContext.RouteData.Values["Controller"].ToString() == "Emails" && (ViewContext.RouteData.Values["Action"].ToString() == "Index" || ViewContext.RouteData.Values["Action"].ToString() == "Details") ? "active" : "")"
                                asp-controller="Emails" asp-action="Index">
                                 <i class="bi bi-archive me-1"></i>Archive
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link @(ViewContext.RouteData.Values["Controller"].ToString() == "Emails" && ViewContext.RouteData.Values["Action"].ToString().Contains("BatchRestore") ? "active" : "")"
+                               asp-controller="Emails" asp-action="BatchRestoreJobs">
+                                <i class="bi bi-clock-history me-1"></i>
+                                Jobs
+                                @{
+                                    try
+                                    {
+                                        var batchService = Context.RequestServices.GetService<MailArchiver.Services.IBatchRestoreService>();
+                                        if (batchService != null)
+                                        {
+                                            var activeJobs = batchService.GetActiveJobs();
+                                            if (activeJobs.Count > 0)
+                                            {
+                                                <span class="badge bg-danger rounded-pill ms-1">@activeJobs.Count</span>
+                                            }
+                                        }
+                                    }
+                                    catch
+                                    {
+                                        // Ignore if service not available
+                                    }
+                                }
                             </a>
                         </li>
                     </ul>

@@ -1,0 +1,184 @@
+@model MailArchiver.Models.BatchRestoreJob
+@{
+    ViewData["Title"] = "Batch Restore Status";
+}
+
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1>Batch Restore Status</h1>
+        <div>
+            <a href="@Model.ReturnUrl" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Back
+            </a>
+            <a asp-action="BatchRestoreJobs" class="btn btn-outline-info">
+                <i class="bi bi-list"></i> All Jobs
+            </a>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header bg-light">
+            <h5 class="mb-0">Job Information</h5>
+        </div>
+        <div class="card-body">
+            <dl class="row">
+                <dt class="col-sm-3">Job ID:</dt>
+                <dd class="col-sm-9"><code>@Model.JobId</code></dd>
+                
+                <dt class="col-sm-3">Status:</dt>
+                <dd class="col-sm-9">
+                    <span class="badge bg-@(Model.Status == BatchRestoreJobStatus.Running ? "primary" : 
+                                           Model.Status == BatchRestoreJobStatus.Completed ? "success" : 
+                                           Model.Status == BatchRestoreJobStatus.Failed ? "danger" : 
+                                           Model.Status == BatchRestoreJobStatus.Cancelled ? "warning" : "secondary") fs-6">
+                        @Model.Status
+                    </span>
+                </dd>
+                
+                <dt class="col-sm-3">Total Emails:</dt>
+                <dd class="col-sm-9">@Model.EmailIds.Count.ToString("N0")</dd>
+                
+                <dt class="col-sm-3">Progress:</dt>
+                <dd class="col-sm-9">
+                    @{
+                        var progressPercent = Model.EmailIds.Count > 0 ? Math.Round((double)Model.ProcessedCount * 100.0 / Model.EmailIds.Count, 1) : 0;
+                        var progressWidth = Math.Min(100, Math.Max(0, progressPercent));
+                    }
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="small text-muted">Progress</span>
+                            <span class="small fw-bold">@progressPercent.ToString("F1")%</span>
+                        </div>
+                        <div class="progress" style="height: 25px;">
+                            <div class="progress-bar progress-bar-striped @(Model.Status == BatchRestoreJobStatus.Running ? "progress-bar-animated" : "")" 
+                                 role="progressbar" 
+                                 style="width: @progressWidth.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)%"
+                                 aria-valuenow="@progressPercent" 
+                                 aria-valuemin="0" 
+                                 aria-valuemax="100">
+                                @if (progressPercent > 10)
+                                {
+                                    <span class="fw-bold">@progressPercent.ToString("F1")%</span>
+                                }
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-between mt-1">
+                            <small class="text-muted">
+                                @Model.ProcessedCount.ToString("N0") of @Model.EmailIds.Count.ToString("N0") processed
+                            </small>
+                            <small class="text-muted">
+                                @if (Model.Status == BatchRestoreJobStatus.Running && Model.ProcessedCount > 0)
+                                {
+                                    var remainingCount = Model.EmailIds.Count - Model.ProcessedCount;
+                                    <span>@remainingCount.ToString("N0") remaining</span>
+                                }
+                            </small>
+                        </div>
+                    </div>
+                </dd>
+                
+                <dt class="col-sm-3">Results:</dt>
+                <dd class="col-sm-9">
+                    <div class="row">
+                        <div class="col-6">
+                            <span class="badge bg-success">
+                                <i class="bi bi-check-circle me-1"></i>
+                                Success: @Model.SuccessCount.ToString("N0")
+                            </span>
+                        </div>
+                        <div class="col-6">
+                            <span class="badge bg-danger">
+                                <i class="bi bi-x-circle me-1"></i>
+                                Failed: @Model.FailedCount.ToString("N0")
+                            </span>
+                        </div>
+                    </div>
+                </dd>
+                
+                <dt class="col-sm-3">Created:</dt>
+                <dd class="col-sm-9">@Model.Created.ToString("yyyy-MM-dd HH:mm:ss")</dd>
+                
+                @if (Model.Started.HasValue)
+                {
+                    <dt class="col-sm-3">Started:</dt>
+                    <dd class="col-sm-9">@Model.Started.Value.ToString("yyyy-MM-dd HH:mm:ss")</dd>
+                }
+                
+                @if (Model.Completed.HasValue)
+                {
+                    <dt class="col-sm-3">Completed:</dt>
+                    <dd class="col-sm-9">@Model.Completed.Value.ToString("yyyy-MM-dd HH:mm:ss")</dd>
+                    
+                    @if (Model.Started.HasValue)
+                    {
+                        var duration = Model.Completed.Value - Model.Started.Value;
+                        <dt class="col-sm-3">Duration:</dt>
+                        <dd class="col-sm-9">
+                            <span class="badge bg-info">
+                                @duration.ToString(@"hh\:mm\:ss")
+                            </span>
+                        </dd>
+                    }
+                }
+                
+                @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+                {
+                    <dt class="col-sm-3">Error:</dt>
+                    <dd class="col-sm-9">
+                        <div class="alert alert-danger">
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                            @Model.ErrorMessage
+                        </div>
+                    </dd>
+                }
+            </dl>
+
+            @if (Model.Status == BatchRestoreJobStatus.Running || Model.Status == BatchRestoreJobStatus.Queued)
+            {
+                <div class="mt-4 pt-3 border-top">
+                    <form asp-action="CancelBatchRestore" method="post" style="display: inline;" 
+                          onsubmit="return confirm('Are you sure you want to cancel this job?');">
+                        <input type="hidden" name="jobId" value="@Model.JobId" />
+                        <input type="hidden" name="returnUrl" value="@Context.Request.Path" />
+                        <button type="submit" class="btn btn-warning">
+                            <i class="bi bi-stop-circle"></i> Cancel Job
+                        </button>
+                    </form>
+                </div>
+            }
+
+            @if (Model.Status == BatchRestoreJobStatus.Completed)
+            {
+                <div class="mt-4 pt-3 border-top">
+                    <div class="alert alert-success">
+                        <i class="bi bi-check-circle-fill me-2"></i>
+                        <strong>Job Completed!</strong> 
+                        Processed @Model.ProcessedCount.ToString("N0") emails with @Model.SuccessCount.ToString("N0") successful and @Model.FailedCount.ToString("N0") failed.
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@if (Model.Status == BatchRestoreJobStatus.Running || Model.Status == BatchRestoreJobStatus.Queued)
+{
+    @section Scripts {
+        <script>
+            // Auto-refresh page every 5 seconds for running jobs
+            setTimeout(function() {
+                location.reload();
+            }, 5000);
+            
+            // Show countdown
+            let countdown = 5;
+            const countdownInterval = setInterval(function() {
+                countdown--;
+                document.title = `(${countdown}s) Batch Restore Status - @Model.JobId.Substring(0, 8)`;
+                if (countdown <= 0) {
+                    clearInterval(countdownInterval);
+                }
+            }, 1000);
+        </script>
+    }
+}

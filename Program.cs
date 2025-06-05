@@ -13,6 +13,10 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.Configure<AuthenticationOptions>(
     builder.Configuration.GetSection(AuthenticationOptions.Authentication));
 
+// Add Batch Restore Options
+builder.Services.Configure<BatchRestoreOptions>(
+    builder.Configuration.GetSection(BatchRestoreOptions.BatchRestore));
+
 // Add Session support
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
@@ -37,10 +41,21 @@ builder.Services.AddDbContext<MailArchiverDbContext>(options =>
 // Services hinzufügen
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IAuthenticationService, SimpleAuthenticationService>();
+builder.Services.AddSingleton<IBatchRestoreService, BatchRestoreService>();
+builder.Services.AddHostedService<BatchRestoreService>(provider =>
+    (BatchRestoreService)provider.GetRequiredService<IBatchRestoreService>());
 builder.Services.AddHostedService<MailSyncBackgroundService>();
 
 // MVC hinzufügen
 builder.Services.AddControllersWithViews();
+
+
+builder.Services.Configure<AuthenticationOptions>(
+    builder.Configuration.GetSection(AuthenticationOptions.Authentication));
+
+builder.Services.Configure<BatchRestoreOptions>(
+    builder.Configuration.GetSection(BatchRestoreOptions.BatchRestore));
+
 
 // Kestrel-Server-Limits konfigurieren
 builder.WebHost.ConfigureKestrel(options =>
@@ -61,7 +76,7 @@ using (var scope = app.Services.CreateScope())
         var context = services.GetRequiredService<MailArchiverDbContext>();
         context.Database.EnsureCreated();
         context.Database.ExecuteSqlRaw("CREATE EXTENSION IF NOT EXISTS citext;");
-        
+
         var logger = services.GetRequiredService<ILogger<Program>>();
         logger.LogInformation("Datenbank wurde initialisiert");
     }
