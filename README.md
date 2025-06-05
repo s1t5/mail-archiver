@@ -32,10 +32,12 @@
 - Attachment download with original filenames
 
 ### 📤 Restore Function
-- Restore a selection of emails to a destination mailbox
+- Restore a selection of emails or an entire mailbox to a destination mailbox
 
 ## 🖼️ Screenshots
-![Mail-Archiver Screenshot](https://github.com/s1t5/mail-archiver/blob/main/Screenshots/dashboard.jpg?raw=true)
+![Mail-Archiver Dashboard](https://github.com/s1t5/mail-archiver/blob/main/Screenshots/dashboard.jpg?raw=true)
+![Mail-Archiver Archive](https://github.com/s1t5/mail-archiver/blob/main/Screenshots/archive.jpg?raw=true)
+![Mail-Archiver Mail](https://github.com/s1t5/mail-archiver/blob/main/Screenshots/details.jpg?raw=true)
 
 ## 🚀 Quick Start
 
@@ -112,7 +114,7 @@ services:
 
 4. If you want to use authentication (which i'd strongly recommend) definie a `Authentication__Username` and `Authentication__Password`.
 
-4. Configure a reverse proxy of your choice with https ans authentification to secure access to the application. 
+4. Configure a reverse proxy of your choice with https and authentification to secure access to the application. 
 
 **⚠️Attention⚠️ The application itself does not provide encrypted access via https! It must be set up via a reverse proxy! Moreover the application is not build for public internet access!**
 
@@ -146,6 +148,17 @@ docker compose restart
 - 🔐 Consider implementing HTTPS with a reverse proxy in production
 - 💾 Regular backups of the PostgreSQL database recommended
 
+## 📝 How To - Mailbox migration
+It is now also possible to migrate a mailbox to another target mailbox, for example when changing mail provider.
+The following steps are planned for this
+1. add the source account under the accounts
+2. synchronisation of the source account
+3. adding the target account
+4. synchronisation of the possibly still empty target account
+5. select ‘Copy All Emails to Another Mailbox’ in the details under the accounts for the source account
+6. select the target account and the target folder in this account and start the migration. If there is a large amount of emails to be moved, this is carried out as a background task. The status and progress of this can be viewed in the Jobs tab.
+7. after the successful transfer, set the source account to ‘Disabled’ under the accounts so that it is no longer archived in future.
+
 ## 📋 Technical Details
 
 ### Architecture
@@ -162,10 +175,6 @@ Contributions welcome! Please open an Issue or Pull Request.
 - Full-text search improvements
 - OAuth support for major email providers
 - Enhanced export options and formats
-
-## 🚧 Known Issues
-- Charts may require manual refresh after database synchronization
-- Large attachments can affect performance
 
 ---
 
