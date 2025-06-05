@@ -39,9 +39,9 @@ namespace MailArchiver.Controllers
             // Konten für die Dropdown-Liste laden
             var accounts = await _context.MailAccounts.ToListAsync();
             model.AccountOptions = new List<SelectListItem>
-    {
-        new SelectListItem { Text = "All Accounts", Value = "" }
-    };
+            {
+                new SelectListItem { Text = "All Accounts", Value = "" }
+            };
             model.AccountOptions.AddRange(accounts.Select(a =>
                 new SelectListItem
                 {
@@ -110,7 +110,6 @@ namespace MailArchiver.Controllers
         }
 
         // GET: Emails/Export/5
-        // Also fix the single email export method:
         public async Task<IActionResult> Export(int id, ExportFormat format = ExportFormat.Eml)
         {
             var email = await _context.ArchivedEmails.FindAsync(id);
@@ -126,7 +125,6 @@ namespace MailArchiver.Controllers
             };
 
             var fileBytes = await _emailService.ExportEmailsAsync(exportParams);
-
             string contentType;
             string fileName;
 
@@ -150,13 +148,9 @@ namespace MailArchiver.Controllers
                     break;
             }
 
-            // Add this header to ensure the file is downloaded with the correct name and extension
             Response.Headers.Add("Content-Disposition", $"attachment; filename={fileName}");
-
             return File(fileBytes, contentType, fileName);
         }
-
-        // Controllers/EmailsController.cs - Neue Methoden hinzufügen
 
         // GET: Emails/Restore/5
         [HttpGet]
@@ -195,7 +189,6 @@ namespace MailArchiver.Controllers
             {
                 model.TargetAccountId = int.Parse(model.AvailableAccounts[0].Value);
                 model.AvailableAccounts[0].Selected = true;
-
                 // Load folders for this account
                 var folders = await _emailService.GetMailFoldersAsync(model.TargetAccountId);
                 model.AvailableFolders = folders.Select(f => new SelectListItem
@@ -203,7 +196,6 @@ namespace MailArchiver.Controllers
                     Value = f,
                     Text = f
                 }).ToList();
-
                 // Select INBOX by default if available
                 var inbox = model.AvailableFolders.FirstOrDefault(f => f.Value.ToUpper() == "INBOX");
                 if (inbox != null)
@@ -309,17 +301,38 @@ namespace MailArchiver.Controllers
             }
         }
 
-        // Controllers/EmailsController.cs - Neue Methoden hinzufügen
-
-        // GET: Emails/BatchRestore
-        [HttpGet]
-        public async Task<IActionResult> BatchRestore(List<int> ids, string returnUrl = null)
+        // POST: Emails/BatchRestoreStart - Startet Batch-Operation
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult BatchRestoreStart(List<int> ids, string returnUrl = null)
         {
             if (ids == null || !ids.Any())
             {
                 TempData["ErrorMessage"] = "No emails selected for batch operation.";
                 return Redirect(returnUrl ?? Url.Action("Index"));
             }
+
+            // Speichere in Session
+            HttpContext.Session.SetString("BatchRestoreIds", string.Join(",", ids));
+            HttpContext.Session.SetString("BatchRestoreReturnUrl", returnUrl ?? "");
+
+            return RedirectToAction("BatchRestore");
+        }
+
+        // GET: Emails/BatchRestore - Zeigt das Form an
+        [HttpGet]
+        public async Task<IActionResult> BatchRestore()
+        {
+            var idsString = HttpContext.Session.GetString("BatchRestoreIds");
+            var returnUrl = HttpContext.Session.GetString("BatchRestoreReturnUrl");
+
+            if (string.IsNullOrEmpty(idsString))
+            {
+                TempData["ErrorMessage"] = "No emails selected for batch operation.";
+                return RedirectToAction("Index");
+            }
+
+            var ids = idsString.Split(',').Select(int.Parse).ToList();
 
             // Get active email accounts for dropdown
             var accounts = await _context.MailAccounts
@@ -342,7 +355,6 @@ namespace MailArchiver.Controllers
             if (model.AvailableAccounts.Count == 1)
             {
                 model.TargetAccountId = int.Parse(model.AvailableAccounts[0].Value);
-
                 // Load folders for this account
                 var folders = await _emailService.GetMailFoldersAsync(model.TargetAccountId);
                 model.AvailableFolders = folders.Select(f => new SelectListItem
@@ -371,10 +383,19 @@ namespace MailArchiver.Controllers
             _logger.LogInformation("BatchRestore POST method called with {Count} emails, Target Account ID: {AccountId}, Target Folder: {Folder}",
                 model.SelectedEmailIds.Count, model.TargetAccountId, model.TargetFolder);
 
+            // Hole IDs aus Session falls sie nicht im Model sind
+            if (!model.SelectedEmailIds.Any())
+            {
+                var idsString = HttpContext.Session.GetString("BatchRestoreIds");
+                if (!string.IsNullOrEmpty(idsString))
+                {
+                    model.SelectedEmailIds = idsString.Split(',').Select(int.Parse).ToList();
+                }
+            }
+
             if (!ModelState.IsValid)
             {
                 _logger.LogWarning("Model validation failed for batch email restoration");
-
                 // Reload account list if validation fails
                 var accounts = await _context.MailAccounts
                     .Where(a => a.IsEnabled)
@@ -429,6 +450,10 @@ namespace MailArchiver.Controllers
                     TempData["ErrorMessage"] = "None of the selected emails could be copied. Please check the logs for details.";
                 }
 
+                // Session-Daten löschen
+                HttpContext.Session.Remove("BatchRestoreIds");
+                HttpContext.Session.Remove("BatchRestoreReturnUrl");
+
                 // Redirect to the return URL if provided, otherwise to the index
                 return Redirect(model.ReturnUrl ?? Url.Action("Index"));
             }
@@ -454,7 +479,6 @@ namespace MailArchiver.Controllers
             try
             {
                 var folders = await _emailService.GetMailFoldersAsync(accountId);
-
                 if (folders == null || !folders.Any())
                 {
                     _logger.LogWarning("No folders found for account {AccountId}, returning default", accountId);
@@ -463,7 +487,6 @@ namespace MailArchiver.Controllers
 
                 _logger.LogInformation("Successfully retrieved {Count} folders for account {AccountId}",
                     folders.Count, accountId);
-
                 return Json(folders);
             }
             catch (Exception ex)
@@ -474,7 +497,6 @@ namespace MailArchiver.Controllers
         }
 
         // POST: Emails/ExportSearchResults
-        // In EmailsController.cs
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ExportSearchResults(ExportViewModel model)
@@ -485,7 +507,6 @@ namespace MailArchiver.Controllers
             }
 
             var fileBytes = await _emailService.ExportEmailsAsync(model);
-
             string contentType;
             string fileName;
 
@@ -509,9 +530,7 @@ namespace MailArchiver.Controllers
                     break;
             }
 
-            // Add this header to ensure the file is downloaded with the correct name and extension
             Response.Headers.Add("Content-Disposition", $"attachment; filename={fileName}");
-
             return File(fileBytes, contentType, fileName);
         }
 

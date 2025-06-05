@@ -340,7 +340,9 @@ namespace MailArchiver.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        // GET: MailAccounts/MoveAllEmails/5
+        // POST: MailAccounts/MoveAllEmails/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> MoveAllEmails(int id)
         {
             var account = await _context.MailAccounts.FindAsync(id);
@@ -357,8 +359,12 @@ namespace MailArchiver.Controllers
                 TempData["ErrorMessage"] = "No emails found to copy for this account.";
                 return RedirectToAction(nameof(Details), new { id });
             }
-            // Zu EmailsController → BatchRestore weiterleiten
-            return RedirectToAction("BatchRestore", "Emails", new { ids = emailIds, returnUrl = Url.Action("Details", new { id }) });
+
+            // Speichere IDs in Session
+            HttpContext.Session.SetString("BatchRestoreIds", string.Join(",", emailIds));
+            HttpContext.Session.SetString("BatchRestoreReturnUrl", Url.Action("Details", new { id }));
+
+            return RedirectToAction("BatchRestore", "Emails");
         }
     }
 }

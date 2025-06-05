@@ -2,6 +2,10 @@
 @{
     ViewData["Title"] = "Email Archive";
 }
+
+@* Anti-Forgery Token für JavaScript *@
+@Html.AntiForgeryToken()
+
 <div class="container-fluid">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h1 class="h3">Email Archive</h1>
@@ -431,15 +435,39 @@
                         alert('Please select at least one email to copy.');
                         return;
                     }
+
+                    // Erstelle ein neues Form für POST-Request
+                    const form = document.createElement('form');
+                    form.method = 'post';
+                    form.action = '@Url.Action("BatchRestoreStart", "Emails")';
                     
-                    // Use mobile form on mobile devices, desktop form on desktop
-                    const activeForm = window.innerWidth >= 992 ? batchActionsForm : batchActionsFormMobile;
-                    if (activeForm) {
-                        activeForm.action = '@Url.Action("BatchRestore")';
-                        activeForm.submit();
-                    }
+                    // Anti-forgery token hinzufügen
+                    const tokenInput = document.createElement('input');
+                    tokenInput.type = 'hidden';
+                    tokenInput.name = '__RequestVerificationToken';
+                    tokenInput.value = $('input[name="__RequestVerificationToken"]').val();
+                    form.appendChild(tokenInput);
+
+                    // ReturnUrl hinzufügen
+                    const returnUrlInput = document.createElement('input');
+                    returnUrlInput.type = 'hidden';
+                    returnUrlInput.name = 'returnUrl';
+                    returnUrlInput.value = '@Context.Request.Path@Context.Request.QueryString';
+                    form.appendChild(returnUrlInput);
+
+                    // Alle ausgewählten IDs hinzufügen
+                    checkedBoxes.forEach(function(checkbox) {
+                        const idInput = document.createElement('input');
+                        idInput.type = 'hidden';
+                        idInput.name = 'ids';
+                        idInput.value = checkbox.value;
+                        form.appendChild(idInput);
+                    });
+
+                    // Form zum Body hinzufügen und absenden
+                    document.body.appendChild(form);
+                    form.submit();
                 });
-            }
         });
     </script>
 }
