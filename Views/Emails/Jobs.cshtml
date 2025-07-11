@@ -1,0 +1,291 @@
+@model List<MailArchiver.Models.BatchRestoreJob>
+@{
+    ViewData["Title"] = "Jobs";
+}
+
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1>Background Jobs</h1>
+        <a asp-action="Index" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Archive
+        </a>
+    </div>
+
+    <!-- Sync Jobs Section -->
+    @if (ViewBag.SyncJobs != null)
+    {
+        var syncJobs = ViewBag.SyncJobs as List<MailArchiver.Models.SyncJob>;
+        if (syncJobs != null && syncJobs.Any())
+        {
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-arrow-clockwise me-2"></i>
+                        Synchronization Jobs
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Account</th>
+                                    <th>Status</th>
+                                    <th>Progress</th>
+                                    <th>Emails</th>
+                                    <th>Started</th>
+                                    <th>Duration</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var job in syncJobs)
+                                {
+                                    <tr>
+                                        <td>@job.AccountName</td>
+                                        <td>
+                                            @{
+                                                var syncStatusClass = "secondary";
+                                                if (job.Status == MailArchiver.Models.SyncJobStatus.Running)
+                                                {
+                                                    syncStatusClass = "primary";
+                                                }
+                                                else if (job.Status == MailArchiver.Models.SyncJobStatus.Completed)
+                                                {
+                                                    syncStatusClass = "success";
+                                                }
+                                                else if (job.Status == MailArchiver.Models.SyncJobStatus.Failed)
+                                                {
+                                                    syncStatusClass = "danger";
+                                                }
+                                            }
+                                            <span class="badge bg-@syncStatusClass">
+                                                @job.Status
+                                            </span>
+                                        </td>
+                                        <td>
+                                            @if (job.Status == MailArchiver.Models.SyncJobStatus.Running)
+                                            {
+                                                <div class="progress" style="height: 20px;">
+                                                    @{
+                                                        var progressPercent = job.TotalFolders > 0 ? (job.ProcessedFolders * 100.0 / job.TotalFolders) : 0;
+                                                    }
+                                                    <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar"
+                                                         style="width: @progressPercent.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)%">
+                                                        @progressPercent.ToString("F0")%
+                                                    </div>
+                                                </div>
+                                                <small class="text-muted">
+                                                    Folders: @job.ProcessedFolders/@job.TotalFolders
+
+                                                </small>
+                                            }
+                                            else if (job.Status == MailArchiver.Models.SyncJobStatus.Completed)
+                                            {
+                                                <small class="text-success">
+                                                    <i class="bi bi-check-circle"></i> Completed
+                                                </small>
+                                            }
+                                            else if (job.Status == MailArchiver.Models.SyncJobStatus.Failed)
+                                            {
+                                                <small class="text-danger">
+                                                    <i class="bi bi-x-circle"></i> Failed
+                                                </small>
+                                            }
+                                        </td>
+                                        <td>
+                                            @if (job.ProcessedEmails > 0)
+                                            {
+                                                <div class="small">
+                                                    <div>Processed: <strong>@job.ProcessedEmails.ToString("N0")</strong></div>
+                                                    <div class="text-success">New: @job.NewEmails.ToString("N0")</div>
+                                                    @if (job.FailedEmails > 0)
+                                                    {
+                                                        <div class="text-danger">Failed: @job.FailedEmails.ToString("N0")</div>
+                                                    }
+                                                </div>
+                                            }
+                                            else
+                                            {
+                                                <small class="text-muted">-</small>
+                                            }
+                                        </td>
+                                        <td>@job.Started.ToString("MM-dd HH:mm")</td>
+                                        <td>
+                                            @if (job.Completed.HasValue)
+                                            {
+                                                var duration = job.Completed.Value - job.Started;
+                                                <span class="badge bg-info">
+                                                    @duration.ToString(@"hh\:mm\:ss")
+                                                </span>
+                                            }
+                                            else
+                                            {
+                                                var duration = DateTime.UtcNow - job.Started;
+                                                <span class="badge bg-primary">
+                                                    @duration.ToString(@"hh\:mm\:ss")
+                                                </span>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+
+    <!-- Batch Restore Jobs Section -->
+    @if (ViewBag.BatchJobs != null)
+    {
+        var batchJobs = ViewBag.BatchJobs as List<MailArchiver.Models.BatchRestoreJob>;
+        if (batchJobs != null && batchJobs.Any())
+        {
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-envelope-arrow-up me-2"></i>
+                        Batch Restore Jobs
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Job ID</th>
+                                    <th>Status</th>
+                                    <th>Emails</th>
+                                    <th>Progress</th>
+                                    <th>Created</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var job in batchJobs)
+                                {
+                                    <tr>
+                                        <td><code>@job.JobId.Substring(0, 8)...</code></td>
+                                        <td>
+                                            @{
+                                                var batchStatusClass = "secondary";
+                                                if (job.Status == MailArchiver.Models.BatchRestoreJobStatus.Running)
+                                                {
+                                                    batchStatusClass = "primary";
+                                                }
+                                                else if (job.Status == MailArchiver.Models.BatchRestoreJobStatus.Completed)
+                                                {
+                                                    batchStatusClass = "success";
+                                                }
+                                                else if (job.Status == MailArchiver.Models.BatchRestoreJobStatus.Failed)
+                                                {
+                                                    batchStatusClass = "danger";
+                                                }
+                                                else if (job.Status == MailArchiver.Models.BatchRestoreJobStatus.Cancelled)
+                                                {
+                                                    batchStatusClass = "warning";
+                                                }
+                                            }
+                                            <span class="badge bg-@batchStatusClass">
+                                                @job.Status
+                                            </span>
+                                        </td>
+                                        <td>@job.EmailIds.Count.ToString("N0")</td>
+                                        <td>
+                                            @{
+                                                var progressPercent = job.EmailIds.Count > 0 ? (job.ProcessedCount * 100.0 / job.EmailIds.Count) : 0;
+                                            }
+                                            <div class="progress" style="height: 20px;">
+                                                <div class="progress-bar" role="progressbar"
+                                                     style="width: @progressPercent.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)%">
+                                                    @progressPercent.ToString("F0")%
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>@job.Created.ToString("MM-dd HH:mm")</td>
+                                        <td>
+                                            <a asp-action="BatchRestoreStatus" asp-route-jobId="@job.JobId"
+                                               class="btn btn-outline-primary btn-sm">Details</a>
+                                            @if (job.Status == MailArchiver.Models.BatchRestoreJobStatus.Running || job.Status == MailArchiver.Models.BatchRestoreJobStatus.Queued)
+                                            {
+                                                <form asp-action="CancelBatchRestore" method="post" style="display: inline;"
+                                                      onsubmit="return confirm('Cancel this job?');">
+                                                    <input type="hidden" name="jobId" value="@job.JobId" />
+                                                    <button type="submit" class="btn btn-outline-warning btn-sm ms-1">Cancel</button>
+                                                </form>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+
+    <!-- Empty State -->
+    @{
+        var hasSyncJobs = ViewBag.SyncJobs != null && (ViewBag.SyncJobs as List<MailArchiver.Models.SyncJob>)?.Any() == true;
+        var hasBatchJobs = ViewBag.BatchJobs != null && (ViewBag.BatchJobs as List<MailArchiver.Models.BatchRestoreJob>)?.Any() == true;
+    }
+
+    @if (!hasSyncJobs && !hasBatchJobs)
+    {
+        <div class="text-center py-5">
+            <div class="mb-3">
+                <i class="bi bi-clock-history display-1 text-muted"></i>
+            </div>
+            <h5 class="text-muted">No Background Jobs</h5>
+            <p class="text-muted">There are currently no active background jobs.</p>
+        </div>
+    }
+</div>
+
+@{
+    var hasRunningSyncJobs = false;
+    var hasRunningBatchJobs = false;
+    
+    if (ViewBag.SyncJobs != null)
+    {
+        var syncJobsList = ViewBag.SyncJobs as List<MailArchiver.Models.SyncJob>;
+        if (syncJobsList != null)
+        {
+            hasRunningSyncJobs = syncJobsList.Any(j => j.Status == MailArchiver.Models.SyncJobStatus.Running);
+        }
+    }
+    
+    if (ViewBag.BatchJobs != null)
+    {
+        var batchJobsList = ViewBag.BatchJobs as List<MailArchiver.Models.BatchRestoreJob>;
+        if (batchJobsList != null)
+        {
+            hasRunningBatchJobs = batchJobsList.Any(j => j.Status == MailArchiver.Models.BatchRestoreJobStatus.Running || j.Status == MailArchiver.Models.BatchRestoreJobStatus.Queued);
+        }
+    }
+}
+
+@if (hasRunningSyncJobs || hasRunningBatchJobs)
+{
+    @section Scripts {
+        <script>
+            // Auto-refresh page every 10 seconds if there are active jobs
+            setTimeout(function() {
+                location.reload();
+            }, 10000);
+            
+            // Show last refresh time
+            document.addEventListener('DOMContentLoaded', function() {
+                const refreshInfo = document.createElement('small');
+                refreshInfo.className = 'text-muted float-end';
+                refreshInfo.textContent = 'Last updated: ' + new Date().toLocaleTimeString();
+                const firstCardHeader = document.querySelector('.card .card-header');
+                if (firstCardHeader) {
+                    firstCardHeader.appendChild(refreshInfo);
+                }
+            });
+        </script>
+    }
+}

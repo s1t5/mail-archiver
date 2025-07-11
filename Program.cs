@@ -41,6 +41,7 @@ builder.Services.AddDbContext<MailArchiverDbContext>(options =>
 // Services hinzufügen
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IAuthenticationService, SimpleAuthenticationService>();
+builder.Services.AddSingleton<ISyncJobService, SyncJobService>(); // NEUE SERVICE
 builder.Services.AddSingleton<IBatchRestoreService, BatchRestoreService>();
 builder.Services.AddHostedService<BatchRestoreService>(provider =>
     (BatchRestoreService)provider.GetRequiredService<IBatchRestoreService>());
@@ -48,7 +49,6 @@ builder.Services.AddHostedService<MailSyncBackgroundService>();
 
 // MVC hinzufügen
 builder.Services.AddControllersWithViews();
-
 
 builder.Services.Configure<AuthenticationOptions>(
     builder.Configuration.GetSection(AuthenticationOptions.Authentication));
@@ -76,7 +76,6 @@ using (var scope = app.Services.CreateScope())
         var context = services.GetRequiredService<MailArchiverDbContext>();
         context.Database.EnsureCreated();
         context.Database.ExecuteSqlRaw("CREATE EXTENSION IF NOT EXISTS citext;");
-
         var logger = services.GetRequiredService<ILogger<Program>>();
         logger.LogInformation("Datenbank wurde initialisiert");
     }
@@ -100,7 +99,6 @@ else
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
-
 app.UseRouting();
 app.UseSession();
 

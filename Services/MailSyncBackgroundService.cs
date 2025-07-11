@@ -1,4 +1,5 @@
 using MailArchiver.Data;
+using MailArchiver.Services;
 using Microsoft.EntityFrameworkCore;
 
 namespace MailArchiver.Services
@@ -22,8 +23,9 @@ namespace MailArchiver.Services
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             _logger.LogInformation("Mail Sync Background Service is starting...");
+            
             var syncIntervalMinutes = _configuration.GetValue<int>("MailSync:IntervalMinutes", 15);
-            var syncTimeoutMinutes = _configuration.GetValue<int>("MailSync:TimeoutMinutes", 60); // 1 Stunde Standardwert
+            var syncTimeoutMinutes = _configuration.GetValue<int>("MailSync:TimeoutMinutes", 60);
 
             while (!stoppingToken.IsCancellationRequested)
             {
@@ -33,8 +35,8 @@ namespace MailArchiver.Services
                     using var scope = _serviceProvider.CreateScope();
                     var dbContext = scope.ServiceProvider.GetRequiredService<MailArchiverDbContext>();
                     var emailService = scope.ServiceProvider.GetRequiredService<IEmailService>();
+                    var syncJobService = scope.ServiceProvider.GetRequiredService<ISyncJobService>();
 
-                    // Only sync enabled accounts
                     var accounts = await dbContext.MailAccounts
                         .Where(a => a.IsEnabled)
                         .ToListAsync(stoppingToken);
@@ -45,11 +47,13 @@ namespace MailArchiver.Services
                     {
                         try
                         {
-                            // Benutze CancellationTokenSource für Timeout pro Account
                             using var accountCts = new CancellationTokenSource(TimeSpan.FromMinutes(syncTimeoutMinutes));
                             using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(accountCts.Token, stoppingToken);
 
-                            await emailService.SyncMailAccountAsync(account);
+                            // Start sync job tracking
+                            var jobId = syncJobService.StartSync(account.Id, account.Name, account.LastSync);
+                            
+                            await emailService.SyncMailAccountAsync(account, jobId);
                             _logger.LogInformation("Mail sync completed for account: {AccountName}", account.Name);
                         }
                         catch (OperationCanceledException)
@@ -63,7 +67,6 @@ namespace MailArchiver.Services
                                 account.Name, ex.Message);
                         }
 
-                        // Kleine Pause zwischen Konten, um Server zu entlasten
                         await Task.Delay(TimeSpan.FromSeconds(10), stoppingToken);
                     }
                 }

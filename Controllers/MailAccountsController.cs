@@ -14,17 +14,20 @@ namespace MailArchiver.Controllers
         private readonly IEmailService _emailService;
         private readonly ILogger<MailAccountsController> _logger;
         private readonly BatchRestoreOptions _batchOptions;
+        private readonly ISyncJobService _syncJobService;
 
         public MailAccountsController(
             MailArchiverDbContext context,
             IEmailService emailService,
             ILogger<MailAccountsController> logger,
-            IOptions<BatchRestoreOptions> batchOptions)
+            IOptions<BatchRestoreOptions> batchOptions,
+            ISyncJobService syncJobService)
         {
             _context = context;
             _emailService = emailService;
             _logger = logger;
             _batchOptions = batchOptions.Value;
+            _syncJobService = syncJobService;
         }
 
         // GET: MailAccounts
@@ -57,6 +60,9 @@ namespace MailArchiver.Controllers
                 return NotFound();
             }
 
+            // E-Mail-Anzahl abrufen
+            var emailCount = await _emailService.GetEmailCountByAccountAsync(id);
+
             var model = new MailAccountViewModel
             {
                 Id = account.Id,
@@ -66,9 +72,11 @@ namespace MailArchiver.Controllers
                 ImapPort = account.ImapPort,
                 Username = account.Username,
                 UseSSL = account.UseSSL,
-                LastSync = account.LastSync
+                LastSync = account.LastSync,
+                IsEnabled = account.IsEnabled
             };
 
+            ViewBag.EmailCount = emailCount;
             return View(model);
         }
 
@@ -80,7 +88,6 @@ namespace MailArchiver.Controllers
                 ImapPort = 993, // Standard values
                 UseSSL = true
             };
-
             return View(model);
         }
 
@@ -111,7 +118,6 @@ namespace MailArchiver.Controllers
 
                     // Test connection before saving
                     var connectionResult = await _emailService.TestConnectionAsync(account);
-
                     if (!connectionResult)
                     {
                         _logger.LogWarning("Connection test failed for account {Name}", model.Name);
@@ -120,10 +126,8 @@ namespace MailArchiver.Controllers
                     }
 
                     _logger.LogInformation("Connection test successful, saving account");
-
                     _context.MailAccounts.Add(account);
                     await _context.SaveChangesAsync();
-
                     TempData["SuccessMessage"] = "Email account created successfully.";
                     return RedirectToAction(nameof(Index));
                 }
@@ -240,7 +244,6 @@ namespace MailArchiver.Controllers
                     }
 
                     await _context.SaveChangesAsync();
-
                     TempData["SuccessMessage"] = "Email account updated successfully.";
                     return RedirectToAction(nameof(Index));
                 }
@@ -256,7 +259,6 @@ namespace MailArchiver.Controllers
                     }
                 }
             }
-
             return View(model);
         }
 
@@ -286,7 +288,6 @@ namespace MailArchiver.Controllers
         {
             // Determine number of emails to delete
             var emailCount = await _context.ArchivedEmails.CountAsync(e => e.MailAccountId == id);
-
             var account = await _context.MailAccounts.FindAsync(id);
             if (account != null)
             {
@@ -311,6 +312,7 @@ namespace MailArchiver.Controllers
 
                 // Finally delete the account
                 _context.MailAccounts.Remove(account);
+
                 await _context.SaveChangesAsync();
 
                 TempData["SuccessMessage"] = $"Email account and {emailCount} related emails have been successfully deleted.";
@@ -332,7 +334,12 @@ namespace MailArchiver.Controllers
 
             try
             {
-                await _emailService.SyncMailAccountAsync(account);
+                // Sync-Job starten
+                var jobId = _syncJobService.StartSync(account.Id, account.Name, account.LastSync);
+                
+                // Sync ausführen
+                await _emailService.SyncMailAccountAsync(account, jobId);
+                
                 TempData["SuccessMessage"] = $"Synchronization for {account.Name} was successfully completed.";
             }
             catch (Exception ex)
@@ -342,6 +349,38 @@ namespace MailArchiver.Controllers
             }
 
             return RedirectToAction(nameof(Index));
+        }
+
+        // POST: MailAccounts/Resync/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Resync(int id)
+        {
+            var account = await _context.MailAccounts.FindAsync(id);
+            if (account == null)
+            {
+                return NotFound();
+            }
+
+            try
+            {
+                var success = await _emailService.ResyncAccountAsync(id);
+                if (success)
+                {
+                    TempData["SuccessMessage"] = $"Full resync for {account.Name} was successfully started.";
+                }
+                else
+                {
+                    TempData["ErrorMessage"] = $"Failed to start resync for {account.Name}.";
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error starting resync for account {AccountName}: {Message}", account.Name, ex.Message);
+                TempData["ErrorMessage"] = $"Error during resync: {ex.Message}";
+            }
+
+            return RedirectToAction(nameof(Details), new { id });
         }
 
         // POST: MailAccounts/MoveAllEmails/5
@@ -392,13 +431,11 @@ namespace MailArchiver.Controllers
                 {
                     HttpContext.Session.SetString("BatchRestoreIds", string.Join(",", emailIds));
                     HttpContext.Session.SetString("BatchRestoreReturnUrl", Url.Action("Details", new { id }));
-
                     return RedirectToAction("BatchRestore", "Emails");
                 }
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, "Failed to store {Count} email IDs in session for account {AccountId}", emailIds.Count, id);
-
                     // Fallback zu Background Job
                     _logger.LogWarning("Session storage failed, redirecting to background job");
                     return RedirectToAction("StartAsyncBatchRestoreFromAccount", "Emails", new

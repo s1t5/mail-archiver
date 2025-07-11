@@ -18,18 +18,21 @@ namespace MailArchiver.Controllers
         private readonly ILogger<EmailsController> _logger;
         private readonly IBatchRestoreService? _batchRestoreService;
         private readonly BatchRestoreOptions _batchOptions;
+        private readonly ISyncJobService _syncJobService;
 
         public EmailsController(
             MailArchiverDbContext context,
             IEmailService emailService,
             ILogger<EmailsController> logger,
             IOptions<BatchRestoreOptions> batchOptions,
-            IBatchRestoreService? batchRestoreService = null)
+            IBatchRestoreService? batchRestoreService = null,
+            ISyncJobService? syncJobService = null)
         {
             _context = context;
             _emailService = emailService;
             _logger = logger;
             _batchRestoreService = batchRestoreService;
+            _syncJobService = syncJobService;
             _batchOptions = batchOptions.Value;
         }
 
@@ -347,13 +350,13 @@ namespace MailArchiver.Controllers
 
             if (useBackgroundJob)
             {
-                _logger.LogInformation("Using background job for {Count} emails (threshold: {Threshold})", 
+                _logger.LogInformation("Using background job for {Count} emails (threshold: {Threshold})",
                     ids.Count, _batchOptions.AsyncThreshold);
                 return await StartAsyncBatchRestore(ids, returnUrl);
             }
 
             // Direkte Verarbeitung über Session
-            _logger.LogInformation("Using direct processing for {Count} emails (threshold: {Threshold})", 
+            _logger.LogInformation("Using direct processing for {Count} emails (threshold: {Threshold})",
                 ids.Count, _batchOptions.AsyncThreshold);
 
             try
@@ -365,7 +368,7 @@ namespace MailArchiver.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to store {Count} email IDs in session", ids.Count);
-                
+
                 // Fallback zu Background Job wenn Session fehlschlägt
                 if (_batchRestoreService != null && ids.Count <= _batchOptions.MaxAsyncEmails)
                 {
@@ -599,7 +602,7 @@ namespace MailArchiver.Controllers
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, "Failed to store {Count} email IDs in session", emailIds.Count);
-                    
+
                     if (_batchRestoreService != null)
                     {
                         _logger.LogWarning("Session storage failed, falling back to background job");
@@ -790,16 +793,25 @@ namespace MailArchiver.Controllers
 
         // GET: Emails/BatchRestoreJobs
         [HttpGet]
-        public IActionResult BatchRestoreJobs()
+        public IActionResult Jobs()
         {
-            if (_batchRestoreService == null)
+            var batchJobs = new List<BatchRestoreJob>();
+            var syncJobs = new List<SyncJob>();
+
+            if (_batchRestoreService != null)
             {
-                TempData["ErrorMessage"] = "Batch restore service is not available.";
-                return RedirectToAction("Index");
+                batchJobs = _batchRestoreService.GetActiveJobs();
             }
 
-            var jobs = _batchRestoreService.GetActiveJobs();
-            return View(jobs);
+            if (_syncJobService != null)
+            {
+                syncJobs = _syncJobService.GetAllJobs();
+            }
+
+            ViewBag.BatchJobs = batchJobs;
+            ViewBag.SyncJobs = syncJobs;
+
+            return View(batchJobs);
         }
 
         // API endpoint for AJAX status updates

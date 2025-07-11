@@ -2,6 +2,7 @@
 @{
     ViewData["Title"] = "Account Details";
 }
+
 <div class="container">
     <h1>Email Account Details</h1>
     <div class="card">
@@ -9,14 +10,19 @@
             <dl class="row">
                 <dt class="col-sm-3">Name</dt>
                 <dd class="col-sm-9">@Model.Name</dd>
+                
                 <dt class="col-sm-3">Email Address</dt>
                 <dd class="col-sm-9">@Model.EmailAddress</dd>
+                
                 <dt class="col-sm-3">IMAP Server</dt>
                 <dd class="col-sm-9">@Model.ImapServer:@Model.ImapPort</dd>
+                
                 <dt class="col-sm-3">Username</dt>
                 <dd class="col-sm-9">@Model.Username</dd>
+                
                 <dt class="col-sm-3">SSL</dt>
                 <dd class="col-sm-9">@(Model.UseSSL ? "Enabled" : "Disabled")</dd>
+                
                 <dt class="col-sm-3">Status</dt>
                 <dd class="col-sm-9">
                     @if (Model.IsEnabled)
@@ -28,6 +34,12 @@
                         <span class="badge bg-secondary">Disabled</span>
                     }
                 </dd>
+                
+                <dt class="col-sm-3">Total Emails</dt>
+                <dd class="col-sm-9">
+                    <strong>@ViewBag.EmailCount.ToString("N0")</strong> emails archived
+                </dd>
+                
                 <dt class="col-sm-3">Last Sync</dt>
                 <dd class="col-sm-9">
                     @if (Model.LastSync.HasValue)
@@ -40,9 +52,29 @@
                     }
                 </dd>
             </dl>
+            
             <div class="mt-3">
                 <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">Edit</a>
                 <a asp-action="Index" class="btn btn-outline-secondary">Back to List</a>
+                
+                @if (Model.IsEnabled)
+                {
+                    <form asp-action="Sync" asp-route-id="@Model.Id" method="post" style="display: inline;">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-arrow-clockwise"></i> Quick Sync
+                        </button>
+                    </form>
+                    
+                    <form asp-action="Resync" asp-route-id="@Model.Id" method="post" style="display: inline;" 
+                          onsubmit="return confirm('This will resync all emails from the beginning. This may take a long time. Continue?');">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-warning">
+                            <i class="bi bi-arrow-clockwise"></i> Full Resync
+                        </button>
+                    </form>
+                }
+                
                 <form asp-action="MoveAllEmails" asp-route-id="@Model.Id" method="post" style="display: inline;">
                     @Html.AntiForgeryToken()
                     <button type="submit" class="btn btn-outline-success">

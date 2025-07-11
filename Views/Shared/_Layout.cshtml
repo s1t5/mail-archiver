@@ -43,7 +43,7 @@
                         </li>
                         <li class="nav-item">
                             <a class="nav-link @(ViewContext.RouteData.Values["Controller"].ToString() == "Emails" && ViewContext.RouteData.Values["Action"].ToString().Contains("BatchRestore") ? "active" : "")"
-                               asp-controller="Emails" asp-action="BatchRestoreJobs">
+                               asp-controller="Emails" asp-action="Jobs">
                                 <i class="bi bi-clock-history me-1"></i>
                                 Jobs
                                 @{

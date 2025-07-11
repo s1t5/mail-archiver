@@ -25,7 +25,7 @@
                             <strong>Active Background Jobs:</strong> @ViewBag.ActiveJobsCount job(s) are currently running.
                         </div>
                         <div>
-                            <a asp-controller="Emails" asp-action="BatchRestoreJobs" class="btn btn-outline-primary btn-sm">
+                            <a asp-controller="Emails" asp-action="Jobs" class="btn btn-outline-primary btn-sm">
                                 <i class="bi bi-eye me-1"></i> View Jobs
                             </a>
                             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
@@ -278,7 +278,7 @@
                             </a>
                         </div>
                         <div class="col-6 col-md-3">
-                            <a asp-controller="Emails" asp-action="BatchRestoreJobs" class="btn btn-outline-warning w-100 position-relative">
+                            <a asp-controller="Emails" asp-action="Jobs" class="btn btn-outline-warning w-100 position-relative">
                                 <i class="bi bi-clock-history d-block mb-1"></i>
                                 <small>Background Jobs</small>
                                 @if (ViewBag.ActiveJobsCount != null && ViewBag.ActiveJobsCount > 0)

@@ -24,7 +24,7 @@
                     <strong>@ViewBag.ActiveJobsCount</strong> background job(s) are currently running.
                 </div>
                 <div>
-                    <a asp-action="BatchRestoreJobs" class="btn btn-outline-primary btn-sm me-2">
+                    <a asp-action="Jobs" class="btn btn-outline-primary btn-sm me-2">
                         <i class="bi bi-eye me-1"></i> View Jobs
                     </a>
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
@@ -127,7 +127,7 @@
                                         <strong>@ViewBag.ActiveJobsCount active job(s)</strong> currently running
                                     </small>
                                 </div>
-                                <a asp-action="BatchRestoreJobs" class="btn btn-outline-primary btn-sm">
+                                <a asp-action="Jobs" class="btn btn-outline-primary btn-sm">
                                     <i class="bi bi-eye me-1"></i>Monitor Background Jobs
                                 </a>
                             }
@@ -137,7 +137,7 @@
                                     <i class="bi bi-check-circle me-1 text-success"></i>
                                     No background jobs currently running
                                 </small>
-                                <a asp-action="BatchRestoreJobs" class="btn btn-outline-secondary btn-sm">
+                                <a asp-action="Jobs" class="btn btn-outline-secondary btn-sm">
                                     <i class="bi bi-clock-history me-1"></i>View Job History
                                 </a>
                             }
