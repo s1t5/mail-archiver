@@ -25,10 +25,10 @@ namespace MailArchiver.Services
             _serviceProvider = serviceProvider;
             _logger = logger;
             _uploadsPath = Path.Combine(environment.ContentRootPath, "uploads", "mbox");
-            
+
             // Erstelle Upload-Verzeichnis falls es nicht existiert
             Directory.CreateDirectory(_uploadsPath);
-            
+
             // Cleanup-Timer: Jeden Tag alte Jobs und Dateien entfernen
             _cleanupTimer = new Timer(
                 callback: _ => CleanupOldJobs(),
@@ -102,10 +102,10 @@ namespace MailArchiver.Services
             {
                 using var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
                 using var reader = new StreamReader(stream, Encoding.UTF8, detectEncodingFromByteOrderMarks: true, bufferSize: 8192);
-                
+
                 int count = 0;
                 string? line;
-                
+
                 // Schätze basierend auf "From " Zeilen
                 while ((line = await reader.ReadLineAsync()) != null && count < 100000) // Begrenze Schätzung
                 {
@@ -113,7 +113,7 @@ namespace MailArchiver.Services
                     {
                         count++;
                     }
-                    
+
                     // Stoppe nach ersten 10MB für Schätzung
                     if (reader.BaseStream.Position > 10_000_000)
                     {
@@ -143,7 +143,7 @@ namespace MailArchiver.Services
             foreach (var job in toRemove)
             {
                 _allJobs.TryRemove(job.JobId, out _);
-                
+
                 // Lösche auch die zugehörige Datei
                 try
                 {
@@ -168,7 +168,7 @@ namespace MailArchiver.Services
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             _logger.LogInformation("MBox Import Background Service started");
-            
+
             while (!stoppingToken.IsCancellationRequested)
             {
                 try
@@ -210,7 +210,7 @@ namespace MailArchiver.Services
             {
                 job.Status = MBoxImportJobStatus.Running;
                 job.Started = DateTime.UtcNow;
-                
+
                 _logger.LogInformation("Starting MBox import job {JobId} for file {FileName}",
                     job.JobId, job.FileName);
 
@@ -294,7 +294,7 @@ namespace MailArchiver.Services
 
                         // Importiere E-Mail in die Datenbank
                         var imported = await ImportEmailToDatabase(message, targetAccount, job);
-                        
+
                         if (imported)
                         {
                             job.SuccessCount++;
@@ -350,18 +350,22 @@ namespace MailArchiver.Services
                 var context = scope.ServiceProvider.GetRequiredService<MailArchiverDbContext>();
 
                 // Erstelle eindeutige Message-ID
-                var messageId = message.MessageId ?? 
+                var messageId = message.MessageId ??
                     $"mbox-import-{job.JobId}-{job.ProcessedEmails}-{message.Date.Ticks}";
 
                 // Prüfe ob E-Mail bereits existiert
                 var existing = await context.ArchivedEmails
                     .FirstOrDefaultAsync(e => e.MessageId == messageId && e.MailAccountId == account.Id);
-                
+
                 if (existing != null)
                 {
                     _logger.LogDebug("Email already exists: {MessageId}", messageId);
                     return false; // Bereits vorhanden, aber kein Fehler
                 }
+
+                // Sammle ALLE Anhänge einschließlich inline Images
+                var allAttachments = new List<MimePart>();
+                CollectAllAttachments(message.Body, allAttachments);
 
                 var archivedEmail = new ArchivedEmail
                 {
@@ -375,7 +379,7 @@ namespace MailArchiver.Services
                     SentDate = message.Date.UtcDateTime,
                     ReceivedDate = DateTime.UtcNow,
                     IsOutgoing = DetermineIfOutgoing(message, account),
-                    HasAttachments = message.Attachments.Any(),
+                    HasAttachments = allAttachments.Any(),
                     Body = CleanText(message.TextBody ?? string.Empty),
                     HtmlBody = CleanHtmlForStorage(message.HtmlBody ?? string.Empty),
                     FolderName = job.TargetFolder
@@ -384,41 +388,10 @@ namespace MailArchiver.Services
                 context.ArchivedEmails.Add(archivedEmail);
                 await context.SaveChangesAsync();
 
-                // Speichere Anhänge
-                if (message.Attachments.Any())
+                // Speichere alle Anhänge
+                if (allAttachments.Any())
                 {
-                    foreach (var attachment in message.Attachments.OfType<MimePart>())
-                    {
-                        try
-                        {
-                            using var ms = new MemoryStream();
-                            await attachment.Content.DecodeToAsync(ms);
-
-                            var emailAttachment = new EmailAttachment
-                            {
-                                ArchivedEmailId = archivedEmail.Id,
-                                FileName = CleanText(attachment.FileName ?? "attachment.dat"),
-                                ContentType = CleanText(attachment.ContentType?.MimeType ?? "application/octet-stream"),
-                                Content = ms.ToArray(),
-                                Size = ms.Length
-                            };
-
-                            context.EmailAttachments.Add(emailAttachment);
-                        }
-                        catch (Exception ex)
-                        {
-                            _logger.LogWarning(ex, "Failed to save attachment {FileName}", attachment.FileName);
-                        }
-                    }
-
-                    try
-                    {
-                        await context.SaveChangesAsync();
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogWarning(ex, "Failed to save attachments for email {Subject}", archivedEmail.Subject);
-                    }
+                    await SaveAllAttachments(context, allAttachments, archivedEmail.Id);
                 }
 
                 return true;
@@ -430,12 +403,117 @@ namespace MailArchiver.Services
             }
         }
 
+        // Hilfsmethoden für MBox Import (kopieren Sie die entsprechenden Methoden aus EmailService)
+        private void CollectAllAttachments(MimeEntity entity, List<MimePart> attachments)
+        {
+            if (entity is MimePart mimePart)
+            {
+                if (mimePart.IsAttachment || IsInlineContent(mimePart))
+                {
+                    attachments.Add(mimePart);
+                }
+            }
+            else if (entity is Multipart multipart)
+            {
+                foreach (var child in multipart)
+                {
+                    CollectAllAttachments(child, attachments);
+                }
+            }
+            else if (entity is MessagePart messagePart)
+            {
+                CollectAllAttachments(messagePart.Message.Body, attachments);
+            }
+        }
+
+        private bool IsInlineContent(MimePart mimePart)
+        {
+            if (mimePart.ContentDisposition?.Disposition?.Equals("inline", StringComparison.OrdinalIgnoreCase) == true)
+            {
+                return true;
+            }
+
+            if (!string.IsNullOrEmpty(mimePart.ContentId) &&
+                mimePart.ContentType?.MediaType?.StartsWith("image/", StringComparison.OrdinalIgnoreCase) == true)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        private async Task SaveAllAttachments(MailArchiverDbContext context, List<MimePart> attachments, int archivedEmailId)
+        {
+            foreach (var attachment in attachments)
+            {
+                try
+                {
+                    using var ms = new MemoryStream();
+                    await attachment.Content.DecodeToAsync(ms);
+
+                    var fileName = attachment.FileName;
+                    if (string.IsNullOrEmpty(fileName))
+                    {
+                        if (!string.IsNullOrEmpty(attachment.ContentId))
+                        {
+                            var extension = GetFileExtensionFromContentType(attachment.ContentType?.MimeType);
+                            var cleanContentId = attachment.ContentId.Trim('<', '>');
+                            fileName = $"inline_{cleanContentId}{extension}";
+                        }
+                        else
+                        {
+                            var extension = GetFileExtensionFromContentType(attachment.ContentType?.MimeType);
+                            fileName = $"attachment_{Guid.NewGuid().ToString("N")[..8]}{extension}";
+                        }
+                    }
+
+                    var emailAttachment = new EmailAttachment
+                    {
+                        ArchivedEmailId = archivedEmailId,
+                        FileName = CleanText(fileName),
+                        ContentType = CleanText(attachment.ContentType?.MimeType ?? "application/octet-stream"),
+                        Content = ms.ToArray(),
+                        Size = ms.Length
+                    };
+
+                    context.EmailAttachments.Add(emailAttachment);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Failed to save attachment {FileName}", attachment.FileName);
+                }
+            }
+
+            try
+            {
+                await context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to save attachments for email");
+            }
+        }
+
+        private string GetFileExtensionFromContentType(string? contentType)
+        {
+            return contentType?.ToLowerInvariant() switch
+            {
+                "image/jpeg" or "image/jpg" => ".jpg",
+                "image/png" => ".png",
+                "image/gif" => ".gif",
+                "image/bmp" => ".bmp",
+                "image/webp" => ".webp",
+                "image/svg+xml" => ".svg",
+                _ => ".dat"
+            };
+        }
+
         private bool DetermineIfOutgoing(MimeMessage message, MailAccount account)
         {
             // Prüfe ob die E-Mail vom Account gesendet wurde
             var accountEmail = account.EmailAddress.ToLowerInvariant();
             var fromAddress = message.From.Mailboxes.FirstOrDefault()?.Address?.ToLowerInvariant();
-            
+
             return fromAddress == accountEmail;
         }
 
@@ -446,7 +524,7 @@ namespace MailArchiver.Services
 
             text = text.Replace("\0", "");
             var cleanedText = new StringBuilder();
-            
+
             foreach (var c in text)
             {
                 if (c < 32 && c != '\r' && c != '\n' && c != '\t')
@@ -458,7 +536,7 @@ namespace MailArchiver.Services
                     cleanedText.Append(c);
                 }
             }
-            
+
             return cleanedText.ToString();
         }
 
@@ -468,12 +546,12 @@ namespace MailArchiver.Services
                 return string.Empty;
 
             html = html.Replace("\0", "");
-            
+
             if (html.Length > 1_000_000)
             {
                 return "<html><body><p>Diese E-Mail enthält sehr großen HTML-Inhalt, der gekürzt wurde.</p></body></html>";
             }
-            
+
             return html;
         }
 

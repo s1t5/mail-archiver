@@ -273,13 +273,11 @@ namespace MailArchiver.Services
             public int FailedEmails { get; set; }
         }
 
-        // MODIFIZIERTE ArchiveEmailAsync Methode - gibt zurück ob E-Mail neu war
         private async Task<bool> ArchiveEmailAsync(MailAccount account, MimeMessage message, bool isOutgoing, string? folderName = null)
         {
             // Check if this email is already archived
             var messageId = message.MessageId ??
                 $"{message.From}-{message.To}-{message.Subject}-{message.Date.Ticks}";
-
             var existingEmail = await _context.ArchivedEmails
                 .FirstOrDefaultAsync(e => e.MessageId == messageId && e.MailAccountId == account.Id);
 
@@ -289,15 +287,14 @@ namespace MailArchiver.Services
             try
             {
                 DateTime sentDate = DateTime.SpecifyKind(message.Date.DateTime, DateTimeKind.Utc);
-
                 var subject = CleanText(message.Subject ?? "(No Subject)");
                 var from = CleanText(message.From.ToString());
                 var to = CleanText(message.To.ToString());
                 var cc = CleanText(message.Cc?.ToString() ?? string.Empty);
                 var bcc = CleanText(message.Bcc?.ToString() ?? string.Empty);
-
                 var body = CleanText(message.TextBody ?? string.Empty);
                 var htmlBody = string.Empty;
+
                 if (!string.IsNullOrEmpty(message.HtmlBody))
                 {
                     htmlBody = CleanHtmlForStorage(message.HtmlBody);
@@ -305,6 +302,10 @@ namespace MailArchiver.Services
 
                 var cleanMessageId = CleanText(messageId);
                 var cleanFolderName = CleanText(folderName ?? string.Empty);
+
+                // Sammle ALLE Anhänge einschließlich inline Images
+                var allAttachments = new List<MimePart>();
+                CollectAllAttachments(message.Body, allAttachments);
 
                 var archivedEmail = new ArchivedEmail
                 {
@@ -318,7 +319,7 @@ namespace MailArchiver.Services
                     SentDate = sentDate,
                     ReceivedDate = DateTime.UtcNow,
                     IsOutgoing = isOutgoing,
-                    HasAttachments = message.Attachments.Any(),
+                    HasAttachments = allAttachments.Any(),
                     Body = body,
                     HtmlBody = htmlBody,
                     FolderName = cleanFolderName
@@ -329,51 +330,15 @@ namespace MailArchiver.Services
                     _context.ArchivedEmails.Add(archivedEmail);
                     await _context.SaveChangesAsync();
 
-                    // Anhänge speichern
-                    if (message.Attachments.Any())
+                    // Speichere ALLE Anhänge als normale Attachments
+                    if (allAttachments.Any())
                     {
-                        foreach (var attachment in message.Attachments)
-                        {
-                            if (attachment is MimePart mimePart)
-                            {
-                                try
-                                {
-                                    using var ms = new MemoryStream();
-                                    await mimePart.Content.DecodeToAsync(ms);
-
-                                    var fileName = CleanText(mimePart.FileName ?? "attachment.dat");
-                                    var contentType = CleanText(mimePart.ContentType?.MimeType ?? "application/octet-stream");
-
-                                    var emailAttachment = new EmailAttachment
-                                    {
-                                        ArchivedEmailId = archivedEmail.Id,
-                                        FileName = fileName,
-                                        ContentType = contentType,
-                                        Content = ms.ToArray(),
-                                        Size = ms.Length
-                                    };
-                                    _context.EmailAttachments.Add(emailAttachment);
-                                }
-                                catch (Exception ex)
-                                {
-                                    _logger.LogError(ex, "Error saving attachment: {FileName}", mimePart.FileName);
-                                }
-                            }
-                        }
-
-                        try
-                        {
-                            await _context.SaveChangesAsync();
-                        }
-                        catch (Exception ex)
-                        {
-                            _logger.LogError(ex, "Error saving attachments for email: {Subject}", subject);
-                        }
+                        await SaveAllAttachments(allAttachments, archivedEmail.Id);
                     }
 
                     _logger.LogInformation(
-                        "Archived email: {Subject}, From: {From}, To: {To}, Account: {AccountName}",
-                        archivedEmail.Subject, archivedEmail.From, archivedEmail.To, account.Name);
+                        "Archived email: {Subject}, From: {From}, To: {To}, Account: {AccountName}, Total Attachments: {AttachmentCount}",
+                        archivedEmail.Subject, archivedEmail.From, archivedEmail.To, account.Name, allAttachments.Count);
 
                     return true; // Neue E-Mail erfolgreich archiviert
                 }
@@ -389,6 +354,161 @@ namespace MailArchiver.Services
                     message.Subject, message.From, ex.Message);
                 return false;
             }
+        }
+
+        // Neue Methode zum rekursiven Sammeln ALLER Anhänge
+        private void CollectAllAttachments(MimeEntity entity, List<MimePart> attachments)
+        {
+            if (entity is MimePart mimePart)
+            {
+                // Sammle normale Attachments
+                if (mimePart.IsAttachment)
+                {
+                    attachments.Add(mimePart);
+                    _logger.LogDebug("Found attachment: FileName={FileName}, ContentType={ContentType}",
+                        mimePart.FileName, mimePart.ContentType?.MimeType);
+                }
+                // Sammle inline Images und andere inline Content
+                else if (IsInlineContent(mimePart))
+                {
+                    attachments.Add(mimePart);
+                    _logger.LogDebug("Found inline content: ContentId={ContentId}, ContentType={ContentType}, FileName={FileName}",
+                        mimePart.ContentId, mimePart.ContentType?.MimeType, mimePart.FileName);
+                }
+            }
+            else if (entity is Multipart multipart)
+            {
+                // Rekursiv durch alle Teile einer Multipart-Nachricht gehen
+                foreach (var child in multipart)
+                {
+                    CollectAllAttachments(child, attachments);
+                }
+            }
+            else if (entity is MessagePart messagePart)
+            {
+                // Auch in eingebetteten Nachrichten suchen
+                CollectAllAttachments(messagePart.Message.Body, attachments);
+            }
+        }
+
+        // Hilfsmethode um inline Content zu identifizieren
+        private bool IsInlineContent(MimePart mimePart)
+        {
+            // Prüfe Content-Disposition
+            if (mimePart.ContentDisposition?.Disposition?.Equals("inline", StringComparison.OrdinalIgnoreCase) == true)
+            {
+                return true;
+            }
+
+            // Prüfe auf Images mit Content-ID (typisch für inline Images)
+            if (!string.IsNullOrEmpty(mimePart.ContentId) &&
+                mimePart.ContentType?.MediaType?.StartsWith("image/", StringComparison.OrdinalIgnoreCase) == true)
+            {
+                return true;
+            }
+
+            // Prüfe auf andere inline Content-Typen
+            if (!string.IsNullOrEmpty(mimePart.ContentId) &&
+                (mimePart.ContentType?.MediaType?.StartsWith("text/", StringComparison.OrdinalIgnoreCase) == true ||
+                 mimePart.ContentType?.MediaType?.StartsWith("application/", StringComparison.OrdinalIgnoreCase) == true))
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        // Methode zum Speichern aller Anhänge als normale Attachments
+        private async Task SaveAllAttachments(List<MimePart> attachments, int archivedEmailId)
+        {
+            foreach (var attachment in attachments)
+            {
+                try
+                {
+                    using var ms = new MemoryStream();
+                    await attachment.Content.DecodeToAsync(ms);
+
+                    // Bestimme den Dateinamen
+                    var fileName = attachment.FileName;
+                    if (string.IsNullOrEmpty(fileName))
+                    {
+                        // Generiere Dateinamen für inline Content ohne Namen
+                        if (!string.IsNullOrEmpty(attachment.ContentId))
+                        {
+                            var extension = GetFileExtensionFromContentType(attachment.ContentType?.MimeType);
+                            var cleanContentId = attachment.ContentId.Trim('<', '>');
+                            fileName = $"inline_{cleanContentId}{extension}";
+                        }
+                        else if (attachment.ContentType?.MediaType?.StartsWith("image/") == true)
+                        {
+                            var extension = GetFileExtensionFromContentType(attachment.ContentType.MimeType);
+                            fileName = $"inline_image_{Guid.NewGuid().ToString("N")[..8]}{extension}";
+                        }
+                        else
+                        {
+                            var extension = GetFileExtensionFromContentType(attachment.ContentType?.MimeType);
+                            fileName = $"attachment_{Guid.NewGuid().ToString("N")[..8]}{extension}";
+                        }
+                    }
+
+                    var cleanFileName = CleanText(fileName);
+                    var contentType = CleanText(attachment.ContentType?.MimeType ?? "application/octet-stream");
+
+                    var emailAttachment = new EmailAttachment
+                    {
+                        ArchivedEmailId = archivedEmailId,
+                        FileName = cleanFileName,
+                        ContentType = contentType,
+                        Content = ms.ToArray(),
+                        Size = ms.Length
+                    };
+
+                    _context.EmailAttachments.Add(emailAttachment);
+
+                    _logger.LogDebug("Prepared attachment for saving: FileName={FileName}, Size={Size}, ContentType={ContentType}",
+                        cleanFileName, ms.Length, contentType);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to process attachment: FileName={FileName}, ContentType={ContentType}, ContentId={ContentId}",
+                        attachment.FileName, attachment.ContentType?.MimeType, attachment.ContentId);
+                }
+            }
+
+            try
+            {
+                await _context.SaveChangesAsync();
+                _logger.LogInformation("Successfully saved {Count} attachments for email {EmailId}",
+                    attachments.Count, archivedEmailId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to save attachments batch for email {EmailId}", archivedEmailId);
+            }
+        }
+
+        // Hilfsmethode für Dateierweiterungen
+        private string GetFileExtensionFromContentType(string? contentType)
+        {
+            return contentType?.ToLowerInvariant() switch
+            {
+                "image/jpeg" or "image/jpg" => ".jpg",
+                "image/png" => ".png",
+                "image/gif" => ".gif",
+                "image/bmp" => ".bmp",
+                "image/webp" => ".webp",
+                "image/svg+xml" => ".svg",
+                "image/tiff" => ".tiff",
+                "image/ico" or "image/x-icon" => ".ico",
+                "text/html" => ".html",
+                "text/plain" => ".txt",
+                "text/css" => ".css",
+                "application/pdf" => ".pdf",
+                "application/zip" => ".zip",
+                "application/json" => ".json",
+                "application/xml" => ".xml",
+                _ => ".dat"
+            };
         }
         private bool IsOutgoingFolder(IMailFolder folder)
         {
