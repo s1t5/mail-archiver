@@ -2,7 +2,6 @@
 @{
     ViewData["Title"] = "Account Details";
 }
-
 <div class="container">
     <h1>Email Account Details</h1>
     <div class="card">
@@ -10,19 +9,14 @@
             <dl class="row">
                 <dt class="col-sm-3">Name</dt>
                 <dd class="col-sm-9">@Model.Name</dd>
-                
                 <dt class="col-sm-3">Email Address</dt>
                 <dd class="col-sm-9">@Model.EmailAddress</dd>
-                
                 <dt class="col-sm-3">IMAP Server</dt>
                 <dd class="col-sm-9">@Model.ImapServer:@Model.ImapPort</dd>
-                
                 <dt class="col-sm-3">Username</dt>
                 <dd class="col-sm-9">@Model.Username</dd>
-                
                 <dt class="col-sm-3">SSL</dt>
                 <dd class="col-sm-9">@(Model.UseSSL ? "Enabled" : "Disabled")</dd>
-                
                 <dt class="col-sm-3">Status</dt>
                 <dd class="col-sm-9">
                     @if (Model.IsEnabled)
@@ -34,12 +28,19 @@
                         <span class="badge bg-secondary">Disabled</span>
                     }
                 </dd>
-                
                 <dt class="col-sm-3">Total Emails</dt>
                 <dd class="col-sm-9">
                     <strong>@ViewBag.EmailCount.ToString("N0")</strong> emails archived
+                    @if (ViewBag.EmailCount > 0)
+                    {
+                        <div class="mt-1">
+                            <small class="text-warning">
+                                <i class="bi bi-exclamation-triangle me-1"></i>
+                                Deleting this account will permanently remove all @ViewBag.EmailCount.ToString("N0") archived emails
+                            </small>
+                        </div>
+                    }
                 </dd>
-                
                 <dt class="col-sm-3">Last Sync</dt>
                 <dd class="col-sm-9">
                     @if (Model.LastSync.HasValue)
@@ -52,35 +53,83 @@
                     }
                 </dd>
             </dl>
-            
-            <div class="mt-3">
-                <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">Edit</a>
-                <a asp-action="Index" class="btn btn-outline-secondary">Back to List</a>
+
+            <!-- Account Actions -->
+            <div class="mt-4">
+                <h6 class="text-muted mb-3">Account Actions</h6>
                 
-                @if (Model.IsEnabled)
-                {
-                    <form asp-action="Sync" asp-route-id="@Model.Id" method="post" style="display: inline;">
-                        @Html.AntiForgeryToken()
-                        <button type="submit" class="btn btn-success">
-                            <i class="bi bi-arrow-clockwise"></i> Quick Sync
-                        </button>
-                    </form>
+                <!-- Primary Actions -->
+                <div class="d-flex flex-wrap gap-2 mb-3">
+                    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">
+                        <i class="bi bi-pencil"></i> Edit Account
+                    </a>
                     
-                    <form asp-action="Resync" asp-route-id="@Model.Id" method="post" style="display: inline;" 
-                          onsubmit="return confirm('This will resync all emails from the beginning. This may take a long time. Continue?');">
+                    @if (Model.IsEnabled)
+                    {
+                        <form asp-action="Sync" asp-route-id="@Model.Id" method="post" style="display: inline;">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-success">
+                                <i class="bi bi-arrow-clockwise"></i> Quick Sync
+                            </button>
+                        </form>
+                        
+                        <form asp-action="Resync" asp-route-id="@Model.Id" method="post" style="display: inline;"
+                              onsubmit="return confirm('This will resync all emails from the beginning. This may take a long time. Continue?');">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-outline-warning">
+                                <i class="bi bi-arrow-clockwise"></i> Full Resync
+                            </button>
+                        </form>
+                    }
+                    
+                    <form asp-action="MoveAllEmails" asp-route-id="@Model.Id" method="post" style="display: inline;">
                         @Html.AntiForgeryToken()
-                        <button type="submit" class="btn btn-warning">
-                            <i class="bi bi-arrow-clockwise"></i> Full Resync
+                        <button type="submit" class="btn btn-outline-success">
+                            <i class="bi bi-envelope-arrow-up"></i> Copy All Emails to Another Mailbox
                         </button>
                     </form>
-                }
-                
-                <form asp-action="MoveAllEmails" asp-route-id="@Model.Id" method="post" style="display: inline;">
-                    @Html.AntiForgeryToken()
-                    <button type="submit" class="btn btn-outline-success">
-                        <i class="bi bi-envelope-arrow-up"></i> Copy All Emails to Another Mailbox
-                    </button>
-                </form>
+                </div>
+
+                <!-- Danger Zone -->
+                <div class="border border-danger rounded p-3 bg-light">
+                    <h6 class="text-danger mb-2">
+                        <i class="bi bi-exclamation-triangle-fill me-1"></i>
+                        Danger Zone
+                    </h6>
+                    <p class="small text-muted mb-3">
+                        The following actions are irreversible and will permanently delete data.
+                    </p>
+                    
+                    <div class="d-flex flex-column flex-md-row gap-2">
+                        <!-- Toggle Enable/Disable -->
+                        <form asp-action="ToggleEnabled" asp-route-id="@Model.Id" method="post" style="display: inline;">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn @(Model.IsEnabled ? "btn-outline-secondary" : "btn-outline-success") btn-sm">
+                                <i class="bi bi-@(Model.IsEnabled ? "pause" : "play")"></i>
+                                @(Model.IsEnabled ? "Disable Account" : "Enable Account")
+                            </button>
+                        </form>
+                        
+                        <!-- Delete Account -->
+                        @{
+                            var emailCountText = ViewBag.EmailCount.ToString();
+                            var deleteConfirmMessage = $"Are you sure you want to delete this account and ALL {emailCountText} archived emails? This action cannot be undone!";
+                        }
+                        <a asp-action="Delete" asp-route-id="@Model.Id" 
+                           class="btn btn-danger btn-sm"
+                           onclick="return confirm('@deleteConfirmMessage');">
+                            <i class="bi bi-trash-fill"></i> 
+                            Delete Account & All Emails (@emailCountText)
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Back Button -->
+            <div class="mt-4 pt-3 border-top">
+                <a asp-action="Index" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Back to Accounts
+                </a>
             </div>
         </div>
     </div>

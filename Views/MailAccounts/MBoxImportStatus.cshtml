@@ -1,0 +1,288 @@
+@model MailArchiver.Models.MBoxImportJob
+@{
+    ViewData["Title"] = "MBox Import Status";
+}
+
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>MBox Import Status</h1>
+        <div>
+            <a asp-action="Index" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Back to Accounts
+            </a>
+            <a asp-controller="Emails" asp-action="Jobs" class="btn btn-outline-info">
+                <i class="bi bi-list"></i> All Jobs
+            </a>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header bg-light">
+            <h5 class="mb-0">Import Job Information</h5>
+        </div>
+        <div class="card-body">
+            <dl class="row">
+                <dt class="col-sm-3">Job ID:</dt>
+                <dd class="col-sm-9"><code>@Model.JobId</code></dd>
+
+                <dt class="col-sm-3">File Name:</dt>
+                <dd class="col-sm-9">@Model.FileName</dd>
+
+                <dt class="col-sm-3">File Size:</dt>
+                <dd class="col-sm-9">@FormatFileSize(Model.FileSize)</dd>
+
+                <dt class="col-sm-3">Status:</dt>
+                <dd class="col-sm-9">
+                    <span class="badge bg-@(Model.Status == MailArchiver.Models.MBoxImportJobStatus.Running ? "primary" :
+                                           Model.Status == MailArchiver.Models.MBoxImportJobStatus.Completed ? "success" :
+                                           Model.Status == MailArchiver.Models.MBoxImportJobStatus.Failed ? "danger" :
+                                           Model.Status == MailArchiver.Models.MBoxImportJobStatus.Cancelled ? "warning" : "secondary") fs-6">
+                        @Model.Status
+                    </span>
+                </dd>
+
+                <dt class="col-sm-3">Emails:</dt>
+                <dd class="col-sm-9">
+                    @if (Model.Status == MailArchiver.Models.MBoxImportJobStatus.Running)
+                    {
+                        <span>@Model.ProcessedEmails.ToString("N0") processed</span>
+                        @if (Model.TotalEmails > 0)
+                        {
+                            <span class="text-muted"> (estimated: @Model.TotalEmails.ToString("N0"))</span>
+                        }
+                    }
+                    else if (Model.Status == MailArchiver.Models.MBoxImportJobStatus.Completed)
+                    {
+                        <span>@Model.ProcessedEmails.ToString("N0") emails processed</span>
+                        @if (Model.TotalEmails > 0 && Model.ProcessedEmails != Model.TotalEmails)
+                        {
+                            <span class="text-muted"> (estimated: @Model.TotalEmails.ToString("N0"))</span>
+                        }
+                    }
+                    else if (Model.TotalEmails > 0)
+                    {
+                        <span>@Model.TotalEmails.ToString("N0") emails estimated</span>
+                    }
+                    else
+                    {
+                        <span class="text-muted">Estimating...</span>
+                    }
+                </dd>
+
+                <dt class="col-sm-3">Progress:</dt>
+                <dd class="col-sm-9">
+                    @{
+                        // Verwende File-Progress als primären Indikator, da E-Mail-Schätzung ungenau sein kann
+                        var fileProgressPercent = Model.FileSize > 0 ? Math.Round((double)Model.ProcessedBytes * 100.0 / Model.FileSize, 1) : 0;
+                        
+                        // E-Mail-Progress nur wenn verfügbar und sinnvoll
+                        var emailProgressPercent = 0.0;
+                        if (Model.TotalEmails > 0 && Model.ProcessedEmails <= Model.TotalEmails * 1.2) // Max 120% um Schätzfehler zu berücksichtigen
+                        {
+                            emailProgressPercent = Math.Round((double)Model.ProcessedEmails * 100.0 / Model.TotalEmails, 1);
+                        }
+                        
+                        // Verwende den höheren Wert, aber begrenzt auf 100%
+                        var displayPercent = Math.Min(100, Math.Max(fileProgressPercent, emailProgressPercent));
+                        
+                        // Für abgeschlossene Jobs: 100%
+                        if (Model.Status == MailArchiver.Models.MBoxImportJobStatus.Completed)
+                        {
+                            displayPercent = 100;
+                        }
+                        
+                        var progressWidth = Math.Min(100, Math.Max(0, displayPercent));
+                    }
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="small text-muted">
+                                @if (Model.Status == MailArchiver.Models.MBoxImportJobStatus.Completed)
+                                {
+                                    <span>Import Complete</span>
+                                }
+                                else
+                                {
+                                    <span>File Processing Progress</span>
+                                }
+                            </span>
+                            <span class="small fw-bold">@displayPercent.ToString("F1")%</span>
+                        </div>
+                        <div class="progress" style="height: 25px;">
+                            <div class="progress-bar progress-bar-striped @(Model.Status == MailArchiver.Models.MBoxImportJobStatus.Running ? "progress-bar-animated" : "")"
+                                 role="progressbar"
+                                 style="width: @progressWidth.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)%"
+                                 aria-valuenow="@displayPercent"
+                                 aria-valuemin="0"
+                                 aria-valuemax="100">
+                                @if (displayPercent > 10)
+                                {
+                                    <span class="fw-bold">@displayPercent.ToString("F1")%</span>
+                                }
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-between mt-1">
+                            <small class="text-muted">
+                                File: @FormatFileSize(Model.ProcessedBytes) of @FormatFileSize(Model.FileSize)
+                            </small>
+                            @if (Model.ProcessedEmails > 0)
+                            {
+                                <small class="text-muted">
+                                    @Model.ProcessedEmails.ToString("N0") emails processed
+                                </small>
+                            }
+                        </div>
+                        
+                        @* Zeige zusätzliche Progress-Informationen wenn E-Mail-Schätzung stark abweicht *@
+                        @if (Model.TotalEmails > 0 && Model.ProcessedEmails > Model.TotalEmails * 1.1)
+                        {
+                            <div class="mt-2">
+                                <small class="text-warning">
+                                    <i class="bi bi-exclamation-triangle me-1"></i>
+                                    More emails found than estimated - progress based on file size
+                                </small>
+                            </div>
+                        }
+                    </div>
+                </dd>
+
+                @if (Model.Status == MailArchiver.Models.MBoxImportJobStatus.Running || Model.Status == MailArchiver.Models.MBoxImportJobStatus.Completed)
+                {
+                    <dt class="col-sm-3">Results:</dt>
+                    <dd class="col-sm-9">
+                        <div class="row">
+                            <div class="col-6">
+                                <span class="badge bg-success">
+                                    <i class="bi bi-check-circle me-1"></i>
+                                    Success: @Model.SuccessCount.ToString("N0")
+                                </span>
+                            </div>
+                            <div class="col-6">
+                                <span class="badge bg-danger">
+                                    <i class="bi bi-x-circle me-1"></i>
+                                    Failed: @Model.FailedCount.ToString("N0")
+                                </span>
+                            </div>
+                        </div>
+                    </dd>
+                }
+
+                @if (Model.Status == MailArchiver.Models.MBoxImportJobStatus.Running && !string.IsNullOrEmpty(Model.CurrentEmailSubject))
+                {
+                    <dt class="col-sm-3">Current Email:</dt>
+                    <dd class="col-sm-9">
+                        <small class="text-muted">
+                            @(Model.CurrentEmailSubject.Length > 80 ? Model.CurrentEmailSubject.Substring(0, 80) + "..." : Model.CurrentEmailSubject)
+                        </small>
+                    </dd>
+                }
+
+                <dt class="col-sm-3">Created:</dt>
+                <dd class="col-sm-9">@Model.Created.ToString("yyyy-MM-dd HH:mm:ss")</dd>
+
+                @if (Model.Started.HasValue)
+                {
+                    <dt class="col-sm-3">Started:</dt>
+                    <dd class="col-sm-9">@Model.Started.Value.ToString("yyyy-MM-dd HH:mm:ss")</dd>
+                }
+
+                @if (Model.Completed.HasValue)
+                {
+                    <dt class="col-sm-3">Completed:</dt>
+                    <dd class="col-sm-9">@Model.Completed.Value.ToString("yyyy-MM-dd HH:mm:ss")</dd>
+
+                    @if (Model.Started.HasValue)
+                    {
+                        var duration = Model.Completed.Value - Model.Started.Value;
+                        <dt class="col-sm-3">Duration:</dt>
+                        <dd class="col-sm-9">
+                            <span class="badge bg-info">
+                                @duration.ToString(@"hh\:mm\:ss")
+                            </span>
+                        </dd>
+                    }
+                }
+
+                @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+                {
+                    <dt class="col-sm-3">Error:</dt>
+                    <dd class="col-sm-9">
+                        <div class="alert alert-danger">
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                            @Model.ErrorMessage
+                        </div>
+                    </dd>
+                }
+            </dl>
+
+            @if (Model.Status == MailArchiver.Models.MBoxImportJobStatus.Running || Model.Status == MailArchiver.Models.MBoxImportJobStatus.Queued)
+            {
+                <div class="mt-4 pt-3 border-top">
+                    <form asp-action="CancelMBoxImport" method="post" style="display: inline;"
+                          onsubmit="return confirm('Are you sure you want to cancel this import job?');">
+                        <input type="hidden" name="jobId" value="@Model.JobId" />
+                        <input type="hidden" name="returnUrl" value="@Context.Request.Path" />
+                        <button type="submit" class="btn btn-warning">
+                            <i class="bi bi-stop-circle"></i> Cancel Import
+                        </button>
+                    </form>
+                </div>
+            }
+
+            @if (Model.Status == MailArchiver.Models.MBoxImportJobStatus.Completed)
+            {
+                <div class="mt-4 pt-3 border-top">
+                    <div class="alert alert-success">
+                        <i class="bi bi-check-circle-fill me-2"></i>
+                        <strong>Import Completed!</strong>
+                        Successfully imported @Model.SuccessCount.ToString("N0") emails with @Model.FailedCount.ToString("N0") errors.
+                    </div>
+                    <div class="d-flex gap-2">
+                        <a asp-controller="Emails" asp-action="Index" class="btn btn-primary">
+                            <i class="bi bi-search me-1"></i>Search Imported Emails
+                        </a>
+                        <a asp-action="ImportMBox" class="btn btn-outline-success">
+                            <i class="bi bi-upload me-1"></i>Import Another File
+                        </a>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@functions {
+    string FormatFileSize(long bytes)
+    {
+        string[] suffixes = { "B", "KB", "MB", "GB", "TB" };
+        int counter = 0;
+        decimal number = bytes;
+        while (Math.Round(number / 1024) >= 1)
+        {
+            number /= 1024;
+            counter++;
+        }
+        return $"{number:n1} {suffixes[counter]}";
+    }
+}
+
+@if (Model.Status == MailArchiver.Models.MBoxImportJobStatus.Running || Model.Status == MailArchiver.Models.MBoxImportJobStatus.Queued)
+{
+    @section Scripts {
+        <script>
+            // Auto-refresh page every 5 seconds for running jobs
+            setTimeout(function() {
+                location.reload();
+            }, 5000);
+
+            // Show countdown
+            let countdown = 5;
+            const countdownInterval = setInterval(function() {
+                countdown--;
+                document.title = `(${countdown}s) MBox Import - @Model.FileName`;
+                if (countdown <= 0) {
+                    clearInterval(countdownInterval);
+                }
+            }, 1000);
+        </script>
+    }
+}

@@ -135,44 +135,58 @@ namespace MailArchiver.Controllers
         // GET: Emails/Export/5
         public async Task<IActionResult> Export(int id, ExportFormat format = ExportFormat.Eml)
         {
-            var email = await _context.ArchivedEmails.FindAsync(id);
+            var email = await _context.ArchivedEmails
+                .Include(e => e.MailAccount)
+                .Include(e => e.Attachments)
+                .FirstOrDefaultAsync(e => e.Id == id);
+
             if (email == null)
             {
                 return NotFound();
             }
 
-            var exportParams = new ExportViewModel
+            try
             {
-                Format = format,
-                EmailId = id
-            };
+                var exportParams = new ExportViewModel
+                {
+                    Format = format,
+                    EmailId = id
+                };
 
-            var fileBytes = await _emailService.ExportEmailsAsync(exportParams);
-            string contentType;
-            string fileName;
+                var fileBytes = await _emailService.ExportEmailsAsync(exportParams);
 
-            switch (format)
-            {
-                case ExportFormat.Csv:
-                    contentType = "text/csv";
-                    fileName = $"email-{id}.csv";
-                    break;
-                case ExportFormat.Json:
-                    contentType = "application/json";
-                    fileName = $"email-{id}.json";
-                    break;
-                case ExportFormat.Eml:
-                    contentType = "message/rfc822";
-                    fileName = $"email-{id}.eml";
-                    break;
-                default:
-                    contentType = "application/octet-stream";
-                    fileName = $"email-{id}.bin";
-                    break;
+                string contentType;
+                string fileName;
+
+                switch (format)
+                {
+                    case ExportFormat.Csv:
+                        contentType = "text/csv";
+                        fileName = $"email-{id}-{DateTime.Now:yyyyMMdd-HHmmss}.csv";
+                        break;
+                    case ExportFormat.Json:
+                        contentType = "application/json";
+                        fileName = $"email-{id}-{DateTime.Now:yyyyMMdd-HHmmss}.json";
+                        break;
+                    case ExportFormat.Eml:
+                        contentType = "message/rfc822";
+                        fileName = $"email-{id}-{DateTime.Now:yyyyMMdd-HHmmss}.eml";
+                        break;
+                    default:
+                        contentType = "application/octet-stream";
+                        fileName = $"email-{id}.bin";
+                        break;
+                }
+
+                Response.Headers.Add("Content-Disposition", $"attachment; filename=\"{fileName}\"");
+                return File(fileBytes, contentType, fileName);
             }
-
-            Response.Headers.Add("Content-Disposition", $"attachment; filename={fileName}");
-            return File(fileBytes, contentType, fileName);
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error exporting email {EmailId} as {Format}", id, format);
+                TempData["ErrorMessage"] = $"Export failed: {ex.Message}";
+                return RedirectToAction("Details", new { id });
+            }
         }
 
         // GET: Emails/Restore/5
@@ -791,12 +805,13 @@ namespace MailArchiver.Controllers
             return Redirect(returnUrl ?? Url.Action("Index"));
         }
 
-        // GET: Emails/BatchRestoreJobs
+        // GET: Emails/Jobs
         [HttpGet]
         public IActionResult Jobs()
         {
             var batchJobs = new List<BatchRestoreJob>();
             var syncJobs = new List<SyncJob>();
+            var mboxJobs = new List<MBoxImportJob>();
 
             if (_batchRestoreService != null)
             {
@@ -805,11 +820,27 @@ namespace MailArchiver.Controllers
 
             if (_syncJobService != null)
             {
-                syncJobs = _syncJobService.GetAllJobs();
+                // Begrenze auf die letzten 20 Sync-Jobs
+                syncJobs = _syncJobService.GetAllJobs().Take(20).ToList();
+            }
+
+            // MBox Import Jobs hinzufügen
+            try
+            {
+                var mboxService = HttpContext.RequestServices.GetService<IMBoxImportService>();
+                if (mboxService != null)
+                {
+                    mboxJobs = mboxService.GetActiveJobs();
+                }
+            }
+            catch
+            {
+                // Ignore if service not available
             }
 
             ViewBag.BatchJobs = batchJobs;
             ViewBag.SyncJobs = syncJobs;
+            ViewBag.MBoxJobs = mboxJobs;
 
             return View(batchJobs);
         }
@@ -880,37 +911,58 @@ namespace MailArchiver.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ExportSearchResults(ExportViewModel model)
         {
+            // Entferne ModelState-Validierung für SearchTerm falls leer
+            if (string.IsNullOrEmpty(model.SearchTerm))
+            {
+                ModelState.Remove("SearchTerm");
+            }
+
             if (!ModelState.IsValid)
             {
-                return BadRequest(ModelState);
+                // Log validation errors für debugging
+                _logger.LogWarning("Export validation failed. Errors: {Errors}",
+                    string.Join(", ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage)));
+
+                // Redirect zurück zur Index-Seite mit Fehlermeldung
+                TempData["ErrorMessage"] = "Export parameters are invalid. Please try again.";
+                return RedirectToAction("Index");
             }
 
-            var fileBytes = await _emailService.ExportEmailsAsync(model);
-            string contentType;
-            string fileName;
-
-            switch (model.Format)
+            try
             {
-                case ExportFormat.Csv:
-                    contentType = "text/csv";
-                    fileName = "emails.csv";
-                    break;
-                case ExportFormat.Json:
-                    contentType = "application/json";
-                    fileName = "emails.json";
-                    break;
-                case ExportFormat.Eml:
-                    contentType = "message/rfc822";
-                    fileName = "email.eml";
-                    break;
-                default:
-                    contentType = "application/octet-stream";
-                    fileName = "export.dat";
-                    break;
-            }
+                var fileBytes = await _emailService.ExportEmailsAsync(model);
 
-            Response.Headers.Add("Content-Disposition", $"attachment; filename={fileName}");
-            return File(fileBytes, contentType, fileName);
+                string contentType;
+                string fileName;
+                switch (model.Format)
+                {
+                    case ExportFormat.Csv:
+                        contentType = "text/csv";
+                        fileName = $"emails-export-{DateTime.Now:yyyyMMdd-HHmmss}.csv";
+                        break;
+                    case ExportFormat.Json:
+                        contentType = "application/json";
+                        fileName = $"emails-export-{DateTime.Now:yyyyMMdd-HHmmss}.json";
+                        break;
+                    case ExportFormat.Eml:
+                        contentType = "message/rfc822";
+                        fileName = $"email-{DateTime.Now:yyyyMMdd-HHmmss}.eml";
+                        break;
+                    default:
+                        contentType = "application/octet-stream";
+                        fileName = $"export-{DateTime.Now:yyyyMMdd-HHmmss}.dat";
+                        break;
+                }
+
+                Response.Headers.Add("Content-Disposition", $"attachment; filename=\"{fileName}\"");
+                return File(fileBytes, contentType, fileName);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error during email export");
+                TempData["ErrorMessage"] = $"Export failed: {ex.Message}";
+                return RedirectToAction("Index");
+            }
         }
 
         // GET: Emails/RawContent/5

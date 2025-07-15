@@ -15,6 +15,7 @@
 - Storage of email content and attachments
 - Scheduled synchronization at configurable intervals
 - Mobile and desktop optimized responsive UI
+- MBox Import
 
 ### 🔍 Advanced Search
 - Search across all archived emails

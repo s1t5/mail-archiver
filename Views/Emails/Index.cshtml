@@ -374,25 +374,51 @@
             </div>
             <form asp-action="ExportSearchResults" method="post">
                 <div class="modal-body">
-                    <input type="hidden" name="SearchTerm" value="@Model.SearchTerm" />
-                    <input type="hidden" name="FromDate" value="@Model.FromDate?.ToString("yyyy-MM-dd")" />
-                    <input type="hidden" name="ToDate" value="@Model.ToDate?.ToString("yyyy-MM-dd")" />
+                    <!-- Alle aktuellen Suchparameter als hidden fields -->
+                    <input type="hidden" name="SearchTerm" value="@(Model.SearchTerm ?? "")" />
+                    <input type="hidden" name="FromDate" value="@(Model.FromDate?.ToString("yyyy-MM-dd"))" />
+                    <input type="hidden" name="ToDate" value="@(Model.ToDate?.ToString("yyyy-MM-dd"))" />
                     <input type="hidden" name="SelectedAccountId" value="@Model.SelectedAccountId" />
                     <input type="hidden" name="IsOutgoing" value="@Model.IsOutgoing" />
+                    
                     <div class="mb-3">
                         <label for="exportFormat" class="form-label">Export Format</label>
                         <select name="Format" id="exportFormat" class="form-select">
-                            <option value="0">CSV (Excel)</option>
-                            <option value="1">JSON (Data)</option>
+                            <option value="0">CSV</option>
+                            <option value="1">JSON</option>
                         </select>
                     </div>
+                    
                     <div class="alert alert-info">
-                        <small>Export may take some time for large numbers of emails. The exported file will contain up to 10,000 emails.</small>
+                        <small>
+                            <strong>Export Information:</strong><br>
+                            @if (!string.IsNullOrEmpty(Model.SearchTerm) || Model.FromDate.HasValue || Model.ToDate.HasValue || Model.SelectedAccountId.HasValue || Model.IsOutgoing.HasValue)
+                            {
+                                <span>Exporting filtered results based on your current search criteria.</span>
+                            }
+                            else
+                            {
+                                <span>Exporting all emails from your archive.</span>
+                            }
+                            <br>Export may take some time for large numbers of emails. The exported file will contain up to 10,000 emails.
+                        </small>
                     </div>
+                    
+                    @if (Model.TotalResults > 0)
+                    {
+                        <div class="alert alert-success">
+                            <small>
+                                <i class="bi bi-info-circle me-1"></i>
+                                <strong>@Model.TotalResults.ToString("N0")</strong> emails match your current criteria and will be exported.
+                            </small>
+                        </div>
+                    }
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Export</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-download me-1"></i>Export
+                    </button>
                 </div>
             </form>
         </div>

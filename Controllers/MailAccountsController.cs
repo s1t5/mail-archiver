@@ -3,6 +3,7 @@ using MailArchiver.Models;
 using MailArchiver.Models.ViewModels;
 using MailArchiver.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
@@ -15,19 +16,22 @@ namespace MailArchiver.Controllers
         private readonly ILogger<MailAccountsController> _logger;
         private readonly BatchRestoreOptions _batchOptions;
         private readonly ISyncJobService _syncJobService;
+        private readonly IMBoxImportService _mboxImportService;
 
         public MailAccountsController(
             MailArchiverDbContext context,
             IEmailService emailService,
             ILogger<MailAccountsController> logger,
             IOptions<BatchRestoreOptions> batchOptions,
-            ISyncJobService syncJobService)
+            ISyncJobService syncJobService,
+            IMBoxImportService mboxImportService)
         {
             _context = context;
             _emailService = emailService;
             _logger = logger;
             _batchOptions = batchOptions.Value;
             _syncJobService = syncJobService;
+            _mboxImportService = mboxImportService;
         }
 
         // GET: MailAccounts
@@ -271,12 +275,18 @@ namespace MailArchiver.Controllers
                 return NotFound();
             }
 
+            // E-Mail-Anzahl abrufen (das war der fehlende Teil!)
+            var emailCount = await _emailService.GetEmailCountByAccountAsync(id);
+
             var model = new MailAccountViewModel
             {
                 Id = account.Id,
                 Name = account.Name,
                 EmailAddress = account.EmailAddress
             };
+
+            // ViewBag für die E-Mail-Anzahl setzen
+            ViewBag.EmailCount = emailCount;
 
             return View(model);
         }
@@ -288,6 +298,7 @@ namespace MailArchiver.Controllers
         {
             // Determine number of emails to delete
             var emailCount = await _context.ArchivedEmails.CountAsync(e => e.MailAccountId == id);
+
             var account = await _context.MailAccounts.FindAsync(id);
             if (account != null)
             {
@@ -336,10 +347,10 @@ namespace MailArchiver.Controllers
             {
                 // Sync-Job starten
                 var jobId = _syncJobService.StartSync(account.Id, account.Name, account.LastSync);
-                
+
                 // Sync ausführen
                 await _emailService.SyncMailAccountAsync(account, jobId);
-                
+
                 TempData["SuccessMessage"] = $"Synchronization for {account.Name} was successfully completed.";
             }
             catch (Exception ex)
@@ -444,6 +455,158 @@ namespace MailArchiver.Controllers
                         returnUrl = Url.Action("Details", new { id })
                     });
                 }
+            }
+        }
+
+        // GET: MailAccounts/ImportMBox
+        public async Task<IActionResult> ImportMBox()
+        {
+            var accounts = await _context.MailAccounts
+                .Where(a => a.IsEnabled)
+                .OrderBy(a => a.Name)
+                .ToListAsync();
+
+            var model = new MBoxImportViewModel
+            {
+                AvailableAccounts = accounts.Select(a => new SelectListItem
+                {
+                    Value = a.Id.ToString(),
+                    Text = $"{a.Name} ({a.EmailAddress})"
+                }).ToList(),
+                MaxFileSize = 5_000_000_000 // 5 GB
+            };
+
+            return View(model);
+        }
+
+        // POST: MailAccounts/ImportMBox
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [RequestSizeLimit(5_368_709_120)] // 5 GB
+        [RequestFormLimits(MultipartBodyLengthLimit = 5_368_709_120)] // 5 GB
+        public async Task<IActionResult> ImportMBox(MBoxImportViewModel model)
+        {
+            // Reload accounts for validation failure
+            var accounts = await _context.MailAccounts
+                .Where(a => a.IsEnabled)
+                .OrderBy(a => a.Name)
+                .ToListAsync();
+
+            model.AvailableAccounts = accounts.Select(a => new SelectListItem
+            {
+                Value = a.Id.ToString(),
+                Text = $"{a.Name} ({a.EmailAddress})",
+                Selected = a.Id == model.TargetAccountId
+            }).ToList();
+
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            // Validate file
+            if (model.MBoxFile == null || model.MBoxFile.Length == 0)
+            {
+                ModelState.AddModelError("MBoxFile", "Please select a valid MBox file.");
+                return View(model);
+            }
+
+            if (model.MBoxFile.Length > model.MaxFileSize)
+            {
+                ModelState.AddModelError("MBoxFile", $"File size exceeds maximum allowed size of {model.MaxFileSizeFormatted}.");
+                return View(model);
+            }
+
+            // Validate target account
+            var targetAccount = await _context.MailAccounts.FindAsync(model.TargetAccountId);
+            if (targetAccount == null)
+            {
+                ModelState.AddModelError("TargetAccountId", "Selected account not found.");
+                return View(model);
+            }
+
+            try
+            {
+                // Save uploaded file
+                var filePath = await _mboxImportService.SaveUploadedFileAsync(model.MBoxFile);
+
+                // Create import job
+                var job = new MBoxImportJob
+                {
+                    FileName = model.MBoxFile.FileName,
+                    FilePath = filePath,
+                    FileSize = model.MBoxFile.Length,
+                    TargetAccountId = model.TargetAccountId,
+                    TargetFolder = model.TargetFolder,
+                    UserId = HttpContext.User.Identity?.Name ?? "Anonymous"
+                };
+
+                // Estimate email count
+                job.TotalEmails = await _mboxImportService.EstimateEmailCountAsync(filePath);
+
+                // Queue the job
+                var jobId = _mboxImportService.QueueImport(job);
+
+                TempData["SuccessMessage"] = $"MBox file '{model.MBoxFile.FileName}' uploaded successfully. Import job started with estimated {job.TotalEmails:N0} emails.";
+                return RedirectToAction("MBoxImportStatus", new { jobId });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error starting MBox import for file {FileName}", model.MBoxFile.FileName);
+                ModelState.AddModelError("", $"Error starting import: {ex.Message}");
+                return View(model);
+            }
+        }
+
+        // GET: MailAccounts/MBoxImportStatus
+        [HttpGet]
+        public IActionResult MBoxImportStatus(string jobId)
+        {
+            var job = _mboxImportService.GetJob(jobId);
+            if (job == null)
+            {
+                TempData["ErrorMessage"] = "MBox import job not found.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            return View(job);
+        }
+
+        // POST: MailAccounts/CancelMBoxImport
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult CancelMBoxImport(string jobId, string returnUrl = null)
+        {
+            var success = _mboxImportService.CancelJob(jobId);
+            if (success)
+            {
+                TempData["SuccessMessage"] = "MBox import job has been cancelled.";
+            }
+            else
+            {
+                TempData["ErrorMessage"] = "Could not cancel the MBox import job.";
+            }
+
+            return Redirect(returnUrl ?? Url.Action(nameof(Index)));
+        }
+
+        // AJAX endpoint for folder loading
+        [HttpGet]
+        public async Task<JsonResult> GetFolders(int accountId)
+        {
+            try
+            {
+                var folders = await _emailService.GetMailFoldersAsync(accountId);
+                if (!folders.Any())
+                {
+                    return Json(new List<string> { "INBOX" });
+                }
+                return Json(folders);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading folders for account {AccountId}", accountId);
+                return Json(new List<string> { "INBOX" });
             }
         }
     }

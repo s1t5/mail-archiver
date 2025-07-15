@@ -5,12 +5,17 @@
 <div class="container-fluid">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h1 class="h3">Email Accounts</h1>
-        <a asp-action="Create" class="btn btn-primary btn-sm">
-            <i class="bi bi-plus-circle"></i>
-            <span class="d-none d-sm-inline">Add Account</span>
-        </a>
+        <div class="d-flex gap-2">
+            <a asp-action="ImportMBox" class="btn btn-outline-success btn-sm">
+                <i class="bi bi-upload"></i>
+                <span class="d-none d-sm-inline">Import MBox</span>
+            </a>
+            <a asp-action="Create" class="btn btn-primary btn-sm">
+                <i class="bi bi-plus-circle"></i>
+                <span class="d-none d-sm-inline">Add Account</span>
+            </a>
+        </div>
     </div>
-
     @* Desktop Tabelle - ERST ab großen Bildschirmen (gleich wie Archive) *@
     <div class="card d-none d-lg-block">
         <div class="card-body">
@@ -74,6 +79,8 @@
                                                 <button type="submit" class="btn btn-success">Sync</button>
                                             </form>
                                         }
+                                        <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-danger"
+                                           onclick="return confirm('Delete account @item.Name and all archived emails? This cannot be undone!');">Delete</a>
                                     </div>
                                 </td>
                             </tr>
@@ -83,7 +90,6 @@
             </div>
         </div>
     </div>
-
     @* Mobile/Tablet Cards - bis große Bildschirme *@
     <div class="d-lg-none">
         @foreach (var item in Model)
@@ -153,9 +159,11 @@
                             }
                         </div>
                         <div class="row">
-                            <div class="col-8 offset-2">
-                                <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-outline-danger btn-sm w-100">
-                                    <i class="bi bi-trash"></i> Delete
+                            <div class="col-12">
+                                <a asp-action="Delete" asp-route-id="@item.Id" 
+                                   class="btn btn-outline-danger btn-sm w-100"
+                                   onclick="return confirm('Delete account @item.Name and all archived emails? This cannot be undone!');">
+                                    <i class="bi bi-trash"></i> Delete Account & All Emails
                                 </a>
                             </div>
                         </div>
@@ -170,11 +178,56 @@
                     <i class="bi bi-envelope-x display-1 text-muted"></i>
                 </div>
                 <h5 class="text-muted">No email accounts configured</h5>
-                <p class="text-muted">Add your first email account to start archiving emails.</p>
-                <a asp-action="Create" class="btn btn-primary">
-                    <i class="bi bi-plus-circle"></i> Add Account
-                </a>
+                <p class="text-muted">Add your first email account to start archiving emails or import existing MBox files.</p>
+                <div class="d-grid gap-2 d-md-flex justify-content-center">
+                    <a asp-action="Create" class="btn btn-primary">
+                        <i class="bi bi-plus-circle"></i> Add Account
+                    </a>
+                    <a asp-action="ImportMBox" class="btn btn-outline-success">
+                        <i class="bi bi-upload"></i> Import MBox
+                    </a>
+                </div>
             </div>
         }
     </div>
+
+    @* Quick Actions für Mobile wenn Accounts vorhanden *@
+    @if (Model.Any())
+    {
+        <div class="d-lg-none mt-4">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">Quick Actions</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <a asp-action="ImportMBox" class="btn btn-outline-success w-100">
+                                <i class="bi bi-upload d-block mb-1"></i>
+                                <small>Import MBox</small>
+                            </a>
+                        </div>
+                        <div class="col-6">
+                            <a asp-action="Create" class="btn btn-outline-primary w-100">
+                                <i class="bi bi-plus-circle d-block mb-1"></i>
+                                <small>Add Account</small>
+                            </a>
+                        </div>
+                        <div class="col-6">
+                            <a asp-controller="Emails" asp-action="Index" class="btn btn-outline-info w-100">
+                                <i class="bi bi-search d-block mb-1"></i>
+                                <small>Search Archive</small>
+                            </a>
+                        </div>
+                        <div class="col-6">
+                            <a asp-controller="Emails" asp-action="Jobs" class="btn btn-outline-warning w-100">
+                                <i class="bi bi-clock-history d-block mb-1"></i>
+                                <small>View Jobs</small>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
 </div>

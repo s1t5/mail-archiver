@@ -22,7 +22,7 @@ namespace MailArchiver.Services
         private readonly ISyncJobService _syncJobService;
 
         public EmailService(
-            MailArchiverDbContext context, 
+            MailArchiverDbContext context,
             ILogger<EmailService> logger,
             ISyncJobService syncJobService)
         {
@@ -38,12 +38,12 @@ namespace MailArchiver.Services
 
             using var client = new ImapClient();
             client.Timeout = 900000; // 15 Minuten
-            
+
             var processedFolders = 0;
             var processedEmails = 0;
             var newEmails = 0;
             var failedEmails = 0;
-            
+
             try
             {
                 await client.ConnectAsync(account.ImapServer, account.ImapPort, account.UseSSL);
@@ -89,9 +89,9 @@ namespace MailArchiver.Services
                         processedEmails += folderResult.ProcessedEmails;
                         newEmails += folderResult.NewEmails;
                         failedEmails += folderResult.FailedEmails;
-                        
+
                         processedFolders++;
-                        
+
                         if (jobId != null)
                         {
                             _syncJobService.UpdateJobProgress(jobId, job =>
@@ -136,7 +136,7 @@ namespace MailArchiver.Services
             {
                 _logger.LogError(ex, "Error during sync for account {AccountName}: {Message}",
                     account.Name, ex.Message);
-                
+
                 if (jobId != null)
                 {
                     _syncJobService.CompleteJob(jobId, false, ex.Message);
@@ -165,10 +165,10 @@ namespace MailArchiver.Services
 
                 // Start sync job
                 var jobId = _syncJobService.StartSync(account.Id, account.Name, account.LastSync);
-                
+
                 // Perform the sync
                 await SyncMailAccountAsync(account, jobId);
-                
+
                 return true;
             }
             catch (Exception ex)
@@ -188,7 +188,7 @@ namespace MailArchiver.Services
         private async Task<SyncFolderResult> SyncFolderAsync(IMailFolder folder, MailAccount account)
         {
             var result = new SyncFolderResult();
-            
+
             _logger.LogInformation("Syncing folder: {FolderName} for account: {AccountName}",
                 folder.FullName, account.Name);
 
@@ -279,10 +279,10 @@ namespace MailArchiver.Services
             // Check if this email is already archived
             var messageId = message.MessageId ??
                 $"{message.From}-{message.To}-{message.Subject}-{message.Date.Ticks}";
-            
+
             var existingEmail = await _context.ArchivedEmails
                 .FirstOrDefaultAsync(e => e.MessageId == messageId && e.MailAccountId == account.Id);
-            
+
             if (existingEmail != null)
                 return false; // E-Mail existiert bereits
 
@@ -340,10 +340,10 @@ namespace MailArchiver.Services
                                 {
                                     using var ms = new MemoryStream();
                                     await mimePart.Content.DecodeToAsync(ms);
-                                    
+
                                     var fileName = CleanText(mimePart.FileName ?? "attachment.dat");
                                     var contentType = CleanText(mimePart.ContentType?.MimeType ?? "application/octet-stream");
-                                    
+
                                     var emailAttachment = new EmailAttachment
                                     {
                                         ArchivedEmailId = archivedEmail.Id,
@@ -374,7 +374,7 @@ namespace MailArchiver.Services
                     _logger.LogInformation(
                         "Archived email: {Subject}, From: {From}, To: {To}, Account: {AccountName}",
                         archivedEmail.Subject, archivedEmail.From, archivedEmail.To, account.Name);
-                    
+
                     return true; // Neue E-Mail erfolgreich archiviert
                 }
                 catch (Exception ex)
@@ -510,117 +510,206 @@ namespace MailArchiver.Services
 
         public async Task<byte[]> ExportEmailsAsync(ExportViewModel parameters)
         {
-            var (emails, _) = await SearchEmailsAsync(
-                parameters.SearchTerm,
-                parameters.FromDate,
-                parameters.ToDate,
-                parameters.SelectedAccountId,
-                parameters.IsOutgoing,
-                0,
-                10000);
-
             using var ms = new MemoryStream();
-            switch (parameters.Format)
+
+            // Prüfe ob es sich um einen Single-Email Export handelt
+            if (parameters.EmailId.HasValue)
             {
-                case ExportFormat.Csv:
-                    using (var writer = new StreamWriter(ms, Encoding.UTF8, leaveOpen: true))
-                    {
-                        writer.WriteLine("Subject;From;To;Date;Account;Direction;Message Text");
-                        foreach (var email in emails)
-                        {
-                            var subject = email.Subject.Replace("\"", "\"\"").Replace(";", ",");
-                            var from = email.From.Replace("\"", "\"\"").Replace(";", ",");
-                            var to = email.To.Replace("\"", "\"\"").Replace(";", ",");
-                            var sentDate = email.SentDate.ToString("yyyy-MM-dd HH:mm:ss");
-                            var account = email.MailAccount?.Name.Replace("\"", "\"\"").Replace(";", ",") ?? "Unknown";
-                            var direction = email.IsOutgoing ? "Outgoing" : "Incoming";
-                            var body = email.Body?.Replace("\r", " ").Replace("\n", " ")
-                                .Replace("\"", "\"\"").Replace(";", ",") ?? "";
-                            writer.WriteLine($"\"{subject}\";\"{from}\";\"{to}\";\"{sentDate}\";\"{account}\";\"{direction}\";\"{body}\"");
-                        }
-                        writer.Flush();
-                    }
-                    break;
-                case ExportFormat.Json:
-                    var exportData = emails.Select(e => new
-                    {
-                        Subject = e.Subject,
-                        From = e.From,
-                        To = e.To,
-                        SentDate = e.SentDate,
-                        AccountName = e.MailAccount?.Name,
-                        IsOutgoing = e.IsOutgoing,
-                        Body = e.Body
-                    }).ToList();
-                    var options = new JsonSerializerOptions { WriteIndented = true };
-                    await JsonSerializer.SerializeAsync(ms, exportData, options);
-                    await ms.FlushAsync();
-                    break;
-                case ExportFormat.Eml:
-                    if (parameters.EmailId.HasValue)
-                    {
-                        var email = await _context.ArchivedEmails
-                            .Include(e => e.Attachments)
-                            .FirstOrDefaultAsync(e => e.Id == parameters.EmailId.Value);
+                var email = await _context.ArchivedEmails
+                    .Include(e => e.MailAccount)
+                    .Include(e => e.Attachments)
+                    .FirstOrDefaultAsync(e => e.Id == parameters.EmailId.Value);
 
-                        if (email != null)
-                        {
-                            var message = new MimeMessage();
-                            message.Subject = email.Subject;
-                            try { message.From.Add(InternetAddress.Parse(email.From)); }
-                            catch { message.From.Add(new MailboxAddress("Sender", "sender@example.com")); }
+                if (email == null)
+                {
+                    throw new InvalidOperationException($"Email with ID {parameters.EmailId.Value} not found");
+                }
 
-                            foreach (var to in email.To.Split(',', StringSplitOptions.RemoveEmptyEntries))
-                            {
-                                try { message.To.Add(InternetAddress.Parse(to.Trim())); }
-                                catch { continue; }
-                            }
+                switch (parameters.Format)
+                {
+                    case ExportFormat.Csv:
+                        await ExportSingleEmailAsCsv(email, ms);
+                        break;
+                    case ExportFormat.Json:
+                        await ExportSingleEmailAsJson(email, ms);
+                        break;
+                    case ExportFormat.Eml:
+                        await ExportSingleEmailAsEml(email, ms);
+                        break;
+                }
+            }
+            else
+            {
+                // Multi-Email Export (bestehender Code)
+                var searchTerm = parameters.SearchTerm ?? string.Empty;
+                var (emails, _) = await SearchEmailsAsync(
+                    searchTerm,
+                    parameters.FromDate,
+                    parameters.ToDate,
+                    parameters.SelectedAccountId,
+                    parameters.IsOutgoing,
+                    0,
+                    10000);
 
-                            if (!string.IsNullOrEmpty(email.Cc))
-                            {
-                                foreach (var cc in email.Cc.Split(',', StringSplitOptions.RemoveEmptyEntries))
-                                {
-                                    try { message.Cc.Add(InternetAddress.Parse(cc.Trim())); }
-                                    catch { continue; }
-                                }
-                            }
-
-                            var body = !string.IsNullOrEmpty(email.HtmlBody)
-                                ? new TextPart("html") { Text = email.HtmlBody }
-                                : new TextPart("plain") { Text = email.Body };
-
-                            if (email.Attachments.Any())
-                            {
-                                var multipart = new Multipart("mixed");
-                                multipart.Add(body);
-                                foreach (var attachment in email.Attachments)
-                                {
-                                    var mimePart = new MimePart(attachment.ContentType)
-                                    {
-                                        Content = new MimeContent(new MemoryStream(attachment.Content)),
-                                        ContentDisposition = new ContentDisposition(ContentDisposition.Attachment),
-                                        ContentTransferEncoding = ContentEncoding.Base64,
-                                        FileName = attachment.FileName
-                                    };
-                                    multipart.Add(mimePart);
-                                }
-                                message.Body = multipart;
-                            }
-                            else
-                            {
-                                message.Body = body;
-                            }
-
-                            message.Date = email.SentDate;
-                            message.MessageId = email.MessageId;
-                            message.WriteTo(ms);
-                        }
-                    }
-                    break;
+                switch (parameters.Format)
+                {
+                    case ExportFormat.Csv:
+                        await ExportMultipleEmailsAsCsv(emails, ms);
+                        break;
+                    case ExportFormat.Json:
+                        await ExportMultipleEmailsAsJson(emails, ms);
+                        break;
+                }
             }
 
             ms.Position = 0;
             return ms.ToArray();
+        }
+
+        private async Task ExportSingleEmailAsCsv(ArchivedEmail email, MemoryStream ms)
+        {
+            using var writer = new StreamWriter(ms, Encoding.UTF8, leaveOpen: true);
+            writer.WriteLine("Subject;From;To;Date;Account;Direction;Message Text");
+
+            var subject = email.Subject.Replace("\"", "\"\"").Replace(";", ",");
+            var from = email.From.Replace("\"", "\"\"").Replace(";", ",");
+            var to = email.To.Replace("\"", "\"\"").Replace(";", ",");
+            var sentDate = email.SentDate.ToString("yyyy-MM-dd HH:mm:ss");
+            var account = email.MailAccount?.Name.Replace("\"", "\"\"").Replace(";", ",") ?? "Unknown";
+            var direction = email.IsOutgoing ? "Outgoing" : "Incoming";
+            var body = email.Body?.Replace("\r", " ").Replace("\n", " ")
+                .Replace("\"", "\"\"").Replace(";", ",") ?? "";
+
+            writer.WriteLine($"\"{subject}\";\"{from}\";\"{to}\";\"{sentDate}\";\"{account}\";\"{direction}\";\"{body}\"");
+            await writer.FlushAsync();
+        }
+
+        private async Task ExportSingleEmailAsJson(ArchivedEmail email, MemoryStream ms)
+        {
+            var exportData = new
+            {
+                Id = email.Id,
+                Subject = email.Subject,
+                From = email.From,
+                To = email.To,
+                Cc = email.Cc,
+                Bcc = email.Bcc,
+                SentDate = email.SentDate,
+                ReceivedDate = email.ReceivedDate,
+                AccountName = email.MailAccount?.Name,
+                FolderName = email.FolderName,
+                IsOutgoing = email.IsOutgoing,
+                HasAttachments = email.HasAttachments,
+                MessageId = email.MessageId,
+                Body = email.Body,
+                HtmlBody = email.HtmlBody,
+                Attachments = email.Attachments?.Select(a => new
+                {
+                    FileName = a.FileName,
+                    ContentType = a.ContentType,
+                    Size = a.Size
+                }).ToList()
+            };
+
+            var options = new JsonSerializerOptions
+            {
+                WriteIndented = true,
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            };
+            await JsonSerializer.SerializeAsync(ms, exportData, options);
+        }
+
+        private async Task ExportSingleEmailAsEml(ArchivedEmail email, MemoryStream ms)
+        {
+            var message = new MimeMessage();
+            message.Subject = email.Subject;
+
+            try { message.From.Add(InternetAddress.Parse(email.From)); }
+            catch { message.From.Add(new MailboxAddress("Sender", "sender@example.com")); }
+
+            foreach (var to in email.To.Split(',', StringSplitOptions.RemoveEmptyEntries))
+            {
+                try { message.To.Add(InternetAddress.Parse(to.Trim())); }
+                catch { continue; }
+            }
+
+            if (!string.IsNullOrEmpty(email.Cc))
+            {
+                foreach (var cc in email.Cc.Split(',', StringSplitOptions.RemoveEmptyEntries))
+                {
+                    try { message.Cc.Add(InternetAddress.Parse(cc.Trim())); }
+                    catch { continue; }
+                }
+            }
+
+            var body = !string.IsNullOrEmpty(email.HtmlBody)
+                ? new TextPart("html") { Text = email.HtmlBody }
+                : new TextPart("plain") { Text = email.Body };
+
+            if (email.Attachments.Any())
+            {
+                var multipart = new Multipart("mixed");
+                multipart.Add(body);
+
+                foreach (var attachment in email.Attachments)
+                {
+                    var mimePart = new MimePart(attachment.ContentType)
+                    {
+                        Content = new MimeContent(new MemoryStream(attachment.Content)),
+                        ContentDisposition = new ContentDisposition(ContentDisposition.Attachment),
+                        ContentTransferEncoding = ContentEncoding.Base64,
+                        FileName = attachment.FileName
+                    };
+                    multipart.Add(mimePart);
+                }
+                message.Body = multipart;
+            }
+            else
+            {
+                message.Body = body;
+            }
+
+            message.Date = email.SentDate;
+            message.MessageId = email.MessageId;
+
+            await Task.Run(() => message.WriteTo(ms));
+        }
+
+        private async Task ExportMultipleEmailsAsCsv(List<ArchivedEmail> emails, MemoryStream ms)
+        {
+            using var writer = new StreamWriter(ms, Encoding.UTF8, leaveOpen: true);
+            writer.WriteLine("Subject;From;To;Date;Account;Direction;Message Text");
+
+            foreach (var email in emails)
+            {
+                var subject = email.Subject.Replace("\"", "\"\"").Replace(";", ",");
+                var from = email.From.Replace("\"", "\"\"").Replace(";", ",");
+                var to = email.To.Replace("\"", "\"\"").Replace(";", ",");
+                var sentDate = email.SentDate.ToString("yyyy-MM-dd HH:mm:ss");
+                var account = email.MailAccount?.Name.Replace("\"", "\"\"").Replace(";", ",") ?? "Unknown";
+                var direction = email.IsOutgoing ? "Outgoing" : "Incoming";
+                var body = email.Body?.Replace("\r", " ").Replace("\n", " ")
+                    .Replace("\"", "\"\"").Replace(";", ",") ?? "";
+                writer.WriteLine($"\"{subject}\";\"{from}\";\"{to}\";\"{sentDate}\";\"{account}\";\"{direction}\";\"{body}\"");
+            }
+            await writer.FlushAsync();
+        }
+
+        private async Task ExportMultipleEmailsAsJson(List<ArchivedEmail> emails, MemoryStream ms)
+        {
+            var exportData = emails.Select(e => new
+            {
+                Subject = e.Subject,
+                From = e.From,
+                To = e.To,
+                SentDate = e.SentDate,
+                AccountName = e.MailAccount?.Name,
+                IsOutgoing = e.IsOutgoing,
+                Body = e.Body
+            }).ToList();
+
+            var options = new JsonSerializerOptions { WriteIndented = true };
+            await JsonSerializer.SerializeAsync(ms, exportData, options);
         }
 
         public async Task<DashboardViewModel> GetDashboardStatisticsAsync()

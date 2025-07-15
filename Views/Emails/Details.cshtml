@@ -13,7 +13,8 @@
                     <i class="bi bi-arrow-left"></i> Back to List
                 </a>
                 <div class="btn-group btn-group-sm">
-                    <a asp-action="Export" asp-route-id="@Model.Email.Id" asp-route-format="2"
+                    <!-- Korrigiert: spezifische E-Mail ID und Format für EML -->
+                    <a asp-action="Export" asp-route-id="@Model.Email.Id" asp-route-format="Eml"
                         class="btn btn-outline-primary">
                         <i class="bi bi-envelope"></i> Export EML
                     </a>
@@ -22,11 +23,12 @@
                         <span class="visually-hidden">More Export Options</span>
                     </button>
                     <ul class="dropdown-menu">
-                        <li><a asp-action="Export" asp-route-id="@Model.Email.Id" asp-route-format="0"
+                        <!-- Korrigiert: spezifische E-Mail ID und Format -->
+                        <li><a asp-action="Export" asp-route-id="@Model.Email.Id" asp-route-format="Csv"
                                 class="dropdown-item">
                                 <i class="bi bi-filetype-csv me-2"></i>Export as CSV
                             </a></li>
-                        <li><a asp-action="Export" asp-route-id="@Model.Email.Id" asp-route-format="1"
+                        <li><a asp-action="Export" asp-route-id="@Model.Email.Id" asp-route-format="Json"
                                 class="dropdown-item">
                                 <i class="bi bi-filetype-json me-2"></i>Export as JSON
                             </a></li>
@@ -43,7 +45,8 @@
                 <i class="bi bi-arrow-left"></i> Back to List
             </a>
             <div class="btn-group">
-                <a asp-action="Export" asp-route-id="@Model.Email.Id" asp-route-format="2"
+                <!-- Korrigiert: spezifische E-Mail ID und Format für EML -->
+                <a asp-action="Export" asp-route-id="@Model.Email.Id" asp-route-format="Eml"
                     class="btn btn-outline-primary">
                     <i class="bi bi-envelope"></i> Export as EML
                 </a>
@@ -52,9 +55,10 @@
                     <span class="visually-hidden">Toggle Dropdown</span>
                 </button>
                 <ul class="dropdown-menu">
-                    <li><a asp-action="Export" asp-route-id="@Model.Email.Id" asp-route-format="0"
+                    <!-- Korrigiert: spezifische E-Mail ID und Format -->
+                    <li><a asp-action="Export" asp-route-id="@Model.Email.Id" asp-route-format="Csv"
                             class="dropdown-item">Export as CSV</a></li>
-                    <li><a asp-action="Export" asp-route-id="@Model.Email.Id" asp-route-format="1"
+                    <li><a asp-action="Export" asp-route-id="@Model.Email.Id" asp-route-format="Json"
                             class="dropdown-item">Export as JSON</a></li>
                 </ul>
             </div>

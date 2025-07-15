@@ -43,8 +43,12 @@ builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IAuthenticationService, SimpleAuthenticationService>();
 builder.Services.AddSingleton<ISyncJobService, SyncJobService>(); // NEUE SERVICE
 builder.Services.AddSingleton<IBatchRestoreService, BatchRestoreService>();
+builder.Services.AddSingleton<IMBoxImportService, MBoxImportService>();
+
 builder.Services.AddHostedService<BatchRestoreService>(provider =>
     (BatchRestoreService)provider.GetRequiredService<IBatchRestoreService>());
+builder.Services.AddHostedService<MBoxImportService>(provider =>
+    (MBoxImportService)provider.GetRequiredService<IMBoxImportService>());
 builder.Services.AddHostedService<MailSyncBackgroundService>();
 
 // MVC hinzufügen
