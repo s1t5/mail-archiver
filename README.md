@@ -173,13 +173,7 @@ The following steps are planned for this
 Contributions welcome! Please open an Issue or Pull Request.
 
 ## 🚀 Roadmap / Ideas
-- Add search filter for the mail folder
-- OAuth support for major email providers
-- Enhanced export options and formats
-- User and permission management
-- File Import (PST)
-- Retention policies
-
+The roadmap is now maintained on the repos project page.
 ---
 
 📄 *License: GNU GENERAL PUBLIC LICENSE Version 3 (see LICENSE file)*
