@@ -2,6 +2,7 @@
 @{
     ViewData["Title"] = "Email Accounts";
 }
+
 <div class="container-fluid">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h1 class="h3">Email Accounts</h1>
@@ -16,7 +17,8 @@
             </a>
         </div>
     </div>
-    @* Desktop Tabelle - ERST ab großen Bildschirmen (gleich wie Archive) *@
+
+    @* Desktop Tabelle - ERST ab großen Bildschirmen *@
     <div class="card d-none d-lg-block">
         <div class="card-body">
             <div class="table-responsive">
@@ -28,7 +30,7 @@
                             <th>IMAP Server</th>
                             <th>Status</th>
                             <th>Last Sync</th>
-                            <th>Actions</th>
+                            <th class="text-center">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -59,28 +61,45 @@
                                     }
                                 </td>
                                 <td>
-                                    <div class="btn-group btn-group-sm">
+                                    <div class="d-flex justify-content-center align-items-center gap-1">
                                         <a asp-action="Details" asp-route-id="@item.Id"
-                                            class="btn btn-info">Details</a>
-                                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-warning">Edit</a>
-                                        <form asp-action="ToggleEnabled" asp-route-id="@item.Id" method="post"
-                                            style="display: inline;">
+                                           class="btn btn-info btn-sm d-flex align-items-center">
+                                            <i class="bi bi-eye"></i>
+                                            <span class="ms-1">Details</span>
+                                        </a>
+                                        
+                                        <a asp-action="Edit" asp-route-id="@item.Id" 
+                                           class="btn btn-warning btn-sm d-flex align-items-center">
+                                            <i class="bi bi-pencil"></i>
+                                            <span class="ms-1">Edit</span>
+                                        </a>
+                                        
+                                        <form asp-action="ToggleEnabled" asp-route-id="@item.Id" method="post" class="d-inline">
                                             @Html.AntiForgeryToken()
                                             <button type="submit"
-                                                class="btn @(item.IsEnabled ? "btn-outline-secondary" : "btn-outline-success")">
-                                                @(item.IsEnabled ? "Disable" : "Enable")
+                                                    class="btn @(item.IsEnabled ? "btn-outline-secondary" : "btn-outline-success") btn-sm d-flex align-items-center">
+                                                <i class="bi bi-@(item.IsEnabled ? "pause" : "play")"></i>
+                                                <span class="ms-1">@(item.IsEnabled ? "Disable" : "Enable")</span>
                                             </button>
                                         </form>
+                                        
                                         @if (item.IsEnabled)
                                         {
-                                            <form asp-action="Sync" asp-route-id="@item.Id" method="post"
-                                                style="display: inline;">
+                                            <form asp-action="Sync" asp-route-id="@item.Id" method="post" class="d-inline">
                                                 @Html.AntiForgeryToken()
-                                                <button type="submit" class="btn btn-success">Sync</button>
+                                                <button type="submit" class="btn btn-success btn-sm d-flex align-items-center">
+                                                    <i class="bi bi-arrow-clockwise"></i>
+                                                    <span class="ms-1">Sync</span>
+                                                </button>
                                             </form>
                                         }
-                                        <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-danger"
-                                           onclick="return confirm('Delete account @item.Name and all archived emails? This cannot be undone!');">Delete</a>
+                                        
+                                        <a asp-action="Delete" asp-route-id="@item.Id" 
+                                           class="btn btn-danger btn-sm d-flex align-items-center"
+                                           onclick="return confirm('Delete account @item.Name and all archived emails? This cannot be undone!');">
+                                            <i class="bi bi-trash"></i>
+                                            <span class="ms-1">Delete</span>
+                                        </a>
                                     </div>
                                 </td>
                             </tr>
@@ -90,6 +109,7 @@
             </div>
         </div>
     </div>
+
     @* Mobile/Tablet Cards - bis große Bildschirme *@
     <div class="d-lg-none">
         @foreach (var item in Model)
@@ -160,7 +180,7 @@
                         </div>
                         <div class="row">
                             <div class="col-12">
-                                <a asp-action="Delete" asp-route-id="@item.Id" 
+                                <a asp-action="Delete" asp-route-id="@item.Id"
                                    class="btn btn-outline-danger btn-sm w-100"
                                    onclick="return confirm('Delete account @item.Name and all archived emails? This cannot be undone!');">
                                     <i class="bi bi-trash"></i> Delete Account & All Emails

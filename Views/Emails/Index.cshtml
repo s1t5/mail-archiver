@@ -1,3 +1,4 @@
+@using Microsoft.AspNetCore.Http.Extensions
 @model MailArchiver.Models.ViewModels.SearchViewModel
 @{
     ViewData["Title"] = "Email Archive";
@@ -236,7 +237,10 @@
                                         }
                                     </td>
                                     <td>
-                                        <a asp-action="Details" asp-route-id="@email.Id" class="btn btn-sm btn-outline-primary">Details</a>
+                                        <a asp-action="Details" 
+                                        asp-route-id="@email.Id" 
+                                        asp-route-returnUrl="@Context.Request.GetDisplayUrl()" 
+                                        class="btn btn-sm btn-outline-primary">Details</a>
                                     </td>
                                 </tr>
                             }
@@ -285,7 +289,10 @@
                                 <div><strong>Account:</strong> @email.MailAccount.Name</div>
                             </div>
                             <div class="email-card-actions">
-                                <a asp-action="Details" asp-route-id="@email.Id" class="btn btn-outline-primary btn-sm w-100">
+                                <a asp-action="Details" 
+                                asp-route-id="@email.Id" 
+                                asp-route-returnUrl="@Context.Request.GetDisplayUrl()" 
+                                class="btn btn-outline-primary btn-sm w-100">
                                     <i class="bi bi-eye"></i> View Details
                                 </a>
                             </div>

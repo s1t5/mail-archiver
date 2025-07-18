@@ -111,6 +111,53 @@ body {
   background-color: rgba(0, 0, 0, 0.04);
 }
 
+/* Account Table Buttons - Perfekte Ausrichtung */
+.table td .btn {
+  min-height: 31px; /* Einheitliche Mindesthöhe für alle Buttons */
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center;
+  white-space: nowrap;
+}
+
+.table td .btn i {
+  font-size: 0.875rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+}
+
+.table td .btn span {
+  font-size: 0.875rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+}
+ 
+.table td .btn .ms-1 {
+  margin-left: 0.25rem !important;
+}
+
+.table td .d-flex.gap-1 {
+  gap: 0.25rem !important;
+  flex-wrap: nowrap;
+  align-items: center;
+}
+
+.table .btn-sm {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.875rem;
+  border-radius: 0.25rem;
+}
+
+.table td .d-flex {
+  flex-wrap: nowrap;
+}
+
+.table td {
+  vertical-align: middle;
+}
+
 /* Formulare */
 .form-control, .form-select {
   border-radius: 6px;
@@ -165,6 +212,27 @@ body {
 .btn-danger:hover {
   background-color: #c0392b;
   border-color: #c0392b;
+}
+
+.btn-action {
+  min-width: 80px;
+  height: 32px;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.875rem;
+  white-space: nowrap;
+}
+
+.btn-action i {
+  font-size: 0.875rem;
+  line-height: 1;
+}
+
+.btn-action span {
+  font-size: 0.875rem;
+  line-height: 1;
 }
 
 /* E-Mail-Inhaltsdarstellung */

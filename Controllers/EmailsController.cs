@@ -47,12 +47,15 @@ namespace MailArchiver.Controllers
             if (model.PageNumber <= 0) model.PageNumber = 1;
             if (model.PageSize <= 0) model.PageSize = 20;
 
+            // Store search state for return navigation
+            StoreSearchState(model);
+
             // Konten für die Dropdown-Liste laden
             var accounts = await _context.MailAccounts.ToListAsync();
             model.AccountOptions = new List<SelectListItem>
-            {
-                new SelectListItem { Text = "All Accounts", Value = "" }
-            };
+    {
+        new SelectListItem { Text = "All Accounts", Value = "" }
+    };
             model.AccountOptions.AddRange(accounts.Select(a =>
                 new SelectListItem
                 {
@@ -96,7 +99,7 @@ namespace MailArchiver.Controllers
         }
 
         // GET: Emails/Details/5
-        public async Task<IActionResult> Details(int id)
+        public async Task<IActionResult> Details(int id, string returnUrl = null)
         {
             var email = await _context.ArchivedEmails
                 .Include(e => e.MailAccount)
@@ -115,7 +118,72 @@ namespace MailArchiver.Controllers
                 FormattedHtmlBody = SanitizeHtml(email.HtmlBody)
             };
 
+            // Store return URL in ViewBag
+            ViewBag.ReturnUrl = returnUrl ?? Url.Action("Index");
+
             return View(model);
+        }
+
+        // Helper method to store search state in session
+        private void StoreSearchState(SearchViewModel searchModel)
+        {
+            try
+            {
+                var searchState = new
+                {
+                    SearchTerm = searchModel.SearchTerm,
+                    FromDate = searchModel.FromDate?.ToString("yyyy-MM-dd"),
+                    ToDate = searchModel.ToDate?.ToString("yyyy-MM-dd"),
+                    SelectedAccountId = searchModel.SelectedAccountId,
+                    IsOutgoing = searchModel.IsOutgoing,
+                    PageNumber = searchModel.PageNumber,
+                    PageSize = searchModel.PageSize,
+                    ShowSelectionControls = searchModel.ShowSelectionControls
+                };
+
+                HttpContext.Session.SetString("LastSearchState",
+                    System.Text.Json.JsonSerializer.Serialize(searchState));
+
+                _logger.LogDebug("Stored search state in session");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to store search state in session");
+            }
+        }
+
+        // Helper method to restore search state from session
+        private string? GetStoredReturnUrl()
+        {
+            try
+            {
+                var searchStateJson = HttpContext.Session.GetString("LastSearchState");
+                if (string.IsNullOrEmpty(searchStateJson))
+                    return null;
+
+                var searchState = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, object>>(searchStateJson);
+
+                var queryParams = new List<string>();
+
+                foreach (var kvp in searchState)
+                {
+                    if (kvp.Value != null && !string.IsNullOrEmpty(kvp.Value.ToString()))
+                    {
+                        queryParams.Add($"{kvp.Key}={Uri.EscapeDataString(kvp.Value.ToString())}");
+                    }
+                }
+
+                if (queryParams.Any())
+                {
+                    return Url.Action("Index") + "?" + string.Join("&", queryParams);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to restore search state from session");
+            }
+
+            return Url.Action("Index");
         }
 
         // GET: Emails/Attachment/5/1
