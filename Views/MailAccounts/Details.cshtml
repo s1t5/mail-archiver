@@ -45,7 +45,9 @@
                 <dd class="col-sm-9">
                     @if (Model.LastSync.HasValue)
                     {
-                        @Model.LastSync.Value.ToString("yyyy-MM-dd HH:mm:ss")
+                        <span class="utc-timestamp" data-utc-time="@Model.LastSync.Value.ToString("yyyy-MM-ddTHH:mm:ss")">
+                            @Model.LastSync.Value.ToString("yyyy-MM-dd HH:mm:ss")
+                        </span>
                     }
                     else
                     {

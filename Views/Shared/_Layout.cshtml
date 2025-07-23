@@ -1,5 +1,6 @@
 ﻿<!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -10,6 +11,7 @@
     <link rel="stylesheet" href="~/css/mobile-tables.css" asp-append-version="true" />
     <link rel="icon" type="image/svg" href="~/favicon.svg">
 </head>
+
 <body>
     <header>
         <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
@@ -17,39 +19,40 @@
                 <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">
                     <i class="bi bi-envelope-check me-1"></i>Mail-Archiver
                 </a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse"
+                    aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
                 <div class="navbar-collapse collapse">
                     <ul class="navbar-nav me-auto">
                         <li class="nav-item">
                             <a class="nav-link @(ViewContext.RouteData.Values["Controller"].ToString() == "Home" && ViewContext.RouteData.Values["Action"].ToString() == "Index" ? "active" : "")"
-                               asp-controller="Home" asp-action="Index">
+                                asp-controller="Home" asp-action="Index">
                                 <i class="bi bi-speedometer2 me-1"></i>Dashboard
                             </a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link @(ViewContext.RouteData.Values["Controller"].ToString() == "MailAccounts" ? "active" : "")"
-                               asp-controller="MailAccounts" asp-action="Index">
+                                asp-controller="MailAccounts" asp-action="Index">
                                 <i class="bi bi-person me-1"></i>Accounts
                             </a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link @(ViewContext.RouteData.Values["Controller"].ToString() == "Emails" && (ViewContext.RouteData.Values["Action"].ToString() == "Index" || ViewContext.RouteData.Values["Action"].ToString() == "Details") ? "active" : "")"
-                               asp-controller="Emails" asp-action="Index">
+                                asp-controller="Emails" asp-action="Index">
                                 <i class="bi bi-archive me-1"></i>Archive
                             </a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link @(ViewContext.RouteData.Values["Controller"].ToString() == "Emails" && ViewContext.RouteData.Values["Action"].ToString().Contains("BatchRestore") ? "active" : "")"
-                               asp-controller="Emails" asp-action="Jobs">
+                                asp-controller="Emails" asp-action="Jobs">
                                 <i class="bi bi-clock-history me-1"></i>
                                 Jobs
                                 @{
                                     try
                                     {
-                                        var batchService = Context.RequestServices.GetService<MailArchiver.Services.IBatchRestoreService>();
+                                        var batchService =
+                                        Context.RequestServices.GetService<MailArchiver.Services.IBatchRestoreService>();
                                         if (batchService != null)
                                         {
                                             var activeJobs = batchService.GetActiveJobs();
@@ -112,6 +115,82 @@
     <script src="~/lib/jquery/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    <script>
+        // Speichere die Browser-Zeitzone im Local Storage
+        localStorage.setItem('timezone', Intl.DateTimeFormat().resolvedOptions().timeZone);
+
+        // Funktion zum Konvertieren von UTC-Zeiten zu lokaler Zeit
+        function convertUTCToLocal(utcDateString) {
+            if (!utcDateString) return utcDateString;
+
+            try {
+                // Versuche verschiedene Datumsformate
+                let utcDate;
+                if (utcDateString.includes('T')) {
+                    // ISO String Format
+                    utcDate = new Date(utcDateString + (utcDateString.endsWith('Z') ? '' : 'Z'));
+                } else {
+                    // Andere Formate
+                    utcDate = new Date(utcDateString);
+                }
+
+                if (isNaN(utcDate.getTime())) {
+                    return utcDateString; // Ungültiges Datum
+                }
+
+                // Format: DD.MM.YYYY HH:mm:ss oder je nach Locale
+                return utcDate.toLocaleDateString() + ' ' + utcDate.toLocaleTimeString();
+            } catch (e) {
+                console.error('Fehler bei der Datums-Konvertierung:', e, 'Ursprünglicher Wert:', utcDateString);
+                return utcDateString;
+            }
+        }
+
+        // Funktion zum Aktualisieren aller Zeitstempel auf der Seite
+        function updateAllTimestamps() {
+            // Sucht nach allen Elementen mit data-utc-time Attribut
+            const timeElements = document.querySelectorAll('[data-utc-time]');
+            timeElements.forEach(element => {
+                const utcTime = element.getAttribute('data-utc-time');
+                if (utcTime && utcTime !== '0001-01-01T00:00:00') {
+                    const localTime = convertUTCToLocal(utcTime);
+                    element.textContent = localTime;
+                }
+            });
+        }
+
+        // Führe die Konvertierung aus, wenn das Dokument geladen ist
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', updateAllTimestamps);
+        } else {
+            updateAllTimestamps();
+        }
+
+        // Unterstützung für dynamisch hinzugefügte Inhalte (z.B. bei AJAX-Aufrufen)
+        const observer = new MutationObserver(function (mutations) {
+            let shouldUpdate = false;
+            mutations.forEach(function (mutation) {
+                if (mutation.type === 'childList') {
+                    mutation.addedNodes.forEach(function (node) {
+                        if (node.nodeType === 1 &&
+                            (node.hasAttribute('data-utc-time') ||
+                                node.querySelectorAll && node.querySelectorAll('[data-utc-time]').length > 0)) {
+                            shouldUpdate = true;
+                        }
+                    });
+                }
+            });
+            if (shouldUpdate) {
+                setTimeout(updateAllTimestamps, 100); // Kleine Verzögerung für bessere Performance
+            }
+        });
+
+        observer.observe(document.body, {
+            childList: true,
+            subtree: true
+        });
+    </script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
+
 </html>

@@ -119,7 +119,11 @@
                                                 <small class="text-muted">-</small>
                                             }
                                         </td>
-                                        <td>@job.Created.ToString("MM-dd HH:mm")</td>
+                                        <td>
+                                            <span class="utc-timestamp" data-utc-time="@job.Created.ToString("yyyy-MM-ddTHH:mm:ss")">
+                                                @job.Created.ToString("MM-dd HH:mm")
+                                            </span>
+                                        </td>
                                         <td>
                                             <div class="btn-group btn-group-sm">
                                                 <a asp-controller="MailAccounts" asp-action="MBoxImportStatus" asp-route-jobId="@job.JobId"
@@ -338,7 +342,11 @@
                                                 <small class="text-muted">-</small>
                                             }
                                         </td>
-                                        <td>@job.Started.ToString("MM-dd HH:mm")</td>
+                                        <td>
+                                            <span class="utc-timestamp" data-utc-time="@job.Started.ToString("yyyy-MM-ddTHH:mm:ss")">
+                                                @job.Started.ToString("MM-dd HH:mm")
+                                            </span>
+                                        </td>
                                         <td>
                                             @if (job.Completed.HasValue)
                                             {

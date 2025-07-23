@@ -147,13 +147,21 @@
                                         <td class="d-none d-lg-table-cell small">@account.EmailAddress</td>
                                         <td>@account.EmailCount.ToString("N0")</td>
                                         <td>
-                                           @if (DateTime.Now.Subtract(account.LastSyncTime).TotalHours < 24)
+                                            @if (DateTime.Now.Subtract(account.LastSyncTime).TotalHours < 24)
                                             {
-                                                <span class="badge bg-success small">@account.LastSyncTime.ToString("yyyy-MM-dd HH:mm")</span>
+                                                <span class="badge bg-success small">
+                                                    <span class="utc-timestamp" data-utc-time="@account.LastSyncTime.ToString("yyyy-MM-ddTHH:mm:ss")">
+                                                        @account.LastSyncTime.ToString("yyyy-MM-dd HH:mm")
+                                                    </span>
+                                                </span>
                                             }
                                             else
                                             {
-                                                <span class="badge bg-warning small">@account.LastSyncTime.ToString("yyyy-MM-dd HH:mm")</span>
+                                                <span class="badge bg-warning small">
+                                                    <span class="utc-timestamp" data-utc-time="@account.LastSyncTime.ToString("yyyy-MM-ddTHH:mm:ss")">
+                                                        @account.LastSyncTime.ToString("yyyy-MM-dd HH:mm")
+                                                    </span>
+                                                </span>
                                             }
                                         </td>
                                     </tr>
@@ -185,11 +193,19 @@
                                     <div class="text-end">
                                         @if (DateTime.Now.Subtract(account.LastSyncTime).TotalHours < 24)
                                         {
-                                            <span class="badge bg-success">@account.LastSyncTime.ToString("yyyy-MM-dd HH:mm")</span>
+                                            <span class="badge bg-success">
+                                                <span class="utc-timestamp" data-utc-time="@account.LastSyncTime.ToString("yyyy-MM-ddTHH:mm:ss")">
+                                                    @account.LastSyncTime.ToString("yyyy-MM-dd HH:mm")
+                                                </span>
+                                            </span>
                                         }
                                         else
                                         {
-                                            <span class="badge bg-warning">@account.LastSyncTime.ToString("yyyy-MM-dd HH:mm")</span>
+                                            <span class="badge bg-warning">
+                                                <span class="utc-timestamp" data-utc-time="@account.LastSyncTime.ToString("yyyy-MM-ddTHH:mm:ss")">
+                                                    @account.LastSyncTime.ToString("yyyy-MM-dd HH:mm")
+                                                </span>
+                                            </span>
                                         }
                                     </div>
                                 </div>

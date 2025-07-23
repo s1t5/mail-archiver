@@ -11,6 +11,7 @@ namespace MailArchiver.Models.ViewModels
         public bool? IsOutgoing { get; set; }
         public int PageNumber { get; set; } = 1;
         public int PageSize { get; set; } = 20;
+        public string UserTimezone { get; set; } = "UTC";
 
         // Dropdown-Optionen
         public List<SelectListItem> AccountOptions { get; set; }
@@ -20,6 +21,23 @@ namespace MailArchiver.Models.ViewModels
             new SelectListItem { Text = "Incoming", Value = "false" },
             new SelectListItem { Text = "Outgoing", Value = "true" }
         };
+
+        // Methode zur Konvertierung von UTC zu lokaler Zeit
+        public DateTime ConvertToLocalTime(DateTime utcTime)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(UserTimezone) || UserTimezone == "UTC")
+                    return utcTime;
+
+                var tz = TimeZoneInfo.FindSystemTimeZoneById(UserTimezone);
+                return TimeZoneInfo.ConvertTimeFromUtc(utcTime, tz);
+            }
+            catch
+            {
+                return utcTime; // Fallback zu UTC
+            }
+        }
 
         // Suchergebnisse
         public List<ArchivedEmail> SearchResults { get; set; }

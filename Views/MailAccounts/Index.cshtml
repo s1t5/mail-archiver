@@ -53,7 +53,10 @@
                                 <td>
                                     @if (item.LastSync.HasValue)
                                     {
-                                        @item.LastSync.Value.ToString("yyyy-MM-dd HH:mm")
+                                        <span class="utc-timestamp"
+                                            data-utc-time="@item.LastSync.Value.ToString("yyyy-MM-ddTHH:mm:ss")">
+                                            @item.LastSync.Value.ToString("yyyy-MM-dd HH:mm")
+                                        </span>
                                     }
                                     else
                                     {
@@ -63,26 +66,27 @@
                                 <td>
                                     <div class="d-flex justify-content-center align-items-center gap-1">
                                         <a asp-action="Details" asp-route-id="@item.Id"
-                                           class="btn btn-info btn-sm d-flex align-items-center">
+                                            class="btn btn-info btn-sm d-flex align-items-center">
                                             <i class="bi bi-eye"></i>
                                             <span class="ms-1">Details</span>
                                         </a>
-                                        
-                                        <a asp-action="Edit" asp-route-id="@item.Id" 
-                                           class="btn btn-warning btn-sm d-flex align-items-center">
+
+                                        <a asp-action="Edit" asp-route-id="@item.Id"
+                                            class="btn btn-warning btn-sm d-flex align-items-center">
                                             <i class="bi bi-pencil"></i>
                                             <span class="ms-1">Edit</span>
                                         </a>
-                                        
-                                        <form asp-action="ToggleEnabled" asp-route-id="@item.Id" method="post" class="d-inline">
+
+                                        <form asp-action="ToggleEnabled" asp-route-id="@item.Id" method="post"
+                                            class="d-inline">
                                             @Html.AntiForgeryToken()
                                             <button type="submit"
-                                                    class="btn @(item.IsEnabled ? "btn-outline-secondary" : "btn-outline-success") btn-sm d-flex align-items-center">
+                                                class="btn @(item.IsEnabled ? "btn-outline-secondary" : "btn-outline-success") btn-sm d-flex align-items-center">
                                                 <i class="bi bi-@(item.IsEnabled ? "pause" : "play")"></i>
                                                 <span class="ms-1">@(item.IsEnabled ? "Disable" : "Enable")</span>
                                             </button>
                                         </form>
-                                        
+
                                         @if (item.IsEnabled)
                                         {
                                             <form asp-action="Sync" asp-route-id="@item.Id" method="post" class="d-inline">
@@ -93,10 +97,10 @@
                                                 </button>
                                             </form>
                                         }
-                                        
-                                        <a asp-action="Delete" asp-route-id="@item.Id" 
-                                           class="btn btn-danger btn-sm d-flex align-items-center"
-                                           onclick="return confirm('Delete account @item.Name and all archived emails? This cannot be undone!');">
+
+                                        <a asp-action="Delete" asp-route-id="@item.Id"
+                                            class="btn btn-danger btn-sm d-flex align-items-center"
+                                            onclick="return confirm('Delete account @item.Name and all archived emails? This cannot be undone!');">
                                             <i class="bi bi-trash"></i>
                                             <span class="ms-1">Delete</span>
                                         </a>
@@ -135,7 +139,9 @@
                         <strong>Last Sync:</strong>
                         @if (item.LastSync.HasValue)
                         {
-                            @item.LastSync.Value.ToString("yyyy-MM-dd HH:mm")
+                            <span class="utc-timestamp" data-utc-time="@item.LastSync.Value.ToString("yyyy-MM-ddTHH:mm:ss")">
+                                @item.LastSync.Value.ToString("yyyy-MM-dd HH:mm")
+                            </span>
                         }
                         else
                         {
@@ -160,7 +166,8 @@
                             <div class="col">
                                 <form asp-action="ToggleEnabled" asp-route-id="@item.Id" method="post" class="w-100">
                                     @Html.AntiForgeryToken()
-                                    <button type="submit" class="btn @(item.IsEnabled ? "btn-outline-secondary" : "btn-outline-success") btn-sm w-100">
+                                    <button type="submit"
+                                        class="btn @(item.IsEnabled ? "btn-outline-secondary" : "btn-outline-success") btn-sm w-100">
                                         <i class="bi bi-@(item.IsEnabled ? "pause" : "play")"></i>
                                         @(item.IsEnabled ? "Disable" : "Enable")
                                     </button>
@@ -180,9 +187,8 @@
                         </div>
                         <div class="row">
                             <div class="col-12">
-                                <a asp-action="Delete" asp-route-id="@item.Id"
-                                   class="btn btn-outline-danger btn-sm w-100"
-                                   onclick="return confirm('Delete account @item.Name and all archived emails? This cannot be undone!');">
+                                <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-outline-danger btn-sm w-100"
+                                    onclick="return confirm('Delete account @item.Name and all archived emails? This cannot be undone!');">
                                     <i class="bi bi-trash"></i> Delete Account & All Emails
                                 </a>
                             </div>
@@ -198,7 +204,8 @@
                     <i class="bi bi-envelope-x display-1 text-muted"></i>
                 </div>
                 <h5 class="text-muted">No email accounts configured</h5>
-                <p class="text-muted">Add your first email account to start archiving emails or import existing MBox files.</p>
+                <p class="text-muted">Add your first email account to start archiving emails or import existing MBox files.
+                </p>
                 <div class="d-grid gap-2 d-md-flex justify-content-center">
                     <a asp-action="Create" class="btn btn-primary">
                         <i class="bi bi-plus-circle"></i> Add Account

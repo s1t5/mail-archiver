@@ -177,18 +177,30 @@
                 }
 
                 <dt class="col-sm-3">Created:</dt>
-                <dd class="col-sm-9">@Model.Created.ToString("yyyy-MM-dd HH:mm:ss")</dd>
+                <dd class="col-sm-9">
+                    <span class="utc-timestamp" data-utc-time="@Model.Created.ToString("yyyy-MM-ddTHH:mm:ss")">
+                        @Model.Created.ToString("yyyy-MM-dd HH:mm:ss")
+                    </span>
+                </dd>
 
                 @if (Model.Started.HasValue)
                 {
                     <dt class="col-sm-3">Started:</dt>
-                    <dd class="col-sm-9">@Model.Started.Value.ToString("yyyy-MM-dd HH:mm:ss")</dd>
+                    <dd class="col-sm-9">
+                        <span class="utc-timestamp" data-utc-time="@Model.Started.Value.ToString("yyyy-MM-ddTHH:mm:ss")">
+                            @Model.Started.Value.ToString("yyyy-MM-dd HH:mm:ss")
+                        </span>
+                    </dd>
                 }
 
                 @if (Model.Completed.HasValue)
                 {
                     <dt class="col-sm-3">Completed:</dt>
-                    <dd class="col-sm-9">@Model.Completed.Value.ToString("yyyy-MM-dd HH:mm:ss")</dd>
+                    <dd class="col-sm-9">
+                        <span class="utc-timestamp" data-utc-time="@Model.Completed.Value.ToString("yyyy-MM-ddTHH:mm:ss")">
+                            @Model.Completed.Value.ToString("yyyy-MM-dd HH:mm:ss")
+                        </span>
+                    </dd>
 
                     @if (Model.Started.HasValue)
                     {

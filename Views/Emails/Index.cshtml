@@ -74,6 +74,7 @@
                                     <input class="form-check-input me-2" type="checkbox" id="toggleSelectionMode" name="ShowSelectionControls" value="true"
                                            @(Model.ShowSelectionControls ? "checked" : "")>
                                     <label class="form-check-label small" for="toggleSelectionMode">Selection Mode</label>
+                                    <input type="hidden" id="userTimezone" name="UserTimezone" value="" />
                                 </div>
                             </div>
                             <div class="d-md-none">
@@ -436,7 +437,11 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             console.log("Email selection script initialized");
-            
+            const timezoneInput = document.getElementById('userTimezone');
+            if (timezoneInput) {
+                timezoneInput.value = Intl.DateTimeFormat().resolvedOptions().timeZone;
+            }
+
             // Configuration from ViewBag
             const asyncThreshold = @ViewBag.AsyncThreshold;
             const maxAsyncEmails = @ViewBag.MaxAsyncEmails;
