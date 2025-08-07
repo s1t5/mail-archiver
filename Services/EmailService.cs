@@ -259,9 +259,10 @@ namespace MailArchiver.Services
                                 }
                             }
 
+                            MimeMessage message = null;
                             try
                             {
-                                var message = await folder.GetMessageAsync(uid);
+                                message = await folder.GetMessageAsync(uid);
                                 var isNew = await ArchiveEmailAsync(account, message, isOutgoing, folder.FullName);
                                 if (isNew)
                                 {
