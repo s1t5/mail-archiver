@@ -270,8 +270,10 @@ namespace MailArchiver.Services
                             }
                             catch (Exception ex)
                             {
-                                _logger.LogError(ex, "Error archiving message {MessageNumber} from folder {FolderName}: {Message}",
-                                    uid, folder.FullName, ex.Message);
+                                var subject = message?.Subject ?? "Unknown";
+                                var date = message?.Date.DateTime.ToString() ?? "Unknown";
+                                _logger.LogError(ex, "Error archiving message {MessageNumber} from folder {FolderName}. Subject: {Subject}, Date: {Date}, Message: {Message}",
+                                    uid, folder.FullName, subject, date, ex.Message);
                                 result.FailedEmails++;
                             }
                         }
