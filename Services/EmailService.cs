@@ -74,6 +74,18 @@ namespace MailArchiver.Services
                 // Process each folder
                 foreach (var folder in allFolders)
                 {
+                // Check if job has been cancelled
+                if (jobId != null)
+                {
+                    var job = _syncJobService.GetJob(jobId);
+                    if (job?.Status == SyncJobStatus.Cancelled)
+                    {
+                        _logger.LogInformation("Sync job {JobId} for account {AccountName} has been cancelled", jobId, account.Name);
+                        _syncJobService.CompleteJob(jobId, false, "Job was cancelled");
+                        return;
+                    }
+                }
+
                     try
                     {
                         if (jobId != null)
@@ -85,7 +97,7 @@ namespace MailArchiver.Services
                             });
                         }
 
-                        var folderResult = await SyncFolderAsync(folder, account);
+                        var folderResult = await SyncFolderAsync(folder, account, jobId);
                         processedEmails += folderResult.ProcessedEmails;
                         newEmails += folderResult.NewEmails;
                         failedEmails += folderResult.FailedEmails;
@@ -185,7 +197,7 @@ namespace MailArchiver.Services
         }
 
         // MODIFIZIERTE SyncFolderAsync Methode mit Rückgabewerten
-        private async Task<SyncFolderResult> SyncFolderAsync(IMailFolder folder, MailAccount account)
+        private async Task<SyncFolderResult> SyncFolderAsync(IMailFolder folder, MailAccount account, string? jobId = null)
         {
             var result = new SyncFolderResult();
 
@@ -219,12 +231,34 @@ namespace MailArchiver.Services
                     const int batchSize = 20;
                     for (int i = 0; i < uids.Count; i += batchSize)
                     {
+                        // Check if job has been cancelled
+                        if (jobId != null)
+                        {
+                            var job = _syncJobService.GetJob(jobId);
+                            if (job?.Status == SyncJobStatus.Cancelled)
+                            {
+                                _logger.LogInformation("Sync job {JobId} for account {AccountName} has been cancelled during folder sync", jobId, account.Name);
+                                return result;
+                            }
+                        }
+
                         var batch = uids.Skip(i).Take(batchSize).ToList();
                         _logger.LogInformation("Processing batch of {Count} messages (starting at {Start}) in folder {FolderName}",
                             batch.Count, i, folder.FullName);
 
                         foreach (var uid in batch)
                         {
+                            // Check if job has been cancelled
+                            if (jobId != null)
+                            {
+                                var job = _syncJobService.GetJob(jobId);
+                                if (job?.Status == SyncJobStatus.Cancelled)
+                                {
+                                    _logger.LogInformation("Sync job {JobId} for account {AccountName} has been cancelled during message processing", jobId, account.Name);
+                                    return result;
+                                }
+                            }
+
                             try
                             {
                                 var message = await folder.GetMessageAsync(uid);
@@ -514,8 +548,101 @@ namespace MailArchiver.Services
         {
             var sentFolderNames = new[]
             {
-                "sent", "sent items", "sent mail", "gesendet", "gesendete objekte",
-                "gesendete", "enviado", "envoyé", "inviato", "verzonden"
+                // Arabic
+                "المرسلة", "البريد المرسل",
+
+                // Bulgarian
+                "изпратени", "изпратена поща",
+
+                // Chinese (Simplified)
+                "已发送", "已传送",
+
+                // Croatian
+                "poslano", "poslana pošta",
+
+                // Czech
+                "odeslané", "odeslaná pošta",
+
+                // Danish
+                "sendt", "sendte elementer",
+
+                // Dutch
+                "verzonden", "verzonden items", "verzonden e-mail",
+
+                // English
+                "sent", "sent items", "sent mail",
+
+                // Estonian
+                "saadetud", "saadetud kirjad",
+
+                // Finnish
+                "lähetetyt", "lähetetyt kohteet",
+
+                // French
+                "envoyé", "éléments envoyés", "mail envoyé",
+
+                // German
+                "gesendet", "gesendete objekte", "gesendete",
+
+                // Greek
+                "απεσταλμένα", "σταλμένα", "σταλμένα μηνύματα",
+
+                // Hebrew
+                "נשלחו", "דואר יוצא",
+
+                // Hungarian
+                "elküldött", "elküldött elemek",
+
+                // Irish
+                "seolta", "r-phost seolta",
+
+                // Italian
+                "inviato", "posta inviata", "elementi inviati",
+
+                // Japanese
+                "送信済み", "送信済メール", "送信メール",
+
+                // Korean
+                "보낸편지함", "발신함", "보낸메일",
+
+                // Latvian
+                "nosūtītie", "nosūtītās vēstules",
+
+                // Lithuanian
+                "išsiųsta", "išsiųsti laiškai",
+
+                // Maltese
+                "mibgħuta", "posta mibgħuta",
+
+                // Norwegian
+                "sendt", "sendte elementer",
+
+                // Polish
+                "wysłane", "elementy wysłane",
+
+                // Portuguese
+                "enviados", "itens enviados", "mensagens enviadas",
+
+                // Romanian
+                "trimise", "elemente trimise", "mail trimis",
+
+                // Russian
+                "отправленные", "исходящие", "отправлено",
+
+                // Slovak
+                "odoslané", "odoslaná pošta",
+
+                // Slovenian
+                "poslano", "poslana pošta",
+
+                // Spanish
+                "enviado", "elementos enviados", "correo enviado",
+
+                // Swedish
+                "skickat", "skickade objekt",
+
+                // Turkish
+                "gönderilen", "gönderilmiş öğeler"
             };
 
             string folderNameLower = folder.Name.ToLowerInvariant();

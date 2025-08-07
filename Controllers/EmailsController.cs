@@ -873,6 +873,31 @@ namespace MailArchiver.Controllers
             return Redirect(returnUrl ?? Url.Action("Index"));
         }
 
+        // POST: Emails/CancelSyncJob
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult CancelSyncJob(string jobId, string returnUrl = null)
+        {
+            if (_syncJobService == null)
+            {
+                TempData["ErrorMessage"] = "Sync job service is not available.";
+                return Redirect(returnUrl ?? Url.Action("Index"));
+            }
+
+            var success = _syncJobService.CancelJob(jobId);
+
+            if (success)
+            {
+                TempData["SuccessMessage"] = "Sync job has been cancelled.";
+            }
+            else
+            {
+                TempData["ErrorMessage"] = "Could not cancel the sync job.";
+            }
+
+            return Redirect(returnUrl ?? Url.Action("Jobs"));
+        }
+
         // GET: Emails/Jobs
         [HttpGet]
         public IActionResult Jobs()

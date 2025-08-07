@@ -53,6 +53,15 @@ namespace MailArchiver.Services
                             // Start sync job tracking
                             var jobId = syncJobService.StartSync(account.Id, account.Name, account.LastSync);
                             
+                            // Update job with cancellation token source
+                            syncJobService.UpdateJobProgress(jobId, job =>
+                            {
+                                job.CancellationTokenSource = accountCts;
+                            });
+                            
+                            _logger.LogInformation("Started sync job {JobId} for account {AccountName} with cancellation token", 
+                                jobId, account.Name);
+                            
                             await emailService.SyncMailAccountAsync(account, jobId);
                             _logger.LogInformation("Mail sync completed for account: {AccountName}", account.Name);
                         }

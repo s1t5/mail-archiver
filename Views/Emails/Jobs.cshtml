@@ -269,6 +269,7 @@
                                     <th>Emails</th>
                                     <th>Started</th>
                                     <th>Duration</th>
+                                    <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -324,6 +325,12 @@
                                                     <i class="bi bi-x-circle"></i> Failed
                                                 </small>
                                             }
+                                            else if (job.Status == MailArchiver.Models.SyncJobStatus.Cancelled)
+                                            {
+                                                <small class="text-warning">
+                                                    <i class="bi bi-stop-circle"></i> Cancelled
+                                                </small>
+                                            }
                                         </td>
                                         <td>
                                             @if (job.ProcessedEmails > 0)
@@ -361,6 +368,16 @@
                                                 <span class="badge bg-primary">
                                                     @duration.ToString(@"hh\:mm\:ss")
                                                 </span>
+                                            }
+                                        </td>
+                                        <td>
+                                            @if (job.Status == MailArchiver.Models.SyncJobStatus.Running)
+                                            {
+                                                <form asp-action="CancelSyncJob" method="post" style="display: inline;"
+                                                      onsubmit="return confirm('Cancel this sync job?');">
+                                                    <input type="hidden" name="jobId" value="@job.JobId" />
+                                                    <button type="submit" class="btn btn-outline-warning btn-sm">Cancel</button>
+                                                </form>
                                             }
                                         </td>
                                     </tr>
@@ -444,6 +461,17 @@
                                                     <span> | <span class="text-danger">Failed: @job.FailedEmails.ToString("N0")</span></span>
                                                 }
                                             </small>
+                                        </div>
+                                    }
+
+                                    @if (job.Status == MailArchiver.Models.SyncJobStatus.Running)
+                                    {
+                                        <div class="mt-2">
+                                            <form asp-action="CancelSyncJob" method="post" style="display: inline;"
+                                                  onsubmit="return confirm('Cancel this sync job?');">
+                                                <input type="hidden" name="jobId" value="@job.JobId" />
+                                                <button type="submit" class="btn btn-outline-warning btn-sm">Cancel Sync</button>
+                                            </form>
                                         </div>
                                     }
                                 </div>
