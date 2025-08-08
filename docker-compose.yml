@@ -1,7 +1,7 @@
+version: '3.8'
+
 networks:
   postgres:
-
-version: '3.8'
 
 services:
   mailarchive-app:
