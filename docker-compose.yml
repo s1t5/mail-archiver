@@ -1,3 +1,6 @@
+networks:
+  postgres:
+
 version: '3.8'
 
 services:
@@ -6,6 +9,8 @@ services:
     restart: always
     ports:
       - "5000:5000"
+    networks:
+      - postgres
     volumes:
       - ./appsettings.json:/app/appsettings.json
       - ./logs:/app/logs
@@ -21,8 +26,8 @@ services:
       POSTGRES_PASSWORD: masterkey
     volumes:
       - ./postgres-data:/var/lib/postgresql/data
-    ports:
-      - "5432"
+    networks:
+      - postgres
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U mailuser -d MailArchiver"]
       interval: 10s
