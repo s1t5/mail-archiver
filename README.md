@@ -114,8 +114,8 @@ services:
       retries: 5
       start_period: 10s
 
-  networks:
-    postgres:
+networks:
+  postgres:
 ```
 
 3. Edit the database configuration in the `docker-compose.yml` and set a secure password in the `POSTGRES_PASSWORD` variable and the `ConnectionString`.
