@@ -13,8 +13,9 @@ namespace MailArchiver.Services
             int? accountId,
             bool? isOutgoing,
             int skip,
-            int take);
-        Task<byte[]> ExportEmailsAsync(ExportViewModel parameters);
+            int take,
+            List<int> allowedAccountIds = null);
+        Task<byte[]> ExportEmailsAsync(ExportViewModel parameters, List<int> allowedAccountIds = null);
         Task<DashboardViewModel> GetDashboardStatisticsAsync();
         Task<bool> TestConnectionAsync(MailAccount account);
         Task<bool> RestoreEmailToFolderAsync(int emailId, int targetAccountId, string folderName);

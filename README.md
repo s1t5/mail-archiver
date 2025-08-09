@@ -22,6 +22,10 @@
 - Filter by date range, sender, recipient, and more
 - Preview emails with attachment list
 
+### 👥 Multi User
+- Create multiple user accounts
+- Assignment of different mail accounts to users
+
 ### 📊 Dashboard & Statistics
 - Account-specific statistics and overview
 - Storage usage monitoring
@@ -113,7 +117,7 @@ services:
 
 3. Edit the database configuration in the `docker-compose.yml` and set a secure password in the `POSTGRES_PASSWORD` variable and the `ConnectionString`.
 
-4. If you want to use authentication (which i'd strongly recommend) definie a `Authentication__Username` and `Authentication__Password`.
+4. If you want to use authentication (which i'd strongly recommend) definie a `Authentication__Username` and `Authentication__Password` which is used for the admin user.
 
 4. Configure a reverse proxy of your choice with https and authentification to secure access to the application. 
 
@@ -136,6 +140,7 @@ docker compose restart
 - Click "New Account"
 - Enter your IMAP server details and credentials
 - Save and start archiving!
+- If you want create other users and assign accounts.
 
 ## 🐳 Docker Deployment
 

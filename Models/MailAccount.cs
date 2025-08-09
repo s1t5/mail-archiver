@@ -1,4 +1,5 @@
 using MailArchiver.Models;
+using System.ComponentModel.DataAnnotations.Schema;
 
 public class MailAccount
 {
@@ -12,5 +13,23 @@ public class MailAccount
     public bool UseSSL { get; set; }
     public DateTime LastSync { get; set; }
     public bool IsEnabled { get; set; } = true;
+    
+    // Folder exclusion functionality
+    public string ExcludedFolders { get; set; } = string.Empty;
+    
+    [NotMapped]
+    public List<string> ExcludedFoldersList
+    {
+        get
+        {
+            return string.IsNullOrEmpty(ExcludedFolders) 
+                ? new List<string>() 
+                : ExcludedFolders.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries).ToList();
+        }
+    }
+    
     public virtual ICollection<ArchivedEmail> ArchivedEmails { get; set; } = new List<ArchivedEmail>();
+    
+    // Navigation properties for multi-user functionality
+    public virtual ICollection<UserMailAccount> UserMailAccounts { get; set; } = new List<UserMailAccount>();
 }

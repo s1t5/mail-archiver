@@ -40,8 +40,10 @@
                 </div>
                 <div class="mb-3">
                     <label asp-for="Password" class="form-label">Password</label>
-                    <input asp-for="Password" class="form-control" type="password" />
+                    <input asp-for="Password" class="form-control" type="password"/>
+                    <div class="form-text">Leave empty to keep the current password unchanged.</div>
                     <span asp-validation-for="Password" class="text-danger"></span>
+
                 </div>
                 <div class="mb-3 form-check">
                     <input asp-for="UseSSL" class="form-check-input" />
@@ -52,6 +54,33 @@
                     <label asp-for="IsEnabled" class="form-check-label">Account Enabled</label>
                     <div class="form-text">Disabled accounts will not be synchronized</div>
                 </div>
+                
+                <h4 class="mt-4">Folder Exclusion</h4>
+                <div class="mb-3">
+                    <label asp-for="ExcludedFolders" class="form-label">Excluded Folders</label>
+                    <textarea asp-for="ExcludedFolders" class="form-control" rows="3" placeholder="Enter folder names separated by semicolons, e.g.: Junk;Spam;Trash"></textarea>
+                    <div class="form-text">Folders to exclude from synchronization. Enter folder names separated by semicolons.</div>
+                    <span asp-validation-for="ExcludedFolders" class="text-danger"></span>
+                </div>
+                
+                @if (ViewBag.AvailableFolders != null && ((List<string>)ViewBag.AvailableFolders).Any())
+                {
+                    <div class="mb-3">
+                        <label class="form-label">Available Folders</label>
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="d-flex flex-wrap gap-2">
+                                    @foreach (var folder in (List<string>)ViewBag.AvailableFolders)
+                                    {
+                                        <span class="badge bg-light text-dark">@folder</span>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-text">These folders are available on the IMAP server.</div>
+                    </div>
+                }
+                
                 @if (Model.LastSync.HasValue)
                 {
                     <div class="mb-3">

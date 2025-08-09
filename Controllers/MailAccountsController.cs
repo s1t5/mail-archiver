@@ -7,8 +7,11 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
+using MailArchiver.Attributes;
+
 namespace MailArchiver.Controllers
 {
+    [AdminRequired]
     public class MailAccountsController : Controller
     {
         private readonly MailArchiverDbContext _context;
@@ -87,7 +90,7 @@ namespace MailArchiver.Controllers
         // GET: MailAccounts/Create
         public IActionResult Create()
         {
-            var model = new MailAccountViewModel
+            var model = new CreateMailAccountViewModel
             {
                 ImapPort = 993, // Standard values
                 UseSSL = true
@@ -98,7 +101,7 @@ namespace MailArchiver.Controllers
         // POST: MailAccounts/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(MailAccountViewModel model)
+        public async Task<IActionResult> Create(CreateMailAccountViewModel model)
         {
             if (ModelState.IsValid)
             {
@@ -112,6 +115,7 @@ namespace MailArchiver.Controllers
                     Password = model.Password,
                     UseSSL = model.UseSSL,
                     IsEnabled = model.IsEnabled,
+                    ExcludedFolders = string.Empty,
                     LastSync = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)
                 };
 
@@ -166,8 +170,21 @@ namespace MailArchiver.Controllers
                 Username = account.Username,
                 UseSSL = account.UseSSL,
                 IsEnabled = account.IsEnabled,
-                LastSync = account.LastSync
+                LastSync = account.LastSync,
+                ExcludedFolders = account.ExcludedFolders
             };
+
+            // Load available folders for exclusion selection
+            try
+            {
+                var folders = await _emailService.GetMailFoldersAsync(id);
+                ViewBag.AvailableFolders = folders;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Could not load folders for account {AccountId}", id);
+                ViewBag.AvailableFolders = new List<string>();
+            }
 
             return View(model);
         }
@@ -235,6 +252,7 @@ namespace MailArchiver.Controllers
                     }
 
                     account.UseSSL = model.UseSSL;
+                    account.ExcludedFolders = model.ExcludedFolders ?? string.Empty;
 
                     // Test connection before saving
                     if (!string.IsNullOrEmpty(model.Password))

@@ -8,5 +8,6 @@ namespace MailArchiver.Services
         void SignOut(HttpContext context);
         bool IsAuthenticated(HttpContext context);
         string GetCurrentUser(HttpContext context);
+        bool IsCurrentUserAdmin(HttpContext context);
     }
 }

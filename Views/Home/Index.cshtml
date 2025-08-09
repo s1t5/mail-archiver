@@ -1,4 +1,6 @@
-﻿@model MailArchiver.Models.ViewModels.DashboardViewModel
+﻿@using MailArchiver.Services
+@inject IAuthenticationService AuthService
+@model MailArchiver.Models.ViewModels.DashboardViewModel
 @{
     ViewData["Title"] = "Dashboard";
 }
@@ -14,7 +16,7 @@
     </div>
 
     @* Active Jobs Alert *@
-    @if (ViewBag.ActiveJobsCount != null && ViewBag.ActiveJobsCount > 0)
+    @if (AuthService.IsCurrentUserAdmin(Context) && ViewBag.ActiveJobsCount != null && ViewBag.ActiveJobsCount > 0)
     {
         <div class="row mb-4">
             <div class="col-12">
@@ -293,19 +295,22 @@
                                 <small>Manage Accounts</small>
                             </a>
                         </div>
-                        <div class="col-6 col-md-3">
-                            <a asp-controller="Emails" asp-action="Jobs" class="btn btn-outline-warning w-100 position-relative">
-                                <i class="bi bi-clock-history d-block mb-1"></i>
-                                <small>Background Jobs</small>
-                                @if (ViewBag.ActiveJobsCount != null && ViewBag.ActiveJobsCount > 0)
-                                {
-                                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                                        @ViewBag.ActiveJobsCount
-                                        <span class="visually-hidden">active jobs</span>
-                                    </span>
-                                }
-                            </a>
-                        </div>
+                        @if (AuthService.IsCurrentUserAdmin(Context))
+                        {
+                            <div class="col-6 col-md-3">
+                                <a asp-controller="Emails" asp-action="Jobs" class="btn btn-outline-warning w-100 position-relative">
+                                    <i class="bi bi-clock-history d-block mb-1"></i>
+                                    <small>Background Jobs</small>
+                                    @if (ViewBag.ActiveJobsCount != null && ViewBag.ActiveJobsCount > 0)
+                                    {
+                                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                                            @ViewBag.ActiveJobsCount
+                                            <span class="visually-hidden">active jobs</span>
+                                        </span>
+                                    }
+                                </a>
+                            </div>
+                        }
                     </div>
                 </div>
             </div>

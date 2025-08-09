@@ -88,6 +88,15 @@ namespace MailArchiver.Services
 
                     try
                     {
+                        // Skip excluded folders
+                        if (account.ExcludedFoldersList.Contains(folder.FullName))
+                        {
+                            _logger.LogInformation("Skipping excluded folder: {FolderName} for account: {AccountName}",
+                                folder.FullName, account.Name);
+                            processedFolders++;
+                            continue;
+                        }
+
                         if (jobId != null)
                         {
                             _syncJobService.UpdateJobProgress(jobId, job =>
@@ -718,14 +727,38 @@ namespace MailArchiver.Services
             int? accountId,
             bool? isOutgoing,
             int skip,
-            int take)
+            int take,
+            List<int> allowedAccountIds = null)
         {
             var query = _context.ArchivedEmails
                 .Include(e => e.MailAccount)
                 .AsQueryable();
 
+            // Filter by allowed account IDs if provided (for non-admin users)
+            // This should apply whenever allowedAccountIds is provided, even if accountId is not specified
+            if (allowedAccountIds != null)
+            {
+                if (allowedAccountIds.Any())
+                {
+                    query = query.Where(e => allowedAccountIds.Contains(e.MailAccountId));
+                }
+                else
+                {
+                    // User has no access to any accounts, return no results
+                    query = query.Where(e => false);
+                }
+            }
+
             if (accountId.HasValue)
+            {
+                // Additional check to ensure user has access to the requested account
+                if (allowedAccountIds != null && allowedAccountIds.Any() && !allowedAccountIds.Contains(accountId.Value))
+                {
+                    // User doesn't have access to this account, return empty results
+                    return (new List<ArchivedEmail>(), 0);
+                }
                 query = query.Where(e => e.MailAccountId == accountId.Value);
+            }
 
             if (fromDate.HasValue)
                 query = query.Where(e => e.SentDate >= fromDate.Value);
@@ -758,7 +791,7 @@ namespace MailArchiver.Services
             return (emails, totalCount);
         }
 
-        public async Task<byte[]> ExportEmailsAsync(ExportViewModel parameters)
+        public async Task<byte[]> ExportEmailsAsync(ExportViewModel parameters, List<int> allowedAccountIds = null)
         {
             using var ms = new MemoryStream();
 
@@ -799,7 +832,8 @@ namespace MailArchiver.Services
                     parameters.SelectedAccountId,
                     parameters.IsOutgoing,
                     0,
-                    10000);
+                    10000,
+                    allowedAccountIds);
 
                 switch (parameters.Format)
                 {

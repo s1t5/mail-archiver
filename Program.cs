@@ -3,9 +3,44 @@ using MailArchiver.Models;
 using MailArchiver.Middleware;
 using MailArchiver.Services;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
+using System.Data.Common;
 
-// Add this line to enable legacy timestamp behavior
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+
+// Helper method to ensure __EFMigrationsHistory table exists
+async static Task EnsureMigrationsHistoryTableExists(MailArchiverDbContext context, IServiceProvider services)
+{
+    var connection = context.Database.GetDbConnection();
+    await connection.OpenAsync();
+    
+    var command = connection.CreateCommand();
+    command.CommandText = @"
+        SELECT EXISTS (
+            SELECT 1 
+            FROM information_schema.tables 
+            WHERE table_name = '__EFMigrationsHistory'
+        );";
+    
+    var result = await command.ExecuteScalarAsync();
+    var tableExists = result != null && (bool)result;
+    
+    if (!tableExists)
+    {
+        // Create the migrations history table if it doesn't exist
+        var createTableCommand = connection.CreateCommand();
+        createTableCommand.CommandText = @"
+            CREATE TABLE IF NOT EXISTS ""__EFMigrationsHistory"" (
+                ""MigrationId"" character varying(150) NOT NULL,
+                ""ProductVersion"" character varying(32) NOT NULL,
+                CONSTRAINT ""PK___EFMigrationsHistory"" PRIMARY KEY (""MigrationId"")
+            );";
+        await createTableCommand.ExecuteNonQueryAsync();
+        
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogInformation("__EFMigrationsHistory table created");
+    }
+}
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -27,6 +62,15 @@ builder.Services.AddSession(options =>
     options.Cookie.SameSite = SameSiteMode.Strict;
 });
 
+// Add Authentication
+builder.Services.AddAuthentication("MailArchiverAuth")
+    .AddCookie("MailArchiverAuth", options =>
+    {
+        options.LoginPath = "/Auth/Login";
+        options.LogoutPath = "/Auth/Logout";
+        options.AccessDeniedPath = "/Auth/AccessDenied";
+    });
+
 // PostgreSQL-Datenbankkontext hinzufügen
 builder.Services.AddDbContext<MailArchiverDbContext>(options =>
 {
@@ -41,6 +85,7 @@ builder.Services.AddDbContext<MailArchiverDbContext>(options =>
 // Services hinzufügen
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IAuthenticationService, SimpleAuthenticationService>();
+builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddSingleton<ISyncJobService, SyncJobService>(); // NEUE SERVICE
 builder.Services.AddSingleton<IBatchRestoreService, BatchRestoreService>();
 builder.Services.AddSingleton<IMBoxImportService, MBoxImportService>();
@@ -78,10 +123,52 @@ using (var scope = app.Services.CreateScope())
     try
     {
         var context = services.GetRequiredService<MailArchiverDbContext>();
-        context.Database.EnsureCreated();
+        try
+        {
+            // Ensure __EFMigrationsHistory table exists before running migrations
+            await EnsureMigrationsHistoryTableExists(context, services);
+            
+            // Now run migrations
+            context.Database.Migrate();
+        }
+        catch (Exception ex)
+        {
+            // If migrations fail, it might be a completely new database
+            // In this case, ensure the database exists and then try migrations again
+            var logger = services.GetRequiredService<ILogger<Program>>();
+            logger.LogWarning(ex, "Migration failed, attempting to create database structure");
+            
+            // Ensure database exists
+            context.Database.EnsureCreated();
+            
+            // Ensure __EFMigrationsHistory table exists before running migrations again
+            await EnsureMigrationsHistoryTableExists(context, services);
+            
+            // Try migrations again
+            context.Database.Migrate();
+        }
         context.Database.ExecuteSqlRaw("CREATE EXTENSION IF NOT EXISTS citext;");
-        var logger = services.GetRequiredService<ILogger<Program>>();
-        logger.LogInformation("Datenbank wurde initialisiert");
+
+        // Create admin user if it doesn't exist
+        var authOptions = services.GetRequiredService<IOptions<AuthenticationOptions>>().Value;
+        if (authOptions.Enabled)
+        {
+            var userService = services.GetRequiredService<IUserService>();
+            var adminUser = await userService.GetUserByUsernameAsync(authOptions.Username);
+            if (adminUser == null)
+            {
+                adminUser = await userService.CreateUserAsync(
+                    authOptions.Username,
+                    "admin@local",
+                    authOptions.Password,
+                    true);
+                var userLogger = services.GetRequiredService<ILogger<Program>>();
+                userLogger.LogInformation("Admin user created: {Username}", authOptions.Username);
+            }
+        }
+
+        var initLogger = services.GetRequiredService<ILogger<Program>>();
+        initLogger.LogInformation("Datenbank wurde initialisiert");
     }
     catch (Exception ex)
     {

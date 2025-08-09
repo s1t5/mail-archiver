@@ -8,6 +8,8 @@ namespace MailArchiver.Data
         public DbSet<MailAccount> MailAccounts { get; set; }
         public DbSet<ArchivedEmail> ArchivedEmails { get; set; }
         public DbSet<EmailAttachment> EmailAttachments { get; set; }
+        public DbSet<User> Users { get; set; }
+        public DbSet<UserMailAccount> UserMailAccounts { get; set; }
 
         public MailArchiverDbContext(DbContextOptions<MailArchiverDbContext> options)
             : base(options)
@@ -93,6 +95,40 @@ namespace MailArchiver.Data
             modelBuilder.Entity<EmailAttachment>()
                 .Property(a => a.ContentType)
                 .HasColumnType("text");
+            
+            // User entity configuration
+            modelBuilder.Entity<User>()
+                .HasIndex(u => u.Username)
+                .IsUnique();
+                
+            modelBuilder.Entity<User>()
+                .HasIndex(u => u.Email)
+                .IsUnique();
+                
+            modelBuilder.Entity<User>()
+                .Property(u => u.Username)
+                .HasMaxLength(50);
+                
+            modelBuilder.Entity<User>()
+                .Property(u => u.Email)
+                .HasMaxLength(100);
+                
+            // UserMailAccount entity configuration
+            modelBuilder.Entity<UserMailAccount>()
+                .HasIndex(uma => new { uma.UserId, uma.MailAccountId })
+                .IsUnique();
+                
+            modelBuilder.Entity<UserMailAccount>()
+                .HasOne(uma => uma.User)
+                .WithMany(u => u.UserMailAccounts)
+                .HasForeignKey(uma => uma.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+                
+            modelBuilder.Entity<UserMailAccount>()
+                .HasOne(uma => uma.MailAccount)
+                .WithMany(ma => ma.UserMailAccounts)
+                .HasForeignKey(uma => uma.MailAccountId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

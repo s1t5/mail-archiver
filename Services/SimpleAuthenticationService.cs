@@ -8,11 +8,16 @@ namespace MailArchiver.Services
     public class SimpleAuthenticationService : IAuthenticationService
     {
         private readonly AuthenticationOptions _authOptions;
+        private readonly IUserService _userService;
         private readonly ILogger<SimpleAuthenticationService> _logger;
 
-        public SimpleAuthenticationService(IOptions<AuthenticationOptions> authOptions, ILogger<SimpleAuthenticationService> logger)
+        public SimpleAuthenticationService(
+            IOptions<AuthenticationOptions> authOptions, 
+            IUserService userService,
+            ILogger<SimpleAuthenticationService> logger)
         {
             _authOptions = authOptions.Value;
+            _userService = userService;
             _logger = logger;
         }
 
@@ -26,13 +31,15 @@ namespace MailArchiver.Services
             if (!_authOptions.Enabled)
                 return true;
 
+            // First try the legacy admin user
             var isValid = string.Equals(username, _authOptions.Username, StringComparison.OrdinalIgnoreCase) &&
                          string.Equals(password, _authOptions.Password, StringComparison.Ordinal);
 
-            _logger.LogInformation("Authentication attempt for user '{Username}': {Result}", 
-                username, isValid ? "Success" : "Failed");
+            if (isValid)
+                return true;
 
-            return isValid;
+            // Then try the new user system
+            return _userService.AuthenticateUserAsync(username, password).Result;
         }
 
         public void SignIn(HttpContext context, string username)
@@ -88,6 +95,31 @@ namespace MailArchiver.Services
                 return "System";
 
             return context.Session.GetString("Username") ?? "Unknown";
+        }
+
+        public bool IsCurrentUserAdmin(HttpContext context)
+        {
+            if (!_authOptions.Enabled)
+            {
+                _logger.LogDebug("Authentication not enabled, returning admin");
+                return true;
+            }
+
+            var username = GetCurrentUser(context);
+            _logger.LogDebug("Checking if user '{Username}' is admin", username);
+            
+            // Check if it's the legacy admin user from appsettings
+            if (string.Equals(username, _authOptions.Username, StringComparison.OrdinalIgnoreCase))
+            {
+                _logger.LogDebug("User '{Username}' is legacy admin user", username);
+                return true;
+            }
+
+            // Check if it's a database user with admin privileges
+            var user = _userService.GetUserByUsernameAsync(username).Result;
+            var isAdmin = user?.IsAdmin ?? false;
+            _logger.LogDebug("User '{Username}' database admin status: {IsAdmin}", username, isAdmin);
+            return isAdmin;
         }
 
         private string GenerateSecureToken(string username)

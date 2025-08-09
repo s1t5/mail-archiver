@@ -70,6 +70,12 @@ namespace MailArchiver.Controllers
             _authService.SignOut(HttpContext);
             return RedirectToAction("Login");
         }
+        
+        [HttpGet]
+        public IActionResult AccessDenied()
+        {
+            return View();
+        }
 
         private IActionResult RedirectToLocal(string returnUrl)
         {

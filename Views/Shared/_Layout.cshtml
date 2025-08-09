@@ -1,4 +1,7 @@
-﻿<!DOCTYPE html>
+﻿@using MailArchiver.Services
+@inject IAuthenticationService AuthService
+
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -31,44 +34,56 @@
                                 <i class="bi bi-speedometer2 me-1"></i>Dashboard
                             </a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link @(ViewContext.RouteData.Values["Controller"].ToString() == "MailAccounts" ? "active" : "")"
-                                asp-controller="MailAccounts" asp-action="Index">
-                                <i class="bi bi-person me-1"></i>Accounts
-                            </a>
-                        </li>
-                        <li class="nav-item">
+                        <li class="nav-item"></li>
                             <a class="nav-link @(ViewContext.RouteData.Values["Controller"].ToString() == "Emails" && (ViewContext.RouteData.Values["Action"].ToString() == "Index" || ViewContext.RouteData.Values["Action"].ToString() == "Details") ? "active" : "")"
                                 asp-controller="Emails" asp-action="Index">
                                 <i class="bi bi-archive me-1"></i>Archive
                             </a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link @(ViewContext.RouteData.Values["Controller"].ToString() == "Emails" && ViewContext.RouteData.Values["Action"].ToString().Contains("BatchRestore") ? "active" : "")"
-                                asp-controller="Emails" asp-action="Jobs">
-                                <i class="bi bi-clock-history me-1"></i>
-                                Jobs
-                                @{
-                                    try
-                                    {
-                                        var batchService =
-                                        Context.RequestServices.GetService<MailArchiver.Services.IBatchRestoreService>();
-                                        if (batchService != null)
+                        @if (AuthService.IsCurrentUserAdmin(Context))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link @(ViewContext.RouteData.Values["Controller"].ToString() == "MailAccounts" ? "active" : "")"
+                                    asp-controller="MailAccounts" asp-action="Index">
+                                    <i class="bi bi-envelope-at me-1"></i>Mail Accounts
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link @(ViewContext.RouteData.Values["Controller"].ToString() == "Users" ? "active" : "")"
+                                    asp-controller="Users" asp-action="Index">
+                                    <i class="bi bi-people me-1"></i>Users
+                                </a>
+                            </li>
+                        }
+                        @if (AuthService.IsCurrentUserAdmin(Context))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link @(ViewContext.RouteData.Values["Controller"].ToString() == "Emails" && ViewContext.RouteData.Values["Action"].ToString().Contains("BatchRestore") ? "active" : "")"
+                                    asp-controller="Emails" asp-action="Jobs">
+                                    <i class="bi bi-clock-history me-1"></i>
+                                    Jobs
+                                    @{
+                                        try
                                         {
-                                            var activeJobs = batchService.GetActiveJobs();
-                                            if (activeJobs.Count > 0)
+                                            var batchService =
+                                            Context.RequestServices.GetService<MailArchiver.Services.IBatchRestoreService>();
+                                            if (batchService != null)
                                             {
-                                                <span class="badge bg-danger rounded-pill ms-1">@activeJobs.Count</span>
+                                                var activeJobs = batchService.GetActiveJobs();
+                                                if (activeJobs.Count > 0)
+                                                {
+                                                    <span class="badge bg-danger rounded-pill ms-1">@activeJobs.Count</span>
+                                                }
                                             }
                                         }
+                                        catch
+                                        {
+                                            // Ignore if service not available
+                                        }
                                     }
-                                    catch
-                                    {
-                                        // Ignore if service not available
-                                    }
-                                }
-                            </a>
-                        </li>
+                                </a>
+                            </li>
+                        }
                     </ul>
                     <div class="d-flex align-items-center">
                         <span class="navbar-text me-3 d-none d-lg-inline">
@@ -103,7 +118,7 @@
         <div class="container-fluid">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
-                    <span>@DateTime.Now.Year - s1t5 | MailArchiver vDev</span>
+                    <span>@DateTime.Now.Year - s1t5 | Mail-Archiver v2508.2</span>
                 </div>
                 <div>
                     <a href="https://github.com/s1t5/mail-archiver" class="text-muted text-decoration-none"

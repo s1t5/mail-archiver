@@ -34,6 +34,12 @@ packages/
 *.log
 /Diagnostics/
 
+## Notes
+*_README.md
+
+## Git
+.gitignore
+
 # Visual Studio Profiler und Trace
 *.psess
 *.vsp

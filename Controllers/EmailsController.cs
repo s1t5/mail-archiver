@@ -1,3 +1,4 @@
+using MailArchiver.Attributes;
 using MailArchiver.Data;
 using MailArchiver.Models;
 using MailArchiver.Models.ViewModels;
@@ -11,6 +12,7 @@ using System.Web;
 
 namespace MailArchiver.Controllers
 {
+    [UserAccessRequired]
     public class EmailsController : Controller
     {
         private readonly MailArchiverDbContext _context;
@@ -50,12 +52,52 @@ namespace MailArchiver.Controllers
             // Store search state for return navigation
             StoreSearchState(model);
 
-            // Konten für die Dropdown-Liste laden
-            var accounts = await _context.MailAccounts.ToListAsync();
+            // Get current user's allowed accounts
+            List<int> allowedAccountIds = null;
+            var authService = HttpContext.RequestServices.GetService<IAuthenticationService>();
+            var userService = HttpContext.RequestServices.GetService<IUserService>();
+            
+            if (authService != null && userService != null && !authService.IsCurrentUserAdmin(HttpContext))
+            {
+                var username = authService.GetCurrentUser(HttpContext);
+                var user = await userService.GetUserByUsernameAsync(username);
+                if (user != null)
+                {
+                    var userAccounts = await userService.GetUserMailAccountsAsync(user.Id);
+                    allowedAccountIds = userAccounts.Select(a => a.Id).ToList();
+                    
+                    // Log for debugging
+                    _logger.LogInformation("User {Username} has access to {Count} accounts: {AccountIds}", 
+                        username, allowedAccountIds.Count, string.Join(", ", allowedAccountIds));
+                }
+                else
+                {
+                    // If user not found, set empty list to prevent access to any emails
+                    allowedAccountIds = new List<int>();
+                    _logger.LogWarning("User {Username} not found in database", username);
+                }
+            }
+
+            // Konten für die Dropdown-Liste laden (nur erlaubte Konten für Nicht-Admins)
+            var accountsQuery = _context.MailAccounts.AsQueryable();
+            if (allowedAccountIds != null)
+            {
+                if (allowedAccountIds.Any())
+                {
+                    accountsQuery = accountsQuery.Where(a => allowedAccountIds.Contains(a.Id));
+                }
+                else
+                {
+                    // User has no access to any accounts, return empty list
+                    accountsQuery = accountsQuery.Where(a => false);
+                }
+            }
+            var accounts = await accountsQuery.ToListAsync();
+            
             model.AccountOptions = new List<SelectListItem>
-    {
-        new SelectListItem { Text = "All Accounts", Value = "" }
-    };
+            {
+                new SelectListItem { Text = "All Accounts", Value = "" }
+            };
             model.AccountOptions.AddRange(accounts.Select(a =>
                 new SelectListItem
                 {
@@ -67,15 +109,20 @@ namespace MailArchiver.Controllers
             // Berechnen der Anzahl zu überspringender Elemente für die Paginierung
             int skip = (model.PageNumber - 1) * model.PageSize;
 
+            // For non-admin users, we need to ensure they only see emails from their assigned accounts
+            // If they haven't selected a specific account, we still need to filter by their allowed accounts
+            int? accountIdForSearch = model.SelectedAccountId;
+            
             // Suche durchführen
             var (emails, totalCount) = await _emailService.SearchEmailsAsync(
                 model.SearchTerm,
                 model.FromDate,
                 model.ToDate,
-                model.SelectedAccountId,
+                accountIdForSearch,
                 model.IsOutgoing,
                 skip,
-                model.PageSize);
+                model.PageSize,
+                allowedAccountIds);
 
             model.SearchResults = emails;
             model.TotalResults = totalCount;
@@ -99,8 +146,11 @@ namespace MailArchiver.Controllers
         }
 
         // GET: Emails/Details/5
+        [EmailAccessRequired]
         public async Task<IActionResult> Details(int id, string returnUrl = null)
         {
+            _logger.LogInformation("User requesting details for email ID: {EmailId}", id);
+            
             var email = await _context.ArchivedEmails
                 .Include(e => e.MailAccount)
                 .Include(e => e.Attachments)
@@ -108,8 +158,12 @@ namespace MailArchiver.Controllers
 
             if (email == null)
             {
+                _logger.LogWarning("Email with ID {EmailId} not found", id);
                 return NotFound();
             }
+
+            _logger.LogInformation("Found email with ID {EmailId} from account {AccountId}", 
+                id, email.MailAccountId);
 
             var model = new EmailDetailViewModel
             {
@@ -187,9 +241,11 @@ namespace MailArchiver.Controllers
         }
 
         // GET: Emails/Attachment/5/1
+        [EmailAccessRequired]
         public async Task<IActionResult> Attachment(int emailId, int attachmentId)
         {
             var attachment = await _context.EmailAttachments
+                .Include(a => a.ArchivedEmail)
                 .FirstOrDefaultAsync(a => a.Id == attachmentId && a.ArchivedEmailId == emailId);
 
             if (attachment == null)
@@ -201,6 +257,7 @@ namespace MailArchiver.Controllers
         }
 
         // GET: Emails/Export/5
+        [EmailAccessRequired]
         public async Task<IActionResult> Export(int id, ExportFormat format = ExportFormat.Eml)
         {
             var email = await _context.ArchivedEmails
@@ -213,6 +270,29 @@ namespace MailArchiver.Controllers
                 return NotFound();
             }
 
+            // Get current user's allowed accounts for filtering
+            List<int> allowedAccountIds = null;
+            var authService = HttpContext.RequestServices.GetService<IAuthenticationService>();
+            var userService = HttpContext.RequestServices.GetService<IUserService>();
+            
+            if (authService != null && userService != null && !authService.IsCurrentUserAdmin(HttpContext))
+            {
+                var username = authService.GetCurrentUser(HttpContext);
+                var user = await userService.GetUserByUsernameAsync(username);
+                if (user != null)
+                {
+                    var userAccounts = await userService.GetUserMailAccountsAsync(user.Id);
+                    allowedAccountIds = userAccounts.Select(a => a.Id).ToList();
+                }
+            }
+
+            // Check if user has access to this email's account
+            if (allowedAccountIds != null && allowedAccountIds.Any() && !allowedAccountIds.Contains(email.MailAccountId))
+            {
+                TempData["ErrorMessage"] = "You do not have access to this email.";
+                return RedirectToAction("Index");
+            }
+
             try
             {
                 var exportParams = new ExportViewModel
@@ -221,7 +301,7 @@ namespace MailArchiver.Controllers
                     EmailId = id
                 };
 
-                var fileBytes = await _emailService.ExportEmailsAsync(exportParams);
+                var fileBytes = await _emailService.ExportEmailsAsync(exportParams, allowedAccountIds);
 
                 string contentType;
                 string fileName;
@@ -259,6 +339,7 @@ namespace MailArchiver.Controllers
 
         // GET: Emails/Restore/5
         [HttpGet]
+        [EmailAccessRequired]
         public async Task<IActionResult> Restore(int id)
         {
             var email = await _context.ArchivedEmails
@@ -1021,34 +1102,97 @@ namespace MailArchiver.Controllers
                 return RedirectToAction("Index");
             }
 
+            // Get current user's allowed accounts for filtering
+            List<int> allowedAccountIds = null;
+            var authService = HttpContext.RequestServices.GetService<IAuthenticationService>();
+            var userService = HttpContext.RequestServices.GetService<IUserService>();
+            
+            if (authService != null && userService != null && !authService.IsCurrentUserAdmin(HttpContext))
+            {
+                var username = authService.GetCurrentUser(HttpContext);
+                var user = await userService.GetUserByUsernameAsync(username);
+                if (user != null)
+                {
+                    var userAccounts = await userService.GetUserMailAccountsAsync(user.Id);
+                    allowedAccountIds = userAccounts.Select(a => a.Id).ToList();
+                }
+            }
+
+            // Update the model with allowed account filtering
+            if (allowedAccountIds != null && allowedAccountIds.Any())
+            {
+                // If user has selected a specific account, ensure they have access to it
+                if (model.SelectedAccountId.HasValue && !allowedAccountIds.Contains(model.SelectedAccountId.Value))
+                {
+                    TempData["ErrorMessage"] = "You do not have access to the selected account.";
+                    return RedirectToAction("Index");
+                }
+                
+                // If no account is selected, we'll filter by allowed accounts in the search
+                if (!model.SelectedAccountId.HasValue)
+                {
+                    // We'll handle this in the email service by passing allowedAccountIds
+                }
+            }
+
             try
             {
-                var fileBytes = await _emailService.ExportEmailsAsync(model);
-
-                string contentType;
-                string fileName;
-                switch (model.Format)
+                // For single email export, we don't need to filter by accounts
+                if (model.EmailId.HasValue)
                 {
-                    case ExportFormat.Csv:
-                        contentType = "text/csv";
-                        fileName = $"emails-export-{DateTime.Now:yyyyMMdd-HHmmss}.csv";
-                        break;
-                    case ExportFormat.Json:
-                        contentType = "application/json";
-                        fileName = $"emails-export-{DateTime.Now:yyyyMMdd-HHmmss}.json";
-                        break;
-                    case ExportFormat.Eml:
-                        contentType = "message/rfc822";
-                        fileName = $"email-{DateTime.Now:yyyyMMdd-HHmmss}.eml";
-                        break;
-                    default:
-                        contentType = "application/octet-stream";
-                        fileName = $"export-{DateTime.Now:yyyyMMdd-HHmmss}.dat";
-                        break;
-                }
+                    var fileBytes = await _emailService.ExportEmailsAsync(model, allowedAccountIds);
+                    
+                    string contentType;
+                    string fileName;
+                    switch (model.Format)
+                    {
+                        case ExportFormat.Csv:
+                            contentType = "text/csv";
+                            fileName = $"emails-export-{DateTime.Now:yyyyMMdd-HHmmss}.csv";
+                            break;
+                        case ExportFormat.Json:
+                            contentType = "application/json";
+                            fileName = $"emails-export-{DateTime.Now:yyyyMMdd-HHmmss}.json";
+                            break;
+                        case ExportFormat.Eml:
+                            contentType = "message/rfc822";
+                            fileName = $"email-{DateTime.Now:yyyyMMdd-HHmmss}.eml";
+                            break;
+                        default:
+                            contentType = "application/octet-stream";
+                            fileName = $"export-{DateTime.Now:yyyyMMdd-HHmmss}.dat";
+                            break;
+                    }
 
-                Response.Headers.Add("Content-Disposition", $"attachment; filename=\"{fileName}\"");
-                return File(fileBytes, contentType, fileName);
+                    Response.Headers.Add("Content-Disposition", $"attachment; filename=\"{fileName}\"");
+                    return File(fileBytes, contentType, fileName);
+                }
+                else
+                {
+                    // For search results export, we need to ensure proper filtering
+                    var fileBytes = await _emailService.ExportEmailsAsync(model, allowedAccountIds);
+
+                    string contentType;
+                    string fileName;
+                    switch (model.Format)
+                    {
+                        case ExportFormat.Csv:
+                            contentType = "text/csv";
+                            fileName = $"emails-export-{DateTime.Now:yyyyMMdd-HHmmss}.csv";
+                            break;
+                        case ExportFormat.Json:
+                            contentType = "application/json";
+                            fileName = $"emails-export-{DateTime.Now:yyyyMMdd-HHmmss}.json";
+                            break;
+                        default:
+                            contentType = "application/octet-stream";
+                            fileName = $"export-{DateTime.Now:yyyyMMdd-HHmmss}.dat";
+                            break;
+                    }
+
+                    Response.Headers.Add("Content-Disposition", $"attachment; filename=\"{fileName}\"");
+                    return File(fileBytes, contentType, fileName);
+                }
             }
             catch (Exception ex)
             {
@@ -1059,6 +1203,7 @@ namespace MailArchiver.Controllers
         }
 
         // GET: Emails/RawContent/5
+        [EmailAccessRequired]
         public async Task<IActionResult> RawContent(int id)
         {
             var email = await _context.ArchivedEmails
