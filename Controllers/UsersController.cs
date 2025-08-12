@@ -256,11 +256,15 @@ namespace MailArchiver.Controllers
                     return RedirectToAction(nameof(Index));
                 }
 
-                // Prevent deleting the admin user
-                if (user.IsAdmin && user.Username == "admin")
+                // Prevent deleting the last admin user
+                if (user.IsAdmin)
                 {
-                    TempData["ErrorMessage"] = "Cannot delete the main admin user.";
-                    return RedirectToAction(nameof(Index));
+                    var adminCount = await _userService.GetAdminCountAsync();
+                    if (adminCount <= 1)
+                    {
+                        TempData["ErrorMessage"] = "Cannot delete the last admin user. At least one admin must exist.";
+                        return RedirectToAction(nameof(Index));
+                    }
                 }
 
                 var result = await _userService.DeleteUserAsync(id);
@@ -465,11 +469,15 @@ namespace MailArchiver.Controllers
                     return RedirectToAction(nameof(Index));
                 }
 
-                // Prevent disabling the admin user
-                if (user.IsAdmin && user.Username == "admin")
+                // Prevent disabling the last admin user
+                if (user.IsAdmin && user.IsActive)
                 {
-                    TempData["ErrorMessage"] = "Cannot disable the main admin user.";
-                    return RedirectToAction(nameof(Index));
+                    var adminCount = await _userService.GetAdminCountAsync();
+                    if (adminCount <= 1)
+                    {
+                        TempData["ErrorMessage"] = "Cannot disable the last admin user. At least one admin must exist.";
+                        return RedirectToAction(nameof(Index));
+                    }
                 }
 
                 var result = await _userService.SetUserActiveStatusAsync(id, !user.IsActive);

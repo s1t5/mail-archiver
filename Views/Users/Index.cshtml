@@ -6,9 +6,10 @@
 
 <div class="container-fluid">
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h1>Users</h1>
-        <a asp-action="Create" class="btn btn-primary">
-            <i class="bi bi-plus-circle"></i> Create New User
+        <h1 class="h3">Users</h1>
+        <a asp-action="Create" class="btn btn-primary btn-sm">
+            <i class="bi bi-plus-circle"></i>
+            <span class="d-none d-sm-inline">Create New User</span>
         </a>
     </div>
 
@@ -28,11 +29,12 @@
         </div>
     }
 
-    <div class="card">
+    @* Desktop Tabelle - ERST ab großen Bildschirmen *@
+    <div class="card d-none d-lg-block">
         <div class="card-body">
             <div class="table-responsive">
-                <table class="table table-hover">
-                    <thead>
+                <table class="table table-striped table-hover">
+                    <thead class="table-dark">
                         <tr>
                             <th>Username</th>
                             <th>Email</th>
@@ -40,7 +42,7 @@
                             <th>Status</th>
                             <th>Created</th>
                             <th>Last Login</th>
-                            <th>Actions</th>
+                            <th class="text-center">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -76,30 +78,30 @@
                                     @(item.LastLoginAt?.ToString("yyyy-MM-dd HH:mm") ?? "Never")
                                 </td>
                                 <td>
-                                    <div class="btn-group btn-group-sm" role="group">
-                                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-outline-primary">
-                                            <i class="bi bi-pencil"></i> Edit
+                                    <div class="d-flex justify-content-center align-items-center gap-1">
+                                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-outline-primary btn-sm d-flex align-items-center">
+                                            <i class="bi bi-pencil"></i>
+                                            <span class="ms-1">Edit</span>
                                         </a>
-                                        <a asp-action="AssignAccounts" asp-route-id="@item.Id" class="btn btn-outline-info">
-                                            <i class="bi bi-envelope"></i> Assign Accounts
+                                        <a asp-action="AssignAccounts" asp-route-id="@item.Id" class="btn btn-outline-info btn-sm d-flex align-items-center">
+                                            <i class="bi bi-envelope"></i>
+                                            <span class="ms-1">Assign</span>
                                         </a>
-                                        @if (item.Username != "admin")
-                                        {
-                                            <form asp-action="ToggleActive" asp-route-id="@item.Id" method="post" class="d-inline">
-                                                @Html.AntiForgeryToken()
-                                                <button type="submit" class="btn btn-outline-@(item.IsActive ? "warning" : "success")">
-                                                    <i class="bi bi-@(item.IsActive ? "slash-circle" : "check-circle")"></i>
-                                                    @(item.IsActive ? "Disable" : "Enable")
-                                                </button>
-                                            </form>
-                                            <form asp-action="Delete" asp-route-id="@item.Id" method="post" class="d-inline" 
-                                                  onsubmit="return confirm('Are you sure you want to delete user @item.Username? This action cannot be undone.')">
-                                                @Html.AntiForgeryToken()
-                                                <button type="submit" class="btn btn-outline-danger">
-                                                    <i class="bi bi-trash"></i> Delete
-                                                </button>
-                                            </form>
-                                        }
+                                        <form asp-action="ToggleActive" asp-route-id="@item.Id" method="post" class="d-inline">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="btn btn-outline-@(item.IsActive ? "warning" : "success") btn-sm d-flex align-items-center">
+                                                <i class="bi bi-@(item.IsActive ? "slash-circle" : "check-circle")"></i>
+                                                <span class="ms-1">@(item.IsActive ? "Disable" : "Enable")</span>
+                                            </button>
+                                        </form>
+                                        <form asp-action="Delete" asp-route-id="@item.Id" method="post" class="d-inline" 
+                                              onsubmit="return confirm('Are you sure you want to delete user @item.Username? This action cannot be undone.')">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="btn btn-outline-danger btn-sm d-flex align-items-center">
+                                                <i class="bi bi-trash"></i>
+                                                <span class="ms-1">Delete</span>
+                                            </button>
+                                        </form>
                                     </div>
                                 </td>
                             </tr>
@@ -108,5 +110,102 @@
                 </table>
             </div>
         </div>
+    </div>
+
+    @* Mobile/Tablet Cards - bis große Bildschirme *@
+    <div class="d-lg-none">
+        @foreach (var item in Model)
+        {
+            <div class="card mb-3">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <h6 class="card-title mb-0">@item.Username</h6>
+                        @if (item.IsActive)
+                        {
+                            <span class="badge bg-success">Active</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-danger">Inactive</span>
+                        }
+                    </div>
+                    <p class="card-text small text-muted mb-2">@item.Email</p>
+                    <p class="card-text small mb-3">
+                        <strong>Role:</strong>
+                        @if (item.IsAdmin)
+                        {
+                            <span class="badge bg-primary">Admin</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-secondary">User</span>
+                        }
+                    </p>
+                    <p class="card-text small mb-2">
+                        <strong>Created:</strong> @item.CreatedAt.ToString("yyyy-MM-dd")
+                    </p>
+                    <p class="card-text small mb-3">
+                        <strong>Last Login:</strong> @(item.LastLoginAt?.ToString("yyyy-MM-dd HH:mm") ?? "Never")
+                    </p>
+                    @* Mobile/Tablet Button Layout *@
+                    <div class="d-grid gap-2">
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-outline-primary btn-sm w-100">
+                                    <i class="bi bi-pencil"></i> Edit
+                                </a>
+                            </div>
+                            <div class="col-6">
+                                <a asp-action="AssignAccounts" asp-route-id="@item.Id" class="btn btn-outline-info btn-sm w-100">
+                                    <i class="bi bi-envelope"></i> Assign
+                                </a>
+                            </div>
+                        </div>
+                        <div class="row g-2">
+                            <div class="col">
+                                <form asp-action="ToggleActive" asp-route-id="@item.Id" method="post" class="w-100">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-outline-@(item.IsActive ? "warning" : "success") btn-sm w-100">
+                                        <i class="bi bi-@(item.IsActive ? "slash-circle" : "check-circle")"></i>
+                                        @(item.IsActive ? "Disable" : "Enable")
+                                    </button>
+                                </form>
+                            </div>
+                            <div class="col">
+                                <form asp-action="Delete" asp-route-id="@item.Id" method="post" class="w-100"
+                                      onsubmit="return confirm('Are you sure you want to delete user @item.Username? This action cannot be undone.')">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-outline-danger btn-sm w-100">
+                                        <i class="bi bi-trash"></i> Delete
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-12">
+                                <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-outline-info btn-sm w-100">
+                                    <i class="bi bi-eye"></i> Details
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+        @if (!Model.Any())
+        {
+            <div class="text-center py-5">
+                <div class="mb-3">
+                    <i class="bi bi-person-x display-1 text-muted"></i>
+                </div>
+                <h5 class="text-muted">No users found</h5>
+                <p class="text-muted">Add your first user to start managing access to the mail archive.</p>
+                <div class="d-grid gap-2 d-md-flex justify-content-center">
+                    <a asp-action="Create" class="btn btn-primary">
+                        <i class="bi bi-plus-circle"></i> Create New User
+                    </a>
+                </div>
+            </div>
+        }
     </div>
 </div>
