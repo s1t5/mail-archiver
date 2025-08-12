@@ -87,10 +87,10 @@ services:
 
       # Npgsql Settings
       - Npgsql__CommandTimeout=600
-
     ports:
       - "5000:5000"
-
+    networks:
+      - postgres
     depends_on:
       postgres:
         condition: service_healthy
@@ -105,14 +105,17 @@ services:
       POSTGRES_PASSWORD: masterkey
     volumes:
       - ./postgres-data:/var/lib/postgresql/data
-    ports:
-      - "5432"
+    networks:
+      - postgres
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U mailuser -d MailArchiver"]
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 10s
+
+networks:
+  postgres:
 ```
 
 3. Edit the database configuration in the `docker-compose.yml` and set a secure password in the `POSTGRES_PASSWORD` variable and the `ConnectionString`.
