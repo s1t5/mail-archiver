@@ -1,5 +1,6 @@
 @using MailArchiver.Services
 @inject IAuthenticationService AuthService
+@inject IUserService UserService
 
 @if (AuthService.IsAuthenticationRequired())
 {
@@ -15,6 +16,11 @@
                 </h6>
             </li>
             <li><hr class="dropdown-divider"></li>
+            <li>
+                <a asp-controller="Users" asp-action="ChangePassword" class="dropdown-item">
+                    <i class="bi bi-key me-2"></i>Change Password
+                </a>
+            </li>
             <li>
                 <form asp-controller="Auth" asp-action="Logout" method="post" class="d-inline">
                     <button type="submit" class="dropdown-item">

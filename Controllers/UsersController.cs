@@ -8,21 +8,23 @@ using Microsoft.EntityFrameworkCore;
 
 namespace MailArchiver.Controllers
 {
-    [AdminRequired]
     public class UsersController : Controller
     {
         private readonly IUserService _userService;
         private readonly MailArchiverDbContext _context;
         private readonly ILogger<UsersController> _logger;
+        private readonly IAuthenticationService _authService;
 
-        public UsersController(IUserService userService, MailArchiverDbContext context, ILogger<UsersController> logger)
+        public UsersController(IUserService userService, MailArchiverDbContext context, ILogger<UsersController> logger, IAuthenticationService authService)
         {
             _userService = userService;
             _context = context;
             _logger = logger;
+            _authService = authService;
         }
 
         // GET: Users
+        [AdminRequired]
         public async Task<IActionResult> Index()
         {
             var users = await _userService.GetAllUsersAsync();
@@ -30,6 +32,7 @@ namespace MailArchiver.Controllers
         }
 
         // GET: Users/Details/5
+        [AdminRequired]
         public async Task<IActionResult> Details(int id)
         {
             var user = await _userService.GetUserByIdAsync(id);
@@ -46,6 +49,7 @@ namespace MailArchiver.Controllers
         }
 
         // GET: Users/Create
+        [AdminRequired]
         public IActionResult Create()
         {
             return View(new CreateUserViewModel());
@@ -54,6 +58,7 @@ namespace MailArchiver.Controllers
         // POST: Users/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [AdminRequired]
         public async Task<IActionResult> Create(CreateUserViewModel model, string password)
         {
             _logger.LogInformation("Create user called with Username: {Username}, Email: {Email}, Password length: {PasswordLength}", 
@@ -117,6 +122,7 @@ namespace MailArchiver.Controllers
         }
 
         // GET: Users/Edit/5
+        [AdminRequired]
         public async Task<IActionResult> Edit(int id)
         {
             var user = await _userService.GetUserByIdAsync(id);
@@ -131,6 +137,7 @@ namespace MailArchiver.Controllers
         // POST: Users/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [AdminRequired]
         public async Task<IActionResult> Edit(int id, User user, string? newPassword)
         {
             _logger.LogInformation("Edit POST called with id: {Id}, user: {User}, newPassword length: {PasswordLength}", 
@@ -237,6 +244,7 @@ namespace MailArchiver.Controllers
         // POST: Users/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
+        [AdminRequired]
         public async Task<IActionResult> Delete(int id)
         {
             try
@@ -275,6 +283,7 @@ namespace MailArchiver.Controllers
         }
 
         // GET: Users/AssignAccounts/5
+        [AdminRequired]
         public async Task<IActionResult> AssignAccounts(int id)
         {
             var user = await _userService.GetUserByIdAsync(id);
@@ -304,6 +313,7 @@ namespace MailArchiver.Controllers
         // POST: Users/AssignAccounts/5
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [AdminRequired]
         public async Task<IActionResult> AssignAccounts(int id, int[] selectedAccountIds)
         {
             try
@@ -348,9 +358,102 @@ namespace MailArchiver.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        // GET: Users/ChangePassword
+        [HttpGet]
+        public async Task<IActionResult> ChangePassword()
+        {
+            // Get the current user's information
+            var currentUsername = _authService.GetCurrentUser(HttpContext);
+            var currentUser = await _userService.GetUserByUsernameAsync(currentUsername);
+            if (currentUser == null)
+            {
+                TempData["ErrorMessage"] = "User not found.";
+                return RedirectToAction("Index", "Home");
+            }
+
+            // For security reasons, we don't want to pass the full user object to the view
+            // Instead, we'll create a simple view model with just the username
+            ViewBag.Username = currentUser.Username;
+            return View();
+        }
+
+        // POST: Users/ChangePassword
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ChangePassword(string currentPassword, string newPassword, string confirmNewPassword)
+        {
+            // Get the current user's information
+            var currentUsername = _authService.GetCurrentUser(HttpContext);
+            var currentUser = await _userService.GetUserByUsernameAsync(currentUsername);
+            if (currentUser == null)
+            {
+                TempData["ErrorMessage"] = "User not found.";
+                return RedirectToAction("Index", "Home");
+            }
+
+            // Validate input
+            if (string.IsNullOrWhiteSpace(currentPassword))
+            {
+                ModelState.AddModelError("currentPassword", "Current password is required.");
+            }
+
+            if (string.IsNullOrWhiteSpace(newPassword))
+            {
+                ModelState.AddModelError("newPassword", "New password is required.");
+            }
+            else if (newPassword.Length < 6)
+            {
+                ModelState.AddModelError("newPassword", "Password must be at least 6 characters long.");
+            }
+            else if (newPassword != confirmNewPassword)
+            {
+                ModelState.AddModelError("confirmNewPassword", "New password and confirmation do not match.");
+            }
+
+            // If validation passes, check current password
+            if (ModelState.IsValid)
+            {
+                // Verify current password
+                var isCurrentPasswordValid = await _userService.AuthenticateUserAsync(currentUser.Username, currentPassword);
+                if (!isCurrentPasswordValid)
+                {
+                    ModelState.AddModelError("currentPassword", "Current password is incorrect.");
+                }
+                else
+                {
+                    // Update password
+                    try
+                    {
+                        currentUser.PasswordHash = _userService.HashPassword(newPassword);
+                        var result = await _userService.UpdateUserAsync(currentUser);
+                        
+                        if (result)
+                        {
+                            TempData["SuccessMessage"] = "Password changed successfully.";
+                            return RedirectToAction("Index", "Home");
+                        }
+                        else
+                        {
+                            ModelState.AddModelError("", "Failed to update password.");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Error updating password for user: {Username}", currentUser.Username);
+                        ModelState.AddModelError("", $"An error occurred: {ex.Message}");
+                    }
+                }
+            }
+
+            // If we get here, something went wrong
+            ViewBag.Username = currentUser.Username;
+            return View();
+        }
+
         // POST: Users/ToggleActive/5
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [AdminRequired]
         public async Task<IActionResult> ToggleActive(int id)
         {
             try
