@@ -131,20 +131,40 @@ namespace MailArchiver.Controllers
         // POST: Users/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, User user)
+        public async Task<IActionResult> Edit(int id, User user, string? newPassword)
         {
+            _logger.LogInformation("Edit POST called with id: {Id}, user: {User}, newPassword length: {PasswordLength}", 
+                id, user?.Username, newPassword?.Length ?? 0);
+
             if (id != user.Id)
             {
+                _logger.LogWarning("ID mismatch: route id {RouteId} != user.Id {UserId}", id, user?.Id);
                 return NotFound();
+            }
+
+            // Validate new password if provided
+            if (!string.IsNullOrWhiteSpace(newPassword) && newPassword.Length < 6)
+            {
+                _logger.LogWarning("New password too short: {Length}", newPassword.Length);
+                ModelState.AddModelError("newPassword", "Password must be at least 6 characters long.");
+            }
+
+            _logger.LogInformation("ModelState.IsValid: {IsValid}", ModelState.IsValid);
+            if (!ModelState.IsValid)
+            {
+                _logger.LogWarning("ModelState is invalid. Errors: {Errors}", 
+                    string.Join(", ", ModelState.SelectMany(x => x.Value.Errors.Select(e => $"{x.Key}: {e.ErrorMessage}"))));
             }
 
             if (ModelState.IsValid)
             {
                 try
                 {
+                    _logger.LogInformation("Attempting to get user with id: {Id}", id);
                     var existingUser = await _userService.GetUserByIdAsync(id);
                     if (existingUser == null)
                     {
+                        _logger.LogWarning("User not found with id: {Id}", id);
                         return NotFound();
                     }
 
@@ -154,25 +174,37 @@ namespace MailArchiver.Controllers
                         var adminCount = await _userService.GetAdminCountAsync();
                         if (adminCount <= 1)
                         {
+                            _logger.LogWarning("Cannot remove admin rights. At least one admin must exist.");
                             ModelState.AddModelError("IsAdmin", "Cannot remove admin rights. At least one admin must exist.");
                             return View(user);
                         }
                     }
 
                     // Update user properties
+                    _logger.LogInformation("Updating user properties for user: {Username}", existingUser.Username);
                     existingUser.Username = user.Username;
                     existingUser.Email = user.Email;
                     existingUser.IsAdmin = user.IsAdmin;
                     existingUser.IsActive = user.IsActive;
 
+                    // Update password if provided
+                    if (!string.IsNullOrWhiteSpace(newPassword))
+                    {
+                        _logger.LogInformation("Updating password for user: {Username}", existingUser.Username);
+                        existingUser.PasswordHash = _userService.HashPassword(newPassword);
+                    }
+
+                    _logger.LogInformation("Attempting to update user: {Username}", existingUser.Username);
                     var result = await _userService.UpdateUserAsync(existingUser);
                     if (result)
                     {
+                        _logger.LogInformation("User '{Username}' updated successfully.", existingUser.Username);
                         TempData["SuccessMessage"] = $"User '{existingUser.Username}' updated successfully.";
                         return RedirectToAction(nameof(Index));
                     }
                     else
                     {
+                        _logger.LogWarning("Failed to update user: {Username}", existingUser.Username);
                         ModelState.AddModelError("", "Failed to update user.");
                         return View(user);
                     }
@@ -183,6 +215,20 @@ namespace MailArchiver.Controllers
                     ModelState.AddModelError("", $"An error occurred: {ex.Message}");
                     return View(user);
                 }
+            }
+
+            // If we get here, something went wrong with validation or model binding
+            // Let's get the user again to ensure we have all the data for the view
+            _logger.LogInformation("Returning view with validation errors");
+            var currentUser = await _userService.GetUserByIdAsync(id);
+            if (currentUser != null)
+            {
+                // Preserve the values that the user entered in the form
+                currentUser.Username = user.Username;
+                currentUser.Email = user.Email;
+                currentUser.IsAdmin = user.IsAdmin;
+                currentUser.IsActive = user.IsActive;
+                return View(currentUser);
             }
 
             return View(user);

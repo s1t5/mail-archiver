@@ -14,11 +14,12 @@
 
     <div class="card">
         <div class="card-body">
-            <form asp-action="Edit">
+            <form asp-action="Edit" method="post">
                 <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
                 <input type="hidden" asp-for="Id" />
                 <input type="hidden" asp-for="PasswordHash" />
                 <input type="hidden" asp-for="CreatedAt" />
+                <input type="hidden" asp-for="LastLoginAt" />
                 
                 <div class="row">
                     <div class="col-md-6">
@@ -49,6 +50,15 @@
                         <div class="mb-3 form-check">
                             <input asp-for="IsActive" class="form-check-input" />
                             <label class="form-check-label">Active</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="newPassword" class="form-label">New Password</label>
+                            <input type="password" name="newPassword" id="newPassword" class="form-control" placeholder="Leave blank to keep current password" />
                         </div>
                     </div>
                 </div>

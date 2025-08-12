@@ -19,5 +19,6 @@ namespace MailArchiver.Services
         Task<bool> IsUserAdminAsync(int userId);
         Task<bool> IsUserAuthorizedForAccountAsync(int userId, int mailAccountId);
         Task<int> GetAdminCountAsync();
+        string HashPassword(string password);
     }
 }

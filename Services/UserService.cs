@@ -231,9 +231,7 @@ namespace MailArchiver.Services
             return await _context.Users.CountAsync(u => u.IsAdmin && u.IsActive);
         }
 
-        #region Password Hashing
-
-        private string HashPassword(string password)
+        public string HashPassword(string password)
         {
             using (var sha256 = SHA256.Create())
             {
@@ -241,6 +239,8 @@ namespace MailArchiver.Services
                 return Convert.ToBase64String(hashedBytes);
             }
         }
+
+        #region Password Hashing
 
         private bool VerifyPassword(string password, string hash)
         {
