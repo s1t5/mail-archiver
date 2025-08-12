@@ -1239,7 +1239,8 @@ namespace MailArchiver.Controllers
                 </html>";
             }
 
-            return Content(html, "text/html");
+            // Set proper content type with UTF-8 encoding to ensure correct character display
+            return Content(html, "text/html; charset=utf-8");
         }
 
         // Hilfsmethode zur Bereinigung von HTML für die sichere Darstellung
