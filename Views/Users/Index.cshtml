@@ -77,27 +77,42 @@
                                 <td>
                                     @(item.LastLoginAt?.ToString("yyyy-MM-dd HH:mm") ?? "Never")
                                 </td>
+
                                 <td>
                                     <div class="d-flex justify-content-center align-items-center gap-1">
-                                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-outline-primary btn-sm d-flex align-items-center">
+                                        <a asp-action="Details" asp-route-id="@item.Id"
+                                            class="btn btn-info btn-sm d-flex align-items-center">
+                                            <i class="bi bi-eye"></i>
+                                            <span class="ms-1">Details</span>
+                                        </a>
+
+                                        <a asp-action="Edit" asp-route-id="@item.Id"
+                                            class="btn btn-warning btn-sm d-flex align-items-center">
                                             <i class="bi bi-pencil"></i>
                                             <span class="ms-1">Edit</span>
                                         </a>
-                                        <a asp-action="AssignAccounts" asp-route-id="@item.Id" class="btn btn-outline-info btn-sm d-flex align-items-center">
+
+                                        <a asp-action="AssignAccounts" asp-route-id="@item.Id"
+                                            class="btn btn-primary btn-sm d-flex align-items-center">
                                             <i class="bi bi-envelope"></i>
                                             <span class="ms-1">Assign</span>
                                         </a>
-                                        <form asp-action="ToggleActive" asp-route-id="@item.Id" method="post" class="d-inline">
+
+                                        <form asp-action="ToggleActive" asp-route-id="@item.Id" method="post"
+                                            class="d-inline">
                                             @Html.AntiForgeryToken()
-                                            <button type="submit" class="btn btn-outline-@(item.IsActive ? "warning" : "success") btn-sm d-flex align-items-center">
+                                            <button type="submit"
+                                                class="btn @(item.IsActive ? "btn-outline-warning" : "btn-outline-success") btn-sm d-flex align-items-center">
                                                 <i class="bi bi-@(item.IsActive ? "slash-circle" : "check-circle")"></i>
                                                 <span class="ms-1">@(item.IsActive ? "Disable" : "Enable")</span>
                                             </button>
                                         </form>
-                                        <form asp-action="Delete" asp-route-id="@item.Id" method="post" class="d-inline" 
-                                              onsubmit="return confirm('Are you sure you want to delete user @item.Username? This action cannot be undone.')">
+
+                                        <form asp-action="Delete" asp-route-id="@item.Id" method="post"
+                                            class="d-inline"
+                                            onsubmit="return confirm('Are you sure you want to delete user @item.Username? This action cannot be undone.')">
                                             @Html.AntiForgeryToken()
-                                            <button type="submit" class="btn btn-outline-danger btn-sm d-flex align-items-center">
+                                            <button type="submit" class="btn btn-danger btn-sm d-flex align-items-center">
                                                 <i class="bi bi-trash"></i>
                                                 <span class="ms-1">Delete</span>
                                             </button>
@@ -151,18 +166,23 @@
                     <div class="d-grid gap-2">
                         <div class="row g-2">
                             <div class="col-6">
-                                <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-outline-primary btn-sm w-100">
-                                    <i class="bi bi-pencil"></i> Edit
+                                <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-outline-info btn-sm w-100">
+                                    <i class="bi bi-eye"></i> Details
                                 </a>
                             </div>
                             <div class="col-6">
-                                <a asp-action="AssignAccounts" asp-route-id="@item.Id" class="btn btn-outline-info btn-sm w-100">
-                                    <i class="bi bi-envelope"></i> Assign
+                                <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-outline-warning btn-sm w-100">
+                                    <i class="bi bi-pencil"></i> Edit
                                 </a>
                             </div>
                         </div>
                         <div class="row g-2">
-                            <div class="col">
+                            <div class="col-6">
+                                <a asp-action="AssignAccounts" asp-route-id="@item.Id" class="btn btn-outline-primary btn-sm w-100">
+                                    <i class="bi bi-envelope"></i> Assign
+                                </a>
+                            </div>
+                            <div class="col-6">
                                 <form asp-action="ToggleActive" asp-route-id="@item.Id" method="post" class="w-100">
                                     @Html.AntiForgeryToken()
                                     <button type="submit" class="btn btn-outline-@(item.IsActive ? "warning" : "success") btn-sm w-100">
@@ -171,7 +191,9 @@
                                     </button>
                                 </form>
                             </div>
-                            <div class="col">
+                        </div>
+                        <div class="row">
+                            <div class="col-12">
                                 <form asp-action="Delete" asp-route-id="@item.Id" method="post" class="w-100"
                                       onsubmit="return confirm('Are you sure you want to delete user @item.Username? This action cannot be undone.')">
                                     @Html.AntiForgeryToken()
@@ -179,13 +201,6 @@
                                         <i class="bi bi-trash"></i> Delete
                                     </button>
                                 </form>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-12">
-                                <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-outline-info btn-sm w-100">
-                                    <i class="bi bi-eye"></i> Details
-                                </a>
                             </div>
                         </div>
                     </div>
