@@ -110,7 +110,7 @@ namespace MailArchiver.Services
                             });
                         }
 
-                        var folderResult = await SyncFolderAsync(folder, account, jobId);
+                        var folderResult = await SyncFolderAsync(folder, account, client, jobId);
                         processedEmails += folderResult.ProcessedEmails;
                         newEmails += folderResult.NewEmails;
                         failedEmails += folderResult.FailedEmails;
@@ -210,7 +210,7 @@ namespace MailArchiver.Services
         }
 
         // MODIFIZIERTE SyncFolderAsync Methode mit Rückgabewerten
-        private async Task<SyncFolderResult> SyncFolderAsync(IMailFolder folder, MailAccount account, string? jobId = null)
+        private async Task<SyncFolderResult> SyncFolderAsync(IMailFolder folder, MailAccount account, ImapClient client, string? jobId = null)
         {
             var result = new SyncFolderResult();
 
@@ -219,12 +219,25 @@ namespace MailArchiver.Services
 
             try
             {
-                if (folder.Attributes.HasFlag(FolderAttributes.NonExistent) ||
+                if (string.IsNullOrEmpty(folder.FullName) ||
+                    folder.Attributes.HasFlag(FolderAttributes.NonExistent) ||
                     folder.Attributes.HasFlag(FolderAttributes.NoSelect))
                 {
-                    _logger.LogInformation("Skipping folder {FolderName} (non-existent or non-selectable)",
+                    _logger.LogInformation("Skipping folder {FolderName} (empty name, non-existent or non-selectable)",
                         folder.FullName);
                     return result;
+                }
+
+                // Ensure connection is still active before opening folder
+                if (!client.IsConnected)
+                {
+                    _logger.LogWarning("Client disconnected during sync, attempting to reconnect...");
+                    await ReconnectClientAsync(client, account);
+                }
+                else if (!client.IsAuthenticated)
+                {
+                    _logger.LogWarning("Client not authenticated, attempting to re-authenticate...");
+                    await client.AuthenticateAsync(account.Username, account.Password);
                 }
 
                 await folder.OpenAsync(FolderAccess.ReadOnly);
@@ -235,6 +248,18 @@ namespace MailArchiver.Services
 
                 try
                 {
+                    // Ensure connection is still active before searching
+                    if (!client.IsConnected)
+                    {
+                        _logger.LogWarning("Client disconnected during sync, attempting to reconnect...");
+                        await ReconnectClientAsync(client, account);
+                    }
+                    else if (!client.IsAuthenticated)
+                    {
+                        _logger.LogWarning("Client not authenticated, attempting to re-authenticate...");
+                        await client.AuthenticateAsync(account.Username, account.Password);
+                    }
+
                     var uids = await folder.SearchAsync(query);
                     _logger.LogInformation("Found {Count} new messages in folder {FolderName} for account: {AccountName}",
                         uids.Count, folder.FullName, account.Name);
@@ -275,6 +300,18 @@ namespace MailArchiver.Services
                             MimeMessage message = null;
                             try
                             {
+                                // Ensure connection is still active before getting message
+                                if (!client.IsConnected)
+                                {
+                                    _logger.LogWarning("Client disconnected during sync, attempting to reconnect...");
+                                    await ReconnectClientAsync(client, account);
+                                }
+                                else if (!client.IsAuthenticated)
+                                {
+                                    _logger.LogWarning("Client not authenticated, attempting to re-authenticate...");
+                                    await client.AuthenticateAsync(account.Username, account.Password);
+                                }
+
                                 message = await folder.GetMessageAsync(uid);
                                 var isNew = await ArchiveEmailAsync(account, message, isOutgoing, folder.FullName);
                                 if (isNew)
@@ -1448,6 +1485,29 @@ namespace MailArchiver.Services
             {
                 _logger.LogWarning(ex, "Error retrieving subfolders for {FolderName}: {Message}",
                     folder.FullName, ex.Message);
+            }
+        }
+
+        private async Task ReconnectClientAsync(ImapClient client, MailAccount account)
+        {
+            try
+            {
+                if (client.IsConnected)
+                {
+                    await client.DisconnectAsync(true);
+                }
+
+                await Task.Delay(1000);
+
+                _logger.LogInformation("Reconnecting to IMAP server for account {AccountName}", account.Name);
+                await client.ConnectAsync(account.ImapServer, account.ImapPort, account.UseSSL);
+                await client.AuthenticateAsync(account.Username, account.Password);
+                _logger.LogInformation("Successfully reconnected to IMAP server for account {AccountName}", account.Name);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to reconnect to IMAP server for account {AccountName}", account.Name);
+                throw new InvalidOperationException("Failed to reconnect to IMAP server", ex);
             }
         }
     }
