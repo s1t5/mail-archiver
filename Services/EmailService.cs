@@ -31,7 +31,7 @@ namespace MailArchiver.Services
             _syncJobService = syncJobService;
         }
 
-        // MODIFIZIERTE SyncMailAccountAsync Methode
+        // SyncMailAccountAsync Methode
         public async Task SyncMailAccountAsync(MailAccount account, string? jobId = null)
         {
             _logger.LogInformation("Starting sync for account: {AccountName}", account.Name);
@@ -53,11 +53,15 @@ namespace MailArchiver.Services
                 // Prepare a list to store all folders
                 var allFolders = new List<IMailFolder>();
 
-                // Get personal namespace folders
-                foreach (var folder in client.GetFolders(client.PersonalNamespaces[0]))
+                // Get all folders by starting from the root and getting all subfolders
+                var rootFolder = client.GetFolder(client.PersonalNamespaces[0]);
+                await AddSubfoldersRecursively(rootFolder, allFolders);
+                
+                // Also add the root folder itself if it's selectable
+                if (!rootFolder.Attributes.HasFlag(FolderAttributes.NonExistent) &&
+                    !rootFolder.Attributes.HasFlag(FolderAttributes.NoSelect))
                 {
-                    allFolders.Add(folder);
-                    await AddSubfoldersRecursively(folder, allFolders);
+                    allFolders.Add(rootFolder);
                 }
 
                 if (jobId != null)
@@ -1408,10 +1412,15 @@ namespace MailArchiver.Services
 
                 var allFolders = new List<string>();
 
-                foreach (var folder in client.GetFolders(client.PersonalNamespaces[0]))
+                // Get all folders by starting from the root and getting all subfolders
+                var rootFolder = client.GetFolder(client.PersonalNamespaces[0]);
+                await AddSubfolderNamesRecursively(rootFolder, allFolders);
+                
+                // Also add the root folder itself if it's selectable
+                if (!rootFolder.Attributes.HasFlag(FolderAttributes.NonExistent) &&
+                    !rootFolder.Attributes.HasFlag(FolderAttributes.NoSelect))
                 {
-                    allFolders.Add(folder.FullName);
-                    await AddSubfolderNamesRecursively(folder, allFolders);
+                    allFolders.Add(rootFolder.FullName);
                 }
 
                 await client.DisconnectAsync(true);
