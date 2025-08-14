@@ -37,7 +37,7 @@ namespace MailArchiver.Services
             _logger.LogInformation("Starting sync for account: {AccountName}", account.Name);
 
             using var client = new ImapClient();
-            client.Timeout = 900000; // 15 Minuten
+            client.Timeout = 180000; // 3 Minuten - Reduced timeout to prevent server disconnections
 
             var processedFolders = 0;
             var processedEmails = 0;
@@ -56,7 +56,7 @@ namespace MailArchiver.Services
                 // Get all folders by starting from the root and getting all subfolders
                 var rootFolder = client.GetFolder(client.PersonalNamespaces[0]);
                 await AddSubfoldersRecursively(rootFolder, allFolders);
-                
+
                 // Also add the root folder itself if it's selectable
                 if (!rootFolder.Attributes.HasFlag(FolderAttributes.NonExistent) &&
                     !rootFolder.Attributes.HasFlag(FolderAttributes.NoSelect))
@@ -78,17 +78,17 @@ namespace MailArchiver.Services
                 // Process each folder
                 foreach (var folder in allFolders)
                 {
-                // Check if job has been cancelled
-                if (jobId != null)
-                {
-                    var job = _syncJobService.GetJob(jobId);
-                    if (job?.Status == SyncJobStatus.Cancelled)
+                    // Check if job has been cancelled
+                    if (jobId != null)
                     {
-                        _logger.LogInformation("Sync job {JobId} for account {AccountName} has been cancelled", jobId, account.Name);
-                        _syncJobService.CompleteJob(jobId, false, "Job was cancelled");
-                        return;
+                        var job = _syncJobService.GetJob(jobId);
+                        if (job?.Status == SyncJobStatus.Cancelled)
+                        {
+                            _logger.LogInformation("Sync job {JobId} for account {AccountName} has been cancelled", jobId, account.Name);
+                            _syncJobService.CompleteJob(jobId, false, "Job was cancelled");
+                            return;
+                        }
                     }
-                }
 
                     try
                     {
@@ -240,7 +240,11 @@ namespace MailArchiver.Services
                     await client.AuthenticateAsync(account.Username, account.Password);
                 }
 
-                await folder.OpenAsync(FolderAccess.ReadOnly);
+                // Ensure folder is open
+                if (!folder.IsOpen)
+                {
+                    await folder.OpenAsync(FolderAccess.ReadOnly);
+                }
 
                 bool isOutgoing = IsOutgoingFolder(folder);
                 var lastSync = account.LastSync;
@@ -258,6 +262,11 @@ namespace MailArchiver.Services
                     {
                         _logger.LogWarning("Client not authenticated, attempting to re-authenticate...");
                         await client.AuthenticateAsync(account.Username, account.Password);
+                    }
+
+                    if (!folder.IsOpen)
+                    {
+                        await folder.OpenAsync(FolderAccess.ReadOnly);
                     }
 
                     var uids = await folder.SearchAsync(query);
@@ -305,11 +314,18 @@ namespace MailArchiver.Services
                                 {
                                     _logger.LogWarning("Client disconnected during sync, attempting to reconnect...");
                                     await ReconnectClientAsync(client, account);
+                                    // Re-open the folder after reconnection
+                                    await folder.OpenAsync(FolderAccess.ReadOnly);
                                 }
                                 else if (!client.IsAuthenticated)
                                 {
                                     _logger.LogWarning("Client not authenticated, attempting to re-authenticate...");
                                     await client.AuthenticateAsync(account.Username, account.Password);
+                                }
+                                else if (folder.IsOpen == false)
+                                {
+                                    _logger.LogWarning("Folder is not open, attempting to re-open...");
+                                    await folder.OpenAsync(FolderAccess.ReadOnly);
                                 }
 
                                 message = await folder.GetMessageAsync(uid);
@@ -365,10 +381,11 @@ namespace MailArchiver.Services
             // Check if this email is already archived
             var messageId = message.MessageId ??
                 $"{message.From}-{message.To}-{message.Subject}-{message.Date.Ticks}";
-            var existingEmail = await _context.ArchivedEmails
-                .FirstOrDefaultAsync(e => e.MessageId == messageId && e.MailAccountId == account.Id);
 
-            if (existingEmail != null)
+            var emailExists = await _context.ArchivedEmails
+                .AnyAsync(e => e.MessageId == messageId && e.MailAccountId == account.Id);
+
+            if (emailExists)
                 return false; // E-Mail existiert bereits
 
             try
@@ -1452,7 +1469,7 @@ namespace MailArchiver.Services
                 // Get all folders by starting from the root and getting all subfolders
                 var rootFolder = client.GetFolder(client.PersonalNamespaces[0]);
                 await AddSubfolderNamesRecursively(rootFolder, allFolders);
-                
+
                 // Also add the root folder itself if it's selectable
                 if (!rootFolder.Attributes.HasFlag(FolderAttributes.NonExistent) &&
                     !rootFolder.Attributes.HasFlag(FolderAttributes.NoSelect))
