@@ -2,10 +2,20 @@
 
 **A comprehensive solution for archiving, searching, and exporting emails from IMAP accounts**
 
-[![Docker](https://img.shields.io/badge/Docker-2CA5E0?style=for-the-badge&logo=docker&logoColor=white)](#)
-[![.NET](https://img.shields.io/badge/.NET-512BD4?style=for-the-badge&logo=dotnet&logoColor=white)](#)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white)](#)
-[![Bootstrap](https://img.shields.io/badge/Bootstrap-563D7C?style=for-the-badge&logo=bootstrap&logoColor=white)](#)
+<table style="width: 100%; border: none;">
+  <tr>
+    <td style="border: none;">
+      <a href="#"><img src="https://img.shields.io/badge/Docker-2CA5E0?style=for-the-badge&logo=docker&logoColor=white" alt="Docker"></a>
+      <a href="#"><img src="https://img.shields.io/badge/.NET-512BD4?style=for-the-badge&logo=dotnet&logoColor=white" alt=".NET"></a>
+      <a href="#"><img src="https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white" alt="PostgreSQL"></a>
+      <a href="#"><img src="https://img.shields.io/badge/Bootstrap-563D7C?style=for-the-badge&logo=bootstrap&logoColor=white" alt="Bootstrap"></a>
+    </td>
+    <td style="border: none; text-align: right;">
+      <a href="https://github.com/s1t5/mail-archiver"><img src="https://img.shields.io/github/stars/s1t5/mail-archiver?style=for-the-badge&logo=github" alt="GitHub Stars"></a>
+      <a href="https://hub.docker.com/r/s1t5/mailarchiver"><img src="https://img.shields.io/docker/pulls/s1t5/mailarchiver?style=for-the-badge&logo=docker" alt="Docker Pulls"></a>
+    </td>
+  </tr>
+</table>
 
 ## ✨ Key Features
 
@@ -39,10 +49,35 @@
 ### 📤 Restore Function
 - Restore a selection of emails or an entire mailbox to a destination mailbox
 
+### 🗑️ Retention Policies
+- Configure automatic deletion of archived emails from the IMAP server after a specified number of days
+- Set retention period per email account (e.g., delete emails after 30, 90, or 365 days)
+- Emails are only deleted from the server after they have been successfully archived
+- Helps manage storage space on the IMAP server while maintaining a complete archive
+
+
+> 🚨 **Important note for retention policies**
+> - Requires IMAP Expunge support from the mail server to permanently delete emails
+> - For Gmail accounts, Auto-Expunge must be enabled in Gmail settings under the "Forwarding and POP/IMAP" tab
+
 ## 🖼️ Screenshots
-![Mail-Archiver Dashboard](https://github.com/s1t5/mail-archiver/blob/main/Screenshots/dashboard.jpg?raw=true)
-![Mail-Archiver Archive](https://github.com/s1t5/mail-archiver/blob/main/Screenshots/archive.jpg?raw=true)
-![Mail-Archiver Mail](https://github.com/s1t5/mail-archiver/blob/main/Screenshots/details.jpg?raw=true)
+
+<div style="display: flex; flex-direction: column; gap: 10px;">
+  <div style="flex: 1;">
+    <h4>Dashboard</h4>
+    <img src="https://github.com/s1t5/mail-archiver/blob/main/Screenshots/dashboard.jpg?raw=true" alt="Mail-Archiver Dashboard" style="width: 100%;">
+  </div>
+  <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+    <div style="flex: 1; min-width: 300px;">
+      <h4>Archive</h4>
+      <img src="https://github.com/s1t5/mail-archiver/blob/main/Screenshots/archive.jpg?raw=true" alt="Mail-Archiver Archive" style="width: 100%;">
+    </div>
+    <div style="flex: 1; min-width: 300px;">
+      <h4>Email Details</h4>
+      <img src="https://github.com/s1t5/mail-archiver/blob/main/Screenshots/details.jpg?raw=true" alt="Mail-Archiver Mail" style="width: 100%;">
+    </div>
+  </div>
+</div>
 
 ## 🚀 Quick Start
 
@@ -124,7 +159,9 @@ networks:
 
 4. Configure a reverse proxy of your choice with https and authentification to secure access to the application. 
 
-**⚠️Attention⚠️ The application itself does not provide encrypted access via https! It must be set up via a reverse proxy! Moreover the application is not build for public internet access!**
+> ⚠️ **Attention**
+> 
+> The application itself does not provide encrypted access via https! It must be set up via a reverse proxy! Moreover the application is not build for public internet access!
 
 4. Initial start of the containers:
 ```bash
@@ -143,22 +180,15 @@ docker compose restart
 - Click "New Account"
 - Enter your IMAP server details and credentials
 - Save and start archiving!
-- If you want create other users and assign accounts.
-
-## 🐳 Docker Deployment
-
-| Service | Port | Description |
-|---------|------|-------------|
-| `mailarchive-app` | 5000 | ASP.NET Core Application |
-| `postgres` | 5432 | PostgreSQL Database |
+- If you want, create other users and assign accounts.
 
 ## 🔐 Security Note
-- 🔒 Use strong passwords and change default credentials
-- 🔐 Consider implementing HTTPS with a reverse proxy in production
-- 💾 Regular backups of the PostgreSQL database recommended
+- Use strong passwords and change default credentials
+- Consider implementing HTTPS with a reverse proxy in production
+- Regular backups of the PostgreSQL database recommended
 
 ## 📝 How To - Mailbox migration
-It is now also possible to migrate a mailbox to another target mailbox, for example when changing mail provider.
+It is also possible to migrate a mailbox to another target mailbox, for example when changing mail provider.
 The following steps are planned for this
 1. add the source account under the accounts
 2. synchronisation of the source account
@@ -182,6 +212,7 @@ Contributions welcome! Please open an Issue or Pull Request.
 
 ## 🚀 Roadmap / Ideas
 The roadmap is now maintained on the repos project page.
+
 ---
 
 📄 *License: GNU GENERAL PUBLIC LICENSE Version 3 (see LICENSE file)*

@@ -41,7 +41,7 @@
                         </div>
                     }
                 </dd>
-                <dt class="col-sm-3">Last Sync</dt>
+<dt class="col-sm-3">Last Sync</dt>
                 <dd class="col-sm-9">
                     @if (Model.LastSync.HasValue)
                     {
@@ -52,6 +52,25 @@
                     else
                     {
                         <span class="text-muted">Not yet synchronized</span>
+                    }
+                </dd>
+                <dt class="col-sm-3">Auto Delete</dt>
+                <dd class="col-sm-9">
+                    @if (Model.DeleteAfterDays.HasValue)
+                    {
+                        <span class="badge bg-warning">@Model.DeleteAfterDays.Value days</span>
+                        <div class="mt-1">
+                            <small class="text-muted">
+                                Emails will be automatically deleted from the server after being archived for @Model.DeleteAfterDays.Value days
+                            </small>
+                        </div>
+                    }
+                    else
+                    {
+                        <span class="text-muted">Disabled</span>
+                        <div class="mt-1">
+                            <small class="text-muted">Emails will not be automatically deleted from the server</small>
+                        </div>
                     }
                 </dd>
             </dl>

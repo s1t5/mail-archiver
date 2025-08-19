@@ -13,6 +13,7 @@ namespace MailArchiver.Models
         public int ProcessedEmails { get; set; }
         public int NewEmails { get; set; }
         public int FailedEmails { get; set; }
+        public int DeletedEmails { get; set; } // New property to track deleted emails
         public string? CurrentFolder { get; set; }
         public string? ErrorMessage { get; set; }
         public DateTime? LastSync { get; set; }

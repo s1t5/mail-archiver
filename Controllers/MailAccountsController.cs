@@ -40,7 +40,7 @@ namespace MailArchiver.Controllers
         // GET: MailAccounts
         public async Task<IActionResult> Index()
         {
-            var accounts = await _context.MailAccounts
+var accounts = await _context.MailAccounts
                 .Select(a => new MailAccountViewModel
                 {
                     Id = a.Id,
@@ -51,7 +51,8 @@ namespace MailArchiver.Controllers
                     Username = a.Username,
                     UseSSL = a.UseSSL,
                     IsEnabled = a.IsEnabled,
-                    LastSync = a.LastSync
+                    LastSync = a.LastSync,
+                    DeleteAfterDays = a.DeleteAfterDays
                 })
                 .ToListAsync();
 
@@ -70,7 +71,7 @@ namespace MailArchiver.Controllers
             // E-Mail-Anzahl abrufen
             var emailCount = await _emailService.GetEmailCountByAccountAsync(id);
 
-            var model = new MailAccountViewModel
+var model = new MailAccountViewModel
             {
                 Id = account.Id,
                 Name = account.Name,
@@ -80,7 +81,8 @@ namespace MailArchiver.Controllers
                 Username = account.Username,
                 UseSSL = account.UseSSL,
                 LastSync = account.LastSync,
-                IsEnabled = account.IsEnabled
+                IsEnabled = account.IsEnabled,
+                DeleteAfterDays = account.DeleteAfterDays
             };
 
             ViewBag.EmailCount = emailCount;
@@ -105,7 +107,7 @@ namespace MailArchiver.Controllers
         {
             if (ModelState.IsValid)
             {
-                var account = new MailAccount
+var account = new MailAccount
                 {
                     Name = model.Name,
                     EmailAddress = model.EmailAddress,
@@ -116,6 +118,7 @@ namespace MailArchiver.Controllers
                     UseSSL = model.UseSSL,
                     IsEnabled = model.IsEnabled,
                     ExcludedFolders = string.Empty,
+                    DeleteAfterDays = model.DeleteAfterDays,
                     LastSync = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)
                 };
 
@@ -160,7 +163,7 @@ namespace MailArchiver.Controllers
                 return NotFound();
             }
 
-            var model = new MailAccountViewModel
+var model = new MailAccountViewModel
             {
                 Id = account.Id,
                 Name = account.Name,
@@ -171,7 +174,8 @@ namespace MailArchiver.Controllers
                 UseSSL = account.UseSSL,
                 IsEnabled = account.IsEnabled,
                 LastSync = account.LastSync,
-                ExcludedFolders = account.ExcludedFolders
+                ExcludedFolders = account.ExcludedFolders,
+                DeleteAfterDays = account.DeleteAfterDays
             };
 
             // Load available folders for exclusion selection
@@ -253,6 +257,7 @@ namespace MailArchiver.Controllers
 
                     account.UseSSL = model.UseSSL;
                     account.ExcludedFolders = model.ExcludedFolders ?? string.Empty;
+                    account.DeleteAfterDays = model.DeleteAfterDays;
 
                     // Test connection before saving
                     if (!string.IsNullOrEmpty(model.Password))

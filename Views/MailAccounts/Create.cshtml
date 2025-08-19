@@ -58,10 +58,18 @@
                     <label asp-for="UseSSL" class="form-check-label">Use SSL</label>
                 </div>
                 
-                <div class="mb-3 form-check">
+<div class="mb-3 form-check">
                     <input asp-for="IsEnabled" class="form-check-input" />
                     <label asp-for="IsEnabled" class="form-check-label">Account Enabled</label>
                     <div class="form-text">Disabled accounts will not be synchronized</div>
+                </div>
+                
+                <h4 class="mt-4">Email Deletion</h4>
+                <div class="mb-3">
+                    <label asp-for="DeleteAfterDays" class="form-label">Delete After Days</label>
+                    <input asp-for="DeleteAfterDays" class="form-control" type="number" min="1" placeholder="Leave empty to disable automatic deletion" />
+                    <div class="form-text">Automatically delete emails from the server after they have been archived for this many days. Leave empty to disable automatic deletion.</div>
+                    <span asp-validation-for="DeleteAfterDays" class="text-danger"></span>
                 </div>
                 
                 <div class="mt-4">

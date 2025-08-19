@@ -333,12 +333,16 @@
                                                 </small>
                                             }
                                         </td>
-                                        <td>
-                                            @if (job.ProcessedEmails > 0)
+<td>
+                                            @if (job.ProcessedEmails > 0 || job.DeletedEmails > 0)
                                             {
                                                 <div class="small">
                                                     <div>Processed: <strong>@job.ProcessedEmails.ToString("N0")</strong></div>
                                                     <div class="text-success">New: @job.NewEmails.ToString("N0")</div>
+                                                    @if (job.DeletedEmails > 0)
+                                                    {
+                                                        <div class="text-warning">Deleted: @job.DeletedEmails.ToString("N0")</div>
+                                                    }
                                                     @if (job.FailedEmails > 0)
                                                     {
                                                         <div class="text-danger">Failed: @job.FailedEmails.ToString("N0")</div>
@@ -451,12 +455,16 @@
                                         </small>
                                     </div>
 
-                                    @if (job.ProcessedEmails > 0)
+@if (job.ProcessedEmails > 0 || job.DeletedEmails > 0)
                                     {
                                         <div class="mb-0">
                                             <small>
                                                 <span class="text-success">New: @job.NewEmails.ToString("N0")</span> | 
                                                 <span class="text-primary">Total: @job.ProcessedEmails.ToString("N0")</span>
+                                                @if (job.DeletedEmails > 0)
+                                                {
+                                                    <span> | <span class="text-warning">Deleted: @job.DeletedEmails.ToString("N0")</span></span>
+                                                }
                                                 @if (job.FailedEmails > 0)
                                                 {
                                                     <span> | <span class="text-danger">Failed: @job.FailedEmails.ToString("N0")</span></span>

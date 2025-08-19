@@ -35,5 +35,9 @@ namespace MailArchiver.Models.ViewModels
         
         [Display(Name = "Account Enabled")]
         public bool IsEnabled { get; set; } = true;
+        
+        [Display(Name = "Delete After Days")]
+        [Range(1, int.MaxValue, ErrorMessage = "Delete after days must be at least 1")]
+        public int? DeleteAfterDays { get; set; }
     }
 }

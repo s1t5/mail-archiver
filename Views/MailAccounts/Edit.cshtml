@@ -81,13 +81,21 @@
                     </div>
                 }
                 
-                @if (Model.LastSync.HasValue)
+@if (Model.LastSync.HasValue)
                 {
                     <div class="mb-3">
                         <label asp-for="LastSync" class="form-label">Last Synchronization</label>
                         <input value="@Model.LastSync.Value.ToString("yyyy-MM-dd HH:mm:ss")" class="form-control" readonly />
                     </div>
                 }
+                
+                <h4 class="mt-4">Email Deletion</h4>
+                <div class="mb-3">
+                    <label asp-for="DeleteAfterDays" class="form-label">Delete After Days</label>
+                    <input asp-for="DeleteAfterDays" class="form-control" type="number" min="1" placeholder="Leave empty to disable automatic deletion" />
+                    <div class="form-text">Automatically delete emails from the server after they have been archived for this many days. Leave empty to disable automatic deletion.</div>
+                    <span asp-validation-for="DeleteAfterDays" class="text-danger"></span>
+                </div>
                 <div class="mt-4">
                     <button type="submit" class="btn btn-primary">Save</button>
                     <a asp-action="Index" class="btn btn-outline-secondary">Back to List</a>

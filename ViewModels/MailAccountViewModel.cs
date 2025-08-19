@@ -38,6 +38,10 @@ namespace MailArchiver.Models.ViewModels
         [Display(Name = "Excluded Folders")]
         public string? ExcludedFolders { get; set; } = string.Empty;
         
+        [Display(Name = "Delete After Days")]
+        [Range(1, int.MaxValue, ErrorMessage = "Delete after days must be at least 1")]
+        public int? DeleteAfterDays { get; set; }
+        
         // For UI display of available folders
         public List<string> AvailableFolders { get; set; } = new List<string>();
 

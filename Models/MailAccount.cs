@@ -17,6 +17,9 @@ public class MailAccount
     // Folder exclusion functionality
     public string ExcludedFolders { get; set; } = string.Empty;
     
+    // Email deletion functionality
+    public int? DeleteAfterDays { get; set; }
+    
     [NotMapped]
     public List<string> ExcludedFoldersList
     {

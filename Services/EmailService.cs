@@ -43,6 +43,7 @@ namespace MailArchiver.Services
             var processedEmails = 0;
             var newEmails = 0;
             var failedEmails = 0;
+            var deletedEmails = 0; // Counter for deleted emails
 
             try
             {
@@ -136,6 +137,20 @@ namespace MailArchiver.Services
                     }
                 }
 
+                // Delete old emails if configured
+                if (account.DeleteAfterDays.HasValue && account.DeleteAfterDays.Value > 0)
+                {
+                    deletedEmails = await DeleteOldEmailsAsync(account, client, jobId);
+
+                    if (jobId != null)
+                    {
+                        _syncJobService.UpdateJobProgress(jobId, job =>
+                        {
+                            job.DeletedEmails = deletedEmails;
+                        });
+                    }
+                }
+
                 // Update lastSync only if no individual email failed
                 if (failedEmails == 0)
                 {
@@ -149,8 +164,8 @@ namespace MailArchiver.Services
                 }
 
                 await client.DisconnectAsync(true);
-                _logger.LogInformation("Sync completed for account: {AccountName}. New: {New}, Failed: {Failed}",
-                    account.Name, newEmails, failedEmails);
+                _logger.LogInformation("Sync completed for account: {AccountName}. New: {New}, Failed: {Failed}, Deleted: {Deleted}",
+                    account.Name, newEmails, failedEmails, deletedEmails);
 
                 if (jobId != null)
                 {
@@ -1503,6 +1518,271 @@ namespace MailArchiver.Services
                 _logger.LogWarning(ex, "Error retrieving subfolders for {FolderName}: {Message}",
                     folder.FullName, ex.Message);
             }
+        }
+
+        private async Task<int> DeleteOldEmailsAsync(MailAccount account, ImapClient client, string? jobId = null)
+        {
+            if (!account.DeleteAfterDays.HasValue || account.DeleteAfterDays.Value <= 0)
+            {
+                return 0;
+            }
+
+            var deletedCount = 0;
+            var cutoffDate = DateTime.UtcNow.AddDays(-account.DeleteAfterDays.Value);
+
+            _logger.LogInformation("Starting deletion of emails older than {Days} days (before {CutoffDate}) for account {AccountName}",
+                account.DeleteAfterDays.Value, cutoffDate, account.Name);
+
+            try
+            {
+                // Prepare a list to store all folders
+                var allFolders = new List<IMailFolder>();
+
+                // Get all folders by starting from the root and getting all subfolders
+                var rootFolder = client.GetFolder(client.PersonalNamespaces[0]);
+                await AddSubfoldersRecursively(rootFolder, allFolders);
+
+                // Also add the root folder itself if it's selectable
+                if (!rootFolder.Attributes.HasFlag(FolderAttributes.NonExistent) &&
+                    !rootFolder.Attributes.HasFlag(FolderAttributes.NoSelect))
+                {
+                    allFolders.Add(rootFolder);
+                }
+
+                // Process each folder for deletion
+                foreach (var folder in allFolders)
+                {
+                    // Skip empty or invalid folder names
+                    if (folder == null || string.IsNullOrEmpty(folder.FullName) ||
+                        folder.Attributes.HasFlag(FolderAttributes.NonExistent) ||
+                        folder.Attributes.HasFlag(FolderAttributes.NoSelect))
+                    {
+                        _logger.LogInformation("Skipping folder {FolderName} (null, empty name, non-existent or non-selectable) for deletion",
+                            folder?.FullName ?? "NULL");
+                        continue;
+                    }
+
+                    // Skip excluded folders
+                    if (account.ExcludedFoldersList.Contains(folder.FullName))
+                    {
+                        _logger.LogInformation("Skipping excluded folder for deletion: {FolderName} for account: {AccountName}",
+                            folder.FullName, account.Name);
+                        continue;
+                    }
+
+                    try
+                    {
+                        // Ensure connection is still active before opening folder
+                        if (!client.IsConnected)
+                        {
+                            _logger.LogWarning("Client disconnected during deletion, attempting to reconnect...");
+                            await ReconnectClientAsync(client, account);
+                        }
+                        else if (!client.IsAuthenticated)
+                        {
+                            _logger.LogWarning("Client not authenticated during deletion, attempting to re-authenticate...");
+                            await client.AuthenticateAsync(account.Username, account.Password);
+                        }
+
+                        // Ensure folder is open with read-write access
+                        if (!folder.IsOpen || folder.Access != FolderAccess.ReadWrite)
+                        {
+                            await folder.OpenAsync(FolderAccess.ReadWrite);
+                        }
+
+                        // First try using SearchQuery.SentBefore for efficiency
+                        var uids = await folder.SearchAsync(SearchQuery.SentBefore(cutoffDate));
+                        
+                        // Log the results of the search query for debugging
+                        _logger.LogInformation("SearchQuery.SentBefore found {Count} emails in folder {FolderName} for account {AccountName}",
+                            uids.Count, folder.FullName, account.Name);
+                        
+                        // If we found emails, let's log some details about them for debugging
+                        if (uids.Any())
+                        {
+                            // Fetch envelopes for the found emails to check their actual dates
+                            var summaries = await folder.FetchAsync(uids.Take(10).ToList(), MessageSummaryItems.UniqueId | MessageSummaryItems.Envelope | MessageSummaryItems.InternalDate);
+                            
+                            foreach (var summary in summaries)
+                            {
+                                // Use only the envelope date (sent date) of the mail
+                                DateTime? emailDate = null;
+                                
+                                if (summary.Envelope?.Date.HasValue == true)
+                                {
+                                    emailDate = DateTime.SpecifyKind(summary.Envelope.Date.Value.DateTime, DateTimeKind.Utc);
+                                }
+                                
+                                // Log the email date for debugging
+                                _logger.LogDebug("Email UID: {UniqueId}, Date: {EmailDate}, Cutoff: {CutoffDate}, IsOld: {IsOld}, Subject: {Subject}",
+                                    summary.UniqueId, emailDate?.ToString() ?? "NULL", cutoffDate, 
+                                    emailDate.HasValue && emailDate.Value < cutoffDate,
+                                    summary.Envelope?.Subject ?? "NULL");
+                            }
+                        }
+
+                        if (uids.Count == 0)
+                        {
+                            _logger.LogInformation("No old emails found in folder {FolderName} for account {AccountName}",
+                                folder.FullName, account.Name);
+                            continue;
+                        }
+
+                        _logger.LogInformation("Found {Count} old emails in folder {FolderName} for account {AccountName}",
+                            uids.Count, folder.FullName, account.Name);
+
+                        // Process in batches to avoid memory issues and server timeouts
+                        const int batchSize = 50;
+                        for (int i = 0; i < uids.Count; i += batchSize)
+                        {
+                            var batch = uids.Skip(i).Take(batchSize).ToList();
+
+                            // Get message IDs for this batch to check if they're archived
+                            var messageSummaries = await folder.FetchAsync(batch, MessageSummaryItems.UniqueId | MessageSummaryItems.Headers);
+
+                            // Collect UIDs of emails that are archived and can be deleted
+                            var uidsToDelete = new List<UniqueId>();
+
+                            foreach (var summary in messageSummaries)
+                            {
+                                var messageId = summary.Headers["Message-ID"];
+
+                                // Log the raw Message-ID for debugging
+                                _logger.LogDebug("Raw Message-ID from IMAP: {RawMessageId}", messageId ?? "NULL");
+
+                                // If there's no Message-ID header, construct it the same way as in ArchiveEmailAsync
+                                if (string.IsNullOrEmpty(messageId))
+                                {
+                                    var from = summary.Envelope?.From?.ToString() ?? string.Empty;
+                                    var to = summary.Envelope?.To?.ToString() ?? string.Empty;
+                                    var subject = summary.Envelope?.Subject ?? string.Empty;
+                                    var dateTicks = summary.InternalDate?.Ticks ?? 0;
+
+                                    messageId = $"{from}-{to}-{subject}-{dateTicks}";
+                                    _logger.LogDebug("Constructed Message-ID: {ConstructedMessageId}", messageId);
+                                }
+
+                                // Check if this email is already archived
+                                var isArchived = await _context.ArchivedEmails
+                                    .AnyAsync(e => e.MessageId == messageId && e.MailAccountId == account.Id);
+
+                                // Also check with angle brackets if not already found
+                                if (!isArchived && !string.IsNullOrEmpty(messageId) && !messageId.StartsWith("<"))
+                                {
+                                    var messageIdWithBrackets = $"<{messageId}>";
+                                    isArchived = await _context.ArchivedEmails
+                                        .AnyAsync(e => e.MessageId == messageIdWithBrackets && e.MailAccountId == account.Id);
+
+                                    if (isArchived)
+                                    {
+                                        _logger.LogDebug("Found email with Message-ID {MessageId} when checking with angle brackets", messageIdWithBrackets);
+                                    }
+                                }
+                                // Also check without angle brackets if not already found
+                                else if (!isArchived && !string.IsNullOrEmpty(messageId) && messageId.StartsWith("<") && messageId.EndsWith(">"))
+                                {
+                                    var messageIdWithoutBrackets = messageId.Substring(1, messageId.Length - 2);
+                                    isArchived = await _context.ArchivedEmails
+                                        .AnyAsync(e => e.MessageId == messageIdWithoutBrackets && e.MailAccountId == account.Id);
+
+                                    if (isArchived)
+                                    {
+                                        _logger.LogDebug("Found email with Message-ID {MessageId} when checking without angle brackets", messageIdWithoutBrackets);
+                                    }
+                                }
+
+                                if (isArchived)
+                                {
+                                    uidsToDelete.Add(summary.UniqueId);
+                                    _logger.LogDebug("Marking email with Message-ID {MessageId} for deletion from folder {FolderName}",
+                                        messageId, folder.FullName);
+                                }
+                                else
+                                {
+                                    // Log additional info for debugging
+                                    _logger.LogInformation("Skipping deletion of email with Message-ID {MessageId} from folder {FolderName} (not archived). Account ID: {AccountId}",
+                                        messageId, folder.FullName, account.Id);
+                                }
+                            }
+
+                            if (uidsToDelete.Count > 0)
+                            {
+                                _logger.LogInformation("Attempting to delete {Count} emails from folder {FolderName} for account {AccountName}",
+                                    uidsToDelete.Count, folder.FullName, account.Name);
+
+                                try
+                                {
+
+                                    // Delete the emails by adding the Deleted flag
+                                    await folder.AddFlagsAsync(uidsToDelete, MessageFlags.Deleted, true);
+                                    _logger.LogDebug("Added Deleted flag to {Count} emails in folder {FolderName}",
+                                        uidsToDelete.Count, folder.FullName);
+
+                                    await folder.ExpungeAsync(uidsToDelete);
+                                        _logger.LogDebug("Expunged {Count} emails from folder {FolderName} (with UIDs)",
+                                            uidsToDelete.Count, folder.FullName);
+
+                                    deletedCount += uidsToDelete.Count;
+                                    _logger.LogInformation("Successfully processed {Count} emails for deletion from folder {FolderName} for account {AccountName}",
+                                        uidsToDelete.Count, folder.FullName, account.Name);
+                                }
+                                catch (Exception deleteEx)
+                                {
+                                    _logger.LogError(deleteEx, "Error deleting {Count} emails from folder {FolderName} for account {AccountName}",
+                                        uidsToDelete.Count, folder.FullName, account.Name);
+
+                                    // Try to reconnect and retry once
+                                    try
+                                    {
+                                        _logger.LogInformation("Attempting to reconnect and retry deletion...");
+                                        await ReconnectClientAsync(client, account);
+                                        await folder.OpenAsync(FolderAccess.ReadWrite);
+
+                                        await folder.AddFlagsAsync(uidsToDelete, MessageFlags.Deleted, true);
+
+                                        await folder.ExpungeAsync(uidsToDelete);
+
+                                        deletedCount += uidsToDelete.Count;
+                                        _logger.LogInformation("Successfully processed {Count} emails for deletion on retry from folder {FolderName} for account {AccountName}",
+                                            uidsToDelete.Count, folder.FullName, account.Name);
+                                    }
+                                    catch (Exception retryEx)
+                                    {
+                                        _logger.LogError(retryEx, "Retry deletion also failed for {Count} emails from folder {FolderName} for account {AccountName}",
+                                            uidsToDelete.Count, folder.FullName, account.Name);
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                _logger.LogInformation("No archived emails to delete in current batch from folder {FolderName} for account {AccountName}",
+                                    folder.FullName, account.Name);
+                            }
+
+                            // Add a small delay between batches to avoid overwhelming the server
+                            if (i + batchSize < uids.Count)
+                            {
+                                await Task.Delay(150);
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Error processing folder {FolderName} for email deletion for account {AccountName}: {Message}",
+                            folder.FullName, account.Name, ex.Message);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error during email deletion for account {AccountName}: {Message}",
+                    account.Name, ex.Message);
+            }
+
+            _logger.LogInformation("Completed deletion process for account {AccountName}. Deleted {Count} emails",
+                account.Name, deletedCount);
+
+            return deletedCount;
         }
 
         private async Task ReconnectClientAsync(ImapClient client, MailAccount account)
