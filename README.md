@@ -2,20 +2,13 @@
 
 **A comprehensive solution for archiving, searching, and exporting emails from IMAP accounts**
 
-<table style="width: 100%; border: none;">
-  <tr>
-    <td style="border: none;">
-      <a href="#"><img src="https://img.shields.io/badge/Docker-2CA5E0?style=for-the-badge&logo=docker&logoColor=white" alt="Docker"></a>
-      <a href="#"><img src="https://img.shields.io/badge/.NET-512BD4?style=for-the-badge&logo=dotnet&logoColor=white" alt=".NET"></a>
-      <a href="#"><img src="https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white" alt="PostgreSQL"></a>
-      <a href="#"><img src="https://img.shields.io/badge/Bootstrap-563D7C?style=for-the-badge&logo=bootstrap&logoColor=white" alt="Bootstrap"></a>
-    </td>
-    <td style="border: none; text-align: right;">
-      <a href="https://github.com/s1t5/mail-archiver"><img src="https://img.shields.io/github/stars/s1t5/mail-archiver?style=for-the-badge&logo=github" alt="GitHub Stars"></a>
-      <a href="https://hub.docker.com/r/s1t5/mailarchiver"><img src="https://img.shields.io/docker/pulls/s1t5/mailarchiver?style=for-the-badge&logo=docker" alt="Docker Pulls"></a>
-    </td>
-  </tr>
-</table>
+<div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px;">
+  <a href="#"><img src="https://img.shields.io/badge/Docker-2CA5E0?style=for-the-badge&logo=docker&logoColor=white" alt="Docker"></a>
+  <a href="#"><img src="https://img.shields.io/badge/.NET-512BD4?style=for-the-badge&logo=dotnet&logoColor=white" alt=".NET"></a>
+  <a href="#"><img src="https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white" alt="PostgreSQL"></a>
+  <a href="#"><img src="https://img.shields.io/badge/Bootstrap-563D7C?style=for-the-badge&logo=bootstrap&logoColor=white" alt="Bootstrap"></a>
+  <a href="https://github.com/s1t5/mail-archiver"><img src="https://img.shields.io/github/stars/s1t5/mail-archiver?style=for-the-badge&logo=github" alt="GitHub Stars"></a>
+</div>
 
 ## ✨ Key Features
 
@@ -62,22 +55,14 @@
 
 ## 🖼️ Screenshots
 
-<div style="display: flex; flex-direction: column; gap: 10px;">
-  <div style="flex: 1;">
-    <h4>Dashboard</h4>
-    <img src="https://github.com/s1t5/mail-archiver/blob/main/Screenshots/dashboard.jpg?raw=true" alt="Mail-Archiver Dashboard" style="width: 100%;">
-  </div>
-  <div style="display: flex; flex-wrap: wrap; gap: 10px;">
-    <div style="flex: 1; min-width: 300px;">
-      <h4>Archive</h4>
-      <img src="https://github.com/s1t5/mail-archiver/blob/main/Screenshots/archive.jpg?raw=true" alt="Mail-Archiver Archive" style="width: 100%;">
-    </div>
-    <div style="flex: 1; min-width: 300px;">
-      <h4>Email Details</h4>
-      <img src="https://github.com/s1t5/mail-archiver/blob/main/Screenshots/details.jpg?raw=true" alt="Mail-Archiver Mail" style="width: 100%;">
-    </div>
-  </div>
-</div>
+### Dashboard
+![Mail-Archiver Dashboard](https://github.com/s1t5/mail-archiver/blob/main/Screenshots/dashboard.jpg?raw=true)
+
+### Archive
+![Mail-Archiver Archive](https://github.com/s1t5/mail-archiver/blob/main/Screenshots/archive.jpg?raw=true)
+
+### Email Details
+![Mail-Archiver Mail](https://github.com/s1t5/mail-archiver/blob/main/Screenshots/details.jpg?raw=true)
 
 ## 🚀 Quick Start
 
