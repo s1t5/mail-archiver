@@ -120,6 +120,11 @@ services:
       - BatchRestore__SessionTimeoutMinutes=30
       - BatchRestore__DefaultBatchSize=50
 
+      # BatchOperation Settings
+      - BatchOperation__BatchSize=50
+      - BatchOperation__PauseBetweenEmailsMs=50
+      - BatchOperation__PauseBetweenBatchesMs=250
+
       # Npgsql Settings
       - Npgsql__CommandTimeout=600
     ports:

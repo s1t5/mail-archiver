@@ -1,22 +1,25 @@
 // Services/BatchRestoreService.cs
 using MailArchiver.Models;
+using Microsoft.Extensions.Options;
 using System.Collections.Concurrent;
 
 namespace MailArchiver.Services
 {
-    public class BatchRestoreService : BackgroundService, IBatchRestoreService
+public class BatchRestoreService : BackgroundService, IBatchRestoreService
     {
         private readonly IServiceProvider _serviceProvider;
         private readonly ILogger<BatchRestoreService> _logger;
+        private readonly BatchOperationOptions _batchOptions;
         private readonly ConcurrentQueue<BatchRestoreJob> _jobQueue = new();
         private readonly ConcurrentDictionary<string, BatchRestoreJob> _allJobs = new();
         private readonly Timer _cleanupTimer;
         private CancellationTokenSource? _currentJobCancellation;
 
-        public BatchRestoreService(IServiceProvider serviceProvider, ILogger<BatchRestoreService> logger)
+        public BatchRestoreService(IServiceProvider serviceProvider, ILogger<BatchRestoreService> logger, IOptions<BatchOperationOptions> batchOptions)
         {
             _serviceProvider = serviceProvider;
             _logger = logger;
+            _batchOptions = batchOptions.Value;
             
             // Cleanup-Timer: Jeden Stunde alte Jobs entfernen
             _cleanupTimer = new Timer(
@@ -177,9 +180,9 @@ namespace MailArchiver.Services
             }
         }
 
-        private async Task ProcessJobWithProgress(BatchRestoreJob job, IEmailService emailService, CancellationToken cancellationToken)
+private async Task ProcessJobWithProgress(BatchRestoreJob job, IEmailService emailService, CancellationToken cancellationToken)
         {
-            const int batchSize = 50;
+            var batchSize = _batchOptions.BatchSize;
             var totalEmails = job.EmailIds.Count;
 
             for (int i = 0; i < totalEmails; i += batchSize)
@@ -221,13 +224,16 @@ namespace MailArchiver.Services
                     job.ProcessedCount++;
 
                     // Kleine Pause zwischen E-Mails
-                    await Task.Delay(100, cancellationToken);
+                    if (_batchOptions.PauseBetweenEmailsMs > 0)
+                    {
+                        await Task.Delay(_batchOptions.PauseBetweenEmailsMs, cancellationToken);
+                    }
                 }
 
                 // Pause zwischen Batches
-                if (i + batchSize < totalEmails)
+                if (i + batchSize < totalEmails && _batchOptions.PauseBetweenBatchesMs > 0)
                 {
-                    await Task.Delay(2000, cancellationToken);
+                    await Task.Delay(_batchOptions.PauseBetweenBatchesMs, cancellationToken);
                 }
             }
         }

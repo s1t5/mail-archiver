@@ -52,6 +52,10 @@ builder.Services.Configure<AuthenticationOptions>(
 builder.Services.Configure<BatchRestoreOptions>(
     builder.Configuration.GetSection(BatchRestoreOptions.BatchRestore));
 
+// Add Batch Operation Options
+builder.Services.Configure<BatchOperationOptions>(
+    builder.Configuration.GetSection(BatchOperationOptions.BatchOperation));
+
 // Add Session support
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
@@ -83,7 +87,13 @@ builder.Services.AddDbContext<MailArchiverDbContext>(options =>
 });
 
 // Services hinzufügen
-builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<IEmailService, EmailService>(provider =>
+    new EmailService(
+        provider.GetRequiredService<MailArchiverDbContext>(),
+        provider.GetRequiredService<ILogger<EmailService>>(),
+        provider.GetRequiredService<ISyncJobService>(),
+        provider.GetRequiredService<IOptions<BatchOperationOptions>>()
+    ));
 builder.Services.AddScoped<IAuthenticationService, SimpleAuthenticationService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddSingleton<ISyncJobService, SyncJobService>(); // NEUE SERVICE
@@ -91,9 +101,18 @@ builder.Services.AddSingleton<IBatchRestoreService, BatchRestoreService>();
 builder.Services.AddSingleton<IMBoxImportService, MBoxImportService>();
 
 builder.Services.AddHostedService<BatchRestoreService>(provider =>
-    (BatchRestoreService)provider.GetRequiredService<IBatchRestoreService>());
+    new BatchRestoreService(
+        provider.GetRequiredService<IServiceProvider>(),
+        provider.GetRequiredService<ILogger<BatchRestoreService>>(),
+        provider.GetRequiredService<IOptions<BatchOperationOptions>>()
+    ));
 builder.Services.AddHostedService<MBoxImportService>(provider =>
-    (MBoxImportService)provider.GetRequiredService<IMBoxImportService>());
+    new MBoxImportService(
+        provider.GetRequiredService<IServiceProvider>(),
+        provider.GetRequiredService<ILogger<MBoxImportService>>(),
+        provider.GetRequiredService<IWebHostEnvironment>(),
+        provider.GetRequiredService<IOptions<BatchOperationOptions>>()
+    ));
 builder.Services.AddHostedService<MailSyncBackgroundService>();
 
 // MVC hinzufügen

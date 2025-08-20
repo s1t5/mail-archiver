@@ -4,6 +4,7 @@ using MailKit.Net.Imap;
 using MailKit;
 using MimeKit;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using System.Collections.Concurrent;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -12,18 +13,20 @@ namespace MailArchiver.Services
 {
     public class MBoxImportService : BackgroundService, IMBoxImportService
     {
-        private readonly IServiceProvider _serviceProvider;
+private readonly IServiceProvider _serviceProvider;
         private readonly ILogger<MBoxImportService> _logger;
+        private readonly BatchOperationOptions _batchOptions;
         private readonly ConcurrentQueue<MBoxImportJob> _jobQueue = new();
         private readonly ConcurrentDictionary<string, MBoxImportJob> _allJobs = new();
         private readonly Timer _cleanupTimer;
         private CancellationTokenSource? _currentJobCancellation;
         private readonly string _uploadsPath;
 
-        public MBoxImportService(IServiceProvider serviceProvider, ILogger<MBoxImportService> logger, IWebHostEnvironment environment)
+        public MBoxImportService(IServiceProvider serviceProvider, ILogger<MBoxImportService> logger, IWebHostEnvironment environment, IOptions<BatchOperationOptions> batchOptions)
         {
             _serviceProvider = serviceProvider;
             _logger = logger;
+            _batchOptions = batchOptions.Value;
             _uploadsPath = Path.Combine(environment.ContentRootPath, "uploads", "mbox");
 
             // Erstelle Upload-Verzeichnis falls es nicht existiert
@@ -306,10 +309,10 @@ namespace MailArchiver.Services
 
                         job.ProcessedEmails++;
 
-                        // Kleine Pause alle 10 E-Mails
-                        if (job.ProcessedEmails % 10 == 0)
+// Kleine Pause alle 10 E-Mails
+                        if (job.ProcessedEmails % 10 == 0 && _batchOptions.PauseBetweenEmailsMs > 0)
                         {
-                            await Task.Delay(100, cancellationToken);
+                            await Task.Delay(_batchOptions.PauseBetweenEmailsMs, cancellationToken);
                         }
 
                         // Log Progress alle 100 E-Mails

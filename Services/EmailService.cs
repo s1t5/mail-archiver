@@ -7,6 +7,7 @@ using MailKit.Net.Smtp;
 using MailKit.Search;
 using MailKit.Security;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using MimeKit;
 using System.Globalization;
 using System.Net.Sockets;
@@ -20,15 +21,18 @@ namespace MailArchiver.Services
         private readonly MailArchiverDbContext _context;
         private readonly ILogger<EmailService> _logger;
         private readonly ISyncJobService _syncJobService;
+        private readonly BatchOperationOptions _batchOptions;
 
         public EmailService(
             MailArchiverDbContext context,
             ILogger<EmailService> logger,
-            ISyncJobService syncJobService)
+            ISyncJobService syncJobService,
+            IOptions<BatchOperationOptions> batchOptions)
         {
             _context = context;
             _logger = logger;
             _syncJobService = syncJobService;
+            _batchOptions = batchOptions.Value;
         }
 
         // SyncMailAccountAsync Methode
@@ -290,8 +294,7 @@ namespace MailArchiver.Services
 
                     result.ProcessedEmails = uids.Count;
 
-                    const int batchSize = 20;
-                    for (int i = 0; i < uids.Count; i += batchSize)
+                    for (int i = 0; i < uids.Count; i += _batchOptions.BatchSize)
                     {
                         // Check if job has been cancelled
                         if (jobId != null)
@@ -304,7 +307,7 @@ namespace MailArchiver.Services
                             }
                         }
 
-                        var batch = uids.Skip(i).Take(batchSize).ToList();
+                        var batch = uids.Skip(i).Take(_batchOptions.BatchSize).ToList();
                         _logger.LogInformation("Processing batch of {Count} messages (starting at {Start}) in folder {FolderName}",
                             batch.Count, i, folder.FullName);
 
@@ -360,9 +363,18 @@ namespace MailArchiver.Services
                             }
                         }
 
-                        if (i + batchSize < uids.Count)
+                        if (i + _batchOptions.BatchSize < uids.Count)
                         {
-                            await Task.Delay(1000);
+                            // Use the configurable pause between batches
+                            if (_batchOptions.PauseBetweenBatchesMs > 0)
+                            {
+                                await Task.Delay(_batchOptions.PauseBetweenBatchesMs);
+                            }
+                        }
+                        else if (_batchOptions.PauseBetweenEmailsMs > 0 && batch.Count > 1)
+                        {
+                            // Add a small delay between individual emails within the last batch to avoid overwhelming the server
+                            await Task.Delay(_batchOptions.PauseBetweenEmailsMs);
                         }
                     }
                 }
@@ -1592,30 +1604,30 @@ namespace MailArchiver.Services
 
                         // First try using SearchQuery.SentBefore for efficiency
                         var uids = await folder.SearchAsync(SearchQuery.SentBefore(cutoffDate));
-                        
+
                         // Log the results of the search query for debugging
                         _logger.LogInformation("SearchQuery.SentBefore found {Count} emails in folder {FolderName} for account {AccountName}",
                             uids.Count, folder.FullName, account.Name);
-                        
+
                         // If we found emails, let's log some details about them for debugging
                         if (uids.Any())
                         {
                             // Fetch envelopes for the found emails to check their actual dates
                             var summaries = await folder.FetchAsync(uids.Take(10).ToList(), MessageSummaryItems.UniqueId | MessageSummaryItems.Envelope | MessageSummaryItems.InternalDate);
-                            
+
                             foreach (var summary in summaries)
                             {
                                 // Use only the envelope date (sent date) of the mail
                                 DateTime? emailDate = null;
-                                
+
                                 if (summary.Envelope?.Date.HasValue == true)
                                 {
                                     emailDate = DateTime.SpecifyKind(summary.Envelope.Date.Value.DateTime, DateTimeKind.Utc);
                                 }
-                                
+
                                 // Log the email date for debugging
                                 _logger.LogDebug("Email UID: {UniqueId}, Date: {EmailDate}, Cutoff: {CutoffDate}, IsOld: {IsOld}, Subject: {Subject}",
-                                    summary.UniqueId, emailDate?.ToString() ?? "NULL", cutoffDate, 
+                                    summary.UniqueId, emailDate?.ToString() ?? "NULL", cutoffDate,
                                     emailDate.HasValue && emailDate.Value < cutoffDate,
                                     summary.Envelope?.Subject ?? "NULL");
                             }
@@ -1632,7 +1644,7 @@ namespace MailArchiver.Services
                             uids.Count, folder.FullName, account.Name);
 
                         // Process in batches to avoid memory issues and server timeouts
-                        const int batchSize = 50;
+                        var batchSize = _batchOptions.BatchSize;
                         for (int i = 0; i < uids.Count; i += batchSize)
                         {
                             var batch = uids.Skip(i).Take(batchSize).ToList();
@@ -1719,8 +1731,8 @@ namespace MailArchiver.Services
                                         uidsToDelete.Count, folder.FullName);
 
                                     await folder.ExpungeAsync(uidsToDelete);
-                                        _logger.LogDebug("Expunged {Count} emails from folder {FolderName} (with UIDs)",
-                                            uidsToDelete.Count, folder.FullName);
+                                    _logger.LogDebug("Expunged {Count} emails from folder {FolderName} (with UIDs)",
+                                        uidsToDelete.Count, folder.FullName);
 
                                     deletedCount += uidsToDelete.Count;
                                     _logger.LogInformation("Successfully processed {Count} emails for deletion from folder {FolderName} for account {AccountName}",
@@ -1760,9 +1772,9 @@ namespace MailArchiver.Services
                             }
 
                             // Add a small delay between batches to avoid overwhelming the server
-                            if (i + batchSize < uids.Count)
+                            if (i + batchSize < uids.Count && _batchOptions.PauseBetweenBatchesMs > 0)
                             {
-                                await Task.Delay(150);
+                                await Task.Delay(_batchOptions.PauseBetweenBatchesMs);
                             }
                         }
                     }
@@ -1794,7 +1806,11 @@ namespace MailArchiver.Services
                     await client.DisconnectAsync(true);
                 }
 
-                await Task.Delay(1000);
+                // Use the configurable pause between batches as reconnection delay
+                if (_batchOptions.PauseBetweenBatchesMs > 0)
+                {
+                    await Task.Delay(_batchOptions.PauseBetweenBatchesMs);
+                }
 
                 _logger.LogInformation("Reconnecting to IMAP server for account {AccountName}", account.Name);
                 await client.ConnectAsync(account.ImapServer, account.ImapPort, account.UseSSL);
