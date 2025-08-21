@@ -111,7 +111,7 @@ services:
       - BatchOperation__PauseBetweenBatchesMs=250
 
       # Npgsql Settings
-      - Npgsql__CommandTimeout=600
+      - Npgsql__CommandTimeout=900
     ports:
       - "5000:5000"
     networks:
