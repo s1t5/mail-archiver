@@ -426,9 +426,12 @@ namespace MailArchiver.Services
                 var bcc = CleanText(message.Bcc?.ToString() ?? string.Empty);
                 var body = CleanText(message.TextBody ?? string.Empty);
                 var htmlBody = string.Empty;
+                var isHtmlTruncated = false;
 
                 if (!string.IsNullOrEmpty(message.HtmlBody))
                 {
+                    // Check if HTML body will be truncated
+                    isHtmlTruncated = message.HtmlBody.Length > 1_000_000;
                     htmlBody = CleanHtmlForStorage(message.HtmlBody);
                 }
 
@@ -451,7 +454,7 @@ namespace MailArchiver.Services
                     SentDate = sentDate,
                     ReceivedDate = DateTime.UtcNow,
                     IsOutgoing = isOutgoing,
-                    HasAttachments = allAttachments.Any(),
+                    HasAttachments = allAttachments.Any() || isHtmlTruncated, // Set to true if there are attachments or HTML was truncated
                     Body = body,
                     HtmlBody = htmlBody,
                     FolderName = cleanFolderName
@@ -468,9 +471,15 @@ namespace MailArchiver.Services
                         await SaveAllAttachments(allAttachments, archivedEmail.Id);
                     }
 
+                    // If HTML was truncated, save the original HTML as an attachment
+                    if (isHtmlTruncated)
+                    {
+                        await SaveTruncatedHtmlAsAttachment(message.HtmlBody, archivedEmail.Id);
+                    }
+
                     _logger.LogInformation(
                         "Archived email: {Subject}, From: {From}, To: {To}, Account: {AccountName}, Total Attachments: {AttachmentCount}",
-                        archivedEmail.Subject, archivedEmail.From, archivedEmail.To, account.Name, allAttachments.Count);
+                        archivedEmail.Subject, archivedEmail.From, archivedEmail.To, account.Name, allAttachments.Count + (isHtmlTruncated ? 1 : 0));
 
                     return true; // Neue E-Mail erfolgreich archiviert
                 }
@@ -616,6 +625,35 @@ namespace MailArchiver.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to save attachments batch for email {EmailId}", archivedEmailId);
+            }
+        }
+
+        // Methode zum Speichern des ursprünglichen HTML-Codes als Anhang, wenn er gekürzt wurde
+        private async Task SaveTruncatedHtmlAsAttachment(string originalHtml, int archivedEmailId)
+        {
+            try
+            {
+                var cleanFileName = CleanText($"original_content_{DateTime.UtcNow:yyyyMMddHHmmss}.html");
+                var contentType = "text/html";
+
+                var emailAttachment = new EmailAttachment
+                {
+                    ArchivedEmailId = archivedEmailId,
+                    FileName = cleanFileName,
+                    ContentType = contentType,
+                    Content = Encoding.UTF8.GetBytes(originalHtml),
+                    Size = Encoding.UTF8.GetByteCount(originalHtml)
+                };
+
+                _context.EmailAttachments.Add(emailAttachment);
+                await _context.SaveChangesAsync();
+
+                _logger.LogInformation("Successfully saved original HTML content as attachment for email {EmailId}",
+                    archivedEmailId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to save original HTML content as attachment for email {EmailId}", archivedEmailId);
             }
         }
 
