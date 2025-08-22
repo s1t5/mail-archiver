@@ -39,7 +39,7 @@
 - Bulk export search results to CSV or JSON
 - Attachment download with original filenames
 
-### 📤 Restore Function
+### 🔁 Restore Function
 - Restore a selection of emails or an entire mailbox to a destination mailbox
 
 ### 🗑️ Retention Policies
