@@ -613,6 +613,25 @@ var model = new MailAccountViewModel
             return Redirect(returnUrl ?? Url.Action(nameof(Index)));
         }
 
+        // POST: MailAccounts/ResetSyncTime/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ResetSyncTime(int id)
+        {
+            var account = await _context.MailAccounts.FindAsync(id);
+            if (account == null)
+            {
+                return NotFound();
+            }
+
+            // Set LastSync to current time
+            account.LastSync = DateTime.UtcNow;
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = "Sync time has been reset to current time. This will prevent repeated sync errors from causing incomplete syncs, as the system will only sync emails newer than this timestamp.";
+            return RedirectToAction(nameof(Details), new { id });
+        }
+
         // AJAX endpoint for folder loading
         [HttpGet]
         public async Task<JsonResult> GetFolders(int accountId)

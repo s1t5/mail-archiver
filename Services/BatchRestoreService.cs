@@ -55,6 +55,13 @@ public class BatchRestoreService : BackgroundService, IBatchRestoreService
                 .ToList();
         }
 
+        public List<BatchRestoreJob> GetAllJobs()
+        {
+            return _allJobs.Values
+                .OrderByDescending(j => j.Created)
+                .ToList();
+        }
+
         public bool CancelJob(string jobId)
         {
             if (_allJobs.TryGetValue(jobId, out var job))

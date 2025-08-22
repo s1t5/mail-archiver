@@ -979,6 +979,20 @@ namespace MailArchiver.Controllers
             return Redirect(returnUrl ?? Url.Action("Jobs"));
         }
 
+        // Helper method to get all batch jobs from the service
+        private List<BatchRestoreJob> GetAllBatchJobsFromService()
+        {
+            var jobs = new List<BatchRestoreJob>();
+            
+            if (_batchRestoreService != null)
+            {
+                // Get all jobs including completed ones
+                jobs = _batchRestoreService.GetAllJobs();
+            }
+            
+            return jobs;
+        }
+
         // GET: Emails/Jobs
         [HttpGet]
         public IActionResult Jobs()
@@ -989,13 +1003,25 @@ namespace MailArchiver.Controllers
 
             if (_batchRestoreService != null)
             {
-                batchJobs = _batchRestoreService.GetActiveJobs();
+                // Get all jobs including finished ones to keep them in the list
+                // We'll get all jobs from the service and sort them appropriately
+                var allBatchJobs = GetAllBatchJobsFromService();
+                batchJobs = allBatchJobs
+                    .OrderByDescending(j => j.Status == BatchRestoreJobStatus.Queued || j.Status == BatchRestoreJobStatus.Running)
+                    .ThenByDescending(j => j.Created)
+                    .Take(20) // Limit to 20 most recent jobs
+                    .ToList();
             }
 
             if (_syncJobService != null)
             {
-                // Begrenze auf die letzten 20 Sync-Jobs
-                syncJobs = _syncJobService.GetAllJobs().Take(20).ToList();
+                // Get all jobs but prioritize running jobs at the top
+                var allSyncJobs = _syncJobService.GetAllJobs();
+                syncJobs = allSyncJobs
+                    .OrderByDescending(j => j.Status == SyncJobStatus.Running) // Running jobs first
+                    .ThenByDescending(j => j.Started) // Then by start time
+                    .Take(20) // Still limit to 20
+                    .ToList();
             }
 
             // MBox Import Jobs hinzufügen

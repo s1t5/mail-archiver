@@ -53,6 +53,18 @@
                     {
                         <span class="text-muted">Not yet synchronized</span>
                     }
+                    <div class="mt-2">
+                        <form asp-action="ResetSyncTime" asp-route-id="@Model.Id" method="post" style="display: inline;">
+                            @Html.AntiForgeryToken()
+<button type="submit" class="btn btn-sm btn-outline-info" 
+                                    onclick="return confirm('Are you sure you want to reset the sync time to current time? This will prevent repeated sync errors from causing incomplete syncs, as the system will only sync emails newer than this timestamp.');">
+                                <i class="bi bi-arrow-clockwise"></i> Reset Sync Time
+                            </button>
+                        </form>
+<div class="small text-muted mt-1">
+                            Note: This resets the sync time to current time. This will prevent repeated sync errors from causing incomplete syncs, as the system will only sync emails newer than this timestamp.
+                        </div>
+                    </div>
                 </dd>
                 <dt class="col-sm-3">Auto Delete</dt>
                 <dd class="col-sm-9">
@@ -75,7 +87,7 @@
                 </dd>
             </dl>
 
-            <!-- Account Actions -->
+<!-- Account Actions -->
             <div class="mt-4">
                 <h6 class="text-muted mb-3">Account Actions</h6>
                 
@@ -84,6 +96,15 @@
                     <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">
                         <i class="bi bi-pencil"></i> Edit Account
                     </a>
+                    
+                    <!-- Toggle Enable/Disable -->
+                    <form asp-action="ToggleEnabled" asp-route-id="@Model.Id" method="post" style="display: inline;">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn @(Model.IsEnabled ? "btn-outline-secondary" : "btn-outline-success")">
+                            <i class="bi bi-@(Model.IsEnabled ? "pause" : "play")"></i>
+                            @(Model.IsEnabled ? "Disable Account" : "Enable Account")
+                        </button>
+                    </form>
                     
                     @if (Model.IsEnabled)
                     {
@@ -122,15 +143,6 @@
                     </p>
                     
                     <div class="d-flex flex-column flex-md-row gap-2">
-                        <!-- Toggle Enable/Disable -->
-                        <form asp-action="ToggleEnabled" asp-route-id="@Model.Id" method="post" style="display: inline;">
-                            @Html.AntiForgeryToken()
-                            <button type="submit" class="btn @(Model.IsEnabled ? "btn-outline-secondary" : "btn-outline-success") btn-sm">
-                                <i class="bi bi-@(Model.IsEnabled ? "pause" : "play")"></i>
-                                @(Model.IsEnabled ? "Disable Account" : "Enable Account")
-                            </button>
-                        </form>
-                        
                         <!-- Delete Account -->
                         @{
                             var emailCountText = ViewBag.EmailCount.ToString();
