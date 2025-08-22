@@ -830,84 +830,132 @@ namespace MailArchiver.Services
             return cleanedText.ToString();
         }
 
+        // Constants for HTML truncation - calculated once to avoid repeated computations
+        private static readonly string TruncationNotice = @"
+                    <div style='background-color: #f8f9fa; border: 1px solid #dee2e6; border-radius: 5px; padding: 15px; margin: 10px 0; font-family: Arial, sans-serif;'>
+                        <h4 style='color: #495057; margin-top: 0;'>📎 Email content has been truncated</h4>
+                        <p style='color: #6c757d; margin-bottom: 10px;'>
+                            This email contains very large HTML content (over 1 MB) that has been truncated for better performance.
+                        </p>
+                        <p style='color: #6c757d; margin-bottom: 0;'>
+                            <strong>The complete original HTML content has been saved as an attachment.</strong><br>
+                            Look for a file named 'original_content_*.html' in the attachments.
+                        </p>
+                    </div>";
+        
+        private static readonly int TruncationOverhead = Encoding.UTF8.GetByteCount(TruncationNotice + "</body></html>");
+        private const int MaxHtmlSizeBytes = 1_000_000;
+
         private string CleanHtmlForStorage(string html)
         {
             if (string.IsNullOrEmpty(html))
                 return string.Empty;
 
-            html = html.Replace("\0", "");
-            if (html.Length > 1_000_000)
+            // Remove null characters efficiently - only if they exist
+            if (html.Contains('\0'))
             {
-                // Truncate the HTML content while preserving the basic structure
-                // Find the position to truncate (before 1MB limit)
-                int truncatePosition = 1_000_000 - "<p>This email contains very large HTML content that has been truncated.</p></body></html>".Length;
-                
-                // Ensure we don't go negative
-                if (truncatePosition < 0) 
-                    truncatePosition = 0;
-                
-                // Find a good truncation point (avoid cutting in the middle of tags)
-                int lastLessThan = html.LastIndexOf('<', truncatePosition);
-                int lastGreaterThan = html.LastIndexOf('>', truncatePosition);
-                
-                // If we're inside a tag, truncate at the beginning of that tag
-                if (lastLessThan > lastGreaterThan)
+                html = html.Replace("\0", "");
+            }
+
+            // Early return for small HTML content
+            if (html.Length <= MaxHtmlSizeBytes)
+                return html;
+
+            // Calculate safe truncation position
+            int maxContentSize = MaxHtmlSizeBytes - TruncationOverhead;
+            if (maxContentSize <= 0)
+            {
+                // Fallback for edge case - return minimal valid HTML
+                return $"<html><body>{TruncationNotice}</body></html>";
+            }
+
+            int truncatePosition = Math.Min(maxContentSize, html.Length);
+
+            // Find safe truncation point that doesn't break HTML tags
+            int lastLessThan = html.LastIndexOf('<', truncatePosition - 1);
+            int lastGreaterThan = html.LastIndexOf('>', truncatePosition - 1);
+            
+            // If we're inside a tag, truncate before it starts
+            if (lastLessThan > lastGreaterThan && lastLessThan >= 0)
+            {
+                truncatePosition = lastLessThan;
+            }
+            else if (lastGreaterThan >= 0)
+            {
+                // Otherwise, truncate after the last complete tag
+                truncatePosition = lastGreaterThan + 1;
+            }
+
+            // Use StringBuilder for efficient string building
+            var result = new StringBuilder(truncatePosition + TruncationNotice.Length + 50);
+            
+            // Get base content as span for better performance
+            ReadOnlySpan<char> baseContent = html.AsSpan(0, truncatePosition);
+            
+            // Check for HTML structure efficiently
+            bool hasHtml = baseContent.Contains("<html".AsSpan(), StringComparison.OrdinalIgnoreCase);
+            bool hasBody = baseContent.Contains("<body".AsSpan(), StringComparison.OrdinalIgnoreCase);
+
+            // Build the result efficiently
+            if (!hasHtml)
+            {
+                result.Append("<html>");
+            }
+
+            if (!hasBody)
+            {
+                if (hasHtml)
                 {
-                    truncatePosition = lastLessThan;
-                }
-                else
-                {
-                    // Otherwise, truncate after the last complete tag
-                    truncatePosition = lastGreaterThan + 1;
-                }
-                
-                // Ensure we don't exceed the string length
-                if (truncatePosition > html.Length)
-                    truncatePosition = html.Length;
-                
-                // Extract the portion to keep and add truncation notice
-                string truncatedHtml = html.Substring(0, truncatePosition);
-                
-                // Ensure we have proper HTML structure
-                if (!truncatedHtml.Contains("<html", StringComparison.OrdinalIgnoreCase))
-                {
-                    truncatedHtml = "<html>" + truncatedHtml;
-                }
-                
-                if (!truncatedHtml.Contains("<body", StringComparison.OrdinalIgnoreCase))
-                {
-                    // Find where to insert <body> tag (after <html> or at the beginning)
-                    int htmlTagEnd = truncatedHtml.IndexOf('>', truncatedHtml.IndexOf("<html", StringComparison.OrdinalIgnoreCase));
-                    if (htmlTagEnd >= 0)
+                    // Find where to insert <body> tag efficiently
+                    string contentStr = baseContent.ToString();
+                    int htmlStart = contentStr.IndexOf("<html", StringComparison.OrdinalIgnoreCase);
+                    if (htmlStart >= 0)
                     {
-                        truncatedHtml = truncatedHtml.Insert(htmlTagEnd + 1, "<body>");
+                        int htmlTagEnd = contentStr.IndexOf('>', htmlStart);
+                        if (htmlTagEnd >= 0)
+                        {
+                            result.Append(baseContent.Slice(0, htmlTagEnd + 1));
+                            result.Append("<body>");
+                            result.Append(baseContent.Slice(htmlTagEnd + 1));
+                        }
+                        else
+                        {
+                            result.Append("<body>");
+                            result.Append(baseContent);
+                        }
                     }
                     else
                     {
-                        truncatedHtml = truncatedHtml.Insert(0, "<body>");
+                        result.Append("<body>");
+                        result.Append(baseContent);
                     }
                 }
-                
-                // Add the truncation notice and close tags properly
-                truncatedHtml += "<p>This email contains very large HTML content that has been truncated.</p>";
-                
-                // Close body and html tags if not already closed
-                if (!truncatedHtml.EndsWith("</body></html>"))
+                else
                 {
-                    if (!truncatedHtml.EndsWith("</body>"))
-                    {
-                        truncatedHtml += "</body>";
-                    }
-                    if (!truncatedHtml.EndsWith("</html>"))
-                    {
-                        truncatedHtml += "</html>";
-                    }
+                    result.Append("<body>");
+                    result.Append(baseContent);
                 }
-                
-                return truncatedHtml;
+            }
+            else
+            {
+                result.Append(baseContent);
             }
 
-            return html;
+            // Add truncation notice
+            result.Append(TruncationNotice);
+
+            // Close tags efficiently
+            string resultStr = result.ToString();
+            if (!resultStr.EndsWith("</body>", StringComparison.OrdinalIgnoreCase))
+            {
+                result.Append("</body>");
+            }
+            if (!resultStr.EndsWith("</html>", StringComparison.OrdinalIgnoreCase))
+            {
+                result.Append("</html>");
+            }
+
+            return result.ToString();
         }
 
         /// <summary>
@@ -985,11 +1033,261 @@ namespace MailArchiver.Services
             if (take > 1000) take = 1000; // Limit maximum page size
             if (skip < 0) skip = 0;
 
-            // Create separate queries for count and data to optimize performance
+            try
+            {
+                // Use optimized raw SQL query for better performance
+                return await SearchEmailsOptimizedAsync(searchTerm, fromDate, toDate, accountId, isOutgoing, skip, take, allowedAccountIds);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Optimized search failed, falling back to Entity Framework search");
+                
+                // Fallback to original Entity Framework approach
+                return await SearchEmailsEFAsync(searchTerm, fromDate, toDate, accountId, isOutgoing, skip, take, allowedAccountIds);
+            }
+        }
+
+        private async Task<(List<ArchivedEmail> Emails, int TotalCount)> SearchEmailsOptimizedAsync(
+            string searchTerm,
+            DateTime? fromDate,
+            DateTime? toDate,
+            int? accountId,
+            bool? isOutgoing,
+            int skip,
+            int take,
+            List<int> allowedAccountIds = null)
+        {
+            var startTime = DateTime.UtcNow;
+            
+            // Build the raw SQL query that directly uses the GIN index
+            var whereConditions = new List<string>();
+            var parameters = new List<Npgsql.NpgsqlParameter>();
+            var paramCounter = 0;
+
+            // Full-text search condition (this will use the GIN index)
+            if (!string.IsNullOrWhiteSpace(searchTerm))
+            {
+                var sanitizedSearchTerm = SanitizeSearchTermForTsQuery(searchTerm);
+                if (!string.IsNullOrEmpty(sanitizedSearchTerm))
+                {
+                    whereConditions.Add($@"
+                        to_tsvector('simple', 
+                            COALESCE(""Subject"", '') || ' ' || 
+                            COALESCE(""Body"", '') || ' ' || 
+                            COALESCE(""From"", '') || ' ' || 
+                            COALESCE(""To"", '') || ' ' || 
+                            COALESCE(""Cc"", '') || ' ' || 
+                            COALESCE(""Bcc"", '')) 
+                        @@ to_tsquery('simple', @param{paramCounter})");
+                    parameters.Add(new Npgsql.NpgsqlParameter($"@param{paramCounter}", sanitizedSearchTerm));
+                    paramCounter++;
+                    _logger.LogInformation("Using optimized full-text search for term: {SearchTerm}", searchTerm);
+                }
+            }
+
+            // Account filtering
+            if (allowedAccountIds != null)
+            {
+                if (allowedAccountIds.Any())
+                {
+                    whereConditions.Add($@"""MailAccountId"" = ANY(@param{paramCounter})");
+                    parameters.Add(new Npgsql.NpgsqlParameter($"@param{paramCounter}", allowedAccountIds.ToArray()));
+                    paramCounter++;
+                }
+                else
+                {
+                    // User has no access to any accounts
+                    return (new List<ArchivedEmail>(), 0);
+                }
+            }
+            else if (accountId.HasValue)
+            {
+                // Additional check to ensure user has access to the requested account
+                if (allowedAccountIds != null && allowedAccountIds.Any() && !allowedAccountIds.Contains(accountId.Value))
+                {
+                    // User doesn't have access to this account, return empty results
+                    return (new List<ArchivedEmail>(), 0);
+                }
+                whereConditions.Add($@"""MailAccountId"" = @param{paramCounter}");
+                parameters.Add(new Npgsql.NpgsqlParameter($"@param{paramCounter}", accountId.Value));
+                paramCounter++;
+            }
+
+            // Date filtering (these will use the composite indexes)
+            if (fromDate.HasValue)
+            {
+                whereConditions.Add($@"""SentDate"" >= @param{paramCounter}");
+                parameters.Add(new Npgsql.NpgsqlParameter($"@param{paramCounter}", fromDate.Value));
+                paramCounter++;
+            }
+
+            if (toDate.HasValue)
+            {
+                var endDate = toDate.Value.AddDays(1).AddSeconds(-1);
+                whereConditions.Add($@"""SentDate"" <= @param{paramCounter}");
+                parameters.Add(new Npgsql.NpgsqlParameter($"@param{paramCounter}", endDate));
+                paramCounter++;
+            }
+
+            if (isOutgoing.HasValue)
+            {
+                whereConditions.Add($@"""IsOutgoing"" = @param{paramCounter}");
+                parameters.Add(new Npgsql.NpgsqlParameter($"@param{paramCounter}", isOutgoing.Value));
+                paramCounter++;
+            }
+
+            var whereClause = whereConditions.Any() ? "WHERE " + string.Join(" AND ", whereConditions) : "";
+
+            // Count query (optimized)
+            var countSql = $@"
+                SELECT COUNT(*)
+                FROM mail_archiver.""ArchivedEmails""
+                {whereClause}";
+
+            var countStartTime = DateTime.UtcNow;
+            var totalCount = await ExecuteScalarQueryAsync<int>(countSql, CloneParameters(parameters));
+            var countDuration = DateTime.UtcNow - countStartTime;
+            _logger.LogInformation("Optimized count query took {Duration}ms for {Count} matching records", 
+                countDuration.TotalMilliseconds, totalCount);
+
+            // Data query (optimized)
+            var dataSql = $@"
+                SELECT e.""Id"", e.""MailAccountId"", e.""MessageId"", e.""Subject"", e.""Body"", e.""HtmlBody"",
+                       e.""From"", e.""To"", e.""Cc"", e.""Bcc"", e.""SentDate"", e.""ReceivedDate"",
+                       e.""IsOutgoing"", e.""HasAttachments"", e.""FolderName"",
+                       ma.""Id"" as ""AccountId"", ma.""Name"" as ""AccountName"", ma.""EmailAddress"" as ""AccountEmail""
+                FROM mail_archiver.""ArchivedEmails"" e
+                INNER JOIN mail_archiver.""MailAccounts"" ma ON e.""MailAccountId"" = ma.""Id""
+                {whereClause}
+                ORDER BY e.""SentDate"" DESC
+                LIMIT {take} OFFSET {skip}";
+
+            var dataStartTime = DateTime.UtcNow;
+            var emails = await ExecuteDataQueryAsync(dataSql, CloneParameters(parameters));
+            var dataDuration = DateTime.UtcNow - dataStartTime;
+            _logger.LogInformation("Optimized data query took {Duration}ms for {Count} records", 
+                dataDuration.TotalMilliseconds, emails.Count);
+
+            var totalDuration = DateTime.UtcNow - startTime;
+            _logger.LogInformation("Total optimized search operation took {Duration}ms", totalDuration.TotalMilliseconds);
+
+            return (emails, totalCount);
+        }
+
+        private async Task<T> ExecuteScalarQueryAsync<T>(string sql, List<Npgsql.NpgsqlParameter> parameters)
+        {
+            using var connection = new Npgsql.NpgsqlConnection(_context.Database.GetConnectionString());
+            await connection.OpenAsync();
+            
+            using var command = new Npgsql.NpgsqlCommand(sql, connection);
+            foreach (var parameter in parameters)
+            {
+                command.Parameters.Add(parameter);
+            }
+            
+            var result = await command.ExecuteScalarAsync();
+            return (T)Convert.ChangeType(result, typeof(T));
+        }
+
+        private async Task<List<ArchivedEmail>> ExecuteDataQueryAsync(string sql, List<Npgsql.NpgsqlParameter> parameters)
+        {
+            var emails = new List<ArchivedEmail>();
+            
+            using var connection = new Npgsql.NpgsqlConnection(_context.Database.GetConnectionString());
+            await connection.OpenAsync();
+            
+            using var command = new Npgsql.NpgsqlCommand(sql, connection);
+            foreach (var parameter in parameters)
+            {
+                command.Parameters.Add(parameter);
+            }
+            
+            using var reader = await command.ExecuteReaderAsync();
+            while (await reader.ReadAsync())
+            {
+                var email = new ArchivedEmail
+                {
+                    Id = reader.GetInt32(reader.GetOrdinal("Id")),
+                    MailAccountId = reader.GetInt32(reader.GetOrdinal("MailAccountId")),
+                    MessageId = reader.IsDBNull(reader.GetOrdinal("MessageId")) ? "" : reader.GetString(reader.GetOrdinal("MessageId")),
+                    Subject = reader.IsDBNull(reader.GetOrdinal("Subject")) ? "" : reader.GetString(reader.GetOrdinal("Subject")),
+                    Body = reader.IsDBNull(reader.GetOrdinal("Body")) ? "" : reader.GetString(reader.GetOrdinal("Body")),
+                    HtmlBody = reader.IsDBNull(reader.GetOrdinal("HtmlBody")) ? "" : reader.GetString(reader.GetOrdinal("HtmlBody")),
+                    From = reader.IsDBNull(reader.GetOrdinal("From")) ? "" : reader.GetString(reader.GetOrdinal("From")),
+                    To = reader.IsDBNull(reader.GetOrdinal("To")) ? "" : reader.GetString(reader.GetOrdinal("To")),
+                    Cc = reader.IsDBNull(reader.GetOrdinal("Cc")) ? "" : reader.GetString(reader.GetOrdinal("Cc")),
+                    Bcc = reader.IsDBNull(reader.GetOrdinal("Bcc")) ? "" : reader.GetString(reader.GetOrdinal("Bcc")),
+                    SentDate = reader.GetDateTime(reader.GetOrdinal("SentDate")),
+                    ReceivedDate = reader.GetDateTime(reader.GetOrdinal("ReceivedDate")),
+                    IsOutgoing = reader.GetBoolean(reader.GetOrdinal("IsOutgoing")),
+                    HasAttachments = reader.GetBoolean(reader.GetOrdinal("HasAttachments")),
+                    FolderName = reader.IsDBNull(reader.GetOrdinal("FolderName")) ? "" : reader.GetString(reader.GetOrdinal("FolderName")),
+                    MailAccount = new MailAccount
+                    {
+                        Id = reader.GetInt32(reader.GetOrdinal("AccountId")),
+                        Name = reader.IsDBNull(reader.GetOrdinal("AccountName")) ? "" : reader.GetString(reader.GetOrdinal("AccountName")),
+                        EmailAddress = reader.IsDBNull(reader.GetOrdinal("AccountEmail")) ? "" : reader.GetString(reader.GetOrdinal("AccountEmail"))
+                    }
+                };
+                emails.Add(email);
+            }
+            
+            return emails;
+        }
+
+        private string SanitizeSearchTermForTsQuery(string searchTerm)
+        {
+            if (string.IsNullOrWhiteSpace(searchTerm))
+                return null;
+
+            _logger.LogDebug("Sanitizing search term for tsquery: '{SearchTerm}'", searchTerm);
+
+            // Remove special PostgreSQL tsquery operators and characters that could break the query
+            var sanitized = System.Text.RegularExpressions.Regex.Replace(searchTerm, @"[&|!():\*]", " ", System.Text.RegularExpressions.RegexOptions.None);
+            
+            // Remove extra whitespace
+            sanitized = System.Text.RegularExpressions.Regex.Replace(sanitized, @"\s+", " ", System.Text.RegularExpressions.RegexOptions.None).Trim();
+            
+            if (string.IsNullOrEmpty(sanitized))
+                return null;
+
+            // Split into terms and join with & (AND operator)
+            var terms = sanitized.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            if (!terms.Any())
+                return null;
+
+            // Escape single quotes and join with AND
+            var escapedTerms = terms.Select(t => t.Replace("'", "''"));
+            var result = string.Join(" & ", escapedTerms);
+            
+            _logger.LogDebug("Sanitized search term result: '{Result}'", result);
+            return result;
+        }
+
+        private List<Npgsql.NpgsqlParameter> CloneParameters(List<Npgsql.NpgsqlParameter> parameters)
+        {
+            var clonedParameters = new List<Npgsql.NpgsqlParameter>();
+            foreach (var param in parameters)
+            {
+                clonedParameters.Add(new Npgsql.NpgsqlParameter(param.ParameterName, param.Value));
+            }
+            return clonedParameters;
+        }
+
+        private async Task<(List<ArchivedEmail> Emails, int TotalCount)> SearchEmailsEFAsync(
+            string searchTerm,
+            DateTime? fromDate,
+            DateTime? toDate,
+            int? accountId,
+            bool? isOutgoing,
+            int skip,
+            int take,
+            List<int> allowedAccountIds = null)
+        {
+            // Original Entity Framework implementation as fallback
             var baseQuery = _context.ArchivedEmails.AsNoTracking().AsQueryable();
 
             // Filter by allowed account IDs if provided (for non-admin users)
-            // This should apply whenever allowedAccountIds is provided, even if accountId is not specified
             if (allowedAccountIds != null)
             {
                 if (allowedAccountIds.Any())
@@ -1026,55 +1324,22 @@ namespace MailArchiver.Services
             IQueryable<ArchivedEmail> searchQuery = baseQuery;
             if (!string.IsNullOrEmpty(searchTerm))
             {
-                // Use PostgreSQL full-text search with the GIN index for better performance
-                // Fallback to ILike for compatibility if full-text search is not available
-                var sanitizedSearchTerm = SanitizeSearchTerm(searchTerm);
-                if (!string.IsNullOrEmpty(sanitizedSearchTerm))
-                {
-                    _logger.LogInformation("Using full-text search index for search term: {SearchTerm} (sanitized: {Sanitized})", searchTerm, sanitizedSearchTerm);
-                    searchQuery = baseQuery.Where(e => EF.Functions.ToTsVector("simple", 
-                        (e.Subject ?? "") + " " + 
-                        (e.Body ?? "") + " " + 
-                        (e.From ?? "") + " " + 
-                        (e.To ?? "") + " " + 
-                        (e.Cc ?? "") + " " + 
-                        (e.Bcc ?? ""))
-                        .Matches(EF.Functions.ToTsQuery("simple", sanitizedSearchTerm)));
-                }
-                else
-                {
-                    // Fallback to ILike search for special cases
-                    _logger.LogInformation("Using ILIKE fallback search for search term: {SearchTerm}", searchTerm);
-                    var escapedSearchTerm = searchTerm.Replace("'", "''");
-                    searchQuery = baseQuery.Where(e =>
-                        EF.Functions.ILike(e.Subject, $"%{escapedSearchTerm}%") ||
-                        EF.Functions.ILike(e.From, $"%{escapedSearchTerm}%") ||
-                        EF.Functions.ILike(e.To, $"%{escapedSearchTerm}%") ||
-                        EF.Functions.ILike(e.Body, $"%{escapedSearchTerm}%")
-                    );
-                }
+                var escapedSearchTerm = searchTerm.Replace("'", "''");
+                searchQuery = baseQuery.Where(e =>
+                    EF.Functions.ILike(e.Subject, $"%{escapedSearchTerm}%") ||
+                    EF.Functions.ILike(e.From, $"%{escapedSearchTerm}%") ||
+                    EF.Functions.ILike(e.To, $"%{escapedSearchTerm}%") ||
+                    EF.Functions.ILike(e.Body, $"%{escapedSearchTerm}%")
+                );
             }
 
-            // For count query, we need to apply the same search filter as the data query
-            var countStartTime = DateTime.UtcNow;
             var totalCount = await searchQuery.CountAsync();
-            var countDuration = DateTime.UtcNow - countStartTime;
-            _logger.LogInformation("Database count query took {Duration}ms for {Count} matching records", countDuration.TotalMilliseconds, totalCount);
-
-            // For the actual email results, optimize by selecting only necessary fields
-            // and avoid loading large text fields if not needed for the list view
-            var dataStartTime = DateTime.UtcNow;
             var emails = await searchQuery
                 .Include(e => e.MailAccount)
                 .OrderByDescending(e => e.SentDate)
                 .Skip(skip)
                 .Take(take)
                 .ToListAsync();
-            var dataDuration = DateTime.UtcNow - dataStartTime;
-            _logger.LogInformation("Database data query took {Duration}ms for {Count} records", dataDuration.TotalMilliseconds, emails.Count);
-
-            var totalDuration = DateTime.UtcNow - startTime;
-            _logger.LogInformation("Total search operation took {Duration}ms", totalDuration.TotalMilliseconds);
 
             return (emails, totalCount);
         }
