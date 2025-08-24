@@ -424,15 +424,36 @@ namespace MailArchiver.Services
                 var to = CleanText(message.To.ToString());
                 var cc = CleanText(message.Cc?.ToString() ?? string.Empty);
                 var bcc = CleanText(message.Bcc?.ToString() ?? string.Empty);
-                var body = CleanText(message.TextBody ?? string.Empty);
+                
+                // Extract text and HTML body preserving original encoding
+                var body = string.Empty;
                 var htmlBody = string.Empty;
                 var isHtmlTruncated = false;
 
+                // Handle text body - use original content directly to preserve encoding
+                if (!string.IsNullOrEmpty(message.TextBody))
+                {
+                    body = message.TextBody; // Use original text WITHOUT CleanText for now
+                }
+                else if (!string.IsNullOrEmpty(message.HtmlBody))
+                {
+                    // If no TextBody, try to extract text from HTML body
+                    body = message.HtmlBody; // Use original HTML WITHOUT CleanText for now
+                }
+
+                // Handle HTML body - preserve original encoding
                 if (!string.IsNullOrEmpty(message.HtmlBody))
                 {
                     // Check if HTML body will be truncated
                     isHtmlTruncated = message.HtmlBody.Length > 1_000_000;
-                    htmlBody = CleanHtmlForStorage(message.HtmlBody);
+                    if (isHtmlTruncated)
+                    {
+                        htmlBody = CleanHtmlForStorage(message.HtmlBody);
+                    }
+                    else
+                    {
+                        htmlBody = message.HtmlBody; // Use original HTML WITHOUT CleanText for now
+                    }
                 }
 
                 var cleanMessageId = CleanText(messageId);
@@ -474,7 +495,10 @@ namespace MailArchiver.Services
                     // If HTML was truncated, save the original HTML as an attachment
                     if (isHtmlTruncated)
                     {
-                        await SaveTruncatedHtmlAsAttachment(message.HtmlBody, archivedEmail.Id);
+                        // Save the UTF-8 encoded HTML
+                        var htmlBytes = Encoding.UTF8.GetBytes(message.HtmlBody);
+                        var utf8Html = Encoding.UTF8.GetString(htmlBytes);
+                        await SaveTruncatedHtmlAsAttachment(utf8Html, archivedEmail.Id);
                     }
 
                     _logger.LogInformation(
@@ -813,17 +837,24 @@ namespace MailArchiver.Services
             if (string.IsNullOrEmpty(text))
                 return string.Empty;
 
+            // Remove null characters
             text = text.Replace("\0", "");
-            var cleanedText = new StringBuilder();
+            
+            // Use a more encoding-safe approach to remove control characters
+            // Only remove control characters except for common whitespace characters
+            // This preserves extended ASCII and Unicode characters
+            var cleanedText = new StringBuilder(text.Length);
             foreach (var c in text)
             {
-                if (c < 32 && c != '\r' && c != '\n' && c != '\t')
+                // Keep common whitespace characters and anything above the control character range
+                if (c == '\r' || c == '\n' || c == '\t' || c >= 32)
                 {
-                    cleanedText.Append(' ');
+                    cleanedText.Append(c);
                 }
                 else
                 {
-                    cleanedText.Append(c);
+                    // Replace other control characters with space
+                    cleanedText.Append(' ');
                 }
             }
 

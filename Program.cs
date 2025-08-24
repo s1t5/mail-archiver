@@ -75,15 +75,28 @@ builder.Services.AddAuthentication("MailArchiverAuth")
         options.AccessDeniedPath = "/Auth/AccessDenied";
     });
 
+// Set global encoding to UTF-8
+System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
+
 // PostgreSQL-Datenbankkontext hinzufügen
 builder.Services.AddDbContext<MailArchiverDbContext>(options =>
 {
+    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+    
     options.UseNpgsql(
-        builder.Configuration.GetConnectionString("DefaultConnection"),
-        npgsqlOptions => npgsqlOptions.CommandTimeout(
-            builder.Configuration.GetValue<int>("Npgsql:CommandTimeout", 600) // 10 Minuten Standardwert
-        )
+        connectionString,
+        npgsqlOptions => {
+            npgsqlOptions.CommandTimeout(
+                builder.Configuration.GetValue<int>("Npgsql:CommandTimeout", 600) // 10 Minuten Standardwert
+            );
+        }
     );
+    
+    // Enable sensitive data logging for debugging (remove in production)
+    if (builder.Environment.IsDevelopment())
+    {
+        options.EnableSensitiveDataLogging();
+    }
 });
 
 // Services hinzufügen
