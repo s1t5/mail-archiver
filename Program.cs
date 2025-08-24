@@ -107,7 +107,13 @@ builder.Services.AddScoped<IEmailService, EmailService>(provider =>
         provider.GetRequiredService<ISyncJobService>(),
         provider.GetRequiredService<IOptions<BatchOperationOptions>>()
     ));
-builder.Services.AddScoped<IAuthenticationService, SimpleAuthenticationService>();
+builder.Services.AddScoped<IAuthenticationService>(provider =>
+    new SimpleAuthenticationService(
+        provider.GetRequiredService<IOptions<AuthenticationOptions>>(),
+        provider.GetRequiredService<IUserService>(),
+        provider.GetRequiredService<MailArchiverDbContext>(),
+        provider.GetRequiredService<ILogger<SimpleAuthenticationService>>()
+    ));
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddSingleton<ISyncJobService, SyncJobService>(); // NEUE SERVICE
 builder.Services.AddSingleton<IBatchRestoreService, BatchRestoreService>();

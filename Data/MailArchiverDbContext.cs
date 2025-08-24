@@ -10,6 +10,7 @@ namespace MailArchiver.Data
         public DbSet<EmailAttachment> EmailAttachments { get; set; }
         public DbSet<User> Users { get; set; }
         public DbSet<UserMailAccount> UserMailAccounts { get; set; }
+        public DbSet<UserSession> UserSessions { get; set; }
 
         public MailArchiverDbContext(DbContextOptions<MailArchiverDbContext> options)
             : base(options)
@@ -129,6 +130,25 @@ namespace MailArchiver.Data
                 .WithMany(ma => ma.UserMailAccounts)
                 .HasForeignKey(uma => uma.MailAccountId)
                 .OnDelete(DeleteBehavior.Cascade);
+                
+            // UserSession entity configuration
+            modelBuilder.Entity<UserSession>()
+                .HasIndex(us => us.Token)
+                .IsUnique();
+                
+            modelBuilder.Entity<UserSession>()
+                .HasIndex(us => us.Username);
+                
+            modelBuilder.Entity<UserSession>()
+                .HasIndex(us => us.ExpiresAt);
+                
+            modelBuilder.Entity<UserSession>()
+                .Property(us => us.Token)
+                .HasMaxLength(255);
+                
+            modelBuilder.Entity<UserSession>()
+                .Property(us => us.Username)
+                .HasMaxLength(50);
         }
     }
 }

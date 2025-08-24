@@ -49,7 +49,7 @@ namespace MailArchiver.Controllers
             {
                 if (_authService.ValidateCredentials(model.Username, model.Password))
                 {
-                    _authService.SignIn(HttpContext, model.Username);
+                    _authService.SignIn(HttpContext, model.Username, model.RememberMe);
                     return RedirectToLocal(returnUrl);
                 }
                 else

@@ -433,12 +433,12 @@ namespace MailArchiver.Services
                 // Handle text body - use original content directly to preserve encoding
                 if (!string.IsNullOrEmpty(message.TextBody))
                 {
-                    body = message.TextBody; // Use original text WITHOUT CleanText for now
+                    body = CleanText(message.TextBody); // Apply CleanText to remove null bytes and control characters
                 }
                 else if (!string.IsNullOrEmpty(message.HtmlBody))
                 {
                     // If no TextBody, try to extract text from HTML body
-                    body = message.HtmlBody; // Use original HTML WITHOUT CleanText for now
+                    body = CleanText(message.HtmlBody); // Apply CleanText to remove null bytes and control characters
                 }
 
                 // Handle HTML body - preserve original encoding
@@ -452,7 +452,7 @@ namespace MailArchiver.Services
                     }
                     else
                     {
-                        htmlBody = message.HtmlBody; // Use original HTML WITHOUT CleanText for now
+                        htmlBody = CleanText(message.HtmlBody); // Apply CleanText to remove null bytes and control characters
                     }
                 }
 
