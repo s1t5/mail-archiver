@@ -54,6 +54,19 @@ body {
   background-color: rgba(255, 255, 255, 0.15);
 }
 
+/* Theme Toggle Button */
+#theme-toggle {
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+#theme-toggle:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+#theme-toggle:focus {
+  box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+}
+
 /* Karten & Container */
 .container-fluid {
   padding: 0 1.5rem;

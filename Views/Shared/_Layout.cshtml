@@ -12,6 +12,7 @@
     <link rel="stylesheet" href="~/lib/bootstrap-icons/bootstrap-icons.css">
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/mobile-tables.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/dark-mode.css" asp-append-version="true" />
     <link rel="icon" type="image/svg" href="~/favicon.svg">
 </head>
 
@@ -89,6 +90,9 @@
                         <span class="navbar-text me-3 d-none d-lg-inline">
                             <i class="bi bi-clock-history"></i> Last update: @DateTime.Now.ToString("MM/dd HH:mm")
                         </span>
+                        <button id="theme-toggle" class="btn btn-outline-light me-2" type="button" title="Toggle Dark Mode">
+                            <i class="bi bi-circle-half"></i>
+                        </button>
                         @await Html.PartialAsync("_UserInfo")
                     </div>
                 </div>

@@ -1,0 +1,393 @@
+/* Dark Mode Variablen */
+:root[data-theme="dark"] {
+  --primary-color: #3498db;
+  --secondary-color: #7f8c8d;
+  --success-color: #2ecc71;
+  --danger-color: #e74c3c;
+  --warning-color: #f39c12;
+  --info-color: #3498db;
+  --light-color: #34495e;
+  --dark-color: #2c3e50;
+  --body-bg: #1a1a1a;
+  --card-bg: #2d3748;
+  --text-color: #e2e8f0;
+  --text-muted: #a0aec0;
+  --border-color: #4a5568;
+  --navbar-bg: #1f2937;
+  --footer-bg: #1f2937;
+  --table-bg: #2d3748;
+  --table-hover-bg: #4a5568;
+  --form-control-bg: #2d3748;
+  --form-control-border: #4a5568;
+  --btn-primary-bg: #3498db;
+  --btn-primary-border: #3498db;
+  --btn-success-bg: #2ecc71;
+  --btn-success-border: #2ecc71;
+  --btn-danger-bg: #e74c3c;
+  --btn-danger-border: #e74c3c;
+  --alert-success-bg: #1a472a;
+  --alert-success-border: #2ecc71;
+  --alert-danger-bg: #5b1a18;
+  --alert-danger-border: #e74c3c;
+  --email-html-body-bg: #3a475d;
+  --email-text-body-bg: #3a475d;
+  --stat-card-icon-opacity: 0.2;
+  --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+}
+
+/* Dark Mode Styles */
+[data-theme="dark"] body {
+  background-color: var(--body-bg);
+  color: var(--text-color);
+}
+
+[data-theme="dark"] .navbar {
+  background-color: var(--navbar-bg) !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] .card {
+  background-color: var(--card-bg);
+  box-shadow: var(--card-shadow);
+  border: 1px solid var(--border-color);
+}
+
+[data-theme="dark"] .card-header {
+  background-color: rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid var(--border-color);
+}
+
+[data-theme="dark"] .table {
+  --bs-table-bg: var(--table-bg);
+  --bs-table-striped-bg: rgba(255, 255, 255, 0.05);
+  --bs-table-hover-bg: var(--table-hover-bg);
+  --bs-table-border-color: var(--border-color);
+  color: var(--text-color);
+}
+
+[data-theme="dark"] .table-striped > tbody > tr:nth-of-type(odd) > * {
+  color: var(--text-color);
+}
+
+[data-theme="dark"] .table-hover > tbody > tr:hover > * {
+  color: var(--text-color);
+}
+
+[data-theme="dark"] .form-control,
+[data-theme="dark"] .form-select {
+  background-color: var(--form-control-bg);
+  border: 1px solid var(--form-control-border);
+  color: var(--text-color);
+}
+
+[data-theme="dark"] .form-control:focus,
+[data-theme="dark"] .form-select:focus {
+  background-color: var(--form-control-bg);
+  border-color: var(--primary-color);
+  color: var(--text-color);
+}
+
+[data-theme="dark"] .form-label {
+  color: var(--text-color);
+}
+
+[data-theme="dark"] .btn-primary {
+  background-color: var(--btn-primary-bg);
+  border-color: var(--btn-primary-border);
+  color: white;
+}
+
+[data-theme="dark"] .btn-success {
+  background-color: var(--btn-success-bg);
+  border-color: var(--btn-success-border);
+  color: white;
+}
+
+[data-theme="dark"] .btn-danger {
+  background-color: var(--btn-danger-bg);
+  border-color: var(--btn-danger-border);
+  color: white;
+}
+
+[data-theme="dark"] .btn-outline-primary {
+  color: var(--primary-color);
+  border-color: var(--primary-color);
+}
+
+[data-theme="dark"] .btn-outline-primary:hover {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+[data-theme="dark"] .pagination .page-link {
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
+  color: var(--text-color);
+}
+
+[data-theme="dark"] .pagination .page-link:hover {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+[data-theme="dark"] .pagination .page-item.active .page-link {
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+}
+
+[data-theme="dark"] .footer {
+  background-color: var(--footer-bg);
+  border-top: 1px solid var(--border-color);
+  color: var(--text-color);
+}
+
+[data-theme="dark"] .alert-success {
+  background-color: var(--alert-success-bg);
+  border: 1px solid var(--alert-success-border);
+  color: var(--text-color);
+}
+
+[data-theme="dark"] .alert-danger {
+  background-color: var(--alert-danger-bg);
+  border: 1px solid var(--alert-danger-border);
+  color: var(--text-color);
+}
+
+[data-theme="dark"] .stat-card .icon {
+  opacity: var(--stat-card-icon-opacity);
+}
+
+[data-theme="dark"] .email-html-body {
+  background-color: var(--email-html-body-bg);
+  color: var(--text-color);
+}
+
+[data-theme="dark"] .email-text-body {
+  background-color: var(--email-text-body-bg);
+  color: var(--text-color);
+}
+
+[data-theme="dark"] a {
+  color: #63b3ed;
+}
+
+[data-theme="dark"] a:hover {
+  color: #90cdf4;
+}
+
+[data-theme="dark"] .text-muted {
+  color: var(--text-muted) !important;
+}
+
+/* Dark Mode für mobile Tabellen */
+[data-theme="dark"] .table-mobile tr {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+}
+
+[data-theme="dark"] .table-mobile td {
+  border-bottom: 1px solid var(--border-color);
+}
+
+[data-theme="dark"] .table-mobile td:before {
+  color: var(--text-muted);
+}
+
+[data-theme="dark"] .email-card-mobile {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  color: var(--text-color);
+}
+
+[data-theme="dark"] .email-card-title {
+  color: var(--text-color);
+}
+
+[data-theme="dark"] .email-card-meta {
+  color: var(--text-muted);
+}
+
+/* Dark Mode für Badges */
+[data-theme="dark"] .badge.bg-danger {
+  background-color: var(--danger-color) !important;
+}
+
+/* Dark Mode für Pagination Header */
+[data-theme="dark"] .d-flex.justify-content-between.align-items-center.py-2.bg-light.rounded.mb-3 {
+  background-color: var(--card-bg) !important;
+  color: var(--text-color);
+}
+
+/* Dark Mode für Recent Emails Tabelle */
+[data-theme="dark"] .table-responsive.bg-white.rounded.shadow-sm {
+  background-color: var(--card-bg) !important;
+  box-shadow: var(--card-shadow) !important;
+  border: 1px solid var(--border-color);
+}
+
+/* Dark Mode für Badges und Buttons - Schriftfarbe bleibt gleich */
+[data-theme="dark"] .badge.bg-info {
+  background-color: #17a2b8 !important;
+  border-color: #17a2b8 !important;
+  color: white !important;
+}
+
+/* Alle Buttons behalten ihre ursprüngliche Farbe bei */
+[data-theme="dark"] .btn {
+  color: inherit !important;
+}
+
+/* Spezielle Anpassung für btn-info und btn-warning in Desktop-Ansicht */
+@media (min-width: 769px) {
+  [data-theme="dark"] .btn-info,
+  [data-theme="dark"] .btn-warning {
+    color: #000 !important;
+  }
+}
+
+/* Dark Mode für Attachments */
+[data-theme="dark"] .list-group-item {
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
+  color: var(--text-color);
+}
+
+[data-theme="dark"] .list-group-item:hover {
+  background-color: var(--table-hover-bg);
+}
+
+/* Dark Mode für Email Body */
+[data-theme="dark"] .email-text-body {
+  background-color: #ffffff;
+  color: #000000;
+  border: 1px solid var(--border-color);
+}
+
+/* Dark Mode für HTML Email Body */
+[data-theme="dark"] .email-html-body {
+  background-color: #ffffff;
+  color: #000000;
+  border: 1px solid var(--border-color);
+}
+
+/* Dark Mode für Email iframe */
+[data-theme="dark"] .email-iframe {
+  background-color: #ffffff;
+  border: 1px solid var(--border-color);
+}
+
+/* Dark Mode für email-text-break text-dark */
+[data-theme="dark"] .email-text-break.text-dark {
+  color: var(--text-color) !important;
+}
+
+/* Dark Mode für spezifische Textfarbe #1F497D */
+[data-theme="dark"] *[style*="color: #1F497D"],
+[data-theme="dark"] *[color="#1F497D"] {
+  color: var(--text-color) !important;
+}
+
+[data-theme="dark"] .email-html-body {
+  background-color: var(--card-bg);
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
+}
+
+/* Dark Mode für Email Detail View */
+[data-theme="dark"] .bg-white.rounded.shadow-sm.p-3.mb-3 {
+  background-color: var(--card-bg) !important;
+  box-shadow: var(--card-shadow) !important;
+  border: 1px solid var(--border-color);
+}
+
+/* Dark Mode für card-header bg-light */
+[data-theme="dark"] .card-header.bg-light {
+  background-color: rgba(255, 255, 255, 0.05) !important;
+  border-bottom: 1px solid var(--border-color);
+}
+
+/* Zusätzliche Dark Mode Regeln für Tabellen */
+[data-theme="dark"] .table > :not(caption) > * > * {
+  background-color: var(--table-bg);
+  border-color: var(--border-color);
+}
+
+[data-theme="dark"] .table-striped > tbody > tr:nth-of-type(even) > * {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+[data-theme="dark"] .table-hover > tbody > tr:hover > * {
+  background-color: var(--table-hover-bg);
+}
+
+[data-theme="dark"] .table-primary {
+  --bs-table-bg: #1f3a5a;
+  --bs-table-striped-bg: #2a4463;
+  --bs-table-striped-color: #fff;
+  --bs-table-active-bg: #344e6c;
+  --bs-table-active-color: #fff;
+  --bs-table-hover-bg: #2f4967;
+  --bs-table-hover-color: #fff;
+  color: #fff;
+  border-color: #344e6c;
+}
+
+[data-theme="dark"] .table-secondary {
+  --bs-table-bg: #343a40;
+  --bs-table-striped-bg: #3e444a;
+  --bs-table-striped-color: #fff;
+  --bs-table-active-bg: #484e53;
+  --bs-table-active-color: #fff;
+  --bs-table-hover-bg: #43494e;
+  --bs-table-hover-color: #fff;
+  color: #fff;
+  border-color: #484e53;
+}
+
+[data-theme="dark"] .table-success {
+  --bs-table-bg: #1f5a3d;
+  --bs-table-striped-bg: #2a6144;
+  --bs-table-striped-color: #fff;
+  --bs-table-active-bg: #34684b;
+  --bs-table-active-color: #fff;
+  --bs-table-hover-bg: #2f6447;
+  --bs-table-hover-color: #fff;
+  color: #fff;
+  border-color: #34684b;
+}
+
+[data-theme="dark"] .table-danger {
+  --bs-table-bg: #5a1f1f;
+  --bs-table-striped-bg: #612a2a;
+  --bs-table-striped-color: #fff;
+  --bs-table-active-bg: #683434;
+  --bs-table-active-color: #fff;
+  --bs-table-hover-bg: #642f2f;
+  --bs-table-hover-color: #fff;
+  color: #fff;
+  border-color: #683434;
+}
+
+/* Dark Mode für Theme Toggle Button */
+[data-theme="dark"] #theme-toggle {
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+}
+
+[data-theme="dark"] #theme-toggle:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Dark Mode für Modals (falls verwendet) */
+[data-theme="dark"] .modal-content {
+  background-color: var(--card-bg);
+  color: var(--text-color);
+}
+
+[data-theme="dark"] .modal-header {
+  border-bottom: 1px solid var(--border-color);
+}
+
+[data-theme="dark"] .modal-footer {
+  border-top: 1px solid var(--border-color);
+}
