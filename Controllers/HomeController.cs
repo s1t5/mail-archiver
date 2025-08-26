@@ -117,17 +117,32 @@ namespace MailArchiver.Controllers
                 })
                 .ToListAsync();
 
-            var startDate = DateTime.UtcNow.AddMonths(-11).Date;
+            var now = DateTime.UtcNow;
+            var startDate = now.AddMonths(-11).Date;
+            startDate = new DateTime(startDate.Year, startDate.Month, 1); // First day of the month
             var months = new List<EmailCountByPeriod>();
             for (int i = 0; i < 12; i++)
             {
                 var currentMonth = startDate.AddMonths(i);
                 var nextMonth = currentMonth.AddMonths(1);
 
-                var count = await _context.ArchivedEmails
-                    .Where(e => accountIds.Contains(e.MailAccountId) && 
-                        e.SentDate >= currentMonth && e.SentDate < nextMonth)
-                    .CountAsync();
+                int count;
+                if (i == 11) // Current month
+                {
+                    // For the current month, count all emails up to now
+                    count = await _context.ArchivedEmails
+                        .Where(e => accountIds.Contains(e.MailAccountId) && 
+                            e.SentDate >= currentMonth && e.SentDate <= now)
+                        .CountAsync();
+                }
+                else
+                {
+                    // For past months, use the standard range
+                    count = await _context.ArchivedEmails
+                        .Where(e => accountIds.Contains(e.MailAccountId) && 
+                            e.SentDate >= currentMonth && e.SentDate < nextMonth)
+                        .CountAsync();
+                }
 
                 months.Add(new EmailCountByPeriod
                 {
