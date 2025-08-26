@@ -20,6 +20,7 @@
 - Scheduled synchronization at configurable intervals
 - Mobile and desktop optimized responsive UI
 - MBox Import
+- Dark mode
 
 ### 🔍 Advanced Search
 - Search across all archived emails
