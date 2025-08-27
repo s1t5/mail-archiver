@@ -1095,13 +1095,13 @@ namespace MailArchiver.Services
             var parameters = new List<Npgsql.NpgsqlParameter>();
             var paramCounter = 0;
 
-            // Full-text search condition (handles both individual words and quoted phrases)
+            // Full-text search condition (handles individual words, quoted phrases, and field-specific searches)
             if (!string.IsNullOrWhiteSpace(searchTerm))
             {
-                var (tsQuery, phrases) = ParseSearchTermForTsQuery(searchTerm);
+                var (tsQuery, phrases, fieldSearches, fieldPhrases) = ParseSearchTermForTsQuery(searchTerm);
                 var searchConditions = new List<string>();
                 
-                // Handle individual words with tsquery (uses GIN index)
+                // Handle individual words with tsquery (uses GIN index for global search)
                 if (!string.IsNullOrEmpty(tsQuery))
                 {
                     searchConditions.Add($@"
@@ -1118,7 +1118,7 @@ namespace MailArchiver.Services
                     _logger.LogDebug("Added tsquery condition for individual words: {TsQuery}", tsQuery);
                 }
                 
-                // Handle exact phrases with POSITION (exact string matching)
+                // Handle exact phrases with POSITION (exact string matching across all fields)
                 foreach (var phrase in phrases)
                 {
                     searchConditions.Add($@"(
@@ -1134,11 +1134,52 @@ namespace MailArchiver.Services
                     _logger.LogDebug("Added exact phrase condition for: '{Phrase}'", phrase);
                 }
                 
+                // Handle field-specific word searches
+                foreach (var fieldSearch in fieldSearches)
+                {
+                    var field = fieldSearch.Key;
+                    var terms = fieldSearch.Value;
+                    var columnName = GetColumnNameForField(field);
+                    
+                    if (!string.IsNullOrEmpty(columnName))
+                    {
+                        foreach (var term in terms)
+                        {
+                            searchConditions.Add($@"
+                                to_tsvector('simple', COALESCE(""{columnName}"", '')) 
+                                @@ to_tsquery('simple', @param{paramCounter})");
+                            parameters.Add(new Npgsql.NpgsqlParameter($"@param{paramCounter}", term.Replace("'", "''")));
+                            paramCounter++;
+                            _logger.LogDebug("Added field-specific tsquery condition for {Field}: {Term}", field, term);
+                        }
+                    }
+                }
+                
+                // Handle field-specific phrase searches  
+                foreach (var fieldPhrase in fieldPhrases)
+                {
+                    var field = fieldPhrase.Key;
+                    var currentFieldPhrases = fieldPhrase.Value;
+                    var columnName = GetColumnNameForField(field);
+                    
+                    if (!string.IsNullOrEmpty(columnName))
+                    {
+                        foreach (var phrase in currentFieldPhrases)
+                        {
+                            searchConditions.Add($@"
+                                POSITION(LOWER(@param{paramCounter}) IN LOWER(COALESCE(""{columnName}"", ''))) > 0");
+                            parameters.Add(new Npgsql.NpgsqlParameter($"@param{paramCounter}", phrase));
+                            paramCounter++;
+                            _logger.LogDebug("Added field-specific phrase condition for {Field}: '{Phrase}'", field, phrase);
+                        }
+                    }
+                }
+                
                 if (searchConditions.Any())
                 {
                     whereConditions.Add($"({string.Join(" AND ", searchConditions)})");
-                    _logger.LogInformation("Using optimized search for term: {SearchTerm} (individual words: {HasWords}, phrases: {PhraseCount})", 
-                        searchTerm, !string.IsNullOrEmpty(tsQuery), phrases.Count);
+                    _logger.LogInformation("Using optimized search for term: {SearchTerm} (individual words: {HasWords}, phrases: {PhraseCount}, field searches: {FieldSearches}, field phrases: {FieldPhrases})", 
+                        searchTerm, !string.IsNullOrEmpty(tsQuery), phrases.Count, fieldSearches.Count, fieldPhrases.Count);
                 }
             }
 
@@ -1292,23 +1333,29 @@ namespace MailArchiver.Services
             return emails;
         }
 
-        private (string tsQuery, List<string> phrases) ParseSearchTermForTsQuery(string searchTerm)
+        private (string tsQuery, List<string> phrases, Dictionary<string, List<string>> fieldSearches, Dictionary<string, List<string>> fieldPhrases) ParseSearchTermForTsQuery(string searchTerm)
         {
             if (string.IsNullOrWhiteSpace(searchTerm))
-                return (null, new List<string>());
+                return (null, new List<string>(), new Dictionary<string, List<string>>(), new Dictionary<string, List<string>>());
 
             _logger.LogDebug("Parsing search term for tsquery: '{SearchTerm}'", searchTerm);
 
             var phrases = new List<string>();
             var individualWords = new List<string>();
+            var fieldSearches = new Dictionary<string, List<string>>();
+            var fieldPhrases = new Dictionary<string, List<string>>();
             
-            // Parse quoted phrases and individual words
-            var regex = new Regex(@"""([^""]*)""|(\S+)", RegexOptions.None);
+            // Supported fields for field-specific search
+            var validFields = new HashSet<string> { "subject", "body", "from", "to" };
+            
+            // Parse quoted phrases, field-specific terms, and individual words
+            // Enhanced regex to capture: "quoted phrases", field:term, field:"quoted phrase", and individual words
+            var regex = new Regex(@"""([^""]*)""|(\w+):(""([^""]*)""|(\S+))|(\S+)", RegexOptions.None);
             var matches = regex.Matches(searchTerm);
             
             foreach (Match match in matches)
             {
-                if (match.Groups[1].Success) // Quoted phrase
+                if (match.Groups[1].Success) // Quoted phrase (not field-specific)
                 {
                     var phrase = match.Groups[1].Value.Trim();
                     if (!string.IsNullOrEmpty(phrase))
@@ -1316,9 +1363,41 @@ namespace MailArchiver.Services
                         phrases.Add(phrase);
                     }
                 }
-                else if (match.Groups[2].Success) // Individual word
+                else if (match.Groups[2].Success) // Field-specific search
                 {
-                    var word = match.Groups[2].Value.Trim();
+                    var field = match.Groups[2].Value.ToLower().Trim();
+                    if (validFields.Contains(field))
+                    {
+                        if (match.Groups[4].Success) // field:"quoted phrase"
+                        {
+                            var fieldPhrase = match.Groups[4].Value.Trim();
+                            if (!string.IsNullOrEmpty(fieldPhrase))
+                            {
+                                if (!fieldPhrases.ContainsKey(field))
+                                    fieldPhrases[field] = new List<string>();
+                                fieldPhrases[field].Add(fieldPhrase);
+                            }
+                        }
+                        else if (match.Groups[5].Success) // field:term
+                        {
+                            var fieldTerm = match.Groups[5].Value.Trim();
+                            if (!string.IsNullOrEmpty(fieldTerm))
+                            {
+                                // Remove special PostgreSQL tsquery operators
+                                var sanitized = Regex.Replace(fieldTerm, @"[&|!():\*]", "", RegexOptions.None);
+                                if (!string.IsNullOrEmpty(sanitized))
+                                {
+                                    if (!fieldSearches.ContainsKey(field))
+                                        fieldSearches[field] = new List<string>();
+                                    fieldSearches[field].Add(sanitized);
+                                }
+                            }
+                        }
+                    }
+                }
+                else if (match.Groups[6].Success) // Individual word (not field-specific)
+                {
+                    var word = match.Groups[6].Value.Trim();
                     if (!string.IsNullOrEmpty(word))
                     {
                         // Remove special PostgreSQL tsquery operators and characters that could break the query
@@ -1331,7 +1410,7 @@ namespace MailArchiver.Services
                 }
             }
 
-            // Build tsquery for individual words
+            // Build tsquery for individual words (non-field-specific)
             string tsQuery = null;
             if (individualWords.Any())
             {
@@ -1340,10 +1419,30 @@ namespace MailArchiver.Services
                 tsQuery = string.Join(" & ", escapedTerms);
             }
             
-            _logger.LogDebug("Parsed search - tsQuery: '{TsQuery}', phrases: [{Phrases}]", 
-                tsQuery, string.Join(", ", phrases.Select(p => $"'{p}'")));
+            _logger.LogDebug("Parsed search - tsQuery: '{TsQuery}', phrases: [{Phrases}], fieldSearches: [{FieldSearches}], fieldPhrases: [{FieldPhrases}]", 
+                tsQuery, 
+                string.Join(", ", phrases.Select(p => $"'{p}'")),
+                string.Join(", ", fieldSearches.Select(kvp => $"{kvp.Key}:[{string.Join(",", kvp.Value)}]")),
+                string.Join(", ", fieldPhrases.Select(kvp => $"{kvp.Key}:[{string.Join(",", kvp.Value.Select(p => $"'{p}'"))}]")));
             
-            return (tsQuery, phrases);
+            return (tsQuery, phrases, fieldSearches, fieldPhrases);
+        }
+
+        /// <summary>
+        /// Maps field names to their corresponding database column names
+        /// </summary>
+        /// <param name="fieldName">The field name from the search term (subject, body, from, to)</param>
+        /// <returns>The corresponding database column name or null if invalid</returns>
+        private string GetColumnNameForField(string fieldName)
+        {
+            return fieldName.ToLower() switch
+            {
+                "subject" => "Subject",
+                "body" => "Body", 
+                "from" => "From",
+                "to" => "To",
+                _ => null
+            };
         }
 
         private List<Npgsql.NpgsqlParameter> CloneParameters(List<Npgsql.NpgsqlParameter> parameters)
@@ -1406,12 +1505,12 @@ namespace MailArchiver.Services
             IQueryable<ArchivedEmail> searchQuery = baseQuery;
             if (!string.IsNullOrEmpty(searchTerm))
             {
-                var (tsQuery, phrases) = ParseSearchTermForTsQuery(searchTerm);
+                var (tsQuery, phrases, fieldSearches, fieldPhrases) = ParseSearchTermForTsQuery(searchTerm);
                 
                 // Start with the base query
                 searchQuery = baseQuery;
                 
-                // Handle individual words
+                // Handle individual words (global search)
                 if (!string.IsNullOrEmpty(tsQuery))
                 {
                     var words = tsQuery.Split('&', StringSplitOptions.RemoveEmptyEntries)
@@ -1432,7 +1531,7 @@ namespace MailArchiver.Services
                     }
                 }
 
-                // Handle quoted phrases with exact matching
+                // Handle quoted phrases with exact matching (global search)
                 foreach (var phrase in phrases)
                 {
                     searchQuery = searchQuery.Where(e =>
@@ -1443,6 +1542,60 @@ namespace MailArchiver.Services
                         (e.Cc != null && e.Cc.ToLower().Contains(phrase.ToLower())) ||
                         (e.Bcc != null && e.Bcc.ToLower().Contains(phrase.ToLower()))
                     );
+                }
+                
+                // Handle field-specific word searches
+                foreach (var fieldSearch in fieldSearches)
+                {
+                    var field = fieldSearch.Key;
+                    var terms = fieldSearch.Value;
+                    
+                    foreach (var term in terms)
+                    {
+                        var escapedTerm = term.Replace("'", "''");
+                        
+                        switch (field.ToLower())
+                        {
+                            case "subject":
+                                searchQuery = searchQuery.Where(e => e.Subject != null && EF.Functions.ILike(e.Subject, $"%{escapedTerm}%"));
+                                break;
+                            case "body":
+                                searchQuery = searchQuery.Where(e => e.Body != null && EF.Functions.ILike(e.Body, $"%{escapedTerm}%"));
+                                break;
+                            case "from":
+                                searchQuery = searchQuery.Where(e => e.From != null && EF.Functions.ILike(e.From, $"%{escapedTerm}%"));
+                                break;
+                            case "to":
+                                searchQuery = searchQuery.Where(e => e.To != null && EF.Functions.ILike(e.To, $"%{escapedTerm}%"));
+                                break;
+                        }
+                    }
+                }
+                
+                // Handle field-specific phrase searches
+                foreach (var fieldPhrase in fieldPhrases)
+                {
+                    var field = fieldPhrase.Key;
+                    var fieldPhrasesList = fieldPhrase.Value;
+                    
+                    foreach (var phrase in fieldPhrasesList)
+                    {
+                        switch (field.ToLower())
+                        {
+                            case "subject":
+                                searchQuery = searchQuery.Where(e => e.Subject != null && e.Subject.ToLower().Contains(phrase.ToLower()));
+                                break;
+                            case "body":
+                                searchQuery = searchQuery.Where(e => e.Body != null && e.Body.ToLower().Contains(phrase.ToLower()));
+                                break;
+                            case "from":
+                                searchQuery = searchQuery.Where(e => e.From != null && e.From.ToLower().Contains(phrase.ToLower()));
+                                break;
+                            case "to":
+                                searchQuery = searchQuery.Where(e => e.To != null && e.To.ToLower().Contains(phrase.ToLower()));
+                                break;
+                        }
+                    }
                 }
             }
 

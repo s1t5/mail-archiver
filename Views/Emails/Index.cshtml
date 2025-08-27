@@ -48,7 +48,10 @@
                         <input asp-for="SearchTerm" class="form-control form-control-sm" placeholder="Subject, sender..." />
                         <div class="form-text small text-muted">
                             <i class="bi bi-info-circle me-1"></i>
-                            Use quotes for exact phrases: <code>john "important meeting"</code> finds emails with both "john" and the exact phrase "important meeting"
+                            <strong>Advanced Search:</strong><br>
+                            • Use quotes for exact phrases: <code>"important meeting"</code><br>
+                            • Field-specific search: <code>subject:invoice</code>, <code>from:john</code>, <code>to:domain</code>, <code>body:"important"</code><br>
+                            • Combine both: <code>"car insurance" subject:invoice from:insurance</code>
                         </div>
                     </div>
                     <div class="col-6 col-md-3 col-lg-2 mb-3">
