@@ -20,6 +20,7 @@ namespace MailArchiver.Controllers
         private readonly BatchRestoreOptions _batchOptions;
         private readonly ISyncJobService _syncJobService;
         private readonly IMBoxImportService _mboxImportService;
+        private readonly UploadOptions _uploadOptions;
 
         public MailAccountsController(
             MailArchiverDbContext context,
@@ -27,7 +28,8 @@ namespace MailArchiver.Controllers
             ILogger<MailAccountsController> logger,
             IOptions<BatchRestoreOptions> batchOptions,
             ISyncJobService syncJobService,
-            IMBoxImportService mboxImportService)
+            IMBoxImportService mboxImportService,
+            IOptions<UploadOptions> uploadOptions)
         {
             _context = context;
             _emailService = emailService;
@@ -35,6 +37,7 @@ namespace MailArchiver.Controllers
             _batchOptions = batchOptions.Value;
             _syncJobService = syncJobService;
             _mboxImportService = mboxImportService;
+            _uploadOptions = uploadOptions.Value;
         }
 
         // GET: MailAccounts
@@ -496,7 +499,7 @@ var model = new MailAccountViewModel
                     Value = a.Id.ToString(),
                     Text = $"{a.Name} ({a.EmailAddress})"
                 }).ToList(),
-                MaxFileSize = 5_000_000_000 // 5 GB
+                MaxFileSize = _uploadOptions.MaxFileSizeBytes
             };
 
             return View(model);
@@ -505,8 +508,6 @@ var model = new MailAccountViewModel
         // POST: MailAccounts/ImportMBox
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [RequestSizeLimit(5_368_709_120)] // 5 GB
-        [RequestFormLimits(MultipartBodyLengthLimit = 5_368_709_120)] // 5 GB
         public async Task<IActionResult> ImportMBox(MBoxImportViewModel model)
         {
             // Reload accounts for validation failure
@@ -521,6 +522,9 @@ var model = new MailAccountViewModel
                 Text = $"{a.Name} ({a.EmailAddress})",
                 Selected = a.Id == model.TargetAccountId
             }).ToList();
+
+            // Ensure MaxFileSize is set for validation failures
+            model.MaxFileSize = _uploadOptions.MaxFileSizeBytes;
 
             if (!ModelState.IsValid)
             {
@@ -585,6 +589,13 @@ var model = new MailAccountViewModel
         [HttpGet]
         public IActionResult MBoxImportStatus(string jobId)
         {
+            // Validate jobId parameter
+            if (string.IsNullOrEmpty(jobId))
+            {
+                TempData["ErrorMessage"] = "Invalid MBox import job ID.";
+                return RedirectToAction(nameof(Index));
+            }
+
             var job = _mboxImportService.GetJob(jobId);
             if (job == null)
             {
@@ -600,6 +611,14 @@ var model = new MailAccountViewModel
         [ValidateAntiForgeryToken]
         public IActionResult CancelMBoxImport(string jobId, string returnUrl = null)
         {
+            // Validate jobId parameter
+            if (string.IsNullOrEmpty(jobId))
+            {
+                TempData["ErrorMessage"] = "Invalid MBox import job ID.";
+                // Wenn returnUrl angegeben ist, leite dorthin weiter, sonst zur Index-Seite
+                return Redirect(returnUrl ?? Url.Action(nameof(Index)));
+            }
+
             var success = _mboxImportService.CancelJob(jobId);
             if (success)
             {
@@ -607,9 +626,10 @@ var model = new MailAccountViewModel
             }
             else
             {
-                TempData["ErrorMessage"] = "Could not cancel the MBox import job.";
+                TempData["ErrorMessage"] = "Could not cancel the MBox import job. The job may have already completed or does not exist.";
             }
 
+            // Wenn returnUrl angegeben ist, leite dorthin weiter, sonst zur Index-Seite
             return Redirect(returnUrl ?? Url.Action(nameof(Index)));
         }
 

@@ -232,7 +232,7 @@
                     <form asp-action="CancelMBoxImport" method="post" style="display: inline;"
                           onsubmit="return confirm('Are you sure you want to cancel this import job?');">
                         <input type="hidden" name="jobId" value="@Model.JobId" />
-                        <input type="hidden" name="returnUrl" value="@Context.Request.Path" />
+                        <input type="hidden" name="returnUrl" value="@Url.Action("Index", "MailAccounts")" />
                         <button type="submit" class="btn btn-warning">
                             <i class="bi bi-stop-circle"></i> Cancel Import
                         </button>

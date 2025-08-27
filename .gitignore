@@ -8,6 +8,9 @@
 *.userprefs
 .editorconfig
 
+# Import
+uploads/*
+
 # Build-Ergebnisse
 [Dd]ebug/
 [Dd]ebugPublic/

@@ -114,6 +114,11 @@ services:
 
       # Npgsql Settings
       - Npgsql__CommandTimeout=900
+
+      # Upload Settings for MBox files
+      - Upload__MaxFileSizeGB=10
+      - Upload__KeepAliveTimeoutHours=4
+      - Upload__RequestHeadersTimeoutHours=2
     ports:
       - "5000:5000"
     networks:

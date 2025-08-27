@@ -56,6 +56,10 @@ builder.Services.Configure<BatchRestoreOptions>(
 builder.Services.Configure<BatchOperationOptions>(
     builder.Configuration.GetSection(BatchOperationOptions.BatchOperation));
 
+// Add Upload Options
+builder.Services.Configure<UploadOptions>(
+    builder.Configuration.GetSection(UploadOptions.Upload));
+
 // Add Session support
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
@@ -117,19 +121,15 @@ builder.Services.AddScoped<IAuthenticationService>(provider =>
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddSingleton<ISyncJobService, SyncJobService>(); // NEUE SERVICE
 builder.Services.AddSingleton<IBatchRestoreService, BatchRestoreService>();
-builder.Services.AddSingleton<IMBoxImportService, MBoxImportService>();
+// Register MBoxImportService as singleton and hosted service - MUST be the same instance
+builder.Services.AddSingleton<MBoxImportService>();
+builder.Services.AddSingleton<IMBoxImportService>(provider => provider.GetRequiredService<MBoxImportService>());
+builder.Services.AddHostedService<MBoxImportService>(provider => provider.GetRequiredService<MBoxImportService>());
 
 builder.Services.AddHostedService<BatchRestoreService>(provider =>
     new BatchRestoreService(
         provider.GetRequiredService<IServiceProvider>(),
         provider.GetRequiredService<ILogger<BatchRestoreService>>(),
-        provider.GetRequiredService<IOptions<BatchOperationOptions>>()
-    ));
-builder.Services.AddHostedService<MBoxImportService>(provider =>
-    new MBoxImportService(
-        provider.GetRequiredService<IServiceProvider>(),
-        provider.GetRequiredService<ILogger<MBoxImportService>>(),
-        provider.GetRequiredService<IWebHostEnvironment>(),
         provider.GetRequiredService<IOptions<BatchOperationOptions>>()
     ));
 builder.Services.AddHostedService<MailSyncBackgroundService>();
@@ -144,12 +144,14 @@ builder.Services.Configure<BatchRestoreOptions>(
     builder.Configuration.GetSection(BatchRestoreOptions.BatchRestore));
 
 
-// Kestrel-Server-Limits konfigurieren
-builder.WebHost.ConfigureKestrel(options =>
+// Kestrel-Server-Limits konfigurieren - using configuration values
+builder.WebHost.ConfigureKestrel((context, options) =>
 {
-    options.Limits.MaxRequestBodySize = int.MaxValue;
-    options.Limits.KeepAliveTimeout = TimeSpan.FromMinutes(30);
-    options.Limits.RequestHeadersTimeout = TimeSpan.FromMinutes(20);
+    var uploadOptions = context.Configuration.GetSection(UploadOptions.Upload).Get<UploadOptions>() ?? new UploadOptions();
+    
+    options.Limits.MaxRequestBodySize = long.MaxValue;
+    options.Limits.KeepAliveTimeout = TimeSpan.FromHours(uploadOptions.KeepAliveTimeoutHours);
+    options.Limits.RequestHeadersTimeout = TimeSpan.FromHours(uploadOptions.RequestHeadersTimeoutHours);
 });
 
 var app = builder.Build();

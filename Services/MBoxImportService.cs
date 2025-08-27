@@ -11,6 +11,17 @@ using System.Text.RegularExpressions;
 
 namespace MailArchiver.Services
 {
+    public class ImportResult
+    {
+        public bool Success { get; set; }
+        public bool AlreadyExists { get; set; }
+        public string? Error { get; set; }
+
+        public static ImportResult CreateSuccess() => new ImportResult { Success = true };
+        public static ImportResult CreateAlreadyExists() => new ImportResult { AlreadyExists = true };
+        public static ImportResult CreateFailed(string error) => new ImportResult { Error = error };
+    }
+
     public class MBoxImportService : BackgroundService, IMBoxImportService
     {
 private readonly IServiceProvider _serviceProvider;
@@ -71,6 +82,11 @@ private readonly IServiceProvider _serviceProvider;
                 if (job.Status == MBoxImportJobStatus.Queued)
                 {
                     job.Status = MBoxImportJobStatus.Cancelled;
+                    job.Completed = DateTime.UtcNow;
+                    
+                    // Delete the temporary file for queued jobs
+                    DeleteTempFile(job.FilePath, jobId);
+                    
                     _logger.LogInformation("Cancelled queued MBox import job {JobId}", jobId);
                     return true;
                 }
@@ -168,6 +184,12 @@ private readonly IServiceProvider _serviceProvider;
             }
         }
 
+        public override Task StartAsync(CancellationToken cancellationToken)
+        {
+            _logger.LogInformation("MBox Import Background Service is starting.");
+            return base.StartAsync(cancellationToken);
+        }
+
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             _logger.LogInformation("MBox Import Background Service started");
@@ -188,7 +210,8 @@ private readonly IServiceProvider _serviceProvider;
                     }
                     else
                     {
-                        await Task.Delay(1000, stoppingToken);
+                        // Kürzere Wartezeit für bessere Reaktionsfähigkeit
+                        await Task.Delay(100, stoppingToken);
                     }
                 }
                 catch (OperationCanceledException)
@@ -199,9 +222,16 @@ private readonly IServiceProvider _serviceProvider;
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, "Error in MBox Import Background Service");
-                    await Task.Delay(5000, stoppingToken);
+                    // Kürzere Wartezeit nach Fehler
+                    await Task.Delay(1000, stoppingToken);
                 }
             }
+        }
+
+        public override Task StopAsync(CancellationToken cancellationToken)
+        {
+            _logger.LogInformation("MBox Import Background Service is stopping.");
+            return base.StopAsync(cancellationToken);
         }
 
         private async Task ProcessJob(MBoxImportJob job, CancellationToken stoppingToken)
@@ -240,8 +270,9 @@ private readonly IServiceProvider _serviceProvider;
                 {
                     job.Status = MBoxImportJobStatus.Completed;
                     job.Completed = DateTime.UtcNow;
-                    _logger.LogInformation("Completed MBox import job {JobId}. Success: {Success}, Failed: {Failed}",
-                        job.JobId, job.SuccessCount, job.FailedCount);
+                    var skippedCount = job.ProcessedEmails - job.SuccessCount - job.FailedCount;
+                    _logger.LogInformation("Completed MBox import job {JobId}. Success: {Success}, Failed: {Failed}, Skipped (already exists): {Skipped}",
+                        job.JobId, job.SuccessCount, job.FailedCount, skippedCount);
                 }
 
                 // Lösche die temporäre Datei nach erfolgreichem Import
@@ -262,6 +293,10 @@ private readonly IServiceProvider _serviceProvider;
             {
                 job.Status = MBoxImportJobStatus.Cancelled;
                 job.Completed = DateTime.UtcNow;
+                
+                // Delete the temporary file for cancelled running jobs
+                DeleteTempFile(job.FilePath, job.JobId);
+                
                 _logger.LogInformation("MBox import job {JobId} was cancelled", job.JobId);
             }
             catch (Exception ex)
@@ -296,11 +331,16 @@ private readonly IServiceProvider _serviceProvider;
                         job.ProcessedBytes = stream.Position;
 
                         // Importiere E-Mail in die Datenbank
-                        var imported = await ImportEmailToDatabase(message, targetAccount, job);
+                        var importResult = await ImportEmailToDatabase(message, targetAccount, job);
 
-                        if (imported)
+                        if (importResult.Success)
                         {
                             job.SuccessCount++;
+                        }
+                        else if (importResult.AlreadyExists)
+                        {
+                            // Bereits vorhandene E-Mails als skipped zählen, nicht als failed
+                            // job.SkippedCount++; // Falls wir später einen SkippedCount hinzufügen wollen
                         }
                         else
                         {
@@ -345,7 +385,7 @@ private readonly IServiceProvider _serviceProvider;
             }
         }
 
-        private async Task<bool> ImportEmailToDatabase(MimeMessage message, MailAccount account, MBoxImportJob job)
+        private async Task<ImportResult> ImportEmailToDatabase(MimeMessage message, MailAccount account, MBoxImportJob job)
         {
             try
             {
@@ -356,14 +396,17 @@ private readonly IServiceProvider _serviceProvider;
                 var messageId = message.MessageId ??
                     $"mbox-import-{job.JobId}-{job.ProcessedEmails}-{message.Date.Ticks}";
 
+                _logger.LogDebug("Job {JobId}: Processing email with MessageId: {MessageId}, Subject: {Subject}", 
+                    job.JobId, messageId, message.Subject ?? "(No Subject)");
+
                 // Prüfe ob E-Mail bereits existiert
                 var existing = await context.ArchivedEmails
                     .FirstOrDefaultAsync(e => e.MessageId == messageId && e.MailAccountId == account.Id);
 
                 if (existing != null)
                 {
-                    _logger.LogDebug("Email already exists: {MessageId}", messageId);
-                    return false; // Bereits vorhanden, aber kein Fehler
+                    _logger.LogDebug("Job {JobId}: Email already exists: {MessageId}", job.JobId, messageId);
+                    return ImportResult.CreateAlreadyExists();
                 }
 
                 // Sammle ALLE Anhänge einschließlich inline Images
@@ -388,21 +431,27 @@ private readonly IServiceProvider _serviceProvider;
                     FolderName = job.TargetFolder
                 };
 
+                _logger.LogDebug("Job {JobId}: Adding email to database: {MessageId}", job.JobId, messageId);
                 context.ArchivedEmails.Add(archivedEmail);
                 await context.SaveChangesAsync();
+                _logger.LogDebug("Job {JobId}: Successfully saved email: {MessageId}", job.JobId, messageId);
 
                 // Speichere alle Anhänge
                 if (allAttachments.Any())
                 {
+                    _logger.LogDebug("Job {JobId}: Saving {Count} attachments for email: {MessageId}", 
+                        job.JobId, allAttachments.Count, messageId);
                     await SaveAllAttachments(context, allAttachments, archivedEmail.Id);
                 }
 
-                return true;
+                _logger.LogDebug("Job {JobId}: Successfully imported email: {MessageId}", job.JobId, messageId);
+                return ImportResult.CreateSuccess();
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to import email to database: {Subject}", message.Subject);
-                return false;
+                _logger.LogError(ex, "Job {JobId}: Failed to import email to database. Subject: {Subject}, MessageId: {MessageId}, Error: {Error}", 
+                    job.JobId, message.Subject ?? "(No Subject)", message.MessageId ?? "None", ex.Message);
+                return ImportResult.CreateFailed(ex.Message);
             }
         }
 
@@ -556,6 +605,22 @@ private readonly IServiceProvider _serviceProvider;
             }
 
             return html;
+        }
+
+        private void DeleteTempFile(string filePath, string jobId)
+        {
+            try
+            {
+                if (File.Exists(filePath))
+                {
+                    File.Delete(filePath);
+                    _logger.LogInformation("Deleted temporary MBox file {FilePath} for cancelled job {JobId}", filePath, jobId);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to delete temporary MBox file {FilePath} for cancelled job {JobId}", filePath, jobId);
+            }
         }
 
         public override void Dispose()
