@@ -1095,13 +1095,16 @@ namespace MailArchiver.Services
             var parameters = new List<Npgsql.NpgsqlParameter>();
             var paramCounter = 0;
 
-            // Full-text search condition (this will use the GIN index)
+            // Full-text search condition (handles both individual words and quoted phrases)
             if (!string.IsNullOrWhiteSpace(searchTerm))
             {
-                var sanitizedSearchTerm = SanitizeSearchTermForTsQuery(searchTerm);
-                if (!string.IsNullOrEmpty(sanitizedSearchTerm))
+                var (tsQuery, phrases) = ParseSearchTermForTsQuery(searchTerm);
+                var searchConditions = new List<string>();
+                
+                // Handle individual words with tsquery (uses GIN index)
+                if (!string.IsNullOrEmpty(tsQuery))
                 {
-                    whereConditions.Add($@"
+                    searchConditions.Add($@"
                         to_tsvector('simple', 
                             COALESCE(""Subject"", '') || ' ' || 
                             COALESCE(""Body"", '') || ' ' || 
@@ -1110,9 +1113,32 @@ namespace MailArchiver.Services
                             COALESCE(""Cc"", '') || ' ' || 
                             COALESCE(""Bcc"", '')) 
                         @@ to_tsquery('simple', @param{paramCounter})");
-                    parameters.Add(new Npgsql.NpgsqlParameter($"@param{paramCounter}", sanitizedSearchTerm));
+                    parameters.Add(new Npgsql.NpgsqlParameter($"@param{paramCounter}", tsQuery));
                     paramCounter++;
-                    _logger.LogInformation("Using optimized full-text search for term: {SearchTerm}", searchTerm);
+                    _logger.LogDebug("Added tsquery condition for individual words: {TsQuery}", tsQuery);
+                }
+                
+                // Handle exact phrases with POSITION (exact string matching)
+                foreach (var phrase in phrases)
+                {
+                    searchConditions.Add($@"(
+                        POSITION(LOWER(@param{paramCounter}) IN LOWER(COALESCE(""Subject"", ''))) > 0 OR
+                        POSITION(LOWER(@param{paramCounter}) IN LOWER(COALESCE(""Body"", ''))) > 0 OR
+                        POSITION(LOWER(@param{paramCounter}) IN LOWER(COALESCE(""From"", ''))) > 0 OR
+                        POSITION(LOWER(@param{paramCounter}) IN LOWER(COALESCE(""To"", ''))) > 0 OR
+                        POSITION(LOWER(@param{paramCounter}) IN LOWER(COALESCE(""Cc"", ''))) > 0 OR
+                        POSITION(LOWER(@param{paramCounter}) IN LOWER(COALESCE(""Bcc"", ''))) > 0
+                    )");
+                    parameters.Add(new Npgsql.NpgsqlParameter($"@param{paramCounter}", phrase));
+                    paramCounter++;
+                    _logger.LogDebug("Added exact phrase condition for: '{Phrase}'", phrase);
+                }
+                
+                if (searchConditions.Any())
+                {
+                    whereConditions.Add($"({string.Join(" AND ", searchConditions)})");
+                    _logger.LogInformation("Using optimized search for term: {SearchTerm} (individual words: {HasWords}, phrases: {PhraseCount})", 
+                        searchTerm, !string.IsNullOrEmpty(tsQuery), phrases.Count);
                 }
             }
 
@@ -1266,33 +1292,58 @@ namespace MailArchiver.Services
             return emails;
         }
 
-        private string SanitizeSearchTermForTsQuery(string searchTerm)
+        private (string tsQuery, List<string> phrases) ParseSearchTermForTsQuery(string searchTerm)
         {
             if (string.IsNullOrWhiteSpace(searchTerm))
-                return null;
+                return (null, new List<string>());
 
-            _logger.LogDebug("Sanitizing search term for tsquery: '{SearchTerm}'", searchTerm);
+            _logger.LogDebug("Parsing search term for tsquery: '{SearchTerm}'", searchTerm);
 
-            // Remove special PostgreSQL tsquery operators and characters that could break the query
-            var sanitized = System.Text.RegularExpressions.Regex.Replace(searchTerm, @"[&|!():\*]", " ", System.Text.RegularExpressions.RegexOptions.None);
+            var phrases = new List<string>();
+            var individualWords = new List<string>();
             
-            // Remove extra whitespace
-            sanitized = System.Text.RegularExpressions.Regex.Replace(sanitized, @"\s+", " ", System.Text.RegularExpressions.RegexOptions.None).Trim();
+            // Parse quoted phrases and individual words
+            var regex = new Regex(@"""([^""]*)""|(\S+)", RegexOptions.None);
+            var matches = regex.Matches(searchTerm);
             
-            if (string.IsNullOrEmpty(sanitized))
-                return null;
+            foreach (Match match in matches)
+            {
+                if (match.Groups[1].Success) // Quoted phrase
+                {
+                    var phrase = match.Groups[1].Value.Trim();
+                    if (!string.IsNullOrEmpty(phrase))
+                    {
+                        phrases.Add(phrase);
+                    }
+                }
+                else if (match.Groups[2].Success) // Individual word
+                {
+                    var word = match.Groups[2].Value.Trim();
+                    if (!string.IsNullOrEmpty(word))
+                    {
+                        // Remove special PostgreSQL tsquery operators and characters that could break the query
+                        var sanitized = Regex.Replace(word, @"[&|!():\*]", "", RegexOptions.None);
+                        if (!string.IsNullOrEmpty(sanitized))
+                        {
+                            individualWords.Add(sanitized);
+                        }
+                    }
+                }
+            }
 
-            // Split into terms and join with & (AND operator)
-            var terms = sanitized.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-            if (!terms.Any())
-                return null;
-
-            // Escape single quotes and join with AND
-            var escapedTerms = terms.Select(t => t.Replace("'", "''"));
-            var result = string.Join(" & ", escapedTerms);
+            // Build tsquery for individual words
+            string tsQuery = null;
+            if (individualWords.Any())
+            {
+                // Escape single quotes and join with AND
+                var escapedTerms = individualWords.Select(t => t.Replace("'", "''"));
+                tsQuery = string.Join(" & ", escapedTerms);
+            }
             
-            _logger.LogDebug("Sanitized search term result: '{Result}'", result);
-            return result;
+            _logger.LogDebug("Parsed search - tsQuery: '{TsQuery}', phrases: [{Phrases}]", 
+                tsQuery, string.Join(", ", phrases.Select(p => $"'{p}'")));
+            
+            return (tsQuery, phrases);
         }
 
         private List<Npgsql.NpgsqlParameter> CloneParameters(List<Npgsql.NpgsqlParameter> parameters)
@@ -1355,13 +1406,44 @@ namespace MailArchiver.Services
             IQueryable<ArchivedEmail> searchQuery = baseQuery;
             if (!string.IsNullOrEmpty(searchTerm))
             {
-                var escapedSearchTerm = searchTerm.Replace("'", "''");
-                searchQuery = baseQuery.Where(e =>
-                    EF.Functions.ILike(e.Subject, $"%{escapedSearchTerm}%") ||
-                    EF.Functions.ILike(e.From, $"%{escapedSearchTerm}%") ||
-                    EF.Functions.ILike(e.To, $"%{escapedSearchTerm}%") ||
-                    EF.Functions.ILike(e.Body, $"%{escapedSearchTerm}%")
-                );
+                var (tsQuery, phrases) = ParseSearchTermForTsQuery(searchTerm);
+                
+                // Start with the base query
+                searchQuery = baseQuery;
+                
+                // Handle individual words
+                if (!string.IsNullOrEmpty(tsQuery))
+                {
+                    var words = tsQuery.Split('&', StringSplitOptions.RemoveEmptyEntries)
+                                      .Select(w => w.Trim().Replace("''", "'"))
+                                      .ToList();
+                    
+                    foreach (var word in words)
+                    {
+                        var escapedWord = word.Replace("'", "''");
+                        searchQuery = searchQuery.Where(e =>
+                            EF.Functions.ILike(e.Subject, $"%{escapedWord}%") ||
+                            EF.Functions.ILike(e.From, $"%{escapedWord}%") ||
+                            EF.Functions.ILike(e.To, $"%{escapedWord}%") ||
+                            EF.Functions.ILike(e.Body, $"%{escapedWord}%") ||
+                            EF.Functions.ILike(e.Cc, $"%{escapedWord}%") ||
+                            EF.Functions.ILike(e.Bcc, $"%{escapedWord}%")
+                        );
+                    }
+                }
+
+                // Handle quoted phrases with exact matching
+                foreach (var phrase in phrases)
+                {
+                    searchQuery = searchQuery.Where(e =>
+                        (e.Subject != null && e.Subject.ToLower().Contains(phrase.ToLower())) ||
+                        (e.From != null && e.From.ToLower().Contains(phrase.ToLower())) ||
+                        (e.To != null && e.To.ToLower().Contains(phrase.ToLower())) ||
+                        (e.Body != null && e.Body.ToLower().Contains(phrase.ToLower())) ||
+                        (e.Cc != null && e.Cc.ToLower().Contains(phrase.ToLower())) ||
+                        (e.Bcc != null && e.Bcc.ToLower().Contains(phrase.ToLower()))
+                    );
+                }
             }
 
             var totalCount = await searchQuery.CountAsync();
