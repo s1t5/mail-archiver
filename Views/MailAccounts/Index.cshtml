@@ -19,7 +19,6 @@
         </div>
     </div>
 
-    @* Desktop Tabelle - ERST ab groÃŸen Bildschirmen *@
     <div class="card d-none d-lg-block">
         <div class="card-body">
             <div class="table-responsive">
@@ -112,7 +111,7 @@
 
                                         <a asp-action="Delete" asp-route-id="@item.Id"
                                             class="btn btn-danger btn-sm d-flex align-items-center"
-                                            onclick="return confirm('Delete account @item.Name and all archived emails? This cannot be undone!');">
+                                            onclick="return confirm('@string.Format(Localizer["DeleteAccountConfirm"], item.EmailAddress)');">
                                             <i class="bi bi-trash"></i>
                                             <span class="ms-1">@Localizer["Delete"]</span>
                                         </a>
@@ -210,10 +209,10 @@
                         </div>
                         <div class="row">
                             <div class="col-12">
-                                <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-outline-danger btn-sm w-100"
-                                    onclick="return confirm('Delete account @item.Name and all archived emails? This cannot be undone!');">
-                                    <i class="bi bi-trash"></i> Delete Account & All Emails
-                                </a>
+                                        <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-outline-danger btn-sm w-100"
+                                            onclick="return confirm('@string.Format(Localizer["DeleteAccountConfirm"], item.EmailAddress)');">
+                                            <i class="bi bi-trash"></i> @Localizer["Delete"]
+                                        </a>
                             </div>
                         </div>
                     </div>
@@ -282,4 +281,3 @@
         </div>
     }
 </div>
-

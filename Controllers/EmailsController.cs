@@ -256,6 +256,23 @@ namespace MailArchiver.Controllers
             return File(attachment.Content, attachment.ContentType, attachment.FileName);
         }
 
+        // GET: Emails/AttachmentPreview/5/1
+        [EmailAccessRequired]
+        public async Task<IActionResult> AttachmentPreview(int emailId, int attachmentId)
+        {
+            var attachment = await _context.EmailAttachments
+                .Include(a => a.ArchivedEmail)
+                .FirstOrDefaultAsync(a => a.Id == attachmentId && a.ArchivedEmailId == emailId);
+
+            if (attachment == null)
+            {
+                return NotFound();
+            }
+
+            // Return the attachment content without forcing download
+            return File(attachment.Content, attachment.ContentType);
+        }
+
         // GET: Emails/Export/5
         [EmailAccessRequired]
         public async Task<IActionResult> Export(int id, ExportFormat format = ExportFormat.Eml)

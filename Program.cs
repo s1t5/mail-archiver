@@ -237,8 +237,8 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRequestLocalization(new RequestLocalizationOptions()
     .SetDefaultCulture("en")
-    .AddSupportedCultures("en", "de", "es", "fr", "it", "sl")
-    .AddSupportedUICultures("en", "de", "es", "fr", "it", "sl"));
+    .AddSupportedCultures("en", "de", "es", "fr", "it", "sl", "nl", "ru")
+    .AddSupportedUICultures("en", "de", "es", "fr", "it", "sl", "nl", "ru"));
 app.UseRouting();
 app.UseSession();
 

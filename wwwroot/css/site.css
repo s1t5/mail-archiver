@@ -363,6 +363,29 @@ body {
   animation: fadeIn 0.5s ease-in-out;
 }
 
+
+/* Attachment Preview Modal */
+#previewContent img {
+  max-width: 100%;
+  height: auto;
+  max-height: 70vh;
+  object-fit: contain;
+}
+
+#previewContent pre {
+  text-align: left;
+  background-color: #f8f9fa;
+  padding: 1rem;
+  border-radius: 4px;
+  overflow: auto;
+  max-height: 70vh;
+}
+
+#previewContent embed {
+  width: 100%;
+  height: 70vh;
+}
+
 /* Anpassung für mobile Geräte */
 @media (max-width: 768px) {
   .body-content {
@@ -392,6 +415,11 @@ body {
   
   .display-4 {
     font-size: 2rem;
+  }
+  
+  /* Attachment Preview Modal for mobile */
+  #previewContent embed {
+    height: 50vh;
   }
 }
 

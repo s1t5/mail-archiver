@@ -1150,4 +1150,16 @@
   <data name="AdvancedSearchInfo3" xml:space="preserve">
     <value>• Beides kombinieren: "autoversicherung" subject:rechnung from:versicherung</value>
   </data>
+  <data name="Preview" xml:space="preserve">
+    <value>Vorschau</value>
+  </data>
+  <data name="Download" xml:space="preserve">
+    <value>Herunterladen</value>
+  </data>
+  <data name="Close" xml:space="preserve">
+    <value>Schließen</value>
+  </data>
+  <data name="AttachmentPreview" xml:space="preserve">
+    <value>Anhang-Vorschau</value>
+  </data>
 </root>

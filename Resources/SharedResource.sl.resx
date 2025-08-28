@@ -1148,6 +1148,18 @@
     <value>• Iskanje po poljih: zadeva:račun, od:john, za:domena, vsebina:"pomembno"</value>
   </data>
   <data name="AdvancedSearchInfo3" xml:space="preserve">
-    <value>• Kombinirajte oboje: "avto zavarovanje" zadeva:račun od:zavarovanje</value>
+    <value>• Kombinirajte oboje: "avtomobilsko zavarovanje" subject:račun from:zavarovanje</value>
+  </data>
+  <data name="Preview" xml:space="preserve">
+    <value>Predogled</value>
+  </data>
+  <data name="Download" xml:space="preserve">
+    <value>Prenesi</value>
+  </data>
+  <data name="Close" xml:space="preserve">
+    <value>Zapri</value>
+  </data>
+  <data name="AttachmentPreview" xml:space="preserve">
+    <value>Predogled priloge</value>
   </data>
 </root>
