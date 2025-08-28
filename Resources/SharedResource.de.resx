@@ -1168,4 +1168,7 @@
   <data name="FileTypeCannotBePreviewed" xml:space="preserve">
     <value>Dieser Dateityp kann nicht in der Vorschau angezeigt werden. Bitte herunterladen zum Anzeigen.</value>
   </data>
+  <data name="DownloadAllAttachments" xml:space="preserve">
+    <value>Alle Anhänge herunterladen</value>
+  </data>
 </root>

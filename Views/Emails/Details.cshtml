@@ -206,6 +206,12 @@
                                 }
                             </div>
                         </div>
+                        <!-- Download all attachments button -->
+                        <div class="mt-2">
+                            <a asp-action="DownloadAllAttachments" asp-route-id="@Model.Email.Id" class="btn btn-primary btn-sm">
+                                <i class="bi bi-download"></i> @Localizer["DownloadAllAttachments"]
+                            </a>
+                        </div>
                     </div>
                 </div>
             }

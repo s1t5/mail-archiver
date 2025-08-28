@@ -1168,4 +1168,7 @@
   <data name="FileTypeCannotBePreviewed" xml:space="preserve">
     <value>This file type cannot be previewed. Please download to view.</value>
   </data>
+  <data name="DownloadAllAttachments" xml:space="preserve">
+    <value>Download All Attachments</value>
+  </data>
 </root>

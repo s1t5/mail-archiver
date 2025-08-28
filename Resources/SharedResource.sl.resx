@@ -1168,4 +1168,7 @@
   <data name="FileTypeCannotBePreviewed" xml:space="preserve">
     <value>Te vrste datoteke ni mogoče predogledati. Prenesite za ogled.</value>
   </data>
+  <data name="DownloadAllAttachments" xml:space="preserve">
+    <value>Prenesi vse priloge</value>
+  </data>
 </root>

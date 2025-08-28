@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using System.IO.Compression;
 using System.Text.RegularExpressions;
 using System.Web;
 
@@ -271,6 +272,50 @@ namespace MailArchiver.Controllers
 
             // Return the attachment content without forcing download
             return File(attachment.Content, attachment.ContentType);
+        }
+
+        // GET: Emails/DownloadAllAttachments/5
+        [EmailAccessRequired]
+        public async Task<IActionResult> DownloadAllAttachments(int id)
+        {
+            var email = await _context.ArchivedEmails
+                .Include(e => e.MailAccount)
+                .Include(e => e.Attachments)
+                .FirstOrDefaultAsync(e => e.Id == id);
+
+            if (email == null)
+            {
+                return NotFound();
+            }
+
+            // Check if email has attachments
+            if (!email.Attachments.Any())
+            {
+                TempData["ErrorMessage"] = "This email has no attachments.";
+                return RedirectToAction(nameof(Details), new { id });
+            }
+
+            // Create a ZIP file containing all attachments
+            using (var memoryStream = new MemoryStream())
+            {
+                using (var archive = new ZipArchive(memoryStream, ZipArchiveMode.Create, true))
+                {
+                    foreach (var attachment in email.Attachments)
+                    {
+                        var entry = archive.CreateEntry(attachment.FileName, CompressionLevel.Optimal);
+                        using (var entryStream = entry.Open())
+                        {
+                            entryStream.Write(attachment.Content, 0, attachment.Content.Length);
+                        }
+                    }
+                }
+
+                var zipBytes = memoryStream.ToArray();
+                var fileName = $"attachments-{email.Id}-{DateTime.Now:yyyyMMdd-HHmmss}.zip";
+
+                Response.Headers.Add("Content-Disposition", $"attachment; filename=\"{fileName}\"");
+                return File(zipBytes, "application/zip", fileName);
+            }
         }
 
         // GET: Emails/Export/5

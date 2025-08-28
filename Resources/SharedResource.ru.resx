@@ -1168,4 +1168,7 @@
   <data name="FileTypeCannotBePreviewed" xml:space="preserve">
     <value>Этот тип файла не может быть просмотрен. Пожалуйста, скачайте для просмотра.</value>
   </data>
+  <data name="DownloadAllAttachments" xml:space="preserve">
+    <value>Скачать все вложения</value>
+  </data>
 </root>

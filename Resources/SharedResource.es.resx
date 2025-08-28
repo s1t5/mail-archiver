@@ -1168,4 +1168,7 @@
   <data name="FileTypeCannotBePreviewed" xml:space="preserve">
     <value>Este tipo de archivo no puede ser visto en vista previa. Por favor descargue para ver.</value>
   </data>
+  <data name="DownloadAllAttachments" xml:space="preserve">
+    <value>Descargar Todos los Archivos Adjuntos</value>
+  </data>
 </root>

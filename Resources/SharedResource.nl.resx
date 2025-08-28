@@ -1168,4 +1168,7 @@
   <data name="FileTypeCannotBePreviewed" xml:space="preserve">
     <value>Dit bestandstype kan niet als voorbeeld worden weergegeven. Download om te bekijken.</value>
   </data>
+  <data name="DownloadAllAttachments" xml:space="preserve">
+    <value>Download alle bijlagen</value>
+  </data>
 </root>
