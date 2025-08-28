@@ -429,16 +429,37 @@ namespace MailArchiver.Services
                 var body = string.Empty;
                 var htmlBody = string.Empty;
                 var isHtmlTruncated = false;
+                var isBodyTruncated = false;
 
                 // Handle text body - use original content directly to preserve encoding
                 if (!string.IsNullOrEmpty(message.TextBody))
                 {
-                    body = CleanText(message.TextBody); // Apply CleanText to remove null bytes and control characters
+                    var cleanedTextBody = CleanText(message.TextBody);
+                    // Check if text body needs truncation for tsvector compatibility
+                    if (Encoding.UTF8.GetByteCount(cleanedTextBody) > 800_000) // Leave buffer for other fields in tsvector
+                    {
+                        isBodyTruncated = true;
+                        body = TruncateTextForStorage(cleanedTextBody, 800_000);
+                    }
+                    else
+                    {
+                        body = cleanedTextBody;
+                    }
                 }
                 else if (!string.IsNullOrEmpty(message.HtmlBody))
                 {
                     // If no TextBody, try to extract text from HTML body
-                    body = CleanText(message.HtmlBody); // Apply CleanText to remove null bytes and control characters
+                    var cleanedHtmlAsText = CleanText(message.HtmlBody);
+                    // Check if HTML-as-text body needs truncation for tsvector compatibility
+                    if (Encoding.UTF8.GetByteCount(cleanedHtmlAsText) > 800_000) // Leave buffer for other fields in tsvector
+                    {
+                        isBodyTruncated = true;
+                        body = TruncateTextForStorage(cleanedHtmlAsText, 800_000);
+                    }
+                    else
+                    {
+                        body = cleanedHtmlAsText;
+                    }
                 }
 
                 // Handle HTML body - preserve original encoding
@@ -475,7 +496,7 @@ namespace MailArchiver.Services
                     SentDate = sentDate,
                     ReceivedDate = DateTime.UtcNow,
                     IsOutgoing = isOutgoing,
-                    HasAttachments = allAttachments.Any() || isHtmlTruncated, // Set to true if there are attachments or HTML was truncated
+                    HasAttachments = allAttachments.Any() || isHtmlTruncated || isBodyTruncated, // Set to true if there are attachments or content was truncated
                     Body = body,
                     HtmlBody = htmlBody,
                     FolderName = cleanFolderName
@@ -499,6 +520,16 @@ namespace MailArchiver.Services
                         var htmlBytes = Encoding.UTF8.GetBytes(message.HtmlBody);
                         var utf8Html = Encoding.UTF8.GetString(htmlBytes);
                         await SaveTruncatedHtmlAsAttachment(utf8Html, archivedEmail.Id);
+                    }
+
+                    // If Body was truncated, save the original text content as an attachment
+                    if (isBodyTruncated)
+                    {
+                        var originalTextContent = !string.IsNullOrEmpty(message.TextBody) ? message.TextBody : message.HtmlBody;
+                        if (!string.IsNullOrEmpty(originalTextContent))
+                        {
+                            await SaveTruncatedTextAsAttachment(originalTextContent, archivedEmail.Id);
+                        }
                     }
 
                     _logger.LogInformation(
@@ -987,6 +1018,101 @@ namespace MailArchiver.Services
             }
 
             return result.ToString();
+        }
+
+        /// <summary>
+        /// Truncates text content to fit within tsvector size limits while preserving readability
+        /// </summary>
+        /// <param name="text">The text to truncate</param>
+        /// <param name="maxSizeBytes">Maximum size in bytes</param>
+        /// <returns>Truncated text with notice appended</returns>
+        private string TruncateTextForStorage(string text, int maxSizeBytes)
+        {
+            if (string.IsNullOrEmpty(text))
+                return string.Empty;
+
+            const string textTruncationNotice = "\n\n[CONTENT TRUNCATED - This email contains very large text content that has been truncated for better performance. The complete original content has been saved as an attachment.]";
+            
+            // Calculate overhead for the truncation notice
+            int noticeOverhead = Encoding.UTF8.GetByteCount(textTruncationNotice);
+            int maxContentSize = maxSizeBytes - noticeOverhead;
+            
+            if (maxContentSize <= 0)
+            {
+                // Edge case - just return the notice
+                return textTruncationNotice;
+            }
+
+            // Check if we need to truncate
+            if (Encoding.UTF8.GetByteCount(text) <= maxSizeBytes)
+            {
+                return text; // No truncation needed
+            }
+
+            // Find a safe truncation point that doesn't break in the middle of a word
+            int approximateCharPosition = Math.Min(maxContentSize, text.Length);
+            
+            // Work backwards to find a word boundary or reasonable break point
+            while (approximateCharPosition > 0 && Encoding.UTF8.GetByteCount(text.Substring(0, approximateCharPosition)) > maxContentSize)
+            {
+                approximateCharPosition--;
+            }
+
+            // Try to find a word boundary within the last 100 characters to avoid breaking words
+            int wordBoundarySearch = Math.Max(0, approximateCharPosition - 100);
+            int lastSpaceIndex = text.LastIndexOf(' ', approximateCharPosition - 1, approximateCharPosition - wordBoundarySearch);
+            int lastNewlineIndex = text.LastIndexOf('\n', approximateCharPosition - 1, approximateCharPosition - wordBoundarySearch);
+            int lastPunctuationIndex = text.LastIndexOfAny(new char[] { '.', '!', '?', ';' }, approximateCharPosition - 1, approximateCharPosition - wordBoundarySearch);
+
+            // Use the best break point found
+            int breakPoint = Math.Max(Math.Max(lastSpaceIndex, lastNewlineIndex), lastPunctuationIndex);
+            if (breakPoint > wordBoundarySearch)
+            {
+                approximateCharPosition = breakPoint + 1; // Include the break character
+            }
+
+            // Final safety check to ensure we don't exceed byte limit
+            string truncatedContent = text.Substring(0, approximateCharPosition);
+            while (Encoding.UTF8.GetByteCount(truncatedContent + textTruncationNotice) > maxSizeBytes && truncatedContent.Length > 0)
+            {
+                truncatedContent = truncatedContent.Substring(0, truncatedContent.Length - 1);
+            }
+
+            return truncatedContent + textTruncationNotice;
+        }
+
+        /// <summary>
+        /// Saves the original text content as an attachment when it was truncated
+        /// </summary>
+        /// <param name="originalText">The original text content</param>
+        /// <param name="archivedEmailId">The email ID to attach to</param>
+        /// <returns>Task</returns>
+        private async Task SaveTruncatedTextAsAttachment(string originalText, int archivedEmailId)
+        {
+            try
+            {
+                var cleanFileName = CleanText($"original_text_content_{DateTime.UtcNow:yyyyMMddHHmmss}.txt");
+                var contentType = "text/plain";
+
+                var emailAttachment = new EmailAttachment
+                {
+                    ArchivedEmailId = archivedEmailId,
+                    FileName = cleanFileName,
+                    ContentType = contentType,
+                    Content = Encoding.UTF8.GetBytes(originalText),
+                    Size = Encoding.UTF8.GetByteCount(originalText)
+                };
+
+                _context.EmailAttachments.Add(emailAttachment);
+                await _context.SaveChangesAsync();
+
+                _logger.LogInformation("Successfully saved original text content as attachment for email {EmailId}",
+                    archivedEmailId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to save original text content as attachment for email {EmailId}", archivedEmailId);
+            }
         }
 
         /// <summary>
