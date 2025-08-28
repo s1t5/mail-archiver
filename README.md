@@ -18,7 +18,7 @@
 - Support for multiple IMAP accounts
 - Storage of email content and attachments
 - Scheduled synchronization at configurable intervals
-- Mobile and desktop optimized responsive UI
+- Mobile and desktop optimized, multilingual responsive UI
 - MBox Import
 - Dark mode
 
@@ -49,7 +49,6 @@
 - Set retention period per email account (e.g., delete emails after 30, 90, or 365 days)
 - Emails are only deleted from the server after they have been successfully archived
 - Helps manage storage space on the IMAP server while maintaining a complete archive
-
 
 > 🚨 **Important note for retention policies**
 > - Requires IMAP Expunge support from the mail server to permanently delete emails
