@@ -445,6 +445,9 @@
   <data name="ImportMBox" xml:space="preserve">
     <value>Import Mbox</value>
   </data>
+  <data name="IMAPSettings" xml:space="preserve">
+    <value>IMAP Settings</value>
+  </data>
   <data name="IMAPServer" xml:space="preserve">
     <value>IMAP Server</value>
   </data>
@@ -471,6 +474,9 @@
   </data>
   <data name="Password" xml:space="preserve">
     <value>Password</value>
+  </data>
+  <data name="LeaveEmpty" xml:space="preserve">
+    <value>Leave empty to keep the current password unchanged.</value>
   </data>
   <data name="UseSSL" xml:space="preserve">
     <value>Use SSL</value>
@@ -1170,5 +1176,11 @@
   </data>
   <data name="DownloadAllAttachments" xml:space="preserve">
     <value>Download All Attachments</value>
+  </data>
+  <data name="ChangePassword" xml:space="preserve">
+    <value>Change Password</value>
+  </data>  
+  <data name="Sign Out" xml:space="preserve">
+    <value>Sign Out</value>
   </data>
 </root>
