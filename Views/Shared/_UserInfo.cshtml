@@ -20,7 +20,7 @@
             <li><hr class="dropdown-divider"></li>
             <li>
                 <a asp-controller="Users" asp-action="ChangePassword" class="dropdown-item">
-                    <i class="bi bi-key me-2"></i>Change Password
+                    <i class="bi bi-key me-2"></i>@Localizer["ChangePassword"]
                 </a>
             </li>
             <li><hr class="dropdown-divider"></li>
@@ -47,7 +47,7 @@
             <li>
                 <form asp-controller="Auth" asp-action="Logout" method="post" class="d-inline">
                     <button type="submit" class="dropdown-item">
-                        <i class="bi bi-box-arrow-right me-2"></i>Sign Out
+                        <i class="bi bi-box-arrow-right me-2"></i>@Localizer["SignOut"]
                     </button>
                 </form>
             </li>

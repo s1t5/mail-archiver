@@ -92,7 +92,7 @@
     <value>Od</value>
   </data>
   <data name="To" xml:space="preserve">
-    <value>Do</value>
+    <value>Za</value>
   </data>
   <data name="Account" xml:space="preserve">
     <value>Račun</value>
@@ -263,7 +263,7 @@
     <value>Shramba</value>
   </data>
   <data name="EmailsPerMonth" xml:space="preserve">
-    <value>E-pošta na mesec</value>
+    <value>E-pošta po mesecih</value>
   </data>
   <data name="Last12Months" xml:space="preserve">
     <value>Zadnjih 12 mesecev</value>
@@ -347,7 +347,7 @@
     <value>Zadnja prijava</value>
   </data>
   <data name="Admin" xml:space="preserve">
-    <value>Admin</value>
+    <value>Administrator</value>
   </data>
   <data name="User" xml:space="preserve">
     <value>Uporabnik</value>
@@ -445,6 +445,9 @@
   <data name="ImportMBox" xml:space="preserve">
     <value>Uvozi Mbox</value>
   </data>
+  <data name="IMAPSettings" xml:space="preserve">
+    <value>IMAP nastavitve</value>
+  </data>
   <data name="IMAPServer" xml:space="preserve">
     <value>IMAP strežnik</value>
   </data>
@@ -471,6 +474,9 @@
   </data>
   <data name="Password" xml:space="preserve">
     <value>Geslo</value>
+  </data>
+  <data name="LeaveEmpty" xml:space="preserve">
+    <value>Pustite prazno, če želite, da trenutno geslo ostane nespremenjeno.</value>
   </data>
   <data name="UseSSL" xml:space="preserve">
     <value>Uporabi SSL</value>
@@ -551,7 +557,7 @@
     <value>onemogočite račun</value>
   </data>
   <data name="AccountToBeDeleted" xml:space="preserve">
-    <value>Račun za brisanje</value>
+    <value>Račun, ki bo izbrisan</value>
   </data>
   <data name="ArchivedEmails" xml:space="preserve">
     <value>Arhivirana e-pošta</value>
@@ -572,7 +578,7 @@
     <value>Namesto tega onemogoči</value>
   </data>
   <data name="PermanentlyDeleteAccountAndEmails" xml:space="preserve">
-    <value>TRAJNO IZBRIŠI RAČUN &amp; {0} SPOROČIL</value>
+    <value>TRAJNO IZBRIŠI RAČUN IN {0} SPOROČIL</value>
   </data>
   <data name="FinalWarningTitle" xml:space="preserve">
     <value>ZADNJE OPOZORILO!</value>
@@ -635,7 +641,7 @@
     <value>Še ni sinhronizirano</value>
   </data>
   <data name="ResetSyncTime" xml:space="preserve">
-    <value>Ponastavi čas sinhr.</value>
+    <value>Ponastavi čas sinhronizacije</value>
   </data>
   <data name="ResetSyncTimeConfirm" xml:space="preserve">
     <value>Ali ste prepričani, da želite ponastaviti čas sinhronizacije na trenutni čas? To bo preprečilo ponavljajoče se napake sinhronizacije, saj bo sistem sinhroniziral le e-pošto novejšega časa.</value>
@@ -662,10 +668,10 @@
     <value>Omogoči račun</value>
   </data>
   <data name="QuickSync" xml:space="preserve">
-    <value>Hitro sinhr.</value>
+    <value>Hitro sinhroniziranje</value>
   </data>
   <data name="FullResync" xml:space="preserve">
-    <value>Polna ponovna sinhr.</value>
+    <value>Polna ponovna sinhronizacija</value>
   </data>
   <data name="CopyAllEmailsToAnotherMailbox" xml:space="preserve">
     <value>Kopiraj vso pošto v drug nabiralnik</value>
@@ -863,7 +869,7 @@
     <value>Prijava</value>
   </data>
   <data name="AppName" xml:space="preserve">
-    <value>Arhiv e-pošte</value>
+    <value>Mail Archiver</value>
   </data>
   <data name="LoginSubtitle" xml:space="preserve">
     <value>Prijavite se za dostop do arhiva e-pošte</value>
@@ -1145,7 +1151,7 @@
     <value>• Uporabite narekovaje za točne fraze: "pomembno srečanje"</value>
   </data>
   <data name="AdvancedSearchInfo2" xml:space="preserve">
-    <value>• Iskanje po poljih: zadeva:račun, od:john, za:domena, vsebina:"pomembno"</value>
+    <value>• Iskanje po poljih: subject:račun, from:janez, to:domena, body:"pomembno"</value>
   </data>
   <data name="AdvancedSearchInfo3" xml:space="preserve">
     <value>• Kombinirajte oboje: "avtomobilsko zavarovanje" subject:račun from:zavarovanje</value>
@@ -1170,5 +1176,11 @@
   </data>
   <data name="DownloadAllAttachments" xml:space="preserve">
     <value>Prenesi vse priloge</value>
+  </data>
+  <data name="ChangePassword" xml:space="preserve">
+    <value>Zamenjaj geslo</value>
+  </data>    
+  <data name="Sign Out" xml:space="preserve">
+    <value>Odjava</value>
   </data>
 </root>

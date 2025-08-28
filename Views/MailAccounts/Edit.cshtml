@@ -20,7 +20,7 @@
                     <input asp-for="EmailAddress" class="form-control" type="email" />
                     <span asp-validation-for="EmailAddress" class="text-danger"></span>
                 </div>
-                <h4 class="mt-4">IMAP Settings</h4>
+                <h4 class="mt-4">@Localizer["IMAPSettings"]</h4>
                 <div class="row">
                     <div class="col-md-8 mb-3">
                         <label asp-for="ImapServer" class="form-label">@Localizer["IMAPServer"]</label>
@@ -42,7 +42,7 @@
                 <div class="mb-3">
                     <label asp-for="Password" class="form-label">@Localizer["Password"]</label>
                     <input asp-for="Password" class="form-control" type="password"/>
-                    <div class="form-text">Leave empty to keep the current password unchanged.</div>
+                    <div class="form-text">@Localizer["LeaveEmpty"]</div>
                     <span asp-validation-for="Password" class="text-danger"></span>
 
                 </div>
