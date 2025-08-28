@@ -256,11 +256,15 @@
   background-color: var(--table-hover-bg);
 }
 
-/* Dark Mode für Email Body */
-[data-theme="dark"] .email-text-body {
-  background-color: #ffffff;
-  color: #000000;
-  border: 1px solid var(--border-color);
+/* Dark Mode für Email Body - Text und Hintergrund bleiben wie im Light Mode */
+[data-theme="dark"] .email-text-content {
+  color: #000000 !important;
+}
+
+[data-theme="dark"] .border.rounded.p-3.bg-light {
+  background-color: #f8f9fa !important;
+  color: #000000 !important;
+  border: 1px solid var(--border-color) !important;
 }
 
 /* Dark Mode für HTML Email Body */
@@ -285,12 +289,6 @@
 [data-theme="dark"] *[style*="color: #1F497D"],
 [data-theme="dark"] *[color="#1F497D"] {
   color: var(--text-color) !important;
-}
-
-[data-theme="dark"] .email-html-body {
-  background-color: var(--card-bg);
-  color: var(--text-color);
-  border: 1px solid var(--border-color);
 }
 
 /* Dark Mode für Email Detail View */
@@ -376,6 +374,31 @@
 
 [data-theme="dark"] #theme-toggle:hover {
   background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Dark Mode für Dropdown Menüs */
+[data-theme="dark"] .dropdown-menu {
+  background-color: var(--card-bg) !important;
+  border: 1px solid var(--border-color) !important;
+  box-shadow: var(--card-shadow) !important;
+}
+
+[data-theme="dark"] .dropdown-item {
+  color: var(--text-color) !important;
+}
+
+[data-theme="dark"] .dropdown-item:hover,
+[data-theme="dark"] .dropdown-item:focus {
+  background-color: var(--table-hover-bg) !important;
+  color: var(--text-color) !important;
+}
+
+[data-theme="dark"] .dropdown-header {
+  color: var(--text-color) !important;
+}
+
+[data-theme="dark"] .dropdown-divider {
+  border-top: 1px solid var(--border-color) !important;
 }
 
 /* Dark Mode für Modals (falls verwendet) */

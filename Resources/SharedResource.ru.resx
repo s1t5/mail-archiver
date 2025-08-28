@@ -1162,4 +1162,10 @@
   <data name="AttachmentPreview" xml:space="preserve">
     <value>Предварительный просмотр вложения</value>
   </data>
+  <data name="PreviewNotAvailable" xml:space="preserve">
+    <value>Предварительный просмотр недоступен</value>
+  </data>
+  <data name="FileTypeCannotBePreviewed" xml:space="preserve">
+    <value>Этот тип файла не может быть просмотрен. Пожалуйста, скачайте для просмотра.</value>
+  </data>
 </root>

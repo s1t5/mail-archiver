@@ -1162,4 +1162,10 @@
   <data name="AttachmentPreview" xml:space="preserve">
     <value>Voorbeeld van bijlage</value>
   </data>
+  <data name="PreviewNotAvailable" xml:space="preserve">
+    <value>Voorbeeld niet beschikbaar</value>
+  </data>
+  <data name="FileTypeCannotBePreviewed" xml:space="preserve">
+    <value>Dit bestandstype kan niet als voorbeeld worden weergegeven. Download om te bekijken.</value>
+  </data>
 </root>

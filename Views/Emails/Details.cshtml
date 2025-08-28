@@ -277,6 +277,12 @@
 </div>
 
 <script>
+    // Localized strings for JavaScript
+    const localizedStrings = {
+        previewNotAvailable: '@Localizer["PreviewNotAvailable"]',
+        fileTypeCannotBePreviewed: '@Localizer["FileTypeCannotBePreviewed"]'
+    };
+
     document.addEventListener('DOMContentLoaded', function () {
         const iframe = document.getElementById('email-content-frame');
         if (iframe) {
@@ -353,8 +359,8 @@
                     previewContent.innerHTML = `
                         <div class="d-flex flex-column align-items-center justify-content-center h-100">
                             <i class="bi bi-file-earmark-arrow-down" style="font-size: 4rem;"></i>
-                            <h5 class="mt-3">Preview not available</h5>
-                            <p>This file type cannot be previewed. Please download to view.</p>
+                            <h5 class="mt-3">${localizedStrings.previewNotAvailable}</h5>
+                            <p>${localizedStrings.fileTypeCannotBePreviewed}</p>
                         </div>
                     `;
                 }

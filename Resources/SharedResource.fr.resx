@@ -1162,4 +1162,10 @@
   <data name="AttachmentPreview" xml:space="preserve">
     <value>Aperçu de la pièce jointe</value>
   </data>
+  <data name="PreviewNotAvailable" xml:space="preserve">
+    <value>Aperçu non disponible</value>
+  </data>
+  <data name="FileTypeCannotBePreviewed" xml:space="preserve">
+    <value>Ce type de fichier ne peut pas être prévisualisé. Veuillez télécharger pour voir.</value>
+  </data>
 </root>

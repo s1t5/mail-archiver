@@ -1162,4 +1162,10 @@
   <data name="AttachmentPreview" xml:space="preserve">
     <value>Predogled priloge</value>
   </data>
+  <data name="PreviewNotAvailable" xml:space="preserve">
+    <value>Predogled ni na voljo</value>
+  </data>
+  <data name="FileTypeCannotBePreviewed" xml:space="preserve">
+    <value>Te vrste datoteke ni mogoče predogledati. Prenesite za ogled.</value>
+  </data>
 </root>
