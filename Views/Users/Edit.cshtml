@@ -15,10 +15,9 @@
             <input type="hidden" asp-for="LastLoginAt" />
                 <div class="row"><div class="col-md-6"><div class="mb-3"><label asp-for="Username" class="form-label">@Localizer["Username"]</label><input asp-for="Username" class="form-control" /><span asp-validation-for="Username" class="text-danger"></span></div></div><div class="col-md-6"><div class="mb-3"><label asp-for="Email" class="form-label">@Localizer["Email"]</label><input asp-for="Email" class="form-control" /><span asp-validation-for="Email" class="text-danger"></span></div></div></div>
             <div class="row"><div class="col-md-6"><div class="mb-3 form-check"><input asp-for="IsAdmin" class="form-check-input" /><label class="form-check-label">@Localizer["Admin"]</label><span asp-validation-for="IsAdmin" class="text-danger"></span></div></div><div class="col-md-6"><div class="mb-3 form-check"><input asp-for="IsActive" class="form-check-input" /><label class="form-check-label">@Localizer["Active"]</label></div></div></div>
-            <div class="row"><div class="col-md-6"><div class="mb-3"><label for="newPassword" class="form-label">@Localizer["NewPassword"]</label><input type="password" name="newPassword" id="newPassword" class="form-control" placeholder="@Localizer["LeaveBlankToKeepPassword"]" /></div></div></div>
+            <div class="row"><div class="col-md-6"><div class="mb-3"><label for="newPassword" class="form-label">@Localizer["NewPassword"]</label><input type="password" name="newPassword" id="newPassword" class="form-control" placeholder="@Localizer["LeaveBlankToKeepPassword"]" /><div class="form-text">@Localizer["PasswordHint"]</div>@if (ViewData.ModelState["newPassword"]?.Errors?.Count > 0){<div class="text-warning mt-1"><i class="bi bi-exclamation-triangle me-1"></i>@Localizer["PasswordHint"]</div>}</div></div></div>
             <div class="d-flex justify-content-between"><a asp-action="Index" class="btn btn-secondary">@Localizer["Cancel"]</a><button type="submit" class="btn btn-primary"><i class="bi bi-save"></i> @Localizer["SaveChanges"]</button></div>
         </form>
     </div></div>
 </div>
 @section Scripts { @{await Html.RenderPartialAsync("_ValidationScriptsPartial");} }
-

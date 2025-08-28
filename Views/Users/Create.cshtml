@@ -35,11 +35,19 @@
                     </div>
                 </div>
                 
-                <div class="row">
+<div class="row">
                     <div class="col-md-12">
                         <div class="mb-3">
                             <label for="password" class="form-label">@Localizer["PasswordLabel"]</label>
                             <input type="password" id="password" name="password" class="form-control" value="@ViewBag.Password" required />
+                            <div class="form-text">@Localizer["PasswordHint"]</div>
+                            @if (ViewData.ModelState["password"]?.Errors?.Count > 0)
+                            {
+                                <div class="text-warning mt-1">
+                                    <i class="bi bi-exclamation-triangle me-1"></i>
+                                    @Localizer["PasswordHint"]
+                                </div>
+                            }
                             <span class="text-danger" id="password-error"></span>
                         </div>
                     </div>
@@ -74,4 +82,3 @@
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
 }
-

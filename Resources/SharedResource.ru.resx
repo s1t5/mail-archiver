@@ -107,7 +107,7 @@
     <value>Режим выбора</value>
   </data>
   <data name="BatchOperationInformation" xml:space="preserve">
-    <value>Информация о групповой операции</value>
+    <value>Информация о пакетной операции</value>
   </data>
   <data name="DirectProcessing" xml:space="preserve">
     <value>Прямая обработка</value>
@@ -119,25 +119,25 @@
     <value>Максимальный лимит</value>
   </data>
   <data name="ProcessOnPage" xml:space="preserve">
-    <value>Обработать на этой странице (ожидать завершения)</value>
+    <value>Обработать на этой странице (ждать завершения)</value>
   </data>
   <data name="ProcessInBackground" xml:space="preserve">
-    <value>Обработать в фоне (отдельный мониторинг)</value>
+    <value>Обработать в фоне (отслеживать отдельно)</value>
   </data>
   <data name="SplitLargerOperations" xml:space="preserve">
-    <value>Разделить крупные операции на несколько групп</value>
+    <value>Разделить крупные операции на несколько пакетов</value>
   </data>
   <data name="ActiveJobsCurrentlyRunning" xml:space="preserve">
-    <value>В настоящее время выполняется {0} активных задач</value>
+    <value>{0} активных задач в данный момент выполняется</value>
   </data>
   <data name="NoBackgroundJobsRunning" xml:space="preserve">
-    <value>В настоящее время фоновые задачи не выполняются</value>
+    <value>Фоновые задачи не выполняются</value>
   </data>
   <data name="MonitorBackgroundJobs" xml:space="preserve">
-    <value>Мониторинг фоновых задач</value>
+    <value>Отслеживать фоновые задачи</value>
   </data>
   <data name="ViewJobHistory" xml:space="preserve">
-    <value>Просмотр истории задач</value>
+    <value>Посмотреть историю задач</value>
   </data>
   <data name="EmailsFound" xml:space="preserve">
     <value>Найдено {0} писем</value>
@@ -146,10 +146,10 @@
     <value>Страница {0} из {1}</value>
   </data>
   <data name="SelectAll" xml:space="preserve">
-    <value>Выбрать все</value>
+    <value>Выбрать всё</value>
   </data>
   <data name="DeselectAll" xml:space="preserve">
-    <value>Снять выделение</value>
+    <value>Снять выделение со всех</value>
   </data>
   <data name="CopySelected" xml:space="preserve">
     <value>Копировать выбранные</value>
@@ -164,7 +164,7 @@
     <value>Вложения</value>
   </data>
   <data name="Details" xml:space="preserve">
-    <value>Детали</value>
+    <value>Подробности</value>
   </data>
   <data name="Out" xml:space="preserve">
     <value>Исходящие</value>
@@ -185,10 +185,10 @@
     <value>Письма не найдены</value>
   </data>
   <data name="NoEmailsFoundText" xml:space="preserve">
-    <value>Не найдено писем, соответствующих указанным критериям поиска.</value>
+    <value>Не найдено писем по указанным критериям поиска.</value>
   </data>
   <data name="ExportSearchResults" xml:space="preserve">
-    <value>Экспорт результатов поиска</value>
+    <value>Экспортировать результаты поиска</value>
   </data>
   <data name="ExportFormat" xml:space="preserve">
     <value>Формат экспорта</value>
@@ -197,16 +197,16 @@
     <value>Информация об экспорте:</value>
   </data>
   <data name="ExportingFilteredResults" xml:space="preserve">
-    <value>Экспорт отфильтрованных результатов на основе ваших текущих критериев поиска.</value>
+    <value>Экспорт отфильтрованных результатов на основе текущих критериев поиска.</value>
   </data>
   <data name="ExportingAllEmails" xml:space="preserve">
-    <value>Экспорт всех писем из вашего архива.</value>
+    <value>Экспорт всех писем из архива.</value>
   </data>
   <data name="ExportMayTakeTime" xml:space="preserve">
-    <value>Экспорт может занять некоторое время для большого количества писем. Экспортированный файл будет содержать до 10 000 писем.</value>
+    <value>Экспорт может занять время при большом количестве писем. Экспортируемый файл будет содержать до 10 000 писем.</value>
   </data>
   <data name="EmailsMatchCriteria" xml:space="preserve">
-    <value>{0} писем соответствуют вашим текущим критериям и будут экспортированы.</value>
+    <value>{0} писем соответствуют текущим критериям и будут экспортированы.</value>
   </data>
   <data name="Cancel" xml:space="preserve">
     <value>Отмена</value>
@@ -221,13 +221,13 @@
     <value>Фоновая задача</value>
   </data>
   <data name="TooManySelected" xml:space="preserve">
-    <value>Слишком много выбрано - требуется разделение</value>
+    <value>Слишком много - требуется разделение</value>
   </data>
   <data name="PleaseSelectAtLeastOne" xml:space="preserve">
     <value>Пожалуйста, выберите хотя бы одно письмо для копирования.</value>
   </data>
   <data name="TooManyEmailsSelected" xml:space="preserve">
-    <value>Выбрано слишком много писем ({0}). Максимально разрешено {1} писем. Пожалуйста, уменьшите выборку или разделите на несколько операций.</value>
+    <value>Выбрано слишком много писем ({0}). Максимум разрешено: {1} писем. Пожалуйста, уменьшите выбор или разделите на несколько операций.</value>
   </data>
   <data name="ContinueWithOperation" xml:space="preserve">
     <value>Вы выбрали {0} писем. Это будет обработано как фоновая задача, которую можно отслеживать отдельно. Продолжить?</value>
@@ -278,13 +278,13 @@
     <value>Обзор аккаунтов</value>
   </data>
   <data name="ShowAll" xml:space="preserve">
-    <value>Показать все</value>
+    <value>Показать всё</value>
   </data>
   <data name="Name" xml:space="preserve">
     <value>Имя</value>
   </data>
   <data name="EmailAddress" xml:space="preserve">
-    <value>Адрес электронной почты</value>
+    <value>Email адрес</value>
   </data>
   <data name="Count" xml:space="preserve">
     <value>Количество</value>
@@ -293,13 +293,13 @@
     <value>Последняя синхронизация</value>
   </data>
   <data name="NoEmailAccountsFound" xml:space="preserve">
-    <value>Аккаунты электронной почты не найдены</value>
+    <value>Почтовые аккаунты не найдены</value>
   </data>
   <data name="BackgroundJobsActive" xml:space="preserve">
     <value>Активные фоновые задачи:</value>
   </data>
   <data name="ViewJobs" xml:space="preserve">
-    <value>Просмотр задач</value>
+    <value>Посмотреть задачи</value>
   </data>
   <data name="AttachmentsCount" xml:space="preserve">
     <value>Вложения</value>
@@ -311,13 +311,13 @@
     <value>Действия</value>
   </data>
   <data name="Enabled" xml:space="preserve">
-    <value>Включено</value>
+    <value>Включен</value>
   </data>
   <data name="Disabled" xml:space="preserve">
-    <value>Отключено</value>
+    <value>Отключен</value>
   </data>
   <data name="NotSynced" xml:space="preserve">
-    <value>Не синхронизировано</value>
+    <value>Не синхронизирован</value>
   </data>
   <data name="Days" xml:space="preserve">
     <value>дней</value>
@@ -326,7 +326,7 @@
     <value>Сервер</value>
   </data>
   <data name="EmailAccounts" xml:space="preserve">
-    <value>Аккаунты электронной почты</value>
+    <value>Почтовые аккаунты</value>
   </data>
   <data name="CreateNewUser" xml:space="preserve">
     <value>Создать нового пользователя</value>
@@ -383,7 +383,7 @@
     <value>Пользователи не найдены</value>
   </data>
   <data name="AddFirstUser" xml:space="preserve">
-    <value>Добавьте вашего первого пользователя для управления доступом к почтовому архиву.</value>
+    <value>Добавьте первого пользователя, чтобы начать управление доступом к архиву электронной почты.</value>
   </data>
   <data name="BackgroundJobsTitle" xml:space="preserve">
     <value>Фоновые задачи</value>
@@ -407,7 +407,7 @@
     <value>Письма</value>
   </data>
   <data name="CreatedLabel" xml:space="preserve">
-    <value>Создано</value>
+    <value>Создан</value>
   </data>
   <data name="SynchronizationJobs" xml:space="preserve">
     <value>Задачи синхронизации</value>
@@ -416,16 +416,16 @@
     <value>Последние 20</value>
   </data>
   <data name="Started" xml:space="preserve">
-    <value>Запущено</value>
+    <value>Начат</value>
   </data>
   <data name="Duration" xml:space="preserve">
-    <value>Продолжительность</value>
+    <value>Длительность</value>
   </data>
   <data name="BatchRestoreJobs" xml:space="preserve">
-    <value>Задачи группового восстановления</value>
+    <value>Задачи пакетного восстановления</value>
   </data>
   <data name="BatchRestore" xml:space="preserve">
-    <value>Групповое восстановление</value>
+    <value>Пакетное восстановление</value>
   </data>
   <data name="NoBackgroundJobs" xml:space="preserve">
     <value>Нет фоновых задач</value>
@@ -434,16 +434,19 @@
     <value>В настоящее время нет активных фоновых задач.</value>
   </data>
   <data name="ImportMBoxFiles" xml:space="preserve">
-    <value>Импорт файлов MBox</value>
+    <value>Импорт MBox файлов</value>
   </data>
   <data name="RecentEmails" xml:space="preserve">
-    <value>Последние письма</value>
+    <value>Недавние письма</value>
   </data>
   <data name="SubjectSender" xml:space="preserve">
     <value>Тема, отправитель...</value>
   </data>
   <data name="ImportMBox" xml:space="preserve">
     <value>Импорт Mbox</value>
+  </data>
+  <data name="IMAPSettings" xml:space="preserve">
+    <value>Настройки IMAP</value>
   </data>
   <data name="IMAPServer" xml:space="preserve">
     <value>IMAP сервер</value>
@@ -452,16 +455,16 @@
     <value>Редактировать</value>
   </data>
   <data name="Sync" xml:space="preserve">
-    <value>Синхронизация</value>
+    <value>Синхронизировать</value>
   </data>
   <data name="NoEmailAccountsConfigured" xml:space="preserve">
-    <value>Аккаунты электронной почты не настроены</value>
+    <value>Почтовые аккаунты не настроены</value>
   </data>
   <data name="AddFirstAccount" xml:space="preserve">
-    <value>Добавьте ваш первый почтовый аккаунт для начала архивирования писем или импорта существующих файлов MBox.</value>
+    <value>Добавьте первый почтовый аккаунт, чтобы начать архивирование писем или импортировать существующие MBox файлы.</value>
   </data>
   <data name="CreateNewEmailAccount" xml:space="preserve">
-    <value>Создать новый аккаунт электронной почты</value>
+    <value>Создать новый почтовый аккаунт</value>
   </data>
   <data name="AccountName" xml:space="preserve">
     <value>Имя аккаунта</value>
@@ -471,6 +474,9 @@
   </data>
   <data name="Password" xml:space="preserve">
     <value>Пароль</value>
+  </data>
+  <data name="LeaveEmpty" xml:space="preserve">
+    <value>Оставьте пустым, чтобы сохранить текущий пароль без изменений.</value>
   </data>
   <data name="UseSSL" xml:space="preserve">
     <value>Использовать SSL</value>
@@ -482,7 +488,7 @@
     <value>Отключенные аккаунты не будут синхронизироваться</value>
   </data>
   <data name="DeleteAfterDays" xml:space="preserve">
-    <value>Удалить через дней</value>
+    <value>Удалить через ... дней</value>
   </data>
   <data name="Save" xml:space="preserve">
     <value>Сохранить</value>
@@ -491,10 +497,10 @@
     <value>Вернуться к списку</value>
   </data>
   <data name="LeaveEmptyToDisableAutomaticDeletion" xml:space="preserve">
-    <value>Оставьте пустым для отключения автоматического удаления</value>
+    <value>Оставьте пустым, чтобы отключить автоматическое удаление</value>
   </data>
   <data name="AutoDeleteText" xml:space="preserve">
-    <value>Автоматически удалять письма с сервера после того, как они были архивированы в течение указанного количества дней. Оставьте пустым для отключения автоматического удаления.</value>
+    <value>Автоматически удаляет письма с сервера после того, как они были архивированы в течение указанного количества дней. Оставьте пустым, чтобы отключить автоматическое удаление.</value>
   </data>
   <data name="Authentication" xml:space="preserve">
     <value>Аутентификация</value>
@@ -503,13 +509,13 @@
     <value>Удаление писем</value>
   </data>
   <data name="DeleteEmailAccountTitle" xml:space="preserve">
-    <value>Удалить аккаунт электронной почты</value>
+    <value>Удалить почтовый аккаунт</value>
   </data>
   <data name="PermanentDeletionWarning" xml:space="preserve">
-    <value>ПРЕДУПРЕЖДЕНИЕ О БЕЗВОЗВРАТНОМ УДАЛЕНИИ</value>
+    <value>ПРЕДУПРЕЖДЕНИЕ О ПОСТОЯННОМ УДАЛЕНИИ</value>
   </data>
   <data name="AboutToDeleteAccountAllEmails" xml:space="preserve">
-    <value>Вы собираетесь безвозвратно удалить этот почтовый аккаунт и ВСЕ его архивированные письма.</value>
+    <value>Вы собираетесь окончательно удалить этот почтовый аккаунт и ВСЕ его архивированные письма.</value>
   </data>
   <data name="WhatWillBeDeleted" xml:space="preserve">
     <value>Что будет удалено:</value>
@@ -545,10 +551,10 @@
     <value>Альтернатива:</value>
   </data>
   <data name="AlternativeDisableInfo" xml:space="preserve">
-    <value>Если вы хотите только остановить синхронизацию писем без потери данных, вы можете отключить аккаунт.</value>
+    <value>Если вы хотите просто остановить синхронизацию писем без потери данных, вы можете вместо этого отключить аккаунт.</value>
   </data>
   <data name="DisableAccountInsteadLink" xml:space="preserve">
-    <value>отключить аккаунт</value>
+    <value>отключить аккаунт вместо этого</value>
   </data>
   <data name="AccountToBeDeleted" xml:space="preserve">
     <value>Аккаунт для удаления</value>
@@ -563,22 +569,22 @@
     <value>Окончательное подтверждение</value>
   </data>
   <data name="UnderstandDeletionAcknowledge" xml:space="preserve">
-    <value>Я понимаю, что это действие безвозвратно удалит аккаунт "{0}" и все {1} архивированных писем. Это действие нельзя отменить.</value>
+    <value>Я понимаю, что это действие окончательно удалит аккаунт "{0}" и все {1} архивированных писем. Это действие нельзя отменить.</value>
   </data>
   <data name="CancelKeepAccount" xml:space="preserve">
-    <value>Отменить - Сохранить аккаунт</value>
+    <value>Отмена - Сохранить аккаунт</value>
   </data>
   <data name="DisableInstead" xml:space="preserve">
     <value>Отключить вместо этого</value>
   </data>
   <data name="PermanentlyDeleteAccountAndEmails" xml:space="preserve">
-    <value>БЕЗВОЗВРАТНО УДАЛИТЬ АККАУНТ И {0} ПИСЕМ</value>
+    <value>ОКОНЧАТЕЛЬНО УДАЛИТЬ АККАУНТ И {0} ПИСЕМ</value>
   </data>
   <data name="FinalWarningTitle" xml:space="preserve">
     <value>ПОСЛЕДНЕЕ ПРЕДУПРЕЖДЕНИЕ!</value>
   </data>
   <data name="YouAreAboutToDelete" xml:space="preserve">
-    <value>Вы собираетесь БЕЗВОЗВРАТНО УДАЛИТЬ:</value>
+    <value>Вы собираетесь ОКОНЧАТЕЛЬНО УДАЛИТЬ:</value>
   </data>
   <data name="BulletAccount" xml:space="preserve">
     <value>Аккаунт: "{0}"</value>
@@ -596,7 +602,7 @@
     <value>Вы абсолютно уверены?</value>
   </data>
   <data name="EditEmailAccount" xml:space="preserve">
-    <value>Редактировать аккаунт электронной почты</value>
+    <value>Редактировать почтовый аккаунт</value>
   </data>
   <data name="FolderExclusion" xml:space="preserve">
     <value>Исключение папок</value>
@@ -605,10 +611,10 @@
     <value>Исключенные папки</value>
   </data>
   <data name="EnterFolderNames" xml:space="preserve">
-    <value>Введите имена папок через точку с запятой, например: Спам;Корзина;Нежелательная почта</value>
+    <value>Введите имена папок через точку с запятой, например: Junk;Spam;Trash</value>
   </data>
   <data name="EnterFolderNamesText" xml:space="preserve">
-    <value>Папки для исключения из синхронизации. Введите имена папок через точку с запятой.</value>
+    <value>Папки, которые нужно исключить из синхронизации. Введите имена папок через точку с запятой.</value>
   </data>
   <data name="AvailableFolders" xml:space="preserve">
     <value>Доступные папки</value>
@@ -620,7 +626,7 @@
     <value>Детали аккаунта</value>
   </data>
   <data name="EmailAccountDetailsHeader" xml:space="preserve">
-    <value>Детали аккаунта электронной почты</value>
+    <value>Детали почтового аккаунта</value>
   </data>
   <data name="TotalEmails" xml:space="preserve">
     <value>Всего писем</value>
@@ -629,22 +635,22 @@
     <value>{0} писем архивировано</value>
   </data>
   <data name="DeletingAccountWillRemoveAllEmails" xml:space="preserve">
-    <value>Удаление этого аккаунта безвозвратно удалит все {0} архивированных писем</value>
+    <value>Удаление этого аккаунта окончательно удалит все {0} архивированных писем</value>
   </data>
   <data name="NotYetSynchronized" xml:space="preserve">
-    <value>Еще не синхронизировано</value>
+    <value>Еще не синхронизирован</value>
   </data>
   <data name="ResetSyncTime" xml:space="preserve">
     <value>Сбросить время синхронизации</value>
   </data>
   <data name="ResetSyncTimeConfirm" xml:space="preserve">
-    <value>Вы уверены, что хотите сбросить время синхронизации на текущее время? Это предотвратит повторные ошибки синхронизации от неполной синхронизации, поскольку система будет синхронизировать только письма новее этой временной метки.</value>
+    <value>Вы уверены, что хотите сбросить время синхронизации на текущее время? Это предотвратит повторяющиеся ошибки синхронизации от неполной синхронизации, так как система будет синхронизировать только письма более новые, чем эта временная метка.</value>
   </data>
   <data name="ResetSyncTimeNote" xml:space="preserve">
-    <value>Примечание: Это сбрасывает время синхронизации на текущее время. Это предотвратит повторные ошибки синхронизации от неполной синхронизации, поскольку система будет синхронизировать только письма новее этой временной метки.</value>
+    <value>Примечание: Это сбрасывает время синхронизации на текущее время. Это предотвратит повторяющиеся ошибки синхронизации от неполной синхронизации, так как система будет синхронизировать только письма более новые, чем эта временная метка.</value>
   </data>
   <data name="AutoDeleteEnabledInfo" xml:space="preserve">
-    <value>Письма будут автоматически удаляться с сервера через {0} дней после архивирования</value>
+    <value>Письма будут автоматически удаляться с сервера после архивирования в течение {0} дней</value>
   </data>
   <data name="AutoDeleteDisabledInfo" xml:space="preserve">
     <value>Письма не будут автоматически удаляться с сервера</value>
@@ -665,7 +671,7 @@
     <value>Быстрая синхронизация</value>
   </data>
   <data name="FullResync" xml:space="preserve">
-    <value>Полная ресинхронизация</value>
+    <value>Полная пересинхронизация</value>
   </data>
   <data name="CopyAllEmailsToAnotherMailbox" xml:space="preserve">
     <value>Копировать все письма в другой почтовый ящик</value>
@@ -674,7 +680,7 @@
     <value>Опасная зона</value>
   </data>
   <data name="DangerZoneInfo" xml:space="preserve">
-    <value>Следующие действия необратимы и безвозвратно удалят данные.</value>
+    <value>Следующие действия необратимы и окончательно удалят данные.</value>
   </data>
   <data name="DeleteAccountAllEmailsButton" xml:space="preserve">
     <value>Удалить аккаунт и все письма ({0})</value>
@@ -686,19 +692,19 @@
     <value>Вернуться к аккаунтам</value>
   </data>
   <data name="ImportMBoxFileTitle" xml:space="preserve">
-    <value>Импорт файла MBox</value>
+    <value>Импорт MBox файла</value>
   </data>
   <data name="MBoxImportInformation" xml:space="preserve">
     <value>Информация об импорте MBox:</value>
   </data>
   <data name="SupportedFormatsStandard" xml:space="preserve">
-    <value>Поддерживаемые форматы: Стандартные файлы MBox (.mbox, .mbx)</value>
+    <value>Поддерживаемые форматы: Стандартные MBox файлы (.mbox, .mbx)</value>
   </data>
   <data name="MaximumFileSize" xml:space="preserve">
     <value>Максимальный размер файла: {0}</value>
   </data>
   <data name="LargeFilesBackground" xml:space="preserve">
-    <value>Большие файлы будут обработаны в фоновом режиме</value>
+    <value>Большие файлы будут обрабатываться в фоне</value>
   </data>
   <data name="DuplicateEmailsSkipped" xml:space="preserve">
     <value>Дублирующиеся письма будут автоматически пропущены</value>
@@ -710,7 +716,7 @@
     <value>Настройки загрузки и импорта</value>
   </data>
   <data name="SelectMBoxFile" xml:space="preserve">
-    <value>Выберите файл MBox</value>
+    <value>Выбрать MBox файл</value>
   </data>
   <data name="SupportedFormatsWithMax" xml:space="preserve">
     <value>Поддерживаемые форматы: файлы .mbox, .mbx. Максимальный размер: {0}</value>
@@ -737,13 +743,13 @@
     <value>Размер файла:</value>
   </data>
   <data name="EstimatedProcessingTime" xml:space="preserve">
-    <value>Ориентировочное время обработки:</value>
+    <value>Предполагаемое время обработки:</value>
   </data>
   <data name="Important" xml:space="preserve">
     <value>Важно:</value>
   </data>
   <data name="ImportBackgroundInfo1" xml:space="preserve">
-    <value>Процесс импорта будет выполняться в фоновом режиме для больших файлов.</value>
+    <value>Процесс импорта будет выполняться в фоне для больших файлов.</value>
   </data>
   <data name="ImportBackgroundInfo2" xml:space="preserve">
     <value>Вы можете отслеживать прогресс на странице статуса после начала импорта.</value>
@@ -752,7 +758,7 @@
     <value>Начать импорт</value>
   </data>
   <data name="ViewImportJobs" xml:space="preserve">
-    <value>Просмотреть задачи импорта</value>
+    <value>Посмотреть задачи импорта</value>
   </data>
   <data name="FileSizeExceedsMax" xml:space="preserve">
     <value>Размер файла превышает максимально допустимый размер {0}</value>
@@ -767,10 +773,10 @@
     <value>Ошибка загрузки папок</value>
   </data>
   <data name="UploadInProgress" xml:space="preserve">
-    <value>Идет загрузка... Пожалуйста, не закрывайте эту страницу до перенаправления.</value>
+    <value>Загрузка в процессе... Пожалуйста, не закрывайте эту страницу до перенаправления.</value>
   </data>
   <data name="StartingImport" xml:space="preserve">
-    <value>Начинается импорт...</value>
+    <value>Начало импорта...</value>
   </data>
   <data name="MBoxImportStatusTitle" xml:space="preserve">
     <value>Статус импорта MBox</value>
@@ -794,13 +800,13 @@
     <value>обработано</value>
   </data>
   <data name="EstimatedSuffix" xml:space="preserve">
-    <value>оценка</value>
+    <value>предполагается</value>
   </data>
   <data name="EmailsProcessedSuffix" xml:space="preserve">
     <value>писем обработано</value>
   </data>
   <data name="EmailsEstimatedSuffix" xml:space="preserve">
-    <value>писем оценено</value>
+    <value>писем предполагается</value>
   </data>
   <data name="Estimating" xml:space="preserve">
     <value>Оценка...</value>
@@ -827,13 +833,13 @@
     <value>Текущее письмо:</value>
   </data>
   <data name="StartedLabel" xml:space="preserve">
-    <value>Запущено:</value>
+    <value>Начат:</value>
   </data>
   <data name="CompletedLabel" xml:space="preserve">
-    <value>Завершено:</value>
+    <value>Завершен:</value>
   </data>
   <data name="DurationLabel" xml:space="preserve">
-    <value>Продолжительность:</value>
+    <value>Длительность:</value>
   </data>
   <data name="ErrorLabel" xml:space="preserve">
     <value>Ошибка:</value>
@@ -851,13 +857,13 @@
     <value>Успешно импортировано {0} писем с {1} ошибками.</value>
   </data>
   <data name="SearchImportedEmails" xml:space="preserve">
-    <value>Поиск импортированных писем</value>
+    <value>Найти импортированные письма</value>
   </data>
   <data name="ImportAnotherFile" xml:space="preserve">
     <value>Импортировать другой файл</value>
   </data>
   <data name="MoreEmailsThanEstimated" xml:space="preserve">
-    <value>Найдено больше писем, чем оценивалось - прогресс на основе размера файла</value>
+    <value>Найдено больше писем, чем предполагалось - прогресс основан на размере файла</value>
   </data>
   <data name="LoginTitle" xml:space="preserve">
     <value>Вход</value>
@@ -872,13 +878,13 @@
     <value>Имя пользователя</value>
   </data>
   <data name="UsernamePlaceholder" xml:space="preserve">
-    <value>Введите ваше имя пользователя</value>
+    <value>Введите имя пользователя</value>
   </data>
   <data name="PasswordLabel" xml:space="preserve">
     <value>Пароль</value>
   </data>
   <data name="PasswordPlaceholder" xml:space="preserve">
-    <value>Введите ваш пароль</value>
+    <value>Введите пароль</value>
   </data>
   <data name="RememberMe" xml:space="preserve">
     <value>Запомнить меня</value>
@@ -890,10 +896,10 @@
     <value>Доступ запрещен</value>
   </data>
   <data name="AccessDeniedIntro" xml:space="preserve">
-    <value>У вас нет разрешения для доступа к этому ресурсу.</value>
+    <value>У вас нет разрешения на доступ к этому ресурсу.</value>
   </data>
   <data name="AccessDeniedLoggedInInfo1" xml:space="preserve">
-    <value>Вы вошли в систему, но ваша учетная запись не имеет необходимых разрешений для доступа к этой странице.</value>
+    <value>Вы вошли в систему, но ваш аккаунт не имеет необходимых разрешений для доступа к этой странице.</value>
   </data>
   <data name="AccessDeniedLoggedInInfo2" xml:space="preserve">
     <value>Если вы считаете, что это ошибка, пожалуйста, обратитесь к системному администратору.</value>
@@ -926,7 +932,7 @@
     <value>Дата:</value>
   </data>
   <data name="SelectAccountToViewFolders" xml:space="preserve">
-    <value>Сначала выберите почтовый аккаунт для просмотра доступных папок.</value>
+    <value>Сначала выберите почтовый аккаунт, чтобы увидеть доступные папки.</value>
   </data>
   <data name="CopySingleEmailInfo" xml:space="preserve">
     <value>Эта функция копирует архивированное письмо в указанную папку целевого аккаунта. Письмо останется в архиве.</value>
@@ -935,7 +941,7 @@
     <value>Копировать письмо</value>
   </data>
   <data name="BatchCopyEmailsTitle" xml:space="preserve">
-    <value>Групповое копирование писем</value>
+    <value>Пакетное копирование писем</value>
   </data>
   <data name="CopyMultipleEmailsToMailbox" xml:space="preserve">
     <value>Копировать несколько писем в почтовый ящик</value>
@@ -947,7 +953,7 @@
     <value>Вы выбрали {0} писем для копирования в папку почтового ящика.</value>
   </data>
   <data name="BatchOperationMayTakeTime" xml:space="preserve">
-    <value>Эта операция может занять некоторое время в зависимости от количества писем и их размеров.</value>
+    <value>Эта операция может занять время в зависимости от количества писем и их размеров.</value>
   </data>
   <data name="CopyMultipleEmailsInfo" xml:space="preserve">
     <value>Эта функция копирует выбранные архивированные письма в указанную папку целевого аккаунта. Письма останутся в архиве.</value>
@@ -956,7 +962,7 @@
     <value>Копировать письма</value>
   </data>
   <data name="BatchRestoreStatusTitle" xml:space="preserve">
-    <value>Статус группового восстановления</value>
+    <value>Статус пакетного восстановления</value>
   </data>
   <data name="JobInformation" xml:space="preserve">
     <value>Информация о задаче</value>
@@ -980,19 +986,19 @@
     <value>Обработано {0} писем с {1} успешными и {2} неудачными.</value>
   </data>
   <data name="AsynchronousBatchCopyTitle" xml:space="preserve">
-    <value>Асинхронное групповое копирование</value>
+    <value>Асинхронное пакетное копирование</value>
   </data>
   <data name="LargeOperationDetected" xml:space="preserve">
-    <value>Обнаружена крупная операция:</value>
+    <value>Обнаружена большая операция:</value>
   </data>
   <data name="AsyncBatchCopyIntro" xml:space="preserve">
-    <value>Вы выбрали {0} писем. Эта операция будет выполняться в фоновом режиме, и вы сможете отслеживать ее прогресс.</value>
+    <value>Вы выбрали {0} писем. Эта операция будет выполняться в фоне, и вы сможете отслеживать её прогресс.</value>
   </data>
   <data name="BenefitsHeader" xml:space="preserve">
     <value>Преимущества:</value>
   </data>
   <data name="BenefitRunsInBackground" xml:space="preserve">
-    <value>Операция выполняется в фоновом режиме</value>
+    <value>Операция выполняется в фоне</value>
   </data>
   <data name="BenefitMonitorRealtime" xml:space="preserve">
     <value>Вы можете отслеживать прогресс в реальном времени</value>
@@ -1004,13 +1010,13 @@
     <value>Ваша сессия браузера не истечет</value>
   </data>
   <data name="BenefitAutoRetry" xml:space="preserve">
-    <value>Автоматический повтор при временных сбоях</value>
+    <value>Автоматические повторные попытки при временных сбоях</value>
   </data>
   <data name="AsyncBatchCopyWarning" xml:space="preserve">
-    <value>Эта операция скопирует {0} писем в выбранную папку. Операция будет выполняться в фоновом режиме и может занять {1} минут для завершения.</value>
+    <value>Эта операция скопирует {0} писем в выбранную папку. Операция будет выполняться в фоне и может занять {1} минут для завершения.</value>
   </data>
   <data name="StartBackgroundOperation" xml:space="preserve">
-    <value>Запустить фоновую операцию</value>
+    <value>Начать фоновую операцию</value>
   </data>
   <data name="AssignMailAccountsTitle" xml:space="preserve">
     <value>Назначить почтовые аккаунты</value>
@@ -1031,7 +1037,7 @@
     <value>Сохранить назначения</value>
   </data>
   <data name="ChangePasswordTitle" xml:space="preserve">
-    <value>Сменить пароль</value>
+    <value>Изменить пароль</value>
   </data>
   <data name="BackToDashboard" xml:space="preserve">
     <value>Вернуться к панели управления</value>
@@ -1070,7 +1076,7 @@
     <value>Сохранить изменения</value>
   </data>
   <data name="Email" xml:space="preserve">
-    <value>Электронная почта</value>
+    <value>Email</value>
   </data>
   <data name="CreateUser" xml:space="preserve">
     <value>Создать пользователя</value>
@@ -1091,22 +1097,22 @@
     <value>Режим разработки</value>
   </data>
   <data name="DevelopmentModeDetail1" xml:space="preserve">
-    <value>Переключение в среду разработки покажет более подробную информацию об ошибке.</value>
+    <value>Переключение в среду разработки покажет более подробную информацию об ошибке, которая произошла.</value>
   </data>
   <data name="DevelopmentModeDetail2" xml:space="preserve">
-    <value>Среда разработки не должна быть включена для развернутых приложений. Это может привести к отображению конфиденциальной информации из исключений конечным пользователям. Для локальной отладки включите среду разработки, установив переменную среды ASPNETCORE_ENVIRONMENT в Development и перезапустив приложение.</value>
+    <value>Среда разработки не должна быть включена для развернутых приложений. Это может привести к отображению конфиденциальной информации об исключениях конечным пользователям. Для локальной отладки включите среду разработки, установив переменную окружения ASPNETCORE_ENVIRONMENT в Development и перезапустив приложение.</value>
   </data>
   <data name="EmailDetails" xml:space="preserve">
     <value>Детали письма</value>
   </data>
   <data name="ExportEML" xml:space="preserve">
-    <value>Экспорт как EML</value>
+    <value>Экспорт в EML</value>
   </data>
   <data name="ExportCSV" xml:space="preserve">
-    <value>Экспорт как CSV</value>
+    <value>Экспорт в CSV</value>
   </data>
   <data name="ExportJSON" xml:space="preserve">
-    <value>Экспорт как JSON</value>
+    <value>Экспорт в JSON</value>
   </data>
   <data name="MoreExportOptions" xml:space="preserve">
     <value>Больше опций экспорта</value>
@@ -1133,7 +1139,7 @@
     <value>Полный просмотр</value>
   </data>
   <data name="TargetSettings" xml:space="preserve">
-    <value>Настройки назначения</value>
+    <value>Настройки цели</value>
   </data>
   <data name="Language" xml:space="preserve">
     <value>Язык</value>
@@ -1145,10 +1151,10 @@
     <value>• Используйте кавычки для точных фраз: "важная встреча"</value>
   </data>
   <data name="AdvancedSearchInfo2" xml:space="preserve">
-    <value>• Поиск по полям: subject:счет, from:иван, to:домен, body:"важно"</value>
+    <value>• Поиск по конкретному полю: subject:счет, from:иван, to:домен, body:"важно"</value>
   </data>
   <data name="AdvancedSearchInfo3" xml:space="preserve">
-    <value>• Комбинируйте оба варианта: "автострахование" subject:счет from:страховая</value>
+    <value>• Комбинируйте оба: "автострахование" subject:счет from:страховая</value>
   </data>
   <data name="Preview" xml:space="preserve">
     <value>Предварительный просмотр</value>
@@ -1166,9 +1172,18 @@
     <value>Предварительный просмотр недоступен</value>
   </data>
   <data name="FileTypeCannotBePreviewed" xml:space="preserve">
-    <value>Этот тип файла не может быть просмотрен. Пожалуйста, скачайте для просмотра.</value>
+    <value>Этот тип файла не может быть предварительно просмотрен. Пожалуйста, скачайте для просмотра.</value>
   </data>
   <data name="DownloadAllAttachments" xml:space="preserve">
     <value>Скачать все вложения</value>
+  </data>
+  <data name="ChangePassword" xml:space="preserve">
+    <value>Изменить пароль</value>
+  </data>  
+  <data name="Sign Out" xml:space="preserve">
+    <value>Выйти</value>
+  </data>
+  <data name="PasswordHint" xml:space="preserve">
+    <value>Пароль должен содержать не менее 6 символов.</value>
   </data>
 </root>

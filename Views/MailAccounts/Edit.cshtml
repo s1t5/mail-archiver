@@ -39,7 +39,7 @@
                     <input asp-for="Username" class="form-control" />
                     <span asp-validation-for="Username" class="text-danger"></span>
                 </div>
-                <div class="mb-3">
+<div class="mb-3">
                     <label asp-for="Password" class="form-label">@Localizer["Password"]</label>
                     <input asp-for="Password" class="form-control" type="password"/>
                     <div class="form-text">@Localizer["LeaveEmpty"]</div>
@@ -108,4 +108,3 @@
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
 }
-

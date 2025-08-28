@@ -1100,7 +1100,7 @@
     <value>Preklop v razvojno okolje bo prikazal podrobnejše informacije o napaki, ki se je pojavila.</value>
   </data>
   <data name="DevelopmentModeDetail2" xml:space="preserve">
-    <value>Razvojno okolje ne sme biti omogočeno za nameščene aplikacije. To lahko povzroči prikaz občutljivih informacij iz izjem končnim uporabnikom. Za lokalno odpravljanje napak omogočite razvojno okolje tako, da spremenljivko okolja ASPNETCORE_ENVIRONMENT nastavite na Razvoj in znova zaženete aplikacijo.</value>
+    <value>Razvojno okolje ne sme biti omogočeno za nameščene aplikacije. To lahko povzroči prikaz občutljivih informacij iz izjem končnim uporabnikom. Za lokalno odpravljanje napak omogočite razvojno okolje tako, da spremenljivku okolja ASPNETCORE_ENVIRONMENT nastavite na Razvoj in znova zaženete aplikacijo.</value>
   </data>
   <data name="EmailDetails" xml:space="preserve">
     <value>Podrobnosti pošte</value>
@@ -1182,5 +1182,8 @@
   </data>    
   <data name="Sign Out" xml:space="preserve">
     <value>Odjava</value>
+  </data>
+  <data name="PasswordHint" xml:space="preserve">
+    <value>Geslo mora imeti vsaj 6 znakov.</value>
   </data>
 </root>
