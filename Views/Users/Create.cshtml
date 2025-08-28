@@ -1,14 +1,14 @@
+﻿@inject Microsoft.Extensions.Localization.IStringLocalizer<MailArchiver.SharedResource> Localizer
 @model MailArchiver.Models.ViewModels.CreateUserViewModel
-
 @{
-    ViewData["Title"] = "Create User";
+    ViewData["Title"] = Localizer["CreateUserTitle"];
 }
 
 <div class="container-fluid">
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h1>Create User</h1>
+        <h1>@Localizer["CreateUserTitle"]</h1>
         <a asp-action="Index" class="btn btn-secondary">
-            <i class="bi bi-arrow-left"></i> Back to List
+            <i class="bi bi-arrow-left"></i> @Localizer["BackToList"]
         </a>
     </div>
 
@@ -38,7 +38,7 @@
                 <div class="row">
                     <div class="col-md-12">
                         <div class="mb-3">
-                            <label for="password" class="form-label">Password</label>
+                            <label for="password" class="form-label">@Localizer["PasswordLabel"]</label>
                             <input type="password" id="password" name="password" class="form-control" value="@ViewBag.Password" required />
                             <span class="text-danger" id="password-error"></span>
                         </div>
@@ -49,21 +49,21 @@
                     <div class="col-md-6">
                         <div class="mb-3 form-check">
                             <input asp-for="IsAdmin" class="form-check-input" />
-                            <label class="form-check-label">Admin</label>
+                            <label class="form-check-label">@Localizer["Admin"]</label>
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div class="mb-3 form-check">
                             <input asp-for="IsActive" class="form-check-input" checked />
-                            <label class="form-check-label">Active</label>
+                            <label class="form-check-label">@Localizer["Active"]</label>
                         </div>
                     </div>
                 </div>
                 
                 <div class="d-flex justify-content-between">
-                    <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+                    <a asp-action="Index" class="btn btn-secondary">@Localizer["Cancel"]</a>
                     <button type="submit" class="btn btn-primary">
-                        <i class="bi bi-save"></i> Create User
+                        <i class="bi bi-save"></i> @Localizer["CreateUser"]
                     </button>
                 </div>
             </form>
@@ -74,3 +74,4 @@
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
 }
+

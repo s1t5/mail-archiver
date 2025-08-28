@@ -1,21 +1,20 @@
 ﻿@using MailArchiver.Services
 @inject IAuthenticationService AuthService
+@inject Microsoft.Extensions.Localization.IStringLocalizer<MailArchiver.SharedResource> Localizer
 @model MailArchiver.Models.ViewModels.DashboardViewModel
 @{
-    ViewData["Title"] = "Dashboard";
-}
+    ViewData["Title"] = Localizer["Dashboard"]; }
 
 <div class="container-fluid">
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4 gap-2">
-        <h1 class="h3 mb-0">Dashboard</h1>
+        <h1 class="h3 mb-0">@Localizer["Dashboard"]</h1>
         <div>
             <a asp-controller="Emails" asp-action="Index" class="btn btn-primary btn-sm">
-                <i class="bi bi-search"></i> <span class="d-none d-sm-inline">Search</span> Archive
+                <i class="bi bi-search"></i> <span class="d-none d-sm-inline">@Localizer["Search"]</span> @Localizer["Archive"]
             </a>
         </div>
     </div>
 
-    @* Active Jobs Alert *@
     @if (AuthService.IsCurrentUserAdmin(Context) && ViewBag.ActiveJobsCount != null && ViewBag.ActiveJobsCount > 0)
     {
         <div class="row mb-4">
@@ -24,11 +23,11 @@
                     <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-2">
                         <div>
                             <i class="bi bi-clock-history me-2"></i>
-                            <strong>Active Background Jobs:</strong> @ViewBag.ActiveJobsCount job(s) are currently running.
+                            <strong>@Localizer["BackgroundJobsActive"]</strong> @ViewBag.ActiveJobsCount job(s) are currently running.
                         </div>
                         <div>
                             <a asp-controller="Emails" asp-action="Jobs" class="btn btn-outline-primary btn-sm">
-                                <i class="bi bi-eye me-1"></i> View Jobs
+                                <i class="bi bi-eye me-1"></i> @Localizer["ViewJobs"]
                             </a>
                             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                         </div>
@@ -44,7 +43,7 @@
                 <div class="card-body p-3">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <h6 class="card-title mb-1">Emails</h6>
+                            <h6 class="card-title mb-1">@Localizer["Emails"]</h6>
                             <h5 class="mb-0">@Model.TotalEmails.ToString("N0")</h5>
                         </div>
                         <i class="bi bi-envelope fs-1 opacity-75"></i>
@@ -57,7 +56,7 @@
                 <div class="card-body p-3">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <h6 class="card-title mb-1">Accounts</h6>
+                            <h6 class="card-title mb-1">@Localizer["Accounts"]</h6>
                             <h5 class="mb-0">@Model.TotalAccounts.ToString("N0")</h5>
                         </div>
                         <i class="bi bi-person fs-1 opacity-75"></i>
@@ -70,7 +69,7 @@
                 <div class="card-body p-3">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <h6 class="card-title mb-1">Attachments</h6>
+                            <h6 class="card-title mb-1">@Localizer["AttachmentsCount"]</h6>
                             <h5 class="mb-0">@Model.TotalAttachments.ToString("N0")</h5>
                         </div>
                         <i class="bi bi-paperclip fs-1 opacity-75"></i>
@@ -83,7 +82,7 @@
                 <div class="card-body p-3">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <h6 class="card-title mb-1">Storage</h6>
+                            <h6 class="card-title mb-1">@Localizer["Storage"]</h6>
                             <h5 class="mb-0">@Model.TotalStorageUsed</h5>
                         </div>
                         <i class="bi bi-hdd fs-1 opacity-75"></i>
@@ -97,8 +96,8 @@
         <div class="col-12 col-lg-8 mb-4">
             <div class="card h-100">
                 <div class="card-header d-flex justify-content-between align-items-center">
-                    <span class="h6 mb-0">Emails per Month</span>
-                    <span class="badge bg-primary">Last 12 Months</span>
+                    <span class="h6 mb-0">@Localizer["EmailsPerMonth"]</span>
+                    <span class="badge bg-primary">@Localizer["Last12Months"]</span>
                 </div>
                 <div class="card-body">
                     <div class="chart-container">
@@ -110,8 +109,8 @@
         <div class="col-12 col-lg-4 mb-4">
             <div class="card h-100">
                 <div class="card-header d-flex justify-content-between align-items-center">
-                    <span class="h6 mb-0">Top Senders</span>
-                    <span class="badge bg-primary">Incoming</span>
+                    <span class="h6 mb-0">@Localizer["TopSenders"]</span>
+                    <span class="badge bg-primary">@Localizer["Incoming"]</span>
                 </div>
                 <div class="card-body">
                     <div class="chart-container">
@@ -126,19 +125,18 @@
         <div class="col-12 col-lg-6 mb-4">
             <div class="card h-100">
                 <div class="card-header d-flex justify-content-between align-items-center">
-                    <span class="h6 mb-0">Account Overview</span>
-                    <a asp-controller="MailAccounts" asp-action="Index" class="btn btn-sm btn-outline-primary">Show All</a>
+                    <span class="h6 mb-0">@Localizer["AccountOverview"]</span>
+                    <a asp-controller="MailAccounts" asp-action="Index" class="btn btn-sm btn-outline-primary">@Localizer["ShowAll"]</a>
                 </div>
                 <div class="card-body p-0">
-                    <!-- Desktop/Tablet Tabelle -->
                     <div class="table-responsive d-none d-md-block">
                         <table class="table table-sm table-striped table-hover mb-0">
                             <thead>
                                 <tr>
-                                    <th>Name</th>
-                                    <th class="d-none d-lg-table-cell">Email</th>
-                                    <th>Count</th>
-                                    <th>Last Sync</th>
+                                    <th>@Localizer["Name"]</th>
+                                    <th class="d-none d-lg-table-cell">@Localizer["EmailAddress"]</th>
+                                    <th>@Localizer["Count"]</th>
+                                    <th>@Localizer["LastSync"]</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -172,14 +170,13 @@
                                 {
                                     <tr>
                                         <td colspan="4" class="text-center py-3 text-muted">
-                                            <i class="bi bi-info-circle me-2"></i>No email accounts found
+                                            <i class="bi bi-info-circle me-2"></i>@Localizer["NoEmailAccountsFound"]
                                         </td>
                                     </tr>
                                 }
                             </tbody>
                         </table>
                     </div>
-                    <!-- Mobile Liste -->
                     <div class="d-md-none">
                         @foreach (var account in Model.EmailsPerAccount)
                         {
@@ -189,7 +186,7 @@
                                         <h6 class="mb-1">@account.AccountName</h6>
                                         <p class="mb-1 small text-muted">@account.EmailAddress</p>
                                         <p class="mb-0 small">
-                                            <strong>@account.EmailCount.ToString("N0")</strong> emails
+                                            <strong>@account.EmailCount.ToString("N0")</strong> @Localizer["Emails"]
                                         </p>
                                     </div>
                                     <div class="text-end">
@@ -216,7 +213,7 @@
                         @if (!Model.EmailsPerAccount.Any())
                         {
                             <div class="text-center py-4 text-muted">
-                                <i class="bi bi-info-circle me-2"></i>No email accounts found
+                                <i class="bi bi-info-circle me-2"></i>@Localizer["NoEmailAccountsFound"]
                             </div>
                         }
                     </div>
@@ -226,8 +223,8 @@
         <div class="col-12 col-lg-6 mb-4">
             <div class="card h-100">
                 <div class="card-header d-flex justify-content-between align-items-center">
-                    <span class="h6 mb-0">Recent Emails</span>
-                    <a asp-controller="Emails" asp-action="Index" class="btn btn-sm btn-outline-primary">Show All</a>
+                    <span class="h6 mb-0">@Localizer["RecentEmails"]</span>
+                    <a asp-controller="Emails" asp-action="Index" class="btn btn-sm btn-outline-primary">@Localizer["ShowAll"]</a>
                 </div>
                 <div class="card-body p-0">
                     <div class="list-group list-group-flush">
@@ -259,7 +256,7 @@
                         @if (!Model.RecentEmails.Any())
                         {
                             <div class="list-group-item text-center py-4 text-muted">
-                                <i class="bi bi-inbox me-2"></i>No emails archived yet
+                                <i class="bi bi-inbox me-2"></i>@Localizer["NoEmailsArchivedYet"]
                             </div>
                         }
                     </div>
@@ -268,31 +265,30 @@
         </div>
     </div>
 
-    @* Quick Actions Widget *@
     <div class="row">
         <div class="col-12">
             <div class="card">
                 <div class="card-header">
-                    <h6 class="mb-0">Quick Actions</h6>
+                    <h6 class="mb-0">@Localizer["QuickActions"]</h6>
                 </div>
                 <div class="card-body">
                     <div class="row g-2">
                         <div class="col-6 col-md-3">
                             <a asp-controller="Emails" asp-action="Index" class="btn btn-outline-primary w-100">
                                 <i class="bi bi-search d-block mb-1"></i>
-                                <small>Search Archive</small>
+                                <small>@Localizer["SearchArchive"]</small>
                             </a>
                         </div>
                         <div class="col-6 col-md-3">
                             <a asp-controller="MailAccounts" asp-action="Create" class="btn btn-outline-success w-100">
                                 <i class="bi bi-plus-circle d-block mb-1"></i>
-                                <small>Add Account</small>
+                                <small>@Localizer["AddAccount"]</small>
                             </a>
                         </div>
                         <div class="col-6 col-md-3">
                             <a asp-controller="MailAccounts" asp-action="Index" class="btn btn-outline-info w-100">
                                 <i class="bi bi-person-gear d-block mb-1"></i>
-                                <small>Manage Accounts</small>
+                                <small>@Localizer["ManageAccounts"]</small>
                             </a>
                         </div>
                         @if (AuthService.IsCurrentUserAdmin(Context))
@@ -300,12 +296,12 @@
                             <div class="col-6 col-md-3">
                                 <a asp-controller="Emails" asp-action="Jobs" class="btn btn-outline-warning w-100 position-relative">
                                     <i class="bi bi-clock-history d-block mb-1"></i>
-                                    <small>Background Jobs</small>
+                                    <small>@Localizer["BackgroundJobs"]</small>
                                     @if (ViewBag.ActiveJobsCount != null && ViewBag.ActiveJobsCount > 0)
                                     {
                                         <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
                                             @ViewBag.ActiveJobsCount
-                                            <span class="visually-hidden">active jobs</span>
+                                            <span class="visually-hidden">@Localizer["ActiveJobs"]</span>
                                         </span>
                                     }
                                 </a>
@@ -456,3 +452,4 @@
         });
     </script>
 }
+

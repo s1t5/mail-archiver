@@ -1,10 +1,11 @@
+﻿@inject Microsoft.Extensions.Localization.IStringLocalizer<MailArchiver.SharedResource> Localizer
 @model MailArchiver.Models.ViewModels.CreateMailAccountViewModel
 @{
-    ViewData["Title"] = "Create New Email Account";
+    ViewData["Title"] = @Localizer["CreateNewEmailAccount"];
 }
 
 <div class="container">
-    <h1>Create New Email Account</h1>
+    <h1>@Localizer["CreateNewEmailAccount"]</h1>
     
     <div class="card">
         <div class="card-body">
@@ -12,13 +13,13 @@
                 <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
                 
                 <div class="mb-3">
-                    <label asp-for="Name" class="form-label">Account Name</label>
+                    <label asp-for="Name" class="form-label">@Localizer["AccountName"]</label>
                     <input asp-for="Name" class="form-control" />
                     <span asp-validation-for="Name" class="text-danger"></span>
                 </div>
                 
                 <div class="mb-3">
-                    <label asp-for="EmailAddress" class="form-label">Email Address</label>
+                    <label asp-for="EmailAddress" class="form-label">@Localizer["EmailAddress"]</label>
                     <input asp-for="EmailAddress" class="form-control" type="email" />
                     <span asp-validation-for="EmailAddress" class="text-danger"></span>
                 </div>
@@ -27,54 +28,54 @@
                 
                 <div class="row">
                     <div class="col-md-8 mb-3">
-                        <label asp-for="ImapServer" class="form-label">IMAP Server</label>
+                        <label asp-for="ImapServer" class="form-label">@Localizer["IMAPServer"]</label>
                         <input asp-for="ImapServer" class="form-control" />
                         <span asp-validation-for="ImapServer" class="text-danger"></span>
                     </div>
                     
                     <div class="col-md-4 mb-3">
-                        <label asp-for="ImapPort" class="form-label">IMAP Port</label>
+                        <label asp-for="ImapPort" class="form-label">@Localizer["IMAPPort"]</label>
                         <input asp-for="ImapPort" class="form-control" />
                         <span asp-validation-for="ImapPort" class="text-danger"></span>
                     </div>
                 </div>
                 
-                <h4 class="mt-4">Authentication</h4>
+                <h4 class="mt-4">@Localizer["Authentication"]</h4>
                 
                 <div class="mb-3">
-                    <label asp-for="Username" class="form-label">Username</label>
+                    <label asp-for="Username" class="form-label">@Localizer["Username"]</label>
                     <input asp-for="Username" class="form-control" />
                     <span asp-validation-for="Username" class="text-danger"></span>
                 </div>
                 
                 <div class="mb-3">
-                    <label asp-for="Password" class="form-label">Password</label>
+                    <label asp-for="Password" class="form-label">@Localizer["Password"]</label>
                     <input asp-for="Password" class="form-control" type="password" />
                     <span asp-validation-for="Password" class="text-danger"></span>
                 </div>
                 
                 <div class="mb-3 form-check">
                     <input asp-for="UseSSL" class="form-check-input" />
-                    <label asp-for="UseSSL" class="form-check-label">Use SSL</label>
+                    <label asp-for="UseSSL" class="form-check-label">@Localizer["UseSSL"]</label>
                 </div>
                 
 <div class="mb-3 form-check">
                     <input asp-for="IsEnabled" class="form-check-input" />
-                    <label asp-for="IsEnabled" class="form-check-label">Account Enabled</label>
-                    <div class="form-text">Disabled accounts will not be synchronized</div>
+                    <label asp-for="IsEnabled" class="form-check-label">@Localizer["AccountEnabled"]</label>
+                    <div class="form-text">@Localizer["DisabledAccountsNotSynced"]</div>
                 </div>
                 
-                <h4 class="mt-4">Email Deletion</h4>
+                <h4 class="mt-4">@Localizer["EmailDeletion"]</h4>
                 <div class="mb-3">
-                    <label asp-for="DeleteAfterDays" class="form-label">Delete After Days</label>
-                    <input asp-for="DeleteAfterDays" class="form-control" type="number" min="1" placeholder="Leave empty to disable automatic deletion" />
-                    <div class="form-text">Automatically delete emails from the server after they have been archived for this many days. Leave empty to disable automatic deletion.</div>
+                    <label asp-for="DeleteAfterDays" class="form-label">@Localizer["DeleteAfterDays"]</label>
+                    <input asp-for="DeleteAfterDays" class="form-control" type="number" min="1" placeholder="@Localizer["LeaveEmptyToDisableAutomaticDeletion"]" />
+                    <div class="form-text">@Localizer["AutoDeleteText"]</div>
                     <span asp-validation-for="DeleteAfterDays" class="text-danger"></span>
                 </div>
                 
                 <div class="mt-4">
-                    <button type="submit" class="btn btn-primary">Save</button>
-                    <a asp-action="Index" class="btn btn-outline-secondary">Back to List</a>
+                    <button type="submit" class="btn btn-primary">@Localizer["Save"]</button>
+                    <a asp-action="Index" class="btn btn-outline-secondary">@Localizer["BackToList"]</a>
                 </div>
             </form>
         </div>
@@ -84,3 +85,4 @@
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
 }
+

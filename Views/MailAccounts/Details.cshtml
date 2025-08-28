@@ -1,47 +1,48 @@
+﻿@inject Microsoft.Extensions.Localization.IStringLocalizer<MailArchiver.SharedResource> Localizer
 @model MailArchiver.Models.ViewModels.MailAccountViewModel
 @{
-    ViewData["Title"] = "Account Details";
+    ViewData["Title"] = Localizer["AccountDetailsTitle"];
 }
 <div class="container">
-    <h1>Email Account Details</h1>
+    <h1>@Localizer["EmailAccountDetailsHeader"]</h1>
     <div class="card">
         <div class="card-body">
             <dl class="row">
-                <dt class="col-sm-3">Name</dt>
+                <dt class="col-sm-3">@Localizer["Name"]</dt>
                 <dd class="col-sm-9">@Model.Name</dd>
-                <dt class="col-sm-3">Email Address</dt>
+                <dt class="col-sm-3">@Localizer["EmailAddress"]</dt>
                 <dd class="col-sm-9">@Model.EmailAddress</dd>
                 <dt class="col-sm-3">IMAP Server</dt>
                 <dd class="col-sm-9">@Model.ImapServer:@Model.ImapPort</dd>
-                <dt class="col-sm-3">Username</dt>
+                <dt class="col-sm-3">@Localizer["Username"]</dt>
                 <dd class="col-sm-9">@Model.Username</dd>
                 <dt class="col-sm-3">SSL</dt>
-                <dd class="col-sm-9">@(Model.UseSSL ? "Enabled" : "Disabled")</dd>
-                <dt class="col-sm-3">Status</dt>
+                <dd class="col-sm-9">@(Model.UseSSL ? Localizer["Enabled"] : Localizer["Disabled"])</dd>
+                <dt class="col-sm-3">@Localizer["Status"]</dt>
                 <dd class="col-sm-9">
                     @if (Model.IsEnabled)
                     {
-                        <span class="badge bg-success">Enabled</span>
+                        <span class="badge bg-success">@Localizer["Enabled"]</span>
                     }
                     else
                     {
-                        <span class="badge bg-secondary">Disabled</span>
+                        <span class="badge bg-secondary">@Localizer["Disabled"]</span>
                     }
                 </dd>
-                <dt class="col-sm-3">Total Emails</dt>
+                <dt class="col-sm-3">@Localizer["TotalEmails"]</dt>
                 <dd class="col-sm-9">
-                    <strong>@ViewBag.EmailCount.ToString("N0")</strong> emails archived
+                    <strong>@ViewBag.EmailCount.ToString("N0")</strong> @string.Format(Localizer["EmailsArchived"], "")
                     @if (ViewBag.EmailCount > 0)
                     {
                         <div class="mt-1">
                             <small class="text-warning">
                                 <i class="bi bi-exclamation-triangle me-1"></i>
-                                Deleting this account will permanently remove all @ViewBag.EmailCount.ToString("N0") archived emails
+                                @string.Format(Localizer["DeletingAccountWillRemoveAllEmails"], ViewBag.EmailCount.ToString("N0"))
                             </small>
                         </div>
                     }
                 </dd>
-<dt class="col-sm-3">Last Sync</dt>
+                <dt class="col-sm-3">@Localizer["LastSync"]</dt>
                 <dd class="col-sm-9">
                     @if (Model.LastSync.HasValue)
                     {
@@ -51,119 +52,102 @@
                     }
                     else
                     {
-                        <span class="text-muted">Not yet synchronized</span>
+                        <span class="text-muted">@Localizer["NotYetSynchronized"]</span>
                     }
                     <div class="mt-2">
                         <form asp-action="ResetSyncTime" asp-route-id="@Model.Id" method="post" style="display: inline;">
                             @Html.AntiForgeryToken()
-<button type="submit" class="btn btn-sm btn-outline-info" 
-                                    onclick="return confirm('Are you sure you want to reset the sync time to current time? This will prevent repeated sync errors from causing incomplete syncs, as the system will only sync emails newer than this timestamp.');">
-                                <i class="bi bi-arrow-clockwise"></i> Reset Sync Time
+                            <button type="submit" class="btn btn-sm btn-outline-info" 
+                                    onclick="return confirm('@Localizer["ResetSyncTimeConfirm"]');">
+                                <i class="bi bi-arrow-clockwise"></i> @Localizer["ResetSyncTime"]
                             </button>
                         </form>
-<div class="small text-muted mt-1">
-                            Note: This resets the sync time to current time. This will prevent repeated sync errors from causing incomplete syncs, as the system will only sync emails newer than this timestamp.
+                        <div class="small text-muted mt-1">
+                            @Localizer["ResetSyncTimeNote"]
                         </div>
                     </div>
                 </dd>
-                <dt class="col-sm-3">Auto Delete</dt>
+                <dt class="col-sm-3">@Localizer["AutoDelete"]</dt>
                 <dd class="col-sm-9">
                     @if (Model.DeleteAfterDays.HasValue)
                     {
-                        <span class="badge bg-warning">@Model.DeleteAfterDays.Value days</span>
+                        <span class="badge bg-warning">@Model.DeleteAfterDays.Value @Localizer["Days"]</span>
                         <div class="mt-1">
                             <small class="text-muted">
-                                Emails will be automatically deleted from the server after being archived for @Model.DeleteAfterDays.Value days
+                                @string.Format(Localizer["AutoDeleteEnabledInfo"], Model.DeleteAfterDays.Value)
                             </small>
                         </div>
                     }
                     else
                     {
-                        <span class="text-muted">Disabled</span>
+                        <span class="text-muted">@Localizer["Disabled"]</span>
                         <div class="mt-1">
-                            <small class="text-muted">Emails will not be automatically deleted from the server</small>
+                            <small class="text-muted">@Localizer["AutoDeleteDisabledInfo"]</small>
                         </div>
                     }
                 </dd>
             </dl>
-
-<!-- Account Actions -->
             <div class="mt-4">
-                <h6 class="text-muted mb-3">Account Actions</h6>
-                
-                <!-- Primary Actions -->
+                <h6 class="text-muted mb-3">@Localizer["AccountActions"]</h6>
                 <div class="d-flex flex-wrap gap-2 mb-3">
                     <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">
-                        <i class="bi bi-pencil"></i> Edit Account
+                        <i class="bi bi-pencil"></i> @Localizer["EditAccount"]
                     </a>
-                    
-                    <!-- Toggle Enable/Disable -->
                     <form asp-action="ToggleEnabled" asp-route-id="@Model.Id" method="post" style="display: inline;">
                         @Html.AntiForgeryToken()
                         <button type="submit" class="btn @(Model.IsEnabled ? "btn-outline-secondary" : "btn-outline-success")">
                             <i class="bi bi-@(Model.IsEnabled ? "pause" : "play")"></i>
-                            @(Model.IsEnabled ? "Disable Account" : "Enable Account")
+                            @(Model.IsEnabled ? Localizer["DisableAccount"] : Localizer["EnableAccount"])
                         </button>
                     </form>
-                    
                     @if (Model.IsEnabled)
                     {
                         <form asp-action="Sync" asp-route-id="@Model.Id" method="post" style="display: inline;">
                             @Html.AntiForgeryToken()
                             <button type="submit" class="btn btn-success">
-                                <i class="bi bi-arrow-clockwise"></i> Quick Sync
+                                <i class="bi bi-arrow-clockwise"></i> @Localizer["QuickSync"]
                             </button>
                         </form>
-                        
                         <form asp-action="Resync" asp-route-id="@Model.Id" method="post" style="display: inline;"
-                              onsubmit="return confirm('This will resync all emails from the beginning. This may take a long time. Continue?');">
+                              onsubmit="return confirm('@Localizer["FullResync"]');">
                             @Html.AntiForgeryToken()
                             <button type="submit" class="btn btn-outline-warning">
-                                <i class="bi bi-arrow-clockwise"></i> Full Resync
+                                <i class="bi bi-arrow-clockwise"></i> @Localizer["FullResync"]
                             </button>
                         </form>
                     }
-                    
                     <form asp-action="MoveAllEmails" asp-route-id="@Model.Id" method="post" style="display: inline;">
                         @Html.AntiForgeryToken()
                         <button type="submit" class="btn btn-outline-success">
-                            <i class="bi bi-envelope-arrow-up"></i> Copy All Emails to Another Mailbox
+                            <i class="bi bi-envelope-arrow-up"></i> @Localizer["CopyAllEmailsToAnotherMailbox"]
                         </button>
                     </form>
                 </div>
-
-                <!-- Danger Zone -->
                 <div class="border border-danger rounded p-3 bg-light">
                     <h6 class="text-danger mb-2">
                         <i class="bi bi-exclamation-triangle-fill me-1"></i>
-                        Danger Zone
+                        @Localizer["DangerZone"]
                     </h6>
                     <p class="small text-muted mb-3">
-                        The following actions are irreversible and will permanently delete data.
+                        @Localizer["DangerZoneInfo"]
                     </p>
-                    
                     <div class="d-flex flex-column flex-md-row gap-2">
-                        <!-- Delete Account -->
-                        @{
-                            var emailCountText = ViewBag.EmailCount.ToString();
-                            var deleteConfirmMessage = $"Are you sure you want to delete this account and ALL {emailCountText} archived emails? This action cannot be undone!";
-                        }
+                        @{ var emailCountText = ViewBag.EmailCount.ToString(); }
                         <a asp-action="Delete" asp-route-id="@Model.Id" 
                            class="btn btn-danger btn-sm"
-                           onclick="return confirm('@deleteConfirmMessage');">
+                           onclick="return confirm('@string.Format(Localizer["DeleteAccountWithEmailsConfirm"], emailCountText)');">
                             <i class="bi bi-trash-fill"></i> 
-                            Delete Account & All Emails (@emailCountText)
+                            @string.Format(Localizer["DeleteAccountAllEmailsButton"], emailCountText)
                         </a>
                     </div>
                 </div>
             </div>
-
-            <!-- Back Button -->
             <div class="mt-4 pt-3 border-top">
                 <a asp-action="Index" class="btn btn-outline-secondary">
-                    <i class="bi bi-arrow-left"></i> Back to Accounts
+                    <i class="bi bi-arrow-left"></i> @Localizer["BackToAccounts"]
                 </a>
             </div>
         </div>
     </div>
 </div>
+

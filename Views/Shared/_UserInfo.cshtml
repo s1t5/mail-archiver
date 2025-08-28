@@ -1,6 +1,8 @@
-@using MailArchiver.Services
+﻿@using MailArchiver.Services
 @inject IAuthenticationService AuthService
 @inject IUserService UserService
+@inject Microsoft.Extensions.Localization.IStringLocalizer<MailArchiver.SharedResource> Localizer
+@{ var currentCulture = System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName; }
 
 @if (AuthService.IsAuthenticationRequired())
 {
@@ -21,6 +23,25 @@
                     <i class="bi bi-key me-2"></i>Change Password
                 </a>
             </li>
+            <li><hr class="dropdown-divider"></li>
+            <li class="px-3 py-2">
+                <form method="post" action="/Localization/SetLanguage">
+                    <input type="hidden" name="returnUrl" value="@Context.Request.Path@Context.Request.QueryString" />
+                    <div class="mb-2">
+                        <label class="form-label small text-muted mb-1">@Localizer["Language"]</label>
+                        <select name="culture" class="form-select form-select-sm" onchange="this.form.submit()">
+                            @{ var ui = System.Threading.Thread.CurrentThread.CurrentUICulture.TwoLetterISOLanguageName; }
+                            <option value="en" selected="@(ui=="en" ? "selected" : null)">English</option>
+                            <option value="sl" selected="@(ui=="sl" ? "selected" : null)">Slovenščina</option>
+                            <option value="de" selected="@(ui=="de" ? "selected" : null)">Deutsch</option>
+                            <option value="it" selected="@(ui=="it" ? "selected" : null)">Italiano</option>
+                            <option value="fr" selected="@(ui=="fr" ? "selected" : null)">Français</option>
+                            <option value="es" selected="@(ui=="es" ? "selected" : null)">Español</option>
+                        </select>
+                    </div>
+                </form>
+            </li>
+            <li><hr class="dropdown-divider"></li>
             <li>
                 <form asp-controller="Auth" asp-action="Logout" method="post" class="d-inline">
                     <button type="submit" class="dropdown-item">

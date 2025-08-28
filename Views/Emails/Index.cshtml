@@ -1,9 +1,10 @@
-@using Microsoft.AspNetCore.Http.Extensions
+﻿@using Microsoft.AspNetCore.Http.Extensions
 @using MailArchiver.Services
 @inject IAuthenticationService AuthService
+@inject Microsoft.Extensions.Localization.IStringLocalizer<MailArchiver.SharedResource> Localizer
 @model MailArchiver.Models.ViewModels.SearchViewModel
 @{
-    ViewData["Title"] = "Email Archive";
+    ViewData["Title"] = Localizer["EmailArchive"];
 }
 
 @* Anti-Forgery Token für JavaScript *@
@@ -11,9 +12,9 @@
 
 <div class="container-fluid">
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h1 class="h3">Email Archive</h1>
+        <h1 class="h3">@Localizer["EmailArchive"]</h1>
         <button type="button" class="btn btn-success btn-sm d-none d-md-inline" data-bs-toggle="modal" data-bs-target="#exportModal">
-            <i class="bi bi-download"></i> Export
+            <i class="bi bi-download"></i> @Localizer["Export"]
         </button>
     </div>
 
@@ -38,36 +39,36 @@
 
     <div class="card mb-4">
         <div class="card-header">
-            <h6 class="mb-0">Search</h6>
+            <h6 class="mb-0">@Localizer["Search"]</h6>
         </div>
         <div class="card-body">
             <form asp-action="Index" method="get" id="searchForm">
                 <div class="row">
                     <div class="col-12 col-md-6 col-lg-4 mb-3">
-                        <label asp-for="SearchTerm" class="form-label">Search Term</label>
-                        <input asp-for="SearchTerm" class="form-control form-control-sm" placeholder="Subject, sender..." />
+                        <label asp-for="SearchTerm" class="form-label">@Localizer["SearchTerm"]</label>
+                        <input asp-for="SearchTerm" class="form-control form-control-sm" placeholder="@Localizer["SubjectSender"]" />
                         <div class="form-text small text-muted">
                             <i class="bi bi-info-circle me-1"></i>
-                            <strong>Advanced Search:</strong><br>
-                            • Use quotes for exact phrases: <code>"important meeting"</code><br>
-                            • Field-specific search: <code>subject:invoice</code>, <code>from:john</code>, <code>to:domain</code>, <code>body:"important"</code><br>
-                            • Combine both: <code>"car insurance" subject:invoice from:insurance</code>
+                            <strong>@Localizer["AdvancedSearch"]</strong><br>
+                            @Localizer["AdvancedSearchInfo1"]<br>
+                            @Localizer["AdvancedSearchInfo2"]<br>
+                            @Localizer["AdvancedSearchInfo3"]
                         </div>
                     </div>
                     <div class="col-6 col-md-3 col-lg-2 mb-3">
-                        <label asp-for="FromDate" class="form-label">From</label>
+                        <label asp-for="FromDate" class="form-label">@Localizer["From"]</label>
                         <input asp-for="FromDate" class="form-control form-control-sm" type="date" />
                     </div>
                     <div class="col-6 col-md-3 col-lg-2 mb-3">
-                        <label asp-for="ToDate" class="form-label">To</label>
+                        <label asp-for="ToDate" class="form-label">@Localizer["To"]</label>
                         <input asp-for="ToDate" class="form-control form-control-sm" type="date" />
                     </div>
                     <div class="col-12 col-md-6 col-lg-2 mb-3">
-                        <label asp-for="SelectedAccountId" class="form-label">Account</label>
+                        <label asp-for="SelectedAccountId" class="form-label">@Localizer["Account"]</label>
                         <select asp-for="SelectedAccountId" asp-items="Model.AccountOptions" class="form-select form-select-sm"></select>
                     </div>
                     <div class="col-12 col-md-6 col-lg-2 mb-3">
-                        <label asp-for="IsOutgoing" class="form-label">Direction</label>
+                        <label asp-for="IsOutgoing" class="form-label">@Localizer["Direction"]</label>
                         <select asp-for="IsOutgoing" asp-items="Model.DirectionOptions" class="form-select form-select-sm"></select>
                     </div>
                 </div>
@@ -76,19 +77,19 @@
                         <div class="d-flex flex-column flex-md-row justify-content-between gap-2">
                             <div class="d-flex flex-wrap gap-2">
                                 <button type="submit" class="btn btn-primary btn-sm">
-                                    <i class="bi bi-search"></i> Search
+                                    <i class="bi bi-search"></i> @Localizer["Search"]
                                 </button>
-                                <a asp-action="Index" class="btn btn-outline-secondary btn-sm">Reset</a>
+                                <a asp-action="Index" class="btn btn-outline-secondary btn-sm">@Localizer["Reset"]</a>
                                 <div class="form-check d-flex align-items-center ms-2">
                                     <input class="form-check-input me-2" type="checkbox" id="toggleSelectionMode" name="ShowSelectionControls" value="true"
                                            @(Model.ShowSelectionControls ? "checked" : "")>
-                                    <label class="form-check-label small" for="toggleSelectionMode">Selection Mode</label>
+                                    <label class="form-check-label small" for="toggleSelectionMode">@Localizer["SelectionMode"]</label>
                                     <input type="hidden" id="userTimezone" name="UserTimezone" value="" />
                                 </div>
                             </div>
                             <div class="d-md-none">
                                 <button type="button" class="btn btn-success btn-sm w-100" data-bs-toggle="modal" data-bs-target="#exportModal">
-                                    <i class="bi bi-download"></i> Export
+                                    <i class="bi bi-download"></i> @Localizer["Export"]
                                 </button>
                             </div>
                         </div>
@@ -104,7 +105,7 @@
         <div class="card mb-4 border-info">
             <div class="card-header bg-light">
                 <h6 class="mb-0 text-info">
-                    <i class="bi bi-info-circle me-1"></i>Batch Operation Information
+                    <i class="bi bi-info-circle me-1"></i>@Localizer["BatchOperationInformation"]
                 </h6>
             </div>
             <div class="card-body">
@@ -112,19 +113,19 @@
                     <div class="col-12 col-lg-8">
                         <div class="row">
                             <div class="col-12 col-md-4 mb-2">
-                                <small class="text-muted d-block">Direct Processing</small>
+                                <small class="text-muted d-block">@Localizer["DirectProcessing"]</small>
                                 <strong class="text-success">1 - @ViewBag.AsyncThreshold emails</strong>
-                                <small class="d-block text-muted">Process on this page (wait for completion)</small>
+                                <small class="d-block text-muted">@Localizer["ProcessOnPage"]</small>
                             </div>
                             <div class="col-12 col-md-4 mb-2">
-                                <small class="text-muted d-block">Background Job</small>
+                                <small class="text-muted d-block">@Localizer["BackgroundJob"]</small>
                                 <strong class="text-primary">@(ViewBag.AsyncThreshold + 1) - @ViewBag.MaxAsyncEmails.ToString("N0") emails</strong>
-                                <small class="d-block text-muted">Process in background (monitor separately)</small>
+                                <small class="d-block text-muted">@Localizer["ProcessInBackground"]</small>
                             </div>
                             <div class="col-12 col-md-4 mb-2">
-                                <small class="text-muted d-block">Maximum Limit</small>
+                                <small class="text-muted d-block">@Localizer["MaximumLimit"]</small>
                                 <strong class="text-warning">@ViewBag.MaxAsyncEmails.ToString("N0") emails</strong>
-                                <small class="d-block text-muted">Split larger operations into multiple batches</small>
+                                <small class="d-block text-muted">@Localizer["SplitLargerOperations"]</small>
                             </div>
                         </div>
                     </div>
@@ -141,17 +142,17 @@
                                         </small>
                                     </div>
                                     <a asp-action="Jobs" class="btn btn-outline-primary btn-sm">
-                                        <i class="bi bi-eye me-1"></i>Monitor Background Jobs
+                                        <i class="bi bi-eye me-1"></i>@Localizer["MonitorBackgroundJobs"]
                                     </a>
                                 }
                                 else
                                 {
                                     <small class="text-muted">
                                         <i class="bi bi-check-circle me-1 text-success"></i>
-                                        No background jobs currently running
+                                        @Localizer["NoBackgroundJobsRunning"]
                                     </small>
                                     <a asp-action="Jobs" class="btn btn-outline-secondary btn-sm">
-                                        <i class="bi bi-clock-history me-1"></i>View Job History
+                                        <i class="bi bi-clock-history me-1"></i>@Localizer["ViewJobHistory"]
                                     </a>
                                 }
                             </div>
@@ -167,8 +168,8 @@
         <div class="card">
             <div class="card-header bg-light">
                 <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-2">
-                    <span class="small"><strong>@Model.TotalResults</strong> emails found</span>
-                    <span class="small">Page @Model.PageNumber of @Model.TotalPages</span>
+                    <span class="small"><strong>@Model.TotalResults</strong> @Localizer["EmailsFound", ""]</span>
+                    <span class="small">@Localizer["PageOf", Model.PageNumber, Model.TotalPages]</span>
                 </div>
             </div>
             
@@ -177,15 +178,15 @@
                 <div class="p-2 bg-light border-bottom">
                     <div class="d-flex flex-column flex-md-row justify-content-between align-items-start gap-2">
                         <div class="d-flex flex-wrap gap-2 align-items-center">
-                            <button type="button" id="selectAllBtn" class="btn btn-sm btn-outline-primary">Select All</button>
-                            <button type="button" id="deselectAllBtn" class="btn btn-sm btn-outline-secondary">Deselect All</button>
+                            <button type="button" id="selectAllBtn" class="btn btn-sm btn-outline-primary">@Localizer["SelectAll"]</button>
+                            <button type="button" id="deselectAllBtn" class="btn btn-sm btn-outline-secondary">@Localizer["DeselectAll"]</button>
                             <span id="selectionCounter" class="badge bg-primary">0 selected</span>
                             <span id="operationMode" class="badge bg-info" style="display:none;"></span>
                         </div>
                         <div id="selectionActions" style="display:none;">
                             <button type="button" id="batchRestoreBtn" class="btn btn-sm btn-success">
                                 <i class="bi bi-envelope-arrow-up"></i>
-                                <span class="d-none d-sm-inline">Copy Selected</span>
+                                <span class="d-none d-sm-inline">@Localizer["CopySelected"]</span>
                             </button>
                         </div>
                     </div>
@@ -206,12 +207,12 @@
                                         </div>
                                     </th>
                                 }
-                                <th>Subject</th>
-                                <th>From</th>
-                                <th>To</th>
-                                <th>Date</th>
-                                <th>Account</th>
-                                <th>Attachments</th>
+                                <th>@Localizer["Subject"]</th>
+                                <th>@Localizer["From"]</th>
+                                <th>@Localizer["To"]</th>
+                                <th>@Localizer["Date"]</th>
+                                <th>@Localizer["Account"]</th>
+                                <th>@Localizer["Attachments"]</th>
                                 <th></th>
                             </tr>
                         </thead>
@@ -231,11 +232,11 @@
                                     <td>
                                         @if (email.IsOutgoing)
                                         {
-                                            <span class="badge bg-info">Out</span>
+                                            <span class="badge bg-info">@Localizer["Out"]</span>
                                         }
                                         else
                                         {
-                                            <span class="badge bg-secondary">In</span>
+                                            <span class="badge bg-secondary">@Localizer["In"]</span>
                                         }
                                         @email.Subject
                                     </td>
@@ -253,7 +254,7 @@
                                         <a asp-action="Details" 
                                         asp-route-id="@email.Id" 
                                         asp-route-returnUrl="@Context.Request.GetDisplayUrl()" 
-                                        class="btn btn-sm btn-outline-primary">Details</a>
+                                        class="btn btn-sm btn-outline-primary">@Localizer["Details"]</a>
                                     </td>
                                 </tr>
                             }
@@ -273,7 +274,7 @@
                                 <input class="form-check-input email-select-checkbox" type="checkbox"
                                        name="ids" value="@email.Id" id="email-mobile-@email.Id">
                                 <label class="form-check-label small text-muted" for="email-mobile-@email.Id">
-                                    Select this email
+                                    @Localizer["SelectThisEmail"]
                                 </label>
                             </div>
                         }
@@ -296,17 +297,17 @@
                                 </div>
                             </div>
                             <div class="email-card-meta">
-                                <div><strong>From:</strong> @email.From</div>
-                                <div><strong>To:</strong> @(email.To.Length > 50 ? email.To.Substring(0, 50) + "..." : email.To)</div>
-                                <div><strong>Date:</strong> @email.SentDate.ToString("yyyy-MM-dd HH:mm")</div>
-                                <div><strong>Account:</strong> @email.MailAccount.Name</div>
+                                <div><strong>@Localizer["From"]:</strong> @email.From</div>
+                                <div><strong>@Localizer["To"]:</strong> @(email.To.Length > 50 ? email.To.Substring(0, 50) + "..." : email.To)</div>
+                                <div><strong>@Localizer["Date"]:</strong> @email.SentDate.ToString("yyyy-MM-dd HH:mm")</div>
+                                <div><strong>@Localizer["Account"]:</strong> @email.MailAccount.Name</div>
                             </div>
                             <div class="email-card-actions">
                                 <a asp-action="Details" 
                                 asp-route-id="@email.Id" 
                                 asp-route-returnUrl="@Context.Request.GetDisplayUrl()" 
                                 class="btn btn-outline-primary btn-sm w-100">
-                                    <i class="bi bi-eye"></i> View Details
+                                    <i class="bi bi-eye"></i> @Localizer["Details"]
                                 </a>
                             </div>
                         </div>
@@ -330,7 +331,7 @@
                                     PageNumber = Model.PageNumber - 1,
                                     PageSize = Model.PageSize,
                                     ShowSelectionControls = Model.ShowSelectionControls
-                                })">Previous</a>
+                                })">@Localizer["Previous"]</a>
                             </li>
                         }
                         @{
@@ -364,7 +365,7 @@
                                     PageNumber = Model.PageNumber + 1,
                                     PageSize = Model.PageSize,
                                     ShowSelectionControls = Model.ShowSelectionControls
-                                })">Next</a>
+                                })">@Localizer["Next"]</a>
                             </li>
                         }
                     </ul>
@@ -378,8 +379,8 @@
             <div class="mb-3">
                 <i class="bi bi-search display-1 text-muted"></i>
             </div>
-            <h5 class="text-muted">No Emails Found</h5>
-            <p class="text-muted">No emails were found for the specified search criteria.</p>
+            <h5 class="text-muted">@Localizer["NoEmailsFoundTitle"]</h5>
+            <p class="text-muted">@Localizer["NoEmailsFoundText"]</p>
         </div>
     }
 </div>
@@ -389,7 +390,7 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="exportModalLabel">Export Search Results</h5>
+                <h5 class="modal-title" id="exportModalLabel">@Localizer["ExportSearchResults"]</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form asp-action="ExportSearchResults" method="post">
@@ -402,7 +403,7 @@
                     <input type="hidden" name="IsOutgoing" value="@Model.IsOutgoing" />
                     
                     <div class="mb-3">
-                        <label for="exportFormat" class="form-label">Export Format</label>
+                        <label for="exportFormat" class="form-label">@Localizer["ExportFormat"]</label>
                         <select name="Format" id="exportFormat" class="form-select">
                             <option value="0">CSV</option>
                             <option value="1">JSON</option>
@@ -411,16 +412,16 @@
                     
                     <div class="alert alert-info">
                         <small>
-                            <strong>Export Information:</strong><br>
+                            <strong>@Localizer["ExportInformation"]</strong><br>
                             @if (!string.IsNullOrEmpty(Model.SearchTerm) || Model.FromDate.HasValue || Model.ToDate.HasValue || Model.SelectedAccountId.HasValue || Model.IsOutgoing.HasValue)
                             {
-                                <span>Exporting filtered results based on your current search criteria.</span>
+                                <span>@Localizer["ExportingFilteredResults"]</span>
                             }
                             else
                             {
-                                <span>Exporting all emails from your archive.</span>
+                                <span>@Localizer["ExportingAllEmails"]</span>
                             }
-                            <br>Export may take some time for large numbers of emails. The exported file will contain up to 10,000 emails.
+                            <br>@Localizer["ExportMayTakeTime"]
                         </small>
                     </div>
                     
@@ -429,15 +430,15 @@
                         <div class="alert alert-success">
                             <small>
                                 <i class="bi bi-info-circle me-1"></i>
-                                <strong>@Model.TotalResults.ToString("N0")</strong> emails match your current criteria and will be exported.
+                                <strong>@Model.TotalResults.ToString("N0")</strong> @Localizer["EmailsMatchCriteria", ""]
                             </small>
                         </div>
                     }
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">@Localizer["Cancel"]</button>
                     <button type="submit" class="btn btn-primary">
-                        <i class="bi bi-download me-1"></i>Export
+                        <i class="bi bi-download me-1"></i>@Localizer["ExportButton"]
                     </button>
                 </div>
             </form>

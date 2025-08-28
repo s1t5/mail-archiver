@@ -1,27 +1,28 @@
+﻿@inject Microsoft.Extensions.Localization.IStringLocalizer<MailArchiver.SharedResource> Localizer
 @model MailArchiver.Models.ViewModels.UserMailAccountViewModel
 
 @{
-    ViewData["Title"] = "Assign Mail Accounts";
+    ViewData["Title"] = Localizer["AssignMailAccountsTitle"];
 }
 
 <div class="container-fluid">
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h1>Assign Mail Accounts to User</h1>
+        <h1>@Localizer["AssignMailAccountsToUser"]</h1>
         <a asp-action="Index" class="btn btn-secondary">
-            <i class="bi bi-arrow-left"></i> Back to List
+            <i class="bi bi-arrow-left"></i> @Localizer["BackToList"]
         </a>
     </div>
 
     <div class="card">
         <div class="card-header">
-            <h5 class="card-title mb-0">User: @Model.User.Username</h5>
+            <h5 class="card-title mb-0">@Localizer["UserLabel"] @Model.User.Username</h5>
         </div>
         <div class="card-body">
             <form asp-action="AssignAccounts">
                 <input type="hidden" asp-for="User.Id" />
                 
                 <div class="mb-3">
-                    <label class="form-label">Available Mail Accounts</label>
+                    <label class="form-label">@Localizer["AvailableMailAccounts"]</label>
                     <div class="card">
                         <div class="card-body">
                             @if (Model.AllMailAccounts.Any())
@@ -40,12 +41,12 @@
                                                 <label class="form-check-label" for="account_@account.Id">
                                                     <strong>@account.Name</strong> (@account.EmailAddress)
                                                     @if (account.IsEnabled)
-                                                    {
-                                                        <span class="badge bg-success ms-2">Enabled</span>
+                                                    { 
+                                                        <span class="badge bg-success ms-2">@Localizer["Enabled"]</span> 
                                                     }
                                                     else
-                                                    {
-                                                        <span class="badge bg-danger ms-2">Disabled</span>
+                                                    { 
+                                                        <span class="badge bg-danger ms-2">@Localizer["Disabled"]</span> 
                                                     }
                                                 </label>
                                             </div>
@@ -55,16 +56,16 @@
                             }
                             else
                             {
-                                <p class="text-muted">No mail accounts available.</p>
+                                <p class="text-muted">@Localizer["NoMailAccountsAvailable"]</p>
                             }
                         </div>
                     </div>
                 </div>
                 
                 <div class="d-flex justify-content-between">
-                    <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+                    <a asp-action="Index" class="btn btn-secondary">@Localizer["Cancel"]</a>
                     <button type="submit" class="btn btn-primary">
-                        <i class="bi bi-save"></i> Save Assignments
+                        <i class="bi bi-save"></i> @Localizer["SaveAssignments"]
                     </button>
                 </div>
             </form>
@@ -75,3 +76,4 @@
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
 }
+

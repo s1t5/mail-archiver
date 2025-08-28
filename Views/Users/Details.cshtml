@@ -1,78 +1,47 @@
+﻿@inject Microsoft.Extensions.Localization.IStringLocalizer<MailArchiver.SharedResource> Localizer
 @model MailArchiver.Models.User
-
-@{
-    ViewData["Title"] = "User Details";
-}
-
+@{ ViewData["Title"] = Localizer["UserDetailsTitle"]; }
 <div class="container-fluid">
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h1>User Details</h1>
-        <a asp-action="Index" class="btn btn-secondary">
-            <i class="bi bi-arrow-left"></i> Back to List
-        </a>
+        <h1>@Localizer["UserDetailsTitle"]</h1>
+        <a asp-action="Index" class="btn btn-secondary"><i class="bi bi-arrow-left"></i> @Localizer["BackToList"]</a>
     </div>
-
     <div class="row">
         <div class="col-md-6">
             <div class="card">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">User Information</h5>
-                </div>
+                <div class="card-header"><h5 class="card-title mb-0">@Localizer["UserInformation"]</h5></div>
                 <div class="card-body">
                     <dl class="row">
-                        <dt class="col-sm-4">Username</dt>
+                        <dt class="col-sm-4">@Localizer["Username"]</dt>
                         <dd class="col-sm-8">@Model.Username</dd>
-                        
-                        <dt class="col-sm-4">Email</dt>
+                        <dt class="col-sm-4">@Localizer["Email"]</dt>
                         <dd class="col-sm-8">@Model.Email</dd>
-                        
-                        <dt class="col-sm-4">Role</dt>
+                        <dt class="col-sm-4">@Localizer["Role"]</dt>
                         <dd class="col-sm-8">
                             @if (Model.IsAdmin)
-                            {
-                                <span class="badge bg-primary">Admin</span>
-                            }
+                            { <span class="badge bg-primary">@Localizer["Admin"]</span> }
                             else
-                            {
-                                <span class="badge bg-secondary">User</span>
-                            }
+                            { <span class="badge bg-secondary">@Localizer["User"]</span> }
                         </dd>
-                        
-                        <dt class="col-sm-4">Status</dt>
+                        <dt class="col-sm-4">@Localizer["Status"]</dt>
                         <dd class="col-sm-8">
                             @if (Model.IsActive)
-                            {
-                                <span class="badge bg-success">Active</span>
-                            }
+                            { <span class="badge bg-success">@Localizer["Active"]</span> }
                             else
-                            {
-                                <span class="badge bg-danger">Inactive</span>
-                            }
+                            { <span class="badge bg-danger">@Localizer["Inactive"]</span> }
                         </dd>
-                        
-                        <dt class="col-sm-4">Created</dt>
+                        <dt class="col-sm-4">@Localizer["Created"]</dt>
                         <dd class="col-sm-8">@Model.CreatedAt.ToString("yyyy-MM-dd HH:mm")</dd>
-                        
-                        <dt class="col-sm-4">Last Login</dt>
-                        <dd class="col-sm-8">
-                            @(Model.LastLoginAt?.ToString("yyyy-MM-dd HH:mm") ?? "Never")
-                        </dd>
+                        <dt class="col-sm-4">@Localizer["LastLogin"]</dt>
+                        <dd class="col-sm-8">@(Model.LastLoginAt?.ToString("yyyy-MM-dd HH:mm") ?? Localizer["Never"])</dd>
                     </dl>
-                    
-                    <div class="mt-3">
-                        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">
-                            <i class="bi bi-pencil"></i> Edit User
-                        </a>
-                    </div>
+                    <div class="mt-3"><a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary"><i class="bi bi-pencil"></i> @Localizer["EditUser"]</a></div>
                 </div>
             </div>
         </div>
-        
         <div class="col-md-6">
             <div class="card">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">Assigned Mail Accounts</h5>
-                </div>
+                <div class="card-header"><h5 class="card-title mb-0">@Localizer["AssignedMailAccounts"]</h5></div>
                 <div class="card-body">
                     @if (ViewBag.MailAccounts != null && ((List<MailAccount>)ViewBag.MailAccounts).Any())
                     {
@@ -80,9 +49,9 @@
                             <table class="table table-hover">
                                 <thead>
                                     <tr>
-                                        <th>Account Name</th>
-                                        <th>Email Address</th>
-                                        <th>Status</th>
+                                        <th>@Localizer["AccountName"]</th>
+                                        <th>@Localizer["EmailAddress"]</th>
+                                        <th>@Localizer["Status"]</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -93,13 +62,9 @@
                                             <td>@account.EmailAddress</td>
                                             <td>
                                                 @if (account.IsEnabled)
-                                                {
-                                                    <span class="badge bg-success">Enabled</span>
-                                                }
+                                                { <span class="badge bg-success">@Localizer["Enabled"]</span> }
                                                 else
-                                                {
-                                                    <span class="badge bg-danger">Disabled</span>
-                                                }
+                                                { <span class="badge bg-danger">@Localizer["Disabled"]</span> }
                                             </td>
                                         </tr>
                                     }
@@ -108,11 +73,10 @@
                         </div>
                     }
                     else
-                    {
-                        <p class="text-muted">No mail accounts assigned to this user.</p>
-                    }
+                    { <p class="text-muted">@Localizer["NoMailAccountsAssigned"]</p> }
                 </div>
             </div>
         </div>
     </div>
 </div>
+

@@ -1,5 +1,6 @@
+﻿@inject Microsoft.Extensions.Localization.IStringLocalizer<MailArchiver.SharedResource> Localizer
 @{
-    ViewData["Title"] = "Access Denied";
+    ViewData["Title"] = Localizer["AccessDeniedTitle"];
     Layout = "_LoginLayout";
 }
 
@@ -8,24 +9,22 @@
         <div class="card-body text-center">
             <div class="mb-4">
                 <i class="bi bi-shield-x display-3 text-danger"></i>
-                <h2 class="mt-3">Access Denied</h2>
-                <p class="text-muted">You do not have permission to access this resource.</p>
+                <h2 class="mt-3">@Localizer["AccessDeniedTitle"]</h2>
+                <p class="text-muted">@Localizer["AccessDeniedIntro"]</p>
             </div>
-
             <div class="alert alert-warning">
-                <p>You are logged in, but your account does not have the required permissions to access this page.</p>
-                <p>If you believe this is an error, please contact your system administrator.</p>
+                <p>@Localizer["AccessDeniedLoggedInInfo1"]</p>
+                <p>@Localizer["AccessDeniedLoggedInInfo2"]</p>
             </div>
-
             <div class="d-grid gap-2">
                 <a href="@Url.Action("Index", "Home")" class="btn btn-primary">
-                    <i class="bi bi-house-door me-2"></i>Go to Dashboard
+                    <i class="bi bi-house-door me-2"></i>@Localizer["GoToDashboard"]
                 </a>
                 @using (Html.BeginForm("Logout", "Auth", FormMethod.Post))
                 {
                     @Html.AntiForgeryToken()
                     <button type="submit" class="btn btn-outline-secondary">
-                        <i class="bi bi-box-arrow-right me-2"></i>Sign Out
+                        <i class="bi bi-box-arrow-right me-2"></i>@Localizer["SignOut"]
                     </button>
                 }
             </div>
@@ -35,3 +34,4 @@
         </div>
     </div>
 </div>
+

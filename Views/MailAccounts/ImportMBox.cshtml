@@ -1,98 +1,99 @@
+﻿@inject Microsoft.Extensions.Localization.IStringLocalizer<MailArchiver.SharedResource> Localizer
 @model MailArchiver.Models.ViewModels.MBoxImportViewModel
 @{
-    ViewData["Title"] = "Import MBox File";
+    ViewData["Title"] = Localizer["ImportMBoxFileTitle"];
 }
 
 <div class="container">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1>Import MBox File</h1>
+        <h1>@Localizer["ImportMBoxFileTitle"]</h1>
         <a asp-action="Index" class="btn btn-outline-secondary">
-            <i class="bi bi-arrow-left"></i> Back to Accounts
+            <i class="bi bi-arrow-left"></i> @Localizer["BackToAccounts"]
         </a>
     </div>
 
     <div class="alert alert-info mb-4">
         <i class="bi bi-info-circle-fill me-2"></i>
-        <strong>MBox Import Information:</strong>
+        <strong>@Localizer["MBoxImportInformation"]</strong>
         <ul class="mb-0 mt-2">
-            <li>Supported formats: Standard MBox files (.mbox, .mbx)</li>
-            <li>Maximum file size: @Model.MaxFileSizeFormatted</li>
-            <li>Large files will be processed in the background</li>
-            <li>Duplicate emails will be automatically skipped</li>
-            <li>All emails will be imported to the specified folder</li>
+            <li>@Localizer["SupportedFormatsStandard"]</li>
+            <li>@string.Format(Localizer["MaximumFileSize"], Model.MaxFileSizeFormatted)</li>
+            <li>@Localizer["LargeFilesBackground"]</li>
+            <li>@Localizer["DuplicateEmailsSkipped"]</li>
+            <li>@Localizer["AllEmailsImported"]</li>
         </ul>
     </div>
 
     <div class="card">
         <div class="card-header bg-light">
-            <h5 class="mb-0">Upload and Import Settings</h5>
+            <h5 class="mb-0">@Localizer["UploadAndImportSettings"]</h5>
         </div>
         <div class="card-body">
             <form asp-action="ImportMBox" method="post" enctype="multipart/form-data" id="mboxImportForm">
                 <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
 
                 <div class="mb-4">
-                    <label asp-for="MBoxFile" class="form-label">Select MBox File</label>
+                    <label asp-for="MBoxFile" class="form-label">@Localizer["SelectMBoxFile"]</label>
                     <input asp-for="MBoxFile" type="file" class="form-control" accept=".mbox,.mbx,.eml" id="mboxFileInput">
                     <div class="form-text">
-                        Supported formats: .mbox, .mbx files. Maximum size: @Model.MaxFileSizeFormatted
+                        @string.Format(Localizer["SupportedFormatsWithMax"], Model.MaxFileSizeFormatted)
                     </div>
                     <span asp-validation-for="MBoxFile" class="text-danger"></span>
                 </div>
 
                 <div class="row">
                     <div class="col-md-6 mb-3">
-                        <label asp-for="TargetAccountId" class="form-label">Target Account</label>
+                        <label asp-for="TargetAccountId" class="form-label">@Localizer["TargetAccount"]</label>
                         <select asp-for="TargetAccountId" asp-items="Model.AvailableAccounts" class="form-select" id="accountSelect">
-                            <option value="">-- Select Account --</option>
+                            <option value="">@Localizer["PlaceholderSelectAccount"]</option>
                         </select>
                         <span asp-validation-for="TargetAccountId" class="text-danger"></span>
                     </div>
 
                     <div class="col-md-6 mb-3">
-                        <label asp-for="TargetFolder" class="form-label">Target Folder</label>
+                        <label asp-for="TargetFolder" class="form-label">@Localizer["TargetFolder"]</label>
                         <select asp-for="TargetFolder" class="form-select" id="folderSelect">
-                            <option value="">-- Select Account First --</option>
+                            <option value="">@Localizer["PlaceholderSelectAccountFirst"]</option>
                             <option value="INBOX">INBOX</option>
                         </select>
                         <div class="form-text">
-                            Select an account first to load available folders.
+                            @Localizer["PlaceholderSelectAccountFirst"]
                         </div>
                         <span asp-validation-for="TargetFolder" class="text-danger"></span>
                     </div>
                 </div>
 
                 <div id="fileInfo" class="alert alert-secondary" style="display: none;">
-                    <h6 class="mb-2">File Information:</h6>
+                    <h6 class="mb-2">@Localizer["FileInformation"]</h6>
                     <div class="row">
                         <div class="col-md-4">
-                            <strong>File Name:</strong> <span id="fileName"></span>
+                            <strong>@Localizer["FileNameLabel"]</strong> <span id="fileName"></span>
                         </div>
                         <div class="col-md-4">
-                            <strong>File Size:</strong> <span id="fileSize"></span>
+                            <strong>@Localizer["FileSizeLabel"]</strong> <span id="fileSize"></span>
                         </div>
                         <div class="col-md-4">
-                            <strong>Estimated Processing Time:</strong> <span id="estimatedTime"></span>
+                            <strong>@Localizer["EstimatedProcessingTime"]</strong> <span id="estimatedTime"></span>
                         </div>
                     </div>
                 </div>
 
                 <div class="alert alert-warning">
                     <i class="bi bi-exclamation-triangle-fill me-2"></i>
-                    <strong>Important:</strong> The import process will run in the background for large files. 
-                    You can monitor the progress on the status page after starting the import.
+                    <strong>@Localizer["Important"]</strong> @Localizer["ImportBackgroundInfo1"] 
+                    @Localizer["ImportBackgroundInfo2"]
                 </div>
 
                 <div class="d-flex justify-content-between mt-4">
                     <div>
                         <button type="submit" class="btn btn-primary" id="submitBtn" disabled>
-                            <i class="bi bi-upload me-2"></i>Start Import
+                            <i class="bi bi-upload me-2"></i>@Localizer["StartImport"]
                         </button>
-                        <a asp-action="Index" class="btn btn-outline-secondary ms-2">Cancel</a>
+                        <a asp-action="Index" class="btn btn-outline-secondary ms-2">@Localizer["Cancel"]</a>
                     </div>
                     <div>
                         <a asp-controller="Emails" asp-action="Jobs" class="btn btn-outline-info">
-                            <i class="bi bi-clock-history me-1"></i>View Import Jobs
+                            <i class="bi bi-clock-history me-1"></i>@Localizer["ViewImportJobs"]
                         </a>
                     </div>
                 </div>
@@ -130,7 +131,7 @@
                     // Check file size
                     const maxSize = @Model.MaxFileSize;
                     if (file.size > maxSize) {
-                        alert('File size exceeds maximum allowed size of @Model.MaxFileSizeFormatted');
+                        alert('@string.Format(Localizer["FileSizeExceedsMax"], Model.MaxFileSizeFormatted)');
                         submitBtn.prop('disabled', true);
                         return;
                     }
@@ -149,7 +150,7 @@
                 updateSubmitButton();
                 
                 if (accountId) {
-                    $('#folderSelect').html('<option>Loading folders...</option>');
+                    $('#folderSelect').html('<option>@Localizer["LoadingFolders"]</option>');
                     
                     $.ajax({
                         url: '@Url.Action("GetFolders", "MailAccounts")',
@@ -157,7 +158,7 @@
                         type: 'GET',
                         dataType: 'json',
                         success: function (data) {
-                            let options = '<option value="">-- Select Folder --</option>';
+                            let options = '<option value="">@Localizer["PlaceholderSelectFolder"]</option>';
                             let inboxFound = false;
                             
                             $.each(data, function (index, folderName) {
@@ -178,11 +179,11 @@
                             updateSubmitButton();
                         },
                         error: function () {
-                            $('#folderSelect').html('<option value="">Error loading folders</option><option value="INBOX">INBOX</option>');
+                            $('#folderSelect').html('<option value="">@Localizer["ErrorLoadingFolders"]</option><option value="INBOX">INBOX</option>');
                         }
                     });
                 } else {
-                    $('#folderSelect').html('<option value="">-- Select Account First --</option>');
+                    $('#folderSelect').html('<option value="">@Localizer["PlaceholderSelectAccountFirst"]</option>');
                 }
             });
 
@@ -209,13 +210,13 @@
             // Form submission handler with progress indication
             $('#mboxImportForm').on('submit', function(e) {
                 const submitBtn = $('#submitBtn');
-                submitBtn.html('<i class="bi bi-hourglass-split me-2"></i>Starting Import...');
+                submitBtn.html('<i class="bi bi-hourglass-split me-2"></i>@Localizer["StartingImport"]');
                 submitBtn.prop('disabled', true);
                 
                 // Show processing message
                 const processingAlert = $('<div class="alert alert-info mt-3">' +
                     '<i class="bi bi-clock-history me-2"></i>' +
-                    'Upload in progress... Please do not close this page until redirected.' +
+                    '@Localizer["UploadInProgress"]' +
                     '</div>');
                 $(this).after(processingAlert);
             });

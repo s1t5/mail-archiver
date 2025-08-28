@@ -1,37 +1,38 @@
+﻿@inject Microsoft.Extensions.Localization.IStringLocalizer<MailArchiver.SharedResource> Localizer
 @model IEnumerable<MailArchiver.Models.ViewModels.MailAccountViewModel>
 @{
-    ViewData["Title"] = "Email Accounts";
+    ViewData["Title"] = @Localizer["EmailAccounts"];
 }
 
 <div class="container-fluid">
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h1 class="h3">Email Accounts</h1>
+        <h1 class="h3">@Localizer["EmailAccounts"]</h1>
         <div class="d-flex gap-2">
             <a asp-action="ImportMBox" class="btn btn-outline-success btn-sm">
                 <i class="bi bi-upload"></i>
-                <span class="d-none d-sm-inline">Import MBox</span>
+                <span class="d-none d-sm-inline">@Localizer["ImportMBox"]</span>
             </a>
             <a asp-action="Create" class="btn btn-primary btn-sm">
                 <i class="bi bi-plus-circle"></i>
-                <span class="d-none d-sm-inline">Add Account</span>
+                <span class="d-none d-sm-inline">@Localizer["AddAccount"]</span>
             </a>
         </div>
     </div>
 
-    @* Desktop Tabelle - ERST ab großen Bildschirmen *@
+    @* Desktop Tabelle - ERST ab groÃŸen Bildschirmen *@
     <div class="card d-none d-lg-block">
         <div class="card-body">
             <div class="table-responsive">
                 <table class="table table-striped table-hover">
                     <thead class="table-dark">
                         <tr>
-<th>Name</th>
-                            <th>Email Address</th>
-                            <th>IMAP Server</th>
-                            <th>Status</th>
-                            <th>Last Sync</th>
-                            <th>Auto Delete</th>
-                            <th class="text-center">Actions</th>
+                            <th>@Localizer["Name"]</th>
+                            <th>@Localizer["EmailAddress"]</th>
+                            <th>@Localizer["IMAPServer"]</th>
+                            <th>@Localizer["Status"]</th>
+                            <th>@Localizer["LastSync"]</th>
+                            <th>@Localizer["AutoDelete"]</th>
+                            <th class="text-center">@Localizer["Akcije"]</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -44,11 +45,11 @@
                                 <td>
                                     @if (item.IsEnabled)
                                     {
-                                        <span class="badge bg-success">Enabled</span>
+                                        <span class="badge bg-success">@Localizer["Enabled"]</span>
                                     }
                                     else
                                     {
-                                        <span class="badge bg-secondary">Disabled</span>
+                                        <span class="badge bg-secondary">@Localizer["Disabled"]</span>
                                     }
                                 </td>
                                 <td>
@@ -61,7 +62,7 @@
                                     }
                                     else
                                     {
-                                        <span class="text-muted">Not synced</span>
+                                        <span class="text-muted">@Localizer["NotSynced"]</span>
                                     }
 </td>
                                 <td>
@@ -71,7 +72,7 @@
                                     }
                                     else
                                     {
-                                        <span class="text-muted">Disabled</span>
+                                        <span class="text-muted">@Localizer["Disabled"]</span>
                                     }
                                 </td>
                                 <td>
@@ -79,13 +80,13 @@
                                         <a asp-action="Details" asp-route-id="@item.Id"
                                             class="btn btn-info btn-sm d-flex align-items-center">
                                             <i class="bi bi-eye"></i>
-                                            <span class="ms-1">Details</span>
+                                            <span class="ms-1">@Localizer["Details"]</span>
                                         </a>
 
                                         <a asp-action="Edit" asp-route-id="@item.Id"
                                             class="btn btn-warning btn-sm d-flex align-items-center">
                                             <i class="bi bi-pencil"></i>
-                                            <span class="ms-1">Edit</span>
+                                            <span class="ms-1">@Localizer["Edit"]</span>
                                         </a>
 
                                         <form asp-action="ToggleEnabled" asp-route-id="@item.Id" method="post"
@@ -94,7 +95,7 @@
                                             <button type="submit"
                                                 class="btn @(item.IsEnabled ? "btn-outline-secondary" : "btn-outline-success") btn-sm d-flex align-items-center">
                                                 <i class="bi bi-@(item.IsEnabled ? "pause" : "play")"></i>
-                                                <span class="ms-1">@(item.IsEnabled ? "Disable" : "Enable")</span>
+                                                <span class="ms-1">@(item.IsEnabled ? @Localizer["Disable"] : @Localizer["Enable"])</span>
                                             </button>
                                         </form>
 
@@ -104,7 +105,7 @@
                                                 @Html.AntiForgeryToken()
                                                 <button type="submit" class="btn btn-success btn-sm d-flex align-items-center">
                                                     <i class="bi bi-arrow-clockwise"></i>
-                                                    <span class="ms-1">Sync</span>
+                                                    <span class="ms-1">@Localizer["Sync"]</span>
                                                 </button>
                                             </form>
                                         }
@@ -113,7 +114,7 @@
                                             class="btn btn-danger btn-sm d-flex align-items-center"
                                             onclick="return confirm('Delete account @item.Name and all archived emails? This cannot be undone!');">
                                             <i class="bi bi-trash"></i>
-                                            <span class="ms-1">Delete</span>
+                                            <span class="ms-1">@Localizer["Delete"]</span>
                                         </a>
                                     </div>
                                 </td>
@@ -125,7 +126,7 @@
         </div>
     </div>
 
-    @* Mobile/Tablet Cards - bis große Bildschirme *@
+    @* Mobile/Tablet Cards - bis groÃŸe Bildschirme *@
     <div class="d-lg-none">
         @foreach (var item in Model)
         {
@@ -135,11 +136,11 @@
                         <h6 class="card-title mb-0">@item.Name</h6>
                         @if (item.IsEnabled)
                         {
-                            <span class="badge bg-success">Enabled</span>
+                            <span class="badge bg-success">@Localizer["Enabled"]</span>
                         }
                         else
                         {
-                            <span class="badge bg-secondary">Disabled</span>
+                            <span class="badge bg-secondary">@Localizer["Disabled"]</span>
                         }
                     </div>
                     <p class="card-text small text-muted mb-2">@item.EmailAddress</p>
@@ -147,7 +148,7 @@
                         <strong>Server:</strong> @item.ImapServer:@item.ImapPort
                     </p>
                     <p class="card-text small mb-3">
-                        <strong>Last Sync:</strong>
+                        <strong>@Localizer["LastSync"]:</strong>
                         @if (item.LastSync.HasValue)
                         {
                             <span class="utc-timestamp" data-utc-time="@item.LastSync.Value.ToString("yyyy-MM-ddTHH:mm:ss")">
@@ -156,7 +157,7 @@
                         }
                         else
                         {
-                            <span class="text-muted">Not synced</span>
+                            <span class="text-muted">@Localizer["NotSynced"]</span>
                         }
 </p>
                     <p class="card-text small mb-3">
@@ -167,7 +168,7 @@
                         }
                         else
                         {
-                            <span class="text-muted">Disabled</span>
+                            <span class="text-muted">@Localizer["Disabled"]</span>
                         }
                     </p>
                     @* Mobile/Tablet Button Layout *@
@@ -175,12 +176,12 @@
                         <div class="row g-2">
                             <div class="col-6">
                                 <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-outline-info btn-sm w-100">
-                                    <i class="bi bi-eye"></i> Details
+                                    <i class="bi bi-eye"></i> @Localizer["Details"]
                                 </a>
                             </div>
                             <div class="col-6">
                                 <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-outline-warning btn-sm w-100">
-                                    <i class="bi bi-pencil"></i> Edit
+                                    <i class="bi bi-pencil"></i> @Localizer["Edit"]
                                 </a>
                             </div>
                         </div>
@@ -191,7 +192,7 @@
                                     <button type="submit"
                                         class="btn @(item.IsEnabled ? "btn-outline-secondary" : "btn-outline-success") btn-sm w-100">
                                         <i class="bi bi-@(item.IsEnabled ? "pause" : "play")"></i>
-                                        @(item.IsEnabled ? "Disable" : "Enable")
+                                        @(item.IsEnabled? @Localizer["Disable"] : @Localizer["Enable"])
                                     </button>
                                 </form>
                             </div>
@@ -225,22 +226,23 @@
                 <div class="mb-3">
                     <i class="bi bi-envelope-x display-1 text-muted"></i>
                 </div>
-                <h5 class="text-muted">No email accounts configured</h5>
-                <p class="text-muted">Add your first email account to start archiving emails or import existing MBox files.
+                <h5 class="text-muted">@Localizer["NoEmailAccountsConfigured"]</h5>
+                <p class="text-muted">
+                    @Localizer["AddFirstAccount"]
                 </p>
                 <div class="d-grid gap-2 d-md-flex justify-content-center">
                     <a asp-action="Create" class="btn btn-primary">
-                        <i class="bi bi-plus-circle"></i> Add Account
+                        <i class="bi bi-plus-circle"></i> @Localizer["AddAccount"]
                     </a>
                     <a asp-action="ImportMBox" class="btn btn-outline-success">
-                        <i class="bi bi-upload"></i> Import MBox
+                        <i class="bi bi-upload"></i> @Localizer["ImportMBox"]
                     </a>
                 </div>
             </div>
         }
     </div>
 
-    @* Quick Actions für Mobile wenn Accounts vorhanden *@
+    @* Quick Actions fÃ¼r Mobile wenn Accounts vorhanden *@
     @if (Model.Any())
     {
         <div class="d-lg-none mt-4">
@@ -253,25 +255,25 @@
                         <div class="col-6">
                             <a asp-action="ImportMBox" class="btn btn-outline-success w-100">
                                 <i class="bi bi-upload d-block mb-1"></i>
-                                <small>Import MBox</small>
+                                <small>@Localizer["ImportMBox"]</small>
                             </a>
                         </div>
                         <div class="col-6">
                             <a asp-action="Create" class="btn btn-outline-primary w-100">
                                 <i class="bi bi-plus-circle d-block mb-1"></i>
-                                <small>Add Account</small>
+                                <small>@Localizer["AddAccount"]</small>
                             </a>
                         </div>
                         <div class="col-6">
                             <a asp-controller="Emails" asp-action="Index" class="btn btn-outline-info w-100">
                                 <i class="bi bi-search d-block mb-1"></i>
-                                <small>Search Archive</small>
+                                <small>@Localizer["SearchArchive"]</small>
                             </a>
                         </div>
                         <div class="col-6">
                             <a asp-controller="Emails" asp-action="Jobs" class="btn btn-outline-warning w-100">
                                 <i class="bi bi-clock-history d-block mb-1"></i>
-                                <small>View Jobs</small>
+                                <small>@Localizer["ViewJobs"]</small>
                             </a>
                         </div>
                     </div>
@@ -280,3 +282,4 @@
         </div>
     }
 </div>
+

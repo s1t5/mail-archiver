@@ -1,37 +1,38 @@
+﻿@inject Microsoft.Extensions.Localization.IStringLocalizer<MailArchiver.SharedResource> Localizer
 @model MailArchiver.Models.MBoxImportJob
 @{
-    ViewData["Title"] = "MBox Import Status";
+    ViewData["Title"] = Localizer["MBoxImportStatusTitle"];
 }
 
 <div class="container">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1>MBox Import Status</h1>
+        <h1>@Localizer["MBoxImportStatusTitle"]</h1>
         <div>
             <a asp-action="Index" class="btn btn-outline-secondary">
-                <i class="bi bi-arrow-left"></i> Back to Accounts
+                <i class="bi bi-arrow-left"></i> @Localizer["BackToAccounts"]
             </a>
             <a asp-controller="Emails" asp-action="Jobs" class="btn btn-outline-info">
-                <i class="bi bi-list"></i> All Jobs
+                <i class="bi bi-list"></i> @Localizer["AllJobs"]
             </a>
         </div>
     </div>
 
     <div class="card">
         <div class="card-header bg-light">
-            <h5 class="mb-0">Import Job Information</h5>
+            <h5 class="mb-0">@Localizer["ImportJobInformation"]</h5>
         </div>
         <div class="card-body">
             <dl class="row">
-                <dt class="col-sm-3">Job ID:</dt>
+                <dt class="col-sm-3">@Localizer["JobIDLabel"]</dt>
                 <dd class="col-sm-9"><code>@Model.JobId</code></dd>
 
-                <dt class="col-sm-3">File Name:</dt>
+                <dt class="col-sm-3">@Localizer["FileNameLabel"]</dt>
                 <dd class="col-sm-9">@Model.FileName</dd>
 
-                <dt class="col-sm-3">File Size:</dt>
+                <dt class="col-sm-3">@Localizer["FileSizeLabel"]</dt>
                 <dd class="col-sm-9">@FormatFileSize(Model.FileSize)</dd>
 
-                <dt class="col-sm-3">Status:</dt>
+                <dt class="col-sm-3">@Localizer["StatusLabel"]</dt>
                 <dd class="col-sm-9">
                     <span class="badge bg-@(Model.Status == MailArchiver.Models.MBoxImportJobStatus.Running ? "primary" :
                                            Model.Status == MailArchiver.Models.MBoxImportJobStatus.Completed ? "success" :
@@ -41,35 +42,35 @@
                     </span>
                 </dd>
 
-                <dt class="col-sm-3">Emails:</dt>
+                <dt class="col-sm-3">@Localizer["EmailsLabelStatus"]</dt>
                 <dd class="col-sm-9">
                     @if (Model.Status == MailArchiver.Models.MBoxImportJobStatus.Running)
                     {
-                        <span>@Model.ProcessedEmails.ToString("N0") processed</span>
+                        <span>@Model.ProcessedEmails.ToString("N0") @Localizer["ProcessedSuffix"]</span>
                         @if (Model.TotalEmails > 0)
                         {
-                            <span class="text-muted"> (estimated: @Model.TotalEmails.ToString("N0"))</span>
+                            <span class="text-muted"> (@Localizer["EstimatedSuffix"]: @Model.TotalEmails.ToString("N0"))</span>
                         }
                     }
                     else if (Model.Status == MailArchiver.Models.MBoxImportJobStatus.Completed)
                     {
-                        <span>@Model.ProcessedEmails.ToString("N0") emails processed</span>
+                        <span>@Model.ProcessedEmails.ToString("N0") @Localizer["EmailsProcessedSuffix"]</span>
                         @if (Model.TotalEmails > 0 && Model.ProcessedEmails != Model.TotalEmails)
                         {
-                            <span class="text-muted"> (estimated: @Model.TotalEmails.ToString("N0"))</span>
+                            <span class="text-muted"> (@Localizer["EstimatedSuffix"]: @Model.TotalEmails.ToString("N0"))</span>
                         }
                     }
                     else if (Model.TotalEmails > 0)
                     {
-                        <span>@Model.TotalEmails.ToString("N0") emails estimated</span>
+                        <span>@Model.TotalEmails.ToString("N0") @Localizer["EmailsEstimatedSuffix"]</span>
                     }
                     else
                     {
-                        <span class="text-muted">Estimating...</span>
+                        <span class="text-muted">@Localizer["Estimating"]</span>
                     }
                 </dd>
 
-                <dt class="col-sm-3">Progress:</dt>
+                <dt class="col-sm-3">@Localizer["ProgressLabel"]</dt>
                 <dd class="col-sm-9">
                     @{
                         // Verwende File-Progress als primären Indikator, da E-Mail-Schätzung ungenau sein kann
@@ -98,11 +99,11 @@
                             <span class="small text-muted">
                                 @if (Model.Status == MailArchiver.Models.MBoxImportJobStatus.Completed)
                                 {
-                                    <span>Import Complete</span>
+                                    <span>@Localizer["ImportComplete"]</span>
                                 }
                                 else
                                 {
-                                    <span>File Processing Progress</span>
+                                    <span>@Localizer["FileProcessingProgress"]</span>
                                 }
                             </span>
                             <span class="small fw-bold">@displayPercent.ToString("F1")%</span>
@@ -127,18 +128,16 @@
                             @if (Model.ProcessedEmails > 0)
                             {
                                 <small class="text-muted">
-                                    @Model.ProcessedEmails.ToString("N0") emails processed
+                                    @Model.ProcessedEmails.ToString("N0") @Localizer["EmailsProcessedSuffix"]
                                 </small>
                             }
                         </div>
-                        
-                        @* Zeige zusätzliche Progress-Informationen wenn E-Mail-Schätzung stark abweicht *@
                         @if (Model.TotalEmails > 0 && Model.ProcessedEmails > Model.TotalEmails * 1.1)
                         {
                             <div class="mt-2">
                                 <small class="text-warning">
                                     <i class="bi bi-exclamation-triangle me-1"></i>
-                                    More emails found than estimated - progress based on file size
+                                    @Localizer["MoreEmailsThanEstimated"]
                                 </small>
                             </div>
                         }
@@ -147,19 +146,19 @@
 
                 @if (Model.Status == MailArchiver.Models.MBoxImportJobStatus.Running || Model.Status == MailArchiver.Models.MBoxImportJobStatus.Completed)
                 {
-                    <dt class="col-sm-3">Results:</dt>
+                    <dt class="col-sm-3">@Localizer["ResultsLabel"]</dt>
                     <dd class="col-sm-9">
                         <div class="row">
                             <div class="col-6">
                                 <span class="badge bg-success">
                                     <i class="bi bi-check-circle me-1"></i>
-                                    Success: @Model.SuccessCount.ToString("N0")
+                                    @Localizer["SuccessLabel"] @Model.SuccessCount.ToString("N0")
                                 </span>
                             </div>
                             <div class="col-6">
                                 <span class="badge bg-danger">
                                     <i class="bi bi-x-circle me-1"></i>
-                                    Failed: @Model.FailedCount.ToString("N0")
+                                    @Localizer["FailedLabel"] @Model.FailedCount.ToString("N0")
                                 </span>
                             </div>
                         </div>
@@ -168,7 +167,7 @@
 
                 @if (Model.Status == MailArchiver.Models.MBoxImportJobStatus.Running && !string.IsNullOrEmpty(Model.CurrentEmailSubject))
                 {
-                    <dt class="col-sm-3">Current Email:</dt>
+                    <dt class="col-sm-3">@Localizer["CurrentEmailLabel"]</dt>
                     <dd class="col-sm-9">
                         <small class="text-muted">
                             @(Model.CurrentEmailSubject.Length > 80 ? Model.CurrentEmailSubject.Substring(0, 80) + "..." : Model.CurrentEmailSubject)
@@ -176,7 +175,7 @@
                     </dd>
                 }
 
-                <dt class="col-sm-3">Created:</dt>
+                <dt class="col-sm-3">@Localizer["CreatedLabel"]</dt>
                 <dd class="col-sm-9">
                     <span class="utc-timestamp" data-utc-time="@Model.Created.ToString("yyyy-MM-ddTHH:mm:ss")">
                         @Model.Created.ToString("yyyy-MM-dd HH:mm:ss")
@@ -185,7 +184,7 @@
 
                 @if (Model.Started.HasValue)
                 {
-                    <dt class="col-sm-3">Started:</dt>
+                    <dt class="col-sm-3">@Localizer["StartedLabel"]</dt>
                     <dd class="col-sm-9">
                         <span class="utc-timestamp" data-utc-time="@Model.Started.Value.ToString("yyyy-MM-ddTHH:mm:ss")">
                             @Model.Started.Value.ToString("yyyy-MM-dd HH:mm:ss")
@@ -195,17 +194,16 @@
 
                 @if (Model.Completed.HasValue)
                 {
-                    <dt class="col-sm-3">Completed:</dt>
+                    <dt class="col-sm-3">@Localizer["CompletedLabel"]</dt>
                     <dd class="col-sm-9">
                         <span class="utc-timestamp" data-utc-time="@Model.Completed.Value.ToString("yyyy-MM-ddTHH:mm:ss")">
                             @Model.Completed.Value.ToString("yyyy-MM-dd HH:mm:ss")
                         </span>
                     </dd>
-
                     @if (Model.Started.HasValue)
                     {
                         var duration = Model.Completed.Value - Model.Started.Value;
-                        <dt class="col-sm-3">Duration:</dt>
+                        <dt class="col-sm-3">@Localizer["DurationLabel"]</dt>
                         <dd class="col-sm-9">
                             <span class="badge bg-info">
                                 @duration.ToString(@"hh\:mm\:ss")
@@ -216,7 +214,7 @@
 
                 @if (!string.IsNullOrEmpty(Model.ErrorMessage))
                 {
-                    <dt class="col-sm-3">Error:</dt>
+                    <dt class="col-sm-3">@Localizer["ErrorLabel"]</dt>
                     <dd class="col-sm-9">
                         <div class="alert alert-danger">
                             <i class="bi bi-exclamation-triangle-fill me-2"></i>
@@ -230,11 +228,11 @@
             {
                 <div class="mt-4 pt-3 border-top">
                     <form asp-action="CancelMBoxImport" method="post" style="display: inline;"
-                          onsubmit="return confirm('Are you sure you want to cancel this import job?');">
+                          onsubmit="return confirm('@Localizer["CancelImportConfirm"]');">
                         <input type="hidden" name="jobId" value="@Model.JobId" />
-                        <input type="hidden" name="returnUrl" value="@Url.Action("Index", "MailAccounts")" />
+                        <input type="hidden" name="returnUrl" value="@Context.Request.Path" />
                         <button type="submit" class="btn btn-warning">
-                            <i class="bi bi-stop-circle"></i> Cancel Import
+                            <i class="bi bi-stop-circle"></i> @Localizer["CancelImport"]
                         </button>
                     </form>
                 </div>
@@ -245,15 +243,15 @@
                 <div class="mt-4 pt-3 border-top">
                     <div class="alert alert-success">
                         <i class="bi bi-check-circle-fill me-2"></i>
-                        <strong>Import Completed!</strong>
-                        Successfully imported @Model.SuccessCount.ToString("N0") emails with @Model.FailedCount.ToString("N0") errors.
+                        <strong>@Localizer["ImportCompletedTitle"]</strong>
+                        @string.Format(Localizer["ImportCompletedSummary"], Model.SuccessCount.ToString("N0"), Model.FailedCount.ToString("N0"))
                     </div>
                     <div class="d-flex gap-2">
                         <a asp-controller="Emails" asp-action="Index" class="btn btn-primary">
-                            <i class="bi bi-search me-1"></i>Search Imported Emails
+                            <i class="bi bi-search me-1"></i>@Localizer["SearchImportedEmails"]
                         </a>
                         <a asp-action="ImportMBox" class="btn btn-outline-success">
-                            <i class="bi bi-upload me-1"></i>Import Another File
+                            <i class="bi bi-upload me-1"></i>@Localizer["ImportAnotherFile"]
                         </a>
                     </div>
                 </div>
@@ -290,7 +288,7 @@
             let countdown = 5;
             const countdownInterval = setInterval(function() {
                 countdown--;
-                document.title = `(${countdown}s) MBox Import - @Model.FileName`;
+                document.title = `(${countdown}s) ${'@Localizer["MBoxImportStatusTitle"]'} - @Model.FileName`;
                 if (countdown <= 0) {
                     clearInterval(countdownInterval);
                 }

@@ -1,44 +1,45 @@
-@using Microsoft.AspNetCore.Http.Extensions
+﻿@using Microsoft.AspNetCore.Http.Extensions
+@inject Microsoft.Extensions.Localization.IStringLocalizer<MailArchiver.SharedResource> Localizer
 @model MailArchiver.Models.ViewModels.EmailDetailViewModel
 @{
-    ViewData["Title"] = "Email Details";
+    ViewData["Title"] = @Localizer["EmailDetails"];
     var returnUrl = ViewBag.ReturnUrl?.ToString() ?? Url.Action("Index");
 }
 
 <div class="container-fluid">
     <div
         class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-3 gap-2">
-        <h1 class="h3 mb-0">Email Details</h1>
+        <h1 class="h3 mb-0">@Localizer["EmailDetails"]</h1>
 
         <!-- Mobile Button Layout -->
         <div class="d-md-none w-100">
             <div class="d-grid gap-2">
                 <a href="@returnUrl" class="btn btn-outline-secondary btn-sm">
-                    <i class="bi bi-arrow-left"></i> Back to List
+                    <i class="bi bi-arrow-left"></i> @Localizer["BackToList"]
                 </a>
                 <div class="btn-group btn-group-sm">
                     <a asp-action="Export" asp-route-id="@Model.Email.Id" asp-route-format="Eml"
                         class="btn btn-outline-primary">
-                        <i class="bi bi-envelope"></i> Export EML
+                        <i class="bi bi-envelope"></i> @Localizer["ExportEML"]
                     </a>
                     <button type="button" class="btn btn-outline-primary dropdown-toggle dropdown-toggle-split"
                         data-bs-toggle="dropdown" aria-expanded="false">
-                        <span class="visually-hidden">More Export Options</span>
+                        <span class="visually-hidden">@Localizer["MoreExportOptions"]</span>
                     </button>
                     <ul class="dropdown-menu">
                         <li><a asp-action="Export" asp-route-id="@Model.Email.Id" asp-route-format="Csv"
                                 class="dropdown-item">
-                                <i class="bi bi-filetype-csv me-2"></i>Export as CSV
+                                <i class="bi bi-filetype-csv me-2"></i>@Localizer["ExportCSV"]
                             </a></li>
                         <li><a asp-action="Export" asp-route-id="@Model.Email.Id" asp-route-format="Json"
                                 class="dropdown-item">
-                                <i class="bi bi-filetype-json me-2"></i>Export as JSON
+                                <i class="bi bi-filetype-json me-2"></i>@Localizer["ExportJSON"]
                             </a></li>
                     </ul>
                 </div>
                 <a asp-action="Restore" asp-route-id="@Model.Email.Id"
                     asp-route-returnUrl="@Context.Request.GetDisplayUrl()" class="btn btn-success btn-sm">
-                    <i class="bi bi-envelope-arrow-up"></i> Copy to Mailbox
+                    <i class="bi bi-envelope-arrow-up"></i> @Localizer["CopyToMailbox"]
                 </a>
             </div>
         </div>
@@ -46,27 +47,29 @@
         <!-- Desktop Button Layout -->
         <div class="d-none d-md-flex gap-2">
             <a href="@returnUrl" class="btn btn-outline-secondary">
-                <i class="bi bi-arrow-left"></i> Back to List
+                <i class="bi bi-arrow-left"></i> @Localizer["BackToList"]
             </a>
             <div class="btn-group">
                 <a asp-action="Export" asp-route-id="@Model.Email.Id" asp-route-format="Eml"
                     class="btn btn-outline-primary">
-                    <i class="bi bi-envelope"></i> Export as EML
+                    <i class="bi bi-envelope"></i> @Localizer["ExportEML"]
                 </a>
                 <button type="button" class="btn btn-outline-primary dropdown-toggle dropdown-toggle-split"
                     data-bs-toggle="dropdown" aria-expanded="false">
-                    <span class="visually-hidden">Toggle Dropdown</span>
+                    <span class="visually-hidden">@Localizer["ToggleDropdown"]</span>
                 </button>
                 <ul class="dropdown-menu">
                     <li><a asp-action="Export" asp-route-id="@Model.Email.Id" asp-route-format="Csv"
-                            class="dropdown-item">Export as CSV</a></li>
+                           class="dropdown-item">@Localizer["ExportCSV"]</a>
+                    </li>
                     <li><a asp-action="Export" asp-route-id="@Model.Email.Id" asp-route-format="Json"
-                            class="dropdown-item">Export as JSON</a></li>
+                           class="dropdown-item">@Localizer["ExportJSON"]</a>
+                    </li>
                 </ul>
             </div>
             <a asp-action="Restore" asp-route-id="@Model.Email.Id"
                 asp-route-returnUrl="@Context.Request.GetDisplayUrl()" class="btn btn-success">
-                <i class="bi bi-envelope-arrow-up"></i> Copy to Mailbox
+                <i class="bi bi-envelope-arrow-up"></i> @Localizer["CopyToMailbox"]
             </a>
         </div>
     </div>
@@ -78,16 +81,16 @@
                 <div class="d-flex align-items-center gap-2 flex-wrap">
                     @if (Model.Email.IsOutgoing)
                     {
-                        <span class="badge bg-info fs-6">Outgoing</span>
+                        <span class="badge bg-info fs-6">@Localizer["Outgoing"]</span>
                     }
                     else
                     {
-                        <span class="badge bg-secondary fs-6">Incoming</span>
+                        <span class="badge bg-secondary fs-6">@Localizer["Incoming"]</span>
                     }
                     @if (Model.Email.HasAttachments)
                     {
                         <span class="badge bg-warning text-dark">
-                            <i class="bi bi-paperclip"></i> Attachments
+                            <i class="bi bi-paperclip"></i> @Localizer["Attachments"]
                         </span>
                     }
                 </div>
@@ -100,7 +103,7 @@
             <!-- Email Meta Information in Mobile-friendly format -->
             <div class="row g-2 mb-2">
                 <div class="col-12 col-md-2">
-                    <strong class="text-muted small">Account:</strong>
+                    <strong class="text-muted small">@Localizer["Account"]:</strong>
                 </div>
                 <div class="col-12 col-md-10">
                     <span class="badge bg-light text-dark border">@Model.AccountName</span>
@@ -111,7 +114,7 @@
             {
                 <div class="row g-2 mb-2">
                     <div class="col-12 col-md-2">
-                        <strong class="text-muted small">Folder:</strong>
+                        <strong class="text-muted small">@Localizer["Folder"]:</strong>
                     </div>
                     <div class="col-12 col-md-10">
                         <span class="badge bg-light text-dark border">@Model.Email.FolderName</span>
@@ -121,7 +124,7 @@
 
             <div class="row g-2 mb-2">
                 <div class="col-12 col-md-2">
-                    <strong class="text-muted small">From:</strong>
+                    <strong class="text-muted small">@Localizer["From"]:</strong>
                 </div>
                 <div class="col-12 col-md-10">
                     <span class="email-text-break text-dark">@Model.Email.From</span>
@@ -130,7 +133,7 @@
 
             <div class="row g-2 mb-2">
                 <div class="col-12 col-md-2">
-                    <strong class="text-muted small">To:</strong>
+                    <strong class="text-muted small">@Localizer["To"]:</strong>
                 </div>
                 <div class="col-12 col-md-10">
                     <span class="email-text-break text-dark">@Model.Email.To</span>
@@ -151,7 +154,7 @@
 
             <div class="row g-2 mb-3">
                 <div class="col-12 col-md-2">
-                    <strong class="text-muted small">Date:</strong>
+                    <strong class="text-muted small">@Localizer["Date"]:</strong>
                 </div>
                 <div class="col-12 col-md-10">
                     @Model.Email.SentDate.ToString("yyyy-MM-dd HH:mm:ss")
@@ -162,7 +165,7 @@
             {
                 <div class="row g-2 mb-3">
                     <div class="col-12 col-md-2">
-                        <strong class="text-muted small">Attachments:</strong>
+                        <strong class="text-muted small">@Localizer["Attachments"]:</strong>
                     </div>
                     <div class="col-12 col-md-10">
                         <!-- Mobile: Stacked attachment list -->
@@ -202,11 +205,11 @@
             <!-- Email Content -->
             <div class="email-content mt-3">
                 <div class="d-flex justify-content-between align-items-center mb-2">
-                    <h6 class="mb-0 text-muted">Email Content</h6>
+                    <h6 class="mb-0 text-muted">@Localizer["EmailContent"]</h6>
                     <a asp-action="RawContent" asp-route-id="@Model.Email.Id" target="_blank"
                         class="btn btn-outline-secondary btn-sm">
                         <i class="bi bi-arrows-fullscreen"></i>
-                        <span class="d-none d-sm-inline">Full View</span>
+                        <span class="d-none d-sm-inline">@Localizer["FullView"]</span>
                     </a>
                 </div>
 

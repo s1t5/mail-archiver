@@ -1,71 +1,72 @@
+﻿@inject Microsoft.Extensions.Localization.IStringLocalizer<MailArchiver.SharedResource> Localizer
 @model MailArchiver.Models.ViewModels.MailAccountViewModel
 @{
-    ViewData["Title"] = "Delete Email Account";
+    ViewData["Title"] = Localizer["DeleteEmailAccountTitle"];
     var emailCount = ViewBag.EmailCount ?? 0;
 }
 <div class="container">
     <h1 class="text-danger">
         <i class="bi bi-exclamation-triangle-fill me-2"></i>
-        Delete Email Account
+        @Localizer["DeleteEmailAccountTitle"]
     </h1>
     
     <div class="alert alert-danger">
-        <h4>⚠️ PERMANENT DELETION WARNING</h4>
-        <p><strong>You are about to permanently delete this email account and ALL its archived emails.</strong></p>
+        <h4>âš ï¸ @Localizer["PermanentDeletionWarning"]</h4>
+        <p><strong>@Localizer["AboutToDeleteAccountAllEmails"]</strong></p>
         
         <div class="row mt-3">
             <div class="col-md-6">
-                <h6>What will be deleted:</h6>
+                <h6>@Localizer["WhatWillBeDeleted"]</h6>
                 <ul class="mb-0">
-                    <li>Account configuration and settings</li>
-                    <li>All @emailCount.ToString("N0") archived emails</li>
-                    <li>All email attachments and content</li>
-                    <li>Synchronization history</li>
+                    <li>@Localizer["DeleteItemAccountConfig"]</li>
+                    <li>@string.Format(Localizer["DeleteItemAllArchivedEmails"], emailCount.ToString("N0"))</li>
+                    <li>@Localizer["DeleteItemAllAttachments"]</li>
+                    <li>@Localizer["DeleteItemSyncHistory"]</li>
                 </ul>
             </div>
             <div class="col-md-6">
-                <h6>This action:</h6>
+                <h6>@Localizer["ThisAction"]</h6>
                 <ul class="mb-0">
-                    <li><strong>Cannot be undone</strong></li>
-                    <li><strong>Cannot be recovered</strong></li>
-                    <li>Will free up database storage space</li>
-                    <li>Will stop all synchronization for this account</li>
+                    <li><strong>@Localizer["ActionCannotBeUndone"]</strong></li>
+                    <li><strong>@Localizer["ActionCannotBeRecovered"]</strong></li>
+                    <li>@Localizer["ActionWillFreeStorage"]</li>
+                    <li>@Localizer["ActionWillStopSync"]</li>
                 </ul>
             </div>
         </div>
         
         <div class="mt-3 p-2 bg-white rounded border">
             <small class="text-muted">
-                <strong>Alternative:</strong> If you only want to stop email synchronization without losing data, 
-                you can <a asp-action="Edit" asp-route-id="@Model.Id" class="text-decoration-none">disable the account instead</a>.
+                <strong>@Localizer["Alternative"]</strong> @Localizer["AlternativeDisableInfo"]
+                <a asp-action="Edit" asp-route-id="@Model.Id" class="text-decoration-none">@Localizer["DisableAccountInsteadLink"]</a>.
             </small>
         </div>
     </div>
 
     <div class="card">
         <div class="card-header bg-light">
-            <h5 class="mb-0">Account to be deleted</h5>
+            <h5 class="mb-0">@Localizer["AccountToBeDeleted"]</h5>
         </div>
         <div class="card-body">
             <dl class="row">
-                <dt class="col-sm-3">Name</dt>
+                <dt class="col-sm-3">@Localizer["Name"]</dt>
                 <dd class="col-sm-9"><strong>@Model.Name</strong></dd>
-                <dt class="col-sm-3">Email Address</dt>
+                <dt class="col-sm-3">@Localizer["EmailAddress"]</dt>
                 <dd class="col-sm-9"><strong>@Model.EmailAddress</strong></dd>
-                <dt class="col-sm-3">Status</dt>
+                <dt class="col-sm-3">@Localizer["Status"]</dt>
                 <dd class="col-sm-9">
                     @if (Model.IsEnabled)
                     {
-                        <span class="badge bg-success">Active</span>
+                        <span class="badge bg-success">@Localizer["Active"]</span>
                     }
                     else
                     {
-                        <span class="badge bg-secondary">Inactive</span>
+                        <span class="badge bg-secondary">@Localizer["Inactive"]</span>
                     }
                 </dd>
-                <dt class="col-sm-3">Archived Emails</dt>
+                <dt class="col-sm-3">@Localizer["ArchivedEmails"]</dt>
                 <dd class="col-sm-9">
-                    <span class="badge bg-danger fs-6">@emailCount.ToString("N0") emails will be deleted</span>
+                    <span class="badge bg-danger fs-6">@string.Format(Localizer["ArchivedEmailsWillBeDeleted"], emailCount.ToString("N0"))</span>
                 </dd>
             </dl>
         </div>
@@ -74,24 +75,24 @@
     <!-- Confirmation Form -->
     <div class="card mt-4 border-danger">
         <div class="card-header bg-danger text-white">
-            <h5 class="mb-0">Final Confirmation</h5>
+            <h5 class="mb-0">@Localizer["FinalConfirmation"]</h5>
         </div>
         <div class="card-body">
             <div class="form-check mb-3">
                 <input class="form-check-input" type="checkbox" id="confirmDeletion" required>
                 <label class="form-check-label" for="confirmDeletion">
-                    <strong>I understand that this action will permanently delete the account "@Model.Name" and all @emailCount.ToString("N0") archived emails. This action cannot be undone.</strong>
+                    <strong>@string.Format(Localizer["UnderstandDeletionAcknowledge"], Model.Name, emailCount.ToString("N0"))</strong>
                 </label>
             </div>
             
             <div class="d-flex gap-3 justify-content-between flex-column flex-md-row">
                 <div class="d-flex gap-2">
                     <a asp-action="Index" class="btn btn-outline-secondary">
-                        <i class="bi bi-arrow-left"></i> Cancel - Keep Account
+                        <i class="bi bi-arrow-left"></i> @Localizer["CancelKeepAccount"]
                     </a>
                     
                     <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">
-                        <i class="bi bi-pause"></i> Disable Instead
+                        <i class="bi bi-pause"></i> @Localizer["DisableInstead"]
                     </a>
                 </div>
                 
@@ -99,7 +100,7 @@
                     <input type="hidden" asp-for="Id" />
                     <button type="submit" class="btn btn-danger" id="deleteButton" disabled>
                         <i class="bi bi-trash-fill"></i> 
-                        PERMANENTLY DELETE ACCOUNT & @emailCount.ToString("N0") EMAILS
+                        @string.Format(Localizer["PermanentlyDeleteAccountAndEmails"], emailCount.ToString("N0"))
                     </button>
                 </form>
             </div>
@@ -130,13 +131,13 @@
                 const emailCount = '@emailCount';
                 
                 const finalConfirm = confirm(
-                    `FINAL WARNING!\n\n` +
-                    `You are about to PERMANENTLY DELETE:\n` +
-                    `• Account: "${accountName}"\n` +
-                    `• ${emailCount} archived emails\n` +
-                    `• All attachments and data\n\n` +
-                    `This action CANNOT be undone!\n\n` +
-                    `Are you absolutely sure?`
+                    `${'@Localizer["FinalWarningTitle"]'}\n\n` +
+                    `${'@Localizer["YouAreAboutToDelete"]'}\n` +
+                    `â€¢ ${'@Localizer["BulletAccount"]'.replace('{0}', accountName)}\n` +
+                    `â€¢ ${'@Localizer["BulletArchivedEmails"]'.replace('{0}', emailCount)}\n` +
+                    `â€¢ ${'@Localizer["BulletAllAttachments"]'}\n\n` +
+                    `${'@Localizer["DeletionCannotBeUndone"]'}\n\n` +
+                    `${'@Localizer["AreYouAbsolutelySure"]'}`
                 );
                 
                 if (!finalConfirm) {

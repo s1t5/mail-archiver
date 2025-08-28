@@ -4,6 +4,8 @@ using MailArchiver.Middleware;
 using MailArchiver.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using Microsoft.AspNetCore.Localization;
+using System.Globalization;
 using System.Data.Common;
 
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
@@ -134,8 +136,11 @@ builder.Services.AddHostedService<BatchRestoreService>(provider =>
     ));
 builder.Services.AddHostedService<MailSyncBackgroundService>();
 
+// Add Localization
+builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
 // MVC hinzufügen
-builder.Services.AddControllersWithViews();
+builder.Services.AddControllersWithViews()
+    .AddViewLocalization();
 
 builder.Services.Configure<AuthenticationOptions>(
     builder.Configuration.GetSection(AuthenticationOptions.Authentication));
@@ -230,6 +235,10 @@ else
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
+app.UseRequestLocalization(new RequestLocalizationOptions()
+    .SetDefaultCulture("en")
+    .AddSupportedCultures("en", "de", "es", "fr", "it", "sl")
+    .AddSupportedUICultures("en", "de", "es", "fr", "it", "sl"));
 app.UseRouting();
 app.UseSession();
 
