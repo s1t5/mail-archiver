@@ -1179,11 +1179,164 @@
   </data>
   <data name="ChangePassword" xml:space="preserve">
     <value>Изменить пароль</value>
-  </data>  
+  </data>
   <data name="Sign Out" xml:space="preserve">
     <value>Выйти</value>
   </data>
   <data name="PasswordHint" xml:space="preserve">
     <value>Пароль должен содержать не менее 6 символов.</value>
+  </data>
+  <data name="PasswordTooShort" xml:space="preserve">
+    <value>Пароль должен содержать не менее 6 символов.</value>
+  </data>
+  <data name="AllAccounts" xml:space="preserve">
+    <value>Все счета</value>
+  </data>
+  <data name="All" xml:space="preserve">
+    <value>Все</value>
+  </data>
+  <data name="PasswordRequired" xml:space="preserve">
+    <value>Требуется пароль.</value>
+  </data>
+  <data name="UsernameExists" xml:space="preserve">
+    <value>Имя пользователя уже существует.</value>
+  </data>
+  <data name="EmailExists" xml:space="preserve">
+    <value>Электронная почта уже существует.</value>
+  </data>
+  <data name="UserCreatedSuccess" xml:space="preserve">
+    <value>Пользователь '{0}' Создан успешно.</value>
+  </data>
+  <data name="ErrorOccurred" xml:space="preserve">
+    <value>Произошла ошибка</value>
+  </data>
+  <data name="CannotRemoveAdmin" xml:space="preserve">
+    <value>Не может удалить права администратора. По крайней мере, один администратор должен существовать.</value>
+  </data>
+  <data name="UserUpdated" xml:space="preserve">
+    <value>Пользователь '{0}' успешно обновлен.</value>
+  </data>
+  <data name="UserUpdateFailed" xml:space="preserve">
+    <value>Не удалось обновить пользователя.</value>
+  </data>
+  <data name="UserNotFound" xml:space="preserve">
+    <value>Пользователь не найден.</value>
+  </data>
+  <data name="UserDeleteAdmin" xml:space="preserve">
+    <value>Не удается удалить последнего пользователя администратора. По крайней мере, один администратор должен существовать.</value>
+  </data>
+  <data name="UserDeleteSuccess" xml:space="preserve">
+    <value>Пользователь '{0}' Удален успешно.</value>
+  </data>
+  <data name="UserDeleteFail" xml:space="preserve">
+    <value>Не удалось удалить пользователя '{0}'.</value>
+  </data>
+  <data name="AccountAssignmentSuccess" xml:space="preserve">
+    <value>Присвоение учетной записи почты для пользователя '{0}' успешно обновлено.</value>
+  </data>
+  <data name="PasswordCurrentRequired" xml:space="preserve">
+    <value>Требуется текущий пароль.</value>
+  </data>
+  <data name="PasswordNewRequired" xml:space="preserve">
+    <value>Требуется новый пароль.</value>
+  </data>
+  <data name="PasswordNotMatch" xml:space="preserve">
+    <value>Новый пароль и подтверждение не совпадают.</value>
+  </data>
+  <data name="PasswordCurrentIncorrect" xml:space="preserve">
+    <value>Текущий пароль неверен.</value>
+  </data>
+  <data name="PasswordChangeSuccess" xml:space="preserve">
+    <value>Пароль успешно изменился.</value>
+  </data>
+  <data name="PasswordChangeFail" xml:space="preserve">
+    <value>Не удалось обновить пароль.</value>
+  </data>
+  <data name="CannotDisableAdmin" xml:space="preserve">
+    <value>Не могу отключить последнего пользователя администратора. По крайней мере, один администратор должен существовать.</value>
+  </data>
+  <data name="UserChangeActiveSuccess" xml:space="preserve">
+    <value>Пользователь '{0}' был {1}</value>
+  </data>
+  <data name="UserDisabled" xml:space="preserve">
+    <value>неполноценный</value>
+  </data>
+  <data name="UserEnabled" xml:space="preserve">
+    <value>включено</value>
+  </data>
+  <data name="UserChangeActiveFail" xml:space="preserve">
+    <value>Не удалось {1} пользователя '{0}'.</value>
+  </data>
+  <data name="EmailAccountError" xml:space="preserve">
+    <value>Соединение с почтовым сервером не может быть установлено. Пожалуйста, проверьте свои настройки и убедитесь, что сервер доступен.</value>
+  </data>
+  <data name="EmailAccountCreateSuccess" xml:space="preserve">
+    <value>Учетная запись электронной почты создана успешно.</value>
+  </data>
+  <data name="EmailAccountEnabled" xml:space="preserve">
+    <value>Учетная запись '{0}' была включена для синхронизации.</value>
+  </data>
+  <data name="EmailAccountDisabled" xml:space="preserve">
+    <value>Учетная запись '{0}' была отключена для синхронизации.</value>
+  </data>
+  <data name="EmailAccountUpdateSuccess" xml:space="preserve">
+    <value>Учетная запись электронной почты успешно обновлена.</value>
+  </data>
+  <data name="EmailAccountDeleteSuccess" xml:space="preserve">
+    <value>Учетная запись электронной почты и {0} Связанные электронные письма были успешно удалены.</value>
+  </data>
+  <data name="SyncSuccess" xml:space="preserve">
+    <value>Синхронизация для '{0}' была успешно завершена.</value>
+  </data>
+  <data name="SyncFailed" xml:space="preserve">
+    <value>Ошибка во время синхронизации</value>
+  </data>
+  <data name="FullSyncStarted" xml:space="preserve">
+    <value>Полный ресинхронизация для '{0}' был успешно начат.</value>
+  </data>
+  <data name="FullSyncFailed" xml:space="preserve">
+    <value>Не удалось начать повторно для '{0}'.</value>
+  </data>
+  <data name="FullSyncError" xml:space="preserve">
+    <value>Ошибка во время повторной синхронизации</value>
+  </data>
+  <data name="MoveEmailsNotFound" xml:space="preserve">
+    <value>Электронные письма не найдены для копирования для этой учетной записи.</value>
+  </data>
+  <data name="TooManyEmailsInAccount" xml:space="preserve">
+    <value>Слишком много электронных писем в этой учетной записи ({0: n0}). Максимально допустимый - {1: N0} электронные письма на операцию. Пожалуйста, используйте ручной выбор с меньшими партиями.</value>
+  </data>
+  <data name="SelectValidMBoxFile" xml:space="preserve">
+    <value>Пожалуйста, выберите действительный файл Mbox.</value>
+  </data>
+  <data name="MBoxFileTooLarge" xml:space="preserve">
+    <value>Размер файла превышает максимально допустимый размер {0}.</value>
+  </data>
+  <data name="SelectedAccountNotFound" xml:space="preserve">
+    <value>Выбранная учетная запись не найдена.</value>
+  </data>
+  <data name="MBoxImportStarted" xml:space="preserve">
+    <value>Mbox file '{0}' Загружену успешно. Импорт работы начался с расчетных электронных писем {1: N0}.</value>
+  </data>
+  <data name="MBoxImportError" xml:space="preserve">
+    <value>Запуск ошибок импорт</value>
+  </data>
+  <data name="InvalidMBoxID" xml:space="preserve">
+    <value>Неверный идентификатор задания по импорту Mbox.</value>
+  </data>
+  <data name="MBoxImportJobNotFound" xml:space="preserve">
+    <value>MBOX Импорт Импорт не найдена.</value>
+  </data>
+  <data name="MBoxImportCancelled" xml:space="preserve">
+    <value>Импорт Mbox была отменена.</value>
+  </data>
+  <data name="MBoxImportCancelError" xml:space="preserve">
+    <value>Не удалось отменить работу по импорту Mbox. Работа, возможно, уже завершена или не существует.</value>
+  </data>
+  <data name="SyncTimeResetSuccess" xml:space="preserve">
+    <value>Время синхронизации было сброшено в текущее время. Это предотвратит повторные ошибки синхронизации не вызывать неполных синхронизации, так как система будет синхронизировать только электронные письма, чем эта метка времени.</value>
+  </data>
+  <data name="InvalidUserPassword" xml:space="preserve">
+    <value>Неверное имя пользователя или пароль.</value>
   </data>
 </root>

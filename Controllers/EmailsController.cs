@@ -10,6 +10,7 @@ using Microsoft.Extensions.Options;
 using System.IO.Compression;
 using System.Text.RegularExpressions;
 using System.Web;
+using Microsoft.Extensions.Localization;
 
 namespace MailArchiver.Controllers
 {
@@ -22,6 +23,7 @@ namespace MailArchiver.Controllers
         private readonly IBatchRestoreService? _batchRestoreService;
         private readonly BatchRestoreOptions _batchOptions;
         private readonly ISyncJobService _syncJobService;
+        private readonly IStringLocalizer<SharedResource> _localizer;
 
         public EmailsController(
             MailArchiverDbContext context,
@@ -29,7 +31,9 @@ namespace MailArchiver.Controllers
             ILogger<EmailsController> logger,
             IOptions<BatchRestoreOptions> batchOptions,
             IBatchRestoreService? batchRestoreService = null,
-            ISyncJobService? syncJobService = null)
+            ISyncJobService? syncJobService = null,
+            IStringLocalizer<SharedResource> localizer = null)
+
         {
             _context = context;
             _emailService = emailService;
@@ -37,6 +41,7 @@ namespace MailArchiver.Controllers
             _batchRestoreService = batchRestoreService;
             _syncJobService = syncJobService;
             _batchOptions = batchOptions.Value;
+            _localizer = localizer;
         }
 
         // GET: Emails
@@ -49,6 +54,24 @@ namespace MailArchiver.Controllers
             }
             if (model.PageNumber <= 0) model.PageNumber = 1;
             if (model.PageSize <= 0) model.PageSize = 20;
+
+            // Ensure DirectionOptions are localized if model was created by the binder (parameterless ctor)
+            if (model.DirectionOptions == null || model.DirectionOptions.Count < 3)
+            {
+                model.DirectionOptions = new List<SelectListItem>
+                {
+                    new SelectListItem { Text = _localizer?["All"] ?? "All", Value = "" },
+                    new SelectListItem { Text = _localizer?["Incoming"] ?? "Incoming", Value = "false" },
+                    new SelectListItem { Text = _localizer?["Outgoing"] ?? "Outgoing", Value = "true" }
+                };
+            }
+            else if (_localizer != null)
+            {
+                // Refresh texts for localization
+                model.DirectionOptions[0].Text = _localizer["All"];
+                model.DirectionOptions[1].Text = _localizer["Incoming"];
+                model.DirectionOptions[2].Text = _localizer["Outgoing"];
+            }
 
             // Store search state for return navigation
             StoreSearchState(model);
@@ -97,7 +120,7 @@ namespace MailArchiver.Controllers
             
             model.AccountOptions = new List<SelectListItem>
             {
-                new SelectListItem { Text = "All Accounts", Value = "" }
+                new SelectListItem { Text = _localizer["AllAccounts"], Value = "" }
             };
             model.AccountOptions.AddRange(accounts.Select(a =>
                 new SelectListItem

@@ -1179,11 +1179,164 @@
   </data>
   <data name="ChangePassword" xml:space="preserve">
     <value>Passwort ändern</value>
-  </data>  
+  </data>
   <data name="Sign Out" xml:space="preserve">
     <value>Abmelden</value>
   </data>
   <data name="PasswordHint" xml:space="preserve">
     <value>Das Passwort muss mindestens 6 Zeichen lang sein.</value>
+  </data>
+  <data name="PasswordTooShort" xml:space="preserve">
+    <value>Das Passwort muss mindestens 6 Zeichen lang sein.</value>
+  </data>
+  <data name="AllAccounts" xml:space="preserve">
+    <value>Alle Konten</value>
+  </data>
+  <data name="All" xml:space="preserve">
+    <value>Alle</value>
+  </data>
+  <data name="PasswordRequired" xml:space="preserve">
+    <value>Passwort ist erforderlich.</value>
+  </data>
+  <data name="UsernameExists" xml:space="preserve">
+    <value>Benutzername existiert bereits.</value>
+  </data>
+  <data name="EmailExists" xml:space="preserve">
+    <value>E -Mail existiert bereits.</value>
+  </data>
+  <data name="UserCreatedSuccess" xml:space="preserve">
+    <value>Benutzer '{0}' erfolgreich erstellt.</value>
+  </data>
+  <data name="ErrorOccurred" xml:space="preserve">
+    <value>Es ist ein Fehler aufgetreten</value>
+  </data>
+  <data name="CannotRemoveAdmin" xml:space="preserve">
+    <value>Administratorrechte nicht entfernen. Mindestens ein Administrator muss existieren.</value>
+  </data>
+  <data name="UserUpdated" xml:space="preserve">
+    <value>Benutzer '{0}' erfolgreich aktualisiert.</value>
+  </data>
+  <data name="UserUpdateFailed" xml:space="preserve">
+    <value>Der Benutzer nicht aktualisiert.</value>
+  </data>
+  <data name="UserNotFound" xml:space="preserve">
+    <value>Benutzer nicht gefunden.</value>
+  </data>
+  <data name="UserDeleteAdmin" xml:space="preserve">
+    <value>Den letzten Administratorbenutzer kann nicht gelöscht werden. Mindestens ein Administrator muss existieren.</value>
+  </data>
+  <data name="UserDeleteSuccess" xml:space="preserve">
+    <value>Benutzer '{0}' erfolgreich gelöscht.</value>
+  </data>
+  <data name="UserDeleteFail" xml:space="preserve">
+    <value>Der Benutzer '{0}' nicht löschen.</value>
+  </data>
+  <data name="AccountAssignmentSuccess" xml:space="preserve">
+    <value>Mail -Kontozuweisungen für Benutzer '{0}' erfolgreich aktualisiert.</value>
+  </data>
+  <data name="PasswordCurrentRequired" xml:space="preserve">
+    <value>Aktuelles Passwort ist erforderlich.</value>
+  </data>
+  <data name="PasswordNewRequired" xml:space="preserve">
+    <value>Neues Passwort ist erforderlich.</value>
+  </data>
+  <data name="PasswordNotMatch" xml:space="preserve">
+    <value>Neues Passwort und Bestätigung stimmen nicht überein.</value>
+  </data>
+  <data name="PasswordCurrentIncorrect" xml:space="preserve">
+    <value>Das aktuelle Passwort ist falsch.</value>
+  </data>
+  <data name="PasswordChangeSuccess" xml:space="preserve">
+    <value>Passwort erfolgreich geändert.</value>
+  </data>
+  <data name="PasswordChangeFail" xml:space="preserve">
+    <value>Das Passwort nicht aktualisiert.</value>
+  </data>
+  <data name="CannotDisableAdmin" xml:space="preserve">
+    <value>Den letzten Administratorbenutzer kann nicht deaktiviert werden. Mindestens ein Administrator muss existieren.</value>
+  </data>
+  <data name="UserChangeActiveSuccess" xml:space="preserve">
+    <value>Benutzer '{0}' war {1}</value>
+  </data>
+  <data name="UserDisabled" xml:space="preserve">
+    <value>deaktiviert</value>
+  </data>
+  <data name="UserEnabled" xml:space="preserve">
+    <value>ermöglicht</value>
+  </data>
+  <data name="UserChangeActiveFail" xml:space="preserve">
+    <value>Fehlgeschlagen {1} Benutzer '{0}'.</value>
+  </data>
+  <data name="EmailAccountError" xml:space="preserve">
+    <value>Die Verbindung zum E -Mail -Server konnte nicht hergestellt werden. Bitte überprüfen Sie Ihre Einstellungen und stellen Sie sicher, dass der Server erreichbar ist.</value>
+  </data>
+  <data name="EmailAccountCreateSuccess" xml:space="preserve">
+    <value>E -Mail -Konto erfolgreich erstellt.</value>
+  </data>
+  <data name="EmailAccountEnabled" xml:space="preserve">
+    <value>Das Konto '{0}' wurde für die Synchronisation aktiviert.</value>
+  </data>
+  <data name="EmailAccountDisabled" xml:space="preserve">
+    <value>Das Konto '{0}' wurde zur Synchronisation deaktiviert.</value>
+  </data>
+  <data name="EmailAccountUpdateSuccess" xml:space="preserve">
+    <value>E -Mail -Konto erfolgreich aktualisiert.</value>
+  </data>
+  <data name="EmailAccountDeleteSuccess" xml:space="preserve">
+    <value>E -Mail -Konto und {0} verwandte E -Mails wurden erfolgreich gelöscht.</value>
+  </data>
+  <data name="SyncSuccess" xml:space="preserve">
+    <value>Die Synchronisation für '{0}' wurde erfolgreich abgeschlossen.</value>
+  </data>
+  <data name="SyncFailed" xml:space="preserve">
+    <value>Fehler während der Synchronisation</value>
+  </data>
+  <data name="FullSyncStarted" xml:space="preserve">
+    <value>Die vollständige Resync für '{0}' wurde erfolgreich gestartet.</value>
+  </data>
+  <data name="FullSyncFailed" xml:space="preserve">
+    <value>Ich habe es versäumt, Resync für '{0}' zu starten.</value>
+  </data>
+  <data name="FullSyncError" xml:space="preserve">
+    <value>Fehler während der Resync</value>
+  </data>
+  <data name="MoveEmailsNotFound" xml:space="preserve">
+    <value>Keine E -Mails, die für dieses Konto kopiert wurden.</value>
+  </data>
+  <data name="TooManyEmailsInAccount" xml:space="preserve">
+    <value>Zu viele E -Mails in diesem Konto ({0: n0}). Maximum erlaubt ist {1: n0} E -Mails pro Operation. Bitte verwenden Sie die manuelle Auswahl mit kleineren Chargen.</value>
+  </data>
+  <data name="SelectValidMBoxFile" xml:space="preserve">
+    <value>Bitte wählen Sie eine gültige Mbox -Datei aus.</value>
+  </data>
+  <data name="MBoxFileTooLarge" xml:space="preserve">
+    <value>Die Dateigröße überschreitet die maximal zulässige Größe von {0}.</value>
+  </data>
+  <data name="SelectedAccountNotFound" xml:space="preserve">
+    <value>Ausgewählter Konto nicht gefunden.</value>
+  </data>
+  <data name="MBoxImportStarted" xml:space="preserve">
+    <value>Mbox -Datei '{0}' erfolgreich hochgeladen. Importjob begonnen mit geschätzten {1: n0} -E -Mails.</value>
+  </data>
+  <data name="MBoxImportError" xml:space="preserve">
+    <value>Fehler mit dem Import beginnen</value>
+  </data>
+  <data name="InvalidMBoxID" xml:space="preserve">
+    <value>Ungültige Mbox -Import -Job -ID.</value>
+  </data>
+  <data name="MBoxImportJobNotFound" xml:space="preserve">
+    <value>MBOX -Importjob nicht gefunden.</value>
+  </data>
+  <data name="MBoxImportCancelled" xml:space="preserve">
+    <value>MBOX -Importjob wurde storniert.</value>
+  </data>
+  <data name="MBoxImportCancelError" xml:space="preserve">
+    <value>Konnte den MBOX -Importjob nicht stornieren. Der Job hat möglicherweise bereits abgeschlossen oder existiert nicht.</value>
+  </data>
+  <data name="SyncTimeResetSuccess" xml:space="preserve">
+    <value>Die Synchronisierungszeit wurde auf die aktuelle Zeit zurückgesetzt. Dies verhindert, dass wiederholte Synchronisierungsfehler unvollständige Synchronisierungen verursachen, da das System nur E -Mails synchronisiert wird als dieser Zeitstempel.</value>
+  </data>
+  <data name="InvalidUserPassword" xml:space="preserve">
+    <value>Ungültiger Benutzername oder Passwort.</value>
   </data>
 </root>

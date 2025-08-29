@@ -1,6 +1,7 @@
 using MailArchiver.Models.ViewModels;
 using MailArchiver.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Localization;
 
 namespace MailArchiver.Controllers
 {
@@ -8,11 +9,13 @@ namespace MailArchiver.Controllers
     {
         private readonly IAuthenticationService _authService;
         private readonly ILogger<AuthController> _logger;
+        private readonly IStringLocalizer<SharedResource> _localizer;
 
-        public AuthController(IAuthenticationService authService, ILogger<AuthController> logger)
+        public AuthController(IAuthenticationService authService, ILogger<AuthController> logger, IStringLocalizer<SharedResource> localizer)
         {
             _authService = authService;
             _logger = logger;
+            _localizer = localizer;
         }
 
         [HttpGet]
@@ -54,7 +57,7 @@ namespace MailArchiver.Controllers
                 }
                 else
                 {
-                    ModelState.AddModelError("", "Invalid username or password.");
+                    ModelState.AddModelError("", _localizer["InvalidUserPassword"]);
                     _logger.LogWarning("Failed login attempt for username: {Username} from IP: {IP}", 
                         model.Username, HttpContext.Connection.RemoteIpAddress);
                 }

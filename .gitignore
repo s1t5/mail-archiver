@@ -289,3 +289,5 @@ coverage/
 /obj
 /obj
 *.cache
+/MailArchiver.sln
+/ResXManager.config.xml
