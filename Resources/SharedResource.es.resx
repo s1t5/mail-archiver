@@ -796,9 +796,6 @@
   <data name="EmailsLabelStatus" xml:space="preserve">
     <value>Emails :</value>
   </data>
-  <data name="ProcessedSuffix" xml:space="preserve">
-    <value>traités</value>
-  </data>
   <data name="EstimatedSuffix" xml:space="preserve">
     <value>estimés</value>
   </data>
@@ -1338,5 +1335,33 @@
   </data>
   <data name="InvalidUserPassword" xml:space="preserve">
     <value>Nombre de usuario o contraseña no válidos.</value>
+  </data>
+  <!-- Job Status Translations -->
+  <data name="Running" xml:space="preserve">
+    <value>Ejecutándose</value>
+  </data>
+  <data name="Completed" xml:space="preserve">
+    <value>Completado</value>
+  </data>
+  <data name="Failed" xml:space="preserve">
+    <value>Fallido</value>
+  </data>
+  <data name="Cancelled" xml:space="preserve">
+    <value>Cancelado</value>
+  </data>
+  <data name="Queued" xml:space="preserve">
+    <value>En cola</value>
+  </data>
+  <data name="Folders" xml:space="preserve">
+    <value>Carpetas</value>
+  </data>
+  <data name="ProcessedSuffix" xml:space="preserve">
+    <value>Procesado</value>
+  </data>
+  <data name="New" xml:space="preserve">
+    <value>Nuevo</value>
+  </data>
+  <data name="Deleted" xml:space="preserve">
+    <value>Eliminado</value>
   </data>
 </root>

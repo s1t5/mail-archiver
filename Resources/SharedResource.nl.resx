@@ -1339,4 +1339,29 @@
   <data name="InvalidUserPassword" xml:space="preserve">
     <value>Ongeldige gebruikersnaam of wachtwoord.</value>
   </data>
+  <!-- Job Status Translations -->
+  <data name="Running" xml:space="preserve">
+    <value>Bezig</value>
+  </data>
+  <data name="Completed" xml:space="preserve">
+    <value>Voltooid</value>
+  </data>
+  <data name="Failed" xml:space="preserve">
+    <value>Mislukt</value>
+  </data>
+  <data name="Cancelled" xml:space="preserve">
+    <value>Geannuleerd</value>
+  </data>
+  <data name="Queued" xml:space="preserve">
+    <value>In wachtrij</value>
+  </data>
+  <data name="Folders" xml:space="preserve">
+    <value>Mappen</value>
+  </data>
+  <data name="New" xml:space="preserve">
+    <value>Nieuw</value>
+  </data>
+  <data name="Deleted" xml:space="preserve">
+    <value>Verwijderd</value>
+  </data>
 </root>

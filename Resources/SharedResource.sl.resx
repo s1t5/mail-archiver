@@ -1339,4 +1339,30 @@
   <data name="InvalidUserPassword" xml:space="preserve">
     <value>Neveljavno uporabniško ime ali geslo.</value>
   </data>
+
+  <!-- Job Status Translations -->
+  <data name="Running" xml:space="preserve">
+    <value>Teče</value>
+  </data>
+  <data name="Completed" xml:space="preserve">
+    <value>Zaključeno</value>
+  </data>
+  <data name="Failed" xml:space="preserve">
+    <value>Neuspešno</value>
+  </data>
+  <data name="Cancelled" xml:space="preserve">
+    <value>Preklicano</value>
+  </data>
+  <data name="Queued" xml:space="preserve">
+    <value>V vrsti</value>
+  </data>
+  <data name="Folders" xml:space="preserve">
+    <value>Mape</value>
+  </data>
+  <data name="New" xml:space="preserve">
+    <value>Novo</value>
+  </data>
+  <data name="Deleted" xml:space="preserve">
+    <value>Izbrisano</value>
+  </data>
 </root>

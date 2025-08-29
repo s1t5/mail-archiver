@@ -1339,4 +1339,29 @@
   <data name="InvalidUserPassword" xml:space="preserve">
     <value>Неверное имя пользователя или пароль.</value>
   </data>
+  <!-- Job Status Translations -->
+  <data name="Running" xml:space="preserve">
+    <value>Выполняется</value>
+  </data>
+  <data name="Completed" xml:space="preserve">
+    <value>Завершено</value>
+  </data>
+  <data name="Failed" xml:space="preserve">
+    <value>Неудачно</value>
+  </data>
+  <data name="Cancelled" xml:space="preserve">
+    <value>Отменено</value>
+  </data>
+  <data name="Queued" xml:space="preserve">
+    <value>В очереди</value>
+  </data>
+  <data name="Folders" xml:space="preserve">
+    <value>Папки</value>
+  </data>
+  <data name="New" xml:space="preserve">
+    <value>Новый</value>
+  </data>
+  <data name="Deleted" xml:space="preserve">
+    <value>Удалено</value>
+  </data>
 </root>
