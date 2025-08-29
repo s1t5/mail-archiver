@@ -4,7 +4,9 @@ using MailArchiver.Models;
 using MailArchiver.Models.ViewModels;
 using MailArchiver.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Localization;
 
 namespace MailArchiver.Controllers
 {
@@ -14,13 +16,15 @@ namespace MailArchiver.Controllers
         private readonly MailArchiverDbContext _context;
         private readonly ILogger<UsersController> _logger;
         private readonly IAuthenticationService _authService;
+        private readonly IStringLocalizer<SharedResource> _localizer;
 
-        public UsersController(IUserService userService, MailArchiverDbContext context, ILogger<UsersController> logger, IAuthenticationService authService)
+        public UsersController(IUserService userService, MailArchiverDbContext context, ILogger<UsersController> logger, IAuthenticationService authService, IStringLocalizer<SharedResource> localizer)
         {
             _userService = userService;
             _context = context;
             _logger = logger;
             _authService = authService;
+            _localizer = localizer;
         }
 
         // GET: Users
@@ -68,12 +72,13 @@ namespace MailArchiver.Controllers
             if (string.IsNullOrWhiteSpace(password))
             {
                 _logger.LogWarning("Password is null or empty");
-                ModelState.AddModelError("password", "Password is required.");
+                
+                ModelState.AddModelError("password", _localizer["PasswordRequired"]);
             }
             else if (password.Length < 6)
             {
                 _logger.LogWarning("Password too short: {Length}", password.Length);
-                ModelState.AddModelError("password", "Password must be at least 6 characters long.");
+                ModelState.AddModelError("password", _localizer["PasswordTooShort"]);
             }
 
             // Check if username or email already exists only if other validations pass
@@ -82,13 +87,13 @@ namespace MailArchiver.Controllers
                 var existingUser = await _userService.GetUserByUsernameAsync(model.Username);
                 if (existingUser != null)
                 {
-                    ModelState.AddModelError("Username", "Username already exists.");
+                    ModelState.AddModelError("Username", _localizer["UsernameExists"]);
                 }
 
                 var existingEmailUser = await _userService.GetUserByEmailAsync(model.Email);
                 if (existingEmailUser != null)
                 {
-                    ModelState.AddModelError("Email", "Email already exists.");
+                    ModelState.AddModelError("Email", _localizer["EmailExists"]);
                 }
             }
 
@@ -110,13 +115,13 @@ namespace MailArchiver.Controllers
                     password,
                     model.IsAdmin);
 
-                TempData["SuccessMessage"] = $"User '{newUser.Username}' created successfully.";
+                TempData["SuccessMessage"] = _localizer["UserCreatedSuccess", newUser.Username].Value;
                 return RedirectToAction(nameof(Index));
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error creating user: {Message}", ex.Message);
-                ModelState.AddModelError("", $"An error occurred: {ex.Message}");
+                ModelState.AddModelError("", $"{_localizer["ErrorOccurred"]}: {ex.Message}");
                 return View(model);
             }
         }
@@ -153,7 +158,7 @@ namespace MailArchiver.Controllers
             if (!string.IsNullOrWhiteSpace(newPassword) && newPassword.Length < 6)
             {
                 _logger.LogWarning("New password too short: {Length}", newPassword.Length);
-                ModelState.AddModelError("newPassword", "Password must be at least 6 characters long.");
+                ModelState.AddModelError("newPassword", _localizer["PasswordTooShort"]);
             }
 
             _logger.LogInformation("ModelState.IsValid: {IsValid}", ModelState.IsValid);
@@ -182,7 +187,7 @@ namespace MailArchiver.Controllers
                         if (adminCount <= 1)
                         {
                             _logger.LogWarning("Cannot remove admin rights. At least one admin must exist.");
-                            ModelState.AddModelError("IsAdmin", "Cannot remove admin rights. At least one admin must exist.");
+                            ModelState.AddModelError("IsAdmin", _localizer["CannotRemoveAdmin"]);
                             return View(user);
                         }
                     }
@@ -206,20 +211,20 @@ namespace MailArchiver.Controllers
                     if (result)
                     {
                         _logger.LogInformation("User '{Username}' updated successfully.", existingUser.Username);
-                        TempData["SuccessMessage"] = $"User '{existingUser.Username}' updated successfully.";
+                        TempData["SuccessMessage"] = _localizer["UserUpdated", existingUser.Username].Value;
                         return RedirectToAction(nameof(Index));
                     }
                     else
                     {
                         _logger.LogWarning("Failed to update user: {Username}", existingUser.Username);
-                        ModelState.AddModelError("", "Failed to update user.");
+                        ModelState.AddModelError("", _localizer["UserUpdateFailed"]);
                         return View(user);
                     }
                 }
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, "Error updating user: {Message}", ex.Message);
-                    ModelState.AddModelError("", $"An error occurred: {ex.Message}");
+                    ModelState.AddModelError("", $"{_localizer["ErrorOccurred"]}: {ex.Message}");
                     return View(user);
                 }
             }
@@ -252,7 +257,7 @@ namespace MailArchiver.Controllers
                 var user = await _userService.GetUserByIdAsync(id);
                 if (user == null)
                 {
-                    TempData["ErrorMessage"] = "User not found.";
+                    TempData["ErrorMessage"] = _localizer["UserNotFound"].Value;
                     return RedirectToAction(nameof(Index));
                 }
 
@@ -262,7 +267,7 @@ namespace MailArchiver.Controllers
                     var adminCount = await _userService.GetAdminCountAsync();
                     if (adminCount <= 1)
                     {
-                        TempData["ErrorMessage"] = "Cannot delete the last admin user. At least one admin must exist.";
+                        TempData["ErrorMessage"] =  _localizer["UserDeleteAdmin"].Value;
                         return RedirectToAction(nameof(Index));
                     }
                 }
@@ -270,17 +275,17 @@ namespace MailArchiver.Controllers
                 var result = await _userService.DeleteUserAsync(id);
                 if (result)
                 {
-                    TempData["SuccessMessage"] = $"User '{user.Username}' deleted successfully.";
+                    TempData["SuccessMessage"] = _localizer["UserDeleteSuccess", user.Username].Value;
                 }
                 else
                 {
-                    TempData["ErrorMessage"] = $"Failed to delete user '{user.Username}'.";
+                    TempData["ErrorMessage"] = _localizer["UserDeleteFail", user.Username].Value;
                 }
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error deleting user: {Message}", ex.Message);
-                TempData["ErrorMessage"] = $"An error occurred: {ex.Message}";
+                TempData["ErrorMessage"] = $"{_localizer["ErrorOccurred"]}: {ex.Message}";
             }
 
             return RedirectToAction(nameof(Index));
@@ -293,7 +298,7 @@ namespace MailArchiver.Controllers
             var user = await _userService.GetUserByIdAsync(id);
             if (user == null)
             {
-                TempData["ErrorMessage"] = "User not found.";
+                TempData["ErrorMessage"] = _localizer["UserNotFound"].Value;
                 return RedirectToAction(nameof(Index));
             }
 
@@ -325,7 +330,7 @@ namespace MailArchiver.Controllers
                 var user = await _userService.GetUserByIdAsync(id);
                 if (user == null)
                 {
-                    TempData["ErrorMessage"] = "User not found.";
+                    TempData["ErrorMessage"] = _localizer["UserNotFound"].Value;
                     return RedirectToAction(nameof(Index));
                 }
 
@@ -351,12 +356,12 @@ namespace MailArchiver.Controllers
                     }
                 }
 
-                TempData["SuccessMessage"] = $"Mail account assignments for user '{user.Username}' updated successfully.";
+                TempData["SuccessMessage"] = _localizer["AccountAssignmentSuccess", user.Username].Value;
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error updating mail account assignments: {Message}", ex.Message);
-                TempData["ErrorMessage"] = $"An error occurred: {ex.Message}";
+                TempData["ErrorMessage"] = $"{_localizer["ErrorOccurred"]}: {ex.Message}";
             }
 
             return RedirectToAction(nameof(Index));
@@ -371,7 +376,7 @@ namespace MailArchiver.Controllers
             var currentUser = await _userService.GetUserByUsernameAsync(currentUsername);
             if (currentUser == null)
             {
-                TempData["ErrorMessage"] = "User not found.";
+                TempData["ErrorMessage"] = _localizer["UserNotFound"].Value;
                 return RedirectToAction("Index", "Home");
             }
 
@@ -391,27 +396,27 @@ namespace MailArchiver.Controllers
             var currentUser = await _userService.GetUserByUsernameAsync(currentUsername);
             if (currentUser == null)
             {
-                TempData["ErrorMessage"] = "User not found.";
+                TempData["ErrorMessage"] = _localizer["UserNotFound"].Value;
                 return RedirectToAction("Index", "Home");
             }
 
             // Validate input
             if (string.IsNullOrWhiteSpace(currentPassword))
             {
-                ModelState.AddModelError("currentPassword", "Current password is required.");
+                ModelState.AddModelError("currentPassword", _localizer["PasswordCurrentRequired"]);
             }
 
             if (string.IsNullOrWhiteSpace(newPassword))
             {
-                ModelState.AddModelError("newPassword", "New password is required.");
+                ModelState.AddModelError("newPassword", _localizer["PasswordNewRequired"]);
             }
             else if (newPassword.Length < 6)
             {
-                ModelState.AddModelError("newPassword", "Password must be at least 6 characters long.");
+                ModelState.AddModelError("newPassword", _localizer["PasswordTooShort"]);
             }
             else if (newPassword != confirmNewPassword)
             {
-                ModelState.AddModelError("confirmNewPassword", "New password and confirmation do not match.");
+                ModelState.AddModelError("confirmNewPassword", _localizer["PasswordNotMatch"]);
             }
 
             // If validation passes, check current password
@@ -421,7 +426,7 @@ namespace MailArchiver.Controllers
                 var isCurrentPasswordValid = await _userService.AuthenticateUserAsync(currentUser.Username, currentPassword);
                 if (!isCurrentPasswordValid)
                 {
-                    ModelState.AddModelError("currentPassword", "Current password is incorrect.");
+                    ModelState.AddModelError("currentPassword", _localizer["PasswordCurrentIncorrect"]);
                 }
                 else
                 {
@@ -433,18 +438,18 @@ namespace MailArchiver.Controllers
                         
                         if (result)
                         {
-                            TempData["SuccessMessage"] = "Password changed successfully.";
+                            TempData["SuccessMessage"] = _localizer["PasswordChangeSuccess"].Value;
                             return RedirectToAction("Index", "Home");
                         }
                         else
                         {
-                            ModelState.AddModelError("", "Failed to update password.");
+                            ModelState.AddModelError("", _localizer["PasswordChangeFail"]);
                         }
                     }
                     catch (Exception ex)
                     {
                         _logger.LogError(ex, "Error updating password for user: {Username}", currentUser.Username);
-                        ModelState.AddModelError("", $"An error occurred: {ex.Message}");
+                        ModelState.AddModelError("", $"{_localizer["ErrorOccurred"]}: {ex.Message}");
                     }
                 }
             }
@@ -465,7 +470,7 @@ namespace MailArchiver.Controllers
                 var user = await _userService.GetUserByIdAsync(id);
                 if (user == null)
                 {
-                    TempData["ErrorMessage"] = "User not found.";
+                    TempData["ErrorMessage"] = _localizer["UserNotFound"].Value;
                     return RedirectToAction(nameof(Index));
                 }
 
@@ -475,7 +480,7 @@ namespace MailArchiver.Controllers
                     var adminCount = await _userService.GetAdminCountAsync();
                     if (adminCount <= 1)
                     {
-                        TempData["ErrorMessage"] = "Cannot disable the last admin user. At least one admin must exist.";
+                        TempData["ErrorMessage"] = _localizer["CannotDisableAdmin"].Value;
                         return RedirectToAction(nameof(Index));
                     }
                 }
@@ -483,17 +488,17 @@ namespace MailArchiver.Controllers
                 var result = await _userService.SetUserActiveStatusAsync(id, !user.IsActive);
                 if (result)
                 {
-                    TempData["SuccessMessage"] = $"User '{user.Username}' has been {(user.IsActive ? "disabled" : "enabled")}.";
+                    TempData["SuccessMessage"] = _localizer["UserChangeActiveSuccess", user.Username, (user.IsActive ? _localizer["UserEnabled"] : _localizer["UserDisabled"])].Value;
                 }
                 else
                 {
-                    TempData["ErrorMessage"] = $"Failed to {(user.IsActive ? "disable" : "enable")} user '{user.Username}'.";
+                    TempData["ErrorMessage"] = _localizer["UserChangeActiveFail", user.Username, (user.IsActive ? _localizer["UserEnabled"] : _localizer["UserDisabled"])].Value;
                 }
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error toggling user active status: {Message}", ex.Message);
-                TempData["ErrorMessage"] = $"An error occurred: {ex.Message}";
+                TempData["ErrorMessage"] = $"{_localizer["ErrorOccurred"]}: {ex.Message}";
             }
 
             return RedirectToAction(nameof(Index));

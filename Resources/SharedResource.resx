@@ -1179,11 +1179,176 @@
   </data>
   <data name="ChangePassword" xml:space="preserve">
     <value>Change Password</value>
-  </data>  
+  </data>
   <data name="Sign Out" xml:space="preserve">
     <value>Sign Out</value>
   </data>
   <data name="PasswordHint" xml:space="preserve">
     <value>Password must be at least 6 characters long.</value>
+  </data>
+  <data name="AllAccounts" xml:space="preserve">
+    <value>All accounts</value>
+  </data>
+  <data name="All" xml:space="preserve">
+    <value>All</value>
+  </data>
+  <data name="PasswordRequired" xml:space="preserve">
+    <value>Password is required.</value>
+  </data>
+  <data name="PasswordTooShort" xml:space="preserve">
+    <value>Password must be at least 6 characters long.</value>
+  </data>
+  <data name="UsernameExists" xml:space="preserve">
+    <value>Username already exists.</value>
+  </data>
+  <data name="EmailExists" xml:space="preserve">
+    <value>Email already exists.</value>
+  </data>
+  <data name="UserCreatedSuccess" xml:space="preserve">
+    <value>User '{0}' created successfully.</value>
+    <comment>{0} - username</comment>
+  </data>
+  <data name="ErrorOccurred" xml:space="preserve">
+    <value>An error occurred</value>
+  </data>
+  <data name="CannotRemoveAdmin" xml:space="preserve">
+    <value>Cannot remove admin rights. At least one admin must exist.</value>
+  </data>
+  <data name="UserUpdated" xml:space="preserve">
+    <value>User '{0}' updated successfully.</value>
+    <comment>{0} - username</comment>
+  </data>
+  <data name="UserUpdateFailed" xml:space="preserve">
+    <value>Failed to update user.</value>
+  </data>
+  <data name="UserNotFound" xml:space="preserve">
+    <value>User not found.</value>
+  </data>
+  <data name="UserDeleteAdmin" xml:space="preserve">
+    <value>Cannot delete the last admin user. At least one admin must exist.</value>
+  </data>
+  <data name="UserDeleteSuccess" xml:space="preserve">
+    <value>User '{0}' deleted successfully.</value>
+    <comment>{0} - username</comment>
+  </data>
+  <data name="UserDeleteFail" xml:space="preserve">
+    <value>Failed to delete user '{0}'.</value>
+    <comment>{0} - username</comment>
+  </data>
+  <data name="AccountAssignmentSuccess" xml:space="preserve">
+    <value>Mail account assignments for user '{0}' updated successfully.</value>
+  </data>
+  <data name="PasswordCurrentRequired" xml:space="preserve">
+    <value>Current password is required.</value>
+  </data>
+  <data name="PasswordNewRequired" xml:space="preserve">
+    <value>New password is required.</value>
+  </data>
+  <data name="PasswordNotMatch" xml:space="preserve">
+    <value>New password and confirmation do not match.</value>
+  </data>
+  <data name="PasswordCurrentIncorrect" xml:space="preserve">
+    <value>Current password is incorrect.</value>
+  </data>
+  <data name="PasswordChangeSuccess" xml:space="preserve">
+    <value>Password changed successfully.</value>
+  </data>
+  <data name="PasswordChangeFail" xml:space="preserve">
+    <value>Failed to update password.</value>
+  </data>
+  <data name="CannotDisableAdmin" xml:space="preserve">
+    <value>Cannot disable the last admin user. At least one admin must exist.</value>
+  </data>
+  <data name="UserChangeActiveSuccess" xml:space="preserve">
+    <value>User '{0}' has been {1}</value>
+    <comment>{0} - username, {1} enabled/disabled</comment>
+  </data>
+  <data name="UserDisabled" xml:space="preserve">
+    <value>disabled</value>
+  </data>
+  <data name="UserEnabled" xml:space="preserve">
+    <value>enabled</value>
+  </data>
+  <data name="UserChangeActiveFail" xml:space="preserve">
+    <value>Failed to {1} user '{0}'.</value>
+    <comment>{0} - username, {1} enabled/disabled</comment>
+  </data>
+  <data name="EmailAccountError" xml:space="preserve">
+    <value>Connection to email server could not be established. Please check your settings and ensure the server is reachable.</value>
+  </data>
+  <data name="EmailAccountCreateSuccess" xml:space="preserve">
+    <value>Email account created successfully.</value>
+  </data>
+  <data name="EmailAccountEnabled" xml:space="preserve">
+    <value>Account '{0}' has been enabled for synchronization.</value>
+    <comment>{0} - account name</comment>
+  </data>
+  <data name="EmailAccountDisabled" xml:space="preserve">
+    <value>Account '{0}' has been disabled for synchronization.</value>
+    <comment>{0} - account name</comment>
+  </data>
+  <data name="EmailAccountUpdateSuccess" xml:space="preserve">
+    <value>Email account updated successfully.</value>
+  </data>
+  <data name="EmailAccountDeleteSuccess" xml:space="preserve">
+    <value>Email account and {0} related emails have been successfully deleted.</value>
+    <comment>{0} - email count</comment>
+  </data>
+  <data name="SyncSuccess" xml:space="preserve">
+    <value>Synchronization for '{0}' was successfully completed.</value>
+    <comment>{0} - account name</comment>
+  </data>
+  <data name="SyncFailed" xml:space="preserve">
+    <value>Error during synchronization</value>
+  </data>
+  <data name="FullSyncStarted" xml:space="preserve">
+    <value>Full resync for '{0}' was successfully started.</value>
+    <comment>{0} - account name</comment>
+  </data>
+  <data name="FullSyncFailed" xml:space="preserve">
+    <value>Failed to start resync for '{0}'.</value>
+    <comment>{0} - account name</comment>
+  </data>
+  <data name="FullSyncError" xml:space="preserve">
+    <value>Error during resync</value>
+  </data>
+  <data name="MoveEmailsNotFound" xml:space="preserve">
+    <value>No emails found to copy for this account.</value>
+  </data>
+  <data name="TooManyEmailsInAccount" xml:space="preserve">
+    <value>Too many emails in this account ({0:N0}). Maximum allowed is {1:N0} emails per operation. Please use manual selection with smaller batches.</value>
+  </data>
+  <data name="SelectValidMBoxFile" xml:space="preserve">
+    <value>Please select a valid MBox file.</value>
+  </data>
+  <data name="MBoxFileTooLarge" xml:space="preserve">
+    <value>File size exceeds maximum allowed size of {0}.</value>
+  </data>
+  <data name="SelectedAccountNotFound" xml:space="preserve">
+    <value>Selected account not found.</value>
+  </data>
+  <data name="MBoxImportStarted" xml:space="preserve">
+    <value>MBox file '{0}' uploaded successfully. Import job started with estimated {1:N0} emails.</value>
+  </data>
+  <data name="MBoxImportError" xml:space="preserve">
+    <value>Error starting import</value>
+  </data>
+  <data name="InvalidMBoxID" xml:space="preserve">
+    <value>Invalid MBox import job ID.</value>
+  </data>
+  <data name="MBoxImportJobNotFound" xml:space="preserve">
+    <value>MBox import job not found.</value>
+  </data>
+  <data name="MBoxImportCancelled" xml:space="preserve">
+    <value>MBox import job has been cancelled.</value>
+  </data>
+  <data name="MBoxImportCancelError" xml:space="preserve">
+    <value>Could not cancel the MBox import job. The job may have already completed or does not exist.</value>
+  </data>
+  <data name="SyncTimeResetSuccess" xml:space="preserve">
+    <value>Sync time has been reset to current time. This will prevent repeated sync errors from causing incomplete syncs, as the system will only sync emails newer than this timestamp.</value>
+  </data>
+  <data name="InvalidUserPassword" xml:space="preserve">
+    <value>Invalid username or password.</value>
   </data>
 </root>

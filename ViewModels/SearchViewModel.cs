@@ -15,12 +15,9 @@ namespace MailArchiver.Models.ViewModels
 
         // Dropdown-Optionen
         public List<SelectListItem> AccountOptions { get; set; }
-        public List<SelectListItem> DirectionOptions { get; set; } = new List<SelectListItem>
-        {
-            new SelectListItem { Text = "All", Value = "" },
-            new SelectListItem { Text = "Incoming", Value = "false" },
-            new SelectListItem { Text = "Outgoing", Value = "true" }
-        };
+        public List<SelectListItem> DirectionOptions { get; set; }
+
+        public SearchViewModel() { }
 
         // Methode zur Konvertierung von UTC zu lokaler Zeit
         public DateTime ConvertToLocalTime(DateTime utcTime)

@@ -1179,11 +1179,164 @@
   </data>
   <data name="ChangePassword" xml:space="preserve">
     <value>Wachtwoord wijzigen</value>
-  </data>  
+  </data>
   <data name="Sign Out" xml:space="preserve">
     <value>Uitloggen</value>
   </data>
   <data name="PasswordHint" xml:space="preserve">
     <value>Het wachtwoord moet ten minste 6 tekens bevatten.</value>
+  </data>
+  <data name="PasswordTooShort" xml:space="preserve">
+    <value>Het wachtwoord moet ten minste 6 tekens bevatten.</value>
+  </data>
+  <data name="AllAccounts" xml:space="preserve">
+    <value>Alle accounts</value>
+  </data>
+  <data name="All" xml:space="preserve">
+    <value>Alle</value>
+  </data>
+  <data name="PasswordRequired" xml:space="preserve">
+    <value>Wachtwoord is vereist.</value>
+  </data>
+  <data name="UsernameExists" xml:space="preserve">
+    <value>Gebruikersnaam bestaat al.</value>
+  </data>
+  <data name="EmailExists" xml:space="preserve">
+    <value>E -mail bestaat al.</value>
+  </data>
+  <data name="UserCreatedSuccess" xml:space="preserve">
+    <value>Gebruiker '{0}' met succes gemaakt.</value>
+  </data>
+  <data name="ErrorOccurred" xml:space="preserve">
+    <value>Er is een fout opgetreden</value>
+  </data>
+  <data name="CannotRemoveAdmin" xml:space="preserve">
+    <value>Kan de admin -rechten niet verwijderen. Ten minste één admin moet bestaan.</value>
+  </data>
+  <data name="UserUpdated" xml:space="preserve">
+    <value>Gebruiker '{0}' met succes bijgewerkt.</value>
+  </data>
+  <data name="UserUpdateFailed" xml:space="preserve">
+    <value>De gebruiker niet bijgewerkt.</value>
+  </data>
+  <data name="UserNotFound" xml:space="preserve">
+    <value>Gebruiker niet gevonden.</value>
+  </data>
+  <data name="UserDeleteAdmin" xml:space="preserve">
+    <value>Kan de laatste admin -gebruiker niet verwijderen. Ten minste één admin moet bestaan.</value>
+  </data>
+  <data name="UserDeleteSuccess" xml:space="preserve">
+    <value>Gebruiker '{0}' met succes verwijderd.</value>
+  </data>
+  <data name="UserDeleteFail" xml:space="preserve">
+    <value>Verwijder de gebruiker '{0}' niet.</value>
+  </data>
+  <data name="AccountAssignmentSuccess" xml:space="preserve">
+    <value>Mail -accountopdrachten voor gebruikers '{0}' met succes bijgewerkt.</value>
+  </data>
+  <data name="PasswordCurrentRequired" xml:space="preserve">
+    <value>Het huidige wachtwoord is vereist.</value>
+  </data>
+  <data name="PasswordNewRequired" xml:space="preserve">
+    <value>Nieuw wachtwoord is vereist.</value>
+  </data>
+  <data name="PasswordNotMatch" xml:space="preserve">
+    <value>Nieuw wachtwoord en bevestiging komen niet overeen.</value>
+  </data>
+  <data name="PasswordCurrentIncorrect" xml:space="preserve">
+    <value>Het huidige wachtwoord is onjuist.</value>
+  </data>
+  <data name="PasswordChangeSuccess" xml:space="preserve">
+    <value>Wachtwoord met succes gewijzigd.</value>
+  </data>
+  <data name="PasswordChangeFail" xml:space="preserve">
+    <value>Het wachtwoord niet bijwerken.</value>
+  </data>
+  <data name="CannotDisableAdmin" xml:space="preserve">
+    <value>Kan de laatste beheerder van de beheerder niet uitschakelen. Ten minste één admin moet bestaan.</value>
+  </data>
+  <data name="UserChangeActiveSuccess" xml:space="preserve">
+    <value>Gebruiker '{0}' is {1} geweest</value>
+  </data>
+  <data name="UserDisabled" xml:space="preserve">
+    <value>gehandicapt</value>
+  </data>
+  <data name="UserEnabled" xml:space="preserve">
+    <value>ingeschakeld</value>
+  </data>
+  <data name="UserChangeActiveFail" xml:space="preserve">
+    <value>Kan niet {1} gebruiker '{0}'.</value>
+  </data>
+  <data name="EmailAccountError" xml:space="preserve">
+    <value>Verbinding met e -mailserver kon niet worden vastgesteld. Controleer uw instellingen en zorg ervoor dat de server bereikbaar is.</value>
+  </data>
+  <data name="EmailAccountCreateSuccess" xml:space="preserve">
+    <value>E -mailaccount met succes gemaakt.</value>
+  </data>
+  <data name="EmailAccountEnabled" xml:space="preserve">
+    <value>Account '{0}' is ingeschakeld voor synchronisatie.</value>
+  </data>
+  <data name="EmailAccountDisabled" xml:space="preserve">
+    <value>Account '{0}' is uitgeschakeld voor synchronisatie.</value>
+  </data>
+  <data name="EmailAccountUpdateSuccess" xml:space="preserve">
+    <value>E -mailaccount met succes bijgewerkt.</value>
+  </data>
+  <data name="EmailAccountDeleteSuccess" xml:space="preserve">
+    <value>E -mailaccount en {0} gerelateerde e -mails zijn succesvol verwijderd.</value>
+  </data>
+  <data name="SyncSuccess" xml:space="preserve">
+    <value>Synchronisatie voor '{0}' werd succesvol voltooid.</value>
+  </data>
+  <data name="SyncFailed" xml:space="preserve">
+    <value>Fout tijdens synchronisatie</value>
+  </data>
+  <data name="FullSyncStarted" xml:space="preserve">
+    <value>Volledige resync voor '{0}' werd met succes gestart.</value>
+  </data>
+  <data name="FullSyncFailed" xml:space="preserve">
+    <value>Kan niet worden gestart met resync voor '{0}'.</value>
+  </data>
+  <data name="FullSyncError" xml:space="preserve">
+    <value>Fout tijdens Resync</value>
+  </data>
+  <data name="MoveEmailsNotFound" xml:space="preserve">
+    <value>Geen e -mails gevonden om voor dit account te kopiëren.</value>
+  </data>
+  <data name="TooManyEmailsInAccount" xml:space="preserve">
+    <value>Te veel e -mails in dit account ({0: n0}). Maximum toegestaan ​​is {1: n0} e -mails per bewerking. Gebruik handmatige selectie met kleinere batches.</value>
+  </data>
+  <data name="SelectValidMBoxFile" xml:space="preserve">
+    <value>Selecteer een geldig Mbox -bestand.</value>
+  </data>
+  <data name="MBoxFileTooLarge" xml:space="preserve">
+    <value>Bestandsgrootte overschrijdt de maximale toegestane grootte van {0}.</value>
+  </data>
+  <data name="SelectedAccountNotFound" xml:space="preserve">
+    <value>Geselecteerde account niet gevonden.</value>
+  </data>
+  <data name="MBoxImportStarted" xml:space="preserve">
+    <value>Mbox -bestand '{0}' met succes geüpload. Import taak begon met geschatte {1: n0} e -mails.</value>
+  </data>
+  <data name="MBoxImportError" xml:space="preserve">
+    <value>Fout starten importeren</value>
+  </data>
+  <data name="InvalidMBoxID" xml:space="preserve">
+    <value>Ongeldige Mbox Import Job ID.</value>
+  </data>
+  <data name="MBoxImportJobNotFound" xml:space="preserve">
+    <value>Mbox import job niet gevonden.</value>
+  </data>
+  <data name="MBoxImportCancelled" xml:space="preserve">
+    <value>Mbox Import -taak is geannuleerd.</value>
+  </data>
+  <data name="MBoxImportCancelError" xml:space="preserve">
+    <value>Kon de Mbox -importtaak niet annuleren. De taak heeft mogelijk al voltooid of bestaat niet.</value>
+  </data>
+  <data name="SyncTimeResetSuccess" xml:space="preserve">
+    <value>Synchronisatie is gereset naar de huidige tijd. Dit voorkomt dat herhaalde synchronisatiefouten onvolledige synchronisaties veroorzaken, omdat het systeem alleen e -mails synchroniseert dan deze tijdstempel.</value>
+  </data>
+  <data name="InvalidUserPassword" xml:space="preserve">
+    <value>Ongeldige gebruikersnaam of wachtwoord.</value>
   </data>
 </root>

@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Localization;
 
 using MailArchiver.Attributes;
 
@@ -21,6 +22,7 @@ namespace MailArchiver.Controllers
         private readonly ISyncJobService _syncJobService;
         private readonly IMBoxImportService _mboxImportService;
         private readonly UploadOptions _uploadOptions;
+        private readonly IStringLocalizer<SharedResource> _localizer;
 
         public MailAccountsController(
             MailArchiverDbContext context,
@@ -29,7 +31,8 @@ namespace MailArchiver.Controllers
             IOptions<BatchRestoreOptions> batchOptions,
             ISyncJobService syncJobService,
             IMBoxImportService mboxImportService,
-            IOptions<UploadOptions> uploadOptions)
+            IOptions<UploadOptions> uploadOptions, 
+            IStringLocalizer<SharedResource> localizer)
         {
             _context = context;
             _emailService = emailService;
@@ -38,6 +41,7 @@ namespace MailArchiver.Controllers
             _syncJobService = syncJobService;
             _mboxImportService = mboxImportService;
             _uploadOptions = uploadOptions.Value;
+            _localizer = localizer;
         }
 
         // GET: MailAccounts
@@ -135,20 +139,20 @@ var account = new MailAccount
                     if (!connectionResult)
                     {
                         _logger.LogWarning("Connection test failed for account {Name}", model.Name);
-                        ModelState.AddModelError("", "Connection to email server could not be established. Please check your settings and ensure the server is reachable.");
+                        ModelState.AddModelError("", _localizer["EmailAccountError"]);
                         return View(model);
                     }
 
                     _logger.LogInformation("Connection test successful, saving account");
                     _context.MailAccounts.Add(account);
                     await _context.SaveChangesAsync();
-                    TempData["SuccessMessage"] = "Email account created successfully.";
+                    TempData["SuccessMessage"] = _localizer["EmailAccountCreateSuccess"].Value;
                     return RedirectToAction(nameof(Index));
                 }
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, "Error creating email account: {Message}", ex.Message);
-                    ModelState.AddModelError("", $"An error occurred: {ex.Message}");
+                    ModelState.AddModelError("", $"{_localizer["ErrorOccurred"]}: {ex.Message}");
                     return View(model);
                 }
             }
@@ -213,8 +217,8 @@ var model = new MailAccountViewModel
 
             // Correct message based on the NEW status (after toggling)
             TempData["SuccessMessage"] = account.IsEnabled
-                ? $"Account '{account.Name}' has been enabled for synchronization."
-                : $"Account '{account.Name}' has been disabled for synchronization.";
+                ? _localizer["EmailAccountEnabled", account.Name].Value
+                : _localizer["EmailAccountDisabled", account.Name].Value;
 
             return RedirectToAction(nameof(Index));
         }
@@ -268,13 +272,13 @@ var model = new MailAccountViewModel
                         var connectionResult = await _emailService.TestConnectionAsync(account);
                         if (!connectionResult)
                         {
-                            ModelState.AddModelError("", "Connection to email server could not be established. Please check your settings.");
+                            ModelState.AddModelError("", _localizer["EmailAccountError"]);
                             return View(model);
                         }
                     }
 
                     await _context.SaveChangesAsync();
-                    TempData["SuccessMessage"] = "Email account updated successfully.";
+                    TempData["SuccessMessage"] = _localizer["EmailAccountUpdateSuccess"].Value;
                     return RedirectToAction(nameof(Index));
                 }
                 catch (DbUpdateConcurrencyException)
@@ -352,7 +356,7 @@ var model = new MailAccountViewModel
 
                 await _context.SaveChangesAsync();
 
-                TempData["SuccessMessage"] = $"Email account and {emailCount} related emails have been successfully deleted.";
+                TempData["SuccessMessage"] = _localizer["EmailAccountDeleteSuccess", emailCount].Value;
             }
 
             return RedirectToAction(nameof(Index));
@@ -377,12 +381,12 @@ var model = new MailAccountViewModel
                 // Sync ausführen
                 await _emailService.SyncMailAccountAsync(account, jobId);
 
-                TempData["SuccessMessage"] = $"Synchronization for {account.Name} was successfully completed.";
+                TempData["SuccessMessage"] = _localizer["SyncSuccess", account.Name].Value;
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error syncing account {AccountName}: {Message}", account.Name, ex.Message);
-                TempData["ErrorMessage"] = $"Error during synchronization: {ex.Message}";
+                TempData["ErrorMessage"] = $"{_localizer["SyncFailed"]}: {ex.Message}";
             }
 
             return RedirectToAction(nameof(Index));
@@ -404,17 +408,17 @@ var model = new MailAccountViewModel
                 var success = await _emailService.ResyncAccountAsync(id);
                 if (success)
                 {
-                    TempData["SuccessMessage"] = $"Full resync for {account.Name} was successfully started.";
+                    TempData["SuccessMessage"] = _localizer["FullSyncStarted", account.Name].Value;
                 }
                 else
                 {
-                    TempData["ErrorMessage"] = $"Failed to start resync for {account.Name}.";
+                    TempData["ErrorMessage"] = _localizer["FullSyncFailed", account.Name].Value;
                 }
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error starting resync for account {AccountName}: {Message}", account.Name, ex.Message);
-                TempData["ErrorMessage"] = $"Error during resync: {ex.Message}";
+                TempData["ErrorMessage"] = $"{_localizer["FullSyncError"]}: {ex.Message}";
             }
 
             return RedirectToAction(nameof(Details), new { id });
@@ -435,7 +439,7 @@ var model = new MailAccountViewModel
 
             if (!emailIds.Any())
             {
-                TempData["ErrorMessage"] = "No emails found to copy for this account.";
+                TempData["ErrorMessage"] = _localizer["MoveEmailsNotFound"].Value;
                 return RedirectToAction(nameof(Details), new { id });
             }
 
@@ -445,7 +449,7 @@ var model = new MailAccountViewModel
             // Prüfe absolute Limits
             if (emailIds.Count > _batchOptions.MaxAsyncEmails)
             {
-                TempData["ErrorMessage"] = $"Too many emails in this account ({emailIds.Count:N0}). Maximum allowed is {_batchOptions.MaxAsyncEmails:N0} emails per operation. Please use manual selection with smaller batches.";
+                TempData["ErrorMessage"] = _localizer["TooManyEmailsInAccount", emailIds.Count, _batchOptions.MaxAsyncEmails].Value;
                 return RedirectToAction(nameof(Details), new { id });
             }
 
@@ -534,13 +538,13 @@ var model = new MailAccountViewModel
             // Validate file
             if (model.MBoxFile == null || model.MBoxFile.Length == 0)
             {
-                ModelState.AddModelError("MBoxFile", "Please select a valid MBox file.");
+                ModelState.AddModelError("MBoxFile", _localizer["SelectValidMBoxFile"]);
                 return View(model);
             }
 
             if (model.MBoxFile.Length > model.MaxFileSize)
             {
-                ModelState.AddModelError("MBoxFile", $"File size exceeds maximum allowed size of {model.MaxFileSizeFormatted}.");
+                ModelState.AddModelError("MBoxFile", _localizer["MBoxFileTooLarge", model.MaxFileSizeFormatted].Value);
                 return View(model);
             }
 
@@ -548,7 +552,7 @@ var model = new MailAccountViewModel
             var targetAccount = await _context.MailAccounts.FindAsync(model.TargetAccountId);
             if (targetAccount == null)
             {
-                ModelState.AddModelError("TargetAccountId", "Selected account not found.");
+                ModelState.AddModelError("TargetAccountId", _localizer["SelectedAccountNotFound"]);
                 return View(model);
             }
 
@@ -574,13 +578,13 @@ var model = new MailAccountViewModel
                 // Queue the job
                 var jobId = _mboxImportService.QueueImport(job);
 
-                TempData["SuccessMessage"] = $"MBox file '{model.MBoxFile.FileName}' uploaded successfully. Import job started with estimated {job.TotalEmails:N0} emails.";
+                TempData["SuccessMessage"] = _localizer["MBoxImportStarted", model.MBoxFile.FileName, job.TotalEmails].Value;
                 return RedirectToAction("MBoxImportStatus", new { jobId });
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error starting MBox import for file {FileName}", model.MBoxFile.FileName);
-                ModelState.AddModelError("", $"Error starting import: {ex.Message}");
+                ModelState.AddModelError("", $"{_localizer["MBoxImportError"]}: {ex.Message}");
                 return View(model);
             }
         }
@@ -592,14 +596,14 @@ var model = new MailAccountViewModel
             // Validate jobId parameter
             if (string.IsNullOrEmpty(jobId))
             {
-                TempData["ErrorMessage"] = "Invalid MBox import job ID.";
+                TempData["ErrorMessage"] = _localizer["InvalidMBoxID"].Value;
                 return RedirectToAction(nameof(Index));
             }
 
             var job = _mboxImportService.GetJob(jobId);
             if (job == null)
             {
-                TempData["ErrorMessage"] = "MBox import job not found.";
+                TempData["ErrorMessage"] = _localizer["MBoxImportJobNotFound"].Value;
                 return RedirectToAction(nameof(Index));
             }
 
@@ -614,7 +618,7 @@ var model = new MailAccountViewModel
             // Validate jobId parameter
             if (string.IsNullOrEmpty(jobId))
             {
-                TempData["ErrorMessage"] = "Invalid MBox import job ID.";
+                TempData["ErrorMessage"] = _localizer["InvalidMBoxID"].Value;
                 // Wenn returnUrl angegeben ist, leite dorthin weiter, sonst zur Index-Seite
                 return Redirect(returnUrl ?? Url.Action(nameof(Index)));
             }
@@ -622,11 +626,11 @@ var model = new MailAccountViewModel
             var success = _mboxImportService.CancelJob(jobId);
             if (success)
             {
-                TempData["SuccessMessage"] = "MBox import job has been cancelled.";
+                TempData["SuccessMessage"] = _localizer["MBoxImportCancelled"].Value;
             }
             else
             {
-                TempData["ErrorMessage"] = "Could not cancel the MBox import job. The job may have already completed or does not exist.";
+                TempData["ErrorMessage"] = _localizer["MBoxImportCancelError"].Value;
             }
 
             // Wenn returnUrl angegeben ist, leite dorthin weiter, sonst zur Index-Seite
@@ -648,7 +652,7 @@ var model = new MailAccountViewModel
             account.LastSync = DateTime.UtcNow;
             await _context.SaveChangesAsync();
 
-            TempData["SuccessMessage"] = "Sync time has been reset to current time. This will prevent repeated sync errors from causing incomplete syncs, as the system will only sync emails newer than this timestamp.";
+            TempData["SuccessMessage"] = _localizer["SyncTimeResetSuccess"].Value;
             return RedirectToAction(nameof(Details), new { id });
         }
 

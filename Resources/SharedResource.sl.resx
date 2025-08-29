@@ -347,7 +347,7 @@
     <value>Zadnja prijava</value>
   </data>
   <data name="Admin" xml:space="preserve">
-    <value>Administrator</value>
+    <value>Skrbnik</value>
   </data>
   <data name="User" xml:space="preserve">
     <value>Uporabnik</value>
@@ -374,7 +374,7 @@
     <value>Izbriši</value>
   </data>
   <data name="DeleteAccountConfirm" xml:space="preserve">
-    <value>Izbrisati račun {0} in vse arhivirane e-pošte? Tega ni mogoče razveljaviti!</value>
+    <value>Izbrišem račun {0} in vso arhivirano pošto? Tega ni mogoče razveljaviti!</value>
   </data>
   <data name="DeleteUserConfirm" xml:space="preserve">
     <value>Res želite izbrisati uporabnika {0}? Dejanja ni mogoče razveljaviti.</value>
@@ -1100,7 +1100,7 @@
     <value>Preklop v razvojno okolje bo prikazal podrobnejše informacije o napaki, ki se je pojavila.</value>
   </data>
   <data name="DevelopmentModeDetail2" xml:space="preserve">
-    <value>Razvojno okolje ne sme biti omogočeno za nameščene aplikacije. To lahko povzroči prikaz občutljivih informacij iz izjem končnim uporabnikom. Za lokalno odpravljanje napak omogočite razvojno okolje tako, da spremenljivku okolja ASPNETCORE_ENVIRONMENT nastavite na Razvoj in znova zaženete aplikacijo.</value>
+    <value>Razvojno okolje ne sme biti omogočeno za nameščene aplikacije. To lahko povzroči prikaz občutljivih informacij iz izjem končnim uporabnikom. Za lokalno odpravljanje napak omogočite razvojno okolje tako, da spremenljivko okolja ASPNETCORE_ENVIRONMENT nastavite na Razvoj in znova zaženete aplikacijo.</value>
   </data>
   <data name="EmailDetails" xml:space="preserve">
     <value>Podrobnosti pošte</value>
@@ -1179,11 +1179,164 @@
   </data>
   <data name="ChangePassword" xml:space="preserve">
     <value>Zamenjaj geslo</value>
-  </data>    
+  </data>
   <data name="Sign Out" xml:space="preserve">
     <value>Odjava</value>
   </data>
   <data name="PasswordHint" xml:space="preserve">
     <value>Geslo mora imeti vsaj 6 znakov.</value>
+  </data>
+  <data name="AllAccounts" xml:space="preserve">
+    <value>Vsi računi</value>
+  </data>
+  <data name="All" xml:space="preserve">
+    <value>Vse</value>
+  </data>
+  <data name="PasswordRequired" xml:space="preserve">
+    <value>Geslo je obvezno.</value>
+  </data>
+  <data name="PasswordTooShort" xml:space="preserve">
+    <value>Geslo mora biti dolgo vsaj 6 znakov.</value>
+  </data>
+  <data name="UsernameExists" xml:space="preserve">
+    <value>Uporabnik že obstaja.</value>
+  </data>
+  <data name="EmailExists" xml:space="preserve">
+    <value>E-pošta že obstaja.</value>
+  </data>
+  <data name="UserCreatedSuccess" xml:space="preserve">
+    <value>Uporabnik '{0}' je bil uspešno ustvarjen.</value>
+  </data>
+  <data name="ErrorOccurred" xml:space="preserve">
+    <value>Prišlo je do napake</value>
+  </data>
+  <data name="CannotRemoveAdmin" xml:space="preserve">
+    <value>Skrbniških pravic ni mogoče odstraniti. Obstajati mora vsaj en skrbnik.</value>
+  </data>
+  <data name="UserUpdated" xml:space="preserve">
+    <value>Uporabnik '{0}' je bil uspešno posodobljen.</value>
+  </data>
+  <data name="UserUpdateFailed" xml:space="preserve">
+    <value>Posodobitev uporabnika ni uspela.</value>
+  </data>
+  <data name="UserNotFound" xml:space="preserve">
+    <value>Ne najdem uporabnika.</value>
+  </data>
+  <data name="UserDeleteAdmin" xml:space="preserve">
+    <value>Zadnjega skrbniškega uporabnika ni mogoče izbrisati. Obstajati mora vsaj en skrbnik.</value>
+  </data>
+  <data name="UserDeleteSuccess" xml:space="preserve">
+    <value>Uporabnik '{0}' je bil uspešno izbrisan.</value>
+  </data>
+  <data name="UserDeleteFail" xml:space="preserve">
+    <value>Brisanje uporabnika '{0}' ni uspelo.</value>
+  </data>
+  <data name="AccountAssignmentSuccess" xml:space="preserve">
+    <value>Dodelitve poštnih računov za uporabnika '{0}' so bile uspešno posodobljene.</value>
+  </data>
+  <data name="PasswordCurrentRequired" xml:space="preserve">
+    <value>Zahtevano je trenutno geslo.</value>
+  </data>
+  <data name="PasswordNewRequired" xml:space="preserve">
+    <value>Zahtevano je novo geslo.</value>
+  </data>
+  <data name="PasswordNotMatch" xml:space="preserve">
+    <value>Novo in potrditveno geslo se ne ujemata.</value>
+  </data>
+  <data name="PasswordCurrentIncorrect" xml:space="preserve">
+    <value>Trenutno geslo je napačno.</value>
+  </data>
+  <data name="CannotDisableAdmin" xml:space="preserve">
+    <value>Zadnjega skrbniškega uporabnika ni mogoče onemogočiti. Obstajati mora vsaj en skrbnik.</value>
+  </data>
+  <data name="PasswordChangeFail" xml:space="preserve">
+    <value>Gesla ni bilo mogoče posodobiti.</value>
+  </data>
+  <data name="PasswordChangeSuccess" xml:space="preserve">
+    <value>Geslo je bilo uspešno spremenjeno.</value>
+  </data>
+  <data name="UserChangeActiveSuccess" xml:space="preserve">
+    <value>Uporabnik '{0}' je bil {1}</value>
+  </data>
+  <data name="UserDisabled" xml:space="preserve">
+    <value>onemogočen</value>
+  </data>
+  <data name="UserEnabled" xml:space="preserve">
+    <value>omogočen</value>
+  </data>
+  <data name="UserChangeActiveFail" xml:space="preserve">
+    <value>Uporabnik {1} ni bil uspešno {0}.</value>
+  </data>
+  <data name="EmailAccountError" xml:space="preserve">
+    <value>Povezave z e-poštnim strežnikom ni bilo mogoče vzpostaviti. Preverite nastavitve in se prepričajte, da je strežnik dosegljiv.</value>
+  </data>
+  <data name="EmailAccountCreateSuccess" xml:space="preserve">
+    <value>E-poštni račun je bil uspešno ustvarjen.</value>
+  </data>
+  <data name="EmailAccountDisabled" xml:space="preserve">
+    <value>Sinhronizacija računa '{0}' je bila onemogočena.</value>
+  </data>
+  <data name="EmailAccountEnabled" xml:space="preserve">
+    <value>Sinhronizacija računa '{0}' je bila omogočena.</value>
+  </data>
+  <data name="EmailAccountUpdateSuccess" xml:space="preserve">
+    <value>E-poštni račun je bil uspešno posodobljen.</value>
+  </data>
+  <data name="EmailAccountDeleteSuccess" xml:space="preserve">
+    <value>E-poštni račun in {0} povezanih e-poštnih sporočil je bilo uspešno izbrisanih.</value>
+  </data>
+  <data name="SyncSuccess" xml:space="preserve">
+    <value>Sinhronizacija za '{0}' je bila uspešno zaključena.</value>
+  </data>
+  <data name="SyncFailed" xml:space="preserve">
+    <value>Napaka med sinhronizacijo</value>
+  </data>
+  <data name="FullSyncStarted" xml:space="preserve">
+    <value>Popolna ponovna sinhronizacija za '{0}' se je uspešno začela.</value>
+  </data>
+  <data name="FullSyncFailed" xml:space="preserve">
+    <value>Ponovne sinhronizacije za '{0}' ni bilo mogoče začeti.</value>
+  </data>
+  <data name="FullSyncError" xml:space="preserve">
+    <value>Napaka med ponovno sinhronizacijo</value>
+  </data>
+  <data name="MoveEmailsNotFound" xml:space="preserve">
+    <value>Za ta račun ni bilo najdenih e-poštnih sporočil za kopiranje.</value>
+  </data>
+  <data name="TooManyEmailsInAccount" xml:space="preserve">
+    <value>Preveč e-poštnih sporočil v tem računu ({0:N0}). Največje dovoljeno število je {1:N0} e-poštnih sporočil na operacijo. Za manjše serije uporabite ročno izbiro.</value>
+  </data>
+  <data name="SelectValidMBoxFile" xml:space="preserve">
+    <value>Izberite veljavno datoteko MBox.</value>
+  </data>
+  <data name="MBoxFileTooLarge" xml:space="preserve">
+    <value>Velikost datoteke presega največjo dovoljeno velikost {0}.</value>
+  </data>
+  <data name="SelectedAccountNotFound" xml:space="preserve">
+    <value>Izbranega računa ni bilo mogoče najti.</value>
+  </data>
+  <data name="MBoxImportStarted" xml:space="preserve">
+    <value>Datoteka MBox '{0}' je bila uspešno naložena. Uvoz se je začel z ocenjenim številom e-poštnih sporočil {1:N0}.</value>
+  </data>
+  <data name="MBoxImportError" xml:space="preserve">
+    <value>Napaka pri začetku uvoza</value>
+  </data>
+  <data name="InvalidMBoxID" xml:space="preserve">
+    <value>Neveljaven ID opravila uvoza MBox.</value>
+  </data>
+  <data name="MBoxImportJobNotFound" xml:space="preserve">
+    <value>Opravilo uvoza MBox ni bilo najdeno.</value>
+  </data>
+  <data name="MBoxImportCancelled" xml:space="preserve">
+    <value>Uvoz datoteke MBox je bil preklican.</value>
+  </data>
+  <data name="MBoxImportCancelError" xml:space="preserve">
+    <value>Uvoza datoteke MBox ni bilo mogoče preklicati. Opravilo je morda že končano ali pa ne obstaja.</value>
+  </data>
+  <data name="SyncTimeResetSuccess" xml:space="preserve">
+    <value>Čas sinhronizacije je bil ponastavljen na trenutni čas. To bo preprečilo, da bi ponavljajoče se napake pri sinhronizaciji povzročile nepopolne sinhronizacije, saj bo sistem sinhroniziral samo e-poštna sporočila, novejša od tega časovnega žiga.</value>
+  </data>
+  <data name="InvalidUserPassword" xml:space="preserve">
+    <value>Neveljavno uporabniško ime ali geslo.</value>
   </data>
 </root>
