@@ -20,36 +20,39 @@
                     <input asp-for="EmailAddress" class="form-control" type="email" />
                     <span asp-validation-for="EmailAddress" class="text-danger"></span>
                 </div>
-                <h4 class="mt-4">@Localizer["IMAPSettings"]</h4>
-                <div class="row">
-                    <div class="col-md-8 mb-3">
-                        <label asp-for="ImapServer" class="form-label">@Localizer["IMAPServer"]</label>
-                        <input asp-for="ImapServer" class="form-control" />
-                        <span asp-validation-for="ImapServer" class="text-danger"></span>
+                
+                @if (!ViewBag.IsImportOnly)
+                {
+                    <h4 class="mt-4">@Localizer["IMAPSettings"]</h4>
+                    <div class="row">
+                        <div class="col-md-8 mb-3">
+                            <label asp-for="ImapServer" class="form-label">@Localizer["IMAPServer"]</label>
+                            <input asp-for="ImapServer" class="form-control" />
+                            <span asp-validation-for="ImapServer" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label asp-for="ImapPort" class="form-label">@Localizer["IMAPPort"]</label>
+                            <input asp-for="ImapPort" class="form-control" />
+                            <span asp-validation-for="ImapPort" class="text-danger"></span>
+                        </div>
                     </div>
-                    <div class="col-md-4 mb-3">
-                        <label asp-for="ImapPort" class="form-label">@Localizer["IMAPPort"]</label>
-                        <input asp-for="ImapPort" class="form-control" />
-                        <span asp-validation-for="ImapPort" class="text-danger"></span>
+                    <h4 class="mt-4">@Localizer["Authentication"]</h4>
+                    <div class="mb-3">
+                        <label asp-for="Username" class="form-label">@Localizer["Username"]</label>
+                        <input asp-for="Username" class="form-control" />
+                        <span asp-validation-for="Username" class="text-danger"></span>
                     </div>
-                </div>
-                <h4 class="mt-4">@Localizer["Authentication"]</h4>
-                <div class="mb-3">
-                    <label asp-for="Username" class="form-label">@Localizer["Username"]</label>
-                    <input asp-for="Username" class="form-control" />
-                    <span asp-validation-for="Username" class="text-danger"></span>
-                </div>
-<div class="mb-3">
-                    <label asp-for="Password" class="form-label">@Localizer["Password"]</label>
-                    <input asp-for="Password" class="form-control" type="password"/>
-                    <div class="form-text">@Localizer["LeaveEmpty"]</div>
-                    <span asp-validation-for="Password" class="text-danger"></span>
-
-                </div>
-                <div class="mb-3 form-check">
-                    <input asp-for="UseSSL" class="form-check-input" />
-                    <label asp-for="UseSSL" class="form-check-label">@Localizer["UseSSL"]</label>
-                </div>
+                    <div class="mb-3">
+                        <label asp-for="Password" class="form-label">@Localizer["Password"]</label>
+                        <input asp-for="Password" class="form-control" type="password"/>
+                        <div class="form-text">@Localizer["LeaveEmpty"]</div>
+                        <span asp-validation-for="Password" class="text-danger"></span>
+                    </div>
+                    <div class="mb-3 form-check">
+                        <input asp-for="UseSSL" class="form-check-input" />
+                        <label asp-for="UseSSL" class="form-check-label">@Localizer["UseSSL"]</label>
+                    </div>
+                }
                 <div class="mb-3 form-check">
                     <input asp-for="IsEnabled" class="form-check-input" />
                     <label asp-for="IsEnabled" class="form-check-label">@Localizer["AccountEnabled"]</label>

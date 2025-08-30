@@ -38,7 +38,7 @@ namespace MailArchiver.Services
                     var syncJobService = scope.ServiceProvider.GetRequiredService<ISyncJobService>();
 
                     var accounts = await dbContext.MailAccounts
-                        .Where(a => a.IsEnabled)
+                        .Where(a => a.IsEnabled && !a.IsImportOnly)
                         .ToListAsync(stoppingToken);
 
                     _logger.LogInformation($"Found {accounts.Count} enabled accounts to sync");

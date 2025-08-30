@@ -1340,6 +1340,22 @@
     <value>Neveljavno uporabniško ime ali geslo.</value>
   </data>
 
+  <!-- Self-Manager Feature -->
+  <data name="SelfManager" xml:space="preserve">
+    <value>Samo-Upravitelj</value>
+  </data>
+
+  <!-- Import-Only Account Feature -->
+  <data name="ImportOnlyAccount" xml:space="preserve">
+    <value>Račun samo za uvoz</value>
+  </data>
+  <data name="ImportOnlyAccountDescription" xml:space="preserve">
+    <value>Račun za uvoz MBox datotek brez IMAP sinhronizacije</value>
+  </data>
+  <data name="ImportOnlyAccountNoSync" xml:space="preserve">
+    <value>Računi samo za uvoz se ne morejo sinhronizirati</value>
+  </data>
+
   <!-- Job Status Translations -->
   <data name="Running" xml:space="preserve">
     <value>Teče</value>

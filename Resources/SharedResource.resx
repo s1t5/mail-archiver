@@ -1348,6 +1348,23 @@
   <data name="InvalidUserPassword" xml:space="preserve">
     <value>Invalid username or password.</value>
   </data>
+  
+  <!-- Self-Manager Feature -->
+  <data name="SelfManager" xml:space="preserve">
+    <value>Self-Manager</value>
+  </data>
+  
+  <!-- Import-Only Account Feature -->
+  <data name="ImportOnlyAccount" xml:space="preserve">
+    <value>Import-Only Account</value>
+  </data>
+  <data name="ImportOnlyAccountDescription" xml:space="preserve">
+    <value>Account for importing MBox files without IMAP synchronization</value>
+  </data>
+  <data name="ImportOnlyAccountNoSync" xml:space="preserve">
+    <value>Import-only accounts cannot be synchronized</value>
+  </data>
+  
   <!-- Job Status Translations -->
   <data name="Running" xml:space="preserve">
     <value>Running</value>

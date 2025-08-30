@@ -28,7 +28,7 @@ namespace MailArchiver.Controllers
         }
 
         // GET: Users
-        [AdminRequired]
+        [SelfManagerRequired]
         public async Task<IActionResult> Index()
         {
             var users = await _userService.GetAllUsersAsync();
@@ -36,7 +36,7 @@ namespace MailArchiver.Controllers
         }
 
         // GET: Users/Details/5
-        [AdminRequired]
+        [SelfManagerRequired]
         public async Task<IActionResult> Details(int id)
         {
             var user = await _userService.GetUserByIdAsync(id);
@@ -53,7 +53,7 @@ namespace MailArchiver.Controllers
         }
 
         // GET: Users/Create
-        [AdminRequired]
+        [SelfManagerRequired]
         public IActionResult Create()
         {
             return View(new CreateUserViewModel());
@@ -62,7 +62,7 @@ namespace MailArchiver.Controllers
         // POST: Users/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [AdminRequired]
+        [SelfManagerRequired]
         public async Task<IActionResult> Create(CreateUserViewModel model, string password)
         {
             _logger.LogInformation("Create user called with Username: {Username}, Email: {Email}, Password length: {PasswordLength}", 
@@ -108,12 +108,19 @@ namespace MailArchiver.Controllers
 
             try
             {
-                // Create the user
-                var newUser = await _userService.CreateUserAsync(
-                    model.Username, 
-                    model.Email, 
-                    password,
-                    model.IsAdmin);
+            // Create the user
+            var newUser = await _userService.CreateUserAsync(
+                model.Username, 
+                model.Email, 
+                password,
+                model.IsAdmin);
+
+            // Set self-manager flag if specified
+            if (model.IsSelfManager)
+            {
+                newUser.IsSelfManager = true;
+                await _userService.UpdateUserAsync(newUser);
+            }
 
                 TempData["SuccessMessage"] = _localizer["UserCreatedSuccess", newUser.Username].Value;
                 return RedirectToAction(nameof(Index));
@@ -197,6 +204,7 @@ namespace MailArchiver.Controllers
                     existingUser.Username = user.Username;
                     existingUser.Email = user.Email;
                     existingUser.IsAdmin = user.IsAdmin;
+                    existingUser.IsSelfManager = user.IsSelfManager;
                     existingUser.IsActive = user.IsActive;
 
                     // Update password if provided
@@ -239,6 +247,7 @@ namespace MailArchiver.Controllers
                 currentUser.Username = user.Username;
                 currentUser.Email = user.Email;
                 currentUser.IsAdmin = user.IsAdmin;
+                currentUser.IsSelfManager = user.IsSelfManager;
                 currentUser.IsActive = user.IsActive;
                 return View(currentUser);
             }

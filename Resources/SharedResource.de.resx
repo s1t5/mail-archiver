@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <root>
-  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
     <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
     <xsd:element name="root" msdata:IsDataSet="true">
       <xsd:complexType>
@@ -53,10 +54,12 @@
     <value>2.0</value>
   </resheader>
   <resheader name="reader">
-    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0,
+      Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <resheader name="writer">
-    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0,
+      Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="EmailArchive" xml:space="preserve">
     <value>E-Mail-Archiv</value>
@@ -1348,6 +1351,23 @@
   <data name="InvalidUserPassword" xml:space="preserve">
     <value>Ungültiger Benutzername oder Passwort.</value>
   </data>
+
+  <!-- Self-Manager Feature -->
+  <data name="SelfManager" xml:space="preserve">
+    <value>Selbst-Verwalter</value>
+  </data>
+
+  <!-- Import-Only Account Feature -->
+  <data name="ImportOnlyAccount" xml:space="preserve">
+    <value>Nur-Import-Konto</value>
+  </data>
+  <data name="ImportOnlyAccountDescription" xml:space="preserve">
+    <value>Konto zum Importieren von MBox-Dateien ohne IMAP-Synchronisation</value>
+  </data>
+    <data name="ImportOnlyAccountNoSync" xml:space="preserve">
+    <value>Nur-Import-Konten können nicht synchronisiert werden</value>
+  </data>
+
   <!-- Job Status Translations -->
   <data name="Running" xml:space="preserve">
     <value>Läuft</value>

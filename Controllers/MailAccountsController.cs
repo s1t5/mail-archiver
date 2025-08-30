@@ -12,7 +12,7 @@ using MailArchiver.Attributes;
 
 namespace MailArchiver.Controllers
 {
-    [AdminRequired]
+    [SelfManagerRequired]
     public class MailAccountsController : Controller
     {
         private readonly MailArchiverDbContext _context;
@@ -44,10 +44,71 @@ namespace MailArchiver.Controllers
             _localizer = localizer;
         }
 
+        private async Task<bool> HasAccessToAccountAsync(int accountId)
+        {
+            // Use the authentication service to get user info properly
+            var authService = HttpContext.RequestServices.GetService<IAuthenticationService>();
+            var currentUsername = authService.GetCurrentUser(HttpContext);
+            var isAdmin = authService.IsCurrentUserAdmin(HttpContext);
+            var isSelfManager = authService.IsCurrentUserSelfManager(HttpContext);
+
+            _logger.LogInformation("HasAccessToAccountAsync - Current username: {Username}, IsAdmin: {IsAdmin}, IsSelfManager: {IsSelfManager}", 
+                currentUsername, isAdmin, isSelfManager);
+
+            // Admin users have access to all accounts
+            if (isAdmin)
+            {
+                _logger.LogInformation("User is admin, granting access to account {AccountId}", accountId);
+                return true;
+            }
+
+            // SelfManager users have access only to assigned accounts
+            if (isSelfManager)
+            {
+                var hasAccess = await _context.MailAccounts
+                    .AnyAsync(ma => ma.Id == accountId && ma.UserMailAccounts.Any(uma => uma.User.Username == currentUsername));
+                _logger.LogInformation("User is SelfManager, access to account {AccountId}: {HasAccess}", accountId, hasAccess);
+                return hasAccess;
+            }
+
+            // Other users have no access
+            _logger.LogInformation("User has no special permissions, denying access to account {AccountId}", accountId);
+            return false;
+        }
+
         // GET: MailAccounts
         public async Task<IActionResult> Index()
         {
-var accounts = await _context.MailAccounts
+            // Use the authentication service to get user info properly
+            var authService = HttpContext.RequestServices.GetService<IAuthenticationService>();
+            var currentUsername = authService.GetCurrentUser(HttpContext);
+            var isAdmin = authService.IsCurrentUserAdmin(HttpContext);
+            var isSelfManager = authService.IsCurrentUserSelfManager(HttpContext);
+            
+            _logger.LogInformation("Current username: {Username}, IsAdmin: {IsAdmin}, IsSelfManager: {IsSelfManager}", 
+                currentUsername, isAdmin, isSelfManager);
+
+            IQueryable<MailAccount> mailAccountsQuery;
+
+            // Check if user is admin (including legacy admin)
+            if (isAdmin)
+            {
+                _logger.LogInformation("User is admin, showing all accounts");
+                mailAccountsQuery = _context.MailAccounts;
+            }
+            else if (isSelfManager)
+            {
+                _logger.LogInformation("User is SelfManager, showing only assigned accounts");
+                mailAccountsQuery = _context.MailAccounts
+                    .Where(ma => ma.UserMailAccounts.Any(uma => uma.User.Username == currentUsername));
+            }
+            else
+            {
+                _logger.LogInformation("User has no special permissions, showing no accounts");
+                mailAccountsQuery = _context.MailAccounts.Where(ma => false); // Empty query
+            }
+
+            var accounts = await mailAccountsQuery
                 .Select(a => new MailAccountViewModel
                 {
                     Id = a.Id,
@@ -63,12 +124,19 @@ var accounts = await _context.MailAccounts
                 })
                 .ToListAsync();
 
+            _logger.LogInformation("Returning {Count} accounts for user {Username}", accounts.Count, currentUsername);
             return View(accounts);
         }
 
         // GET: MailAccounts/Details/5
         public async Task<IActionResult> Details(int id)
         {
+            // Use proper authentication service
+            if (!await HasAccessToAccountAsync(id))
+            {
+                return NotFound();
+            }
+
             var account = await _context.MailAccounts.FindAsync(id);
             if (account == null)
             {
@@ -118,12 +186,13 @@ var account = new MailAccount
                 {
                     Name = model.Name,
                     EmailAddress = model.EmailAddress,
-                    ImapServer = model.ImapServer,
-                    ImapPort = model.ImapPort,
-                    Username = model.Username,
-                    Password = model.Password,
+                    ImapServer = model.IsImportOnly ? null : model.ImapServer,
+                    ImapPort = model.IsImportOnly ? null : model.ImapPort,
+                    Username = model.IsImportOnly ? null : model.Username,
+                    Password = model.IsImportOnly ? null : model.Password,
                     UseSSL = model.UseSSL,
                     IsEnabled = model.IsEnabled,
+                    IsImportOnly = model.IsImportOnly,
                     ExcludedFolders = string.Empty,
                     DeleteAfterDays = model.DeleteAfterDays,
                     LastSync = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)
@@ -131,10 +200,14 @@ var account = new MailAccount
 
                 try
                 {
-                    _logger.LogInformation("Testing connection for new account: {Name}, Server: {Server}:{Port}",
-                        model.Name, model.ImapServer, model.ImapPort);
+                    _logger.LogInformation("Creating new account: {Name}, IsImportOnly: {IsImportOnly}",
+                        model.Name, model.IsImportOnly);
 
-                    // Test connection before saving
+                // Test connection before saving (only for non-import-only accounts)
+                if (!account.IsImportOnly)
+                {
+                    _logger.LogInformation("Testing connection for account: {Name}, Server: {Server}:{Port}",
+                        model.Name, model.ImapServer, model.ImapPort);
                     var connectionResult = await _emailService.TestConnectionAsync(account);
                     if (!connectionResult)
                     {
@@ -142,10 +215,30 @@ var account = new MailAccount
                         ModelState.AddModelError("", _localizer["EmailAccountError"]);
                         return View(model);
                     }
+                }
 
-                    _logger.LogInformation("Connection test successful, saving account");
+                    _logger.LogInformation("Saving account to database");
                     _context.MailAccounts.Add(account);
                     await _context.SaveChangesAsync();
+
+                    // Auto-assign the account to the current user if they are a SelfManager (not Admin)
+                    var currentUsername = HttpContext.User.Identity?.Name;
+                    var currentUser = await _context.Users
+                        .FirstOrDefaultAsync(u => u.Username == currentUsername);
+                    
+                    if (currentUser != null && !currentUser.IsAdmin && currentUser.IsSelfManager)
+                    {
+                        var userMailAccount = new UserMailAccount
+                        {
+                            UserId = currentUser.Id,
+                            MailAccountId = account.Id
+                        };
+                        _context.UserMailAccounts.Add(userMailAccount);
+                        await _context.SaveChangesAsync();
+                        _logger.LogInformation("Auto-assigned account {AccountName} to SelfManager user {Username}", 
+                            account.Name, currentUser.Username);
+                    }
+
                     TempData["SuccessMessage"] = _localizer["EmailAccountCreateSuccess"].Value;
                     return RedirectToAction(nameof(Index));
                 }
@@ -164,6 +257,11 @@ var account = new MailAccount
         // GET: MailAccounts/Edit/5
         public async Task<IActionResult> Edit(int id)
         {
+            if (!await HasAccessToAccountAsync(id))
+            {
+                return NotFound();
+            }
+
             var account = await _context.MailAccounts.FindAsync(id);
             if (account == null)
             {
@@ -185,26 +283,37 @@ var model = new MailAccountViewModel
                 DeleteAfterDays = account.DeleteAfterDays
             };
 
-            // Load available folders for exclusion selection
-            try
+            // Set ViewBag properties
+            ViewBag.IsImportOnly = account.IsImportOnly;
+            
+            // Load available folders for exclusion selection (only for non-import-only accounts)
+            if (!account.IsImportOnly)
             {
-                var folders = await _emailService.GetMailFoldersAsync(id);
-                ViewBag.AvailableFolders = folders;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "Could not load folders for account {AccountId}", id);
-                ViewBag.AvailableFolders = new List<string>();
+                try
+                {
+                    var folders = await _emailService.GetMailFoldersAsync(id);
+                    ViewBag.AvailableFolders = folders;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Could not load folders for account {AccountId}", id);
+                    ViewBag.AvailableFolders = new List<string>();
+                }
             }
 
             return View(model);
         }
 
-        // MailAccountsController.cs
+        // POST: MailAccounts/ToggleEnabled/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ToggleEnabled(int id)
         {
+            if (!await HasAccessToAccountAsync(id))
+            {
+                return NotFound();
+            }
+
             var account = await _context.MailAccounts.FindAsync(id);
             if (account == null)
             {
@@ -229,6 +338,11 @@ var model = new MailAccountViewModel
         public async Task<IActionResult> Edit(int id, MailAccountViewModel model)
         {
             if (id != model.Id)
+            {
+                return NotFound();
+            }
+
+            if (!await HasAccessToAccountAsync(id))
             {
                 return NotFound();
             }
@@ -266,8 +380,8 @@ var model = new MailAccountViewModel
                     account.ExcludedFolders = model.ExcludedFolders ?? string.Empty;
                     account.DeleteAfterDays = model.DeleteAfterDays;
 
-                    // Test connection before saving
-                    if (!string.IsNullOrEmpty(model.Password))
+                    // Test connection before saving (only for non-import-only accounts)
+                    if (!string.IsNullOrEmpty(model.Password) && !account.IsImportOnly)
                     {
                         var connectionResult = await _emailService.TestConnectionAsync(account);
                         if (!connectionResult)
@@ -299,6 +413,12 @@ var model = new MailAccountViewModel
         // GET: MailAccounts/Delete/5
         public async Task<IActionResult> Delete(int id)
         {
+            // Use proper authentication service
+            if (!await HasAccessToAccountAsync(id))
+            {
+                return NotFound();
+            }
+
             var account = await _context.MailAccounts.FindAsync(id);
             if (account == null)
             {
@@ -326,6 +446,12 @@ var model = new MailAccountViewModel
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
+            // Use proper authentication service
+            if (!await HasAccessToAccountAsync(id))
+            {
+                return NotFound();
+            }
+
             // Determine number of emails to delete
             var emailCount = await _context.ArchivedEmails.CountAsync(e => e.MailAccountId == id);
 
@@ -367,10 +493,23 @@ var model = new MailAccountViewModel
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Sync(int id)
         {
+            // Use proper authentication service
+            if (!await HasAccessToAccountAsync(id))
+            {
+                return NotFound();
+            }
+
             var account = await _context.MailAccounts.FindAsync(id);
             if (account == null)
             {
                 return NotFound();
+            }
+
+            // Prevent sync for import-only accounts
+            if (account.IsImportOnly)
+            {
+                TempData["ErrorMessage"] = _localizer["ImportOnlyAccountNoSync"].Value;
+                return RedirectToAction(nameof(Index));
             }
 
             try
@@ -397,10 +536,23 @@ var model = new MailAccountViewModel
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Resync(int id)
         {
+            // Use proper authentication service
+            if (!await HasAccessToAccountAsync(id))
+            {
+                return NotFound();
+            }
+
             var account = await _context.MailAccounts.FindAsync(id);
             if (account == null)
             {
                 return NotFound();
+            }
+
+            // Prevent resync for import-only accounts
+            if (account.IsImportOnly)
+            {
+                TempData["ErrorMessage"] = _localizer["ImportOnlyAccountNoSync"].Value;
+                return RedirectToAction(nameof(Details), new { id });
             }
 
             try
@@ -429,6 +581,12 @@ var model = new MailAccountViewModel
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> MoveAllEmails(int id)
         {
+            // Use proper authentication service
+            if (!await HasAccessToAccountAsync(id))
+            {
+                return NotFound();
+            }
+
             var account = await _context.MailAccounts.FindAsync(id);
             if (account == null) return NotFound();
 
@@ -491,7 +649,33 @@ var model = new MailAccountViewModel
         // GET: MailAccounts/ImportMBox
         public async Task<IActionResult> ImportMBox()
         {
-            var accounts = await _context.MailAccounts
+            // Use the authentication service to get user info properly
+            var authService = HttpContext.RequestServices.GetService<IAuthenticationService>();
+            var currentUsername = authService.GetCurrentUser(HttpContext);
+            var isAdmin = authService.IsCurrentUserAdmin(HttpContext);
+            var isSelfManager = authService.IsCurrentUserSelfManager(HttpContext);
+
+            IQueryable<MailAccount> mailAccountsQuery;
+
+            // Check if user is admin (including legacy admin)
+            if (isAdmin)
+            {
+                _logger.LogInformation("User is admin, showing all accounts");
+                mailAccountsQuery = _context.MailAccounts;
+            }
+            else if (isSelfManager)
+            {
+                _logger.LogInformation("User is SelfManager, showing only assigned accounts");
+                mailAccountsQuery = _context.MailAccounts
+                    .Where(ma => ma.UserMailAccounts.Any(uma => uma.User.Username == currentUsername));
+            }
+            else
+            {
+                _logger.LogInformation("User has no special permissions, showing no accounts");
+                mailAccountsQuery = _context.MailAccounts.Where(ma => false); // Empty query
+            }
+
+            var accounts = await mailAccountsQuery
                 .Where(a => a.IsEnabled)
                 .OrderBy(a => a.Name)
                 .ToListAsync();
@@ -591,7 +775,7 @@ var model = new MailAccountViewModel
 
         // GET: MailAccounts/MBoxImportStatus
         [HttpGet]
-        public IActionResult MBoxImportStatus(string jobId)
+        public async Task<IActionResult> MBoxImportStatus(string jobId)
         {
             // Validate jobId parameter
             if (string.IsNullOrEmpty(jobId))
@@ -607,13 +791,19 @@ var model = new MailAccountViewModel
                 return RedirectToAction(nameof(Index));
             }
 
+            // Check if user has access to the target account
+            if (!await HasAccessToAccountAsync(job.TargetAccountId))
+            {
+                return NotFound();
+            }
+
             return View(job);
         }
 
         // POST: MailAccounts/CancelMBoxImport
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult CancelMBoxImport(string jobId, string returnUrl = null)
+        public async Task<IActionResult> CancelMBoxImport(string jobId, string returnUrl = null)
         {
             // Validate jobId parameter
             if (string.IsNullOrEmpty(jobId))
@@ -621,6 +811,16 @@ var model = new MailAccountViewModel
                 TempData["ErrorMessage"] = _localizer["InvalidMBoxID"].Value;
                 // Wenn returnUrl angegeben ist, leite dorthin weiter, sonst zur Index-Seite
                 return Redirect(returnUrl ?? Url.Action(nameof(Index)));
+            }
+
+            var job = _mboxImportService.GetJob(jobId);
+            if (job != null)
+            {
+                // Check if user has access to the target account
+                if (!await HasAccessToAccountAsync(job.TargetAccountId))
+                {
+                    return NotFound();
+                }
             }
 
             var success = _mboxImportService.CancelJob(jobId);
@@ -642,6 +842,12 @@ var model = new MailAccountViewModel
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ResetSyncTime(int id)
         {
+            // Use proper authentication service
+            if (!await HasAccessToAccountAsync(id))
+            {
+                return NotFound();
+            }
+
             var account = await _context.MailAccounts.FindAsync(id);
             if (account == null)
             {
@@ -660,6 +866,12 @@ var model = new MailAccountViewModel
         [HttpGet]
         public async Task<JsonResult> GetFolders(int accountId)
         {
+            // Use proper authentication service
+            if (!await HasAccessToAccountAsync(accountId))
+            {
+                return Json(new List<string> { "INBOX" });
+            }
+
             try
             {
                 var folders = await _emailService.GetMailFoldersAsync(accountId);

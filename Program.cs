@@ -14,7 +14,12 @@ AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 async static Task EnsureMigrationsHistoryTableExists(MailArchiverDbContext context, IServiceProvider services)
 {
     var connection = context.Database.GetDbConnection();
-    await connection.OpenAsync();
+    
+    // Check if connection is already open
+    if (connection.State != System.Data.ConnectionState.Open)
+    {
+        await connection.OpenAsync();
+    }
     
     var command = connection.CreateCommand();
     command.CommandText = @"

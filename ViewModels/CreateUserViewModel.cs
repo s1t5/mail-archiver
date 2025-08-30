@@ -15,6 +15,8 @@ namespace MailArchiver.Models.ViewModels
         [Required]
         public bool IsAdmin { get; set; } = false;
         
+        public bool IsSelfManager { get; set; } = false;
+        
         public bool IsActive { get; set; } = true;
     }
 }

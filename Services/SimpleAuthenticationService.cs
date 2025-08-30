@@ -176,6 +176,31 @@ namespace MailArchiver.Services
             return isAdmin;
         }
 
+        public bool IsCurrentUserSelfManager(HttpContext context)
+        {
+            if (!_authOptions.Enabled)
+            {
+                _logger.LogDebug("Authentication not enabled, returning false for self-manager check");
+                return false;
+            }
+
+            var username = GetCurrentUser(context);
+            _logger.LogDebug("Checking if user '{Username}' is self-manager", username);
+
+            // Legacy admin user is not considered a self-manager
+            if (string.Equals(username, _authOptions.Username, StringComparison.OrdinalIgnoreCase))
+            {
+                _logger.LogDebug("User '{Username}' is legacy admin user, not self-manager", username);
+                return false;
+            }
+
+            // Check if it's a database user with self-manager privileges
+            var user = _userService.GetUserByUsernameAsync(username).Result;
+            var isSelfManager = user?.IsSelfManager ?? false;
+            _logger.LogDebug("User '{Username}' database self-manager status: {IsSelfManager}", username, isSelfManager);
+            return isSelfManager;
+        }
+
         private string GenerateSecureToken()
         {
             // Generate a random token

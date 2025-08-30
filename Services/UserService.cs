@@ -81,6 +81,13 @@ namespace MailArchiver.Services
             if (user == null)
                 return false;
 
+            // Prevent deletion of self-manager users
+            if (user.IsSelfManager)
+            {
+                _logger.LogWarning("Attempt to delete self-manager user {Username} (ID: {UserId})", user.Username, user.Id);
+                return false;
+            }
+
             // Remove user's mail account associations
             var userMailAccounts = await _context.UserMailAccounts
                 .Where(uma => uma.UserId == id)
@@ -213,6 +220,14 @@ namespace MailArchiver.Services
             if (isAdmin)
             {
                 _logger.LogInformation("User {UserId} is admin, granting access to account {MailAccountId}", userId, mailAccountId);
+                return true;
+            }
+
+            // Check if user is a self-manager
+            var user = await _context.Users.FindAsync(userId);
+            if (user?.IsSelfManager == true)
+            {
+                _logger.LogInformation("User {UserId} is self-manager, granting access to account {MailAccountId}", userId, mailAccountId);
                 return true;
             }
 

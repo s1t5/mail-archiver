@@ -36,7 +36,20 @@
                             <tr>
                                 <td><a asp-action="Details" asp-route-id="@item.Id">@item.Username</a></td>
                                 <td>@item.Email</td>
-                                <td>@(item.IsAdmin ? Localizer["Admin"] : Localizer["User"])</td>
+                                <td>
+                                    @if (item.IsAdmin)
+                                    {
+                                        @Localizer["Admin"]
+                                    }
+                                    else if (item.IsSelfManager)
+                                    {
+                                        @Localizer["SelfManager"]
+                                    }
+                                    else
+                                    {
+                                        @Localizer["User"]
+                                    }
+                                </td>
                                 <td>
                                     @if (item.IsActive)
                                     {<span class="badge bg-success">@Localizer["Active"]</span>}
@@ -74,7 +87,20 @@
                         {<span class="badge bg-danger">@Localizer["Inactive"]</span>}
                     </div>
                     <p class="card-text small text-muted mb-2">@item.Email</p>
-                    <p class="card-text small mb-3"><strong>@Localizer["Role"]:</strong> @(item.IsAdmin ? Localizer["Admin"] : Localizer["User"])</p>
+                    <p class="card-text small mb-3"><strong>@Localizer["Role"]:</strong> 
+                        @if (item.IsAdmin)
+                        {
+                            @Localizer["Admin"]
+                        }
+                        else if (item.IsSelfManager)
+                        {
+                            @Localizer["SelfManager"]
+                        }
+                        else
+                        {
+                            @Localizer["User"]
+                        }
+                    </p>
                     <p class="card-text small mb-2"><strong>@Localizer["Created"]:</strong> @item.CreatedAt.ToString(System.Globalization.CultureInfo.CurrentUICulture.DateTimeFormat.ShortDatePattern)</p>
                     <p class="card-text small mb-3"><strong>@Localizer["LastLogin"]:</strong> @(item.LastLoginAt?.ToString(System.Globalization.CultureInfo.CurrentUICulture.DateTimeFormat.ShortDatePattern + " " + System.Globalization.CultureInfo.CurrentUICulture.DateTimeFormat.ShortTimePattern) ?? Localizer["Never"])</p>
                     <div class="d-grid gap-2">

@@ -42,7 +42,7 @@
                                 <i class="bi bi-archive me-1"></i>@Localizer["Archive"]
                             </a>
                         </li>
-                        @if (AuthService.IsCurrentUserAdmin(Context))
+                        @if (AuthService.IsCurrentUserAdmin(Context) || AuthService.IsCurrentUserSelfManager(Context))
                         {
                             <li class="nav-item">
                                 <a class="nav-link @(ViewContext.RouteData.Values["Controller"].ToString() == "MailAccounts" ? "active" : "")"
@@ -50,6 +50,9 @@
                                     <i class="bi bi-envelope-at me-1"></i>@Localizer["MailAccounts"]
                                 </a>
                             </li>
+                        }
+                        @if (AuthService.IsCurrentUserAdmin(Context))
+                        {
                             <li class="nav-item">
                                 <a class="nav-link @(ViewContext.RouteData.Values["Controller"].ToString() == "Users" ? "active" : "")"
                                     asp-controller="Users" asp-action="Index">
@@ -123,7 +126,7 @@
         <div class="container-fluid">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
-                    <span>@DateTime.Now.Year - s1t5 | Mail-Archiver v2508.8</span>
+                    <span>@DateTime.Now.Year - s1t5 | Mail-Archiver v2508.9</span>
                 </div>
                 <div>
                     <a href="https://github.com/s1t5/mail-archiver" class="text-muted text-decoration-none"

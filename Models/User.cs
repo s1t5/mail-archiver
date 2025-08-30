@@ -20,6 +20,9 @@ namespace MailArchiver.Models
         [Required]
         public bool IsAdmin { get; set; } = false;
         
+        [Required]
+        public bool IsSelfManager { get; set; } = false;
+        
         public bool IsActive { get; set; } = true;
         
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

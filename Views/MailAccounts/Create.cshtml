@@ -24,39 +24,47 @@
                     <span asp-validation-for="EmailAddress" class="text-danger"></span>
                 </div>
                 
-                <h4 class="mt-4">IMAP Settings</h4>
+                <div class="mb-3 form-check">
+                    <input asp-for="IsImportOnly" class="form-check-input" id="isImportOnly" />
+                    <label asp-for="IsImportOnly" class="form-check-label">@Localizer["ImportOnlyAccount"]</label>
+                    <div class="form-text">@Localizer["ImportOnlyAccountDescription"]</div>
+                </div>
                 
-                <div class="row">
-                    <div class="col-md-8 mb-3">
-                        <label asp-for="ImapServer" class="form-label">@Localizer["IMAPServer"]</label>
-                        <input asp-for="ImapServer" class="form-control" />
-                        <span asp-validation-for="ImapServer" class="text-danger"></span>
+                <div id="imapSettings">
+                    <h4 class="mt-4">IMAP Settings</h4>
+                    
+                    <div class="row">
+                        <div class="col-md-8 mb-3">
+                            <label asp-for="ImapServer" class="form-label">@Localizer["IMAPServer"]</label>
+                            <input asp-for="ImapServer" class="form-control" />
+                            <span asp-validation-for="ImapServer" class="text-danger"></span>
+                        </div>
+                        
+                        <div class="col-md-4 mb-3">
+                            <label asp-for="ImapPort" class="form-label">@Localizer["IMAPPort"]</label>
+                            <input asp-for="ImapPort" class="form-control" />
+                            <span asp-validation-for="ImapPort" class="text-danger"></span>
+                        </div>
                     </div>
                     
-                    <div class="col-md-4 mb-3">
-                        <label asp-for="ImapPort" class="form-label">@Localizer["IMAPPort"]</label>
-                        <input asp-for="ImapPort" class="form-control" />
-                        <span asp-validation-for="ImapPort" class="text-danger"></span>
+                    <h4 class="mt-4">@Localizer["Authentication"]</h4>
+                    
+                    <div class="mb-3">
+                        <label asp-for="Username" class="form-label">@Localizer["Username"]</label>
+                        <input asp-for="Username" class="form-control" />
+                        <span asp-validation-for="Username" class="text-danger"></span>
                     </div>
-                </div>
-                
-                <h4 class="mt-4">@Localizer["Authentication"]</h4>
-                
-                <div class="mb-3">
-                    <label asp-for="Username" class="form-label">@Localizer["Username"]</label>
-                    <input asp-for="Username" class="form-control" />
-                    <span asp-validation-for="Username" class="text-danger"></span>
-                </div>
-                
-                <div class="mb-3">
-                    <label asp-for="Password" class="form-label">@Localizer["Password"]</label>
-                    <input asp-for="Password" class="form-control" type="password" />
-                    <span asp-validation-for="Password" class="text-danger"></span>
-                </div>
-                
-                <div class="mb-3 form-check">
-                    <input asp-for="UseSSL" class="form-check-input" />
-                    <label asp-for="UseSSL" class="form-check-label">@Localizer["UseSSL"]</label>
+                    
+                    <div class="mb-3">
+                        <label asp-for="Password" class="form-label">@Localizer["Password"]</label>
+                        <input asp-for="Password" class="form-control" type="password" />
+                        <span asp-validation-for="Password" class="text-danger"></span>
+                    </div>
+                    
+                    <div class="mb-3 form-check">
+                        <input asp-for="UseSSL" class="form-check-input" />
+                        <label asp-for="UseSSL" class="form-check-label">@Localizer["UseSSL"]</label>
+                    </div>
                 </div>
                 
 <div class="mb-3 form-check">
@@ -83,5 +91,25 @@
 </div>
 
 @section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const isImportOnlyCheckbox = document.getElementById('isImportOnly');
+            const imapSettings = document.getElementById('imapSettings');
+            
+            function toggleImapSettings() {
+                if (isImportOnlyCheckbox.checked) {
+                    imapSettings.style.display = 'none';
+                } else {
+                    imapSettings.style.display = 'block';
+                }
+            }
+            
+            // Initial check
+            toggleImapSettings();
+            
+            // Add event listener
+            isImportOnlyCheckbox.addEventListener('change', toggleImapSettings);
+        });
+    </script>
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
 }

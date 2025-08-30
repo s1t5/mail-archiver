@@ -52,7 +52,7 @@ namespace MailArchiver.Services
 
             try
             {
-                await client.ConnectAsync(account.ImapServer, account.ImapPort, account.UseSSL);
+                await client.ConnectAsync(account.ImapServer, account.ImapPort ?? 993, account.UseSSL ? SecureSocketOptions.SslOnConnect : SecureSocketOptions.None);
                 await client.AuthenticateAsync(account.Username, account.Password);
                 _logger.LogInformation("Connected to IMAP server for {AccountName}", account.Name);
 
@@ -2044,7 +2044,7 @@ namespace MailArchiver.Services
                 _logger.LogDebug("Connecting to {Server}:{Port}, SSL: {UseSSL}",
                     account.ImapServer, account.ImapPort, account.UseSSL);
 
-                await client.ConnectAsync(account.ImapServer, account.ImapPort, account.UseSSL);
+                await client.ConnectAsync(account.ImapServer, account.ImapPort ?? 993, account.UseSSL ? SecureSocketOptions.SslOnConnect : SecureSocketOptions.None);
                 _logger.LogDebug("Connection established, authenticating as {Username}", account.Username);
 
                 await client.AuthenticateAsync(account.Username, account.Password);
@@ -2227,7 +2227,7 @@ namespace MailArchiver.Services
                     _logger.LogInformation("Connecting to IMAP server {Server}:{Port} for account {AccountName}",
                         targetAccount.ImapServer, targetAccount.ImapPort, targetAccount.Name);
 
-                    await client.ConnectAsync(targetAccount.ImapServer, targetAccount.ImapPort, targetAccount.UseSSL);
+                    await client.ConnectAsync(targetAccount.ImapServer, targetAccount.ImapPort ?? 993, targetAccount.UseSSL ? SecureSocketOptions.SslOnConnect : SecureSocketOptions.None);
                     _logger.LogInformation("Connected to IMAP server, authenticating as {Username}", targetAccount.Username);
 
                     await client.AuthenticateAsync(targetAccount.Username, targetAccount.Password);
@@ -2362,7 +2362,7 @@ namespace MailArchiver.Services
             {
                 using var client = new ImapClient();
                 client.Timeout = 60000;
-                await client.ConnectAsync(account.ImapServer, account.ImapPort, account.UseSSL);
+                await client.ConnectAsync(account.ImapServer, account.ImapPort ?? 993, account.UseSSL ? SecureSocketOptions.SslOnConnect : SecureSocketOptions.None);
                 await client.AuthenticateAsync(account.Username, account.Password);
 
                 var allFolders = new List<string>();
@@ -2687,7 +2687,7 @@ namespace MailArchiver.Services
                 }
 
                 _logger.LogInformation("Reconnecting to IMAP server for account {AccountName}", account.Name);
-                await client.ConnectAsync(account.ImapServer, account.ImapPort, account.UseSSL);
+                await client.ConnectAsync(account.ImapServer, account.ImapPort ?? 993, account.UseSSL ? SecureSocketOptions.SslOnConnect : SecureSocketOptions.None);
                 await client.AuthenticateAsync(account.Username, account.Password);
                 _logger.LogInformation("Successfully reconnected to IMAP server for account {AccountName}", account.Name);
             }

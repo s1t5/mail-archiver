@@ -12,16 +12,13 @@ namespace MailArchiver.Models.ViewModels
         [EmailAddress(ErrorMessage = "Invalid email format")]
         [Display(Name = "Email address")]
         public string EmailAddress { get; set; }
-        [Required(ErrorMessage = "IMAP server is required")]
         [Display(Name = "IMAP server")]
-        public string ImapServer { get; set; }
-        [Required(ErrorMessage = "IMAP port is required")]
+        public string? ImapServer { get; set; }
         [Range(1, 65535, ErrorMessage = "Port must be between 1 and 65535")]
         [Display(Name = "IMAP port")]
-        public int ImapPort { get; set; } = 993;
-        [Required(ErrorMessage = "Username is required")]
+        public int? ImapPort { get; set; } = 993;
         [Display(Name = "Username")]
-        public string Username { get; set; }
+        public string? Username { get; set; }
         
         [Display(Name = "Password")]
         public string? Password { get; set; }
