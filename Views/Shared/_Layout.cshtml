@@ -89,7 +89,7 @@
                     </ul>
                     <div class="d-flex align-items-center">
                         <span class="navbar-text me-3 d-none d-lg-inline">
-                            <i class="bi bi-clock-history"></i> @Localizer["LastUpdate"] @DateTime.Now.ToString("MM/dd HH:mm")
+                            <i class="bi bi-clock-history"></i> @Localizer["LastUpdate"] @DateTime.Now.ToString(System.Globalization.CultureInfo.CurrentUICulture.DateTimeFormat.ShortDatePattern + " " + System.Globalization.CultureInfo.CurrentUICulture.DateTimeFormat.ShortTimePattern)
                         </span>
                         <button id="theme-toggle" class="btn btn-outline-light me-2" type="button" title="Toggle Dark Mode">
                             <i class="bi bi-circle-half"></i>
