@@ -89,7 +89,7 @@
                     </ul>
                     <div class="d-flex align-items-center">
                         <span class="navbar-text me-3 d-none d-lg-inline">
-                            <i class="bi bi-clock-history"></i> @Localizer["LastUpdate"] @DateTime.Now.ToString(System.Globalization.CultureInfo.CurrentUICulture.DateTimeFormat.ShortDatePattern + " " + System.Globalization.CultureInfo.CurrentUICulture.DateTimeFormat.ShortTimePattern)
+                            <i class="bi bi-clock-history"></i> @Localizer["LastUpdate"] @DateTime.Now.ToString("g")
                         </span>
                         <button id="theme-toggle" class="btn btn-outline-light me-2" type="button" title="Toggle Dark Mode">
                             <i class="bi bi-circle-half"></i>
@@ -158,8 +158,16 @@
                     return utcDateString; // Ungültiges Datum
                 }
 
-                // Format: DD.MM.YYYY HH:mm:ss oder je nach Locale
-                return utcDate.toLocaleDateString() + ' ' + utcDate.toLocaleTimeString();
+        // Format: Use the application's culture settings
+        // Get the culture from the HTML lang attribute
+        const cultureLang = document.documentElement.lang || 'en';
+        return utcDate.toLocaleString(cultureLang, {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
             } catch (e) {
                 console.error('Fehler bei der Datums-Konvertierung:', e, 'Ursprünglicher Wert:', utcDateString);
                 return utcDateString;
@@ -172,7 +180,10 @@
             const timeElements = document.querySelectorAll('[data-utc-time]');
             timeElements.forEach(element => {
                 const utcTime = element.getAttribute('data-utc-time');
-                if (utcTime && utcTime !== '0001-01-01T00:00:00') {
+                // Skip conversion completely for elements with class 'utc-timestamp'
+                // These elements already have proper server-side formatting using .ToString("g")
+                if (utcTime && utcTime !== '0001-01-01T00:00:00' && 
+                    !element.classList.contains('utc-timestamp')) {
                     const localTime = convertUTCToLocal(utcTime);
                     element.textContent = localTime;
                 }

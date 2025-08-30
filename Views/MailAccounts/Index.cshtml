@@ -56,7 +56,7 @@
                                     {
                                         <span class="utc-timestamp"
                                             data-utc-time="@item.LastSync.Value.ToString("yyyy-MM-ddTHH:mm:ss")">
-                                            @item.LastSync.Value.ToString(System.Globalization.CultureInfo.CurrentUICulture.DateTimeFormat.ShortDatePattern + " " + System.Globalization.CultureInfo.CurrentUICulture.DateTimeFormat.ShortTimePattern)
+                                            @item.LastSync.Value.ToString("g")
                                         </span>
                                     }
                                     else
@@ -151,7 +151,7 @@
                         @if (item.LastSync.HasValue)
                         {
                             <span class="utc-timestamp" data-utc-time="@item.LastSync.Value.ToString("yyyy-MM-ddTHH:mm:ss")">
-                                @item.LastSync.Value.ToString(System.Globalization.CultureInfo.CurrentUICulture.DateTimeFormat.ShortDatePattern + " " + System.Globalization.CultureInfo.CurrentUICulture.DateTimeFormat.ShortTimePattern)
+                                @item.LastSync.Value.ToString("g")
                             </span>
                         }
                         else

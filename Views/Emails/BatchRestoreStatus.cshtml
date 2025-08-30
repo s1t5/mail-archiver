@@ -91,7 +91,7 @@
                 <dt class="col-sm-3">@Localizer["CreatedLabel"]</dt>
                 <dd class="col-sm-9">
                     <span class="utc-timestamp" data-utc-time="@Model.Created.ToString("yyyy-MM-ddTHH:mm:ss")">
-                        @Model.Created.ToString(System.Globalization.CultureInfo.CurrentUICulture.DateTimeFormat.ShortDatePattern + " " + System.Globalization.CultureInfo.CurrentUICulture.DateTimeFormat.ShortTimePattern)
+                        @Model.Created.ToString("g")
                     </span>
                 </dd>
                 @if (Model.Started.HasValue)
@@ -99,7 +99,7 @@
                     <dt class="col-sm-3">@Localizer["StartedLabel"]</dt>
                     <dd class="col-sm-9">
                         <span class="utc-timestamp" data-utc-time="@Model.Started.Value.ToString("yyyy-MM-ddTHH:mm:ss")">
-                            @Model.Started.Value.ToString(System.Globalization.CultureInfo.CurrentUICulture.DateTimeFormat.ShortDatePattern + " " + System.Globalization.CultureInfo.CurrentUICulture.DateTimeFormat.ShortTimePattern)
+                            @Model.Started.Value.ToString("g")
                         </span>
                     </dd>
                 }
@@ -108,7 +108,7 @@
                     <dt class="col-sm-3">@Localizer["CompletedLabel"]</dt>
                     <dd class="col-sm-9">
                         <span class="utc-timestamp" data-utc-time="@Model.Completed.Value.ToString("yyyy-MM-ddTHH:mm:ss")">
-                            @Model.Completed.Value.ToString(System.Globalization.CultureInfo.CurrentUICulture.DateTimeFormat.ShortDatePattern + " " + System.Globalization.CultureInfo.CurrentUICulture.DateTimeFormat.ShortTimePattern)
+                            @Model.Completed.Value.ToString("g")
                         </span>
                     </dd>
                     @if (Model.Started.HasValue)
