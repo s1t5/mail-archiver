@@ -23,7 +23,7 @@
                 <dt class="col-md-2">@Localizer["FromLabel"]</dt>
                 <dd class="col-md-10">@Model.EmailSender</dd>
                 <dt class="col-md-2">@Localizer["DateLabel"]</dt>
-                <dd class="col-md-10">@Model.EmailDate.ToString("yyyy-MM-dd HH:mm")</dd>
+                <dd class="col-md-10">@Model.EmailDate.ToString(System.Globalization.CultureInfo.CurrentUICulture.DateTimeFormat.ShortDatePattern + " " + System.Globalization.CultureInfo.CurrentUICulture.DateTimeFormat.ShortTimePattern)</dd>
             </dl>
         </div>
     </div>

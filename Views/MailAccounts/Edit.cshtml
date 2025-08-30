@@ -86,7 +86,7 @@
                 {
                     <div class="mb-3">
                         <label asp-for="LastSync" class="form-label">@Localizer["LastSync"]</label>
-                        <input value="@Model.LastSync.Value.ToString("yyyy-MM-dd HH:mm:ss")" class="form-control" readonly />
+                        <input value="@Model.LastSync.Value.ToString(System.Globalization.CultureInfo.CurrentUICulture.DateTimeFormat.ShortDatePattern + " " + System.Globalization.CultureInfo.CurrentUICulture.DateTimeFormat.ShortTimePattern)" class="form-control" readonly />
                     </div>
                 }
                 

@@ -47,7 +47,7 @@
                     @if (Model.LastSync.HasValue)
                     {
                         <span class="utc-timestamp" data-utc-time="@Model.LastSync.Value.ToString("yyyy-MM-ddTHH:mm:ss")">
-                            @Model.LastSync.Value.ToString("yyyy-MM-dd HH:mm:ss")
+                            @Model.LastSync.Value.ToString(System.Globalization.CultureInfo.CurrentUICulture.DateTimeFormat.ShortDatePattern + " " + System.Globalization.CultureInfo.CurrentUICulture.DateTimeFormat.ShortTimePattern)
                         </span>
                     }
                     else

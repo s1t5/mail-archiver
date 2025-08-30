@@ -151,7 +151,7 @@
                                             {
                                                 <span class="badge bg-success small">
                                                     <span class="utc-timestamp" data-utc-time="@account.LastSyncTime.ToString("yyyy-MM-ddTHH:mm:ss")">
-                                                        @account.LastSyncTime.ToString("yyyy-MM-dd HH:mm")
+                                                        @account.LastSyncTime.ToString("g")
                                                     </span>
                                                 </span>
                                             }
@@ -159,7 +159,7 @@
                                             {
                                                 <span class="badge bg-warning small">
                                                     <span class="utc-timestamp" data-utc-time="@account.LastSyncTime.ToString("yyyy-MM-ddTHH:mm:ss")">
-                                                        @account.LastSyncTime.ToString("yyyy-MM-dd HH:mm")
+                                                        @account.LastSyncTime.ToString(System.Globalization.CultureInfo.CurrentUICulture.DateTimeFormat.ShortDatePattern + " " + System.Globalization.CultureInfo.CurrentUICulture.DateTimeFormat.ShortTimePattern)
                                                     </span>
                                                 </span>
                                             }
@@ -194,7 +194,7 @@
                                         {
                                             <span class="badge bg-success">
                                                 <span class="utc-timestamp" data-utc-time="@account.LastSyncTime.ToString("yyyy-MM-ddTHH:mm:ss")">
-                                                    @account.LastSyncTime.ToString("yyyy-MM-dd HH:mm")
+                                                    @account.LastSyncTime.ToString(System.Globalization.CultureInfo.CurrentUICulture.DateTimeFormat.ShortDatePattern + " " + System.Globalization.CultureInfo.CurrentUICulture.DateTimeFormat.ShortTimePattern)
                                                 </span>
                                             </span>
                                         }
@@ -202,7 +202,7 @@
                                         {
                                             <span class="badge bg-warning">
                                                 <span class="utc-timestamp" data-utc-time="@account.LastSyncTime.ToString("yyyy-MM-ddTHH:mm:ss")">
-                                                    @account.LastSyncTime.ToString("yyyy-MM-dd HH:mm")
+                                                    @account.LastSyncTime.ToString(System.Globalization.CultureInfo.CurrentUICulture.DateTimeFormat.ShortDatePattern + " " + System.Globalization.CultureInfo.CurrentUICulture.DateTimeFormat.ShortTimePattern)
                                                 </span>
                                             </span>
                                         }
@@ -249,7 +249,7 @@
                                             <i class="bi bi-person me-1"></i>@email.MailAccount.Name
                                         </small>
                                     </div>
-                                    <small class="text-muted text-nowrap">@email.SentDate.ToString("yyyy-MM-dd HH:mm")</small>
+                                    <small class="text-muted text-nowrap">@email.SentDate.ToString(System.Globalization.CultureInfo.CurrentUICulture.DateTimeFormat.ShortDatePattern + " " + System.Globalization.CultureInfo.CurrentUICulture.DateTimeFormat.ShortTimePattern)</small>
                                 </div>
                             </a>
                         }
@@ -452,4 +452,3 @@
         });
     </script>
 }
-

@@ -43,8 +43,8 @@
                                     else
                                     {<span class="badge bg-danger">@Localizer["Inactive"]</span>}
                                 </td>
-                                <td>@item.CreatedAt.ToString("yyyy-MM-dd")</td>
-                                <td>@(item.LastLoginAt?.ToString("yyyy-MM-dd HH:mm") ?? Localizer["Never"])</td>
+                                <td>@item.CreatedAt.ToString(System.Globalization.CultureInfo.CurrentUICulture.DateTimeFormat.ShortDatePattern)</td>
+                                <td>@(item.LastLoginAt?.ToString(System.Globalization.CultureInfo.CurrentUICulture.DateTimeFormat.ShortDatePattern + " " + System.Globalization.CultureInfo.CurrentUICulture.DateTimeFormat.ShortTimePattern) ?? Localizer["Never"])</td>
                                 <td>
                                     <div class="d-flex justify-content-center align-items-center gap-1">
                                         <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-info btn-sm d-flex align-items-center"><i class="bi bi-eye"></i><span class="ms-1">@Localizer["Details"]</span></a>
@@ -75,8 +75,8 @@
                     </div>
                     <p class="card-text small text-muted mb-2">@item.Email</p>
                     <p class="card-text small mb-3"><strong>@Localizer["Role"]:</strong> @(item.IsAdmin ? Localizer["Admin"] : Localizer["User"])</p>
-                    <p class="card-text small mb-2"><strong>@Localizer["Created"]:</strong> @item.CreatedAt.ToString("yyyy-MM-dd")</p>
-                    <p class="card-text small mb-3"><strong>@Localizer["LastLogin"]:</strong> @(item.LastLoginAt?.ToString("yyyy-MM-dd HH:mm") ?? Localizer["Never"])</p>
+                    <p class="card-text small mb-2"><strong>@Localizer["Created"]:</strong> @item.CreatedAt.ToString(System.Globalization.CultureInfo.CurrentUICulture.DateTimeFormat.ShortDatePattern)</p>
+                    <p class="card-text small mb-3"><strong>@Localizer["LastLogin"]:</strong> @(item.LastLoginAt?.ToString(System.Globalization.CultureInfo.CurrentUICulture.DateTimeFormat.ShortDatePattern + " " + System.Globalization.CultureInfo.CurrentUICulture.DateTimeFormat.ShortTimePattern) ?? Localizer["Never"])</p>
                     <div class="d-grid gap-2">
                         <div class="row g-2">
                             <div class="col-6"><a asp-action="Details" asp-route-id="@item.Id" class="btn btn-outline-info btn-sm w-100"><i class="bi bi-eye"></i> @Localizer["Details"]</a></div>
@@ -104,4 +104,3 @@
         }
     </div>
 </div>
-
