@@ -126,6 +126,13 @@ namespace MailArchiver.Services
             if (isValid && string.IsNullOrEmpty(context.Session.GetString("Username")))
             {
                 RestoreSessionFromToken(context, token);
+                // If we still don't have a username after trying to restore, 
+                // the session couldn't be restored (possibly due to database issues)
+                // In this case, we should consider the user not authenticated
+                if (string.IsNullOrEmpty(context.Session.GetString("Username")))
+                {
+                    return false;
+                }
             }
             
             return isValid;
@@ -148,7 +155,9 @@ namespace MailArchiver.Services
                 }
             }
             
-            return username ?? "Unknown";
+            // If we still don't have a username, return null instead of "Unknown"
+            // This will help identify when there are authentication issues
+            return username;
         }
 
         public bool IsCurrentUserAdmin(HttpContext context)
