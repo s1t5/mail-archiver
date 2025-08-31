@@ -224,7 +224,8 @@ var account = new MailAccount
                     await _context.SaveChangesAsync();
 
                     // Auto-assign the account to the current user if they are a SelfManager (not Admin)
-                    var currentUsername = HttpContext.User.Identity?.Name;
+                    var authService = HttpContext.RequestServices.GetService<IAuthenticationService>();
+                    var currentUsername = authService.GetCurrentUser(HttpContext);
                     var currentUser = await _context.Users
                         .FirstOrDefaultAsync(u => u.Username == currentUsername);
                     

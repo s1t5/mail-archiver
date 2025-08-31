@@ -73,12 +73,14 @@
                     <div class="form-text">@Localizer["DisabledAccountsNotSynced"]</div>
                 </div>
                 
-                <h4 class="mt-4">@Localizer["EmailDeletion"]</h4>
-                <div class="mb-3">
-                    <label asp-for="DeleteAfterDays" class="form-label">@Localizer["DeleteAfterDays"]</label>
-                    <input asp-for="DeleteAfterDays" class="form-control" type="number" min="1" placeholder="@Localizer["LeaveEmptyToDisableAutomaticDeletion"]" />
-                    <div class="form-text">@Localizer["AutoDeleteText"]</div>
-                    <span asp-validation-for="DeleteAfterDays" class="text-danger"></span>
+                <div id="emailDeletionSettings">
+                    <h4 class="mt-4">@Localizer["EmailDeletion"]</h4>
+                    <div class="mb-3">
+                        <label asp-for="DeleteAfterDays" class="form-label">@Localizer["DeleteAfterDays"]</label>
+                        <input asp-for="DeleteAfterDays" class="form-control" type="number" min="1" placeholder="@Localizer["LeaveEmptyToDisableAutomaticDeletion"]" />
+                        <div class="form-text">@Localizer["AutoDeleteText"]</div>
+                        <span asp-validation-for="DeleteAfterDays" class="text-danger"></span>
+                    </div>
                 </div>
                 
                 <div class="mt-4">
@@ -95,20 +97,23 @@
         document.addEventListener('DOMContentLoaded', function() {
             const isImportOnlyCheckbox = document.getElementById('isImportOnly');
             const imapSettings = document.getElementById('imapSettings');
+            const emailDeletionSettings = document.getElementById('emailDeletionSettings');
             
-            function toggleImapSettings() {
+            function toggleSettings() {
                 if (isImportOnlyCheckbox.checked) {
                     imapSettings.style.display = 'none';
+                    emailDeletionSettings.style.display = 'none';
                 } else {
                     imapSettings.style.display = 'block';
+                    emailDeletionSettings.style.display = 'block';
                 }
             }
             
             // Initial check
-            toggleImapSettings();
+            toggleSettings();
             
             // Add event listener
-            isImportOnlyCheckbox.addEventListener('change', toggleImapSettings);
+            isImportOnlyCheckbox.addEventListener('change', toggleSettings);
         });
     </script>
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
