@@ -38,45 +38,49 @@ namespace MailArchiver.Migrations
                 END $$;
             ");
 
-            // Make IMAP fields nullable for import-only accounts (only if column exists)
+            // Make IMAP fields nullable for import-only accounts (only if column exists and is not already nullable)
             migrationBuilder.Sql(@"
                 DO $$
                 BEGIN
-                    -- Check if ImapServer column exists and alter it
+                    -- Check if ImapServer column exists and is not already nullable
                     IF EXISTS (SELECT 1 FROM information_schema.columns 
                                WHERE table_schema = 'mail_archiver' 
                                AND table_name = 'MailAccounts' 
-                               AND column_name = 'ImapServer') THEN
+                               AND column_name = 'ImapServer'
+                               AND is_nullable = 'NO') THEN
                         ALTER TABLE mail_archiver.""MailAccounts"" 
                         ALTER COLUMN ""ImapServer"" TYPE text,
                         ALTER COLUMN ""ImapServer"" DROP NOT NULL;
                     END IF;
                     
-                    -- Check if ImapPort column exists and alter it
+                    -- Check if ImapPort column exists and is not already nullable
                     IF EXISTS (SELECT 1 FROM information_schema.columns 
                                WHERE table_schema = 'mail_archiver' 
                                AND table_name = 'MailAccounts' 
-                               AND column_name = 'ImapPort') THEN
+                               AND column_name = 'ImapPort'
+                               AND is_nullable = 'NO') THEN
                         ALTER TABLE mail_archiver.""MailAccounts"" 
                         ALTER COLUMN ""ImapPort"" TYPE integer USING ""ImapPort""::integer,
                         ALTER COLUMN ""ImapPort"" DROP NOT NULL;
                     END IF;
                     
-                    -- Check if Username column exists and alter it
+                    -- Check if Username column exists and is not already nullable
                     IF EXISTS (SELECT 1 FROM information_schema.columns 
                                WHERE table_schema = 'mail_archiver' 
                                AND table_name = 'MailAccounts' 
-                               AND column_name = 'Username') THEN
+                               AND column_name = 'Username'
+                               AND is_nullable = 'NO') THEN
                         ALTER TABLE mail_archiver.""MailAccounts"" 
                         ALTER COLUMN ""Username"" TYPE text,
                         ALTER COLUMN ""Username"" DROP NOT NULL;
                     END IF;
                     
-                    -- Check if Password column exists and alter it
+                    -- Check if Password column exists and is not already nullable
                     IF EXISTS (SELECT 1 FROM information_schema.columns 
                                WHERE table_schema = 'mail_archiver' 
                                AND table_name = 'MailAccounts' 
-                               AND column_name = 'Password') THEN
+                               AND column_name = 'Password'
+                               AND is_nullable = 'NO') THEN
                         ALTER TABLE mail_archiver.""MailAccounts"" 
                         ALTER COLUMN ""Password"" TYPE text,
                         ALTER COLUMN ""Password"" DROP NOT NULL;
@@ -88,45 +92,49 @@ namespace MailArchiver.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            // Revert IMAP fields back to not nullable (only if column exists)
+            // Revert IMAP fields back to not nullable (only if column exists and is currently nullable)
             migrationBuilder.Sql(@"
                 DO $$
                 BEGIN
-                    -- Check if ImapServer column exists and alter it back to not nullable
+                    -- Check if ImapServer column exists and is currently nullable
                     IF EXISTS (SELECT 1 FROM information_schema.columns 
                                WHERE table_schema = 'mail_archiver' 
                                AND table_name = 'MailAccounts' 
-                               AND column_name = 'ImapServer') THEN
+                               AND column_name = 'ImapServer'
+                               AND is_nullable = 'YES') THEN
                         ALTER TABLE mail_archiver.""MailAccounts"" 
                         ALTER COLUMN ""ImapServer"" TYPE text,
                         ALTER COLUMN ""ImapServer"" SET NOT NULL;
                     END IF;
                     
-                    -- Check if ImapPort column exists and alter it back to not nullable
+                    -- Check if ImapPort column exists and is currently nullable
                     IF EXISTS (SELECT 1 FROM information_schema.columns 
                                WHERE table_schema = 'mail_archiver' 
                                AND table_name = 'MailAccounts' 
-                               AND column_name = 'ImapPort') THEN
+                               AND column_name = 'ImapPort'
+                               AND is_nullable = 'YES') THEN
                         ALTER TABLE mail_archiver.""MailAccounts"" 
                         ALTER COLUMN ""ImapPort"" TYPE integer USING ""ImapPort""::integer,
                         ALTER COLUMN ""ImapPort"" SET NOT NULL;
                     END IF;
                     
-                    -- Check if Username column exists and alter it back to not nullable
+                    -- Check if Username column exists and is currently nullable
                     IF EXISTS (SELECT 1 FROM information_schema.columns 
                                WHERE table_schema = 'mail_archiver' 
                                AND table_name = 'MailAccounts' 
-                               AND column_name = 'Username') THEN
+                               AND column_name = 'Username'
+                               AND is_nullable = 'YES') THEN
                         ALTER TABLE mail_archiver.""MailAccounts"" 
                         ALTER COLUMN ""Username"" TYPE text,
                         ALTER COLUMN ""Username"" SET NOT NULL;
                     END IF;
                     
-                    -- Check if Password column exists and alter it back to not nullable
+                    -- Check if Password column exists and is currently nullable
                     IF EXISTS (SELECT 1 FROM information_schema.columns 
                                WHERE table_schema = 'mail_archiver' 
                                AND table_name = 'MailAccounts' 
-                               AND column_name = 'Password') THEN
+                               AND column_name = 'Password'
+                               AND is_nullable = 'YES') THEN
                         ALTER TABLE mail_archiver.""MailAccounts"" 
                         ALTER COLUMN ""Password"" TYPE text,
                         ALTER COLUMN ""Password"" SET NOT NULL;
