@@ -120,7 +120,8 @@ namespace MailArchiver.Controllers
                     UseSSL = a.UseSSL,
                     IsEnabled = a.IsEnabled,
                     LastSync = a.LastSync,
-                    DeleteAfterDays = a.DeleteAfterDays
+                    DeleteAfterDays = a.DeleteAfterDays,
+                    IsImportOnly = a.IsImportOnly
                 })
                 .ToListAsync();
 
@@ -157,7 +158,8 @@ var model = new MailAccountViewModel
                 UseSSL = account.UseSSL,
                 LastSync = account.LastSync,
                 IsEnabled = account.IsEnabled,
-                DeleteAfterDays = account.DeleteAfterDays
+                DeleteAfterDays = account.DeleteAfterDays,
+                IsImportOnly = account.IsImportOnly
             };
 
             ViewBag.EmailCount = emailCount;
@@ -280,7 +282,8 @@ var model = new MailAccountViewModel
                 IsEnabled = account.IsEnabled,
                 LastSync = account.LastSync,
                 ExcludedFolders = account.ExcludedFolders,
-                DeleteAfterDays = account.DeleteAfterDays
+                DeleteAfterDays = account.DeleteAfterDays,
+                IsImportOnly = account.IsImportOnly
             };
 
             // Set ViewBag properties

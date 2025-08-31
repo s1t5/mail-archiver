@@ -14,7 +14,7 @@
               <xsd:attribute name="type" type="xsd:string" />
               <xsd:attribute name="mimetype" type="xsd:string" />
               <xsd:attribute ref="xml:space" />
-            </xsd:complexType>
+              </xsd:complexType>
           </xsd:element>
           <xsd:element name="assembly">
             <xsd:complexType>
@@ -1392,5 +1392,13 @@
   </data>
   <data name="Deleted" xml:space="preserve">
     <value>Deleted</value>
+  </data>
+  
+  <!-- Role Explanations -->
+  <data name="AdminRoleDescription" xml:space="preserve">
+    <value>Full system access including user management and all email accounts</value>
+  </data>
+  <data name="SelfManagerRoleDescription" xml:space="preserve">
+    <value>Can manage their own account settings and assigned email accounts, as well as add new Accounts</value>
   </data>
 </root>

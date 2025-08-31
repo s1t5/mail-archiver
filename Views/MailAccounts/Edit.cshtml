@@ -59,47 +59,50 @@
                     <div class="form-text">@Localizer["DisabledAccountsNotSynced"]</div>
                 </div>
                 
-                <h4 class="mt-4">@Localizer["FolderExclusion"]</h4>
-                <div class="mb-3">
-                    <label asp-for="ExcludedFolders" class="form-label">@Localizer["ExcludedFolders"]</label>
-                    <textarea asp-for="ExcludedFolders" class="form-control" rows="3" placeholder="@Localizer["EnterFolderNames"]"></textarea>
-                    <div class="form-text">@Localizer["EnterFolderNamesText"]</div>
-                    <span asp-validation-for="ExcludedFolders" class="text-danger"></span>
-                </div>
-                
-                @if (ViewBag.AvailableFolders != null && ((List<string>)ViewBag.AvailableFolders).Any())
+                @if (!ViewBag.IsImportOnly)
                 {
+                    <h4 class="mt-4">@Localizer["FolderExclusion"]</h4>
                     <div class="mb-3">
-                        <label class="form-label">@Localizer["AvailableFolders"]</label>
-                        <div class="card">
-                            <div class="card-body">
-                                <div class="d-flex flex-wrap gap-2">
-                                    @foreach (var folder in (List<string>)ViewBag.AvailableFolders)
-                                    {
-                                        <span class="badge bg-light text-dark">@folder</span>
-                                    }
+                        <label asp-for="ExcludedFolders" class="form-label">@Localizer["ExcludedFolders"]</label>
+                        <textarea asp-for="ExcludedFolders" class="form-control" rows="3" placeholder="@Localizer["EnterFolderNames"]"></textarea>
+                        <div class="form-text">@Localizer["EnterFolderNamesText"]</div>
+                        <span asp-validation-for="ExcludedFolders" class="text-danger"></span>
+                    </div>
+                    
+                    @if (ViewBag.AvailableFolders != null && ((List<string>)ViewBag.AvailableFolders).Any())
+                    {
+                        <div class="mb-3">
+                            <label class="form-label">@Localizer["AvailableFolders"]</label>
+                            <div class="card">
+                                <div class="card-body">
+                                    <div class="d-flex flex-wrap gap-2">
+                                        @foreach (var folder in (List<string>)ViewBag.AvailableFolders)
+                                        {
+                                            <span class="badge bg-light text-dark">@folder</span>
+                                        }
+                                    </div>
                                 </div>
                             </div>
+                            <div class="form-text">@Localizer["FoldersOnServer"]</div>
                         </div>
-                        <div class="form-text">@Localizer["FoldersOnServer"]</div>
-                    </div>
-                }
-                
-@if (Model.LastSync.HasValue)
-                {
+                    }
+                    
+                    @if (Model.LastSync.HasValue)
+                    {
+                        <div class="mb-3">
+                            <label asp-for="LastSync" class="form-label">@Localizer["LastSync"]</label>
+                            <input value="@Model.LastSync.Value.ToString(System.Globalization.CultureInfo.CurrentUICulture.DateTimeFormat.ShortDatePattern + " " + System.Globalization.CultureInfo.CurrentUICulture.DateTimeFormat.ShortTimePattern)" class="form-control" readonly />
+                        </div>
+                    }
+                    
+                    <h4 class="mt-4">@Localizer["EmailDeletion"]</h4>
                     <div class="mb-3">
-                        <label asp-for="LastSync" class="form-label">@Localizer["LastSync"]</label>
-                        <input value="@Model.LastSync.Value.ToString(System.Globalization.CultureInfo.CurrentUICulture.DateTimeFormat.ShortDatePattern + " " + System.Globalization.CultureInfo.CurrentUICulture.DateTimeFormat.ShortTimePattern)" class="form-control" readonly />
+                        <label asp-for="DeleteAfterDays" class="form-label">@Localizer["DeleteAfterDays"]</label>
+                        <input asp-for="DeleteAfterDays" class="form-control" type="number" min="1" placeholder="@Localizer["LeaveEmptyToDisableAutomaticDeletion"]" />
+                        <div class="form-text">@Localizer["AutoDeleteText"]</div>
+                        <span asp-validation-for="DeleteAfterDays" class="text-danger"></span>
                     </div>
                 }
-                
-                <h4 class="mt-4">@Localizer["EmailDeletion"]</h4>
-                <div class="mb-3">
-                    <label asp-for="DeleteAfterDays" class="form-label">@Localizer["DeleteAfterDays"]</label>
-                    <input asp-for="DeleteAfterDays" class="form-control" type="number" min="1" placeholder="@Localizer["LeaveEmptyToDisableAutomaticDeletion"]" />
-                    <div class="form-text">@Localizer["AutoDeleteText"]</div>
-                    <span asp-validation-for="DeleteAfterDays" class="text-danger"></span>
-                </div>
                 <div class="mt-4">
                     <button type="submit" class="btn btn-primary">@Localizer["Save"]</button>
                     <a asp-action="Index" class="btn btn-outline-secondary">@Localizer["BackToList"]</a>

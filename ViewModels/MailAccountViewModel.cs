@@ -39,6 +39,9 @@ namespace MailArchiver.Models.ViewModels
         [Range(1, int.MaxValue, ErrorMessage = "Delete after days must be at least 1")]
         public int? DeleteAfterDays { get; set; }
         
+        [Display(Name = "Import Only Account")]
+        public bool IsImportOnly { get; set; } = false;
+        
         // For UI display of available folders
         public List<string> AvailableFolders { get; set; } = new List<string>();
 

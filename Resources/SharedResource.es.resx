@@ -1381,4 +1381,12 @@
   <data name="Deleted" xml:space="preserve">
     <value>Eliminado</value>
   </data>
+
+  <!-- Role Explanations -->
+  <data name="AdminRoleDescription" xml:space="preserve">
+    <value>Acceso completo al sistema incluyendo gestión de usuarios y todas las cuentas de correo</value>
+  </data>
+  <data name="SelfManagerRoleDescription" xml:space="preserve">
+    <value>Puede gestionar su propia configuración de cuenta y las cuentas de correo asignadas, así como agregar nuevas cuentas</value>
+  </data>
 </root>

@@ -206,8 +206,10 @@ The following steps are planned for this
 ## 🤝 Contributing
 Contributions welcome! Please open an Issue or Pull Request.
 
-## 🚀 Roadmap / Ideas
-The roadmap is now maintained on the repos project page.
+## 💖 Support the Project
+If you find this project useful and would like to support its continued development, you can buy me a coffee! Your support helps me dedicate more time and resources to improving the application and adding new features. While financial support is not required, it is greatly appreciated and helps ensure the project's ongoing maintenance and enhancement.
+
+<a href="https://www.buymeacoffee.com/s1t5" target="_blank"><img src="https://img.shields.io/badge/Buy%20Me%20a%20Coffee-s1t5-FFDD00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=black" alt="Buy Me a Coffee"></a>
 
 ---
 

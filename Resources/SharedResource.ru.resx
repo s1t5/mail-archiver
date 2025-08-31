@@ -1381,4 +1381,12 @@
   <data name="Deleted" xml:space="preserve">
     <value>Удалено</value>
   </data>
+
+  <!-- Role Explanations -->
+  <data name="AdminRoleDescription" xml:space="preserve">
+    <value>Полный доступ к системе, включая управление пользователями и всеми учетными записями электронной почты</value>
+  </data>
+  <data name="SelfManagerRoleDescription" xml:space="preserve">
+    <value>Может управлять настройками своей учетной записи и назначенными учетными записями электронной почты, а также добавлять новые учетные записи</value>
+  </data>
 </root>

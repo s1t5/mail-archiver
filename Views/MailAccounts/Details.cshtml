@@ -13,7 +13,7 @@
                 <dt class="col-sm-3">@Localizer["EmailAddress"]</dt>
                 <dd class="col-sm-9">@Model.EmailAddress</dd>
                 <dt class="col-sm-3">IMAP Server</dt>
-                <dd class="col-sm-9">@Model.ImapServer:@Model.ImapPort</dd>
+                <dd class="col-sm-9">@(Model.IsImportOnly ? "-" : Model.ImapServer + ":" + Model.ImapPort)</dd>
                 <dt class="col-sm-3">@Localizer["Username"]</dt>
                 <dd class="col-sm-9">@Model.Username</dd>
                 <dt class="col-sm-3">SSL</dt>

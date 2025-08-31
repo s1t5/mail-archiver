@@ -1381,4 +1381,12 @@
   <data name="Deleted" xml:space="preserve">
     <value>Izbrisano</value>
   </data>
+
+  <!-- Role Explanations -->
+  <data name="AdminRoleDescription" xml:space="preserve">
+    <value>Popoln dostop do sistema vključno z upravljanjem uporabnikov in vseh e-poštnih računov</value>
+  </data>
+  <data name="SelfManagerRoleDescription" xml:space="preserve">
+    <value>Lahko upravlja lastne nastavitve računa in dodeljene e-poštne račune ter dodaja nove račune</value>
+  </data>
 </root>

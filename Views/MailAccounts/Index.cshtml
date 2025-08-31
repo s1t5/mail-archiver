@@ -40,7 +40,7 @@
                             <tr class="@(!item.IsEnabled ? "table-secondary" : "")">
                                 <td>@item.Name</td>
                                 <td>@item.EmailAddress</td>
-                                <td>@item.ImapServer:@item.ImapPort</td>
+                                <td>@(item.IsImportOnly ? "-" : item.ImapServer + ":" + item.ImapPort)</td>
                                 <td>
                                     @if (item.IsEnabled)
                                     {
@@ -144,7 +144,7 @@
                     </div>
                     <p class="card-text small text-muted mb-2">@item.EmailAddress</p>
                     <p class="card-text small mb-2">
-                        <strong>Server:</strong> @item.ImapServer:@item.ImapPort
+                        <strong>Server:</strong> @(item.IsImportOnly ? "-" : item.ImapServer + ":" + item.ImapPort)
                     </p>
                     <p class="card-text small mb-3">
                         <strong>@Localizer["LastSync"]:</strong>

@@ -1381,4 +1381,12 @@
   <data name="Deleted" xml:space="preserve">
     <value>Verwijderd</value>
   </data>
+
+  <!-- Role Explanations -->
+  <data name="AdminRoleDescription" xml:space="preserve">
+    <value>Volledige systeemtoegang inclusief gebruikersbeheer en alle e-mailaccounts</value>
+  </data>
+  <data name="SelfManagerRoleDescription" xml:space="preserve">
+    <value>Kan eigen accountinstellingen en toegewezen e-mailaccounts beheren, evenals nieuwe accounts toevoegen</value>
+  </data>
 </root>
