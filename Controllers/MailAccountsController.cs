@@ -66,7 +66,7 @@ namespace MailArchiver.Controllers
             if (isSelfManager)
             {
                 var hasAccess = await _context.MailAccounts
-                    .AnyAsync(ma => ma.Id == accountId && ma.UserMailAccounts.Any(uma => uma.User.Username == currentUsername));
+                    .AnyAsync(ma => ma.Id == accountId && ma.UserMailAccounts.Any(uma => uma.User.Username.ToLower() == currentUsername.ToLower()));
                 _logger.LogInformation("User is SelfManager, access to account {AccountId}: {HasAccess}", accountId, hasAccess);
                 return hasAccess;
             }
@@ -100,7 +100,7 @@ namespace MailArchiver.Controllers
             {
                 _logger.LogInformation("User is SelfManager, showing only assigned accounts");
                 mailAccountsQuery = _context.MailAccounts
-                    .Where(ma => ma.UserMailAccounts.Any(uma => uma.User.Username == currentUsername));
+                    .Where(ma => ma.UserMailAccounts.Any(uma => uma.User.Username.ToLower() == currentUsername.ToLower()));
             }
             else
             {
@@ -227,7 +227,7 @@ var account = new MailAccount
                     var authService = HttpContext.RequestServices.GetService<IAuthenticationService>();
                     var currentUsername = authService.GetCurrentUser(HttpContext);
                     var currentUser = await _context.Users
-                        .FirstOrDefaultAsync(u => u.Username == currentUsername);
+                        .FirstOrDefaultAsync(u => u.Username.ToLower() == currentUsername.ToLower());
                     
                     if (currentUser != null && !currentUser.IsAdmin && currentUser.IsSelfManager)
                     {
@@ -671,7 +671,7 @@ var model = new MailAccountViewModel
             {
                 _logger.LogInformation("User is SelfManager, showing only assigned accounts");
                 mailAccountsQuery = _context.MailAccounts
-                    .Where(ma => ma.UserMailAccounts.Any(uma => uma.User.Username == currentUsername));
+                    .Where(ma => ma.UserMailAccounts.Any(uma => uma.User.Username.ToLower() == currentUsername.ToLower()));
             }
             else
             {
