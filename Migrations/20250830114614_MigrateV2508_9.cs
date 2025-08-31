@@ -10,117 +10,157 @@ namespace MailArchiver.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AddColumn<bool>(
-                name: "IsSelfManager",
-                schema: "mail_archiver",
-                table: "Users",
-                type: "boolean",
-                nullable: false,
-                defaultValue: false);
+            // Add IsSelfManager column to Users table if it doesn't exist
+            migrationBuilder.Sql(@"
+                DO $$
+                BEGIN
+                    IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                                   WHERE table_schema = 'mail_archiver' 
+                                   AND table_name = 'Users' 
+                                   AND column_name = 'IsSelfManager') THEN
+                        ALTER TABLE mail_archiver.""Users"" 
+                        ADD COLUMN ""IsSelfManager"" boolean NOT NULL DEFAULT FALSE;
+                    END IF;
+                END $$;
+            ");
 
-            migrationBuilder.AddColumn<bool>(
-                name: "IsImportOnly",
-                schema: "mail_archiver",
-                table: "MailAccounts",
-                type: "boolean",
-                nullable: false,
-                defaultValue: false);
+            // Add IsImportOnly column to MailAccounts table if it doesn't exist
+            migrationBuilder.Sql(@"
+                DO $$
+                BEGIN
+                    IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                                   WHERE table_schema = 'mail_archiver' 
+                                   AND table_name = 'MailAccounts' 
+                                   AND column_name = 'IsImportOnly') THEN
+                        ALTER TABLE mail_archiver.""MailAccounts"" 
+                        ADD COLUMN ""IsImportOnly"" boolean NOT NULL DEFAULT FALSE;
+                    END IF;
+                END $$;
+            ");
 
-            // Make IMAP fields nullable for import-only accounts
-            migrationBuilder.AlterColumn<string>(
-                name: "ImapServer",
-                schema: "mail_archiver",
-                table: "MailAccounts",
-                type: "text",
-                nullable: true,
-                oldClrType: typeof(string),
-                oldType: "text");
-
-            migrationBuilder.AlterColumn<int>(
-                name: "ImapPort",
-                schema: "mail_archiver",
-                table: "MailAccounts",
-                type: "integer",
-                nullable: true,
-                oldClrType: typeof(int),
-                oldType: "integer");
-
-            migrationBuilder.AlterColumn<string>(
-                name: "Username",
-                schema: "mail_archiver",
-                table: "MailAccounts",
-                type: "text",
-                nullable: true,
-                oldClrType: typeof(string),
-                oldType: "text");
-
-            migrationBuilder.AlterColumn<string>(
-                name: "Password",
-                schema: "mail_archiver",
-                table: "MailAccounts",
-                type: "text",
-                nullable: true,
-                oldClrType: typeof(string),
-                oldType: "text");
+            // Make IMAP fields nullable for import-only accounts (only if column exists)
+            migrationBuilder.Sql(@"
+                DO $$
+                BEGIN
+                    -- Check if ImapServer column exists and alter it
+                    IF EXISTS (SELECT 1 FROM information_schema.columns 
+                               WHERE table_schema = 'mail_archiver' 
+                               AND table_name = 'MailAccounts' 
+                               AND column_name = 'ImapServer') THEN
+                        ALTER TABLE mail_archiver.""MailAccounts"" 
+                        ALTER COLUMN ""ImapServer"" TYPE text,
+                        ALTER COLUMN ""ImapServer"" DROP NOT NULL;
+                    END IF;
+                    
+                    -- Check if ImapPort column exists and alter it
+                    IF EXISTS (SELECT 1 FROM information_schema.columns 
+                               WHERE table_schema = 'mail_archiver' 
+                               AND table_name = 'MailAccounts' 
+                               AND column_name = 'ImapPort') THEN
+                        ALTER TABLE mail_archiver.""MailAccounts"" 
+                        ALTER COLUMN ""ImapPort"" TYPE integer USING ""ImapPort""::integer,
+                        ALTER COLUMN ""ImapPort"" DROP NOT NULL;
+                    END IF;
+                    
+                    -- Check if Username column exists and alter it
+                    IF EXISTS (SELECT 1 FROM information_schema.columns 
+                               WHERE table_schema = 'mail_archiver' 
+                               AND table_name = 'MailAccounts' 
+                               AND column_name = 'Username') THEN
+                        ALTER TABLE mail_archiver.""MailAccounts"" 
+                        ALTER COLUMN ""Username"" TYPE text,
+                        ALTER COLUMN ""Username"" DROP NOT NULL;
+                    END IF;
+                    
+                    -- Check if Password column exists and alter it
+                    IF EXISTS (SELECT 1 FROM information_schema.columns 
+                               WHERE table_schema = 'mail_archiver' 
+                               AND table_name = 'MailAccounts' 
+                               AND column_name = 'Password') THEN
+                        ALTER TABLE mail_archiver.""MailAccounts"" 
+                        ALTER COLUMN ""Password"" TYPE text,
+                        ALTER COLUMN ""Password"" DROP NOT NULL;
+                    END IF;
+                END $$;
+            ");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            // Revert IMAP fields back to not nullable
-            migrationBuilder.AlterColumn<string>(
-                name: "ImapServer",
-                schema: "mail_archiver",
-                table: "MailAccounts",
-                type: "text",
-                nullable: false,
-                defaultValue: "",
-                oldClrType: typeof(string),
-                oldType: "text",
-                oldNullable: true);
+            // Revert IMAP fields back to not nullable (only if column exists)
+            migrationBuilder.Sql(@"
+                DO $$
+                BEGIN
+                    -- Check if ImapServer column exists and alter it back to not nullable
+                    IF EXISTS (SELECT 1 FROM information_schema.columns 
+                               WHERE table_schema = 'mail_archiver' 
+                               AND table_name = 'MailAccounts' 
+                               AND column_name = 'ImapServer') THEN
+                        ALTER TABLE mail_archiver.""MailAccounts"" 
+                        ALTER COLUMN ""ImapServer"" TYPE text,
+                        ALTER COLUMN ""ImapServer"" SET NOT NULL;
+                    END IF;
+                    
+                    -- Check if ImapPort column exists and alter it back to not nullable
+                    IF EXISTS (SELECT 1 FROM information_schema.columns 
+                               WHERE table_schema = 'mail_archiver' 
+                               AND table_name = 'MailAccounts' 
+                               AND column_name = 'ImapPort') THEN
+                        ALTER TABLE mail_archiver.""MailAccounts"" 
+                        ALTER COLUMN ""ImapPort"" TYPE integer USING ""ImapPort""::integer,
+                        ALTER COLUMN ""ImapPort"" SET NOT NULL;
+                    END IF;
+                    
+                    -- Check if Username column exists and alter it back to not nullable
+                    IF EXISTS (SELECT 1 FROM information_schema.columns 
+                               WHERE table_schema = 'mail_archiver' 
+                               AND table_name = 'MailAccounts' 
+                               AND column_name = 'Username') THEN
+                        ALTER TABLE mail_archiver.""MailAccounts"" 
+                        ALTER COLUMN ""Username"" TYPE text,
+                        ALTER COLUMN ""Username"" SET NOT NULL;
+                    END IF;
+                    
+                    -- Check if Password column exists and alter it back to not nullable
+                    IF EXISTS (SELECT 1 FROM information_schema.columns 
+                               WHERE table_schema = 'mail_archiver' 
+                               AND table_name = 'MailAccounts' 
+                               AND column_name = 'Password') THEN
+                        ALTER TABLE mail_archiver.""MailAccounts"" 
+                        ALTER COLUMN ""Password"" TYPE text,
+                        ALTER COLUMN ""Password"" SET NOT NULL;
+                    END IF;
+                END $$;
+            ");
 
-            migrationBuilder.AlterColumn<int>(
-                name: "ImapPort",
-                schema: "mail_archiver",
-                table: "MailAccounts",
-                type: "integer",
-                nullable: false,
-                defaultValue: 993,
-                oldClrType: typeof(int),
-                oldType: "integer",
-                oldNullable: true);
+            // Remove IsSelfManager column from Users table if it exists
+            migrationBuilder.Sql(@"
+                DO $$
+                BEGIN
+                    IF EXISTS (SELECT 1 FROM information_schema.columns 
+                               WHERE table_schema = 'mail_archiver' 
+                               AND table_name = 'Users' 
+                               AND column_name = 'IsSelfManager') THEN
+                        ALTER TABLE mail_archiver.""Users"" 
+                        DROP COLUMN ""IsSelfManager"";
+                    END IF;
+                END $$;
+            ");
 
-            migrationBuilder.AlterColumn<string>(
-                name: "Username",
-                schema: "mail_archiver",
-                table: "MailAccounts",
-                type: "text",
-                nullable: false,
-                defaultValue: "",
-                oldClrType: typeof(string),
-                oldType: "text",
-                oldNullable: true);
-
-            migrationBuilder.AlterColumn<string>(
-                name: "Password",
-                schema: "mail_archiver",
-                table: "MailAccounts",
-                type: "text",
-                nullable: false,
-                defaultValue: "",
-                oldClrType: typeof(string),
-                oldType: "text",
-                oldNullable: true);
-
-            migrationBuilder.DropColumn(
-                name: "IsSelfManager",
-                schema: "mail_archiver",
-                table: "Users");
-
-            migrationBuilder.DropColumn(
-                name: "IsImportOnly",
-                schema: "mail_archiver",
-                table: "MailAccounts");
+            // Remove IsImportOnly column from MailAccounts table if it exists
+            migrationBuilder.Sql(@"
+                DO $$
+                BEGIN
+                    IF EXISTS (SELECT 1 FROM information_schema.columns 
+                               WHERE table_schema = 'mail_archiver' 
+                               AND table_name = 'MailAccounts' 
+                               AND column_name = 'IsImportOnly') THEN
+                        ALTER TABLE mail_archiver.""MailAccounts"" 
+                        DROP COLUMN ""IsImportOnly"";
+                    END IF;
+                END $$;
+            ");
         }
     }
 }
