@@ -33,7 +33,18 @@
                         <dt class="col-sm-4">@Localizer["Created"]</dt>
                         <dd class="col-sm-8">@Model.CreatedAt.ToString(System.Globalization.CultureInfo.CurrentUICulture.DateTimeFormat.ShortDatePattern + " " + System.Globalization.CultureInfo.CurrentUICulture.DateTimeFormat.ShortTimePattern)</dd>
                         <dt class="col-sm-4">@Localizer["LastLogin"]</dt>
-                        <dd class="col-sm-8">@(Model.LastLoginAt?.ToString(System.Globalization.CultureInfo.CurrentUICulture.DateTimeFormat.ShortDatePattern + " " + System.Globalization.CultureInfo.CurrentUICulture.DateTimeFormat.ShortTimePattern) ?? Localizer["Never"])</dd>
+                        <dd class="col-sm-8">
+                            @if (Model.LastLoginAt.HasValue)
+                            {
+                                <span class="utc-timestamp" data-utc-time="@Model.LastLoginAt.Value.ToString("yyyy-MM-ddTHH:mm:ss")">
+                                    @Model.LastLoginAt.Value.ToString("g")
+                                </span>
+                            }
+                            else
+                            {
+                                @Localizer["Never"]
+                            }
+                        </dd>
                     </dl>
                     <div class="mt-3"><a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary"><i class="bi bi-pencil"></i> @Localizer["EditUser"]</a></div>
                 </div>

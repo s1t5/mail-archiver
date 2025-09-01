@@ -58,7 +58,18 @@
                                     {<span class="badge bg-danger">@Localizer["Inactive"]</span>}
                                 </td>
                                 <td>@item.CreatedAt.ToString(System.Globalization.CultureInfo.CurrentUICulture.DateTimeFormat.ShortDatePattern)</td>
-                                <td>@(item.LastLoginAt?.ToString(System.Globalization.CultureInfo.CurrentUICulture.DateTimeFormat.ShortDatePattern + " " + System.Globalization.CultureInfo.CurrentUICulture.DateTimeFormat.ShortTimePattern) ?? Localizer["Never"])</td>
+                                <td>
+                                    @if (item.LastLoginAt.HasValue)
+                                    {
+                                        <span class="utc-timestamp" data-utc-time="@item.LastLoginAt.Value.ToString("yyyy-MM-ddTHH:mm:ss")">
+                                            @item.LastLoginAt.Value.ToString("g")
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        @Localizer["Never"]
+                                    }
+                                </td>
                                 <td>
                                     <div class="d-flex justify-content-center align-items-center gap-1">
                                         <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-info btn-sm d-flex align-items-center"><i class="bi bi-eye"></i><span class="ms-1">@Localizer["Details"]</span></a>
@@ -163,7 +174,18 @@
                         }
                     </p>
                     <p class="card-text small mb-2"><strong>@Localizer["Created"]:</strong> @item.CreatedAt.ToString(System.Globalization.CultureInfo.CurrentUICulture.DateTimeFormat.ShortDatePattern)</p>
-                    <p class="card-text small mb-3"><strong>@Localizer["LastLogin"]:</strong> @(item.LastLoginAt?.ToString(System.Globalization.CultureInfo.CurrentUICulture.DateTimeFormat.ShortDatePattern + " " + System.Globalization.CultureInfo.CurrentUICulture.DateTimeFormat.ShortTimePattern) ?? Localizer["Never"])</p>
+                    <p class="card-text small mb-3"><strong>@Localizer["LastLogin"]:</strong> 
+                        @if (item.LastLoginAt.HasValue)
+                        {
+                            <span class="utc-timestamp" data-utc-time="@item.LastLoginAt.Value.ToString("yyyy-MM-ddTHH:mm:ss")">
+                                @item.LastLoginAt.Value.ToString("g")
+                            </span>
+                        }
+                        else
+                        {
+                            @Localizer["Never"]
+                        }
+                    </p>
                     <div class="d-grid gap-2">
                         <div class="row g-2">
                             <div class="col-6"><a asp-action="Details" asp-route-id="@item.Id" class="btn btn-outline-info btn-sm w-100"><i class="bi bi-eye"></i> @Localizer["Details"]</a></div>
