@@ -71,6 +71,9 @@ namespace MailArchiver.Services
             // Store token-to-username mapping in database
             StoreTokenMapping(token, username, rememberMe);
 
+            // Update user's last login time
+            UpdateUserLastLogin(username);
+
             _logger.LogInformation("User '{Username}' signed in successfully", username);
         }
 
@@ -299,6 +302,25 @@ namespace MailArchiver.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error cleaning up expired sessions");
+            }
+        }
+
+        private void UpdateUserLastLogin(string username)
+        {
+            try
+            {
+                // Try to find the user in the new user system first
+                var user = _userService.GetUserByUsernameAsync(username).Result;
+                if (user != null)
+                {
+                    user.LastLoginAt = DateTime.UtcNow;
+                    _userService.UpdateUserAsync(user).Wait();
+                    _logger.LogInformation("Updated last login time for user '{Username}'", username);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating last login time for user '{Username}'", username);
             }
         }
 

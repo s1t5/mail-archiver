@@ -26,6 +26,7 @@ namespace MailArchiver.Services
             
             var syncIntervalMinutes = _configuration.GetValue<int>("MailSync:IntervalMinutes", 15);
             var syncTimeoutMinutes = _configuration.GetValue<int>("MailSync:TimeoutMinutes", 60);
+            var alwaysForceFullSync = _configuration.GetValue<bool>("MailSync:AlwaysForceFullSync", false);
 
             while (!stoppingToken.IsCancellationRequested)
             {
@@ -42,6 +43,21 @@ namespace MailArchiver.Services
                         .ToListAsync(stoppingToken);
 
                     _logger.LogInformation($"Found {accounts.Count} enabled accounts to sync");
+
+                    // If AlwaysForceFullSync is enabled, reset LastSync for all accounts to force full resync
+                    if (alwaysForceFullSync)
+                    {
+                        _logger.LogInformation("AlwaysForceFullSync is enabled. Forcing full resync for all accounts.");
+                        foreach (var account in accounts)
+                        {
+                            account.LastSync = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+                        }
+                        await dbContext.SaveChangesAsync();
+                    }
+                    else
+                    { 
+                        _logger.LogInformation("AlwaysForceFullSync is disabled. Using quick sync for all accounts.");
+                    }
 
                     foreach (var account in accounts)
                     {

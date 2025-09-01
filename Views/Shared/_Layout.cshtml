@@ -183,10 +183,7 @@
             const timeElements = document.querySelectorAll('[data-utc-time]');
             timeElements.forEach(element => {
                 const utcTime = element.getAttribute('data-utc-time');
-                // Skip conversion completely for elements with class 'utc-timestamp'
-                // These elements already have proper server-side formatting using .ToString("g")
-                if (utcTime && utcTime !== '0001-01-01T00:00:00' && 
-                    !element.classList.contains('utc-timestamp')) {
+                if (utcTime && utcTime !== '0001-01-01T00:00:00') {
                     const localTime = convertUTCToLocal(utcTime);
                     element.textContent = localTime;
                 }

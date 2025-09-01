@@ -98,6 +98,7 @@ services:
       - MailSync__TimeoutMinutes=60
       - MailSync__ConnectionTimeoutSeconds=180
       - MailSync__CommandTimeoutSeconds=300
+      - MailSync__AlwaysForceFullSync=false
 
       # BatchRestore Settings
       - BatchRestore__AsyncThreshold=50
