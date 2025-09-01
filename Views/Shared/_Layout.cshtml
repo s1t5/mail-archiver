@@ -93,7 +93,7 @@
                     </ul>
                     <div class="d-flex align-items-center">
                         <span class="navbar-text me-3 d-none d-lg-inline">
-                            <i class="bi bi-clock-history"></i> @Localizer["LastUpdate"] @DateTime.Now.ToString("g")
+                            <i class="bi bi-clock-history"></i> @Localizer["LastUpdate"] <span class="utc-timestamp" data-utc-time="@DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss")">@DateTime.Now.ToString("g")</span>
                         </span>
                         <button id="theme-toggle" class="btn btn-outline-light me-2" type="button" title="Toggle Dark Mode">
                             <i class="bi bi-circle-half"></i>
