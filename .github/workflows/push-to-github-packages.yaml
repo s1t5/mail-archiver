@@ -1,8 +1,9 @@
-name: Publish Docker image to Docker Hub & GHCR on Release
+name: Publish Docker image to Docker Hub & GHCR
 
 on:
   release:
     types: [published]
+  workflow_dispatch:
 
 jobs:
   build-and-push:
@@ -22,14 +23,14 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      ## Login Docker Hub
+      ## Login zu Docker Hub
       - name: Log in to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      ## Login GHCR
+      ## Login zu GHCR
       - name: Log in to GHCR
         uses: docker/login-action@v3
         with:
@@ -37,7 +38,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      ## Generate Metadata
+      ## Metadata
       - name: Extract metadata for Docker
         id: meta
         uses: docker/metadata-action@v5
@@ -49,10 +50,8 @@ jobs:
             type=raw,value=latest
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
-        env:
-          DOCKER_METADATA_ANNOTATIONS_LEVEL: detailed
 
-      ## Build & Push Images
+      ## Build + Push
       - name: Build and push Docker image
         id: docker_build
         uses: docker/build-push-action@v6
@@ -63,19 +62,8 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
-      ## Manifest-File
-      - name: Create image manifest file
-        run: echo "${{ steps.meta.outputs.tags }}" > docker-image-tags.txt
-
-      ## Artefakt upload
-      - name: Upload manifest artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: docker-image-tags
-          path: docker-image-tags.txt
-
-      ## Release-Info
       - name: Update Release Notes
+        if: github.event_name == 'release'
         uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
