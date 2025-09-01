@@ -30,6 +30,7 @@
         </div>
         <div class="card-body">
             <form asp-action="ImportMBox" method="post" enctype="multipart/form-data" id="mboxImportForm">
+                @Html.AntiForgeryToken()
                 <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
 
                 <div class="mb-4">

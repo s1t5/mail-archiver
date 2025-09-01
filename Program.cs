@@ -63,6 +63,10 @@ builder.Services.Configure<BatchRestoreOptions>(
 builder.Services.Configure<BatchOperationOptions>(
     builder.Configuration.GetSection(BatchOperationOptions.BatchOperation));
 
+// Add Mail Sync Options
+builder.Services.Configure<MailSyncOptions>(
+    builder.Configuration.GetSection(MailSyncOptions.MailSync));
+
 // Add Upload Options
 builder.Services.Configure<UploadOptions>(
     builder.Configuration.GetSection(UploadOptions.Upload));
@@ -116,7 +120,8 @@ builder.Services.AddScoped<IEmailService, EmailService>(provider =>
         provider.GetRequiredService<MailArchiverDbContext>(),
         provider.GetRequiredService<ILogger<EmailService>>(),
         provider.GetRequiredService<ISyncJobService>(),
-        provider.GetRequiredService<IOptions<BatchOperationOptions>>()
+        provider.GetRequiredService<IOptions<BatchOperationOptions>>(),
+        provider.GetRequiredService<IOptions<MailSyncOptions>>()
     ));
 builder.Services.AddScoped<IAuthenticationService>(provider =>
     new SimpleAuthenticationService(
@@ -143,6 +148,18 @@ builder.Services.AddHostedService<MailSyncBackgroundService>();
 
 // Add Localization
 builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
+// Configure Form Options for large file uploads
+builder.Services.Configure<Microsoft.AspNetCore.Http.Features.FormOptions>(options =>
+{
+    var uploadOptions = builder.Configuration.GetSection(UploadOptions.Upload).Get<UploadOptions>() ?? new UploadOptions();
+    
+    options.MultipartBodyLengthLimit = uploadOptions.MaxFileSizeBytes;
+    options.ValueLengthLimit = (int)Math.Min(uploadOptions.MaxFileSizeBytes, int.MaxValue);
+    options.MultipartHeadersLengthLimit = (int)Math.Min(uploadOptions.MaxFileSizeBytes, int.MaxValue);
+    options.MemoryBufferThreshold = int.MaxValue;
+    options.BufferBody = false; // Stream large files directly to disk
+});
+
 // MVC hinzufügen
 builder.Services.AddControllersWithViews()
     .AddViewLocalization();

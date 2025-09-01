@@ -10,7 +10,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using MimeKit;
 using System.Globalization;
+using System.Net.Security;
 using System.Net.Sockets;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
@@ -23,17 +25,20 @@ namespace MailArchiver.Services
         private readonly ILogger<EmailService> _logger;
         private readonly ISyncJobService _syncJobService;
         private readonly BatchOperationOptions _batchOptions;
+        private readonly MailSyncOptions _mailSyncOptions;
 
         public EmailService(
             MailArchiverDbContext context,
             ILogger<EmailService> logger,
             ISyncJobService syncJobService,
-            IOptions<BatchOperationOptions> batchOptions)
+            IOptions<BatchOperationOptions> batchOptions,
+            IOptions<MailSyncOptions> mailSyncOptions)
         {
             _context = context;
             _logger = logger;
             _syncJobService = syncJobService;
             _batchOptions = batchOptions.Value;
+            _mailSyncOptions = mailSyncOptions.Value;
         }
 
         // SyncMailAccountAsync Methode
@@ -43,6 +48,7 @@ namespace MailArchiver.Services
 
             using var client = new ImapClient();
             client.Timeout = 180000; // 3 Minuten - Reduced timeout to prevent server disconnections
+            client.ServerCertificateValidationCallback = ServerCertificateValidationCallback;
 
             var processedFolders = 0;
             var processedEmails = 0;
@@ -2039,7 +2045,7 @@ namespace MailArchiver.Services
 
                 using var client = new ImapClient();
                 client.Timeout = 30000;
-                client.ServerCertificateValidationCallback = (s, c, h, e) => true;
+                client.ServerCertificateValidationCallback = ServerCertificateValidationCallback;
 
                 _logger.LogDebug("Connecting to {Server}:{Port}, SSL: {UseSSL}",
                     account.ImapServer, account.ImapPort, account.UseSSL);
@@ -2224,6 +2230,7 @@ namespace MailArchiver.Services
                 {
                     using var client = new ImapClient();
                     client.Timeout = 180000;
+                    client.ServerCertificateValidationCallback = ServerCertificateValidationCallback;
                     _logger.LogInformation("Connecting to IMAP server {Server}:{Port} for account {AccountName}",
                         targetAccount.ImapServer, targetAccount.ImapPort, targetAccount.Name);
 
@@ -2358,10 +2365,18 @@ namespace MailArchiver.Services
                 return new List<string>();
             }
 
+        // Check if this is an import-only account (no IMAP settings)
+        if (string.IsNullOrEmpty(account.ImapServer))
+        {
+            _logger.LogInformation("Account {AccountId} is an import-only account, returning 'Import' folder", accountId);
+            return new List<string> { "Import" };
+        }
+
             try
             {
                 using var client = new ImapClient();
                 client.Timeout = 60000;
+                client.ServerCertificateValidationCallback = ServerCertificateValidationCallback;
                 await client.ConnectAsync(account.ImapServer, account.ImapPort ?? 993, account.UseSSL ? SecureSocketOptions.SslOnConnect : SecureSocketOptions.None);
                 await client.AuthenticateAsync(account.Username, account.Password);
 
@@ -2688,6 +2703,7 @@ namespace MailArchiver.Services
 
                 _logger.LogInformation("Reconnecting to IMAP server for account {AccountName}", account.Name);
                 await client.ConnectAsync(account.ImapServer, account.ImapPort ?? 993, account.UseSSL ? SecureSocketOptions.SslOnConnect : SecureSocketOptions.None);
+                client.ServerCertificateValidationCallback = ServerCertificateValidationCallback;
                 await client.AuthenticateAsync(account.Username, account.Password);
                 _logger.LogInformation("Successfully reconnected to IMAP server for account {AccountName}", account.Name);
             }
@@ -2696,6 +2712,56 @@ namespace MailArchiver.Services
                 _logger.LogError(ex, "Failed to reconnect to IMAP server for account {AccountName}", account.Name);
                 throw new InvalidOperationException("Failed to reconnect to IMAP server", ex);
             }
+        }
+
+        /// <summary>
+        /// Validates the server certificate based on the IgnoreSelfSignedCert setting
+        /// </summary>
+        /// <param name="sender">The sender</param>
+        /// <param name="certificate">The certificate</param>
+        /// <param name="chain">The certificate chain</param>
+        /// <param name="sslPolicyErrors">The SSL policy errors</param>
+        /// <returns>True if the certificate is valid or should be accepted, false otherwise</returns>
+        private bool ServerCertificateValidationCallback(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)
+        {
+            // If there are no SSL policy errors, the certificate is valid
+            if (sslPolicyErrors == SslPolicyErrors.None)
+            {
+                return true;
+            }
+
+            // If we're configured to ignore self-signed certificates and the only error is
+            // that the certificate is untrusted (which is typical for self-signed certs),
+            // then accept the certificate
+            if (_mailSyncOptions.IgnoreSelfSignedCert && 
+                (sslPolicyErrors == SslPolicyErrors.RemoteCertificateChainErrors ||
+                 sslPolicyErrors == SslPolicyErrors.RemoteCertificateNameMismatch))
+            {
+                // Additional check: if it's a chain error, verify it's specifically a self-signed certificate
+                if (sslPolicyErrors == SslPolicyErrors.RemoteCertificateChainErrors && chain.ChainStatus.Length > 0)
+                {
+                    // Check if the chain status indicates a self-signed certificate
+                    bool isSelfSigned = chain.ChainStatus.All(status => 
+                        status.Status == X509ChainStatusFlags.UntrustedRoot || 
+                        status.Status == X509ChainStatusFlags.PartialChain ||
+                        status.Status == X509ChainStatusFlags.RevocationStatusUnknown);
+                    
+                    if (isSelfSigned)
+                    {
+                        _logger.LogDebug("Accepting self-signed certificate for IMAP server");
+                        return true;
+                    }
+                }
+                else if (sslPolicyErrors == SslPolicyErrors.RemoteCertificateNameMismatch)
+                {
+                    _logger.LogDebug("Accepting certificate with name mismatch for IMAP server (IgnoreSelfSignedCert=true)");
+                    return true;
+                }
+            }
+
+            // Log the certificate validation error
+            _logger.LogWarning("Certificate validation failed for IMAP server: {SslPolicyErrors}", sslPolicyErrors);
+            return false;
         }
     }
 }

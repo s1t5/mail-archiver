@@ -700,6 +700,8 @@ var model = new MailAccountViewModel
         // POST: MailAccounts/ImportMBox
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [RequestSizeLimit(long.MaxValue)]
+        [RequestFormLimits(MultipartBodyLengthLimit = long.MaxValue)]
         public async Task<IActionResult> ImportMBox(MBoxImportViewModel model)
         {
             // Reload accounts for validation failure
