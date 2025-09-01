@@ -1,4 +1,5 @@
-﻿@inject Microsoft.Extensions.Localization.IStringLocalizer<MailArchiver.SharedResource> Localizer
+﻿@using MailArchiver.Models.ViewModels
+@inject Microsoft.Extensions.Localization.IStringLocalizer<MailArchiver.SharedResource> Localizer
 @model IEnumerable<MailArchiver.Models.ViewModels.MailAccountViewModel>
 @{
     ViewData["Title"] = @Localizer["EmailAccounts"];
@@ -109,21 +110,62 @@
                                             </form>
                                         }
 
-                                        <a asp-action="Delete" asp-route-id="@item.Id"
-                                            class="btn btn-danger btn-sm d-flex align-items-center"
-                                            onclick="return confirm('@string.Format(Localizer["DeleteAccountConfirm"], item.EmailAddress)');">
+<button type="button" class="btn btn-danger btn-sm d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#deleteAccountModal-@item.Id">
                                             <i class="bi bi-trash"></i>
                                             <span class="ms-1">@Localizer["Delete"]</span>
-                                        </a>
+                                        </button>
                                     </div>
                                 </td>
                             </tr>
                         }
                     </tbody>
                 </table>
-            </div>
-        </div>
+</div>
     </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            @foreach (var item in Model)
+            {
+                <text>
+                // Handle delete account confirmation for item @item.Id
+                document.getElementById('deleteAccountModal-@item.Id-Confirm').addEventListener('click', function() {
+                    window.location.href = '@Url.Action("Delete", "MailAccounts", new { id = item.Id })';
+                });
+                </text>
+            }
+        });
+    </script>
+    
+    @foreach (var item in Model)
+    {
+        var deleteAccountModal = new ModalViewModel
+        {
+            Id = "deleteAccountModal-" + item.Id,
+            Title = Localizer["DeleteEmailAccountTitle"].ToString(),
+            Message = string.Format(Localizer["DeleteAccountConfirm"].ToString(), item.EmailAddress),
+            IncludeList = true,
+            ListTitle1 = Localizer["WhatWillBeDeleted"].ToString(),
+            ListItems1 = new List<string> {
+                Localizer["DeleteItemAccountConfig"].ToString()
+            },
+            ListTitle2 = Localizer["ThisAction"].ToString(),
+            ListItems2 = new List<string> {
+                Localizer["ActionCannotBeUndone"].ToString(),
+                Localizer["ActionCannotBeRecovered"].ToString()
+            },
+            ShowWarning = true,
+            WarningMessage = Localizer["DeletionCannotBeUndone"].ToString(),
+            ConfirmButtonText = Localizer["Delete"].ToString(),
+            ConfirmButtonClass = "btn-danger",
+            CancelButtonText = Localizer["Cancel"].ToString()
+        };
+        
+        @await Html.PartialAsync("_ModalTemplate", deleteAccountModal)
+    }
+}
 
     @* Mobile/Tablet Cards - bis groÃŸe Bildschirme *@
     <div class="d-lg-none">
@@ -209,10 +251,9 @@
                         </div>
                         <div class="row">
                             <div class="col-12">
-                                        <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-outline-danger btn-sm w-100"
-                                            onclick="return confirm('@string.Format(Localizer["DeleteAccountConfirm"], item.EmailAddress)');">
+<button type="button" class="btn btn-outline-danger btn-sm w-100" data-bs-toggle="modal" data-bs-target="#deleteAccountModal-@item.Id">
                                             <i class="bi bi-trash"></i> @Localizer["Delete"]
-                                        </a>
+                                        </button>
                             </div>
                         </div>
                     </div>

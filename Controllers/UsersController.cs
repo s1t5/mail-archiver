@@ -28,7 +28,7 @@ namespace MailArchiver.Controllers
         }
 
         // GET: Users
-        [SelfManagerRequired]
+        [AdminRequired]
         public async Task<IActionResult> Index()
         {
             var users = await _userService.GetAllUsersAsync();
@@ -36,7 +36,7 @@ namespace MailArchiver.Controllers
         }
 
         // GET: Users/Details/5
-        [SelfManagerRequired]
+        [AdminRequired]
         public async Task<IActionResult> Details(int id)
         {
             var user = await _userService.GetUserByIdAsync(id);
@@ -53,7 +53,7 @@ namespace MailArchiver.Controllers
         }
 
         // GET: Users/Create
-        [SelfManagerRequired]
+        [AdminRequired]
         public IActionResult Create()
         {
             return View(new CreateUserViewModel());
@@ -62,17 +62,17 @@ namespace MailArchiver.Controllers
         // POST: Users/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [SelfManagerRequired]
+        [AdminRequired]
         public async Task<IActionResult> Create(CreateUserViewModel model, string password)
         {
-            _logger.LogInformation("Create user called with Username: {Username}, Email: {Email}, Password length: {PasswordLength}", 
+            _logger.LogInformation("Create user called with Username: {Username}, Email: {Email}, Password length: {PasswordLength}",
                 model?.Username, model?.Email, password?.Length ?? 0);
 
             // Validate password
             if (string.IsNullOrWhiteSpace(password))
             {
                 _logger.LogWarning("Password is null or empty");
-                
+
                 ModelState.AddModelError("password", _localizer["PasswordRequired"]);
             }
             else if (password.Length < 6)
@@ -99,7 +99,7 @@ namespace MailArchiver.Controllers
 
             if (!ModelState.IsValid)
             {
-                _logger.LogWarning("ModelState is invalid. Errors: {Errors}", 
+                _logger.LogWarning("ModelState is invalid. Errors: {Errors}",
                     string.Join(", ", ModelState.SelectMany(x => x.Value.Errors.Select(e => $"{x.Key}: {e.ErrorMessage}"))));
                 // Pass the password back to the view for form retention
                 ViewBag.Password = password;
@@ -108,19 +108,19 @@ namespace MailArchiver.Controllers
 
             try
             {
-            // Create the user
-            var newUser = await _userService.CreateUserAsync(
-                model.Username, 
-                model.Email, 
-                password,
-                model.IsAdmin);
+                // Create the user
+                var newUser = await _userService.CreateUserAsync(
+                    model.Username,
+                    model.Email,
+                    password,
+                    model.IsAdmin);
 
-            // Set self-manager flag if specified
-            if (model.IsSelfManager)
-            {
-                newUser.IsSelfManager = true;
-                await _userService.UpdateUserAsync(newUser);
-            }
+                // Set self-manager flag if specified
+                if (model.IsSelfManager)
+                {
+                    newUser.IsSelfManager = true;
+                    await _userService.UpdateUserAsync(newUser);
+                }
 
                 TempData["SuccessMessage"] = _localizer["UserCreatedSuccess", newUser.Username].Value;
                 return RedirectToAction(nameof(Index));
@@ -152,7 +152,7 @@ namespace MailArchiver.Controllers
         [AdminRequired]
         public async Task<IActionResult> Edit(int id, User user, string? newPassword)
         {
-            _logger.LogInformation("Edit POST called with id: {Id}, user: {User}, newPassword length: {PasswordLength}", 
+            _logger.LogInformation("Edit POST called with id: {Id}, user: {User}, newPassword length: {PasswordLength}",
                 id, user?.Username, newPassword?.Length ?? 0);
 
             if (id != user.Id)
@@ -171,7 +171,7 @@ namespace MailArchiver.Controllers
             _logger.LogInformation("ModelState.IsValid: {IsValid}", ModelState.IsValid);
             if (!ModelState.IsValid)
             {
-                _logger.LogWarning("ModelState is invalid. Errors: {Errors}", 
+                _logger.LogWarning("ModelState is invalid. Errors: {Errors}",
                     string.Join(", ", ModelState.SelectMany(x => x.Value.Errors.Select(e => $"{x.Key}: {e.ErrorMessage}"))));
             }
 
@@ -276,7 +276,7 @@ namespace MailArchiver.Controllers
                     var adminCount = await _userService.GetAdminCountAsync();
                     if (adminCount <= 1)
                     {
-                        TempData["ErrorMessage"] =  _localizer["UserDeleteAdmin"].Value;
+                        TempData["ErrorMessage"] = _localizer["UserDeleteAdmin"].Value;
                         return RedirectToAction(nameof(Index));
                     }
                 }
@@ -313,7 +313,7 @@ namespace MailArchiver.Controllers
 
             // Get all mail accounts
             var allAccounts = await _context.MailAccounts.ToListAsync();
-            
+
             // Get currently assigned accounts
             var assignedAccounts = await _userService.GetUserMailAccountsAsync(id);
             var assignedAccountIds = assignedAccounts.Select(a => a.Id).ToList();
@@ -444,7 +444,7 @@ namespace MailArchiver.Controllers
                     {
                         currentUser.PasswordHash = _userService.HashPassword(newPassword);
                         var result = await _userService.UpdateUserAsync(currentUser);
-                        
+
                         if (result)
                         {
                             TempData["SuccessMessage"] = _localizer["PasswordChangeSuccess"].Value;

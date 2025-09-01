@@ -81,23 +81,22 @@ namespace MailArchiver.Services
             if (user == null)
                 return false;
 
-            // Prevent deletion of self-manager users
+            // Warn when deleting self-manager users but allow it
             if (user.IsSelfManager)
             {
-                _logger.LogWarning("Attempt to delete self-manager user {Username} (ID: {UserId})", user.Username, user.Id);
-                return false;
+                _logger.LogWarning("Deleting self-manager user {Username} (ID: {UserId})", user.Username, user.Id);
             }
 
             // Remove user's mail account associations
             var userMailAccounts = await _context.UserMailAccounts
                 .Where(uma => uma.UserId == id)
                 .ToListAsync();
-            
+
             _context.UserMailAccounts.RemoveRange(userMailAccounts);
-            
+
             // Remove the user
             _context.Users.Remove(user);
-            
+
             try
             {
                 await _context.SaveChangesAsync();
@@ -134,7 +133,7 @@ namespace MailArchiver.Services
             try
             {
                 await _context.SaveChangesAsync();
-                _logger.LogInformation("Set user {Username} (ID: {UserId}) active status to {IsActive}", 
+                _logger.LogInformation("Set user {Username} (ID: {UserId}) active status to {IsActive}",
                     user.Username, user.Id, isActive);
                 return true;
             }
@@ -234,10 +233,10 @@ namespace MailArchiver.Services
             // Check if user has direct access to the account
             var hasDirectAccess = await _context.UserMailAccounts
                 .AnyAsync(uma => uma.UserId == userId && uma.MailAccountId == mailAccountId);
-                
-            _logger.LogInformation("User {UserId} access check for account {MailAccountId}: {HasAccess}", 
+
+            _logger.LogInformation("User {UserId} access check for account {MailAccountId}: {HasAccess}",
                 userId, mailAccountId, hasDirectAccess ? "Granted" : "Denied");
-                
+
             return hasDirectAccess;
         }
 

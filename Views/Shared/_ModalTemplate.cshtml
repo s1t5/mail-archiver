@@ -1,0 +1,57 @@
+@model MailArchiver.Models.ViewModels.ModalViewModel
+<div class="modal fade" id="@Model.Id" tabindex="-1" aria-labelledby="@Model.Id-Label" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered @(Model.Size)">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="@Model.Id-Label">@Model.Title</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                @if (!string.IsNullOrEmpty(Model.Message))
+                {
+                    <p>@Model.Message</p>
+                }
+                @if (Model.IncludeList)
+                {
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <h6>@Model.ListTitle1</h6>
+                            <ul class="mb-0">
+                                @foreach (var item in Model.ListItems1)
+                                {
+                                    <li>@item</li>
+                                }
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>@Model.ListTitle2</h6>
+                            <ul class="mb-0">
+                                @foreach (var item in Model.ListItems2)
+                                {
+                                    <li>@item</li>
+                                }
+                            </ul>
+                        </div>
+                    </div>
+                }
+                @if (Model.ShowWarning)
+                {
+                    <div class="alert alert-warning mt-3">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                        @Model.WarningMessage
+                    </div>
+                }
+            </div>
+            <div class="modal-footer">
+                @if (Model.ShowCancelButton)
+                {
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">@Model.CancelButtonText</button>
+                }
+                @if (Model.ShowConfirmButton)
+                {
+                    <button type="button" class="btn @(Model.ConfirmButtonClass)" id="@Model.Id-Confirm">@Model.ConfirmButtonText</button>
+                }
+            </div>
+        </div>
+    </div>
+</div>

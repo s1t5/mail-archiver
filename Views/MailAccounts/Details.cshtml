@@ -1,4 +1,5 @@
-﻿@inject Microsoft.Extensions.Localization.IStringLocalizer<MailArchiver.SharedResource> Localizer
+﻿@using MailArchiver.Models.ViewModels
+@inject Microsoft.Extensions.Localization.IStringLocalizer<MailArchiver.SharedResource> Localizer
 @model MailArchiver.Models.ViewModels.MailAccountViewModel
 @{
     ViewData["Title"] = Localizer["AccountDetailsTitle"];
@@ -17,7 +18,7 @@
                 <dt class="col-sm-3">@Localizer["Username"]</dt>
                 <dd class="col-sm-9">@Model.Username</dd>
                 <dt class="col-sm-3">SSL</dt>
-                <dd class="col-sm-9">@(Model.UseSSL ? Localizer["Enabled"] : Localizer["Disabled"])</dd>
+                <dd class="col-sm-9">@(Model.UseSSL? Localizer["Enabled"] : Localizer["Disabled"])</dd>
                 <dt class="col-sm-3">@Localizer["Status"]</dt>
                 <dd class="col-sm-9">
                     @if (Model.IsEnabled)
@@ -37,10 +38,11 @@
                         <div class="mt-1">
                             <small class="text-warning">
                                 <i class="bi bi-exclamation-triangle me-1"></i>
-                                @string.Format(Localizer["DeletingAccountWillRemoveAllEmails"], ViewBag.EmailCount.ToString("N0"))
-                            </small>
-                        </div>
-                    }
+                                @string.Format(Localizer["DeletingAccountWillRemoveAllEmails"],
+                                ViewBag.EmailCount.ToString("N0"))
+                        </small>
+                    </div>
+                                        }
                 </dd>
                 <dt class="col-sm-3">@Localizer["LastSync"]</dt>
                 <dd class="col-sm-9">
@@ -55,10 +57,11 @@
                         <span class="text-muted">@Localizer["NotYetSynchronized"]</span>
                     }
                     <div class="mt-2">
-                        <form asp-action="ResetSyncTime" asp-route-id="@Model.Id" method="post" style="display: inline;">
+                        <form asp-action="ResetSyncTime" asp-route-id="@Model.Id" method="post"
+                            style="display: inline;">
                             @Html.AntiForgeryToken()
-                            <button type="submit" class="btn btn-sm btn-outline-info" 
-                                    onclick="return confirm('@Localizer["ResetSyncTimeConfirm"]');">
+                            <button type="submit" class="btn btn-sm btn-outline-info"
+                                onclick="return confirm('@Localizer["ResetSyncTimeConfirm"]');">
                                 <i class="bi bi-arrow-clockwise"></i> @Localizer["ResetSyncTime"]
                             </button>
                         </form>
@@ -95,9 +98,10 @@
                     </a>
                     <form asp-action="ToggleEnabled" asp-route-id="@Model.Id" method="post" style="display: inline;">
                         @Html.AntiForgeryToken()
-                        <button type="submit" class="btn @(Model.IsEnabled ? "btn-outline-secondary" : "btn-outline-success")">
+                        <button type="submit"
+                            class="btn @(Model.IsEnabled ? "btn-outline-secondary" : "btn-outline-success")">
                             <i class="bi bi-@(Model.IsEnabled ? "pause" : "play")"></i>
-                            @(Model.IsEnabled ? Localizer["DisableAccount"] : Localizer["EnableAccount"])
+                            @(Model.IsEnabled? Localizer["DisableAccount"] : Localizer["EnableAccount"])
                         </button>
                     </form>
                     @if (Model.IsEnabled)
@@ -109,7 +113,7 @@
                             </button>
                         </form>
                         <form asp-action="Resync" asp-route-id="@Model.Id" method="post" style="display: inline;"
-                              onsubmit="return confirm('@Localizer["FullResync"]');">
+                            onsubmit="return confirm('@Localizer["FullResync"]');">
                             @Html.AntiForgeryToken()
                             <button type="submit" class="btn btn-outline-warning">
                                 <i class="bi bi-arrow-clockwise"></i> @Localizer["FullResync"]
@@ -132,13 +136,14 @@
                         @Localizer["DangerZoneInfo"]
                     </p>
                     <div class="d-flex flex-column flex-md-row gap-2">
-                        @{ var emailCountText = ViewBag.EmailCount.ToString(); }
-                        <a asp-action="Delete" asp-route-id="@Model.Id" 
-                           class="btn btn-danger btn-sm"
-                           onclick="return confirm('@string.Format(Localizer["DeleteAccountWithEmailsConfirm"], emailCountText)');">
-                            <i class="bi bi-trash-fill"></i> 
+                        @{
+                            var emailCountText = ViewBag.EmailCount.ToString();
+                        }
+                        <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal"
+                            data-bs-target="#deleteAccountModal">
+                            <i class="bi bi-trash-fill"></i>
                             @string.Format(Localizer["DeleteAccountAllEmailsButton"], emailCountText)
-                        </a>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -150,3 +155,47 @@
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        // Delete account modal handling
+        document.addEventListener('DOMContentLoaded', function () {
+            // Handle delete account confirmation
+            document.getElementById('deleteAccountModal-Confirm').addEventListener('click', function () {
+                window.location.href = '@Url.Action("Delete", "MailAccounts", new { id = Model.Id })';
+            });
+        });
+    </script>
+
+    @{
+        var deleteAccountModal = new ModalViewModel
+        {
+            Id = "deleteAccountModal",
+            Title = Localizer["DeleteEmailAccountTitle"].ToString(),
+            Message = Localizer["DeleteAccountWithEmailsConfirm"].ToString(),
+            IncludeList = true,
+            ListTitle1 = Localizer["WhatWillBeDeleted"].ToString(),
+            ListItems1 = new List<string> {
+Localizer["DeleteItemAccountConfig"].ToString(),
+string.Format(Localizer["DeleteItemAllArchivedEmails"].ToString(), ViewBag.EmailCount.ToString("N0")),
+Localizer["DeleteItemAllAttachments"].ToString(),
+Localizer["DeleteItemSyncHistory"].ToString()
+},
+            ListTitle2 = Localizer["ThisAction"].ToString(),
+            ListItems2 = new List<string> {
+Localizer["ActionCannotBeUndone"].ToString(),
+Localizer["ActionCannotBeRecovered"].ToString(),
+Localizer["ActionWillFreeStorage"].ToString(),
+Localizer["ActionWillStopSync"].ToString()
+},
+            ShowWarning = true,
+            WarningMessage = Localizer["DeletionCannotBeUndone"].ToString(),
+            ConfirmButtonText = string.Format(Localizer["PermanentlyDeleteAccountAndEmails"].ToString(),
+        ViewBag.EmailCount.ToString("N0")),
+            ConfirmButtonClass = "btn-danger",
+            CancelButtonText = Localizer["Cancel"].ToString()
+        };
+    }
+
+    @await Html.PartialAsync("_ModalTemplate", deleteAccountModal)
+}

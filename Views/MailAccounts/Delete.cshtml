@@ -1,4 +1,5 @@
-﻿@inject Microsoft.Extensions.Localization.IStringLocalizer<MailArchiver.SharedResource> Localizer
+﻿@using MailArchiver.Models.ViewModels
+@inject Microsoft.Extensions.Localization.IStringLocalizer<MailArchiver.SharedResource> Localizer
 @model MailArchiver.Models.ViewModels.MailAccountViewModel
 @{
     ViewData["Title"] = Localizer["DeleteEmailAccountTitle"];
@@ -9,11 +10,11 @@
         <i class="bi bi-exclamation-triangle-fill me-2"></i>
         @Localizer["DeleteEmailAccountTitle"]
     </h1>
-    
+
     <div class="alert alert-danger">
         <h4>⚠ @Localizer["PermanentDeletionWarning"]</h4>
         <p><strong>@Localizer["AboutToDeleteAccountAllEmails"]</strong></p>
-        
+
         <div class="row mt-3">
             <div class="col-md-6">
                 <h6>@Localizer["WhatWillBeDeleted"]</h6>
@@ -34,11 +35,12 @@
                 </ul>
             </div>
         </div>
-        
+
         <div class="mt-3 p-2 bg-white rounded border">
             <small class="text-muted">
                 <strong>@Localizer["Alternative"]</strong> @Localizer["AlternativeDisableInfo"]
-                <a asp-action="Edit" asp-route-id="@Model.Id" class="text-decoration-none">@Localizer["DisableAccountInsteadLink"]</a>.
+                <a asp-action="Edit" asp-route-id="@Model.Id"
+                    class="text-decoration-none">@Localizer["DisableAccountInsteadLink"]</a>.
             </small>
         </div>
     </div>
@@ -66,7 +68,8 @@
                 </dd>
                 <dt class="col-sm-3">@Localizer["ArchivedEmails"]</dt>
                 <dd class="col-sm-9">
-                    <span class="badge bg-danger fs-6">@string.Format(Localizer["ArchivedEmailsWillBeDeleted"], emailCount.ToString("N0"))</span>
+                    <span class="badge bg-danger fs-6">@string.Format(Localizer["ArchivedEmailsWillBeDeleted"],
+                                                emailCount.ToString("N0"))</span>
                 </dd>
             </dl>
         </div>
@@ -81,70 +84,107 @@
             <div class="form-check mb-3">
                 <input class="form-check-input" type="checkbox" id="confirmDeletion" required>
                 <label class="form-check-label" for="confirmDeletion">
-                    <strong>@string.Format(Localizer["UnderstandDeletionAcknowledge"], Model.Name, emailCount.ToString("N0"))</strong>
+                    <strong>@string.Format(Localizer["UnderstandDeletionAcknowledge"], Model.Name,
+                                                emailCount.ToString("N0"))</strong>
                 </label>
             </div>
-            
-            <div class="d-flex gap-3 justify-content-between flex-column flex-md-row">
+
+<div class="d-flex gap-3 justify-content-between flex-column flex-md-row">
                 <div class="d-flex gap-2">
-                    <a asp-action="Index" class="btn btn-outline-secondary">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal"
+                        data-bs-target="#cancelModal">
                         <i class="bi bi-arrow-left"></i> @Localizer["CancelKeepAccount"]
-                    </a>
-                    
+                    </button>
+
                     <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">
                         <i class="bi bi-pause"></i> @Localizer["DisableInstead"]
                     </a>
                 </div>
-                
-                <form asp-action="Delete" method="post" id="deleteForm">
-                    <input type="hidden" asp-for="Id" />
-                    <button type="submit" class="btn btn-danger" id="deleteButton" disabled>
-                        <i class="bi bi-trash-fill"></i> 
-                        @string.Format(Localizer["PermanentlyDeleteAccountAndEmails"], emailCount.ToString("N0"))
-                    </button>
-                </form>
+
+                <button type="button" class="btn btn-danger" id="deleteButton" disabled data-bs-toggle="modal"
+                    data-bs-target="#deleteConfirmationModal">
+                    <i class="bi bi-trash-fill"></i>
+                    @string.Format(Localizer["PermanentlyDeleteAccountAndEmails"], emailCount.ToString("N0"))
+                </button>
             </div>
+            
+            <form asp-action="Delete" asp-route-id="@Model.Id" method="post" id="deleteForm">
+                @Html.AntiForgeryToken()
+            </form>
         </div>
     </div>
 </div>
 
 @section Scripts {
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             const confirmCheckbox = document.getElementById('confirmDeletion');
             const deleteButton = document.getElementById('deleteButton');
-            const deleteForm = document.getElementById('deleteForm');
-            
+const deleteForm = document.getElementById('deleteForm');
+            if (!deleteForm) {
+                console.error('Delete form not found');
+            }
+
             // Enable/disable delete button based on checkbox
-            confirmCheckbox.addEventListener('change', function() {
+            confirmCheckbox.addEventListener('change', function () {
                 deleteButton.disabled = !this.checked;
             });
-            
-            // Double confirmation on form submit
-            deleteForm.addEventListener('submit', function(e) {
-                if (!confirmCheckbox.checked) {
-                    e.preventDefault();
-                    return false;
+
+// Handle delete confirmation modal
+            document.getElementById('deleteConfirmationModal-Confirm').addEventListener('click', function () {
+                // Submit the form when the modal confirm button is clicked
+                if (deleteForm) {
+                    deleteForm.submit();
+                } else {
+                    console.error('Delete form not found');
                 }
-                
-                const accountName = '@Model.Name';
-                const emailCount = '@emailCount';
-                
-                const finalConfirm = confirm(
-                    `${'@Localizer["FinalWarningTitle"]'}\n\n` +
-                    `${'@Localizer["YouAreAboutToDelete"]'}\n` +
-                    `â€¢ ${'@Localizer["BulletAccount"]'.replace('{0}', accountName)}\n` +
-                    `â€¢ ${'@Localizer["BulletArchivedEmails"]'.replace('{0}', emailCount)}\n` +
-                    `â€¢ ${'@Localizer["BulletAllAttachments"]'}\n\n` +
-                    `${'@Localizer["DeletionCannotBeUndone"]'}\n\n` +
-                    `${'@Localizer["AreYouAbsolutelySure"]'}`
-                );
-                
-                if (!finalConfirm) {
-                    e.preventDefault();
-                    return false;
-                }
+            });
+
+            // Handle cancel modal
+            document.getElementById('cancelModal-Confirm').addEventListener('click', function () {
+                window.location.href = '@Url.Action("Index", "MailAccounts")';
             });
         });
     </script>
+
+    @{
+        var cancelModal = new ModalViewModel
+        {
+            Id = "cancelModal",
+            Title = Localizer["CancelKeepAccount"].ToString(),
+            Message = Localizer["CancelKeepAccountMessage"].ToString(),
+            ConfirmButtonText = Localizer["YesCancel"].ToString(),
+            ConfirmButtonClass = "btn-secondary",
+            CancelButtonText = Localizer["Cancel"].ToString()
+        };
+
+        var deleteModal = new ModalViewModel
+        {
+            Id = "deleteConfirmationModal",
+            Title = Localizer["FinalWarningTitle"].ToString(),
+            Message = Localizer["YouAreAboutToDelete"].ToString(),
+            IncludeList = true,
+            ListTitle1 = Localizer["WhatWillBeDeleted"].ToString(),
+            ListItems1 = new List<string> {
+string.Format(Localizer["BulletAccount"].ToString(), Model.Name),
+string.Format(Localizer["BulletArchivedEmails"].ToString(), emailCount.ToString("N0")),
+Localizer["BulletAllAttachments"].ToString()
+},
+            ListTitle2 = Localizer["ThisAction"].ToString(),
+            ListItems2 = new List<string> {
+Localizer["ActionCannotBeUndone"].ToString(),
+Localizer["ActionCannotBeRecovered"].ToString(),
+Localizer["ActionWillFreeStorage"].ToString(),
+Localizer["ActionWillStopSync"].ToString()
+},
+            ShowWarning = true,
+            WarningMessage = Localizer["DeletionCannotBeUndone"].ToString(),
+            ConfirmButtonText = string.Format(Localizer["PermanentlyDeleteAccountAndEmails"].ToString(), emailCount.ToString("N0")),
+            ConfirmButtonClass = "btn-danger",
+            CancelButtonText = Localizer["Cancel"].ToString()
+        };
+    }
+
+    @await Html.PartialAsync("_ModalTemplate", cancelModal)
+    @await Html.PartialAsync("_ModalTemplate", deleteModal)
 }
