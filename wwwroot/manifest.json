@@ -1,0 +1,19 @@
+{
+    "name": "Mail-Archiver",
+    "short_name": "Mail-Archiver",
+    "description": "Email archive management system",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#212529",
+    "orientation": "portrait-primary",
+    "scope": "/",
+    "icons": [
+      {
+        "src": "favicon.svg",
+        "type": "image/svg+xml",
+        "sizes": "any",
+        "purpose": "any maskable"
+      }
+    ]
+}
