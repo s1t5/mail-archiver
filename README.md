@@ -99,6 +99,7 @@ services:
       - MailSync__ConnectionTimeoutSeconds=180
       - MailSync__CommandTimeoutSeconds=300
       - MailSync__AlwaysForceFullSync=false
+      - MailSync__IgnoreSelfSignedCert=false
 
       # BatchRestore Settings
       - BatchRestore__AsyncThreshold=50
