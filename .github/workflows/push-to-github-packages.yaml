@@ -4,6 +4,11 @@ on:
   release:
     types: [published]
   workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version tag (e.g., 2509.1)'
+        required: true
+        type: string
 
 jobs:
   build-and-push:
@@ -45,8 +50,8 @@ jobs:
             ghcr.io/${{ github.repository_owner }}/mailarchiver
           tags: |
             type=raw,value=latest
-            type=raw,value=${{ github.event.release.tag_name }}
-            type=match,pattern=\d{4}\.\d+,group=0
+            type=raw,value=${{ github.event.release.tag_name }},enable=${{ github.event_name == 'release' }}
+            type=raw,value=${{ inputs.version }},enable=${{ github.event_name == 'workflow_dispatch' }}
 
       - name: Build and push Docker image
         id: docker_build
