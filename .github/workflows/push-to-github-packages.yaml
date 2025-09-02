@@ -45,6 +45,7 @@ jobs:
             ghcr.io/${{ github.repository_owner }}/mailarchiver
           tags: |
             type=raw,value=latest
+            type=raw,value=${{ github.event.release.tag_name }}
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
 
@@ -57,21 +58,3 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-
-      - name: Update Release Notes
-        if: github.event_name == 'release'
-        uses: actions/github-script@v7
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            const release_id = context.payload.release.id;
-            const new_body = `## Container Images\n
-            Docker Hub: docker.io/s1t5/mailarchiver:${context.payload.release.tag_name}\n
-            GHCR: ghcr.io/${context.repo.owner}/mailarchiver:${context.payload.release.tag_name}\n\n
-            ${context.payload.release.body}`;
-            await github.rest.repos.updateRelease({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              release_id: release_id,
-              body: new_body
-            });
