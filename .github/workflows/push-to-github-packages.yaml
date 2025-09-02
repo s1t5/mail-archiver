@@ -46,8 +46,7 @@ jobs:
           tags: |
             type=raw,value=latest
             type=raw,value=${{ github.event.release.tag_name }}
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
+            type=match,pattern=\d{4}\.\d+,group=0
 
       - name: Build and push Docker image
         id: docker_build
