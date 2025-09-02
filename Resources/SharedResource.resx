@@ -1401,4 +1401,63 @@
   <data name="SelfManagerRoleDescription" xml:space="preserve">
     <value>Can manage their own account settings and assigned email accounts, as well as add new Accounts</value>
   </data>
+  
+  <!-- EML Import -->
+  <data name="ImportEml" xml:space="preserve">
+    <value>Import Eml</value>
+  </data>
+  <data name="ImportEmlFileTitle" xml:space="preserve">
+    <value>Import EML File</value>
+  </data>
+  <data name="EmlImportInformation" xml:space="preserve">
+    <value>EML Import Information:</value>
+  </data>
+  <data name="SupportedFormatsEml" xml:space="preserve">
+    <value>Supported formats: ZIP files containing EML files</value>
+  </data>
+  <data name="EmlFolderStructureInfo" xml:space="preserve">
+    <value>Folder structure within ZIP will determine target folder for emails</value>
+  </data>
+  <data name="SelectEmlFile" xml:space="preserve">
+    <value>Select EML File (ZIP format)</value>
+  </data>
+  <data name="SupportedFormatsEmlWithMax" xml:space="preserve">
+    <value>Supported formats: .zip files containing EML files. Maximum size: {0}</value>
+  </data>
+  <data name="EmlImportFolderInfo" xml:space="preserve">
+    <value>Folder Import Information</value>
+  </data>
+  <data name="EmlImportFolderInfoDetail" xml:space="preserve">
+    <value>EML files in the root of the ZIP will be imported to INBOX. EML files in subfolders will be imported to folders with the same name as the subfolder.</value>
+  </data>
+  <data name="SelectValidEmlFile" xml:space="preserve">
+    <value>Please select a valid EML file (ZIP format).</value>
+  </data>
+  <data name="EmlFileTooLarge" xml:space="preserve">
+    <value>File size exceeds maximum allowed size of {0}.</value>
+  </data>
+  <data name="EmlImportStarted" xml:space="preserve">
+    <value>EML file '{0}' uploaded successfully. Import job started with estimated {1:N0} emails.</value>
+  </data>
+  <data name="EmlImportError" xml:space="preserve">
+    <value>Error starting EML import</value>
+  </data>
+  <data name="InvalidEmlID" xml:space="preserve">
+    <value>Invalid EML import job ID.</value>
+  </data>
+  <data name="EmlImportJobNotFound" xml:space="preserve">
+    <value>EML import job not found.</value>
+  </data>
+  <data name="EmlImportCancelled" xml:space="preserve">
+    <value>EML import job has been cancelled.</value>
+  </data>
+  <data name="EmlImportCancelError" xml:space="preserve">
+    <value>Could not cancel the EML import job. The job may have already completed or does not exist.</value>
+  </data>
+  <data name="EmlImportStatusTitle" xml:space="preserve">
+    <value>EML Import Status</value>
+  </data>
+  <data name="Import" xml:space="preserve">
+    <value>Import</value>
+  </data>
 </root>

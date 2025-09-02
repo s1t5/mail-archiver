@@ -9,10 +9,16 @@
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h1 class="h3">@Localizer["EmailAccounts"]</h1>
         <div class="d-flex gap-2">
-            <a asp-action="ImportMBox" class="btn btn-outline-success btn-sm">
-                <i class="bi bi-upload"></i>
-                <span class="d-none d-sm-inline">@Localizer["ImportMBox"]</span>
-            </a>
+            <div class="dropdown">
+                <button class="btn btn-outline-success btn-sm dropdown-toggle" type="button" id="importDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="bi bi-upload"></i>
+                    <span class="d-none d-sm-inline">@Localizer["Import"]</span>
+                </button>
+                <ul class="dropdown-menu" aria-labelledby="importDropdown">
+                    <li><a class="dropdown-item" asp-action="ImportMBox"><i class="bi bi-file-earmark-text me-2"></i>@Localizer["ImportMBox"]</a></li>
+                    <li><a class="dropdown-item" asp-action="ImportEml"><i class="bi bi-file-earmark-zip me-2"></i>@Localizer["ImportEml"]</a></li>
+                </ul>
+            </div>
             <a asp-action="Create" class="btn btn-primary btn-sm">
                 <i class="bi bi-plus-circle"></i>
                 <span class="d-none d-sm-inline">@Localizer["AddAccount"]</span>
@@ -274,9 +280,15 @@
                     <a asp-action="Create" class="btn btn-primary">
                         <i class="bi bi-plus-circle"></i> @Localizer["AddAccount"]
                     </a>
-                    <a asp-action="ImportMBox" class="btn btn-outline-success">
-                        <i class="bi bi-upload"></i> @Localizer["ImportMBox"]
-                    </a>
+                    <div class="dropdown">
+                        <button class="btn btn-outline-success dropdown-toggle" type="button" id="mobileImportDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-upload"></i> @Localizer["Import"]
+                        </button>
+                        <ul class="dropdown-menu" aria-labelledby="mobileImportDropdown">
+                            <li><a class="dropdown-item" asp-action="ImportMBox"><i class="bi bi-file-earmark-text me-2"></i>@Localizer["ImportMBox"]</a></li>
+                            <li><a class="dropdown-item" asp-action="ImportEml"><i class="bi bi-file-earmark-zip me-2"></i>@Localizer["ImportEml"]</a></li>
+                        </ul>
+                    </div>
                 </div>
             </div>
         }
@@ -293,10 +305,16 @@
                 <div class="card-body">
                     <div class="row g-2">
                         <div class="col-6">
-                            <a asp-action="ImportMBox" class="btn btn-outline-success w-100">
-                                <i class="bi bi-upload d-block mb-1"></i>
-                                <small>@Localizer["ImportMBox"]</small>
-                            </a>
+                            <div class="dropdown">
+                                <button class="btn btn-outline-success w-100 dropdown-toggle" type="button" id="mobileQuickImportDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="bi bi-upload d-block mb-1"></i>
+                                    <small>@Localizer["Import"]</small>
+                                </button>
+                                <ul class="dropdown-menu" aria-labelledby="mobileQuickImportDropdown">
+                                    <li><a class="dropdown-item" asp-action="ImportMBox"><i class="bi bi-file-earmark-text me-2"></i>@Localizer["ImportMBox"]</a></li>
+                                    <li><a class="dropdown-item" asp-action="ImportEml"><i class="bi bi-file-earmark-zip me-2"></i>@Localizer["ImportEml"]</a></li>
+                                </ul>
+                            </div>
                         </div>
                         <div class="col-6">
                             <a asp-action="Create" class="btn btn-outline-primary w-100">

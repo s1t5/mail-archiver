@@ -1,0 +1,298 @@
+@inject Microsoft.Extensions.Localization.IStringLocalizer<MailArchiver.SharedResource> Localizer
+@model MailArchiver.Models.EmlImportJob
+@{
+    ViewData["Title"] = Localizer["EmlImportStatusTitle"];
+}
+
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>@Localizer["EmlImportStatusTitle"]</h1>
+        <div>
+            <a asp-action="Index" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> @Localizer["BackToAccounts"]
+            </a>
+            <a asp-controller="Emails" asp-action="Jobs" class="btn btn-outline-info">
+                <i class="bi bi-list"></i> @Localizer["AllJobs"]
+            </a>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header bg-light">
+            <h5 class="mb-0">@Localizer["ImportJobInformation"]</h5>
+        </div>
+        <div class="card-body">
+            <dl class="row">
+                <dt class="col-sm-3">@Localizer["JobIDLabel"]</dt>
+                <dd class="col-sm-9"><code>@Model.JobId</code></dd>
+
+                <dt class="col-sm-3">@Localizer["FileNameLabel"]</dt>
+                <dd class="col-sm-9">@Model.FileName</dd>
+
+                <dt class="col-sm-3">@Localizer["FileSizeLabel"]</dt>
+                <dd class="col-sm-9">@FormatFileSize(Model.FileSize)</dd>
+
+                <dt class="col-sm-3">@Localizer["StatusLabel"]</dt>
+                <dd class="col-sm-9">
+                    <span class="badge bg-@(Model.Status == MailArchiver.Models.EmlImportJobStatus.Running ? "primary" :
+                                           Model.Status == MailArchiver.Models.EmlImportJobStatus.Completed ? "success" :
+                                           Model.Status == MailArchiver.Models.EmlImportJobStatus.Failed ? "danger" :
+                                           Model.Status == MailArchiver.Models.EmlImportJobStatus.Cancelled ? "warning" : "secondary") fs-6">
+                        @Model.Status
+                    </span>
+                </dd>
+
+                <dt class="col-sm-3">@Localizer["EmailsLabelStatus"]</dt>
+                <dd class="col-sm-9">
+                    @if (Model.Status == MailArchiver.Models.EmlImportJobStatus.Running)
+                    {
+                        <span>@Model.ProcessedEmails.ToString("N0") @Localizer["ProcessedSuffix"]</span>
+                        @if (Model.TotalEmails > 0)
+                        {
+                            <span class="text-muted"> (@Localizer["EstimatedSuffix"]: @Model.TotalEmails.ToString("N0"))</span>
+                        }
+                    }
+                    else if (Model.Status == MailArchiver.Models.EmlImportJobStatus.Completed)
+                    {
+                        <span>@Model.ProcessedEmails.ToString("N0") @Localizer["EmailsProcessedSuffix"]</span>
+                        @if (Model.TotalEmails > 0 && Model.ProcessedEmails != Model.TotalEmails)
+                        {
+                            <span class="text-muted"> (@Localizer["EstimatedSuffix"]: @Model.TotalEmails.ToString("N0"))</span>
+                        }
+                    }
+                    else if (Model.TotalEmails > 0)
+                    {
+                        <span>@Model.TotalEmails.ToString("N0") @Localizer["EmailsEstimatedSuffix"]</span>
+                    }
+                    else
+                    {
+                        <span class="text-muted">@Localizer["Estimating"]</span>
+                    }
+                </dd>
+
+                <dt class="col-sm-3">@Localizer["ProgressLabel"]</dt>
+                <dd class="col-sm-9">
+                    @{
+                        // Verwende File-Progress als primären Indikator, da E-Mail-Schätzung ungenau sein kann
+                        var fileProgressPercent = Model.FileSize > 0 ? Math.Round((double)Model.ProcessedBytes * 100.0 / Model.FileSize, 1) : 0;
+                        
+                        // E-Mail-Progress nur wenn verfügbar und sinnvoll
+                        var emailProgressPercent = 0.0;
+                        if (Model.TotalEmails > 0 && Model.ProcessedEmails <= Model.TotalEmails * 1.2) // Max 120% um Schätzfehler zu berücksichtigen
+                        {
+                            emailProgressPercent = Math.Round((double)Model.ProcessedEmails * 100.0 / Model.TotalEmails, 1);
+                        }
+                        
+                        // Verwende den höheren Wert, aber begrenzt auf 100%
+                        var displayPercent = Math.Min(100, Math.Max(fileProgressPercent, emailProgressPercent));
+                        
+                        // Für abgeschlossene Jobs: 100%
+                        if (Model.Status == MailArchiver.Models.EmlImportJobStatus.Completed)
+                        {
+                            displayPercent = 100;
+                        }
+                        
+                        var progressWidth = Math.Min(100, Math.Max(0, displayPercent));
+                    }
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="small text-muted">
+                                @if (Model.Status == MailArchiver.Models.EmlImportJobStatus.Completed)
+                                {
+                                    <span>@Localizer["ImportComplete"]</span>
+                                }
+                                else
+                                {
+                                    <span>@Localizer["FileProcessingProgress"]</span>
+                                }
+                            </span>
+                            <span class="small fw-bold">@displayPercent.ToString("F1")%</span>
+                        </div>
+                        <div class="progress" style="height: 25px;">
+                            <div class="progress-bar progress-bar-striped @(Model.Status == MailArchiver.Models.EmlImportJobStatus.Running ? "progress-bar-animated" : "")"
+                                 role="progressbar"
+                                 style="width: @progressWidth.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)%"
+                                 aria-valuenow="@displayPercent"
+                                 aria-valuemin="0"
+                                 aria-valuemax="100">
+                                @if (displayPercent > 10)
+                                {
+                                    <span class="fw-bold">@displayPercent.ToString("F1")%</span>
+                                }
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-between mt-1">
+                            <small class="text-muted">
+                                File: @FormatFileSize(Model.ProcessedBytes) of @FormatFileSize(Model.FileSize)
+                            </small>
+                            @if (Model.ProcessedEmails > 0)
+                            {
+                                <small class="text-muted">
+                                    @Model.ProcessedEmails.ToString("N0") @Localizer["EmailsProcessedSuffix"]
+                                </small>
+                            }
+                        </div>
+                        @if (Model.TotalEmails > 0 && Model.ProcessedEmails > Model.TotalEmails * 1.1)
+                        {
+                            <div class="mt-2">
+                                <small class="text-warning">
+                                    <i class="bi bi-exclamation-triangle me-1"></i>
+                                    @Localizer["MoreEmailsThanEstimated"]
+                                </small>
+                            </div>
+                        }
+                    </div>
+                </dd>
+
+                @if (Model.Status == MailArchiver.Models.EmlImportJobStatus.Running || Model.Status == MailArchiver.Models.EmlImportJobStatus.Completed)
+                {
+                    <dt class="col-sm-3">@Localizer["ResultsLabel"]</dt>
+                    <dd class="col-sm-9">
+                        <div class="row">
+                            <div class="col-6">
+                                <span class="badge bg-success">
+                                    <i class="bi bi-check-circle me-1"></i>
+                                    @Localizer["SuccessLabel"] @Model.SuccessCount.ToString("N0")
+                                </span>
+                            </div>
+                            <div class="col-6">
+                                <span class="badge bg-danger">
+                                    <i class="bi bi-x-circle me-1"></i>
+                                    @Localizer["FailedLabel"] @Model.FailedCount.ToString("N0")
+                                </span>
+                            </div>
+                        </div>
+                    </dd>
+                }
+
+                @if (Model.Status == MailArchiver.Models.EmlImportJobStatus.Running && !string.IsNullOrEmpty(Model.CurrentEmailSubject))
+                {
+                    <dt class="col-sm-3">@Localizer["CurrentEmailLabel"]</dt>
+                    <dd class="col-sm-9">
+                        <small class="text-muted">
+                            @(Model.CurrentEmailSubject.Length > 80 ? Model.CurrentEmailSubject.Substring(0, 80) + "..." : Model.CurrentEmailSubject)
+                        </small>
+                    </dd>
+                }
+
+                <dt class="col-sm-3">@Localizer["CreatedLabel"]</dt>
+                <dd class="col-sm-9">
+                    <span class="utc-timestamp" data-utc-time="@Model.Created.ToString("yyyy-MM-ddTHH:mm:ss")">
+                        @Model.Created.ToString("g")
+                    </span>
+                </dd>
+
+                @if (Model.Started.HasValue)
+                {
+                    <dt class="col-sm-3">@Localizer["StartedLabel"]</dt>
+                    <dd class="col-sm-9">
+                        <span class="utc-timestamp" data-utc-time="@Model.Started.Value.ToString("yyyy-MM-ddTHH:mm:ss")">
+                            @Model.Started.Value.ToString("g")
+                        </span>
+                    </dd>
+                }
+
+                @if (Model.Completed.HasValue)
+                {
+                    <dt class="col-sm-3">@Localizer["CompletedLabel"]</dt>
+                    <dd class="col-sm-9">
+                        <span class="utc-timestamp" data-utc-time="@Model.Completed.Value.ToString("yyyy-MM-ddTHH:mm:ss")">
+                            @Model.Completed.Value.ToString("g")
+                        </span>
+                    </dd>
+                    @if (Model.Started.HasValue)
+                    {
+                        var duration = Model.Completed.Value - Model.Started.Value;
+                        <dt class="col-sm-3">@Localizer["DurationLabel"]</dt>
+                        <dd class="col-sm-9">
+                            <span class="badge bg-info">
+                                @duration.ToString(@"hh\:mm\:ss")
+                            </span>
+                        </dd>
+                    }
+                }
+
+                @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+                {
+                    <dt class="col-sm-3">@Localizer["ErrorLabel"]</dt>
+                    <dd class="col-sm-9">
+                        <div class="alert alert-danger">
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                            @Model.ErrorMessage
+                        </div>
+                    </dd>
+                }
+            </dl>
+
+            @if (Model.Status == MailArchiver.Models.EmlImportJobStatus.Running || Model.Status == MailArchiver.Models.EmlImportJobStatus.Queued)
+            {
+                <div class="mt-4 pt-3 border-top">
+                    <form asp-action="CancelEmlImport" method="post" style="display: inline;"
+                          onsubmit="return confirm('@Localizer["CancelImportConfirm"]');">
+                        <input type="hidden" name="jobId" value="@Model.JobId" />
+                        <input type="hidden" name="returnUrl" value="@Context.Request.Path" />
+                        <button type="submit" class="btn btn-warning">
+                            <i class="bi bi-stop-circle"></i> @Localizer["CancelImport"]
+                        </button>
+                    </form>
+                </div>
+            }
+
+            @if (Model.Status == MailArchiver.Models.EmlImportJobStatus.Completed)
+            {
+                <div class="mt-4 pt-3 border-top">
+                    <div class="alert alert-success">
+                        <i class="bi bi-check-circle-fill me-2"></i>
+                        <strong>@Localizer["ImportCompletedTitle"]</strong>
+                        @string.Format(Localizer["ImportCompletedSummary"], Model.SuccessCount.ToString("N0"), Model.FailedCount.ToString("N0"))
+                    </div>
+                    <div class="d-flex gap-2">
+                        <a asp-controller="Emails" asp-action="Index" class="btn btn-primary">
+                            <i class="bi bi-search me-1"></i>@Localizer["SearchImportedEmails"]
+                        </a>
+                        <a asp-action="ImportEml" class="btn btn-outline-success">
+                            <i class="bi bi-upload me-1"></i>@Localizer["ImportAnotherFile"]
+                        </a>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@functions {
+    string FormatFileSize(long bytes)
+    {
+        string[] suffixes = { "B", "KB", "MB", "GB", "TB" };
+        int counter = 0;
+        decimal number = bytes;
+        while (Math.Round(number / 1024) >= 1)
+        {
+            number /= 1024;
+            counter++;
+        }
+        return $"{number:n1} {suffixes[counter]}";
+    }
+}
+
+@if (Model.Status == MailArchiver.Models.EmlImportJobStatus.Running || Model.Status == MailArchiver.Models.EmlImportJobStatus.Queued)
+{
+    @section Scripts {
+        <script>
+            // Auto-refresh page every 5 seconds for running jobs
+            setTimeout(function() {
+                location.reload();
+            }, 5000);
+
+            // Show countdown
+            let countdown = 5;
+            const countdownInterval = setInterval(function() {
+                countdown--;
+                document.title = `(${countdown}s) ${'@Localizer["EmlImportStatusTitle"]'} - @Model.FileName`;
+                if (countdown <= 0) {
+                    clearInterval(countdownInterval);
+                }
+            }, 1000);
+        </script>
+    }
+}

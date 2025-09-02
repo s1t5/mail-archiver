@@ -19,7 +19,6 @@
 - Storage of email content and attachments
 - Scheduled synchronization at configurable intervals
 - Mobile and desktop optimized, multilingual responsive UI
-- MBox Import
 - Dark mode
 
 ### 🔍 Advanced Search
@@ -40,6 +39,10 @@
 - Export individual emails in EML format
 - Bulk export search results to CSV or JSON
 - Attachment download with original filenames
+
+### 📥 Import Functions
+- MBox Import
+- EML Import (ZIP files with folder structure support)
 
 ### 🔁 Restore Function
 - Restore a selection of emails or an entire mailbox to a destination mailbox

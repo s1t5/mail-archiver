@@ -138,6 +138,11 @@ builder.Services.AddSingleton<MBoxImportService>();
 builder.Services.AddSingleton<IMBoxImportService>(provider => provider.GetRequiredService<MBoxImportService>());
 builder.Services.AddHostedService<MBoxImportService>(provider => provider.GetRequiredService<MBoxImportService>());
 
+// Register EmlImportService as singleton and hosted service - MUST be the same instance
+builder.Services.AddSingleton<EmlImportService>();
+builder.Services.AddSingleton<IEmlImportService>(provider => provider.GetRequiredService<EmlImportService>());
+builder.Services.AddHostedService<EmlImportService>(provider => provider.GetRequiredService<EmlImportService>());
+
 builder.Services.AddHostedService<BatchRestoreService>(provider =>
     new BatchRestoreService(
         provider.GetRequiredService<IServiceProvider>(),

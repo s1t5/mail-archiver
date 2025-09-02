@@ -1389,4 +1389,63 @@
   <data name="SelfManagerRoleDescription" xml:space="preserve">
     <value>Kan eigen accountinstellingen en toegewezen e-mailaccounts beheren, evenals nieuwe accounts toevoegen</value>
   </data>
+
+  <!-- EML Import -->
+  <data name="ImportEml" xml:space="preserve">
+    <value>EML Importeren</value>
+  </data>
+  <data name="ImportEmlFileTitle" xml:space="preserve">
+    <value>EML-bestand Importeren</value>
+  </data>
+  <data name="EmlImportInformation" xml:space="preserve">
+    <value>EML Import Informatie:</value>
+  </data>
+  <data name="SupportedFormatsEml" xml:space="preserve">
+    <value>Ondersteunde formaten: ZIP-bestanden met EML-bestanden</value>
+  </data>
+  <data name="EmlFolderStructureInfo" xml:space="preserve">
+    <value>Mapstructuur binnen ZIP bepaalt de doelmap voor e-mails</value>
+  </data>
+  <data name="SelectEmlFile" xml:space="preserve">
+    <value>EML-bestand Selecteren (ZIP-formaat)</value>
+  </data>
+  <data name="SupportedFormatsEmlWithMax" xml:space="preserve">
+    <value>Ondersteunde formaten: .zip-bestanden met EML-bestanden. Maximale grootte: {0}</value>
+  </data>
+  <data name="EmlImportFolderInfo" xml:space="preserve">
+    <value>Map Import Informatie</value>
+  </data>
+  <data name="EmlImportFolderInfoDetail" xml:space="preserve">
+    <value>EML-bestanden in de hoofdmap van de ZIP worden geïmporteerd naar INBOX. EML-bestanden in submappen worden geïmporteerd naar mappen met dezelfde naam als de submap.</value>
+  </data>
+  <data name="SelectValidEmlFile" xml:space="preserve">
+    <value>Selecteer een geldig EML-bestand (ZIP-formaat).</value>
+  </data>
+  <data name="EmlFileTooLarge" xml:space="preserve">
+    <value>Bestandsgrootte overschrijdt de maximaal toegestane grootte van {0}.</value>
+  </data>
+  <data name="EmlImportStarted" xml:space="preserve">
+    <value>EML-bestand '{0}' succesvol geüpload. Import taak gestart met naar schatting {1:N0} e-mails.</value>
+  </data>
+  <data name="EmlImportError" xml:space="preserve">
+    <value>Fout bij het starten van EML import</value>
+  </data>
+  <data name="InvalidEmlID" xml:space="preserve">
+    <value>Ongeldig EML import taak ID.</value>
+  </data>
+  <data name="EmlImportJobNotFound" xml:space="preserve">
+    <value>EML import taak niet gevonden.</value>
+  </data>
+  <data name="EmlImportCancelled" xml:space="preserve">
+    <value>EML import taak is geannuleerd.</value>
+  </data>
+  <data name="EmlImportCancelError" xml:space="preserve">
+    <value>Kon de EML import taak niet annuleren. De taak is mogelijk al voltooid of bestaat niet.</value>
+  </data>
+  <data name="EmlImportStatusTitle" xml:space="preserve">
+    <value>EML Import Status</value>
+  </data>
+  <data name="Import" xml:space="preserve">
+    <value>Importeren</value>
+  </data>
 </root>

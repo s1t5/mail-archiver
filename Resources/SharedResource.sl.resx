@@ -1389,4 +1389,63 @@
   <data name="SelfManagerRoleDescription" xml:space="preserve">
     <value>Lahko upravlja lastne nastavitve računa in dodeljene e-poštne račune ter dodaja nove račune</value>
   </data>
+
+  <!-- EML Import -->
+  <data name="ImportEml" xml:space="preserve">
+    <value>Uvozi EML</value>
+  </data>
+  <data name="ImportEmlFileTitle" xml:space="preserve">
+    <value>Uvozi EML datoteko</value>
+  </data>
+  <data name="EmlImportInformation" xml:space="preserve">
+    <value>Informacije o uvozu EML:</value>
+  </data>
+  <data name="SupportedFormatsEml" xml:space="preserve">
+    <value>Podprti formati: ZIP datoteke, ki vsebujejo EML datoteke</value>
+  </data>
+  <data name="EmlFolderStructureInfo" xml:space="preserve">
+    <value>Struktura map v ZIP datoteki bo določila ciljno mapo za e-pošto</value>
+  </data>
+  <data name="SelectEmlFile" xml:space="preserve">
+    <value>Izberi EML datoteko (ZIP format)</value>
+  </data>
+  <data name="SupportedFormatsEmlWithMax" xml:space="preserve">
+    <value>Podprti formati: .zip datoteke, ki vsebujejo EML datoteke. Največja velikost: {0}</value>
+  </data>
+  <data name="EmlImportFolderInfo" xml:space="preserve">
+    <value>Informacije o uvozu map</value>
+  </data>
+  <data name="EmlImportFolderInfoDetail" xml:space="preserve">
+    <value>EML datoteke v korenu ZIP datoteke bodo uvožene v PREJETO POŠTO. EML datoteke v podmapah bodo uvožene v mape z istim imenom kot podmapa.</value>
+  </data>
+  <data name="SelectValidEmlFile" xml:space="preserve">
+    <value>Prosimo, izberite veljavno EML datoteko (ZIP format).</value>
+  </data>
+  <data name="EmlFileTooLarge" xml:space="preserve">
+    <value>Velikost datoteke presega največjo dovoljeno velikost {0}.</value>
+  </data>
+  <data name="EmlImportStarted" xml:space="preserve">
+    <value>EML datoteka '{0}' je bila uspešno naložena. Opravilo uvoza se je začelo z ocenjeno {1:N0} sporočili.</value>
+  </data>
+  <data name="EmlImportError" xml:space="preserve">
+    <value>Napaka pri zagonu uvoza EML</value>
+  </data>
+  <data name="InvalidEmlID" xml:space="preserve">
+    <value>Neveljaven ID opravila uvoza EML.</value>
+  </data>
+  <data name="EmlImportJobNotFound" xml:space="preserve">
+    <value>Opravilo uvoza EML ni bilo najdeno.</value>
+  </data>
+  <data name="EmlImportCancelled" xml:space="preserve">
+    <value>Opravilo uvoza EML je bilo preklicano.</value>
+  </data>
+  <data name="EmlImportCancelError" xml:space="preserve">
+    <value>Opravila uvoza EML ni bilo mogoče preklicati. Opravilo je morda že končano ali ne obstaja.</value>
+  </data>
+  <data name="EmlImportStatusTitle" xml:space="preserve">
+    <value>Status uvoza EML</value>
+  </data>
+  <data name="Import" xml:space="preserve">
+    <value>Uvozi</value>
+  </data>
 </root>

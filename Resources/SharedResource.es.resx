@@ -1389,4 +1389,63 @@
   <data name="SelfManagerRoleDescription" xml:space="preserve">
     <value>Puede gestionar su propia configuración de cuenta y las cuentas de correo asignadas, así como agregar nuevas cuentas</value>
   </data>
+
+  <!-- EML Import -->
+  <data name="ImportEml" xml:space="preserve">
+    <value>Importar EML</value>
+  </data>
+  <data name="ImportEmlFileTitle" xml:space="preserve">
+    <value>Importar Archivo EML</value>
+  </data>
+  <data name="EmlImportInformation" xml:space="preserve">
+    <value>Información de Importación EML:</value>
+  </data>
+  <data name="SupportedFormatsEml" xml:space="preserve">
+    <value>Formatos soportados: Archivos ZIP que contienen archivos EML</value>
+  </data>
+  <data name="EmlFolderStructureInfo" xml:space="preserve">
+    <value>La estructura de carpetas dentro del ZIP determinará la carpeta de destino para los correos</value>
+  </data>
+  <data name="SelectEmlFile" xml:space="preserve">
+    <value>Seleccionar Archivo EML (formato ZIP)</value>
+  </data>
+  <data name="SupportedFormatsEmlWithMax" xml:space="preserve">
+    <value>Formatos soportados: archivos .zip que contienen archivos EML. Tamaño máximo: {0}</value>
+  </data>
+  <data name="EmlImportFolderInfo" xml:space="preserve">
+    <value>Información de Importación de Carpetas</value>
+  </data>
+  <data name="EmlImportFolderInfoDetail" xml:space="preserve">
+    <value>Los archivos EML en la raíz del ZIP se importarán a BANDEJA DE ENTRADA. Los archivos EML en subcarpetas se importarán a carpetas con el mismo nombre que la subcarpeta.</value>
+  </data>
+  <data name="SelectValidEmlFile" xml:space="preserve">
+    <value>Por favor, seleccione un archivo EML válido (formato ZIP).</value>
+  </data>
+  <data name="EmlFileTooLarge" xml:space="preserve">
+    <value>El tamaño del archivo excede el tamaño máximo permitido de {0}.</value>
+  </data>
+  <data name="EmlImportStarted" xml:space="preserve">
+    <value>Archivo EML '{0}' subido exitosamente. Trabajo de importación iniciado con aproximadamente {1:N0} correos.</value>
+  </data>
+  <data name="EmlImportError" xml:space="preserve">
+    <value>Error al iniciar la importación EML</value>
+  </data>
+  <data name="InvalidEmlID" xml:space="preserve">
+    <value>ID de trabajo de importación EML inválido.</value>
+  </data>
+  <data name="EmlImportJobNotFound" xml:space="preserve">
+    <value>Trabajo de importación EML no encontrado.</value>
+  </data>
+  <data name="EmlImportCancelled" xml:space="preserve">
+    <value>El trabajo de importación EML ha sido cancelado.</value>
+  </data>
+  <data name="EmlImportCancelError" xml:space="preserve">
+    <value>No se pudo cancelar el trabajo de importación EML. El trabajo puede haber terminado ya o no existe.</value>
+  </data>
+  <data name="EmlImportStatusTitle" xml:space="preserve">
+    <value>Estado de Importación EML</value>
+  </data>
+  <data name="Import" xml:space="preserve">
+    <value>Importar</value>
+  </data>
 </root>

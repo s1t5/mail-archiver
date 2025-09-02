@@ -21,6 +21,7 @@ namespace MailArchiver.Controllers
         private readonly BatchRestoreOptions _batchOptions;
         private readonly ISyncJobService _syncJobService;
         private readonly IMBoxImportService _mboxImportService;
+        private readonly IEmlImportService _emlImportService;
         private readonly UploadOptions _uploadOptions;
         private readonly IStringLocalizer<SharedResource> _localizer;
 
@@ -31,6 +32,7 @@ namespace MailArchiver.Controllers
             IOptions<BatchRestoreOptions> batchOptions,
             ISyncJobService syncJobService,
             IMBoxImportService mboxImportService,
+            IEmlImportService emlImportService,
             IOptions<UploadOptions> uploadOptions, 
             IStringLocalizer<SharedResource> localizer)
         {
@@ -40,6 +42,7 @@ namespace MailArchiver.Controllers
             _batchOptions = batchOptions.Value;
             _syncJobService = syncJobService;
             _mboxImportService = mboxImportService;
+            _emlImportService = emlImportService;
             _uploadOptions = uploadOptions.Value;
             _localizer = localizer;
         }
@@ -866,6 +869,198 @@ var model = new MailAccountViewModel
 
             TempData["SuccessMessage"] = _localizer["SyncTimeResetSuccess"].Value;
             return RedirectToAction(nameof(Details), new { id });
+        }
+
+        // GET: MailAccounts/ImportEml
+        public async Task<IActionResult> ImportEml()
+        {
+            // Use the authentication service to get user info properly
+            var authService = HttpContext.RequestServices.GetService<IAuthenticationService>();
+            var currentUsername = authService.GetCurrentUser(HttpContext);
+            var isAdmin = authService.IsCurrentUserAdmin(HttpContext);
+            var isSelfManager = authService.IsCurrentUserSelfManager(HttpContext);
+
+            IQueryable<MailAccount> mailAccountsQuery;
+
+            // Check if user is admin (including legacy admin)
+            if (isAdmin)
+            {
+                _logger.LogInformation("User is admin, showing all accounts");
+                mailAccountsQuery = _context.MailAccounts;
+            }
+            else if (isSelfManager)
+            {
+                _logger.LogInformation("User is SelfManager, showing only assigned accounts");
+                mailAccountsQuery = _context.MailAccounts
+                    .Where(ma => ma.UserMailAccounts.Any(uma => uma.User.Username.ToLower() == currentUsername.ToLower()));
+            }
+            else
+            {
+                _logger.LogInformation("User has no special permissions, showing no accounts");
+                mailAccountsQuery = _context.MailAccounts.Where(ma => false); // Empty query
+            }
+
+            var accounts = await mailAccountsQuery
+                .Where(a => a.IsEnabled)
+                .OrderBy(a => a.Name)
+                .ToListAsync();
+
+            var model = new EmlImportViewModel
+            {
+                AvailableAccounts = accounts.Select(a => new SelectListItem
+                {
+                    Value = a.Id.ToString(),
+                    Text = $"{a.Name} ({a.EmailAddress})"
+                }).ToList(),
+                MaxFileSize = _uploadOptions.MaxFileSizeBytes
+            };
+
+            return View(model);
+        }
+
+        // POST: MailAccounts/ImportEml
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [RequestSizeLimit(long.MaxValue)]
+        [RequestFormLimits(MultipartBodyLengthLimit = long.MaxValue)]
+        public async Task<IActionResult> ImportEml(EmlImportViewModel model)
+        {
+            // Reload accounts for validation failure
+            var accounts = await _context.MailAccounts
+                .Where(a => a.IsEnabled)
+                .OrderBy(a => a.Name)
+                .ToListAsync();
+
+            model.AvailableAccounts = accounts.Select(a => new SelectListItem
+            {
+                Value = a.Id.ToString(),
+                Text = $"{a.Name} ({a.EmailAddress})",
+                Selected = a.Id == model.TargetAccountId
+            }).ToList();
+
+            // Ensure MaxFileSize is set for validation failures
+            model.MaxFileSize = _uploadOptions.MaxFileSizeBytes;
+
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            // Validate file
+            if (model.EmlFile == null || model.EmlFile.Length == 0)
+            {
+                ModelState.AddModelError("EmlFile", _localizer["SelectValidEmlFile"]);
+                return View(model);
+            }
+
+            if (model.EmlFile.Length > model.MaxFileSize)
+            {
+                ModelState.AddModelError("EmlFile", _localizer["EmlFileTooLarge", model.MaxFileSizeFormatted].Value);
+                return View(model);
+            }
+
+            // Validate target account
+            var targetAccount = await _context.MailAccounts.FindAsync(model.TargetAccountId);
+            if (targetAccount == null)
+            {
+                ModelState.AddModelError("TargetAccountId", _localizer["SelectedAccountNotFound"]);
+                return View(model);
+            }
+
+            try
+            {
+                // Save uploaded file
+                var filePath = await _emlImportService.SaveUploadedFileAsync(model.EmlFile);
+
+                // Create import job
+                var job = new EmlImportJob
+                {
+                    FileName = model.EmlFile.FileName,
+                    FilePath = filePath,
+                    FileSize = model.EmlFile.Length,
+                    TargetAccountId = model.TargetAccountId,
+                    UserId = HttpContext.User.Identity?.Name ?? "Anonymous"
+                };
+
+                // Estimate email count
+                job.TotalEmails = await _emlImportService.EstimateEmailCountAsync(filePath);
+
+                // Queue the job
+                var jobId = _emlImportService.QueueImport(job);
+
+                TempData["SuccessMessage"] = _localizer["EmlImportStarted", model.EmlFile.FileName, job.TotalEmails].Value;
+                return RedirectToAction("EmlImportStatus", new { jobId });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error starting EML import for file {FileName}", model.EmlFile.FileName);
+                ModelState.AddModelError("", $"{_localizer["EmlImportError"]}: {ex.Message}");
+                return View(model);
+            }
+        }
+
+        // GET: MailAccounts/EmlImportStatus
+        [HttpGet]
+        public async Task<IActionResult> EmlImportStatus(string jobId)
+        {
+            // Validate jobId parameter
+            if (string.IsNullOrEmpty(jobId))
+            {
+                TempData["ErrorMessage"] = _localizer["InvalidEmlID"].Value;
+                return RedirectToAction(nameof(Index));
+            }
+
+            var job = _emlImportService.GetJob(jobId);
+            if (job == null)
+            {
+                TempData["ErrorMessage"] = _localizer["EmlImportJobNotFound"].Value;
+                return RedirectToAction(nameof(Index));
+            }
+
+            // Check if user has access to the target account
+            if (!await HasAccessToAccountAsync(job.TargetAccountId))
+            {
+                return NotFound();
+            }
+
+            return View(job);
+        }
+
+        // POST: MailAccounts/CancelEmlImport
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CancelEmlImport(string jobId, string returnUrl = null)
+        {
+            // Validate jobId parameter
+            if (string.IsNullOrEmpty(jobId))
+            {
+                TempData["ErrorMessage"] = _localizer["InvalidEmlID"].Value;
+                // Wenn returnUrl angegeben ist, leite dorthin weiter, sonst zur Index-Seite
+                return Redirect(returnUrl ?? Url.Action(nameof(Index)));
+            }
+
+            var job = _emlImportService.GetJob(jobId);
+            if (job != null)
+            {
+                // Check if user has access to the target account
+                if (!await HasAccessToAccountAsync(job.TargetAccountId))
+                {
+                    return NotFound();
+                }
+            }
+
+            var success = _emlImportService.CancelJob(jobId);
+            if (success)
+            {
+                TempData["SuccessMessage"] = _localizer["EmlImportCancelled"].Value;
+            }
+            else
+            {
+                TempData["ErrorMessage"] = _localizer["EmlImportCancelError"].Value;
+            }
+
+            // Wenn returnUrl angegeben ist, leite dorthin weiter, sonst zur Index-Seite
+            return Redirect(returnUrl ?? Url.Action(nameof(Index)));
         }
 
         // AJAX endpoint for folder loading

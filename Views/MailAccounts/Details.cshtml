@@ -126,6 +126,15 @@
                             <i class="bi bi-envelope-arrow-up"></i> @Localizer["CopyAllEmailsToAnotherMailbox"]
                         </button>
                     </form>
+                    <div class="dropdown">
+                        <button class="btn btn-outline-success dropdown-toggle" type="button" id="importDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-upload"></i> @Localizer["Import"]
+                        </button>
+                        <ul class="dropdown-menu" aria-labelledby="importDropdown">
+                            <li><a class="dropdown-item" asp-action="ImportMBox" asp-route-id="@Model.Id"><i class="bi bi-file-earmark-text me-2"></i>@Localizer["ImportMBox"]</a></li>
+                            <li><a class="dropdown-item" asp-action="ImportEml" asp-route-id="@Model.Id"><i class="bi bi-file-earmark-zip me-2"></i>@Localizer["ImportEml"]</a></li>
+                        </ul>
+                    </div>
                 </div>
                 <div class="border border-danger rounded p-3 bg-light">
                     <h6 class="text-danger mb-2">

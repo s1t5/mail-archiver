@@ -1389,4 +1389,63 @@
   <data name="SelfManagerRoleDescription" xml:space="preserve">
     <value>Может управлять настройками своей учетной записи и назначенными учетными записями электронной почты, а также добавлять новые учетные записи</value>
   </data>
+
+  <!-- EML Import -->
+  <data name="ImportEml" xml:space="preserve">
+    <value>Импорт EML</value>
+  </data>
+  <data name="ImportEmlFileTitle" xml:space="preserve">
+    <value>Импорт EML-файла</value>
+  </data>
+  <data name="EmlImportInformation" xml:space="preserve">
+    <value>Информация об импорте EML:</value>
+  </data>
+  <data name="SupportedFormatsEml" xml:space="preserve">
+    <value>Поддерживаемые форматы: ZIP-файлы, содержащие EML-файлы</value>
+  </data>
+  <data name="EmlFolderStructureInfo" xml:space="preserve">
+    <value>Структура папок в ZIP-архиве определит целевую папку для писем</value>
+  </data>
+  <data name="SelectEmlFile" xml:space="preserve">
+    <value>Выбрать EML-файл (формат ZIP)</value>
+  </data>
+  <data name="SupportedFormatsEmlWithMax" xml:space="preserve">
+    <value>Поддерживаемые форматы: .zip файлы, содержащие EML-файлы. Максимальный размер: {0}</value>
+  </data>
+  <data name="EmlImportFolderInfo" xml:space="preserve">
+    <value>Информация об импорте папок</value>
+  </data>
+  <data name="EmlImportFolderInfoDetail" xml:space="preserve">
+    <value>EML-файлы в корне ZIP будут импортированы в ВХОДЯЩИЕ. EML-файлы в подпапках будут импортированы в папки с тем же именем, что и подпапка.</value>
+  </data>
+  <data name="SelectValidEmlFile" xml:space="preserve">
+    <value>Пожалуйста, выберите действительный EML-файл (формат ZIP).</value>
+  </data>
+  <data name="EmlFileTooLarge" xml:space="preserve">
+    <value>Размер файла превышает максимально допустимый размер {0}.</value>
+  </data>
+  <data name="EmlImportStarted" xml:space="preserve">
+    <value>EML-файл '{0}' успешно загружен. Задача импорта запущена с примерно {1:N0} письмами.</value>
+  </data>
+  <data name="EmlImportError" xml:space="preserve">
+    <value>Ошибка запуска импорта EML</value>
+  </data>
+  <data name="InvalidEmlID" xml:space="preserve">
+    <value>Недействительный ID задачи импорта EML.</value>
+  </data>
+  <data name="EmlImportJobNotFound" xml:space="preserve">
+    <value>Задача импорта EML не найдена.</value>
+  </data>
+  <data name="EmlImportCancelled" xml:space="preserve">
+    <value>Задача импорта EML была отменена.</value>
+  </data>
+  <data name="EmlImportCancelError" xml:space="preserve">
+    <value>Не удалось отменить задачу импорта EML. Задача могла уже завершиться или не существует.</value>
+  </data>
+  <data name="EmlImportStatusTitle" xml:space="preserve">
+    <value>Статус импорта EML</value>
+  </data>
+  <data name="Import" xml:space="preserve">
+    <value>Импорт</value>
+  </data>
 </root>
