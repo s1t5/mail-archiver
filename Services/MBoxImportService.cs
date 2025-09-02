@@ -409,6 +409,58 @@ private readonly IServiceProvider _serviceProvider;
                     return ImportResult.CreateAlreadyExists();
                 }
 
+                // Extract text and HTML body preserving original encoding
+                var body = string.Empty;
+                var htmlBody = string.Empty;
+                var isHtmlTruncated = false;
+                var isBodyTruncated = false;
+
+                // Handle text body - use original content directly to preserve encoding
+                if (!string.IsNullOrEmpty(message.TextBody))
+                {
+                    var cleanedTextBody = CleanText(message.TextBody);
+                    // Check if text body needs truncation for tsvector compatibility
+                    if (Encoding.UTF8.GetByteCount(cleanedTextBody) > 800_000) // Leave buffer for other fields in tsvector
+                    {
+                        isBodyTruncated = true;
+                        body = TruncateTextForStorage(cleanedTextBody);
+                    }
+                    else
+                    {
+                        body = cleanedTextBody;
+                    }
+                }
+                else if (!string.IsNullOrEmpty(message.HtmlBody))
+                {
+                    // If no TextBody, try to extract text from HTML body
+                    var cleanedHtmlAsText = CleanText(message.HtmlBody);
+                    // Check if HTML-as-text body needs truncation for tsvector compatibility
+                    if (Encoding.UTF8.GetByteCount(cleanedHtmlAsText) > 800_000) // Leave buffer for other fields in tsvector
+                    {
+                        isBodyTruncated = true;
+                        body = TruncateTextForStorage(cleanedHtmlAsText);
+                    }
+                    else
+                    {
+                        body = cleanedHtmlAsText;
+                    }
+                }
+
+                // Handle HTML body - preserve original encoding
+                if (!string.IsNullOrEmpty(message.HtmlBody))
+                {
+                    // Check if HTML body will be truncated
+                    isHtmlTruncated = message.HtmlBody.Length > 1_000_000;
+                    if (isHtmlTruncated)
+                    {
+                        htmlBody = CleanHtmlForStorage(message.HtmlBody);
+                    }
+                    else
+                    {
+                        htmlBody = CleanText(message.HtmlBody); // Apply CleanText to remove null bytes and control characters
+                    }
+                }
+
                 // Sammle ALLE Anhänge einschließlich inline Images
                 var allAttachments = new List<MimePart>();
                 CollectAllAttachments(message.Body, allAttachments);
@@ -425,9 +477,9 @@ private readonly IServiceProvider _serviceProvider;
                     SentDate = message.Date.UtcDateTime,
                     ReceivedDate = DateTime.UtcNow,
                     IsOutgoing = DetermineIfOutgoing(message, account),
-                    HasAttachments = allAttachments.Any(),
-                    Body = CleanText(message.TextBody ?? string.Empty),
-                    HtmlBody = CleanHtmlForStorage(message.HtmlBody ?? string.Empty),
+                    HasAttachments = allAttachments.Any() || isHtmlTruncated || isBodyTruncated, // Set to true if there are attachments or content was truncated
+                    Body = body,
+                    HtmlBody = htmlBody,
                     FolderName = job.TargetFolder
                 };
 
@@ -436,12 +488,31 @@ private readonly IServiceProvider _serviceProvider;
                 await context.SaveChangesAsync();
                 _logger.LogDebug("Job {JobId}: Successfully saved email: {MessageId}", job.JobId, messageId);
 
-                // Speichere alle Anhänge
+                // Speichere ALLE Anhänge als normale Attachments
                 if (allAttachments.Any())
                 {
                     _logger.LogDebug("Job {JobId}: Saving {Count} attachments for email: {MessageId}", 
                         job.JobId, allAttachments.Count, messageId);
                     await SaveAllAttachments(context, allAttachments, archivedEmail.Id);
+                }
+
+                // If HTML was truncated, save the original HTML as an attachment
+                if (isHtmlTruncated)
+                {
+                    // Save the UTF-8 encoded HTML
+                    var htmlBytes = Encoding.UTF8.GetBytes(message.HtmlBody);
+                    var utf8Html = Encoding.UTF8.GetString(htmlBytes);
+                    await SaveTruncatedHtmlAsAttachment(context, utf8Html, archivedEmail.Id, job.JobId, messageId);
+                }
+
+                // If Body was truncated, save the original text content as an attachment
+                if (isBodyTruncated)
+                {
+                    var originalTextContent = !string.IsNullOrEmpty(message.TextBody) ? message.TextBody : message.HtmlBody;
+                    if (!string.IsNullOrEmpty(originalTextContent))
+                    {
+                        await SaveTruncatedTextAsAttachment(context, originalTextContent, archivedEmail.Id, job.JobId, messageId);
+                    }
                 }
 
                 _logger.LogDebug("Job {JobId}: Successfully imported email: {MessageId}", job.JobId, messageId);
@@ -546,6 +617,80 @@ private readonly IServiceProvider _serviceProvider;
             }
         }
 
+        /// <summary>
+        /// Saves the original HTML content as an attachment when it was truncated
+        /// </summary>
+        /// <param name="context">The database context</param>
+        /// <param name="originalHtml">The original HTML content</param>
+        /// <param name="archivedEmailId">The email ID to attach to</param>
+        /// <param name="jobId">The job ID for logging</param>
+        /// <param name="messageId">The message ID for logging</param>
+        /// <returns>Task</returns>
+        private async Task SaveTruncatedHtmlAsAttachment(MailArchiverDbContext context, string originalHtml, int archivedEmailId, string jobId, string messageId)
+        {
+            try
+            {
+                var cleanFileName = CleanText($"original_content_{DateTime.UtcNow:yyyyMMddHHmmss}.html");
+                var contentType = "text/html";
+
+                var emailAttachment = new EmailAttachment
+                {
+                    ArchivedEmailId = archivedEmailId,
+                    FileName = cleanFileName,
+                    ContentType = contentType,
+                    Content = Encoding.UTF8.GetBytes(originalHtml),
+                    Size = Encoding.UTF8.GetByteCount(originalHtml)
+                };
+
+                context.EmailAttachments.Add(emailAttachment);
+                await context.SaveChangesAsync();
+
+                _logger.LogInformation("Job {JobId}: Successfully saved original HTML content as attachment for email {MessageId}",
+                    jobId, messageId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Job {JobId}: Failed to save original HTML content as attachment for email {MessageId}", jobId, messageId);
+            }
+        }
+
+        /// <summary>
+        /// Saves the original text content as an attachment when it was truncated
+        /// </summary>
+        /// <param name="context">The database context</param>
+        /// <param name="originalText">The original text content</param>
+        /// <param name="archivedEmailId">The email ID to attach to</param>
+        /// <param name="jobId">The job ID for logging</param>
+        /// <param name="messageId">The message ID for logging</param>
+        /// <returns>Task</returns>
+        private async Task SaveTruncatedTextAsAttachment(MailArchiverDbContext context, string originalText, int archivedEmailId, string jobId, string messageId)
+        {
+            try
+            {
+                var cleanFileName = CleanText($"original_text_content_{DateTime.UtcNow:yyyyMMddHHmmss}.txt");
+                var contentType = "text/plain";
+
+                var emailAttachment = new EmailAttachment
+                {
+                    ArchivedEmailId = archivedEmailId,
+                    FileName = cleanFileName,
+                    ContentType = contentType,
+                    Content = Encoding.UTF8.GetBytes(originalText),
+                    Size = Encoding.UTF8.GetByteCount(originalText)
+                };
+
+                context.EmailAttachments.Add(emailAttachment);
+                await context.SaveChangesAsync();
+
+                _logger.LogInformation("Job {JobId}: Successfully saved original text content as attachment for email {MessageId}",
+                    jobId, messageId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Job {JobId}: Failed to save original text content as attachment for email {MessageId}", jobId, messageId);
+            }
+        }
+
         private string GetFileExtensionFromContentType(string? contentType)
         {
             return contentType?.ToLowerInvariant() switch
@@ -592,19 +737,195 @@ private readonly IServiceProvider _serviceProvider;
             return cleanedText.ToString();
         }
 
+        // Constants for HTML truncation - calculated once to avoid repeated computations
+        private static readonly string TruncationNotice = @"
+                    <div style='background-color: #f8f9fa; border: 1px solid #dee2e6; border-radius: 5px; padding: 15px; margin: 10px 0; font-family: Arial, sans-serif;'>
+                        <h4 style='color: #495057; margin-top: 0;'>📎 Email content has been truncated</h4>
+                        <p style='color: #6c757d; margin-bottom: 10px;'>
+                            This email contains very large HTML content (over 1 MB) that has been truncated for better performance.
+                        </p>
+                        <p style='color: #6c757d; margin-bottom: 0;'>
+                            <strong>The complete original HTML content has been saved as an attachment.</strong><br>
+                            Look for a file named 'original_content_*.html' in the attachments.
+                        </p>
+                    </div>";
+        
+        private static readonly int TruncationOverhead = Encoding.UTF8.GetByteCount(TruncationNotice + "</body></html>");
+        private const int MaxHtmlSizeBytes = 1_000_000;
+
         private string CleanHtmlForStorage(string html)
         {
             if (string.IsNullOrEmpty(html))
                 return string.Empty;
 
-            html = html.Replace("\0", "");
-
-            if (html.Length > 1_000_000)
+            // Remove null characters efficiently - only if they exist
+            if (html.Contains('\0'))
             {
-                return "<html><body><p>Diese E-Mail enthält sehr großen HTML-Inhalt, der gekürzt wurde.</p></body></html>";
+                html = html.Replace("\0", "");
             }
 
-            return html;
+            // Early return for small HTML content
+            if (html.Length <= MaxHtmlSizeBytes)
+                return html;
+
+            // Calculate safe truncation position
+            int maxContentSize = MaxHtmlSizeBytes - TruncationOverhead;
+            if (maxContentSize <= 0)
+            {
+                // Fallback for edge case - return minimal valid HTML
+                return $"<html><body>{TruncationNotice}</body></html>";
+            }
+
+            int truncatePosition = Math.Min(maxContentSize, html.Length);
+
+            // Find safe truncation point that doesn't break HTML tags
+            int lastLessThan = html.LastIndexOf('<', truncatePosition - 1);
+            int lastGreaterThan = html.LastIndexOf('>', truncatePosition - 1);
+            
+            // If we're inside a tag, truncate before it starts
+            if (lastLessThan > lastGreaterThan && lastLessThan >= 0)
+            {
+                truncatePosition = lastLessThan;
+            }
+            else if (lastGreaterThan >= 0)
+            {
+                // Otherwise, truncate after the last complete tag
+                truncatePosition = lastGreaterThan + 1;
+            }
+
+            // Use StringBuilder for efficient string building
+            var result = new StringBuilder(truncatePosition + TruncationNotice.Length + 50);
+            
+            // Get base content as span for better performance
+            ReadOnlySpan<char> baseContent = html.AsSpan(0, truncatePosition);
+            
+            // Check for HTML structure efficiently
+            bool hasHtml = baseContent.Contains("<html".AsSpan(), StringComparison.OrdinalIgnoreCase);
+            bool hasBody = baseContent.Contains("<body".AsSpan(), StringComparison.OrdinalIgnoreCase);
+
+            // Build the result efficiently
+            if (!hasHtml)
+            {
+                result.Append("<html>");
+            }
+
+            if (!hasBody)
+            {
+                if (hasHtml)
+                {
+                    // Find where to insert <body> tag efficiently
+                    string contentStr = baseContent.ToString();
+                    int htmlStart = contentStr.IndexOf("<html", StringComparison.OrdinalIgnoreCase);
+                    if (htmlStart >= 0)
+                    {
+                        int htmlTagEnd = contentStr.IndexOf('>', htmlStart);
+                        if (htmlTagEnd >= 0)
+                        {
+                            result.Append(baseContent.Slice(0, htmlTagEnd + 1));
+                            result.Append("<body>");
+                            result.Append(baseContent.Slice(htmlTagEnd + 1));
+                        }
+                        else
+                        {
+                            result.Append("<body>");
+                            result.Append(baseContent);
+                        }
+                    }
+                    else
+                    {
+                        result.Append("<body>");
+                        result.Append(baseContent);
+                    }
+                }
+                else
+                {
+                    result.Append("<body>");
+                    result.Append(baseContent);
+                }
+            }
+            else
+            {
+                result.Append(baseContent);
+            }
+
+            // Add truncation notice
+            result.Append(TruncationNotice);
+
+            // Close tags efficiently
+            string resultStr = result.ToString();
+            if (!resultStr.EndsWith("</body>", StringComparison.OrdinalIgnoreCase))
+            {
+                result.Append("</body>");
+            }
+            if (!resultStr.EndsWith("</html>", StringComparison.OrdinalIgnoreCase))
+            {
+                result.Append("</html>");
+            }
+
+            return result.ToString();
+        }
+
+        /// <summary>
+        /// Truncates text content to fit within tsvector size limits while preserving readability
+        /// </summary>
+        /// <param name="text">The text to truncate</param>
+        /// <returns>Truncated text with notice appended</returns>
+        private string TruncateTextForStorage(string text)
+        {
+            // 800 KB limit for tsvector compatibility with buffer for other fields
+            const int maxSizeBytes = 800_000;
+            
+            if (string.IsNullOrEmpty(text))
+                return string.Empty;
+
+            const string textTruncationNotice = "\n\n[CONTENT TRUNCATED - This email contains very large text content that has been truncated for better performance. The complete original content has been saved as an attachment.]";
+            
+            // Calculate overhead for the truncation notice
+            int noticeOverhead = Encoding.UTF8.GetByteCount(textTruncationNotice);
+            int maxContentSize = maxSizeBytes - noticeOverhead;
+            
+            if (maxContentSize <= 0)
+            {
+                // Edge case - just return the notice
+                return textTruncationNotice;
+            }
+
+            // Check if we need to truncate
+            if (Encoding.UTF8.GetByteCount(text) <= maxSizeBytes)
+            {
+                return text; // No truncation needed
+            }
+
+            // Find a safe truncation point that doesn't break in the middle of a word
+            int approximateCharPosition = Math.Min(maxContentSize, text.Length);
+            
+            // Work backwards to find a word boundary or reasonable break point
+            while (approximateCharPosition > 0 && Encoding.UTF8.GetByteCount(text.Substring(0, approximateCharPosition)) > maxContentSize)
+            {
+                approximateCharPosition--;
+            }
+
+            // Try to find a word boundary within the last 100 characters to avoid breaking words
+            int wordBoundarySearch = Math.Max(0, approximateCharPosition - 100);
+            int lastSpaceIndex = text.LastIndexOf(' ', approximateCharPosition - 1, approximateCharPosition - wordBoundarySearch);
+            int lastNewlineIndex = text.LastIndexOf('\n', approximateCharPosition - 1, approximateCharPosition - wordBoundarySearch);
+            int lastPunctuationIndex = text.LastIndexOfAny(new char[] { '.', '!', '?', ';' }, approximateCharPosition - 1, approximateCharPosition - wordBoundarySearch);
+
+            // Use the best break point found
+            int breakPoint = Math.Max(Math.Max(lastSpaceIndex, lastNewlineIndex), lastPunctuationIndex);
+            if (breakPoint > wordBoundarySearch)
+            {
+                approximateCharPosition = breakPoint + 1; // Include the break character
+            }
+
+            // Final safety check to ensure we don't exceed byte limit
+            string truncatedContent = text.Substring(0, approximateCharPosition);
+            while (Encoding.UTF8.GetByteCount(truncatedContent + textTruncationNotice) > maxSizeBytes && truncatedContent.Length > 0)
+            {
+                truncatedContent = truncatedContent.Substring(0, truncatedContent.Length - 1);
+            }
+
+            return truncatedContent + textTruncationNotice;
         }
 
         private void DeleteTempFile(string filePath, string jobId)
