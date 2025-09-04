@@ -259,7 +259,7 @@ namespace MailArchiver.Services
                 var response = await graphClient.Users[userPrincipalName].MailFolders.GetAsync((requestConfiguration) =>
                 {
                     requestConfiguration.QueryParameters.Select = new string[] { "id", "displayName", "parentFolderId", "childFolderCount" };
-                    requestConfiguration.QueryParameters.Top = 1000; // Get up to 1000 folders
+                    requestConfiguration.QueryParameters.Top = int.MaxValue; // Removed folder limit
                 });
 
                 if (response?.Value != null)
@@ -295,7 +295,7 @@ namespace MailArchiver.Services
                 var response = await graphClient.Users[userPrincipalName].MailFolders[parentFolderId].ChildFolders.GetAsync((requestConfiguration) =>
                 {
                     requestConfiguration.QueryParameters.Select = new string[] { "id", "displayName", "parentFolderId", "childFolderCount" };
-                    requestConfiguration.QueryParameters.Top = 1000;
+                    requestConfiguration.QueryParameters.Top = int.MaxValue; // Removed folder limit
                 });
 
                 if (response?.Value != null)
@@ -360,7 +360,7 @@ namespace MailArchiver.Services
 
                 // Try different approaches to avoid "too complex" errors
                 Microsoft.Graph.Models.MessageCollectionResponse? messagesResponse = null;
-                int maxMessagesPerFolder = 1000; // Limit to prevent endless loops
+                int maxMessagesPerFolder = int.MaxValue; // Removed limit
                 int processedInThisFolder = 0;
                 
                 try
@@ -576,7 +576,7 @@ namespace MailArchiver.Services
 
                     // Handle pagination if there are more messages
                     int paginationCount = 0;
-                    int maxPaginationPages = 20; // Limit pagination to prevent infinite loops
+                    int maxPaginationPages = int.MaxValue; // Removed pagination limit
                     
                     while (!string.IsNullOrEmpty(messagesResponse.OdataNextLink) && paginationCount < maxPaginationPages)
                     {
