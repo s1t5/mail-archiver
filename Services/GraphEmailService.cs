@@ -407,7 +407,7 @@ namespace MailArchiver.Services
                                 _logger.LogInformation("Folder {FolderName} contains messages but none match date filter. Using fallback query for first sync.", folder.DisplayName);
                                 
                                 // For first sync, get messages without date filter
-                                int fallbackLimit = 1000;
+                                int fallbackLimit = int.MaxValue;
                                 messagesResponse = await graphClient.Users[account.EmailAddress].MailFolders[folder.Id].Messages.GetAsync((requestConfiguration) =>
                                 {
                                     requestConfiguration.QueryParameters.Select = new string[] 
