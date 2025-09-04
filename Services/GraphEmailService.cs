@@ -984,7 +984,7 @@ namespace MailArchiver.Services
                         {
                             requestConfiguration.QueryParameters.Filter = filter;
                             requestConfiguration.QueryParameters.Select = new string[] { "id", "internetMessageId", "subject", "receivedDateTime" };
-                            requestConfiguration.QueryParameters.Top = 50; // Process in smaller batches
+                            requestConfiguration.QueryParameters.Top = int.MaxValue; // Process in smaller batches
                         });
 
                         if (messagesResponse?.Value != null && messagesResponse.Value.Count > 0)
