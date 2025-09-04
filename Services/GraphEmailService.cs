@@ -259,7 +259,7 @@ namespace MailArchiver.Services
                 var response = await graphClient.Users[userPrincipalName].MailFolders.GetAsync((requestConfiguration) =>
                 {
                     requestConfiguration.QueryParameters.Select = new string[] { "id", "displayName", "parentFolderId", "childFolderCount" };
-                    requestConfiguration.QueryParameters.Top = int.MaxValue; // Removed folder limit
+                    requestConfiguration.QueryParameters.Top = _batchOptions.BatchSize;
                 });
 
                 if (response?.Value != null)
@@ -295,7 +295,7 @@ namespace MailArchiver.Services
                 var response = await graphClient.Users[userPrincipalName].MailFolders[parentFolderId].ChildFolders.GetAsync((requestConfiguration) =>
                 {
                     requestConfiguration.QueryParameters.Select = new string[] { "id", "displayName", "parentFolderId", "childFolderCount" };
-                    requestConfiguration.QueryParameters.Top = int.MaxValue; // Removed folder limit
+                    requestConfiguration.QueryParameters.Top = _batchOptions.BatchSize;
                 });
 
                 if (response?.Value != null)
@@ -378,7 +378,7 @@ namespace MailArchiver.Services
                             "id", "internetMessageId", "subject", "from", "toRecipients", "ccRecipients", "bccRecipients",
                             "sentDateTime", "receivedDateTime", "hasAttachments", "body", "bodyPreview", "lastModifiedDateTime"
                         };
-                        requestConfiguration.QueryParameters.Top = 1000; // Use maximum allowed by Graph API for better performance
+                        requestConfiguration.QueryParameters.Top = _batchOptions.BatchSize;
                     });
                     
                     _logger.LogInformation("Graph API response for folder {FolderName}: {MessageCount} messages returned (filter attempt)", 
@@ -414,7 +414,7 @@ namespace MailArchiver.Services
                                         "id", "internetMessageId", "subject", "from", "toRecipients", "ccRecipients", "bccRecipients",
                                         "sentDateTime", "receivedDateTime", "hasAttachments", "body", "bodyPreview", "lastModifiedDateTime"
                                     };
-                                    requestConfiguration.QueryParameters.Top = 1000; // Use maximum allowed by Graph API
+                                    requestConfiguration.QueryParameters.Top = _batchOptions.BatchSize;
                                 });
                                 
                                 _logger.LogInformation("Fallback query without filter returned {Count} messages for folder {FolderName} (pagination will handle remaining messages)", 
@@ -443,7 +443,7 @@ namespace MailArchiver.Services
                             { 
                                 "id", "internetMessageId", "subject", "from", "sentDateTime", "receivedDateTime", "lastModifiedDateTime"
                             };
-                            requestConfiguration.QueryParameters.Top = 1000; // Use maximum allowed by Graph API for better performance
+                            requestConfiguration.QueryParameters.Top = _batchOptions.BatchSize;
                         });
                         
                         _logger.LogInformation("Second attempt returned {Count} messages for folder {FolderName}", 
@@ -463,7 +463,7 @@ namespace MailArchiver.Services
                                 { 
                                     "id", "internetMessageId", "subject", "from", "sentDateTime", "receivedDateTime", "lastModifiedDateTime"
                                 };
-                                requestConfiguration.QueryParameters.Top = 1000; // Use maximum allowed by Graph API for better performance
+                                requestConfiguration.QueryParameters.Top = _batchOptions.BatchSize;
                             });
                             
                             _logger.LogDebug("Third attempt (basic query) succeeded for folder {FolderName}", folder.DisplayName);
@@ -506,7 +506,7 @@ namespace MailArchiver.Services
                     }
 
                     result.ProcessedEmails = filteredMessages.Count;
-                    _logger.LogInformation("Found {Count} new messages in Graph API folder {FolderName} for account: {AccountName}",
+                    _logger.LogInformation("Processing page 1 with {Count} messages in folder {FolderName} for account: {AccountName}",
                         filteredMessages.Count, folder.DisplayName, account.Name);
 
                     foreach (var message in filteredMessages)
@@ -574,7 +574,7 @@ namespace MailArchiver.Services
                     }
 
                     // Handle pagination if there are more messages
-                    int paginationCount = 0;
+                    int paginationCount = 1; // Start with 1 since we already processed the first page
                     int maxPaginationPages = int.MaxValue; // Removed pagination limit
                     
                     while (!string.IsNullOrEmpty(messagesResponse.OdataNextLink) && paginationCount < maxPaginationPages)
@@ -584,7 +584,7 @@ namespace MailArchiver.Services
                         // Safety check: Stop if we've processed too many messages already
                         if (processedInThisFolder >= maxMessagesPerFolder)
                         {
-                            _logger.LogWarning("Reached maximum message limit during pagination for folder {FolderName}, stopping", folder.DisplayName);
+                            _logger.LogWarning("Reached maximum message limit during pagination for folder {FolderName}, stopping at page {PageNumber}", folder.DisplayName, paginationCount);
                             break;
                         }
 
@@ -594,7 +594,7 @@ namespace MailArchiver.Services
                             var job = _syncJobService.GetJob(jobId);
                             if (job?.Status == SyncJobStatus.Cancelled)
                             {
-                                _logger.LogInformation("Sync job {JobId} for account {AccountName} has been cancelled during pagination", jobId, account.Name);
+                                _logger.LogInformation("Sync job {JobId} for account {AccountName} has been cancelled during pagination at page {PageNumber}", jobId, account.Name, paginationCount);
                                 return result;
                             }
                         }
@@ -605,7 +605,8 @@ namespace MailArchiver.Services
                             await Task.Delay(_batchOptions.PauseBetweenBatchesMs);
                         }
 
-                        _logger.LogDebug("Processing pagination page {PageNumber} for folder {FolderName}", paginationCount, folder.DisplayName);
+                        _logger.LogInformation("Fetching page {PageNumber} for folder {FolderName} (Total processed so far: {TotalProcessed})", 
+                            paginationCount, folder.DisplayName, result.ProcessedEmails);
 
                         // Get next page
                         messagesResponse = await graphClient.Users[account.EmailAddress].MailFolders[folder.Id].Messages.WithUrl(messagesResponse.OdataNextLink).GetAsync();
@@ -622,6 +623,9 @@ namespace MailArchiver.Services
                                     .Where(m => m.LastModifiedDateTime >= lastSync)
                                     .ToList();
                             }
+
+                            _logger.LogInformation("Processing page {PageNumber} with {Count} messages in folder {FolderName} for account: {AccountName}",
+                                paginationCount, filteredPaginationMessages.Count, folder.DisplayName, account.Name);
 
                             result.ProcessedEmails += filteredPaginationMessages.Count;
 
@@ -683,6 +687,13 @@ namespace MailArchiver.Services
                     {
                         _logger.LogWarning("Reached maximum pagination limit ({MaxPages}) for folder {FolderName}, stopping for safety", 
                             maxPaginationPages, folder.DisplayName);
+                    }
+                    
+                    // Log pagination completion summary
+                    if (paginationCount > 1)
+                    {
+                        _logger.LogInformation("Completed pagination for folder {FolderName}. Total pages processed: {TotalPages}, Total messages: {TotalMessages}",
+                            folder.DisplayName, paginationCount, result.ProcessedEmails);
                     }
                 }
             }
@@ -983,7 +994,7 @@ namespace MailArchiver.Services
                         {
                             requestConfiguration.QueryParameters.Filter = filter;
                             requestConfiguration.QueryParameters.Select = new string[] { "id", "internetMessageId", "subject", "receivedDateTime" };
-                            requestConfiguration.QueryParameters.Top = 1000; // Use maximum allowed by Graph API
+                            requestConfiguration.QueryParameters.Top = _batchOptions.BatchSize;
                         });
 
                         var totalOldEmailsFound = 0;
