@@ -14,6 +14,7 @@ services:
     volumes:
       - ./appsettings.json:/app/appsettings.json
       - ./logs:/app/logs
+      - ./data-protection-keys:/app/DataProtection-Keys
     depends_on:
       - postgres
 

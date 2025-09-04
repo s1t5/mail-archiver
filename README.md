@@ -132,6 +132,8 @@ services:
       - "5000:5000"
     networks:
       - postgres
+    volumes:
+      - ./data-protection-keys:/app/DataProtection-Keys
     depends_on:
       postgres:
         condition: service_healthy
