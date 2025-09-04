@@ -10,13 +10,31 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
+    // Mobile Menu Toggle Click Outside to Close
+    const navbarToggler = document.querySelector('.navbar-toggler');
+    const navbarCollapse = document.querySelector('.navbar-collapse');
+    
+    if (navbarToggler && navbarCollapse) {
+        // Close menu when clicking outside
+        document.addEventListener('click', function(event) {
+            const isClickInsideNavbar = navbarToggler.contains(event.target) || navbarCollapse.contains(event.target);
+            
+            if (!isClickInsideNavbar && navbarCollapse.classList.contains('show')) {
+                const bsCollapse = new bootstrap.Collapse(navbarCollapse, {
+                    toggle: false
+                });
+                bsCollapse.hide();
+            }
+        });
+    }
+    
     // Tooltips aktivieren
     const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
     [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
     
-    // Auto-Dismiss für Alerts nach 5 Sekunden
+    // Auto-Dismiss für Alerts nach 5 Sekunden (außer persistent Alerts)
     setTimeout(() => {
-        const alerts = document.querySelectorAll('.alert');
+        const alerts = document.querySelectorAll('.alert:not(.twofa-persistent)');
         alerts.forEach(alert => {
             const bsAlert = new bootstrap.Alert(alert);
             bsAlert.close();

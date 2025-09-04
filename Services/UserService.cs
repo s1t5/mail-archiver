@@ -24,12 +24,18 @@ namespace MailArchiver.Services
 
         public async Task<User?> GetUserByUsernameAsync(string username)
         {
+            if (string.IsNullOrEmpty(username))
+                return null;
+                
             return await _context.Users
                 .FirstOrDefaultAsync(u => u.Username.ToLower() == username.ToLower());
         }
 
         public async Task<User?> GetUserByEmailAsync(string email)
         {
+            if (string.IsNullOrEmpty(email))
+                return null;
+                
             return await _context.Users
                 .FirstOrDefaultAsync(u => u.Email.ToLower() == email.ToLower());
         }
@@ -254,12 +260,141 @@ namespace MailArchiver.Services
             }
         }
 
+        private string HashBackupCode(string backupCode)
+        {
+            using (var sha256 = SHA256.Create())
+            {
+                var hashedBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(backupCode));
+                return Convert.ToBase64String(hashedBytes);
+            }
+        }
+
         #region Password Hashing
 
         private bool VerifyPassword(string password, string hash)
         {
             var hashedInput = HashPassword(password);
             return hashedInput == hash;
+        }
+
+        #endregion
+
+        #region Two-Factor Authentication
+
+        public async Task<bool> SetTwoFactorEnabledAsync(int userId, bool enabled)
+        {
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null)
+                return false;
+
+            user.IsTwoFactorEnabled = enabled;
+            _context.Users.Update(user);
+
+            try
+            {
+                await _context.SaveChangesAsync();
+                _logger.LogInformation("Set 2FA status for user {Username} (ID: {UserId}) to {Enabled}",
+                    user.Username, user.Id, enabled);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error setting 2FA status for user: {Username} (ID: {UserId})", user.Username, user.Id);
+                return false;
+            }
+        }
+
+        public async Task<bool> SetTwoFactorSecretAsync(int userId, string secret)
+        {
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null)
+                return false;
+
+            user.TwoFactorSecret = secret;
+            _context.Users.Update(user);
+
+            try
+            {
+                await _context.SaveChangesAsync();
+                _logger.LogInformation("Set 2FA secret for user {Username} (ID: {UserId})", user.Username, user.Id);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error setting 2FA secret for user: {Username} (ID: {UserId})", user.Username, user.Id);
+                return false;
+            }
+        }
+
+        public async Task<bool> SetTwoFactorBackupCodesAsync(int userId, string backupCodes)
+        {
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null)
+                return false;
+
+            // Hash the backup codes before storing them
+            var hashedCodes = string.Join(";", backupCodes.Split(';').Select(code => HashBackupCode(code)));
+            user.TwoFactorBackupCodes = hashedCodes;
+            _context.Users.Update(user);
+
+            try
+            {
+                await _context.SaveChangesAsync();
+                _logger.LogInformation("Set 2FA backup codes for user {Username} (ID: {UserId})", user.Username, user.Id);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error setting 2FA backup codes for user: {Username} (ID: {UserId})", user.Username, user.Id);
+                return false;
+            }
+        }
+
+        public async Task<string?> GetTwoFactorSecretAsync(int userId)
+        {
+            var user = await _context.Users.FindAsync(userId);
+            return user?.TwoFactorSecret;
+        }
+
+        public async Task<bool> VerifyTwoFactorBackupCodeAsync(int userId, string backupCode)
+        {
+            var user = await _context.Users.FindAsync(userId);
+            if (user?.TwoFactorBackupCodes == null)
+                return false;
+
+            var backupCodes = user.TwoFactorBackupCodes.Split(';');
+            var hashedInputCode = HashBackupCode(backupCode);
+            // Use case-insensitive comparison for backup codes
+            return backupCodes.Contains(hashedInputCode, StringComparer.OrdinalIgnoreCase);
+        }
+
+        public async Task<bool> RemoveUsedBackupCodeAsync(int userId, string usedCode)
+        {
+            var user = await _context.Users.FindAsync(userId);
+            if (user?.TwoFactorBackupCodes == null)
+                return false;
+
+            var backupCodes = user.TwoFactorBackupCodes.Split(';').ToList();
+            var hashedUsedCode = HashBackupCode(usedCode);
+            if (backupCodes.Remove(hashedUsedCode))
+            {
+                user.TwoFactorBackupCodes = string.Join(";", backupCodes);
+                _context.Users.Update(user);
+
+                try
+                {
+                    await _context.SaveChangesAsync();
+                    _logger.LogInformation("Removed used backup code for user {Username} (ID: {UserId})", user.Username, user.Id);
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error removing used backup code for user: {Username} (ID: {UserId})", user.Username, user.Id);
+                    return false;
+                }
+            }
+
+            return false;
         }
 
         #endregion

@@ -15,10 +15,10 @@ namespace MailArchiver.Controllers
         private readonly IUserService _userService;
         private readonly MailArchiverDbContext _context;
         private readonly ILogger<UsersController> _logger;
-        private readonly IAuthenticationService _authService;
+        private readonly MailArchiver.Services.IAuthenticationService _authService;
         private readonly IStringLocalizer<SharedResource> _localizer;
 
-        public UsersController(IUserService userService, MailArchiverDbContext context, ILogger<UsersController> logger, IAuthenticationService authService, IStringLocalizer<SharedResource> localizer)
+        public UsersController(IUserService userService, MailArchiverDbContext context, ILogger<UsersController> logger, MailArchiver.Services.IAuthenticationService authService, IStringLocalizer<SharedResource> localizer)
         {
             _userService = userService;
             _context = context;
@@ -253,6 +253,45 @@ namespace MailArchiver.Controllers
             }
 
             return View(user);
+        }
+
+        // POST: Users/ResetTwoFactor/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [AdminRequired]
+        public async Task<IActionResult> ResetTwoFactor(int id)
+        {
+            try
+            {
+                var user = await _userService.GetUserByIdAsync(id);
+                if (user == null)
+                {
+                    TempData["ErrorMessage"] = _localizer["UserNotFound"].Value;
+                    return RedirectToAction(nameof(Index));
+                }
+
+                // Reset 2FA properties
+                user.IsTwoFactorEnabled = false;
+                user.TwoFactorSecret = null;
+                user.TwoFactorBackupCodes = null;
+
+                var result = await _userService.UpdateUserAsync(user);
+                if (result)
+                {
+                    TempData["SuccessMessage"] = _localizer["TwoFactorResetSuccess", user.Username].Value;
+                }
+                else
+                {
+                    TempData["ErrorMessage"] = _localizer["TwoFactorResetFail", user.Username].Value;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error resetting 2FA for user: {Message}", ex.Message);
+                TempData["ErrorMessage"] = $"{_localizer["ErrorOccurred"]}: {ex.Message}";
+            }
+
+            return RedirectToAction(nameof(Index));
         }
 
         // POST: Users/Delete/5

@@ -13,8 +13,21 @@
                 <dd class="col-sm-9">@Model.Name</dd>
                 <dt class="col-sm-3">@Localizer["EmailAddress"]</dt>
                 <dd class="col-sm-9">@Model.EmailAddress</dd>
-                <dt class="col-sm-3">IMAP Server</dt>
-                <dd class="col-sm-9">@(Model.IsImportOnly ? "-" : Model.ImapServer + ":" + Model.ImapPort)</dd>
+                <dt class="col-sm-3">@Localizer["Provider"]</dt>
+                <dd class="col-sm-9">
+                    @switch (Model.Provider)
+                    {
+                        case ProviderType.IMAP:
+                            <span class="badge bg-primary">IMAP</span>
+                            break;
+                        case ProviderType.M365:
+                            <span class="badge bg-success">Microsoft 365</span>
+                            break;
+                        case ProviderType.IMPORT:
+                            <span class="badge bg-secondary">Import Only</span>
+                            break;
+                    }
+                </dd>
                 <dt class="col-sm-3">@Localizer["Username"]</dt>
                 <dd class="col-sm-9">@Model.Username</dd>
                 <dt class="col-sm-3">SSL</dt>

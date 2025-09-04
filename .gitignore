@@ -291,3 +291,4 @@ coverage/
 *.cache
 *.sln
 /ResXManager.config.xml
+update_resource_files.ps1

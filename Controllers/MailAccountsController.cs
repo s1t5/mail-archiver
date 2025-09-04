@@ -15,42 +15,48 @@ namespace MailArchiver.Controllers
     [SelfManagerRequired]
     public class MailAccountsController : Controller
     {
-        private readonly MailArchiverDbContext _context;
-        private readonly IEmailService _emailService;
-        private readonly ILogger<MailAccountsController> _logger;
-        private readonly BatchRestoreOptions _batchOptions;
-        private readonly ISyncJobService _syncJobService;
-        private readonly IMBoxImportService _mboxImportService;
-        private readonly IEmlImportService _emlImportService;
-        private readonly UploadOptions _uploadOptions;
-        private readonly IStringLocalizer<SharedResource> _localizer;
+    private readonly MailArchiverDbContext _context;
+    private readonly IEmailService _emailService;
+    private readonly IGraphEmailService _graphEmailService;
+    private readonly ILogger<MailAccountsController> _logger;
+    private readonly BatchRestoreOptions _batchOptions;
+    private readonly ISyncJobService _syncJobService;
+    private readonly IMBoxImportService _mboxImportService;
+    private readonly IEmlImportService _emlImportService;
+    private readonly UploadOptions _uploadOptions;
+    private readonly IStringLocalizer<SharedResource> _localizer;
+    private readonly IServiceScopeFactory _serviceScopeFactory;
 
-        public MailAccountsController(
-            MailArchiverDbContext context,
-            IEmailService emailService,
-            ILogger<MailAccountsController> logger,
-            IOptions<BatchRestoreOptions> batchOptions,
-            ISyncJobService syncJobService,
-            IMBoxImportService mboxImportService,
-            IEmlImportService emlImportService,
-            IOptions<UploadOptions> uploadOptions, 
-            IStringLocalizer<SharedResource> localizer)
-        {
-            _context = context;
-            _emailService = emailService;
-            _logger = logger;
-            _batchOptions = batchOptions.Value;
-            _syncJobService = syncJobService;
-            _mboxImportService = mboxImportService;
-            _emlImportService = emlImportService;
-            _uploadOptions = uploadOptions.Value;
-            _localizer = localizer;
-        }
+    public MailAccountsController(
+        MailArchiverDbContext context,
+        IEmailService emailService,
+        IGraphEmailService graphEmailService,
+        ILogger<MailAccountsController> logger,
+        IOptions<BatchRestoreOptions> batchOptions,
+        ISyncJobService syncJobService,
+        IMBoxImportService mboxImportService,
+        IEmlImportService emlImportService,
+        IOptions<UploadOptions> uploadOptions, 
+        IStringLocalizer<SharedResource> localizer,
+        IServiceScopeFactory serviceScopeFactory)
+    {
+        _context = context;
+        _emailService = emailService;
+        _graphEmailService = graphEmailService;
+        _logger = logger;
+        _batchOptions = batchOptions.Value;
+        _syncJobService = syncJobService;
+        _mboxImportService = mboxImportService;
+        _emlImportService = emlImportService;
+        _uploadOptions = uploadOptions.Value;
+        _localizer = localizer;
+        _serviceScopeFactory = serviceScopeFactory;
+    }
 
         private async Task<bool> HasAccessToAccountAsync(int accountId)
         {
             // Use the authentication service to get user info properly
-            var authService = HttpContext.RequestServices.GetService<IAuthenticationService>();
+            var authService = HttpContext.RequestServices.GetService<MailArchiver.Services.IAuthenticationService>();
             var currentUsername = authService.GetCurrentUser(HttpContext);
             var isAdmin = authService.IsCurrentUserAdmin(HttpContext);
             var isSelfManager = authService.IsCurrentUserSelfManager(HttpContext);
@@ -83,7 +89,7 @@ namespace MailArchiver.Controllers
         public async Task<IActionResult> Index()
         {
             // Use the authentication service to get user info properly
-            var authService = HttpContext.RequestServices.GetService<IAuthenticationService>();
+            var authService = HttpContext.RequestServices.GetService<MailArchiver.Services.IAuthenticationService>();
             var currentUsername = authService.GetCurrentUser(HttpContext);
             var isAdmin = authService.IsCurrentUserAdmin(HttpContext);
             var isSelfManager = authService.IsCurrentUserSelfManager(HttpContext);
@@ -124,7 +130,7 @@ namespace MailArchiver.Controllers
                     IsEnabled = a.IsEnabled,
                     LastSync = a.LastSync,
                     DeleteAfterDays = a.DeleteAfterDays,
-                    IsImportOnly = a.IsImportOnly
+                    Provider = a.Provider
                 })
                 .ToListAsync();
 
@@ -162,7 +168,6 @@ var model = new MailAccountViewModel
                 LastSync = account.LastSync,
                 IsEnabled = account.IsEnabled,
                 DeleteAfterDays = account.DeleteAfterDays,
-                IsImportOnly = account.IsImportOnly
             };
 
             ViewBag.EmailCount = emailCount;
@@ -175,7 +180,8 @@ var model = new MailAccountViewModel
             var model = new CreateMailAccountViewModel
             {
                 ImapPort = 993, // Standard values
-                UseSSL = true
+                UseSSL = true,
+                Provider = ProviderType.IMAP
             };
             return View(model);
         }
@@ -187,17 +193,20 @@ var model = new MailAccountViewModel
         {
             if (ModelState.IsValid)
             {
-var account = new MailAccount
+                var account = new MailAccount
                 {
                     Name = model.Name,
                     EmailAddress = model.EmailAddress,
-                    ImapServer = model.IsImportOnly ? null : model.ImapServer,
-                    ImapPort = model.IsImportOnly ? null : model.ImapPort,
-                    Username = model.IsImportOnly ? null : model.Username,
-                    Password = model.IsImportOnly ? null : model.Password,
+                    ImapServer = model.Provider == ProviderType.IMPORT || model.Provider != ProviderType.IMAP ? null : model.ImapServer,
+                    ImapPort = model.Provider == ProviderType.IMPORT || model.Provider != ProviderType.IMAP ? null : model.ImapPort,
+                    Username = model.Provider == ProviderType.IMPORT || model.Provider != ProviderType.IMAP ? null : model.Username,
+                    Password = model.Provider == ProviderType.IMPORT || model.Provider != ProviderType.IMAP ? null : model.Password,
                     UseSSL = model.UseSSL,
                     IsEnabled = model.IsEnabled,
-                    IsImportOnly = model.IsImportOnly,
+                    Provider = model.Provider,
+                    ClientId = model.Provider == ProviderType.M365 ? model.ClientId : null,
+                    ClientSecret = model.Provider == ProviderType.M365 ? model.ClientSecret : null,
+                    TenantId = model.Provider == ProviderType.M365 ? model.TenantId : null,
                     ExcludedFolders = string.Empty,
                     DeleteAfterDays = model.DeleteAfterDays,
                     LastSync = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)
@@ -205,29 +214,29 @@ var account = new MailAccount
 
                 try
                 {
-                    _logger.LogInformation("Creating new account: {Name}, IsImportOnly: {IsImportOnly}",
-                        model.Name, model.IsImportOnly);
+                    _logger.LogInformation("Creating new account: {Name}, Provider: {Provider}",
+                        model.Name, model.Provider);
 
-                // Test connection before saving (only for non-import-only accounts)
-                if (!account.IsImportOnly)
-                {
-                    _logger.LogInformation("Testing connection for account: {Name}, Server: {Server}:{Port}",
-                        model.Name, model.ImapServer, model.ImapPort);
-                    var connectionResult = await _emailService.TestConnectionAsync(account);
-                    if (!connectionResult)
+                    // Test connection before saving (only for non-import-only accounts)
+                    if (account.Provider == ProviderType.IMAP)
                     {
-                        _logger.LogWarning("Connection test failed for account {Name}", model.Name);
-                        ModelState.AddModelError("", _localizer["EmailAccountError"]);
-                        return View(model);
+                        _logger.LogInformation("Testing connection for account: {Name}, Server: {Server}:{Port}",
+                            model.Name, model.ImapServer, model.ImapPort);
+                        var connectionResult = await _emailService.TestConnectionAsync(account);
+                        if (!connectionResult)
+                        {
+                            _logger.LogWarning("Connection test failed for account {Name}", model.Name);
+                            ModelState.AddModelError("", _localizer["EmailAccountError"]);
+                            return View(model);
+                        }
                     }
-                }
 
                     _logger.LogInformation("Saving account to database");
                     _context.MailAccounts.Add(account);
                     await _context.SaveChangesAsync();
 
                     // Auto-assign the account to the current user if they are a SelfManager (not Admin)
-                    var authService = HttpContext.RequestServices.GetService<IAuthenticationService>();
+                    var authService = HttpContext.RequestServices.GetService<MailArchiver.Services.IAuthenticationService>();
                     var currentUsername = authService.GetCurrentUser(HttpContext);
                     var currentUser = await _context.Users
                         .FirstOrDefaultAsync(u => u.Username.ToLower() == currentUsername.ToLower());
@@ -274,7 +283,7 @@ var account = new MailAccount
                 return NotFound();
             }
 
-var model = new MailAccountViewModel
+            var model = new MailAccountViewModel
             {
                 Id = account.Id,
                 Name = account.Name,
@@ -287,14 +296,17 @@ var model = new MailAccountViewModel
                 LastSync = account.LastSync,
                 ExcludedFolders = account.ExcludedFolders,
                 DeleteAfterDays = account.DeleteAfterDays,
-                IsImportOnly = account.IsImportOnly
+                Provider = account.Provider,
+                ClientId = account.ClientId,
+                ClientSecret = account.ClientSecret,
+                TenantId = account.TenantId
             };
 
             // Set ViewBag properties
-            ViewBag.IsImportOnly = account.IsImportOnly;
+            ViewBag.Provider = account.Provider;
             
-            // Load available folders for exclusion selection (only for non-import-only accounts)
-            if (!account.IsImportOnly)
+            // Load available folders for exclusion selection (only for IMAP accounts)
+            if (account.Provider == ProviderType.IMAP)
             {
                 try
                 {
@@ -372,10 +384,30 @@ var model = new MailAccountViewModel
 
                     account.Name = model.Name;
                     account.EmailAddress = model.EmailAddress;
-                    account.ImapServer = model.ImapServer;
-                    account.ImapPort = model.ImapPort;
-                    account.Username = model.Username;
+                    account.ImapServer = model.Provider == ProviderType.IMPORT || model.Provider != ProviderType.IMAP ? null : model.ImapServer;
+                    account.ImapPort = model.Provider == ProviderType.IMPORT || model.Provider != ProviderType.IMAP ? null : model.ImapPort;
+                    account.Username = model.Provider == ProviderType.IMPORT || model.Provider != ProviderType.IMAP ? null : model.Username;
                     account.IsEnabled = model.IsEnabled;
+                    account.Provider = model.Provider;
+                    account.ClientId = model.Provider == ProviderType.M365 ? model.ClientId : null;
+                    
+                    // Only update ClientSecret if provided for M365 accounts
+                    if (model.Provider == ProviderType.M365 && !string.IsNullOrEmpty(model.ClientSecret))
+                    {
+                        account.ClientSecret = model.ClientSecret;
+                    }
+                    else if (model.Provider == ProviderType.M365)
+                    {
+                        // If no new ClientSecret provided for M365, keep the existing one
+                        // Do not overwrite with null
+                    }
+                    else
+                    {
+                        // For non-M365 accounts, set to null
+                        account.ClientSecret = null;
+                    }
+                    
+                    account.TenantId = model.Provider == ProviderType.M365 ? model.TenantId : null;
 
                     // Only update password if provided
                     if (!string.IsNullOrEmpty(model.Password))
@@ -387,8 +419,8 @@ var model = new MailAccountViewModel
                     account.ExcludedFolders = model.ExcludedFolders ?? string.Empty;
                     account.DeleteAfterDays = model.DeleteAfterDays;
 
-                    // Test connection before saving (only for non-import-only accounts)
-                    if (!string.IsNullOrEmpty(model.Password) && !account.IsImportOnly)
+                    // Test connection before saving (only for IMAP accounts)
+                    if (!string.IsNullOrEmpty(model.Password) && account.Provider == ProviderType.IMAP)
                     {
                         var connectionResult = await _emailService.TestConnectionAsync(account);
                         if (!connectionResult)
@@ -513,25 +545,82 @@ var model = new MailAccountViewModel
             }
 
             // Prevent sync for import-only accounts
-            if (account.IsImportOnly)
+            if (account.Provider == ProviderType.IMPORT)
             {
                 TempData["ErrorMessage"] = _localizer["ImportOnlyAccountNoSync"].Value;
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction(nameof(Details), new { id });
             }
 
             try
             {
-                // Sync-Job starten
-                var jobId = _syncJobService.StartSync(account.Id, account.Name, account.LastSync);
-
-                // Sync ausführen
-                await _emailService.SyncMailAccountAsync(account, jobId);
-
-                TempData["SuccessMessage"] = _localizer["SyncSuccess", account.Name].Value;
+                // Use the sync job service to start a sync
+                var jobId = _syncJobService.StartSync(id, account.Name);
+                if (!string.IsNullOrEmpty(jobId))
+                {
+                    // Actually perform the sync based on provider type
+                    if (account.Provider == ProviderType.M365)
+                    {
+                        // For M365 accounts, use GraphEmailService
+                        _ = Task.Run(async () =>
+                        {
+                            try
+                            {
+                                // Create a new service scope for the background task to avoid disposed context issues
+                                using var scope = _serviceScopeFactory.CreateScope();
+                                var graphEmailService = scope.ServiceProvider.GetRequiredService<IGraphEmailService>();
+                                var dbContext = scope.ServiceProvider.GetRequiredService<MailArchiverDbContext>();
+                                
+                                // Get a fresh copy of the account from the new context
+                                var freshAccount = await dbContext.MailAccounts.FindAsync(account.Id);
+                                if (freshAccount != null)
+                                {
+                                    await graphEmailService.SyncMailAccountAsync(freshAccount, jobId);
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                _logger.LogError(ex, "Error during M365 sync for account {AccountName}: {Message}", account.Name, ex.Message);
+                                _syncJobService.CompleteJob(jobId, false, ex.Message);
+                            }
+                        });
+                    }
+                    else
+                    {
+                        // For IMAP accounts, use EmailService
+                        _ = Task.Run(async () =>
+                        {
+                            try
+                            {
+                                // Create a new service scope for the background task to avoid disposed context issues
+                                using var scope = _serviceScopeFactory.CreateScope();
+                                var emailService = scope.ServiceProvider.GetRequiredService<IEmailService>();
+                                var dbContext = scope.ServiceProvider.GetRequiredService<MailArchiverDbContext>();
+                                
+                                // Get a fresh copy of the account from the new context
+                                var freshAccount = await dbContext.MailAccounts.FindAsync(account.Id);
+                                if (freshAccount != null)
+                                {
+                                    await emailService.SyncMailAccountAsync(freshAccount, jobId);
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                _logger.LogError(ex, "Error during IMAP sync for account {AccountName}: {Message}", account.Name, ex.Message);
+                                _syncJobService.CompleteJob(jobId, false, ex.Message);
+                            }
+                        });
+                    }
+                    
+                    TempData["SuccessMessage"] = _localizer["SyncStarted", account.Name].Value;
+                }
+                else
+                {
+                    TempData["ErrorMessage"] = _localizer["SyncFailed", account.Name].Value;
+                }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error syncing account {AccountName}: {Message}", account.Name, ex.Message);
+                _logger.LogError(ex, "Error starting sync job for account {AccountName}: {Message}", account.Name, ex.Message);
                 TempData["ErrorMessage"] = $"{_localizer["SyncFailed"]}: {ex.Message}";
             }
 
@@ -556,7 +645,7 @@ var model = new MailAccountViewModel
             }
 
             // Prevent resync for import-only accounts
-            if (account.IsImportOnly)
+            if (account.Provider == ProviderType.IMPORT)
             {
                 TempData["ErrorMessage"] = _localizer["ImportOnlyAccountNoSync"].Value;
                 return RedirectToAction(nameof(Details), new { id });
@@ -657,7 +746,7 @@ var model = new MailAccountViewModel
         public async Task<IActionResult> ImportMBox()
         {
             // Use the authentication service to get user info properly
-            var authService = HttpContext.RequestServices.GetService<IAuthenticationService>();
+            var authService = HttpContext.RequestServices.GetService<MailArchiver.Services.IAuthenticationService>();
             var currentUsername = authService.GetCurrentUser(HttpContext);
             var isAdmin = authService.IsCurrentUserAdmin(HttpContext);
             var isSelfManager = authService.IsCurrentUserSelfManager(HttpContext);
@@ -875,7 +964,7 @@ var model = new MailAccountViewModel
         public async Task<IActionResult> ImportEml()
         {
             // Use the authentication service to get user info properly
-            var authService = HttpContext.RequestServices.GetService<IAuthenticationService>();
+            var authService = HttpContext.RequestServices.GetService<MailArchiver.Services.IAuthenticationService>();
             var currentUsername = authService.GetCurrentUser(HttpContext);
             var isAdmin = authService.IsCurrentUserAdmin(HttpContext);
             var isSelfManager = authService.IsCurrentUserSelfManager(HttpContext);

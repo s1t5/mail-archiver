@@ -8,7 +8,7 @@ namespace MailArchiver.Attributes
     {
         public override void OnActionExecuting(ActionExecutingContext context)
         {
-            var authService = context.HttpContext.RequestServices.GetService<IAuthenticationService>();
+            var authService = context.HttpContext.RequestServices.GetService<MailArchiver.Services.IAuthenticationService>();
             
             // First check if user is authenticated
             if (authService == null || !authService.IsAuthenticated(context.HttpContext))

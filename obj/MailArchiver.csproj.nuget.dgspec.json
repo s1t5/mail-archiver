@@ -66,6 +66,18 @@
               "target": "Package",
               "version": "[9.0.4, )"
             },
+            "Microsoft.Graph": {
+              "target": "Package",
+              "version": "[5.56.0, )"
+            },
+            "Microsoft.Graph.Auth": {
+              "target": "Package",
+              "version": "[1.0.0-preview.7, )"
+            },
+            "Microsoft.Identity.Client": {
+              "target": "Package",
+              "version": "[4.61.3, )"
+            },
             "MimeKit": {
               "target": "Package",
               "version": "[4.12.0, )"
@@ -73,6 +85,14 @@
             "Npgsql.EntityFrameworkCore.PostgreSQL": {
               "target": "Package",
               "version": "[9.0.4, )"
+            },
+            "Otp.NET": {
+              "target": "Package",
+              "version": "[1.4.0, )"
+            },
+            "QRCoder": {
+              "target": "Package",
+              "version": "[1.6.0, )"
             }
           },
           "imports": [

@@ -1,0 +1,29 @@
+@inject Microsoft.Extensions.Localization.IStringLocalizer<MailArchiver.SharedResource> Localizer
+@{
+    ViewData["Title"] = @Localizer["DisableTwoFactor"];
+}
+
+<div class="container twofa-setup-container">
+    <h1>@Localizer["DisableTwoFactor"]</h1>
+    
+    <div class="twofa-section">
+        <h4>@Localizer["DisableTwoFactor"]</h4>
+        <p>@Localizer["DisableTwoFactorDescription"]</p>
+        <div class="twofa-warning">
+            <p><strong>@Localizer["DisableTwoFactorConfirmation"]</strong></p>
+        </div>
+        
+        <form asp-action="Disable" method="post">
+            <div class="mb-3">
+                <label for="password" class="form-label">@Localizer["Password"]</label>
+                <input type="password" class="form-control" id="password" name="password" required />
+                @Html.ValidationMessage("password", new { @class = "text-danger" })
+            </div>
+            
+            <div class="d-flex justify-content-center gap-2">
+                <button type="submit" class="btn btn-danger">@Localizer["DisableTwoFactor"]</button>
+                <a asp-controller="Home" asp-action="Index" class="btn btn-secondary">@Localizer["Cancel"]</a>
+            </div>
+        </form>
+    </div>
+</div>

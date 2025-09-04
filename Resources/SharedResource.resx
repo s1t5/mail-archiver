@@ -28,10 +28,10 @@
                 <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
                 <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
               </xsd:sequence>
-              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
-              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
-              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
-              <xsd:attribute ref="xml:space" />
+                <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+                <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+                <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+                <xsd:attribute ref="xml:space" />
             </xsd:complexType>
           </xsd:element>
           <xsd:element name="resheader">
@@ -231,6 +231,12 @@
   </data>
   <data name="ContinueWithOperation" xml:space="preserve">
     <value>You have selected {0} emails. This will be processed as a background job that you can monitor separately. Continue?</value>
+  </data>
+  <data name="ConfirmBatchRestore" xml:space="preserve">
+    <value>Confirm Batch Restore</value>
+  </data>
+  <data name="Continue" xml:space="preserve">
+    <value>Continue</value>
   </data>
   <data name="NoEmailsArchivedYet" xml:space="preserve">
     <value>No emails archived yet</value>
@@ -682,7 +688,7 @@
   <data name="DangerZoneInfo" xml:space="preserve">
     <value>The following actions are irreversible and will permanently delete data.</value>
   </data>
-  <data name="DeleteAccountAllEmailsButton" xml:space="preserve">
+  <data name="DeleteAccountWithEmailsButton" xml:space="preserve">
     <value>Delete Account and All Emails ({0})</value>
   </data>
   <data name="DeleteAccountWithEmailsConfirm" xml:space="preserve">
@@ -1177,9 +1183,6 @@
   <data name="ChangePassword" xml:space="preserve">
     <value>Change Password</value>
   </data>
-  <data name="Sign Out" xml:space="preserve">
-    <value>Sign Out</value>
-  </data>
   <data name="PasswordHint" xml:space="preserve">
     <value>Password must be at least 6 characters long.</value>
   </data>
@@ -1460,4 +1463,176 @@
   <data name="Import" xml:space="preserve">
     <value>Import</value>
   </data>
+  
+  <!-- Microsoft 365 -->
+  <data name="Microsoft365Account" xml:space="preserve">
+    <value>Microsoft 365 Account</value>
+  </data>
+  <data name="Microsoft365AccountDescription" xml:space="preserve">
+    <value>Account using Microsoft 365 OAuth2 authentication</value>
+  </data>
+  <data name="Microsoft365Settings" xml:space="preserve">
+    <value>Microsoft 365 Settings</value>
+  </data>
+  <data name="ClientId" xml:space="preserve">
+    <value>Client ID</value>
+  </data>
+  <data name="ClientSecret" xml:space="preserve">
+    <value>Client Secret</value>
+  </data>
+  <data name="LeaveEmptyToKeepCurrent" xml:space="preserve">
+    <value>Leave empty to keep current value</value>
+  </data>
+  
+  <!-- Two-Factor Authentication -->
+  <data name="TwoFactorEnabledSuccess" xml:space="preserve">
+    <value>Two-factor authentication has been successfully enabled.</value>
+  </data>
+  <data name="TwoFactorEnableFail" xml:space="preserve">
+    <value>Failed to enable two-factor authentication. Please try again.</value>
+  </data>
+  <data name="TwoFactorDisabledSuccess" xml:space="preserve">
+    <value>Two-factor authentication has been successfully disabled.</value>
+  </data>
+  <data name="TwoFactorDisableFail" xml:space="preserve">
+    <value>Failed to disable two-factor authentication. Please try again.</value>
+  </data>
+  <data name="TwoFactorTokenInvalid" xml:space="preserve">
+    <value>Invalid authentication code. Please try again.</value>
+  </data>
+  <data name="TwoFactorSecretMissing" xml:space="preserve">
+    <value>Two-factor secret is missing. Please restart the setup process.</value>
+  </data>
+  <data name="TwoFactorNotEnabled" xml:space="preserve">
+    <value>Two-factor authentication is not enabled for this account.</value>
+  </data>
+  <data name="TwoFactorSessionExpired" xml:space="preserve">
+    <value>Your session has expired. Please log in again.</value>
+  </data>
+  <data name="PasswordIncorrect" xml:space="preserve">
+    <value>The password you entered is incorrect.</value>
+  </data>
+  <data name="TwoFactorResetSuccess" xml:space="preserve">
+    <value>Two-factor authentication has been successfully reset for user {0}.</value>
+  </data>
+  <data name="TwoFactorResetFail" xml:space="preserve">
+    <value>Failed to reset two-factor authentication for user {0}.</value>
+  </data>
+  <data name="TwoFactorSetup" xml:space="preserve">
+    <value>Two-Factor Setup</value>
+  </data>
+  <data name="TwoFactorSetupInstructions" xml:space="preserve">
+    <value>Scan the QR code with your authenticator app or enter the secret manually.</value>
+  </data>
+  <data name="ScanQRCode" xml:space="preserve">
+    <value>Scan QR Code</value>
+  </data>
+  <data name="UseAuthenticatorApp" xml:space="preserve">
+    <value>Use an authenticator app like Google Authenticator or Authy to scan the QR code.</value>
+  </data>
+  <data name="OrEnterManually" xml:space="preserve">
+    <value>Or enter this secret manually in your authenticator app:</value>
+  </data>
+  <data name="BackupCodes" xml:space="preserve">
+    <value>Backup Codes</value>
+  </data>
+  <data name="BackupCodesDescription" xml:space="preserve">
+    <value>Store these backup codes in a safe place. You can use them to log in if you lose access to your authenticator app.</value>
+  </data>
+  <data name="BackupCodesWarning" xml:space="preserve">
+    <value>Each backup code can only be used once. After using a code, it will be invalidated.</value>
+  </data>
+  <data name="EnterVerificationCode" xml:space="preserve">
+    <value>Enter Verification Code</value>
+  </data>
+  <data name="EnableTwoFactor" xml:space="preserve">
+    <value>Enable Two-Factor Authentication</value>
+  </data>
+  <data name="TwoFactorVerification" xml:space="preserve">
+    <value>Two-Factor Verification</value>
+  </data>
+  <data name="TwoFactorAuthentication" xml:space="preserve">
+    <value>Two-Factor Authentication</value>
+  </data>
+  <data name="EnterTwoFactorCode" xml:space="preserve">
+    <value>Enter the code from your authenticator app or a backup code</value>
+  </data>
+  <data name="VerificationCode" xml:space="preserve">
+    <value>Verification Code</value>
+  </data>
+  <data name="EnterCodePlaceholder" xml:space="preserve">
+    <value>Enter 6-digit code or 16-character backup code</value>
+  </data>
+  <data name="EnterTotpOrBackupCode" xml:space="preserve">
+    <value>Enter a 6-digit TOTP code from your authenticator app or a 16-character backup code</value>
+  </data>
+  <data name="Verify" xml:space="preserve">
+    <value>Verify</value>
+  </data>
+  <data name="DisableTwoFactor" xml:space="preserve">
+    <value>Disable Two-Factor Authentication</value>
+  </data>
+  <data name="DisableTwoFactorConfirmation" xml:space="preserve">
+    <value>Are you sure you want to disable two-factor authentication? This will reduce the security of your account.</value>
+  </data>
+  <data name="DisableTwoFactorDescription" xml:space="preserve">
+    <value>To disable two-factor authentication, please enter your password below.</value>
+  </data>
+  <data name="EnterPassword" xml:space="preserve">
+    <value>Enter Password</value>
+  </data>
+  <data name="ScanQRCodeDescription" xml:space="preserve">
+    <value>Scan this QR code with your authenticator app to set up two-factor authentication.</value>
+  </data>
+  <data name="ManualEntryDescription" xml:space="preserve">
+    <value>If you can't scan the QR code, enter this secret manually in your authenticator app:</value>
+  </data>
+  <data name="VerifyTwoFactor" xml:space="preserve">
+    <value>Verify Two-Factor Authentication</value>
+  </data>
+  <data name="EnterCodeDescription" xml:space="preserve">
+    <value>Enter the 6-digit code from your authenticator app to verify and enable two-factor authentication.</value>
+  </data>
+  <data name="DownloadBackupCodes" xml:space="preserve">
+    <value>Download Backup Codes</value>
+  </data>
+  <data name="BackupCodesFileHeader" xml:space="preserve">
+    <value>Mail Archiver - Two-Factor Authentication Backup Codes. Store these backup codes in a safe place. You can use them to log in if you lose access to your authenticator app. Each backup code can only be used once. After using a code, it will be invalidated.</value>
+  </data>
+  <data name="BackupCodesFileFooter" xml:space="preserve">
+    <value>Important: Keep these codes secure and do not share them with anyone.</value>
+  </data>
+  <data name="BackupCodesOneTimeOnly" xml:space="preserve">
+    <value>These backup codes are for one-time use only. After using a code, it will be invalidated.</value>
+  </data>
+  <data name="ContinueToDashboard" xml:space="preserve">
+    <value>Continue to Dashboard</value>
+  </data>
+  <data name="Code" xml:space="preserve">
+    <value>Code</value>
+  </data>
+  <data name="EnterCodeFromApp" xml:space="preserve">
+    <value>Enter the code from your authenticator app</value>
+  </data>
+  <data name="ManualEntry" xml:space="preserve">
+    <value>Manual Entry</value>
+  </data>
+  <data name="EnterCode" xml:space="preserve">
+    <value>Enter Code</value>
+  </data>
+
+  <!-- Rate Limiting -->
+  <data name="RateLimitExceeded" xml:space="preserve">
+    <value>Rate limit exceeded. Please try again later.</value>
+  </data>
+  <data name="TooManyAttempts" xml:space="preserve">
+    <value>Too many attempts. Please wait {0} seconds before trying again.</value>
+  </data>
+  <data name="RateLimitTwoFactorTitle" xml:space="preserve">
+    <value>Too Many Attempts</value>
+  </data>
+  <data name="RateLimitTwoFactorMessage" xml:space="preserve">
+    <value>You have made too many 2FA verification attempts. Please wait and try again later.</value>
+  </data>
+
 </root>

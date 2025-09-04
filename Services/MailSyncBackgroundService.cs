@@ -1,4 +1,5 @@
 using MailArchiver.Data;
+using MailArchiver.Models;
 using MailArchiver.Services;
 using Microsoft.EntityFrameworkCore;
 
@@ -36,10 +37,11 @@ namespace MailArchiver.Services
                     using var scope = _serviceProvider.CreateScope();
                     var dbContext = scope.ServiceProvider.GetRequiredService<MailArchiverDbContext>();
                     var emailService = scope.ServiceProvider.GetRequiredService<IEmailService>();
+                    var graphEmailService = scope.ServiceProvider.GetRequiredService<IGraphEmailService>();
                     var syncJobService = scope.ServiceProvider.GetRequiredService<ISyncJobService>();
 
                     var accounts = await dbContext.MailAccounts
-                        .Where(a => a.IsEnabled && !a.IsImportOnly)
+                        .Where(a => a.IsEnabled && a.Provider != ProviderType.IMPORT)
                         .ToListAsync(stoppingToken);
 
                     _logger.LogInformation($"Found {accounts.Count} enabled accounts to sync");
@@ -78,7 +80,18 @@ namespace MailArchiver.Services
                             _logger.LogInformation("Started sync job {JobId} for account {AccountName} with cancellation token", 
                                 jobId, account.Name);
                             
-                            await emailService.SyncMailAccountAsync(account, jobId);
+                            // Route to appropriate service based on provider type
+                            if (account.Provider == ProviderType.M365)
+                            {
+                                _logger.LogInformation("Using Microsoft Graph API for M365 account: {AccountName}", account.Name);
+                                await graphEmailService.SyncMailAccountAsync(account, jobId);
+                            }
+                            else
+                            {
+                                _logger.LogInformation("Using IMAP for account: {AccountName}", account.Name);
+                                await emailService.SyncMailAccountAsync(account, jobId);
+                            }
+                            
                             _logger.LogInformation("Mail sync completed for account: {AccountName}", account.Name);
                         }
                         catch (OperationCanceledException)

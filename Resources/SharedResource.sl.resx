@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
   <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
     <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
@@ -231,6 +231,12 @@
   </data>
   <data name="ContinueWithOperation" xml:space="preserve">
     <value>Izbrali ste {0} sporočil. Obdelano bo kot opravilo v ozadju. Nadaljujem?</value>
+  </data>
+  <data name="ConfirmBatchRestore" xml:space="preserve">
+    <value>Potrdi obnovitev paketa</value>
+  </data>
+  <data name="Continue" xml:space="preserve">
+    <value>Nadaljuj</value>
   </data>
   <data name="NoEmailsArchivedYet" xml:space="preserve">
     <value>Ni arhiviranih sporočil</value>
@@ -1448,4 +1454,182 @@
   <data name="Import" xml:space="preserve">
     <value>Uvozi</value>
   </data>
+  <!-- Microsoft 365 -->
+  <data name="Microsoft365Account" xml:space="preserve">
+    <value>Microsoft 365 račun</value>
+  </data>
+  <data name="Microsoft365AccountDescription" xml:space="preserve">
+    <value>Račun, ki uporablja Microsoft 365 OAuth2 avtentifikacijo</value>
+  </data>
+  <data name="Microsoft365Settings" xml:space="preserve">
+    <value>Microsoft 365 nastavitve</value>
+  </data>
+  <data name="ClientId" xml:space="preserve">
+    <value>ID odjemalca</value>
+  </data>
+  <data name="ClientSecret" xml:space="preserve">
+    <value>Skrivnost odjemalca</value>
+  </data>
+  <data name="LeaveEmptyToKeepCurrent" xml:space="preserve">
+    <value>Pustite prazno, da obdržite trenutno vrednost</value>
+  </data>
+  <!-- Two-Factor Authentication -->
+  <data name="TwoFactorEnabledSuccess" xml:space="preserve">
+    <value>Dvofaktorska avtentifikacija je bila uspešno omogočena.</value>
+  </data>
+  <data name="TwoFactorEnableFail" xml:space="preserve">
+    <value>Omogočanje dvofaktorske avtentifikacije ni uspelo. Poskusite znova.</value>
+  </data>
+  <data name="TwoFactorDisabledSuccess" xml:space="preserve">
+    <value>Dvofaktorska avtentifikacija je bila uspešno onemogočena.</value>
+  </data>
+  <data name="TwoFactorDisableFail" xml:space="preserve">
+    <value>Onemogočanje dvofaktorske avtentifikacije ni uspelo. Poskusite znova.</value>
+  </data>
+  <data name="TwoFactorTokenInvalid" xml:space="preserve">
+    <value>Neveljavna koda za avtentifikacijo. Poskusite znova.</value>
+  </data>
+  <data name="TwoFactorSecretMissing" xml:space="preserve">
+    <value>Dvofaktorska skrivnost manjka. Znova zaženite postopek nastavitve.</value>
+  </data>
+  <data name="TwoFactorNotEnabled" xml:space="preserve">
+    <value>Dvofaktorska avtentifikacija ni omogočena za ta račun.</value>
+  </data>
+  <data name="TwoFactorSessionExpired" xml:space="preserve">
+    <value>Vaša seja je potekla. Prosimo, ponovno se prijavite.</value>
+  </data>
+  <data name="PasswordIncorrect" xml:space="preserve">
+    <value>Vneseno geslo je napačno.</value>
+  </data>
+  <data name="TwoFactorResetSuccess" xml:space="preserve">
+    <value>Dvofaktorska avtentifikacija je bila uspešno ponastavljena za uporabnika {0}.</value>
+  </data>
+  <data name="TwoFactorResetFail" xml:space="preserve">
+    <value>Ponastavitev dvofaktorske avtentifikacije za uporabnika {0} ni uspela.</value>
+  </data>
+  <data name="TwoFactorSetup" xml:space="preserve">
+    <value>Nastavitev dvofaktorske avtentifikacije</value>
+  </data>
+  <data name="TwoFactorSetupInstructions" xml:space="preserve">
+    <value>Skenirajte QR kodo z vašo aplikacijo za avtentifikacijo ali ročno vnesite skrivnost.</value>
+  </data>
+  <data name="ScanQRCode" xml:space="preserve">
+    <value>Skeniraj QR kodo</value>
+  </data>
+  <data name="UseAuthenticatorApp" xml:space="preserve">
+    <value>Uporabite aplikacijo za avtentifikacijo, kot je Google Authenticator ali Authy, za skeniranje QR kode.</value>
+  </data>
+  <data name="OrEnterManually" xml:space="preserve">
+    <value>Ali ročno vnesite to skrivnost v vašo aplikacijo za avtentifikacijo:</value>
+  </data>
+  <data name="BackupCodes" xml:space="preserve">
+    <value>Rezervne kode</value>
+  </data>
+  <data name="BackupCodesDescription" xml:space="preserve">
+    <value>Shranite te rezervne kode na varno mesto. Uporabite jih lahko za prijavo, če izgubite dostop do vaše aplikacije za avtentifikacijo.</value>
+  </data>
+  <data name="BackupCodesWarning" xml:space="preserve">
+    <value>Vsako rezervno kodo lahko uporabite samo enkrat. Po uporabi kode bo ta postala neveljavna.</value>
+  </data>
+  <data name="EnterVerificationCode" xml:space="preserve">
+    <value>Vnesite potrditveno kodo</value>
+  </data>
+  <data name="EnableTwoFactor" xml:space="preserve">
+    <value>Omogoči dvofaktorsko avtentifikacijo</value>
+  </data>
+  <data name="TwoFactorVerification" xml:space="preserve">
+    <value>Dvofaktorska preveritev</value>
+  </data>
+  <data name="TwoFactorAuthentication" xml:space="preserve">
+    <value>Dvofaktorska avtentifikacija</value>
+  </data>
+  <data name="EnterTwoFactorCode" xml:space="preserve">
+    <value>Vnesite kodo iz vaše aplikacije za avtentifikacijo ali rezervno kodo</value>
+  </data>
+  <data name="VerificationCode" xml:space="preserve">
+    <value>Potrditvena koda</value>
+  </data>
+  <data name="EnterCodePlaceholder" xml:space="preserve">
+    <value>Vnesite 6-mestno kodo ali 16-znakovno rezervno kodo</value>
+  </data>
+  <data name="EnterTotpOrBackupCode" xml:space="preserve">
+    <value>Vnesite 6-mestno TOTP kodo iz vaše aplikacije za avtentifikacijo ali 16-znakovno rezervno kodo</value>
+  </data>
+  <data name="Verify" xml:space="preserve">
+    <value>Preveri</value>
+  </data>
+  <data name="DisableTwoFactor" xml:space="preserve">
+    <value>Onemogoči dvofaktorsko avtentifikacijo</value>
+  </data>
+  <data name="DisableTwoFactorConfirmation" xml:space="preserve">
+    <value>Ali ste prepričani, da želite onemogočiti dvofaktorsko avtentifikacijo? To bo zmanjšalo varnost vašega računa.</value>
+  </data>
+  <data name="DisableTwoFactorDescription" xml:space="preserve">
+    <value>Za onemogočitev dvofaktorske avtentifikacije spodaj vnesite vaše geslo.</value>
+  </data>
+  <data name="EnterPassword" xml:space="preserve">
+    <value>Vnesite geslo</value>
+  </data>
+  <data name="ScanQRCodeDescription" xml:space="preserve">
+    <value>Skenirajte to QR kodo z vašo aplikacijo za avtentifikacijo za nastavitev dvofaktorske avtentifikacije.</value>
+  </data>
+  <data name="ManualEntryDescription" xml:space="preserve">
+    <value>Če ne morete skenirati QR kode, ročno vnesite to skrivnost v vašo aplikacijo za avtentifikacijo:</value>
+  </data>
+  <data name="VerifyTwoFactor" xml:space="preserve">
+    <value>Preveri dvofaktorsko avtentifikacijo</value>
+  </data>
+  <data name="EnterCodeDescription" xml:space="preserve">
+    <value>Vnesite 6-mestno kodo iz vaše aplikacije za avtentifikacijo za preveritev in omogočitev dvofaktorske avtentifikacije.</value>
+  </data>
+  <data name="DownloadBackupCodes" xml:space="preserve">
+    <value>Prenesi rezervne kode</value>
+  </data>
+  <data name="BackupCodesFileHeader" xml:space="preserve">
+    <value>Mail Archiver - Rezervne kode dvofaktorske avtentifikacije. Shranite te rezervne kode na varno mesto. Uporabite jih lahko za prijavo, če izgubite dostop do vaše aplikacije za avtentifikacijo. Vsako rezervno kodo lahko uporabite samo enkrat. Po uporabi kode bo ta postala neveljavna.</value>
+  </data>
+  <data name="BackupCodesFileFooter" xml:space="preserve">
+    <value>Pomembno: Hranite te kode varno in jih ne delite z nikomer.</value>
+  </data>
+  <data name="BackupCodesOneTimeOnly" xml:space="preserve">
+    <value>Te rezervne kode so samo za enkratno uporabo. Po uporabi kode bo ta postala neveljavna.</value>
+  </data>
+  <data name="ContinueToDashboard" xml:space="preserve">
+    <value>Nadaljuj na nadzorno ploščo</value>
+  </data>
+  <data name="Code" xml:space="preserve">
+    <value>Koda</value>
+  </data>
+  <data name="EnterCodeFromApp" xml:space="preserve">
+    <value>Vnesite kodo iz vaše aplikacije za avtentifikacijo</value>
+  </data>
+  <data name="ManualEntry" xml:space="preserve">
+    <value>Ročni vnos</value>
+  </data>
+  <data name="EnterCode" xml:space="preserve">
+    <value>Vnesite kodo</value>
+  </data>
+
+  <!-- Rate Limiting -->
+  <data name="RateLimitExceeded" xml:space="preserve">
+    <value>Omejitev hitrosti presežena. Poskusite pozneje.</value>
+  </data>
+  <data name="TooManyAttempts" xml:space="preserve">
+    <value>Preveč poskusov. Počakajte {0} sekund pred ponovnim poskusom.</value>
+  </data>
+  <data name="RateLimitTwoFactorTitle" xml:space="preserve">
+    <value>Preveč poskusov</value>
+  </data>
+  <data name="RateLimitTwoFactorMessage" xml:space="preserve">
+    <value>Naredili ste preveč poskusov preverjanja 2FA. Počakajte in poskusite pozneje.</value>
+  </data>
+
+  <!-- ============================================== -->
+  <!-- NEWLY ADDED KEYS - REQUIRE TRANSLATION TO SLOVENIAN -->
+  <!-- ============================================== -->
+
+  <data name="DeleteAccountWithEmailsButton" xml:space="preserve">
+    <value>Izbriši račun in vsa sporočila ({0})</value>
+  </data>
+
 </root>

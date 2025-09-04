@@ -3,7 +3,6 @@ using MailArchiver.Models;
 using MailArchiver.Models.ViewModels;
 using MailKit;
 using MailKit.Net.Imap;
-using MailKit.Net.Smtp;
 using MailKit.Search;
 using MailKit.Security;
 using Microsoft.EntityFrameworkCore;
@@ -26,28 +25,556 @@ namespace MailArchiver.Services
         private readonly ISyncJobService _syncJobService;
         private readonly BatchOperationOptions _batchOptions;
         private readonly MailSyncOptions _mailSyncOptions;
+        private readonly IGraphEmailService _graphEmailService;
 
         public EmailService(
             MailArchiverDbContext context,
             ILogger<EmailService> logger,
             ISyncJobService syncJobService,
             IOptions<BatchOperationOptions> batchOptions,
-            IOptions<MailSyncOptions> mailSyncOptions)
+            IOptions<MailSyncOptions> mailSyncOptions,
+            IGraphEmailService graphEmailService)
         {
             _context = context;
             _logger = logger;
             _syncJobService = syncJobService;
             _batchOptions = batchOptions.Value;
             _mailSyncOptions = mailSyncOptions.Value;
+            _graphEmailService = graphEmailService;
+        }
+
+        /// <summary>
+        /// Gets the appropriate username for authentication.
+        /// For M365 accounts, uses EmailAddress when Username is null.
+        /// </summary>
+        /// <param name="account">The mail account</param>
+        /// <returns>The username to use for authentication</returns>
+        private string GetAuthenticationUsername(MailAccount account)
+        {
+            // For M365 accounts, use EmailAddress when Username is null or empty
+            if (account.Provider == ProviderType.M365 && string.IsNullOrEmpty(account.Username))
+            {
+                _logger.LogDebug("Using EmailAddress for M365 authentication: {EmailAddress}", account.EmailAddress);
+                return account.EmailAddress;
+            }
+
+            // For other providers or when Username is provided, use Username
+            return account.Username ?? account.EmailAddress;
+        }
+
+        /// <summary>
+        /// Authenticates the IMAP client using the appropriate method for the account provider.
+        /// For M365 accounts, uses OAuth authentication with client credentials.
+        /// For other providers, uses basic username/password authentication.
+        /// </summary>
+        /// <param name="client">The IMAP client to authenticate</param>
+        /// <param name="account">The mail account with authentication details</param>
+        /// <returns>Task</returns>
+        private async Task AuthenticateClientAsync(ImapClient client, MailAccount account)
+        {
+            if (account.Provider == ProviderType.M365)
+            {
+                await AuthenticateM365Async(client, account);
+            }
+            else
+            {
+                await client.AuthenticateAsync(GetAuthenticationUsername(account), account.Password);
+            }
+        }
+
+        /// <summary>
+        /// Authenticates M365 accounts using OAuth client credentials flow.
+        /// </summary>
+        /// <param name="client">The IMAP client to authenticate</param>
+        /// <param name="account">The M365 mail account</param>
+        /// <returns>Task</returns>
+        private async Task AuthenticateM365Async(ImapClient client, MailAccount account)
+        {
+            if (string.IsNullOrEmpty(account.ClientId) || string.IsNullOrEmpty(account.ClientSecret))
+            {
+                throw new InvalidOperationException($"M365 account '{account.Name}' requires ClientId and ClientSecret for OAuth authentication");
+            }
+
+            // Validate that TenantId is provided for proper authentication
+            if (string.IsNullOrEmpty(account.TenantId) || account.TenantId.Equals("common", StringComparison.OrdinalIgnoreCase))
+            {
+                _logger.LogWarning("Account {AccountName} is using 'common' or missing TenantId. For app-only authentication, a specific tenant ID is recommended for reliability.", account.Name);
+            }
+
+            try
+            {
+                _logger.LogDebug("Attempting OAuth authentication for M365 account: {AccountName} with tenant: {TenantId}", account.Name, account.TenantId ?? "common");
+
+                // Ensure client supports OAuth2 authentication
+                var authMechanisms = client.AuthenticationMechanisms;
+                _logger.LogDebug("Available authentication mechanisms: {Mechanisms}", string.Join(", ", authMechanisms));
+
+                if (!authMechanisms.Contains("XOAUTH2"))
+                {
+                    _logger.LogWarning("Server does not support XOAUTH2 mechanism for account {AccountName}", account.Name);
+                    throw new NotSupportedException("IMAP server does not support XOAUTH2 authentication mechanism");
+                }
+
+                // Get OAuth access token using client credentials flow
+                var accessToken = await GetM365AccessTokenAsync(account);
+
+                if (string.IsNullOrEmpty(accessToken))
+                {
+                    throw new InvalidOperationException("Received empty access token from Microsoft 365");
+                }
+
+                _logger.LogDebug("Successfully obtained access token, length: {TokenLength}", accessToken.Length);
+
+
+                // For app-only authentication with M365 IMAP, the critical point is using the correct username
+                // The SASL XOAUTH2 mechanism requires the target mailbox email address as the username
+                var authenticationSuccessful = false;
+                Exception lastException = null;
+
+                // Primary approach: Use the target mailbox email address (this is the correct approach for app-only auth)
+                try
+                {
+                    _logger.LogInformation("Attempting OAuth2 authentication with target mailbox email: {EmailAddress}", account.EmailAddress);
+
+                    // For app-only authentication, the username MUST be the email address of the mailbox being accessed
+                    var oauth2 = new MailKit.Security.SaslMechanismOAuth2(account.EmailAddress, accessToken);
+                    await client.AuthenticateAsync(oauth2);
+                    authenticationSuccessful = true;
+                    _logger.LogInformation("OAuth2 authentication successful for M365 account: {AccountName}", account.Name);
+                }
+                catch (Exception ex)
+                {
+                    lastException = ex;
+                    _logger.LogError(ex, "OAuth2 authentication failed for account {AccountName}. Error: {Message}", account.Name, ex.Message);
+
+                    // Log more specific error details
+                    if (ex is MailKit.Security.AuthenticationException authEx)
+                    {
+                        _logger.LogError("Authentication exception details: {AuthError}", authEx.Message);
+                    }
+                    else if (ex is ImapCommandException imapEx)
+                    {
+                        _logger.LogError("  IMAP Command Exception Details:");
+                        _logger.LogError("    IMAP Response: {Response}", imapEx.Response.ToString() ?? "No response available");
+                        _logger.LogError("    IMAP Exception Message: {ImapMessage}", imapEx.Message);
+                    }
+                }
+
+                // Fallback approach: Try with Username field if it's different and not empty
+                if (!authenticationSuccessful && !string.IsNullOrEmpty(account.Username) &&
+                    !account.Username.Equals(account.EmailAddress, StringComparison.OrdinalIgnoreCase))
+                {
+                    try
+                    {
+                        _logger.LogDebug("Fallback: Attempting OAuth2 authentication with username field: {Username}", account.Username);
+                        var oauth2 = new MailKit.Security.SaslMechanismOAuth2(account.Username, accessToken);
+                        await client.AuthenticateAsync(oauth2);
+                        authenticationSuccessful = true;
+                        _logger.LogInformation("OAuth2 authentication successful using username field for account: {AccountName}", account.Name);
+                    }
+                    catch (Exception ex)
+                    {
+                        lastException = ex;
+                        _logger.LogWarning(ex, "Fallback OAuth2 authentication with username field failed for account {AccountName}: {Message}", account.Name, ex.Message);
+                    }
+                }
+
+                if (!authenticationSuccessful)
+                {
+                    _logger.LogError("All OAuth2 authentication approaches failed for account {AccountName}", account.Name);
+
+                    // Log token details for debugging (without exposing the actual token)
+                    LogTokenDetailsForDebugging(accessToken, account.Name);
+
+                    // Log detailed error information
+                    LogDetailedOAuthErrorInfo(account, lastException);
+
+                    // Provide a more specific error message
+                    var errorMessage = "OAuth2 authentication failed. ";
+                    if (lastException is MailKit.Security.AuthenticationException)
+                    {
+                        errorMessage += "This typically indicates missing Application Access Policy or incorrect permissions. ";
+                    }
+                    errorMessage += "Check logs for detailed error information.";
+
+                    throw new InvalidOperationException(errorMessage, lastException);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to authenticate M365 account {AccountName} using OAuth: {Message}", account.Name, ex.Message);
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Logs token details for debugging purposes without exposing sensitive information
+        /// </summary>
+        /// <param name="accessToken">The access token to analyze</param>
+        /// <param name="accountName">The account name for logging context</param>
+        private void LogTokenDetailsForDebugging(string accessToken, string accountName)
+        {
+            if (string.IsNullOrEmpty(accessToken)) return;
+
+            try
+            {
+                var tokenParts = accessToken.Split('.');
+                if (tokenParts.Length == 3)
+                {
+                    var payload = tokenParts[1];
+                    // Add padding if needed
+                    while (payload.Length % 4 != 0)
+                        payload += "=";
+
+                    var payloadBytes = Convert.FromBase64String(payload);
+                    var payloadJson = Encoding.UTF8.GetString(payloadBytes);
+
+                    // Parse and log only non-sensitive claims
+                    using var doc = JsonDocument.Parse(payloadJson);
+                    var root = doc.RootElement;
+
+                    var debugInfo = new List<string>();
+
+                    if (root.TryGetProperty("aud", out var aud))
+                        debugInfo.Add($"aud: {aud.GetString()}");
+
+                    if (root.TryGetProperty("iss", out var iss))
+                        debugInfo.Add($"iss: {iss.GetString()}");
+
+                    if (root.TryGetProperty("exp", out var exp))
+                    {
+                        var expDateTime = DateTimeOffset.FromUnixTimeSeconds(exp.GetInt64());
+                        debugInfo.Add($"exp: {expDateTime:yyyy-MM-dd HH:mm:ss UTC} (expires {(expDateTime < DateTimeOffset.UtcNow ? "EXPIRED" : "valid")})");
+                    }
+
+                    if (root.TryGetProperty("app_displayname", out var appName))
+                        debugInfo.Add($"app: {appName.GetString()}");
+
+                    _logger.LogDebug("Token details for account {AccountName}: {TokenDetails}", accountName, string.Join(", ", debugInfo));
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogDebug(ex, "Could not parse token for debugging purposes for account {AccountName}", accountName);
+            }
+        }
+
+        /// <summary>
+        /// Logs detailed OAuth error information for troubleshooting
+        /// </summary>
+        /// <param name="account">The M365 mail account</param>
+        /// <param name="lastException">The last exception that occurred during authentication</param>
+        private void LogDetailedOAuthErrorInfo(MailAccount account, Exception lastException)
+        {
+            var sb = new StringBuilder();
+
+            sb.AppendLine($"=== DETAILED OAUTH ERROR INFORMATION FOR ACCOUNT: {account.Name} ===");
+
+            // Account Configuration Details
+            sb.AppendLine("Account Configuration:");
+            sb.AppendLine($"  Account Name: {account.Name}");
+            sb.AppendLine($"  Email Address: {account.EmailAddress}");
+            sb.AppendLine($"  Username Field: {account.Username ?? "NULL"}");
+            sb.AppendLine($"  Tenant ID: {account.TenantId ?? "NULL"}");
+            sb.AppendLine($"  Client ID: {(string.IsNullOrEmpty(account.ClientId) ? "NULL" : $"{account.ClientId[..Math.Min(8, account.ClientId.Length)]}...")}");
+            sb.AppendLine($"  Client Secret: {(string.IsNullOrEmpty(account.ClientSecret) ? "NULL" : "SET")}");
+            sb.AppendLine($"  IMAP Server: {account.ImapServer ?? "NULL"}");
+            sb.AppendLine($"  IMAP Port: {account.ImapPort?.ToString() ?? "NULL"}");
+            sb.AppendLine($"  Use SSL: {account.UseSSL}");
+
+            // Authentication Flow Details
+            sb.AppendLine("OAuth Authentication Flow:");
+            sb.AppendLine($"  Provider Type: {account.Provider}");
+            sb.AppendLine("  Authentication Method: OAuth2 Client Credentials Flow");
+            sb.AppendLine($"  Token Endpoint: https://login.microsoftonline.com/{(account.TenantId ?? "common")}/oauth2/v2.0/token");
+            sb.AppendLine("  Requested Scope: https://outlook.office365.com/.default");
+            sb.AppendLine("  SASL Mechanism: XOAUTH2");
+            sb.AppendLine($"  Authentication Username: {account.EmailAddress}");
+
+            // Exception Analysis
+            if (lastException != null)
+            {
+                sb.AppendLine("Exception Details:");
+                sb.AppendLine($"  Exception Type: {lastException.GetType().FullName}");
+                sb.AppendLine($"  Exception Message: {lastException.Message}");
+
+                if (lastException.InnerException != null)
+                {
+                    sb.AppendLine($"  Inner Exception Type: {lastException.InnerException.GetType().FullName}");
+                    sb.AppendLine($"  Inner Exception Message: {lastException.InnerException.Message}");
+                }
+
+                if (lastException is MailKit.Security.AuthenticationException)
+                {
+                    sb.AppendLine("  Authentication Exception Details:");
+                    sb.AppendLine("    This indicates the OAuth token was obtained but rejected by the IMAP server");
+                    sb.AppendLine("    Common causes: Missing Application Access Policy, incorrect permissions, or tenant restrictions");
+                }
+                else if (lastException is ImapCommandException imapEx)
+                {
+                    sb.AppendLine("  IMAP Command Exception Details:");
+                    sb.AppendLine($"    IMAP Response: {imapEx.Response.ToString() ??  "No response available"}");
+                    sb.AppendLine($"    IMAP Exception Message: {imapEx.Message}");
+                }
+                else if (lastException is ImapProtocolException)
+                {
+                    sb.AppendLine("  IMAP Protocol Exception Details:");
+                    sb.AppendLine("    This indicates a protocol-level communication error with the IMAP server");
+                }
+                else if (lastException is TimeoutException)
+                {
+                    sb.AppendLine("  Timeout Exception Details:");
+                    sb.AppendLine("    The IMAP server did not respond within the configured timeout period");
+                }
+
+                sb.AppendLine($"  Stack Trace: {lastException.StackTrace ?? "No stack trace available"}");
+            }
+
+            // Configuration Validation Status
+            sb.AppendLine("Configuration Validation:");
+            sb.AppendLine($"  Has Client ID: {!string.IsNullOrEmpty(account.ClientId)}");
+            sb.AppendLine($"  Has Client Secret: {!string.IsNullOrEmpty(account.ClientSecret)}");
+            sb.AppendLine($"  Has Specific Tenant ID: {!string.IsNullOrEmpty(account.TenantId) && !account.TenantId.Equals("common", StringComparison.OrdinalIgnoreCase)}");
+            sb.AppendLine($"  IMAP Server Configured: {!string.IsNullOrEmpty(account.ImapServer)}");
+            sb.AppendLine($"  Username/Email Consistency: {(string.IsNullOrEmpty(account.Username) || account.Username.Equals(account.EmailAddress, StringComparison.OrdinalIgnoreCase) ? "Consistent" : "Different")}");
+
+            sb.AppendLine("=== END DETAILED OAUTH ERROR INFORMATION ===");
+
+            // Output as one single log entry
+            _logger.LogError(sb.ToString());
+        }
+
+
+        /// <summary>
+        /// Gets an OAuth access token for M365 using client credentials flow.
+        /// </summary>
+        /// <param name="account">The M365 mail account</param>
+        /// <returns>Access token string</returns>
+        private async Task<string> GetM365AccessTokenAsync(MailAccount account)
+        {
+            try
+            {
+                // Use tenant ID from account's TenantId field if provided, otherwise use common endpoint
+                string tenantId = !string.IsNullOrEmpty(account.TenantId)
+                    ? account.TenantId
+                    : "common";
+
+                _logger.LogDebug("Using tenant ID: {TenantId} for M365 account: {AccountName}", tenantId, account.Name);
+                if (string.Equals(tenantId, "common", StringComparison.OrdinalIgnoreCase))
+                {
+                    _logger.LogWarning("Using tenant 'common' for client credentials; set a specific TenantId for M365 accounts for reliability.");
+                }
+
+                // Microsoft Graph endpoint for client credentials flow
+                var tokenEndpoint = $"https://login.microsoftonline.com/{tenantId}/oauth2/v2.0/token";
+
+                // For IMAP authentication with M365, must use Outlook API scope
+                var requestBody = new FormUrlEncodedContent(new[]
+                {
+                    new KeyValuePair<string, string>("client_id", account.ClientId),
+                    new KeyValuePair<string, string>("client_secret", account.ClientSecret),
+                    new KeyValuePair<string, string>("scope", "https://outlook.office365.com/.default"),
+                    new KeyValuePair<string, string>("grant_type", "client_credentials")
+                });
+
+                using var httpClient = new HttpClient();
+                httpClient.Timeout = TimeSpan.FromSeconds(60); // Increased timeout for OAuth requests
+
+                _logger.LogDebug("Requesting OAuth token for M365 account: {AccountName} with tenant: {TenantId} using .default scope", account.Name, tenantId);
+
+                var response = await httpClient.PostAsync(tokenEndpoint, requestBody);
+                var responseContent = await response.Content.ReadAsStringAsync();
+
+                _logger.LogDebug("OAuth response status: {StatusCode} for account: {AccountName}", response.StatusCode, account.Name);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    _logger.LogError("Failed to get OAuth token for M365 account {AccountName}. Status: {StatusCode}, Response: {Response}",
+                        account.Name, response.StatusCode, responseContent);
+                    throw new InvalidOperationException($"Failed to get OAuth token: {response.StatusCode} - {responseContent}");
+                }
+
+                var tokenResponse = JsonSerializer.Deserialize<JsonElement>(responseContent);
+
+                if (!tokenResponse.TryGetProperty("access_token", out var accessTokenElement))
+                {
+                    throw new InvalidOperationException("OAuth response does not contain access_token");
+                }
+
+                var accessToken = accessTokenElement.GetString();
+
+                if (string.IsNullOrEmpty(accessToken))
+                {
+                    throw new InvalidOperationException("Received empty access token from Microsoft 365");
+                }
+
+                // Log token properties for debugging (without exposing the actual token)
+                if (tokenResponse.TryGetProperty("token_type", out var tokenTypeElement))
+                {
+                    _logger.LogDebug("Token type: {TokenType} for account: {AccountName}", tokenTypeElement.GetString(), account.Name);
+                }
+
+                if (tokenResponse.TryGetProperty("expires_in", out var expiresInElement))
+                {
+                    _logger.LogDebug("Token expires in: {ExpiresIn} seconds for account: {AccountName}", expiresInElement.GetInt32(), account.Name);
+                }
+
+                _logger.LogDebug("Successfully obtained OAuth access token for M365 account: {AccountName}, length: {TokenLength}",
+                    account.Name, accessToken.Length);
+
+                return accessToken;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting OAuth access token for M365 account {AccountName}: {Message}", account.Name, ex.Message);
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Fallback method to get OAuth token with .default scope
+        /// </summary>
+        /// <param name="account">The M365 mail account</param>
+        /// <param name="tenantId">The tenant ID to use</param>
+        /// <returns>Access token string</returns>
+        private async Task<string> GetM365AccessTokenWithFallbackAsync(MailAccount account, string tenantId)
+        {
+            try
+            {
+                var tokenEndpoint = $"https://login.microsoftonline.com/{tenantId}/oauth2/v2.0/token";
+
+                var requestBody = new FormUrlEncodedContent(new[]
+                {
+                    new KeyValuePair<string, string>("client_id", account.ClientId),
+                    new KeyValuePair<string, string>("client_secret", account.ClientSecret),
+                    new KeyValuePair<string, string>("scope", "https://outlook.office365.com/.default"),
+                    new KeyValuePair<string, string>("grant_type", "client_credentials")
+                });
+
+                using var httpClient = new HttpClient();
+                httpClient.Timeout = TimeSpan.FromSeconds(60);
+
+                _logger.LogDebug("Fallback: Requesting OAuth token with .default scope for M365 account: {AccountName}", account.Name);
+
+                var response = await httpClient.PostAsync(tokenEndpoint, requestBody);
+                var responseContent = await response.Content.ReadAsStringAsync();
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    _logger.LogError("Fallback OAuth request also failed for M365 account {AccountName}. Status: {StatusCode}, Response: {Response}",
+                        account.Name, response.StatusCode, responseContent);
+                    throw new InvalidOperationException($"Fallback OAuth request failed: {response.StatusCode} - {responseContent}");
+                }
+
+                var tokenResponse = JsonSerializer.Deserialize<JsonElement>(responseContent);
+
+                if (!tokenResponse.TryGetProperty("access_token", out var accessTokenElement))
+                {
+                    throw new InvalidOperationException("Fallback OAuth response does not contain access_token");
+                }
+
+                var accessToken = accessTokenElement.GetString();
+                _logger.LogDebug("Successfully obtained fallback OAuth access token for M365 account: {AccountName}", account.Name);
+
+                return accessToken;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting fallback OAuth access token for M365 account {AccountName}: {Message}", account.Name, ex.Message);
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Attempts to get an OAuth access token with IMAP-specific scopes for M365.
+        /// This may not work with Client Credentials flow but is worth trying as a fallback.
+        /// </summary>
+        /// <param name="account">The M365 mail account</param>
+        /// <returns>Access token string or null if not supported</returns>
+        private async Task<string> GetM365ImapTokenAsync(MailAccount account)
+        {
+            try
+            {
+                // Use tenant ID from account's TenantId field if provided, otherwise use common endpoint
+                string tenantId = !string.IsNullOrEmpty(account.TenantId)
+                    ? account.TenantId
+                    : "common";
+
+                _logger.LogDebug("Attempting to get IMAP-specific token using tenant ID: {TenantId} for M365 account: {AccountName}", tenantId, account.Name);
+
+                // Microsoft Graph endpoint for client credentials flow
+                var tokenEndpoint = $"https://login.microsoftonline.com/{tenantId}/oauth2/v2.0/token";
+
+                // Try with specific IMAP scope - this may not work with Client Credentials but worth trying
+                var requestBody = new FormUrlEncodedContent(new[]
+                {
+                    new KeyValuePair<string, string>("client_id", account.ClientId),
+                    new KeyValuePair<string, string>("client_secret", account.ClientSecret),
+                    new KeyValuePair<string, string>("scope", "https://outlook.office365.com/IMAP.AccessAsUser.All"),
+                    new KeyValuePair<string, string>("grant_type", "client_credentials")
+                });
+
+                using var httpClient = new HttpClient();
+                httpClient.Timeout = TimeSpan.FromSeconds(60);
+
+                _logger.LogDebug("Requesting IMAP-specific OAuth token for M365 account: {AccountName} with scope IMAP.AccessAsUser.All", account.Name);
+
+                var response = await httpClient.PostAsync(tokenEndpoint, requestBody);
+                var responseContent = await response.Content.ReadAsStringAsync();
+
+                _logger.LogDebug("IMAP-specific OAuth response status: {StatusCode} for account: {AccountName}", response.StatusCode, account.Name);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    _logger.LogDebug("IMAP-specific OAuth request failed for M365 account {AccountName}. Status: {StatusCode}, Response: {Response}",
+                        account.Name, response.StatusCode, responseContent);
+                    return null; // Return null instead of throwing to allow fallback
+                }
+
+                var tokenResponse = JsonSerializer.Deserialize<JsonElement>(responseContent);
+
+                if (!tokenResponse.TryGetProperty("access_token", out var accessTokenElement))
+                {
+                    _logger.LogDebug("IMAP-specific OAuth response does not contain access_token for account: {AccountName}", account.Name);
+                    return null;
+                }
+
+                var accessToken = accessTokenElement.GetString();
+
+                if (string.IsNullOrEmpty(accessToken))
+                {
+                    _logger.LogDebug("Received empty IMAP-specific access token for M365 account: {AccountName}", account.Name);
+                    return null;
+                }
+
+                _logger.LogDebug("Successfully obtained IMAP-specific OAuth access token for M365 account: {AccountName}, length: {TokenLength}",
+                    account.Name, accessToken.Length);
+
+                return accessToken;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogDebug(ex, "Error getting IMAP-specific OAuth access token for M365 account {AccountName}: {Message}", account.Name, ex.Message);
+                return null; // Return null to allow fallback instead of throwing
+            }
         }
 
         // SyncMailAccountAsync Methode
         public async Task SyncMailAccountAsync(MailAccount account, string? jobId = null)
         {
-            _logger.LogInformation("Starting sync for account: {AccountName}", account.Name);
+            _logger.LogInformation("Starting sync for account: {AccountName} (Provider: {Provider})", account.Name, account.Provider);
 
-            using var client = new ImapClient();
-            client.Timeout = 180000; // 3 Minuten - Reduced timeout to prevent server disconnections
+            // Set default M365 IMAP server if none is configured
+            string imapServer = account.ImapServer;
+            if (string.IsNullOrEmpty(imapServer) && account.Provider == ProviderType.M365)
+            {
+                imapServer = "outlook.office365.com";
+                _logger.LogInformation("Using default M365 IMAP server: {Server} for account: {AccountName}", imapServer, account.Name);
+            }
+
+            using var client = CreateImapClient(account.Name);
+            // Increased timeout for M365 connections (5 minutes)
+            client.Timeout = 300000;
             client.ServerCertificateValidationCallback = ServerCertificateValidationCallback;
 
             var processedFolders = 0;
@@ -58,8 +585,8 @@ namespace MailArchiver.Services
 
             try
             {
-                await client.ConnectAsync(account.ImapServer, account.ImapPort ?? 993, account.UseSSL ? SecureSocketOptions.SslOnConnect : SecureSocketOptions.None);
-                await client.AuthenticateAsync(account.Username, account.Password);
+                await client.ConnectAsync(imapServer, account.ImapPort ?? 993, account.UseSSL ? SecureSocketOptions.SslOnConnect : SecureSocketOptions.None);
+                await AuthenticateClientAsync(client, account);
                 _logger.LogInformation("Connected to IMAP server for {AccountName}", account.Name);
 
                 // Prepare a list to store all folders
@@ -208,7 +735,8 @@ namespace MailArchiver.Services
                     return false;
                 }
 
-                _logger.LogInformation("Starting full resync for account {AccountName}", account.Name);
+                _logger.LogInformation("Starting full resync for account {AccountName} (Provider: {Provider})", 
+                    account.Name, account.Provider);
 
                 // Reset LastSync to Unix Epoch to force full resync
                 account.LastSync = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
@@ -217,8 +745,17 @@ namespace MailArchiver.Services
                 // Start sync job
                 var jobId = _syncJobService.StartSync(account.Id, account.Name, account.LastSync);
 
-                // Perform the sync
-                await SyncMailAccountAsync(account, jobId);
+                // Route to appropriate service based on provider type
+                if (account.Provider == ProviderType.M365)
+                {
+                    _logger.LogInformation("Using Microsoft Graph API for M365 account resync: {AccountName}", account.Name);
+                    await _graphEmailService.SyncMailAccountAsync(account, jobId);
+                }
+                else
+                {
+                    _logger.LogInformation("Using IMAP for account resync: {AccountName}", account.Name);
+                    await SyncMailAccountAsync(account, jobId);
+                }
 
                 return true;
             }
@@ -263,7 +800,7 @@ namespace MailArchiver.Services
                 else if (!client.IsAuthenticated)
                 {
                     _logger.LogWarning("Client not authenticated, attempting to re-authenticate...");
-                    await client.AuthenticateAsync(account.Username, account.Password);
+                    await client.AuthenticateAsync(GetAuthenticationUsername(account), account.Password);
                 }
 
                 // Ensure folder is open
@@ -287,7 +824,7 @@ namespace MailArchiver.Services
                     else if (!client.IsAuthenticated)
                     {
                         _logger.LogWarning("Client not authenticated, attempting to re-authenticate...");
-                        await client.AuthenticateAsync(account.Username, account.Password);
+                        await AuthenticateClientAsync(client, account);
                     }
 
                     if (!folder.IsOpen)
@@ -345,7 +882,7 @@ namespace MailArchiver.Services
                                 else if (!client.IsAuthenticated)
                                 {
                                     _logger.LogWarning("Client not authenticated, attempting to re-authenticate...");
-                                    await client.AuthenticateAsync(account.Username, account.Password);
+                                    await AuthenticateClientAsync(client, account);
                                 }
                                 else if (folder.IsOpen == false)
                                 {
@@ -430,7 +967,7 @@ namespace MailArchiver.Services
                 var to = CleanText(message.To.ToString());
                 var cc = CleanText(message.Cc?.ToString() ?? string.Empty);
                 var bcc = CleanText(message.Bcc?.ToString() ?? string.Empty);
-                
+
                 // Extract text and HTML body preserving original encoding
                 var body = string.Empty;
                 var htmlBody = string.Empty;
@@ -490,6 +1027,14 @@ namespace MailArchiver.Services
                 var allAttachments = new List<MimePart>();
                 CollectAllAttachments(message.Body, allAttachments);
 
+                // Determine if the email is outgoing by comparing the From address with the account's email address
+                bool isOutgoingEmail = !string.IsNullOrEmpty(from) && 
+                                      !string.IsNullOrEmpty(account.EmailAddress) && 
+                                      from.Equals(account.EmailAddress, StringComparison.OrdinalIgnoreCase);
+                
+                // Additionally check if the folder is a drafts folder to exclude it from outgoing emails
+                bool isDraftsFolder = IsDraftsFolder(folderName);
+
                 var archivedEmail = new ArchivedEmail
                 {
                     MailAccountId = account.Id,
@@ -501,7 +1046,7 @@ namespace MailArchiver.Services
                     Bcc = bcc,
                     SentDate = sentDate,
                     ReceivedDate = DateTime.UtcNow,
-                    IsOutgoing = isOutgoing,
+                    IsOutgoing = isOutgoingEmail && !isDraftsFolder,
                     HasAttachments = allAttachments.Any() || isHtmlTruncated || isBodyTruncated, // Set to true if there are attachments or content was truncated
                     Body = body,
                     HtmlBody = htmlBody,
@@ -847,6 +1392,17 @@ namespace MailArchiver.Services
                    folder.Attributes.HasFlag(FolderAttributes.Sent);
         }
 
+        private bool IsDraftsFolder(string folderName)
+        {
+            var draftsFolderNames = new[]
+            {
+                "drafts", "entwürfe", "brouillons", "bozze"
+            };
+
+            string folderNameLower = folderName?.ToLowerInvariant() ?? "";
+            return draftsFolderNames.Any(name => folderNameLower.Contains(name));
+        }
+
         private async Task AddSubfoldersRecursively(IMailFolder folder, List<IMailFolder> allFolders)
         {
             try
@@ -876,7 +1432,7 @@ namespace MailArchiver.Services
 
             // Remove null characters
             text = text.Replace("\0", "");
-            
+
             // Use a more encoding-safe approach to remove control characters
             // Only remove control characters except for common whitespace characters
             // This preserves extended ASCII and Unicode characters
@@ -910,7 +1466,7 @@ namespace MailArchiver.Services
                             Look for a file named 'original_content_*.html' in the attachments.
                         </p>
                     </div>";
-        
+
         private static readonly int TruncationOverhead = Encoding.UTF8.GetByteCount(TruncationNotice + "</body></html>");
         private const int MaxHtmlSizeBytes = 1_000_000;
 
@@ -942,7 +1498,7 @@ namespace MailArchiver.Services
             // Find safe truncation point that doesn't break HTML tags
             int lastLessThan = html.LastIndexOf('<', truncatePosition - 1);
             int lastGreaterThan = html.LastIndexOf('>', truncatePosition - 1);
-            
+
             // If we're inside a tag, truncate before it starts
             if (lastLessThan > lastGreaterThan && lastLessThan >= 0)
             {
@@ -956,10 +1512,10 @@ namespace MailArchiver.Services
 
             // Use StringBuilder for efficient string building
             var result = new StringBuilder(truncatePosition + TruncationNotice.Length + 50);
-            
+
             // Get base content as span for better performance
             ReadOnlySpan<char> baseContent = html.AsSpan(0, truncatePosition);
-            
+
             // Check for HTML structure efficiently
             bool hasHtml = baseContent.Contains("<html".AsSpan(), StringComparison.OrdinalIgnoreCase);
             bool hasBody = baseContent.Contains("<body".AsSpan(), StringComparison.OrdinalIgnoreCase);
@@ -1038,11 +1594,11 @@ namespace MailArchiver.Services
                 return string.Empty;
 
             const string textTruncationNotice = "\n\n[CONTENT TRUNCATED - This email contains very large text content that has been truncated for better performance. The complete original content has been saved as an attachment.]";
-            
+
             // Calculate overhead for the truncation notice
             int noticeOverhead = Encoding.UTF8.GetByteCount(textTruncationNotice);
             int maxContentSize = maxSizeBytes - noticeOverhead;
-            
+
             if (maxContentSize <= 0)
             {
                 // Edge case - just return the notice
@@ -1057,7 +1613,7 @@ namespace MailArchiver.Services
 
             // Find a safe truncation point that doesn't break in the middle of a word
             int approximateCharPosition = Math.Min(maxContentSize, text.Length);
-            
+
             // Work backwards to find a word boundary or reasonable break point
             while (approximateCharPosition > 0 && Encoding.UTF8.GetByteCount(text.Substring(0, approximateCharPosition)) > maxContentSize)
             {
@@ -1141,11 +1697,11 @@ namespace MailArchiver.Services
             // Keep alphanumeric, spaces, and common punctuation that's safe
             var sanitized = System.Text.RegularExpressions.Regex.Replace(searchTerm, @"[^\w\s\u00C0-\u017F\-']", " ", RegexOptions.None);
             _logger.LogDebug("After regex replacement: '{Sanitized}'", sanitized);
-            
+
             // Trim extra whitespace
             sanitized = System.Text.RegularExpressions.Regex.Replace(sanitized, @"\s+", " ", RegexOptions.None).Trim();
             _logger.LogDebug("After whitespace trim: '{Sanitized}'", sanitized);
-            
+
             if (string.IsNullOrEmpty(sanitized))
             {
                 _logger.LogDebug("Sanitized term is empty, returning null");
@@ -1158,7 +1714,7 @@ namespace MailArchiver.Services
             // 3. Escape single quotes
             var terms = sanitized.Split(' ', StringSplitOptions.RemoveEmptyEntries);
             _logger.LogDebug("Split into {Count} terms: {Terms}", terms.Length, string.Join(", ", terms));
-            
+
             if (terms.Length == 0)
             {
                 _logger.LogDebug("No terms after split, returning null");
@@ -1191,7 +1747,7 @@ namespace MailArchiver.Services
             List<int> allowedAccountIds = null)
         {
             var startTime = DateTime.UtcNow;
-            
+
             // Validate pagination parameters to prevent excessive data loading
             if (take > 1000) take = 1000; // Limit maximum page size
             if (skip < 0) skip = 0;
@@ -1204,7 +1760,7 @@ namespace MailArchiver.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Optimized search failed, falling back to Entity Framework search");
-                
+
                 // Fallback to original Entity Framework approach
                 return await SearchEmailsEFAsync(searchTerm, fromDate, toDate, accountId, isOutgoing, skip, take, allowedAccountIds);
             }
@@ -1221,7 +1777,7 @@ namespace MailArchiver.Services
             List<int> allowedAccountIds = null)
         {
             var startTime = DateTime.UtcNow;
-            
+
             // Build the raw SQL query that directly uses the GIN index
             var whereConditions = new List<string>();
             var parameters = new List<Npgsql.NpgsqlParameter>();
@@ -1232,7 +1788,7 @@ namespace MailArchiver.Services
             {
                 var (tsQuery, phrases, fieldSearches, fieldPhrases) = ParseSearchTermForTsQuery(searchTerm);
                 var searchConditions = new List<string>();
-                
+
                 // Handle individual words with tsquery (uses GIN index for global search)
                 if (!string.IsNullOrEmpty(tsQuery))
                 {
@@ -1249,7 +1805,7 @@ namespace MailArchiver.Services
                     paramCounter++;
                     _logger.LogDebug("Added tsquery condition for individual words: {TsQuery}", tsQuery);
                 }
-                
+
                 // Handle exact phrases with POSITION (exact string matching across all fields)
                 foreach (var phrase in phrases)
                 {
@@ -1265,14 +1821,14 @@ namespace MailArchiver.Services
                     paramCounter++;
                     _logger.LogDebug("Added exact phrase condition for: '{Phrase}'", phrase);
                 }
-                
+
                 // Handle field-specific word searches
                 foreach (var fieldSearch in fieldSearches)
                 {
                     var field = fieldSearch.Key;
                     var terms = fieldSearch.Value;
                     var columnName = GetColumnNameForField(field);
-                    
+
                     if (!string.IsNullOrEmpty(columnName))
                     {
                         foreach (var term in terms)
@@ -1286,14 +1842,14 @@ namespace MailArchiver.Services
                         }
                     }
                 }
-                
+
                 // Handle field-specific phrase searches  
                 foreach (var fieldPhrase in fieldPhrases)
                 {
                     var field = fieldPhrase.Key;
                     var currentFieldPhrases = fieldPhrase.Value;
                     var columnName = GetColumnNameForField(field);
-                    
+
                     if (!string.IsNullOrEmpty(columnName))
                     {
                         foreach (var phrase in currentFieldPhrases)
@@ -1306,11 +1862,11 @@ namespace MailArchiver.Services
                         }
                     }
                 }
-                
+
                 if (searchConditions.Any())
                 {
                     whereConditions.Add($"({string.Join(" AND ", searchConditions)})");
-                    _logger.LogInformation("Using optimized search for term: {SearchTerm} (individual words: {HasWords}, phrases: {PhraseCount}, field searches: {FieldSearches}, field phrases: {FieldPhrases})", 
+                    _logger.LogInformation("Using optimized search for term: {SearchTerm} (individual words: {HasWords}, phrases: {PhraseCount}, field searches: {FieldSearches}, field phrases: {FieldPhrases})",
                         searchTerm, !string.IsNullOrEmpty(tsQuery), phrases.Count, fieldSearches.Count, fieldPhrases.Count);
                 }
             }
@@ -1377,7 +1933,7 @@ namespace MailArchiver.Services
             var countStartTime = DateTime.UtcNow;
             var totalCount = await ExecuteScalarQueryAsync<int>(countSql, CloneParameters(parameters));
             var countDuration = DateTime.UtcNow - countStartTime;
-            _logger.LogInformation("Optimized count query took {Duration}ms for {Count} matching records", 
+            _logger.LogInformation("Optimized count query took {Duration}ms for {Count} matching records",
                 countDuration.TotalMilliseconds, totalCount);
 
             // Data query (optimized)
@@ -1395,7 +1951,7 @@ namespace MailArchiver.Services
             var dataStartTime = DateTime.UtcNow;
             var emails = await ExecuteDataQueryAsync(dataSql, CloneParameters(parameters));
             var dataDuration = DateTime.UtcNow - dataStartTime;
-            _logger.LogInformation("Optimized data query took {Duration}ms for {Count} records", 
+            _logger.LogInformation("Optimized data query took {Duration}ms for {Count} records",
                 dataDuration.TotalMilliseconds, emails.Count);
 
             var totalDuration = DateTime.UtcNow - startTime;
@@ -1408,13 +1964,13 @@ namespace MailArchiver.Services
         {
             using var connection = new Npgsql.NpgsqlConnection(_context.Database.GetConnectionString());
             await connection.OpenAsync();
-            
+
             using var command = new Npgsql.NpgsqlCommand(sql, connection);
             foreach (var parameter in parameters)
             {
                 command.Parameters.Add(parameter);
             }
-            
+
             var result = await command.ExecuteScalarAsync();
             return (T)Convert.ChangeType(result, typeof(T));
         }
@@ -1422,16 +1978,16 @@ namespace MailArchiver.Services
         private async Task<List<ArchivedEmail>> ExecuteDataQueryAsync(string sql, List<Npgsql.NpgsqlParameter> parameters)
         {
             var emails = new List<ArchivedEmail>();
-            
+
             using var connection = new Npgsql.NpgsqlConnection(_context.Database.GetConnectionString());
             await connection.OpenAsync();
-            
+
             using var command = new Npgsql.NpgsqlCommand(sql, connection);
             foreach (var parameter in parameters)
             {
                 command.Parameters.Add(parameter);
             }
-            
+
             using var reader = await command.ExecuteReaderAsync();
             while (await reader.ReadAsync())
             {
@@ -1461,7 +2017,7 @@ namespace MailArchiver.Services
                 };
                 emails.Add(email);
             }
-            
+
             return emails;
         }
 
@@ -1476,15 +2032,15 @@ namespace MailArchiver.Services
             var individualWords = new List<string>();
             var fieldSearches = new Dictionary<string, List<string>>();
             var fieldPhrases = new Dictionary<string, List<string>>();
-            
+
             // Supported fields for field-specific search
             var validFields = new HashSet<string> { "subject", "body", "from", "to" };
-            
+
             // Parse quoted phrases, field-specific terms, and individual words
             // Enhanced regex to capture: "quoted phrases", field:term, field:"quoted phrase", and individual words
             var regex = new Regex(@"""([^""]*)""|(\w+):(""([^""]*)""|(\S+))|(\S+)", RegexOptions.None);
             var matches = regex.Matches(searchTerm);
-            
+
             foreach (Match match in matches)
             {
                 if (match.Groups[1].Success) // Quoted phrase (not field-specific)
@@ -1550,13 +2106,13 @@ namespace MailArchiver.Services
                 var escapedTerms = individualWords.Select(t => t.Replace("'", "''"));
                 tsQuery = string.Join(" & ", escapedTerms);
             }
-            
-            _logger.LogDebug("Parsed search - tsQuery: '{TsQuery}', phrases: [{Phrases}], fieldSearches: [{FieldSearches}], fieldPhrases: [{FieldPhrases}]", 
-                tsQuery, 
+
+            _logger.LogDebug("Parsed search - tsQuery: '{TsQuery}', phrases: [{Phrases}], fieldSearches: [{FieldSearches}], fieldPhrases: [{FieldPhrases}]",
+                tsQuery,
                 string.Join(", ", phrases.Select(p => $"'{p}'")),
                 string.Join(", ", fieldSearches.Select(kvp => $"{kvp.Key}:[{string.Join(",", kvp.Value)}]")),
                 string.Join(", ", fieldPhrases.Select(kvp => $"{kvp.Key}:[{string.Join(",", kvp.Value.Select(p => $"'{p}'"))}]")));
-            
+
             return (tsQuery, phrases, fieldSearches, fieldPhrases);
         }
 
@@ -1570,7 +2126,7 @@ namespace MailArchiver.Services
             return fieldName.ToLower() switch
             {
                 "subject" => "Subject",
-                "body" => "Body", 
+                "body" => "Body",
                 "from" => "From",
                 "to" => "To",
                 _ => null
@@ -1638,17 +2194,17 @@ namespace MailArchiver.Services
             if (!string.IsNullOrEmpty(searchTerm))
             {
                 var (tsQuery, phrases, fieldSearches, fieldPhrases) = ParseSearchTermForTsQuery(searchTerm);
-                
+
                 // Start with the base query
                 searchQuery = baseQuery;
-                
+
                 // Handle individual words (global search)
                 if (!string.IsNullOrEmpty(tsQuery))
                 {
                     var words = tsQuery.Split('&', StringSplitOptions.RemoveEmptyEntries)
                                       .Select(w => w.Trim().Replace("''", "'"))
                                       .ToList();
-                    
+
                     foreach (var word in words)
                     {
                         var escapedWord = word.Replace("'", "''");
@@ -1675,17 +2231,17 @@ namespace MailArchiver.Services
                         (e.Bcc != null && e.Bcc.ToLower().Contains(phrase.ToLower()))
                     );
                 }
-                
+
                 // Handle field-specific word searches
                 foreach (var fieldSearch in fieldSearches)
                 {
                     var field = fieldSearch.Key;
                     var terms = fieldSearch.Value;
-                    
+
                     foreach (var term in terms)
                     {
                         var escapedTerm = term.Replace("'", "''");
-                        
+
                         switch (field.ToLower())
                         {
                             case "subject":
@@ -1703,13 +2259,13 @@ namespace MailArchiver.Services
                         }
                     }
                 }
-                
+
                 // Handle field-specific phrase searches
                 foreach (var fieldPhrase in fieldPhrases)
                 {
                     var field = fieldPhrase.Key;
                     var fieldPhrasesList = fieldPhrase.Value;
-                    
+
                     foreach (var phrase in fieldPhrasesList)
                     {
                         switch (field.ToLower())
@@ -2043,7 +2599,7 @@ namespace MailArchiver.Services
                 _logger.LogInformation("Testing connection to IMAP server {Server}:{Port} for account {Name} ({Email})",
                     account.ImapServer, account.ImapPort, account.Name, account.EmailAddress);
 
-                using var client = new ImapClient();
+                using var client = CreateImapClient(account.Name);
                 client.Timeout = 30000;
                 client.ServerCertificateValidationCallback = ServerCertificateValidationCallback;
 
@@ -2051,9 +2607,9 @@ namespace MailArchiver.Services
                     account.ImapServer, account.ImapPort, account.UseSSL);
 
                 await client.ConnectAsync(account.ImapServer, account.ImapPort ?? 993, account.UseSSL ? SecureSocketOptions.SslOnConnect : SecureSocketOptions.None);
-                _logger.LogDebug("Connection established, authenticating as {Username}", account.Username);
+                _logger.LogDebug("Connection established, authenticating using {Provider} authentication", account.Provider);
 
-                await client.AuthenticateAsync(account.Username, account.Password);
+                await AuthenticateClientAsync(client, account);
                 _logger.LogInformation("Authentication successful for {Email}", account.EmailAddress);
 
                 var inbox = client.Inbox;
@@ -2093,6 +2649,14 @@ namespace MailArchiver.Services
                 return false;
             }
         }
+
+        /// <summary>
+        /// Validates the server certificate based on the IgnoreSelfSignedCert setting
+        /// </summary>
+        /// <param name="sender">The sender</param>
+        /// <param name="certificate">The certificate</param>
+        /// <param name="chain">The certificate chain</param>
+        /// <param name="sslPolicyErrors">The SSL policy errors</param>
 
         // RestoreEmailToFolderAsync und andere Methoden bleiben unverändert...
         public async Task<bool> RestoreEmailToFolderAsync(int emailId, int targetAccountId, string folderName)
@@ -2228,16 +2792,16 @@ namespace MailArchiver.Services
 
                 try
                 {
-                    using var client = new ImapClient();
+                    using var client = CreateImapClient(targetAccount.Name);
                     client.Timeout = 180000;
                     client.ServerCertificateValidationCallback = ServerCertificateValidationCallback;
                     _logger.LogInformation("Connecting to IMAP server {Server}:{Port} for account {AccountName}",
                         targetAccount.ImapServer, targetAccount.ImapPort, targetAccount.Name);
 
                     await client.ConnectAsync(targetAccount.ImapServer, targetAccount.ImapPort ?? 993, targetAccount.UseSSL ? SecureSocketOptions.SslOnConnect : SecureSocketOptions.None);
-                    _logger.LogInformation("Connected to IMAP server, authenticating as {Username}", targetAccount.Username);
+                    _logger.LogInformation("Connected to IMAP server, authenticating using {Provider} authentication", targetAccount.Provider);
 
-                    await client.AuthenticateAsync(targetAccount.Username, targetAccount.Password);
+                    await AuthenticateClientAsync(client, targetAccount);
                     _logger.LogInformation("Authenticated successfully, looking for folder: {FolderName}", folderName);
 
                     IMailFolder folder;
@@ -2365,20 +2929,20 @@ namespace MailArchiver.Services
                 return new List<string>();
             }
 
-        // Check if this is an import-only account (no IMAP settings)
-        if (string.IsNullOrEmpty(account.ImapServer))
-        {
-            _logger.LogInformation("Account {AccountId} is an import-only account, returning 'Import' folder", accountId);
-            return new List<string> { "Import" };
-        }
+            // Check if this is an import-only account (provider is IMPORT)
+            if (account.Provider == ProviderType.IMPORT)
+            {
+                _logger.LogInformation("Account {AccountId} is an import-only account, returning 'Import' folder", accountId);
+                return new List<string> { "Import" };
+            }
 
             try
             {
-                using var client = new ImapClient();
+                using var client = CreateImapClient(account.Name);
                 client.Timeout = 60000;
                 client.ServerCertificateValidationCallback = ServerCertificateValidationCallback;
                 await client.ConnectAsync(account.ImapServer, account.ImapPort ?? 993, account.UseSSL ? SecureSocketOptions.SslOnConnect : SecureSocketOptions.None);
-                await client.AuthenticateAsync(account.Username, account.Password);
+                await AuthenticateClientAsync(client, account);
 
                 var allFolders = new List<string>();
 
@@ -2482,7 +3046,7 @@ namespace MailArchiver.Services
                         else if (!client.IsAuthenticated)
                         {
                             _logger.LogWarning("Client not authenticated during deletion, attempting to re-authenticate...");
-                            await client.AuthenticateAsync(account.Username, account.Password);
+                            await AuthenticateClientAsync(client, account);
                         }
 
                         // Ensure folder is open with read-write access
@@ -2704,7 +3268,7 @@ namespace MailArchiver.Services
                 _logger.LogInformation("Reconnecting to IMAP server for account {AccountName}", account.Name);
                 await client.ConnectAsync(account.ImapServer, account.ImapPort ?? 993, account.UseSSL ? SecureSocketOptions.SslOnConnect : SecureSocketOptions.None);
                 client.ServerCertificateValidationCallback = ServerCertificateValidationCallback;
-                await client.AuthenticateAsync(account.Username, account.Password);
+                await AuthenticateClientAsync(client, account);
                 _logger.LogInformation("Successfully reconnected to IMAP server for account {AccountName}", account.Name);
             }
             catch (Exception ex)
@@ -2733,7 +3297,7 @@ namespace MailArchiver.Services
             // If we're configured to ignore self-signed certificates and the only error is
             // that the certificate is untrusted (which is typical for self-signed certs),
             // then accept the certificate
-            if (_mailSyncOptions.IgnoreSelfSignedCert && 
+            if (_mailSyncOptions.IgnoreSelfSignedCert &&
                 (sslPolicyErrors == SslPolicyErrors.RemoteCertificateChainErrors ||
                  sslPolicyErrors == SslPolicyErrors.RemoteCertificateNameMismatch))
             {
@@ -2741,11 +3305,11 @@ namespace MailArchiver.Services
                 if (sslPolicyErrors == SslPolicyErrors.RemoteCertificateChainErrors && chain.ChainStatus.Length > 0)
                 {
                     // Check if the chain status indicates a self-signed certificate
-                    bool isSelfSigned = chain.ChainStatus.All(status => 
-                        status.Status == X509ChainStatusFlags.UntrustedRoot || 
+                    bool isSelfSigned = chain.ChainStatus.All(status =>
+                        status.Status == X509ChainStatusFlags.UntrustedRoot ||
                         status.Status == X509ChainStatusFlags.PartialChain ||
                         status.Status == X509ChainStatusFlags.RevocationStatusUnknown);
-                    
+
                     if (isSelfSigned)
                     {
                         _logger.LogDebug("Accepting self-signed certificate for IMAP server");
@@ -2762,6 +3326,24 @@ namespace MailArchiver.Services
             // Log the certificate validation error
             _logger.LogWarning("Certificate validation failed for IMAP server: {SslPolicyErrors}", sslPolicyErrors);
             return false;
+        }
+
+
+        // Create an ImapClient without protocol logging
+        private ImapClient CreateImapClient(string accountName)
+        {
+            // Return ImapClient without ProtocolLogger to suppress IMAP negotiation logging
+            return new ImapClient();
+        }
+
+        private static string SanitizeFileName(string name)
+        {
+            if (string.IsNullOrEmpty(name)) return "account";
+            foreach (var c in Path.GetInvalidFileNameChars())
+            {
+                name = name.Replace(c, '_');
+            }
+            return name;
         }
     }
 }

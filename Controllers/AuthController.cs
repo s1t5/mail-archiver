@@ -7,13 +7,15 @@ namespace MailArchiver.Controllers
 {
     public class AuthController : Controller
     {
-        private readonly IAuthenticationService _authService;
+        private readonly MailArchiver.Services.IAuthenticationService _authService;
+        private readonly IUserService _userService;
         private readonly ILogger<AuthController> _logger;
         private readonly IStringLocalizer<SharedResource> _localizer;
 
-        public AuthController(IAuthenticationService authService, ILogger<AuthController> logger, IStringLocalizer<SharedResource> localizer)
+        public AuthController(MailArchiver.Services.IAuthenticationService authService, IUserService userService, ILogger<AuthController> logger, IStringLocalizer<SharedResource> localizer)
         {
             _authService = authService;
+            _userService = userService;
             _logger = logger;
             _localizer = localizer;
         }
@@ -39,7 +41,7 @@ namespace MailArchiver.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Login(LoginViewModel model, string returnUrl = null)
+        public async Task<IActionResult> Login(LoginViewModel model, string returnUrl = null)
         {
             ViewData["ReturnUrl"] = returnUrl;
 
@@ -52,6 +54,16 @@ namespace MailArchiver.Controllers
             {
                 if (_authService.ValidateCredentials(model.Username, model.Password))
                 {
+                    // Check if 2FA is enabled for the user
+                    var user = await _userService.GetUserByUsernameAsync(model.Username);
+                    if (user != null && user.IsTwoFactorEnabled)
+                    {
+                        // Store username in session for 2FA verification
+                        HttpContext.Session.SetString("TwoFactorUsername", model.Username);
+                        HttpContext.Session.SetString("TwoFactorRememberMe", model.RememberMe.ToString());
+                        return RedirectToAction("Verify", "TwoFactor");
+                    }
+                    
                     _authService.SignIn(HttpContext, model.Username, model.RememberMe);
                     return RedirectToLocal(returnUrl);
                 }

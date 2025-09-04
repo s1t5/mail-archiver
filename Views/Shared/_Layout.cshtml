@@ -1,5 +1,5 @@
 ﻿@using MailArchiver.Services
-@inject IAuthenticationService AuthService
+@inject MailArchiver.Services.IAuthenticationService AuthService
 @inject Microsoft.Extensions.Localization.IStringLocalizer<MailArchiver.SharedResource> Localizer
 @{ var currentCulture = System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName; }
 <!DOCTYPE html>

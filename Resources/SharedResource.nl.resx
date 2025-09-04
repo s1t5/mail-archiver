@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
   <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
     <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
@@ -231,6 +231,12 @@
   </data>
   <data name="ContinueWithOperation" xml:space="preserve">
     <value>U heeft {0} e-mails geselecteerd. Dit wordt verwerkt als een achtergrondtaak die u afzonderlijk kunt monitoren. Doorgaan?</value>
+  </data>
+  <data name="ConfirmBatchRestore" xml:space="preserve">
+    <value>Bevestig batch herstel</value>
+  </data>
+  <data name="Continue" xml:space="preserve">
+    <value>Doorgaan</value>
   </data>
   <data name="NoEmailsArchivedYet" xml:space="preserve">
     <value>Nog geen e-mails gearchiveerd</value>
@@ -1448,4 +1454,182 @@
   <data name="Import" xml:space="preserve">
     <value>Importeren</value>
   </data>
+  <!-- Microsoft 365 -->
+  <data name="Microsoft365Account" xml:space="preserve">
+    <value>Microsoft 365 Account</value>
+  </data>
+  <data name="Microsoft365AccountDescription" xml:space="preserve">
+    <value>Account dat Microsoft 365 OAuth2-authenticatie gebruikt</value>
+  </data>
+  <data name="Microsoft365Settings" xml:space="preserve">
+    <value>Microsoft 365 Instellingen</value>
+  </data>
+  <data name="ClientId" xml:space="preserve">
+    <value>Client ID</value>
+  </data>
+  <data name="ClientSecret" xml:space="preserve">
+    <value>Client Secret</value>
+  </data>
+  <data name="LeaveEmptyToKeepCurrent" xml:space="preserve">
+    <value>Leeg laten om huidige waarde te behouden</value>
+  </data>
+  <!-- Two-Factor Authentication -->
+  <data name="TwoFactorEnabledSuccess" xml:space="preserve">
+    <value>Tweefactorauthenticatie is succesvol ingeschakeld.</value>
+  </data>
+  <data name="TwoFactorEnableFail" xml:space="preserve">
+    <value>Inschakelen van tweefactorauthenticatie is mislukt. Probeer opnieuw.</value>
+  </data>
+  <data name="TwoFactorDisabledSuccess" xml:space="preserve">
+    <value>Tweefactorauthenticatie is succesvol uitgeschakeld.</value>
+  </data>
+  <data name="TwoFactorDisableFail" xml:space="preserve">
+    <value>Uitschakelen van tweefactorauthenticatie is mislukt. Probeer opnieuw.</value>
+  </data>
+  <data name="TwoFactorTokenInvalid" xml:space="preserve">
+    <value>Ongeldige authenticatiecode. Probeer opnieuw.</value>
+  </data>
+  <data name="TwoFactorSecretMissing" xml:space="preserve">
+    <value>Tweefactor geheim ontbreekt. Start het installatieproces opnieuw.</value>
+  </data>
+  <data name="TwoFactorNotEnabled" xml:space="preserve">
+    <value>Tweefactorauthenticatie is niet ingeschakeld voor dit account.</value>
+  </data>
+  <data name="TwoFactorSessionExpired" xml:space="preserve">
+    <value>Uw sessie is verlopen. Log opnieuw in.</value>
+  </data>
+  <data name="PasswordIncorrect" xml:space="preserve">
+    <value>Het ingevoerde wachtwoord is onjuist.</value>
+  </data>
+  <data name="TwoFactorResetSuccess" xml:space="preserve">
+    <value>Tweefactorauthenticatie is succesvol gereset voor gebruiker {0}.</value>
+  </data>
+  <data name="TwoFactorResetFail" xml:space="preserve">
+    <value>Resetten van tweefactorauthenticatie voor gebruiker {0} is mislukt.</value>
+  </data>
+  <data name="TwoFactorSetup" xml:space="preserve">
+    <value>Tweefactor Instelling</value>
+  </data>
+  <data name="TwoFactorSetupInstructions" xml:space="preserve">
+    <value>Scan de QR-code met uw authenticatie-app of voer het geheim handmatig in.</value>
+  </data>
+  <data name="ScanQRCode" xml:space="preserve">
+    <value>QR-Code Scannen</value>
+  </data>
+  <data name="UseAuthenticatorApp" xml:space="preserve">
+    <value>Gebruik een authenticatie-app zoals Google Authenticator of Authy om de QR-code te scannen.</value>
+  </data>
+  <data name="OrEnterManually" xml:space="preserve">
+    <value>Of voer dit geheim handmatig in uw authenticatie-app in:</value>
+  </data>
+  <data name="BackupCodes" xml:space="preserve">
+    <value>Backup Codes</value>
+  </data>
+  <data name="BackupCodesDescription" xml:space="preserve">
+    <value>Bewaar deze backup codes op een veilige plaats. U kunt ze gebruiken om in te loggen als u toegang tot uw authenticatie-app verliest.</value>
+  </data>
+  <data name="BackupCodesWarning" xml:space="preserve">
+    <value>Elke backup code kan maar één keer gebruikt worden. Na gebruik van een code wordt deze ongeldig.</value>
+  </data>
+  <data name="EnterVerificationCode" xml:space="preserve">
+    <value>Verificatiecode Invoeren</value>
+  </data>
+  <data name="EnableTwoFactor" xml:space="preserve">
+    <value>Tweefactorauthenticatie Inschakelen</value>
+  </data>
+  <data name="TwoFactorVerification" xml:space="preserve">
+    <value>Tweefactor Verificatie</value>
+  </data>
+  <data name="TwoFactorAuthentication" xml:space="preserve">
+    <value>Tweefactorauthenticatie</value>
+  </data>
+  <data name="EnterTwoFactorCode" xml:space="preserve">
+    <value>Voer de code van uw authenticatie-app of een backup code in</value>
+  </data>
+  <data name="VerificationCode" xml:space="preserve">
+    <value>Verificatiecode</value>
+  </data>
+  <data name="EnterCodePlaceholder" xml:space="preserve">
+    <value>Voer 6-cijferige code of 16-karakter backup code in</value>
+  </data>
+  <data name="EnterTotpOrBackupCode" xml:space="preserve">
+    <value>Voer een 6-cijferige TOTP-code van uw authenticatie-app of een 16-karakter backup code in</value>
+  </data>
+  <data name="Verify" xml:space="preserve">
+    <value>Verifiëren</value>
+  </data>
+  <data name="DisableTwoFactor" xml:space="preserve">
+    <value>Tweefactorauthenticatie Uitschakelen</value>
+  </data>
+  <data name="DisableTwoFactorConfirmation" xml:space="preserve">
+    <value>Weet u zeker dat u tweefactorauthenticatie wilt uitschakelen? Dit vermindert de beveiliging van uw account.</value>
+  </data>
+  <data name="DisableTwoFactorDescription" xml:space="preserve">
+    <value>Om tweefactorauthenticatie uit te schakelen, voer hieronder uw wachtwoord in.</value>
+  </data>
+  <data name="EnterPassword" xml:space="preserve">
+    <value>Wachtwoord Invoeren</value>
+  </data>
+  <data name="ScanQRCodeDescription" xml:space="preserve">
+    <value>Scan deze QR-code met uw authenticatie-app om tweefactorauthenticatie in te stellen.</value>
+  </data>
+  <data name="ManualEntryDescription" xml:space="preserve">
+    <value>Als u de QR-code niet kunt scannen, voer dit geheim handmatig in uw authenticatie-app in:</value>
+  </data>
+  <data name="VerifyTwoFactor" xml:space="preserve">
+    <value>Tweefactorauthenticatie Verifiëren</value>
+  </data>
+  <data name="EnterCodeDescription" xml:space="preserve">
+    <value>Voer de 6-cijferige code van uw authenticatie-app in om tweefactorauthenticatie te verifiëren en in te schakelen.</value>
+  </data>
+  <data name="DownloadBackupCodes" xml:space="preserve">
+    <value>Backup Codes Downloaden</value>
+  </data>
+  <data name="BackupCodesFileHeader" xml:space="preserve">
+    <value>Mail Archiver - Tweefactorauthenticatie Backup Codes. Bewaar deze backup codes op een veilige plaats. U kunt ze gebruiken om in te loggen als u toegang tot uw authenticatie-app verliest. Elke backup code kan maar één keer gebruikt worden. Na gebruik van een code wordt deze ongeldig.</value>
+  </data>
+  <data name="BackupCodesFileFooter" xml:space="preserve">
+    <value>Belangrijk: Houd deze codes veilig en deel ze met niemand.</value>
+  </data>
+  <data name="BackupCodesOneTimeOnly" xml:space="preserve">
+    <value>Deze backup codes zijn alleen voor eenmalig gebruik. Na gebruik van een code wordt deze ongeldig.</value>
+  </data>
+  <data name="ContinueToDashboard" xml:space="preserve">
+    <value>Doorgaan naar Dashboard</value>
+  </data>
+  <data name="Code" xml:space="preserve">
+    <value>Code</value>
+  </data>
+  <data name="EnterCodeFromApp" xml:space="preserve">
+    <value>Voer de code van uw authenticatie-app in</value>
+  </data>
+  <data name="ManualEntry" xml:space="preserve">
+    <value>Handmatige Invoer</value>
+  </data>
+  <data name="EnterCode" xml:space="preserve">
+    <value>Code Invoeren</value>
+  </data>
+
+  <!-- Rate Limiting -->
+  <data name="RateLimitExceeded" xml:space="preserve">
+    <value>Snelheidslimiet overschreden. Probeer later opnieuw.</value>
+  </data>
+  <data name="TooManyAttempts" xml:space="preserve">
+    <value>Te veel pogingen. Wacht {0} seconden voordat u opnieuw probeert.</value>
+  </data>
+  <data name="RateLimitTwoFactorTitle" xml:space="preserve">
+    <value>Te Veel Pogingen</value>
+  </data>
+  <data name="RateLimitTwoFactorMessage" xml:space="preserve">
+    <value>U heeft te veel 2FA-verificatiepogingen gedaan. Wacht en probeer later opnieuw.</value>
+  </data>
+
+  <!-- ============================================== -->
+  <!-- NEWLY ADDED KEYS - REQUIRE TRANSLATION TO DUTCH -->
+  <!-- ============================================== -->
+
+  <data name="DeleteAccountWithEmailsButton" xml:space="preserve">
+    <value>Account en alle e-mails verwijderen ({0})</value>
+  </data>
+
 </root>

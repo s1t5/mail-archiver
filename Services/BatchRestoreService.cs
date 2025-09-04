@@ -1,5 +1,7 @@
 // Services/BatchRestoreService.cs
+using MailArchiver.Data;
 using MailArchiver.Models;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using System.Collections.Concurrent;
 
@@ -44,6 +46,10 @@ public class BatchRestoreService : BackgroundService, IBatchRestoreService
 
         public BatchRestoreJob? GetJob(string jobId)
         {
+            // Handle null jobId to prevent ArgumentNullException
+            if (string.IsNullOrEmpty(jobId))
+                return null;
+                
             return _allJobs.TryGetValue(jobId, out var job) ? job : null;
         }
 
@@ -64,6 +70,10 @@ public class BatchRestoreService : BackgroundService, IBatchRestoreService
 
         public bool CancelJob(string jobId)
         {
+            // Handle null jobId to prevent ArgumentNullException
+            if (string.IsNullOrEmpty(jobId))
+                return false;
+                
             if (_allJobs.TryGetValue(jobId, out var job))
             {
                 if (job.Status == BatchRestoreJobStatus.Queued)
@@ -154,9 +164,11 @@ public class BatchRestoreService : BackgroundService, IBatchRestoreService
 
                 using var scope = _serviceProvider.CreateScope();
                 var emailService = scope.ServiceProvider.GetRequiredService<IEmailService>();
+                var graphEmailService = scope.ServiceProvider.GetRequiredService<IGraphEmailService>();
+                var dbContext = scope.ServiceProvider.GetRequiredService<MailArchiverDbContext>();
 
                 // Verarbeite in Batches mit Progress-Updates
-                await ProcessJobWithProgress(job, emailService, cancellationToken);
+                await ProcessJobWithProgress(job, emailService, graphEmailService, dbContext, cancellationToken);
 
                 if (job.Status != BatchRestoreJobStatus.Cancelled)
                 {
@@ -187,10 +199,37 @@ public class BatchRestoreService : BackgroundService, IBatchRestoreService
             }
         }
 
-private async Task ProcessJobWithProgress(BatchRestoreJob job, IEmailService emailService, CancellationToken cancellationToken)
+private async Task ProcessJobWithProgress(BatchRestoreJob job, IEmailService emailService, IGraphEmailService graphEmailService, MailArchiverDbContext dbContext, CancellationToken cancellationToken)
         {
             var batchSize = _batchOptions.BatchSize;
             var totalEmails = job.EmailIds.Count;
+
+            _logger.LogInformation("Job {JobId}: Starting batch restore with {TotalEmails} emails to account {AccountId}, folder {Folder}",
+                job.JobId, totalEmails, job.TargetAccountId, job.TargetFolder);
+
+            // Get target account to check provider type - ensure we have a fresh copy from the database
+            var targetAccount = await dbContext.MailAccounts
+                .Where(a => a.Id == job.TargetAccountId)
+                .FirstOrDefaultAsync(cancellationToken);
+
+            if (targetAccount == null)
+            {
+                _logger.LogError("Job {JobId}: Target account with ID {AccountId} not found", job.JobId, job.TargetAccountId);
+                throw new InvalidOperationException($"Target account with ID {job.TargetAccountId} not found");
+            }
+
+            _logger.LogInformation("Job {JobId}: Target account found - Name: {AccountName}, Provider: {Provider}, Enabled: {Enabled}",
+                job.JobId, targetAccount.Name, targetAccount.Provider, targetAccount.IsEnabled);
+
+            if (!targetAccount.IsEnabled)
+            {
+                _logger.LogError("Job {JobId}: Target account {AccountId} is disabled", job.JobId, job.TargetAccountId);
+                throw new InvalidOperationException($"Target account '{targetAccount.Name}' is disabled");
+            }
+
+            var isM365Account = targetAccount.Provider == ProviderType.M365;
+            _logger.LogInformation("Job {JobId}: Using {ServiceType} for {ProviderType} account",
+                job.JobId, isM365Account ? "Graph API" : "IMAP", targetAccount.Provider);
 
             for (int i = 0; i < totalEmails; i += batchSize)
             {
@@ -212,7 +251,62 @@ private async Task ProcessJobWithProgress(BatchRestoreJob job, IEmailService ema
 
                     try
                     {
-                        var result = await emailService.RestoreEmailToFolderAsync(emailId, job.TargetAccountId, job.TargetFolder);
+                        _logger.LogDebug("Job {JobId}: Processing email {EmailId} ({Processed}/{Total})",
+                            job.JobId, emailId, job.ProcessedCount + 1, totalEmails);
+
+                        bool result;
+                        
+                        if (isM365Account)
+                        {
+                            // For M365 accounts - exactly like in the controller's individual restore
+                            _logger.LogDebug("Job {JobId}: Using Graph API service for M365 account {AccountId}", job.JobId, job.TargetAccountId);
+                            
+                            var email = await dbContext.ArchivedEmails
+                                .Include(e => e.Attachments)
+                                .FirstOrDefaultAsync(e => e.Id == emailId, cancellationToken);
+
+                            if (email == null)
+                            {
+                                _logger.LogWarning("Job {JobId}: Email with ID {EmailId} not found during batch restore", job.JobId, emailId);
+                                job.FailedCount++;
+                                job.ProcessedCount++;
+                                continue;
+                            }
+
+                            _logger.LogDebug("Job {JobId}: Found email {EmailId} - Subject: {Subject}, From: {From}",
+                                job.JobId, emailId, email.Subject, email.From);
+
+                            result = await graphEmailService.RestoreEmailToFolderAsync(email, targetAccount, job.TargetFolder);
+                            
+                            if (result)
+                            {
+                                _logger.LogInformation("Job {JobId}: Successfully restored email {EmailId} to M365 account {AccountId}", 
+                                    job.JobId, emailId, job.TargetAccountId);
+                            }
+                            else
+                            {
+                                _logger.LogWarning("Job {JobId}: Failed to restore email {EmailId} to M365 account {AccountId}", 
+                                    job.JobId, emailId, job.TargetAccountId);
+                            }
+                        }
+                        else
+                        {
+                            // For non-M365 accounts, use the standard IMAP service
+                            _logger.LogDebug("Job {JobId}: Using IMAP service for account {AccountId}", job.JobId, job.TargetAccountId);
+                            result = await emailService.RestoreEmailToFolderAsync(emailId, job.TargetAccountId, job.TargetFolder);
+                            
+                            if (result)
+                            {
+                                _logger.LogInformation("Job {JobId}: Successfully restored email {EmailId} to IMAP account {AccountId}", 
+                                    job.JobId, emailId, job.TargetAccountId);
+                            }
+                            else
+                            {
+                                _logger.LogWarning("Job {JobId}: Failed to restore email {EmailId} to IMAP account {AccountId}", 
+                                    job.JobId, emailId, job.TargetAccountId);
+                            }
+                        }
+
                         if (result)
                         {
                             job.SuccessCount++;
@@ -225,10 +319,18 @@ private async Task ProcessJobWithProgress(BatchRestoreJob job, IEmailService ema
                     catch (Exception ex)
                     {
                         job.FailedCount++;
-                        _logger.LogWarning(ex, "Job {JobId}: Failed to restore email {EmailId}", job.JobId, emailId);
+                        _logger.LogError(ex, "Job {JobId}: Exception occurred during batch email restoration of email {EmailId} to account {AccountId}: {Message}", 
+                            job.JobId, emailId, job.TargetAccountId, ex.Message);
                     }
 
                     job.ProcessedCount++;
+
+                    // Update progress logging every 10 emails or at the end
+                    if (job.ProcessedCount % 10 == 0 || job.ProcessedCount == totalEmails)
+                    {
+                        _logger.LogInformation("Job {JobId}: Progress - {Processed}/{Total} emails processed. Success: {Success}, Failed: {Failed}",
+                            job.JobId, job.ProcessedCount, totalEmails, job.SuccessCount, job.FailedCount);
+                    }
 
                     // Kleine Pause zwischen E-Mails
                     if (_batchOptions.PauseBetweenEmailsMs > 0)
@@ -240,9 +342,13 @@ private async Task ProcessJobWithProgress(BatchRestoreJob job, IEmailService ema
                 // Pause zwischen Batches
                 if (i + batchSize < totalEmails && _batchOptions.PauseBetweenBatchesMs > 0)
                 {
+                    _logger.LogDebug("Job {JobId}: Pausing {Ms}ms between batches", job.JobId, _batchOptions.PauseBetweenBatchesMs);
                     await Task.Delay(_batchOptions.PauseBetweenBatchesMs, cancellationToken);
                 }
             }
+
+            _logger.LogInformation("Job {JobId}: Batch restore completed. Total: {Total}, Success: {Success}, Failed: {Failed}",
+                job.JobId, totalEmails, job.SuccessCount, job.FailedCount);
         }
 
         public override void Dispose()

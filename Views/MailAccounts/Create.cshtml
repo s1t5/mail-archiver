@@ -24,10 +24,14 @@
                     <span asp-validation-for="EmailAddress" class="text-danger"></span>
                 </div>
                 
-                <div class="mb-3 form-check">
-                    <input asp-for="IsImportOnly" class="form-check-input" id="isImportOnly" />
-                    <label asp-for="IsImportOnly" class="form-check-label">@Localizer["ImportOnlyAccount"]</label>
-                    <div class="form-text">@Localizer["ImportOnlyAccountDescription"]</div>
+                <div class="mb-3">
+                    <label asp-for="Provider" class="form-label">@Localizer["Provider"]</label>
+                    <select asp-for="Provider" class="form-select">
+                        <option value="@ProviderType.IMAP">IMAP</option>
+                        <option value="@ProviderType.M365">Microsoft 365</option>
+                        <option value="@ProviderType.IMPORT">Import Only</option>
+                    </select>
+                    <span asp-validation-for="Provider" class="text-danger"></span>
                 </div>
                 
                 <div id="imapSettings">
@@ -67,6 +71,28 @@
                     </div>
                 </div>
                 
+                <div id="microsoft365Settings" style="display: none;">
+                    <h4 class="mt-4">@Localizer["Microsoft365Settings"]</h4>
+                    
+                    <div class="mb-3">
+                        <label asp-for="ClientId" class="form-label">@Localizer["ClientId"]</label>
+                        <input asp-for="ClientId" class="form-control" />
+                        <span asp-validation-for="ClientId" class="text-danger"></span>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label asp-for="ClientSecret" class="form-label">@Localizer["ClientSecret"]</label>
+                        <input asp-for="ClientSecret" class="form-control" type="password" />
+                        <span asp-validation-for="ClientSecret" class="text-danger"></span>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label asp-for="TenantId" class="form-label">@Localizer["TenantId"]</label>
+                        <input asp-for="TenantId" class="form-control" />
+                        <span asp-validation-for="TenantId" class="text-danger"></span>
+                    </div>
+                </div>
+                
 <div class="mb-3 form-check">
                     <input asp-for="IsEnabled" class="form-check-input" />
                     <label asp-for="IsEnabled" class="form-check-label">@Localizer["AccountEnabled"]</label>
@@ -95,16 +121,24 @@
 @section Scripts {
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const isImportOnlyCheckbox = document.getElementById('isImportOnly');
+            const providerSelect = document.getElementById('Provider');
             const imapSettings = document.getElementById('imapSettings');
+            const microsoft365Settings = document.getElementById('microsoft365Settings');
             const emailDeletionSettings = document.getElementById('emailDeletionSettings');
             
             function toggleSettings() {
-                if (isImportOnlyCheckbox.checked) {
+                const providerValue = providerSelect.value;
+                if (providerValue === '@ProviderType.IMPORT') {
                     imapSettings.style.display = 'none';
+                    microsoft365Settings.style.display = 'none';
                     emailDeletionSettings.style.display = 'none';
+                } else if (providerValue === '@ProviderType.M365') {
+                    imapSettings.style.display = 'none';
+                    microsoft365Settings.style.display = 'block';
+                    emailDeletionSettings.style.display = 'block';
                 } else {
                     imapSettings.style.display = 'block';
+                    microsoft365Settings.style.display = 'none';
                     emailDeletionSettings.style.display = 'block';
                 }
             }
@@ -112,8 +146,8 @@
             // Initial check
             toggleSettings();
             
-            // Add event listener
-            isImportOnlyCheckbox.addEventListener('change', toggleSettings);
+            // Add event listeners
+            providerSelect.addEventListener('change', toggleSettings);
         });
     </script>
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}

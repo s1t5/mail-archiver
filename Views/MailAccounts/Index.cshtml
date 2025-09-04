@@ -34,7 +34,7 @@
                         <tr>
                             <th>@Localizer["Name"]</th>
                             <th>@Localizer["EmailAddress"]</th>
-                            <th>@Localizer["IMAPServer"]</th>
+                            <th>@Localizer["Provider"]</th>
                             <th>@Localizer["Status"]</th>
                             <th>@Localizer["LastSync"]</th>
                             <th>@Localizer["AutoDelete"]</th>
@@ -47,7 +47,20 @@
                             <tr class="@(!item.IsEnabled ? "table-secondary" : "")">
                                 <td>@item.Name</td>
                                 <td>@item.EmailAddress</td>
-                                <td>@(item.IsImportOnly ? "-" : item.ImapServer + ":" + item.ImapPort)</td>
+                                <td>
+                                    @switch (item.Provider)
+                                    {
+                                        case ProviderType.IMAP:
+                                            <span class="badge bg-primary">IMAP</span>
+                                            break;
+                                        case ProviderType.M365:
+                                            <span class="badge bg-success">Microsoft 365</span>
+                                            break;
+                                        case ProviderType.IMPORT:
+                                            <span class="badge bg-secondary">Import Only</span>
+                                            break;
+                                    }
+                                </td>
                                 <td>
                                     @if (item.IsEnabled)
                                     {
@@ -192,7 +205,19 @@
                     </div>
                     <p class="card-text small text-muted mb-2">@item.EmailAddress</p>
                     <p class="card-text small mb-2">
-                        <strong>Server:</strong> @(item.IsImportOnly ? "-" : item.ImapServer + ":" + item.ImapPort)
+                        <strong>@Localizer["Provider"]:</strong>
+                        @switch (item.Provider)
+                        {
+                            case ProviderType.IMAP:
+                                <span class="badge bg-primary">IMAP</span>
+                                break;
+                            case ProviderType.M365:
+                                <span class="badge bg-success">Microsoft 365</span>
+                                break;
+                            case ProviderType.IMPORT:
+                                <span class="badge bg-secondary">Import Only</span>
+                                break;
+                        }
                     </p>
                     <p class="card-text small mb-3">
                         <strong>@Localizer["LastSync"]:</strong>

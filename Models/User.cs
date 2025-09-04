@@ -29,6 +29,11 @@ namespace MailArchiver.Models
         
         public DateTime? LastLoginAt { get; set; }
         
+        // 2FA TOTP properties
+        public bool IsTwoFactorEnabled { get; set; } = false;
+        public string? TwoFactorSecret { get; set; }
+        public string? TwoFactorBackupCodes { get; set; }
+        
         // Navigation properties
         public virtual ICollection<UserMailAccount> UserMailAccounts { get; set; } = new List<UserMailAccount>();
     }

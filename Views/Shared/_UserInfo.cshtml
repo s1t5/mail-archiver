@@ -1,5 +1,5 @@
 ﻿@using MailArchiver.Services
-@inject IAuthenticationService AuthService
+@inject MailArchiver.Services.IAuthenticationService AuthService
 @inject IUserService UserService
 @inject Microsoft.Extensions.Localization.IStringLocalizer<MailArchiver.SharedResource> Localizer
 @{ var currentCulture = System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName; }
@@ -18,6 +18,27 @@
                 </h6>
             </li>
             <li><hr class="dropdown-divider"></li>
+            @{
+                var currentUser = await UserService.GetUserByUsernameAsync(AuthService.GetCurrentUser(Context));
+                if (currentUser != null)
+                {
+                    <li>
+                        @if (currentUser.IsTwoFactorEnabled)
+                        {
+                            <a asp-controller="TwoFactor" asp-action="Disable" class="dropdown-item">
+                                <i class="bi bi-shield-lock me-2"></i>@Localizer["DisableTwoFactor"]
+                            </a>
+                        }
+                        else
+                        {
+                            <a asp-controller="TwoFactor" asp-action="Setup" class="dropdown-item">
+                                <i class="bi bi-shield-lock me-2"></i>@Localizer["EnableTwoFactor"]
+                            </a>
+                        }
+                    </li>
+                    <li><hr class="dropdown-divider"></li>
+                }
+            }
             <li>
                 <a asp-controller="Users" asp-action="ChangePassword" class="dropdown-item">
                     <i class="bi bi-key me-2"></i>@Localizer["ChangePassword"]

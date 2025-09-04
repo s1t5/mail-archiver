@@ -528,3 +528,132 @@ body {
       text-align: center;
   }
 }
+
+/* Two-Factor Authentication Setup Styles */
+.twofa-setup-container {
+  max-width: 800px;
+  margin: 2rem auto;
+}
+
+.twofa-section {
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  border-radius: 8px;
+  background-color: #fff;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  border-left: 4px solid var(--primary-color);
+}
+
+.twofa-section h4 {
+  color: var(--primary-color);
+  margin-bottom: 1rem;
+  font-weight: 600;
+}
+
+.twofa-qr-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1.5rem;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  margin: 1rem 0;
+}
+
+.twofa-qr-code {
+  max-width: 200px;
+  height: auto;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  padding: 1rem;
+  background-color: #fff;
+}
+
+.twofa-secret {
+  font-family: 'Courier New', monospace;
+  font-size: 1.1rem;
+  letter-spacing: 1px;
+  padding: 0.75rem;
+  background-color: #e9f7fe;
+  border: 1px solid #bee5eb;
+  border-radius: 6px;
+  word-break: break-all;
+}
+
+.twofa-backup-codes {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.twofa-backup-code {
+  font-family: 'Courier New', monospace;
+  font-size: 1rem;
+  text-align: center;
+  padding: 0.75rem;
+  background-color: #f1f8ff;
+  border: 1px solid #c8e1ff;
+  border-radius: 6px;
+  letter-spacing: 1px;
+  word-break: break-all;
+}
+
+.twofa-download-btn {
+  margin-top: 1rem;
+  background-color: var(--success-color);
+  border-color: var(--success-color);
+}
+
+.twofa-download-btn:hover {
+  background-color: #27ae60;
+  border-color: #27ae60;
+}
+
+.twofa-instructions {
+  background-color: #fff8e1;
+  border: 1px solid #ffecb3;
+  border-radius: 6px;
+  padding: 1rem;
+  margin: 1rem 0;
+}
+
+.twofa-warning {
+  background-color: #ffebee;
+  border: 1px solid #ffcdd2;
+  border-radius: 6px;
+  padding: 1rem;
+  margin: 1rem 0;
+}
+
+.twofa-verification {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  background-color: #f1f8ff;
+  border-radius: 8px;
+  border: 1px solid #c8e1ff;
+}
+
+.twofa-verification .form-control {
+  font-family: 'Courier New', monospace;
+  font-size: 1.2rem;
+  letter-spacing: 2px;
+  text-align: center;
+  max-width: 200px;
+  margin: 0 auto;
+}
+
+@media (max-width: 768px) {
+  .twofa-setup-container {
+      margin: 1rem;
+  }
+  
+  .twofa-backup-codes {
+      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  }
+  
+  .twofa-backup-code {
+      font-size: 0.9rem;
+      padding: 0.5rem;
+  }
+}

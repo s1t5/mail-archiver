@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
   <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
     <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
@@ -231,6 +231,12 @@
   </data>
   <data name="ContinueWithOperation" xml:space="preserve">
     <value>Вы выбрали {0} писем. Это будет обработано как фоновая задача, которую можно отслеживать отдельно. Продолжить?</value>
+  </data>
+  <data name="ConfirmBatchRestore" xml:space="preserve">
+    <value>Подтвердить пакетное восстановление</value>
+  </data>
+  <data name="Continue" xml:space="preserve">
+    <value>Продолжить</value>
   </data>
   <data name="NoEmailsArchivedYet" xml:space="preserve">
     <value>Письма пока не архивированы</value>
@@ -1448,4 +1454,182 @@
   <data name="Import" xml:space="preserve">
     <value>Импорт</value>
   </data>
+  <!-- Microsoft 365 -->
+  <data name="Microsoft365Account" xml:space="preserve">
+    <value>Учётная запись Microsoft 365</value>
+  </data>
+  <data name="Microsoft365AccountDescription" xml:space="preserve">
+    <value>Учётная запись, использующая аутентификацию OAuth2 Microsoft 365</value>
+  </data>
+  <data name="Microsoft365Settings" xml:space="preserve">
+    <value>Настройки Microsoft 365</value>
+  </data>
+  <data name="ClientId" xml:space="preserve">
+    <value>ID клиента</value>
+  </data>
+  <data name="ClientSecret" xml:space="preserve">
+    <value>Секрет клиента</value>
+  </data>
+  <data name="LeaveEmptyToKeepCurrent" xml:space="preserve">
+    <value>Оставьте пустым, чтобы сохранить текущее значение</value>
+  </data>
+  <!-- Two-Factor Authentication -->
+  <data name="TwoFactorEnabledSuccess" xml:space="preserve">
+    <value>Двухфакторная аутентификация успешно включена.</value>
+  </data>
+  <data name="TwoFactorEnableFail" xml:space="preserve">
+    <value>Не удалось включить двухфакторную аутентификацию. Попробуйте ещё раз.</value>
+  </data>
+  <data name="TwoFactorDisabledSuccess" xml:space="preserve">
+    <value>Двухфакторная аутентификация успешно отключена.</value>
+  </data>
+  <data name="TwoFactorDisableFail" xml:space="preserve">
+    <value>Не удалось отключить двухфакторную аутентификацию. Попробуйте ещё раз.</value>
+  </data>
+  <data name="TwoFactorTokenInvalid" xml:space="preserve">
+    <value>Неверный код аутентификации. Попробуйте ещё раз.</value>
+  </data>
+  <data name="TwoFactorSecretMissing" xml:space="preserve">
+    <value>Отсутствует секрет двухфакторной аутентификации. Перезапустите процесс настройки.</value>
+  </data>
+  <data name="TwoFactorNotEnabled" xml:space="preserve">
+    <value>Двухфакторная аутентификация не включена для этой учётной записи.</value>
+  </data>
+  <data name="TwoFactorSessionExpired" xml:space="preserve">
+    <value>Ваша сессия истекла. Войдите в систему снова.</value>
+  </data>
+  <data name="PasswordIncorrect" xml:space="preserve">
+    <value>Введённый пароль неверен.</value>
+  </data>
+  <data name="TwoFactorResetSuccess" xml:space="preserve">
+    <value>Двухфакторная аутентификация успешно сброшена для пользователя {0}.</value>
+  </data>
+  <data name="TwoFactorResetFail" xml:space="preserve">
+    <value>Не удалось сбросить двухфакторную аутентификацию для пользователя {0}.</value>
+  </data>
+  <data name="TwoFactorSetup" xml:space="preserve">
+    <value>Настройка двухфакторной аутентификации</value>
+  </data>
+  <data name="TwoFactorSetupInstructions" xml:space="preserve">
+    <value>Отсканируйте QR-код с помощью приложения аутентификатора или введите секрет вручную.</value>
+  </data>
+  <data name="ScanQRCode" xml:space="preserve">
+    <value>Сканировать QR-код</value>
+  </data>
+  <data name="UseAuthenticatorApp" xml:space="preserve">
+    <value>Используйте приложение аутентификатор, такое как Google Authenticator или Authy, чтобы отсканировать QR-код.</value>
+  </data>
+  <data name="OrEnterManually" xml:space="preserve">
+    <value>Или введите этот секрет вручную в вашем приложении аутентификаторе:</value>
+  </data>
+  <data name="BackupCodes" xml:space="preserve">
+    <value>Резервные коды</value>
+  </data>
+  <data name="BackupCodesDescription" xml:space="preserve">
+    <value>Сохраните эти резервные коды в безопасном месте. Вы можете использовать их для входа, если потеряете доступ к приложению аутентификатору.</value>
+  </data>
+  <data name="BackupCodesWarning" xml:space="preserve">
+    <value>Каждый резервный код можно использовать только один раз. После использования код станет недействительным.</value>
+  </data>
+  <data name="EnterVerificationCode" xml:space="preserve">
+    <value>Введите код подтверждения</value>
+  </data>
+  <data name="EnableTwoFactor" xml:space="preserve">
+    <value>Включить двухфакторную аутентификацию</value>
+  </data>
+  <data name="TwoFactorVerification" xml:space="preserve">
+    <value>Двухфакторная проверка</value>
+  </data>
+  <data name="TwoFactorAuthentication" xml:space="preserve">
+    <value>Двухфакторная аутентификация</value>
+  </data>
+  <data name="EnterTwoFactorCode" xml:space="preserve">
+    <value>Введите код из приложения аутентификатора или резервный код</value>
+  </data>
+  <data name="VerificationCode" xml:space="preserve">
+    <value>Код подтверждения</value>
+  </data>
+  <data name="EnterCodePlaceholder" xml:space="preserve">
+    <value>Введите 6-значный код или 16-символьный резервный код</value>
+  </data>
+  <data name="EnterTotpOrBackupCode" xml:space="preserve">
+    <value>Введите 6-значный TOTP-код из приложения аутентификатора или 16-символьный резервный код</value>
+  </data>
+  <data name="Verify" xml:space="preserve">
+    <value>Проверить</value>
+  </data>
+  <data name="DisableTwoFactor" xml:space="preserve">
+    <value>Отключить двухфакторную аутентификацию</value>
+  </data>
+  <data name="DisableTwoFactorConfirmation" xml:space="preserve">
+    <value>Вы уверены, что хотите отключить двухфакторную аутентификацию? Это снизит безопасность вашей учётной записи.</value>
+  </data>
+  <data name="DisableTwoFactorDescription" xml:space="preserve">
+    <value>Чтобы отключить двухфакторную аутентификацию, введите ваш пароль ниже.</value>
+  </data>
+  <data name="EnterPassword" xml:space="preserve">
+    <value>Введите пароль</value>
+  </data>
+  <data name="ScanQRCodeDescription" xml:space="preserve">
+    <value>Отсканируйте этот QR-код с помощью приложения аутентификатора для настройки двухфакторной аутентификации.</value>
+  </data>
+  <data name="ManualEntryDescription" xml:space="preserve">
+    <value>Если вы не можете отсканировать QR-код, введите этот секрет вручную в приложении аутентификаторе:</value>
+  </data>
+  <data name="VerifyTwoFactor" xml:space="preserve">
+    <value>Проверить двухфакторную аутентификацию</value>
+  </data>
+  <data name="EnterCodeDescription" xml:space="preserve">
+    <value>Введите 6-значный код из приложения аутентификатора для проверки и включения двухфакторной аутентификации.</value>
+  </data>
+  <data name="DownloadBackupCodes" xml:space="preserve">
+    <value>Скачать резервные коды</value>
+  </data>
+  <data name="BackupCodesFileHeader" xml:space="preserve">
+    <value>Mail Archiver - Резервные коды двухфакторной аутентификации. Сохраните эти резервные коды в безопасном месте. Вы можете использовать их для входа, если потеряете доступ к приложению аутентификатору. Каждый резервный код можно использовать только один раз. После использования код станет недействительным.</value>
+  </data>
+  <data name="BackupCodesFileFooter" xml:space="preserve">
+    <value>Важно: Храните эти коды в безопасности и не делитесь ими ни с кем.</value>
+  </data>
+  <data name="BackupCodesOneTimeOnly" xml:space="preserve">
+    <value>Эти резервные коды предназначены только для одноразового использования. После использования код станет недействительным.</value>
+  </data>
+  <data name="ContinueToDashboard" xml:space="preserve">
+    <value>Перейти к панели управления</value>
+  </data>
+  <data name="Code" xml:space="preserve">
+    <value>Код</value>
+  </data>
+  <data name="EnterCodeFromApp" xml:space="preserve">
+    <value>Введите код из приложения аутентификатора</value>
+  </data>
+  <data name="ManualEntry" xml:space="preserve">
+    <value>Ручной ввод</value>
+  </data>
+  <data name="EnterCode" xml:space="preserve">
+    <value>Введите код</value>
+  </data>
+
+  <!-- Rate Limiting -->
+  <data name="RateLimitExceeded" xml:space="preserve">
+    <value>Превышен лимит скорости. Попробуйте позже.</value>
+  </data>
+  <data name="TooManyAttempts" xml:space="preserve">
+    <value>Слишком много попыток. Подождите {0} секунд перед повторной попыткой.</value>
+  </data>
+  <data name="RateLimitTwoFactorTitle" xml:space="preserve">
+    <value>Слишком много попыток</value>
+  </data>
+  <data name="RateLimitTwoFactorMessage" xml:space="preserve">
+    <value>Вы сделали слишком много попыток проверки 2FA. Подождите и попробуйте позже.</value>
+  </data>
+
+  <!-- ============================================== -->
+  <!-- NEWLY ADDED KEYS - REQUIRE TRANSLATION TO RUSSIAN -->
+  <!-- ============================================== -->
+
+  <data name="DeleteAccountWithEmailsButton" xml:space="preserve">
+    <value>Удалить учётную запись и все письма ({0})</value>
+  </data>
+
 </root>

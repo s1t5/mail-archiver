@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
   <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema"
     xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
@@ -234,6 +234,12 @@
   </data>
   <data name="ContinueWithOperation" xml:space="preserve">
     <value>Sie haben {0} E-Mails ausgewählt. Dies wird als Hintergrundauftrag verarbeitet, den Sie separat überwachen können. Fortfahren?</value>
+  </data>
+  <data name="ConfirmBatchRestore" xml:space="preserve">
+    <value>Stapel-Wiederherstellung bestätigen</value>
+  </data>
+  <data name="Continue" xml:space="preserve">
+    <value>Fortfahren</value>
   </data>
   <data name="NoEmailsArchivedYet" xml:space="preserve">
     <value>Noch keine E-Mails archiviert</value>
@@ -1463,4 +1469,182 @@
   <data name="Import" xml:space="preserve">
     <value>Importieren</value>
   </data>
+  <!-- Microsoft 365 -->
+  <data name="Microsoft365Account" xml:space="preserve">
+    <value>Microsoft 365 Konto</value>
+  </data>
+  <data name="Microsoft365AccountDescription" xml:space="preserve">
+    <value>Konto mit Microsoft 365 OAuth2-Authentifizierung</value>
+  </data>
+  <data name="Microsoft365Settings" xml:space="preserve">
+    <value>Microsoft 365 Einstellungen</value>
+  </data>
+  <data name="ClientId" xml:space="preserve">
+    <value>Client-ID</value>
+  </data>
+  <data name="ClientSecret" xml:space="preserve">
+    <value>Client-Geheimnis</value>
+  </data>
+  <data name="LeaveEmptyToKeepCurrent" xml:space="preserve">
+    <value>Leer lassen, um den aktuellen Wert beizubehalten</value>
+  </data>
+  <!-- Two-Factor Authentication -->
+  <data name="TwoFactorEnabledSuccess" xml:space="preserve">
+    <value>Zwei-Faktor-Authentifizierung wurde erfolgreich aktiviert.</value>
+  </data>
+  <data name="TwoFactorEnableFail" xml:space="preserve">
+    <value>Aktivierung der Zwei-Faktor-Authentifizierung fehlgeschlagen. Bitte versuchen Sie es erneut.</value>
+  </data>
+  <data name="TwoFactorDisabledSuccess" xml:space="preserve">
+    <value>Zwei-Faktor-Authentifizierung wurde erfolgreich deaktiviert.</value>
+  </data>
+  <data name="TwoFactorDisableFail" xml:space="preserve">
+    <value>Deaktivierung der Zwei-Faktor-Authentifizierung fehlgeschlagen. Bitte versuchen Sie es erneut.</value>
+  </data>
+  <data name="TwoFactorTokenInvalid" xml:space="preserve">
+    <value>Ungültiger Authentifizierungscode. Bitte versuchen Sie es erneut.</value>
+  </data>
+  <data name="TwoFactorSecretMissing" xml:space="preserve">
+    <value>Zwei-Faktor-Geheimnis fehlt. Bitte starten Sie den Einrichtungsprozess neu.</value>
+  </data>
+  <data name="TwoFactorNotEnabled" xml:space="preserve">
+    <value>Zwei-Faktor-Authentifizierung ist für dieses Konto nicht aktiviert.</value>
+  </data>
+  <data name="TwoFactorSessionExpired" xml:space="preserve">
+    <value>Ihre Sitzung ist abgelaufen. Bitte melden Sie sich erneut an.</value>
+  </data>
+  <data name="PasswordIncorrect" xml:space="preserve">
+    <value>Das eingegebene Passwort ist falsch.</value>
+  </data>
+  <data name="TwoFactorResetSuccess" xml:space="preserve">
+    <value>Zwei-Faktor-Authentifizierung wurde erfolgreich für Benutzer {0} zurückgesetzt.</value>
+  </data>
+  <data name="TwoFactorResetFail" xml:space="preserve">
+    <value>Zurücksetzen der Zwei-Faktor-Authentifizierung für Benutzer {0} fehlgeschlagen.</value>
+  </data>
+  <data name="TwoFactorSetup" xml:space="preserve">
+    <value>Zwei-Faktor-Einrichtung</value>
+  </data>
+  <data name="TwoFactorSetupInstructions" xml:space="preserve">
+    <value>Scannen Sie den QR-Code mit Ihrer Authenticator-App oder geben Sie das Geheimnis manuell ein.</value>
+  </data>
+  <data name="ScanQRCode" xml:space="preserve">
+    <value>QR-Code scannen</value>
+  </data>
+  <data name="UseAuthenticatorApp" xml:space="preserve">
+    <value>Verwenden Sie eine Authenticator-App wie Google Authenticator oder Authy, um den QR-Code zu scannen.</value>
+  </data>
+  <data name="OrEnterManually" xml:space="preserve">
+    <value>Oder geben Sie dieses Geheimnis manuell in Ihrer Authenticator-App ein:</value>
+  </data>
+  <data name="BackupCodes" xml:space="preserve">
+    <value>Backup-Codes</value>
+  </data>
+  <data name="BackupCodesDescription" xml:space="preserve">
+    <value>Bewahren Sie diese Backup-Codes an einem sicheren Ort auf. Sie können sie verwenden, um sich anzumelden, falls Sie den Zugang zu Ihrer Authenticator-App verlieren.</value>
+  </data>
+  <data name="BackupCodesWarning" xml:space="preserve">
+    <value>Jeder Backup-Code kann nur einmal verwendet werden. Nach der Verwendung wird der Code ungültig.</value>
+  </data>
+  <data name="EnterVerificationCode" xml:space="preserve">
+    <value>Bestätigungscode eingeben</value>
+  </data>
+  <data name="EnableTwoFactor" xml:space="preserve">
+    <value>Zwei-Faktor-Authentifizierung aktivieren</value>
+  </data>
+  <data name="TwoFactorVerification" xml:space="preserve">
+    <value>Zwei-Faktor-Verifizierung</value>
+  </data>
+  <data name="TwoFactorAuthentication" xml:space="preserve">
+    <value>Zwei-Faktor-Authentifizierung</value>
+  </data>
+  <data name="EnterTwoFactorCode" xml:space="preserve">
+    <value>Geben Sie den Code aus Ihrer Authenticator-App oder einen Backup-Code ein</value>
+  </data>
+  <data name="VerificationCode" xml:space="preserve">
+    <value>Bestätigungscode</value>
+  </data>
+  <data name="EnterCodePlaceholder" xml:space="preserve">
+    <value>6-stelligen Code oder 16-stelligen Backup-Code eingeben</value>
+  </data>
+  <data name="EnterTotpOrBackupCode" xml:space="preserve">
+    <value>Geben Sie einen 6-stelligen TOTP-Code aus Ihrer Authenticator-App oder einen 16-stelligen Backup-Code ein</value>
+  </data>
+  <data name="Verify" xml:space="preserve">
+    <value>Verifizieren</value>
+  </data>
+  <data name="DisableTwoFactor" xml:space="preserve">
+    <value>Zwei-Faktor-Authentifizierung deaktivieren</value>
+  </data>
+  <data name="DisableTwoFactorConfirmation" xml:space="preserve">
+    <value>Sind Sie sicher, dass Sie die Zwei-Faktor-Authentifizierung deaktivieren möchten? Dies reduziert die Sicherheit Ihres Kontos.</value>
+  </data>
+  <data name="DisableTwoFactorDescription" xml:space="preserve">
+    <value>Um die Zwei-Faktor-Authentifizierung zu deaktivieren, geben Sie bitte unten Ihr Passwort ein.</value>
+  </data>
+  <data name="EnterPassword" xml:space="preserve">
+    <value>Passwort eingeben</value>
+  </data>
+  <data name="ScanQRCodeDescription" xml:space="preserve">
+    <value>Scannen Sie diesen QR-Code mit Ihrer Authenticator-App, um die Zwei-Faktor-Authentifizierung einzurichten.</value>
+  </data>
+  <data name="ManualEntryDescription" xml:space="preserve">
+    <value>Falls Sie den QR-Code nicht scannen können, geben Sie dieses Geheimnis manuell in Ihrer Authenticator-App ein:</value>
+  </data>
+  <data name="VerifyTwoFactor" xml:space="preserve">
+    <value>Zwei-Faktor-Authentifizierung verifizieren</value>
+  </data>
+  <data name="EnterCodeDescription" xml:space="preserve">
+    <value>Geben Sie den 6-stelligen Code aus Ihrer Authenticator-App ein, um die Zwei-Faktor-Authentifizierung zu verifizieren und zu aktivieren.</value>
+  </data>
+  <data name="DownloadBackupCodes" xml:space="preserve">
+    <value>Backup-Codes herunterladen</value>
+  </data>
+  <data name="BackupCodesFileHeader" xml:space="preserve">
+    <value>Mail Archiver - Zwei-Faktor-Authentifizierung Backup-Codes. Bewahren Sie diese Backup-Codes an einem sicheren Ort auf. Sie können sie verwenden, um sich anzumelden, falls Sie den Zugang zu Ihrer Authenticator-App verlieren. Jeder Backup-Code kann nur einmal verwendet werden. Nach der Verwendung wird der Code ungültig.</value>
+  </data>
+  <data name="BackupCodesFileFooter" xml:space="preserve">
+    <value>Wichtig: Bewahren Sie diese Codes sicher auf und teilen Sie sie mit niemandem.</value>
+  </data>
+  <data name="BackupCodesOneTimeOnly" xml:space="preserve">
+    <value>Diese Backup-Codes sind nur für den einmaligen Gebrauch bestimmt. Nach der Verwendung wird der Code ungültig.</value>
+  </data>
+  <data name="ContinueToDashboard" xml:space="preserve">
+    <value>Weiter zum Dashboard</value>
+  </data>
+  <data name="Code" xml:space="preserve">
+    <value>Code</value>
+  </data>
+  <data name="EnterCodeFromApp" xml:space="preserve">
+    <value>Geben Sie den Code aus Ihrer Authenticator-App ein</value>
+  </data>
+  <data name="ManualEntry" xml:space="preserve">
+    <value>Manuelle Eingabe</value>
+  </data>
+  <data name="EnterCode" xml:space="preserve">
+    <value>Code eingeben</value>
+  </data>
+
+  <!-- Rate Limiting -->
+  <data name="RateLimitExceeded" xml:space="preserve">
+    <value>Ratenlimit überschritten. Bitte versuchen Sie es später erneut.</value>
+  </data>
+  <data name="TooManyAttempts" xml:space="preserve">
+    <value>Zu viele Versuche. Bitte warten Sie {0} Sekunden, bevor Sie es erneut versuchen.</value>
+  </data>
+  <data name="RateLimitTwoFactorTitle" xml:space="preserve">
+    <value>Zu viele Versuche</value>
+  </data>
+  <data name="RateLimitTwoFactorMessage" xml:space="preserve">
+    <value>Sie haben zu viele 2FA-Verifizierungsversuche unternommen. Bitte warten Sie und versuchen Sie es später erneut.</value>
+  </data>
+
+  <!-- ============================================== -->
+  <!-- NEWLY ADDED KEYS - REQUIRE TRANSLATION TO SPANISH -->
+  <!-- ============================================== -->
+
+  <data name="DeleteAccountWithEmailsButton" xml:space="preserve">
+    <value>Konto und alle E-Mails löschen ({0})</value>
+  </data>
+
 </root>

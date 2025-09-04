@@ -16,13 +16,13 @@ namespace MailArchiver.Controllers
         private readonly MailArchiverDbContext _context;
         private readonly ILogger<HomeController> _logger;
         private readonly IBatchRestoreService? _batchRestoreService;
-        private readonly IAuthenticationService _authenticationService;
+        private readonly MailArchiver.Services.IAuthenticationService _authenticationService;
 
         public HomeController(
             IEmailService emailService, 
             IUserService userService,
             MailArchiverDbContext context,
-            IAuthenticationService authenticationService,
+            MailArchiver.Services.IAuthenticationService authenticationService,
             ILogger<HomeController> logger, 
             IBatchRestoreService? batchRestoreService = null)
         {

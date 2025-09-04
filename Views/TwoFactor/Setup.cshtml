@@ -1,0 +1,50 @@
+@inject Microsoft.Extensions.Localization.IStringLocalizer<MailArchiver.SharedResource> Localizer
+@model MailArchiver.Models.User
+@{
+    ViewData["Title"] = @Localizer["TwoFactorSetup"];
+}
+
+<div class="container twofa-setup-container">
+    <h1>@Localizer["TwoFactorSetup"]</h1>
+    
+    <div class="twofa-section">
+        <h4>@Localizer["ScanQRCode"]</h4>
+        <p>@Localizer["ScanQRCodeDescription"]</p>
+        
+        <div class="twofa-qr-container">
+            <img src="@ViewBag.QRCodeImage" alt="QR Code" class="twofa-qr-code" />
+        </div>
+    </div>
+    
+    <div class="twofa-section">
+        <h4>@Localizer["ManualEntry"]</h4>
+        <p>@Localizer["ManualEntryDescription"]</p>
+        <div class="twofa-secret">@Model.TwoFactorSecret</div>
+    </div>
+    
+    
+    <div class="twofa-section twofa-verification">
+        <h4>@Localizer["VerifyTwoFactor"]</h4>
+        <p>@Localizer["EnterCodeDescription"]</p>
+        
+        <form asp-action="Enable" method="post">
+            <div class="mb-3 text-center">
+                <label for="token" class="form-label">@Localizer["EnterCode"]</label>
+                <input type="text" class="form-control" id="token" name="token" required maxlength="6" />
+            </div>
+            
+            <div class="d-flex justify-content-center gap-2">
+                <button type="submit" class="btn btn-primary">@Localizer["EnableTwoFactor"]</button>
+                <a asp-controller="Home" asp-action="Index" class="btn btn-secondary">@Localizer["Cancel"]</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Pass localized strings to JavaScript
+        const backupCodesFileHeader = '@Localizer["BackupCodesFileHeader"]';
+        const backupCodesFileFooter = '@Localizer["BackupCodesFileFooter"]';
+    </script>
+}

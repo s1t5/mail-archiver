@@ -5,8 +5,11 @@ using MailArchiver.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.AspNetCore.Localization;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.RateLimiting;
 using System.Globalization;
 using System.Data.Common;
+using System.Threading.RateLimiting;
 
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 
@@ -81,13 +84,75 @@ builder.Services.AddSession(options =>
     options.Cookie.SameSite = SameSiteMode.Strict;
 });
 
+// Add Rate Limiting
+builder.Services.AddRateLimiter(options =>
+{
+    // 2FA Verification Rate Limiting: 5 attempts per 15 minutes per IP/User
+    options.AddPolicy("TwoFactorVerify", httpContext =>
+    {
+        var clientIp = httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+        var username = httpContext.Session.GetString("TwoFactorUsername") ?? "anonymous";
+        var partitionKey = $"2fa-{clientIp}-{username}";
+        
+        return RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey,
+            _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 5,
+                Window = TimeSpan.FromMinutes(15),
+                QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                QueueLimit = 0
+            });
+    });
+    
+    // Global Rate Limiting: 100 requests per minute per IP for other endpoints
+    options.AddPolicy("Global", httpContext =>
+    {
+        var clientIp = httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+        
+        return RateLimitPartition.GetFixedWindowLimiter(
+            clientIp,
+            _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 100,
+                Window = TimeSpan.FromMinutes(1),
+                QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                QueueLimit = 0
+            });
+    });
+    
+    // Rejection response
+    options.OnRejected = async (context, token) =>
+    {
+        context.HttpContext.Response.StatusCode = 429;
+        
+        if (context.Lease.TryGetMetadata("RETRY_AFTER", out var retryAfter))
+        {
+            context.HttpContext.Response.Headers.RetryAfter = ((TimeSpan)retryAfter).TotalSeconds.ToString();
+        }
+        
+        // Get localizer for rate limit message
+        var serviceProvider = context.HttpContext.RequestServices;
+        var localizer = serviceProvider.GetService<Microsoft.Extensions.Localization.IStringLocalizer<MailArchiver.SharedResource>>();
+        var message = localizer?["RateLimitExceeded"] ?? "Rate limit exceeded. Please try again later.";
+        
+        await context.HttpContext.Response.WriteAsync(message, cancellationToken: token);
+    };
+});
+
 // Add Authentication
-builder.Services.AddAuthentication("MailArchiverAuth")
-    .AddCookie("MailArchiverAuth", options =>
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
     {
         options.LoginPath = "/Auth/Login";
         options.LogoutPath = "/Auth/Logout";
         options.AccessDeniedPath = "/Auth/AccessDenied";
+        options.Cookie.Name = "MailArchiverAuth";
+        options.Cookie.HttpOnly = true;
+        options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+        options.Cookie.SameSite = SameSiteMode.Strict;
+        options.ExpireTimeSpan = TimeSpan.FromMinutes(60);
+        options.SlidingExpiration = true;
     });
 
 // Set global encoding to UTF-8
@@ -105,7 +170,8 @@ builder.Services.AddDbContext<MailArchiverDbContext>(options =>
                 builder.Configuration.GetValue<int>("Npgsql:CommandTimeout", 600) // 10 Minuten Standardwert
             );
         }
-    );
+    )
+    .ConfigureWarnings(warnings => warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
     
     // Enable sensitive data logging for debugging (remove in production)
     if (builder.Environment.IsDevelopment())
@@ -121,18 +187,19 @@ builder.Services.AddScoped<IEmailService, EmailService>(provider =>
         provider.GetRequiredService<ILogger<EmailService>>(),
         provider.GetRequiredService<ISyncJobService>(),
         provider.GetRequiredService<IOptions<BatchOperationOptions>>(),
-        provider.GetRequiredService<IOptions<MailSyncOptions>>()
+        provider.GetRequiredService<IOptions<MailSyncOptions>>(),
+        provider.GetRequiredService<IGraphEmailService>()
     ));
-builder.Services.AddScoped<IAuthenticationService>(provider =>
-    new SimpleAuthenticationService(
-        provider.GetRequiredService<IOptions<AuthenticationOptions>>(),
-        provider.GetRequiredService<IUserService>(),
-        provider.GetRequiredService<MailArchiverDbContext>(),
-        provider.GetRequiredService<ILogger<SimpleAuthenticationService>>()
-    ));
+builder.Services.AddScoped<IGraphEmailService, GraphEmailService>();
+builder.Services.AddScoped<IAuthenticationService, CookieAuthenticationService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddSingleton<ISyncJobService, SyncJobService>(); // NEUE SERVICE
-builder.Services.AddSingleton<IBatchRestoreService, BatchRestoreService>();
+
+// Register BatchRestoreService as singleton and hosted service - MUST be the same instance
+builder.Services.AddSingleton<BatchRestoreService>();
+builder.Services.AddSingleton<IBatchRestoreService>(provider => provider.GetRequiredService<BatchRestoreService>());
+builder.Services.AddHostedService<BatchRestoreService>(provider => provider.GetRequiredService<BatchRestoreService>());
+
 // Register MBoxImportService as singleton and hosted service - MUST be the same instance
 builder.Services.AddSingleton<MBoxImportService>();
 builder.Services.AddSingleton<IMBoxImportService>(provider => provider.GetRequiredService<MBoxImportService>());
@@ -142,13 +209,6 @@ builder.Services.AddHostedService<MBoxImportService>(provider => provider.GetReq
 builder.Services.AddSingleton<EmlImportService>();
 builder.Services.AddSingleton<IEmlImportService>(provider => provider.GetRequiredService<EmlImportService>());
 builder.Services.AddHostedService<EmlImportService>(provider => provider.GetRequiredService<EmlImportService>());
-
-builder.Services.AddHostedService<BatchRestoreService>(provider =>
-    new BatchRestoreService(
-        provider.GetRequiredService<IServiceProvider>(),
-        provider.GetRequiredService<ILogger<BatchRestoreService>>(),
-        provider.GetRequiredService<IOptions<BatchOperationOptions>>()
-    ));
 builder.Services.AddHostedService<MailSyncBackgroundService>();
 
 // Add Localization
@@ -268,6 +328,9 @@ app.UseRequestLocalization(new RequestLocalizationOptions()
     .AddSupportedUICultures("en", "de", "es", "fr", "it", "sl", "nl", "ru"));
 app.UseRouting();
 app.UseSession();
+
+// Add Rate Limiting Middleware
+app.UseRateLimiter();
 
 // Add our custom authentication middleware
 app.UseMiddleware<AuthenticationMiddleware>();

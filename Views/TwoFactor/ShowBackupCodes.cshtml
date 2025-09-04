@@ -1,0 +1,70 @@
+@inject Microsoft.Extensions.Localization.IStringLocalizer<MailArchiver.SharedResource> Localizer
+@model List<string>
+@{
+    ViewData["Title"] = @Localizer["BackupCodes"];
+}
+
+<div class="container twofa-setup-container">
+    <h1>@Localizer["BackupCodes"]</h1>
+    
+    <div class="alert alert-warning">
+        <p><strong>@Localizer["BackupCodesWarning"]</strong></p>
+        <p>@Localizer["BackupCodesOneTimeOnly"]</p>
+    </div>
+    
+    <div class="twofa-section">
+        <p>@Localizer["BackupCodesDescription"]</p>
+        
+        <div class="twofa-backup-codes">
+            @foreach (var code in Model)
+            {
+                <div class="twofa-backup-code">@code</div>
+            }
+        </div>
+        
+        <button id="downloadBackupCodes" class="btn btn-success twofa-download-btn">
+            <i class="bi bi-download"></i> @Localizer["DownloadBackupCodes"]
+        </button>
+    </div>
+    
+    <div class="twofa-section">
+        <a asp-controller="Home" asp-action="Index" class="btn btn-primary">@Localizer["ContinueToDashboard"]</a>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Pass localized strings to JavaScript
+        const backupCodesFileHeader = '@Localizer["BackupCodesFileHeader"]';
+        const backupCodesFileFooter = '@Localizer["BackupCodesFileFooter"]';
+        
+        document.getElementById('downloadBackupCodes').addEventListener('click', function() {
+            // Get backup codes from the page
+            const backupCodes = [];
+            document.querySelectorAll('.twofa-backup-code').forEach(function(element) {
+                backupCodes.push(element.textContent);
+            });
+            
+            // Create file content
+            const content = backupCodesFileHeader + '\n\n' + 
+                           backupCodes.join('\n') + 
+                           '\n\n' + backupCodesFileFooter;
+            
+            // Create and download file
+            const blob = new Blob([content], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'mailarchiver-backup-codes.txt';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        });
+        
+        // Redirect to home page after 30 seconds
+        setTimeout(function() {
+            window.location.href = '@Url.Action("Index", "Home")';
+        }, 30000);
+    </script>
+}

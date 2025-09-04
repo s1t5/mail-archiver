@@ -14,14 +14,20 @@ public class MailAccount
     public DateTime LastSync { get; set; }
     public bool IsEnabled { get; set; } = true;
     
-    // Import-only account flag
-    public bool IsImportOnly { get; set; } = false;
     
     // Folder exclusion functionality
     public string ExcludedFolders { get; set; } = string.Empty;
     
     // Email deletion functionality
     public int? DeleteAfterDays { get; set; }
+    
+    // Provider field for account type
+    public ProviderType Provider { get; set; } = ProviderType.IMAP;
+    
+    // Microsoft 365 OAuth2 fields
+    public string? ClientId { get; set; }
+    public string? ClientSecret { get; set; }
+    public string? TenantId { get; set; }
     
     [NotMapped]
     public List<string> ExcludedFoldersList

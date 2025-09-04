@@ -164,13 +164,48 @@
 {
     @section Scripts {
         <script>
-            setTimeout(function() { location.reload(); }, 5000);
+            let refreshTimer;
+            let countdownTimer;
             let countdown = 5;
-            const countdownInterval = setInterval(function() {
-                countdown--;
-                document.title = `(${countdown}s) ${'@Localizer["BatchRestoreStatusTitle"]'} - @Model.JobId.Substring(0, 8)`;
-                if (countdown <= 0) { clearInterval(countdownInterval); }
-            }, 1000);
+            
+            function startRefresh() {
+                refreshTimer = setTimeout(function() { 
+                    // Preserve jobId in the URL when reloading
+                    const currentUrl = new URL(window.location.href);
+                    location.reload(); 
+                }, 5000);
+                
+                countdownTimer = setInterval(function() {
+                    countdown--;
+                    document.title = `(${countdown}s) ${'@Localizer["BatchRestoreStatusTitle"]'} - @Model.JobId.Substring(0, 8)`;
+                    if (countdown <= 0) { 
+                        clearInterval(countdownTimer); 
+                        countdown = 5; // Reset for next cycle
+                    }
+                }, 1000);
+            }
+            
+            function stopRefresh() {
+                if (refreshTimer) {
+                    clearTimeout(refreshTimer);
+                }
+                if (countdownTimer) {
+                    clearInterval(countdownTimer);
+                }
+                document.title = '@Localizer["BatchRestoreStatusTitle"]';
+            }
+            
+            // Start the refresh cycle
+            startRefresh();
+            
+            // Stop refresh if page becomes hidden (user navigates away)
+            document.addEventListener('visibilitychange', function() {
+                if (document.hidden) {
+                    stopRefresh();
+                } else if ('@Model.Status' === 'Running' || '@Model.Status' === 'Queued') {
+                    startRefresh();
+                }
+            });
         </script>
     }
 }

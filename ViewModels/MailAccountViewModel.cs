@@ -1,4 +1,6 @@
 using System.ComponentModel.DataAnnotations;
+using MailArchiver.Attributes;
+using MailArchiver.Models;
 
 namespace MailArchiver.Models.ViewModels
 {
@@ -13,11 +15,14 @@ namespace MailArchiver.Models.ViewModels
         [Display(Name = "Email address")]
         public string EmailAddress { get; set; }
         [Display(Name = "IMAP server")]
+        [ConditionalRequired(nameof(Provider), ProviderType.IMAP, ErrorMessage = "IMAP server is required for IMAP accounts")]
         public string? ImapServer { get; set; }
         [Range(1, 65535, ErrorMessage = "Port must be between 1 and 65535")]
         [Display(Name = "IMAP port")]
+        [ConditionalRequired(nameof(Provider), ProviderType.IMAP, ErrorMessage = "IMAP port is required for IMAP accounts")]
         public int? ImapPort { get; set; } = 993;
         [Display(Name = "Username")]
+        [ConditionalRequired(nameof(Provider), ProviderType.IMAP, ErrorMessage = "Username is required for IMAP accounts")]
         public string? Username { get; set; }
         
         [Display(Name = "Password")]
@@ -39,8 +44,19 @@ namespace MailArchiver.Models.ViewModels
         [Range(1, int.MaxValue, ErrorMessage = "Delete after days must be at least 1")]
         public int? DeleteAfterDays { get; set; }
         
-        [Display(Name = "Import Only Account")]
-        public bool IsImportOnly { get; set; } = false;
+        [Display(Name = "Provider")]
+        public ProviderType Provider { get; set; } = ProviderType.IMAP;
+        
+        [Display(Name = "Client ID")]
+        [ConditionalRequired(nameof(Provider), ProviderType.M365, ErrorMessage = "Client ID is required for M365 accounts")]
+        public string? ClientId { get; set; }
+        
+        [Display(Name = "Client Secret")]
+        public string? ClientSecret { get; set; }
+        
+        [Display(Name = "Tenant ID")]
+        [ConditionalRequired(nameof(Provider), ProviderType.M365, ErrorMessage = "Tenant ID is required for M365 accounts")]
+        public string? TenantId { get; set; }
         
         // For UI display of available folders
         public List<string> AvailableFolders { get; set; } = new List<string>();

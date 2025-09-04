@@ -1,6 +1,6 @@
 ﻿@using Microsoft.AspNetCore.Http.Extensions
 @using MailArchiver.Services
-@inject IAuthenticationService AuthService
+@inject MailArchiver.Services.IAuthenticationService AuthService
 @inject Microsoft.Extensions.Localization.IStringLocalizer<MailArchiver.SharedResource> Localizer
 @model MailArchiver.Models.ViewModels.SearchViewModel
 @{
@@ -446,6 +446,25 @@
     </div>
 </div>
 
+<!-- Batch Restore Confirmation Modal -->
+<div class="modal fade" id="batchRestoreConfirmModal" tabindex="-1" aria-labelledby="batchRestoreConfirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="batchRestoreConfirmModalLabel">@Localizer["ConfirmBatchRestore"]</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p id="confirmMessage"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">@Localizer["Cancel"]</button>
+                <button type="button" class="btn btn-primary" id="confirmBatchRestoreBtn">@Localizer["Continue"]</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -596,59 +615,90 @@
 
                     const checkedBoxes = document.querySelectorAll('.email-select-checkbox:checked');
                     if (checkedBoxes.length === 0) {
-                        alert('Please select at least one email to copy.');
+                        // Show modal for no emails selected
+                        document.getElementById('confirmMessage').textContent = '@Localizer["PleaseSelectAtLeastOne"]';
+                        var confirmModal = new bootstrap.Modal(document.getElementById('batchRestoreConfirmModal'));
+                        document.getElementById('confirmBatchRestoreBtn').style.display = 'none';
+                        confirmModal.show();
+                        
+                        // Hide modal after 3 seconds
+                        setTimeout(function() {
+                            confirmModal.hide();
+                        }, 3000);
                         return;
                     }
 
                     if (checkedBoxes.length > maxAsyncEmails) {
-                        alert('Too many emails selected (' + checkedBoxes.length.toLocaleString() + '). Maximum allowed is ' + maxAsyncEmails.toLocaleString() + ' emails. Please reduce your selection or split into multiple operations.');
+                        // Show modal for too many emails selected
+                        const tooManyMessage = '@Localizer["TooManyEmailsSelected"].Value'.replace('{0}', checkedBoxes.length.toLocaleString()).replace('{1}', maxAsyncEmails.toLocaleString());
+                        document.getElementById('confirmMessage').textContent = tooManyMessage;
+                        var confirmModal = new bootstrap.Modal(document.getElementById('batchRestoreConfirmModal'));
+                        document.getElementById('confirmBatchRestoreBtn').style.display = 'none';
+                        confirmModal.show();
+                        
+                        // Hide modal after 5 seconds
+                        setTimeout(function() {
+                            confirmModal.hide();
+                        }, 5000);
                         return;
                     }
 
                     // Show confirmation for large operations
                     if (checkedBoxes.length > asyncThreshold) {
-                        const confirmed = confirm(
-                            'You have selected ' + checkedBoxes.length.toLocaleString() + ' emails.\n' +
-                            'This will be processed as a background job that you can monitor separately.\n\n' +
-                            'Continue with this operation?'
-                        );
-                        if (!confirmed) {
-                            return;
-                        }
+                        // Show confirmation modal
+                        const message = '@Localizer["ContinueWithOperation"].Value'.replace('{0}', checkedBoxes.length.toLocaleString());
+                        document.getElementById('confirmMessage').textContent = message;
+                        var confirmModal = new bootstrap.Modal(document.getElementById('batchRestoreConfirmModal'));
+                        document.getElementById('confirmBatchRestoreBtn').style.display = 'inline-block';
+                        
+                        // Handle confirmation
+                        document.getElementById('confirmBatchRestoreBtn').onclick = function() {
+                            confirmModal.hide();
+                            submitBatchRestoreForm(checkedBoxes);
+                        };
+                        
+                        confirmModal.show();
+                        return;
                     }
-
-                    // Erstelle ein neues Form für POST-Request
-                    const form = document.createElement('form');
-                    form.method = 'post';
-                    form.action = '@Url.Action("BatchRestoreStart", "Emails")';
                     
-                    // Anti-forgery token hinzufügen
-                    const tokenInput = document.createElement('input');
-                    tokenInput.type = 'hidden';
-                    tokenInput.name = '__RequestVerificationToken';
-                    tokenInput.value = document.querySelector('input[name="__RequestVerificationToken"]').value;
-                    form.appendChild(tokenInput);
-
-                    // ReturnUrl hinzufügen
-                    const returnUrlInput = document.createElement('input');
-                    returnUrlInput.type = 'hidden';
-                    returnUrlInput.name = 'returnUrl';
-                    returnUrlInput.value = '@Context.Request.Path@Context.Request.QueryString';
-                    form.appendChild(returnUrlInput);
-
-                    // Alle ausgewählten IDs hinzufügen
-                    checkedBoxes.forEach(function(checkbox) {
-                        const idInput = document.createElement('input');
-                        idInput.type = 'hidden';
-                        idInput.name = 'ids';
-                        idInput.value = checkbox.value;
-                        form.appendChild(idInput);
-                    });
-
-                    // Form zum Body hinzufügen und absenden
-                    document.body.appendChild(form);
-                    form.submit();
+                    // For small operations, proceed directly
+                    submitBatchRestoreForm(checkedBoxes);
                 });
+            }
+
+            // Function to submit the batch restore form
+            function submitBatchRestoreForm(checkedBoxes) {
+                // Erstelle ein neues Form für POST-Request
+                const form = document.createElement('form');
+                form.method = 'post';
+                form.action = '@Url.Action("BatchRestoreStart", "Emails")';
+                
+                // Anti-forgery token hinzufügen
+                const tokenInput = document.createElement('input');
+                tokenInput.type = 'hidden';
+                tokenInput.name = '__RequestVerificationToken';
+                tokenInput.value = document.querySelector('input[name="__RequestVerificationToken"]').value;
+                form.appendChild(tokenInput);
+
+                // ReturnUrl hinzufügen
+                const returnUrlInput = document.createElement('input');
+                returnUrlInput.type = 'hidden';
+                returnUrlInput.name = 'returnUrl';
+                returnUrlInput.value = '@Context.Request.Path@Context.Request.QueryString';
+                form.appendChild(returnUrlInput);
+
+                // Alle ausgewählten IDs hinzufügen
+                checkedBoxes.forEach(function(checkbox) {
+                    const idInput = document.createElement('input');
+                    idInput.type = 'hidden';
+                    idInput.name = 'ids';
+                    idInput.value = checkbox.value;
+                    form.appendChild(idInput);
+                });
+
+                // Form zum Body hinzufügen und absenden
+                document.body.appendChild(form);
+                form.submit();
             }
 
             // Initialize handlers after DOM is ready

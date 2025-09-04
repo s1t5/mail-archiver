@@ -19,6 +19,7 @@ namespace MailArchiver.Controllers
     {
         private readonly MailArchiverDbContext _context;
         private readonly IEmailService _emailService;
+        private readonly IGraphEmailService _graphEmailService;
         private readonly ILogger<EmailsController> _logger;
         private readonly IBatchRestoreService? _batchRestoreService;
         private readonly BatchRestoreOptions _batchOptions;
@@ -28,6 +29,7 @@ namespace MailArchiver.Controllers
         public EmailsController(
             MailArchiverDbContext context,
             IEmailService emailService,
+            IGraphEmailService graphEmailService,
             ILogger<EmailsController> logger,
             IOptions<BatchRestoreOptions> batchOptions,
             IBatchRestoreService? batchRestoreService = null,
@@ -37,6 +39,7 @@ namespace MailArchiver.Controllers
         {
             _context = context;
             _emailService = emailService;
+            _graphEmailService = graphEmailService;
             _logger = logger;
             _batchRestoreService = batchRestoreService;
             _syncJobService = syncJobService;
@@ -78,7 +81,7 @@ namespace MailArchiver.Controllers
 
             // Get current user's allowed accounts
             List<int> allowedAccountIds = null;
-            var authService = HttpContext.RequestServices.GetService<IAuthenticationService>();
+            var authService = HttpContext.RequestServices.GetService<MailArchiver.Services.IAuthenticationService>();
             var userService = HttpContext.RequestServices.GetService<IUserService>();
             
             if (authService != null && userService != null && !authService.IsCurrentUserAdmin(HttpContext))
@@ -357,7 +360,7 @@ namespace MailArchiver.Controllers
 
             // Get current user's allowed accounts for filtering
             List<int> allowedAccountIds = null;
-            var authService = HttpContext.RequestServices.GetService<IAuthenticationService>();
+            var authService = HttpContext.RequestServices.GetService<MailArchiver.Services.IAuthenticationService>();
             var userService = HttpContext.RequestServices.GetService<IUserService>();
             
             if (authService != null && userService != null && !authService.IsCurrentUserAdmin(HttpContext))
@@ -436,9 +439,9 @@ namespace MailArchiver.Controllers
                 return NotFound();
             }
 
-            // Liste aller aktiven E-Mail-Konten abrufen
+            // Liste aller aktiven E-Mail-Konten abrufen (ohne IMPORT-Konten)
             var accounts = await _context.MailAccounts
-                .Where(a => a.IsEnabled)
+                .Where(a => a.IsEnabled && a.Provider != ProviderType.IMPORT)
                 .OrderBy(a => a.Name)
                 .ToListAsync();
 
@@ -460,8 +463,19 @@ namespace MailArchiver.Controllers
             {
                 model.TargetAccountId = int.Parse(model.AvailableAccounts[0].Value);
                 model.AvailableAccounts[0].Selected = true;
-                // Load folders for this account
-                var folders = await _emailService.GetMailFoldersAsync(model.TargetAccountId);
+                // Load folders for this account using appropriate service
+                var targetAccount = await _context.MailAccounts.FindAsync(model.TargetAccountId);
+                List<string> folders;
+                
+                if (targetAccount?.Provider == ProviderType.M365)
+                {
+                    folders = await _graphEmailService.GetMailFoldersAsync(targetAccount);
+                }
+                else
+                {
+                    folders = await _emailService.GetMailFoldersAsync(model.TargetAccountId);
+                }
+                
                 model.AvailableFolders = folders.Select(f => new SelectListItem
                 {
                     Value = f,
@@ -520,7 +534,18 @@ namespace MailArchiver.Controllers
                 // Reload folders for the selected account
                 if (model.TargetAccountId > 0)
                 {
-                    var folders = await _emailService.GetMailFoldersAsync(model.TargetAccountId);
+                    var targetAccount = await _context.MailAccounts.FindAsync(model.TargetAccountId);
+                    List<string> folders;
+                    
+                    if (targetAccount?.Provider == ProviderType.M365)
+                    {
+                        folders = await _graphEmailService.GetMailFoldersAsync(targetAccount);
+                    }
+                    else
+                    {
+                        folders = await _emailService.GetMailFoldersAsync(model.TargetAccountId);
+                    }
+                    
                     model.AvailableFolders = folders.Select(f => new SelectListItem
                     {
                         Value = f,
@@ -546,10 +571,34 @@ namespace MailArchiver.Controllers
                 _logger.LogInformation("Attempting to restore email {EmailId} to folder '{Folder}' of account {AccountId}",
                     model.EmailId, model.TargetFolder, model.TargetAccountId);
 
-                var result = await _emailService.RestoreEmailToFolderAsync(
-                    model.EmailId,
-                    model.TargetAccountId,
-                    model.TargetFolder);
+                // Get target account to check provider type
+                var targetAccount = await _context.MailAccounts.FindAsync(model.TargetAccountId);
+                bool result;
+
+                // Route to appropriate service based on provider type
+                if (targetAccount?.Provider == ProviderType.M365)
+                {
+                    _logger.LogInformation("Using Graph API service for M365 account {AccountId}", model.TargetAccountId);
+                    var email = await _context.ArchivedEmails
+                        .Include(e => e.Attachments)
+                        .FirstOrDefaultAsync(e => e.Id == model.EmailId);
+                    
+                    if (email == null)
+                    {
+                        _logger.LogError("Email with ID {EmailId} not found", model.EmailId);
+                        TempData["ErrorMessage"] = "The email could not be found.";
+                        return RedirectToAction(nameof(Details), new { id = model.EmailId });
+                    }
+                    
+                    result = await _graphEmailService.RestoreEmailToFolderAsync(email, targetAccount, model.TargetFolder);
+                }
+                else
+                {
+                    result = await _emailService.RestoreEmailToFolderAsync(
+                        model.EmailId,
+                        model.TargetAccountId,
+                        model.TargetFolder);
+                }
 
                 if (result)
                 {
@@ -670,9 +719,9 @@ namespace MailArchiver.Controllers
 
             var ids = idsString.Split(',').Select(int.Parse).ToList();
 
-            // Get active email accounts for dropdown
+            // Get active email accounts for dropdown (without IMPORT accounts)
             var accounts = await _context.MailAccounts
-                .Where(a => a.IsEnabled)
+                .Where(a => a.IsEnabled && a.Provider != ProviderType.IMPORT)
                 .OrderBy(a => a.Name)
                 .ToListAsync();
 
@@ -691,8 +740,19 @@ namespace MailArchiver.Controllers
             if (model.AvailableAccounts.Count == 1)
             {
                 model.TargetAccountId = int.Parse(model.AvailableAccounts[0].Value);
-                // Load folders for this account
-                var folders = await _emailService.GetMailFoldersAsync(model.TargetAccountId);
+                // Load folders for this account using appropriate service
+                var targetAccount = await _context.MailAccounts.FindAsync(model.TargetAccountId);
+                List<string> folders;
+                
+                if (targetAccount?.Provider == ProviderType.M365)
+                {
+                    folders = await _graphEmailService.GetMailFoldersAsync(targetAccount);
+                }
+                else
+                {
+                    folders = await _emailService.GetMailFoldersAsync(model.TargetAccountId);
+                }
+                
                 model.AvailableFolders = folders.Select(f => new SelectListItem
                 {
                     Value = f,
@@ -748,7 +808,18 @@ namespace MailArchiver.Controllers
                 // Reload folders for the selected account
                 if (model.TargetAccountId > 0)
                 {
-                    var folders = await _emailService.GetMailFoldersAsync(model.TargetAccountId);
+                    var targetAccount = await _context.MailAccounts.FindAsync(model.TargetAccountId);
+                    List<string> folders;
+                    
+                    if (targetAccount?.Provider == ProviderType.M365)
+                    {
+                        folders = await _graphEmailService.GetMailFoldersAsync(targetAccount);
+                    }
+                    else
+                    {
+                        folders = await _emailService.GetMailFoldersAsync(model.TargetAccountId);
+                    }
+                    
                     model.AvailableFolders = folders.Select(f => new SelectListItem
                     {
                         Value = f,
@@ -765,10 +836,63 @@ namespace MailArchiver.Controllers
                 _logger.LogInformation("Attempting to restore {Count} emails to folder '{Folder}' of account {AccountId}",
                     model.SelectedEmailIds.Count, model.TargetFolder, model.TargetAccountId);
 
-                var (successful, failed) = await _emailService.RestoreMultipleEmailsAsync(
-                    model.SelectedEmailIds,
-                    model.TargetAccountId,
-                    model.TargetFolder);
+                // Get target account to check provider type
+                var targetAccount = await _context.MailAccounts.FindAsync(model.TargetAccountId);
+                int successful, failed;
+
+                // Route to appropriate service based on provider type
+                if (targetAccount?.Provider == ProviderType.M365)
+                {
+                    _logger.LogInformation("Using Graph API service for M365 account {AccountId}", model.TargetAccountId);
+                    
+                    // For M365, we need to restore emails one by one using the Graph API
+                    successful = 0;
+                    failed = 0;
+                    
+                    foreach (var emailId in model.SelectedEmailIds)
+                    {
+                        try
+                        {
+                            var email = await _context.ArchivedEmails
+                                .Include(e => e.Attachments)
+                                .FirstOrDefaultAsync(e => e.Id == emailId);
+                            
+                            if (email == null)
+                            {
+                                _logger.LogWarning("Email with ID {EmailId} not found during batch restore", emailId);
+                                failed++;
+                                continue;
+                            }
+                            
+                            var result = await _graphEmailService.RestoreEmailToFolderAsync(email, targetAccount, model.TargetFolder);
+                            if (result)
+                            {
+                                successful++;
+                                _logger.LogInformation("Successfully restored email {EmailId} to M365 account {AccountId}", emailId, model.TargetAccountId);
+                            }
+                            else
+                            {
+                                failed++;
+                                _logger.LogWarning("Failed to restore email {EmailId} to M365 account {AccountId}", emailId, model.TargetAccountId);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            failed++;
+                            _logger.LogError(ex, "Exception occurred during batch email restoration of email {EmailId} to M365 account {AccountId}", emailId, model.TargetAccountId);
+                        }
+                    }
+                }
+                else
+                {
+                    var result = await _emailService.RestoreMultipleEmailsAsync(
+                        model.SelectedEmailIds,
+                        model.TargetAccountId,
+                        model.TargetFolder);
+                    
+                    successful = result.Successful;
+                    failed = result.Failed;
+                }
 
                 if (successful > 0)
                 {
@@ -884,9 +1008,9 @@ namespace MailArchiver.Controllers
                 }
             }
 
-            // Get active email accounts
+            // Get active email accounts (without IMPORT accounts)
             var accounts = await _context.MailAccounts
-                .Where(a => a.IsEnabled)
+                .Where(a => a.IsEnabled && a.Provider != ProviderType.IMPORT)
                 .OrderBy(a => a.Name)
                 .ToListAsync();
 
@@ -998,19 +1122,31 @@ namespace MailArchiver.Controllers
         [HttpGet]
         public IActionResult BatchRestoreStatus(string jobId)
         {
+            _logger.LogDebug("BatchRestoreStatus called with jobId: {JobId}", jobId ?? "null");
+
             if (_batchRestoreService == null)
             {
+                _logger.LogWarning("Batch restore service is not available");
                 TempData["ErrorMessage"] = "Batch restore service is not available.";
+                return RedirectToAction("Index");
+            }
+
+            if (string.IsNullOrEmpty(jobId))
+            {
+                _logger.LogWarning("Empty or null jobId provided to BatchRestoreStatus");
+                TempData["ErrorMessage"] = "Invalid job ID.";
                 return RedirectToAction("Index");
             }
 
             var job = _batchRestoreService.GetJob(jobId);
             if (job == null)
             {
+                _logger.LogWarning("Job with ID {JobId} not found in BatchRestoreService", jobId);
                 TempData["ErrorMessage"] = "Batch restore job not found.";
                 return RedirectToAction("Index");
             }
 
+            _logger.LogDebug("Successfully retrieved job {JobId} with status {Status}", jobId, job.Status);
             return View(job);
         }
 
@@ -1022,6 +1158,12 @@ namespace MailArchiver.Controllers
             if (_batchRestoreService == null)
             {
                 TempData["ErrorMessage"] = "Batch restore service is not available.";
+                return Redirect(returnUrl ?? Url.Action("Index"));
+            }
+
+            if (string.IsNullOrEmpty(jobId))
+            {
+                TempData["ErrorMessage"] = "Invalid job ID.";
                 return Redirect(returnUrl ?? Url.Action("Index"));
             }
 
@@ -1139,6 +1281,11 @@ namespace MailArchiver.Controllers
                 return Json(new { error = "Batch restore service not available" });
             }
 
+            if (string.IsNullOrEmpty(jobId))
+            {
+                return Json(new { error = "Invalid job ID" });
+            }
+
             var job = _batchRestoreService.GetJob(jobId);
             if (job == null)
             {
@@ -1173,7 +1320,28 @@ namespace MailArchiver.Controllers
 
             try
             {
-                var folders = await _emailService.GetMailFoldersAsync(accountId);
+                // Get the account to check its provider type
+                var account = await _context.MailAccounts.FindAsync(accountId);
+                if (account == null)
+                {
+                    _logger.LogWarning("Account with ID {AccountId} not found", accountId);
+                    return Json(new List<string> { "INBOX" });
+                }
+
+                List<string> folders;
+                
+                // Route to appropriate service based on provider type
+                if (account.Provider == ProviderType.M365)
+                {
+                    _logger.LogInformation("Using Graph API service for M365 account {AccountId}", accountId);
+                    folders = await _graphEmailService.GetMailFoldersAsync(account);
+                }
+                else
+                {
+                    _logger.LogInformation("Using IMAP service for account {AccountId}", accountId);
+                    folders = await _emailService.GetMailFoldersAsync(accountId);
+                }
+
                 if (folders == null || !folders.Any())
                 {
                     _logger.LogWarning("No folders found for account {AccountId}, returning default", accountId);
@@ -1215,7 +1383,7 @@ namespace MailArchiver.Controllers
 
             // Get current user's allowed accounts for filtering
             List<int> allowedAccountIds = null;
-            var authService = HttpContext.RequestServices.GetService<IAuthenticationService>();
+            var authService = HttpContext.RequestServices.GetService<MailArchiver.Services.IAuthenticationService>();
             var userService = HttpContext.RequestServices.GetService<IUserService>();
             
             if (authService != null && userService != null && !authService.IsCurrentUserAdmin(HttpContext))

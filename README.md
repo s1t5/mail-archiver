@@ -57,6 +57,11 @@
 > - Requires IMAP Expunge support from the mail server to permanently delete emails
 > - For Gmail accounts, Auto-Expunge must be enabled in Gmail settings under the "Forwarding and POP/IMAP" tab
 
+### 🧩 Supported Email Providers
+- **IMAP**: Traditional IMAP accounts with full synchronization capabilities
+- **M365**: Microsoft 365 mail accounts via Microsoft Graph API ([setup guide](doc/AZURE_APP_REGISTRATION_M365.md))
+- **IMPORT**: Import-only accounts for migrating existing email archives without active synchronization
+
 ## 🖼️ Screenshots
 
 ### Dashboard

@@ -1,0 +1,38 @@
+@inject Microsoft.Extensions.Localization.IStringLocalizer<MailArchiver.SharedResource> Localizer
+@{
+    ViewData["Title"] = @Localizer["TwoFactorAuthentication"];
+    Layout = "_LoginLayout";
+}
+
+<div class="login-container">
+    <div class="card login-card">
+        <div class="card-body">
+            <div class="text-center mb-4">
+                <i class="bi bi-envelope-check display-3 text-primary"></i>
+                <h2 class="mt-3">@Localizer["AppName"]</h2>
+                <p class="text-muted">@Localizer["TwoFactorAuthentication"]</p>
+            </div>
+
+            <form asp-action="Verify" method="post">
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+                <div class="mb-3">
+                    <div class="input-group">
+                        <span class="input-group-text">
+                            <i class="bi bi-shield-lock"></i>
+                        </span>
+                        <input type="text" class="form-control" id="token" name="token" placeholder="@Localizer["EnterCodeFromApp"]" required autofocus />
+                    </div>
+                </div>
+                
+                <div class="d-grid">
+                    <button type="submit" class="btn btn-primary btn-lg">
+                        <i class="bi bi-check-circle me-2"></i>@Localizer["Verify"]
+                    </button>
+                </div>
+            </form>
+        </div>
+        <div class="card-footer text-center text-muted">
+            <small>@DateTime.Now.Year - s1t5</small>
+        </div>
+    </div>
+</div>

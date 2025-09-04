@@ -31,6 +31,15 @@ namespace MailArchiver.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("ClientId")
+                        .HasColumnType("text");
+
+                    b.Property<string>("ClientSecret")
+                        .HasColumnType("text");
+
+                    b.Property<string>("TenantId")
+                        .HasColumnType("text");
+
                     b.Property<int?>("DeleteAfterDays")
                         .HasColumnType("integer");
 
@@ -51,8 +60,10 @@ namespace MailArchiver.Migrations
                     b.Property<bool>("IsEnabled")
                         .HasColumnType("boolean");
 
-                    b.Property<bool>("IsImportOnly")
-                        .HasColumnType("boolean");
+
+                    b.Property<string>("Provider")
+                        .HasMaxLength(10)
+                        .HasColumnType("text");
 
                     b.Property<DateTime>("LastSync")
                         .HasColumnType("timestamp without time zone");
@@ -201,11 +212,20 @@ namespace MailArchiver.Migrations
                     b.Property<bool>("IsSelfManager")
                         .HasColumnType("boolean");
 
+                    b.Property<bool>("IsTwoFactorEnabled")
+                        .HasColumnType("boolean");
+
                     b.Property<DateTime?>("LastLoginAt")
                         .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("PasswordHash")
                         .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("TwoFactorBackupCodes")
+                        .HasColumnType("text");
+
+                    b.Property<string>("TwoFactorSecret")
                         .HasColumnType("text");
 
                     b.Property<string>("Username")
