@@ -378,7 +378,7 @@ namespace MailArchiver.Services
                             "id", "internetMessageId", "subject", "from", "toRecipients", "ccRecipients", "bccRecipients",
                             "sentDateTime", "receivedDateTime", "hasAttachments", "body", "bodyPreview", "lastModifiedDateTime"
                         };
-                        requestConfiguration.QueryParameters.Top = _batchOptions.BatchSize;
+                        requestConfiguration.QueryParameters.Top = 1000; // Use maximum allowed by Graph API for better performance
                     });
                     
                     _logger.LogInformation("Graph API response for folder {FolderName}: {MessageCount} messages returned (filter attempt)", 
@@ -407,7 +407,6 @@ namespace MailArchiver.Services
                                 _logger.LogInformation("Folder {FolderName} contains messages but none match date filter. Using fallback query for first sync.", folder.DisplayName);
                                 
                                 // For first sync, get messages without date filter
-                                int fallbackLimit = int.MaxValue;
                                 messagesResponse = await graphClient.Users[account.EmailAddress].MailFolders[folder.Id].Messages.GetAsync((requestConfiguration) =>
                                 {
                                     requestConfiguration.QueryParameters.Select = new string[] 
@@ -415,11 +414,11 @@ namespace MailArchiver.Services
                                         "id", "internetMessageId", "subject", "from", "toRecipients", "ccRecipients", "bccRecipients",
                                         "sentDateTime", "receivedDateTime", "hasAttachments", "body", "bodyPreview", "lastModifiedDateTime"
                                     };
-                                    requestConfiguration.QueryParameters.Top = fallbackLimit;
+                                    requestConfiguration.QueryParameters.Top = 1000; // Use maximum allowed by Graph API
                                 });
                                 
-                                _logger.LogInformation("Fallback query without filter returned {Count} messages for folder {FolderName} (limit: {Limit})", 
-                                    messagesResponse?.Value?.Count ?? 0, folder.DisplayName, fallbackLimit);
+                                _logger.LogInformation("Fallback query without filter returned {Count} messages for folder {FolderName} (pagination will handle remaining messages)", 
+                                    messagesResponse?.Value?.Count ?? 0, folder.DisplayName);
                             }
                             else
                             {
@@ -444,7 +443,7 @@ namespace MailArchiver.Services
                             { 
                                 "id", "internetMessageId", "subject", "from", "sentDateTime", "receivedDateTime", "lastModifiedDateTime"
                             };
-                            requestConfiguration.QueryParameters.Top = _batchOptions.BatchSize;
+                            requestConfiguration.QueryParameters.Top = 1000; // Use maximum allowed by Graph API for better performance
                         });
                         
                         _logger.LogInformation("Second attempt returned {Count} messages for folder {FolderName}", 
@@ -464,7 +463,7 @@ namespace MailArchiver.Services
                                 { 
                                     "id", "internetMessageId", "subject", "from", "sentDateTime", "receivedDateTime", "lastModifiedDateTime"
                                 };
-                                requestConfiguration.QueryParameters.Top = _batchOptions.BatchSize;
+                                requestConfiguration.QueryParameters.Top = 1000; // Use maximum allowed by Graph API for better performance
                             });
                             
                             _logger.LogDebug("Third attempt (basic query) succeeded for folder {FolderName}", folder.DisplayName);
@@ -984,89 +983,121 @@ namespace MailArchiver.Services
                         {
                             requestConfiguration.QueryParameters.Filter = filter;
                             requestConfiguration.QueryParameters.Select = new string[] { "id", "internetMessageId", "subject", "receivedDateTime" };
-                            requestConfiguration.QueryParameters.Top = int.MaxValue; // Process in smaller batches
+                            requestConfiguration.QueryParameters.Top = 1000; // Use maximum allowed by Graph API
                         });
 
-                        if (messagesResponse?.Value != null && messagesResponse.Value.Count > 0)
+                        var totalOldEmailsFound = 0;
+                        var totalProcessedInFolder = 0;
+                        var paginationCount = 0;
+
+                        // Process the initial response and all paginated results
+                        while (messagesResponse?.Value != null)
                         {
-                            _logger.LogInformation("Found {Count} old emails in folder {FolderName} for account {AccountName}",
-                                messagesResponse.Value.Count, folder.DisplayName, account.Name);
+                            paginationCount++;
+                            var currentPageSize = messagesResponse.Value.Count;
+                            totalOldEmailsFound += currentPageSize;
 
-                            // Process messages in batches
-                            var messageIdsToDelete = new List<string>();
-                            
-                            foreach (var message in messagesResponse.Value)
+                            _logger.LogInformation("Processing page {PageNumber} with {Count} old emails in folder {FolderName} for account {AccountName} (Total found so far: {TotalFound})",
+                                paginationCount, currentPageSize, folder.DisplayName, account.Name, totalOldEmailsFound);
+
+                            if (currentPageSize > 0)
                             {
-                                // Check if this email is already archived before deletion
-                                var messageId = message.InternetMessageId ?? message.Id;
+                                // Process messages in current page
+                                var messageIdsToDelete = new List<string>();
                                 
-                                var isArchived = await _context.ArchivedEmails
-                                    .AnyAsync(e => e.MessageId == messageId && e.MailAccountId == account.Id);
+                                foreach (var message in messagesResponse.Value)
+                                {
+                                    // Check if this email is already archived before deletion
+                                    var messageId = message.InternetMessageId ?? message.Id;
+                                    
+                                    var isArchived = await _context.ArchivedEmails
+                                        .AnyAsync(e => e.MessageId == messageId && e.MailAccountId == account.Id);
 
-                                // Also check with angle brackets if not already found
-                                if (!isArchived && !string.IsNullOrEmpty(messageId) && !messageId.StartsWith("<"))
-                                {
-                                    var messageIdWithBrackets = $"<{messageId}>";
-                                    isArchived = await _context.ArchivedEmails
-                                        .AnyAsync(e => e.MessageId == messageIdWithBrackets && e.MailAccountId == account.Id);
-                                }
-                                // Also check without angle brackets if not already found
-                                else if (!isArchived && !string.IsNullOrEmpty(messageId) && messageId.StartsWith("<") && messageId.EndsWith(">"))
-                                {
-                                    var messageIdWithoutBrackets = messageId.Substring(1, messageId.Length - 2);
-                                    isArchived = await _context.ArchivedEmails
-                                        .AnyAsync(e => e.MessageId == messageIdWithoutBrackets && e.MailAccountId == account.Id);
+                                    // Also check with angle brackets if not already found
+                                    if (!isArchived && !string.IsNullOrEmpty(messageId) && !messageId.StartsWith("<"))
+                                    {
+                                        var messageIdWithBrackets = $"<{messageId}>";
+                                        isArchived = await _context.ArchivedEmails
+                                            .AnyAsync(e => e.MessageId == messageIdWithBrackets && e.MailAccountId == account.Id);
+                                    }
+                                    // Also check without angle brackets if not already found
+                                    else if (!isArchived && !string.IsNullOrEmpty(messageId) && messageId.StartsWith("<") && messageId.EndsWith(">"))
+                                    {
+                                        var messageIdWithoutBrackets = messageId.Substring(1, messageId.Length - 2);
+                                        isArchived = await _context.ArchivedEmails
+                                            .AnyAsync(e => e.MessageId == messageIdWithoutBrackets && e.MailAccountId == account.Id);
+                                    }
+
+                                    if (isArchived)
+                                    {
+                                        messageIdsToDelete.Add(message.Id);
+                                        _logger.LogDebug("Marking email with Message-ID {MessageId} for deletion from folder {FolderName}",
+                                            messageId, folder.DisplayName);
+                                    }
+                                    else
+                                    {
+                                        _logger.LogDebug("Skipping deletion of email with Message-ID {MessageId} from folder {FolderName} (not archived). Account ID: {AccountId}",
+                                            messageId, folder.DisplayName, account.Id);
+                                    }
                                 }
 
-                                if (isArchived)
+                                if (messageIdsToDelete.Count > 0)
                                 {
-                                    messageIdsToDelete.Add(message.Id);
-                                    _logger.LogDebug("Marking email with Message-ID {MessageId} for deletion from folder {FolderName}",
-                                        messageId, folder.DisplayName);
+                                    _logger.LogInformation("Attempting to delete {Count} emails from page {PageNumber} in folder {FolderName} for account {AccountName}",
+                                        messageIdsToDelete.Count, paginationCount, folder.DisplayName, account.Name);
+
+                                    // Delete messages using individual requests to avoid rate limiting
+                                    foreach (var messageId in messageIdsToDelete)
+                                    {
+                                        try
+                                        {
+                                            await graphClient.Users[account.EmailAddress].Messages[messageId].DeleteAsync();
+                                            deletedCount++;
+                                            totalProcessedInFolder++;
+                                            _logger.LogDebug("Successfully deleted email {MessageId} from folder {FolderName}",
+                                                messageId, folder.DisplayName);
+                                        }
+                                        catch (Exception deleteEx)
+                                        {
+                                            _logger.LogError(deleteEx, "Error deleting email {MessageId} from folder {FolderName} for account {AccountName}",
+                                                messageId, folder.DisplayName, account.Name);
+                                        }
+                                    }
+
+                                    _logger.LogInformation("Successfully processed {Count} emails for deletion from page {PageNumber} in folder {FolderName} for account {AccountName}",
+                                        messageIdsToDelete.Count, paginationCount, folder.DisplayName, account.Name);
                                 }
                                 else
                                 {
-                                    _logger.LogInformation("Skipping deletion of email with Message-ID {MessageId} from folder {FolderName} (not archived). Account ID: {AccountId}",
-                                        messageId, folder.DisplayName, account.Id);
+                                    _logger.LogInformation("No archived emails to delete on page {PageNumber} in folder {FolderName} for account {AccountName}",
+                                        paginationCount, folder.DisplayName, account.Name);
                                 }
                             }
 
-                            if (messageIdsToDelete.Count > 0)
+                            // Check for next page using OdataNextLink
+                            if (!string.IsNullOrEmpty(messagesResponse.OdataNextLink))
                             {
-                                _logger.LogInformation("Attempting to delete {Count} emails from folder {FolderName} for account {AccountName}",
-                                    messageIdsToDelete.Count, folder.DisplayName, account.Name);
+                                _logger.LogInformation("Fetching next page of old emails for folder {FolderName} (page {NextPage})", 
+                                    folder.DisplayName, paginationCount + 1);
 
-                                // Delete messages using batch requests to avoid rate limiting
-                                foreach (var messageId in messageIdsToDelete)
+                                // Add a pause between pages to avoid overwhelming the API
+                                if (_batchOptions.PauseBetweenBatchesMs > 0)
                                 {
-                                    try
-                                    {
-                                        await graphClient.Users[account.EmailAddress].Messages[messageId].DeleteAsync();
-                                        deletedCount++;
-                                        _logger.LogDebug("Successfully deleted email {MessageId} from folder {FolderName}",
-                                            messageId, folder.DisplayName);
-                                    }
-                                    catch (Exception deleteEx)
-                                    {
-                                        _logger.LogError(deleteEx, "Error deleting email {MessageId} from folder {FolderName} for account {AccountName}",
-                                            messageId, folder.DisplayName, account.Name);
-                                    }
+                                    await Task.Delay(_batchOptions.PauseBetweenBatchesMs);
                                 }
 
-                                _logger.LogInformation("Successfully processed {Count} emails for deletion from folder {FolderName} for account {AccountName}",
-                                    messageIdsToDelete.Count, folder.DisplayName, account.Name);
+                                // Get next page
+                                messagesResponse = await graphClient.Users[account.EmailAddress].MailFolders[folder.Id].Messages.WithUrl(messagesResponse.OdataNextLink).GetAsync();
                             }
                             else
                             {
-                                _logger.LogInformation("No archived emails to delete in folder {FolderName} for account {AccountName}",
-                                    folder.DisplayName, account.Name);
+                                // No more pages
+                                break;
                             }
                         }
-                        else
-                        {
-                            _logger.LogInformation("No old emails found in folder {FolderName} for account {AccountName}",
-                                folder.DisplayName, account.Name);
-                        }
+
+                        _logger.LogInformation("Completed deletion processing for folder {FolderName}. Total emails found: {TotalFound}, Total pages processed: {PagesProcessed}, Emails deleted: {DeletedInFolder}",
+                            folder.DisplayName, totalOldEmailsFound, paginationCount, totalProcessedInFolder);
                     }
                     catch (Exception ex)
                     {
