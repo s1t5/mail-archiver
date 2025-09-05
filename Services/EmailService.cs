@@ -973,9 +973,15 @@ namespace MailArchiver.Services
                 // Extract email address from From field
                 var fromAddress = message.From?.FirstOrDefault() as MailboxAddress;
                 var from = CleanText(fromAddress?.Address ?? string.Empty);
-                var to = CleanText(message.To.ToString());
-                var cc = CleanText(message.Cc?.ToString() ?? string.Empty);
-                var bcc = CleanText(message.Bcc?.ToString() ?? string.Empty);
+                // Extract email addresses from To field
+                var toAddresses = message.To?.Select(m => m as MailboxAddress).Where(m => m != null).Select(m => m.Address) ?? new List<string>();
+                var to = CleanText(string.Join(", ", toAddresses));
+                // Extract email addresses from Cc field
+                var ccAddresses = message.Cc?.Select(m => m as MailboxAddress).Where(m => m != null).Select(m => m.Address) ?? new List<string>();
+                var cc = CleanText(string.Join(", ", ccAddresses));
+                // Extract email addresses from Bcc field
+                var bccAddresses = message.Bcc?.Select(m => m as MailboxAddress).Where(m => m != null).Select(m => m.Address) ?? new List<string>();
+                var bcc = CleanText(string.Join(", ", bccAddresses));
 
                 // Extract text and HTML body preserving original encoding
                 var body = string.Empty;
