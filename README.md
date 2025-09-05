@@ -1,6 +1,6 @@
-# 📧 Mail-Archiver - IMAP Email Archiving System
+# 📧 Mail-Archiver - Email Archiving System
 
-**A comprehensive solution for archiving, searching, and exporting emails from IMAP accounts**
+**A comprehensive solution for archiving, searching, and exporting emails**
 
 <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px;">
   <a href="#"><img src="https://img.shields.io/badge/Docker-2CA5E0?style=for-the-badge&logo=docker&logoColor=white" alt="Docker"></a>
@@ -15,7 +15,7 @@
 
 ### 📌 General
 - Automated archiving of incoming and outgoing emails
-- Support for multiple IMAP accounts
+- Support for multiple accounts
 - Storage of email content and attachments
 - Scheduled synchronization at configurable intervals
 - Mobile and desktop optimized, multilingual responsive UI
@@ -53,10 +53,10 @@
 - Restore a selection of emails or an entire mailbox to a destination mailbox
 
 ### 🗑️ Retention Policies
-- Configure automatic deletion of archived emails from the IMAP server after a specified number of days
+- Configure automatic deletion of archived emails from the mailserver after a specified number of days
 - Set retention period per email account (e.g., delete emails after 30, 90, or 365 days)
 - Emails are only deleted from the server after they have been successfully archived
-- Helps manage storage space on the IMAP server while maintaining a complete archive
+- Helps manage storage space on the mailserver while maintaining a complete archive
 
 > 🚨 **Important note for retention policies**
 > - Requires IMAP Expunge support from the mail server to permanently delete emails
@@ -78,7 +78,7 @@
 ### Prerequisites
 - [Docker](https://www.docker.com/products/docker-desktop)
 - [Docker Compose](https://docs.docker.com/compose/install/)
-- IMAP email account credentials
+- email account credentials
 
 ### 🛠️ Installation
 
@@ -186,7 +186,7 @@ docker compose restart
 7. Login with your defined credentials and add your first email account:
 - Navigate to "Email Accounts" section
 - Click "New Account"
-- Enter your IMAP server details and credentials
+- Enter your server details and credentials
 - Save and start archiving!
 - If you want, create other users and assign accounts.
 
