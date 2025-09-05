@@ -13,10 +13,6 @@ This guide provides comprehensive instructions for setting up Azure App Registra
 3. [Configure Mail Archiver M365 Account](#configure-mail-archiver-m365-account)
 4. [Retention Policy Setup](#retention-policy-setup)
    - [Configure Retention Policy](#configure-retention-policy)
-   - [Required Permissions for Retention Policy](#required-permissions-for-retention-policy)
-5. [Testing and Verification](#testing-and-verification)
-6. [Troubleshooting](#troubleshooting)
-7. [Best Practices](#best-practices)
 
 ## Overview
 

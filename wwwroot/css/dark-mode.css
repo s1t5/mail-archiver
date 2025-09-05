@@ -414,3 +414,41 @@
 [data-theme="dark"] .modal-footer {
   border-top: 1px solid var(--border-color);
 }
+
+/* Dark Mode für TwoFactor section */
+[data-theme="dark"] .twofa-section {
+  background-color: var(--card-bg);
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--card-shadow);
+}
+
+[data-theme="dark"] .twofa-warning {
+  background-color: var(--alert-danger-bg);
+  border: 1px solid var(--alert-danger-border);
+  color: var(--text-color);
+}
+
+/* Dark Mode für TwoFactor secret */
+[data-theme="dark"] .twofa-secret {
+  background-color: var(--card-bg);
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
+  padding: 10px;
+  font-family: monospace;
+  font-size: 1.2em;
+  text-align: center;
+  margin: 10px 0;
+}
+
+/* Dark Mode für TwoFactor backup codes */
+[data-theme="dark"] .twofa-backup-code {
+  background-color: var(--card-bg);
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
+  padding: 10px;
+  font-family: monospace;
+  font-size: 1.2em;
+  text-align: center;
+  margin: 10px 0;
+}

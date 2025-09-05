@@ -332,23 +332,11 @@ namespace MailArchiver.Services
             {
                 bool isOutgoing = IsOutgoingFolder(folder);
                 var lastSync = account.LastSync;
-
-                // Safety check: If lastSync is too old or null, use a reasonable default
-                bool isFirstSync = false;
-                if (lastSync == null || lastSync < DateTime.UtcNow.AddYears(-1))
+                
+                // Subtract 12 hours from lastSync for the query, but only if it's not the Unix epoch (1/1/1970)
+                if (lastSync != new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc))
                 {
-                    lastSync = DateTime.UtcNow.AddDays(-365); // Start with 1 year back for initial sync
-                    isFirstSync = true;
-                    _logger.LogInformation("LastSync is null or too old for account {AccountName}, using {DefaultDate} as starting point (first sync)", 
-                        account.Name, lastSync);
-                }
-                else if (lastSync > DateTime.UtcNow.AddDays(-1))
-                {
-                    // If lastSync is very recent (within 24 hours), extend it back to capture more emails
-                    lastSync = DateTime.UtcNow.AddDays(-7);
-                    isFirstSync = true;
-                    _logger.LogInformation("LastSync is too recent for account {AccountName}, extending back to {DefaultDate} to capture more emails", 
-                        account.Name, lastSync);
+                    lastSync = lastSync.AddHours(-12);
                 }
                 
                 // For debugging: Log the filter criteria being used
@@ -390,41 +378,6 @@ namespace MailArchiver.Services
                         // Only do additional checks if we have reason to believe there might be an issue
                         _logger.LogDebug("No messages returned with date filter for folder {FolderName}. This is normal if there are no new messages.", folder.DisplayName);
                         
-                        // For first sync or when we suspect an issue with the date filter, check if there are any messages at all
-                        if (isFirstSync)
-                        {
-                            _logger.LogDebug("First sync detected for folder {FolderName}. Checking if any messages exist in folder.", folder.DisplayName);
-                            
-                            // Try without filter to see if there are ANY messages
-                            var testResponse = await graphClient.Users[account.EmailAddress].MailFolders[folder.Id].Messages.GetAsync((requestConfiguration) =>
-                            {
-                                requestConfiguration.QueryParameters.Select = new string[] { "id", "lastModifiedDateTime" };
-                                requestConfiguration.QueryParameters.Top = 1;
-                            });
-                            
-                            if (testResponse?.Value?.Count > 0)
-                            {
-                                _logger.LogInformation("Folder {FolderName} contains messages but none match date filter. Using fallback query for first sync.", folder.DisplayName);
-                                
-                                // For first sync, get messages without date filter
-                                messagesResponse = await graphClient.Users[account.EmailAddress].MailFolders[folder.Id].Messages.GetAsync((requestConfiguration) =>
-                                {
-                                    requestConfiguration.QueryParameters.Select = new string[] 
-                                    { 
-                                        "id", "internetMessageId", "subject", "from", "toRecipients", "ccRecipients", "bccRecipients",
-                                        "sentDateTime", "receivedDateTime", "hasAttachments", "body", "bodyPreview", "lastModifiedDateTime"
-                                    };
-                                    requestConfiguration.QueryParameters.Top = _batchOptions.BatchSize;
-                                });
-                                
-                                _logger.LogInformation("Fallback query without filter returned {Count} messages for folder {FolderName} (pagination will handle remaining messages)", 
-                                    messagesResponse?.Value?.Count ?? 0, folder.DisplayName);
-                            }
-                            else
-                            {
-                                _logger.LogInformation("Folder {FolderName} contains no messages at all.", folder.DisplayName);
-                            }
-                        }
                     }
                 }
                 catch (ODataError ex) when (ex.Error?.Code == "ErrorInvalidRestriction" || ex.Message.Contains("too complex"))
@@ -486,24 +439,12 @@ namespace MailArchiver.Services
                 if (messagesResponse?.Value != null)
                 {
                     // Filter messages by lastModifiedDateTime if we couldn't filter on the server
-                    // For first sync or fallback queries, be more lenient with filtering
-                    var filteredMessages = messagesResponse.Value.ToList();
-                    
-                    if (!isFirstSync)
-                    {
-                        // Only apply strict filtering for subsequent syncs
-                        filteredMessages = messagesResponse.Value
-                            .Where(m => m.LastModifiedDateTime >= lastSync)
-                            .ToList();
-                            
-                        _logger.LogInformation("Applying strict date filter for subsequent sync. Before filter: {TotalCount}, After filter: {FilteredCount}", 
-                            messagesResponse.Value.Count, filteredMessages.Count);
-                    }
-                    else
-                    {
-                        _logger.LogInformation("First sync detected - processing all messages without strict date filtering. Total messages: {Count}", 
-                            filteredMessages.Count);
-                    }
+                    var filteredMessages = messagesResponse.Value
+                        .Where(m => m.LastModifiedDateTime >= lastSync)
+                        .ToList();
+                        
+                    _logger.LogInformation("Applying date filter. Before filter: {TotalCount}, After filter: {FilteredCount}", 
+                        messagesResponse.Value.Count, filteredMessages.Count);
 
                     result.ProcessedEmails = filteredMessages.Count;
                     _logger.LogInformation("Processing page 1 with {Count} messages in folder {FolderName} for account: {AccountName}",
@@ -614,15 +555,9 @@ namespace MailArchiver.Services
                         if (messagesResponse?.Value != null)
                         {
                             // Apply the same filtering logic for pagination results as for the main query
-                            var filteredPaginationMessages = messagesResponse.Value.ToList();
-                            
-                            if (!isFirstSync)
-                            {
-                                // Only apply strict filtering for subsequent syncs
-                                filteredPaginationMessages = messagesResponse.Value
-                                    .Where(m => m.LastModifiedDateTime >= lastSync)
-                                    .ToList();
-                            }
+                            var filteredPaginationMessages = messagesResponse.Value
+                                .Where(m => m.LastModifiedDateTime >= lastSync)
+                                .ToList();
 
                             _logger.LogInformation("Processing page {PageNumber} with {Count} messages in folder {FolderName} for account: {AccountName}",
                                 paginationCount, filteredPaginationMessages.Count, folder.DisplayName, account.Name);

@@ -811,6 +811,13 @@ namespace MailArchiver.Services
 
                 bool isOutgoing = IsOutgoingFolder(folder);
                 var lastSync = account.LastSync;
+                
+                // Subtract 12 hours from lastSync for the query, but only if it's not the Unix epoch (1/1/1970)
+                if (lastSync != new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc))
+                {
+                    lastSync = lastSync.AddHours(-12);
+                }
+                
                 var query = SearchQuery.DeliveredAfter(lastSync);
 
                 try

@@ -643,6 +643,12 @@ body {
   margin: 0 auto;
 }
 
+.twofa-button-container {
+  display: flex;
+  justify-content: center;
+  margin: 1rem 0;
+}
+
 @media (max-width: 768px) {
   .twofa-setup-container {
       margin: 1rem;

@@ -22,13 +22,17 @@
             }
         </div>
         
-        <button id="downloadBackupCodes" class="btn btn-success twofa-download-btn">
-            <i class="bi bi-download"></i> @Localizer["DownloadBackupCodes"]
-        </button>
+        <div class="twofa-button-container">
+            <button id="downloadBackupCodes" class="btn btn-success twofa-download-btn">
+                <i class="bi bi-download"></i> @Localizer["DownloadBackupCodes"]
+            </button>
+        </div>
     </div>
     
     <div class="twofa-section">
-        <a asp-controller="Home" asp-action="Index" class="btn btn-primary">@Localizer["ContinueToDashboard"]</a>
+        <div class="twofa-button-container">
+            <a asp-controller="Home" asp-action="Index" class="btn btn-primary">@Localizer["ContinueToDashboard"]</a>
+        </div>
     </div>
 </div>
 
@@ -61,10 +65,5 @@
             document.body.removeChild(a);
             window.URL.revokeObjectURL(url);
         });
-        
-        // Redirect to home page after 30 seconds
-        setTimeout(function() {
-            window.location.href = '@Url.Action("Index", "Home")';
-        }, 30000);
     </script>
 }
