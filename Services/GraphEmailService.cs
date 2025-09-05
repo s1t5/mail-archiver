@@ -736,6 +736,9 @@ namespace MailArchiver.Services
                                       !string.IsNullOrEmpty(account.EmailAddress) && 
                                       from.Equals(account.EmailAddress, StringComparison.OrdinalIgnoreCase);
                 
+                // Additionally check if the folder indicates outgoing mail
+                bool isOutgoingFolder = IsOutgoingFolderByName(folderName);
+                
                 // Additionally check if the folder is a drafts folder to exclude it from outgoing emails
                 bool isDraftsFolder = IsDraftsFolder(folderName);
 
@@ -750,7 +753,7 @@ namespace MailArchiver.Services
                     Bcc = bcc,
                     SentDate = sentDate,
                     ReceivedDate = DateTime.UtcNow,
-                    IsOutgoing = isOutgoingEmail && !isDraftsFolder,
+                    IsOutgoing = (isOutgoingEmail || isOutgoingFolder) && !isDraftsFolder,
                     HasAttachments = message.HasAttachments ?? false || isHtmlTruncated || isBodyTruncated,
                     Body = body,
                     HtmlBody = htmlBody,
@@ -1517,6 +1520,56 @@ namespace MailArchiver.Services
 
             string folderNameLower = folderName?.ToLowerInvariant() ?? "";
             return draftsFolderNames.Any(name => folderNameLower.Contains(name));
+        }
+
+        /// <summary>
+        /// Checks if a folder name indicates outgoing mail based on its name in multiple languages
+        /// </summary>
+        /// <param name="folderName">The folder name to check</param>
+        /// <returns>True if the folder name indicates outgoing mail, false otherwise</returns>
+        private bool IsOutgoingFolderByName(string folderName)
+        {
+            var outgoingFolderNames = new[]
+            {
+                // English
+                "outgoing", "sent", "sent items", "sent mail", "outbox",
+
+                // German
+                "gesendet", "gesendete objekte", "gesendete nachrichten", "postausgang",
+
+                // French
+                "envoyé", "éléments envoyés", "boîte d'envoi", "messages envoyés",
+
+                // Spanish
+                "enviados", "elementos enviados", "correo enviado", "bandeja de salida",
+
+                // Italian
+                "inviato", "posta inviata", "elementi inviati", "posta in uscita",
+
+                // Dutch
+                "verzonden", "verzonden items", "verzonden e-mail", "postvak uit",
+
+                // Russian
+                "исходящие", "отправленные", "исходящая почта",
+
+                // Chinese
+                "已发送", "发件箱", "已传送",
+
+                // Japanese
+                "送信済み", "送信済メール", "送信メール", "送信トレイ",
+
+                // Portuguese
+                "enviados", "itens enviados", "mensagens enviadas", "caixa de saída",
+
+                // Arabic
+                "الصادر", "المرسلة", "بريد الصادر",
+
+                // Other common variations
+                "out", "send"
+            };
+
+            string folderNameLower = folderName?.ToLowerInvariant() ?? "";
+            return outgoingFolderNames.Any(name => folderNameLower.Contains(name));
         }
 
         // Helper classes and methods
