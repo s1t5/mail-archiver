@@ -118,7 +118,7 @@
                                             </button>
                                         </form>
 
-                                        @if (item.IsEnabled)
+                                        @if (item.IsEnabled && item.Provider != ProviderType.IMPORT)
                                         {
                                             <form asp-action="Sync" asp-route-id="@item.Id" method="post" class="d-inline">
                                                 @Html.AntiForgeryToken()
@@ -268,7 +268,7 @@
                                     </button>
                                 </form>
                             </div>
-                            @if (item.IsEnabled)
+                            @if (item.IsEnabled && item.Provider != ProviderType.IMPORT)
                             {
                                 <div class="col">
                                     <form asp-action="Sync" asp-route-id="@item.Id" method="post" class="w-100">

@@ -125,13 +125,9 @@
                                 <i class="bi bi-arrow-clockwise"></i> @Localizer["QuickSync"]
                             </button>
                         </form>
-                        <form asp-action="Resync" asp-route-id="@Model.Id" method="post" style="display: inline;"
-                            onsubmit="return confirm('@Localizer["FullResync"]');">
-                            @Html.AntiForgeryToken()
-                            <button type="submit" class="btn btn-outline-warning">
-                                <i class="bi bi-arrow-clockwise"></i> @Localizer["FullResync"]
-                            </button>
-                        </form>
+                        <button type="button" class="btn btn-outline-warning" data-bs-toggle="modal" data-bs-target="#fullResyncModal">
+                            <i class="bi bi-arrow-clockwise"></i> @Localizer["FullResync"]
+                        </button>
                     }
                     <form asp-action="MoveAllEmails" asp-route-id="@Model.Id" method="post" style="display: inline;">
                         @Html.AntiForgeryToken()
@@ -178,6 +174,21 @@
     </div>
 </div>
 
+@{
+    // Full resync modal
+    var fullResyncModal = new ModalViewModel
+    {
+        Id = "fullResyncModal",
+        Title = Localizer["FullResync"].ToString(),
+        Message = Localizer["FullResyncConfirm"].ToString(),
+        ConfirmButtonText = Localizer["FullResync"].ToString(),
+        ConfirmButtonClass = "btn-warning",
+        CancelButtonText = Localizer["Cancel"].ToString()
+    };
+}
+
+@await Html.PartialAsync("_ModalTemplate", fullResyncModal)
+
 @section Scripts {
     <script>
         // Delete account modal handling
@@ -189,35 +200,29 @@
         });
     </script>
 
-    @{
-        var deleteAccountModal = new ModalViewModel
-        {
-            Id = "deleteAccountModal",
-            Title = Localizer["DeleteEmailAccountTitle"].ToString(),
-            Message = Localizer["DeleteAccountWithEmailsConfirm"].ToString(),
-            IncludeList = true,
-            ListTitle1 = Localizer["WhatWillBeDeleted"].ToString(),
-            ListItems1 = new List<string> {
-Localizer["DeleteItemAccountConfig"].ToString(),
-string.Format(Localizer["DeleteItemAllArchivedEmails"].ToString(), ViewBag.EmailCount.ToString("N0")),
-Localizer["DeleteItemAllAttachments"].ToString(),
-Localizer["DeleteItemSyncHistory"].ToString()
-},
-            ListTitle2 = Localizer["ThisAction"].ToString(),
-            ListItems2 = new List<string> {
-Localizer["ActionCannotBeUndone"].ToString(),
-Localizer["ActionCannotBeRecovered"].ToString(),
-Localizer["ActionWillFreeStorage"].ToString(),
-Localizer["ActionWillStopSync"].ToString()
-},
-            ShowWarning = true,
-            WarningMessage = Localizer["DeletionCannotBeUndone"].ToString(),
-            ConfirmButtonText = string.Format(Localizer["PermanentlyDeleteAccountAndEmails"].ToString(),
-        ViewBag.EmailCount.ToString("N0")),
-            ConfirmButtonClass = "btn-danger",
-            CancelButtonText = Localizer["Cancel"].ToString()
-        };
-    }
-
-    @await Html.PartialAsync("_ModalTemplate", deleteAccountModal)
+    <script>
+        // Full resync modal handling
+        document.addEventListener('DOMContentLoaded', function () {
+            // Handle full resync confirmation
+            document.getElementById('fullResyncModal-Confirm').addEventListener('click', function () {
+                // Submit the resync form
+                var form = document.createElement('form');
+                form.method = 'post';
+                form.action = '@Url.Action("Resync", "MailAccounts", new { id = Model.Id })';
+                
+                // Add anti-forgery token
+                var antiForgeryToken = document.querySelector('form input[name="__RequestVerificationToken"]');
+                if (antiForgeryToken) {
+                    var tokenInput = document.createElement('input');
+                    tokenInput.type = 'hidden';
+                    tokenInput.name = '__RequestVerificationToken';
+                    tokenInput.value = antiForgeryToken.value;
+                    form.appendChild(tokenInput);
+                }
+                
+                document.body.appendChild(form);
+                form.submit();
+            });
+        });
+    </script>
 }

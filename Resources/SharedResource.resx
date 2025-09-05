@@ -679,6 +679,9 @@
   <data name="FullResync" xml:space="preserve">
     <value>Full Resync</value>
   </data>
+  <data name="FullResyncConfirm" xml:space="preserve">
+    <value>Are you sure you want to perform a full resync? This will compare the entire server content with the archive and may take a long time to complete.</value>
+  </data>
   <data name="CopyAllEmailsToAnotherMailbox" xml:space="preserve">
     <value>Copy All Emails to Another Mailbox</value>
   </data>
@@ -1293,6 +1296,10 @@
   <data name="EmailAccountDeleteSuccess" xml:space="preserve">
     <value>Email account and {0} related emails have been successfully deleted.</value>
     <comment>{0} - email count</comment>
+  </data>
+  <data name="SyncStarted" xml:space="preserve">
+    <value>Synchronization for '{0}' was successfully started.</value>
+    <comment>{0} - account name</comment>
   </data>
   <data name="SyncSuccess" xml:space="preserve">
     <value>Synchronization for '{0}' was successfully completed.</value>

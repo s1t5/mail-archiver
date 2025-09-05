@@ -1291,11 +1291,18 @@
   <data name="EmailAccountDeleteSuccess" xml:space="preserve">
     <value>Le compte de messagerie et les e-mails associés {0} ont été supprimés avec succès.</value>
   </data>
+  <data name="SyncStarted" xml:space="preserve">
+    <value>La synchronisation pour '{0}' a été démarrée avec succès.</value>
+    <comment>{0} - account name</comment>
+  </data>
   <data name="SyncSuccess" xml:space="preserve">
     <value>La synchronisation pour '{0}' a été achevée avec succès.</value>
   </data>
   <data name="SyncFailed" xml:space="preserve">
     <value>Erreur pendant la synchronisation</value>
+  </data>
+  <data name="FullResyncConfirm" xml:space="preserve">
+    <value>Êtes-vous sûr de vouloir effectuer une resynchronisation complète ? Cela comparera tout le contenu du serveur avec l'archive et peut prendre beaucoup de temps à terminer.</value>
   </data>
   <data name="FullSyncStarted" xml:space="preserve">
     <value>Resync complet pour '{0}' a été démarré avec succès.</value>

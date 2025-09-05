@@ -1288,11 +1288,18 @@
   <data name="EmailAccountDeleteSuccess" xml:space="preserve">
     <value>La cuenta de correo electrónico y los correos electrónicos relacionados con {0} se han eliminado correctamente.</value>
   </data>
+  <data name="SyncStarted" xml:space="preserve">
+    <value>La sincronización para '{0}' se inició correctamente.</value>
+    <comment>{0} - account name</comment>
+  </data>
   <data name="SyncSuccess" xml:space="preserve">
     <value>La sincronización para '{0}' se completó con éxito.</value>
   </data>
   <data name="SyncFailed" xml:space="preserve">
     <value>Error durante la sincronización</value>
+  </data>
+  <data name="FullResyncConfirm" xml:space="preserve">
+    <value>¿Está seguro de que desea realizar una resincronización completa? Esto comparará todo el contenido del servidor con el archivo y puede tardar mucho tiempo en completarse.</value>
   </data>
   <data name="FullSyncStarted" xml:space="preserve">
     <value>La resync completa para '{0}' se inició correctamente.</value>

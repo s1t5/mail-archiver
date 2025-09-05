@@ -1291,11 +1291,18 @@
   <data name="EmailAccountDeleteSuccess" xml:space="preserve">
     <value>E-poštni račun in {0} povezanih e-poštnih sporočil je bilo uspešno izbrisanih.</value>
   </data>
+  <data name="SyncStarted" xml:space="preserve">
+    <value>Sinhronizacija za '{0}' je bila uspešno zagnana.</value>
+    <comment>{0} - account name</comment>
+  </data>
   <data name="SyncSuccess" xml:space="preserve">
     <value>Sinhronizacija za '{0}' je bila uspešno zaključena.</value>
   </data>
   <data name="SyncFailed" xml:space="preserve">
     <value>Napaka med sinhronizacijo</value>
+  </data>
+  <data name="FullResyncConfirm" xml:space="preserve">
+    <value>Ali ste prepričani, da želite izvesti popolno resinhronizacijo? To bo primerjalo celotno vsebino strežnika z arhivom in lahko traja dolgo časa.</value>
   </data>
   <data name="FullSyncStarted" xml:space="preserve">
     <value>Popolna ponovna sinhronizacija za '{0}' se je uspešno začela.</value>

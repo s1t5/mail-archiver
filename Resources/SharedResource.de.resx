@@ -1300,12 +1300,19 @@
     <value>E-Mail-Konto und {0} zugehörige E-Mails wurden erfolgreich gelöscht.</value>
     <comment>{0} - E-Mail-Anzahl</comment>
   </data>
+  <data name="SyncStarted" xml:space="preserve">
+    <value>Synchronisation für '{0}' gestartet.</value>
+    <comment>{0} - account name</comment>
+  </data>
   <data name="SyncSuccess" xml:space="preserve">
     <value>Synchronisation für '{0}' wurde erfolgreich abgeschlossen.</value>
     <comment>{0} - Kontoname</comment>
   </data>
   <data name="SyncFailed" xml:space="preserve">
     <value>Fehler bei der Synchronisation</value>
+  </data>
+  <data name="FullResyncConfirm" xml:space="preserve">
+    <value>Sind Sie sicher, dass Sie eine vollständige Neusynchronisation durchführen möchten? Dies wird den gesamten Serverinhalt mit dem Archiv vergleichen und kann sehr lange dauern.</value>
   </data>
   <data name="FullSyncStarted" xml:space="preserve">
     <value>Vollständige Neusynchronisation für '{0}' wurde erfolgreich gestartet.</value>
