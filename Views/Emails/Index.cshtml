@@ -178,11 +178,11 @@
                         <div id="selectionActions" style="display:none;">
                             <button type="button" id="batchRestoreBtn" class="btn btn-sm btn-success me-2">
                                 <i class="bi bi-envelope-arrow-up"></i>
-                                <span class="d-none d-sm-inline">@Localizer["CopySelected"]</span>
+                                <span class="d-inline">@Localizer["CopySelected"]</span>
                             </button>
                             <button type="button" id="exportSelectedBtn" class="btn btn-sm btn-primary">
                                 <i class="bi bi-download"></i>
-                                <span class="d-none d-sm-inline">@Localizer["ExportSelected"]</span>
+                                <span class="d-inline">@Localizer["ExportSelected"]</span>
                             </button>
                         </div>
                     </div>
@@ -611,11 +611,11 @@
                         if (batchRestoreBtn) {
                             if (totalSelected > maxAsyncEmails) {
                                 batchRestoreBtn.disabled = true;
-                                batchRestoreBtn.innerHTML = '<i class="bi bi-exclamation-triangle"></i> <span class="d-none d-sm-inline">@Localizer["TooManySelected"]</span>';
+                                batchRestoreBtn.innerHTML = '<i class="bi bi-exclamation-triangle"></i> <span class="d-inline">@Localizer["TooManySelected"]</span>';
                                 batchRestoreBtn.className = 'btn btn-sm btn-danger me-2';
                             } else {
                                 batchRestoreBtn.disabled = false;
-                                batchRestoreBtn.innerHTML = '<i class="bi bi-envelope-arrow-up"></i> <span class="d-none d-sm-inline">@Localizer["CopySelected"]</span>';
+                                batchRestoreBtn.innerHTML = '<i class="bi bi-envelope-arrow-up"></i> <span class="d-inline">@Localizer["CopySelected"]</span>';
                                 batchRestoreBtn.className = 'btn btn-sm btn-success me-2';
                             }
                         }
