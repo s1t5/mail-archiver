@@ -559,9 +559,7 @@
             if (toggleSelectionMode) {
                 toggleSelectionMode.addEventListener('change', function() {
                     console.log("Selection mode toggled: " + this.checked);
-                    if (!this.checked) {
-                        clearStoredSelections(); // Clear selections when leaving selection mode
-                    }
+                    clearStoredSelections();
                     searchForm.submit();
                 });
             }
