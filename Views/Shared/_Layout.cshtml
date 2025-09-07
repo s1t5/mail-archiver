@@ -127,7 +127,7 @@
         <div class="container-fluid">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
-                    <span>@DateTime.Now.Year - s1t5 | Mail-Archiver v2509.3</span>
+                    <span>@DateTime.Now.Year - s1t5 | Mail-Archiver v2509.4</span>
                 </div>
                 <div>
                     <a href="https://github.com/s1t5/mail-archiver" class="text-muted text-decoration-none"
@@ -148,30 +148,33 @@
             if (!utcDateString) return utcDateString;
 
             try {
-                // Versuche verschiedene Datumsformate
+                // Parse UTC time - ensure it's treated as UTC
                 let utcDate;
                 if (utcDateString.includes('T')) {
-                    // ISO String Format
+                    // ISO String Format - append Z if not present to ensure UTC parsing
                     utcDate = new Date(utcDateString + (utcDateString.endsWith('Z') ? '' : 'Z'));
                 } else {
-                    // Andere Formate
-                    utcDate = new Date(utcDateString);
+                    // Legacy format - assume it's UTC
+                    utcDate = new Date(utcDateString + 'Z');
                 }
 
                 if (isNaN(utcDate.getTime())) {
-                    return utcDateString; // Ungültiges Datum
+                    console.warn('Invalid date format:', utcDateString);
+                    return utcDateString; // Return original if parsing fails
                 }
 
-        // Format: Use the application's culture settings
-        // Get the culture from the HTML lang attribute
-        const cultureLang = document.documentElement.lang || 'en';
-        return utcDate.toLocaleString(cultureLang, {
-            year: 'numeric',
-            month: '2-digit',
-            day: '2-digit',
-            hour: '2-digit',
-            minute: '2-digit'
-        });
+                // Get the culture from the HTML lang attribute
+                const cultureLang = document.documentElement.lang || 'de-DE';
+                
+                // Format in local timezone with culture-specific formatting
+                return utcDate.toLocaleString(cultureLang, {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone
+                });
             } catch (e) {
                 console.error('Fehler bei der Datums-Konvertierung:', e, 'Ursprünglicher Wert:', utcDateString);
                 return utcDateString;
@@ -180,13 +183,17 @@
 
         // Funktion zum Aktualisieren aller Zeitstempel auf der Seite
         function updateAllTimestamps() {
-            // Sucht nach allen Elementen mit data-utc-time Attribut
-            const timeElements = document.querySelectorAll('[data-utc-time]');
+            // Sucht nach allen Elementen mit data-utc-time Attribut oder utc-timestamp Klasse
+            const timeElements = document.querySelectorAll('[data-utc-time], .utc-timestamp[data-utc-time]');
+            
             timeElements.forEach(element => {
                 const utcTime = element.getAttribute('data-utc-time');
-                if (utcTime && utcTime !== '0001-01-01T00:00:00') {
+                if (utcTime && utcTime !== '0001-01-01T00:00:00' && utcTime !== '') {
                     const localTime = convertUTCToLocal(utcTime);
                     element.textContent = localTime;
+                    
+                    // Add a data attribute to indicate conversion has been done
+                    element.setAttribute('data-converted', 'true');
                 }
             });
         }

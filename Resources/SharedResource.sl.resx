@@ -1631,12 +1631,403 @@
     <value>Naredili ste preveč poskusov preverjanja 2FA. Počakajte in poskusite pozneje.</value>
   </data>
 
+  <!-- Account Export Feature -->
+  <data name="ExportAccount" xml:space="preserve">
+    <value>Izvozi Račun</value>
+  </data>
+  <data name="ExportAccountTitle" xml:space="preserve">
+    <value>Izvozi E-poštni Račun</value>
+  </data>
+  <data name="ExportAccountDescription" xml:space="preserve">
+    <value>Izvozi vsa e-poštna sporočila iz tega računa v datoteke za prenos</value>
+  </data>
+  <data name="ExportAccountInfo" xml:space="preserve">
+    <value>Informacije o Izvozu Računa</value>
+  </data>
+  <data name="ExportAccountInfoDetail" xml:space="preserve">
+    <value>Izvozi vsa e-poštna sporočila iz tega e-poštnega računa. Odvisno od izbranega formata boste prejeli ZIP datoteko z vsemi e-poštnimi sporočili.</value>
+  </data>
+  <data name="ExportFormatLabel" xml:space="preserve">
+    <value>Format Izvoza</value>
+  </data>
+  <data name="ExportFormatEML" xml:space="preserve">
+    <value>EML (Posamezne Datoteke E-pošte)</value>
+  </data>
+  <data name="ExportFormatMBox" xml:space="preserve">
+    <value>MBox (Format Poštnega Predala)</value>
+  </data>
+  <data name="ExportFormatEMLDescription" xml:space="preserve">
+    <value>Ustvari ZIP datoteko z ločenimi mapami za dohodna in odhodna e-poštna sporočila, ki vsebujejo posamezne .eml datoteke</value>
+  </data>
+  <data name="ExportFormatMBoxDescription" xml:space="preserve">
+    <value>Ustvari ZIP datoteko z dvema .mbox datotekama (in.mbox in out.mbox), ki vsebujeta vsa e-poštna sporočila</value>
+  </data>
+  <data name="StartExport" xml:space="preserve">
+    <value>Začni Izvoz</value>
+  </data>
+  <data name="ExportJobStarted" xml:space="preserve">
+    <value>Naloga izvoza je bila zagnana za račun '{0}'. Preusmerjeni boste na stran stanja.</value>
+  </data>
+  <data name="ExportStatusTitle" xml:space="preserve">
+    <value>Stanje Izvoza</value>
+  </data>
+  <data name="ExportJobInformation" xml:space="preserve">
+    <value>Informacije o Nalogi Izvoza</value>
+  </data>
+  <data name="ExportJobStatus" xml:space="preserve">
+    <value>Stanje Naloge Izvoza</value>
+  </data>
+  <data name="ExportProgress" xml:space="preserve">
+    <value>Napredek Izvoza</value>
+  </data>
+  <data name="EmailsExported" xml:space="preserve">
+    <value>E-pošta Izvožena</value>
+  </data>
+  <data name="ExportCompleted" xml:space="preserve">
+    <value>Izvoz Dokončan</value>
+  </data>
+  <data name="ExportFailed" xml:space="preserve">
+    <value>Izvoz Neuspešen</value>
+  </data>
+  <data name="ExportCancelled" xml:space="preserve">
+    <value>Izvoz Preklican</value>
+  </data>
+  <data name="ExportInProgress" xml:space="preserve">
+    <value>Izvoz v Teku</value>
+  </data>
+  <data name="ExportQueued" xml:space="preserve">
+    <value>Izvoz v Čakalni Vrsti</value>
+  </data>
+  <data name="DownloadExport" xml:space="preserve">
+    <value>Prenesi Izvoz</value>
+  </data>
+  <data name="DownloadReady" xml:space="preserve">
+    <value>Prenos Pripravljen</value>
+  </data>
+  <data name="DownloadStarting" xml:space="preserve">
+    <value>Prenos se Začenja...</value>
+  </data>
+  <data name="CancelExport" xml:space="preserve">
+    <value>Prekliči Izvoz</value>
+  </data>
+  <data name="CancelExportConfirm" xml:space="preserve">
+    <value>Ali ste prepričani, da želite preklicati to nalogo izvoza?</value>
+  </data>
+  <data name="ExportJobCancelled" xml:space="preserve">
+    <value>Naloga izvoza je bila preklicana.</value>
+  </data>
+  <data name="ExportJobCancelError" xml:space="preserve">
+    <value>Naloge izvoza ni bilo mogoče preklicati. Naloga je morda že dokončana ali ne obstaja.</value>
+  </data>
+  <data name="ExportNotFound" xml:space="preserve">
+    <value>Naloga izvoza ni bila najdena.</value>
+  </data>
+  <data name="ExportDownloadNotReady" xml:space="preserve">
+    <value>Prenos izvoza še ni pripravljen. Počakajte, da se izvoz dokonča.</value>
+  </data>
+  <data name="ExportFileNotFound" xml:space="preserve">
+    <value>Datoteka izvoza ni bila najdena. Datoteka je bila morda počiščena ali izvoz ni uspel.</value>
+  </data>
+  <data name="ExportStarted" xml:space="preserve">
+    <value>Naloga izvoza je bila zagnana za račun '{0}'. Preusmerjeni boste na stran stanja.</value>
+  </data>
+  <data name="ExportError" xml:space="preserve">
+    <value>Napaka med izvozom</value>
+  </data>
+  <data name="InvalidExportID" xml:space="preserve">
+    <value>Neveljaven ID naloge izvoza.</value>
+  </data>
+  <data name="ExportJobNotFound" xml:space="preserve">
+    <value>Naloga izvoza ni bila najdena.</value>
+  </data>
+  <data name="ExportCancelError" xml:space="preserve">
+    <value>Naloge izvoza ni bilo mogoče preklicati. Naloga je morda že dokončana ali ne obstaja.</value>
+  </data>
+  <data name="IncomingEmails" xml:space="preserve">
+    <value>Dohodna E-pošta</value>
+  </data>
+  <data name="OutgoingEmails" xml:space="preserve">
+    <value>Odhodna E-pošta</value>
+  </data>
+  <data name="AccountExportJobs" xml:space="preserve">
+    <value>Naloge Izvoza Računa</value>
+  </data>
+  <data name="FileCreated" xml:space="preserve">
+    <value>Datoteka Ustvarjena</value>
+  </data>
+  <data name="FileSize" xml:space="preserve">
+    <value>Velikost Datoteke</value>
+  </data>
+  <data name="BackToExport" xml:space="preserve">
+    <value>Nazaj na Izvoz</value>
+  </data>
+  <data name="RefreshStatus" xml:space="preserve">
+    <value>Osveži Stanje</value>
+  </data>
+  <data name="AutoRefresh" xml:space="preserve">
+    <value>Samodejno osvežuj vsakih 3 sekund</value>
+  </data>
+  <!-- Missing Export Strings -->
+  <data name="NoEmailsToExport" xml:space="preserve">
+    <value>V tem računu ni e-poštnih sporočil za izvoz.</value>
+  </data>
+  <data name="ExportInfo" xml:space="preserve">
+    <value>Informacije o Izvozu</value>
+  </data>
+  <data name="ExportInfoText" xml:space="preserve">
+    <value>Ta izvoz bo ustvaril datoteko ZIP za prenos, ki vsebuje vsa e-poštna sporočila iz tega računa. Format, ki ga izberete, določa, kako so e-poštna sporočila organizirana.</value>
+  </data>
+  <data name="EMLFormat" xml:space="preserve">
+    <value>Format EML</value>
+  </data>
+  <data name="MBoxFormat" xml:space="preserve">
+    <value>Format MBox</value>
+  </data>
+  <data name="EMLFormatInfo" xml:space="preserve">
+    <value>Informacije o Formatu EML</value>
+  </data>
+  <data name="EMLFormatDescription" xml:space="preserve">
+    <value>Ustvari posamezne .eml datoteke, organizirane v mapah 'in' in 'out' za dohodna in odhodna e-poštna sporočila.</value>
+  </data>
+  <data name="MBoxFormatInfo" xml:space="preserve">
+    <value>Informacije o Formatu MBox</value>
+  </data>
+  <data name="MBoxFormatDescription" xml:space="preserve">
+    <value>Ustvari tradicionalne datoteke poštnega predala (in.mbox in out.mbox), ki vsebujejo vsa dohodna in odhodna e-poštna sporočila v eni datoteki vsakič.</value>
+  </data>
+  <data name="ExportWarning" xml:space="preserve">
+    <value>Pomembne Informacije o Izvozu</value>
+  </data>
+  <data name="ExportWarningTime" xml:space="preserve">
+    <value>Veliki računi lahko trajajo več minut za izvoz in se bodo izvajali v ozadju</value>
+  </data>
+  <data name="ExportWarningSize" xml:space="preserve">
+    <value>Nastala ZIP datoteka je lahko precej velika, odvisno od količine e-pošte in prilog</value>
+  </data>
+  <data name="ExportWarningCleanup" xml:space="preserve">
+    <value>Datoteke izvoza se samodejno izbrišejo po prenosu ali po 7 dneh</value>
+  </data>
+  <data name="ConfirmExport" xml:space="preserve">
+    <value>Ali ste prepričani, da želite začeti izvoz? To bo obdelalo vsa e-poštna sporočila v tem računu.</value>
+  </data>
+  <data name="BackToAccount" xml:space="preserve">
+    <value>Nazaj na Račun</value>
+  </data>
+  <data name="CurrentEmail" xml:space="preserve">
+    <value>Trenutna E-pošta</value>
+  </data>
+  <data name="ProcessedEmails" xml:space="preserve">
+    <value>Obdelana E-pošta</value>
+  </data>
+  <data name="ExportStatus" xml:space="preserve">
+    <value>Stanje Izvoza</value>
+  </data>
+  <data name="Downloaded" xml:space="preserve">
+    <value>Preneseno</value>
+  </data>
+  <data name="Error" xml:space="preserve">
+    <value>Napaka</value>
+  </data>
+  <data name="Refresh" xml:space="preserve">
+    <value>Osveži</value>
+  </data>
+
+  <!-- Export Format Selection Modal -->
+  <data name="ExportFormatSelection" xml:space="preserve">
+    <value>Izbira Formata Izvoza</value>
+  </data>
+  <data name="ExportFormatSelectionInfo" xml:space="preserve">
+    <value>Izberite format za izvoz vaše e-pošte. Vsak format ima različne prednosti glede na vaše potrebe.</value>
+  </data>
+  <data name="ExportSelectedInfo" xml:space="preserve">
+    <value>Izvoz se bo izvajal v ozadju in rezultat boste lahko prenesli s strani Nalog, ko bo dokončan.</value>
+  </data>
+
+  <!-- Selected Emails Export Feature -->
+  <data name="ExportSelected" xml:space="preserve">
+    <value>Izvozi Izbrane</value>
+  </data>
+  <data name="SelectedEmailsExportStatusTitle" xml:space="preserve">
+    <value>Stanje Izvoza Izbranih E-poštnih Sporočil</value>
+  </data>
+  <data name="SelectedEmailsExportJobs" xml:space="preserve">
+    <value>Naloge Izvoza Izbranih E-poštnih Sporočil</value>
+  </data>
+  <data name="SelectedEmailsExport" xml:space="preserve">
+    <value>Izvoz Izbranih E-poštnih Sporočil</value>
+  </data>
+  <data name="ExportSelectedEmails" xml:space="preserve">
+    <value>Izvozi Izbrana E-poštna Sporočila</value>
+  </data>
+  <data name="SelectedEmailsExportComplete" xml:space="preserve">
+    <value>Izvoz izbranih e-poštnih sporočil je bil uspešno dokončan. {0} e-poštnih sporočil je bilo izvoženih.</value>
+  </data>
+  <data name="SelectedEmailsExportFailed" xml:space="preserve">
+    <value>Izvoz izbranih e-poštnih sporočil ni uspel. Preverite dnevnike za več podrobnosti.</value>
+  </data>
+  <data name="SelectedEmailsExportCancelled" xml:space="preserve">
+    <value>Izvoz izbranih e-poštnih sporočil je bil preklican.</value>
+  </data>
+  <data name="EMLImportJobs" xml:space="preserve">
+    <value>Naloge Uvoza EML</value>
+  </data>
+
+  <!-- EmailsController Messages -->
+  <data name="EmailHasNoAttachments" xml:space="preserve">
+    <value>Ta e-pošta nima prilog.</value>
+  </data>
+  <data name="NoAccessToEmail" xml:space="preserve">
+    <value>Nimate dostopa do te e-pošte.</value>
+  </data>
+  <data name="EmailNotFound" xml:space="preserve">
+    <value>E-pošte ni bilo mogoče najti.</value>
+  </data>
+  <data name="EmailCopiedSuccessfully" xml:space="preserve">
+    <value>E-pošta je bila uspešno kopirana v določeno mapo.</value>
+  </data>
+  <data name="EmailCopyFailed" xml:space="preserve">
+    <value>E-pošte ni bilo mogoče kopirati v določeno mapo. Preverite dnevnike.</value>
+  </data>
+  <data name="NoEmailsSelectedForBatch" xml:space="preserve">
+    <value>Izbrana ni bila nobena e-pošta za paketno operacijo.</value>
+  </data>
+  <data name="NoEmailsCopiedCheckLogs" xml:space="preserve">
+    <value>Nobene od izbranih e-poštnih sporočil ni bilo mogoče kopirati. Preverite dnevnike za podrobnosti.</value>
+  </data>
+  <data name="MailAccountNotFound" xml:space="preserve">
+    <value>E-poštni račun ni bil najden.</value>
+  </data>
+  <data name="NoEmailsFoundForAccount" xml:space="preserve">
+    <value>Za ta račun ni bilo najdenih e-poštnih sporočil za kopiranje.</value>
+  </data>
+  <data name="TooManyEmailsToProcess" xml:space="preserve">
+    <value>Preveč e-poštnih sporočil za obdelavo. Poskusite z manjšo izbiro.</value>
+  </data>
+  <data name="TooManyEmailsSelectFewer" xml:space="preserve">
+    <value>Izbranih je preveč e-poštnih sporočil. Izberite manj e-poštnih sporočil in poskusite znova.</value>
+  </data>
+  <data name="NoEnabledEmailAccounts" xml:space="preserve">
+    <value>Ni najdenih omogočenih e-poštnih računov.</value>
+  </data>
+  <data name="AsyncBatchRestoreNotAvailable" xml:space="preserve">
+    <value>Asinhrono paketno obnovitev ni na voljo.</value>
+  </data>
+  <data name="BatchRestoreServiceNotAvailable" xml:space="preserve">
+    <value>Storitev paketne obnovitve ni na voljo.</value>
+  </data>
+  <data name="InvalidJobID" xml:space="preserve">
+    <value>Neveljaven ID naloge.</value>
+  </data>
+  <data name="BatchRestoreJobNotFound" xml:space="preserve">
+    <value>Naloga paketne obnovitve ni bila najdena.</value>
+  </data>
+  <data name="BatchRestoreJobCancelled" xml:space="preserve">
+    <value>Naloga paketne obnovitve je bila preklicana.</value>
+  </data>
+  <data name="CouldNotCancelBatchRestoreJob" xml:space="preserve">
+    <value>Naloge paketne obnovitve ni bilo mogoče preklicati.</value>
+  </data>
+  <data name="SyncJobServiceNotAvailable" xml:space="preserve">
+    <value>Storitev naloge sinhronizacije ni na voljo.</value>
+  </data>
+  <data name="SyncJobCancelled" xml:space="preserve">
+    <value>Naloga sinhronizacije je bila preklicana.</value>
+  </data>
+  <data name="CouldNotCancelSyncJob" xml:space="preserve">
+    <value>Naloge sinhronizacije ni bilo mogoče preklicati.</value>
+  </data>
+  <data name="SelectedEmailsExportServiceNotAvailable" xml:space="preserve">
+    <value>Storitev izvoza izbranih e-poštnih sporočil ni na voljo.</value>
+  </data>
+  <data name="SelectedEmailsExportJobNotFound" xml:space="preserve">
+    <value>Naloga izvoza izbranih e-poštnih sporočil ni bila najdena.</value>
+  </data>
+  <data name="SelectedEmailsExportJobCancelled" xml:space="preserve">
+    <value>Naloga izvoza izbranih e-poštnih sporočil je bila preklicana.</value>
+  </data>
+  <data name="CouldNotCancelSelectedEmailsExportJob" xml:space="preserve">
+    <value>Naloge izvoza izbranih e-poštnih sporočil ni bilo mogoče preklicati.</value>
+  </data>
+  <data name="SelectedEmailsExportNotCompleted" xml:space="preserve">
+    <value>Naloga izvoza izbranih e-poštnih sporočil še ni dokončana ali je že bila prenesena.</value>
+  </data>
+  <data name="ErrorDownloadingExportFile" xml:space="preserve">
+    <value>Napaka pri prenosu datoteke izvoza.</value>
+  </data>
+  <data name="ExportParametersInvalid" xml:space="preserve">
+    <value>Parametri izvoza so neveljavni. Poskusite znova.</value>
+  </data>
+  <data name="NoAccessToSelectedAccount" xml:space="preserve">
+    <value>Nimate dostopa do izbranega računa.</value>
+  </data>
+  <data name="NoEmailsSelectedForExport" xml:space="preserve">
+    <value>Izbrana ni bila nobena e-pošta za izvoz.</value>
+  </data>
+  <data name="SelectedEmailsExportNotAvailable" xml:space="preserve">
+    <value>Izvoz izbranih e-poštnih sporočil ni na voljo.</value>
+  </data>
+  <data name="NoAccessToSelectedEmails" xml:space="preserve">
+    <value>Nimate dostopa do nobenih izbranih e-poštnih sporočil.</value>
+  </data>
+  <data name="ExportFailedWithError" xml:space="preserve">
+    <value>Izvoz ni uspel: {0}</value>
+  </data>
+  <data name="ErrorOccurredWithMessage" xml:space="preserve">
+    <value>Prišlo je do napake: {0}</value>
+  </data>
+  <data name="TooManyEmailsSelectedWithLimits" xml:space="preserve">
+    <value>Izbranih je preveč e-poštnih sporočil ({0:N0}). Največje dovoljeno število je {1:N0} e-poštnih sporočil na operacijo.</value>
+  </data>
+  <data name="TooManyEmailsForDirectProcessing" xml:space="preserve">
+    <value>Izbranih je preveč e-poštnih sporočil za neposredno obdelavo ({0:N0}). Največje število za neposredno obdelavo je {1:N0} e-poštnih sporočil.</value>
+  </data>
+  <data name="AllEmailsCopiedSuccessfully" xml:space="preserve">
+    <value>Vseh {0} e-poštnih sporočil je bilo uspešno kopirano v določeno mapo.</value>
+  </data>
+  <data name="EmailsCopiedWithSomeFailures" xml:space="preserve">
+    <value>{0} e-poštnih sporočil je bilo kopirano, vendar {1} ni bilo mogoče kopirati. Preverite dnevnike za podrobnosti.</value>
+  </data>
+  <data name="TooManyEmailsInAccountWithLimits" xml:space="preserve">
+    <value>Preveč e-poštnih sporočil v tem računu ({0:N0}). Največje dovoljeno število je {1:N0} e-poštnih sporočil na operacijo.</value>
+  </data>
+  <data name="BatchRestoreJobStartedWithDetails" xml:space="preserve">
+    <value>Naloga paketne obnovitve je bila zagnana z {0:N0} e-poštnimi sporočili. ID naloge: {1}</value>
+  </data>
+  <data name="FailedToStartBatchRestore" xml:space="preserve">
+    <value>Ni uspelo zagnati paketne obnovitve: {0}</value>
+  </data>
+  <data name="ExportJobStartedWithDetails" xml:space="preserve">
+    <value>Naloga izvoza je bila zagnana z {0:N0} e-poštnimi sporočili v formatu {1}. ID naloge: {2}</value>
+  </data>
+  <data name="FailedToStartExport" xml:space="preserve">
+    <value>Ni uspelo zagnati izvoza: {0}</value>
+  </data>
+  <data name="ExportCompletedTitle" xml:space="preserve">
+    <value>Izvoz Dokončan!</value>
+  </data>
+  <data name="ExportCompletedSummary" xml:space="preserve">
+    <value>Uspešno izvoženih {0} izbranih e-poštnih sporočil.</value>
+  </data>
+  <data name="SelectedOf" xml:space="preserve">
+    <value>{0} od {1} izbrano</value>
+  </data>
+  <data name="MaxSelectionsReached" xml:space="preserve">
+    <value>Doseženo največje število izbir ({0})</value>
+  </data>
+  <data name="SelectAllOnPage" xml:space="preserve">
+    <value>Izberi vse na strani</value>
+  </data>
+  <data name="DeselectAllOnPage" xml:space="preserve">
+    <value>Počisti vse na strani</value>
+  </data>
+
+
   <!-- ============================================== -->
   <!-- NEWLY ADDED KEYS - REQUIRE TRANSLATION TO SLOVENIAN -->
   <!-- ============================================== -->
 
   <data name="DeleteAccountWithEmailsButton" xml:space="preserve">
-    <value>Izbriši račun in vsa sporočila ({0})</value>
+    <value>Izbriši račun in vsa e-poštna sporočila ({0})</value>
   </data>
 
 </root>

@@ -167,7 +167,7 @@ namespace MailArchiver.Controllers
             model.RecentEmails = await _context.ArchivedEmails
                 .Include(e => e.MailAccount)
                 .Where(e => accountIds.Contains(e.MailAccountId))
-                .OrderByDescending(e => e.ReceivedDate)
+                .OrderByDescending(e => e.SentDate)
                 .Take(10)
                 .ToListAsync();
 

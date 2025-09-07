@@ -75,6 +75,10 @@ builder.Services.Configure<MailSyncOptions>(
 builder.Services.Configure<UploadOptions>(
     builder.Configuration.GetSection(UploadOptions.Upload));
 
+// Add Selection Options
+builder.Services.Configure<SelectionOptions>(
+    builder.Configuration.GetSection("Selection"));
+
 // Add Session support
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
@@ -215,6 +219,17 @@ builder.Services.AddHostedService<MBoxImportService>(provider => provider.GetReq
 builder.Services.AddSingleton<EmlImportService>();
 builder.Services.AddSingleton<IEmlImportService>(provider => provider.GetRequiredService<EmlImportService>());
 builder.Services.AddHostedService<EmlImportService>(provider => provider.GetRequiredService<EmlImportService>());
+
+// Register ExportService as singleton and hosted service - MUST be the same instance
+builder.Services.AddSingleton<ExportService>();
+builder.Services.AddSingleton<IExportService>(provider => provider.GetRequiredService<ExportService>());
+builder.Services.AddHostedService<ExportService>(provider => provider.GetRequiredService<ExportService>());
+
+// Register SelectedEmailsExportService as singleton and hosted service - MUST be the same instance
+builder.Services.AddSingleton<SelectedEmailsExportService>();
+builder.Services.AddSingleton<ISelectedEmailsExportService>(provider => provider.GetRequiredService<SelectedEmailsExportService>());
+builder.Services.AddHostedService<SelectedEmailsExportService>(provider => provider.GetRequiredService<SelectedEmailsExportService>());
+
 builder.Services.AddHostedService<MailSyncBackgroundService>();
 
 // Add Localization

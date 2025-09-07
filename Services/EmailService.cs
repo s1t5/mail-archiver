@@ -1,6 +1,7 @@
 using MailArchiver.Data;
 using MailArchiver.Models;
 using MailArchiver.Models.ViewModels;
+using MailArchiver.ViewModels;
 using MailKit;
 using MailKit.Net.Imap;
 using MailKit.Search;

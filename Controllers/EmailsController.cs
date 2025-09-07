@@ -3,6 +3,7 @@ using MailArchiver.Data;
 using MailArchiver.Models;
 using MailArchiver.Models.ViewModels;
 using MailArchiver.Services;
+using MailArchiver.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -25,6 +26,9 @@ namespace MailArchiver.Controllers
         private readonly BatchRestoreOptions _batchOptions;
         private readonly ISyncJobService _syncJobService;
         private readonly IStringLocalizer<SharedResource> _localizer;
+        private readonly IExportService? _exportService;
+        private readonly ISelectedEmailsExportService? _selectedEmailsExportService;
+        private readonly SelectionOptions _selectionOptions;
 
         public EmailsController(
             MailArchiverDbContext context,
@@ -32,9 +36,12 @@ namespace MailArchiver.Controllers
             IGraphEmailService graphEmailService,
             ILogger<EmailsController> logger,
             IOptions<BatchRestoreOptions> batchOptions,
+            IOptions<SelectionOptions> selectionOptions,
             IBatchRestoreService? batchRestoreService = null,
             ISyncJobService? syncJobService = null,
-            IStringLocalizer<SharedResource> localizer = null)
+            IStringLocalizer<SharedResource> localizer = null,
+            IExportService? exportService = null,
+            ISelectedEmailsExportService? selectedEmailsExportService = null)
 
         {
             _context = context;
@@ -44,7 +51,10 @@ namespace MailArchiver.Controllers
             _batchRestoreService = batchRestoreService;
             _syncJobService = syncJobService;
             _batchOptions = batchOptions.Value;
+            _selectionOptions = selectionOptions.Value;
             _localizer = localizer;
+            _exportService = exportService;
+            _selectedEmailsExportService = selectedEmailsExportService;
         }
 
         // GET: Emails
@@ -161,6 +171,9 @@ namespace MailArchiver.Controllers
             ViewBag.AsyncThreshold = _batchOptions.AsyncThreshold;
             ViewBag.MaxSyncEmails = _batchOptions.MaxSyncEmails;
             ViewBag.MaxAsyncEmails = _batchOptions.MaxAsyncEmails;
+            
+            // Selection-Optionen für die View verfügbar machen
+            ViewBag.MaxSelectableEmails = _selectionOptions.MaxSelectableEmails;
 
             // Aktive Jobs für die View
             if (_batchRestoreService != null)
@@ -1227,6 +1240,9 @@ namespace MailArchiver.Controllers
             var batchJobs = new List<BatchRestoreJob>();
             var syncJobs = new List<SyncJob>();
             var mboxJobs = new List<MBoxImportJob>();
+            var exportJobs = new List<AccountExportJob>();
+            var selectedEmailsExportJobs = new List<SelectedEmailsExportJob>();
+            var emlImportJobs = new List<EmlImportJob>();
 
             if (_batchRestoreService != null)
             {
@@ -1236,7 +1252,7 @@ namespace MailArchiver.Controllers
                 batchJobs = allBatchJobs
                     .OrderByDescending(j => j.Status == BatchRestoreJobStatus.Queued || j.Status == BatchRestoreJobStatus.Running)
                     .ThenByDescending(j => j.Created)
-                    .Take(20) // Limit to 20 most recent jobs
+                    .Take(20) // Apply top 20 restriction
                     .ToList();
             }
 
@@ -1247,7 +1263,7 @@ namespace MailArchiver.Controllers
                 syncJobs = allSyncJobs
                     .OrderByDescending(j => j.Status == SyncJobStatus.Running) // Running jobs first
                     .ThenByDescending(j => j.Started) // Then by start time
-                    .Take(20) // Still limit to 20
+                    .Take(20) // Apply top 20 restriction
                     .ToList();
             }
 
@@ -1257,7 +1273,64 @@ namespace MailArchiver.Controllers
                 var mboxService = HttpContext.RequestServices.GetService<IMBoxImportService>();
                 if (mboxService != null)
                 {
-                    mboxJobs = mboxService.GetActiveJobs();
+                    mboxJobs = mboxService.GetAllJobs()
+                        .OrderByDescending(j => j.Status == MBoxImportJobStatus.Running || j.Status == MBoxImportJobStatus.Queued)
+                        .ThenByDescending(j => j.Created)
+                        .Take(20) // Apply top 20 restriction
+                        .ToList();
+                }
+            }
+            catch
+            {
+                // Ignore if service not available
+            }
+
+            // Account Export Jobs hinzufügen
+            if (_exportService != null)
+            {
+                try
+                {
+                    exportJobs = _exportService.GetAllJobs()
+                        .OrderByDescending(j => j.Status == AccountExportJobStatus.Running || j.Status == AccountExportJobStatus.Queued)
+                        .ThenByDescending(j => j.Created)
+                        .Take(20) // Apply top 20 restriction
+                        .ToList();
+                }
+                catch
+                {
+                    // Ignore if service not available
+                }
+            }
+
+            // Selected Emails Export Jobs hinzufügen
+            try
+            {
+                var selectedEmailsExportService = HttpContext.RequestServices.GetService<ISelectedEmailsExportService>();
+                if (selectedEmailsExportService != null)
+                {
+                    selectedEmailsExportJobs = selectedEmailsExportService.GetAllJobs()
+                        .OrderByDescending(j => j.Status == SelectedEmailsExportJobStatus.Running || j.Status == SelectedEmailsExportJobStatus.Queued)
+                        .ThenByDescending(j => j.Created)
+                        .Take(20) // Apply top 20 restriction
+                        .ToList();
+                }
+            }
+            catch
+            {
+                // Ignore if service not available
+            }
+
+            // EML Import Jobs hinzufügen
+            try
+            {
+                var emlImportService = HttpContext.RequestServices.GetService<IEmlImportService>();
+                if (emlImportService != null)
+                {
+                    emlImportJobs = emlImportService.GetAllJobs()
+                        .OrderByDescending(j => j.Status == EmlImportJobStatus.Running || j.Status == EmlImportJobStatus.Queued)
+                        .ThenByDescending(j => j.Created)
+                        .Take(20) // Apply top 20 restriction consistent with other job types
+                        .ToList();
                 }
             }
             catch
@@ -1268,8 +1341,130 @@ namespace MailArchiver.Controllers
             ViewBag.BatchJobs = batchJobs;
             ViewBag.SyncJobs = syncJobs;
             ViewBag.MBoxJobs = mboxJobs;
+            ViewBag.ExportJobs = exportJobs;
+            ViewBag.SelectedEmailsExportJobs = selectedEmailsExportJobs;
+            ViewBag.EmlImportJobs = emlImportJobs;
 
             return View(batchJobs);
+        }
+
+        // GET: Emails/SelectedEmailsExportStatus
+        [HttpGet]
+        public IActionResult SelectedEmailsExportStatus(string jobId)
+        {
+            _logger.LogDebug("SelectedEmailsExportStatus called with jobId: {JobId}", jobId ?? "null");
+
+            if (_selectedEmailsExportService == null)
+            {
+                _logger.LogWarning("Selected emails export service is not available");
+                TempData["ErrorMessage"] = "Selected emails export service is not available.";
+                return RedirectToAction("Index");
+            }
+
+            if (string.IsNullOrEmpty(jobId))
+            {
+                _logger.LogWarning("Empty or null jobId provided to SelectedEmailsExportStatus");
+                TempData["ErrorMessage"] = "Invalid job ID.";
+                return RedirectToAction("Index");
+            }
+
+            var job = _selectedEmailsExportService.GetJob(jobId);
+            if (job == null)
+            {
+                _logger.LogWarning("Job with ID {JobId} not found in SelectedEmailsExportService", jobId);
+                TempData["ErrorMessage"] = "Selected emails export job not found.";
+                return RedirectToAction("Index");
+            }
+
+            _logger.LogDebug("Successfully retrieved job {JobId} with status {Status}", jobId, job.Status);
+            return View(job);
+        }
+
+        // POST: Emails/CancelSelectedEmailsExport
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult CancelSelectedEmailsExport(string jobId, string returnUrl = null)
+        {
+            if (_selectedEmailsExportService == null)
+            {
+                TempData["ErrorMessage"] = "Selected emails export service is not available.";
+                return Redirect(returnUrl ?? Url.Action("Index"));
+            }
+
+            if (string.IsNullOrEmpty(jobId))
+            {
+                TempData["ErrorMessage"] = "Invalid job ID.";
+                return Redirect(returnUrl ?? Url.Action("Index"));
+            }
+
+            var success = _selectedEmailsExportService.CancelJob(jobId);
+
+            if (success)
+            {
+                TempData["SuccessMessage"] = "Selected emails export job has been cancelled.";
+            }
+            else
+            {
+                TempData["ErrorMessage"] = "Could not cancel the selected emails export job.";
+            }
+
+            return Redirect(returnUrl ?? Url.Action("Jobs"));
+        }
+
+        // GET: Emails/DownloadSelectedEmailsExport
+        [HttpGet]
+        public async Task<IActionResult> DownloadSelectedEmailsExport(string jobId)
+        {
+            if (_selectedEmailsExportService == null)
+            {
+                TempData["ErrorMessage"] = "Selected emails export service is not available.";
+                return RedirectToAction("Index");
+            }
+
+            if (string.IsNullOrEmpty(jobId))
+            {
+                TempData["ErrorMessage"] = "Invalid job ID.";
+                return RedirectToAction("Index");
+            }
+
+            var job = _selectedEmailsExportService.GetJob(jobId);
+            if (job == null)
+            {
+                TempData["ErrorMessage"] = "Selected emails export job not found.";
+                return RedirectToAction("Index");
+            }
+
+            // Check if job is completed
+            if (job.Status != SelectedEmailsExportJobStatus.Completed)
+            {
+                TempData["ErrorMessage"] = "Selected emails export job is not completed yet.";
+                return RedirectToAction("Index");
+            }
+
+            // Check if file exists
+            if (string.IsNullOrEmpty(job.OutputFilePath) || !System.IO.File.Exists(job.OutputFilePath))
+            {
+                TempData["ErrorMessage"] = "Export file not found.";
+                return RedirectToAction("Index");
+            }
+
+            try
+            {
+                var fileBytes = await System.IO.File.ReadAllBytesAsync(job.OutputFilePath);
+                var fileName = $"selected-emails-export-{jobId}-{job.Created:yyyyMMdd-HHmmss}.zip";
+
+                // Mark as downloaded (this will delete the file after download)
+                _selectedEmailsExportService.MarkAsDownloaded(jobId);
+
+                Response.Headers.Add("Content-Disposition", $"attachment; filename=\"{fileName}\"");
+                return File(fileBytes, "application/zip", fileName);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error downloading selected emails export file for job {JobId}", jobId);
+                TempData["ErrorMessage"] = "Error downloading export file.";
+                return RedirectToAction("Index");
+            }
         }
 
         // API endpoint for AJAX status updates
@@ -1547,6 +1742,85 @@ namespace MailArchiver.Controllers
             }
 
             return html;
+        }
+
+        // POST: Emails/ExportSelected
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ExportSelected(List<int> ids, string format = "EML", string returnUrl = null)
+        {
+            if (ids == null || !ids.Any())
+            {
+                TempData["ErrorMessage"] = "No emails selected for export.";
+                return Redirect(returnUrl ?? Url.Action("Index"));
+            }
+
+            _logger.LogInformation("ExportSelected called with {Count} emails in {Format} format", ids.Count, format);
+
+            // Check if the selected emails export service is available
+            if (_selectedEmailsExportService == null)
+            {
+                TempData["ErrorMessage"] = "Selected emails export is not available.";
+                return Redirect(returnUrl ?? Url.Action("Index"));
+            }
+
+            try
+            {
+                // Parse format parameter
+                AccountExportFormat exportFormat;
+                if (!Enum.TryParse<AccountExportFormat>(format, true, out exportFormat))
+                {
+                    exportFormat = AccountExportFormat.EML; // Default fallback
+                    _logger.LogWarning("Invalid export format '{Format}' provided, falling back to EML", format);
+                }
+
+                // Get current user's allowed accounts for filtering
+                List<int> allowedAccountIds = null;
+                var authService = HttpContext.RequestServices.GetService<MailArchiver.Services.IAuthenticationService>();
+                var userService = HttpContext.RequestServices.GetService<IUserService>();
+
+                if (authService != null && userService != null && !authService.IsCurrentUserAdmin(HttpContext))
+                {
+                    var username = authService.GetCurrentUser(HttpContext);
+                    var user = await userService.GetUserByUsernameAsync(username);
+                    if (user != null)
+                    {
+                        var userAccounts = await userService.GetUserMailAccountsAsync(user.Id);
+                        allowedAccountIds = userAccounts.Select(a => a.Id).ToList();
+                    }
+                }
+
+                // Filter the email IDs based on user's allowed accounts
+                if (allowedAccountIds != null && allowedAccountIds.Any())
+                {
+                    var allowedEmailIds = await _context.ArchivedEmails
+                        .Where(e => ids.Contains(e.Id) && allowedAccountIds.Contains(e.MailAccountId))
+                        .Select(e => e.Id)
+                        .ToListAsync();
+
+                    ids = allowedEmailIds;
+                }
+
+                if (!ids.Any())
+                {
+                    TempData["ErrorMessage"] = "You do not have access to any of the selected emails.";
+                    return Redirect(returnUrl ?? Url.Action("Index"));
+                }
+
+                // Queue the export job with selected format
+                var userId = HttpContext.User.Identity?.Name ?? "Anonymous";
+                var jobId = _selectedEmailsExportService.QueueExport(ids, exportFormat, userId);
+
+                TempData["SuccessMessage"] = $"Export job started with {ids.Count:N0} emails in {exportFormat} format. Job ID: {jobId}";
+
+                return RedirectToAction("SelectedEmailsExportStatus", new { jobId });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to start selected emails export");
+                TempData["ErrorMessage"] = $"Failed to start export: {ex.Message}";
+                return Redirect(returnUrl ?? Url.Action("Index"));
+            }
         }
     }
 }

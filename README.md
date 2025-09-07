@@ -41,9 +41,9 @@
 - **IMPORT**: Import-only accounts for migrating existing email archives without active synchronization
 
 ### 📤 Export Functions
-- Export individual emails in EML format
-- Bulk export search results to CSV or JSON
-- Attachment download with original filenames
+- Export entire mail accounts as mbox files or zipped EML archives
+- Export selected individual emails or email batches
+- Download attachments with original filenames preserved
 
 ### 📥 Import Functions
 - MBox Import
@@ -120,6 +120,9 @@ services:
       - BatchOperation__BatchSize=50
       - BatchOperation__PauseBetweenEmailsMs=50
       - BatchOperation__PauseBetweenBatchesMs=250
+
+      # Selection Settings
+      - Selection__MaxSelectableEmails=250
 
       # Npgsql Settings
       - Npgsql__CommandTimeout=900

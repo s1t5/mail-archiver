@@ -1,0 +1,101 @@
+@model MailArchiver.ViewModels.AccountExportViewModel
+@using MailArchiver.Models
+@inject Microsoft.Extensions.Localization.IStringLocalizer<MailArchiver.SharedResource> Localizer
+
+@{
+    ViewData["Title"] = @Localizer["ExportAccount"];
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">@Localizer["ExportAccount"]: @Model.MailAccountName</h3>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info alert-persistent">
+                        <h5><i class="bi bi-info-circle"></i> @Localizer["ExportInfo"]</h5>
+                        <p>@Localizer["ExportInfoText"]</p>
+                        <ul>
+                            <li><strong>@Localizer["TotalEmails"]:</strong> @Model.TotalEmailsCount.ToString("N0")</li>
+                            <li><strong>@Localizer["IncomingEmails"]:</strong> @Model.IncomingEmailsCount.ToString("N0")</li>
+                            <li><strong>@Localizer["OutgoingEmails"]:</strong> @Model.OutgoingEmailsCount.ToString("N0")</li>
+                        </ul>
+                    </div>
+
+                    <form asp-action="Export" method="post" class="mt-4">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" asp-for="MailAccountId" />
+                        <input type="hidden" asp-for="MailAccountName" />
+                        <input type="hidden" asp-for="TotalEmailsCount" />
+                        <input type="hidden" asp-for="IncomingEmailsCount" />
+                        <input type="hidden" asp-for="OutgoingEmailsCount" />
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label asp-for="Format" class="form-label">@Localizer["ExportFormat"]</label>
+                                    <select asp-for="Format" class="form-select" id="exportFormat">
+                                        <option value="@AccountExportFormat.EML">@Localizer["EMLFormat"]</option>
+                                        <option value="@AccountExportFormat.MBox">@Localizer["MBoxFormat"]</option>
+                                    </select>
+                                    <span asp-validation-for="Format" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-warning mt-3 alert-persistent" id="formatInfo">
+                            <div id="emlInfo" style="display: block;">
+                                <h6><i class="bi bi-file-earmark-text"></i> @Localizer["EMLFormatInfo"]</h6>
+                                <p>@Localizer["EMLFormatDescription"]</p>
+                            </div>
+                            <div id="mboxInfo" style="display: none;">
+                                <h6><i class="bi bi-archive"></i> @Localizer["MBoxFormatInfo"]</h6>
+                                <p>@Localizer["MBoxFormatDescription"]</p>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-warning mt-3 alert-persistent">
+                            <h6><i class="bi bi-exclamation-triangle"></i> @Localizer["ExportWarning"]</h6>
+                            <ul class="mb-0">
+                                <li>@Localizer["ExportWarningTime"]</li>
+                                <li>@Localizer["ExportWarningSize"]</li>
+                                <li>@Localizer["ExportWarningCleanup"]</li>
+                            </ul>
+                        </div>
+
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="@Url.Action("Details", new { id = Model.MailAccountId })" class="btn btn-secondary">
+                                <i class="bi bi-arrow-left"></i> @Localizer["BackToAccount"]
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-download"></i> @Localizer["StartExport"]
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const formatSelect = document.getElementById('exportFormat');
+            const emlInfo = document.getElementById('emlInfo');
+            const mboxInfo = document.getElementById('mboxInfo');
+
+            function updateFormatInfo() {
+                const selectedFormat = formatSelect.value;
+                emlInfo.style.display = selectedFormat === '@AccountExportFormat.EML.ToString()' ? 'block' : 'none';
+                mboxInfo.style.display = selectedFormat === '@AccountExportFormat.MBox.ToString()' ? 'block' : 'none';
+            }
+
+            formatSelect.addEventListener('change', updateFormatInfo);
+            updateFormatInfo(); // Initial call
+        });
+    </script>
+}

@@ -1,6 +1,7 @@
 using MailArchiver.Data;
 using MailArchiver.Models;
 using MailArchiver.Models.ViewModels;
+using MailArchiver.ViewModels;
 using MailArchiver.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -26,6 +27,7 @@ namespace MailArchiver.Controllers
     private readonly UploadOptions _uploadOptions;
     private readonly IStringLocalizer<SharedResource> _localizer;
     private readonly IServiceScopeFactory _serviceScopeFactory;
+    private readonly IExportService _exportService;
 
     public MailAccountsController(
         MailArchiverDbContext context,
@@ -38,7 +40,8 @@ namespace MailArchiver.Controllers
         IEmlImportService emlImportService,
         IOptions<UploadOptions> uploadOptions, 
         IStringLocalizer<SharedResource> localizer,
-        IServiceScopeFactory serviceScopeFactory)
+        IServiceScopeFactory serviceScopeFactory,
+        IExportService exportService)
     {
         _context = context;
         _emailService = emailService;
@@ -51,6 +54,7 @@ namespace MailArchiver.Controllers
         _uploadOptions = uploadOptions.Value;
         _localizer = localizer;
         _serviceScopeFactory = serviceScopeFactory;
+        _exportService = exportService;
     }
 
         private async Task<bool> HasAccessToAccountAsync(int accountId)
@@ -1149,6 +1153,200 @@ var model = new MailAccountViewModel
             }
 
             // Wenn returnUrl angegeben ist, leite dorthin weiter, sonst zur Index-Seite
+            return Redirect(returnUrl ?? Url.Action(nameof(Index)));
+        }
+
+        // GET: MailAccounts/Export/5
+        [SelfManagerRequired]
+        public async Task<IActionResult> Export(int id)
+        {
+            if (!await HasAccessToAccountAsync(id))
+            {
+                return NotFound();
+            }
+
+            var account = await _context.MailAccounts.FindAsync(id);
+            if (account == null)
+            {
+                return NotFound();
+            }
+
+            // Get email counts
+            var emailCount = await _emailService.GetEmailCountByAccountAsync(id);
+            var incomingCount = await _context.ArchivedEmails
+                .CountAsync(e => e.MailAccountId == id && !e.IsOutgoing);
+            var outgoingCount = await _context.ArchivedEmails
+                .CountAsync(e => e.MailAccountId == id && e.IsOutgoing);
+
+            if (emailCount == 0)
+            {
+                TempData["ErrorMessage"] = _localizer["NoEmailsToExport"].Value;
+                return RedirectToAction(nameof(Details), new { id });
+            }
+
+            var model = new AccountExportViewModel
+            {
+                MailAccountId = id,
+                MailAccountName = account.Name,
+                TotalEmailsCount = emailCount,
+                IncomingEmailsCount = incomingCount,
+                OutgoingEmailsCount = outgoingCount
+            };
+
+            return View(model);
+        }
+
+        // POST: MailAccounts/Export
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [SelfManagerRequired]
+        public async Task<IActionResult> Export(AccountExportViewModel model)
+        {
+            if (!await HasAccessToAccountAsync(model.MailAccountId))
+            {
+                return NotFound();
+            }
+
+            var account = await _context.MailAccounts.FindAsync(model.MailAccountId);
+            if (account == null)
+            {
+                return NotFound();
+            }
+
+            // Validate email count
+            var emailCount = await _emailService.GetEmailCountByAccountAsync(model.MailAccountId);
+            if (emailCount == 0)
+            {
+                TempData["ErrorMessage"] = _localizer["NoEmailsToExport"].Value;
+                return RedirectToAction(nameof(Details), new { id = model.MailAccountId });
+            }
+
+            try
+            {
+                // Get current user info
+                var authService = HttpContext.RequestServices.GetService<MailArchiver.Services.IAuthenticationService>();
+                var currentUsername = authService.GetCurrentUser(HttpContext);
+
+                // Queue the job
+                var jobId = _exportService.QueueExport(model.MailAccountId, model.Format, currentUsername ?? "Anonymous");
+
+                TempData["SuccessMessage"] = _localizer["ExportStarted", account.Name, model.Format].Value;
+                return RedirectToAction("ExportStatus", new { jobId });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error starting export for account {AccountName}", account.Name);
+                TempData["ErrorMessage"] = $"{_localizer["ExportError"]}: {ex.Message}";
+                return RedirectToAction(nameof(Details), new { id = model.MailAccountId });
+            }
+        }
+
+        // GET: MailAccounts/ExportStatus
+        [HttpGet]
+        [SelfManagerRequired]
+        public async Task<IActionResult> ExportStatus(string jobId)
+        {
+            if (string.IsNullOrEmpty(jobId))
+            {
+                TempData["ErrorMessage"] = _localizer["InvalidExportID"].Value;
+                return RedirectToAction(nameof(Index));
+            }
+
+            var job = _exportService.GetJob(jobId);
+            if (job == null)
+            {
+                TempData["ErrorMessage"] = _localizer["ExportJobNotFound"].Value;
+                return RedirectToAction(nameof(Index));
+            }
+
+            // Check if user has access to the account
+            if (!await HasAccessToAccountAsync(job.MailAccountId))
+            {
+                return NotFound();
+            }
+
+            return View(job);
+        }
+
+        // GET: MailAccounts/DownloadExport
+        [HttpGet]
+        [SelfManagerRequired]
+        public async Task<IActionResult> DownloadExport(string jobId)
+        {
+            if (string.IsNullOrEmpty(jobId))
+            {
+                TempData["ErrorMessage"] = _localizer["InvalidExportID"].Value;
+                return RedirectToAction(nameof(Index));
+            }
+
+            var job = _exportService.GetJob(jobId);
+            if (job == null)
+            {
+                TempData["ErrorMessage"] = _localizer["ExportJobNotFound"].Value;
+                return RedirectToAction(nameof(Index));
+            }
+
+            // Check if user has access to the account
+            if (!await HasAccessToAccountAsync(job.MailAccountId))
+            {
+                return NotFound();
+            }
+
+            if (job.Status != AccountExportJobStatus.Completed)
+            {
+                TempData["ErrorMessage"] = _localizer["ExportFileNotFound"].Value;
+                return RedirectToAction("ExportStatus", new { jobId });
+            }
+
+            try
+            {
+                var fileResult = await _exportService.DownloadExportAsync(jobId);
+                
+                // Mark as downloaded to clean up the file
+                _exportService.MarkAsDownloaded(jobId);
+
+                return File(fileResult.Content, fileResult.ContentType, fileResult.FileName);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error downloading export {JobId}", jobId);
+                TempData["ErrorMessage"] = _localizer["ExportDownloadError"].Value;
+                return RedirectToAction("ExportStatus", new { jobId });
+            }
+        }
+
+        // POST: MailAccounts/CancelExport
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [SelfManagerRequired]
+        public async Task<IActionResult> CancelExport(string jobId, string returnUrl = null)
+        {
+            if (string.IsNullOrEmpty(jobId))
+            {
+                TempData["ErrorMessage"] = _localizer["InvalidExportID"].Value;
+                return Redirect(returnUrl ?? Url.Action(nameof(Index)));
+            }
+
+            var job = _exportService.GetJob(jobId);
+            if (job != null)
+            {
+                // Check if user has access to the account
+                if (!await HasAccessToAccountAsync(job.MailAccountId))
+                {
+                    return NotFound();
+                }
+            }
+
+            var success = _exportService.CancelJob(jobId);
+            if (success)
+            {
+                TempData["SuccessMessage"] = _localizer["ExportCancelled"].Value;
+            }
+            else
+            {
+                TempData["ErrorMessage"] = _localizer["ExportCancelError"].Value;
+            }
+
             return Redirect(returnUrl ?? Url.Action(nameof(Index)));
         }
 

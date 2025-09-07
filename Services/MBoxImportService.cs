@@ -75,6 +75,14 @@ private readonly IServiceProvider _serviceProvider;
                 .ToList();
         }
 
+        public List<MBoxImportJob> GetAllJobs()
+        {
+            return _allJobs.Values
+                .OrderByDescending(j => j.Status == MBoxImportJobStatus.Running || j.Status == MBoxImportJobStatus.Queued)
+                .ThenByDescending(j => j.Created)
+                .ToList();
+        }
+
         public bool CancelJob(string jobId)
         {
             if (_allJobs.TryGetValue(jobId, out var job))

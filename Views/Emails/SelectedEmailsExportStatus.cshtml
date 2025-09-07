@@ -1,0 +1,209 @@
+@inject Microsoft.Extensions.Localization.IStringLocalizer<MailArchiver.SharedResource> Localizer
+@model MailArchiver.Models.SelectedEmailsExportJob
+@{
+    ViewData["Title"] = Localizer["SelectedEmailsExportStatusTitle"];
+}
+
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1>@Localizer["SelectedEmailsExportStatusTitle"]</h1>
+        <div>
+            <a asp-action="Index" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> @Localizer["BackToArchive"]
+            </a>
+            <a asp-action="Jobs" class="btn btn-outline-info">
+                <i class="bi bi-list"></i> @Localizer["AllJobs"]
+            </a>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header bg-light">
+            <h5 class="mb-0">@Localizer["JobInformation"]</h5>
+        </div>
+        <div class="card-body">
+            <dl class="row">
+                <dt class="col-sm-3">@Localizer["JobIDLabel"]</dt>
+                <dd class="col-sm-9"><code>@Model.JobId</code></dd>
+                <dt class="col-sm-3">@Localizer["StatusLabel"]</dt>
+                <dd class="col-sm-9">
+                    <span class="badge bg-@(Model.Status == SelectedEmailsExportJobStatus.Running ? "primary" : 
+                                           Model.Status == SelectedEmailsExportJobStatus.Completed ? "success" : 
+                                           Model.Status == SelectedEmailsExportJobStatus.Failed ? "danger" : 
+                                           Model.Status == SelectedEmailsExportJobStatus.Cancelled ? "warning" : "secondary") fs-6">
+                        @Model.Status
+                    </span>
+                </dd>
+                <dt class="col-sm-3">@Localizer["ExportFormat"]</dt>
+                <dd class="col-sm-9">
+                    @{
+                        var formatText = Model.Format == MailArchiver.Models.AccountExportFormat.EML ? "EML" : "MBox";
+                    }
+                    @formatText
+                </dd>
+                <dt class="col-sm-3">@Localizer["TotalEmailsLabel"]</dt>
+                <dd class="col-sm-9">@Model.EmailIds.Count.ToString("N0")</dd>
+                <dt class="col-sm-3">@Localizer["ProgressLabel"]</dt>
+                <dd class="col-sm-9">
+                    @{ var progressPercent = Model.TotalEmails > 0 ? Math.Round((double)Model.ProcessedEmails * 100.0 / Model.TotalEmails, 1) : 0; var progressWidth = Math.Min(100, Math.Max(0, progressPercent)); }
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="small text-muted">@Localizer["ProgressLabel"]</span>
+                            <span class="small fw-bold">@progressPercent.ToString("F1")%</span>
+                        </div>
+                        <div class="progress" style="height: 25px;">
+                            <div class="progress-bar progress-bar-striped @(Model.Status == SelectedEmailsExportJobStatus.Running ? "progress-bar-animated" : "")" 
+                                 role="progressbar" 
+                                 style="width: @progressWidth.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)%"
+                                 aria-valuenow="@progressPercent" 
+                                 aria-valuemin="0" 
+                                 aria-valuemax="100">
+                                @if (progressPercent > 10)
+                                {
+                                    <span class="fw-bold">@progressPercent.ToString("F1")%</span>
+                                }
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-between mt-1">
+                            <small class="text-muted">
+                                @Model.ProcessedEmails.ToString("N0") @Localizer["Of"] @Model.TotalEmails.ToString("N0") @Localizer["ProcessedSuffix"]
+                            </small>
+                            <small class="text-muted">
+                                @if (Model.Status == SelectedEmailsExportJobStatus.Running && Model.ProcessedEmails > 0)
+                                {
+                                    var remainingCount = Model.TotalEmails - Model.ProcessedEmails;
+                                    <span>@remainingCount.ToString("N0") @Localizer["RemainingSuffix"]</span>
+                                }
+                            </small>
+                        </div>
+                    </div>
+                </dd>
+                <dt class="col-sm-3">@Localizer["CreatedLabel"]</dt>
+                <dd class="col-sm-9">
+                    <span class="utc-timestamp" data-utc-time="@Model.Created.ToString("yyyy-MM-ddTHH:mm:ss")">
+                        @Model.Created.ToString("g")
+                    </span>
+                </dd>
+                @if (Model.Started.HasValue)
+                {
+                    <dt class="col-sm-3">@Localizer["StartedLabel"]</dt>
+                    <dd class="col-sm-9">
+                        <span class="utc-timestamp" data-utc-time="@Model.Started.Value.ToString("yyyy-MM-ddTHH:mm:ss")">
+                            @Model.Started.Value.ToString("g")
+                        </span>
+                    </dd>
+                }
+                @if (Model.Completed.HasValue)
+                {
+                    <dt class="col-sm-3">@Localizer["CompletedLabel"]</dt>
+                    <dd class="col-sm-9">
+                        <span class="utc-timestamp" data-utc-time="@Model.Completed.Value.ToString("yyyy-MM-ddTHH:mm:ss")">
+                            @Model.Completed.Value.ToString("g")
+                        </span>
+                    </dd>
+                    @if (Model.Started.HasValue)
+                    {
+                        var duration = Model.Completed.Value - Model.Started.Value;
+                        <dt class="col-sm-3">@Localizer["DurationLabel"]</dt>
+                        <dd class="col-sm-9">
+                            <span class="badge bg-info">
+                                @duration.ToString(@"hh\:mm\:ss")
+                            </span>
+                        </dd>
+                    }
+                }
+                @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+                {
+                    <dt class="col-sm-3">@Localizer["ErrorLabel"]</dt>
+                    <dd class="col-sm-9">
+                        <div class="alert alert-danger">
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                            @Model.ErrorMessage
+                        </div>
+                    </dd>
+                }
+            </dl>
+            @if (Model.Status == SelectedEmailsExportJobStatus.Running || Model.Status == SelectedEmailsExportJobStatus.Queued)
+            {
+                <div class="mt-4 pt-3 border-top">
+                    <form asp-action="CancelSelectedEmailsExport" method="post" style="display: inline;" 
+                          onsubmit="return confirm('@Localizer["CancelExportConfirm"]');">
+                        <input type="hidden" name="jobId" value="@Model.JobId" />
+                        <input type="hidden" name="returnUrl" value="@Context.Request.Path" />
+                        <button type="submit" class="btn btn-warning">
+                            <i class="bi bi-stop-circle"></i> @Localizer["CancelExport"]
+                        </button>
+                    </form>
+                </div>
+            }
+            @if (Model.Status == SelectedEmailsExportJobStatus.Completed && !string.IsNullOrEmpty(Model.OutputFilePath))
+            {
+                <div class="mt-4 pt-3 border-top">
+                    <a asp-action="DownloadSelectedEmailsExport" asp-route-jobId="@Model.JobId" class="btn btn-success">
+                        <i class="bi bi-download"></i> @Localizer["DownloadExport"]
+                    </a>
+                </div>
+            }
+            @if (Model.Status == SelectedEmailsExportJobStatus.Completed)
+            {
+                <div class="mt-4 pt-3 border-top">
+                    <div class="alert alert-success">
+                        <i class="bi bi-check-circle-fill me-2"></i>
+                        <strong>@Localizer["ExportCompletedTitle"]</strong> 
+                        @string.Format(Localizer["ExportCompletedSummary"], Model.ProcessedEmails.ToString("N0"))
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@if (Model.Status == SelectedEmailsExportJobStatus.Running || Model.Status == SelectedEmailsExportJobStatus.Queued)
+{
+    @section Scripts {
+        <script>
+            let refreshTimer;
+            let countdownTimer;
+            let countdown = 5;
+            
+            function startRefresh() {
+                refreshTimer = setTimeout(function() { 
+                    // Preserve jobId in the URL when reloading
+                    const currentUrl = new URL(window.location.href);
+                    location.reload(); 
+                }, 5000);
+                
+                countdownTimer = setInterval(function() {
+                    countdown--;
+                    document.title = `(${countdown}s) ${'@Localizer["SelectedEmailsExportStatusTitle"]'} - @Model.JobId.Substring(0, 8)`;
+                    if (countdown <= 0) { 
+                        clearInterval(countdownTimer); 
+                        countdown = 5; // Reset for next cycle
+                    }
+                }, 1000);
+            }
+            
+            function stopRefresh() {
+                if (refreshTimer) {
+                    clearTimeout(refreshTimer);
+                }
+                if (countdownTimer) {
+                    clearInterval(countdownTimer);
+                }
+                document.title = '@Localizer["SelectedEmailsExportStatusTitle"]';
+            }
+            
+            // Start the refresh cycle
+            startRefresh();
+            
+            // Stop refresh if page becomes hidden (user navigates away)
+            document.addEventListener('visibilitychange', function() {
+                if (document.hidden) {
+                    stopRefresh();
+                } else if ('@Model.Status' === 'Running' || '@Model.Status' === 'Queued') {
+                    startRefresh();
+                }
+            });
+        </script>
+    }
+}

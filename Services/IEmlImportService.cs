@@ -7,6 +7,7 @@ namespace MailArchiver.Services
         string QueueImport(EmlImportJob job);
         EmlImportJob? GetJob(string jobId);
         List<EmlImportJob> GetActiveJobs();
+        List<EmlImportJob> GetAllJobs();
         bool CancelJob(string jobId);
         Task<string> SaveUploadedFileAsync(IFormFile file);
         Task<int> EstimateEmailCountAsync(string filePath);

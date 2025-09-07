@@ -13,9 +13,6 @@
 <div class="container-fluid">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h1 class="h3">@Localizer["EmailArchive"]</h1>
-        <button type="button" class="btn btn-success btn-sm d-none d-md-inline" data-bs-toggle="modal" data-bs-target="#exportModal">
-            <i class="bi bi-download"></i> @Localizer["Export"]
-        </button>
     </div>
 
     @* Active Jobs Alert *@
@@ -86,11 +83,6 @@
                                     <label class="form-check-label small" for="toggleSelectionMode">@Localizer["SelectionMode"]</label>
                                     <input type="hidden" id="userTimezone" name="UserTimezone" value="" />
                                 </div>
-                            </div>
-                            <div class="d-md-none">
-                                <button type="button" class="btn btn-success btn-sm w-100" data-bs-toggle="modal" data-bs-target="#exportModal">
-                                    <i class="bi bi-download"></i> @Localizer["Export"]
-                                </button>
                             </div>
                         </div>
                     </div>
@@ -184,9 +176,13 @@
                             <span id="operationMode" class="badge bg-info" style="display:none;"></span>
                         </div>
                         <div id="selectionActions" style="display:none;">
-                            <button type="button" id="batchRestoreBtn" class="btn btn-sm btn-success">
+                            <button type="button" id="batchRestoreBtn" class="btn btn-sm btn-success me-2">
                                 <i class="bi bi-envelope-arrow-up"></i>
                                 <span class="d-none d-sm-inline">@Localizer["CopySelected"]</span>
+                            </button>
+                            <button type="button" id="exportSelectedBtn" class="btn btn-sm btn-primary">
+                                <i class="bi bi-download"></i>
+                                <span class="d-none d-sm-inline">@Localizer["ExportSelected"]</span>
                             </button>
                         </div>
                     </div>
@@ -242,7 +238,7 @@
                                     </td>
                                     <td>@email.From</td>
                                     <td>@email.To</td>
-                                    <td>@email.SentDate.ToString(System.Globalization.CultureInfo.CurrentUICulture.DateTimeFormat.ShortDatePattern + " " + System.Globalization.CultureInfo.CurrentUICulture.DateTimeFormat.ShortTimePattern)</td>
+                                    <td>@email.SentDate.ToString("g")</td>
                                     <td>@email.MailAccount.Name</td>
                                     <td>
                                         @if (email.HasAttachments)
@@ -299,7 +295,7 @@
                             <div class="email-card-meta">
                                 <div><strong>@Localizer["From"]:</strong> @email.From</div>
                                 <div><strong>@Localizer["To"]:</strong> @(email.To.Length > 50 ? email.To.Substring(0, 50) + "..." : email.To)</div>
-                                <div><strong>@Localizer["Date"]:</strong> @email.SentDate.ToString(System.Globalization.CultureInfo.CurrentUICulture.DateTimeFormat.ShortDatePattern + " " + System.Globalization.CultureInfo.CurrentUICulture.DateTimeFormat.ShortTimePattern)</div>
+                                <div><strong>@Localizer["Date"]:</strong> @email.SentDate.ToString("g")</div>
                                 <div><strong>@Localizer["Account"]:</strong> @email.MailAccount.Name</div>
                             </div>
                             <div class="email-card-actions">
@@ -385,67 +381,6 @@
     }
 </div>
 
-<!-- Export Modal -->
-<div class="modal fade" id="exportModal" tabindex="-1" aria-labelledby="exportModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="exportModalLabel">@Localizer["ExportSearchResults"]</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <form asp-action="ExportSearchResults" method="post">
-                <div class="modal-body">
-                    <!-- Alle aktuellen Suchparameter als hidden fields -->
-                    <input type="hidden" name="SearchTerm" value="@(Model.SearchTerm ?? "")" />
-                    <input type="hidden" name="FromDate" value="@(Model.FromDate?.ToString("yyyy-MM-dd"))" />
-                    <input type="hidden" name="ToDate" value="@(Model.ToDate?.ToString("yyyy-MM-dd"))" />
-                    <input type="hidden" name="SelectedAccountId" value="@Model.SelectedAccountId" />
-                    <input type="hidden" name="IsOutgoing" value="@Model.IsOutgoing" />
-                    
-                    <div class="mb-3">
-                        <label for="exportFormat" class="form-label">@Localizer["ExportFormat"]</label>
-                        <select name="Format" id="exportFormat" class="form-select">
-                            <option value="0">CSV</option>
-                            <option value="1">JSON</option>
-                        </select>
-                    </div>
-                    
-                    <div class="alert alert-info">
-                        <small>
-                            <strong>@Localizer["ExportInformation"]</strong><br>
-                            @if (!string.IsNullOrEmpty(Model.SearchTerm) || Model.FromDate.HasValue || Model.ToDate.HasValue || Model.SelectedAccountId.HasValue || Model.IsOutgoing.HasValue)
-                            {
-                                <span>@Localizer["ExportingFilteredResults"]</span>
-                            }
-                            else
-                            {
-                                <span>@Localizer["ExportingAllEmails"]</span>
-                            }
-                            <br>@Localizer["ExportMayTakeTime"]
-                        </small>
-                    </div>
-                    
-                    @if (Model.TotalResults > 0)
-                    {
-                        <div class="alert alert-success">
-                            <small>
-                                <i class="bi bi-info-circle me-1"></i>
-                                <strong>@Model.TotalResults.ToString("N0")</strong> @Localizer["EmailsMatchCriteria", ""]
-                            </small>
-                        </div>
-                    }
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">@Localizer["Cancel"]</button>
-                    <button type="submit" class="btn btn-primary">
-                        <i class="bi bi-download me-1"></i>@Localizer["ExportButton"]
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
 <!-- Batch Restore Confirmation Modal -->
 <div class="modal fade" id="batchRestoreConfirmModal" tabindex="-1" aria-labelledby="batchRestoreConfirmModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
@@ -465,6 +400,64 @@
     </div>
 </div>
 
+<!-- Export Format Selection Modal -->
+<div class="modal fade" id="exportFormatModal" tabindex="-1" aria-labelledby="exportFormatModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exportFormatModalLabel">@Localizer["ExportSelected"]</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <h6>@Localizer["ExportFormatSelection"]</h6>
+                    <p class="text-muted small">@Localizer["ExportFormatSelectionInfo"]</p>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="exportFormat" id="formatEML" value="EML" checked>
+                                    <label class="form-check-label" for="formatEML">
+                                        <strong>@Localizer["EMLFormat"]</strong>
+                                    </label>
+                                </div>
+                                <small class="text-muted">@Localizer["EMLFormatDescription"]</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="exportFormat" id="formatMBox" value="MBox">
+                                    <label class="form-check-label" for="formatMBox">
+                                        <strong>@Localizer["MBoxFormat"]</strong>
+                                    </label>
+                                </div>
+                                <small class="text-muted">@Localizer["MBoxFormatDescription"]</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="alert alert-info">
+                    <small>
+                        <i class="bi bi-info-circle me-1"></i>
+                        @Localizer["ExportSelectedInfo"]
+                    </small>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">@Localizer["Cancel"]</button>
+                <button type="button" class="btn btn-primary" id="confirmExportBtn">@Localizer["StartExport"]</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -477,6 +470,10 @@
             // Configuration from ViewBag
             const asyncThreshold = @ViewBag.AsyncThreshold;
             const maxAsyncEmails = @ViewBag.MaxAsyncEmails;
+            const maxSelectableEmails = @(ViewBag.MaxSelectableEmails ?? 250);
+            
+            // Cross-page selection storage key
+            const STORAGE_KEY = 'emailSelection';
             
             // Get elements
             const toggleSelectionMode = document.getElementById('toggleSelectionMode');
@@ -490,38 +487,115 @@
             const operationMode = document.getElementById('operationMode');
 
             console.log("Selection controls visible: " + @(Model.ShowSelectionControls ? "true" : "false"));
+            console.log("Max selectable emails: " + maxSelectableEmails);
+
+            // Cross-page selection management
+            function getStoredSelections() {
+                try {
+                    const stored = localStorage.getItem(STORAGE_KEY);
+                    return stored ? JSON.parse(stored) : [];
+                } catch (e) {
+                    console.warn('Error reading stored selections:', e);
+                    return [];
+                }
+            }
+
+            function saveStoredSelections(selections) {
+                try {
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(selections));
+                } catch (e) {
+                    console.warn('Error saving selections:', e);
+                }
+            }
+
+            function addToStoredSelections(emailIds) {
+                const stored = getStoredSelections();
+                const updated = [...new Set([...stored, ...emailIds])]; // Remove duplicates
+                
+                // Enforce maximum limit
+                if (updated.length > maxSelectableEmails) {
+                    const message = '@Localizer["MaxSelectionsReached"]'.replace('{0}', maxSelectableEmails);
+                    alert(message);
+                    return false;
+                }
+                
+                saveStoredSelections(updated);
+                return true;
+            }
+
+            function removeFromStoredSelections(emailIds) {
+                const stored = getStoredSelections();
+                const updated = stored.filter(id => !emailIds.includes(id));
+                saveStoredSelections(updated);
+            }
+
+            function clearStoredSelections() {
+                localStorage.removeItem(STORAGE_KEY);
+            }
+
+            function getTotalSelectedCount() {
+                return getStoredSelections().length;
+            }
+
+            // Update button texts based on selection state
+            function updateButtonTexts() {
+                const emailCheckboxes = document.querySelectorAll('.email-select-checkbox');
+                const currentPageIds = Array.from(emailCheckboxes).map(cb => cb.value);
+                const storedSelections = getStoredSelections();
+                const currentPageSelected = currentPageIds.filter(id => storedSelections.includes(id));
+                
+                if (selectAllBtn) {
+                    if (currentPageSelected.length === currentPageIds.length) {
+                        selectAllBtn.innerHTML = '@Html.Raw(Localizer["DeselectAllOnPage"].Value)';
+                        selectAllBtn.className = 'btn btn-sm btn-outline-secondary';
+                    } else {
+                        selectAllBtn.innerHTML = '@Html.Raw(Localizer["SelectAllOnPage"].Value)';
+                        selectAllBtn.className = 'btn btn-sm btn-outline-primary';
+                    }
+                }
+            }
 
             // Toggle selection mode using form submit
             if (toggleSelectionMode) {
                 toggleSelectionMode.addEventListener('change', function() {
                     console.log("Selection mode toggled: " + this.checked);
+                    if (!this.checked) {
+                        clearStoredSelections(); // Clear selections when leaving selection mode
+                    }
                     searchForm.submit();
                 });
             }
 
             // Update selection counter and mode indicator
             function updateSelectionCounter() {
+                const totalSelected = getTotalSelectedCount();
                 const emailCheckboxes = document.querySelectorAll('.email-select-checkbox');
                 const checkedBoxes = document.querySelectorAll('.email-select-checkbox:checked');
-                const count = checkedBoxes.length;
                 
-                console.log("Selected emails count: " + count);
+                console.log("Total selected across all pages: " + totalSelected);
+                console.log("Selected on current page: " + checkedBoxes.length);
                 
                 if (selectionCounter) {
-                    selectionCounter.textContent = count + ' selected';
+                    if (totalSelected >= maxSelectableEmails) {
+                        selectionCounter.innerHTML = '@Html.Raw(Localizer["MaxSelectionsReached"].Value)'.replace('{0}', maxSelectableEmails);
+                        selectionCounter.className = 'badge bg-warning';
+                    } else {
+                        selectionCounter.innerHTML = '@Html.Raw(Localizer["SelectedOf"].Value)'.replace('{0}', totalSelected).replace('{1}', maxSelectableEmails);
+                        selectionCounter.className = 'badge bg-primary';
+                    }
                 }
 
                 // Update operation mode indicator
-                if (operationMode && count > 0) {
+                if (operationMode && totalSelected > 0) {
                     operationMode.style.display = 'inline';
-                    if (count <= asyncThreshold) {
-                        operationMode.textContent = 'Direct Processing';
+                    if (totalSelected <= asyncThreshold) {
+                        operationMode.textContent = '@Localizer["DirectProcessingMode"]';
                         operationMode.className = 'badge bg-success';
-                    } else if (count <= maxAsyncEmails) {
-                        operationMode.textContent = 'Background Job';
+                    } else if (totalSelected <= maxAsyncEmails) {
+                        operationMode.textContent = '@Localizer["BackgroundJobMode"]';
                         operationMode.className = 'badge bg-primary';
                     } else {
-                        operationMode.textContent = 'Too Many - Split Required';
+                        operationMode.textContent = '@Localizer["TooManySelected"]';
                         operationMode.className = 'badge bg-danger';
                     }
                 } else if (operationMode) {
@@ -530,19 +604,19 @@
 
                 // Show/hide batch actions
                 if (selectionActions) {
-                    if (count > 0) {
+                    if (totalSelected > 0) {
                         selectionActions.style.display = 'block';
                         
                         // Update button state based on count
                         if (batchRestoreBtn) {
-                            if (count > maxAsyncEmails) {
+                            if (totalSelected > maxAsyncEmails) {
                                 batchRestoreBtn.disabled = true;
-                                batchRestoreBtn.innerHTML = '<i class="bi bi-exclamation-triangle"></i> <span class="d-none d-sm-inline">Too Many Selected</span>';
-                                batchRestoreBtn.className = 'btn btn-sm btn-danger';
+                                batchRestoreBtn.innerHTML = '<i class="bi bi-exclamation-triangle"></i> <span class="d-none d-sm-inline">@Localizer["TooManySelected"]</span>';
+                                batchRestoreBtn.className = 'btn btn-sm btn-danger me-2';
                             } else {
                                 batchRestoreBtn.disabled = false;
-                                batchRestoreBtn.innerHTML = '<i class="bi bi-envelope-arrow-up"></i> <span class="d-none d-sm-inline">Copy Selected</span>';
-                                batchRestoreBtn.className = 'btn btn-sm btn-success';
+                                batchRestoreBtn.innerHTML = '<i class="bi bi-envelope-arrow-up"></i> <span class="d-none d-sm-inline">@Localizer["CopySelected"]</span>';
+                                batchRestoreBtn.className = 'btn btn-sm btn-success me-2';
                             }
                         }
                     } else {
@@ -550,21 +624,44 @@
                     }
                 }
 
-                // Update select all checkbox state
+                // Update select all checkbox state on current page
                 if (selectAllCheckbox && emailCheckboxes.length > 0) {
                     selectAllCheckbox.checked = checkedBoxes.length === emailCheckboxes.length;
                     selectAllCheckbox.indeterminate = checkedBoxes.length > 0 && checkedBoxes.length < emailCheckboxes.length;
                 }
+
+                updateButtonTexts();
             }
 
             // Initialize counter and attach events
             function initializeSelectionHandlers() {
                 const emailCheckboxes = document.querySelectorAll('.email-select-checkbox');
+                const storedSelections = getStoredSelections();
+                
                 console.log("Found email checkboxes: " + emailCheckboxes.length);
+                console.log("Stored selections: ", storedSelections);
 
-                // Individual checkbox change
+                // Restore selections for current page
                 emailCheckboxes.forEach(function(checkbox) {
+                    if (storedSelections.includes(checkbox.value)) {
+                        checkbox.checked = true;
+                    }
+                    
+                    // Individual checkbox change
                     checkbox.addEventListener('change', function() {
+                        const isChecked = this.checked;
+                        const emailId = this.value;
+                        
+                        if (isChecked) {
+                            if (!addToStoredSelections([emailId])) {
+                                // Maximum reached, uncheck the box
+                                this.checked = false;
+                                return;
+                            }
+                        } else {
+                            removeFromStoredSelections([emailId]);
+                        }
+                        
                         updateSelectionCounter();
                     });
                 });
@@ -572,32 +669,66 @@
                 updateSelectionCounter();
             }
 
-            // Select/deselect all checkboxes
+            // Select/deselect all checkboxes on current page
             if (selectAllCheckbox) {
                 selectAllCheckbox.addEventListener('change', function() {
                     const isChecked = this.checked;
                     const emailCheckboxes = document.querySelectorAll('.email-select-checkbox');
-                    emailCheckboxes.forEach(function(checkbox) {
-                        checkbox.checked = isChecked;
-                    });
+                    const currentPageIds = Array.from(emailCheckboxes).map(cb => cb.value);
+                    
+                    if (isChecked) {
+                        // Try to add all current page IDs
+                        if (addToStoredSelections(currentPageIds)) {
+                            emailCheckboxes.forEach(function(checkbox) {
+                                checkbox.checked = true;
+                            });
+                        } else {
+                            // If we can't add all, uncheck the select all box
+                            this.checked = false;
+                        }
+                    } else {
+                        // Remove all current page IDs
+                        removeFromStoredSelections(currentPageIds);
+                        emailCheckboxes.forEach(function(checkbox) {
+                            checkbox.checked = false;
+                        });
+                    }
+                    
                     updateSelectionCounter();
                 });
             }
 
-            // Select all button
+            // Select all button - only for current page
             if (selectAllBtn) {
                 selectAllBtn.addEventListener('click', function() {
                     const emailCheckboxes = document.querySelectorAll('.email-select-checkbox');
-                    emailCheckboxes.forEach(function(checkbox) {
-                        checkbox.checked = true;
-                    });
+                    const currentPageIds = Array.from(emailCheckboxes).map(cb => cb.value);
+                    const storedSelections = getStoredSelections();
+                    const currentPageSelected = currentPageIds.filter(id => storedSelections.includes(id));
+                    
+                    if (currentPageSelected.length === currentPageIds.length) {
+                        // All are selected, deselect all on current page
+                        removeFromStoredSelections(currentPageIds);
+                        emailCheckboxes.forEach(function(checkbox) {
+                            checkbox.checked = false;
+                        });
+                    } else {
+                        // Not all are selected, select all on current page
+                        if (addToStoredSelections(currentPageIds)) {
+                            emailCheckboxes.forEach(function(checkbox) {
+                                checkbox.checked = true;
+                            });
+                        }
+                    }
+                    
                     updateSelectionCounter();
                 });
             }
 
-            // Deselect all button
+            // Deselect all button - clears all selections across all pages
             if (deselectAllBtn) {
                 deselectAllBtn.addEventListener('click', function() {
+                    clearStoredSelections();
                     const emailCheckboxes = document.querySelectorAll('.email-select-checkbox');
                     emailCheckboxes.forEach(function(checkbox) {
                         checkbox.checked = false;
@@ -613,10 +744,12 @@
                         return;
                     }
 
-                    const checkedBoxes = document.querySelectorAll('.email-select-checkbox:checked');
-                    if (checkedBoxes.length === 0) {
+                    const totalSelected = getTotalSelectedCount();
+                    const storedSelections = getStoredSelections();
+                    
+                    if (totalSelected === 0) {
                         // Show modal for no emails selected
-                        document.getElementById('confirmMessage').textContent = '@Localizer["PleaseSelectAtLeastOne"]';
+                        document.getElementById('confirmMessage').innerHTML = '@Html.Raw(Localizer["PleaseSelectAtLeastOne"].Value)';
                         var confirmModal = new bootstrap.Modal(document.getElementById('batchRestoreConfirmModal'));
                         document.getElementById('confirmBatchRestoreBtn').style.display = 'none';
                         confirmModal.show();
@@ -628,10 +761,10 @@
                         return;
                     }
 
-                    if (checkedBoxes.length > maxAsyncEmails) {
+                    if (totalSelected > maxAsyncEmails) {
                         // Show modal for too many emails selected
-                        const tooManyMessage = '@Localizer["TooManyEmailsSelected"].Value'.replace('{0}', checkedBoxes.length.toLocaleString()).replace('{1}', maxAsyncEmails.toLocaleString());
-                        document.getElementById('confirmMessage').textContent = tooManyMessage;
+                        const tooManyMessage = '@Html.Raw(Localizer["TooManyEmailsSelected"].Value)'.replace('{0}', totalSelected.toLocaleString()).replace('{1}', maxAsyncEmails.toLocaleString());
+                        document.getElementById('confirmMessage').innerHTML = tooManyMessage;
                         var confirmModal = new bootstrap.Modal(document.getElementById('batchRestoreConfirmModal'));
                         document.getElementById('confirmBatchRestoreBtn').style.display = 'none';
                         confirmModal.show();
@@ -644,17 +777,17 @@
                     }
 
                     // Show confirmation for large operations
-                    if (checkedBoxes.length > asyncThreshold) {
+                    if (totalSelected > asyncThreshold) {
                         // Show confirmation modal
-                        const message = '@Localizer["ContinueWithOperation"].Value'.replace('{0}', checkedBoxes.length.toLocaleString());
-                        document.getElementById('confirmMessage').textContent = message;
+                        const message = '@Html.Raw(Localizer["ContinueWithOperation"].Value)'.replace('{0}', totalSelected.toLocaleString());
+                        document.getElementById('confirmMessage').innerHTML = message;
                         var confirmModal = new bootstrap.Modal(document.getElementById('batchRestoreConfirmModal'));
                         document.getElementById('confirmBatchRestoreBtn').style.display = 'inline-block';
                         
                         // Handle confirmation
                         document.getElementById('confirmBatchRestoreBtn').onclick = function() {
                             confirmModal.hide();
-                            submitBatchRestoreForm(checkedBoxes);
+                            submitBatchRestoreForm(storedSelections);
                         };
                         
                         confirmModal.show();
@@ -662,47 +795,139 @@
                     }
                     
                     // For small operations, proceed directly
-                    submitBatchRestoreForm(checkedBoxes);
+                    submitBatchRestoreForm(storedSelections);
+                });
+            }
+
+            // Export selected button
+            const exportSelectedBtn = document.getElementById('exportSelectedBtn');
+            if (exportSelectedBtn) {
+                exportSelectedBtn.addEventListener('click', function() {
+                    const totalSelected = getTotalSelectedCount();
+                    const storedSelections = getStoredSelections();
+                    
+                    if (totalSelected === 0) {
+                        // Show modal for no emails selected
+                        document.getElementById('confirmMessage').innerHTML = '@Html.Raw(Localizer["PleaseSelectAtLeastOne"].Value)';
+                        var confirmModal = new bootstrap.Modal(document.getElementById('batchRestoreConfirmModal'));
+                        document.getElementById('confirmBatchRestoreBtn').style.display = 'none';
+                        confirmModal.show();
+                        
+                        // Hide modal after 3 seconds
+                        setTimeout(function() {
+                            confirmModal.hide();
+                        }, 3000);
+                        return;
+                    }
+
+                    // Show export format selection modal
+                    var exportFormatModal = new bootstrap.Modal(document.getElementById('exportFormatModal'));
+                    exportFormatModal.show();
+                    
+                    // Store the selected IDs for later use
+                    window.selectedEmailsForExport = storedSelections;
+                });
+            }
+
+            // Export format confirmation button
+            const confirmExportBtn = document.getElementById('confirmExportBtn');
+            if (confirmExportBtn) {
+                confirmExportBtn.addEventListener('click', function() {
+                    const selectedFormat = document.querySelector('input[name="exportFormat"]:checked').value;
+                    const selectedIds = window.selectedEmailsForExport;
+                    
+                    // Close the modal
+                    var exportFormatModal = bootstrap.Modal.getInstance(document.getElementById('exportFormatModal'));
+                    exportFormatModal.hide();
+                    
+                    // Submit export form with selected format
+                    submitExportForm(selectedIds, selectedFormat);
                 });
             }
 
             // Function to submit the batch restore form
-            function submitBatchRestoreForm(checkedBoxes) {
-                // Erstelle ein neues Form für POST-Request
+            function submitBatchRestoreForm(selectedIds) {
+                // Create a new form for POST request
                 const form = document.createElement('form');
                 form.method = 'post';
                 form.action = '@Url.Action("BatchRestoreStart", "Emails")';
                 
-                // Anti-forgery token hinzufügen
+                // Add anti-forgery token
                 const tokenInput = document.createElement('input');
                 tokenInput.type = 'hidden';
                 tokenInput.name = '__RequestVerificationToken';
                 tokenInput.value = document.querySelector('input[name="__RequestVerificationToken"]').value;
                 form.appendChild(tokenInput);
 
-                // ReturnUrl hinzufügen
+                // Add ReturnUrl
                 const returnUrlInput = document.createElement('input');
                 returnUrlInput.type = 'hidden';
                 returnUrlInput.name = 'returnUrl';
                 returnUrlInput.value = '@Context.Request.Path@Context.Request.QueryString';
                 form.appendChild(returnUrlInput);
 
-                // Alle ausgewählten IDs hinzufügen
-                checkedBoxes.forEach(function(checkbox) {
+                // Add all selected IDs
+                selectedIds.forEach(function(emailId) {
                     const idInput = document.createElement('input');
                     idInput.type = 'hidden';
                     idInput.name = 'ids';
-                    idInput.value = checkbox.value;
+                    idInput.value = emailId;
                     form.appendChild(idInput);
                 });
 
-                // Form zum Body hinzufügen und absenden
+                // Add form to body and submit
                 document.body.appendChild(form);
                 form.submit();
             }
 
-            // Initialize handlers after DOM is ready
-            initializeSelectionHandlers();
+            // Function to submit the export form
+            function submitExportForm(selectedIds, selectedFormat) {
+                // Create a new form for POST request
+                const form = document.createElement('form');
+                form.method = 'post';
+                form.action = '@Url.Action("ExportSelected", "Emails")';
+                
+                // Add anti-forgery token
+                const tokenInput = document.createElement('input');
+                tokenInput.type = 'hidden';
+                tokenInput.name = '__RequestVerificationToken';
+                tokenInput.value = document.querySelector('input[name="__RequestVerificationToken"]').value;
+                form.appendChild(tokenInput);
+
+                // Add export format
+                const formatInput = document.createElement('input');
+                formatInput.type = 'hidden';
+                formatInput.name = 'format';
+                formatInput.value = selectedFormat;
+                form.appendChild(formatInput);
+
+                // Add ReturnUrl
+                const returnUrlInput = document.createElement('input');
+                returnUrlInput.type = 'hidden';
+                returnUrlInput.name = 'returnUrl';
+                returnUrlInput.value = '@Context.Request.Path@Context.Request.QueryString';
+                form.appendChild(returnUrlInput);
+
+                // Add all selected IDs
+                selectedIds.forEach(function(emailId) {
+                    const idInput = document.createElement('input');
+                    idInput.type = 'hidden';
+                    idInput.name = 'ids';
+                    idInput.value = emailId;
+                    form.appendChild(idInput);
+                });
+
+                // Add form to body and submit
+                document.body.appendChild(form);
+                form.submit();
+            }
+
+            // Initialize selection handlers when in selection mode
+            @if (Model.ShowSelectionControls) {
+                <text>
+                initializeSelectionHandlers();
+                </text>
+            }
         });
     </script>
 }

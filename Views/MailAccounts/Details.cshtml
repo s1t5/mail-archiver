@@ -1,8 +1,12 @@
 ﻿@using MailArchiver.Models.ViewModels
 @inject Microsoft.Extensions.Localization.IStringLocalizer<MailArchiver.SharedResource> Localizer
+@inject MailArchiver.Services.IAuthenticationService AuthService
 @model MailArchiver.Models.ViewModels.MailAccountViewModel
 @{
     ViewData["Title"] = Localizer["AccountDetailsTitle"];
+    var isAdmin = AuthService.IsCurrentUserAdmin(Context);
+    var isSelfManager = AuthService.IsCurrentUserSelfManager(Context);
+    var canExport = isAdmin || isSelfManager;
 }
 <div class="container">
     <h1>@Localizer["EmailAccountDetailsHeader"]</h1>
@@ -135,6 +139,12 @@
                             <i class="bi bi-envelope-arrow-up"></i> @Localizer["CopyAllEmailsToAnotherMailbox"]
                         </button>
                     </form>
+                    @if (canExport)
+                    {
+                        <a asp-action="Export" asp-route-id="@Model.Id" class="btn btn-outline-primary">
+                            <i class="bi bi-download"></i> @Localizer["ExportAccount"]
+                        </a>
+                    }
                     <div class="dropdown">
                         <button class="btn btn-outline-success dropdown-toggle" type="button" id="importDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                             <i class="bi bi-upload"></i> @Localizer["Import"]

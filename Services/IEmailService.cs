@@ -1,5 +1,6 @@
 using MailArchiver.Models;
 using MailArchiver.Models.ViewModels;
+using MailArchiver.ViewModels;
 
 namespace MailArchiver.Services
 {

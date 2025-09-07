@@ -94,13 +94,13 @@
 [data-theme="dark"] .btn-primary {
   background-color: var(--btn-primary-bg);
   border-color: var(--btn-primary-border);
-  color: white;
+  color: white !important;
 }
 
 [data-theme="dark"] .btn-success {
   background-color: var(--btn-success-bg);
   border-color: var(--btn-success-border);
-  color: white;
+  color: white !important;
 }
 
 [data-theme="dark"] .btn-danger {
@@ -215,6 +215,24 @@
 /* Dark Mode für Pagination Header */
 [data-theme="dark"] .d-flex.justify-content-between.align-items-center.py-2.bg-light.rounded.mb-3 {
   background-color: var(--card-bg) !important;
+  color: var(--text-color);
+}
+
+/* Dark Mode für Selection Toolbar */
+[data-theme="dark"] .p-2.bg-light.border-bottom {
+  background-color: var(--card-bg) !important;
+  border-bottom-color: var(--border-color) !important;
+}
+
+/* Dark Mode für Buttons in Selection Toolbar */
+[data-theme="dark"] .btn-outline-secondary {
+  color: var(--text-color);
+  border-color: var(--border-color);
+}
+
+[data-theme="dark"] .btn-outline-secondary:hover {
+  background-color: var(--table-hover-bg);
+  border-color: var(--border-color);
   color: var(--text-color);
 }
 

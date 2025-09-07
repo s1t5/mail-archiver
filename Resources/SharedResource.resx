@@ -1642,4 +1642,394 @@
     <value>You have made too many 2FA verification attempts. Please wait and try again later.</value>
   </data>
 
+  <!-- Account Export Feature -->
+  <data name="ExportAccount" xml:space="preserve">
+    <value>Export Account</value>
+  </data>
+  <data name="ExportAccountTitle" xml:space="preserve">
+    <value>Export Mail Account</value>
+  </data>
+  <data name="ExportAccountDescription" xml:space="preserve">
+    <value>Export all emails from this account to downloadable files</value>
+  </data>
+  <data name="ExportAccountInfo" xml:space="preserve">
+    <value>Account Export Information</value>
+  </data>
+  <data name="ExportAccountInfoDetail" xml:space="preserve">
+    <value>Export all emails from this mail account. Depending on the selected format, you will receive a ZIP file containing all emails.</value>
+  </data>
+  <data name="ExportFormatLabel" xml:space="preserve">
+    <value>Export Format</value>
+  </data>
+  <data name="ExportFormatEML" xml:space="preserve">
+    <value>EML (Individual Email Files)</value>
+  </data>
+  <data name="ExportFormatMBox" xml:space="preserve">
+    <value>MBox (Mailbox Format)</value>
+  </data>
+  <data name="ExportFormatEMLDescription" xml:space="preserve">
+    <value>Creates a ZIP file with separate folders for incoming and outgoing emails, containing individual .eml files</value>
+  </data>
+  <data name="ExportFormatMBoxDescription" xml:space="preserve">
+    <value>Creates a ZIP file with two .mbox files (in.mbox and out.mbox) containing all emails</value>
+  </data>
+  <data name="StartExport" xml:space="preserve">
+    <value>Start Export</value>
+  </data>
+  <data name="ExportJobStarted" xml:space="preserve">
+    <value>Export job started for account '{0}'. You will be redirected to the status page.</value>
+  </data>
+  <data name="ExportStatusTitle" xml:space="preserve">
+    <value>Export Status</value>
+  </data>
+  <data name="ExportJobInformation" xml:space="preserve">
+    <value>Export Job Information</value>
+  </data>
+  <data name="ExportJobStatus" xml:space="preserve">
+    <value>Export Job Status</value>
+  </data>
+  <data name="ExportProgress" xml:space="preserve">
+    <value>Export Progress</value>
+  </data>
+  <data name="EmailsExported" xml:space="preserve">
+    <value>Emails Exported</value>
+  </data>
+  <data name="ExportCompleted" xml:space="preserve">
+    <value>Export Completed</value>
+  </data>
+  <data name="ExportFailed" xml:space="preserve">
+    <value>Export Failed</value>
+  </data>
+  <data name="ExportCancelled" xml:space="preserve">
+    <value>Export Cancelled</value>
+  </data>
+  <data name="ExportInProgress" xml:space="preserve">
+    <value>Export in Progress</value>
+  </data>
+  <data name="ExportQueued" xml:space="preserve">
+    <value>Export Queued</value>
+  </data>
+  <data name="DownloadExport" xml:space="preserve">
+    <value>Download Export</value>
+  </data>
+  <data name="DownloadReady" xml:space="preserve">
+    <value>Download Ready</value>
+  </data>
+  <data name="DownloadStarting" xml:space="preserve">
+    <value>Download Starting...</value>
+  </data>
+  <data name="CancelExport" xml:space="preserve">
+    <value>Cancel Export</value>
+  </data>
+  <data name="CancelExportConfirm" xml:space="preserve">
+    <value>Are you sure you want to cancel this export job?</value>
+  </data>
+  <data name="ExportJobCancelled" xml:space="preserve">
+    <value>Export job has been cancelled.</value>
+  </data>
+  <data name="ExportJobCancelError" xml:space="preserve">
+    <value>Could not cancel the export job. The job may have already completed or does not exist.</value>
+  </data>
+  <data name="ExportNotFound" xml:space="preserve">
+    <value>Export job not found.</value>
+  </data>
+  <data name="ExportDownloadNotReady" xml:space="preserve">
+    <value>Export download is not ready yet. Please wait for the export to complete.</value>
+  </data>
+  <data name="ExportFileNotFound" xml:space="preserve">
+    <value>Export file not found. The file may have been cleaned up or the export failed.</value>
+  </data>
+  <data name="ExportStarted" xml:space="preserve">
+    <value>Export job started for account '{0}'. You will be redirected to the status page.</value>
+  </data>
+  <data name="ExportError" xml:space="preserve">
+    <value>Error during export</value>
+  </data>
+  <data name="InvalidExportID" xml:space="preserve">
+    <value>Invalid export job ID.</value>
+  </data>
+  <data name="ExportJobNotFound" xml:space="preserve">
+    <value>Export job not found.</value>
+  </data>
+  <data name="ExportCancelError" xml:space="preserve">
+    <value>Could not cancel the export job. The job may have already completed or does not exist.</value>
+  </data>
+  <data name="IncomingEmails" xml:space="preserve">
+    <value>Incoming Emails</value>
+  </data>
+  <data name="OutgoingEmails" xml:space="preserve">
+    <value>Outgoing Emails</value>
+  </data>
+  <data name="AccountExportJobs" xml:space="preserve">
+    <value>Account Export Jobs</value>
+  </data>
+  <data name="FileCreated" xml:space="preserve">
+    <value>File Created</value>
+  </data>
+  <data name="FileSize" xml:space="preserve">
+    <value>File Size</value>
+  </data>
+  <data name="BackToExport" xml:space="preserve">
+    <value>Back to Export</value>
+  </data>
+  <data name="RefreshStatus" xml:space="preserve">
+    <value>Refresh Status</value>
+  </data>
+  <data name="AutoRefresh" xml:space="preserve">
+    <value>Auto-refresh every 3 seconds</value>
+  </data>
+  
+  <!-- Missing Export Strings -->
+  <data name="NoEmailsToExport" xml:space="preserve">
+    <value>No emails available for export in this account.</value>
+  </data>
+  <data name="ExportInfo" xml:space="preserve">
+    <value>Export Information</value>
+  </data>
+  <data name="ExportInfoText" xml:space="preserve">
+    <value>This export will create a downloadable ZIP file containing all emails from this account. The format you choose determines how the emails are organized.</value>
+  </data>
+  <data name="EMLFormat" xml:space="preserve">
+    <value>EML Format</value>
+  </data>
+  <data name="MBoxFormat" xml:space="preserve">
+    <value>MBox Format</value>
+  </data>
+  <data name="EMLFormatInfo" xml:space="preserve">
+    <value>EML Format Information</value>
+  </data>
+  <data name="EMLFormatDescription" xml:space="preserve">
+    <value>Creates individual .eml files organized in 'in' and 'out' folders for incoming and outgoing emails respectively.</value>
+  </data>
+  <data name="MBoxFormatInfo" xml:space="preserve">
+    <value>MBox Format Information</value>
+  </data>
+  <data name="MBoxFormatDescription" xml:space="preserve">
+    <value>Creates traditional mailbox files (in.mbox and out.mbox) containing all incoming and outgoing emails in a single file each.</value>
+  </data>
+  <data name="ExportWarning" xml:space="preserve">
+    <value>Important Export Information</value>
+  </data>
+  <data name="ExportWarningTime" xml:space="preserve">
+    <value>Large accounts may take several minutes to export and will run in the background</value>
+  </data>
+  <data name="ExportWarningSize" xml:space="preserve">
+    <value>The resulting ZIP file may be quite large depending on email volume and attachments</value>
+  </data>
+  <data name="ExportWarningCleanup" xml:space="preserve">
+    <value>Export files are automatically deleted after download or after 7 days</value>
+  </data>
+  <data name="ConfirmExport" xml:space="preserve">
+    <value>Are you sure you want to start the export? This will process all emails in this account.</value>
+  </data>
+  <data name="BackToAccount" xml:space="preserve">
+    <value>Back to Account</value>
+  </data>
+  <data name="CurrentEmail" xml:space="preserve">
+    <value>Current Email</value>
+  </data>
+  <data name="ProcessedEmails" xml:space="preserve">
+    <value>Processed Emails</value>
+  </data>
+  <data name="ExportStatus" xml:space="preserve">
+    <value>Export Status</value>
+  </data>
+  <data name="Downloaded" xml:space="preserve">
+    <value>Downloaded</value>
+  </data>
+  <data name="Error" xml:space="preserve">
+    <value>Error</value>
+  </data>
+  <data name="Refresh" xml:space="preserve">
+    <value>Refresh</value>
+  </data>
+
+  <!-- Export Format Selection Modal -->
+  <data name="ExportFormatSelection" xml:space="preserve">
+    <value>Export Format Selection</value>
+  </data>
+  <data name="ExportFormatSelectionInfo" xml:space="preserve">
+    <value>Choose the format for your email export. Each format has different advantages depending on your needs.</value>
+  </data>
+  <data name="ExportSelectedInfo" xml:space="preserve">
+    <value>The export will run in the background and you will be able to download the result from the Jobs page once completed.</value>
+  </data>
+
+  <!-- Selected Emails Export Feature -->
+  <data name="ExportSelected" xml:space="preserve">
+    <value>Export Selected</value>
+  </data>
+  <data name="SelectedEmailsExportStatusTitle" xml:space="preserve">
+    <value>Selected Emails Export Status</value>
+  </data>
+  <data name="SelectedEmailsExportJobs" xml:space="preserve">
+    <value>Selected Emails Export Jobs</value>
+  </data>
+  <data name="SelectedEmailsExport" xml:space="preserve">
+    <value>Selected Emails Export</value>
+  </data>
+  <data name="ExportSelectedEmails" xml:space="preserve">
+    <value>Export Selected Emails</value>
+  </data>
+  <data name="SelectedEmailsExportComplete" xml:space="preserve">
+    <value>Selected emails export completed successfully. {0} emails were exported.</value>
+  </data>
+  <data name="SelectedEmailsExportFailed" xml:space="preserve">
+    <value>Selected emails export failed. Please check the logs for more details.</value>
+  </data>
+  <data name="SelectedEmailsExportCancelled" xml:space="preserve">
+    <value>Selected emails export was cancelled.</value>
+  </data>
+  <data name="EMLImportJobs" xml:space="preserve">
+    <value>EML Import Jobs</value>
+  </data>
+
+  <!-- EmailsController Messages -->
+  <data name="EmailHasNoAttachments" xml:space="preserve">
+    <value>This email has no attachments.</value>
+  </data>
+  <data name="NoAccessToEmail" xml:space="preserve">
+    <value>You do not have access to this email.</value>
+  </data>
+  <data name="EmailNotFound" xml:space="preserve">
+    <value>The email could not be found.</value>
+  </data>
+  <data name="EmailCopiedSuccessfully" xml:space="preserve">
+    <value>The email has been successfully copied to the specified folder.</value>
+  </data>
+  <data name="EmailCopyFailed" xml:space="preserve">
+    <value>The email could not be copied to the specified folder. Please check the logs.</value>
+  </data>
+  <data name="NoEmailsSelectedForBatch" xml:space="preserve">
+    <value>No emails selected for batch operation.</value>
+  </data>
+  <data name="NoEmailsCopiedCheckLogs" xml:space="preserve">
+    <value>None of the selected emails could be copied. Please check the logs for details.</value>
+  </data>
+  <data name="MailAccountNotFound" xml:space="preserve">
+    <value>Mail account not found.</value>
+  </data>
+  <data name="NoEmailsFoundForAccount" xml:space="preserve">
+    <value>No emails found to copy for this account.</value>
+  </data>
+  <data name="TooManyEmailsToProcess" xml:space="preserve">
+    <value>Too many emails to process. Please try with a smaller selection.</value>
+  </data>
+  <data name="TooManyEmailsSelectFewer" xml:space="preserve">
+    <value>Too many emails selected. Please select fewer emails and try again.</value>
+  </data>
+  <data name="NoEnabledEmailAccounts" xml:space="preserve">
+    <value>No enabled email accounts found.</value>
+  </data>
+  <data name="AsyncBatchRestoreNotAvailable" xml:space="preserve">
+    <value>Asynchronous batch restore is not available.</value>
+  </data>
+  <data name="BatchRestoreServiceNotAvailable" xml:space="preserve">
+    <value>Batch restore service is not available.</value>
+  </data>
+  <data name="InvalidJobID" xml:space="preserve">
+    <value>Invalid job ID.</value>
+  </data>
+  <data name="BatchRestoreJobNotFound" xml:space="preserve">
+    <value>Batch restore job not found.</value>
+  </data>
+  <data name="BatchRestoreJobCancelled" xml:space="preserve">
+    <value>Batch restore job has been cancelled.</value>
+  </data>
+  <data name="CouldNotCancelBatchRestoreJob" xml:space="preserve">
+    <value>Could not cancel the batch restore job.</value>
+  </data>
+  <data name="SyncJobServiceNotAvailable" xml:space="preserve">
+    <value>Sync job service is not available.</value>
+  </data>
+  <data name="SyncJobCancelled" xml:space="preserve">
+    <value>Sync job has been cancelled.</value>
+  </data>
+  <data name="CouldNotCancelSyncJob" xml:space="preserve">
+    <value>Could not cancel the sync job.</value>
+  </data>
+  <data name="SelectedEmailsExportServiceNotAvailable" xml:space="preserve">
+    <value>Selected emails export service is not available.</value>
+  </data>
+  <data name="SelectedEmailsExportJobNotFound" xml:space="preserve">
+    <value>Selected emails export job not found.</value>
+  </data>
+  <data name="SelectedEmailsExportJobCancelled" xml:space="preserve">
+    <value>Selected emails export job has been cancelled.</value>
+  </data>
+  <data name="CouldNotCancelSelectedEmailsExportJob" xml:space="preserve">
+    <value>Could not cancel the selected emails export job.</value>
+  </data>
+  <data name="SelectedEmailsExportNotCompleted" xml:space="preserve">
+    <value>Selected emails export job is not completed yet or has already been downloaded.</value>
+  </data>
+  <data name="ErrorDownloadingExportFile" xml:space="preserve">
+    <value>Error downloading export file.</value>
+  </data>
+  <data name="ExportParametersInvalid" xml:space="preserve">
+    <value>Export parameters are invalid. Please try again.</value>
+  </data>
+  <data name="NoAccessToSelectedAccount" xml:space="preserve">
+    <value>You do not have access to the selected account.</value>
+  </data>
+  <data name="NoEmailsSelectedForExport" xml:space="preserve">
+    <value>No emails selected for export.</value>
+  </data>
+  <data name="SelectedEmailsExportNotAvailable" xml:space="preserve">
+    <value>Selected emails export is not available.</value>
+  </data>
+  <data name="NoAccessToSelectedEmails" xml:space="preserve">
+    <value>You do not have access to any of the selected emails.</value>
+  </data>
+  <data name="ExportFailedWithError" xml:space="preserve">
+    <value>Export failed: {0}</value>
+  </data>
+  <data name="ErrorOccurredWithMessage" xml:space="preserve">
+    <value>An error occurred: {0}</value>
+  </data>
+  <data name="TooManyEmailsSelectedWithLimits" xml:space="preserve">
+    <value>Too many emails selected ({0:N0}). Maximum allowed is {1:N0} emails per operation.</value>
+  </data>
+  <data name="TooManyEmailsForDirectProcessing" xml:space="preserve">
+    <value>Too many emails selected for direct processing ({0:N0}). Maximum for direct processing is {1:N0} emails.</value>
+  </data>
+  <data name="AllEmailsCopiedSuccessfully" xml:space="preserve">
+    <value>All {0} emails have been successfully copied to the specified folder.</value>
+  </data>
+  <data name="EmailsCopiedWithSomeFailures" xml:space="preserve">
+    <value>{0} emails have been copied, but {1} could not be copied. Check the logs for details.</value>
+  </data>
+  <data name="TooManyEmailsInAccountWithLimits" xml:space="preserve">
+    <value>Too many emails in this account ({0:N0}). Maximum allowed is {1:N0} emails per operation.</value>
+  </data>
+  <data name="BatchRestoreJobStartedWithDetails" xml:space="preserve">
+    <value>Batch restore job started with {0:N0} emails. Job ID: {1}</value>
+  </data>
+  <data name="FailedToStartBatchRestore" xml:space="preserve">
+    <value>Failed to start batch restore: {0}</value>
+  </data>
+  <data name="ExportJobStartedWithDetails" xml:space="preserve">
+    <value>Export job started with {0:N0} emails in {1} format. Job ID: {2}</value>
+  </data>
+  <data name="FailedToStartExport" xml:space="preserve">
+    <value>Failed to start export: {0}</value>
+  </data>
+  <data name="ExportCompletedTitle" xml:space="preserve">
+    <value>Export Completed!</value>
+  </data>
+  <data name="ExportCompletedSummary" xml:space="preserve">
+    <value>Successfully exported {0} selected emails.</value>
+  </data>
+  <data name="SelectedOf" xml:space="preserve">
+    <value>{0} of {1} selected</value>
+  </data>
+  <data name="MaxSelectionsReached" xml:space="preserve">
+    <value>Maximum selections reached ({0})</value>
+  </data>
+  <data name="SelectAllOnPage" xml:space="preserve">
+    <value>Select all on page</value>
+  </data>
+  <data name="DeselectAllOnPage" xml:space="preserve">
+    <value>Deselect all on page</value>
+  </data>
 </root>

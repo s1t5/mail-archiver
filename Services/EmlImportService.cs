@@ -65,6 +65,14 @@ namespace MailArchiver.Services
                 .ToList();
         }
 
+        public List<EmlImportJob> GetAllJobs()
+        {
+            return _allJobs.Values
+                .OrderByDescending(j => j.Status == EmlImportJobStatus.Running || j.Status == EmlImportJobStatus.Queued)
+                .ThenByDescending(j => j.Created)
+                .ToList();
+        }
+
         public bool CancelJob(string jobId)
         {
             if (_allJobs.TryGetValue(jobId, out var job))

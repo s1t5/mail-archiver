@@ -34,7 +34,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Auto-Dismiss für Alerts nach 5 Sekunden (außer persistent Alerts)
     setTimeout(() => {
-        const alerts = document.querySelectorAll('.alert:not(.twofa-persistent)');
+        const alerts = document.querySelectorAll('.alert:not(.alert-persistent)');
         alerts.forEach(alert => {
             const bsAlert = new bootstrap.Alert(alert);
             bsAlert.close();

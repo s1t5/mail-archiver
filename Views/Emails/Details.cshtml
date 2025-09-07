@@ -17,26 +17,10 @@
                 <a href="@returnUrl" class="btn btn-outline-secondary btn-sm">
                     <i class="bi bi-arrow-left"></i> @Localizer["BackToList"]
                 </a>
-                <div class="btn-group btn-group-sm">
-                    <a asp-action="Export" asp-route-id="@Model.Email.Id" asp-route-format="Eml"
-                        class="btn btn-outline-primary">
-                        <i class="bi bi-envelope"></i> @Localizer["ExportEML"]
-                    </a>
-                    <button type="button" class="btn btn-outline-primary dropdown-toggle dropdown-toggle-split"
-                        data-bs-toggle="dropdown" aria-expanded="false">
-                        <span class="visually-hidden">@Localizer["MoreExportOptions"]</span>
-                    </button>
-                    <ul class="dropdown-menu">
-                        <li><a asp-action="Export" asp-route-id="@Model.Email.Id" asp-route-format="Csv"
-                                class="dropdown-item">
-                                <i class="bi bi-filetype-csv me-2"></i>@Localizer["ExportCSV"]
-                            </a></li>
-                        <li><a asp-action="Export" asp-route-id="@Model.Email.Id" asp-route-format="Json"
-                                class="dropdown-item">
-                                <i class="bi bi-filetype-json me-2"></i>@Localizer["ExportJSON"]
-                            </a></li>
-                    </ul>
-                </div>
+                <a asp-action="Export" asp-route-id="@Model.Email.Id" asp-route-format="Eml"
+                    class="btn btn-outline-primary btn-sm">
+                    <i class="bi bi-envelope"></i> @Localizer["ExportEML"]
+                </a>
                 <a asp-action="Restore" asp-route-id="@Model.Email.Id"
                     asp-route-returnUrl="@Context.Request.GetDisplayUrl()" class="btn btn-success btn-sm">
                     <i class="bi bi-envelope-arrow-up"></i> @Localizer["CopyToMailbox"]
@@ -49,24 +33,10 @@
             <a href="@returnUrl" class="btn btn-outline-secondary">
                 <i class="bi bi-arrow-left"></i> @Localizer["BackToList"]
             </a>
-            <div class="btn-group">
-                <a asp-action="Export" asp-route-id="@Model.Email.Id" asp-route-format="Eml"
-                    class="btn btn-outline-primary">
-                    <i class="bi bi-envelope"></i> @Localizer["ExportEML"]
-                </a>
-                <button type="button" class="btn btn-outline-primary dropdown-toggle dropdown-toggle-split"
-                    data-bs-toggle="dropdown" aria-expanded="false">
-                    <span class="visually-hidden">@Localizer["ToggleDropdown"]</span>
-                </button>
-                <ul class="dropdown-menu">
-                    <li><a asp-action="Export" asp-route-id="@Model.Email.Id" asp-route-format="Csv"
-                           class="dropdown-item">@Localizer["ExportCSV"]</a>
-                    </li>
-                    <li><a asp-action="Export" asp-route-id="@Model.Email.Id" asp-route-format="Json"
-                           class="dropdown-item">@Localizer["ExportJSON"]</a>
-                    </li>
-                </ul>
-            </div>
+            <a asp-action="Export" asp-route-id="@Model.Email.Id" asp-route-format="Eml"
+                class="btn btn-outline-primary">
+                <i class="bi bi-envelope"></i> @Localizer["ExportEML"]
+            </a>
             <a asp-action="Restore" asp-route-id="@Model.Email.Id"
                 asp-route-returnUrl="@Context.Request.GetDisplayUrl()" class="btn btn-success">
                 <i class="bi bi-envelope-arrow-up"></i> @Localizer["CopyToMailbox"]

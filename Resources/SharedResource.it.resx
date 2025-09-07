@@ -1631,12 +1631,403 @@
     <value>Hai fatto troppi tentativi di verifica 2FA. Attendi e riprova più tardi.</value>
   </data>
 
+  <!-- Account Export Feature -->
+  <data name="ExportAccount" xml:space="preserve">
+    <value>Esporta Account</value>
+  </data>
+  <data name="ExportAccountTitle" xml:space="preserve">
+    <value>Esporta Account Email</value>
+  </data>
+  <data name="ExportAccountDescription" xml:space="preserve">
+    <value>Esporta tutte le email di questo account in file scaricabili</value>
+  </data>
+  <data name="ExportAccountInfo" xml:space="preserve">
+    <value>Informazioni Esportazione Account</value>
+  </data>
+  <data name="ExportAccountInfoDetail" xml:space="preserve">
+    <value>Esporta tutte le email di questo account email. A seconda del formato selezionato, riceverai un file ZIP contenente tutte le email.</value>
+  </data>
+  <data name="ExportFormatLabel" xml:space="preserve">
+    <value>Formato di Esportazione</value>
+  </data>
+  <data name="ExportFormatEML" xml:space="preserve">
+    <value>EML (File Email Individuali)</value>
+  </data>
+  <data name="ExportFormatMBox" xml:space="preserve">
+    <value>MBox (Formato Casella di Posta)</value>
+  </data>
+  <data name="ExportFormatEMLDescription" xml:space="preserve">
+    <value>Crea un file ZIP con cartelle separate per email in entrata e in uscita, contenenti singoli file .eml</value>
+  </data>
+  <data name="ExportFormatMBoxDescription" xml:space="preserve">
+    <value>Crea un file ZIP con due file .mbox (in.mbox e out.mbox) contenenti tutte le email</value>
+  </data>
+  <data name="StartExport" xml:space="preserve">
+    <value>Avvia Esportazione</value>
+  </data>
+  <data name="ExportJobStarted" xml:space="preserve">
+    <value>Job di esportazione avviato per l'account '{0}'. Sarai reindirizzato alla pagina di stato.</value>
+  </data>
+  <data name="ExportStatusTitle" xml:space="preserve">
+    <value>Stato Esportazione</value>
+  </data>
+  <data name="ExportJobInformation" xml:space="preserve">
+    <value>Informazioni Job di Esportazione</value>
+  </data>
+  <data name="ExportJobStatus" xml:space="preserve">
+    <value>Stato Job di Esportazione</value>
+  </data>
+  <data name="ExportProgress" xml:space="preserve">
+    <value>Progresso Esportazione</value>
+  </data>
+  <data name="EmailsExported" xml:space="preserve">
+    <value>Email Esportate</value>
+  </data>
+  <data name="ExportCompleted" xml:space="preserve">
+    <value>Esportazione Completata</value>
+  </data>
+  <data name="ExportFailed" xml:space="preserve">
+    <value>Esportazione Fallita</value>
+  </data>
+  <data name="ExportCancelled" xml:space="preserve">
+    <value>Esportazione Annullata</value>
+  </data>
+  <data name="ExportInProgress" xml:space="preserve">
+    <value>Esportazione in Corso</value>
+  </data>
+  <data name="ExportQueued" xml:space="preserve">
+    <value>Esportazione in Coda</value>
+  </data>
+  <data name="DownloadExport" xml:space="preserve">
+    <value>Scarica Esportazione</value>
+  </data>
+  <data name="DownloadReady" xml:space="preserve">
+    <value>Download Pronto</value>
+  </data>
+  <data name="DownloadStarting" xml:space="preserve">
+    <value>Avvio Download...</value>
+  </data>
+  <data name="CancelExport" xml:space="preserve">
+    <value>Annulla Esportazione</value>
+  </data>
+  <data name="CancelExportConfirm" xml:space="preserve">
+    <value>Sei sicuro di voler annullare questo job di esportazione?</value>
+  </data>
+  <data name="ExportJobCancelled" xml:space="preserve">
+    <value>Il job di esportazione è stato annullato.</value>
+  </data>
+  <data name="ExportJobCancelError" xml:space="preserve">
+    <value>Impossibile annullare il job di esportazione. Il job potrebbe essere già terminato o non esistere.</value>
+  </data>
+  <data name="ExportNotFound" xml:space="preserve">
+    <value>Job di esportazione non trovato.</value>
+  </data>
+  <data name="ExportDownloadNotReady" xml:space="preserve">
+    <value>Il download dell'esportazione non è ancora pronto. Attendi che l'esportazione sia completata.</value>
+  </data>
+  <data name="ExportFileNotFound" xml:space="preserve">
+    <value>File di esportazione non trovato. Il file potrebbe essere stato eliminato o l'esportazione è fallita.</value>
+  </data>
+  <data name="ExportStarted" xml:space="preserve">
+    <value>Job di esportazione avviato per l'account '{0}'. Sarai reindirizzato alla pagina di stato.</value>
+  </data>
+  <data name="ExportError" xml:space="preserve">
+    <value>Errore durante l'esportazione</value>
+  </data>
+  <data name="InvalidExportID" xml:space="preserve">
+    <value>ID job di esportazione non valido.</value>
+  </data>
+  <data name="ExportJobNotFound" xml:space="preserve">
+    <value>Job di esportazione non trovato.</value>
+  </data>
+  <data name="ExportCancelError" xml:space="preserve">
+    <value>Impossibile annullare il job di esportazione. Il job potrebbe essere già terminato o non esistere.</value>
+  </data>
+  <data name="IncomingEmails" xml:space="preserve">
+    <value>Email in Entrata</value>
+  </data>
+  <data name="OutgoingEmails" xml:space="preserve">
+    <value>Email in Uscita</value>
+  </data>
+  <data name="AccountExportJobs" xml:space="preserve">
+    <value>Job di Esportazione Account</value>
+  </data>
+  <data name="FileCreated" xml:space="preserve">
+    <value>File Creato</value>
+  </data>
+  <data name="FileSize" xml:space="preserve">
+    <value>Dimensione File</value>
+  </data>
+  <data name="BackToExport" xml:space="preserve">
+    <value>Torna all'Esportazione</value>
+  </data>
+  <data name="RefreshStatus" xml:space="preserve">
+    <value>Aggiorna Stato</value>
+  </data>
+  <data name="AutoRefresh" xml:space="preserve">
+    <value>Aggiornamento automatico ogni 3 secondi</value>
+  </data>
+  <!-- Missing Export Strings -->
+  <data name="NoEmailsToExport" xml:space="preserve">
+    <value>Nessuna email disponibile per l'esportazione in questo account.</value>
+  </data>
+  <data name="ExportInfo" xml:space="preserve">
+    <value>Informazioni Esportazione</value>
+  </data>
+  <data name="ExportInfoText" xml:space="preserve">
+    <value>Questa esportazione creerà un file ZIP scaricabile contenente tutte le email di questo account. Il formato che scegli determina come le email sono organizzate.</value>
+  </data>
+  <data name="EMLFormat" xml:space="preserve">
+    <value>Formato EML</value>
+  </data>
+  <data name="MBoxFormat" xml:space="preserve">
+    <value>Formato MBox</value>
+  </data>
+  <data name="EMLFormatInfo" xml:space="preserve">
+    <value>Informazioni Formato EML</value>
+  </data>
+  <data name="EMLFormatDescription" xml:space="preserve">
+    <value>Crea singoli file .eml organizzati in cartelle 'in' e 'out' per email in entrata e in uscita rispettivamente.</value>
+  </data>
+  <data name="MBoxFormatInfo" xml:space="preserve">
+    <value>Informazioni Formato MBox</value>
+  </data>
+  <data name="MBoxFormatDescription" xml:space="preserve">
+    <value>Crea file di casella di posta tradizionali (in.mbox e out.mbox) contenenti tutte le email in entrata e in uscita in un file ciascuno.</value>
+  </data>
+  <data name="ExportWarning" xml:space="preserve">
+    <value>Informazioni Importanti sull'Esportazione</value>
+  </data>
+  <data name="ExportWarningTime" xml:space="preserve">
+    <value>Account grandi potrebbero richiedere diversi minuti per l'esportazione e verranno eseguiti in background</value>
+  </data>
+  <data name="ExportWarningSize" xml:space="preserve">
+    <value>Il file ZIP risultante potrebbe essere piuttosto grande a seconda del volume di email e allegati</value>
+  </data>
+  <data name="ExportWarningCleanup" xml:space="preserve">
+    <value>I file di esportazione vengono automaticamente eliminati dopo il download o dopo 7 giorni</value>
+  </data>
+  <data name="ConfirmExport" xml:space="preserve">
+    <value>Sei sicuro di voler avviare l'esportazione? Questo elaborerà tutte le email in questo account.</value>
+  </data>
+  <data name="BackToAccount" xml:space="preserve">
+    <value>Torna all'Account</value>
+  </data>
+  <data name="CurrentEmail" xml:space="preserve">
+    <value>Email Corrente</value>
+  </data>
+  <data name="ProcessedEmails" xml:space="preserve">
+    <value>Email Elaborate</value>
+  </data>
+  <data name="ExportStatus" xml:space="preserve">
+    <value>Stato Esportazione</value>
+  </data>
+  <data name="Downloaded" xml:space="preserve">
+    <value>Scaricato</value>
+  </data>
+  <data name="Error" xml:space="preserve">
+    <value>Errore</value>
+  </data>
+  <data name="Refresh" xml:space="preserve">
+    <value>Aggiorna</value>
+  </data>
+
+  <!-- Export Format Selection Modal -->
+  <data name="ExportFormatSelection" xml:space="preserve">
+    <value>Selezione Formato di Esportazione</value>
+  </data>
+  <data name="ExportFormatSelectionInfo" xml:space="preserve">
+    <value>Scegli il formato per l'esportazione delle tue email. Ogni formato ha vantaggi diversi a seconda delle tue esigenze.</value>
+  </data>
+  <data name="ExportSelectedInfo" xml:space="preserve">
+    <value>L'esportazione verrà eseguita in background e potrai scaricare il risultato dalla pagina Job una volta completata.</value>
+  </data>
+
+  <!-- Selected Emails Export Feature -->
+  <data name="ExportSelected" xml:space="preserve">
+    <value>Esporta Selezionate</value>
+  </data>
+  <data name="SelectedEmailsExportStatusTitle" xml:space="preserve">
+    <value>Stato Esportazione Email Selezionate</value>
+  </data>
+  <data name="SelectedEmailsExportJobs" xml:space="preserve">
+    <value>Job di Esportazione Email Selezionate</value>
+  </data>
+  <data name="SelectedEmailsExport" xml:space="preserve">
+    <value>Esportazione Email Selezionate</value>
+  </data>
+  <data name="ExportSelectedEmails" xml:space="preserve">
+    <value>Esporta Email Selezionate</value>
+  </data>
+  <data name="SelectedEmailsExportComplete" xml:space="preserve">
+    <value>Esportazione delle email selezionate completata con successo. {0} email sono state esportate.</value>
+  </data>
+  <data name="SelectedEmailsExportFailed" xml:space="preserve">
+    <value>L'esportazione delle email selezionate è fallita. Controlla i log per maggiori dettagli.</value>
+  </data>
+  <data name="SelectedEmailsExportCancelled" xml:space="preserve">
+    <value>L'esportazione delle email selezionate è stata annullata.</value>
+  </data>
+  <data name="EMLImportJobs" xml:space="preserve">
+    <value>Job di Importazione EML</value>
+  </data>
+
+  <!-- EmailsController Messages -->
+  <data name="EmailHasNoAttachments" xml:space="preserve">
+    <value>Questa email non ha allegati.</value>
+  </data>
+  <data name="NoAccessToEmail" xml:space="preserve">
+    <value>Non hai accesso a questa email.</value>
+  </data>
+  <data name="EmailNotFound" xml:space="preserve">
+    <value>L'email non è stata trovata.</value>
+  </data>
+  <data name="EmailCopiedSuccessfully" xml:space="preserve">
+    <value>L'email è stata copiata con successo nella cartella specificata.</value>
+  </data>
+  <data name="EmailCopyFailed" xml:space="preserve">
+    <value>L'email non può essere copiata nella cartella specificata. Controlla i log.</value>
+  </data>
+  <data name="NoEmailsSelectedForBatch" xml:space="preserve">
+    <value>Nessuna email selezionata per l'operazione batch.</value>
+  </data>
+  <data name="NoEmailsCopiedCheckLogs" xml:space="preserve">
+    <value>Nessuna delle email selezionate può essere copiata. Controlla i log per i dettagli.</value>
+  </data>
+  <data name="MailAccountNotFound" xml:space="preserve">
+    <value>Account email non trovato.</value>
+  </data>
+  <data name="NoEmailsFoundForAccount" xml:space="preserve">
+    <value>Nessuna email trovata da copiare per questo account.</value>
+  </data>
+  <data name="TooManyEmailsToProcess" xml:space="preserve">
+    <value>Troppe email da elaborare. Prova con una selezione più piccola.</value>
+  </data>
+  <data name="TooManyEmailsSelectFewer" xml:space="preserve">
+    <value>Troppe email selezionate. Seleziona meno email e riprova.</value>
+  </data>
+  <data name="NoEnabledEmailAccounts" xml:space="preserve">
+    <value>Nessun account email abilitato trovato.</value>
+  </data>
+  <data name="AsyncBatchRestoreNotAvailable" xml:space="preserve">
+    <value>Il ripristino batch asincrono non è disponibile.</value>
+  </data>
+  <data name="BatchRestoreServiceNotAvailable" xml:space="preserve">
+    <value>Il servizio di ripristino batch non è disponibile.</value>
+  </data>
+  <data name="InvalidJobID" xml:space="preserve">
+    <value>ID job non valido.</value>
+  </data>
+  <data name="BatchRestoreJobNotFound" xml:space="preserve">
+    <value>Job di ripristino batch non trovato.</value>
+  </data>
+  <data name="BatchRestoreJobCancelled" xml:space="preserve">
+    <value>Il job di ripristino batch è stato annullato.</value>
+  </data>
+  <data name="CouldNotCancelBatchRestoreJob" xml:space="preserve">
+    <value>Impossibile annullare il job di ripristino batch.</value>
+  </data>
+  <data name="SyncJobServiceNotAvailable" xml:space="preserve">
+    <value>Il servizio di job di sincronizzazione non è disponibile.</value>
+  </data>
+  <data name="SyncJobCancelled" xml:space="preserve">
+    <value>Il job di sincronizzazione è stato annullato.</value>
+  </data>
+  <data name="CouldNotCancelSyncJob" xml:space="preserve">
+    <value>Impossibile annullare il job di sincronizzazione.</value>
+  </data>
+  <data name="SelectedEmailsExportServiceNotAvailable" xml:space="preserve">
+    <value>Il servizio di esportazione email selezionate non è disponibile.</value>
+  </data>
+  <data name="SelectedEmailsExportJobNotFound" xml:space="preserve">
+    <value>Job di esportazione email selezionate non trovato.</value>
+  </data>
+  <data name="SelectedEmailsExportJobCancelled" xml:space="preserve">
+    <value>Il job di esportazione email selezionate è stato annullato.</value>
+  </data>
+  <data name="CouldNotCancelSelectedEmailsExportJob" xml:space="preserve">
+    <value>Impossibile annullare il job di esportazione email selezionate.</value>
+  </data>
+  <data name="SelectedEmailsExportNotCompleted" xml:space="preserve">
+    <value>Il job di esportazione email selezionate non è ancora completato o è già stato scaricato.</value>
+  </data>
+  <data name="ErrorDownloadingExportFile" xml:space="preserve">
+    <value>Errore nel download del file di esportazione.</value>
+  </data>
+  <data name="ExportParametersInvalid" xml:space="preserve">
+    <value>I parametri di esportazione non sono validi. Riprova.</value>
+  </data>
+  <data name="NoAccessToSelectedAccount" xml:space="preserve">
+    <value>Non hai accesso all'account selezionato.</value>
+  </data>
+  <data name="NoEmailsSelectedForExport" xml:space="preserve">
+    <value>Nessuna email selezionata per l'esportazione.</value>
+  </data>
+  <data name="SelectedEmailsExportNotAvailable" xml:space="preserve">
+    <value>L'esportazione delle email selezionate non è disponibile.</value>
+  </data>
+  <data name="NoAccessToSelectedEmails" xml:space="preserve">
+    <value>Non hai accesso a nessuna delle email selezionate.</value>
+  </data>
+  <data name="ExportFailedWithError" xml:space="preserve">
+    <value>Esportazione fallita: {0}</value>
+  </data>
+  <data name="ErrorOccurredWithMessage" xml:space="preserve">
+    <value>Si è verificato un errore: {0}</value>
+  </data>
+  <data name="TooManyEmailsSelectedWithLimits" xml:space="preserve">
+    <value>Troppe email selezionate ({0:N0}). Il massimo consentito è {1:N0} email per operazione.</value>
+  </data>
+  <data name="TooManyEmailsForDirectProcessing" xml:space="preserve">
+    <value>Troppe email selezionate per l'elaborazione diretta ({0:N0}). Il massimo per l'elaborazione diretta è {1:N0} email.</value>
+  </data>
+  <data name="AllEmailsCopiedSuccessfully" xml:space="preserve">
+    <value>Tutte le {0} email sono state copiate con successo nella cartella specificata.</value>
+  </data>
+  <data name="EmailsCopiedWithSomeFailures" xml:space="preserve">
+    <value>{0} email sono state copiate, ma {1} non sono state copiate. Controlla i log per i dettagli.</value>
+  </data>
+  <data name="TooManyEmailsInAccountWithLimits" xml:space="preserve">
+    <value>Troppe email in questo account ({0:N0}). Il massimo consentito è {1:N0} email per operazione.</value>
+  </data>
+  <data name="BatchRestoreJobStartedWithDetails" xml:space="preserve">
+    <value>Job di ripristino batch avviato con {0:N0} email. ID job: {1}</value>
+  </data>
+  <data name="FailedToStartBatchRestore" xml:space="preserve">
+    <value>Fallito l'avvio del ripristino batch: {0}</value>
+  </data>
+  <data name="ExportJobStartedWithDetails" xml:space="preserve">
+    <value>Job di esportazione avviato con {0:N0} email in formato {1}. ID job: {2}</value>
+  </data>
+  <data name="FailedToStartExport" xml:space="preserve">
+    <value>Fallito l'avvio dell'esportazione: {0}</value>
+  </data>
+  <data name="ExportCompletedTitle" xml:space="preserve">
+    <value>Esportazione Completata!</value>
+  </data>
+  <data name="ExportCompletedSummary" xml:space="preserve">
+    <value>Esportate con successo {0} email selezionate.</value>
+  </data>
+  <data name="SelectedOf" xml:space="preserve">
+    <value>{0} di {1} selezionate</value>
+  </data>
+  <data name="MaxSelectionsReached" xml:space="preserve">
+    <value>Massimo selezioni raggiunto ({0})</value>
+  </data>
+  <data name="SelectAllOnPage" xml:space="preserve">
+    <value>Seleziona tutto nella pagina</value>
+  </data>
+  <data name="DeselectAllOnPage" xml:space="preserve">
+    <value>Deseleziona tutto nella pagina</value>
+  </data>
+
+
   <!-- ============================================== -->
   <!-- NEWLY ADDED KEYS - REQUIRE TRANSLATION TO ITALIAN -->
   <!-- ============================================== -->
 
   <data name="DeleteAccountWithEmailsButton" xml:space="preserve">
-    <value>Elimina account e tutte le email ({0})</value>
+    <value>Elimina account e tutte le e-mail ({0})</value>
   </data>
 
 </root>

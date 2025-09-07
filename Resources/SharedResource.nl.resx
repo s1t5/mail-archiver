@@ -1631,6 +1631,397 @@
     <value>U heeft te veel 2FA-verificatiepogingen gedaan. Wacht en probeer later opnieuw.</value>
   </data>
 
+  <!-- Account Export Feature -->
+  <data name="ExportAccount" xml:space="preserve">
+    <value>Account Exporteren</value>
+  </data>
+  <data name="ExportAccountTitle" xml:space="preserve">
+    <value>E-mailaccount Exporteren</value>
+  </data>
+  <data name="ExportAccountDescription" xml:space="preserve">
+    <value>Alle e-mails van dit account exporteren naar downloadbare bestanden</value>
+  </data>
+  <data name="ExportAccountInfo" xml:space="preserve">
+    <value>Account Export Informatie</value>
+  </data>
+  <data name="ExportAccountInfoDetail" xml:space="preserve">
+    <value>Exporteer alle e-mails van dit e-mailaccount. Afhankelijk van het geselecteerde formaat krijgt u een ZIP-bestand met alle e-mails.</value>
+  </data>
+  <data name="ExportFormatLabel" xml:space="preserve">
+    <value>Export Formaat</value>
+  </data>
+  <data name="ExportFormatEML" xml:space="preserve">
+    <value>EML (Individuele E-mailbestanden)</value>
+  </data>
+  <data name="ExportFormatMBox" xml:space="preserve">
+    <value>MBox (Mailbox Formaat)</value>
+  </data>
+  <data name="ExportFormatEMLDescription" xml:space="preserve">
+    <value>Maakt een ZIP-bestand met aparte mappen voor inkomende en uitgaande e-mails, bevattende individuele .eml bestanden</value>
+  </data>
+  <data name="ExportFormatMBoxDescription" xml:space="preserve">
+    <value>Maakt een ZIP-bestand met twee .mbox bestanden (in.mbox en out.mbox) met alle e-mails</value>
+  </data>
+  <data name="StartExport" xml:space="preserve">
+    <value>Export Starten</value>
+  </data>
+  <data name="ExportJobStarted" xml:space="preserve">
+    <value>Export taak gestart voor account '{0}'. U wordt doorgeleid naar de statuspagina.</value>
+  </data>
+  <data name="ExportStatusTitle" xml:space="preserve">
+    <value>Export Status</value>
+  </data>
+  <data name="ExportJobInformation" xml:space="preserve">
+    <value>Export Taak Informatie</value>
+  </data>
+  <data name="ExportJobStatus" xml:space="preserve">
+    <value>Export Taak Status</value>
+  </data>
+  <data name="ExportProgress" xml:space="preserve">
+    <value>Export Voortgang</value>
+  </data>
+  <data name="EmailsExported" xml:space="preserve">
+    <value>E-mails Geëxporteerd</value>
+  </data>
+  <data name="ExportCompleted" xml:space="preserve">
+    <value>Export Voltooid</value>
+  </data>
+  <data name="ExportFailed" xml:space="preserve">
+    <value>Export Mislukt</value>
+  </data>
+  <data name="ExportCancelled" xml:space="preserve">
+    <value>Export Geannuleerd</value>
+  </data>
+  <data name="ExportInProgress" xml:space="preserve">
+    <value>Export Bezig</value>
+  </data>
+  <data name="ExportQueued" xml:space="preserve">
+    <value>Export in Wachtrij</value>
+  </data>
+  <data name="DownloadExport" xml:space="preserve">
+    <value>Export Downloaden</value>
+  </data>
+  <data name="DownloadReady" xml:space="preserve">
+    <value>Download Klaar</value>
+  </data>
+  <data name="DownloadStarting" xml:space="preserve">
+    <value>Download Begint...</value>
+  </data>
+  <data name="CancelExport" xml:space="preserve">
+    <value>Export Annuleren</value>
+  </data>
+  <data name="CancelExportConfirm" xml:space="preserve">
+    <value>Weet u zeker dat u deze export taak wilt annuleren?</value>
+  </data>
+  <data name="ExportJobCancelled" xml:space="preserve">
+    <value>Export taak is geannuleerd.</value>
+  </data>
+  <data name="ExportJobCancelError" xml:space="preserve">
+    <value>Kon de export taak niet annuleren. De taak is mogelijk al voltooid of bestaat niet.</value>
+  </data>
+  <data name="ExportNotFound" xml:space="preserve">
+    <value>Export taak niet gevonden.</value>
+  </data>
+  <data name="ExportDownloadNotReady" xml:space="preserve">
+    <value>Export download is nog niet klaar. Wacht tot de export is voltooid.</value>
+  </data>
+  <data name="ExportFileNotFound" xml:space="preserve">
+    <value>Export bestand niet gevonden. Het bestand is mogelijk opgeruimd of de export is mislukt.</value>
+  </data>
+  <data name="ExportStarted" xml:space="preserve">
+    <value>Export taak gestart voor account '{0}'. U wordt doorgeleid naar de statuspagina.</value>
+  </data>
+  <data name="ExportError" xml:space="preserve">
+    <value>Fout tijdens export</value>
+  </data>
+  <data name="InvalidExportID" xml:space="preserve">
+    <value>Ongeldig export taak ID.</value>
+  </data>
+  <data name="ExportJobNotFound" xml:space="preserve">
+    <value>Export taak niet gevonden.</value>
+  </data>
+  <data name="ExportCancelError" xml:space="preserve">
+    <value>Kon de export taak niet annuleren. De taak is mogelijk al voltooid of bestaat niet.</value>
+  </data>
+  <data name="IncomingEmails" xml:space="preserve">
+    <value>Inkomende E-mails</value>
+  </data>
+  <data name="OutgoingEmails" xml:space="preserve">
+    <value>Uitgaande E-mails</value>
+  </data>
+  <data name="AccountExportJobs" xml:space="preserve">
+    <value>Account Export Taken</value>
+  </data>
+  <data name="FileCreated" xml:space="preserve">
+    <value>Bestand Gemaakt</value>
+  </data>
+  <data name="FileSize" xml:space="preserve">
+    <value>Bestandsgrootte</value>
+  </data>
+  <data name="BackToExport" xml:space="preserve">
+    <value>Terug naar Export</value>
+  </data>
+  <data name="RefreshStatus" xml:space="preserve">
+    <value>Status Vernieuwen</value>
+  </data>
+  <data name="AutoRefresh" xml:space="preserve">
+    <value>Automatisch vernieuwen elke 3 seconden</value>
+  </data>
+  <!-- Missing Export Strings -->
+  <data name="NoEmailsToExport" xml:space="preserve">
+    <value>Geen e-mails beschikbaar voor export in dit account.</value>
+  </data>
+  <data name="ExportInfo" xml:space="preserve">
+    <value>Export Informatie</value>
+  </data>
+  <data name="ExportInfoText" xml:space="preserve">
+    <value>Deze export maakt een downloadbaar ZIP-bestand met alle e-mails van dit account. Het formaat dat u kiest bepaalt hoe de e-mails zijn georganiseerd.</value>
+  </data>
+  <data name="EMLFormat" xml:space="preserve">
+    <value>EML Formaat</value>
+  </data>
+  <data name="MBoxFormat" xml:space="preserve">
+    <value>MBox Formaat</value>
+  </data>
+  <data name="EMLFormatInfo" xml:space="preserve">
+    <value>EML Formaat Informatie</value>
+  </data>
+  <data name="EMLFormatDescription" xml:space="preserve">
+    <value>Maakt individuele .eml bestanden georganiseerd in 'in' en 'out' mappen voor respectievelijk inkomende en uitgaande e-mails.</value>
+  </data>
+  <data name="MBoxFormatInfo" xml:space="preserve">
+    <value>MBox Formaat Informatie</value>
+  </data>
+  <data name="MBoxFormatDescription" xml:space="preserve">
+    <value>Maakt traditionele mailbox bestanden (in.mbox en out.mbox) met alle inkomende en uitgaande e-mails in elk één bestand.</value>
+  </data>
+  <data name="ExportWarning" xml:space="preserve">
+    <value>Belangrijke Export Informatie</value>
+  </data>
+  <data name="ExportWarningTime" xml:space="preserve">
+    <value>Grote accounts kunnen enkele minuten duren om te exporteren en worden op de achtergrond uitgevoerd</value>
+  </data>
+  <data name="ExportWarningSize" xml:space="preserve">
+    <value>Het resulterende ZIP-bestand kan behoorlijk groot zijn afhankelijk van e-mailvolume en bijlagen</value>
+  </data>
+  <data name="ExportWarningCleanup" xml:space="preserve">
+    <value>Export bestanden worden automatisch verwijderd na download of na 7 dagen</value>
+  </data>
+  <data name="ConfirmExport" xml:space="preserve">
+    <value>Weet u zeker dat u de export wilt starten? Dit verwerkt alle e-mails in dit account.</value>
+  </data>
+  <data name="BackToAccount" xml:space="preserve">
+    <value>Terug naar Account</value>
+  </data>
+  <data name="CurrentEmail" xml:space="preserve">
+    <value>Huidige E-mail</value>
+  </data>
+  <data name="ProcessedEmails" xml:space="preserve">
+    <value>Verwerkte E-mails</value>
+  </data>
+  <data name="ExportStatus" xml:space="preserve">
+    <value>Export Status</value>
+  </data>
+  <data name="Downloaded" xml:space="preserve">
+    <value>Gedownload</value>
+  </data>
+  <data name="Error" xml:space="preserve">
+    <value>Fout</value>
+  </data>
+  <data name="Refresh" xml:space="preserve">
+    <value>Vernieuwen</value>
+  </data>
+
+  <!-- Export Format Selection Modal -->
+  <data name="ExportFormatSelection" xml:space="preserve">
+    <value>Export Formaat Selectie</value>
+  </data>
+  <data name="ExportFormatSelectionInfo" xml:space="preserve">
+    <value>Kies het formaat voor uw e-mail export. Elk formaat heeft verschillende voordelen afhankelijk van uw behoeften.</value>
+  </data>
+  <data name="ExportSelectedInfo" xml:space="preserve">
+    <value>De export wordt op de achtergrond uitgevoerd en u kunt het resultaat downloaden van de Jobs pagina zodra het voltooid is.</value>
+  </data>
+
+  <!-- Selected Emails Export Feature -->
+  <data name="ExportSelected" xml:space="preserve">
+    <value>Geselecteerde Exporteren</value>
+  </data>
+  <data name="SelectedEmailsExportStatusTitle" xml:space="preserve">
+    <value>Geselecteerde E-mails Export Status</value>
+  </data>
+  <data name="SelectedEmailsExportJobs" xml:space="preserve">
+    <value>Geselecteerde E-mails Export Taken</value>
+  </data>
+  <data name="SelectedEmailsExport" xml:space="preserve">
+    <value>Geselecteerde E-mails Export</value>
+  </data>
+  <data name="ExportSelectedEmails" xml:space="preserve">
+    <value>Geselecteerde E-mails Exporteren</value>
+  </data>
+  <data name="SelectedEmailsExportComplete" xml:space="preserve">
+    <value>Export van geselecteerde e-mails succesvol voltooid. {0} e-mails zijn geëxporteerd.</value>
+  </data>
+  <data name="SelectedEmailsExportFailed" xml:space="preserve">
+    <value>Export van geselecteerde e-mails is mislukt. Controleer de logs voor meer details.</value>
+  </data>
+  <data name="SelectedEmailsExportCancelled" xml:space="preserve">
+    <value>Export van geselecteerde e-mails is geannuleerd.</value>
+  </data>
+  <data name="EMLImportJobs" xml:space="preserve">
+    <value>EML Import Taken</value>
+  </data>
+
+  <!-- EmailsController Messages -->
+  <data name="EmailHasNoAttachments" xml:space="preserve">
+    <value>Deze e-mail heeft geen bijlagen.</value>
+  </data>
+  <data name="NoAccessToEmail" xml:space="preserve">
+    <value>U heeft geen toegang tot deze e-mail.</value>
+  </data>
+  <data name="EmailNotFound" xml:space="preserve">
+    <value>De e-mail kon niet worden gevonden.</value>
+  </data>
+  <data name="EmailCopiedSuccessfully" xml:space="preserve">
+    <value>De e-mail is succesvol gekopieerd naar de opgegeven map.</value>
+  </data>
+  <data name="EmailCopyFailed" xml:space="preserve">
+    <value>De e-mail kon niet gekopieerd worden naar de opgegeven map. Controleer de logs.</value>
+  </data>
+  <data name="NoEmailsSelectedForBatch" xml:space="preserve">
+    <value>Geen e-mails geselecteerd voor batch operatie.</value>
+  </data>
+  <data name="NoEmailsCopiedCheckLogs" xml:space="preserve">
+    <value>Geen van de geselecteerde e-mails kon gekopieerd worden. Controleer de logs voor details.</value>
+  </data>
+  <data name="MailAccountNotFound" xml:space="preserve">
+    <value>E-mailaccount niet gevonden.</value>
+  </data>
+  <data name="NoEmailsFoundForAccount" xml:space="preserve">
+    <value>Geen e-mails gevonden om te kopiëren voor dit account.</value>
+  </data>
+  <data name="TooManyEmailsToProcess" xml:space="preserve">
+    <value>Te veel e-mails om te verwerken. Probeer het met een kleinere selectie.</value>
+  </data>
+  <data name="TooManyEmailsSelectFewer" xml:space="preserve">
+    <value>Te veel e-mails geselecteerd. Selecteer minder e-mails en probeer opnieuw.</value>
+  </data>
+  <data name="NoEnabledEmailAccounts" xml:space="preserve">
+    <value>Geen ingeschakelde e-mailaccounts gevonden.</value>
+  </data>
+  <data name="AsyncBatchRestoreNotAvailable" xml:space="preserve">
+    <value>Asynchrone batch herstel is niet beschikbaar.</value>
+  </data>
+  <data name="BatchRestoreServiceNotAvailable" xml:space="preserve">
+    <value>Batch herstel service is niet beschikbaar.</value>
+  </data>
+  <data name="InvalidJobID" xml:space="preserve">
+    <value>Ongeldig taak ID.</value>
+  </data>
+  <data name="BatchRestoreJobNotFound" xml:space="preserve">
+    <value>Batch herstel taak niet gevonden.</value>
+  </data>
+  <data name="BatchRestoreJobCancelled" xml:space="preserve">
+    <value>Batch herstel taak is geannuleerd.</value>
+  </data>
+  <data name="CouldNotCancelBatchRestoreJob" xml:space="preserve">
+    <value>Kon de batch herstel taak niet annuleren.</value>
+  </data>
+  <data name="SyncJobServiceNotAvailable" xml:space="preserve">
+    <value>Sync taak service is niet beschikbaar.</value>
+  </data>
+  <data name="SyncJobCancelled" xml:space="preserve">
+    <value>Sync taak is geannuleerd.</value>
+  </data>
+  <data name="CouldNotCancelSyncJob" xml:space="preserve">
+    <value>Kon de sync taak niet annuleren.</value>
+  </data>
+  <data name="SelectedEmailsExportServiceNotAvailable" xml:space="preserve">
+    <value>Geselecteerde e-mails export service is niet beschikbaar.</value>
+  </data>
+  <data name="SelectedEmailsExportJobNotFound" xml:space="preserve">
+    <value>Geselecteerde e-mails export taak niet gevonden.</value>
+  </data>
+  <data name="SelectedEmailsExportJobCancelled" xml:space="preserve">
+    <value>Geselecteerde e-mails export taak is geannuleerd.</value>
+  </data>
+  <data name="CouldNotCancelSelectedEmailsExportJob" xml:space="preserve">
+    <value>Kon de geselecteerde e-mails export taak niet annuleren.</value>
+  </data>
+  <data name="SelectedEmailsExportNotCompleted" xml:space="preserve">
+    <value>Geselecteerde e-mails export taak is nog niet voltooid of al gedownload.</value>
+  </data>
+  <data name="ErrorDownloadingExportFile" xml:space="preserve">
+    <value>Fout bij het downloaden van export bestand.</value>
+  </data>
+  <data name="ExportParametersInvalid" xml:space="preserve">
+    <value>Export parameters zijn ongeldig. Probeer opnieuw.</value>
+  </data>
+  <data name="NoAccessToSelectedAccount" xml:space="preserve">
+    <value>U heeft geen toegang tot het geselecteerde account.</value>
+  </data>
+  <data name="NoEmailsSelectedForExport" xml:space="preserve">
+    <value>Geen e-mails geselecteerd voor export.</value>
+  </data>
+  <data name="SelectedEmailsExportNotAvailable" xml:space="preserve">
+    <value>Geselecteerde e-mails export is niet beschikbaar.</value>
+  </data>
+  <data name="NoAccessToSelectedEmails" xml:space="preserve">
+    <value>U heeft geen toegang tot de geselecteerde e-mails.</value>
+  </data>
+  <data name="ExportFailedWithError" xml:space="preserve">
+    <value>Export mislukt: {0}</value>
+  </data>
+  <data name="ErrorOccurredWithMessage" xml:space="preserve">
+    <value>Er is een fout opgetreden: {0}</value>
+  </data>
+  <data name="TooManyEmailsSelectedWithLimits" xml:space="preserve">
+    <value>Te veel e-mails geselecteerd ({0:N0}). Maximum toegestaan is {1:N0} e-mails per operatie.</value>
+  </data>
+  <data name="TooManyEmailsForDirectProcessing" xml:space="preserve">
+    <value>Te veel e-mails geselecteerd voor directe verwerking ({0:N0}). Maximum voor directe verwerking is {1:N0} e-mails.</value>
+  </data>
+  <data name="AllEmailsCopiedSuccessfully" xml:space="preserve">
+    <value>Alle {0} e-mails zijn succesvol gekopieerd naar de opgegeven map.</value>
+  </data>
+  <data name="EmailsCopiedWithSomeFailures" xml:space="preserve">
+    <value>{0} e-mails zijn gekopieerd, maar {1} konden niet gekopieerd worden. Controleer de logs voor details.</value>
+  </data>
+  <data name="TooManyEmailsInAccountWithLimits" xml:space="preserve">
+    <value>Te veel e-mails in dit account ({0:N0}). Maximum toegestaan is {1:N0} e-mails per operatie.</value>
+  </data>
+  <data name="BatchRestoreJobStartedWithDetails" xml:space="preserve">
+    <value>Batch herstel taak gestart met {0:N0} e-mails. Taak ID: {1}</value>
+  </data>
+  <data name="FailedToStartBatchRestore" xml:space="preserve">
+    <value>Mislukt om batch herstel te starten: {0}</value>
+  </data>
+  <data name="ExportJobStartedWithDetails" xml:space="preserve">
+    <value>Export taak gestart met {0:N0} e-mails in {1} formaat. Taak ID: {2}</value>
+  </data>
+  <data name="FailedToStartExport" xml:space="preserve">
+    <value>Mislukt om export te starten: {0}</value>
+  </data>
+  <data name="ExportCompletedTitle" xml:space="preserve">
+    <value>Export Voltooid!</value>
+  </data>
+  <data name="ExportCompletedSummary" xml:space="preserve">
+    <value>Succesvol {0} geselecteerde e-mails geëxporteerd.</value>
+  </data>
+  <data name="SelectedOf" xml:space="preserve">
+    <value>{0} van {1} geselecteerd</value>
+  </data>
+  <data name="MaxSelectionsReached" xml:space="preserve">
+    <value>Maximum selecties bereikt ({0})</value>
+  </data>
+  <data name="SelectAllOnPage" xml:space="preserve">
+    <value>Alles op pagina selecteren</value>
+  </data>
+  <data name="DeselectAllOnPage" xml:space="preserve">
+    <value>Alles op pagina deselecteren</value>
+  </data>
+
+
   <!-- ============================================== -->
   <!-- NEWLY ADDED KEYS - REQUIRE TRANSLATION TO DUTCH -->
   <!-- ============================================== -->

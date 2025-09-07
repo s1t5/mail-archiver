@@ -1631,12 +1631,403 @@
     <value>Вы сделали слишком много попыток проверки 2FA. Подождите и попробуйте позже.</value>
   </data>
 
+  <!-- Account Export Feature -->
+  <data name="ExportAccount" xml:space="preserve">
+    <value>Экспорт Учетной Записи</value>
+  </data>
+  <data name="ExportAccountTitle" xml:space="preserve">
+    <value>Экспорт Почтовой Учетной Записи</value>
+  </data>
+  <data name="ExportAccountDescription" xml:space="preserve">
+    <value>Экспортировать все письма из этой учетной записи в загружаемые файлы</value>
+  </data>
+  <data name="ExportAccountInfo" xml:space="preserve">
+    <value>Информация об Экспорте Учетной Записи</value>
+  </data>
+  <data name="ExportAccountInfoDetail" xml:space="preserve">
+    <value>Экспортировать все письма из этой почтовой учетной записи. В зависимости от выбранного формата вы получите ZIP-файл, содержащий все письма.</value>
+  </data>
+  <data name="ExportFormatLabel" xml:space="preserve">
+    <value>Формат Экспорта</value>
+  </data>
+  <data name="ExportFormatEML" xml:space="preserve">
+    <value>EML (Отдельные Файлы Писем)</value>
+  </data>
+  <data name="ExportFormatMBox" xml:space="preserve">
+    <value>MBox (Формат Почтового Ящика)</value>
+  </data>
+  <data name="ExportFormatEMLDescription" xml:space="preserve">
+    <value>Создает ZIP-файл с отдельными папками для входящих и исходящих писем, содержащими отдельные .eml файлы</value>
+  </data>
+  <data name="ExportFormatMBoxDescription" xml:space="preserve">
+    <value>Создает ZIP-файл с двумя .mbox файлами (in.mbox и out.mbox), содержащими все письма</value>
+  </data>
+  <data name="StartExport" xml:space="preserve">
+    <value>Начать Экспорт</value>
+  </data>
+  <data name="ExportJobStarted" xml:space="preserve">
+    <value>Задача экспорта запущена для учетной записи '{0}'. Вы будете перенаправлены на страницу статуса.</value>
+  </data>
+  <data name="ExportStatusTitle" xml:space="preserve">
+    <value>Статус Экспорта</value>
+  </data>
+  <data name="ExportJobInformation" xml:space="preserve">
+    <value>Информация о Задаче Экспорта</value>
+  </data>
+  <data name="ExportJobStatus" xml:space="preserve">
+    <value>Статус Задачи Экспорта</value>
+  </data>
+  <data name="ExportProgress" xml:space="preserve">
+    <value>Прогресс Экспорта</value>
+  </data>
+  <data name="EmailsExported" xml:space="preserve">
+    <value>Письма Экспортированы</value>
+  </data>
+  <data name="ExportCompleted" xml:space="preserve">
+    <value>Экспорт Завершен</value>
+  </data>
+  <data name="ExportFailed" xml:space="preserve">
+    <value>Экспорт Не Удался</value>
+  </data>
+  <data name="ExportCancelled" xml:space="preserve">
+    <value>Экспорт Отменен</value>
+  </data>
+  <data name="ExportInProgress" xml:space="preserve">
+    <value>Экспорт Выполняется</value>
+  </data>
+  <data name="ExportQueued" xml:space="preserve">
+    <value>Экспорт в Очереди</value>
+  </data>
+  <data name="DownloadExport" xml:space="preserve">
+    <value>Скачать Экспорт</value>
+  </data>
+  <data name="DownloadReady" xml:space="preserve">
+    <value>Загрузка Готова</value>
+  </data>
+  <data name="DownloadStarting" xml:space="preserve">
+    <value>Начинается Загрузка...</value>
+  </data>
+  <data name="CancelExport" xml:space="preserve">
+    <value>Отменить Экспорт</value>
+  </data>
+  <data name="CancelExportConfirm" xml:space="preserve">
+    <value>Вы уверены, что хотите отменить эту задачу экспорта?</value>
+  </data>
+  <data name="ExportJobCancelled" xml:space="preserve">
+    <value>Задача экспорта была отменена.</value>
+  </data>
+  <data name="ExportJobCancelError" xml:space="preserve">
+    <value>Не удалось отменить задачу экспорта. Задача может быть уже завершена или не существует.</value>
+  </data>
+  <data name="ExportNotFound" xml:space="preserve">
+    <value>Задача экспорта не найдена.</value>
+  </data>
+  <data name="ExportDownloadNotReady" xml:space="preserve">
+    <value>Загрузка экспорта еще не готова. Пожалуйста, дождитесь завершения экспорта.</value>
+  </data>
+  <data name="ExportFileNotFound" xml:space="preserve">
+    <value>Файл экспорта не найден. Файл мог быть удален или экспорт не удался.</value>
+  </data>
+  <data name="ExportStarted" xml:space="preserve">
+    <value>Задача экспорта запущена для учетной записи '{0}'. Вы будете перенаправлены на страницу статуса.</value>
+  </data>
+  <data name="ExportError" xml:space="preserve">
+    <value>Ошибка при экспорте</value>
+  </data>
+  <data name="InvalidExportID" xml:space="preserve">
+    <value>Недействительный ID задачи экспорта.</value>
+  </data>
+  <data name="ExportJobNotFound" xml:space="preserve">
+    <value>Задача экспорта не найдена.</value>
+  </data>
+  <data name="ExportCancelError" xml:space="preserve">
+    <value>Не удалось отменить задачу экспорта. Задача может быть уже завершена или не существует.</value>
+  </data>
+  <data name="IncomingEmails" xml:space="preserve">
+    <value>Входящие Письма</value>
+  </data>
+  <data name="OutgoingEmails" xml:space="preserve">
+    <value>Исходящие Письма</value>
+  </data>
+  <data name="AccountExportJobs" xml:space="preserve">
+    <value>Задачи Экспорта Учетной Записи</value>
+  </data>
+  <data name="FileCreated" xml:space="preserve">
+    <value>Файл Создан</value>
+  </data>
+  <data name="FileSize" xml:space="preserve">
+    <value>Размер Файла</value>
+  </data>
+  <data name="BackToExport" xml:space="preserve">
+    <value>Назад к Экспорту</value>
+  </data>
+  <data name="RefreshStatus" xml:space="preserve">
+    <value>Обновить Статус</value>
+  </data>
+  <data name="AutoRefresh" xml:space="preserve">
+    <value>Автообновление каждые 3 секунды</value>
+  </data>
+  <!-- Missing Export Strings -->
+  <data name="NoEmailsToExport" xml:space="preserve">
+    <value>Нет писем для экспорта в этой учетной записи.</value>
+  </data>
+  <data name="ExportInfo" xml:space="preserve">
+    <value>Информация об Экспорте</value>
+  </data>
+  <data name="ExportInfoText" xml:space="preserve">
+    <value>Этот экспорт создаст загружаемый ZIP-файл, содержащий все письма из этой учетной записи. Выбранный вами формат определяет, как организованы письма.</value>
+  </data>
+  <data name="EMLFormat" xml:space="preserve">
+    <value>Формат EML</value>
+  </data>
+  <data name="MBoxFormat" xml:space="preserve">
+    <value>Формат MBox</value>
+  </data>
+  <data name="EMLFormatInfo" xml:space="preserve">
+    <value>Информация о Формате EML</value>
+  </data>
+  <data name="EMLFormatDescription" xml:space="preserve">
+    <value>Создает отдельные .eml файлы, организованные в папки 'in' и 'out' для входящих и исходящих писем соответственно.</value>
+  </data>
+  <data name="MBoxFormatInfo" xml:space="preserve">
+    <value>Информация о Формате MBox</value>
+  </data>
+  <data name="MBoxFormatDescription" xml:space="preserve">
+    <value>Создает традиционные файлы почтового ящика (in.mbox и out.mbox), содержащие все входящие и исходящие письма в одном файле каждый.</value>
+  </data>
+  <data name="ExportWarning" xml:space="preserve">
+    <value>Важная Информация об Экспорте</value>
+  </data>
+  <data name="ExportWarningTime" xml:space="preserve">
+    <value>Большие учетные записи могут занять несколько минут для экспорта и будут выполняться в фоновом режиме</value>
+  </data>
+  <data name="ExportWarningSize" xml:space="preserve">
+    <value>Результирующий ZIP-файл может быть довольно большим в зависимости от объема писем и вложений</value>
+  </data>
+  <data name="ExportWarningCleanup" xml:space="preserve">
+    <value>Файлы экспорта автоматически удаляются после загрузки или через 7 дней</value>
+  </data>
+  <data name="ConfirmExport" xml:space="preserve">
+    <value>Вы уверены, что хотите начать экспорт? Это обработает все письма в этой учетной записи.</value>
+  </data>
+  <data name="BackToAccount" xml:space="preserve">
+    <value>Назад к Учетной Записи</value>
+  </data>
+  <data name="CurrentEmail" xml:space="preserve">
+    <value>Текущее Письмо</value>
+  </data>
+  <data name="ProcessedEmails" xml:space="preserve">
+    <value>Обработанные Письма</value>
+  </data>
+  <data name="ExportStatus" xml:space="preserve">
+    <value>Статус Экспорта</value>
+  </data>
+  <data name="Downloaded" xml:space="preserve">
+    <value>Загружено</value>
+  </data>
+  <data name="Error" xml:space="preserve">
+    <value>Ошибка</value>
+  </data>
+  <data name="Refresh" xml:space="preserve">
+    <value>Обновить</value>
+  </data>
+
+  <!-- Export Format Selection Modal -->
+  <data name="ExportFormatSelection" xml:space="preserve">
+    <value>Выбор Формата Экспорта</value>
+  </data>
+  <data name="ExportFormatSelectionInfo" xml:space="preserve">
+    <value>Выберите формат для экспорта ваших писем. Каждый формат имеет разные преимущества в зависимости от ваших потребностей.</value>
+  </data>
+  <data name="ExportSelectedInfo" xml:space="preserve">
+    <value>Экспорт будет выполняться в фоновом режиме, и вы сможете загрузить результат со страницы Задач после завершения.</value>
+  </data>
+
+  <!-- Selected Emails Export Feature -->
+  <data name="ExportSelected" xml:space="preserve">
+    <value>Экспорт Выбранных</value>
+  </data>
+  <data name="SelectedEmailsExportStatusTitle" xml:space="preserve">
+    <value>Статус Экспорта Выбранных Писем</value>
+  </data>
+  <data name="SelectedEmailsExportJobs" xml:space="preserve">
+    <value>Задачи Экспорта Выбранных Писем</value>
+  </data>
+  <data name="SelectedEmailsExport" xml:space="preserve">
+    <value>Экспорт Выбранных Писем</value>
+  </data>
+  <data name="ExportSelectedEmails" xml:space="preserve">
+    <value>Экспортировать Выбранные Письма</value>
+  </data>
+  <data name="SelectedEmailsExportComplete" xml:space="preserve">
+    <value>Экспорт выбранных писем успешно завершен. {0} писем было экспортировано.</value>
+  </data>
+  <data name="SelectedEmailsExportFailed" xml:space="preserve">
+    <value>Экспорт выбранных писем не удался. Пожалуйста, проверьте логи для получения дополнительной информации.</value>
+  </data>
+  <data name="SelectedEmailsExportCancelled" xml:space="preserve">
+    <value>Экспорт выбранных писем был отменен.</value>
+  </data>
+  <data name="EMLImportJobs" xml:space="preserve">
+    <value>Задачи Импорта EML</value>
+  </data>
+
+  <!-- EmailsController Messages -->
+  <data name="EmailHasNoAttachments" xml:space="preserve">
+    <value>В этом письме нет вложений.</value>
+  </data>
+  <data name="NoAccessToEmail" xml:space="preserve">
+    <value>У вас нет доступа к этому письму.</value>
+  </data>
+  <data name="EmailNotFound" xml:space="preserve">
+    <value>Письмо не найдено.</value>
+  </data>
+  <data name="EmailCopiedSuccessfully" xml:space="preserve">
+    <value>Письмо было успешно скопировано в указанную папку.</value>
+  </data>
+  <data name="EmailCopyFailed" xml:space="preserve">
+    <value>Не удалось скопировать письмо в указанную папку. Проверьте логи.</value>
+  </data>
+  <data name="NoEmailsSelectedForBatch" xml:space="preserve">
+    <value>Не выбраны письма для пакетной операции.</value>
+  </data>
+  <data name="NoEmailsCopiedCheckLogs" xml:space="preserve">
+    <value>Ни одно из выбранных писем не удалось скопировать. Проверьте логи для подробностей.</value>
+  </data>
+  <data name="MailAccountNotFound" xml:space="preserve">
+    <value>Почтовая учетная запись не найдена.</value>
+  </data>
+  <data name="NoEmailsFoundForAccount" xml:space="preserve">
+    <value>Не найдено писем для копирования для этой учетной записи.</value>
+  </data>
+  <data name="TooManyEmailsToProcess" xml:space="preserve">
+    <value>Слишком много писем для обработки. Попробуйте с меньшим выбором.</value>
+  </data>
+  <data name="TooManyEmailsSelectFewer" xml:space="preserve">
+    <value>Выбрано слишком много писем. Выберите меньше писем и попробуйте снова.</value>
+  </data>
+  <data name="NoEnabledEmailAccounts" xml:space="preserve">
+    <value>Не найдено включенных почтовых учетных записей.</value>
+  </data>
+  <data name="AsyncBatchRestoreNotAvailable" xml:space="preserve">
+    <value>Асинхронное пакетное восстановление недоступно.</value>
+  </data>
+  <data name="BatchRestoreServiceNotAvailable" xml:space="preserve">
+    <value>Служба пакетного восстановления недоступна.</value>
+  </data>
+  <data name="InvalidJobID" xml:space="preserve">
+    <value>Недействительный ID задачи.</value>
+  </data>
+  <data name="BatchRestoreJobNotFound" xml:space="preserve">
+    <value>Задача пакетного восстановления не найдена.</value>
+  </data>
+  <data name="BatchRestoreJobCancelled" xml:space="preserve">
+    <value>Задача пакетного восстановления была отменена.</value>
+  </data>
+  <data name="CouldNotCancelBatchRestoreJob" xml:space="preserve">
+    <value>Не удалось отменить задачу пакетного восстановления.</value>
+  </data>
+  <data name="SyncJobServiceNotAvailable" xml:space="preserve">
+    <value>Служба задач синхронизации недоступна.</value>
+  </data>
+  <data name="SyncJobCancelled" xml:space="preserve">
+    <value>Задача синхронизации была отменена.</value>
+  </data>
+  <data name="CouldNotCancelSyncJob" xml:space="preserve">
+    <value>Не удалось отменить задачу синхронизации.</value>
+  </data>
+  <data name="SelectedEmailsExportServiceNotAvailable" xml:space="preserve">
+    <value>Служба экспорта выбранных писем недоступна.</value>
+  </data>
+  <data name="SelectedEmailsExportJobNotFound" xml:space="preserve">
+    <value>Задача экспорта выбранных писем не найдена.</value>
+  </data>
+  <data name="SelectedEmailsExportJobCancelled" xml:space="preserve">
+    <value>Задача экспорта выбранных писем была отменена.</value>
+  </data>
+  <data name="CouldNotCancelSelectedEmailsExportJob" xml:space="preserve">
+    <value>Не удалось отменить задачу экспорта выбранных писем.</value>
+  </data>
+  <data name="SelectedEmailsExportNotCompleted" xml:space="preserve">
+    <value>Задача экспорта выбранных писем еще не завершена или уже была загружена.</value>
+  </data>
+  <data name="ErrorDownloadingExportFile" xml:space="preserve">
+    <value>Ошибка при загрузке файла экспорта.</value>
+  </data>
+  <data name="ExportParametersInvalid" xml:space="preserve">
+    <value>Параметры экспорта недействительны. Попробуйте снова.</value>
+  </data>
+  <data name="NoAccessToSelectedAccount" xml:space="preserve">
+    <value>У вас нет доступа к выбранной учетной записи.</value>
+  </data>
+  <data name="NoEmailsSelectedForExport" xml:space="preserve">
+    <value>Не выбраны письма для экспорта.</value>
+  </data>
+  <data name="SelectedEmailsExportNotAvailable" xml:space="preserve">
+    <value>Экспорт выбранных писем недоступен.</value>
+  </data>
+  <data name="NoAccessToSelectedEmails" xml:space="preserve">
+    <value>У вас нет доступа ни к одному из выбранных писем.</value>
+  </data>
+  <data name="ExportFailedWithError" xml:space="preserve">
+    <value>Экспорт не удался: {0}</value>
+  </data>
+  <data name="ErrorOccurredWithMessage" xml:space="preserve">
+    <value>Произошла ошибка: {0}</value>
+  </data>
+  <data name="TooManyEmailsSelectedWithLimits" xml:space="preserve">
+    <value>Выбрано слишком много писем ({0:N0}). Максимально разрешено {1:N0} писем на операцию.</value>
+  </data>
+  <data name="TooManyEmailsForDirectProcessing" xml:space="preserve">
+    <value>Выбрано слишком много писем для прямой обработки ({0:N0}). Максимум для прямой обработки {1:N0} писем.</value>
+  </data>
+  <data name="AllEmailsCopiedSuccessfully" xml:space="preserve">
+    <value>Все {0} писем были успешно скопированы в указанную папку.</value>
+  </data>
+  <data name="EmailsCopiedWithSomeFailures" xml:space="preserve">
+    <value>{0} писем было скопировано, но {1} не удалось скопировать. Проверьте логи для подробностей.</value>
+  </data>
+  <data name="TooManyEmailsInAccountWithLimits" xml:space="preserve">
+    <value>Слишком много писем в этой учетной записи ({0:N0}). Максимально разрешено {1:N0} писем на операцию.</value>
+  </data>
+  <data name="BatchRestoreJobStartedWithDetails" xml:space="preserve">
+    <value>Задача пакетного восстановления запущена с {0:N0} письмами. ID задачи: {1}</value>
+  </data>
+  <data name="FailedToStartBatchRestore" xml:space="preserve">
+    <value>Не удалось запустить пакетное восстановление: {0}</value>
+  </data>
+  <data name="ExportJobStartedWithDetails" xml:space="preserve">
+    <value>Задача экспорта запущена с {0:N0} письмами в формате {1}. ID задачи: {2}</value>
+  </data>
+  <data name="FailedToStartExport" xml:space="preserve">
+    <value>Не удалось запустить экспорт: {0}</value>
+  </data>
+  <data name="ExportCompletedTitle" xml:space="preserve">
+    <value>Экспорт Завершен!</value>
+  </data>
+  <data name="ExportCompletedSummary" xml:space="preserve">
+    <value>Успешно экспортировано {0} выбранных писем.</value>
+  </data>
+  <data name="SelectedOf" xml:space="preserve">
+    <value>{0} из {1} выбрано</value>
+  </data>
+  <data name="MaxSelectionsReached" xml:space="preserve">
+    <value>Достигнуто максимальное количество выборок ({0})</value>
+  </data>
+  <data name="SelectAllOnPage" xml:space="preserve">
+    <value>Выбрать все на странице</value>
+  </data>
+  <data name="DeselectAllOnPage" xml:space="preserve">
+    <value>Отменить выбор всех на странице</value>
+  </data>
+
+
   <!-- ============================================== -->
   <!-- NEWLY ADDED KEYS - REQUIRE TRANSLATION TO RUSSIAN -->
   <!-- ============================================== -->
 
   <data name="DeleteAccountWithEmailsButton" xml:space="preserve">
-    <value>Удалить учётную запись и все письма ({0})</value>
+    <value>Удалить учетную запись и все электронные письма ({0})</value>
   </data>
 
 </root>
