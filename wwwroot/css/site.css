@@ -421,6 +421,45 @@ body {
   #previewContent embed {
     height: 50vh;
   }
+  
+  /* Improved checkbox styling for mobile email cards */
+  .email-card-mobile .form-check {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 0;
+    border-bottom: 1px solid #eee;
+    margin-bottom: 10px;
+  }
+
+  .email-card-mobile .form-check-input {
+    width: 1.2em;
+    height: 1.2em;
+    margin-right: 8px;
+    margin-top: 0;
+  }
+
+  .email-card-mobile .form-check-label {
+    font-size: 0.9rem;
+    color: #666;
+    margin: 0;
+  }
+
+  /* Position the card body below the checkbox */
+  .email-card-mobile .card-body {
+    padding: 0 15px 15px;
+  }
+}
+
+/* Dark Mode für verbesserte Checkboxen in mobilen Email Cards */
+@media (max-width: 768px) {
+  [data-theme="dark"] .email-card-mobile .form-check {
+    border-bottom: 1px solid #4a5568;
+  }
+  
+  [data-theme="dark"] .email-card-mobile .form-check-label {
+    color: #a0aec0;
+  }
 }
 
 /* Bestehender Code bleibt... */

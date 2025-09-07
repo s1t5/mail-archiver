@@ -294,7 +294,7 @@
     }
     
     .email-card-mobile .card-body {
-        padding: 0.75rem;
+        padding: 0 15px 15px;
     }
     
     .email-card-title {
@@ -309,6 +309,7 @@
         margin-bottom: 3px;
     }
 }
+
 
 /* Extra kleine Bildschirme (unter 480px) */
 @media (max-width: 480px) {

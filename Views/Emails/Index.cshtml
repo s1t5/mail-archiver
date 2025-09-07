@@ -266,10 +266,10 @@
                     <div class="card mb-3 email-card-mobile">
                         @if (Model.ShowSelectionControls)
                         {
-                            <div class="form-check mb-2">
+                            <div class="form-check">
                                 <input class="form-check-input email-select-checkbox" type="checkbox"
                                        name="ids" value="@email.Id" id="email-mobile-@email.Id">
-                                <label class="form-check-label small text-muted" for="email-mobile-@email.Id">
+                                <label class="form-check-label" for="email-mobile-@email.Id">
                                     @Localizer["SelectThisEmail"]
                                 </label>
                             </div>
