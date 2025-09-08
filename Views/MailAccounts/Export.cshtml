@@ -14,17 +14,31 @@
                     <h3 class="card-title">@Localizer["ExportAccount"]: @Model.MailAccountName</h3>
                 </div>
                 <div class="card-body">
-                    <div class="alert alert-info alert-persistent">
-                        <h5><i class="bi bi-info-circle"></i> @Localizer["ExportInfo"]</h5>
-                        <p>@Localizer["ExportInfoText"]</p>
-                        <ul>
-                            <li><strong>@Localizer["TotalEmails"]:</strong> @Model.TotalEmailsCount.ToString("N0")</li>
-                            <li><strong>@Localizer["IncomingEmails"]:</strong> @Model.IncomingEmailsCount.ToString("N0")</li>
-                            <li><strong>@Localizer["OutgoingEmails"]:</strong> @Model.OutgoingEmailsCount.ToString("N0")</li>
-                        </ul>
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <dl class="row">
+                                <dt class="col-sm-4">@Localizer["AccountName"]:</dt>
+                                <dd class="col-sm-8">@Model.MailAccountName</dd>
+                                
+                                <dt class="col-sm-4">@Localizer["TotalEmails"]:</dt>
+                                <dd class="col-sm-8">@Model.TotalEmailsCount.ToString("N0")</dd>
+                                
+                                <dt class="col-sm-4">@Localizer["IncomingEmails"]:</dt>
+                                <dd class="col-sm-8">@Model.IncomingEmailsCount.ToString("N0")</dd>
+                                
+                                <dt class="col-sm-4">@Localizer["OutgoingEmails"]:</dt>
+                                <dd class="col-sm-8">@Model.OutgoingEmailsCount.ToString("N0")</dd>
+                            </dl>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="alert alert-info alert-persistent">
+                                <h5><i class="bi bi-info-circle"></i> @Localizer["ExportInfo"]</h5>
+                                <p class="mb-0">@Localizer["ExportInfoText"]</p>
+                            </div>
+                        </div>
                     </div>
 
-                    <form asp-action="Export" method="post" class="mt-4">
+                    <form asp-action="Export" method="post">
                         @Html.AntiForgeryToken()
                         <input type="hidden" asp-for="MailAccountId" />
                         <input type="hidden" asp-for="MailAccountName" />
@@ -32,31 +46,52 @@
                         <input type="hidden" asp-for="IncomingEmailsCount" />
                         <input type="hidden" asp-for="OutgoingEmailsCount" />
 
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label asp-for="Format" class="form-label">@Localizer["ExportFormat"]</label>
-                                    <select asp-for="Format" class="form-select" id="exportFormat">
-                                        <option value="@AccountExportFormat.EML">@Localizer["EMLFormat"]</option>
-                                        <option value="@AccountExportFormat.MBox">@Localizer["MBoxFormat"]</option>
-                                    </select>
-                                    <span asp-validation-for="Format" class="text-danger"></span>
+                        <div class="mb-4">
+                            <h6>@Localizer["ExportFormatSelection"]</h6>
+                            <p class="text-muted small">@Localizer["ExportFormatSelectionInfo"]</p>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <div class="card h-100">
+                                        <div class="card-body">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" asp-for="Format" id="formatEML" value="@AccountExportFormat.EML" checked>
+                                                <label class="form-check-label" for="formatEML">
+                                                    <strong>@Localizer["EMLFormat"]</strong>
+                                                </label>
+                                            </div>
+                                            <small class="text-muted">@Localizer["EMLFormatDescription"]</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <div class="card h-100">
+                                        <div class="card-body">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" asp-for="Format" id="formatMBox" value="@AccountExportFormat.MBox">
+                                                <label class="form-check-label" for="formatMBox">
+                                                    <strong>@Localizer["MBoxFormat"]</strong>
+                                                </label>
+                                            </div>
+                                            <small class="text-muted">@Localizer["MBoxFormatDescription"]</small>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="alert alert-warning mt-3 alert-persistent" id="formatInfo">
+                        <div class="alert alert-info mb-3" id="formatInfo">
                             <div id="emlInfo" style="display: block;">
                                 <h6><i class="bi bi-file-earmark-text"></i> @Localizer["EMLFormatInfo"]</h6>
-                                <p>@Localizer["EMLFormatDescription"]</p>
+                                <p class="mb-0">@Localizer["EMLFormatDescription"]</p>
                             </div>
                             <div id="mboxInfo" style="display: none;">
                                 <h6><i class="bi bi-archive"></i> @Localizer["MBoxFormatInfo"]</h6>
-                                <p>@Localizer["MBoxFormatDescription"]</p>
+                                <p class="mb-0">@Localizer["MBoxFormatDescription"]</p>
                             </div>
                         </div>
 
-                        <div class="alert alert-warning mt-3 alert-persistent">
+                        <div class="alert alert-warning alert-persistent">
                             <h6><i class="bi bi-exclamation-triangle"></i> @Localizer["ExportWarning"]</h6>
                             <ul class="mb-0">
                                 <li>@Localizer["ExportWarningTime"]</li>
@@ -84,17 +119,20 @@
     <partial name="_ValidationScriptsPartial" />
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const formatSelect = document.getElementById('exportFormat');
+            const formatRadios = document.querySelectorAll('input[name="Format"]');
             const emlInfo = document.getElementById('emlInfo');
             const mboxInfo = document.getElementById('mboxInfo');
 
             function updateFormatInfo() {
-                const selectedFormat = formatSelect.value;
+                const selectedFormat = document.querySelector('input[name="Format"]:checked').value;
                 emlInfo.style.display = selectedFormat === '@AccountExportFormat.EML.ToString()' ? 'block' : 'none';
                 mboxInfo.style.display = selectedFormat === '@AccountExportFormat.MBox.ToString()' ? 'block' : 'none';
             }
 
-            formatSelect.addEventListener('change', updateFormatInfo);
+            formatRadios.forEach(function(radio) {
+                radio.addEventListener('change', updateFormatInfo);
+            });
+            
             updateFormatInfo(); // Initial call
         });
     </script>
