@@ -1235,6 +1235,7 @@ namespace MailArchiver.Controllers
 
         // GET: Emails/Jobs
         [HttpGet]
+        [AdminRequired]
         public IActionResult Jobs()
         {
             var batchJobs = new List<BatchRestoreJob>();
