@@ -60,7 +60,7 @@
 
 > 🚨 **Important note for retention policies**
 > - Requires IMAP Expunge support from the mail server to permanently delete emails
-> - For Gmail accounts, Auto-Expunge must be enabled in Gmail settings under the "Forwarding and POP/IMAP" tab
+> - For Gmail accounts, Auto-Expunge must be disabled in Gmail settings under the "Forwarding and POP/IMAP" tab!
 
 ## 🖼️ Screenshots
 
