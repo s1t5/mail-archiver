@@ -38,9 +38,9 @@
 
 @section Scripts {
     <script>
-        // Pass localized strings to JavaScript
-        const backupCodesFileHeader = '@Localizer["BackupCodesFileHeader"]';
-        const backupCodesFileFooter = '@Localizer["BackupCodesFileFooter"]';
+        // Pass localized strings to JavaScript (using Html.Raw to prevent HTML encoding)
+        const backupCodesFileHeader = '@Html.Raw(Localizer["BackupCodesFileHeader"].Value)';
+        const backupCodesFileFooter = '@Html.Raw(Localizer["BackupCodesFileFooter"].Value)';
         
         document.getElementById('downloadBackupCodes').addEventListener('click', function() {
             // Get backup codes from the page
@@ -54,8 +54,8 @@
                            backupCodes.join('\n') + 
                            '\n\n' + backupCodesFileFooter;
             
-            // Create and download file
-            const blob = new Blob([content], { type: 'text/plain' });
+            // Create and download file with UTF-8 encoding
+            const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
