@@ -325,17 +325,24 @@ namespace MailArchiver.Services
             using var zipStream = new FileStream(job.OutputFilePath, FileMode.Create, FileAccess.Write);
             using var archive = new ZipArchive(zipStream, ZipArchiveMode.Create);
 
-            // Process incoming emails
-            await ProcessEmailsForEmlExport(job, context, archive, "in", false, cancellationToken);
+            // Get distinct folder names for selected emails
+            var folderNames = await context.ArchivedEmails
+                .Where(e => job.EmailIds.Contains(e.Id))
+                .Select(e => e.FolderName)
+                .Distinct()
+                .ToListAsync(cancellationToken);
 
-            // Process outgoing emails
-            await ProcessEmailsForEmlExport(job, context, archive, "out", true, cancellationToken);
+            // Process emails for each folder
+            foreach (var folderName in folderNames)
+            {
+                await ProcessEmailsForEmlExportByFolder(job, context, archive, folderName, cancellationToken);
+            }
         }
 
-        private async Task ProcessEmailsForEmlExport(SelectedEmailsExportJob job, MailArchiverDbContext context, ZipArchive archive, string folderName, bool isOutgoing, CancellationToken cancellationToken)
+        private async Task ProcessEmailsForEmlExportByFolder(SelectedEmailsExportJob job, MailArchiverDbContext context, ZipArchive archive, string folderName, CancellationToken cancellationToken)
         {
             var emails = context.ArchivedEmails
-                .Where(e => job.EmailIds.Contains(e.Id) && e.IsOutgoing == isOutgoing)
+                .Where(e => job.EmailIds.Contains(e.Id) && e.FolderName == folderName)
                 .Include(e => e.Attachments)
                 .AsAsyncEnumerable();
 
@@ -351,10 +358,11 @@ namespace MailArchiver.Services
                     // Create MIME message from archived email
                     var mimeMessage = await CreateMimeMessageFromArchived(email);
 
-                    // Generate safe filename
+                    // Generate safe filename with In/Out indicator
                     var safeSubject = SanitizeFileName(email.Subject);
-                    var fileName = $"{emailIndex:D6}_{email.SentDate:yyyyMMdd_HHmmss}_{safeSubject}.eml";
-                    var entryName = $"{folderName}/{fileName}";
+                    var inOutIndicator = email.IsOutgoing ? "Out" : "In";
+                    var fileName = $"{emailIndex:D6}_{email.SentDate:yyyyMMdd_HHmmss}_{inOutIndicator}_{safeSubject}.eml";
+                    var entryName = $"{SanitizeFileName(folderName)}/{fileName}";
 
                     // Add to ZIP archive
                     var entry = archive.CreateEntry(entryName);
@@ -391,27 +399,28 @@ namespace MailArchiver.Services
             using var zipStream = new FileStream(job.OutputFilePath, FileMode.Create, FileAccess.Write);
             using var archive = new ZipArchive(zipStream, ZipArchiveMode.Create);
 
-            // Create incoming mbox
-            var inboxEntry = archive.CreateEntry("in.mbox");
-            using (var inboxStream = inboxEntry.Open())
-            {
-                await ProcessEmailsForMBoxExport(job, context, inboxStream, false, cancellationToken);
-            }
+            // Get distinct folder names for selected emails
+            var folderNames = await context.ArchivedEmails
+                .Where(e => job.EmailIds.Contains(e.Id))
+                .Select(e => e.FolderName)
+                .Distinct()
+                .ToListAsync(cancellationToken);
 
-            // Create outgoing mbox
-            var outboxEntry = archive.CreateEntry("out.mbox");
-            using (var outboxStream = outboxEntry.Open())
+            // Process emails for each folder
+            foreach (var folderName in folderNames)
             {
-                await ProcessEmailsForMBoxExport(job, context, outboxStream, true, cancellationToken);
+                var mboxEntry = archive.CreateEntry($"{SanitizeFileName(folderName)}.mbox");
+                using var mboxStream = mboxEntry.Open();
+                await ProcessEmailsForMBoxExportByFolder(job, context, mboxStream, folderName, cancellationToken);
             }
         }
 
-        private async Task ProcessEmailsForMBoxExport(SelectedEmailsExportJob job, MailArchiverDbContext context, Stream mboxStream, bool isOutgoing, CancellationToken cancellationToken)
+        private async Task ProcessEmailsForMBoxExportByFolder(SelectedEmailsExportJob job, MailArchiverDbContext context, Stream mboxStream, string folderName, CancellationToken cancellationToken)
         {
             using var writer = new StreamWriter(mboxStream, Encoding.UTF8, leaveOpen: true);
 
             var emails = context.ArchivedEmails
-                .Where(e => job.EmailIds.Contains(e.Id) && e.IsOutgoing == isOutgoing)
+                .Where(e => job.EmailIds.Contains(e.Id) && e.FolderName == folderName)
                 .Include(e => e.Attachments)
                 .OrderBy(e => e.SentDate)
                 .AsAsyncEnumerable();
@@ -550,7 +559,29 @@ namespace MailArchiver.Services
             // Add attachments
             if (email.Attachments?.Any() == true)
             {
-                foreach (var attachment in email.Attachments)
+                // Separate inline attachments from regular attachments
+                var inlineAttachments = email.Attachments.Where(a => !string.IsNullOrEmpty(a.ContentId)).ToList();
+                var regularAttachments = email.Attachments.Where(a => string.IsNullOrEmpty(a.ContentId)).ToList();
+                
+                // Add inline attachments first so they can be referenced in the HTML body
+                foreach (var attachment in inlineAttachments)
+                {
+                    try
+                    {
+                        var contentType = ContentType.Parse(attachment.ContentType);
+                        var mimePart = bodyBuilder.LinkedResources.Add(attachment.FileName, attachment.Content, contentType);
+                        mimePart.ContentId = attachment.ContentId;
+                    }
+                    catch
+                    {
+                        // Fallback for invalid content types
+                        var mimePart = bodyBuilder.LinkedResources.Add(attachment.FileName, attachment.Content);
+                        mimePart.ContentId = attachment.ContentId;
+                    }
+                }
+                
+                // Add regular attachments
+                foreach (var attachment in regularAttachments)
                 {
                     try
                     {

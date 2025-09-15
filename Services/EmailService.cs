@@ -1021,18 +1021,17 @@ namespace MailArchiver.Services
                     }
                 }
 
-                // Handle HTML body - preserve original encoding
+                // Handle HTML body - preserve original encoding (keep cid: references for inline images)
                 if (!string.IsNullOrEmpty(message.HtmlBody))
                 {
+                    // Keep the original HTML body with cid: references
+                    htmlBody = CleanText(message.HtmlBody);
+                    
                     // Check if HTML body will be truncated
-                    isHtmlTruncated = message.HtmlBody.Length > 1_000_000;
+                    isHtmlTruncated = htmlBody.Length > 1_000_000;
                     if (isHtmlTruncated)
                     {
-                        htmlBody = CleanHtmlForStorage(message.HtmlBody);
-                    }
-                    else
-                    {
-                        htmlBody = CleanText(message.HtmlBody); // Apply CleanText to remove null bytes and control characters
+                        htmlBody = CleanHtmlForStorage(htmlBody);
                     }
                 }
 
@@ -1077,7 +1076,7 @@ namespace MailArchiver.Services
                     _context.ArchivedEmails.Add(archivedEmail);
                     await _context.SaveChangesAsync();
 
-                    // Speichere ALLE Anhänge als normale Attachments
+                    // Speichere ALLE Anhänge als normale Attachments (including inline images)
                     if (allAttachments.Any())
                     {
                         await SaveAllAttachments(allAttachments, archivedEmail.Id);
@@ -1219,20 +1218,22 @@ namespace MailArchiver.Services
 
                     var cleanFileName = CleanText(fileName);
                     var contentType = CleanText(attachment.ContentType?.MimeType ?? "application/octet-stream");
+                    var contentId = !string.IsNullOrEmpty(attachment.ContentId) ? CleanText(attachment.ContentId) : null;
 
                     var emailAttachment = new EmailAttachment
                     {
                         ArchivedEmailId = archivedEmailId,
                         FileName = cleanFileName,
                         ContentType = contentType,
+                        ContentId = contentId,
                         Content = ms.ToArray(),
                         Size = ms.Length
                     };
 
                     _context.EmailAttachments.Add(emailAttachment);
 
-                    _logger.LogDebug("Prepared attachment for saving: FileName={FileName}, Size={Size}, ContentType={ContentType}",
-                        cleanFileName, ms.Length, contentType);
+                    _logger.LogDebug("Prepared attachment for saving: FileName={FileName}, Size={Size}, ContentType={ContentType}, ContentId={ContentId}",
+                        cleanFileName, ms.Length, contentType, contentId);
                 }
                 catch (Exception ex)
                 {
@@ -2508,10 +2509,44 @@ namespace MailArchiver.Services
 
             if (email.Attachments.Any())
             {
+                // Create a multipart/mixed as the base
                 var multipart = new Multipart("mixed");
-                multipart.Add(body);
-
-                foreach (var attachment in email.Attachments)
+                
+                // Check if we have inline images that should be in a related part
+                var inlineAttachments = email.Attachments.Where(a => !string.IsNullOrEmpty(a.ContentId)).ToList();
+                var regularAttachments = email.Attachments.Where(a => string.IsNullOrEmpty(a.ContentId)).ToList();
+                
+                if (inlineAttachments.Any() && !string.IsNullOrEmpty(email.HtmlBody))
+                {
+                    // Create multipart/related for HTML body and inline images
+                    var related = new Multipart("related");
+                    related.Add(body);
+                    
+                    // Add inline attachments with proper Content-Disposition
+                    foreach (var attachment in inlineAttachments)
+                    {
+                        var mimePart = new MimePart(attachment.ContentType)
+                        {
+                            Content = new MimeContent(new MemoryStream(attachment.Content)),
+                            ContentId = attachment.ContentId,
+                            ContentDisposition = new ContentDisposition(ContentDisposition.Inline),
+                            ContentTransferEncoding = ContentEncoding.Base64,
+                            FileName = attachment.FileName
+                        };
+                        related.Add(mimePart);
+                    }
+                    
+                    // Add the related part to the main multipart
+                    multipart.Add(related);
+                }
+                else
+                {
+                    // No inline images, just add the body directly
+                    multipart.Add(body);
+                }
+                
+                // Add regular attachments
+                foreach (var attachment in regularAttachments)
                 {
                     var mimePart = new MimePart(attachment.ContentType)
                     {
@@ -2522,6 +2557,7 @@ namespace MailArchiver.Services
                     };
                     multipart.Add(mimePart);
                 }
+                
                 message.Body = multipart;
             }
             else
@@ -2718,14 +2754,7 @@ namespace MailArchiver.Services
                 return false;
             }
         }
-
-        /// <summary>
-        /// Validates the server certificate based on the IgnoreSelfSignedCert setting
-        /// </summary>
-        /// <param name="sender">The sender</param>
-        /// <param name="certificate">The certificate</param>
-        /// <param name="chain">The certificate chain</param>
-        /// <param name="sslPolicyErrors">The SSL policy errors</param>
+        
 
         // RestoreEmailToFolderAsync und andere Methoden bleiben unverändert...
         public async Task<bool> RestoreEmailToFolderAsync(int emailId, int targetAccountId, string folderName)
@@ -2829,18 +2858,43 @@ namespace MailArchiver.Services
                         bodyBuilder.TextBody = email.Body;
                     }
 
-                    foreach (var attachment in email.Attachments)
+                    // Add attachments
+                    if (email.Attachments?.Any() == true)
                     {
-                        try
+                        // Separate inline attachments from regular attachments
+                        var inlineAttachments = email.Attachments.Where(a => !string.IsNullOrEmpty(a.ContentId)).ToList();
+                        var regularAttachments = email.Attachments.Where(a => string.IsNullOrEmpty(a.ContentId)).ToList();
+                        
+                        // Add inline attachments first so they can be referenced in the HTML body
+                        foreach (var attachment in inlineAttachments)
                         {
-                            bodyBuilder.Attachments.Add(attachment.FileName,
-                                                       attachment.Content,
-                                                       ContentType.Parse(attachment.ContentType));
-                            _logger.LogInformation("Added attachment: {FileName}", attachment.FileName);
+                            try
+                            {
+                                var contentType = ContentType.Parse(attachment.ContentType);
+                                var mimePart = bodyBuilder.LinkedResources.Add(attachment.FileName, attachment.Content, contentType);
+                                mimePart.ContentId = attachment.ContentId;
+                                _logger.LogInformation("Added inline attachment: {FileName} with Content-ID: {ContentId}", attachment.FileName, attachment.ContentId);
+                            }
+                            catch (Exception ex)
+                            {
+                                _logger.LogError(ex, "Error adding inline attachment {FileName}", attachment.FileName);
+                            }
                         }
-                        catch (Exception ex)
+                        
+                        // Add regular attachments
+                        foreach (var attachment in regularAttachments)
                         {
-                            _logger.LogError(ex, "Error adding attachment {FileName}", attachment.FileName);
+                            try
+                            {
+                                bodyBuilder.Attachments.Add(attachment.FileName,
+                                                           attachment.Content,
+                                                           ContentType.Parse(attachment.ContentType));
+                                _logger.LogInformation("Added attachment: {FileName}", attachment.FileName);
+                            }
+                            catch (Exception ex)
+                            {
+                                _logger.LogError(ex, "Error adding attachment {FileName}", attachment.FileName);
+                            }
                         }
                     }
 

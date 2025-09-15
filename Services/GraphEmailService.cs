@@ -1247,12 +1247,33 @@ namespace MailArchiver.Services
             // Add attachments if any
             if (email.Attachments != null && email.Attachments.Any())
             {
-                foreach (var attachment in email.Attachments)
+                // Separate inline attachments from regular attachments
+                var inlineAttachments = email.Attachments.Where(a => !string.IsNullOrEmpty(a.ContentId)).ToList();
+                var regularAttachments = email.Attachments.Where(a => string.IsNullOrEmpty(a.ContentId)).ToList();
+                
+                // Add inline attachments first so they can be referenced in the HTML body
+                foreach (var attachment in inlineAttachments)
                 {
                     try
                     {
                         using var attachmentStream = new MemoryStream(attachment.Content);
-                        await builder.Attachments.AddAsync(attachment.FileName, attachmentStream, 
+                        var mimePart = builder.LinkedResources.Add(attachment.FileName, attachmentStream, 
+                            MimeKit.ContentType.Parse(attachment.ContentType ?? "application/octet-stream"));
+                        mimePart.ContentId = attachment.ContentId;
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Failed to add inline attachment {AttachmentName} to MIME message", attachment.FileName);
+                    }
+                }
+                
+                // Add regular attachments
+                foreach (var attachment in regularAttachments)
+                {
+                    try
+                    {
+                        using var attachmentStream = new MemoryStream(attachment.Content);
+                        builder.Attachments.Add(attachment.FileName, attachmentStream, 
                             MimeKit.ContentType.Parse(attachment.ContentType ?? "application/octet-stream"));
                     }
                     catch (Exception ex)

@@ -596,6 +596,7 @@ namespace MailArchiver.Services
                         ArchivedEmailId = archivedEmailId,
                         FileName = CleanText(fileName),
                         ContentType = CleanText(attachment.ContentType?.MimeType ?? "application/octet-stream"),
+                        ContentId = !string.IsNullOrEmpty(attachment.ContentId) ? CleanText(attachment.ContentId) : null,
                         Content = ms.ToArray(),
                         Size = ms.Length
                     };

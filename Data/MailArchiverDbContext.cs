@@ -95,6 +95,11 @@ namespace MailArchiver.Data
             modelBuilder.Entity<EmailAttachment>()
                 .Property(a => a.ContentType)
                 .HasColumnType("text");
+                
+            modelBuilder.Entity<EmailAttachment>()
+                .Property(a => a.ContentId)
+                .HasColumnType("text")
+                .IsRequired(false);
             
             // User entity configuration
             modelBuilder.Entity<User>()

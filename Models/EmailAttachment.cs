@@ -6,6 +6,7 @@ namespace MailArchiver.Models
         public int ArchivedEmailId { get; set; }
         public string FileName { get; set; }
         public string ContentType { get; set; }
+        public string? ContentId { get; set; }
         public byte[] Content { get; set; }
         public long Size { get; set; }
         

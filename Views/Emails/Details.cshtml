@@ -199,13 +199,13 @@
                     </a>
                 </div>
 
-                @if (!string.IsNullOrEmpty(Model.Email.HtmlBody))
-                {
-                    <div class="email-content-container">
-                        <iframe id="email-content-frame" src="@Url.Action("RawContent", new { id = Model.Email.Id })"
-                            class="w-100 border rounded email-iframe" sandbox="allow-same-origin allow-popups"></iframe>
-                    </div>
-                }
+        @if (!string.IsNullOrEmpty(Model.Email.HtmlBody))
+        {
+            <div class="email-content-container" style="min-height: 800px;">
+                <iframe id="email-content-frame" src="@Url.Action("RawContent", new { id = Model.Email.Id })"
+                    class="w-100 border rounded email-iframe" sandbox="allow-same-origin allow-popups allow-downloads allow-forms allow-modals allow-orientation-lock allow-pointer-lock allow-presentation allow-scripts allow-top-navigation-by-user-activation" style="min-height: 800px; height: 800px; max-height: 1200px;"></iframe>
+            </div>
+        }
                 else
                 {
                     <div class="border rounded p-3 bg-light">
@@ -252,111 +252,88 @@
     </div>
 </div>
 
-<script>
-    // Localized strings for JavaScript
-    const localizedStrings = {
-        previewNotAvailable: '@Localizer["PreviewNotAvailable"]',
-        fileTypeCannotBePreviewed: '@Localizer["FileTypeCannotBePreviewed"]'
-    };
+    <script>
+        // Localized strings for JavaScript
+        const localizedStrings = {
+            previewNotAvailable: '@Localizer["PreviewNotAvailable"]',
+            fileTypeCannotBePreviewed: '@Localizer["FileTypeCannotBePreviewed"]'
+        };
 
-    document.addEventListener('DOMContentLoaded', function () {
-        const iframe = document.getElementById('email-content-frame');
-        if (iframe) {
-            const isMobile = window.innerWidth < 768;
-            if (isMobile) {
-                iframe.style.height = '300px';
-            } else {
-                iframe.style.height = '400px';
-            }
+        document.addEventListener('DOMContentLoaded', function () {
+            // Attachment preview functionality
+            const previewButtons = document.querySelectorAll('.attachment-preview-btn');
+            const previewModal = new bootstrap.Modal(document.getElementById('attachmentPreviewModal'));
+            const previewContent = document.getElementById('previewContent');
+            const previewFileName = document.getElementById('previewFileName');
+            const downloadBtn = document.getElementById('downloadAttachmentBtn');
+            const downloadBtnFooter = document.getElementById('downloadAttachmentBtnFooter');
 
-            iframe.onload = function () {
-                if (!isMobile) {
-                    setTimeout(function () {
-                        try {
-                            const iframeHeight = Math.min(iframe.contentWindow.document.body.scrollHeight + 30, 600);
-                            iframe.style.height = iframeHeight + 'px';
-                        } catch (e) {
-                            console.error('Could not adjust iframe height:', e);
-                        }
-                    }, 300);
-                }
-            };
-        }
+            previewButtons.forEach(button => {
+                button.addEventListener('click', function () {
+                    const emailId = this.getAttribute('data-email-id');
+                    const attachmentId = this.getAttribute('data-attachment-id');
+                    const fileName = this.getAttribute('data-filename');
+                    const contentType = this.getAttribute('data-content-type');
+                    const downloadUrl = this.getAttribute('data-download-url');
+                    const previewUrl = this.getAttribute('data-preview-url');
 
-        // Attachment preview functionality
-        const previewButtons = document.querySelectorAll('.attachment-preview-btn');
-        const previewModal = new bootstrap.Modal(document.getElementById('attachmentPreviewModal'));
-        const previewContent = document.getElementById('previewContent');
-        const previewFileName = document.getElementById('previewFileName');
-        const downloadBtn = document.getElementById('downloadAttachmentBtn');
-        const downloadBtnFooter = document.getElementById('downloadAttachmentBtnFooter');
+                    // Set file name in modal header
+                    previewFileName.textContent = fileName;
 
-        previewButtons.forEach(button => {
-            button.addEventListener('click', function () {
-                const emailId = this.getAttribute('data-email-id');
-                const attachmentId = this.getAttribute('data-attachment-id');
-                const fileName = this.getAttribute('data-filename');
-                const contentType = this.getAttribute('data-content-type');
-                const downloadUrl = this.getAttribute('data-download-url');
-                const previewUrl = this.getAttribute('data-preview-url');
+                    // Set download links
+                    downloadBtn.href = downloadUrl;
+                    downloadBtnFooter.href = downloadUrl;
 
-                // Set file name in modal header
-                previewFileName.textContent = fileName;
+                    // Show loading spinner
+                    previewContent.innerHTML = '<div class="d-flex justify-content-center align-items-center h-100"><div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div></div>';
 
-                // Set download links
-                downloadBtn.href = downloadUrl;
-                downloadBtnFooter.href = downloadUrl;
+                    // Show modal
+                    previewModal.show();
 
-                // Show loading spinner
-                previewContent.innerHTML = '<div class="d-flex justify-content-center align-items-center h-100"><div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div></div>';
-
-                // Show modal
-                previewModal.show();
-
-                // Determine how to display based on content type
-                if (contentType.startsWith('image/')) {
-                    // Display image directly
-                    previewContent.innerHTML = `<img src="${previewUrl}" class="img-fluid" alt="${fileName}" style="max-height: 70vh;">`;
-                } else if (contentType === 'application/pdf') {
-                    // Display PDF using embed
-                    previewContent.innerHTML = `<embed src="${previewUrl}" type="application/pdf" width="100%" height="600px" />`;
-                } else if (contentType.startsWith('text/')) {
-                    // Display text files
-                    fetch(previewUrl)
-                        .then(response => response.text())
-                        .then(text => {
-                            previewContent.innerHTML = `<pre class="text-start" style="white-space: pre-wrap; max-height: 70vh; overflow: auto;">${escapeHtml(text)}</pre>`;
-                        })
-                        .catch(error => {
-                            previewContent.innerHTML = `<div class="alert alert-danger">Error loading file: ${error.message}</div>`;
-                        });
-                } else {
-                    // For other file types, show download prompt
-                    previewContent.innerHTML = `
-                        <div class="d-flex flex-column align-items-center justify-content-center h-100">
-                            <i class="bi bi-file-earmark-arrow-down" style="font-size: 4rem;"></i>
-                            <h5 class="mt-3">${localizedStrings.previewNotAvailable}</h5>
-                            <p>${localizedStrings.fileTypeCannotBePreviewed}</p>
-                        </div>
-                    `;
-                }
+                    // Determine how to display based on content type
+                    if (contentType.startsWith('image/')) {
+                        // Display image directly
+                        previewContent.innerHTML = `<img src="${previewUrl}" class="img-fluid" alt="${fileName}" style="max-height: 70vh;">`;
+                    } else if (contentType === 'application/pdf') {
+                        // Display PDF using iframe
+                        previewContent.innerHTML = `<iframe src="${previewUrl}" type="application/pdf" width="100%" height="600px" />`;
+                    } else if (contentType.startsWith('text/')) {
+                        // Display text files
+                        fetch(previewUrl)
+                            .then(response => response.text())
+                            .then(text => {
+                                previewContent.innerHTML = `<pre class="text-start" style="white-space: pre-wrap; max-height: 70vh; overflow: auto;">${escapeHtml(text)}</pre>`;
+                            })
+                            .catch(error => {
+                                previewContent.innerHTML = `<div class="alert alert-danger">Error loading file: ${error.message}</div>`;
+                            });
+                    } else {
+                        // For other file types, show download prompt
+                        previewContent.innerHTML = `
+                            <div class="d-flex flex-column align-items-center justify-content-center h-100">
+                                <i class="bi bi-file-earmark-arrow-down" style="font-size: 4rem;"></i>
+                                <h5 class="mt-3">${localizedStrings.previewNotAvailable}</h5>
+                                <p>${localizedStrings.fileTypeCannotBePreviewed}</p>
+                            </div>
+                        `;
+                    }
+                });
             });
-        });
 
-        // Helper function to escape HTML
-        function escapeHtml(text) {
-            const map = {
-                '&': '&',
-                '<': '<',
-                '>': '>',
-                '"': '"',
-                "'": '&#039;'
-            };
-            
-            return text.replace(/[&<>"']/g, function(m) { return map[m]; });
-        }
-    });
-</script>
+            // Helper function to escape HTML
+            function escapeHtml(text) {
+                const map = {
+                    '&': '&',
+                    '<': '<',
+                    '>': '>',
+                    '"': '"',
+                    "'": '&#039;'
+                };
+                
+                return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+            }
+        });
+    </script>
 
 @functions {
     string FormatFileSize(long bytes)

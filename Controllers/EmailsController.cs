@@ -209,7 +209,9 @@ namespace MailArchiver.Controllers
             {
                 Email = email,
                 AccountName = email.MailAccount?.Name ?? "Unknown account",
-                FormattedHtmlBody = SanitizeHtml(email.HtmlBody)
+                FormattedHtmlBody = !string.IsNullOrEmpty(email.HtmlBody) 
+                    ? ResolveInlineImagesInHtml(SanitizeHtml(email.HtmlBody), email.Attachments) 
+                    : string.Empty
             };
 
             // Store return URL in ViewBag
@@ -307,6 +309,14 @@ namespace MailArchiver.Controllers
             if (attachment == null)
             {
                 return NotFound();
+            }
+
+            // For PDF files, we need to ensure they can be displayed inline
+            if (attachment.ContentType == "application/pdf")
+            {
+                // Add headers to ensure PDF can be displayed inline
+                Response.Headers.Add("Content-Disposition", "inline");
+                Response.Headers.Add("X-Content-Type-Options", "nosniff");
             }
 
             // Return the attachment content without forcing download
@@ -1682,6 +1692,7 @@ namespace MailArchiver.Controllers
         public async Task<IActionResult> RawContent(int id)
         {
             var email = await _context.ArchivedEmails
+                .Include(e => e.Attachments)
                 .FirstOrDefaultAsync(e => e.Id == id);
 
             if (email == null)
@@ -1691,7 +1702,7 @@ namespace MailArchiver.Controllers
 
             // Bereiten Sie das HTML für die direkte Anzeige vor
             string html = !string.IsNullOrEmpty(email.HtmlBody)
-                ? SanitizeHtml(email.HtmlBody)
+                ? ResolveInlineImagesInHtml(SanitizeHtml(email.HtmlBody), email.Attachments)
                 : $"<pre>{HttpUtility.HtmlEncode(email.Body)}</pre>";
 
             // Fügen Sie die Basis-HTML-Struktur hinzu, wenn sie fehlt
@@ -1743,6 +1754,62 @@ namespace MailArchiver.Controllers
             }
 
             return html;
+        }
+
+        // Hilfsmethode zur Auflösung von Inline-Bildern in HTML
+        private string ResolveInlineImagesInHtml(string htmlBody, ICollection<EmailAttachment> attachments)
+        {
+            if (string.IsNullOrEmpty(htmlBody) || attachments == null || !attachments.Any())
+                return htmlBody;
+
+            var resultHtml = htmlBody;
+
+            // Finde alle cid: Referenzen im HTML
+            var cidMatches = Regex.Matches(htmlBody, @"src\s*=\s*[""']cid:([^""']+)[""']", RegexOptions.IgnoreCase);
+
+            foreach (Match match in cidMatches)
+            {
+                var cid = match.Groups[1].Value;
+
+                // Finde den entsprechenden Attachment
+                var attachment = attachments.FirstOrDefault(a => 
+                    !string.IsNullOrEmpty(a.ContentId) && 
+                    (a.ContentId.Equals($"<{cid}>", StringComparison.OrdinalIgnoreCase) ||
+                     a.ContentId.Equals(cid, StringComparison.OrdinalIgnoreCase)));
+
+                // Wenn kein Attachment mit dem ContentId gefunden wird, versuche es mit dem Dateinamen
+                if (attachment == null)
+                {
+                    attachment = attachments.FirstOrDefault(a => 
+                        !string.IsNullOrEmpty(a.FileName) && 
+                        (a.FileName.Equals($"inline_{cid}", StringComparison.OrdinalIgnoreCase) ||
+                         a.FileName.StartsWith($"inline_{cid}.", StringComparison.OrdinalIgnoreCase) ||
+                         a.FileName.Contains($"_{cid}")));
+                }
+
+                if (attachment != null && attachment.Content != null && attachment.Content.Length > 0)
+                {
+                    try
+                    {
+                        // Erstelle eine data URL für das Inline-Bild
+                        var base64Content = Convert.ToBase64String(attachment.Content);
+                        var dataUrl = $"data:{attachment.ContentType ?? "image/png"};base64,{base64Content}";
+                        
+                        // Ersetze die cid: Referenz mit der data URL
+                        resultHtml = resultHtml.Replace(match.Groups[0].Value, $"src=\"{dataUrl}\"");
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Failed to resolve inline image with CID: {Cid}", cid);
+                    }
+                }
+                else
+                {
+                    _logger.LogWarning("Could not find attachment for CID: {Cid}", cid);
+                }
+            }
+
+            return resultHtml;
         }
 
         // POST: Emails/ExportSelected
