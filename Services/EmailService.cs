@@ -961,11 +961,23 @@ namespace MailArchiver.Services
             var messageId = message.MessageId ??
                 $"{message.From}-{message.To}-{message.Subject}-{message.Date.Ticks}";
 
-            var emailExists = await _context.ArchivedEmails
-                .AnyAsync(e => e.MessageId == messageId && e.MailAccountId == account.Id);
+            var existingEmail = await _context.ArchivedEmails
+                .FirstOrDefaultAsync(e => e.MessageId == messageId && e.MailAccountId == account.Id);
 
-            if (emailExists)
+            if (existingEmail != null)
+            {
+                // E-Mail existiert bereits, prüfen ob der Ordner geändert wurde
+                var cleanFolderName = CleanText(folderName ?? string.Empty);
+                if (existingEmail.FolderName != cleanFolderName)
+                {
+                    // Ordner hat sich geändert, aktualisieren
+                    existingEmail.FolderName = cleanFolderName;
+                    await _context.SaveChangesAsync();
+                    _logger.LogInformation("Updated folder for existing email: {Subject} from '{OldFolder}' to '{NewFolder}'",
+                        existingEmail.Subject, existingEmail.FolderName, cleanFolderName);
+                }
                 return false; // E-Mail existiert bereits
+            }
 
             try
             {
