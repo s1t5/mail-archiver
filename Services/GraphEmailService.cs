@@ -1102,14 +1102,21 @@ namespace MailArchiver.Services
                     _logger.LogWarning("Target folder {FolderName} not found, using Inbox instead", folderName);
                 }
 
+                // Process the HTML body to ensure inline images are properly referenced
+                var processedHtmlBody = email.HtmlBody;
+                if (!string.IsNullOrEmpty(email.HtmlBody) && email.Attachments != null && email.Attachments.Any(a => !string.IsNullOrEmpty(a.ContentId)))
+                {
+                    processedHtmlBody = ProcessHtmlBodyForInlineImages(email.HtmlBody, email.Attachments);
+                }
+
                 // Create the message to restore - focus on preserving content first
                 var message = new Message
                 {
                     Subject = email.Subject ?? "(No Subject)",
                     Body = new ItemBody
                     {
-                        ContentType = !string.IsNullOrEmpty(email.HtmlBody) ? BodyType.Html : BodyType.Text,
-                        Content = !string.IsNullOrEmpty(email.HtmlBody) ? email.HtmlBody : (email.Body ?? "(No Content)")
+                        ContentType = !string.IsNullOrEmpty(processedHtmlBody) ? BodyType.Html : BodyType.Text,
+                        Content = !string.IsNullOrEmpty(processedHtmlBody) ? processedHtmlBody : (email.Body ?? "(No Content)")
                     },
                     From = new Recipient
                     {
@@ -1485,6 +1492,18 @@ namespace MailArchiver.Services
                             ContentBytes = attachment.Content
                         };
 
+                        // For inline attachments, ensure ContentId is properly set
+                        if (!string.IsNullOrEmpty(attachment.ContentId))
+                        {
+                            // Ensure Content-ID is properly formatted for Graph API
+                            var contentId = attachment.ContentId;
+                            if (contentId.StartsWith("<") && contentId.EndsWith(">"))
+                            {
+                                contentId = contentId.Trim('<', '>');
+                            }
+                            fileAttachment.ContentId = contentId;
+                        }
+
                         await graphClient.Users[targetAccount.EmailAddress].Messages[messageId].Attachments.PostAsync(fileAttachment);
                         _logger.LogInformation("Successfully restored attachment {AttachmentName} for email {EmailId}", attachment.FileName, email.Id);
                     }
@@ -1822,6 +1841,75 @@ namespace MailArchiver.Services
             {
                 _logger.LogError(ex, "Failed to save original HTML content as attachment for email {EmailId}", archivedEmailId);
             }
+        }
+
+        /// <summary>
+        /// Processes HTML body to ensure inline images are properly referenced with Content-ID
+        /// </summary>
+        /// <param name="htmlBody">The HTML body content</param>
+        /// <param name="attachments">List of email attachments</param>
+        /// <returns>Processed HTML body with proper Content-ID references</returns>
+        private string ProcessHtmlBodyForInlineImages(string htmlBody, ICollection<EmailAttachment> attachments)
+        {
+            if (string.IsNullOrEmpty(htmlBody) || attachments == null || !attachments.Any())
+                return htmlBody;
+
+            var resultHtml = htmlBody;
+
+            try
+            {
+                // Find all cid: references in the HTML
+                var cidMatches = System.Text.RegularExpressions.Regex.Matches(htmlBody, 
+                    @"src\s*=\s*[""']cid:([^""']+)[""']", 
+                    System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+
+                foreach (System.Text.RegularExpressions.Match match in cidMatches)
+                {
+                    var cid = match.Groups[1].Value;
+
+                    // Find the corresponding attachment by ContentId
+                    var attachment = attachments.FirstOrDefault(a => 
+                        !string.IsNullOrEmpty(a.ContentId) && 
+                        (a.ContentId.Equals($"<{cid}>", StringComparison.OrdinalIgnoreCase) ||
+                         a.ContentId.Equals(cid, StringComparison.OrdinalIgnoreCase)));
+
+                    // If no attachment found by ContentId, try to match by filename
+                    if (attachment == null)
+                    {
+                        attachment = attachments.FirstOrDefault(a => 
+                            !string.IsNullOrEmpty(a.FileName) && 
+                            (a.FileName.Equals($"inline_{cid}", StringComparison.OrdinalIgnoreCase) ||
+                             a.FileName.StartsWith($"inline_{cid}.", StringComparison.OrdinalIgnoreCase) ||
+                             a.FileName.Contains($"_{cid}")));
+                    }
+
+                    if (attachment != null)
+                    {
+                        // Ensure the attachment has a proper Content-ID format for referencing
+                        if (string.IsNullOrEmpty(attachment.ContentId))
+                        {
+                            // Generate a Content-ID if not present
+                            attachment.ContentId = $"<{Guid.NewGuid()}@mailarchiver>";
+                        }
+                        else if (!attachment.ContentId.StartsWith("<"))
+                        {
+                            // Ensure Content-ID is properly formatted
+                            attachment.ContentId = $"<{attachment.ContentId}>";
+                        }
+                        
+                        // Update the HTML to reference the attachment by its Content-ID
+                        var formattedCid = attachment.ContentId.Trim('<', '>');
+                        resultHtml = resultHtml.Replace(match.Groups[0].Value, $"src=\"cid:{formattedCid}\"");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Error processing HTML body for inline images. Returning original HTML.");
+                return htmlBody;
+            }
+
+            return resultHtml;
         }
 
         private async Task SaveTruncatedTextAsAttachment(string originalText, int archivedEmailId)
