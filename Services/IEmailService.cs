@@ -21,7 +21,7 @@ namespace MailArchiver.Services
         Task<bool> TestConnectionAsync(MailAccount account);
         Task<bool> RestoreEmailToFolderAsync(int emailId, int targetAccountId, string folderName);
         Task<List<string>> GetMailFoldersAsync(int accountId);
-        Task<(int Successful, int Failed)> RestoreMultipleEmailsAsync(List<int> emailIds, int targetAccountId, string folderName);
+        Task<(int Successful, int Failed)> RestoreMultipleEmailsWithProgressAsync(List<int> emailIds, int targetAccountId, string folderName, Action<int, int, int> progressCallback, CancellationToken cancellationToken = default);
         Task<bool> ResyncAccountAsync(int accountId);
         Task<int> GetEmailCountByAccountAsync(int accountId);
     }

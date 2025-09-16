@@ -239,8 +239,23 @@ private async Task ProcessJobWithProgress(BatchRestoreJob job, IEmailService ema
 
                 try
                 {
-                    var (successful, failed) = await emailService.RestoreMultipleEmailsAsync(
-                        job.EmailIds, job.TargetAccountId, job.TargetFolder);
+                    // Create progress callback for IMAP restore
+                    Action<int, int, int> progressCallback = (processed, successful, failed) =>
+                    {
+                        job.ProcessedCount = processed;
+                        job.SuccessCount = successful;
+                        job.FailedCount = failed;
+                        
+                        // Log progress every 10 emails or at the end
+                        if (processed % 10 == 0 || processed == totalEmails)
+                        {
+                            _logger.LogInformation("Job {JobId}: IMAP Progress - {Processed}/{Total} emails processed. Success: {Success}, Failed: {Failed}",
+                                job.JobId, processed, totalEmails, successful, failed);
+                        }
+                    };
+
+                    var (successful, failed) = await emailService.RestoreMultipleEmailsWithProgressAsync(
+                        job.EmailIds, job.TargetAccountId, job.TargetFolder, progressCallback, cancellationToken);
 
                     job.SuccessCount = successful;
                     job.FailedCount = failed;

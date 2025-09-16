@@ -3015,37 +3015,41 @@ namespace MailArchiver.Services
             }
         }
 
-        public async Task<(int Successful, int Failed)> RestoreMultipleEmailsAsync(
+        public async Task<(int Successful, int Failed)> RestoreMultipleEmailsWithProgressAsync(
             List<int> emailIds,
             int targetAccountId,
-            string folderName)
+            string folderName,
+            Action<int, int, int> progressCallback,
+            CancellationToken cancellationToken = default)
         {
-            _logger.LogInformation("Starting batch restore of {Count} emails to account {AccountId}, folder {Folder}",
+            _logger.LogInformation("Starting batch restore with progress tracking of {Count} emails to account {AccountId}, folder {Folder}",
                 emailIds.Count, targetAccountId, folderName);
 
-            // Use optimized batch restore with shared IMAP connection
-            return await RestoreMultipleEmailsWithSharedConnectionAsync(emailIds, targetAccountId, folderName);
+            // Use optimized batch restore with shared IMAP connection and progress tracking
+            return await RestoreMultipleEmailsWithSharedConnectionAndProgressAsync(emailIds, targetAccountId, folderName, progressCallback, cancellationToken);
         }
 
         /// <summary>
-        /// Restores multiple emails using a shared IMAP connection with automatic reconnection on failure
+        /// Restores multiple emails using a shared IMAP connection with progress tracking
         /// </summary>
-        public async Task<(int Successful, int Failed)> RestoreMultipleEmailsWithSharedConnectionAsync(
+        public async Task<(int Successful, int Failed)> RestoreMultipleEmailsWithSharedConnectionAndProgressAsync(
             List<int> emailIds,
             int targetAccountId,
-            string folderName)
+            string folderName,
+            Action<int, int, int> progressCallback,
+            CancellationToken cancellationToken = default)
         {
             int successCount = 0;
             int failCount = 0;
 
-            var targetAccount = await _context.MailAccounts.FindAsync(targetAccountId);
+            var targetAccount = await _context.MailAccounts.FindAsync(targetAccountId, cancellationToken);
             if (targetAccount == null)
             {
                 _logger.LogError("Target account with ID {AccountId} not found", targetAccountId);
                 return (0, emailIds.Count);
             }
 
-            _logger.LogInformation("Using shared IMAP connection for batch restore of {Count} emails to account {AccountName}",
+            _logger.LogInformation("Using shared IMAP connection with progress tracking for batch restore of {Count} emails to account {AccountName}",
                 emailIds.Count, targetAccount.Name);
 
             ImapClient client = null;
@@ -3073,6 +3077,8 @@ namespace MailArchiver.Services
 
                     foreach (var emailId in batch)
                     {
+                        cancellationToken.ThrowIfCancellationRequested();
+
                         var maxRetries = 3;
                         var retryCount = 0;
                         bool emailRestored = false;
@@ -3118,7 +3124,7 @@ namespace MailArchiver.Services
                                 if (retryCount < maxRetries)
                                 {
                                     // Wait before retry
-                                    await Task.Delay(1000 * retryCount); // Progressive delay
+                                    await Task.Delay(1000 * retryCount, cancellationToken); // Progressive delay
                                     
                                     // Try to restore connection for next attempt
                                     try
@@ -3144,10 +3150,14 @@ namespace MailArchiver.Services
                             _logger.LogError("Failed to restore email {EmailId} after {MaxRetries} attempts", emailId, maxRetries);
                         }
 
+                        // Update progress after each email
+                        var totalProcessed = successCount + failCount;
+                        progressCallback?.Invoke(totalProcessed, successCount, failCount);
+
                         // Small delay between emails
                         if (_batchOptions.PauseBetweenEmailsMs > 0)
                         {
-                            await Task.Delay(_batchOptions.PauseBetweenEmailsMs);
+                            await Task.Delay(_batchOptions.PauseBetweenEmailsMs, cancellationToken);
                         }
                     }
 
@@ -3155,13 +3165,18 @@ namespace MailArchiver.Services
                     if (i + batchSize < emailIds.Count && _batchOptions.PauseBetweenBatchesMs > 0)
                     {
                         _logger.LogDebug("Pausing {Ms}ms between batches", _batchOptions.PauseBetweenBatchesMs);
-                        await Task.Delay(_batchOptions.PauseBetweenBatchesMs);
+                        await Task.Delay(_batchOptions.PauseBetweenBatchesMs, cancellationToken);
                     }
                 }
             }
+            catch (OperationCanceledException)
+            {
+                _logger.LogInformation("Batch restore with progress tracking was cancelled");
+                throw;
+            }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Critical error during batch restore: {Message}", ex.Message);
+                _logger.LogError(ex, "Critical error during batch restore with progress tracking: {Message}", ex.Message);
                 // Mark all unprocessed emails as failed
                 failCount = emailIds.Count - successCount;
             }
@@ -3185,7 +3200,7 @@ namespace MailArchiver.Services
                 }
             }
 
-            _logger.LogInformation("Batch restore completed with shared connection. Success: {SuccessCount}, Failed: {FailCount}",
+            _logger.LogInformation("Batch restore with progress tracking completed. Success: {SuccessCount}, Failed: {FailCount}",
                 successCount, failCount);
 
             return (successCount, failCount);
@@ -3481,7 +3496,7 @@ namespace MailArchiver.Services
             // Check if the account has the required IMAP server configuration
             if (string.IsNullOrEmpty(account.ImapServer))
             {
-                _logger.info("Account {AccountId} ({Name}) has no IMAP server configured", accountId, account.Name);
+                _logger.LogInformation("Account {AccountId} ({Name}) has no IMAP server configured", accountId, account.Name);
                 return new List<string> { "INBOX" }; // Return default folder instead of throwing error
             }
 

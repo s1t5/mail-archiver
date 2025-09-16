@@ -908,10 +908,13 @@ namespace MailArchiver.Controllers
                 }
                 else
                 {
-                    var result = await _emailService.RestoreMultipleEmailsAsync(
+                    var result = await _emailService.RestoreMultipleEmailsWithProgressAsync(
                         model.SelectedEmailIds,
                         model.TargetAccountId,
-                        model.TargetFolder);
+                        model.TargetFolder,
+                        (processed, successCount, failedCount) => {
+                            // Empty progress callback for synchronous processing
+                        });
                     
                     successful = result.Successful;
                     failed = result.Failed;
