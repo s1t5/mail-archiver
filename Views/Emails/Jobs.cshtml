@@ -79,7 +79,12 @@
                                         </td>
                                         <td>
                                             @if (job.Status == MailArchiver.Models.SyncJobStatus.Running)
-                                            { <form asp-action="CancelSyncJob" method="post" style="display: inline;" onsubmit="return confirm('@Localizer["CancelJobConfirm"]');"><input type="hidden" name="jobId" value="@job.JobId" /><button type="submit" class="btn btn-outline-warning btn-sm">@Localizer["CancelJob"]</button></form> }
+                                            {
+                                                <!-- Button to trigger the modal -->
+                                                <button type="button" class="btn btn-outline-warning btn-sm" data-bs-toggle="modal" data-bs-target="#cancelSyncJobModal-@job.JobId">
+                                                    @Localizer["CancelJob"]
+                                                </button>
+                                            }
                                         </td>
                                     </tr>
                                 }
@@ -104,6 +109,45 @@
             </div>
         }
     }
+    
+    @* Modals for Sync Jobs *@
+    @if (ViewBag.SyncJobs != null)
+    {
+        var syncJobs = ViewBag.SyncJobs as List<MailArchiver.Models.SyncJob>;
+        if (syncJobs != null && syncJobs.Any())
+        {
+            @foreach (var job in syncJobs)
+            {
+                @if (job.Status == MailArchiver.Models.SyncJobStatus.Running)
+                {
+                    <!-- Bootstrap Modal for Cancel Confirmation -->
+                    <div class="modal fade" id="cancelSyncJobModal-@job.JobId" tabindex="-1" aria-labelledby="cancelSyncJobModalLabel-@job.JobId" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="cancelSyncJobModalLabel-@job.JobId">@Localizer["CancelJob"]</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    @Localizer["CancelJobConfirm"]
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">@Localizer["Close"]</button>
+                                    <form asp-action="CancelSyncJob" method="post" style="display: inline;">
+                                        <input type="hidden" name="jobId" value="@job.JobId" />
+                                        <button type="submit" class="btn btn-warning">
+                                            @Localizer["CancelJob"]
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+        }
+    }
+    
     @* EML Import Jobs Section *@
     @if (ViewBag.EmlImportJobs != null)
     {
@@ -220,11 +264,10 @@
                                                    class="btn btn-outline-primary btn-sm">@Localizer["Details"]</a>
                                                 @if (job.Status == MailArchiver.Models.EmlImportJobStatus.Running || job.Status == MailArchiver.Models.EmlImportJobStatus.Queued)
                                                 {
-                                                    <form asp-controller="MailAccounts" asp-action="CancelEmlImport" method="post" style="display: inline;"
-                                                          onsubmit="return confirm('@Localizer["CancelImportConfirm"]');">
-                                                        <input type="hidden" name="jobId" value="@job.JobId" />
-                                                        <button type="submit" class="btn btn-outline-warning btn-sm">@Localizer["CancelImport"]</button>
-                                                    </form>
+                                                    <!-- Button to trigger the modal -->
+                                                    <button type="button" class="btn btn-outline-warning btn-sm" data-bs-toggle="modal" data-bs-target="#cancelEmlImportModal-@job.JobId">
+                                                        @Localizer["CancelImport"]
+                                                    </button>
                                                 }
                                             </div>
                                         </td>
@@ -251,6 +294,45 @@
             </div>
         }
     }
+    
+    @* Modals for EML Import Jobs *@
+    @if (ViewBag.EmlImportJobs != null)
+    {
+        var emlImportJobs = ViewBag.EmlImportJobs as List<MailArchiver.Models.EmlImportJob>;
+        if (emlImportJobs != null && emlImportJobs.Any())
+        {
+            @foreach (var job in emlImportJobs)
+            {
+                @if (job.Status == MailArchiver.Models.EmlImportJobStatus.Running || job.Status == MailArchiver.Models.EmlImportJobStatus.Queued)
+                {
+                    <!-- Bootstrap Modal for Cancel Confirmation -->
+                    <div class="modal fade" id="cancelEmlImportModal-@job.JobId" tabindex="-1" aria-labelledby="cancelEmlImportModalLabel-@job.JobId" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="cancelEmlImportModalLabel-@job.JobId">@Localizer["CancelImport"]</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    @Localizer["CancelImportConfirm"]
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">@Localizer["Close"]</button>
+                                    <form asp-controller="MailAccounts" asp-action="CancelEmlImport" method="post" style="display: inline;">
+                                        <input type="hidden" name="jobId" value="@job.JobId" />
+                                        <button type="submit" class="btn btn-warning">
+                                            @Localizer["CancelImport"]
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+        }
+    }
+    
     @* MBox Import Jobs Section *@
     @if (ViewBag.MBoxJobs != null)
     {
@@ -367,11 +449,10 @@
                                                    class="btn btn-outline-primary btn-sm">@Localizer["Details"]</a>
                                                 @if (job.Status == MailArchiver.Models.MBoxImportJobStatus.Running || job.Status == MailArchiver.Models.MBoxImportJobStatus.Queued)
                                                 {
-                                                    <form asp-controller="MailAccounts" asp-action="CancelMBoxImport" method="post" style="display: inline;"
-                                                          onsubmit="return confirm('@Localizer["CancelImportConfirm"]');">
-                                                        <input type="hidden" name="jobId" value="@job.JobId" />
-                                                        <button type="submit" class="btn btn-outline-warning btn-sm">@Localizer["CancelImport"]</button>
-                                                    </form>
+                                                    <!-- Button to trigger the modal -->
+                                                    <button type="button" class="btn btn-outline-warning btn-sm" data-bs-toggle="modal" data-bs-target="#cancelMBoxImportModal-@job.JobId">
+                                                        @Localizer["CancelImport"]
+                                                    </button>
                                                 }
                                             </div>
                                         </td>
@@ -398,6 +479,45 @@
             </div>
         }
     }
+    
+    @* Modals for MBox Import Jobs *@
+    @if (ViewBag.MBoxJobs != null)
+    {
+        var mboxJobs = ViewBag.MBoxJobs as List<MailArchiver.Models.MBoxImportJob>;
+        if (mboxJobs != null && mboxJobs.Any())
+        {
+            @foreach (var job in mboxJobs)
+            {
+                @if (job.Status == MailArchiver.Models.MBoxImportJobStatus.Running || job.Status == MailArchiver.Models.MBoxImportJobStatus.Queued)
+                {
+                    <!-- Bootstrap Modal for Cancel Confirmation -->
+                    <div class="modal fade" id="cancelMBoxImportModal-@job.JobId" tabindex="-1" aria-labelledby="cancelMBoxImportModalLabel-@job.JobId" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="cancelMBoxImportModalLabel-@job.JobId">@Localizer["CancelImport"]</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    @Localizer["CancelImportConfirm"]
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">@Localizer["Close"]</button>
+                                    <form asp-controller="MailAccounts" asp-action="CancelMBoxImport" method="post" style="display: inline;">
+                                        <input type="hidden" name="jobId" value="@job.JobId" />
+                                        <button type="submit" class="btn btn-warning">
+                                            @Localizer["CancelImport"]
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+        }
+    }
+    
     @* Selected Emails Export Jobs Section *@
     @if (ViewBag.SelectedEmailsExportJobs != null)
     {
@@ -433,10 +553,10 @@
                                                 <a asp-action="SelectedEmailsExportStatus" asp-route-jobId="@job.JobId" class="btn btn-outline-primary btn-sm">@Localizer["Details"]</a>
                                                 @if (job.Status == MailArchiver.Models.SelectedEmailsExportJobStatus.Running || job.Status == MailArchiver.Models.SelectedEmailsExportJobStatus.Queued)
                                                 {
-                                                    <form asp-action="CancelSelectedEmailsExport" method="post" style="display: inline;" onsubmit="return confirm('@Localizer["CancelJobConfirm"]');">
-                                                        <input type="hidden" name="jobId" value="@job.JobId" />
-                                                        <button type="submit" class="btn btn-outline-warning btn-sm">@Localizer["CancelJob"]</button>
-                                                    </form>
+                                                    <!-- Button to trigger the modal -->
+                                                    <button type="button" class="btn btn-outline-warning btn-sm" data-bs-toggle="modal" data-bs-target="#cancelSelectedEmailsExportModal-@job.JobId">
+                                                        @Localizer["CancelJob"]
+                                                    </button>
                                                 }
                                                 @if (job.Status == MailArchiver.Models.SelectedEmailsExportJobStatus.Completed)
                                                 {
@@ -496,6 +616,45 @@
             </div>
         }
     }
+    
+    @* Modals for Selected Emails Export Jobs *@
+    @if (ViewBag.SelectedEmailsExportJobs != null)
+    {
+        var selectedEmailsExportJobs = ViewBag.SelectedEmailsExportJobs as List<MailArchiver.Models.SelectedEmailsExportJob>;
+        if (selectedEmailsExportJobs != null && selectedEmailsExportJobs.Any())
+        {
+            @foreach (var job in selectedEmailsExportJobs)
+            {
+                @if (job.Status == MailArchiver.Models.SelectedEmailsExportJobStatus.Running || job.Status == MailArchiver.Models.SelectedEmailsExportJobStatus.Queued)
+                {
+                    <!-- Bootstrap Modal for Cancel Confirmation -->
+                    <div class="modal fade" id="cancelSelectedEmailsExportModal-@job.JobId" tabindex="-1" aria-labelledby="cancelSelectedEmailsExportModalLabel-@job.JobId" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="cancelSelectedEmailsExportModalLabel-@job.JobId">@Localizer["CancelJob"]</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    @Localizer["CancelJobConfirm"]
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">@Localizer["Close"]</button>
+                                    <form asp-action="CancelSelectedEmailsExport" method="post" style="display: inline;">
+                                        <input type="hidden" name="jobId" value="@job.JobId" />
+                                        <button type="submit" class="btn btn-warning">
+                                            @Localizer["CancelJob"]
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+        }
+    }
+    
     @* Account Export Jobs Section *@
     @if (ViewBag.ExportJobs != null)
     {
@@ -531,10 +690,10 @@
                                                 <a asp-controller="MailAccounts" asp-action="ExportStatus" asp-route-jobId="@job.JobId" class="btn btn-outline-primary btn-sm">@Localizer["Details"]</a>
                                                 @if (job.Status == MailArchiver.Models.AccountExportJobStatus.Running || job.Status == MailArchiver.Models.AccountExportJobStatus.Queued)
                                                 {
-                                                    <form asp-controller="MailAccounts" asp-action="CancelExport" method="post" style="display: inline;" onsubmit="return confirm('@Localizer["CancelJobConfirm"]');">
-                                                        <input type="hidden" name="jobId" value="@job.JobId" />
-                                                        <button type="submit" class="btn btn-outline-warning btn-sm">@Localizer["CancelJob"]</button>
-                                                    </form>
+                                                    <!-- Button to trigger the modal -->
+                                                    <button type="button" class="btn btn-outline-warning btn-sm" data-bs-toggle="modal" data-bs-target="#cancelAccountExportModal-@job.JobId">
+                                                        @Localizer["CancelJob"]
+                                                    </button>
                                                 }
                                                 @if (job.Status == MailArchiver.Models.AccountExportJobStatus.Completed)
                                                 {
@@ -593,6 +752,45 @@
             </div>
         }
     }
+    
+    @* Modals for Account Export Jobs *@
+    @if (ViewBag.ExportJobs != null)
+    {
+        var exportJobs = ViewBag.ExportJobs as List<MailArchiver.Models.AccountExportJob>;
+        if (exportJobs != null && exportJobs.Any())
+        {
+            @foreach (var job in exportJobs)
+            {
+                @if (job.Status == MailArchiver.Models.AccountExportJobStatus.Running || job.Status == MailArchiver.Models.AccountExportJobStatus.Queued)
+                {
+                    <!-- Bootstrap Modal for Cancel Confirmation -->
+                    <div class="modal fade" id="cancelAccountExportModal-@job.JobId" tabindex="-1" aria-labelledby="cancelAccountExportModalLabel-@job.JobId" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="cancelAccountExportModalLabel-@job.JobId">@Localizer["CancelJob"]</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    @Localizer["CancelJobConfirm"]
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">@Localizer["Close"]</button>
+                                    <form asp-controller="MailAccounts" asp-action="CancelExport" method="post" style="display: inline;">
+                                        <input type="hidden" name="jobId" value="@job.JobId" />
+                                        <button type="submit" class="btn btn-warning">
+                                            @Localizer["CancelJob"]
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+        }
+    }
+    
     @* Batch Restore Jobs Section *@
     @if (ViewBag.BatchJobs != null)
     {
@@ -623,7 +821,7 @@
                                         <td>@job.EmailIds.Count.ToString("N0")</td>
                                         <td>@{ var progressPercent = job.EmailIds.Count > 0 ? (job.ProcessedCount * 100.0 / job.EmailIds.Count) : 0; }<div class="progress" style="height: 20px;"><div class="progress-bar @(job.Status == MailArchiver.Models.BatchRestoreJobStatus.Running ? "progress-bar-striped progress-bar-animated" : "")" role="progressbar" style="width: @progressPercent.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)%">@progressPercent.ToString("F0")%</div></div></td>
                                         <td><span class="utc-timestamp" data-utc-time="@job.Created.ToString("yyyy-MM-ddTHH:mm:ss")">@job.Created.ToString("g")</span></td>
-                                        <td><div class="btn-group btn-group-sm"><a asp-action="BatchRestoreStatus" asp-route-jobId="@job.JobId" class="btn btn-outline-primary btn-sm">@Localizer["Details"]</a>@if (job.Status == MailArchiver.Models.BatchRestoreJobStatus.Running || job.Status == MailArchiver.Models.BatchRestoreJobStatus.Queued){<form asp-action="CancelBatchRestore" method="post" style="display: inline;" onsubmit="return confirm('@Localizer["CancelJobConfirm"]');"><input type="hidden" name="jobId" value="@job.JobId" /><button type="submit" class="btn btn-outline-warning btn-sm">@Localizer["CancelJob"]</button></form>}</div></td>
+                                        <td><div class="btn-group btn-group-sm"><a asp-action="BatchRestoreStatus" asp-route-jobId="@job.JobId" class="btn btn-outline-primary btn-sm">@Localizer["Details"]</a>@if (job.Status == MailArchiver.Models.BatchRestoreJobStatus.Running || job.Status == MailArchiver.Models.BatchRestoreJobStatus.Queued){<!-- Button to trigger the modal --><button type="button" class="btn btn-outline-warning btn-sm" data-bs-toggle="modal" data-bs-target="#cancelBatchRestoreModal-@job.JobId">@Localizer["CancelJob"]</button>}</div></td>
                                     </tr>
                                 }
                             </tbody>
@@ -646,6 +844,45 @@
             </div>
         }
     }
+    
+    @* Modals for Batch Restore Jobs *@
+    @if (ViewBag.BatchJobs != null)
+    {
+        var batchJobs = ViewBag.BatchJobs as List<MailArchiver.Models.BatchRestoreJob>;
+        if (batchJobs != null && batchJobs.Any())
+        {
+            @foreach (var job in batchJobs)
+            {
+                @if (job.Status == MailArchiver.Models.BatchRestoreJobStatus.Running || job.Status == MailArchiver.Models.BatchRestoreJobStatus.Queued)
+                {
+                    <!-- Bootstrap Modal for Cancel Confirmation -->
+                    <div class="modal fade" id="cancelBatchRestoreModal-@job.JobId" tabindex="-1" aria-labelledby="cancelBatchRestoreModalLabel-@job.JobId" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="cancelBatchRestoreModalLabel-@job.JobId">@Localizer["CancelJob"]</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    @Localizer["CancelJobConfirm"]
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">@Localizer["Close"]</button>
+                                    <form asp-action="CancelBatchRestore" method="post" style="display: inline;">
+                                        <input type="hidden" name="jobId" value="@job.JobId" />
+                                        <button type="submit" class="btn btn-warning">
+                                            @Localizer["CancelJob"]
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+        }
+    }
+    
     @{ var hasSyncJobs = ViewBag.SyncJobs != null && (ViewBag.SyncJobs as List<MailArchiver.Models.SyncJob>)?.Any() == true; var hasBatchJobs = ViewBag.BatchJobs != null && (ViewBag.BatchJobs as List<MailArchiver.Models.BatchRestoreJob>)?.Any() == true; var hasMBoxJobs = ViewBag.MBoxJobs != null && (ViewBag.MBoxJobs as List<MailArchiver.Models.MBoxImportJob>)?.Any() == true; }
     @if (!hasSyncJobs && !hasBatchJobs && !hasMBoxJobs)
     {

@@ -977,7 +977,7 @@
     <value>restants</value>
   </data>
   <data name="CancelJobConfirm" xml:space="preserve">
-    <value>Êtes-vous sûr de vouloir annuler cette tâche ?</value>
+    <value>¿Está seguro de que desea cancelar este trabajo?</value>
   </data>
   <data name="CancelJob" xml:space="preserve">
     <value>Annuler la tâche</value>

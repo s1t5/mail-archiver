@@ -227,14 +227,10 @@
             @if (Model.Status == MailArchiver.Models.MBoxImportJobStatus.Running || Model.Status == MailArchiver.Models.MBoxImportJobStatus.Queued)
             {
                 <div class="mt-4 pt-3 border-top">
-                    <form asp-action="CancelMBoxImport" method="post" style="display: inline;"
-                          onsubmit="return confirm('@Localizer["CancelImportConfirm"]');">
-                        <input type="hidden" name="jobId" value="@Model.JobId" />
-                        <input type="hidden" name="returnUrl" value="@Context.Request.Path" />
-                        <button type="submit" class="btn btn-warning">
-                            <i class="bi bi-stop-circle"></i> @Localizer["CancelImport"]
-                        </button>
-                    </form>
+                    <!-- Button to trigger the modal -->
+                    <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#cancelImportModal">
+                        <i class="bi bi-stop-circle"></i> @Localizer["CancelImport"]
+                    </button>
                 </div>
             }
 
@@ -296,3 +292,28 @@
         </script>
     }
 }
+
+<!-- Bootstrap Modal for Cancel Confirmation -->
+<div class="modal fade" id="cancelImportModal" tabindex="-1" aria-labelledby="cancelImportModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="cancelImportModalLabel">@Localizer["CancelImport"]</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                @Localizer["CancelImportConfirm"]
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">@Localizer["Close"]</button>
+                <form asp-action="CancelMBoxImport" method="post" style="display: inline;">
+                    <input type="hidden" name="jobId" value="@Model.JobId" />
+                    <input type="hidden" name="returnUrl" value="@Context.Request.Path" />
+                    <button type="submit" class="btn btn-warning">
+                        @Localizer["CancelImport"]
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

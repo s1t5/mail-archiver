@@ -154,7 +154,8 @@
                                     @Html.AntiForgeryToken()
                                     <input type="hidden" name="jobId" value="@Model.JobId" />
                                     <input type="hidden" name="returnUrl" value="@Context.Request.Path" />
-                                    <button type="submit" class="btn btn-warning" onclick="return confirm('@Localizer["ConfirmCancelExport"]')">
+                                    <!-- Button to trigger the modal -->
+                                    <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#cancelExportModal">
                                         <i class="bi bi-x-circle"></i> @Localizer["Cancel"]
                                     </button>
                                 </form>
@@ -202,3 +203,29 @@
         });
     </script>
 }
+
+<!-- Bootstrap Modal for Cancel Confirmation -->
+<div class="modal fade" id="cancelExportModal" tabindex="-1" aria-labelledby="cancelExportModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="cancelExportModalLabel">@Localizer["Cancel"]</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                @Localizer["CancelJobConfirm"]
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">@Localizer["Close"]</button>
+                <form asp-action="CancelExport" method="post" style="display: inline;">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="jobId" value="@Model.JobId" />
+                    <input type="hidden" name="returnUrl" value="@Context.Request.Path" />
+                    <button type="submit" class="btn btn-warning">
+                        @Localizer["Cancel"]
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

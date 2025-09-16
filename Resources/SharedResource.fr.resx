@@ -1710,9 +1710,6 @@
   <data name="CancelExport" xml:space="preserve">
     <value>Annuler l'Exportation</value>
   </data>
-  <data name="CancelExportConfirm" xml:space="preserve">
-    <value>Êtes-vous sûr de vouloir annuler cette tâche d'exportation ?</value>
-  </data>
   <data name="ExportJobCancelled" xml:space="preserve">
     <value>La tâche d'exportation a été annulée.</value>
   </data>

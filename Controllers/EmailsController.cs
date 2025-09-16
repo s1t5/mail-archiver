@@ -1165,8 +1165,8 @@ namespace MailArchiver.Controllers
             if (job == null)
             {
                 _logger.LogWarning("Job with ID {JobId} not found in BatchRestoreService", jobId);
-                TempData["ErrorMessage"] = "Batch restore job not found.";
-                return RedirectToAction("Index");
+                TempData["ErrorMessage"] = "Batch restore job not found. The job may have been completed or cleaned up.";
+                return RedirectToAction("Jobs");
             }
 
             _logger.LogDebug("Successfully retrieved job {JobId} with status {Status}", jobId, job.Status);

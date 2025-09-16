@@ -136,14 +136,10 @@
             @if (Model.Status == BatchRestoreJobStatus.Running || Model.Status == BatchRestoreJobStatus.Queued)
             {
                 <div class="mt-4 pt-3 border-top">
-                    <form asp-action="CancelBatchRestore" method="post" style="display: inline;" 
-                          onsubmit="return confirm('@Localizer["CancelJobConfirm"]');">
-                        <input type="hidden" name="jobId" value="@Model.JobId" />
-                        <input type="hidden" name="returnUrl" value="@Context.Request.Path" />
-                        <button type="submit" class="btn btn-warning">
-                            <i class="bi bi-stop-circle"></i> @Localizer["CancelJob"]
-                        </button>
-                    </form>
+                    <!-- Button to trigger the modal -->
+                    <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#cancelJobModal">
+                        <i class="bi bi-stop-circle"></i> @Localizer["CancelJob"]
+                    </button>
                 </div>
             }
             @if (Model.Status == BatchRestoreJobStatus.Completed)
@@ -195,8 +191,10 @@
                 document.title = '@Localizer["BatchRestoreStatusTitle"]';
             }
             
-            // Start the refresh cycle
-            startRefresh();
+            // Start the refresh cycle only if job is still running
+            if ('@Model.Status' === 'Running' || '@Model.Status' === 'Queued') {
+                startRefresh();
+            }
             
             // Stop refresh if page becomes hidden (user navigates away)
             document.addEventListener('visibilitychange', function() {
@@ -209,3 +207,28 @@
         </script>
     }
 }
+
+<!-- Bootstrap Modal for Cancel Confirmation -->
+<div class="modal fade" id="cancelJobModal" tabindex="-1" aria-labelledby="cancelJobModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="cancelJobModalLabel">@Localizer["CancelJob"]</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                @Localizer["CancelJobConfirm"]
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">@Localizer["Close"]</button>
+                <form asp-action="CancelBatchRestore" method="post" style="display: inline;">
+                    <input type="hidden" name="jobId" value="@Model.JobId" />
+                    <input type="hidden" name="returnUrl" value="@Model.ReturnUrl" />
+                    <button type="submit" class="btn btn-warning">
+                        @Localizer["CancelJob"]
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

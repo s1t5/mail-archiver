@@ -166,7 +166,7 @@ namespace MailArchiver.Services
                     try
                     {
                         // Skip excluded folders
-                        if (account.ExcludedFoldersList.Contains(folder.DisplayName))
+                        if (!string.IsNullOrEmpty(folder.DisplayName) && account.ExcludedFoldersList.Contains(folder.DisplayName))
                         {
                             _logger.LogInformation("Skipping excluded folder: {FolderName} for account: {AccountName}",
                                 folder.DisplayName, account.Name);

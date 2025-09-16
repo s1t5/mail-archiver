@@ -1710,9 +1710,6 @@
   <data name="CancelExport" xml:space="preserve">
     <value>Prekliči Izvoz</value>
   </data>
-  <data name="CancelExportConfirm" xml:space="preserve">
-    <value>Ali ste prepričani, da želite preklicati to nalogo izvoza?</value>
-  </data>
   <data name="ExportJobCancelled" xml:space="preserve">
     <value>Naloga izvoza je bila preklicana.</value>
   </data>

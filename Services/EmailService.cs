@@ -3020,39 +3020,446 @@ namespace MailArchiver.Services
             int targetAccountId,
             string folderName)
         {
-            int successCount = 0;
-            int failCount = 0;
-
             _logger.LogInformation("Starting batch restore of {Count} emails to account {AccountId}, folder {Folder}",
                 emailIds.Count, targetAccountId, folderName);
 
-            foreach (var emailId in emailIds)
+            // Use optimized batch restore with shared IMAP connection
+            return await RestoreMultipleEmailsWithSharedConnectionAsync(emailIds, targetAccountId, folderName);
+        }
+
+        /// <summary>
+        /// Restores multiple emails using a shared IMAP connection with automatic reconnection on failure
+        /// </summary>
+        public async Task<(int Successful, int Failed)> RestoreMultipleEmailsWithSharedConnectionAsync(
+            List<int> emailIds,
+            int targetAccountId,
+            string folderName)
+        {
+            int successCount = 0;
+            int failCount = 0;
+
+            var targetAccount = await _context.MailAccounts.FindAsync(targetAccountId);
+            if (targetAccount == null)
             {
+                _logger.LogError("Target account with ID {AccountId} not found", targetAccountId);
+                return (0, emailIds.Count);
+            }
+
+            _logger.LogInformation("Using shared IMAP connection for batch restore of {Count} emails to account {AccountName}",
+                emailIds.Count, targetAccount.Name);
+
+            ImapClient client = null;
+            IMailFolder targetFolder = null;
+            
+            try
+            {
+                // Initialize connection
+                client = CreateImapClient(targetAccount.Name);
+                var connectionResult = await EstablishImapConnectionAsync(client, targetAccount, folderName);
+                if (!connectionResult.Success)
+                {
+                    _logger.LogError("Failed to establish initial IMAP connection: {Error}", connectionResult.ErrorMessage);
+                    return (0, emailIds.Count);
+                }
+                targetFolder = connectionResult.Folder;
+
+                // Process emails in batches
+                var batchSize = _batchOptions.BatchSize;
+                for (int i = 0; i < emailIds.Count; i += batchSize)
+                {
+                    var batch = emailIds.Skip(i).Take(batchSize).ToList();
+                    _logger.LogInformation("Processing batch {BatchNumber}/{TotalBatches} with {BatchSize} emails",
+                        (i / batchSize) + 1, (emailIds.Count + batchSize - 1) / batchSize, batch.Count);
+
+                    foreach (var emailId in batch)
+                    {
+                        var maxRetries = 3;
+                        var retryCount = 0;
+                        bool emailRestored = false;
+
+                        while (retryCount < maxRetries && !emailRestored)
+                        {
+                            try
+                            {
+                                // Verify connection health before each email
+                                if (!IsConnectionHealthy(client, targetFolder))
+                                {
+                                    _logger.LogWarning("Connection unhealthy, attempting to restore connection for email {EmailId}", emailId);
+                                    var reconnectResult = await RestoreImapConnectionAsync(client, targetAccount, folderName);
+                                    if (!reconnectResult.Success)
+                                    {
+                                        _logger.LogError("Failed to restore connection: {Error}", reconnectResult.ErrorMessage);
+                                        throw new InvalidOperationException($"Failed to restore IMAP connection: {reconnectResult.ErrorMessage}");
+                                    }
+                                    client = reconnectResult.Client;
+                                    targetFolder = reconnectResult.Folder;
+                                }
+
+                                // Restore the email using the shared connection
+                                var result = await RestoreEmailWithSharedConnectionAsync(emailId, client, targetFolder, targetAccount.Name);
+                                if (result)
+                                {
+                                    successCount++;
+                                    emailRestored = true;
+                                    _logger.LogDebug("Successfully restored email {EmailId} (attempt {Attempt})", emailId, retryCount + 1);
+                                }
+                                else
+                                {
+                                    _logger.LogWarning("Failed to restore email {EmailId} (attempt {Attempt})", emailId, retryCount + 1);
+                                    retryCount++;
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                retryCount++;
+                                _logger.LogError(ex, "Error restoring email {EmailId} (attempt {Attempt}/{MaxRetries}): {Message}", 
+                                    emailId, retryCount, maxRetries, ex.Message);
+
+                                if (retryCount < maxRetries)
+                                {
+                                    // Wait before retry
+                                    await Task.Delay(1000 * retryCount); // Progressive delay
+                                    
+                                    // Try to restore connection for next attempt
+                                    try
+                                    {
+                                        var reconnectResult = await RestoreImapConnectionAsync(client, targetAccount, folderName);
+                                        if (reconnectResult.Success)
+                                        {
+                                            client = reconnectResult.Client;
+                                            targetFolder = reconnectResult.Folder;
+                                        }
+                                    }
+                                    catch (Exception reconnectEx)
+                                    {
+                                        _logger.LogError(reconnectEx, "Failed to reconnect during retry for email {EmailId}", emailId);
+                                    }
+                                }
+                            }
+                        }
+
+                        if (!emailRestored)
+                        {
+                            failCount++;
+                            _logger.LogError("Failed to restore email {EmailId} after {MaxRetries} attempts", emailId, maxRetries);
+                        }
+
+                        // Small delay between emails
+                        if (_batchOptions.PauseBetweenEmailsMs > 0)
+                        {
+                            await Task.Delay(_batchOptions.PauseBetweenEmailsMs);
+                        }
+                    }
+
+                    // Pause between batches
+                    if (i + batchSize < emailIds.Count && _batchOptions.PauseBetweenBatchesMs > 0)
+                    {
+                        _logger.LogDebug("Pausing {Ms}ms between batches", _batchOptions.PauseBetweenBatchesMs);
+                        await Task.Delay(_batchOptions.PauseBetweenBatchesMs);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Critical error during batch restore: {Message}", ex.Message);
+                // Mark all unprocessed emails as failed
+                failCount = emailIds.Count - successCount;
+            }
+            finally
+            {
+                // Clean up connection
+                if (client != null)
+                {
+                    try
+                    {
+                        if (client.IsConnected)
+                        {
+                            await client.DisconnectAsync(true);
+                        }
+                        client.Dispose();
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Error during IMAP client cleanup");
+                    }
+                }
+            }
+
+            _logger.LogInformation("Batch restore completed with shared connection. Success: {SuccessCount}, Failed: {FailCount}",
+                successCount, failCount);
+
+            return (successCount, failCount);
+        }
+
+        /// <summary>
+        /// Establishes IMAP connection and opens target folder
+        /// </summary>
+        private async Task<(bool Success, ImapClient Client, IMailFolder Folder, string ErrorMessage)> EstablishImapConnectionAsync(
+            ImapClient client, MailAccount targetAccount, string folderName)
+        {
+            try
+            {
+                client.Timeout = 180000; // 3 minutes timeout
+                client.ServerCertificateValidationCallback = ServerCertificateValidationCallback;
+                
+                _logger.LogDebug("Connecting to IMAP server {Server}:{Port} for account {AccountName}",
+                    targetAccount.ImapServer, targetAccount.ImapPort, targetAccount.Name);
+
+                await client.ConnectAsync(targetAccount.ImapServer, targetAccount.ImapPort ?? 993, 
+                    targetAccount.UseSSL ? SecureSocketOptions.SslOnConnect : SecureSocketOptions.None);
+
+                _logger.LogDebug("Authenticating with {Provider} authentication", targetAccount.Provider);
+                await AuthenticateClientAsync(client, targetAccount);
+
+                _logger.LogDebug("Opening folder: {FolderName}", folderName);
+                IMailFolder folder;
                 try
                 {
-                    var result = await RestoreEmailToFolderAsync(emailId, targetAccountId, folderName);
-                    if (result)
+                    folder = await client.GetFolderAsync(folderName);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Could not find folder '{FolderName}', using INBOX instead", folderName);
+                    folder = client.Inbox;
+                    folderName = "INBOX";
+                }
+
+                await folder.OpenAsync(FolderAccess.ReadWrite);
+                _logger.LogInformation("Successfully established IMAP connection and opened folder {FolderName}", folder.FullName);
+
+                return (true, client, folder, null);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to establish IMAP connection: {Message}", ex.Message);
+                return (false, client, null, ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// Restores IMAP connection when it's broken
+        /// </summary>
+        private async Task<(bool Success, ImapClient Client, IMailFolder Folder, string ErrorMessage)> RestoreImapConnectionAsync(
+            ImapClient existingClient, MailAccount targetAccount, string folderName)
+        {
+            _logger.LogInformation("Attempting to restore IMAP connection for account {AccountName}", targetAccount.Name);
+
+            try
+            {
+                // Clean up existing client
+                if (existingClient != null)
+                {
+                    try
                     {
-                        successCount++;
-                        _logger.LogInformation("Successfully restored email {EmailId}", emailId);
+                        if (existingClient.IsConnected)
+                        {
+                            await existingClient.DisconnectAsync(false); // Quick disconnect
+                        }
+                        existingClient.Dispose();
                     }
-                    else
+                    catch (Exception ex)
                     {
-                        failCount++;
-                        _logger.LogWarning("Failed to restore email {EmailId}", emailId);
+                        _logger.LogDebug(ex, "Error cleaning up existing client during reconnection");
+                    }
+                }
+
+                // Create new client and establish connection
+                var newClient = CreateImapClient(targetAccount.Name);
+                return await EstablishImapConnectionAsync(newClient, targetAccount, folderName);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to restore IMAP connection: {Message}", ex.Message);
+                return (false, null, null, ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// Checks if IMAP connection and folder are healthy
+        /// </summary>
+        private bool IsConnectionHealthy(ImapClient client, IMailFolder folder)
+        {
+            try
+            {
+                return client != null && 
+                       client.IsConnected && 
+                       client.IsAuthenticated && 
+                       folder != null && 
+                       folder.IsOpen;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Restores a single email using an existing IMAP connection
+        /// </summary>
+        private async Task<bool> RestoreEmailWithSharedConnectionAsync(int emailId, ImapClient client, IMailFolder targetFolder, string accountName)
+        {
+            try
+            {
+                var email = await _context.ArchivedEmails
+                    .Include(e => e.Attachments)
+                    .FirstOrDefaultAsync(e => e.Id == emailId);
+
+                if (email == null)
+                {
+                    _logger.LogError("Email with ID {EmailId} not found", emailId);
+                    return false;
+                }
+
+                // Create MimeMessage (same logic as in RestoreEmailToFolderAsync)
+                var message = await CreateMimeMessageFromArchivedEmailAsync(email, accountName);
+                if (message == null)
+                {
+                    return false;
+                }
+
+                // Append message to folder using existing connection
+                await targetFolder.AppendAsync(message, MessageFlags.Seen);
+                _logger.LogDebug("Email {EmailId} successfully appended to folder {FolderName}", emailId, targetFolder.FullName);
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error restoring email {EmailId} with shared connection: {Message}", emailId, ex.Message);
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Creates a MimeMessage from an ArchivedEmail (extracted from RestoreEmailToFolderAsync)
+        /// </summary>
+        private async Task<MimeMessage> CreateMimeMessageFromArchivedEmailAsync(ArchivedEmail email, string accountName)
+        {
+            try
+            {
+                var message = new MimeMessage();
+                message.Subject = email.Subject;
+
+                // Set From address
+                try
+                {
+                    var fromAddresses = InternetAddressList.Parse(email.From);
+                    foreach (var address in fromAddresses)
+                    {
+                        message.From.Add(address);
+                    }
+                    if (message.From.Count == 0)
+                    {
+                        throw new FormatException("No valid From addresses");
                     }
                 }
                 catch (Exception ex)
                 {
-                    failCount++;
-                    _logger.LogError(ex, "Error restoring email {EmailId}", emailId);
+                    _logger.LogWarning(ex, "Error parsing From address: {From}, using fallback", email.From);
+                    message.From.Add(new MailboxAddress("Sender", "sender@example.com"));
                 }
+
+                // Set To addresses
+                if (!string.IsNullOrEmpty(email.To))
+                {
+                    try
+                    {
+                        var toAddresses = InternetAddressList.Parse(email.To);
+                        foreach (var address in toAddresses)
+                        {
+                            message.To.Add(address);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Error parsing To addresses: {To}, using placeholder", email.To);
+                        message.To.Add(new MailboxAddress("Recipient", "recipient@example.com"));
+                    }
+                }
+                else
+                {
+                    message.To.Add(new MailboxAddress("Recipient", "recipient@example.com"));
+                }
+
+                // Set Cc addresses
+                if (!string.IsNullOrEmpty(email.Cc))
+                {
+                    try
+                    {
+                        var ccAddresses = InternetAddressList.Parse(email.Cc);
+                        foreach (var address in ccAddresses)
+                        {
+                            message.Cc.Add(address);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Error parsing Cc addresses: {Cc}, ignoring", email.Cc);
+                    }
+                }
+
+                // Create body with attachments
+                var bodyBuilder = new BodyBuilder();
+                if (!string.IsNullOrEmpty(email.HtmlBody))
+                {
+                    bodyBuilder.HtmlBody = email.HtmlBody;
+                }
+                if (!string.IsNullOrEmpty(email.Body))
+                {
+                    bodyBuilder.TextBody = email.Body;
+                }
+
+                // Add attachments
+                if (email.Attachments?.Any() == true)
+                {
+                    var inlineAttachments = email.Attachments.Where(a => !string.IsNullOrEmpty(a.ContentId)).ToList();
+                    var regularAttachments = email.Attachments.Where(a => string.IsNullOrEmpty(a.ContentId)).ToList();
+                    
+                    // Add inline attachments
+                    foreach (var attachment in inlineAttachments)
+                    {
+                        try
+                        {
+                            var contentType = ContentType.Parse(attachment.ContentType);
+                            var mimePart = bodyBuilder.LinkedResources.Add(attachment.FileName, attachment.Content, contentType);
+                            mimePart.ContentId = attachment.ContentId;
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError(ex, "Error adding inline attachment {FileName}", attachment.FileName);
+                        }
+                    }
+                    
+                    // Add regular attachments
+                    foreach (var attachment in regularAttachments)
+                    {
+                        try
+                        {
+                            bodyBuilder.Attachments.Add(attachment.FileName,
+                                                       attachment.Content,
+                                                       ContentType.Parse(attachment.ContentType));
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError(ex, "Error adding attachment {FileName}", attachment.FileName);
+                        }
+                    }
+                }
+
+                message.Body = bodyBuilder.ToMessageBody();
+                message.Date = email.SentDate;
+                if (!string.IsNullOrEmpty(email.MessageId) && email.MessageId.Contains('@'))
+                {
+                    message.MessageId = email.MessageId;
+                }
+
+                return message;
             }
-
-            _logger.LogInformation("Batch restore completed. Success: {SuccessCount}, Failed: {FailCount}",
-                successCount, failCount);
-
-            return (successCount, failCount);
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error creating MimeMessage for email ID {EmailId}", email.Id);
+                return null;
+            }
         }
 
         public async Task<List<string>> GetMailFoldersAsync(int accountId)
@@ -3069,6 +3476,13 @@ namespace MailArchiver.Services
             {
                 _logger.LogInformation("Account {AccountId} is an import-only account, returning 'Import' folder", accountId);
                 return new List<string> { "Import" };
+            }
+
+            // Check if the account has the required IMAP server configuration
+            if (string.IsNullOrEmpty(account.ImapServer))
+            {
+                _logger.info("Account {AccountId} ({Name}) has no IMAP server configured", accountId, account.Name);
+                return new List<string> { "INBOX" }; // Return default folder instead of throwing error
             }
 
             try
