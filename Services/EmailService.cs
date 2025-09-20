@@ -2628,8 +2628,8 @@ namespace MailArchiver.Services
             model.TotalAccounts = await _context.MailAccounts.CountAsync();
             model.TotalAttachments = await _context.EmailAttachments.CountAsync();
 
-            var totalSizeBytes = await _context.EmailAttachments.SumAsync(a => (long)a.Size);
-            model.TotalStorageUsed = FormatFileSize(totalSizeBytes);
+            var totalDatabaseSizeBytes = await GetDatabaseSizeAsync();
+            model.TotalStorageUsed = FormatFileSize(totalDatabaseSizeBytes);
 
             model.EmailsPerAccount = await _context.MailAccounts
                 .Select(a => new AccountStatistics
@@ -2694,6 +2694,33 @@ namespace MailArchiver.Services
                 .ToListAsync();
 
             return model;
+        }
+
+        /// <summary>
+        /// Gets the total size of the PostgreSQL database in bytes
+        /// </summary>
+        /// <returns>Database size in bytes</returns>
+        private async Task<long> GetDatabaseSizeAsync()
+        {
+            try
+            {
+                using var connection = new Npgsql.NpgsqlConnection(_context.Database.GetConnectionString());
+                await connection.OpenAsync();
+
+                // Query to get the total size of the current database
+                var sql = "SELECT pg_database_size(current_database())";
+                
+                using var command = new Npgsql.NpgsqlCommand(sql, connection);
+                var result = await command.ExecuteScalarAsync();
+                
+                return Convert.ToInt64(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting database size: {Message}", ex.Message);
+                // Fallback to attachment size if database size query fails
+                return await _context.EmailAttachments.SumAsync(a => (long)a.Size);
+            }
         }
 
         private string FormatFileSize(long bytes)
