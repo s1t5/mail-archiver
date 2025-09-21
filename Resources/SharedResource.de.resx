@@ -95,7 +95,7 @@
     <value>Von</value>
   </data>
   <data name="To" xml:space="preserve">
-    <value>An</value>
+    <value>Bis</value>
   </data>
   <data name="Account" xml:space="preserve">
     <value>Konto</value>
@@ -875,7 +875,7 @@
     <value>Anmeldung</value>
   </data>
   <data name="AppName" xml:space="preserve">
-    <value>E-Mail-Archiver</value>
+    <value>Mail-Archiver</value>
   </data>
   <data name="LoginSubtitle" xml:space="preserve">
     <value>Bitte melden Sie sich an, um auf das E-Mail-Archiv zuzugreifen</value>
@@ -1415,7 +1415,7 @@
     <value>Vollzugriff auf das System inklusive Benutzerverwaltung und alle E-Mail-Konten</value>
   </data>
   <data name="SelfManagerRoleDescription" xml:space="preserve">
-    <value>Kann eigene Kontoeinstellungen und zugewiesene E-Mail-Konten verwalten. Sowie selber neue Accounts hinzufügen.</value>
+    <value>Kann eigene Kontoeinstellungen und zugewiesene E-Mail-Konten verwalten, Sowie selber neue Accounts hinzufügen.</value>
   </data>
 
   <!-- EML Import -->
