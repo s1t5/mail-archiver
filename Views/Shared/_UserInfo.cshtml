@@ -45,7 +45,7 @@
                 </a>
             </li>
             <li><hr class="dropdown-divider"></li>
-            <li class="px-3 py-2">
+<li class="px-3 py-2">
                 <form method="post" action="/Localization/SetLanguage">
                     <input type="hidden" name="returnUrl" value="@Context.Request.Path@Context.Request.QueryString" />
                     <div class="mb-2">
@@ -60,6 +60,7 @@
                             <option value="es" selected="@(ui=="es" ? "selected" : null)">Español</option>
                             <option value="nl" selected="@(ui=="nl" ? "selected" : null)">Nederlands</option>
                             <option value="ru" selected="@(ui=="ru" ? "selected" : null)">Русский</option>
+                            <option value="hu" selected="@(ui=="hu" ? "selected" : null)">Magyar</option>
                         </select>
                     </div>
                 </form>
