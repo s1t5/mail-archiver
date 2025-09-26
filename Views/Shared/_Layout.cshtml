@@ -45,7 +45,7 @@
                                 <i class="bi bi-speedometer2 me-1"></i>@Localizer["Dashboard"]
                             </a>
                         </li>
-                        <li class="nav-item"></li>
+                        <li class="nav-item">
                             <a class="nav-link @(ViewContext.RouteData.Values["Controller"].ToString() == "Emails" && (ViewContext.RouteData.Values["Action"].ToString() == "Index" || ViewContext.RouteData.Values["Action"].ToString() == "Details") ? "active" : "")"
                                 asp-controller="Emails" asp-action="Index">
                                 <i class="bi bi-archive me-1"></i>@Localizer["Archive"]
@@ -98,6 +98,12 @@
                                 </a>
                             </li>
                         }
+                        <li class="nav-item">
+                            <a class="nav-link @(ViewContext.RouteData.Values["Controller"].ToString() == "Logs" ? "active" : "")"
+                                asp-controller="Logs" asp-action="Index">
+                                <i class="bi bi-list-check me-1"></i>@Localizer["Log"]
+                            </a>
+                        </li>
                     </ul>
                     <div class="d-flex align-items-center">
                         <span class="navbar-text me-3 d-none d-lg-inline">

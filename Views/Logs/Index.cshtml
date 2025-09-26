@@ -1,0 +1,241 @@
+@using MailArchiver.Models
+@model List<AccessLog>
+@inject Microsoft.Extensions.Localization.IStringLocalizer<MailArchiver.SharedResource> Localizer
+
+@{
+    ViewData["Title"] = Localizer["AccessLog"];
+    var isAdmin = ViewBag.IsAdmin as bool? ?? false;
+    var currentPage = ViewBag.CurrentPage as int? ?? 1;
+    var totalPages = ViewBag.TotalPages as int? ?? 1;
+    var pageSize = ViewBag.PageSize as int? ?? 50;
+    var fromDate = ViewBag.FromDate as DateTime?;
+    var toDate = ViewBag.ToDate as DateTime?;
+}
+
+<div class="container-fluid">
+    <h1 class="h3 mb-4 text-gray-800">@Localizer["AccessLog"]</h1>
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+            <h6 class="m-0 font-weight-bold text-primary">@Localizer["AccessLogEntries"]</h6>
+        </div>
+        <div class="card-body">
+            <!-- Filter Form -->
+            <form method="get" class="mb-4">
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label for="fromDate">@Localizer["FromDate"]</label>
+                            <input type="date" class="form-control" id="fromDate" name="fromDate" value="@(fromDate?.ToString("yyyy-MM-dd"))" />
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label for="toDate">@Localizer["ToDate"]</label>
+                            <input type="date" class="form-control" id="toDate" name="toDate" value="@(toDate?.ToString("yyyy-MM-dd"))" />
+                        </div>
+                    </div>
+                    @if (isAdmin)
+                    {
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label for="username">@Localizer["Username"]</label>
+                                <select class="form-control" id="username" name="username">
+                                    <option value="">@Localizer["All"]</option>
+                                    @foreach (var user in ViewBag.AllUsers as List<string> ?? new List<string>())
+                                    {
+                                        <option value="@user" selected="@(user == ViewBag.UsernameFilter)">@user</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                    }
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label>&nbsp;</label>
+                            <button type="submit" class="btn btn-primary form-control">@Localizer["Filter"]</button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+
+            <div class="table-responsive d-none d-lg-block">
+                <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                    <thead class="table-dark">
+                        <tr>
+                            <th style="width: 15%;">@Localizer["Timestamp"]</th>
+                            <th style="width: 15%;">@Localizer["Username"]</th>
+                            <th style="width: 10%;">@Localizer["Type"]</th>
+                            <th style="width: 60%;">@Localizer["Info"]</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var log in Model)
+                        {
+                            <tr>
+                                <td>
+                                    <span class="utc-timestamp" data-utc-time="@log.Timestamp.ToString("yyyy-MM-ddTHH:mm:ss")">
+                                        @log.Timestamp.ToString("g")
+                                    </span>
+                                </td>
+                                <td>@log.Username</td>
+                                <td>
+                                    @{
+                                        var badgeClass = log.Type switch
+                                        {
+                                            AccessLogType.Login => "bg-success",
+                                            AccessLogType.Logout => "bg-secondary",
+                                            AccessLogType.Search => "bg-primary",
+                                            AccessLogType.Open => "bg-info",
+                                            AccessLogType.Download => "bg-warning",
+                                            AccessLogType.Restore => "bg-danger",
+                                            AccessLogType.Account => "bg-dark",
+                                            _ => "bg-secondary"
+                                        };
+                                    }
+                                    <span class="badge @badgeClass">@Localizer[log.Type.ToString()]</span>
+                                </td>
+                                <td>
+                                    @if (log.EmailId.HasValue)
+                                    {
+                                        @* For email entries, show "sender - subject" pattern *@
+                                        @if (!string.IsNullOrEmpty(log.EmailSubject))
+                                        {
+                                            <a asp-controller="Emails" asp-action="Details" asp-route-id="@log.EmailId" target="_blank">
+                                                @(log.EmailFrom ?? "") - @(log.EmailSubject)
+                                            </a>
+                                        }
+                                        else
+                                        {
+                                            <a asp-controller="Emails" asp-action="Details" asp-route-id="@log.EmailId" target="_blank">
+                                                @(log.EmailFrom ?? "") - @Localizer["Email"] #@log.EmailId
+                                            </a>
+                                        }
+                                    }
+                                    else if (!string.IsNullOrEmpty(log.SearchParameters))
+                                    {
+                                        @log.SearchParameters
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">@Localizer["NoInfo"]</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            
+            @* Mobile/Tablet Cards *@
+            <div class="d-lg-none">
+                @foreach (var log in Model)
+                {
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h6 class="card-title mb-0">
+                                    <span class="utc-timestamp" data-utc-time="@log.Timestamp.ToString("yyyy-MM-ddTHH:mm:ss")">
+                                        @log.Timestamp.ToString("g")
+                                    </span>
+                                </h6>
+                                @{
+                                    var badgeClass = log.Type switch
+                                    {
+                                        AccessLogType.Login => "bg-success",
+                                        AccessLogType.Logout => "bg-secondary",
+                                        AccessLogType.Search => "bg-primary",
+                                        AccessLogType.Open => "bg-info",
+                                        AccessLogType.Download => "bg-warning",
+                                        AccessLogType.Restore => "bg-danger",
+                                        AccessLogType.Account => "bg-dark",
+                                        _ => "bg-secondary"
+                                    };
+                                }
+                                <span class="badge @badgeClass">@Localizer[log.Type.ToString()]</span>
+                            </div>
+                            <p class="card-text small text-muted mb-1">@Localizer["Username"]: @log.Username</p>
+                            <div class="card-text small">
+                                <strong>@Localizer["Info"]:</strong>
+                                @if (log.EmailId.HasValue)
+                                {
+                                    <div class="mt-1">
+                                        @if (!string.IsNullOrEmpty(log.EmailSubject))
+                                        {
+                                            <a asp-controller="Emails" asp-action="Details" asp-route-id="@log.EmailId" target="_blank">
+                                                @(log.EmailFrom ?? "") - @(log.EmailSubject)
+                                            </a>
+                                        }
+                                        else
+                                        {
+                                            <a asp-controller="Emails" asp-action="Details" asp-route-id="@log.EmailId" target="_blank">
+                                                @(log.EmailFrom ?? "") - @Localizer["Email"] #@log.EmailId
+                                            </a>
+                                        }
+                                    </div>
+                                }
+                                else if (!string.IsNullOrEmpty(log.SearchParameters))
+                                {
+                                    <div class="mt-1">@log.SearchParameters</div>
+                                }
+                                else
+                                {
+                                    <div class="mt-1 text-muted">@Localizer["NoInfo"]</div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <!-- Pagination -->
+            @if (totalPages > 1)
+            {
+                <nav aria-label="Page navigation">
+                    <ul class="pagination justify-content-center">
+                        @if (currentPage > 1)
+                        {
+                            <li class="page-item">
+                                <a class="page-link" asp-action="Index" asp-route-page="1" asp-route-pageSize="@pageSize" asp-route-fromDate="@(fromDate?.ToString("yyyy-MM-dd"))" asp-route-toDate="@(toDate?.ToString("yyyy-MM-dd"))" asp-route-username="@ViewBag.UsernameFilter" aria-label="First">
+                                    <span aria-hidden="true">&laquo;&laquo;</span>
+                                </a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" asp-action="Index" asp-route-page="@(currentPage - 1)" asp-route-pageSize="@pageSize" asp-route-fromDate="@(fromDate?.ToString("yyyy-MM-dd"))" asp-route-toDate="@(toDate?.ToString("yyyy-MM-dd"))" asp-route-username="@ViewBag.UsernameFilter" aria-label="Previous">
+                                    <span aria-hidden="true">&laquo;</span>
+                                </a>
+                            </li>
+                        }
+
+                        @for (int i = Math.Max(1, currentPage - 2); i <= Math.Min(totalPages, currentPage + 2); i++)
+                        {
+                            <li class="page-item @(i == currentPage ? "active" : "")">
+                                <a class="page-link" asp-action="Index" asp-route-page="@i" asp-route-pageSize="@pageSize" asp-route-fromDate="@(fromDate?.ToString("yyyy-MM-dd"))" asp-route-toDate="@(toDate?.ToString("yyyy-MM-dd"))" asp-route-username="@ViewBag.UsernameFilter">@i</a>
+                            </li>
+                        }
+
+                        @if (currentPage < totalPages)
+                        {
+                            <li class="page-item">
+                                <a class="page-link" asp-action="Index" asp-route-page="@(currentPage + 1)" asp-route-pageSize="@pageSize" asp-route-fromDate="@(fromDate?.ToString("yyyy-MM-dd"))" asp-route-toDate="@(toDate?.ToString("yyyy-MM-dd"))" asp-route-username="@ViewBag.UsernameFilter" aria-label="Next">
+                                    <span aria-hidden="true">&raquo;</span>
+                                </a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" asp-action="Index" asp-route-page="@totalPages" asp-route-pageSize="@pageSize" asp-route-fromDate="@(fromDate?.ToString("yyyy-MM-dd"))" asp-route-toDate="@(toDate?.ToString("yyyy-MM-dd"))" asp-route-username="@ViewBag.UsernameFilter" aria-label="Last">
+                                    <span aria-hidden="true">&raquo;&raquo;</span>
+                                </a>
+                            </li>
+                        }
+                    </ul>
+                </nav>
+            }
+            else if (Model.Count == 0)
+            {
+                <div class="text-center">
+                    <p class="text-muted">@Localizer["NoAccessLogEntries"]</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>

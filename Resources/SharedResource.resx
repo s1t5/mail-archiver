@@ -82,9 +82,6 @@
   <data name="LastUpdate" xml:space="preserve">
     <value>Last update:</value>
   </data>
-  <data name="Search" xml:space="preserve">
-    <value>Search</value>
-  </data>
   <data name="SearchTerm" xml:space="preserve">
     <value>Search Term</value>
   </data>
@@ -93,9 +90,6 @@
   </data>
   <data name="To" xml:space="preserve">
     <value>To</value>
-  </data>
-  <data name="Account" xml:space="preserve">
-    <value>Account</value>
   </data>
   <data name="Direction" xml:space="preserve">
     <value>Direction</value>
@@ -1165,9 +1159,6 @@
   <data name="Preview" xml:space="preserve">
     <value>Preview</value>
   </data>
-  <data name="Download" xml:space="preserve">
-    <value>Download</value>
-  </data>
   <data name="Close" xml:space="preserve">
     <value>Close</value>
   </data>
@@ -1369,7 +1360,7 @@
     <value>Import-Only Account</value>
   </data>
   <data name="ImportOnlyAccountDescription" xml:space="preserve">
-    <value>Account for importing MBox files without IMAP synchronization</value>
+    <value>Account for importing MBox or EML files without IMAP synchronization</value>
   </data>
   <data name="ImportOnlyAccountNoSync" xml:space="preserve">
     <value>Import-only accounts cannot be synchronized</value>
@@ -1668,10 +1659,10 @@
     <value>MBox (Mailbox Format)</value>
   </data>
   <data name="ExportFormatEMLDescription" xml:space="preserve">
-    <value>Creates a ZIP file with separate folders for incoming and outgoing emails, containing individual .eml files</value>
+    <value>Creates a ZIP file with separate folders containing individual .eml files</value>
   </data>
   <data name="ExportFormatMBoxDescription" xml:space="preserve">
-    <value>Creates a ZIP file with two .mbox files (in.mbox and out.mbox) containing all emails</value>
+    <value>Creates a ZIP file with .mbox files containing all emails</value>
   </data>
   <data name="StartExport" xml:space="preserve">
     <value>Start Export</value>
@@ -1796,13 +1787,13 @@
     <value>EML Format Information</value>
   </data>
   <data name="EMLFormatDescription" xml:space="preserve">
-    <value>Creates individual .eml files organized in 'in' and 'out' folders for incoming and outgoing emails respectively.</value>
+    <value>Creates individual .eml files organized in folders.</value>
   </data>
   <data name="MBoxFormatInfo" xml:space="preserve">
     <value>MBox Format Information</value>
   </data>
   <data name="MBoxFormatDescription" xml:space="preserve">
-    <value>Creates traditional mailbox files (in.mbox and out.mbox) containing all incoming and outgoing emails in a single file each.</value>
+    <value>Creates traditional mailbox files containing all emails in a single file per folder.</value>
   </data>
   <data name="ExportWarning" xml:space="preserve">
     <value>Important Export Information</value>
@@ -2028,5 +2019,65 @@
   </data>
   <data name="DeselectAllOnPage" xml:space="preserve">
     <value>Deselect all on page</value>
+  </data>
+  <data name="Log" xml:space="preserve">
+    <value>Log</value>
+  </data>
+  <data name="AccessLog" xml:space="preserve">
+    <value>Access Log</value>
+  </data>
+  <data name="AccessLogEntries" xml:space="preserve">
+    <value>Access Log Entries</value>
+  </data>
+  <data name="Account" xml:space="preserve">
+    <value>Account</value>
+  </data>
+  <data name="Timestamp" xml:space="preserve">
+    <value>Timestamp</value>
+  </data>
+  <data name="Type" xml:space="preserve">
+    <value>Type</value>
+  </data>
+  <data name="EmailSubject" xml:space="preserve">
+    <value>Email Subject</value>
+  </data>
+  <data name="SearchParameters" xml:space="preserve">
+    <value>Search Parameters</value>
+  </data>
+  <data name="Login" xml:space="preserve">
+    <value>Login</value>
+  </data>
+  <data name="Logout" xml:space="preserve">
+    <value>Logout</value>
+  </data>
+  <data name="Search" xml:space="preserve">
+    <value>Search</value>
+  </data>
+  <data name="Open" xml:space="preserve">
+    <value>Open</value>
+  </data>
+  <data name="Download" xml:space="preserve">
+    <value>Download</value>
+  </data>
+  <data name="Restore" xml:space="preserve">
+    <value>Restore</value>
+  </data>
+  <data name="FromDate" xml:space="preserve">
+    <value>From</value>
+  </data>
+  <data name="ToDate" xml:space="preserve">
+    <value>To</value>
+  </data>
+  <data name="Filter" xml:space="preserve">
+    <value>Filter</value>
+  </data>
+  <data name="Info" xml:space="preserve">
+    <value>Info</value>
+  </data>
+  <data name="NoInfo" xml:space="preserve">
+    <value>No information</value>
+  </data>
+  <data name="NoAccessLogEntries" xml:space="preserve">
+    <value>No access log entries found</value>
   </data>
 </root>

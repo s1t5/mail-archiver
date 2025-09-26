@@ -10,6 +10,7 @@ namespace MailArchiver.Data
         public DbSet<EmailAttachment> EmailAttachments { get; set; }
         public DbSet<User> Users { get; set; }
         public DbSet<UserMailAccount> UserMailAccounts { get; set; }
+        public DbSet<AccessLog> AccessLogs { get; set; }
 
         public MailArchiverDbContext(DbContextOptions<MailArchiverDbContext> options)
             : base(options)
@@ -141,6 +142,43 @@ namespace MailArchiver.Data
                 .Property(e => e.Provider)
                 .HasConversion<string>()
                 .HasMaxLength(10);
+                
+            // AccessLog entity configuration
+            modelBuilder.Entity<AccessLog>()
+                .Property(a => a.Username)
+                .HasColumnType("text");
+                
+            modelBuilder.Entity<AccessLog>()
+                .Property(a => a.EmailSubject)
+                .HasColumnType("text")
+                .IsRequired(false);
+                
+            modelBuilder.Entity<AccessLog>()
+                .Property(a => a.EmailFrom)
+                .HasColumnType("text")
+                .IsRequired(false);
+                
+            modelBuilder.Entity<AccessLog>()
+                .Property(a => a.SearchParameters)
+                .HasColumnType("text")
+                .IsRequired(false);
+                
+            modelBuilder.Entity<AccessLog>()
+                .HasIndex(a => a.Timestamp)
+                .HasDatabaseName("IX_AccessLogs_Timestamp");
+                
+            modelBuilder.Entity<AccessLog>()
+                .HasIndex(a => a.Username)
+                .HasDatabaseName("IX_AccessLogs_Username");
+                
+            modelBuilder.Entity<AccessLog>()
+                .HasIndex(a => a.Type)
+                .HasDatabaseName("IX_AccessLogs_Type");
+                
+            // Configure AccessLogType enum as integer
+            modelBuilder.Entity<AccessLog>()
+                .Property(a => a.Type)
+                .HasConversion<int>();
         }
     }
 }

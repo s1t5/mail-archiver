@@ -2017,14 +2017,58 @@
   <data name="DeselectAllOnPage" xml:space="preserve">
     <value>Отменить выбор всех на странице</value>
   </data>
-
-
-  <!-- ============================================== -->
-  <!-- NEWLY ADDED KEYS - REQUIRE TRANSLATION TO RUSSIAN -->
-  <!-- ============================================== -->
-
   <data name="DeleteAccountWithEmailsButton" xml:space="preserve">
     <value>Удалить учетную запись и все электронные письма ({0})</value>
   </data>
-
+  <data name="AccessLog" xml:space="preserve">
+    <value>Журнал доступа</value>
+  </data>
+  <data name="AccessLogEntries" xml:space="preserve">
+    <value>Записи журнала доступа</value>
+  </data>
+  <data name="EmailSubject" xml:space="preserve">
+    <value>Тема письма</value>
+  </data>
+  <data name="Filter" xml:space="preserve">
+    <value>Фильтр</value>
+  </data>
+  <data name="FromDate" xml:space="preserve">
+    <value>С</value>
+  </data>
+  <data name="Info" xml:space="preserve">
+    <value>Информация</value>
+  </data>
+  <data name="Log" xml:space="preserve">
+    <value>Журнал</value>
+  </data>
+  <data name="Login" xml:space="preserve">
+    <value>Вход</value>
+  </data>
+  <data name="Logout" xml:space="preserve">
+    <value>Выход</value>
+  </data>
+  <data name="NoAccessLogEntries" xml:space="preserve">
+    <value>Записи журнала доступа не найдены</value>
+  </data>
+  <data name="NoInfo" xml:space="preserve">
+    <value>Нет информации</value>
+  </data>
+  <data name="Open" xml:space="preserve">
+    <value>Открыть</value>
+  </data>
+  <data name="Restore" xml:space="preserve">
+    <value>Восстановить</value>
+  </data>
+  <data name="SearchParameters" xml:space="preserve">
+    <value>Параметры поиска</value>
+  </data>
+  <data name="Timestamp" xml:space="preserve">
+    <value>Временная метка</value>
+  </data>
+  <data name="ToDate" xml:space="preserve">
+    <value>По</value>
+  </data>
+  <data name="Type" xml:space="preserve">
+    <value>Тип</value>
+  </data>
 </root>

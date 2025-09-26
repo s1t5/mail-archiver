@@ -17,14 +17,18 @@ namespace MailArchiver.Controllers
         private readonly ILogger<UsersController> _logger;
         private readonly MailArchiver.Services.IAuthenticationService _authService;
         private readonly IStringLocalizer<SharedResource> _localizer;
+        private readonly IAccessLogService _accessLogService;
+        private readonly IServiceScopeFactory _serviceScopeFactory;
 
-        public UsersController(IUserService userService, MailArchiverDbContext context, ILogger<UsersController> logger, MailArchiver.Services.IAuthenticationService authService, IStringLocalizer<SharedResource> localizer)
+        public UsersController(IUserService userService, MailArchiverDbContext context, ILogger<UsersController> logger, MailArchiver.Services.IAuthenticationService authService, IStringLocalizer<SharedResource> localizer, IAccessLogService accessLogService, IServiceScopeFactory serviceScopeFactory)
         {
             _userService = userService;
             _context = context;
             _logger = logger;
             _authService = authService;
             _localizer = localizer;
+            _accessLogService = accessLogService;
+            _serviceScopeFactory = serviceScopeFactory;
         }
 
         // GET: Users
@@ -122,6 +126,26 @@ namespace MailArchiver.Controllers
                     await _userService.UpdateUserAsync(newUser);
                 }
 
+                    // Log the user creation action using a separate task to avoid DbContext concurrency issues
+                    var currentUsername = _authService.GetCurrentUser(HttpContext);
+                    if (!string.IsNullOrEmpty(currentUsername))
+                    {
+                        Task.Run(async () =>
+                        {
+                            try
+                            {
+                                using var scope = _serviceScopeFactory.CreateScope();
+                                var accessLogService = scope.ServiceProvider.GetRequiredService<IAccessLogService>();
+                                await accessLogService.LogAccessAsync(currentUsername, AccessLogType.Account, 
+                                    searchParameters: $"Created user: {newUser.Username}");
+                            }
+                            catch (Exception ex)
+                            {
+                                _logger.LogError(ex, "Error logging user creation action by {Username}", currentUsername);
+                            }
+                        });
+                    }
+
                 TempData["SuccessMessage"] = _localizer["UserCreatedSuccess", newUser.Username].Value;
                 return RedirectToAction(nameof(Index));
             }
@@ -218,9 +242,30 @@ namespace MailArchiver.Controllers
                     var result = await _userService.UpdateUserAsync(existingUser);
                     if (result)
                     {
-                        _logger.LogInformation("User '{Username}' updated successfully.", existingUser.Username);
-                        TempData["SuccessMessage"] = _localizer["UserUpdated", existingUser.Username].Value;
-                        return RedirectToAction(nameof(Index));
+                    _logger.LogInformation("User '{Username}' updated successfully.", existingUser.Username);
+                    
+                    // Log the user update action using a separate task to avoid DbContext concurrency issues
+                    var currentUsername = _authService.GetCurrentUser(HttpContext);
+                    if (!string.IsNullOrEmpty(currentUsername))
+                    {
+                        Task.Run(async () =>
+                        {
+                            try
+                            {
+                                using var scope = _serviceScopeFactory.CreateScope();
+                                var accessLogService = scope.ServiceProvider.GetRequiredService<IAccessLogService>();
+                                await accessLogService.LogAccessAsync(currentUsername, AccessLogType.Account, 
+                                    searchParameters: $"Updated user: {existingUser.Username}");
+                            }
+                            catch (Exception ex)
+                            {
+                                _logger.LogError(ex, "Error logging user update action by {Username}", currentUsername);
+                            }
+                        });
+                    }
+                    
+                    TempData["SuccessMessage"] = _localizer["UserUpdated", existingUser.Username].Value;
+                    return RedirectToAction(nameof(Index));
                     }
                     else
                     {
@@ -323,6 +368,26 @@ namespace MailArchiver.Controllers
                 var result = await _userService.DeleteUserAsync(id);
                 if (result)
                 {
+                    // Log the user deletion action using a separate task to avoid DbContext concurrency issues
+                    var currentUsername = _authService.GetCurrentUser(HttpContext);
+                    if (!string.IsNullOrEmpty(currentUsername))
+                    {
+                        Task.Run(async () =>
+                        {
+                            try
+                            {
+                                using var scope = _serviceScopeFactory.CreateScope();
+                                var accessLogService = scope.ServiceProvider.GetRequiredService<IAccessLogService>();
+                                await accessLogService.LogAccessAsync(currentUsername, AccessLogType.Account, 
+                                    searchParameters: $"Deleted user: {user.Username}");
+                            }
+                            catch (Exception ex)
+                            {
+                                _logger.LogError(ex, "Error logging user deletion action by {Username}", currentUsername);
+                            }
+                        });
+                    }
+                    
                     TempData["SuccessMessage"] = _localizer["UserDeleteSuccess", user.Username].Value;
                 }
                 else

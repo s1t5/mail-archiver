@@ -29,6 +29,9 @@ namespace MailArchiver.Controllers
         private readonly IExportService? _exportService;
         private readonly ISelectedEmailsExportService? _selectedEmailsExportService;
         private readonly SelectionOptions _selectionOptions;
+        private readonly IAccessLogService _accessLogService;
+        private readonly IServiceScopeFactory _serviceScopeFactory;
+        private readonly MailArchiver.Services.IAuthenticationService _authService;
 
         public EmailsController(
             MailArchiverDbContext context,
@@ -41,7 +44,10 @@ namespace MailArchiver.Controllers
             ISyncJobService? syncJobService = null,
             IStringLocalizer<SharedResource> localizer = null,
             IExportService? exportService = null,
-            ISelectedEmailsExportService? selectedEmailsExportService = null)
+            ISelectedEmailsExportService? selectedEmailsExportService = null,
+            IAccessLogService? accessLogService = null,
+            IServiceScopeFactory? serviceScopeFactory = null,
+            MailArchiver.Services.IAuthenticationService? authService = null)
 
         {
             _context = context;
@@ -55,6 +61,9 @@ namespace MailArchiver.Controllers
             _localizer = localizer;
             _exportService = exportService;
             _selectedEmailsExportService = selectedEmailsExportService;
+            _accessLogService = accessLogService;
+            _serviceScopeFactory = serviceScopeFactory;
+            _authService = authService;
         }
 
         // GET: Emails
@@ -164,6 +173,47 @@ namespace MailArchiver.Controllers
             model.SearchResults = emails;
             model.TotalResults = totalCount;
 
+                    // Log the search action
+                    if (_accessLogService != null && _serviceScopeFactory != null)
+                    {
+                        // Capture the current username before starting the background task
+                        var currentUsername = _authService?.GetCurrentUser(HttpContext);
+                        
+                        if (!string.IsNullOrEmpty(currentUsername))
+                        {
+                            // Create a separate scope for logging to avoid DbContext concurrency issues
+                            Task.Run(async () =>
+                            {
+                                try
+                                {
+                                    using var scope = _serviceScopeFactory.CreateScope();
+                                    var accessLogService = scope.ServiceProvider.GetRequiredService<IAccessLogService>();
+                                    
+                                    var searchParams = new List<string>();
+                                    if (!string.IsNullOrEmpty(model.SearchTerm))
+                                        searchParams.Add($"term:{model.SearchTerm}");
+                                    if (model.FromDate.HasValue)
+                                        searchParams.Add($"from:{model.FromDate.Value:yyyy-MM-dd}");
+                                    if (model.ToDate.HasValue)
+                                        searchParams.Add($"to:{model.ToDate.Value:yyyy-MM-dd}");
+                                    if (model.SelectedAccountId.HasValue)
+                                        searchParams.Add($"account:{model.SelectedAccountId}");
+                                    if (model.IsOutgoing.HasValue)
+                                        searchParams.Add($"direction:{(model.IsOutgoing.Value ? "out" : "in")}");
+                                    
+                                    var searchParamsString = string.Join(", ", searchParams);
+                                    
+                                    await accessLogService.LogAccessAsync(currentUsername, AccessLogType.Search, 
+                                        searchParameters: searchParamsString.Length > 255 ? searchParamsString.Substring(0, 255) : searchParamsString);
+                                }
+                                catch (Exception ex)
+                                {
+                                    _logger.LogError(ex, "Error logging search action");
+                                }
+                            });
+                        }
+                    }
+
             // Log the state of ShowSelectionControls for debugging
             _logger.LogInformation("Selection mode is {SelectionMode}", model.ShowSelectionControls ? "enabled" : "disabled");
 
@@ -216,6 +266,35 @@ namespace MailArchiver.Controllers
 
             // Store return URL in ViewBag
             ViewBag.ReturnUrl = returnUrl ?? Url.Action("Index");
+
+            // Log the email open action
+            if (_accessLogService != null && _serviceScopeFactory != null)
+            {
+                // Capture the current username before starting the background task
+                var currentUsername = _authService?.GetCurrentUser(HttpContext);
+                
+                if (!string.IsNullOrEmpty(currentUsername))
+                {
+                    // Create a separate scope for logging to avoid DbContext concurrency issues
+                    Task.Run(async () =>
+                    {
+                        try
+                        {
+                            using var scope = _serviceScopeFactory.CreateScope();
+                            var accessLogService = scope.ServiceProvider.GetRequiredService<IAccessLogService>();
+                            
+                            await accessLogService.LogAccessAsync(currentUsername, AccessLogType.Open, 
+                                emailId: email.Id, 
+                                emailSubject: email.Subject.Length > 255 ? email.Subject.Substring(0, 255) : email.Subject,
+                                emailFrom: email.From.Length > 255 ? email.From.Substring(0, 255) : email.From);
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError(ex, "Error logging email open action");
+                        }
+                    });
+                }
+            }
 
             return View(model);
         }
@@ -446,6 +525,43 @@ namespace MailArchiver.Controllers
                 TempData["ErrorMessage"] = $"Export failed: {ex.Message}";
                 return RedirectToAction("Details", new { id });
             }
+            finally
+            {
+                // Log the email export action
+                if (_accessLogService != null && _serviceScopeFactory != null)
+                {
+                    // Capture the current username before starting the background task
+                    var currentUsername = _authService?.GetCurrentUser(HttpContext);
+                    
+                    if (!string.IsNullOrEmpty(currentUsername))
+                    {
+                        // Create a separate scope for logging to avoid DbContext concurrency issues
+                        Task.Run(async () =>
+                        {
+                            try
+                            {
+                                using var scope = _serviceScopeFactory.CreateScope();
+                                var accessLogService = scope.ServiceProvider.GetRequiredService<IAccessLogService>();
+                                
+                                // Create a new context for this scope to avoid concurrency issues
+                                using var newContext = scope.ServiceProvider.GetRequiredService<MailArchiverDbContext>();
+                                var email = await newContext.ArchivedEmails.FindAsync(id);
+                                if (email != null)
+                                {
+                                    await accessLogService.LogAccessAsync(currentUsername, AccessLogType.Download, 
+                                        emailId: email.Id, 
+                                        emailSubject: email.Subject.Length > 255 ? email.Subject.Substring(0, 255) : email.Subject,
+                                        emailFrom: email.From.Length > 255 ? email.From.Substring(0, 255) : email.From);
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                _logger.LogError(ex, "Error logging email export action");
+                            }
+                        });
+                    }
+                }
+            }
         }
 
         // GET: Emails/Restore/5
@@ -627,6 +743,43 @@ namespace MailArchiver.Controllers
                 {
                     _logger.LogInformation("Email restoration successful");
                     TempData["SuccessMessage"] = "The email has been successfully copied to the specified folder.";
+                    
+                    // Log the email restore action
+                    if (_accessLogService != null && _serviceScopeFactory != null)
+                    {
+                        // Capture the current username before starting the background task
+                        var currentUsername = _authService?.GetCurrentUser(HttpContext);
+                        
+                        if (!string.IsNullOrEmpty(currentUsername))
+                        {
+                            // Create a separate scope for logging to avoid DbContext concurrency issues
+                            Task.Run(async () =>
+                            {
+                                try
+                                {
+                                    using var scope = _serviceScopeFactory.CreateScope();
+                                    var accessLogService = scope.ServiceProvider.GetRequiredService<IAccessLogService>();
+                                    
+                                    // Create a new context for this scope to avoid concurrency issues
+                                    using var newContext = scope.ServiceProvider.GetRequiredService<MailArchiverDbContext>();
+                                    var email = await newContext.ArchivedEmails.FindAsync(model.EmailId);
+                                    if (email != null)
+                                    {
+                                        await accessLogService.LogAccessAsync(currentUsername, AccessLogType.Restore, 
+                                            emailId: email.Id, 
+                                            emailSubject: email.Subject.Length > 255 ? email.Subject.Substring(0, 255) : email.Subject,
+                                            emailFrom: email.From.Length > 255 ? email.From.Substring(0, 255) : email.From,
+                                            mailAccountId: model.TargetAccountId);
+                                    }
+                                }
+                                catch (Exception ex)
+                                {
+                                    _logger.LogError(ex, "Error logging email restore action");
+                                }
+                            });
+                        }
+                    }
+                    
                     return RedirectToAction(nameof(Details), new { id = model.EmailId });
                 }
                 else
@@ -858,6 +1011,14 @@ namespace MailArchiver.Controllers
             {
                 _logger.LogInformation("Attempting to restore {Count} emails to folder '{Folder}' of account {AccountId}",
                     model.SelectedEmailIds.Count, model.TargetFolder, model.TargetAccountId);
+
+                // Log the batch restore action
+                var currentUsername = _authService?.GetCurrentUser(HttpContext);
+                if (!string.IsNullOrEmpty(currentUsername))
+                {
+                    await _accessLogService.LogAccessAsync(currentUsername, AccessLogType.Restore, 
+                        searchParameters: $"Started batch restore for {model.SelectedEmailIds.Count} emails to account {model.TargetAccountId} in folder {model.TargetFolder}");
+                }
 
                 // Get target account to check provider type
                 var targetAccount = await _context.MailAccounts.FindAsync(model.TargetAccountId);
@@ -1131,6 +1292,14 @@ namespace MailArchiver.Controllers
                 };
 
                 var jobId = _batchRestoreService.QueueJob(job);
+
+                // Log the batch restore action
+                var currentUsername = _authService?.GetCurrentUser(HttpContext);
+                if (!string.IsNullOrEmpty(currentUsername))
+                {
+                    await _accessLogService.LogAccessAsync(currentUsername, AccessLogType.Restore, 
+                        searchParameters: $"Started batch restore for {model.EmailIds.Count} emails to account {model.TargetAccountId} in folder {model.TargetFolder}");
+                }
 
                 TempData["SuccessMessage"] = $"Batch restore job started with {model.EmailIds.Count:N0} emails. Job ID: {jobId}";
 
@@ -1876,6 +2045,14 @@ namespace MailArchiver.Controllers
                 {
                     TempData["ErrorMessage"] = "You do not have access to any of the selected emails.";
                     return Redirect(returnUrl ?? Url.Action("Index"));
+                }
+
+                // Log the export action
+                var currentUsername = _authService?.GetCurrentUser(HttpContext);
+                if (!string.IsNullOrEmpty(currentUsername))
+                {
+                    await _accessLogService.LogAccessAsync(currentUsername, AccessLogType.Download, 
+                        searchParameters: $"Started export of {ids.Count} selected emails in {exportFormat} format");
                 }
 
                 // Queue the export job with selected format

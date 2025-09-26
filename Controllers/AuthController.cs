@@ -1,3 +1,4 @@
+using MailArchiver.Models;
 using MailArchiver.Models.ViewModels;
 using MailArchiver.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -11,13 +12,17 @@ namespace MailArchiver.Controllers
         private readonly IUserService _userService;
         private readonly ILogger<AuthController> _logger;
         private readonly IStringLocalizer<SharedResource> _localizer;
+        private readonly IAccessLogService _accessLogService;
+        private readonly IServiceScopeFactory _serviceScopeFactory;
 
-        public AuthController(MailArchiver.Services.IAuthenticationService authService, IUserService userService, ILogger<AuthController> logger, IStringLocalizer<SharedResource> localizer)
+        public AuthController(MailArchiver.Services.IAuthenticationService authService, IUserService userService, ILogger<AuthController> logger, IStringLocalizer<SharedResource> localizer, IAccessLogService accessLogService, IServiceScopeFactory serviceScopeFactory)
         {
             _authService = authService;
             _userService = userService;
             _logger = logger;
             _localizer = localizer;
+            _accessLogService = accessLogService;
+            _serviceScopeFactory = serviceScopeFactory;
         }
 
         [HttpGet]
@@ -65,6 +70,22 @@ namespace MailArchiver.Controllers
                     }
                     
                     _authService.SignIn(HttpContext, model.Username, model.RememberMe);
+                    
+                    // Log the successful login using a separate task to avoid DbContext concurrency issues
+                    Task.Run(async () =>
+                    {
+                        try
+                        {
+                            using var scope = _serviceScopeFactory.CreateScope();
+                            var accessLogService = scope.ServiceProvider.GetRequiredService<IAccessLogService>();
+                            await accessLogService.LogAccessAsync(model.Username, AccessLogType.Login);
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError(ex, "Error logging login action for user {Username}", model.Username);
+                        }
+                    });
+                    
                     return RedirectToLocal(returnUrl);
                 }
                 else
@@ -80,9 +101,29 @@ namespace MailArchiver.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Logout()
+        public async Task<IActionResult> Logout()
         {
+            var username = _authService.GetCurrentUser(HttpContext);
             _authService.SignOut(HttpContext);
+            
+            // Log the logout if we have a username using a separate task to avoid DbContext concurrency issues
+            if (!string.IsNullOrEmpty(username))
+            {
+                Task.Run(async () =>
+                {
+                    try
+                    {
+                        using var scope = _serviceScopeFactory.CreateScope();
+                        var accessLogService = scope.ServiceProvider.GetRequiredService<IAccessLogService>();
+                        await accessLogService.LogAccessAsync(username, AccessLogType.Logout);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Error logging logout action for user {Username}", username);
+                    }
+                });
+            }
+            
             return RedirectToAction("Login");
         }
         

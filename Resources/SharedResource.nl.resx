@@ -2017,14 +2017,58 @@
   <data name="DeselectAllOnPage" xml:space="preserve">
     <value>Alles op pagina deselecteren</value>
   </data>
-
-
-  <!-- ============================================== -->
-  <!-- NEWLY ADDED KEYS - REQUIRE TRANSLATION TO DUTCH -->
-  <!-- ============================================== -->
-
   <data name="DeleteAccountWithEmailsButton" xml:space="preserve">
     <value>Account en alle e-mails verwijderen ({0})</value>
   </data>
-
+  <data name="AccessLog" xml:space="preserve">
+    <value>Toegangslog</value>
+  </data>
+  <data name="AccessLogEntries" xml:space="preserve">
+    <value>Toegangslog Vermeldingen</value>
+  </data>
+  <data name="EmailSubject" xml:space="preserve">
+    <value>E-mail Onderwerp</value>
+  </data>
+  <data name="Filter" xml:space="preserve">
+    <value>Filter</value>
+  </data>
+  <data name="FromDate" xml:space="preserve">
+    <value>Van</value>
+  </data>
+  <data name="Info" xml:space="preserve">
+    <value>Info</value>
+  </data>
+  <data name="Log" xml:space="preserve">
+    <value>Log</value>
+  </data>
+  <data name="Login" xml:space="preserve">
+    <value>Inloggen</value>
+  </data>
+  <data name="Logout" xml:space="preserve">
+    <value>Uitloggen</value>
+  </data>
+  <data name="NoAccessLogEntries" xml:space="preserve">
+    <value>Geen toegangslog vermeldingen gevonden</value>
+  </data>
+  <data name="NoInfo" xml:space="preserve">
+    <value>Geen informatie</value>
+  </data>
+  <data name="Open" xml:space="preserve">
+    <value>Openen</value>
+  </data>
+  <data name="Restore" xml:space="preserve">
+    <value>Herstellen</value>
+  </data>
+  <data name="SearchParameters" xml:space="preserve">
+    <value>Zoekparameters</value>
+  </data>
+  <data name="Timestamp" xml:space="preserve">
+    <value>Tijdstempel</value>
+  </data>
+  <data name="ToDate" xml:space="preserve">
+    <value>Tot</value>
+  </data>
+  <data name="Type" xml:space="preserve">
+    <value>Type</value>
+  </data>
 </root>

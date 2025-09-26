@@ -2017,14 +2017,58 @@
   <data name="DeselectAllOnPage" xml:space="preserve">
     <value>Deseleziona tutto nella pagina</value>
   </data>
-
-
-  <!-- ============================================== -->
-  <!-- NEWLY ADDED KEYS - REQUIRE TRANSLATION TO ITALIAN -->
-  <!-- ============================================== -->
-
   <data name="DeleteAccountWithEmailsButton" xml:space="preserve">
     <value>Elimina account e tutte le e-mail ({0})</value>
   </data>
-
+  <data name="AccessLog" xml:space="preserve">
+    <value>Registro Accessi</value>
+  </data>
+  <data name="AccessLogEntries" xml:space="preserve">
+    <value>Voci Registro Accessi</value>
+  </data>
+  <data name="EmailSubject" xml:space="preserve">
+    <value>Oggetto Email</value>
+  </data>
+  <data name="Filter" xml:space="preserve">
+    <value>Filtro</value>
+  </data>
+  <data name="FromDate" xml:space="preserve">
+    <value>Da</value>
+  </data>
+  <data name="Info" xml:space="preserve">
+    <value>Informazioni</value>
+  </data>
+  <data name="Log" xml:space="preserve">
+    <value>Registro</value>
+  </data>
+  <data name="Login" xml:space="preserve">
+    <value>Accesso</value>
+  </data>
+  <data name="Logout" xml:space="preserve">
+    <value>Disconnessione</value>
+  </data>
+  <data name="NoAccessLogEntries" xml:space="preserve">
+    <value>Nessuna voce del registro accessi trovata</value>
+  </data>
+  <data name="NoInfo" xml:space="preserve">
+    <value>Nessuna informazione</value>
+  </data>
+  <data name="Open" xml:space="preserve">
+    <value>Apri</value>
+  </data>
+  <data name="Restore" xml:space="preserve">
+    <value>Ripristina</value>
+  </data>
+  <data name="SearchParameters" xml:space="preserve">
+    <value>Parametri di Ricerca</value>
+  </data>
+  <data name="Timestamp" xml:space="preserve">
+    <value>Timestamp</value>
+  </data>
+  <data name="ToDate" xml:space="preserve">
+    <value>A</value>
+  </data>
+  <data name="Type" xml:space="preserve">
+    <value>Tipo</value>
+  </data>
 </root>

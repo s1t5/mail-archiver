@@ -62,6 +62,12 @@
 > - Requires IMAP Expunge support from the mail server to permanently delete emails
 > - For Gmail accounts, Auto-Expunge must be disabled in Gmail settings under the "Forwarding and POP/IMAP" tab!
 
+### 📑 Access Log
+- Comprehensive access log feature that tracks user activities
+- Records all user actions including login, logout, search, email access, downloads, and account management
+- Admins can filter logs by date range and username for easier analysis
+
+
 ## 🖼️ Screenshots
 
 ### Dashboard

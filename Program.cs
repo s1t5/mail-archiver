@@ -232,6 +232,10 @@ builder.Services.AddHostedService<SelectedEmailsExportService>(provider => provi
 
 builder.Services.AddHostedService<MailSyncBackgroundService>();
 
+// Register AccessLogService
+builder.Services.AddScoped<IAccessLogService, AccessLogService>();
+builder.Services.AddScoped<IEmailService, EmailService>();
+
 // Add Localization
 builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
 // Configure Form Options for large file uploads

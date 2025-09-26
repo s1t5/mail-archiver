@@ -2017,14 +2017,58 @@
   <data name="DeselectAllOnPage" xml:space="preserve">
     <value>Počisti vse na strani</value>
   </data>
-
-
-  <!-- ============================================== -->
-  <!-- NEWLY ADDED KEYS - REQUIRE TRANSLATION TO SLOVENIAN -->
-  <!-- ============================================== -->
-
   <data name="DeleteAccountWithEmailsButton" xml:space="preserve">
     <value>Izbriši račun in vsa e-poštna sporočila ({0})</value>
   </data>
-
+  <data name="AccessLog" xml:space="preserve">
+    <value>Dnevnik dostopa</value>
+  </data>
+  <data name="AccessLogEntries" xml:space="preserve">
+    <value>Vnosi dnevnika dostopa</value>
+  </data>
+  <data name="EmailSubject" xml:space="preserve">
+    <value>Zadeva e-pošte</value>
+  </data>
+  <data name="Filter" xml:space="preserve">
+    <value>Filter</value>
+  </data>
+  <data name="FromDate" xml:space="preserve">
+    <value>Od</value>
+  </data>
+  <data name="Info" xml:space="preserve">
+    <value>Informacije</value>
+  </data>
+  <data name="Log" xml:space="preserve">
+    <value>Dnevnik</value>
+  </data>
+  <data name="Login" xml:space="preserve">
+    <value>Prijava</value>
+  </data>
+  <data name="Logout" xml:space="preserve">
+    <value>Odjava</value>
+  </data>
+  <data name="NoAccessLogEntries" xml:space="preserve">
+    <value>Ni najdenih vnosov dnevnika dostopa</value>
+  </data>
+  <data name="NoInfo" xml:space="preserve">
+    <value>Ni informacij</value>
+  </data>
+  <data name="Open" xml:space="preserve">
+    <value>Odpri</value>
+  </data>
+  <data name="Restore" xml:space="preserve">
+    <value>Obnovi</value>
+  </data>
+  <data name="SearchParameters" xml:space="preserve">
+    <value>Parametri iskanja</value>
+  </data>
+  <data name="Timestamp" xml:space="preserve">
+    <value>Časovni žig</value>
+  </data>
+  <data name="ToDate" xml:space="preserve">
+    <value>Do</value>
+  </data>
+  <data name="Type" xml:space="preserve">
+    <value>Tip</value>
+  </data>
 </root>

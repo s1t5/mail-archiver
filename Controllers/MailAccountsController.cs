@@ -28,6 +28,7 @@ namespace MailArchiver.Controllers
     private readonly IStringLocalizer<SharedResource> _localizer;
     private readonly IServiceScopeFactory _serviceScopeFactory;
     private readonly IExportService _exportService;
+    private readonly IAccessLogService _accessLogService;
 
     public MailAccountsController(
         MailArchiverDbContext context,
@@ -41,7 +42,8 @@ namespace MailArchiver.Controllers
         IOptions<UploadOptions> uploadOptions, 
         IStringLocalizer<SharedResource> localizer,
         IServiceScopeFactory serviceScopeFactory,
-        IExportService exportService)
+        IExportService exportService,
+        IAccessLogService accessLogService)
     {
         _context = context;
         _emailService = emailService;
@@ -55,6 +57,7 @@ namespace MailArchiver.Controllers
         _localizer = localizer;
         _serviceScopeFactory = serviceScopeFactory;
         _exportService = exportService;
+        _accessLogService = accessLogService;
     }
 
         private async Task<bool> HasAccessToAccountAsync(int accountId)
@@ -258,6 +261,14 @@ var model = new MailAccountViewModel
                             account.Name, currentUser.Username);
                     }
 
+                    // Log the account creation action
+                    if (!string.IsNullOrEmpty(currentUsername))
+                    {
+                        await _accessLogService.LogAccessAsync(currentUsername, AccessLogType.Account, 
+                            searchParameters: $"Created mail account: {account.Name}",
+                            mailAccountId: account.Id);
+                    }
+                    
                     TempData["SuccessMessage"] = _localizer["EmailAccountCreateSuccess"].Value;
                     return RedirectToAction(nameof(Index));
                 }
@@ -343,9 +354,22 @@ var model = new MailAccountViewModel
                 return NotFound();
             }
 
+            // Store the current status before toggling for logging
+            bool wasEnabled = account.IsEnabled;
+
             // Toggle the enabled status
             account.IsEnabled = !account.IsEnabled;
             await _context.SaveChangesAsync();
+
+            // Log the account enable/disable action
+            var authService = HttpContext.RequestServices.GetService<MailArchiver.Services.IAuthenticationService>();
+            var currentUsername = authService.GetCurrentUser(HttpContext);
+            if (!string.IsNullOrEmpty(currentUsername))
+            {
+                await _accessLogService.LogAccessAsync(currentUsername, AccessLogType.Account, 
+                    searchParameters: $"{(account.IsEnabled ? "Enabled" : "Disabled")} mail account: {account.Name}",
+                    mailAccountId: account.Id);
+            }
 
             // Correct message based on the NEW status (after toggling)
             TempData["SuccessMessage"] = account.IsEnabled
@@ -435,6 +459,17 @@ var model = new MailAccountViewModel
                     }
 
                     await _context.SaveChangesAsync();
+                    
+                    // Log the account update action
+                    var authService = HttpContext.RequestServices.GetService<MailArchiver.Services.IAuthenticationService>();
+                    var currentUsername = authService.GetCurrentUser(HttpContext);
+                    if (!string.IsNullOrEmpty(currentUsername))
+                    {
+                        await _accessLogService.LogAccessAsync(currentUsername, AccessLogType.Account, 
+                            searchParameters: $"Updated mail account: {account.Name}",
+                            mailAccountId: account.Id);
+                    }
+                    
                     TempData["SuccessMessage"] = _localizer["EmailAccountUpdateSuccess"].Value;
                     return RedirectToAction(nameof(Index));
                 }
@@ -524,6 +559,16 @@ var model = new MailAccountViewModel
                 _context.MailAccounts.Remove(account);
 
                 await _context.SaveChangesAsync();
+
+                // Log the account deletion action
+                var authService = HttpContext.RequestServices.GetService<MailArchiver.Services.IAuthenticationService>();
+                var currentUsername = authService.GetCurrentUser(HttpContext);
+                if (!string.IsNullOrEmpty(currentUsername))
+                {
+                    await _accessLogService.LogAccessAsync(currentUsername, AccessLogType.Account, 
+                        searchParameters: $"Deleted mail account: {account.Name} with {emailCount} emails",
+                        mailAccountId: account.Id);
+                }
 
                 TempData["SuccessMessage"] = _localizer["EmailAccountDeleteSuccess", emailCount].Value;
             }
@@ -615,6 +660,16 @@ var model = new MailAccountViewModel
                         });
                     }
                     
+                    // Log the sync action
+                    var authService = HttpContext.RequestServices.GetService<MailArchiver.Services.IAuthenticationService>();
+                    var currentUsername = authService.GetCurrentUser(HttpContext);
+                    if (!string.IsNullOrEmpty(currentUsername))
+                    {
+                        await _accessLogService.LogAccessAsync(currentUsername, AccessLogType.Account, 
+                            searchParameters: $"Started sync for mail account: {account.Name}",
+                            mailAccountId: account.Id);
+                    }
+                    
                     TempData["SuccessMessage"] = _localizer["SyncStarted", account.Name].Value;
                 }
                 else
@@ -660,6 +715,16 @@ var model = new MailAccountViewModel
                 var success = await _emailService.ResyncAccountAsync(id);
                 if (success)
                 {
+                    // Log the resync action
+                    var authService = HttpContext.RequestServices.GetService<MailArchiver.Services.IAuthenticationService>();
+                    var currentUsername = authService.GetCurrentUser(HttpContext);
+                    if (!string.IsNullOrEmpty(currentUsername))
+                    {
+                        await _accessLogService.LogAccessAsync(currentUsername, AccessLogType.Account, 
+                            searchParameters: $"Started resync for mail account: {account.Name}",
+                            mailAccountId: account.Id);
+                    }
+                    
                     TempData["SuccessMessage"] = _localizer["FullSyncStarted", account.Name].Value;
                 }
                 else
@@ -863,6 +928,16 @@ var model = new MailAccountViewModel
 
                 // Queue the job
                 var jobId = _mboxImportService.QueueImport(job);
+
+                // Log the MBox import action
+                var authService = HttpContext.RequestServices.GetService<MailArchiver.Services.IAuthenticationService>();
+                var currentUsername = authService.GetCurrentUser(HttpContext);
+                if (!string.IsNullOrEmpty(currentUsername))
+                {
+                    await _accessLogService.LogAccessAsync(currentUsername, AccessLogType.Account, 
+                        searchParameters: $"Started MBox import for mail account: {targetAccount.Name}",
+                        mailAccountId: targetAccount.Id);
+                }
 
                 TempData["SuccessMessage"] = _localizer["MBoxImportStarted", model.MBoxFile.FileName, job.TotalEmails].Value;
                 return RedirectToAction("MBoxImportStatus", new { jobId });
@@ -1081,6 +1156,16 @@ var model = new MailAccountViewModel
                 // Queue the job
                 var jobId = _emlImportService.QueueImport(job);
 
+                // Log the EML import action
+                var authService = HttpContext.RequestServices.GetService<MailArchiver.Services.IAuthenticationService>();
+                var currentUsername = authService.GetCurrentUser(HttpContext);
+                if (!string.IsNullOrEmpty(currentUsername))
+                {
+                    await _accessLogService.LogAccessAsync(currentUsername, AccessLogType.Account, 
+                        searchParameters: $"Started EML import for mail account: {targetAccount.Name}",
+                        mailAccountId: targetAccount.Id);
+                }
+
                 TempData["SuccessMessage"] = _localizer["EmlImportStarted", model.EmlFile.FileName, job.TotalEmails].Value;
                 return RedirectToAction("EmlImportStatus", new { jobId });
             }
@@ -1226,6 +1311,14 @@ var model = new MailAccountViewModel
                 // Get current user info
                 var authService = HttpContext.RequestServices.GetService<MailArchiver.Services.IAuthenticationService>();
                 var currentUsername = authService.GetCurrentUser(HttpContext);
+
+                    // Log the export action
+                    if (!string.IsNullOrEmpty(currentUsername))
+                    {
+                        await _accessLogService.LogAccessAsync(currentUsername, AccessLogType.Download, 
+                            searchParameters: $"Started export for mail account: {account.Name} in {model.Format} format",
+                            mailAccountId: model.MailAccountId);
+                    }
 
                 // Queue the job
                 var jobId = _exportService.QueueExport(model.MailAccountId, model.Format, currentUsername ?? "Anonymous");

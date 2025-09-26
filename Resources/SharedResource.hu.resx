@@ -2012,4 +2012,55 @@
   <data name="DeselectAllOnPage" xml:space="preserve">
     <value>Összes kijelölés törlése az oldalon</value>
   </data>
+  <data name="AccessLog" xml:space="preserve">
+    <value>Hozzáférési napló</value>
+  </data>
+  <data name="AccessLogEntries" xml:space="preserve">
+    <value>Hozzáférési napló bejegyzések</value>
+  </data>
+  <data name="EmailSubject" xml:space="preserve">
+    <value>E-mail tárgy</value>
+  </data>
+  <data name="Filter" xml:space="preserve">
+    <value>Szűrő</value>
+  </data>
+  <data name="FromDate" xml:space="preserve">
+    <value>Ettől</value>
+  </data>
+  <data name="Info" xml:space="preserve">
+    <value>Információ</value>
+  </data>
+  <data name="Log" xml:space="preserve">
+    <value>Napló</value>
+  </data>
+  <data name="Login" xml:space="preserve">
+    <value>Bejelentkezés</value>
+  </data>
+  <data name="Logout" xml:space="preserve">
+    <value>Kijelentkezés</value>
+  </data>
+  <data name="NoAccessLogEntries" xml:space="preserve">
+    <value>Nem találhatók hozzáférési napló bejegyzések</value>
+  </data>
+  <data name="NoInfo" xml:space="preserve">
+    <value>Nincs információ</value>
+  </data>
+  <data name="Open" xml:space="preserve">
+    <value>Megnyitás</value>
+  </data>
+  <data name="Restore" xml:space="preserve">
+    <value>Visszaállítás</value>
+  </data>
+  <data name="SearchParameters" xml:space="preserve">
+    <value>Keresési paraméterek</value>
+  </data>
+  <data name="Timestamp" xml:space="preserve">
+    <value>Időbélyeg</value>
+  </data>
+  <data name="ToDate" xml:space="preserve">
+    <value>Eddig</value>
+  </data>
+  <data name="Type" xml:space="preserve">
+    <value>Típus</value>
+  </data>
 </root>
