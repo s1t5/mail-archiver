@@ -1,15 +1,17 @@
-# Mail Archiver Setup Guide
+# 🛠️ Mail Archiver Setup Guide
 
 [← Back to Documentation Index](Index.md)
 
+## 📋 Overview
+
 This guide provides detailed instructions for setting up the Mail Archiver application using Docker Compose.
 
-## Prerequisites
+## 🛠️ Prerequisites
 
 - [Docker](https://www.docker.com/products/docker-desktop)
 - [Docker Compose](https://docs.docker.com/compose/install/)
 
-## Installation Steps
+## 🚀 Installation Steps
 
 1. Install the prerequisites on your system.
 
@@ -120,19 +122,19 @@ docker compose restart
    - Save and start archiving!
    - If you want, create other users and assign accounts.
 
-## Environment Variable Explanations
+## 📚 Environment Variable Explanations
 
-### Database Connection
+### 🗄️ Database Connection
 - `ConnectionStrings__DefaultConnection`: The connection string to the PostgreSQL database. Modify the `Host`, `Database`, `Username`, and `Password` values as needed.
 
-### Authentication Settings
+### 🔐 Authentication Settings
 - `Authentication__Enabled`: Whether to enable authentication (true/false). Set to true to require login.
 - `Authentication__Username`: The username for the admin account.
 - `Authentication__Password`: The password for the admin account.
 - `Authentication__SessionTimeoutMinutes`: The session timeout in minutes.
 - `Authentication__CookieName`: The name of the authentication cookie.
 
-### MailSync Settings
+### 📨 MailSync Settings
 - `MailSync__IntervalMinutes`: The interval in minutes between email synchronization.
 - `MailSync__TimeoutMinutes`: The timeout for the sync operation in minutes.
 - `MailSync__ConnectionTimeoutSeconds`: The connection timeout for IMAP connections in seconds.
@@ -140,30 +142,30 @@ docker compose restart
 - `MailSync__AlwaysForceFullSync`: Whether to always force a full sync (true/false).
 - `MailSync__IgnoreSelfSignedCert`: Whether to ignore self-signed certificates (true/false).
 
-### BatchRestore Settings
+### 📤 BatchRestore Settings
 - `BatchRestore__AsyncThreshold`: The number of emails that triggers async processing.
 - `BatchRestore__MaxSyncEmails`: The maximum number of emails for sync processing.
 - `BatchRestore__MaxAsyncEmails`: The maximum number of emails for async processing.
 - `BatchRestore__SessionTimeoutMinutes`: The session timeout for batch restore in minutes.
 - `BatchRestore__DefaultBatchSize`: The default batch size for email operations.
 
-### BatchOperation Settings
+### 📦 BatchOperation Settings
 - `BatchOperation__BatchSize`: The batch size for email operations.
 - `BatchOperation__PauseBetweenEmailsMs`: The pause between individual emails in milliseconds.
 - `BatchOperation__PauseBetweenBatchesMs`: The pause between batches in milliseconds.
 
-### Selection Settings
+### 🎯 Selection Settings
 - `Selection__MaxSelectableEmails`: The maximum number of emails that can be selected at once.
 
-### Npgsql Settings
+### 🗃️ Npgsql Settings
 - `Npgsql__CommandTimeout`: The timeout for database commands in seconds.
 
-### Upload Settings
+### 📥 Upload Settings
 - `Upload__MaxFileSizeGB`: The maximum file size for uploads in GB.
 - `Upload__KeepAliveTimeoutHours`: The keep alive timeout for uploads in hours.
 - `Upload__RequestHeadersTimeoutHours`: The timeout for request headers in hours.
 
-## Security Notes
+## 🔒 Security Notes
 
 - Use strong passwords and change default credentials
 - Consider implementing HTTPS with a reverse proxy in production

@@ -1,12 +1,12 @@
-# Mailbox Migration Guide
+# 📥 Mailbox Migration Guide
 
 This guide explains how to migrate a mailbox from one email provider to another using the Mail Archiver application.
 
-## Overview
+## 📋 Overview
 
 The Mail Archiver application provides functionality to migrate emails from a source mailbox to a target mailbox. This is particularly useful when changing email providers while preserving your email history.
 
-## Migration Process
+## 🚀 Migration Process
 
 Follow these steps to migrate your mailbox:
 
@@ -46,7 +46,7 @@ Follow these steps to migrate your mailbox:
    - Set the source account to "Disabled" in the account settings
    - This ensures that it will no longer be archived in the future
 
-## Important Notes
+## ⚠️ Important Notes
 
 - Ensure that the source account has sufficient permissions to read all emails
 - Make sure that the target account has sufficient storage space for the migrated emails
@@ -55,7 +55,7 @@ Follow these steps to migrate your mailbox:
 - Regularly check the migration status in the "Jobs" tab to ensure the process is progressing
 - After migration, verify that all emails have been successfully transferred to the target account
 
-## Best Practices
+## ✅ Best Practices
 
 - Always test the migration process with a small subset of emails before migrating the entire mailbox
 - Keep a backup of important emails before starting the migration

@@ -1,10 +1,12 @@
-# Azure App Registration and Retention Policy Guide for Mail Archiver
+# ☁️ Azure App Registration and Retention Policy Guide for Mail Archiver
 
 [← Back to Documentation Index](Index.md)
 
+## 📋 Overview
+
 This guide provides comprehensive instructions for setting up Azure App Registration for email retrieval and configuring retention policies in the Mail Archiver application.
 
-## Table of Contents
+## 📚 Table of Contents
 
 1. [Overview](#overview)
 2. [Azure App Registration for Email Retrieval](#azure-app-registration-for-email-retrieval)
@@ -16,18 +18,18 @@ This guide provides comprehensive instructions for setting up Azure App Registra
 4. [Retention Policy Setup](#retention-policy-setup)
    - [Configure Retention Policy](#configure-retention-policy)
 
-## Overview
+## 🌐 Overview
 
 The Mail Archiver application supports Microsoft 365 (M365) accounts using OAuth2 client credentials flow for email retrieval. Additionally, it provides retention policy functionality to automatically delete emails from the mail server after a specified period, helping manage storage space while maintaining a complete archive.
 
-## Azure App Registration for Email Retrieval
+## ☁️ Azure App Registration for Email Retrieval
 
-### Prerequisites
+### 🛠️ Prerequisites
 
 - Administrative access to Microsoft Entra ID (Azure AD)
 - A Microsoft 365 tenant with Exchange Online licenses
 
-### Create App Registration
+### 🚀 Create App Registration
 
 1. Navigate to the [Microsoft Entra Admin Center](https://entra.microsoft.com)
 2. Sign in with your administrator account
@@ -44,7 +46,7 @@ The Mail Archiver application supports Microsoft 365 (M365) accounts using OAuth
 - **Application (client) ID** - You'll need this as `ClientId` in Mail Archiver
 - **Directory (tenant) ID** - You'll need this as `TenantId` in Mail Archiver
 
-### Set Required API Permissions
+### 🔐 Set Required API Permissions
 
 1. Navigate to **API permissions** in the left menu
 2. Click **+ Add a permission**
@@ -60,7 +62,7 @@ The Mail Archiver application supports Microsoft 365 (M365) accounts using OAuth
 
 **Note**: Application permissions are required because Mail Archiver uses client credentials flow to access mailboxes without user interaction.
 
-### Generate Client Secret
+### 🔑 Generate Client Secret
 
 1. Navigate to **Certificates & secrets** in the left menu
 2. Under **Client secrets**, click **+ New client secret**
@@ -69,17 +71,17 @@ The Mail Archiver application supports Microsoft 365 (M365) accounts using OAuth
 5. Click **Add**
 6. **Important**: Copy the **Value** immediately and store it securely. This secret will not be shown again.
 
-## Configure Mail Archiver M365 Account
+## 📧 Configure Mail Archiver M365 Account
 
 After completing the app registration, you need to configure a M365 mail account in Mail Archiver with the following values:
 
-### Required Values from App Registration:
+### 📋 Required Values from App Registration:
 
 1. **Client ID**: Copy the **Application (client) ID** from the app registration **Overview** page
 2. **Client Secret**: Copy the **Value** you saved when creating the client secret
 3. **Tenant ID**: Copy the **Directory (tenant) ID** from the app registration **Overview** page
 
-### Creating M365 Account in Mail Archiver:
+### 🚀 Creating M365 Account in Mail Archiver:
 
 1. Log into your Mail Archiver application
 2. Navigate to **Mail Accounts** > **Create**
@@ -93,16 +95,16 @@ After completing the app registration, you need to configure a M365 mail account
 
 4. Click **Create**
 
-### Important Notes:
+### ⚠️ Important Notes:
 
 - The **Email Address** field must contain the actual mailbox you want to archive
 - The app registration must have permissions to access the specified mailbox
 
-## Retention Policy Setup
+## 🗑️ Retention Policy Setup
 
 The Mail Archiver application provides retention policy functionality to automatically delete emails from the IMAP server after they have been successfully archived, helping manage storage space on the IMAP server while maintaining a complete archive.
 
-### Configure Retention Policy
+### 🛠️ Configure Retention Policy
 
 1. Navigate to **Mail Accounts** in the Mail Archiver application
 2. Either create a new M365 account or edit an existing one

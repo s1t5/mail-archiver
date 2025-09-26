@@ -1,19 +1,18 @@
-# User Management and Mailbox Permissions
+# 👥 User Management and Mailbox Permissions
 
 [← Back to Documentation Index](Index.md)
 
+## 📋 Overview
+
 This guide provides detailed instructions for creating new user accounts and assigning mailbox permissions in the Mail Archiver application.
 
-## Overview
 
-The Mail Archiver application supports multi-user access with granular permission controls. Administrators can create user accounts and assign specific email accounts (mailboxes) to each user, ensuring that users only have access to the email accounts they need.
-
-## Prerequisites
+## 🛠️ Prerequisites
 
 - Administrative access to the Mail Archiver application
 - Existing email accounts configured in the system
 
-## Creating a New User Account
+## 🧑‍💻 Creating a New User Account
 
 1. Log into the Mail Archiver application with an account that has administrative privileges
 2. Navigate to the "Users" section from the main menu
@@ -27,7 +26,7 @@ The Mail Archiver application supports multi-user access with granular permissio
    - **active**: Should be checked to allow logins for the user
 5. Click "Create User" to save the new user account
 
-## Assigning Mailbox Permissions to Users
+## 🔐 Assigning Mailbox Permissions to Users
 
 1. After creating the user, or when editing an existing user, navigate to the "Users" section from the main menu
 2. Find the user in the list where you want to assign mail accounts and click on the "Assign" button for that user
@@ -36,7 +35,7 @@ The Mail Archiver application supports multi-user access with granular permissio
 6. To remove an email account from the user uncheck the box
 7. Click "Save Assignments" to apply the changes
 
-## User Account Permissions
+## 👤 User Account Permissions
 
 Standard Users with access to specific email accounts can:
 - View archived emails from those accounts
@@ -52,7 +51,7 @@ Users cannot access:
 
 Users with the "Self Manager"-Role can additionally manage their own account settings, as well as add new Accounts. They can also delete accounts assigned to them.
 
-## Security Considerations
+## 🔒 Security Considerations
 
 1. Use strong passwords for all user accounts
 2. Only assign the Admin permission to users who need it

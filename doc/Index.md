@@ -2,6 +2,7 @@
 
 **Welcome to the Mail Archiver documentation** - Your central hub for all documentation related to the Mail Archiver application.
 
+
 ## 📋 Overview
 
 Mail Archiver is a comprehensive application designed to archive emails from various providers. This documentation section provides guides and instructions for configuring and using the application.
