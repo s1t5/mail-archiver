@@ -57,6 +57,7 @@ body {
 /* Theme Toggle Button */
 #theme-toggle {
   border: 1px solid rgba(255, 255, 255, 0.3);
+  height: 38px; /* Match height with user profile button */
 }
 
 #theme-toggle:hover {
@@ -65,6 +66,24 @@ body {
 
 #theme-toggle:focus {
   box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+}
+
+/* User Profile Button */
+.dropdown-toggle {
+  height: 38px; /* Match height with theme toggle */
+}
+
+/* Right align user profile button and dark mode toggle */
+@media (max-width: 1024px) {
+  .d-flex.align-items-center {
+    width: 100%;
+    justify-content: space-between;
+  }
+  
+  /* Add spacing between buttons and navigation */
+  .d-flex.align-items-center {
+    margin-top: 1rem;
+  }
 }
 
 /* Karten & Container */
