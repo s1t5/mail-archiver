@@ -1400,7 +1400,7 @@
     <value>Full system access including user management and all email accounts</value>
   </data>
   <data name="SelfManagerRoleDescription" xml:space="preserve">
-    <value>Can manage their own account settings and assigned email accounts, as well as add new Accounts</value>
+    <value>Can manage their own account settings as well as add new Accounts</value>
   </data>
   
   <!-- EML Import -->

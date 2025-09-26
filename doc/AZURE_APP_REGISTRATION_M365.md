@@ -1,5 +1,7 @@
 # Azure App Registration and Retention Policy Guide for Mail Archiver
 
+[← Back to Documentation Index](Index.md)
+
 This guide provides comprehensive instructions for setting up Azure App Registration for email retrieval and configuring retention policies in the Mail Archiver application.
 
 ## Table of Contents

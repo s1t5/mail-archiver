@@ -13,60 +13,43 @@
 
 ## ✨ Key Features
 
-### 📌 General
-- Automated archiving of incoming and outgoing emails
-- Support for multiple accounts
-- Storage of email content and attachments
-- Scheduled synchronization at configurable intervals
-- Mobile and desktop optimized, multilingual responsive UI
-- Dark mode
+### 📌 Core Features
+- Automated archiving of incoming and outgoing emails from multiple accounts
+- Storage of email content and attachments with scheduled synchronization
+- Mobile and desktop optimized, multilingual responsive UI with dark mode
 
-### 🔍 Advanced Search
-- Search across all archived emails
-- Filter by date range, sender, recipient, and more
+### 🔍 Search & Access
+- Advanced search across all archived emails with filtering options
 - Preview emails with attachment list
-
-### 👥 Multi User
-- Create multiple user accounts
-- Assignment of different mail accounts to users
-
-### 📊 Dashboard & Statistics
-- Account-specific statistics and overview
-- Storage usage monitoring
-- Top senders analysis
-
-### 🧩 Supported Email Providers
-- **IMAP**: Traditional IMAP accounts with full synchronization capabilities
-- **M365**: Microsoft 365 mail accounts via Microsoft Graph API ([setup guide](doc/AZURE_APP_REGISTRATION_M365.md))
-- **IMPORT**: Import-only accounts for migrating existing email archives without active synchronization
-
-### 📤 Export Functions
 - Export entire mail accounts as mbox files or zipped EML archives
 - Export selected individual emails or email batches
-- Download attachments with original filenames preserved
 
-### 📥 Import Functions
-- MBox Import
-- EML Import (ZIP files with folder structure support)
+### 👥 User Management
+- Multi-user support with account-specific permissions
+- Dashboard with statistics, storage monitoring, and sender analysis
+- Access log tracking all user activities
 
-### 🔁 Restore Function
-- Restore a selection of emails or an entire mailbox to a destination mailbox
+### 🧩 Email Provider Support
+- **IMAP**: Traditional IMAP accounts with full synchronization capabilities
+- **M365**: Microsoft 365 mail accounts via Microsoft Graph API ([setup guide](doc/AZURE_APP_REGISTRATION_M365.md))
+- **IMPORT**: Import-only accounts for migrating existing email archives
+
+### 📥 Import & Restore Functions
+- MBox Import and EML Import (ZIP files with folder structure support)
+- Restore selected emails or entire mailboxes to destination mailboxes
 
 ### 🗑️ Retention Policies
-- Configure automatic deletion of archived emails from the mailserver after a specified number of days
-- Set retention period per email account (e.g., delete emails after 30, 90, or 365 days)
-- Emails are only deleted from the server after they have been successfully archived
-- Helps manage storage space on the mailserver while maintaining a complete archive
+- Configure automatic deletion of archived emails from mailserver after specified days
+- Set retention period per email account (e.g., 30, 90, or 365 days)
+- Helps manage storage space while maintaining complete archive
 
 > 🚨 **Important note for retention policies**
 > - Requires IMAP Expunge support from the mail server to permanently delete emails
 > - For Gmail accounts, Auto-Expunge must be disabled in Gmail settings under the "Forwarding and POP/IMAP" tab!
 
-### 📑 Access Log
-- Comprehensive access log feature that tracks user activities
-- Records all user actions including login, logout, search, email access, downloads, and account management
-- Admins can filter logs by date range and username for easier analysis
+## 📚 Documentation
 
+For detailed documentation on installation, configuration, and usage, please refer to the [Documentation Index](doc/Index.md). Please note that the documentation is still fresh and is continuously being expanded.
 
 ## 🖼️ Screenshots
 
@@ -204,16 +187,6 @@ docker compose restart
 - Consider implementing HTTPS with a reverse proxy in production
 - Regular backups of the PostgreSQL database recommended
 
-## 📝 How To - Mailbox migration
-It is also possible to migrate a mailbox to another target mailbox, for example when changing mail provider.
-The following steps are planned for this
-1. add the source account under the accounts
-2. synchronisation of the source account
-3. adding the target account
-4. synchronisation of the possibly still empty target account
-5. select ‘Copy All Emails to Another Mailbox’ in the details under the accounts for the source account
-6. select the target account and the target folder in this account and start the migration. If there is a large amount of emails to be moved, this is carried out as a background task. The status and progress of this can be viewed in the Jobs tab.
-7. after the successful transfer, set the source account to ‘Disabled’ under the accounts so that it is no longer archived in future.
 
 ## 📋 Technical Details
 
@@ -221,6 +194,7 @@ The following steps are planned for this
 - ASP.NET Core 8 MVC application
 - PostgreSQL database for email storage
 - MailKit library for IMAP communication
+- Microsoft Graph API for M365 email access
 - Background service for email synchronization
 - Bootstrap 5 and Chart.js for frontend
 

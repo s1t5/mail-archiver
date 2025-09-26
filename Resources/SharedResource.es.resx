@@ -1408,7 +1408,7 @@
     <value>Acceso completo al sistema incluyendo administración de usuarios y todas las cuentas de correo</value>
   </data>
   <data name="SelfManagerRoleDescription" xml:space="preserve">
-    <value>Puede administrar su propia configuración de cuenta y cuentas de correo asignadas, así como agregar nuevas Cuentas</value>
+    <value>Puede administrar la configuración de su propia cuenta, así como añadir nuevas cuentas</value>
   </data>
   <!-- EML Import -->
   <data name="ImportEml" xml:space="preserve">

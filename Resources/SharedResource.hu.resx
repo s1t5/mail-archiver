@@ -1410,7 +1410,7 @@
     <value>Teljes rendszer hozzáférés beleértve a felhasználó kezelést és az összes e-mail fiókot</value>
   </data>
   <data name="SelfManagerRoleDescription" xml:space="preserve">
-    <value>Kezelheti a saját fiók beállításait és a hozzárendelt e-mail fiókokat, valamint új fiókokat adhat hozzá</value>
+    <value>Kezelheti saját fiókbeállításait, valamint új fiókokat adhat hozzá</value>
   </data>
   <data name="ImportEml" xml:space="preserve">
     <value>EML Importálás</value>

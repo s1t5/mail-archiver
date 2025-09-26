@@ -1400,7 +1400,7 @@
     <value>Accès complet au système incluant la gestion des utilisateurs et tous les comptes de messagerie</value>
   </data>
   <data name="SelfManagerRoleDescription" xml:space="preserve">
-    <value>Peut gérer ses propres paramètres de compte et les comptes de messagerie attribués, ainsi qu'ajouter de nouveaux comptes</value>
+    <value>Peut gérer les paramètres de son propre compte ainsi qu’ajouter de nouveaux comptes</value>
   </data>
 
   <!-- EML Import -->

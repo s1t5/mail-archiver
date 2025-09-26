@@ -578,11 +578,42 @@ namespace MailArchiver.Controllers
                 return NotFound();
             }
 
+            // Get current user's allowed accounts
+            List<int> allowedAccountIds = null;
+            var authService = HttpContext.RequestServices.GetService<MailArchiver.Services.IAuthenticationService>();
+            var userService = HttpContext.RequestServices.GetService<IUserService>();
+            
+            if (authService != null && userService != null && !authService.IsCurrentUserAdmin(HttpContext))
+            {
+                var username = authService.GetCurrentUser(HttpContext);
+                var user = await userService.GetUserByUsernameAsync(username);
+                if (user != null)
+                {
+                    var userAccounts = await userService.GetUserMailAccountsAsync(user.Id);
+                    allowedAccountIds = userAccounts.Select(a => a.Id).ToList();
+                }
+            }
+
             // Liste aller aktiven E-Mail-Konten abrufen (ohne IMPORT-Konten)
-            var accounts = await _context.MailAccounts
+            IQueryable<MailAccount> accountsQuery = _context.MailAccounts
                 .Where(a => a.IsEnabled && a.Provider != ProviderType.IMPORT)
-                .OrderBy(a => a.Name)
-                .ToListAsync();
+                .OrderBy(a => a.Name);
+            
+            // Filter by allowed accounts for non-admin users
+            if (allowedAccountIds != null)
+            {
+                if (allowedAccountIds.Any())
+                {
+                    accountsQuery = accountsQuery.Where(a => allowedAccountIds.Contains(a.Id));
+                }
+                else
+                {
+                    // User has no access to any accounts, return empty list
+                    accountsQuery = accountsQuery.Where(a => false);
+                }
+            }
+            
+            var accounts = await accountsQuery.ToListAsync();
 
             var model = new EmailRestoreViewModel
             {
@@ -645,6 +676,31 @@ namespace MailArchiver.Controllers
                 ModelState.Remove("EmailSender");
             if (ModelState.ContainsKey("EmailSubject"))
                 ModelState.Remove("EmailSubject");
+
+            // Get current user's allowed accounts
+            List<int> allowedAccountIds = null;
+            var authService = HttpContext.RequestServices.GetService<MailArchiver.Services.IAuthenticationService>();
+            var userService = HttpContext.RequestServices.GetService<IUserService>();
+            
+            if (authService != null && userService != null && !authService.IsCurrentUserAdmin(HttpContext))
+            {
+                var username = authService.GetCurrentUser(HttpContext);
+                var user = await userService.GetUserByUsernameAsync(username);
+                if (user != null)
+                {
+                    var userAccounts = await userService.GetUserMailAccountsAsync(user.Id);
+                    allowedAccountIds = userAccounts.Select(a => a.Id).ToList();
+                }
+            }
+
+            // Check if user is allowed to access the target account
+            if (allowedAccountIds != null && allowedAccountIds.Any() && !allowedAccountIds.Contains(model.TargetAccountId))
+            {
+                _logger.LogWarning("User {Username} attempted to restore email to account {AccountId} which they don't have access to", 
+                    authService?.GetCurrentUser(HttpContext), model.TargetAccountId);
+                TempData["ErrorMessage"] = "You do not have access to the selected account.";
+                return RedirectToAction(nameof(Details), new { id = model.EmailId });
+            }
 
             if (!ModelState.IsValid)
             {
@@ -895,11 +951,42 @@ namespace MailArchiver.Controllers
 
             var ids = idsString.Split(',').Select(int.Parse).ToList();
 
+            // Get current user's allowed accounts
+            List<int> allowedAccountIds = null;
+            var authService = HttpContext.RequestServices.GetService<MailArchiver.Services.IAuthenticationService>();
+            var userService = HttpContext.RequestServices.GetService<IUserService>();
+            
+            if (authService != null && userService != null && !authService.IsCurrentUserAdmin(HttpContext))
+            {
+                var username = authService.GetCurrentUser(HttpContext);
+                var user = await userService.GetUserByUsernameAsync(username);
+                if (user != null)
+                {
+                    var userAccounts = await userService.GetUserMailAccountsAsync(user.Id);
+                    allowedAccountIds = userAccounts.Select(a => a.Id).ToList();
+                }
+            }
+
             // Get active email accounts for dropdown (without IMPORT accounts)
-            var accounts = await _context.MailAccounts
+            IQueryable<MailAccount> accountsQuery = _context.MailAccounts
                 .Where(a => a.IsEnabled && a.Provider != ProviderType.IMPORT)
-                .OrderBy(a => a.Name)
-                .ToListAsync();
+                .OrderBy(a => a.Name);
+            
+            // Filter by allowed accounts for non-admin users
+            if (allowedAccountIds != null)
+            {
+                if (allowedAccountIds.Any())
+                {
+                    accountsQuery = accountsQuery.Where(a => allowedAccountIds.Contains(a.Id));
+                }
+                else
+                {
+                    // User has no access to any accounts, return empty list
+                    accountsQuery = accountsQuery.Where(a => false);
+                }
+            }
+            
+            var accounts = await accountsQuery.ToListAsync();
 
             var model = new BatchRestoreViewModel
             {
@@ -954,6 +1041,31 @@ namespace MailArchiver.Controllers
         {
             _logger.LogInformation("BatchRestore POST method called with {Count} emails, Target Account ID: {AccountId}, Target Folder: {Folder}",
                 model.SelectedEmailIds.Count, model.TargetAccountId, model.TargetFolder);
+
+            // Get current user's allowed accounts
+            List<int> allowedAccountIds = null;
+            var authService = HttpContext.RequestServices.GetService<MailArchiver.Services.IAuthenticationService>();
+            var userService = HttpContext.RequestServices.GetService<IUserService>();
+            
+            if (authService != null && userService != null && !authService.IsCurrentUserAdmin(HttpContext))
+            {
+                var username = authService.GetCurrentUser(HttpContext);
+                var user = await userService.GetUserByUsernameAsync(username);
+                if (user != null)
+                {
+                    var userAccounts = await userService.GetUserMailAccountsAsync(user.Id);
+                    allowedAccountIds = userAccounts.Select(a => a.Id).ToList();
+                }
+            }
+
+            // Check if user is allowed to access the target account
+            if (allowedAccountIds != null && allowedAccountIds.Any() && !allowedAccountIds.Contains(model.TargetAccountId))
+            {
+                _logger.LogWarning("User {Username} attempted to restore emails to account {AccountId} which they don't have access to", 
+                    authService?.GetCurrentUser(HttpContext), model.TargetAccountId);
+                TempData["ErrorMessage"] = "You do not have access to the selected account.";
+                return Redirect(model.ReturnUrl ?? Url.Action("Index"));
+            }
 
             // Hole IDs aus Session falls sie nicht im Model sind
             if (!model.SelectedEmailIds.Any())
@@ -1195,11 +1307,42 @@ namespace MailArchiver.Controllers
                 }
             }
 
+            // Get current user's allowed accounts
+            List<int> allowedAccountIds = null;
+            var authService = HttpContext.RequestServices.GetService<MailArchiver.Services.IAuthenticationService>();
+            var userService = HttpContext.RequestServices.GetService<IUserService>();
+            
+            if (authService != null && userService != null && !authService.IsCurrentUserAdmin(HttpContext))
+            {
+                var username = authService.GetCurrentUser(HttpContext);
+                var user = await userService.GetUserByUsernameAsync(username);
+                if (user != null)
+                {
+                    var userAccounts = await userService.GetUserMailAccountsAsync(user.Id);
+                    allowedAccountIds = userAccounts.Select(a => a.Id).ToList();
+                }
+            }
+
             // Get active email accounts (without IMPORT accounts)
-            var accounts = await _context.MailAccounts
+            IQueryable<MailAccount> accountsQuery = _context.MailAccounts
                 .Where(a => a.IsEnabled && a.Provider != ProviderType.IMPORT)
-                .OrderBy(a => a.Name)
-                .ToListAsync();
+                .OrderBy(a => a.Name);
+            
+            // Filter by allowed accounts for non-admin users
+            if (allowedAccountIds != null)
+            {
+                if (allowedAccountIds.Any())
+                {
+                    accountsQuery = accountsQuery.Where(a => allowedAccountIds.Contains(a.Id));
+                }
+                else
+                {
+                    // User has no access to any accounts, return empty list
+                    accountsQuery = accountsQuery.Where(a => false);
+                }
+            }
+            
+            var accounts = await accountsQuery.ToListAsync();
 
             if (!accounts.Any())
             {
@@ -1248,6 +1391,31 @@ namespace MailArchiver.Controllers
             if (_batchRestoreService == null)
             {
                 TempData["ErrorMessage"] = "Asynchronous batch restore is not available.";
+                return Redirect(model.ReturnUrl ?? Url.Action("Index"));
+            }
+
+            // Get current user's allowed accounts
+            List<int> allowedAccountIds = null;
+            var authService = HttpContext.RequestServices.GetService<MailArchiver.Services.IAuthenticationService>();
+            var userService = HttpContext.RequestServices.GetService<IUserService>();
+            
+            if (authService != null && userService != null && !authService.IsCurrentUserAdmin(HttpContext))
+            {
+                var username = authService.GetCurrentUser(HttpContext);
+                var user = await userService.GetUserByUsernameAsync(username);
+                if (user != null)
+                {
+                    var userAccounts = await userService.GetUserMailAccountsAsync(user.Id);
+                    allowedAccountIds = userAccounts.Select(a => a.Id).ToList();
+                }
+            }
+
+            // Check if user is allowed to access the target account
+            if (allowedAccountIds != null && allowedAccountIds.Any() && !allowedAccountIds.Contains(model.TargetAccountId))
+            {
+                _logger.LogWarning("User {Username} attempted to restore emails to account {AccountId} which they don't have access to", 
+                    authService?.GetCurrentUser(HttpContext), model.TargetAccountId);
+                TempData["ErrorMessage"] = "You do not have access to the selected account.";
                 return Redirect(model.ReturnUrl ?? Url.Action("Index"));
             }
 

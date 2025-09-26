@@ -1400,7 +1400,7 @@
     <value>Popoln dostop do sistema vključno z upravljanjem uporabnikov in vseh e-poštnih računov</value>
   </data>
   <data name="SelfManagerRoleDescription" xml:space="preserve">
-    <value>Lahko upravlja lastne nastavitve računa in dodeljene e-poštne račune ter dodaja nove račune</value>
+    <value>Lahko upravlja nastavitve svojega računa ter dodaja nove račune</value>
   </data>
 
   <!-- EML Import -->

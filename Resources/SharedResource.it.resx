@@ -1400,7 +1400,7 @@
     <value>Accesso completo al sistema inclusa la gestione degli utenti e tutti gli account email</value>
   </data>
   <data name="SelfManagerRoleDescription" xml:space="preserve">
-    <value>Può gestire le proprie impostazioni dell'account e gli account email assegnati, oltre ad aggiungere nuovi account</value>
+    <value>Può gestire le impostazioni del proprio account e aggiungere nuovi account</value>
   </data>
 
   <!-- EML Import -->

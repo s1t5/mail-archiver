@@ -1400,7 +1400,7 @@
     <value>Volledige systeemtoegang inclusief gebruikersbeheer en alle e-mailaccounts</value>
   </data>
   <data name="SelfManagerRoleDescription" xml:space="preserve">
-    <value>Kan eigen accountinstellingen en toegewezen e-mailaccounts beheren, evenals nieuwe accounts toevoegen</value>
+    <value>Kan zijn eigen accountinstellingen beheren en nieuwe accounts toevoegen</value>
   </data>
 
   <!-- EML Import -->
