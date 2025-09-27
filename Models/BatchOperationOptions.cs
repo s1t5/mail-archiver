@@ -4,8 +4,8 @@ namespace MailArchiver.Models
     {
         public const string BatchOperation = "BatchOperation";
         
-        public int BatchSize { get; set; } = 50;
-        public int PauseBetweenEmailsMs { get; set; } = 50;
-        public int PauseBetweenBatchesMs { get; set; } = 250;
+        public int BatchSize { get; set; } = 20;
+        public int PauseBetweenEmailsMs { get; set; } = 100;
+        public int PauseBetweenBatchesMs { get; set; } = 500;
     }
 }

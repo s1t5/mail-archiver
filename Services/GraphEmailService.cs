@@ -512,6 +512,13 @@ namespace MailArchiver.Services
                             result.FailedEmails++;
                             processedInThisFolder++;
                         }
+                        
+                        // Force garbage collection after each email to free memory
+                        if (processedInThisFolder % 10 == 0)
+                        {
+                            GC.Collect();
+                            GC.WaitForPendingFinalizers();
+                        }
                     }
 
                     // Handle pagination if there are more messages
@@ -614,8 +621,19 @@ namespace MailArchiver.Services
                                     result.FailedEmails++;
                                     processedInThisFolder++;
                                 }
+                                
+                                // Force garbage collection after each email to free memory
+                                if (processedInThisFolder % 10 == 0)
+                                {
+                                    GC.Collect();
+                                    GC.WaitForPendingFinalizers();
+                                }
                             }
                         }
+                        
+                        // Force garbage collection after each page to free memory
+                        GC.Collect();
+                        GC.WaitForPendingFinalizers();
                     }
 
                     if (paginationCount >= maxPaginationPages)

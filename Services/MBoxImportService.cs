@@ -341,6 +341,9 @@ private readonly IServiceProvider _serviceProvider;
                         // Importiere E-Mail in die Datenbank
                         var importResult = await ImportEmailToDatabase(message, targetAccount, job);
 
+                        // Explicitly dispose of the message to free memory
+                        message?.Dispose();
+
                         if (importResult.Success)
                         {
                             job.SuccessCount++;
@@ -357,10 +360,17 @@ private readonly IServiceProvider _serviceProvider;
 
                         job.ProcessedEmails++;
 
-// Kleine Pause alle 10 E-Mails
+                        // Kleine Pause alle 10 E-Mails
                         if (job.ProcessedEmails % 10 == 0 && _batchOptions.PauseBetweenEmailsMs > 0)
                         {
                             await Task.Delay(_batchOptions.PauseBetweenEmailsMs, cancellationToken);
+                            
+                            // Force garbage collection after every 10 emails to free memory
+                            if (job.ProcessedEmails % 50 == 0)
+                            {
+                                GC.Collect();
+                                GC.WaitForPendingFinalizers();
+                            }
                         }
 
                         // Log Progress alle 100 E-Mails
@@ -369,6 +379,10 @@ private readonly IServiceProvider _serviceProvider;
                             var progressPercent = job.TotalEmails > 0 ? (job.ProcessedEmails * 100.0 / job.TotalEmails) : 0;
                             _logger.LogInformation("Job {JobId}: Processed {Processed} emails ({Progress:F1}%)",
                                 job.JobId, job.ProcessedEmails, progressPercent);
+                            
+                            // Force garbage collection after every 100 emails to free memory
+                            GC.Collect();
+                            GC.WaitForPendingFinalizers();
                         }
                     }
                     catch (FormatException ex)

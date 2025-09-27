@@ -801,7 +801,7 @@ namespace MailArchiver.Services
                 else if (!client.IsAuthenticated)
                 {
                     _logger.LogWarning("Client not authenticated, attempting to re-authenticate...");
-                    await client.AuthenticateAsync(GetAuthenticationUsername(account), account.Password);
+                    await AuthenticateClientAsync(client, account);
                 }
 
                 // Ensure folder is open
@@ -846,6 +846,7 @@ namespace MailArchiver.Services
 
                     result.ProcessedEmails = uids.Count;
 
+                    // Process emails in smaller chunks to reduce memory usage
                     for (int i = 0; i < uids.Count; i += _batchOptions.BatchSize)
                     {
                         // Check if job has been cancelled
@@ -904,6 +905,9 @@ namespace MailArchiver.Services
                                 {
                                     result.NewEmails++;
                                 }
+                                
+                                // Explicitly dispose of the message to free memory
+                                message?.Dispose();
                             }
                             catch (Exception ex)
                             {
@@ -912,6 +916,21 @@ namespace MailArchiver.Services
                                 _logger.LogError(ex, "Error archiving message {MessageNumber} from folder {FolderName}. Subject: {Subject}, Date: {Date}, Message: {Message}",
                                     uid, folder.FullName, subject, date, ex.Message);
                                 result.FailedEmails++;
+                            }
+                            finally
+                            {
+                                // Ensure message is disposed to free memory
+                                if (message != null)
+                                {
+                                    try
+                                    {
+                                        message.Dispose();
+                                    }
+                                    catch (Exception disposeEx)
+                                    {
+                                        _logger.LogDebug(disposeEx, "Error disposing message {MessageNumber} from folder {FolderName}", uid, folder.FullName);
+                                    }
+                                }
                             }
                         }
 
@@ -922,6 +941,10 @@ namespace MailArchiver.Services
                             {
                                 await Task.Delay(_batchOptions.PauseBetweenBatchesMs);
                             }
+                            
+                            // Force garbage collection after each batch to free memory
+                            GC.Collect();
+                            GC.WaitForPendingFinalizers();
                         }
                         else if (_batchOptions.PauseBetweenEmailsMs > 0 && batch.Count > 1)
                         {
