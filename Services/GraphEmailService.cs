@@ -1,5 +1,6 @@
 using MailArchiver.Data;
 using MailArchiver.Models;
+using MailArchiver.Utilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.Graph;
@@ -25,19 +26,22 @@ namespace MailArchiver.Services
         private readonly ISyncJobService _syncJobService;
         private readonly BatchOperationOptions _batchOptions;
         private readonly MailSyncOptions _mailSyncOptions;
+        private readonly DateTimeHelper _dateTimeHelper;
 
         public GraphEmailService(
             MailArchiverDbContext context,
             ILogger<GraphEmailService> logger,
             ISyncJobService syncJobService,
             IOptions<BatchOperationOptions> batchOptions,
-            IOptions<MailSyncOptions> mailSyncOptions)
+            IOptions<MailSyncOptions> mailSyncOptions,
+            DateTimeHelper dateTimeHelper)
         {
             _context = context;
             _logger = logger;
             _syncJobService = syncJobService;
             _batchOptions = batchOptions.Value;
             _mailSyncOptions = mailSyncOptions.Value;
+            _dateTimeHelper = dateTimeHelper;
         }
 
         /// <summary>
@@ -701,11 +705,8 @@ namespace MailArchiver.Services
             {
                 _logger.LogDebug("Archiving new email {MessageId} for account {AccountName}", messageId, account.Name);
                 
-                DateTime sentDate = message.SentDateTime?.DateTime ?? DateTime.UtcNow;
-                if (sentDate.Kind != DateTimeKind.Utc)
-                {
-                    sentDate = DateTime.SpecifyKind(sentDate, DateTimeKind.Utc);
-                }
+                // Convert timestamp to configured display timezone
+                var convertedSentDate = _dateTimeHelper.ConvertToDisplayTimeZone(message.SentDateTime?.DateTime ?? DateTime.UtcNow);
 
                 var subject = CleanText(message.Subject ?? "(No Subject)");
                 var from = CleanText(message.From?.EmailAddress?.Address ?? string.Empty);
@@ -779,7 +780,7 @@ namespace MailArchiver.Services
                     To = to,
                     Cc = cc,
                     Bcc = bcc,
-                    SentDate = sentDate,
+                    SentDate = convertedSentDate,
                     ReceivedDate = DateTime.UtcNow,
                     IsOutgoing = (isOutgoingEmail || isOutgoingFolder) && !isDraftsFolder,
                     HasAttachments = message.HasAttachments ?? false || isHtmlTruncated || isBodyTruncated,

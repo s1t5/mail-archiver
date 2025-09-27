@@ -1,5 +1,6 @@
 using MailArchiver.Data;
 using MailArchiver.Models;
+using MailArchiver.Utilities;
 using MailKit.Net.Imap;
 using MailKit;
 using MimeKit;
@@ -480,6 +481,10 @@ namespace MailArchiver.Services
                 var allAttachments = new List<MimePart>();
                 CollectAllAttachments(message.Body, allAttachments);
 
+                // Convert timestamp to configured display timezone
+                var dateTimeHelper = scope.ServiceProvider.GetRequiredService<DateTimeHelper>();
+                var convertedSentDate = dateTimeHelper.ConvertToDisplayTimeZone(message.Date);
+
                 var archivedEmail = new ArchivedEmail
                 {
                     MailAccountId = account.Id,
@@ -489,7 +494,7 @@ namespace MailArchiver.Services
                     To = CleanText(string.Join(", ", message.To.Mailboxes.Select(m => m.Address))),
                     Cc = CleanText(string.Join(", ", message.Cc?.Mailboxes.Select(m => m.Address) ?? Enumerable.Empty<string>())),
                     Bcc = CleanText(string.Join(", ", message.Bcc?.Mailboxes.Select(m => m.Address) ?? Enumerable.Empty<string>())),
-                    SentDate = message.Date.UtcDateTime,
+                    SentDate = convertedSentDate,
                     ReceivedDate = DateTime.UtcNow,
                     IsOutgoing = DetermineIfOutgoing(message, account),
                     HasAttachments = allAttachments.Any() || isHtmlTruncated || isBodyTruncated, // Set to true if there are attachments or content was truncated

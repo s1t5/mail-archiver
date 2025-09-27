@@ -120,6 +120,9 @@ services:
       - Upload__MaxFileSizeGB=10
       - Upload__KeepAliveTimeoutHours=4
       - Upload__RequestHeadersTimeoutHours=2
+
+      # TimeZone Settings
+      - TimeZone__DisplayTimeZoneId=Etc/UCT
     ports:
       - "5000:5000"
     networks:
@@ -157,25 +160,27 @@ networks:
 
 4. If you want to use authentication (which i'd strongly recommend) definie a `Authentication__Username` and `Authentication__Password` which is used for the admin user.
 
-4. Configure a reverse proxy of your choice with https and authentification to secure access to the application. 
+5. Adjust the `TimeZone__DisplayTimeZoneId` environment variable to match your preferred timezone (default is "Etc/UCT"). You can use any IANA timezone identifier (e.g., "Europe/Berlin", "Asia/Tokyo").
+
+6. Configure a reverse proxy of your choice with https and authentification to secure access to the application. 
 
 > ⚠️ **Attention**
 > 
 > The application itself does not provide encrypted access via https! It must be set up via a reverse proxy! Moreover the application is not build for public internet access!
 
-4. Initial start of the containers:
+7. Initial start of the containers:
 ```bash
 docker compose up -d
 ```
 
-5. Restart containers:
+8. Restart containers:
 ```bash
 docker compose restart
 ```
 
-6. Access the application
+9. Access the application
 
-7. Login with your defined credentials and add your first email account:
+10. Login with your defined credentials and add your first email account:
 - Navigate to "Email Accounts" section
 - Click "New Account"
 - Enter your server details and credentials

@@ -79,6 +79,13 @@ builder.Services.Configure<UploadOptions>(
 builder.Services.Configure<SelectionOptions>(
     builder.Configuration.GetSection("Selection"));
 
+// Add TimeZone Options
+builder.Services.Configure<TimeZoneOptions>(
+    builder.Configuration.GetSection("TimeZone"));
+
+// Add DateTimeHelper
+builder.Services.AddScoped<MailArchiver.Utilities.DateTimeHelper>();
+
 // Add Session support
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
@@ -198,9 +205,18 @@ builder.Services.AddScoped<IEmailService, EmailService>(provider =>
         provider.GetRequiredService<ISyncJobService>(),
         provider.GetRequiredService<IOptions<BatchOperationOptions>>(),
         provider.GetRequiredService<IOptions<MailSyncOptions>>(),
-        provider.GetRequiredService<IGraphEmailService>()
+        provider.GetRequiredService<IGraphEmailService>(),
+        provider.GetRequiredService<MailArchiver.Utilities.DateTimeHelper>()
     ));
-builder.Services.AddScoped<IGraphEmailService, GraphEmailService>();
+builder.Services.AddScoped<IGraphEmailService, GraphEmailService>(provider =>
+    new GraphEmailService(
+        provider.GetRequiredService<MailArchiverDbContext>(),
+        provider.GetRequiredService<ILogger<GraphEmailService>>(),
+        provider.GetRequiredService<ISyncJobService>(),
+        provider.GetRequiredService<IOptions<BatchOperationOptions>>(),
+        provider.GetRequiredService<IOptions<MailSyncOptions>>(),
+        provider.GetRequiredService<MailArchiver.Utilities.DateTimeHelper>()
+    ));
 builder.Services.AddScoped<IAuthenticationService, CookieAuthenticationService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddSingleton<ISyncJobService, SyncJobService>(); // NEUE SERVICE

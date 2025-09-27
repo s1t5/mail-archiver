@@ -1,6 +1,7 @@
 using MailArchiver.Data;
 using MailArchiver.Models;
 using MailArchiver.Models.ViewModels;
+using MailArchiver.Utilities;
 using MailArchiver.ViewModels;
 using MailKit;
 using MailKit.Net.Imap;
@@ -27,6 +28,7 @@ namespace MailArchiver.Services
         private readonly BatchOperationOptions _batchOptions;
         private readonly MailSyncOptions _mailSyncOptions;
         private readonly IGraphEmailService _graphEmailService;
+        private readonly DateTimeHelper _dateTimeHelper;
 
         public EmailService(
             MailArchiverDbContext context,
@@ -34,7 +36,8 @@ namespace MailArchiver.Services
             ISyncJobService syncJobService,
             IOptions<BatchOperationOptions> batchOptions,
             IOptions<MailSyncOptions> mailSyncOptions,
-            IGraphEmailService graphEmailService)
+            IGraphEmailService graphEmailService,
+            DateTimeHelper dateTimeHelper)
         {
             _context = context;
             _logger = logger;
@@ -42,6 +45,7 @@ namespace MailArchiver.Services
             _batchOptions = batchOptions.Value;
             _mailSyncOptions = mailSyncOptions.Value;
             _graphEmailService = graphEmailService;
+            _dateTimeHelper = dateTimeHelper;
         }
 
         /// <summary>
@@ -1004,7 +1008,8 @@ namespace MailArchiver.Services
 
             try
             {
-                DateTime sentDate = DateTime.SpecifyKind(message.Date.DateTime, DateTimeKind.Utc);
+                // Convert timestamp to configured display timezone
+                var convertedSentDate = _dateTimeHelper.ConvertToDisplayTimeZone(message.Date);
                 var subject = CleanText(message.Subject ?? "(No Subject)");
                 // Extract email address from From field
                 var fromAddress = message.From?.FirstOrDefault() as MailboxAddress;
@@ -1097,7 +1102,7 @@ namespace MailArchiver.Services
                     To = to,
                     Cc = cc,
                     Bcc = bcc,
-                    SentDate = sentDate,
+                    SentDate = convertedSentDate,
                     ReceivedDate = DateTime.UtcNow,
                     IsOutgoing = (isOutgoingEmail || isOutgoingFolder) && !isDraftsFolder,
                     HasAttachments = allAttachments.Any() || isHtmlTruncated || isBodyTruncated, // Set to true if there are attachments or content was truncated

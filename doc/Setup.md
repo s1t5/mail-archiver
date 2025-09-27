@@ -63,6 +63,9 @@ services:
       - Upload__MaxFileSizeGB=10
       - Upload__KeepAliveTimeoutHours=4
       - Upload__RequestHeadersTimeoutHours=2
+
+      # TimeZone Settings
+      - TimeZone__DisplayTimeZoneId=Etc/UCT
     ports:
       - "5000:5000"
     networks:
@@ -99,23 +102,25 @@ networks:
 
 4. If you want to use authentication (which is strongly recommended), define a `Authentication__Username` and `Authentication__Password` which is used for the admin user.
 
-5. Configure a reverse proxy of your choice with https and authentication to secure access to the application. 
+5. Adjust the `TimeZone__DisplayTimeZoneId` environment variable to match your preferred timezone (default is "Etc/UCT"). You can use any IANA timezone identifier (e.g., "Europe/Berlin", "Asia/Tokyo").
+
+6. Configure a reverse proxy of your choice with https and authentication to secure access to the application. 
 
 > ⚠️ **Attention**: The application itself does not provide encrypted access via https! It must be set up via a reverse proxy!
 
-6. Initial start of the containers:
+7. Initial start of the containers:
 ```bash
 docker compose up -d
 ```
 
-7. Restart containers:
+8. Restart containers:
 ```bash
 docker compose restart
 ```
 
-8. Access the application
+9. Access the application
 
-9. Login with your defined credentials and add your first email account:
+10. Login with your defined credentials and add your first email account:
    - Navigate to "Email Accounts" section
    - Click "New Account"
    - Enter your server details and credentials
@@ -164,6 +169,9 @@ docker compose restart
 - `Upload__MaxFileSizeGB`: The maximum file size for uploads in GB.
 - `Upload__KeepAliveTimeoutHours`: The keep alive timeout for uploads in hours.
 - `Upload__RequestHeadersTimeoutHours`: The timeout for request headers in hours.
+
+### 🕐 TimeZone Settings
+- `TimeZone__DisplayTimeZoneId`: The time zone used for displaying email timestamps in the UI. Uses IANA time zone identifiers (e.g., "Europe/Berlin", "Asia/Tokyo"). Default is "Etc/UCT" for backward compatibility. When importing emails timestamps will be converted to this time zone for display purposes.
 
 ## 🔒 Security Notes
 
