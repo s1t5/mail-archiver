@@ -706,7 +706,9 @@ namespace MailArchiver.Services
                 _logger.LogDebug("Archiving new email {MessageId} for account {AccountName}", messageId, account.Name);
                 
                 // Convert timestamp to configured display timezone
-                var convertedSentDate = _dateTimeHelper.ConvertToDisplayTimeZone(message.SentDateTime?.DateTime ?? DateTime.UtcNow);
+                var convertedSentDate = message.SentDateTime.HasValue 
+                    ? _dateTimeHelper.ConvertToDisplayTimeZone(message.SentDateTime.Value) 
+                    : _dateTimeHelper.ConvertToDisplayTimeZone(DateTime.UtcNow);
 
                 var subject = CleanText(message.Subject ?? "(No Subject)");
                 var from = CleanText(message.From?.EmailAddress?.Address ?? string.Empty);
