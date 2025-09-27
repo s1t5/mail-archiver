@@ -548,18 +548,39 @@ private readonly IServiceProvider _serviceProvider;
             }
         }
 
-        // Hilfsmethoden für MBox Import (kopieren Sie die entsprechenden Methoden aus EmailService)
+        // Hilfsmethoden für MBox Import - umfassende Inline-Image-Erkennung
         private void CollectAllAttachments(MimeEntity entity, List<MimePart> attachments)
         {
+            _logger.LogDebug("CollectAllAttachments: Processing entity type: {EntityType}", entity.GetType().Name);
+
             if (entity is MimePart mimePart)
             {
-                if (mimePart.IsAttachment || IsInlineContent(mimePart))
+                _logger.LogDebug("Processing MimePart: ContentType={ContentType}, FileName={FileName}, ContentId={ContentId}, IsAttachment={IsAttachment}, ContentDisposition={ContentDisposition}",
+                    mimePart.ContentType?.MimeType, mimePart.FileName, mimePart.ContentId, mimePart.IsAttachment, mimePart.ContentDisposition?.Disposition);
+
+                // Sammle normale Attachments
+                if (mimePart.IsAttachment)
                 {
                     attachments.Add(mimePart);
+                    _logger.LogDebug("Found attachment: FileName={FileName}, ContentType={ContentType}",
+                        mimePart.FileName, mimePart.ContentType?.MimeType);
+                }
+                // Sammle inline Images und andere inline Content
+                else if (IsInlineContent(mimePart))
+                {
+                    attachments.Add(mimePart);
+                    _logger.LogDebug("Found inline content: ContentId={ContentId}, ContentType={ContentType}, FileName={FileName}",
+                        mimePart.ContentId, mimePart.ContentType?.MimeType, mimePart.FileName);
+                }
+                else
+                {
+                    _logger.LogDebug("Skipping MimePart: Not attachment and not inline content");
                 }
             }
             else if (entity is Multipart multipart)
             {
+                _logger.LogDebug("Processing Multipart with {Count} children", multipart.Count);
+                // Rekursiv durch alle Teile einer Multipart-Nachricht gehen
                 foreach (var child in multipart)
                 {
                     CollectAllAttachments(child, attachments);
@@ -567,20 +588,69 @@ private readonly IServiceProvider _serviceProvider;
             }
             else if (entity is MessagePart messagePart)
             {
+                _logger.LogDebug("Processing MessagePart");
+                // Auch in eingebetteten Nachrichten suchen
                 CollectAllAttachments(messagePart.Message.Body, attachments);
+            }
+            else
+            {
+                _logger.LogDebug("Skipping entity type: {EntityType}", entity.GetType().Name);
             }
         }
 
+        /// <summary>
+        /// Umfassende Erkennung von Inline-Content für MBox Import
+        /// </summary>
         private bool IsInlineContent(MimePart mimePart)
         {
+            // Primäre Prüfung: Content-Disposition = inline
             if (mimePart.ContentDisposition?.Disposition?.Equals("inline", StringComparison.OrdinalIgnoreCase) == true)
             {
+                _logger.LogDebug("Found inline content via Content-Disposition: ContentId={ContentId}, ContentType={ContentType}, FileName={FileName}",
+                    mimePart.ContentId, mimePart.ContentType?.MimeType, mimePart.FileName);
                 return true;
             }
 
-            if (!string.IsNullOrEmpty(mimePart.ContentId) &&
-                mimePart.ContentType?.MediaType?.StartsWith("image/", StringComparison.OrdinalIgnoreCase) == true)
+            // Sekundäre Prüfung: Content-ID vorhanden (klassisches Inline-Image)
+            if (!string.IsNullOrEmpty(mimePart.ContentId))
             {
+                _logger.LogDebug("Found inline content via Content-ID: ContentId={ContentId}, ContentType={ContentType}, FileName={FileName}",
+                    mimePart.ContentId, mimePart.ContentType?.MimeType, mimePart.FileName);
+                return true;
+            }
+
+            // Tertiäre Prüfung: Image ohne Content-Disposition oder mit generic filename
+            var contentType = mimePart.ContentType?.MimeType?.ToLowerInvariant() ?? "";
+            var fileName = mimePart.FileName ?? "";
+            
+            if (contentType.StartsWith("image/"))
+            {
+                // Bilder ohne Content-Disposition sind oft inline
+                if (mimePart.ContentDisposition == null)
+                {
+                    _logger.LogDebug("Found potential inline image (no ContentDisposition): ContentType={ContentType}, FileName={FileName}",
+                        mimePart.ContentType?.MimeType, fileName);
+                    return true;
+                }
+
+                // Bilder mit generischen Dateinamen sind oft inline
+                if (string.IsNullOrEmpty(fileName) || 
+                    fileName.StartsWith("image", StringComparison.OrdinalIgnoreCase) ||
+                    fileName.Contains("inline", StringComparison.OrdinalIgnoreCase) ||
+                    fileName.Contains("embed", StringComparison.OrdinalIgnoreCase) ||
+                    Regex.IsMatch(fileName, @"^(img|pic|photo)\d*\.", RegexOptions.IgnoreCase))
+                {
+                    _logger.LogDebug("Found potential inline image (generic filename): ContentType={ContentType}, FileName={FileName}",
+                        mimePart.ContentType?.MimeType, fileName);
+                    return true;
+                }
+            }
+
+            // Quartiäre Prüfung: RFC2387 related content
+            if (contentType.StartsWith("text/") && contentType.Contains("related"))
+            {
+                _logger.LogDebug("Found potential inline content (related text): ContentType={ContentType}, FileName={FileName}",
+                    mimePart.ContentType?.MimeType, fileName);
                 return true;
             }
 

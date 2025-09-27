@@ -1194,24 +1194,30 @@ namespace MailArchiver.Services
         // Hilfsmethode um inline Content zu identifizieren
         private bool IsInlineContent(MimePart mimePart)
         {
-            // Prüfe Content-Disposition
+            // Prüfe Content-Disposition auf "inline"
             if (mimePart.ContentDisposition?.Disposition?.Equals("inline", StringComparison.OrdinalIgnoreCase) == true)
             {
+                _logger.LogDebug("Found inline content via Content-Disposition: inline - {ContentType}, ContentId: {ContentId}", 
+                    mimePart.ContentType?.MimeType, mimePart.ContentId);
                 return true;
             }
 
-            // Prüfe auf Images mit Content-ID (typisch für inline Images)
-            if (!string.IsNullOrEmpty(mimePart.ContentId) &&
-                mimePart.ContentType?.MediaType?.StartsWith("image/", StringComparison.OrdinalIgnoreCase) == true)
+            // Prüfe auf Content-ID (das wichtigste Kriterium für inline Images)
+            // Content-ID ist der Standard-Indikator für inline Content, der in HTML via cid: referenziert wird
+            if (!string.IsNullOrEmpty(mimePart.ContentId))
             {
+                _logger.LogDebug("Found inline content via Content-ID: {ContentId}, ContentType: {ContentType}, FileName: {FileName}", 
+                    mimePart.ContentId, mimePart.ContentType?.MimeType, mimePart.FileName);
                 return true;
             }
 
-            // Prüfe auf andere inline Content-Typen
-            if (!string.IsNullOrEmpty(mimePart.ContentId) &&
-                (mimePart.ContentType?.MediaType?.StartsWith("text/", StringComparison.OrdinalIgnoreCase) == true ||
-                 mimePart.ContentType?.MediaType?.StartsWith("application/", StringComparison.OrdinalIgnoreCase) == true))
+            // Fallback: Images ohne Content-ID aber mit inline disposition (falls Content-ID fehlt)
+            if (mimePart.ContentType?.MediaType?.StartsWith("image/", StringComparison.OrdinalIgnoreCase) == true &&
+                mimePart.ContentDisposition?.Disposition?.Equals("attachment", StringComparison.OrdinalIgnoreCase) != true)
             {
+                // Nur wenn es nicht explizit als attachment markiert ist
+                _logger.LogDebug("Found potential inline image without Content-ID: {ContentType}, FileName: {FileName}", 
+                    mimePart.ContentType?.MimeType, mimePart.FileName);
                 return true;
             }
 
@@ -1253,7 +1259,10 @@ namespace MailArchiver.Services
 
                     var cleanFileName = CleanText(fileName);
                     var contentType = CleanText(attachment.ContentType?.MimeType ?? "application/octet-stream");
-                    var contentId = !string.IsNullOrEmpty(attachment.ContentId) ? CleanText(attachment.ContentId) : null;
+                    
+                    // Preserve Content-ID exactly as it comes from the email (including angle brackets if present)
+                    // This is important for inline images referenced via cid: in HTML
+                    var contentId = !string.IsNullOrEmpty(attachment.ContentId) ? attachment.ContentId.Trim() : null;
 
                     var emailAttachment = new EmailAttachment
                     {

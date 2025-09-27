@@ -825,10 +825,14 @@ namespace MailArchiver.Services
         {
             try
             {
+                _logger.LogDebug("Getting attachments for Graph API message {MessageId}", messageId);
+                
                 var attachmentsResponse = await graphClient.Users[userPrincipalName].Messages[messageId].Attachments.GetAsync();
 
                 if (attachmentsResponse?.Value != null)
                 {
+                    _logger.LogDebug("Found {Count} attachments for message {MessageId}", attachmentsResponse.Value.Count, messageId);
+                    
                     foreach (var attachment in attachmentsResponse.Value)
                     {
                         try
@@ -837,6 +841,35 @@ namespace MailArchiver.Services
                             {
                                 var cleanFileName = CleanText(fileAttachment.Name ?? "attachment");
                                 var contentType = CleanText(fileAttachment.ContentType ?? "application/octet-stream");
+                                
+                                // Preserve Content-ID exactly as received for inline images
+                                var contentId = string.Empty;
+                                if (!string.IsNullOrEmpty(fileAttachment.ContentId))
+                                {
+                                    contentId = fileAttachment.ContentId; // Don't clean Content-ID
+                                    _logger.LogDebug("Found attachment with Content-ID: {ContentId}, FileName: {FileName}, ContentType: {ContentType}",
+                                        contentId, cleanFileName, contentType);
+                                }
+                                
+                                // Determine if this is inline content
+                                bool isInlineContent = IsGraphInlineContent(fileAttachment);
+                                
+                                // For inline content without explicit filename, generate a descriptive name
+                                if (isInlineContent && (string.IsNullOrEmpty(cleanFileName) || cleanFileName == "attachment"))
+                                {
+                                    var extension = GetExtensionFromContentType(contentType);
+                                    if (!string.IsNullOrEmpty(contentId))
+                                    {
+                                        // Use Content-ID to create filename
+                                        var cidPart = contentId.Trim('<', '>').Split('@')[0];
+                                        cleanFileName = $"inline_{cidPart}{extension}";
+                                    }
+                                    else
+                                    {
+                                        cleanFileName = $"inline_image_{Guid.NewGuid().ToString("N")[..8]}{extension}";
+                                    }
+                                    _logger.LogDebug("Generated filename for inline content: {FileName}", cleanFileName);
+                                }
 
                                 var emailAttachment = new EmailAttachment
                                 {
@@ -844,10 +877,14 @@ namespace MailArchiver.Services
                                     FileName = cleanFileName,
                                     ContentType = contentType,
                                     Content = fileAttachment.ContentBytes,
-                                    Size = fileAttachment.ContentBytes.Length
+                                    Size = fileAttachment.ContentBytes.Length,
+                                    ContentId = contentId // Store Content-ID for inline images
                                 };
 
                                 _context.EmailAttachments.Add(emailAttachment);
+                                
+                                _logger.LogInformation("Saved Graph API attachment: FileName={FileName}, ContentType={ContentType}, Size={Size}, ContentId={ContentId}, IsInline={IsInline}",
+                                    cleanFileName, contentType, fileAttachment.ContentBytes.Length, contentId, isInlineContent);
                             }
                         }
                         catch (Exception ex)
@@ -857,12 +894,70 @@ namespace MailArchiver.Services
                     }
 
                     await _context.SaveChangesAsync();
+                    _logger.LogDebug("Successfully saved all attachments for message {MessageId}", messageId);
+                }
+                else
+                {
+                    _logger.LogDebug("No attachments found for message {MessageId}", messageId);
                 }
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to get attachments for Graph API message {MessageId}", messageId);
             }
+        }
+
+        /// <summary>
+        /// Determines if a Graph API FileAttachment is inline content
+        /// </summary>
+        private bool IsGraphInlineContent(FileAttachment fileAttachment)
+        {
+            // Primary check: Content-ID presence indicates inline content
+            if (!string.IsNullOrEmpty(fileAttachment.ContentId))
+            {
+                _logger.LogDebug("Found inline content via Content-ID: {ContentId}, ContentType: {ContentType}, FileName: {FileName}",
+                    fileAttachment.ContentId, fileAttachment.ContentType, fileAttachment.Name);
+                return true;
+            }
+
+            // Secondary check: Content-Disposition inline
+            // Note: Graph API FileAttachment doesn't directly expose ContentDisposition,
+            // but we can check if it's an image without a clear filename
+            var contentType = fileAttachment.ContentType?.ToLowerInvariant() ?? "";
+            var fileName = fileAttachment.Name ?? "";
+            
+            // If it's an image and has no meaningful filename, it's likely inline
+            if (contentType.StartsWith("image/") && 
+                (string.IsNullOrEmpty(fileName) || fileName == "attachment" || fileName.StartsWith("image") || fileName.Contains("inline")))
+            {
+                _logger.LogDebug("Found potential inline image: ContentType={ContentType}, FileName={FileName}",
+                    fileAttachment.ContentType, fileName);
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Gets file extension based on content type
+        /// </summary>
+        private string GetExtensionFromContentType(string contentType)
+        {
+            return contentType?.ToLowerInvariant() switch
+            {
+                "image/png" => ".png",
+                "image/jpeg" => ".jpg", 
+                "image/jpg" => ".jpg",
+                "image/gif" => ".gif",
+                "image/bmp" => ".bmp",
+                "image/tiff" => ".tiff",
+                "image/svg+xml" => ".svg",
+                "image/webp" => ".webp",
+                "text/html" => ".html",
+                "text/plain" => ".txt",
+                "application/pdf" => ".pdf",
+                _ => ".dat"
+            };
         }
 
         public async Task<bool> TestConnectionAsync(MailAccount account)
