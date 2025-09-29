@@ -232,6 +232,11 @@
                 
                 document.body.appendChild(form);
                 form.submit();
+                
+                // Redirect to jobs page after a short delay to allow form submission
+                setTimeout(function() {
+                    window.location.href = '@Url.Action("Jobs", "Emails")';
+                }, 500);
             });
         });
     </script>
