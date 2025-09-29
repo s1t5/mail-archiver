@@ -2084,4 +2084,28 @@
   <data name="EmailNotFoundHelp" xml:space="preserve">
     <value>Wenn Sie glauben, dass dies ein Fehler ist, wenden Sie sich bitte an Ihren Systemadministrator.</value>
   </data>
+  <data name="ConfirmDeletion" xml:space="preserve">
+    <value>Löschen bestätigen</value>
+  </data>
+  <data name="DeleteButton" xml:space="preserve">
+    <value>Löschen</value>
+  </data>
+  <data name="DeleteEmail" xml:space="preserve">
+    <value>E-Mail Löschen</value>
+  </data>
+  <data name="DeleteEmailConfirm" xml:space="preserve">
+    <value>Sind Sie sicher, dass Sie diese E-Mail dauerhaft löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden und wird zu Prüfzwecken protokolliert.</value>
+  </data>
+  <data name="DeleteSelected" xml:space="preserve">
+    <value>Ausgewählte Löschen</value>
+  </data>
+  <data name="DeleteSelectedEmailsConfirm" xml:space="preserve">
+    <value>Sind Sie sicher, dass Sie {0} ausgewählte E-Mail(s) dauerhaft löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden und jede Löschung wird zu Prüfzwecken protokolliert.</value>
+  </data>
+  <data name="EmailDeleted" xml:space="preserve">
+    <value>E-Mail erfolgreich gelöscht</value>
+  </data>
+  <data name="EmailsDeleted" xml:space="preserve">
+    <value>{0} E-Mail(s) erfolgreich gelöscht</value>
+  </data>
 </root>

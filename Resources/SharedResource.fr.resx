@@ -2083,4 +2083,28 @@
   <data name="EmailNotFoundHelp" xml:space="preserve">
     <value>Si vous pensez qu'il s'agit d'une erreur, veuillez contacter votre administrateur système.</value>
   </data>
+  <data name="ConfirmDeletion" xml:space="preserve">
+    <value>Confirmer la Suppression</value>
+  </data>
+  <data name="DeleteButton" xml:space="preserve">
+    <value>Supprimer</value>
+  </data>
+  <data name="DeleteEmail" xml:space="preserve">
+    <value>Supprimer l'Email</value>
+  </data>
+  <data name="DeleteEmailConfirm" xml:space="preserve">
+    <value>Êtes-vous sûr de vouloir supprimer définitivement cet email ? Cette action ne peut pas être annulée et sera enregistrée à des fins d'audit.</value>
+  </data>
+  <data name="DeleteSelected" xml:space="preserve">
+    <value>Supprimer la Sélection</value>
+  </data>
+  <data name="DeleteSelectedEmailsConfirm" xml:space="preserve">
+    <value>Êtes-vous sûr de vouloir supprimer définitivement {0} email(s) sélectionné(s) ? Cette action ne peut pas être annulée et chaque suppression sera enregistrée à des fins d'audit.</value>
+  </data>
+  <data name="EmailDeleted" xml:space="preserve">
+    <value>Email supprimé avec succès</value>
+  </data>
+  <data name="EmailsDeleted" xml:space="preserve">
+    <value>{0} email(s) supprimé(s) avec succès</value>
+  </data>
 </root>

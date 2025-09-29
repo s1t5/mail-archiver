@@ -2158,6 +2158,150 @@ namespace MailArchiver.Controllers
             return resultHtml;
         }
 
+        // POST: Emails/Delete
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [SelfManagerRequired]
+        public async Task<IActionResult> Delete(int id, string returnUrl = null)
+        {
+            _logger.LogInformation("Admin user requesting to delete email ID: {EmailId}", id);
+            
+            var email = await _context.ArchivedEmails
+                .Include(e => e.MailAccount)
+                .FirstOrDefaultAsync(e => e.Id == id);
+            
+            if (email == null)
+            {
+                _logger.LogWarning("Email with ID {EmailId} not found for deletion", id);
+                TempData["ErrorMessage"] = "Email not found.";
+                return Redirect(returnUrl ?? Url.Action("Index"));
+            }
+            
+            // Store email information for logging before deletion
+            var emailSubject = email.Subject;
+            var emailFrom = email.From;
+            var emailAccountId = email.MailAccountId;
+            
+            try
+            {
+                _context.ArchivedEmails.Remove(email);
+                await _context.SaveChangesAsync();
+                
+                _logger.LogInformation("Email with ID {EmailId} successfully deleted by admin", id);
+                
+                // Log the deletion action
+                if (_accessLogService != null && _serviceScopeFactory != null)
+                {
+                    var currentUsername = _authService?.GetCurrentUser(HttpContext);
+                    if (!string.IsNullOrEmpty(currentUsername))
+                    {
+                        await _accessLogService.LogAccessAsync(currentUsername, AccessLogType.Deletion,
+                            emailId: id,
+                            emailSubject: emailSubject.Length > 255 ? emailSubject.Substring(0, 255) : emailSubject,
+                            emailFrom: emailFrom.Length > 255 ? emailFrom.Substring(0, 255) : emailFrom,
+                            mailAccountId: emailAccountId);
+                    }
+                }
+                
+                TempData["SuccessMessage"] = "Email successfully deleted.";
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting email with ID {EmailId}", id);
+                TempData["ErrorMessage"] = "An error occurred while deleting the email.";
+            }
+            
+            return Redirect(returnUrl ?? Url.Action("Index"));
+        }
+        
+        // POST: Emails/DeleteSelected
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [SelfManagerRequired]
+        public async Task<IActionResult> DeleteSelected(List<int> ids, string returnUrl = null)
+        {
+            if (ids == null || !ids.Any())
+            {
+                TempData["ErrorMessage"] = "No emails selected for deletion.";
+                return Redirect(returnUrl ?? Url.Action("Index"));
+            }
+            
+            _logger.LogInformation("Admin user requesting to delete {Count} emails", ids.Count);
+            
+            var deletedCount = 0;
+            var errorCount = 0;
+            
+            try
+            {
+                foreach (var id in ids)
+                {
+                    var email = await _context.ArchivedEmails
+                        .Include(e => e.MailAccount)
+                        .FirstOrDefaultAsync(e => e.Id == id);
+                    
+                    if (email == null)
+                    {
+                        _logger.LogWarning("Email with ID {EmailId} not found for deletion", id);
+                        errorCount++;
+                        continue;
+                    }
+                    
+                    // Store email information for logging before deletion
+                    var emailSubject = email.Subject;
+                    var emailFrom = email.From;
+                    var emailAccountId = email.MailAccountId;
+                    
+                    try
+                    {
+                        _context.ArchivedEmails.Remove(email);
+                        await _context.SaveChangesAsync();
+                        deletedCount++;
+                        
+                        _logger.LogInformation("Email with ID {EmailId} successfully deleted by admin", id);
+                        
+                        // Log the deletion action for each email
+                        if (_accessLogService != null && _serviceScopeFactory != null)
+                        {
+                            var currentUsername = _authService?.GetCurrentUser(HttpContext);
+                            if (!string.IsNullOrEmpty(currentUsername))
+                            {
+                                await _accessLogService.LogAccessAsync(currentUsername, AccessLogType.Deletion,
+                                    emailId: id,
+                                    emailSubject: emailSubject.Length > 255 ? emailSubject.Substring(0, 255) : emailSubject,
+                                    emailFrom: emailFrom.Length > 255 ? emailFrom.Substring(0, 255) : emailFrom,
+                                    mailAccountId: emailAccountId);
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Error deleting email with ID {EmailId}", id);
+                        errorCount++;
+                    }
+                }
+                
+                // Save all changes at once for better performance
+                // await _context.SaveChangesAsync();
+                
+                if (deletedCount > 0)
+                {
+                    TempData["SuccessMessage"] = $"{deletedCount} email(s) successfully deleted.";
+                }
+                
+                if (errorCount > 0)
+                {
+                    TempData["ErrorMessage"] = $"{errorCount} email(s) could not be deleted. Please check the logs.";
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting selected emails");
+                TempData["ErrorMessage"] = "An error occurred while deleting the emails.";
+            }
+            
+            return Redirect(returnUrl ?? Url.Action("Index"));
+        }
+        
         // POST: Emails/ExportSelected
         [HttpPost]
         [ValidateAntiForgeryToken]

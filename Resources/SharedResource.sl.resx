@@ -2083,4 +2083,28 @@
   <data name="EmailNotFoundHelp" xml:space="preserve">
     <value>Če menite, da je to napaka, se obrnite na svojega sistemskega administratorja.</value>
   </data>
+  <data name="ConfirmDeletion" xml:space="preserve">
+    <value>Potrdi Brisanje</value>
+  </data>
+  <data name="DeleteButton" xml:space="preserve">
+    <value>Briši</value>
+  </data>
+  <data name="DeleteEmail" xml:space="preserve">
+    <value>Briši E-pošto</value>
+  </data>
+  <data name="DeleteEmailConfirm" xml:space="preserve">
+    <value>Ali ste prepričani, da želite trajno izbrisati to e-pošto? Tega dejanja ni mogoče razveljaviti in bo zabeleženo za namene revizije.</value>
+  </data>
+  <data name="DeleteSelected" xml:space="preserve">
+    <value>Briši Izbrane</value>
+  </data>
+  <data name="DeleteSelectedEmailsConfirm" xml:space="preserve">
+    <value>Ali ste prepričani, da želite trajno izbrisati {0} izbranih e-poštnih sporočil? Tega dejanja ni mogoče razveljaviti in vsako brisanje bo zabeleženo za namene revizije.</value>
+  </data>
+  <data name="EmailDeleted" xml:space="preserve">
+    <value>E-pošta uspešno izbrisana</value>
+  </data>
+  <data name="EmailsDeleted" xml:space="preserve">
+    <value>{0} e-poštnih sporočil uspešno izbrisanih</value>
+  </data>
 </root>

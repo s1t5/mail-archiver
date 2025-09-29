@@ -2083,4 +2083,28 @@
   <data name="EmailNotFoundHelp" xml:space="preserve">
     <value>Als u denkt dat dit een fout is, neem dan contact op met uw systeembeheerder.</value>
   </data>
+  <data name="ConfirmDeletion" xml:space="preserve">
+    <value>Verwijdering Bevestigen</value>
+  </data>
+  <data name="DeleteButton" xml:space="preserve">
+    <value>Verwijderen</value>
+  </data>
+  <data name="DeleteEmail" xml:space="preserve">
+    <value>E-mail Verwijderen</value>
+  </data>
+  <data name="DeleteEmailConfirm" xml:space="preserve">
+    <value>Weet u zeker dat u deze e-mail permanent wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt en wordt gelogd voor auditdoeleinden.</value>
+  </data>
+  <data name="DeleteSelected" xml:space="preserve">
+    <value>Geselecteerde Verwijderen</value>
+  </data>
+  <data name="DeleteSelectedEmailsConfirm" xml:space="preserve">
+    <value>Weet u zeker dat u {0} geselecteerde e-mail(s) permanent wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt en elke verwijdering wordt gelogd voor auditdoeleinden.</value>
+  </data>
+  <data name="EmailDeleted" xml:space="preserve">
+    <value>E-mail succesvol verwijderd</value>
+  </data>
+  <data name="EmailsDeleted" xml:space="preserve">
+    <value>{0} e-mail(s) succesvol verwijderd</value>
+  </data>
 </root>

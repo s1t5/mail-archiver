@@ -2075,4 +2075,28 @@
   <data name="EmailNotFoundHelp" xml:space="preserve">
     <value>Ha úgy gondolja, hogy ez egy hiba, kérjük, lépjen kapcsolatba a rendszergazdával.</value>
   </data>
+  <data name="ConfirmDeletion" xml:space="preserve">
+    <value>Törlés Megerősítése</value>
+  </data>
+  <data name="DeleteButton" xml:space="preserve">
+    <value>Törlés</value>
+  </data>
+  <data name="DeleteEmail" xml:space="preserve">
+    <value>E-mail Törlése</value>
+  </data>
+  <data name="DeleteEmailConfirm" xml:space="preserve">
+    <value>Biztosan véglegesen törölni szeretné ezt az e-mailt? Ez a művelet nem vonható vissza és audit célokból naplózásra kerül.</value>
+  </data>
+  <data name="DeleteSelected" xml:space="preserve">
+    <value>Kiválasztottak Törlése</value>
+  </data>
+  <data name="DeleteSelectedEmailsConfirm" xml:space="preserve">
+    <value>Biztosan véglegesen törölni szeretné a(z) {0} kiválasztott e-mailt? Ez a művelet nem vonható vissza és minden törlés naplózásra kerül audit célokból.</value>
+  </data>
+  <data name="EmailDeleted" xml:space="preserve">
+    <value>E-mail sikeresen törölve</value>
+  </data>
+  <data name="EmailsDeleted" xml:space="preserve">
+    <value>{0} e-mail sikeresen törölve</value>
+  </data>
 </root>

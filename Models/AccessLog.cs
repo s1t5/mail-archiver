@@ -39,6 +39,7 @@ namespace MailArchiver.Models
         Open,
         Download,
         Restore,
-        Account
+        Account,
+        Deletion
     }
 }

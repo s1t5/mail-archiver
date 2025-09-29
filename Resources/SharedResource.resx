@@ -1618,6 +1618,32 @@
   <data name="EnterCode" xml:space="preserve">
     <value>Enter Code</value>
   </data>
+  
+  <!-- Delete Email Feature -->
+  <data name="DeleteEmail" xml:space="preserve">
+    <value>Delete Email</value>
+  </data>
+  <data name="DeleteSelected" xml:space="preserve">
+    <value>Delete Selected</value>
+  </data>
+  <data name="ConfirmDeletion" xml:space="preserve">
+    <value>Confirm Deletion</value>
+  </data>
+  <data name="DeleteEmailConfirm" xml:space="preserve">
+    <value>Are you sure you want to permanently delete this email? This action cannot be undone and will be logged for audit purposes.</value>
+  </data>
+  <data name="DeleteSelectedEmailsConfirm" xml:space="preserve">
+    <value>Are you sure you want to permanently delete {0} selected email(s)? This action cannot be undone and each deletion will be logged for audit purposes.</value>
+  </data>
+  <data name="DeleteButton" xml:space="preserve">
+    <value>Delete</value>
+  </data>
+  <data name="EmailDeleted" xml:space="preserve">
+    <value>Email successfully deleted</value>
+  </data>
+  <data name="EmailsDeleted" xml:space="preserve">
+    <value>{0} email(s) successfully deleted</value>
+  </data>
 
   <!-- Rate Limiting -->
   <data name="RateLimitExceeded" xml:space="preserve">

@@ -23,7 +23,7 @@ namespace MailArchiver.Controllers
             _emailService = emailService;
         }
 
-        public async Task<IActionResult> Index(int page = 1, int pageSize = 50, DateTime? fromDate = null, DateTime? toDate = null, string username = null)
+        public async Task<IActionResult> Index(int page = 1, int pageSize = 50, DateTime? fromDate = null, DateTime? toDate = null, string username = null, AccessLogType? type = null)
         {
             var currentUsername = _authenticationService.GetCurrentUser(HttpContext);
             var isAdmin = _authenticationService.IsCurrentUserAdmin(HttpContext);
@@ -51,6 +51,12 @@ namespace MailArchiver.Controllers
                 logs = await _accessLogService.GetLogsForUserAsync(currentUsername, fromDate, toDate); // Get only user's logs
             }
 
+            // Filter by type if specified
+            if (type.HasValue)
+            {
+                logs = logs.Where(l => l.Type == type.Value).ToList();
+            }
+
             // Order by timestamp descending (newest first) - already done in service
 
             // Implement pagination
@@ -75,6 +81,7 @@ namespace MailArchiver.Controllers
             ViewBag.FromDate = fromDate;
             ViewBag.ToDate = toDate;
             ViewBag.UsernameFilter = username;
+            ViewBag.TypeFilter = type;
 
             return View(paginatedLogs);
         }

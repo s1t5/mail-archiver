@@ -2083,4 +2083,28 @@
   <data name="EmailNotFoundHelp" xml:space="preserve">
     <value>Если вы считаете, что это ошибка, обратитесь к системному администратору.</value>
   </data>
+  <data name="ConfirmDeletion" xml:space="preserve">
+    <value>Подтвердить Удаление</value>
+  </data>
+  <data name="DeleteButton" xml:space="preserve">
+    <value>Удалить</value>
+  </data>
+  <data name="DeleteEmail" xml:space="preserve">
+    <value>Удалить Письмо</value>
+  </data>
+  <data name="DeleteEmailConfirm" xml:space="preserve">
+    <value>Вы уверены, что хотите безвозвратно удалить это письмо? Это действие невозможно отменить и оно будет записано в журнал для целей аудита.</value>
+  </data>
+  <data name="DeleteSelected" xml:space="preserve">
+    <value>Удалить Выбранные</value>
+  </data>
+  <data name="DeleteSelectedEmailsConfirm" xml:space="preserve">
+    <value>Вы уверены, что хотите безвозвратно удалить {0} выбранных писем? Это действие невозможно отменить и каждое удаление будет записано в журнал для целей аудита.</value>
+  </data>
+  <data name="EmailDeleted" xml:space="preserve">
+    <value>Письмо успешно удалено</value>
+  </data>
+  <data name="EmailsDeleted" xml:space="preserve">
+    <value>{0} писем успешно удалено</value>
+  </data>
 </root>

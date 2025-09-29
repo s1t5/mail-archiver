@@ -23,13 +23,13 @@
             <!-- Filter Form -->
             <form method="get" class="mb-4">
                 <div class="row">
-                    <div class="col-md-3">
+                    <div class="col-md-2">
                         <div class="form-group">
                             <label for="fromDate">@Localizer["FromDate"]</label>
                             <input type="date" class="form-control" id="fromDate" name="fromDate" value="@(fromDate?.ToString("yyyy-MM-dd"))" />
                         </div>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-2">
                         <div class="form-group">
                             <label for="toDate">@Localizer["ToDate"]</label>
                             <input type="date" class="form-control" id="toDate" name="toDate" value="@(toDate?.ToString("yyyy-MM-dd"))" />
@@ -37,7 +37,7 @@
                     </div>
                     @if (isAdmin)
                     {
-                        <div class="col-md-3">
+                        <div class="col-md-2">
                             <div class="form-group">
                                 <label for="username">@Localizer["Username"]</label>
                                 <select class="form-control" id="username" name="username">
@@ -50,9 +50,20 @@
                             </div>
                         </div>
                     }
-                    <div class="col-md-3">
+                    <div class="col-md-2">
                         <div class="form-group">
-                            <label>&nbsp;</label>
+                            <label for="type">@Localizer["Type"]</label>
+                            <select class="form-control" id="type" name="type">
+                                <option value="">@Localizer["All"]</option>
+                                @foreach (var type in Enum.GetValues(typeof(AccessLogType)).Cast<AccessLogType>())
+                                {
+                                    <option value="@((int)type)" selected="@((int?)type == (int?)ViewBag.TypeFilter)">@Localizer[type.ToString()]</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-4 d-flex align-items-end">
+                        <div class="form-group w-100">
                             <button type="submit" class="btn btn-primary form-control">@Localizer["Filter"]</button>
                         </div>
                     </div>
@@ -90,6 +101,7 @@
                                             AccessLogType.Download => "bg-warning",
                                             AccessLogType.Restore => "bg-danger",
                                             AccessLogType.Account => "bg-dark",
+                                            AccessLogType.Deletion => "bg-danger",
                                             _ => "bg-secondary"
                                         };
                                     }
@@ -149,6 +161,7 @@
                                         AccessLogType.Download => "bg-warning",
                                         AccessLogType.Restore => "bg-danger",
                                         AccessLogType.Account => "bg-dark",
+                                        AccessLogType.Deletion => "bg-danger",
                                         _ => "bg-secondary"
                                     };
                                 }
@@ -196,12 +209,12 @@
                         @if (currentPage > 1)
                         {
                             <li class="page-item">
-                                <a class="page-link" asp-action="Index" asp-route-page="1" asp-route-pageSize="@pageSize" asp-route-fromDate="@(fromDate?.ToString("yyyy-MM-dd"))" asp-route-toDate="@(toDate?.ToString("yyyy-MM-dd"))" asp-route-username="@ViewBag.UsernameFilter" aria-label="First">
+                                <a class="page-link" asp-action="Index" asp-route-page="1" asp-route-pageSize="@pageSize" asp-route-fromDate="@(fromDate?.ToString("yyyy-MM-dd"))" asp-route-toDate="@(toDate?.ToString("yyyy-MM-dd"))" asp-route-username="@ViewBag.UsernameFilter" asp-route-type="@ViewBag.TypeFilter" aria-label="First">
                                     <span aria-hidden="true">&laquo;&laquo;</span>
                                 </a>
                             </li>
                             <li class="page-item">
-                                <a class="page-link" asp-action="Index" asp-route-page="@(currentPage - 1)" asp-route-pageSize="@pageSize" asp-route-fromDate="@(fromDate?.ToString("yyyy-MM-dd"))" asp-route-toDate="@(toDate?.ToString("yyyy-MM-dd"))" asp-route-username="@ViewBag.UsernameFilter" aria-label="Previous">
+                                <a class="page-link" asp-action="Index" asp-route-page="@(currentPage - 1)" asp-route-pageSize="@pageSize" asp-route-fromDate="@(fromDate?.ToString("yyyy-MM-dd"))" asp-route-toDate="@(toDate?.ToString("yyyy-MM-dd"))" asp-route-username="@ViewBag.UsernameFilter" asp-route-type="@ViewBag.TypeFilter" aria-label="Previous">
                                     <span aria-hidden="true">&laquo;</span>
                                 </a>
                             </li>
@@ -210,19 +223,19 @@
                         @for (int i = Math.Max(1, currentPage - 2); i <= Math.Min(totalPages, currentPage + 2); i++)
                         {
                             <li class="page-item @(i == currentPage ? "active" : "")">
-                                <a class="page-link" asp-action="Index" asp-route-page="@i" asp-route-pageSize="@pageSize" asp-route-fromDate="@(fromDate?.ToString("yyyy-MM-dd"))" asp-route-toDate="@(toDate?.ToString("yyyy-MM-dd"))" asp-route-username="@ViewBag.UsernameFilter">@i</a>
+                                <a class="page-link" asp-action="Index" asp-route-page="@i" asp-route-pageSize="@pageSize" asp-route-fromDate="@(fromDate?.ToString("yyyy-MM-dd"))" asp-route-toDate="@(toDate?.ToString("yyyy-MM-dd"))" asp-route-username="@ViewBag.UsernameFilter" asp-route-type="@ViewBag.TypeFilter">@i</a>
                             </li>
                         }
 
                         @if (currentPage < totalPages)
                         {
                             <li class="page-item">
-                                <a class="page-link" asp-action="Index" asp-route-page="@(currentPage + 1)" asp-route-pageSize="@pageSize" asp-route-fromDate="@(fromDate?.ToString("yyyy-MM-dd"))" asp-route-toDate="@(toDate?.ToString("yyyy-MM-dd"))" asp-route-username="@ViewBag.UsernameFilter" aria-label="Next">
+                                <a class="page-link" asp-action="Index" asp-route-page="@(currentPage + 1)" asp-route-pageSize="@pageSize" asp-route-fromDate="@(fromDate?.ToString("yyyy-MM-dd"))" asp-route-toDate="@(toDate?.ToString("yyyy-MM-dd"))" asp-route-username="@ViewBag.UsernameFilter" asp-route-type="@ViewBag.TypeFilter" aria-label="Next">
                                     <span aria-hidden="true">&raquo;</span>
                                 </a>
                             </li>
                             <li class="page-item">
-                                <a class="page-link" asp-action="Index" asp-route-page="@totalPages" asp-route-pageSize="@pageSize" asp-route-fromDate="@(fromDate?.ToString("yyyy-MM-dd"))" asp-route-toDate="@(toDate?.ToString("yyyy-MM-dd"))" asp-route-username="@ViewBag.UsernameFilter" aria-label="Last">
+                                <a class="page-link" asp-action="Index" asp-route-page="@totalPages" asp-route-pageSize="@pageSize" asp-route-fromDate="@(fromDate?.ToString("yyyy-MM-dd"))" asp-route-toDate="@(toDate?.ToString("yyyy-MM-dd"))" asp-route-username="@ViewBag.UsernameFilter" asp-route-type="@ViewBag.TypeFilter" aria-label="Last">
                                     <span aria-hidden="true">&raquo;&raquo;</span>
                                 </a>
                             </li>

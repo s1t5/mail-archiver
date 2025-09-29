@@ -25,6 +25,12 @@
                     asp-route-returnUrl="@Context.Request.GetDisplayUrl()" class="btn btn-success btn-sm">
                     <i class="bi bi-envelope-arrow-up"></i> @Localizer["CopyToMailbox"]
                 </a>
+                @if (User.IsInRole("Admin") || User.IsInRole("SelfManager"))
+                {
+                    <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteEmailModal">
+                        <i class="bi bi-trash"></i> @Localizer["DeleteEmail"]
+                    </button>
+                }
             </div>
         </div>
 
@@ -41,6 +47,12 @@
                 asp-route-returnUrl="@Context.Request.GetDisplayUrl()" class="btn btn-success">
                 <i class="bi bi-envelope-arrow-up"></i> @Localizer["CopyToMailbox"]
             </a>
+            @if (User.IsInRole("Admin") || User.IsInRole("SelfManager"))
+            {
+                <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteEmailModal">
+                    <i class="bi bi-trash"></i> @Localizer["DeleteEmail"]
+                </button>
+            }
         </div>
     </div>
 
@@ -216,6 +228,31 @@
         </div>
     </div>
 </div>
+
+<!-- Delete Email Modal -->
+@if (User.IsInRole("Admin") || User.IsInRole("SelfManager"))
+{
+    <div class="modal fade" id="deleteEmailModal" tabindex="-1" aria-labelledby="deleteEmailModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteEmailModalLabel">@Localizer["ConfirmDeletion"]</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>@Localizer["DeleteEmailConfirm"]</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">@Localizer["Cancel"]</button>
+                    <form asp-action="Delete" asp-route-id="@Model.Email.Id" asp-route-returnUrl="@returnUrl" method="post">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-danger">@Localizer["DeleteButton"]</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+}
 
 <!-- Attachment Preview Modal -->
 <div class="modal fade" id="attachmentPreviewModal" tabindex="-1" aria-labelledby="attachmentPreviewModalLabel" aria-hidden="true">
