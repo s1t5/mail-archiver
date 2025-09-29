@@ -1,4 +1,6 @@
 using MailArchiver.Models;
+using MailArchiver.Data;
+using Microsoft.EntityFrameworkCore;
 using System.Collections.Concurrent;
 
 namespace MailArchiver.Services
@@ -9,10 +11,12 @@ namespace MailArchiver.Services
         private readonly ConcurrentDictionary<int, string> _activeAccountJobs = new(); // Track active jobs per account
         private readonly ILogger<SyncJobService> _logger;
         private readonly Timer _cleanupTimer;
+        private readonly IServiceProvider _serviceProvider;
 
-        public SyncJobService(ILogger<SyncJobService> logger)
+        public SyncJobService(ILogger<SyncJobService> logger, IServiceProvider serviceProvider)
         {
             _logger = logger;
+            _serviceProvider = serviceProvider;
             
             // Cleanup-Timer: Jeden Stunde alte Jobs entfernen
             _cleanupTimer = new Timer(
@@ -23,8 +27,21 @@ namespace MailArchiver.Services
             );
         }
 
-        public string StartSync(int accountId, string accountName, DateTime? lastSync = null)
+        public async Task<string?> StartSyncAsync(int accountId, string accountName, DateTime? lastSync = null)
         {
+            // Validate that the account exists in the database
+            using var scope = _serviceProvider.CreateScope();
+            var dbContext = scope.ServiceProvider.GetRequiredService<MailArchiverDbContext>();
+            
+            var accountExists = await dbContext.MailAccounts
+                .AnyAsync(a => a.Id == accountId && a.IsEnabled && a.Provider != ProviderType.IMPORT);
+            
+            if (!accountExists)
+            {
+                _logger.LogWarning("Cannot start sync job for account {AccountId} ({AccountName}) - account does not exist or is not enabled", accountId, accountName);
+                return null;
+            }
+
             // Check if there's already an active job for this account
             if (_activeAccountJobs.ContainsKey(accountId))
             {
@@ -48,6 +65,17 @@ namespace MailArchiver.Services
             _activeAccountJobs[accountId] = job.JobId;
             _logger.LogInformation("Started sync job {JobId} for account {AccountName}", job.JobId, accountName);
             return job.JobId;
+        }
+
+        public string StartSync(int accountId, string accountName, DateTime? lastSync = null)
+        {
+            // Legacy method - delegates to async version
+            var result = StartSyncAsync(accountId, accountName, lastSync).GetAwaiter().GetResult();
+            if (result == null)
+            {
+                throw new InvalidOperationException($"Cannot start sync job for account {accountName} - account does not exist or is not enabled");
+            }
+            return result;
         }
 
         public SyncJob? GetJob(string jobId)
@@ -132,6 +160,29 @@ namespace MailArchiver.Services
                 _logger.LogWarning("Cannot cancel job {JobId} because it doesn't exist", jobId);
             }
             return false;
+        }
+
+        public bool CancelJobsForAccount(int accountId)
+        {
+            bool anyCancelled = false;
+            var jobsToCancel = _jobs.Values
+                .Where(j => j.MailAccountId == accountId && j.Status == SyncJobStatus.Running)
+                .ToList();
+
+            foreach (var job in jobsToCancel)
+            {
+                if (CancelJob(job.JobId))
+                {
+                    anyCancelled = true;
+                }
+            }
+
+            if (anyCancelled)
+            {
+                _logger.LogInformation("Cancelled {Count} running sync jobs for account {AccountId}", jobsToCancel.Count, accountId);
+            }
+
+            return anyCancelled;
         }
 
         public void CleanupOldJobs()

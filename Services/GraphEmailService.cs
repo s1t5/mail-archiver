@@ -259,27 +259,73 @@ namespace MailArchiver.Services
 
             try
             {
-                // Get mail folders from the user's mailbox using application permissions
+                _logger.LogInformation("Starting to retrieve all mail folders for user: {UserPrincipalName}", userPrincipalName);
+
+                // Get mail folders from the user's mailbox using application permissions with pagination
                 var response = await graphClient.Users[userPrincipalName].MailFolders.GetAsync((requestConfiguration) =>
                 {
-                    requestConfiguration.QueryParameters.Select = new string[] { "id", "displayName", "parentFolderId", "childFolderCount" };
-                    requestConfiguration.QueryParameters.Top = _batchOptions.BatchSize;
+                    requestConfiguration.QueryParameters.Select = new string[] { "id", "displayName", "parentFolderId", "childFolderCount", "totalItemCount" };
+                    requestConfiguration.QueryParameters.Top = 100; // Increase from BatchSize to ensure we get all top-level folders
                 });
 
-                if (response?.Value != null)
+                int folderCount = 0;
+                int pageCount = 0;
+
+                // Process all pages of top-level folders
+                while (response?.Value != null)
                 {
+                    pageCount++;
+                    var currentPageCount = response.Value.Count;
+                    folderCount += currentPageCount;
+                    
+                    _logger.LogInformation("Processing folder page {PageNumber} with {FolderCount} folders (Total so far: {TotalFolders})",
+                        pageCount, currentPageCount, folderCount);
+
                     folders.AddRange(response.Value);
 
-                    // Get child folders recursively
-                    foreach (var folder in response.Value.ToList())
+                    // Log folder names for debugging
+                    foreach (var folder in response.Value)
                     {
-                        if (folder.ChildFolderCount > 0)
-                        {
-                            var childFolders = await GetChildFoldersAsync(graphClient, userPrincipalName, folder.Id);
-                            folders.AddRange(childFolders);
-                        }
+                        _logger.LogDebug("Found folder: '{FolderName}' (ID: {FolderId}, ChildCount: {ChildCount}, ItemCount: {ItemCount})",
+                            folder.DisplayName, folder.Id, folder.ChildFolderCount, folder.TotalItemCount);
+                    }
+
+                    // Check for next page
+                    if (!string.IsNullOrEmpty(response.OdataNextLink))
+                    {
+                        _logger.LogInformation("Fetching next page of folders...");
+                        response = await graphClient.Users[userPrincipalName].MailFolders.WithUrl(response.OdataNextLink).GetAsync();
+                    }
+                    else
+                    {
+                        break;
                     }
                 }
+
+                _logger.LogInformation("Retrieved {TotalFolders} top-level folders across {PageCount} pages", folderCount, pageCount);
+
+                // Now get child folders recursively for all top-level folders
+                var topLevelFolders = folders.ToList(); // Create a copy to avoid modification during iteration
+                foreach (var folder in topLevelFolders)
+                {
+                    if (folder.ChildFolderCount > 0)
+                    {
+                        _logger.LogDebug("Getting child folders for: '{FolderName}' (Expected children: {ChildCount})",
+                            folder.DisplayName, folder.ChildFolderCount);
+                        
+                        var childFolders = await GetChildFoldersAsync(graphClient, userPrincipalName, folder.Id);
+                        folders.AddRange(childFolders);
+                        
+                        _logger.LogDebug("Added {ChildFolderCount} child folders for '{FolderName}'",
+                            childFolders.Count, folder.DisplayName);
+                    }
+                }
+
+                _logger.LogInformation("Total folders retrieved (including children): {TotalFolders}", folders.Count);
+
+                // Log all folder names for verification
+                var folderNames = folders.Select(f => f.DisplayName).OrderBy(name => name).ToList();
+                _logger.LogInformation("All folders found: {FolderNames}", string.Join(", ", folderNames));
             }
             catch (Exception ex)
             {
@@ -296,26 +342,70 @@ namespace MailArchiver.Services
 
             try
             {
+                _logger.LogDebug("Starting to retrieve child folders for parent: {ParentFolderId}", parentFolderId);
+
                 var response = await graphClient.Users[userPrincipalName].MailFolders[parentFolderId].ChildFolders.GetAsync((requestConfiguration) =>
                 {
-                    requestConfiguration.QueryParameters.Select = new string[] { "id", "displayName", "parentFolderId", "childFolderCount" };
-                    requestConfiguration.QueryParameters.Top = _batchOptions.BatchSize;
+                    requestConfiguration.QueryParameters.Select = new string[] { "id", "displayName", "parentFolderId", "childFolderCount", "totalItemCount" };
+                    requestConfiguration.QueryParameters.Top = 100; // Increase from BatchSize to ensure we get all child folders
                 });
 
-                if (response?.Value != null)
+                int childFolderCount = 0;
+                int pageCount = 0;
+
+                // Process all pages of child folders
+                while (response?.Value != null)
                 {
+                    pageCount++;
+                    var currentPageCount = response.Value.Count;
+                    childFolderCount += currentPageCount;
+                    
+                    _logger.LogDebug("Processing child folder page {PageNumber} with {FolderCount} folders for parent {ParentFolderId} (Total so far: {TotalFolders})",
+                        pageCount, currentPageCount, parentFolderId, childFolderCount);
+
                     childFolders.AddRange(response.Value);
 
-                    // Recursively get child folders
-                    foreach (var folder in response.Value.ToList())
+                    // Log child folder names for debugging
+                    foreach (var folder in response.Value)
                     {
-                        if (folder.ChildFolderCount > 0)
-                        {
-                            var grandChildFolders = await GetChildFoldersAsync(graphClient, userPrincipalName, folder.Id);
-                            childFolders.AddRange(grandChildFolders);
-                        }
+                        _logger.LogDebug("Found child folder: '{FolderName}' (ID: {FolderId}, Parent: {ParentFolderId}, ChildCount: {ChildCount}, ItemCount: {ItemCount})",
+                            folder.DisplayName, folder.Id, folder.ParentFolderId, folder.ChildFolderCount, folder.TotalItemCount);
+                    }
+
+                    // Check for next page
+                    if (!string.IsNullOrEmpty(response.OdataNextLink))
+                    {
+                        _logger.LogDebug("Fetching next page of child folders for parent {ParentFolderId}...", parentFolderId);
+                        response = await graphClient.Users[userPrincipalName].MailFolders[parentFolderId].ChildFolders.WithUrl(response.OdataNextLink).GetAsync();
+                    }
+                    else
+                    {
+                        break;
                     }
                 }
+
+                _logger.LogDebug("Retrieved {TotalChildFolders} child folders across {PageCount} pages for parent {ParentFolderId}", 
+                    childFolderCount, pageCount, parentFolderId);
+
+                // Now recursively get grandchild folders for all child folders
+                var currentChildFolders = childFolders.ToList(); // Create a copy to avoid modification during iteration
+                foreach (var folder in currentChildFolders)
+                {
+                    if (folder.ChildFolderCount > 0)
+                    {
+                        _logger.LogDebug("Getting grandchild folders for: '{FolderName}' (Expected children: {ChildCount})",
+                            folder.DisplayName, folder.ChildFolderCount);
+                        
+                        var grandChildFolders = await GetChildFoldersAsync(graphClient, userPrincipalName, folder.Id);
+                        childFolders.AddRange(grandChildFolders);
+                        
+                        _logger.LogDebug("Added {GrandChildFolderCount} grandchild folders for '{FolderName}'",
+                            grandChildFolders.Count, folder.DisplayName);
+                    }
+                }
+
+                _logger.LogDebug("Total child and grandchild folders retrieved for parent {ParentFolderId}: {TotalFolders}", 
+                    parentFolderId, childFolders.Count);
             }
             catch (Exception ex)
             {
@@ -378,10 +468,50 @@ namespace MailArchiver.Services
                     
                     if (messagesResponse?.Value?.Count == 0)
                     {
-                        // This is a normal case when there are no new messages since last sync
-                        // Only do additional checks if we have reason to believe there might be an issue
-                        _logger.LogDebug("No messages returned with date filter for folder {FolderName}. This is normal if there are no new messages.", folder.DisplayName);
+                        // If no messages returned with filter, try a diagnostic query to check if messages exist at all
+                        _logger.LogWarning("No messages returned with date filter for folder {FolderName}. Performing diagnostic check...", folder.DisplayName);
                         
+                        try
+                        {
+                            // Diagnostic query: Get total message count without filter
+                            var diagnosticResponse = await graphClient.Users[account.EmailAddress].MailFolders[folder.Id].Messages.GetAsync((requestConfiguration) =>
+                            {
+                                requestConfiguration.QueryParameters.Select = new string[] { "id" };
+                                requestConfiguration.QueryParameters.Top = 1;
+                            });
+                            
+                            _logger.LogWarning("Diagnostic check for folder {FolderName}: {MessageCount} messages found without filter. " +
+                                             "This suggests the date filter might be too restrictive or there's a permission issue.",
+                                folder.DisplayName, diagnosticResponse?.Value?.Count ?? 0);
+                            
+                            // If diagnostic query finds messages, try with a more permissive date filter
+                            if (diagnosticResponse?.Value?.Count > 0)
+                            {
+                                var permissiveLastSync = DateTime.UtcNow.AddDays(-30); // Last 30 days
+                                var permissiveFilter = $"lastModifiedDateTime ge {permissiveLastSync:yyyy-MM-ddTHH:mm:ssZ}";
+                                
+                                _logger.LogInformation("Trying permissive filter for folder {FolderName}: {Filter}", 
+                                    folder.DisplayName, permissiveFilter);
+                                
+                                messagesResponse = await graphClient.Users[account.EmailAddress].MailFolders[folder.Id].Messages.GetAsync((requestConfiguration) =>
+                                {
+                                    requestConfiguration.QueryParameters.Filter = permissiveFilter;
+                                    requestConfiguration.QueryParameters.Select = new string[] 
+                                    { 
+                                        "id", "internetMessageId", "subject", "from", "sentDateTime", "receivedDateTime", "lastModifiedDateTime"
+                                    };
+                                    requestConfiguration.QueryParameters.Top = _batchOptions.BatchSize;
+                                });
+                                
+                                _logger.LogInformation("Permissive filter returned {Count} messages for folder {FolderName}", 
+                                    messagesResponse?.Value?.Count ?? 0, folder.DisplayName);
+                            }
+                        }
+                        catch (Exception diagEx)
+                        {
+                            _logger.LogError(diagEx, "Diagnostic query failed for folder {FolderName}: {Error}", 
+                                folder.DisplayName, diagEx.Message);
+                        }
                     }
                 }
                 catch (ODataError ex) when (ex.Error?.Code == "ErrorInvalidRestriction" || ex.Message.Contains("too complex"))
@@ -454,72 +584,94 @@ namespace MailArchiver.Services
                     _logger.LogInformation("Processing page 1 with {Count} messages in folder {FolderName} for account: {AccountName}",
                         filteredMessages.Count, folder.DisplayName, account.Name);
 
-                    foreach (var message in filteredMessages)
+                    // Process messages in batches for better memory management
+                    for (int i = 0; i < filteredMessages.Count; i += _batchOptions.BatchSize)
                     {
-                        // Safety check: Limit messages per folder to prevent infinite loops
-                        if (processedInThisFolder >= maxMessagesPerFolder)
-                        {
-                            _logger.LogWarning("Reached maximum message limit ({MaxMessages}) for folder {FolderName}, stopping processing for safety", 
-                                maxMessagesPerFolder, folder.DisplayName);
-                            break;
-                        }
+                        var batch = filteredMessages.Skip(i).Take(_batchOptions.BatchSize).ToList();
+                        _logger.LogInformation("Processing batch of {Count} messages (starting at {Start}) in folder {FolderName} via Graph API",
+                            batch.Count, i, folder.DisplayName);
 
-                        // Check if job has been cancelled
-                        if (jobId != null)
+                        foreach (var message in batch)
                         {
-                            var job = _syncJobService.GetJob(jobId);
-                            if (job?.Status == SyncJobStatus.Cancelled)
+                            // Safety check: Limit messages per folder to prevent infinite loops
+                            if (processedInThisFolder >= maxMessagesPerFolder)
                             {
-                                _logger.LogInformation("Sync job {JobId} for account {AccountName} has been cancelled during message processing", jobId, account.Name);
-                                return result;
+                                _logger.LogWarning("Reached maximum message limit ({MaxMessages}) for folder {FolderName}, stopping processing for safety", 
+                                    maxMessagesPerFolder, folder.DisplayName);
+                                break;
                             }
-                        }
 
-                        try
-                        {
-                            // For messages with limited fields, we need to get the full message details
-                            Message fullMessage = message;
-                            if (message.Body?.Content == null || message.ToRecipients == null || message.CcRecipients == null)
+                            // Check if job has been cancelled
+                            if (jobId != null)
                             {
-                                try
+                                var job = _syncJobService.GetJob(jobId);
+                                if (job?.Status == SyncJobStatus.Cancelled)
                                 {
-                                    fullMessage = await graphClient.Users[account.EmailAddress].Messages[message.Id].GetAsync((requestConfiguration) =>
+                                    _logger.LogInformation("Sync job {JobId} for account {AccountName} has been cancelled during message processing", jobId, account.Name);
+                                    return result;
+                                }
+                            }
+
+                            try
+                            {
+                                // For messages with limited fields, we need to get the full message details
+                                Message fullMessage = message;
+                                if (message.Body?.Content == null || message.ToRecipients == null || message.CcRecipients == null)
+                                {
+                                    try
                                     {
-                                        requestConfiguration.QueryParameters.Select = new string[] 
-                                        { 
-                                            "id", "internetMessageId", "subject", "from", "toRecipients", "ccRecipients", "bccRecipients",
-                                            "sentDateTime", "receivedDateTime", "hasAttachments", "body", "bodyPreview", "lastModifiedDateTime"
-                                        };
-                                    });
+                                        fullMessage = await graphClient.Users[account.EmailAddress].Messages[message.Id].GetAsync((requestConfiguration) =>
+                                        {
+                                            requestConfiguration.QueryParameters.Select = new string[] 
+                                            { 
+                                                "id", "internetMessageId", "subject", "from", "toRecipients", "ccRecipients", "bccRecipients",
+                                                "sentDateTime", "receivedDateTime", "hasAttachments", "body", "bodyPreview", "lastModifiedDateTime"
+                                            };
+                                        });
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        _logger.LogWarning(ex, "Failed to get full message details for {MessageId}, using limited data", message.Id);
+                                        fullMessage = message; // Use what we have
+                                    }
                                 }
-                                catch (Exception ex)
-                                {
-                                    _logger.LogWarning(ex, "Failed to get full message details for {MessageId}, using limited data", message.Id);
-                                    fullMessage = message; // Use what we have
-                                }
-                            }
 
-                            var isNew = await ArchiveGraphEmailAsync(graphClient, account, fullMessage, isOutgoing, folder.DisplayName);
-                            if (isNew)
+                                var isNew = await ArchiveGraphEmailAsync(graphClient, account, fullMessage, isOutgoing, folder.DisplayName);
+                                if (isNew)
+                                {
+                                    result.NewEmails++;
+                                }
+                                
+                                processedInThisFolder++;
+                            }
+                            catch (Exception ex)
                             {
-                                result.NewEmails++;
+                                var subject = message.Subject ?? "Unknown";
+                                var date = message.SentDateTime?.ToString() ?? "Unknown";
+                                _logger.LogError(ex, "Error archiving Graph API message {MessageId} from folder {FolderName}. Subject: {Subject}, Date: {Date}, Message: {Message}",
+                                    message.Id, folder.DisplayName, subject, date, ex.Message);
+                                result.FailedEmails++;
+                                processedInThisFolder++;
+                            }
+                        }
+
+                        // Log memory usage after each batch (including the last one)
+                        _logger.LogInformation("Memory usage after processing batch {BatchNumber}: {MemoryUsage}",
+                            (i / _batchOptions.BatchSize) + 1, MemoryMonitor.GetMemoryUsageFormatted());
+
+                        // After processing each batch, perform comprehensive cleanup (except for the last batch)
+                        if (i + _batchOptions.BatchSize < filteredMessages.Count)
+                        {
+                            // Clear Entity Framework Change Tracker to free memory
+                            _context.ChangeTracker.Clear();
+                            
+                            // Use the configurable pause between batches
+                            if (_batchOptions.PauseBetweenBatchesMs > 0)
+                            {
+                                await Task.Delay(_batchOptions.PauseBetweenBatchesMs);
                             }
                             
-                            processedInThisFolder++;
-                        }
-                        catch (Exception ex)
-                        {
-                            var subject = message.Subject ?? "Unknown";
-                            var date = message.SentDateTime?.ToString() ?? "Unknown";
-                            _logger.LogError(ex, "Error archiving Graph API message {MessageId} from folder {FolderName}. Subject: {Subject}, Date: {Date}, Message: {Message}",
-                                message.Id, folder.DisplayName, subject, date, ex.Message);
-                            result.FailedEmails++;
-                            processedInThisFolder++;
-                        }
-                        
-                        // Force garbage collection after each email to free memory
-                        if (processedInThisFolder % 10 == 0)
-                        {
+                            // Force garbage collection after each batch to free memory
                             GC.Collect();
                             GC.WaitForPendingFinalizers();
                         }
@@ -633,6 +785,10 @@ namespace MailArchiver.Services
                                     GC.WaitForPendingFinalizers();
                                 }
                             }
+
+                            // Log memory usage after processing each pagination page
+                            _logger.LogInformation("Memory usage after processing pagination page {PageNumber}: {MemoryUsage}",
+                                paginationCount, MemoryMonitor.GetMemoryUsageFormatted());
                         }
                         
                         // Force garbage collection after each page to free memory
@@ -979,6 +1135,48 @@ namespace MailArchiver.Services
                 {
                     _logger.LogInformation("Graph API connection test passed for account {Name}. User: {UserPrincipalName}",
                         account.Name, user.UserPrincipalName);
+                    
+                    // Additional test: Try to access mail folders to ensure proper permissions
+                    try
+                    {
+                        var foldersResponse = await graphClient.Users[account.EmailAddress].MailFolders.GetAsync((requestConfiguration) =>
+                        {
+                            requestConfiguration.QueryParameters.Select = new string[] { "id", "displayName" };
+                            requestConfiguration.QueryParameters.Top = 1;
+                        });
+                        
+                        _logger.LogInformation("Mail folder access test passed for account {Name}. Found {FolderCount} folders.",
+                            account.Name, foldersResponse?.Value?.Count ?? 0);
+                            
+                        // Test message access in first available folder
+                        if (foldersResponse?.Value?.Count > 0)
+                        {
+                            var firstFolder = foldersResponse.Value.First();
+                            try
+                            {
+                                var messagesResponse = await graphClient.Users[account.EmailAddress].MailFolders[firstFolder.Id].Messages.GetAsync((requestConfiguration) =>
+                                {
+                                    requestConfiguration.QueryParameters.Select = new string[] { "id" };
+                                    requestConfiguration.QueryParameters.Top = 1;
+                                });
+                                
+                                _logger.LogInformation("Message access test passed for account {Name} in folder {FolderName}. Found {MessageCount} messages.",
+                                    account.Name, firstFolder.DisplayName, messagesResponse?.Value?.Count ?? 0);
+                            }
+                            catch (Exception msgEx)
+                            {
+                                _logger.LogWarning(msgEx, "Message access test failed for account {Name} in folder {FolderName}: {Message}",
+                                    account.Name, firstFolder.DisplayName, msgEx.Message);
+                            }
+                        }
+                    }
+                    catch (Exception folderEx)
+                    {
+                        _logger.LogWarning(folderEx, "Mail folder access test failed for account {Name}: {Message}. " +
+                                         "This may indicate insufficient permissions (Mail.Read or Mail.ReadWrite required).",
+                            account.Name, folderEx.Message);
+                    }
+                    
                     return true;
                 }
 

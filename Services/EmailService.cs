@@ -11,6 +11,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using MimeKit;
 using System.Globalization;
+using System.IO;
 using System.Net.Security;
 using System.Net.Sockets;
 using System.Security.Cryptography.X509Certificates;
@@ -865,8 +866,9 @@ namespace MailArchiver.Services
                         }
 
                         var batch = uids.Skip(i).Take(_batchOptions.BatchSize).ToList();
-                        _logger.LogInformation("Processing batch of {Count} messages (starting at {Start}) in folder {FolderName}",
+                        _logger.LogInformation("Processing batch of {Count} messages (starting at {Start}) in folder {FolderName} via IMAP",
                             batch.Count, i, folder.FullName);
+
 
                         foreach (var uid in batch)
                         {
@@ -881,7 +883,7 @@ namespace MailArchiver.Services
                                 }
                             }
 
-                            MimeMessage message = null;
+                            // Use using statement to ensure proper disposal of MimeMessage
                             try
                             {
                                 // Ensure connection is still active before getting message
@@ -903,43 +905,27 @@ namespace MailArchiver.Services
                                     await folder.OpenAsync(FolderAccess.ReadOnly);
                                 }
 
-                                message = await folder.GetMessageAsync(uid);
+                                using var message = await folder.GetMessageAsync(uid);
                                 var isNew = await ArchiveEmailAsync(account, message, isOutgoing, folder.FullName);
                                 if (isNew)
                                 {
                                     result.NewEmails++;
                                 }
-                                
-                                // Explicitly dispose of the message to free memory
-                                message?.Dispose();
                             }
                             catch (Exception ex)
                             {
-                                var subject = message?.Subject ?? "Unknown";
-                                var date = message?.Date.DateTime.ToString() ?? "Unknown";
-                                _logger.LogError(ex, "Error archiving message {MessageNumber} from folder {FolderName}. Subject: {Subject}, Date: {Date}, Message: {Message}",
-                                    uid, folder.FullName, subject, date, ex.Message);
+                                _logger.LogError(ex, "Error archiving message {MessageNumber} from folder {FolderName}. Message: {Message}",
+                                    uid, folder.FullName, ex.Message);
                                 result.FailedEmails++;
-                            }
-                            finally
-                            {
-                                // Ensure message is disposed to free memory
-                                if (message != null)
-                                {
-                                    try
-                                    {
-                                        message.Dispose();
-                                    }
-                                    catch (Exception disposeEx)
-                                    {
-                                        _logger.LogDebug(disposeEx, "Error disposing message {MessageNumber} from folder {FolderName}", uid, folder.FullName);
-                                    }
-                                }
                             }
                         }
 
+                        // After processing each batch, perform comprehensive cleanup
                         if (i + _batchOptions.BatchSize < uids.Count)
                         {
+                            // Clear Entity Framework Change Tracker to free memory
+                            _context.ChangeTracker.Clear();
+                            
                             // Use the configurable pause between batches
                             if (_batchOptions.PauseBetweenBatchesMs > 0)
                             {
@@ -949,6 +935,10 @@ namespace MailArchiver.Services
                             // Force garbage collection after each batch to free memory
                             GC.Collect();
                             GC.WaitForPendingFinalizers();
+                            
+                            // Log memory usage after each batch
+                            _logger.LogInformation("Memory usage after processing batch {BatchNumber}: {MemoryUsage}",
+                                (i / _batchOptions.BatchSize) + 1, MemoryMonitor.GetMemoryUsageFormatted());
                         }
                         else if (_batchOptions.PauseBetweenEmailsMs > 0 && batch.Count > 1)
                         {
@@ -1232,10 +1222,13 @@ namespace MailArchiver.Services
         // Methode zum Speichern aller Anhänge als normale Attachments
         private async Task SaveAllAttachments(List<MimePart> attachments, int archivedEmailId)
         {
+            var emailAttachments = new List<EmailAttachment>();
+            
             foreach (var attachment in attachments)
             {
                 try
                 {
+                    // Use using statement for proper MemoryStream disposal
                     using var ms = new MemoryStream();
                     await attachment.Content.DecodeToAsync(ms);
 
@@ -1279,7 +1272,7 @@ namespace MailArchiver.Services
                         Size = ms.Length
                     };
 
-                    _context.EmailAttachments.Add(emailAttachment);
+                    emailAttachments.Add(emailAttachment);
 
                     _logger.LogDebug("Prepared attachment for saving: FileName={FileName}, Size={Size}, ContentType={ContentType}, ContentId={ContentId}",
                         cleanFileName, ms.Length, contentType, contentId);
@@ -1291,15 +1284,25 @@ namespace MailArchiver.Services
                 }
             }
 
-            try
+            // Add all attachments in one batch to reduce database round trips
+            if (emailAttachments.Any())
             {
-                await _context.SaveChangesAsync();
-                _logger.LogInformation("Successfully saved {Count} attachments for email {EmailId}",
-                    attachments.Count, archivedEmailId);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to save attachments batch for email {EmailId}", archivedEmailId);
+                try
+                {
+                    _context.EmailAttachments.AddRange(emailAttachments);
+                    await _context.SaveChangesAsync();
+                    _logger.LogInformation("Successfully saved {Count} attachments for email {EmailId}",
+                        emailAttachments.Count, archivedEmailId);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to save attachments batch for email {EmailId}", archivedEmailId);
+                }
+                finally
+                {
+                    // Clear the list to help GC
+                    emailAttachments.Clear();
+                }
             }
         }
 

@@ -536,6 +536,10 @@ var model = new MailAccountViewModel
             var account = await _context.MailAccounts.FindAsync(id);
             if (account != null)
             {
+                // Cancel any running sync jobs for this account before deletion
+                _syncJobService.CancelJobsForAccount(id);
+                _logger.LogInformation("Cancelled any running sync jobs for account {AccountId} ({AccountName}) before deletion", id, account.Name);
+
                 // First delete attachments
                 var emailIds = await _context.ArchivedEmails
                     .Where(e => e.MailAccountId == id)
@@ -602,8 +606,8 @@ var model = new MailAccountViewModel
 
             try
             {
-                // Use the sync job service to start a sync
-                var jobId = _syncJobService.StartSync(id, account.Name);
+                // Use the sync job service to start a sync with validation
+                var jobId = await _syncJobService.StartSyncAsync(id, account.Name);
                 if (!string.IsNullOrEmpty(jobId))
                 {
                     // Actually perform the sync based on provider type

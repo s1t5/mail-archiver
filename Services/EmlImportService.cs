@@ -354,6 +354,14 @@ namespace MailArchiver.Services
 
                         job.ProcessedEmails++;
 
+                        // Clear Entity Framework Change Tracker every 50 emails to prevent memory accumulation
+                        if (job.ProcessedEmails % 50 == 0)
+                        {
+                            using var scope = _serviceProvider.CreateScope();
+                            var context = scope.ServiceProvider.GetRequiredService<MailArchiverDbContext>();
+                            context.ChangeTracker.Clear();
+                        }
+
                         // Kleine Pause alle 10 E-Mails
                         if (job.ProcessedEmails % 10 == 0 && _batchOptions.PauseBetweenEmailsMs > 0)
                         {
@@ -374,9 +382,18 @@ namespace MailArchiver.Services
                             _logger.LogInformation("Job {JobId}: Processed {Processed} emails ({Progress:F1}%)",
                                 job.JobId, job.ProcessedEmails, progressPercent);
                             
+                            // Clear Entity Framework Change Tracker for comprehensive cleanup every 100 emails
+                            using var scope = _serviceProvider.CreateScope();
+                            var context = scope.ServiceProvider.GetRequiredService<MailArchiverDbContext>();
+                            context.ChangeTracker.Clear();
+                            
                             // Force garbage collection after every 100 emails to free memory
                             GC.Collect();
                             GC.WaitForPendingFinalizers();
+                            
+                            // Log memory usage after processing batch
+                            _logger.LogInformation("Memory usage after processing batch: {MemoryUsage}",
+                                MemoryMonitor.GetMemoryUsageFormatted());
                         }
                     }
                     catch (FormatException ex)

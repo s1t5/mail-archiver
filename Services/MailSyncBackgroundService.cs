@@ -68,8 +68,15 @@ namespace MailArchiver.Services
                             using var accountCts = new CancellationTokenSource(TimeSpan.FromMinutes(syncTimeoutMinutes));
                             using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(accountCts.Token, stoppingToken);
 
-                            // Start sync job tracking
-                            var jobId = syncJobService.StartSync(account.Id, account.Name, account.LastSync);
+                            // Start sync job tracking with validation
+                            var jobId = await syncJobService.StartSyncAsync(account.Id, account.Name, account.LastSync);
+                            
+                            if (jobId == null)
+                            {
+                                _logger.LogWarning("Skipping sync for account {AccountId} ({AccountName}) - account no longer exists or is disabled", 
+                                    account.Id, account.Name);
+                                continue;
+                            }
                             
                             // Update job with cancellation token source
                             syncJobService.UpdateJobProgress(jobId, job =>
