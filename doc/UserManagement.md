@@ -49,7 +49,7 @@ Users cannot access:
 - Administrative settings (unless they have the Admin flag)
 - Other users' account information
 
-Users with the "Self Manager"-Role can additionally manage their own account settings, as well as add new Accounts. They can also delete accounts assigned to them.
+Users with the "Self Manager"-Role can additionally manage their own account settings, as well as add new Accounts. They can also delete accounts assigned to them and mails from their assigned accounts.
 
 ## 🔒 Security Considerations
 
