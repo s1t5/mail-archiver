@@ -2071,4 +2071,16 @@
   <data name="Type" xml:space="preserve">
     <value>Тип</value>
   </data>
+  <data name="EmailNotFoundTitle" xml:space="preserve">
+    <value>Письмо Не Найдено</value>
+  </data>
+  <data name="EmailNotFoundMessage" xml:space="preserve">
+    <value>Письмо, которое вы ищете, не существует или было удалено.</value>
+  </data>
+  <data name="BackToEmails" xml:space="preserve">
+    <value>Вернуться к Архиву Писем</value>
+  </data>
+  <data name="EmailNotFoundHelp" xml:space="preserve">
+    <value>Если вы считаете, что это ошибка, обратитесь к системному администратору.</value>
+  </data>
 </root>

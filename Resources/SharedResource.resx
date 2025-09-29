@@ -2080,4 +2080,16 @@
   <data name="NoAccessLogEntries" xml:space="preserve">
     <value>No access log entries found</value>
   </data>
+  <data name="EmailNotFoundTitle" xml:space="preserve">
+    <value>Email Not Found</value>
+  </data>
+  <data name="EmailNotFoundMessage" xml:space="preserve">
+    <value>The email you are looking for does not exist or has been removed.</value>
+  </data>
+  <data name="BackToEmails" xml:space="preserve">
+    <value>Back to Email Archive</value>
+  </data>
+  <data name="EmailNotFoundHelp" xml:space="preserve">
+    <value>If you believe this is an error, please contact your system administrator.</value>
+  </data>
 </root>

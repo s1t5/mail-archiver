@@ -2071,4 +2071,16 @@
   <data name="Type" xml:space="preserve">
     <value>Type</value>
   </data>
+  <data name="EmailNotFoundTitle" xml:space="preserve">
+    <value>E-mail Niet Gevonden</value>
+  </data>
+  <data name="EmailNotFoundMessage" xml:space="preserve">
+    <value>De e-mail die u zoekt bestaat niet of is verwijderd.</value>
+  </data>
+  <data name="BackToEmails" xml:space="preserve">
+    <value>Terug naar E-mail Archief</value>
+  </data>
+  <data name="EmailNotFoundHelp" xml:space="preserve">
+    <value>Als u denkt dat dit een fout is, neem dan contact op met uw systeembeheerder.</value>
+  </data>
 </root>

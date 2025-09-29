@@ -2072,4 +2072,16 @@
   <data name="NoAccessLogEntries" xml:space="preserve">
     <value>keine Zugriffsprotokoll-Einträge gefunden</value>
   </data>
+  <data name="EmailNotFoundTitle" xml:space="preserve">
+    <value>E-Mail nicht gefunden</value>
+  </data>
+  <data name="EmailNotFoundMessage" xml:space="preserve">
+    <value>Die gesuchte E-Mail existiert nicht oder wurde gelöscht.</value>
+  </data>
+  <data name="BackToEmails" xml:space="preserve">
+    <value>zurück zum E-Mail Archiv</value>
+  </data>
+  <data name="EmailNotFoundHelp" xml:space="preserve">
+    <value>Wenn Sie glauben, dass dies ein Fehler ist, wenden Sie sich bitte an Ihren Systemadministrator.</value>
+  </data>
 </root>

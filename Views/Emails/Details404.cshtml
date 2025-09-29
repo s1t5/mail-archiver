@@ -1,0 +1,22 @@
+@inject Microsoft.Extensions.Localization.IStringLocalizer<MailArchiver.SharedResource> Localizer
+@{
+    ViewData["Title"] = Localizer["EmailNotFoundTitle", "Email Not Found"];
+}
+
+<div class="container-fluid">
+    <div class="text-center py-5">
+        <div class="mb-4">
+            <i class="bi bi-envelope-x display-1 text-muted"></i>
+        </div>
+        <h1 class="display-5 fw-bold text-muted">@Localizer["EmailNotFoundTitle", "Email Not Found"]</h1>
+        <p class="lead text-muted">@Localizer["EmailNotFoundMessage", "The email you are looking for does not exist or has been removed."]</p>
+        <div class="mt-4">
+            <a asp-action="Index" class="btn btn-primary btn-lg">
+                <i class="bi bi-arrow-left-circle me-2"></i>@Localizer["BackToEmails", "Back to Email Archive"]
+            </a>
+        </div>
+        <div class="mt-3">
+            <small class="text-muted">@Localizer["EmailNotFoundHelp", "If you believe this is an error, please contact your system administrator."]</small>
+        </div>
+    </div>
+</div>

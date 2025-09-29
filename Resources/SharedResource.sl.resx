@@ -2071,4 +2071,16 @@
   <data name="Type" xml:space="preserve">
     <value>Tip</value>
   </data>
+  <data name="EmailNotFoundTitle" xml:space="preserve">
+    <value>E-pošta Ni Najdena</value>
+  </data>
+  <data name="EmailNotFoundMessage" xml:space="preserve">
+    <value>E-pošta, ki jo iščete, ne obstaja ali je bila odstranjena.</value>
+  </data>
+  <data name="BackToEmails" xml:space="preserve">
+    <value>Nazaj na Arhiv E-pošte</value>
+  </data>
+  <data name="EmailNotFoundHelp" xml:space="preserve">
+    <value>Če menite, da je to napaka, se obrnite na svojega sistemskega administratorja.</value>
+  </data>
 </root>

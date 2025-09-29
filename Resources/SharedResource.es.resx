@@ -2070,4 +2070,16 @@
   <data name="Type" xml:space="preserve">
     <value>Tipo</value>
   </data>
+  <data name="EmailNotFoundTitle" xml:space="preserve">
+    <value>Correo Electrónico No Encontrado</value>
+  </data>
+  <data name="EmailNotFoundMessage" xml:space="preserve">
+    <value>El correo electrónico que busca no existe o ha sido eliminado.</value>
+  </data>
+  <data name="BackToEmails" xml:space="preserve">
+    <value>Volver al Archivo de Correos</value>
+  </data>
+  <data name="EmailNotFoundHelp" xml:space="preserve">
+    <value>Si cree que esto es un error, póngase en contacto con su administrador del sistema.</value>
+  </data>
 </root>

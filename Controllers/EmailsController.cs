@@ -249,7 +249,7 @@ namespace MailArchiver.Controllers
             if (email == null)
             {
                 _logger.LogWarning("Email with ID {EmailId} not found", id);
-                return NotFound();
+                return View("Details404");
             }
 
             _logger.LogInformation("Found email with ID {EmailId} from account {AccountId}", 
@@ -371,7 +371,8 @@ namespace MailArchiver.Controllers
 
             if (attachment == null)
             {
-                return NotFound();
+                _logger.LogWarning("Attachment with ID {AttachmentId} for email {EmailId} not found", attachmentId, emailId);
+                return View("Details404");
             }
 
             return File(attachment.Content, attachment.ContentType, attachment.FileName);
@@ -387,7 +388,8 @@ namespace MailArchiver.Controllers
 
             if (attachment == null)
             {
-                return NotFound();
+                _logger.LogWarning("Attachment with ID {AttachmentId} for email {EmailId} not found", attachmentId, emailId);
+                return View("Details404");
             }
 
             // For PDF files, we need to ensure they can be displayed inline
@@ -413,7 +415,8 @@ namespace MailArchiver.Controllers
 
             if (email == null)
             {
-                return NotFound();
+                _logger.LogWarning("Email with ID {EmailId} not found", id);
+                return View("Details404");
             }
 
             // Check if email has attachments
@@ -457,7 +460,8 @@ namespace MailArchiver.Controllers
 
             if (email == null)
             {
-                return NotFound();
+                _logger.LogWarning("Email with ID {EmailId} not found", id);
+                return View("Details404");
             }
 
             // Get current user's allowed accounts for filtering
@@ -575,7 +579,8 @@ namespace MailArchiver.Controllers
 
             if (email == null)
             {
-                return NotFound();
+                _logger.LogWarning("Email with ID {EmailId} not found", id);
+                return View("Details404");
             }
 
             // Get current user's allowed accounts
@@ -2037,7 +2042,8 @@ namespace MailArchiver.Controllers
 
             if (email == null)
             {
-                return NotFound();
+                _logger.LogWarning("Email with ID {EmailId} not found", id);
+                return View("Details404");
             }
 
             // Bereiten Sie das HTML für die direkte Anzeige vor

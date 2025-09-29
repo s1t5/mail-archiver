@@ -2071,4 +2071,16 @@
   <data name="Type" xml:space="preserve">
     <value>Type</value>
   </data>
+  <data name="EmailNotFoundTitle" xml:space="preserve">
+    <value>Email Introuvable</value>
+  </data>
+  <data name="EmailNotFoundMessage" xml:space="preserve">
+    <value>L'email que vous recherchez n'existe pas ou a été supprimé.</value>
+  </data>
+  <data name="BackToEmails" xml:space="preserve">
+    <value>Retour aux Archives Email</value>
+  </data>
+  <data name="EmailNotFoundHelp" xml:space="preserve">
+    <value>Si vous pensez qu'il s'agit d'une erreur, veuillez contacter votre administrateur système.</value>
+  </data>
 </root>
