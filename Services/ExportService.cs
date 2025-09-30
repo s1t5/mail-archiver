@@ -20,16 +20,19 @@ namespace MailArchiver.Services
         private readonly Timer _cleanupTimer;
         private CancellationTokenSource? _currentJobCancellation;
         private readonly string _exportsPath;
+        private readonly TimeZoneOptions _timeZoneOptions;
 
         public ExportService(
             IServiceProvider serviceProvider, 
             ILogger<ExportService> logger, 
             IWebHostEnvironment environment, 
-            IOptions<BatchOperationOptions> batchOptions)
+            IOptions<BatchOperationOptions> batchOptions,
+            IOptions<TimeZoneOptions> timeZoneOptions)
         {
             _serviceProvider = serviceProvider;
             _logger = logger;
             _batchOptions = batchOptions.Value;
+            _timeZoneOptions = timeZoneOptions.Value;
             _exportsPath = Path.Combine(environment.ContentRootPath, "exports");
 
             // Create exports directory if it doesn't exist
@@ -516,7 +519,11 @@ namespace MailArchiver.Services
             // Set headers
             message.MessageId = email.MessageId;
             message.Subject = email.Subject;
-            message.Date = new DateTimeOffset(email.SentDate);
+            
+            // The SentDate in the database is already in the configured display timezone (converted during sync)
+            // We need to specify this timezone when creating the DateTimeOffset to preserve the correct time
+            var displayTimeZone = TimeZoneInfo.FindSystemTimeZoneById(_timeZoneOptions.DisplayTimeZoneId);
+            message.Date = new DateTimeOffset(email.SentDate, displayTimeZone.GetUtcOffset(email.SentDate));
 
             // Parse addresses
             if (!string.IsNullOrEmpty(email.From))
@@ -644,6 +651,7 @@ namespace MailArchiver.Services
                 }
             }
 
+            // The SentDate in the database is already in the configured display timezone (converted during sync)
             // Format: "From address@domain.com Mon Jan 01 12:00:00 2024"
             var dateString = email.SentDate.ToString("ddd MMM dd HH:mm:ss yyyy", CultureInfo.InvariantCulture);
             return $"From {fromAddress} {dateString}";
