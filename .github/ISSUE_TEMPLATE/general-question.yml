@@ -2,9 +2,6 @@ name: General Question
 description: Ask a general question about the project.
 title: "[Question]: "
 labels: ["question"]
-projects: ["octo-org/1", "octo-org/44"]
-assignees:
-  - octocat
 body:
   - type: markdown
     attributes:
@@ -17,7 +14,7 @@ body:
     attributes:
       label: What is your question?
       description: Provide a clear and concise description of your question.
-      placeholder: Example: "How do I enable feature X in version 2508.3?"
+      placeholder: 'Example: "How do I enable feature X in version 2508.3?"'
     validations:
       required: true
 
