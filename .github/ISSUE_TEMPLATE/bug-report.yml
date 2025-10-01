@@ -82,8 +82,8 @@ body:
     id: management-tools
     attributes:
       label: Management Tools
-      description: Which Docker management tools are in use?
-      placeholder: 'e.g., Docker Compose, Portainer, etc.'
+      description: Are Docker management tools in use?
+      placeholder: 'e.g., Portainer, etc.'
     validations:
       required: false
 
