@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Project Documentation
+    url: https://github.com/s1t5/mail-archiver/blob/main/doc/Index.md
+    about: Read the documentation for help with the application
