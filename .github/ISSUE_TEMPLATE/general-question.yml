@@ -57,4 +57,4 @@ body:
     attributes:
       label: Additional context
       description: Add any other context or screenshots about your question here.
-      placeholder: Example: Environment setup, related configuration, etc.
+      placeholder: 'Example: Environment setup, related configuration, etc.'
