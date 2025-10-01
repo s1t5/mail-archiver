@@ -1,0 +1,63 @@
+name: General Question
+description: Ask a general question about the project.
+title: "[Question]: "
+labels: ["question"]
+projects: ["octo-org/1", "octo-org/44"]
+assignees:
+  - octocat
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to submit your question!
+        Please provide as much detail as possible so we can assist you effectively.
+
+  - type: textarea
+    id: question
+    attributes:
+      label: What is your question?
+      description: Provide a clear and concise description of your question.
+      placeholder: Example: "How do I enable feature X in version 2508.3?"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: version
+    attributes:
+      label: Application Version
+      description: Which version of the application are you referring to?
+      options:
+        - 2507.1
+        - 2507.2
+        - 2507.3
+        - 2507.4
+        - 2507.5
+        - 2508.1
+        - 2508.2
+        - 2508.3
+        - 2508.4
+        - 2508.5
+        - 2508.6
+        - 2508.7
+        - 2508.8
+        - 2508.9
+        - 2508.10
+        - 2509.1
+        - 2509.2
+        - 2509.3
+        - 2509.4
+        - 2509.5
+        - 2509.6
+        - 2509.7
+        - 2509.8
+        - other
+      default: 0
+    validations:
+      required: false
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Add any other context or screenshots about your question here.
+      placeholder: Example: Environment setup, related configuration, etc.
