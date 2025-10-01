@@ -1,0 +1,156 @@
+name: Bug Report
+description: Report a bug or issue with the application
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report this bug!
+        Please fill out the form below to help us understand and fix the issue.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Bug Description
+      description: Provide a clear and concise description of the bug. Include screenshots if necessary.
+      placeholder: 'Example: "The export function fails when trying to export more than 1000 emails"'
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce
+      description: Describe the steps to reproduce the bug
+      placeholder: |
+        1. Go to '...'
+        2. Click on '...'
+        3. Scroll down to '...'
+        4. See error
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      description: What did you expect to happen?
+      placeholder: 'Example: "The emails should be exported successfully"'
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual Behavior
+      description: What actually happened?
+      placeholder: 'Example: "An error message appears and the export fails"'
+    validations:
+      required: true
+
+  - type: dropdown
+    id: version
+    attributes:
+      label: Application Version
+      description: Which version are you using?
+      options:
+        - "2509.8"
+        - "2509.7"
+        - "2509.6"
+        - "2509.5"
+        - "2509.4"
+        - "2509.3"
+        - "2509.2"
+        - "2509.1"
+        - "2508.10"
+        - "2508.9"
+        - "2508.8"
+        - "2508.7"
+        - "2508.6"
+        - "2508.5"
+        - "2508.4"
+        - "2508.3"
+        - "2508.2"
+        - "2508.1"
+        - "2507.5"
+        - "2507.4"
+        - "2507.3"
+        - "2507.2"
+        - "2507.1"
+        - "other"
+      default: 0
+    validations:
+      required: true
+
+  - type: dropdown
+    id: installation-type
+    attributes:
+      label: Installation Type
+      description: How is the application installed?
+      options:
+        - "Docker"
+        - "Standalone"
+        - "Other"
+    validations:
+      required: false
+
+  - type: dropdown
+    id: setup-method
+    attributes:
+      label: Setup Method
+      description: How was the system set up?
+      options:
+        - "Docker Compose"
+        - "Manual Docker"
+        - "Other"
+    validations:
+      required: false
+
+  - type: input
+    id: management-tools
+    attributes:
+      label: Management Tools
+      description: Which Docker management tools are in use?
+      placeholder: 'e.g., Docker Compose, Portainer, etc.'
+    validations:
+      required: false
+
+  - type: input
+    id: host-system
+    attributes:
+      label: Host System
+      description: What is the host operating system?
+      placeholder: 'e.g., Ubuntu 24.04, Debian 12, Windows Server 2022, etc.'
+    validations:
+      required: false
+
+  - type: input
+    id: browser
+    attributes:
+      label: Browser
+      description: Which browser are you using?
+      placeholder: 'e.g., Chrome 120, Firefox 121, Edge 120, etc.'
+    validations:
+      required: false
+
+  - type: input
+    id: mail-provider
+    attributes:
+      label: Mail Provider
+      description: Which mail provider is being archived?
+      placeholder: 'e.g., Mailbox.org, Gmail, etc.'
+    validations:
+      required: false
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant Log Output
+      description: |
+        Please copy and paste relevant log output from `docker compose logs`.
+        **Important: Ensure proper anonymization of sensitive data (email addresses, domains, credentials, etc.)!**
+        Alternatively, you can submit logs via email if they contain sensitive information.
+      render: shell
+    validations:
+      required: false
