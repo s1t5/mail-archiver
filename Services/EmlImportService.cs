@@ -453,10 +453,11 @@ namespace MailArchiver.Services
                 {
                     var cleanedTextBody = CleanText(message.TextBody);
                     // Check if text body needs truncation for tsvector compatibility
-                    if (Encoding.UTF8.GetByteCount(cleanedTextBody) > 800_000) // Leave buffer for other fields in tsvector
+                    // Set to 500KB to ensure total of all fields stays under 1MB tsvector limit
+                    if (Encoding.UTF8.GetByteCount(cleanedTextBody) > 500_000)
                     {
                         isBodyTruncated = true;
-                        body = TruncateTextForStorage(cleanedTextBody);
+                        body = TruncateTextForStorage(cleanedTextBody, 500_000);
                     }
                     else
                     {
@@ -468,10 +469,11 @@ namespace MailArchiver.Services
                     // If no TextBody, try to extract text from HTML body
                     var cleanedHtmlAsText = CleanText(message.HtmlBody);
                     // Check if HTML-as-text body needs truncation for tsvector compatibility
-                    if (Encoding.UTF8.GetByteCount(cleanedHtmlAsText) > 800_000) // Leave buffer for other fields in tsvector
+                    // Set to 500KB to ensure total of all fields stays under 1MB tsvector limit
+                    if (Encoding.UTF8.GetByteCount(cleanedHtmlAsText) > 500_000)
                     {
                         isBodyTruncated = true;
-                        body = TruncateTextForStorage(cleanedHtmlAsText);
+                        body = TruncateTextForStorage(cleanedHtmlAsText, 500_000);
                     }
                     else
                     {
@@ -502,22 +504,65 @@ namespace MailArchiver.Services
                 var dateTimeHelper = scope.ServiceProvider.GetRequiredService<DateTimeHelper>();
                 var convertedSentDate = dateTimeHelper.ConvertToDisplayTimeZone(message.Date);
 
+                var subject = CleanText(message.Subject ?? "(No Subject)");
+                var from = CleanText(string.Join(", ", message.From.Mailboxes.Select(m => m.Address)));
+                var to = CleanText(string.Join(", ", message.To.Mailboxes.Select(m => m.Address)));
+                var cc = CleanText(string.Join(", ", message.Cc?.Mailboxes.Select(m => m.Address) ?? Enumerable.Empty<string>()));
+                var bcc = CleanText(string.Join(", ", message.Bcc?.Mailboxes.Select(m => m.Address) ?? Enumerable.Empty<string>()));
+
+                // Ensure individual fields don't exceed reasonable limits for tsvector
+                subject = TruncateFieldForTsvector(subject, 50_000);
+                from = TruncateFieldForTsvector(from, 10_000);
+                to = TruncateFieldForTsvector(to, 50_000);
+                cc = TruncateFieldForTsvector(cc, 50_000);
+                bcc = TruncateFieldForTsvector(bcc, 50_000);
+                
+                // Final safety check: ensure total size for tsvector doesn't exceed limit
+                var totalTsvectorSize = Encoding.UTF8.GetByteCount(subject) +
+                                       Encoding.UTF8.GetByteCount(body) +
+                                       Encoding.UTF8.GetByteCount(from) +
+                                       Encoding.UTF8.GetByteCount(to) +
+                                       Encoding.UTF8.GetByteCount(cc) +
+                                       Encoding.UTF8.GetByteCount(bcc);
+
+                const int maxTsvectorSize = 900_000;
+                if (totalTsvectorSize > maxTsvectorSize)
+                {
+                    _logger.LogWarning("Job {JobId}: Email fields exceed tsvector limit ({TotalSize} > {MaxSize}), truncating body further",
+                        job.JobId, totalTsvectorSize, maxTsvectorSize);
+                    
+                    var otherFieldsSize = totalTsvectorSize - Encoding.UTF8.GetByteCount(body);
+                    var maxBodySize = maxTsvectorSize - otherFieldsSize - 10_000;
+                    
+                    if (maxBodySize > 0 && Encoding.UTF8.GetByteCount(body) > maxBodySize)
+                    {
+                        isBodyTruncated = true;
+                        body = TruncateTextForStorage(body, maxBodySize);
+                    }
+                    else if (maxBodySize <= 0)
+                    {
+                        _logger.LogError("Job {JobId}: Other email fields alone exceed tsvector limit", job.JobId);
+                        isBodyTruncated = true;
+                        body = "[Body too large - saved as attachment]";
+                    }
+                }
+
                 var archivedEmail = new ArchivedEmail
                 {
                     MailAccountId = account.Id,
                     MessageId = messageId,
-                    Subject = CleanText(message.Subject ?? "(No Subject)"),
-                    From = CleanText(string.Join(", ", message.From.Mailboxes.Select(m => m.Address))),
-                    To = CleanText(string.Join(", ", message.To.Mailboxes.Select(m => m.Address))),
-                    Cc = CleanText(string.Join(", ", message.Cc?.Mailboxes.Select(m => m.Address) ?? Enumerable.Empty<string>())),
-                    Bcc = CleanText(string.Join(", ", message.Bcc?.Mailboxes.Select(m => m.Address) ?? Enumerable.Empty<string>())),
+                    Subject = subject,
+                    From = from,
+                    To = to,
+                    Cc = cc,
+                    Bcc = bcc,
                     SentDate = convertedSentDate,
                     ReceivedDate = DateTime.UtcNow,
                     IsOutgoing = DetermineIfOutgoing(message, account),
-                    HasAttachments = allAttachments.Any() || isHtmlTruncated || isBodyTruncated, // Set to true if there are attachments or content was truncated
+                    HasAttachments = allAttachments.Any() || isHtmlTruncated || isBodyTruncated,
                     Body = body,
                     HtmlBody = htmlBody,
-                    FolderName = targetFolder // Verwende den aus dem ZIP-Pfad bestimmten Zielordner
+                    FolderName = targetFolder
                 };
 
                 _logger.LogDebug("Job {JobId}: Adding email to database: {MessageId}", job.JobId, messageId);
@@ -738,6 +783,17 @@ namespace MailArchiver.Services
         {
             try
             {
+                // Get the email's attachments to resolve inline images
+                var email = await context.ArchivedEmails
+                    .Include(e => e.Attachments)
+                    .FirstOrDefaultAsync(e => e.Id == archivedEmailId);
+
+                if (email != null && email.Attachments != null && email.Attachments.Any())
+                {
+                    // Resolve inline images by converting cid: references to data URLs
+                    originalHtml = ResolveInlineImagesInHtml(originalHtml, email.Attachments.ToList(), jobId);
+                }
+
                 var cleanFileName = CleanText($"original_content_{DateTime.UtcNow:yyyyMMddHHmmss}.html");
                 var contentType = "text/html";
 
@@ -753,13 +809,73 @@ namespace MailArchiver.Services
                 context.EmailAttachments.Add(emailAttachment);
                 await context.SaveChangesAsync();
 
-                _logger.LogInformation("Job {JobId}: Successfully saved original HTML content as attachment for email {MessageId}",
-                    jobId, messageId);
+                _logger.LogInformation("Job {JobId}: Successfully saved original HTML content as attachment for email {MessageId} with {ImageCount} inline images resolved",
+                    jobId, messageId, email?.Attachments?.Count(a => !string.IsNullOrEmpty(a.ContentId)) ?? 0);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Job {JobId}: Failed to save original HTML content as attachment for email {MessageId}", jobId, messageId);
             }
+        }
+
+        /// <summary>
+        /// Resolves inline images in HTML by converting cid: references to data URLs
+        /// </summary>
+        private string ResolveInlineImagesInHtml(string htmlBody, List<EmailAttachment> attachments, string jobId)
+        {
+            if (string.IsNullOrEmpty(htmlBody) || attachments == null || !attachments.Any())
+                return htmlBody;
+
+            var resultHtml = htmlBody;
+
+            // Find all cid: references in the HTML
+            var cidMatches = Regex.Matches(htmlBody, @"src\s*=\s*[""']cid:([^""']+)[""']", RegexOptions.IgnoreCase);
+
+            foreach (Match match in cidMatches)
+            {
+                var cid = match.Groups[1].Value;
+
+                // Find the corresponding attachment - try multiple matching strategies
+                var attachment = attachments.FirstOrDefault(a => 
+                    !string.IsNullOrEmpty(a.ContentId) && 
+                    (a.ContentId.Equals($"<{cid}>", StringComparison.OrdinalIgnoreCase) ||
+                     a.ContentId.Equals(cid, StringComparison.OrdinalIgnoreCase)));
+
+                // If no attachment with ContentId found, try matching by filename
+                if (attachment == null)
+                {
+                    attachment = attachments.FirstOrDefault(a => 
+                        !string.IsNullOrEmpty(a.FileName) && 
+                        (a.FileName.Equals($"inline_{cid}", StringComparison.OrdinalIgnoreCase) ||
+                         a.FileName.StartsWith($"inline_{cid}.", StringComparison.OrdinalIgnoreCase) ||
+                         a.FileName.Contains($"_{cid}")));
+                }
+
+                if (attachment != null && attachment.Content != null && attachment.Content.Length > 0)
+                {
+                    try
+                    {
+                        // Create a data URL for the inline image
+                        var base64Content = Convert.ToBase64String(attachment.Content);
+                        var dataUrl = $"data:{attachment.ContentType ?? "image/png"};base64,{base64Content}";
+                        
+                        // Replace the cid: reference with the data URL
+                        resultHtml = resultHtml.Replace(match.Groups[0].Value, $"src=\"{dataUrl}\"");
+                        
+                        _logger.LogDebug("Job {JobId}: Resolved inline image with CID: {Cid} to data URL", jobId, cid);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Job {JobId}: Failed to resolve inline image with CID: {Cid}", jobId, cid);
+                    }
+                }
+                else
+                {
+                    _logger.LogWarning("Job {JobId}: Could not find attachment for CID: {Cid}", jobId, cid);
+                }
+            }
+
+            return resultHtml;
         }
 
         /// <summary>
@@ -973,15 +1089,40 @@ namespace MailArchiver.Services
             return result.ToString();
         }
 
+        private string TruncateFieldForTsvector(string text, int maxSizeBytes)
+        {
+            if (string.IsNullOrEmpty(text))
+                return string.Empty;
+
+            if (Encoding.UTF8.GetByteCount(text) <= maxSizeBytes)
+                return text;
+
+            int approximateCharPosition = Math.Min(maxSizeBytes, text.Length);
+
+            while (approximateCharPosition > 0 && Encoding.UTF8.GetByteCount(text.Substring(0, approximateCharPosition)) > maxSizeBytes)
+            {
+                approximateCharPosition--;
+            }
+
+            int wordBoundarySearch = Math.Max(0, approximateCharPosition - 50);
+            int lastSpaceIndex = text.LastIndexOf(' ', approximateCharPosition - 1, approximateCharPosition - wordBoundarySearch);
+
+            if (lastSpaceIndex > wordBoundarySearch)
+            {
+                approximateCharPosition = lastSpaceIndex;
+            }
+
+            return text.Substring(0, approximateCharPosition) + "...";
+        }
+
         /// <summary>
         /// Truncates text content to fit within tsvector size limits while preserving readability
         /// </summary>
         /// <param name="text">The text to truncate</param>
+        /// <param name="maxSizeBytes">Maximum size in bytes</param>
         /// <returns>Truncated text with notice appended</returns>
-        private string TruncateTextForStorage(string text)
+        private string TruncateTextForStorage(string text, int maxSizeBytes)
         {
-            // 800 KB limit for tsvector compatibility with buffer for other fields
-            const int maxSizeBytes = 800_000;
             
             if (string.IsNullOrEmpty(text))
                 return string.Empty;

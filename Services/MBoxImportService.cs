@@ -745,6 +745,17 @@ private readonly IServiceProvider _serviceProvider;
         {
             try
             {
+                // Get the email's attachments to resolve inline images
+                var email = await context.ArchivedEmails
+                    .Include(e => e.Attachments)
+                    .FirstOrDefaultAsync(e => e.Id == archivedEmailId);
+
+                if (email != null && email.Attachments != null && email.Attachments.Any())
+                {
+                    // Resolve inline images by converting cid: references to data URLs
+                    originalHtml = ResolveInlineImagesInHtml(originalHtml, email.Attachments.ToList(), jobId);
+                }
+
                 var cleanFileName = CleanText($"original_content_{DateTime.UtcNow:yyyyMMddHHmmss}.html");
                 var contentType = "text/html";
 
@@ -760,13 +771,73 @@ private readonly IServiceProvider _serviceProvider;
                 context.EmailAttachments.Add(emailAttachment);
                 await context.SaveChangesAsync();
 
-                _logger.LogInformation("Job {JobId}: Successfully saved original HTML content as attachment for email {MessageId}",
-                    jobId, messageId);
+                _logger.LogInformation("Job {JobId}: Successfully saved original HTML content as attachment for email {MessageId} with {ImageCount} inline images resolved",
+                    jobId, messageId, email?.Attachments?.Count(a => !string.IsNullOrEmpty(a.ContentId)) ?? 0);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Job {JobId}: Failed to save original HTML content as attachment for email {MessageId}", jobId, messageId);
             }
+        }
+
+        /// <summary>
+        /// Resolves inline images in HTML by converting cid: references to data URLs
+        /// </summary>
+        private string ResolveInlineImagesInHtml(string htmlBody, List<EmailAttachment> attachments, string jobId)
+        {
+            if (string.IsNullOrEmpty(htmlBody) || attachments == null || !attachments.Any())
+                return htmlBody;
+
+            var resultHtml = htmlBody;
+
+            // Find all cid: references in the HTML
+            var cidMatches = Regex.Matches(htmlBody, @"src\s*=\s*[""']cid:([^""']+)[""']", RegexOptions.IgnoreCase);
+
+            foreach (Match match in cidMatches)
+            {
+                var cid = match.Groups[1].Value;
+
+                // Find the corresponding attachment - try multiple matching strategies
+                var attachment = attachments.FirstOrDefault(a => 
+                    !string.IsNullOrEmpty(a.ContentId) && 
+                    (a.ContentId.Equals($"<{cid}>", StringComparison.OrdinalIgnoreCase) ||
+                     a.ContentId.Equals(cid, StringComparison.OrdinalIgnoreCase)));
+
+                // If no attachment with ContentId found, try matching by filename
+                if (attachment == null)
+                {
+                    attachment = attachments.FirstOrDefault(a => 
+                        !string.IsNullOrEmpty(a.FileName) && 
+                        (a.FileName.Equals($"inline_{cid}", StringComparison.OrdinalIgnoreCase) ||
+                         a.FileName.StartsWith($"inline_{cid}.", StringComparison.OrdinalIgnoreCase) ||
+                         a.FileName.Contains($"_{cid}")));
+                }
+
+                if (attachment != null && attachment.Content != null && attachment.Content.Length > 0)
+                {
+                    try
+                    {
+                        // Create a data URL for the inline image
+                        var base64Content = Convert.ToBase64String(attachment.Content);
+                        var dataUrl = $"data:{attachment.ContentType ?? "image/png"};base64,{base64Content}";
+                        
+                        // Replace the cid: reference with the data URL
+                        resultHtml = resultHtml.Replace(match.Groups[0].Value, $"src=\"{dataUrl}\"");
+                        
+                        _logger.LogDebug("Job {JobId}: Resolved inline image with CID: {Cid} to data URL", jobId, cid);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Job {JobId}: Failed to resolve inline image with CID: {Cid}", jobId, cid);
+                    }
+                }
+                else
+                {
+                    _logger.LogWarning("Job {JobId}: Could not find attachment for CID: {Cid}", jobId, cid);
+                }
+            }
+
+            return resultHtml;
         }
 
         /// <summary>

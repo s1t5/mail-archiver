@@ -1025,10 +1025,11 @@ namespace MailArchiver.Services
                 {
                     var cleanedTextBody = CleanText(message.TextBody);
                     // Check if text body needs truncation for tsvector compatibility
-                    if (Encoding.UTF8.GetByteCount(cleanedTextBody) > 800_000) // Leave buffer for other fields in tsvector
+                    // Set to 500KB to ensure total of all fields stays under 1MB tsvector limit
+                    if (Encoding.UTF8.GetByteCount(cleanedTextBody) > 500_000)
                     {
                         isBodyTruncated = true;
-                        body = TruncateTextForStorage(cleanedTextBody, 800_000);
+                        body = TruncateTextForStorage(cleanedTextBody, 500_000);
                     }
                     else
                     {
@@ -1040,10 +1041,11 @@ namespace MailArchiver.Services
                     // If no TextBody, try to extract text from HTML body
                     var cleanedHtmlAsText = CleanText(message.HtmlBody);
                     // Check if HTML-as-text body needs truncation for tsvector compatibility
-                    if (Encoding.UTF8.GetByteCount(cleanedHtmlAsText) > 800_000) // Leave buffer for other fields in tsvector
+                    // Set to 500KB to ensure total of all fields stays under 1MB tsvector limit
+                    if (Encoding.UTF8.GetByteCount(cleanedHtmlAsText) > 500_000)
                     {
                         isBodyTruncated = true;
-                        body = TruncateTextForStorage(cleanedHtmlAsText, 800_000);
+                        body = TruncateTextForStorage(cleanedHtmlAsText, 500_000);
                     }
                     else
                     {
@@ -1067,6 +1069,48 @@ namespace MailArchiver.Services
 
                 var cleanMessageId = CleanText(messageId);
                 var cleanFolderName = CleanText(folderName ?? string.Empty);
+
+                // Ensure individual fields don't exceed reasonable limits for tsvector
+                // This prevents tsvector size errors when all fields are concatenated
+                subject = TruncateFieldForTsvector(subject, 50_000); // ~50KB for subject
+                from = TruncateFieldForTsvector(from, 10_000); // ~10KB for from
+                to = TruncateFieldForTsvector(to, 50_000); // ~50KB for to (can be many recipients)
+                cc = TruncateFieldForTsvector(cc, 50_000); // ~50KB for cc
+                bcc = TruncateFieldForTsvector(bcc, 50_000); // ~50KB for bcc
+                // Body already truncated above to 500KB
+                
+                // Final safety check: ensure total size for tsvector doesn't exceed limit
+                var totalTsvectorSize = Encoding.UTF8.GetByteCount(subject) +
+                                       Encoding.UTF8.GetByteCount(body) +
+                                       Encoding.UTF8.GetByteCount(from) +
+                                       Encoding.UTF8.GetByteCount(to) +
+                                       Encoding.UTF8.GetByteCount(cc) +
+                                       Encoding.UTF8.GetByteCount(bcc);
+
+                // PostgreSQL tsvector max is ~1MB (1048575 bytes), use 900KB as safe limit
+                const int maxTsvectorSize = 900_000;
+                if (totalTsvectorSize > maxTsvectorSize)
+                {
+                    _logger.LogWarning("Email fields exceed tsvector limit ({TotalSize} > {MaxSize}), truncating body further",
+                        totalTsvectorSize, maxTsvectorSize);
+                    
+                    // Calculate how much we need to reduce the body
+                    var otherFieldsSize = totalTsvectorSize - Encoding.UTF8.GetByteCount(body);
+                    var maxBodySize = maxTsvectorSize - otherFieldsSize - 10_000; // 10KB safety buffer
+                    
+                    if (maxBodySize > 0 && Encoding.UTF8.GetByteCount(body) > maxBodySize)
+                    {
+                        isBodyTruncated = true;
+                        body = TruncateTextForStorage(body, maxBodySize);
+                    }
+                    else if (maxBodySize <= 0)
+                    {
+                        // Other fields alone exceed limit, truncate body completely
+                        _logger.LogError("Other email fields alone exceed tsvector limit, body will be saved as attachment only");
+                        isBodyTruncated = true;
+                        body = "[Body too large - saved as attachment]";
+                    }
+                }
 
                 // Sammle ALLE Anhänge einschließlich inline Images
                 var allAttachments = new List<MimePart>();
@@ -1311,6 +1355,17 @@ namespace MailArchiver.Services
         {
             try
             {
+                // Get the email's attachments to resolve inline images
+                var email = await _context.ArchivedEmails
+                    .Include(e => e.Attachments)
+                    .FirstOrDefaultAsync(e => e.Id == archivedEmailId);
+
+                if (email != null && email.Attachments != null && email.Attachments.Any())
+                {
+                    // Resolve inline images by converting cid: references to data URLs
+                    originalHtml = ResolveInlineImagesInHtml(originalHtml, email.Attachments.ToList());
+                }
+
                 var cleanFileName = CleanText($"original_content_{DateTime.UtcNow:yyyyMMddHHmmss}.html");
                 var contentType = "text/html";
 
@@ -1326,13 +1381,73 @@ namespace MailArchiver.Services
                 _context.EmailAttachments.Add(emailAttachment);
                 await _context.SaveChangesAsync();
 
-                _logger.LogInformation("Successfully saved original HTML content as attachment for email {EmailId}",
-                    archivedEmailId);
+                _logger.LogInformation("Successfully saved original HTML content as attachment for email {EmailId} with {ImageCount} inline images resolved",
+                    archivedEmailId, email?.Attachments?.Count(a => !string.IsNullOrEmpty(a.ContentId)) ?? 0);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to save original HTML content as attachment for email {EmailId}", archivedEmailId);
             }
+        }
+
+        /// <summary>
+        /// Resolves inline images in HTML by converting cid: references to data URLs
+        /// </summary>
+        private string ResolveInlineImagesInHtml(string htmlBody, List<EmailAttachment> attachments)
+        {
+            if (string.IsNullOrEmpty(htmlBody) || attachments == null || !attachments.Any())
+                return htmlBody;
+
+            var resultHtml = htmlBody;
+
+            // Find all cid: references in the HTML
+            var cidMatches = Regex.Matches(htmlBody, @"src\s*=\s*[""']cid:([^""']+)[""']", RegexOptions.IgnoreCase);
+
+            foreach (Match match in cidMatches)
+            {
+                var cid = match.Groups[1].Value;
+
+                // Find the corresponding attachment
+                var attachment = attachments.FirstOrDefault(a => 
+                    !string.IsNullOrEmpty(a.ContentId) && 
+                    (a.ContentId.Equals($"<{cid}>", StringComparison.OrdinalIgnoreCase) ||
+                     a.ContentId.Equals(cid, StringComparison.OrdinalIgnoreCase)));
+
+                // If no attachment with ContentId found, try matching by filename
+                if (attachment == null)
+                {
+                    attachment = attachments.FirstOrDefault(a => 
+                        !string.IsNullOrEmpty(a.FileName) && 
+                        (a.FileName.Equals($"inline_{cid}", StringComparison.OrdinalIgnoreCase) ||
+                         a.FileName.StartsWith($"inline_{cid}.", StringComparison.OrdinalIgnoreCase) ||
+                         a.FileName.Contains($"_{cid}")));
+                }
+
+                if (attachment != null && attachment.Content != null && attachment.Content.Length > 0)
+                {
+                    try
+                    {
+                        // Create a data URL for the inline image
+                        var base64Content = Convert.ToBase64String(attachment.Content);
+                        var dataUrl = $"data:{attachment.ContentType ?? "image/png"};base64,{base64Content}";
+                        
+                        // Replace the cid: reference with the data URL
+                        resultHtml = resultHtml.Replace(match.Groups[0].Value, $"src=\"{dataUrl}\"");
+                        
+                        _logger.LogDebug("Resolved inline image with CID: {Cid} to data URL", cid);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Failed to resolve inline image with CID: {Cid}", cid);
+                    }
+                }
+                else
+                {
+                    _logger.LogWarning("Could not find attachment for CID: {Cid}", cid);
+                }
+            }
+
+            return resultHtml;
         }
 
         // Hilfsmethode für Dateierweiterungen
@@ -1617,6 +1732,32 @@ namespace MailArchiver.Services
 
             int truncatePosition = Math.Min(maxContentSize, html.Length);
 
+            // IMPORTANT: Preserve inline images with cid: references
+            // Find all <img> tags with cid: references and ensure they're included
+            var imgMatches = Regex.Matches(html, @"<img[^>]*src\s*=\s*[""']cid:[^""']+[""'][^>]*>", RegexOptions.IgnoreCase);
+            
+            // Find the last complete <img> tag with cid: before truncation point
+            int lastCompleteImgEnd = -1;
+            foreach (Match match in imgMatches)
+            {
+                int imgEnd = match.Index + match.Length;
+                if (imgEnd <= truncatePosition)
+                {
+                    lastCompleteImgEnd = imgEnd;
+                }
+                else
+                {
+                    // This image would be cut off, adjust truncation point if possible
+                    if (match.Index < truncatePosition && match.Index > maxContentSize / 2)
+                    {
+                        // If the image starts before truncation but ends after, try to truncate before it
+                        truncatePosition = match.Index;
+                        _logger.LogDebug("Adjusted truncation to preserve inline images, truncating before <img> tag at position {Position}", match.Index);
+                    }
+                    break;
+                }
+            }
+
             // Find safe truncation point that doesn't break HTML tags
             int lastLessThan = html.LastIndexOf('<', truncatePosition - 1);
             int lastGreaterThan = html.LastIndexOf('>', truncatePosition - 1);
@@ -1702,6 +1843,44 @@ namespace MailArchiver.Services
             }
 
             return result.ToString();
+        }
+
+        /// <summary>
+        /// Truncates a single field to ensure it doesn't exceed tsvector limits
+        /// </summary>
+        /// <param name="text">The field text to truncate</param>
+        /// <param name="maxSizeBytes">Maximum size in bytes</param>
+        /// <returns>Truncated text</returns>
+        private string TruncateFieldForTsvector(string text, int maxSizeBytes)
+        {
+            if (string.IsNullOrEmpty(text))
+                return string.Empty;
+
+            // Check if truncation is needed
+            if (Encoding.UTF8.GetByteCount(text) <= maxSizeBytes)
+            {
+                return text; // No truncation needed
+            }
+
+            // Find a safe truncation point
+            int approximateCharPosition = Math.Min(maxSizeBytes, text.Length);
+
+            // Work backwards to ensure we don't exceed byte limit
+            while (approximateCharPosition > 0 && Encoding.UTF8.GetByteCount(text.Substring(0, approximateCharPosition)) > maxSizeBytes)
+            {
+                approximateCharPosition--;
+            }
+
+            // Try to find a word boundary to avoid breaking in the middle of a word
+            int wordBoundarySearch = Math.Max(0, approximateCharPosition - 50);
+            int lastSpaceIndex = text.LastIndexOf(' ', approximateCharPosition - 1, approximateCharPosition - wordBoundarySearch);
+
+            if (lastSpaceIndex > wordBoundarySearch)
+            {
+                approximateCharPosition = lastSpaceIndex;
+            }
+
+            return text.Substring(0, approximateCharPosition) + "...";
         }
 
         /// <summary>
