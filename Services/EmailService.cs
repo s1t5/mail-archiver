@@ -71,7 +71,7 @@ namespace MailArchiver.Services
         /// <summary>
         /// Authenticates the IMAP client using the appropriate method for the account provider.
         /// For M365 accounts, uses OAuth authentication with client credentials.
-        /// For other providers, uses basic username/password authentication.
+        /// For other providers, uses basic username/password authentication with GSSAPI disabled.
         /// </summary>
         /// <param name="client">The IMAP client to authenticate</param>
         /// <param name="account">The mail account with authentication details</param>
@@ -84,6 +84,12 @@ namespace MailArchiver.Services
             }
             else
             {
+                // Disable GSSAPI and NEGOTIATE mechanisms to prevent Kerberos authentication
+                // which is not available in containerized environments and causes authentication failures
+                client.AuthenticationMechanisms.Remove("GSSAPI");
+                client.AuthenticationMechanisms.Remove("NEGOTIATE");
+                
+                // Use basic username/password authentication
                 await client.AuthenticateAsync(GetAuthenticationUsername(account), account.Password);
             }
         }
