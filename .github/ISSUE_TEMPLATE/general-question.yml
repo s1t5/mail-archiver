@@ -24,6 +24,7 @@ body:
       label: Application Version
       description: Which version of the application are you referring to?
       options:
+        - "2510.1"
         - "2509.8"
         - "2509.7"
         - "2509.6"
