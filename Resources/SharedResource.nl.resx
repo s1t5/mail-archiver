@@ -485,7 +485,7 @@
     <value>Laat leeg om het huidige wachtwoord ongewijzigd te houden.</value>
   </data>
   <data name="UseSSL" xml:space="preserve">
-    <value>SSL gebruiken</value>
+    <value>Gebruik SSL of STARTTLS</value>
   </data>
   <data name="AccountEnabled" xml:space="preserve">
     <value>Account ingeschakeld</value>

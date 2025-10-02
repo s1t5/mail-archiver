@@ -482,7 +482,7 @@
     <value>Leer lassen um das aktuell hinterlegte Passwort weiter zu verwenden.</value>
   </data>
   <data name="UseSSL" xml:space="preserve">
-    <value>SSL nutzen</value>
+    <value>SSL oder STARTTLS nutzen</value>
   </data>
   <data name="AccountEnabled" xml:space="preserve">
     <value>Account Aktiviert</value>

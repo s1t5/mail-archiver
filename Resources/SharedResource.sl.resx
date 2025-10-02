@@ -485,7 +485,7 @@
     <value>Pustite prazno, če želite, da trenutno geslo ostane nespremenjeno.</value>
   </data>
   <data name="UseSSL" xml:space="preserve">
-    <value>Uporabi SSL</value>
+    <value>Uporabite SSL ali STARTTLS</value>
   </data>
   <data name="AccountEnabled" xml:space="preserve">
     <value>Račun omogočen</value>

@@ -485,7 +485,7 @@
     <value>Lascia vuoto per mantenere la password attuale invariata.</value>
   </data>
   <data name="UseSSL" xml:space="preserve">
-    <value>Usa SSL</value>
+    <value>Utilizza SSL o STARTTLS</value>
   </data>
   <data name="AccountEnabled" xml:space="preserve">
     <value>Account abilitato</value>

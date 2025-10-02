@@ -155,7 +155,7 @@
                         </ul>
                     </div>
                 </div>
-                <div class="border border-danger rounded p-3 bg-light">
+<div class="border border-danger rounded p-3 bg-light">
                     <h6 class="text-danger mb-2">
                         <i class="bi bi-exclamation-triangle-fill me-1"></i>
                         @Localizer["DangerZone"]
@@ -168,14 +168,14 @@
                             var emailCountText = ViewBag.EmailCount.ToString();
                         }
                         <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal"
-                            data-bs-target="#deleteAccountModal">
+                            data-bs-target="#deleteAccountModal-@Model.Id">
                             <i class="bi bi-trash-fill"></i>
-                            @string.Format(Localizer["DeleteAccountAllEmailsButton"], emailCountText)
+                            @Localizer["DeleteEmailAccountTitle"]
                         </button>
                     </div>
                 </div>
             </div>
-            <div class="mt-4 pt-3 border-top">
+<div class="mt-4 pt-3 border-top">
                 <a asp-action="Index" class="btn btn-outline-secondary">
                     <i class="bi bi-arrow-left"></i> @Localizer["BackToAccounts"]
                 </a>
@@ -195,16 +195,40 @@
         ConfirmButtonClass = "btn-warning",
         CancelButtonText = Localizer["Cancel"].ToString()
     };
+    
+    // Delete account modal
+    var deleteAccountModal = new ModalViewModel
+    {
+        Id = "deleteAccountModal-" + Model.Id,
+        Title = Localizer["DeleteEmailAccountTitle"].ToString(),
+        Message = string.Format(Localizer["DeleteAccountConfirm"].ToString(), Model.EmailAddress),
+        IncludeList = true,
+        ListTitle1 = Localizer["WhatWillBeDeleted"].ToString(),
+        ListItems1 = new List<string> {
+            Localizer["DeleteItemAccountConfig"].ToString()
+        },
+        ListTitle2 = Localizer["ThisAction"].ToString(),
+        ListItems2 = new List<string> {
+            Localizer["ActionCannotBeUndone"].ToString(),
+            Localizer["ActionCannotBeRecovered"].ToString()
+        },
+        ShowWarning = true,
+        WarningMessage = Localizer["DeletionCannotBeUndone"].ToString(),
+        ConfirmButtonText = Localizer["DeleteEmailAccountTitle"].ToString(),
+        ConfirmButtonClass = "btn-danger",
+        CancelButtonText = Localizer["Cancel"].ToString()
+    };
 }
 
 @await Html.PartialAsync("_ModalTemplate", fullResyncModal)
+@await Html.PartialAsync("_ModalTemplate", deleteAccountModal)
 
 @section Scripts {
     <script>
-        // Delete account modal handling
+// Delete account modal handling
         document.addEventListener('DOMContentLoaded', function () {
             // Handle delete account confirmation
-            document.getElementById('deleteAccountModal-Confirm').addEventListener('click', function () {
+            document.getElementById('deleteAccountModal-@Model.Id-Confirm').addEventListener('click', function () {
                 window.location.href = '@Url.Action("Delete", "MailAccounts", new { id = Model.Id })';
             });
         });

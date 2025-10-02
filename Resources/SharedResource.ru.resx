@@ -485,7 +485,7 @@
     <value>Оставьте пустым, чтобы сохранить текущий пароль без изменений.</value>
   </data>
   <data name="UseSSL" xml:space="preserve">
-    <value>Использовать SSL</value>
+    <value>Используйте SSL или STARTTLS</value>
   </data>
   <data name="AccountEnabled" xml:space="preserve">
     <value>Аккаунт включен</value>

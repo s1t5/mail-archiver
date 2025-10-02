@@ -437,134 +437,6 @@ namespace MailArchiver.Services
             }
         }
 
-        /// <summary>
-        /// Fallback method to get OAuth token with .default scope
-        /// </summary>
-        /// <param name="account">The M365 mail account</param>
-        /// <param name="tenantId">The tenant ID to use</param>
-        /// <returns>Access token string</returns>
-        private async Task<string> GetM365AccessTokenWithFallbackAsync(MailAccount account, string tenantId)
-        {
-            try
-            {
-                var tokenEndpoint = $"https://login.microsoftonline.com/{tenantId}/oauth2/v2.0/token";
-
-                var requestBody = new FormUrlEncodedContent(new[]
-                {
-                    new KeyValuePair<string, string>("client_id", account.ClientId),
-                    new KeyValuePair<string, string>("client_secret", account.ClientSecret),
-                    new KeyValuePair<string, string>("scope", "https://outlook.office365.com/.default"),
-                    new KeyValuePair<string, string>("grant_type", "client_credentials")
-                });
-
-                using var httpClient = new HttpClient();
-                httpClient.Timeout = TimeSpan.FromSeconds(60);
-
-                _logger.LogDebug("Fallback: Requesting OAuth token with .default scope for M365 account: {AccountName}", account.Name);
-
-                var response = await httpClient.PostAsync(tokenEndpoint, requestBody);
-                var responseContent = await response.Content.ReadAsStringAsync();
-
-                if (!response.IsSuccessStatusCode)
-                {
-                    _logger.LogError("Fallback OAuth request also failed for M365 account {AccountName}. Status: {StatusCode}, Response: {Response}",
-                        account.Name, response.StatusCode, responseContent);
-                    throw new InvalidOperationException($"Fallback OAuth request failed: {response.StatusCode} - {responseContent}");
-                }
-
-                var tokenResponse = JsonSerializer.Deserialize<JsonElement>(responseContent);
-
-                if (!tokenResponse.TryGetProperty("access_token", out var accessTokenElement))
-                {
-                    throw new InvalidOperationException("Fallback OAuth response does not contain access_token");
-                }
-
-                var accessToken = accessTokenElement.GetString();
-                _logger.LogDebug("Successfully obtained fallback OAuth access token for M365 account: {AccountName}", account.Name);
-
-                return accessToken;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error getting fallback OAuth access token for M365 account {AccountName}: {Message}", account.Name, ex.Message);
-                throw;
-            }
-        }
-
-        /// <summary>
-        /// Attempts to get an OAuth access token with IMAP-specific scopes for M365.
-        /// This may not work with Client Credentials flow but is worth trying as a fallback.
-        /// </summary>
-        /// <param name="account">The M365 mail account</param>
-        /// <returns>Access token string or null if not supported</returns>
-        private async Task<string> GetM365ImapTokenAsync(MailAccount account)
-        {
-            try
-            {
-                // Use tenant ID from account's TenantId field if provided, otherwise use common endpoint
-                string tenantId = !string.IsNullOrEmpty(account.TenantId)
-                    ? account.TenantId
-                    : "common";
-
-                _logger.LogDebug("Attempting to get IMAP-specific token using tenant ID: {TenantId} for M365 account: {AccountName}", tenantId, account.Name);
-
-                // Microsoft Graph endpoint for client credentials flow
-                var tokenEndpoint = $"https://login.microsoftonline.com/{tenantId}/oauth2/v2.0/token";
-
-                // Try with specific IMAP scope - this may not work with Client Credentials but worth trying
-                var requestBody = new FormUrlEncodedContent(new[]
-                {
-                    new KeyValuePair<string, string>("client_id", account.ClientId),
-                    new KeyValuePair<string, string>("client_secret", account.ClientSecret),
-                    new KeyValuePair<string, string>("scope", "https://outlook.office365.com/IMAP.AccessAsUser.All"),
-                    new KeyValuePair<string, string>("grant_type", "client_credentials")
-                });
-
-                using var httpClient = new HttpClient();
-                httpClient.Timeout = TimeSpan.FromSeconds(60);
-
-                _logger.LogDebug("Requesting IMAP-specific OAuth token for M365 account: {AccountName} with scope IMAP.AccessAsUser.All", account.Name);
-
-                var response = await httpClient.PostAsync(tokenEndpoint, requestBody);
-                var responseContent = await response.Content.ReadAsStringAsync();
-
-                _logger.LogDebug("IMAP-specific OAuth response status: {StatusCode} for account: {AccountName}", response.StatusCode, account.Name);
-
-                if (!response.IsSuccessStatusCode)
-                {
-                    _logger.LogDebug("IMAP-specific OAuth request failed for M365 account {AccountName}. Status: {StatusCode}, Response: {Response}",
-                        account.Name, response.StatusCode, responseContent);
-                    return null; // Return null instead of throwing to allow fallback
-                }
-
-                var tokenResponse = JsonSerializer.Deserialize<JsonElement>(responseContent);
-
-                if (!tokenResponse.TryGetProperty("access_token", out var accessTokenElement))
-                {
-                    _logger.LogDebug("IMAP-specific OAuth response does not contain access_token for account: {AccountName}", account.Name);
-                    return null;
-                }
-
-                var accessToken = accessTokenElement.GetString();
-
-                if (string.IsNullOrEmpty(accessToken))
-                {
-                    _logger.LogDebug("Received empty IMAP-specific access token for M365 account: {AccountName}", account.Name);
-                    return null;
-                }
-
-                _logger.LogDebug("Successfully obtained IMAP-specific OAuth access token for M365 account: {AccountName}, length: {TokenLength}",
-                    account.Name, accessToken.Length);
-
-                return accessToken;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogDebug(ex, "Error getting IMAP-specific OAuth access token for M365 account {AccountName}: {Message}", account.Name, ex.Message);
-                return null; // Return null to allow fallback instead of throwing
-            }
-        }
-
         // SyncMailAccountAsync Methode
         public async Task SyncMailAccountAsync(MailAccount account, string? jobId = null)
         {
@@ -591,7 +463,7 @@ namespace MailArchiver.Services
 
             try
             {
-                await client.ConnectAsync(imapServer, account.ImapPort ?? 993, account.UseSSL ? SecureSocketOptions.SslOnConnect : SecureSocketOptions.None);
+                await ConnectWithFallbackAsync(client, imapServer, account.ImapPort ?? 993, account.UseSSL, account.Name);
                 await AuthenticateClientAsync(client, account);
                 _logger.LogInformation("Connected to IMAP server for {AccountName}", account.Name);
 
@@ -699,6 +571,7 @@ namespace MailArchiver.Services
                 if (failedEmails == 0)
                 {
                     account.LastSync = DateTime.UtcNow;
+                    _context.Entry(account).Property(a => a.LastSync).IsModified = true;
                     await _context.SaveChangesAsync();
                 }
                 else
@@ -746,6 +619,7 @@ namespace MailArchiver.Services
 
                 // Reset LastSync to Unix Epoch to force full resync
                 account.LastSync = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+                _context.Entry(account).Property(a => a.LastSync).IsModified = true;
                 await _context.SaveChangesAsync();
 
                 // Start sync job
@@ -2969,7 +2843,7 @@ namespace MailArchiver.Services
                 _logger.LogDebug("Connecting to {Server}:{Port}, SSL: {UseSSL}",
                     account.ImapServer, account.ImapPort, account.UseSSL);
 
-                await client.ConnectAsync(account.ImapServer, account.ImapPort ?? 993, account.UseSSL ? SecureSocketOptions.SslOnConnect : SecureSocketOptions.None);
+                await ConnectWithFallbackAsync(client, account.ImapServer, account.ImapPort ?? 993, account.UseSSL, account.Name);
                 _logger.LogDebug("Connection established, authenticating using {Provider} authentication", account.Provider);
 
                 await AuthenticateClientAsync(client, account);
@@ -3179,7 +3053,7 @@ namespace MailArchiver.Services
                     _logger.LogInformation("Connecting to IMAP server {Server}:{Port} for account {AccountName}",
                         targetAccount.ImapServer, targetAccount.ImapPort, targetAccount.Name);
 
-                    await client.ConnectAsync(targetAccount.ImapServer, targetAccount.ImapPort ?? 993, targetAccount.UseSSL ? SecureSocketOptions.SslOnConnect : SecureSocketOptions.None);
+                    await ConnectWithFallbackAsync(client, targetAccount.ImapServer, targetAccount.ImapPort ?? 993, targetAccount.UseSSL, targetAccount.Name);
                     _logger.LogInformation("Connected to IMAP server, authenticating using {Provider} authentication", targetAccount.Provider);
 
                     await AuthenticateClientAsync(client, targetAccount);
@@ -3466,8 +3340,7 @@ namespace MailArchiver.Services
                 _logger.LogDebug("Connecting to IMAP server {Server}:{Port} for account {AccountName}",
                     targetAccount.ImapServer, targetAccount.ImapPort, targetAccount.Name);
 
-                await client.ConnectAsync(targetAccount.ImapServer, targetAccount.ImapPort ?? 993, 
-                    targetAccount.UseSSL ? SecureSocketOptions.SslOnConnect : SecureSocketOptions.None);
+                await ConnectWithFallbackAsync(client, targetAccount.ImapServer, targetAccount.ImapPort ?? 993, targetAccount.UseSSL, targetAccount.Name);
 
                 _logger.LogDebug("Authenticating with {Provider} authentication", targetAccount.Provider);
                 await AuthenticateClientAsync(client, targetAccount);
@@ -3751,7 +3624,7 @@ namespace MailArchiver.Services
                 using var client = CreateImapClient(account.Name);
                 client.Timeout = 60000;
                 client.ServerCertificateValidationCallback = ServerCertificateValidationCallback;
-                await client.ConnectAsync(account.ImapServer, account.ImapPort ?? 993, account.UseSSL ? SecureSocketOptions.SslOnConnect : SecureSocketOptions.None);
+                await ConnectWithFallbackAsync(client, account.ImapServer, account.ImapPort ?? 993, account.UseSSL, account.Name);
                 await AuthenticateClientAsync(client, account);
 
                 var allFolders = new List<string>();
@@ -4076,7 +3949,7 @@ namespace MailArchiver.Services
                 }
 
                 _logger.LogInformation("Reconnecting to IMAP server for account {AccountName}", account.Name);
-                await client.ConnectAsync(account.ImapServer, account.ImapPort ?? 993, account.UseSSL ? SecureSocketOptions.SslOnConnect : SecureSocketOptions.None);
+                await ConnectWithFallbackAsync(client, account.ImapServer, account.ImapPort ?? 993, account.UseSSL, account.Name);
                 client.ServerCertificateValidationCallback = ServerCertificateValidationCallback;
                 await AuthenticateClientAsync(client, account);
                 _logger.LogInformation("Successfully reconnected to IMAP server for account {AccountName}", account.Name);
@@ -4138,6 +4011,53 @@ namespace MailArchiver.Services
             return false;
         }
 
+
+        /// <summary>
+        /// Connects to an IMAP server with fallback from SSL to STARTTLS if needed
+        /// </summary>
+        /// <param name="client">The IMAP client to connect</param>
+        /// <param name="server">The server hostname</param>
+        /// <param name="port">The server port</param>
+        /// <param name="useSSL">Whether to attempt SSL connection</param>
+        /// <param name="accountName">The account name for logging</param>
+        /// <returns>Task</returns>
+        private async Task ConnectWithFallbackAsync(ImapClient client, string server, int port, bool useSSL, string accountName)
+        {
+            if (!useSSL)
+            {
+                _logger.LogDebug("Connecting to {Server}:{Port} with no security for account {AccountName}", 
+                    server, port, accountName);
+                await client.ConnectAsync(server, port, SecureSocketOptions.None);
+                return;
+            }
+
+            // First try: SSL/TLS directly
+            try
+            {
+                _logger.LogDebug("Connecting to {Server}:{Port} with SSL/TLS for account {AccountName}", 
+                    server, port, accountName);
+                await client.ConnectAsync(server, port, SecureSocketOptions.SslOnConnect);
+                _logger.LogDebug("Successfully connected using SSL/TLS for account {AccountName}", accountName);
+            }
+            catch (MailKit.Security.SslHandshakeException sslEx)
+            {
+                _logger.LogDebug("SSL/TLS connection failed for account {AccountName}, trying STARTTLS: {Message}", 
+                    accountName, sslEx.Message);
+                
+                // Fallback: STARTTLS
+                try
+                {
+                    await client.ConnectAsync(server, port, SecureSocketOptions.StartTls);
+                    _logger.LogInformation("Successfully connected using STARTTLS for account {AccountName} on {Server}:{Port}", 
+                        accountName, server, port);
+                }
+                catch (Exception fallbackEx)
+                {
+                    _logger.LogError(fallbackEx, "STARTTLS fallback also failed for account {AccountName}", accountName);
+                    throw new AggregateException("Both SSL/TLS and STARTTLS connection attempts failed", sslEx, fallbackEx);
+                }
+            }
+        }
 
         // Create an ImapClient without protocol logging
         private ImapClient CreateImapClient(string accountName)

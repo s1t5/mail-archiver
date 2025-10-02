@@ -479,7 +479,7 @@
     <value>Leave empty to keep the current password unchanged.</value>
   </data>
   <data name="UseSSL" xml:space="preserve">
-    <value>Use SSL</value>
+    <value>Use SSL or STARTTLS</value>
   </data>
   <data name="AccountEnabled" xml:space="preserve">
     <value>Account Enabled</value>

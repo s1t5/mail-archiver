@@ -488,7 +488,7 @@
     <value>Dejar vacío para mantener la contraseña actual sin cambios.</value>
   </data>
   <data name="UseSSL" xml:space="preserve">
-    <value>Usar SSL</value>
+    <value>Utilice SSL o STARTTLS</value>
   </data>
   <data name="AccountEnabled" xml:space="preserve">
     <value>Cuenta Habilitada</value>
