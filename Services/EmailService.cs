@@ -52,26 +52,20 @@ namespace MailArchiver.Services
 
         /// <summary>
         /// Gets the appropriate username for authentication.
-        /// For M365 accounts, uses EmailAddress when Username is null.
+        /// Uses Username if provided, otherwise falls back to EmailAddress.
+        /// Note: M365 accounts no longer supported via IMAP - use GraphEmailService.
         /// </summary>
         /// <param name="account">The mail account</param>
         /// <returns>The username to use for authentication</returns>
         private string GetAuthenticationUsername(MailAccount account)
         {
-            // For M365 accounts, use EmailAddress when Username is null or empty
-            if (account.Provider == ProviderType.M365 && string.IsNullOrEmpty(account.Username))
-            {
-                _logger.LogDebug("Using EmailAddress for M365 authentication: {EmailAddress}", account.EmailAddress);
-                return account.EmailAddress;
-            }
-
-            // For other providers or when Username is provided, use Username
+            // Use Username if provided, otherwise fall back to EmailAddress
             return account.Username ?? account.EmailAddress;
         }
 
         /// <summary>
-        /// Authenticates the IMAP client using the appropriate method for the account provider.
-        /// For M365 accounts, uses OAuth authentication with client credentials.
+        /// Authenticates the IMAP client using SASL PLAIN authentication.
+        /// Note: M365 accounts should use GraphEmailService, not IMAP.
         /// For other providers, uses explicit SASL PLAIN authentication to avoid GSSAPI/NTLM issues.
         /// </summary>
         /// <param name="client">The IMAP client to authenticate</param>
@@ -79,386 +73,22 @@ namespace MailArchiver.Services
         /// <returns>Task</returns>
         private async Task AuthenticateClientAsync(ImapClient client, MailAccount account)
         {
-            if (account.Provider == ProviderType.M365)
-            {
-                await AuthenticateM365Async(client, account);
-            }
-            else
-            {
-                // Remove GSSAPI and NEGOTIATE mechanisms to prevent Kerberos authentication attempts
-                // which can fail in containerized environments due to missing libraries
-                client.AuthenticationMechanisms.Remove("GSSAPI");
-                client.AuthenticationMechanisms.Remove("NEGOTIATE");
-                
-                // Use explicit SASL PLAIN mechanism to avoid auto-negotiation of unsupported mechanisms
-                // This works securely with both SSL/TLS (port 993) and STARTTLS (port 143)
-                var credentials = new NetworkCredential(GetAuthenticationUsername(account), account.Password);
-                var saslPlain = new SaslMechanismPlain(credentials);
-                await client.AuthenticateAsync(saslPlain);
-            }
-        }
-
-        /// <summary>
-        /// Authenticates M365 accounts using OAuth client credentials flow.
-        /// </summary>
-        /// <param name="client">The IMAP client to authenticate</param>
-        /// <param name="account">The M365 mail account</param>
-        /// <returns>Task</returns>
-        private async Task AuthenticateM365Async(ImapClient client, MailAccount account)
-        {
-            if (string.IsNullOrEmpty(account.ClientId) || string.IsNullOrEmpty(account.ClientSecret))
-            {
-                throw new InvalidOperationException($"M365 account '{account.Name}' requires ClientId and ClientSecret for OAuth authentication");
-            }
-
-            // Validate that TenantId is provided for proper authentication
-            if (string.IsNullOrEmpty(account.TenantId) || account.TenantId.Equals("common", StringComparison.OrdinalIgnoreCase))
-            {
-                _logger.LogWarning("Account {AccountName} is using 'common' or missing TenantId. For app-only authentication, a specific tenant ID is recommended for reliability.", account.Name);
-            }
-
-            try
-            {
-                _logger.LogDebug("Attempting OAuth authentication for M365 account: {AccountName} with tenant: {TenantId}", account.Name, account.TenantId ?? "common");
-
-                // Ensure client supports OAuth2 authentication
-                var authMechanisms = client.AuthenticationMechanisms;
-                _logger.LogDebug("Available authentication mechanisms: {Mechanisms}", string.Join(", ", authMechanisms));
-
-                if (!authMechanisms.Contains("XOAUTH2"))
-                {
-                    _logger.LogWarning("Server does not support XOAUTH2 mechanism for account {AccountName}", account.Name);
-                    throw new NotSupportedException("IMAP server does not support XOAUTH2 authentication mechanism");
-                }
-
-                // Get OAuth access token using client credentials flow
-                var accessToken = await GetM365AccessTokenAsync(account);
-
-                if (string.IsNullOrEmpty(accessToken))
-                {
-                    throw new InvalidOperationException("Received empty access token from Microsoft 365");
-                }
-
-                _logger.LogDebug("Successfully obtained access token, length: {TokenLength}", accessToken.Length);
-
-
-                // For app-only authentication with M365 IMAP, the critical point is using the correct username
-                // The SASL XOAUTH2 mechanism requires the target mailbox email address as the username
-                var authenticationSuccessful = false;
-                Exception lastException = null;
-
-                // Primary approach: Use the target mailbox email address (this is the correct approach for app-only auth)
-                try
-                {
-                    _logger.LogInformation("Attempting OAuth2 authentication with target mailbox email: {EmailAddress}", account.EmailAddress);
-
-                    // For app-only authentication, the username MUST be the email address of the mailbox being accessed
-                    var oauth2 = new MailKit.Security.SaslMechanismOAuth2(account.EmailAddress, accessToken);
-                    await client.AuthenticateAsync(oauth2);
-                    authenticationSuccessful = true;
-                    _logger.LogInformation("OAuth2 authentication successful for M365 account: {AccountName}", account.Name);
-                }
-                catch (Exception ex)
-                {
-                    lastException = ex;
-                    _logger.LogError(ex, "OAuth2 authentication failed for account {AccountName}. Error: {Message}", account.Name, ex.Message);
-
-                    // Log more specific error details
-                    if (ex is MailKit.Security.AuthenticationException authEx)
-                    {
-                        _logger.LogError("Authentication exception details: {AuthError}", authEx.Message);
-                    }
-                    else if (ex is ImapCommandException imapEx)
-                    {
-                        _logger.LogError("  IMAP Command Exception Details:");
-                        _logger.LogError("    IMAP Response: {Response}", imapEx.Response.ToString() ?? "No response available");
-                        _logger.LogError("    IMAP Exception Message: {ImapMessage}", imapEx.Message);
-                    }
-                }
-
-                // Fallback approach: Try with Username field if it's different and not empty
-                if (!authenticationSuccessful && !string.IsNullOrEmpty(account.Username) &&
-                    !account.Username.Equals(account.EmailAddress, StringComparison.OrdinalIgnoreCase))
-                {
-                    try
-                    {
-                        _logger.LogDebug("Fallback: Attempting OAuth2 authentication with username field: {Username}", account.Username);
-                        var oauth2 = new MailKit.Security.SaslMechanismOAuth2(account.Username, accessToken);
-                        await client.AuthenticateAsync(oauth2);
-                        authenticationSuccessful = true;
-                        _logger.LogInformation("OAuth2 authentication successful using username field for account: {AccountName}", account.Name);
-                    }
-                    catch (Exception ex)
-                    {
-                        lastException = ex;
-                        _logger.LogWarning(ex, "Fallback OAuth2 authentication with username field failed for account {AccountName}: {Message}", account.Name, ex.Message);
-                    }
-                }
-
-                if (!authenticationSuccessful)
-                {
-                    _logger.LogError("All OAuth2 authentication approaches failed for account {AccountName}", account.Name);
-
-                    // Log token details for debugging (without exposing the actual token)
-                    LogTokenDetailsForDebugging(accessToken, account.Name);
-
-                    // Log detailed error information
-                    LogDetailedOAuthErrorInfo(account, lastException);
-
-                    // Provide a more specific error message
-                    var errorMessage = "OAuth2 authentication failed. ";
-                    if (lastException is MailKit.Security.AuthenticationException)
-                    {
-                        errorMessage += "This typically indicates missing Application Access Policy or incorrect permissions. ";
-                    }
-                    errorMessage += "Check logs for detailed error information.";
-
-                    throw new InvalidOperationException(errorMessage, lastException);
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to authenticate M365 account {AccountName} using OAuth: {Message}", account.Name, ex.Message);
-                throw;
-            }
-        }
-
-        /// <summary>
-        /// Logs token details for debugging purposes without exposing sensitive information
-        /// </summary>
-        /// <param name="accessToken">The access token to analyze</param>
-        /// <param name="accountName">The account name for logging context</param>
-        private void LogTokenDetailsForDebugging(string accessToken, string accountName)
-        {
-            if (string.IsNullOrEmpty(accessToken)) return;
-
-            try
-            {
-                var tokenParts = accessToken.Split('.');
-                if (tokenParts.Length == 3)
-                {
-                    var payload = tokenParts[1];
-                    // Add padding if needed
-                    while (payload.Length % 4 != 0)
-                        payload += "=";
-
-                    var payloadBytes = Convert.FromBase64String(payload);
-                    var payloadJson = Encoding.UTF8.GetString(payloadBytes);
-
-                    // Parse and log only non-sensitive claims
-                    using var doc = JsonDocument.Parse(payloadJson);
-                    var root = doc.RootElement;
-
-                    var debugInfo = new List<string>();
-
-                    if (root.TryGetProperty("aud", out var aud))
-                        debugInfo.Add($"aud: {aud.GetString()}");
-
-                    if (root.TryGetProperty("iss", out var iss))
-                        debugInfo.Add($"iss: {iss.GetString()}");
-
-                    if (root.TryGetProperty("exp", out var exp))
-                    {
-                        var expDateTime = DateTimeOffset.FromUnixTimeSeconds(exp.GetInt64());
-                        debugInfo.Add($"exp: {expDateTime:yyyy-MM-dd HH:mm:ss UTC} (expires {(expDateTime < DateTimeOffset.UtcNow ? "EXPIRED" : "valid")})");
-                    }
-
-                    if (root.TryGetProperty("app_displayname", out var appName))
-                        debugInfo.Add($"app: {appName.GetString()}");
-
-                    _logger.LogDebug("Token details for account {AccountName}: {TokenDetails}", accountName, string.Join(", ", debugInfo));
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogDebug(ex, "Could not parse token for debugging purposes for account {AccountName}", accountName);
-            }
-        }
-
-        /// <summary>
-        /// Logs detailed OAuth error information for troubleshooting
-        /// </summary>
-        /// <param name="account">The M365 mail account</param>
-        /// <param name="lastException">The last exception that occurred during authentication</param>
-        private void LogDetailedOAuthErrorInfo(MailAccount account, Exception lastException)
-        {
-            var sb = new StringBuilder();
-
-            sb.AppendLine($"=== DETAILED OAUTH ERROR INFORMATION FOR ACCOUNT: {account.Name} ===");
-
-            // Account Configuration Details
-            sb.AppendLine("Account Configuration:");
-            sb.AppendLine($"  Account Name: {account.Name}");
-            sb.AppendLine($"  Email Address: {account.EmailAddress}");
-            sb.AppendLine($"  Username Field: {account.Username ?? "NULL"}");
-            sb.AppendLine($"  Tenant ID: {account.TenantId ?? "NULL"}");
-            sb.AppendLine($"  Client ID: {(string.IsNullOrEmpty(account.ClientId) ? "NULL" : $"{account.ClientId[..Math.Min(8, account.ClientId.Length)]}...")}");
-            sb.AppendLine($"  Client Secret: {(string.IsNullOrEmpty(account.ClientSecret) ? "NULL" : "SET")}");
-            sb.AppendLine($"  IMAP Server: {account.ImapServer ?? "NULL"}");
-            sb.AppendLine($"  IMAP Port: {account.ImapPort?.ToString() ?? "NULL"}");
-            sb.AppendLine($"  Use SSL: {account.UseSSL}");
-
-            // Authentication Flow Details
-            sb.AppendLine("OAuth Authentication Flow:");
-            sb.AppendLine($"  Provider Type: {account.Provider}");
-            sb.AppendLine("  Authentication Method: OAuth2 Client Credentials Flow");
-            sb.AppendLine($"  Token Endpoint: https://login.microsoftonline.com/{(account.TenantId ?? "common")}/oauth2/v2.0/token");
-            sb.AppendLine("  Requested Scope: https://outlook.office365.com/.default");
-            sb.AppendLine("  SASL Mechanism: XOAUTH2");
-            sb.AppendLine($"  Authentication Username: {account.EmailAddress}");
-
-            // Exception Analysis
-            if (lastException != null)
-            {
-                sb.AppendLine("Exception Details:");
-                sb.AppendLine($"  Exception Type: {lastException.GetType().FullName}");
-                sb.AppendLine($"  Exception Message: {lastException.Message}");
-
-                if (lastException.InnerException != null)
-                {
-                    sb.AppendLine($"  Inner Exception Type: {lastException.InnerException.GetType().FullName}");
-                    sb.AppendLine($"  Inner Exception Message: {lastException.InnerException.Message}");
-                }
-
-                if (lastException is MailKit.Security.AuthenticationException)
-                {
-                    sb.AppendLine("  Authentication Exception Details:");
-                    sb.AppendLine("    This indicates the OAuth token was obtained but rejected by the IMAP server");
-                    sb.AppendLine("    Common causes: Missing Application Access Policy, incorrect permissions, or tenant restrictions");
-                }
-                else if (lastException is ImapCommandException imapEx)
-                {
-                    sb.AppendLine("  IMAP Command Exception Details:");
-                    sb.AppendLine($"    IMAP Response: {imapEx.Response.ToString() ??  "No response available"}");
-                    sb.AppendLine($"    IMAP Exception Message: {imapEx.Message}");
-                }
-                else if (lastException is ImapProtocolException)
-                {
-                    sb.AppendLine("  IMAP Protocol Exception Details:");
-                    sb.AppendLine("    This indicates a protocol-level communication error with the IMAP server");
-                }
-                else if (lastException is TimeoutException)
-                {
-                    sb.AppendLine("  Timeout Exception Details:");
-                    sb.AppendLine("    The IMAP server did not respond within the configured timeout period");
-                }
-
-                sb.AppendLine($"  Stack Trace: {lastException.StackTrace ?? "No stack trace available"}");
-            }
-
-            // Configuration Validation Status
-            sb.AppendLine("Configuration Validation:");
-            sb.AppendLine($"  Has Client ID: {!string.IsNullOrEmpty(account.ClientId)}");
-            sb.AppendLine($"  Has Client Secret: {!string.IsNullOrEmpty(account.ClientSecret)}");
-            sb.AppendLine($"  Has Specific Tenant ID: {!string.IsNullOrEmpty(account.TenantId) && !account.TenantId.Equals("common", StringComparison.OrdinalIgnoreCase)}");
-            sb.AppendLine($"  IMAP Server Configured: {!string.IsNullOrEmpty(account.ImapServer)}");
-            sb.AppendLine($"  Username/Email Consistency: {(string.IsNullOrEmpty(account.Username) || account.Username.Equals(account.EmailAddress, StringComparison.OrdinalIgnoreCase) ? "Consistent" : "Different")}");
-
-            sb.AppendLine("=== END DETAILED OAUTH ERROR INFORMATION ===");
-
-            // Output as one single log entry
-            _logger.LogError(sb.ToString());
-        }
-
-
-        /// <summary>
-        /// Gets an OAuth access token for M365 using client credentials flow.
-        /// </summary>
-        /// <param name="account">The M365 mail account</param>
-        /// <returns>Access token string</returns>
-        private async Task<string> GetM365AccessTokenAsync(MailAccount account)
-        {
-            try
-            {
-                // Use tenant ID from account's TenantId field if provided, otherwise use common endpoint
-                string tenantId = !string.IsNullOrEmpty(account.TenantId)
-                    ? account.TenantId
-                    : "common";
-
-                _logger.LogDebug("Using tenant ID: {TenantId} for M365 account: {AccountName}", tenantId, account.Name);
-                if (string.Equals(tenantId, "common", StringComparison.OrdinalIgnoreCase))
-                {
-                    _logger.LogWarning("Using tenant 'common' for client credentials; set a specific TenantId for M365 accounts for reliability.");
-                }
-
-                // Microsoft Graph endpoint for client credentials flow
-                var tokenEndpoint = $"https://login.microsoftonline.com/{tenantId}/oauth2/v2.0/token";
-
-                // For IMAP authentication with M365, must use Outlook API scope
-                var requestBody = new FormUrlEncodedContent(new[]
-                {
-                    new KeyValuePair<string, string>("client_id", account.ClientId),
-                    new KeyValuePair<string, string>("client_secret", account.ClientSecret),
-                    new KeyValuePair<string, string>("scope", "https://outlook.office365.com/.default"),
-                    new KeyValuePair<string, string>("grant_type", "client_credentials")
-                });
-
-                using var httpClient = new HttpClient();
-                httpClient.Timeout = TimeSpan.FromSeconds(60); // Increased timeout for OAuth requests
-
-                _logger.LogDebug("Requesting OAuth token for M365 account: {AccountName} with tenant: {TenantId} using .default scope", account.Name, tenantId);
-
-                var response = await httpClient.PostAsync(tokenEndpoint, requestBody);
-                var responseContent = await response.Content.ReadAsStringAsync();
-
-                _logger.LogDebug("OAuth response status: {StatusCode} for account: {AccountName}", response.StatusCode, account.Name);
-
-                if (!response.IsSuccessStatusCode)
-                {
-                    _logger.LogError("Failed to get OAuth token for M365 account {AccountName}. Status: {StatusCode}, Response: {Response}",
-                        account.Name, response.StatusCode, responseContent);
-                    throw new InvalidOperationException($"Failed to get OAuth token: {response.StatusCode} - {responseContent}");
-                }
-
-                var tokenResponse = JsonSerializer.Deserialize<JsonElement>(responseContent);
-
-                if (!tokenResponse.TryGetProperty("access_token", out var accessTokenElement))
-                {
-                    throw new InvalidOperationException("OAuth response does not contain access_token");
-                }
-
-                var accessToken = accessTokenElement.GetString();
-
-                if (string.IsNullOrEmpty(accessToken))
-                {
-                    throw new InvalidOperationException("Received empty access token from Microsoft 365");
-                }
-
-                // Log token properties for debugging (without exposing the actual token)
-                if (tokenResponse.TryGetProperty("token_type", out var tokenTypeElement))
-                {
-                    _logger.LogDebug("Token type: {TokenType} for account: {AccountName}", tokenTypeElement.GetString(), account.Name);
-                }
-
-                if (tokenResponse.TryGetProperty("expires_in", out var expiresInElement))
-                {
-                    _logger.LogDebug("Token expires in: {ExpiresIn} seconds for account: {AccountName}", expiresInElement.GetInt32(), account.Name);
-                }
-
-                _logger.LogDebug("Successfully obtained OAuth access token for M365 account: {AccountName}, length: {TokenLength}",
-                    account.Name, accessToken.Length);
-
-                return accessToken;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error getting OAuth access token for M365 account {AccountName}: {Message}", account.Name, ex.Message);
-                throw;
-            }
+            // Remove GSSAPI and NEGOTIATE mechanisms to prevent Kerberos authentication attempts
+            // which can fail in containerized environments due to missing libraries
+            client.AuthenticationMechanisms.Remove("GSSAPI");
+            client.AuthenticationMechanisms.Remove("NEGOTIATE");
+            
+            // Use explicit SASL PLAIN mechanism to avoid auto-negotiation of unsupported mechanisms
+            // This works securely with both SSL/TLS (port 993) and STARTTLS (port 143)
+            var credentials = new NetworkCredential(GetAuthenticationUsername(account), account.Password);
+            var saslPlain = new SaslMechanismPlain(credentials);
+            await client.AuthenticateAsync(saslPlain);
         }
 
         // SyncMailAccountAsync Methode
         public async Task SyncMailAccountAsync(MailAccount account, string? jobId = null)
         {
             _logger.LogInformation("Starting sync for account: {AccountName} (Provider: {Provider})", account.Name, account.Provider);
-
-            // Set default M365 IMAP server if none is configured
-            string imapServer = account.ImapServer;
-            if (string.IsNullOrEmpty(imapServer) && account.Provider == ProviderType.M365)
-            {
-                imapServer = "outlook.office365.com";
-                _logger.LogInformation("Using default M365 IMAP server: {Server} for account: {AccountName}", imapServer, account.Name);
-            }
 
             using var client = CreateImapClient(account.Name);
             // Increased timeout for M365 connections (5 minutes)
@@ -473,7 +103,7 @@ namespace MailArchiver.Services
 
             try
             {
-                await ConnectWithFallbackAsync(client, imapServer, account.ImapPort ?? 993, account.UseSSL, account.Name);
+                await ConnectWithFallbackAsync(client, account.ImapServer, account.ImapPort ?? 993, account.UseSSL, account.Name);
                 await AuthenticateClientAsync(client, account);
                 _logger.LogInformation("Connected to IMAP server for {AccountName}", account.Name);
 
