@@ -37,19 +37,28 @@ This guide provides detailed instructions for creating new user accounts and ass
 
 ## 👤 User Account Permissions
 
-Standard Users with access to specific email accounts can:
-- View archived emails from those accounts
-- Search within those email accounts
-- Export emails from those accounts
-- Restore emails from those accounts
-- Access email attachments
+### Admin Users
+Admin users have full access to the application and can:
+- Manage all user accounts and their permissions
+- Access all email accounts in the system
+- View all access logs
+- Perform all administrative tasks
 
-Users cannot access:
-- Email accounts that have not been assigned to them
-- Administrative settings (unless they have the Admin flag)
-- Other users' account information
+### Self Manager Users
+Self manager users can:
+- Add new email accounts to their own account
+- Edit existing email accounts assigned to them
+- Delete email accounts assigned to them
+- Access and manage emails from their assigned accounts (including deletion)
+- View their own access logs
 
-Users with the "Self Manager"-Role can additionally manage their own account settings, as well as add new Accounts. They can also delete accounts assigned to them and mails from their assigned accounts.
+### Standard Users
+Standard users have limited access and can:
+- View archived emails from assigned email accounts
+- Search within their assigned email accounts
+- Export emails from their assigned accounts
+- Restore emails from their assigned accounts
+- Access email attachments from assigned accounts
 
 ## 🔒 Security Considerations
 

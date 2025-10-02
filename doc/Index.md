@@ -19,6 +19,7 @@ Mail Archiver is a comprehensive application designed to archive emails from var
 - [Search Guide](Search.md)
 - [Using Development Versions (Dev Tag)](DevTag.md)
 - [User Management and Mailbox Permissions](UserManagement.md)
+- [Access Log](Logs.md)
 
 ### ☁️ Provider Specific Guides
 - [Azure App Registration and Retention Policy for M365](AZURE_APP_REGISTRATION_M365.md)
