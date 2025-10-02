@@ -12,6 +12,7 @@ using Microsoft.Extensions.Options;
 using MimeKit;
 using System.Globalization;
 using System.IO;
+using System.Net;
 using System.Net.Security;
 using System.Net.Sockets;
 using System.Security.Cryptography.X509Certificates;
@@ -71,7 +72,7 @@ namespace MailArchiver.Services
         /// <summary>
         /// Authenticates the IMAP client using the appropriate method for the account provider.
         /// For M365 accounts, uses OAuth authentication with client credentials.
-        /// For other providers, uses basic username/password authentication with GSSAPI disabled.
+        /// For other providers, uses explicit SASL PLAIN authentication to avoid GSSAPI/NTLM issues.
         /// </summary>
         /// <param name="client">The IMAP client to authenticate</param>
         /// <param name="account">The mail account with authentication details</param>
@@ -84,13 +85,16 @@ namespace MailArchiver.Services
             }
             else
             {
-                // Disable GSSAPI and NEGOTIATE mechanisms to prevent Kerberos authentication
-                // which is not available in containerized environments and causes authentication failures
+                // Remove GSSAPI and NEGOTIATE mechanisms to prevent Kerberos authentication attempts
+                // which can fail in containerized environments due to missing libraries
                 client.AuthenticationMechanisms.Remove("GSSAPI");
                 client.AuthenticationMechanisms.Remove("NEGOTIATE");
                 
-                // Use basic username/password authentication
-                await client.AuthenticateAsync(GetAuthenticationUsername(account), account.Password);
+                // Use explicit SASL PLAIN mechanism to avoid auto-negotiation of unsupported mechanisms
+                // This works securely with both SSL/TLS (port 993) and STARTTLS (port 143)
+                var credentials = new NetworkCredential(GetAuthenticationUsername(account), account.Password);
+                var saslPlain = new SaslMechanismPlain(credentials);
+                await client.AuthenticateAsync(saslPlain);
             }
         }
 
