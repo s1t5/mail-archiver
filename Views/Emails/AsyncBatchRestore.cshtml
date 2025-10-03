@@ -13,19 +13,20 @@
         </a>
     </div>
 
-    <div class="alert alert-info">
-        <i class="bi bi-info-circle-fill me-2"></i>
-        <strong>@Localizer["LargeOperationDetected"]</strong> @string.Format(Localizer["AsyncBatchCopyIntro"], Model.EmailCount.ToString("N0"))
-        <br><br>
-        <strong>@Localizer["BenefitsHeader"]</strong>
-        <ul class="mb-0 mt-2">
-            <li>@Localizer["BenefitRunsInBackground"]</li>
-            <li>@Localizer["BenefitMonitorRealtime"]</li>
-            <li>@Localizer["BenefitCanCancel"]</li>
-            <li>@Localizer["BenefitNoTimeout"]</li>
-            <li>@Localizer["BenefitAutoRetry"]</li>
-        </ul>
-    </div>
+    @if (ViewBag.EmailCount != null && ViewBag.EmailCount > 0)
+    {
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle-fill me-2"></i>
+            <strong>@Localizer["BenefitsHeader"]</strong>
+            <ul class="mb-0 mt-2">
+                <li>@Localizer["BenefitRunsInBackground"]</li>
+                <li>@Localizer["BenefitMonitorRealtime"]</li>
+                <li>@Localizer["BenefitCanCancel"]</li>
+                <li>@Localizer["BenefitNoTimeout"]</li>
+                <li>@Localizer["BenefitAutoRetry"]</li>
+            </ul>
+        </div>
+    }
 
     <div class="card">
         <div class="card-header bg-light">
@@ -58,18 +59,8 @@
                                 <option value="@folder.Value" selected="@folder.Selected">@folder.Text</option>
                             }
                         }
-                        else
-                        {
-                            <option value="">-- @Localizer["SelectAccountFirst"] --</option>
-                            <option value="INBOX">INBOX</option>
-                        }
                     </select>
                     <span asp-validation-for="TargetFolder" class="text-danger"></span>
-                </div>
-                @{ var estimatedMinutes = Math.Ceiling(Model.EmailCount / 60.0); }
-                <div class="alert alert-warning">
-                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
-                    @string.Format(Localizer["AsyncBatchCopyWarning"], Model.EmailCount.ToString("N0"), estimatedMinutes.ToString("N0"))
                 </div>
                 <div class="d-flex mt-4">
                     <button type="submit" class="btn btn-primary">
@@ -99,7 +90,7 @@
                         type: 'GET',
                         dataType: 'json',
                         success: function (data) {
-                            var options = '<option value="">-- @Localizer["SelectFolder"] --</option>';
+                            var options = '';
                             var inboxFound = false;
                             $.each(data, function (index, folderName) {
                                 options += '<option value="' + folderName + '">' + folderName + '</option>';
@@ -113,7 +104,7 @@
                         }
                     });
                 } else {
-                    $('#folderSelect').html('<option value="">@Localizer["SelectAccountFirst"]</option>');
+                    $('#folderSelect').html('');
                 }
             });
             if ($('#accountSelect').val()) { $('#accountSelect').trigger('change'); }

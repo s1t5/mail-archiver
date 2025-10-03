@@ -1260,19 +1260,43 @@ namespace MailArchiver.Controllers
                 return Redirect(returnUrl ?? Url.Action("Index"));
             }
 
-            var useBackgroundJob = ShouldUseBackgroundJob(emailIds.Count);
+            // Für Account-Restores: Verwende Background-Job wenn verfügbar und sinnvoll
+            // Session-basierte Verarbeitung nur für sehr kleine Accounts (< 50 Emails)
+            var useBackgroundJob = _batchRestoreService != null && emailIds.Count >= _batchOptions.AsyncThreshold;
 
             if (useBackgroundJob)
             {
+                _logger.LogInformation("Using background job for account restore with {Count} emails", emailIds.Count);
                 return await StartAsyncBatchRestore(emailIds, returnUrl);
             }
             else
             {
-                // Verwende normale Session-basierte Verarbeitung
+                // Verwende normale Session-basierte Verarbeitung nur für sehr kleine Accounts
+                // Berechne ungefähre Session-Größe (jede ID ca. 10 Zeichen + Komma)
+                var estimatedSessionSize = emailIds.Count * 11; // konservative Schätzung
+                var maxSafeSessionSize = 3000; // Sicherer Grenzwert unter typischen 4KB Session-Limits
+
+                if (estimatedSessionSize > maxSafeSessionSize)
+                {
+                    _logger.LogWarning("Email count {Count} would exceed safe session size ({EstimatedSize} bytes), forcing background job", 
+                        emailIds.Count, estimatedSessionSize);
+                    
+                    if (_batchRestoreService != null)
+                    {
+                        return await StartAsyncBatchRestore(emailIds, returnUrl);
+                    }
+                    else
+                    {
+                        TempData["ErrorMessage"] = $"Too many emails ({emailIds.Count:N0}) for direct processing and background service is not available. Please contact your administrator.";
+                        return Redirect(returnUrl ?? Url.Action("Index"));
+                    }
+                }
+
                 try
                 {
                     HttpContext.Session.SetString("BatchRestoreIds", string.Join(",", emailIds));
                     HttpContext.Session.SetString("BatchRestoreReturnUrl", returnUrl ?? "");
+                    _logger.LogInformation("Using session-based processing for {Count} emails", emailIds.Count);
                     return RedirectToAction("BatchRestore");
                 }
                 catch (Exception ex)
@@ -1310,6 +1334,20 @@ namespace MailArchiver.Controllers
                     TempData["ErrorMessage"] = "Too many emails selected. Please select fewer emails and try again.";
                     return Redirect(returnUrl ?? Url.Action("Index"));
                 }
+            }
+
+            // Speichere die Email-IDs in der Session um HTTP 400-Fehler bei großen Listen zu vermeiden
+            try
+            {
+                HttpContext.Session.SetString("AsyncBatchRestoreIds", string.Join(",", ids));
+                HttpContext.Session.SetString("AsyncBatchRestoreReturnUrl", returnUrl ?? "");
+                _logger.LogInformation("Stored {Count} email IDs in session for async batch restore", ids.Count);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to store {Count} email IDs in session for async batch restore", ids.Count);
+                TempData["ErrorMessage"] = "Too many emails to process. Please contact your administrator.";
+                return Redirect(returnUrl ?? Url.Action("Index"));
             }
 
             // Get current user's allowed accounts
@@ -1357,7 +1395,8 @@ namespace MailArchiver.Controllers
 
             var model = new AsyncBatchRestoreViewModel
             {
-                EmailIds = ids,
+                // Nicht die IDs im ViewModel speichern, um HTTP 400 bei POST zu vermeiden
+                EmailIds = new List<int>(),
                 ReturnUrl = returnUrl,
                 AvailableAccounts = accounts.Select(a => new SelectListItem
                 {
@@ -1365,6 +1404,9 @@ namespace MailArchiver.Controllers
                     Text = $"{a.Name} ({a.EmailAddress})"
                 }).ToList()
             };
+
+            // Setze EmailCount für die View
+            ViewBag.EmailCount = ids.Count;
 
             // Auto-select single account
             if (model.AvailableAccounts.Count == 1)
@@ -1398,6 +1440,17 @@ namespace MailArchiver.Controllers
                 TempData["ErrorMessage"] = "Asynchronous batch restore is not available.";
                 return Redirect(model.ReturnUrl ?? Url.Action("Index"));
             }
+
+            // Hole IDs aus Session (sie wurden dort gespeichert um HTTP 400 zu vermeiden)
+            var idsString = HttpContext.Session.GetString("AsyncBatchRestoreIds");
+            if (string.IsNullOrEmpty(idsString))
+            {
+                TempData["ErrorMessage"] = "No emails selected for async batch restore.";
+                return Redirect(model.ReturnUrl ?? Url.Action("Index"));
+            }
+
+            var emailIds = idsString.Split(',').Select(int.Parse).ToList();
+            _logger.LogInformation("Retrieved {Count} email IDs from session for async batch restore", emailIds.Count);
 
             // Get current user's allowed accounts
             List<int> allowedAccountIds = null;
@@ -1450,6 +1503,9 @@ namespace MailArchiver.Controllers
                     }).ToList();
                 }
 
+                // Setze EmailCount für die View
+                ViewBag.EmailCount = emailIds.Count;
+
                 return View("AsyncBatchRestore", model);
             }
 
@@ -1457,7 +1513,7 @@ namespace MailArchiver.Controllers
             {
                 var job = new BatchRestoreJob
                 {
-                    EmailIds = model.EmailIds,
+                    EmailIds = emailIds, // Verwende IDs aus Session
                     TargetAccountId = model.TargetAccountId,
                     TargetFolder = model.TargetFolder,
                     ReturnUrl = model.ReturnUrl ?? "",
@@ -1471,10 +1527,14 @@ namespace MailArchiver.Controllers
                 if (!string.IsNullOrEmpty(currentUsername))
                 {
                     await _accessLogService.LogAccessAsync(currentUsername, AccessLogType.Restore, 
-                        searchParameters: $"Started batch restore for {model.EmailIds.Count} emails to account {model.TargetAccountId} in folder {model.TargetFolder}");
+                        searchParameters: $"Started batch restore for {emailIds.Count} emails to account {model.TargetAccountId} in folder {model.TargetFolder}");
                 }
 
-                TempData["SuccessMessage"] = $"Batch restore job started with {model.EmailIds.Count:N0} emails. Job ID: {jobId}";
+                // Session-Daten löschen
+                HttpContext.Session.Remove("AsyncBatchRestoreIds");
+                HttpContext.Session.Remove("AsyncBatchRestoreReturnUrl");
+
+                TempData["SuccessMessage"] = $"Batch restore job started with {emailIds.Count:N0} emails. Job ID: {jobId}";
 
                 return RedirectToAction("BatchRestoreStatus", new { jobId });
             }
