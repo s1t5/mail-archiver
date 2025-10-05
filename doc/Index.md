@@ -11,7 +11,8 @@ Mail Archiver is a comprehensive application designed to archive emails from var
 
 ## 📚 Documentation Sections
 
-### 🛠️ Installation
+### 🛠️ Installation & Maintenance
+- [Backup and Restore Guide](BackupRestore.md)
 - [Installation and Setup](Setup.md)
 
 ### ⚙️ Configuration & Usage
