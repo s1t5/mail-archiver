@@ -322,11 +322,11 @@ echo "Restore completed from: $BACKUP_FILE"
 ### Database Connection Settings
 Ensure your database connection settings in `docker-compose.yml` match across backup and restore:
 - `POSTGRES_USER` (default: mailuser)
-- `POSTGRES_PASSWORD` (default: masterkey - **change this!**)
+- `POSTGRES_PASSWORD` (default: masterkey)
 - `POSTGRES_DB` (default: MailArchiver)
 
 ### Data Protection Keys
-The `data-protection-keys` directory is critical for:
+The `data-protection-keys` directory is used for:
 - User authentication and session management
 - Cookie encryption
 - Secure data handling
