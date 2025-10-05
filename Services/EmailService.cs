@@ -64,9 +64,10 @@ namespace MailArchiver.Services
         }
 
         /// <summary>
-        /// Authenticates the IMAP client using SASL PLAIN authentication.
+        /// Authenticates the IMAP client using a fallback authentication strategy.
         /// Note: M365 accounts should use GraphEmailService, not IMAP.
-        /// For other providers, uses explicit SASL PLAIN authentication to avoid GSSAPI/NTLM issues.
+        /// For other providers, tries SASL PLAIN first (for Exchange compatibility), 
+        /// then falls back to auto-negotiation if PLAIN fails (for T-Online and others).
         /// </summary>
         /// <param name="client">The IMAP client to authenticate</param>
         /// <param name="account">The mail account with authentication details</param>
@@ -78,11 +79,37 @@ namespace MailArchiver.Services
             client.AuthenticationMechanisms.Remove("GSSAPI");
             client.AuthenticationMechanisms.Remove("NEGOTIATE");
             
-            // Use explicit SASL PLAIN mechanism to avoid auto-negotiation of unsupported mechanisms
-            // This works securely with both SSL/TLS (port 993) and STARTTLS (port 143)
-            var credentials = new NetworkCredential(GetAuthenticationUsername(account), account.Password);
-            var saslPlain = new SaslMechanismPlain(credentials);
-            await client.AuthenticateAsync(saslPlain);
+            var username = GetAuthenticationUsername(account);
+            var password = account.Password;
+            
+            // Try SASL PLAIN first (preferred for Exchange 2019 and similar servers)
+            if (client.AuthenticationMechanisms.Contains("PLAIN"))
+            {
+                try
+                {
+                    _logger.LogDebug("Attempting SASL PLAIN authentication for account {AccountName}", account.Name);
+                    var credentials = new NetworkCredential(username, password);
+                    var saslPlain = new SaslMechanismPlain(credentials);
+                    await client.AuthenticateAsync(saslPlain);
+                    _logger.LogDebug("SASL PLAIN authentication successful for account {AccountName}", account.Name);
+                    return;
+                }
+                catch (MailKit.Security.AuthenticationException ex)
+                {
+                    _logger.LogInformation("SASL PLAIN authentication failed for account {AccountName}, trying fallback: {Message}", 
+                        account.Name, ex.Message);
+                    // Continue to fallback authentication
+                }
+            }
+            else
+            {
+                _logger.LogInformation("SASL PLAIN not available for account {AccountName}, using fallback authentication", account.Name);
+            }
+            
+            // Fallback: Let MailKit auto-negotiate the best available mechanism
+            // This works for T-Online and other providers that don't support PLAIN
+            _logger.LogDebug("Using auto-negotiated authentication for account {AccountName}", account.Name);
+            await client.AuthenticateAsync(username, password);
         }
 
         // SyncMailAccountAsync Methode
