@@ -1177,11 +1177,14 @@
   <data name="Download" xml:space="preserve">
     <value>Letöltés</value>
   </data>
-  <data name="Close" xml:space="preserve">
-    <value>Bezárás</value>
+  <data name="Restore" xml:space="preserve">
+    <value>Visszaállítás</value>
   </data>
-  <data name="AttachmentPreview" xml:space="preserve">
-    <value>Melléklet Előnézet</value>
+  <data name="Deletion" xml:space="preserve">
+    <value>Törlés</value>
+  </data>
+  <data name="FromDate" xml:space="preserve">
+    <value>Kezdő dátum</value>
   </data>
   <data name="PreviewNotAvailable" xml:space="preserve">
     <value>Előnézet nem elérhető</value>
@@ -2098,5 +2101,11 @@
   </data>
   <data name="EmailsDeleted" xml:space="preserve">
     <value>{0} e-mail sikeresen törölve</value>
+  </data>
+  <data name="AttachmentPreview" xml:space="preserve">
+    <value>Melléklet előnézete</value>
+  </data>
+  <data name="Close" xml:space="preserve">
+    <value>Bezárás</value>
   </data>
 </root>

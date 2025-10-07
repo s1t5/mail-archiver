@@ -1168,11 +1168,14 @@
   <data name="Download" xml:space="preserve">
     <value>Scarica</value>
   </data>
-  <data name="Close" xml:space="preserve">
-    <value>Chiudi</value>
+  <data name="Restore" xml:space="preserve">
+    <value>Ripristina</value>
   </data>
-  <data name="AttachmentPreview" xml:space="preserve">
-    <value>Anteprima allegato</value>
+  <data name="Deletion" xml:space="preserve">
+    <value>Eliminazione</value>
+  </data>
+  <data name="FromDate" xml:space="preserve">
+    <value>Da</value>
   </data>
   <data name="PreviewNotAvailable" xml:space="preserve">
     <value>Anteprima non disponibile</value>
@@ -2106,5 +2109,11 @@
   </data>
   <data name="EmailsDeleted" xml:space="preserve">
     <value>{0} email eliminate con successo</value>
+  </data>
+  <data name="AttachmentPreview" xml:space="preserve">
+    <value>Anteprima allegato</value>
+  </data>
+  <data name="Close" xml:space="preserve">
+    <value>Chiudi</value>
   </data>
 </root>

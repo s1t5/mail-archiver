@@ -1168,11 +1168,14 @@
   <data name="Download" xml:space="preserve">
     <value>Downloaden</value>
   </data>
-  <data name="Close" xml:space="preserve">
-    <value>Sluiten</value>
+  <data name="Restore" xml:space="preserve">
+    <value>Herstellen</value>
   </data>
-  <data name="AttachmentPreview" xml:space="preserve">
-    <value>Bijlage voorbeeld</value>
+  <data name="Deletion" xml:space="preserve">
+    <value>Verwijdering</value>
+  </data>
+  <data name="FromDate" xml:space="preserve">
+    <value>Van</value>
   </data>
   <data name="PreviewNotAvailable" xml:space="preserve">
     <value>Voorbeeld niet beschikbaar</value>
@@ -2106,5 +2109,11 @@
   </data>
   <data name="EmailsDeleted" xml:space="preserve">
     <value>{0} e-mail(s) succesvol verwijderd</value>
+  </data>
+  <data name="AttachmentPreview" xml:space="preserve">
+    <value>Voorbeeld van bijlage</value>
+  </data>
+  <data name="Close" xml:space="preserve">
+    <value>Sluiten</value>
   </data>
 </root>

@@ -1168,11 +1168,14 @@
   <data name="Download" xml:space="preserve">
     <value>Prenesi</value>
   </data>
-  <data name="Close" xml:space="preserve">
-    <value>Zapri</value>
+  <data name="Restore" xml:space="preserve">
+    <value>Obnovi</value>
   </data>
-  <data name="AttachmentPreview" xml:space="preserve">
-    <value>Predogled priloge</value>
+  <data name="Deletion" xml:space="preserve">
+    <value>Brisanje</value>
+  </data>
+  <data name="FromDate" xml:space="preserve">
+    <value>Od</value>
   </data>
   <data name="PreviewNotAvailable" xml:space="preserve">
     <value>Predogled ni na voljo</value>
@@ -2106,5 +2109,11 @@
   </data>
   <data name="EmailsDeleted" xml:space="preserve">
     <value>{0} e-poštnih sporočil uspešno izbrisanih</value>
+  </data>
+  <data name="AttachmentPreview" xml:space="preserve">
+    <value>Predogled priponke</value>
+  </data>
+  <data name="Close" xml:space="preserve">
+    <value>Zapri</value>
   </data>
 </root>

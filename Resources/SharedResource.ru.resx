@@ -1168,11 +1168,14 @@
   <data name="Download" xml:space="preserve">
     <value>Скачать</value>
   </data>
-  <data name="Close" xml:space="preserve">
-    <value>Закрыть</value>
+  <data name="Restore" xml:space="preserve">
+    <value>Восстановить</value>
   </data>
-  <data name="AttachmentPreview" xml:space="preserve">
-    <value>Предварительный просмотр вложения</value>
+  <data name="Deletion" xml:space="preserve">
+    <value>Удаление</value>
+  </data>
+  <data name="FromDate" xml:space="preserve">
+    <value>От</value>
   </data>
   <data name="PreviewNotAvailable" xml:space="preserve">
     <value>Предварительный просмотр недоступен</value>
@@ -2106,5 +2109,11 @@
   </data>
   <data name="EmailsDeleted" xml:space="preserve">
     <value>{0} писем успешно удалено</value>
+  </data>
+  <data name="AttachmentPreview" xml:space="preserve">
+    <value>Предпросмотр вложения</value>
+  </data>
+  <data name="Close" xml:space="preserve">
+    <value>Закрыть</value>
   </data>
 </root>

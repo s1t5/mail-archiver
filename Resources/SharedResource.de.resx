@@ -2054,6 +2054,9 @@
   <data name="Restore" xml:space="preserve">
     <value>Wiederherstellen</value>
   </data>
+  <data name="Deletion" xml:space="preserve">
+    <value>Löschen</value>
+  </data>
   <data name="FromDate" xml:space="preserve">
     <value>Von</value>
   </data>
