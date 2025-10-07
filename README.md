@@ -84,7 +84,6 @@ services:
       - ConnectionStrings__DefaultConnection=Host=postgres;Database=MailArchiver;Username=mailuser;Password=masterkey;
 
       # Authentication Settings
-      - Authentication__Enabled=true
       - Authentication__Username=admin
       - Authentication__Password=secure123!
       - Authentication__SessionTimeoutMinutes=60
@@ -158,7 +157,7 @@ networks:
 
 3. Edit the database configuration in the `docker-compose.yml` and set a secure password in the `POSTGRES_PASSWORD` variable and the `ConnectionString`.
 
-4. If you want to use authentication (which i'd strongly recommend) definie a `Authentication__Username` and `Authentication__Password` which is used for the admin user.
+4. Definie a `Authentication__Username` and `Authentication__Password` which is used for the admin user.
 
 5. Adjust the `TimeZone__DisplayTimeZoneId` environment variable to match your preferred timezone (default is "Etc/UCT"). You can use any IANA timezone identifier (e.g., "Europe/Berlin", "Asia/Tokyo").
 
