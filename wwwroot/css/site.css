@@ -117,6 +117,19 @@ body {
   border-bottom: 1px solid rgba(0, 0, 0, 0.05);
 }
 
+/* Fix card-header positioning in mobile to prevent white space */
+@media (max-width: 768px) {
+  .card {
+    padding: 0 !important;
+  }
+  
+  .card-header {
+    margin: 0 !important;
+    border-top-left-radius: inherit;
+    border-top-right-radius: inherit;
+  }
+}
+
 .card-body {
   padding: 1.5rem;
 }
