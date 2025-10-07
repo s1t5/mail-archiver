@@ -375,6 +375,7 @@ body {
   border-top: 1px solid #eee;
   box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
   font-size: 0.9rem;
+  text-align: center;
 }
 
 /* Add this to your site.css */
