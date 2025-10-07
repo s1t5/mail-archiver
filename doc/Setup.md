@@ -27,7 +27,6 @@ services:
       - ConnectionStrings__DefaultConnection=Host=postgres;Database=MailArchiver;Username=mailuser;Password=masterkey;
 
       # Authentication Settings
-      - Authentication__Enabled=true
       - Authentication__Username=admin
       - Authentication__Password=secure123!
       - Authentication__SessionTimeoutMinutes=60
@@ -133,7 +132,6 @@ docker compose restart
 - `ConnectionStrings__DefaultConnection`: The connection string to the PostgreSQL database. Modify the `Host`, `Database`, `Username`, and `Password` values as needed.
 
 ### 🔐 Authentication Settings
-- `Authentication__Enabled`: Whether to enable authentication (true/false). Set to true to require login.
 - `Authentication__Username`: The username for the admin account.
 - `Authentication__Password`: The password for the admin account.
 - `Authentication__SessionTimeoutMinutes`: The session timeout in minutes.
