@@ -29,23 +29,17 @@ namespace MailArchiver.Services
 
         public bool IsAuthenticationRequired()
         {
-            return _authOptions.Enabled;
+            return true; // Always require authentication
         }
 
         public bool ValidateCredentials(string username, string password)
         {
-            if (!_authOptions.Enabled)
-                return true;
-
             // All authentication should go through the database user system
             return _userService.AuthenticateUserAsync(username, password).Result;
         }
 
         public void SignIn(HttpContext context, string username, bool rememberMe = false)
         {
-            if (!_authOptions.Enabled)
-                return;
-
             // Get the user to build claims
             var user = _userService.GetUserByUsernameAsync(username).Result;
             if (user == null)
@@ -95,9 +89,6 @@ namespace MailArchiver.Services
 
         public void SignOut(HttpContext context)
         {
-            if (!_authOptions.Enabled)
-                return;
-
             var username = GetCurrentUser(context);
             context.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme).Wait();
 
@@ -109,9 +100,6 @@ namespace MailArchiver.Services
 
         public bool IsAuthenticated(HttpContext context)
         {
-            if (!_authOptions.Enabled)
-                return true;
-
             // Check if user is in 2FA verification process
             var twoFactorUsername = context.Session.GetString("TwoFactorUsername");
             if (!string.IsNullOrEmpty(twoFactorUsername))
@@ -126,9 +114,6 @@ namespace MailArchiver.Services
 
         public string GetCurrentUser(HttpContext context)
         {
-            if (!_authOptions.Enabled)
-                return "System";
-
             // Get username from claims
             var username = context.User?.Identity?.Name;
             
@@ -138,12 +123,6 @@ namespace MailArchiver.Services
 
         public bool IsCurrentUserAdmin(HttpContext context)
         {
-            if (!_authOptions.Enabled)
-            {
-                _logger.LogDebug("Authentication not enabled, returning admin");
-                return true;
-            }
-
             var username = GetCurrentUser(context);
             _logger.LogDebug("Checking if user '{Username}' is admin", username);
 
@@ -161,12 +140,6 @@ namespace MailArchiver.Services
 
         public bool IsCurrentUserSelfManager(HttpContext context)
         {
-            if (!_authOptions.Enabled)
-            {
-                _logger.LogDebug("Authentication not enabled, returning false for self-manager check");
-                return false;
-            }
-
             var username = GetCurrentUser(context);
             _logger.LogDebug("Checking if user '{Username}' is self-manager", username);
 

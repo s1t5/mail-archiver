@@ -55,6 +55,17 @@ async static Task EnsureMigrationsHistoryTableExists(MailArchiverDbContext conte
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Check if authentication is explicitly disabled in appsettings.json
+var authEnabled = builder.Configuration.GetSection("Authentication:Enabled").Value;
+if (authEnabled != null && authEnabled.Equals("false", StringComparison.OrdinalIgnoreCase))
+{
+    // Create a logger to log the error message
+    var logger = builder.Services.BuildServiceProvider().GetRequiredService<ILogger<Program>>();
+    logger.LogError("Authentication is now mandatory and must be enabled. Please remove the 'Enabled' property from the 'Authentication' section in appsettings.json or set it to 'true' and define admin credentials to access the application.");
+    logger.LogError("For more information, please refer to the documentation ( https://github.com/s1t5/mail-archiver/blob/main/doc/Setup.md ) on how to set up username and password using environment variables.");
+    Environment.Exit(1);
+}
+
 // Add Authentication Options
 builder.Services.Configure<AuthenticationOptions>(
     builder.Configuration.GetSection(AuthenticationOptions.Authentication));
@@ -269,9 +280,6 @@ builder.Services.Configure<Microsoft.AspNetCore.Http.Features.FormOptions>(optio
 // MVC hinzufügen
 builder.Services.AddControllersWithViews()
     .AddViewLocalization();
-
-builder.Services.Configure<AuthenticationOptions>(
-    builder.Configuration.GetSection(AuthenticationOptions.Authentication));
 
 builder.Services.Configure<BatchRestoreOptions>(
     builder.Configuration.GetSection(BatchRestoreOptions.BatchRestore));

@@ -31,7 +31,7 @@
 
 ### 🧩 Email Provider Support
 - **IMAP**: Traditional IMAP accounts with full synchronization capabilities
-- **M365**: Microsoft 365 mail accounts via Microsoft Graph API ([setup guide](doc/AZURE_APP_REGISTRATION_M365.md))
+- **M365**: Microsoft 365 mail accounts via Microsoft Graph API ([Setup Guide](doc/AZURE_APP_REGISTRATION_M365.md))
 - **IMPORT**: Import-only accounts for migrating existing email archives
 
 ### 📥 Import & Restore Functions
@@ -45,7 +45,7 @@
 
 > 🚨 **Important note for retention policies**
 > - Requires IMAP Expunge support from the mail server to permanently delete emails
-> - For Gmail accounts, Auto-Expunge must be disabled in Gmail settings under the "Forwarding and POP/IMAP" tab!
+> - For Gmail accounts, Auto-Expunge must be disabled in Gmail settings under the "Forwarding and POP/IMAP" tab! (See [Gmail Best Practices](doc/GmailBestPractices.md) for more details)
 
 ## 📚 Documentation
 
@@ -67,7 +67,6 @@ For detailed documentation on installation, configuration, and usage, please ref
 ### Prerequisites
 - [Docker](https://www.docker.com/products/docker-desktop)
 - [Docker Compose](https://docs.docker.com/compose/install/)
-- email account credentials
 
 ### 🛠️ Installation
 
@@ -86,39 +85,6 @@ services:
       # Authentication Settings
       - Authentication__Username=admin
       - Authentication__Password=secure123!
-      - Authentication__SessionTimeoutMinutes=60
-      - Authentication__CookieName=MailArchiverAuth
-
-      # MailSync Settings
-      - MailSync__IntervalMinutes=15
-      - MailSync__TimeoutMinutes=60
-      - MailSync__ConnectionTimeoutSeconds=180
-      - MailSync__CommandTimeoutSeconds=300
-      - MailSync__AlwaysForceFullSync=false
-      - MailSync__IgnoreSelfSignedCert=false
-
-      # BatchRestore Settings
-      - BatchRestore__AsyncThreshold=50
-      - BatchRestore__MaxSyncEmails=150
-      - BatchRestore__MaxAsyncEmails=50000
-      - BatchRestore__SessionTimeoutMinutes=30
-      - BatchRestore__DefaultBatchSize=50
-
-      # BatchOperation Settings
-      - BatchOperation__BatchSize=50
-      - BatchOperation__PauseBetweenEmailsMs=50
-      - BatchOperation__PauseBetweenBatchesMs=250
-
-      # Selection Settings
-      - Selection__MaxSelectableEmails=250
-
-      # Npgsql Settings
-      - Npgsql__CommandTimeout=900
-
-      # Upload Settings for MBox files
-      - Upload__MaxFileSizeGB=10
-      - Upload__KeepAliveTimeoutHours=4
-      - Upload__RequestHeadersTimeoutHours=2
 
       # TimeZone Settings
       - TimeZone__DisplayTimeZoneId=Etc/UCT
@@ -161,10 +127,9 @@ networks:
 
 5. Adjust the `TimeZone__DisplayTimeZoneId` environment variable to match your preferred timezone (default is "Etc/UCT"). You can use any IANA timezone identifier (e.g., "Europe/Berlin", "Asia/Tokyo").
 
-6. Configure a reverse proxy of your choice with https and authentification to secure access to the application. 
+6. Configure a reverse proxy of your choice with https to secure access to the application. 
 
 > ⚠️ **Attention**
-> 
 > The application itself does not provide encrypted access via https! It must be set up via a reverse proxy! Moreover the application is not build for public internet access!
 
 7. Initial start of the containers:
@@ -177,7 +142,7 @@ docker compose up -d
 docker compose restart
 ```
 
-9. Access the application
+9. Access the application in your prefered browser.
 
 10. Login with your defined credentials and add your first email account:
 - Navigate to "Email Accounts" section
@@ -186,10 +151,14 @@ docker compose restart
 - Save and start archiving!
 - If you want, create other users and assign accounts.
 
-## 🔐 Security Note
+## 🔐 Security Notes
 - Use strong passwords and change default credentials
 - Consider implementing HTTPS with a reverse proxy in production
-- Regular backups of the PostgreSQL database recommended
+- Regular backups of the PostgreSQL database recommended (see [Backup & Restore Guide](doc/BackupRestore.md) for detailed instructions)
+
+## ⚙️ Advanced Setup
+
+For a complete list of all configuration options, please refer to the [Setup Guide](doc/Setup.md).
 
 
 ## 📋 Technical Details
@@ -203,7 +172,7 @@ docker compose restart
 - Bootstrap 5 and Chart.js for frontend
 
 ## 🤝 Contributing
-Contributions welcome! Please open an Issue or Pull Request.
+Contributions welcome! Please open an Issue or Pull Request. Also feel free to contact me by mail.
 
 ## 💖 Support the Project
 If you find this project useful and would like to support its continued development, you can buy me a coffee! Your support helps me dedicate more time and resources to improving the application and adding new features. While financial support is not required, it is greatly appreciated and helps ensure the project's ongoing maintenance and enhancement.

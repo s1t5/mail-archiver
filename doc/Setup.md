@@ -175,4 +175,4 @@ docker compose restart
 
 - Use strong passwords and change default credentials. Passwords should be at least 12 characters long and include a mix of uppercase letters, lowercase letters, numbers, and special characters. Avoid using common words or easily guessable information.
 - Consider implementing HTTPS with a reverse proxy in production
-- Regular backups of the PostgreSQL database are recommended
+- Regular backups of the PostgreSQL database are recommended. For detailed backup and restore procedures, see [Backup and Restore Guide](BackupRestore.md).
