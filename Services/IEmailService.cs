@@ -12,6 +12,7 @@ namespace MailArchiver.Services
             DateTime? fromDate,
             DateTime? toDate,
             int? accountId,
+            string folderName,
             bool? isOutgoing,
             int skip,
             int take,

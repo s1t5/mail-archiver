@@ -1,3 +1,34 @@
+/* Mobile und Tablet - Fix für Checkbox im Suchformular - Selektionsmodus */
+@media (max-width: 991px) {
+    #searchForm .d-flex.flex-wrap.gap-2 {
+        justify-content: flex-start !important;
+        gap: 0.5rem !important;
+        padding-left: 0 !important;
+    }
+    
+    #searchForm .form-check.d-flex.align-items-center {
+        display: inline-flex !important;
+        justify-content: flex-start !important;
+        align-items: center !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        order: -1;
+    }
+    
+    #searchForm .form-check-input {
+        margin: 0 8px 0 0 !important;
+        flex-shrink: 0;
+        position: static !important;
+    }
+    
+    #searchForm .form-check-label {
+        text-align: left !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        white-space: nowrap;
+    }
+}
+
 /* Mobile-optimierte Tabellenstile */
 @media (max-width: 768px) {
     .table-mobile {
@@ -210,6 +241,31 @@
     background: #fff;
     box-shadow: 0 2px 4px rgba(0,0,0,0.05);
     transition: box-shadow 0.2s ease;
+}
+
+/* Fix für Checkbox Alignment in mobiler Ansicht */
+.email-card-mobile .form-check {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    padding: 12px 15px !important;
+    margin-bottom: 0 !important;
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+    position: relative;
+}
+
+.email-card-mobile .form-check-input {
+    margin: 0 8px 0 0 !important;
+    flex-shrink: 0;
+    position: static !important;
+}
+
+.email-card-mobile .form-check-label {
+    margin: 0 !important;
+    padding-left: 0 !important;
+    text-align: left !important;
+    flex-grow: 1;
 }
 
 .email-card-mobile:hover {

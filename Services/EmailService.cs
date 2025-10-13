@@ -1658,6 +1658,7 @@ namespace MailArchiver.Services
             DateTime? fromDate,
             DateTime? toDate,
             int? accountId,
+            string folderName,
             bool? isOutgoing,
             int skip,
             int take,
@@ -1672,14 +1673,14 @@ namespace MailArchiver.Services
             try
             {
                 // Use optimized raw SQL query for better performance
-                return await SearchEmailsOptimizedAsync(searchTerm, fromDate, toDate, accountId, isOutgoing, skip, take, allowedAccountIds);
+                return await SearchEmailsOptimizedAsync(searchTerm, fromDate, toDate, accountId, folderName, isOutgoing, skip, take, allowedAccountIds);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Optimized search failed, falling back to Entity Framework search");
 
                 // Fallback to original Entity Framework approach
-                return await SearchEmailsEFAsync(searchTerm, fromDate, toDate, accountId, isOutgoing, skip, take, allowedAccountIds);
+                return await SearchEmailsEFAsync(searchTerm, fromDate, toDate, accountId, folderName, isOutgoing, skip, take, allowedAccountIds);
             }
         }
 
@@ -1688,6 +1689,7 @@ namespace MailArchiver.Services
             DateTime? fromDate,
             DateTime? toDate,
             int? accountId,
+            string folderName,
             bool? isOutgoing,
             int skip,
             int take,
@@ -1836,6 +1838,14 @@ namespace MailArchiver.Services
             {
                 whereConditions.Add($@"""IsOutgoing"" = @param{paramCounter}");
                 parameters.Add(new Npgsql.NpgsqlParameter($"@param{paramCounter}", isOutgoing.Value));
+                paramCounter++;
+            }
+
+            // Folder filtering
+            if (!string.IsNullOrEmpty(folderName))
+            {
+                whereConditions.Add($@"""FolderName"" = @param{paramCounter}");
+                parameters.Add(new Npgsql.NpgsqlParameter($"@param{paramCounter}", folderName));
                 paramCounter++;
             }
 
@@ -2065,6 +2075,7 @@ namespace MailArchiver.Services
             DateTime? fromDate,
             DateTime? toDate,
             int? accountId,
+            string folderName,
             bool? isOutgoing,
             int skip,
             int take,
@@ -2106,6 +2117,10 @@ namespace MailArchiver.Services
 
             if (isOutgoing.HasValue)
                 baseQuery = baseQuery.Where(e => e.IsOutgoing == isOutgoing.Value);
+
+            // Folder filtering
+            if (!string.IsNullOrEmpty(folderName))
+                baseQuery = baseQuery.Where(e => e.FolderName == folderName);
 
             IQueryable<ArchivedEmail> searchQuery = baseQuery;
             if (!string.IsNullOrEmpty(searchTerm))
@@ -2254,6 +2269,7 @@ namespace MailArchiver.Services
                     parameters.FromDate,
                     parameters.ToDate,
                     parameters.SelectedAccountId,
+                    null, // folderName
                     parameters.IsOutgoing,
                     0,
                     10000,

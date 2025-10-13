@@ -2035,9 +2035,6 @@
   <data name="Filter" xml:space="preserve">
     <value>Фильтр</value>
   </data>
-  <data name="FromDate" xml:space="preserve">
-    <value>С</value>
-  </data>
   <data name="Info" xml:space="preserve">
     <value>Информация</value>
   </data>
@@ -2058,9 +2055,6 @@
   </data>
   <data name="Open" xml:space="preserve">
     <value>Открыть</value>
-  </data>
-  <data name="Restore" xml:space="preserve">
-    <value>Восстановить</value>
   </data>
   <data name="SearchParameters" xml:space="preserve">
     <value>Параметры поиска</value>
@@ -2115,5 +2109,8 @@
   </data>
   <data name="Close" xml:space="preserve">
     <value>Закрыть</value>
+  </data>
+  <data name="AllFolders" xml:space="preserve">
+    <value>Все папки</value>
   </data>
 </root>

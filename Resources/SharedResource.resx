@@ -1181,7 +1181,10 @@
     <value>Password must be at least 6 characters long.</value>
   </data>
   <data name="AllAccounts" xml:space="preserve">
-    <value>All accounts</value>
+    <value>All Accounts</value>
+  </data>
+  <data name="AllFolders" xml:space="preserve">
+    <value>All Folders</value>
   </data>
   <data name="All" xml:space="preserve">
     <value>All</value>

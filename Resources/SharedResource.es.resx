@@ -2034,9 +2034,6 @@
   <data name="Filter" xml:space="preserve">
     <value>Filtro</value>
   </data>
-  <data name="FromDate" xml:space="preserve">
-    <value>Desde</value>
-  </data>
   <data name="Info" xml:space="preserve">
     <value>Información</value>
   </data>
@@ -2057,9 +2054,6 @@
   </data>
   <data name="Open" xml:space="preserve">
     <value>Abrir</value>
-  </data>
-  <data name="Restore" xml:space="preserve">
-    <value>Restaurar</value>
   </data>
   <data name="SearchParameters" xml:space="preserve">
     <value>Parámetros de Búsqueda</value>
@@ -2114,5 +2108,8 @@
   </data>
   <data name="Close" xml:space="preserve">
     <value>Cerrar</value>
+  </data>
+  <data name="AllFolders" xml:space="preserve">
+    <value>Todas las carpetas</value>
   </data>
 </root>

@@ -8,6 +8,7 @@ namespace MailArchiver.Models.ViewModels
         public DateTime? FromDate { get; set; }
         public DateTime? ToDate { get; set; }
         public int? SelectedAccountId { get; set; }
+        public string SelectedFolder { get; set; }
         public bool? IsOutgoing { get; set; }
         public int PageNumber { get; set; } = 1;
         public int PageSize { get; set; } = 20;
@@ -15,6 +16,7 @@ namespace MailArchiver.Models.ViewModels
 
         // Dropdown-Optionen
         public List<SelectListItem> AccountOptions { get; set; }
+        public List<SelectListItem> FolderOptions { get; set; }
         public List<SelectListItem> DirectionOptions { get; set; }
 
         public SearchViewModel() { }

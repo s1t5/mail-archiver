@@ -41,7 +41,7 @@
         <div class="card-body">
             <form asp-action="Index" method="get" id="searchForm">
                 <div class="row">
-                    <div class="col-12 col-md-6 col-lg-4 mb-3">
+                    <div class="col-12 col-md-6 col-lg-3 mb-3">
                         <label asp-for="SearchTerm" class="form-label">@Localizer["SearchTerm"]</label>
                         <input asp-for="SearchTerm" class="form-control form-control-sm" placeholder="@Localizer["SubjectSender"]" />
                         <div class="form-text small text-muted">
@@ -62,9 +62,22 @@
                     </div>
                     <div class="col-12 col-md-6 col-lg-2 mb-3">
                         <label asp-for="SelectedAccountId" class="form-label">@Localizer["Account"]</label>
-                        <select asp-for="SelectedAccountId" asp-items="Model.AccountOptions" class="form-select form-select-sm"></select>
+                        <select asp-for="SelectedAccountId" asp-items="Model.AccountOptions" class="form-select form-select-sm" id="accountSelect"></select>
                     </div>
-                    <div class="col-12 col-md-6 col-lg-2 mb-3">
+                    <div class="col-12 col-md-6 col-lg-2 mb-3" id="folderFilterContainer" style="@(Model.SelectedAccountId.HasValue ? "" : "display: none;")">
+                        <label asp-for="SelectedFolder" class="form-label">@Localizer["Folder"]</label>
+                        <select asp-for="SelectedFolder" id="folderSelect" class="form-select form-select-sm">
+                            <option value="">@Localizer["AllFolders"]</option>
+                            @if (Model.SelectedAccountId.HasValue && Model.FolderOptions != null)
+                            {
+                                @foreach (var folder in Model.FolderOptions.Where(f => !string.IsNullOrEmpty(f.Value)))
+                                {
+                                    <option value="@folder.Value" selected="@folder.Selected">@folder.Text</option>
+                                }
+                            }
+                        </select>
+                    </div>
+                    <div class="col-12 col-md-6 @(Model.SelectedAccountId.HasValue ? "col-lg-1" : "col-lg-3") mb-3" id="directionFilterContainer">
                         <label asp-for="IsOutgoing" class="form-label">@Localizer["Direction"]</label>
                         <select asp-for="IsOutgoing" asp-items="Model.DirectionOptions" class="form-select form-select-sm"></select>
                     </div>
@@ -472,6 +485,67 @@
             const timezoneInput = document.getElementById('userTimezone');
             if (timezoneInput) {
                 timezoneInput.value = Intl.DateTimeFormat().resolvedOptions().timeZone;
+            }
+
+            // Load folders dynamically when account selection changes
+            const accountSelect = document.getElementById('accountSelect');
+            const folderContainer = document.getElementById('folderFilterContainer');
+            const folderSelect = document.getElementById('folderSelect');
+            const directionContainer = document.getElementById('directionFilterContainer');
+            
+            if (accountSelect && folderContainer && folderSelect && directionContainer) {
+                // Initialize on page load
+                const currentAccountId = accountSelect.value;
+                if (currentAccountId && currentAccountId !== '') {
+                    // Account is already selected, ensure proper classes
+                    directionContainer.className = 'col-12 col-md-6 col-lg-1 mb-3';
+                } else {
+                    // No account selected, make direction field wider
+                    directionContainer.className = 'col-12 col-md-6 col-lg-3 mb-3';
+                }
+                
+                accountSelect.addEventListener('change', function() {
+                    const accountId = this.value;
+                    console.log("Account selection changed to:", accountId);
+                    
+                    if (!accountId || accountId === '') {
+                        // Hide folder dropdown if no account selected
+                        folderContainer.style.display = 'none';
+                        folderSelect.innerHTML = '<option value="">@Localizer["AllFolders"]</option>';
+                        
+                        // Make direction field wider
+                        directionContainer.className = 'col-12 col-md-6 col-lg-3 mb-3';
+                    } else {
+                        // Load folders for selected account via AJAX
+                        fetch('@Url.Action("GetFolders", "Emails")?accountId=' + accountId)
+                            .then(response => response.json())
+                            .then(folders => {
+                                console.log("Loaded folders:", folders);
+                                
+                                // Clear existing options
+                                folderSelect.innerHTML = '<option value="">@Localizer["AllFolders"]</option>';
+                                
+                                // Add folder options
+                                folders.forEach(function(folder) {
+                                    const option = document.createElement('option');
+                                    option.value = folder;
+                                    option.textContent = folder;
+                                    folderSelect.appendChild(option);
+                                });
+                                
+                                // Show folder container and make direction field narrower
+                                folderContainer.style.display = '';
+                                directionContainer.className = 'col-12 col-md-6 col-lg-1 mb-3';
+                            })
+                            .catch(error => {
+                                console.error('Error loading folders:', error);
+                                // Show container anyway with just "All Folders"
+                                folderSelect.innerHTML = '<option value="">@Localizer["AllFolders"]</option>';
+                                folderContainer.style.display = '';
+                                directionContainer.className = 'col-12 col-md-6 col-lg-1 mb-3';
+                            });
+                    }
+                });
             }
 
             // Configuration from ViewBag

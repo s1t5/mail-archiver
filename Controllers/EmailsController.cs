@@ -152,6 +152,32 @@ namespace MailArchiver.Controllers
                     Selected = model.SelectedAccountId == a.Id
                 }));
 
+            // Folder options - only show if an account is selected
+            model.FolderOptions = new List<SelectListItem>
+            {
+                new SelectListItem { Text = _localizer["AllFolders"], Value = "" }
+            };
+            
+            if (model.SelectedAccountId.HasValue)
+            {
+                // Get distinct folders for the selected account from archived emails
+                var distinctFolders = await _context.ArchivedEmails
+                    .Where(e => e.MailAccountId == model.SelectedAccountId.Value)
+                    .Select(e => e.FolderName)
+                    .Distinct()
+                    .Where(f => !string.IsNullOrEmpty(f))
+                    .OrderBy(f => f)
+                    .ToListAsync();
+                
+                model.FolderOptions.AddRange(distinctFolders.Select(f =>
+                    new SelectListItem
+                    {
+                        Text = f,
+                        Value = f,
+                        Selected = model.SelectedFolder == f
+                    }));
+            }
+
             // Berechnen der Anzahl zu überspringender Elemente für die Paginierung
             int skip = (model.PageNumber - 1) * model.PageSize;
 
@@ -165,6 +191,7 @@ namespace MailArchiver.Controllers
                 model.FromDate,
                 model.ToDate,
                 accountIdForSearch,
+                model.SelectedFolder,
                 model.IsOutgoing,
                 skip,
                 model.PageSize,
@@ -1926,47 +1953,34 @@ namespace MailArchiver.Controllers
             if (accountId <= 0)
             {
                 _logger.LogWarning("Invalid accountId provided: {AccountId}", accountId);
-                return Json(new List<string> { "INBOX" });
+                return Json(new List<string>());
             }
 
             try
             {
-                // Get the account to check its provider type
-                var account = await _context.MailAccounts.FindAsync(accountId);
-                if (account == null)
-                {
-                    _logger.LogWarning("Account with ID {AccountId} not found", accountId);
-                    return Json(new List<string> { "INBOX" });
-                }
-
-                List<string> folders;
-                
-                // Route to appropriate service based on provider type
-                if (account.Provider == ProviderType.M365)
-                {
-                    _logger.LogInformation("Using Graph API service for M365 account {AccountId}", accountId);
-                    folders = await _graphEmailService.GetMailFoldersAsync(account);
-                }
-                else
-                {
-                    _logger.LogInformation("Using IMAP service for account {AccountId}", accountId);
-                    folders = await _emailService.GetMailFoldersAsync(accountId);
-                }
+                // Get distinct folders from archived emails for this account
+                var folders = await _context.ArchivedEmails
+                    .Where(e => e.MailAccountId == accountId)
+                    .Select(e => e.FolderName)
+                    .Distinct()
+                    .Where(f => !string.IsNullOrEmpty(f))
+                    .OrderBy(f => f)
+                    .ToListAsync();
 
                 if (folders == null || !folders.Any())
                 {
-                    _logger.LogWarning("No folders found for account {AccountId}, returning default", accountId);
-                    return Json(new List<string> { "INBOX" });
+                    _logger.LogWarning("No folders found in archive for account {AccountId}", accountId);
+                    return Json(new List<string>());
                 }
 
-                _logger.LogInformation("Successfully retrieved {Count} folders for account {AccountId}",
+                _logger.LogInformation("Successfully retrieved {Count} folders from archive for account {AccountId}",
                     folders.Count, accountId);
                 return Json(folders);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Exception while retrieving folders for account {AccountId}", accountId);
-                return Json(new List<string> { "INBOX" });
+                _logger.LogError(ex, "Exception while retrieving folders from archive for account {AccountId}", accountId);
+                return Json(new List<string>());
             }
         }
 

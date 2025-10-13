@@ -1168,14 +1168,8 @@
   <data name="Download" xml:space="preserve">
     <value>Télécharger</value>
   </data>
-  <data name="Restore" xml:space="preserve">
-    <value>Restaurer</value>
-  </data>
   <data name="Deletion" xml:space="preserve">
     <value>Suppression</value>
-  </data>
-  <data name="FromDate" xml:space="preserve">
-    <value>Depuis</value>
   </data>
   <data name="PreviewNotAvailable" xml:space="preserve">
     <value>Aperçu non disponible</value>
@@ -2115,5 +2109,8 @@
   </data>
   <data name="Close" xml:space="preserve">
     <value>Fermer</value>
+  </data>
+  <data name="AllFolders" xml:space="preserve">
+    <value>Tous les dossiers</value>
   </data>
 </root>

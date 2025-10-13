@@ -2027,9 +2027,6 @@
   <data name="Filter" xml:space="preserve">
     <value>Szűrő</value>
   </data>
-  <data name="FromDate" xml:space="preserve">
-    <value>Ettől</value>
-  </data>
   <data name="Info" xml:space="preserve">
     <value>Információ</value>
   </data>
@@ -2050,9 +2047,6 @@
   </data>
   <data name="Open" xml:space="preserve">
     <value>Megnyitás</value>
-  </data>
-  <data name="Restore" xml:space="preserve">
-    <value>Visszaállítás</value>
   </data>
   <data name="SearchParameters" xml:space="preserve">
     <value>Keresési paraméterek</value>
@@ -2107,5 +2101,8 @@
   </data>
   <data name="Close" xml:space="preserve">
     <value>Bezárás</value>
+  </data>
+  <data name="AllFolders" xml:space="preserve">
+    <value>Minden mappa</value>
   </data>
 </root>

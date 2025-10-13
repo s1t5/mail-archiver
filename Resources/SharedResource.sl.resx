@@ -2035,9 +2035,6 @@
   <data name="Filter" xml:space="preserve">
     <value>Filter</value>
   </data>
-  <data name="FromDate" xml:space="preserve">
-    <value>Od</value>
-  </data>
   <data name="Info" xml:space="preserve">
     <value>Informacije</value>
   </data>
@@ -2058,9 +2055,6 @@
   </data>
   <data name="Open" xml:space="preserve">
     <value>Odpri</value>
-  </data>
-  <data name="Restore" xml:space="preserve">
-    <value>Obnovi</value>
   </data>
   <data name="SearchParameters" xml:space="preserve">
     <value>Parametri iskanja</value>
@@ -2115,5 +2109,8 @@
   </data>
   <data name="Close" xml:space="preserve">
     <value>Zapri</value>
+  </data>
+  <data name="AllFolders" xml:space="preserve">
+    <value>Vse mape</value>
   </data>
 </root>

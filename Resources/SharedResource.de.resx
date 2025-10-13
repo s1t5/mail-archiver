@@ -1184,7 +1184,10 @@
     <value>Das Passwort muss mindestens sechs Zeichen lang sein.</value>
   </data>
   <data name="AllAccounts" xml:space="preserve">
-    <value>alle Accounts</value>
+    <value>Alle Konten</value>
+  </data>
+  <data name="AllFolders" xml:space="preserve">
+    <value>Alle Ordner</value>
   </data>
   <data name="All" xml:space="preserve">
     <value>Alle</value>
