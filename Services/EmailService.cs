@@ -2513,16 +2513,45 @@ namespace MailArchiver.Services
                 await ConnectWithFallbackAsync(client, account.ImapServer, account.ImapPort ?? 993, account.UseSSL, account.Name);
                 _logger.LogDebug("Connection established, authenticating using {Provider} authentication", account.Provider);
 
-                await AuthenticateClientAsync(client, account);
-                _logger.LogInformation("Authentication successful for {Email}", account.EmailAddress);
+        await AuthenticateClientAsync(client, account);
+        _logger.LogInformation("Authentication successful for {Email}", account.EmailAddress);
 
-                var inbox = client.Inbox;
+        // Try to verify folder access, but don't fail the test if this doesn't work
+        // Some servers have non-standard IMAP implementations
+        try
+        {
+            var inbox = client.Inbox;
+            if (inbox != null)
+            {
                 await inbox.OpenAsync(FolderAccess.ReadOnly);
                 _logger.LogInformation("INBOX opened successfully with {Count} messages", inbox.Count);
+            }
+            else
+            {
+                _logger.LogWarning("INBOX is null for account {Name} - server has non-standard IMAP implementation", account.Name);
+                
+                // Try to verify namespace access without opening folders
+                if (client.PersonalNamespaces != null && client.PersonalNamespaces.Count > 0)
+                {
+                    _logger.LogInformation("Personal namespace available for account {Name}: {Namespace}", 
+                        account.Name, client.PersonalNamespaces[0].Path);
+                }
+                else
+                {
+                    _logger.LogWarning("No standard INBOX or personal namespace - server uses custom folder structure");
+                }
+            }
+        }
+        catch (Exception folderEx)
+        {
+            // Folder access failed, but connection and authentication worked
+            _logger.LogWarning(folderEx, "Could not verify folder access for account {Name}, but connection and authentication succeeded. Error: {Message}", 
+                account.Name, folderEx.Message);
+        }
 
-                await client.DisconnectAsync(true);
-                _logger.LogInformation("Connection test passed for account {Name}", account.Name);
-                return true;
+        await client.DisconnectAsync(true);
+        _logger.LogInformation("Connection test passed for account {Name} - connection and authentication successful", account.Name);
+        return true;
             }
             catch (Exception ex)
             {
