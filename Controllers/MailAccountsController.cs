@@ -175,6 +175,7 @@ var model = new MailAccountViewModel
                 LastSync = account.LastSync,
                 IsEnabled = account.IsEnabled,
                 DeleteAfterDays = account.DeleteAfterDays,
+                Provider = account.Provider,
             };
 
             ViewBag.EmailCount = emailCount;
