@@ -137,15 +137,59 @@ namespace MailArchiver.Services
                 // Prepare a list to store all folders
                 var allFolders = new List<IMailFolder>();
 
-                // Get all folders by starting from the root and getting all subfolders
-                var rootFolder = client.GetFolder(client.PersonalNamespaces[0]);
-                await AddSubfoldersRecursively(rootFolder, allFolders);
-
-                // Also add the root folder itself if it's selectable
-                if (!rootFolder.Attributes.HasFlag(FolderAttributes.NonExistent) &&
-                    !rootFolder.Attributes.HasFlag(FolderAttributes.NoSelect))
+                // Retrieve ALL folders from the server (works with all IMAP implementations)
+                try
                 {
-                    allFolders.Add(rootFolder);
+                    _logger.LogInformation("Retrieving all folders from IMAP server for account: {AccountName}", account.Name);
+                    
+                    if (client.PersonalNamespaces != null && client.PersonalNamespaces.Count > 0)
+                    {
+                        var ns = client.PersonalNamespaces[0];
+                        _logger.LogDebug("Using PersonalNamespace: {Path}", ns.Path);
+                        
+                        // Get ALL folders recursively from the namespace root
+                        var rootFolders = await client.GetFoldersAsync(ns, true);  // true = recursive
+                        _logger.LogInformation("GetFoldersAsync(recursive) returned {Count} folders", rootFolders.Count);
+                        
+                        foreach (var folder in rootFolders)
+                        {
+                            _logger.LogDebug("Found folder: Name={Name}, FullName={FullName}, Attributes={Attributes}",
+                                folder.Name ?? "NULL", folder.FullName ?? "NULL", folder.Attributes);
+                            
+                            // Add all folders that are not non-existent and can be selected
+                            if (!folder.Attributes.HasFlag(FolderAttributes.NonExistent) &&
+                                !folder.Attributes.HasFlag(FolderAttributes.NoSelect))
+                            {
+                                allFolders.Add(folder);
+                            }
+                        }
+                        
+                        // IMPORTANT: Also add INBOX if it's not already in the list
+                        // Some IMAP servers don't include INBOX in GetFoldersAsync results
+                        try
+                        {
+                            var inbox = client.Inbox;
+                            if (inbox != null && !allFolders.Any(f => f.FullName == inbox.FullName))
+                            {
+                                _logger.LogInformation("INBOX was not in folder list, adding it explicitly");
+                                if (!inbox.Attributes.HasFlag(FolderAttributes.NonExistent) &&
+                                    !inbox.Attributes.HasFlag(FolderAttributes.NoSelect))
+                                {
+                                    allFolders.Add(inbox);
+                                }
+                            }
+                        }
+                        catch (Exception inboxEx)
+                        {
+                            _logger.LogWarning(inboxEx, "Could not access INBOX for {AccountName}", account.Name);
+                        }
+                    }
+                    
+                    _logger.LogInformation("Total selectable folders found for {AccountName}: {Count}", account.Name, allFolders.Count);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error retrieving folders for {AccountName}: {Message}", account.Name, ex.Message);
                 }
 
                 if (jobId != null)
@@ -386,8 +430,39 @@ namespace MailArchiver.Services
                         await folder.OpenAsync(FolderAccess.ReadOnly);
                     }
 
-                    var uids = await folder.SearchAsync(query);
-                    _logger.LogInformation("Found {Count} new messages in folder {FolderName} for account: {AccountName}",
+                    IList<UniqueId> uids;
+                    try
+                    {
+                        // Try the standard DeliveredAfter query first
+                        uids = await folder.SearchAsync(query);
+                        _logger.LogDebug("DeliveredAfter search found {Count} messages in folder {FolderName}", 
+                            uids.Count, folder.FullName);
+                    }
+                    catch (Exception searchEx)
+                    {
+                        // Some servers (like STRATO) may not support DeliveredAfter properly
+                        _logger.LogWarning(searchEx, "DeliveredAfter search failed for folder {FolderName}, falling back to SentSince", 
+                            folder.FullName);
+                        
+                        try
+                        {
+                            // Fallback: Try SentSince instead
+                            uids = await folder.SearchAsync(SearchQuery.SentSince(lastSync.Date));
+                            _logger.LogDebug("SentSince search found {Count} messages in folder {FolderName}", 
+                                uids.Count, folder.FullName);
+                        }
+                        catch (Exception fallbackEx)
+                        {
+                            // If both fail, get all UIDs and filter client-side
+                            _logger.LogWarning(fallbackEx, "SentSince also failed for folder {FolderName}, using All query", 
+                                folder.FullName);
+                            uids = await folder.SearchAsync(SearchQuery.All);
+                            _logger.LogInformation("All query found {Count} total messages in folder {FolderName}, will filter by date client-side", 
+                                uids.Count, folder.FullName);
+                        }
+                    }
+                    
+                    _logger.LogInformation("Found {Count} messages to process in folder {FolderName} for account: {AccountName}",
                         uids.Count, folder.FullName, account.Name);
 
                     result.ProcessedEmails = uids.Count;
