@@ -405,9 +405,27 @@ private readonly IServiceProvider _serviceProvider;
                     }
                     catch (FormatException ex)
                     {
+                        var currentPosition = stream.Position;
                         _logger.LogWarning(ex, "Job {JobId}: Skipping malformed email at position {Position}",
-                            job.JobId, stream.Position);
+                            job.JobId, currentPosition);
                         job.FailedCount++;
+                        
+                        // CRITICAL: Advance stream past the malformed email to prevent infinite loop
+                        // Find the next "From " marker which indicates the start of the next email
+                        var nextEmailPosition = FindNextMboxMarker(stream);
+                        if (nextEmailPosition > currentPosition)
+                        {
+                            stream.Position = nextEmailPosition;
+                            _logger.LogInformation("Job {JobId}: Advanced stream from position {OldPos} to {NewPos} to skip malformed email",
+                                job.JobId, currentPosition, nextEmailPosition);
+                        }
+                        else
+                        {
+                            // No more emails found, we're at the end of the file
+                            _logger.LogInformation("Job {JobId}: No more valid emails found after position {Position}, ending import",
+                                job.JobId, currentPosition);
+                            break;
+                        }
                     }
                     catch (Exception ex)
                     {
@@ -1112,6 +1130,79 @@ private readonly IServiceProvider _serviceProvider;
             }
 
             return truncatedContent + textTruncationNotice;
+        }
+
+        /// <summary>
+        /// Finds the next "From " marker in the mbox file stream, which indicates the start of the next email
+        /// </summary>
+        /// <param name="stream">The file stream to search</param>
+        /// <returns>The position of the next mbox marker, or -1 if not found</returns>
+        private long FindNextMboxMarker(FileStream stream)
+        {
+            var currentPosition = stream.Position;
+            var buffer = new byte[8192];
+            var lineBuilder = new StringBuilder();
+            var lastByte = (byte)0;
+            
+            try
+            {
+                while (true)
+                {
+                    var bytesRead = stream.Read(buffer, 0, buffer.Length);
+                    if (bytesRead == 0)
+                    {
+                        // End of file reached
+                        return -1;
+                    }
+
+                    for (int i = 0; i < bytesRead; i++)
+                    {
+                        var currentByte = buffer[i];
+                        
+                        // Check for newline (both \n and \r\n)
+                        if (currentByte == '\n')
+                        {
+                            var line = lineBuilder.ToString();
+                            lineBuilder.Clear();
+                            
+                            // Check if this line starts with "From " (mbox marker)
+                            if (line.StartsWith("From ", StringComparison.Ordinal))
+                            {
+                                // Calculate the position at the start of this line
+                                // We need to go back: current position - remaining bytes in buffer - line length - newline characters
+                                var markerPosition = stream.Position - (bytesRead - i) - Encoding.UTF8.GetByteCount(line);
+                                
+                                // Account for \r\n vs \n
+                                if (lastByte == '\r')
+                                {
+                                    markerPosition -= 1;
+                                }
+                                
+                                return markerPosition;
+                            }
+                            
+                            lastByte = currentByte;
+                            continue;
+                        }
+                        
+                        // Skip \r characters
+                        if (currentByte == '\r')
+                        {
+                            lastByte = currentByte;
+                            continue;
+                        }
+                        
+                        // Add character to line
+                        lineBuilder.Append((char)currentByte);
+                        lastByte = currentByte;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while searching for next mbox marker from position {Position}", currentPosition);
+                return -1;
+            }
         }
 
         private void DeleteTempFile(string filePath, string jobId)
