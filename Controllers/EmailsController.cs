@@ -225,6 +225,8 @@ namespace MailArchiver.Controllers
                                         searchParams.Add($"to:{model.ToDate.Value:yyyy-MM-dd}");
                                     if (model.SelectedAccountId.HasValue)
                                         searchParams.Add($"account:{model.SelectedAccountId}");
+                                    if (!string.IsNullOrEmpty(model.SelectedFolder))
+                                        searchParams.Add($"folder:{model.SelectedFolder}");
                                     if (model.IsOutgoing.HasValue)
                                         searchParams.Add($"direction:{(model.IsOutgoing.Value ? "out" : "in")}");
                                     
