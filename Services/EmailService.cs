@@ -437,6 +437,19 @@ namespace MailArchiver.Services
                         uids = await folder.SearchAsync(query);
                         _logger.LogDebug("DeliveredAfter search found {Count} messages in folder {FolderName}", 
                             uids.Count, folder.FullName);
+                        
+                        // Check if this is a full sync (LastSync is Unix Epoch) and the search returned 0 results
+                        // but the folder actually contains messages. This indicates the server doesn't support
+                        // DeliveredAfter properly
+                        if (uids.Count == 0 && folder.Count > 0 && 
+                            account.LastSync == new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc))
+                        {
+                            _logger.LogWarning("DeliveredAfter returned 0 results but folder contains {Count} messages during full sync for {FolderName}. Server may not support DeliveredAfter. Using SearchQuery.All instead.", 
+                                folder.Count, folder.FullName);
+                            uids = await folder.SearchAsync(SearchQuery.All);
+                            _logger.LogInformation("SearchQuery.All found {Count} messages in folder {FolderName}", 
+                                uids.Count, folder.FullName);
+                        }
                     }
                     catch (Exception searchEx)
                     {
