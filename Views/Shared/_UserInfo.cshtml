@@ -51,17 +51,17 @@
                     <div class="mb-2">
                         <label class="form-label small text-muted mb-1">@Localizer["Language"]</label>
                         <select name="culture" class="form-select form-select-sm" onchange="this.form.submit()">
-                            @{ var ui = System.Threading.Thread.CurrentThread.CurrentUICulture.TwoLetterISOLanguageName; }
-                            <option value="en" selected="@(ui=="en" ? "selected" : null)">English</option>
-                            <option value="en-GB" selected="@(System.Threading.Thread.CurrentThread.CurrentUICulture.Name=="en-GB" ? "selected" : null)">English (GB)</option>
-                            <option value="sl" selected="@(ui=="sl" ? "selected" : null)">Slovenščina</option>
-                            <option value="de" selected="@(ui=="de" ? "selected" : null)">Deutsch</option>
-                            <option value="it" selected="@(ui=="it" ? "selected" : null)">Italiano</option>
-                            <option value="fr" selected="@(ui=="fr" ? "selected" : null)">Français</option>
-                            <option value="es" selected="@(ui=="es" ? "selected" : null)">Español</option>
-                            <option value="nl" selected="@(ui=="nl" ? "selected" : null)">Nederlands</option>
-                            <option value="ru" selected="@(ui=="ru" ? "selected" : null)">Русский</option>
-                            <option value="hu" selected="@(ui=="hu" ? "selected" : null)">Magyar</option>
+                            @{ var cultureName = System.Threading.Thread.CurrentThread.CurrentUICulture.Name; }
+                            <option value="en" selected="@(cultureName=="en" ? "selected" : null)">English</option>
+                            <option value="en-GB" selected="@(cultureName=="en-GB" ? "selected" : null)">English (GB)</option>
+                            <option value="sl" selected="@(cultureName=="sl" ? "selected" : null)">Slovenščina</option>
+                            <option value="de" selected="@(cultureName=="de" ? "selected" : null)">Deutsch</option>
+                            <option value="it" selected="@(cultureName=="it" ? "selected" : null)">Italiano</option>
+                            <option value="fr" selected="@(cultureName=="fr" ? "selected" : null)">Français</option>
+                            <option value="es" selected="@(cultureName=="es" ? "selected" : null)">Español</option>
+                            <option value="nl" selected="@(cultureName=="nl" ? "selected" : null)">Nederlands</option>
+                            <option value="ru" selected="@(cultureName=="ru" ? "selected" : null)">Русский</option>
+                            <option value="hu" selected="@(cultureName=="hu" ? "selected" : null)">Magyar</option>
                         </select>
                     </div>
                 </form>
