@@ -2,7 +2,7 @@
 @inject MailArchiver.Services.IAuthenticationService AuthService
 @inject IUserService UserService
 @inject Microsoft.Extensions.Localization.IStringLocalizer<MailArchiver.SharedResource> Localizer
-@{ var currentCulture = System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName; }
+@{ var currentCulture = System.Globalization.CultureInfo.CurrentUICulture.Name; }
 
 @if (AuthService.IsAuthenticationRequired())
 {
@@ -53,6 +53,7 @@
                         <select name="culture" class="form-select form-select-sm" onchange="this.form.submit()">
                             @{ var ui = System.Threading.Thread.CurrentThread.CurrentUICulture.TwoLetterISOLanguageName; }
                             <option value="en" selected="@(ui=="en" ? "selected" : null)">English</option>
+                            <option value="en-GB" selected="@(System.Threading.Thread.CurrentThread.CurrentUICulture.Name=="en-GB" ? "selected" : null)">English (GB)</option>
                             <option value="sl" selected="@(ui=="sl" ? "selected" : null)">Slovenščina</option>
                             <option value="de" selected="@(ui=="de" ? "selected" : null)">Deutsch</option>
                             <option value="it" selected="@(ui=="it" ? "selected" : null)">Italiano</option>

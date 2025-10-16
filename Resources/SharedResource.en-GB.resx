@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- English (United Kingdom) resource overrides.
+     This file intentionally contains only overrides for en-GB.
+     Missing entries will fall back to SharedResource.resx (neutral). -->
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+              </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+                <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+                <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+                <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+                <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <!-- Add keys that only require en-GB-specific wording here.
+       Leave empty to inherit missing strings from SharedResource.resx. -->
+  <data name="LastSync" xml:space="preserve">
+    <value>Last Synchronisation</value>
+  </data>
+    <data name="SynchronizationJobs" xml:space="preserve">
+    <value>Synchronisation Jobs</value>
+  </data>
+  <data name="DisabledAccountsNotSynced" xml:space="preserve">
+    <value>Disabled accounts will not be synchronised</value>
+  </data>
+  <data name="DeleteItemSyncHistory" xml:space="preserve">
+    <value>Synchronisation history</value>
+  </data>
+  <data name="ActionWillStopSync" xml:space="preserve">
+    <value>Will stop all synchronisation for this account</value>
+  </data>
+  <data name="AlternativeDisableInfo" xml:space="preserve">
+    <value>If you only want to stop email synchronisation without losing data, you can disable the account instead.</value>
+  </data>
+  <data name="EnterFolderNamesText" xml:space="preserve">
+    <value>Folders to exclude from synchronisation. Enter folder names separated by semicolons.</value>
+  </data>
+  <data name="NotYetSynchronized" xml:space="preserve">
+    <value>Not yet synchronised</value>
+  </data>
+  <data name="EmailAccountEnabled" xml:space="preserve">
+    <value>Account '{0}' has been enabled for synchronisation.</value>
+    <comment>{0} - account name</comment>
+  </data>
+  <data name="EmailAccountDisabled" xml:space="preserve">
+    <value>Account '{0}' has been disabled for synchronisation.</value>
+    <comment>{0} - account name</comment>
+  </data>
+  <data name="SyncStarted" xml:space="preserve">
+    <value>Synchronisation for '{0}' was successfully started.</value>
+    <comment>{0} - account name</comment>
+  </data>
+  <data name="SyncSuccess" xml:space="preserve">
+    <value>Synchronisation for '{0}' was successfully completed.</value>
+    <comment>{0} - account name</comment>
+  </data>
+    <data name="SyncFailed" xml:space="preserve">
+    <value>Error during synchronisation</value>
+  </data>
+    <data name="ImportOnlyAccountDescription" xml:space="preserve">
+    <value>Account for importing MBox or EML files without IMAP synchronisation</value>
+  </data>
+  <data name="ImportOnlyAccountNoSync" xml:space="preserve">
+    <value>Import-only accounts cannot be synchronised</value>
+  </data>
+    <data name="ExportInfoText" xml:space="preserve">
+    <value>This export will create a downloadable ZIP file containing all emails from this account. The format you choose determines how the emails are organised.</value>
+  </data>
+    <data name="EMLFormatDescription" xml:space="preserve">
+    <value>Creates individual .eml files organised in folders.</value>
+  </data>
+</root>

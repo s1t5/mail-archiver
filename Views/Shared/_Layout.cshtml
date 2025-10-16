@@ -1,7 +1,7 @@
 ﻿@using MailArchiver.Services
 @inject MailArchiver.Services.IAuthenticationService AuthService
 @inject Microsoft.Extensions.Localization.IStringLocalizer<MailArchiver.SharedResource> Localizer
-@{ var currentCulture = System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName; }
+@{ var currentCulture = System.Globalization.CultureInfo.CurrentUICulture.Name; }
 <!DOCTYPE html>
 <html lang="@currentCulture">
 
