@@ -37,6 +37,7 @@ body:
       label: Application Version
       description: Which version are you using?
       options:
+        - "2510.3"
         - "2510.2"
         - "2510.1"
         - "2509.8"
@@ -117,4 +118,4 @@ body:
         Alternatively, you can submit logs via email if they contain sensitive information.
       render: shell
     validations:
-      required: false
+      required: true
