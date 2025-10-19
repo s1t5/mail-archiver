@@ -17,6 +17,7 @@ Mail Archiver is a comprehensive application designed to archive emails from var
 
 ### ⚙️ Configuration & Usage
 - [Access Logging](Logs.md)
+- [Docker Compose Logs Guide](DockerComposeLogs.md)
 - [Mailbox Migration](MailboxMigration.md)
 - [Mail Search Guide](Search.md)
 - [Using Development Versions (Dev Tag)](DevTag.md)
