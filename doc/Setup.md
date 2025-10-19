@@ -58,13 +58,18 @@ services:
       # Npgsql Settings
       - Npgsql__CommandTimeout=900
 
-      # Upload Settings for MBox files
+      # Upload Settings for MBox and EML files
       - Upload__MaxFileSizeGB=10
       - Upload__KeepAliveTimeoutHours=4
       - Upload__RequestHeadersTimeoutHours=2
 
       # TimeZone Settings
       - TimeZone__DisplayTimeZoneId=Etc/UCT
+
+      # Logging Settings (Optional - defaults to Information level)
+      - Logging__LogLevel__Default=Information
+      - Logging__LogLevel__Microsoft_AspNetCore=Warning
+      - Logging__LogLevel__Microsoft_EntityFrameworkCore_Database_Command=Warning
     ports:
       - "5000:5000"
     networks:
@@ -103,23 +108,25 @@ networks:
 
 5. Adjust the `TimeZone__DisplayTimeZoneId` environment variable to match your preferred timezone (default is "Etc/UCT"). You can use any IANA timezone identifier (e.g., "Europe/Berlin", "Asia/Tokyo").
 
-6. Configure a reverse proxy of your choice with https and authentication to secure access to the application. 
+6. Optionally configure the `Logging__LogLevel` environment variables to control the verbosity of application logs. See the Logging Settings section below for available options.
+
+7. Configure a reverse proxy of your choice with https and authentication to secure access to the application. 
 
 > ⚠️ **Attention**: The application itself does not provide encrypted access via https! It must be set up via a reverse proxy!
 
-7. Initial start of the containers:
+8. Initial start of the containers:
 ```bash
 docker compose up -d
 ```
 
-8. Restart containers:
+9. Restart containers:
 ```bash
 docker compose restart
 ```
 
-9. Access the application
+10. Access the application
 
-10. Login with your defined credentials and add your first email account:
+11. Login with your defined credentials and add your first email account:
    - Navigate to "Email Accounts" section
    - Click "New Account"
    - Enter your server details and credentials
@@ -170,6 +177,11 @@ docker compose restart
 
 ### 🕐 TimeZone Settings
 - `TimeZone__DisplayTimeZoneId`: The time zone used for displaying email timestamps in the UI. Uses IANA time zone identifiers (e.g., "Europe/Berlin", "Asia/Tokyo"). Default is "Etc/UCT" for backward compatibility. When importing emails timestamps will be converted to this time zone for display purposes.
+
+### 📝 Logging Settings
+- `Logging__LogLevel__Default`: The default log level for the application. Available levels are: `Trace`, `Debug`, `Information`, `Warning`, `Error`, `Critical`, `None`. Default is `Information`.
+- `Logging__LogLevel__Microsoft_AspNetCore`: Log level for ASP.NET Core framework messages. Default is `Warning`.
+- `Logging__LogLevel__Microsoft_EntityFrameworkCore_Database_Command`: Log level for Entity Framework database commands. Default is `Warning`.
 
 ## 🔒 Security Notes
 
