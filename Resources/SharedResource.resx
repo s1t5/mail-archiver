@@ -2124,4 +2124,7 @@
   <data name="EmailNotFoundHelp" xml:space="preserve">
     <value>If you believe this is an error, please contact your system administrator.</value>
   </data>
+  <data name="Reply" xml:space="preserve">
+    <value>Reply</value>
+  </data>
 </root>

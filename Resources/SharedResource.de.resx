@@ -2114,4 +2114,7 @@
   <data name="EmailsDeleted" xml:space="preserve">
     <value>{0} E-Mail(s) erfolgreich gelöscht</value>
   </data>
+  <data name="Reply" xml:space="preserve">
+    <value>Antworten</value>
+  </data>
 </root>

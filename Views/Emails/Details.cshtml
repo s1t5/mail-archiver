@@ -17,6 +17,13 @@
                 <a href="@returnUrl" class="btn btn-outline-secondary btn-sm">
                     <i class="bi bi-arrow-left"></i> @Localizer["BackToList"]
                 </a>
+                <a href="#" class="btn btn-outline-info btn-sm" id="replyButtonMobile" onclick="handleReplyClick(event)"
+                   data-sender="@Model.Email.From"
+                   data-subject="@Model.Email.Subject"
+                   data-date="@Model.Email.SentDate.ToString("yyyy-MM-dd HH:mm")"
+                   data-body="@Model.Email.Body">
+                    <i class="bi bi-arrow-return-left"></i> @Localizer["Reply"]
+                </a>
                 <a asp-action="Export" asp-route-id="@Model.Email.Id" asp-route-format="Eml"
                     class="btn btn-outline-primary btn-sm">
                     <i class="bi bi-envelope"></i> @Localizer["ExportEML"]
@@ -38,6 +45,13 @@
         <div class="d-none d-md-flex gap-2">
             <a href="@returnUrl" class="btn btn-outline-secondary">
                 <i class="bi bi-arrow-left"></i> @Localizer["BackToList"]
+            </a>
+            <a href="#" class="btn btn-outline-info" id="replyButton" data-bs-toggle="tooltip" title="@Localizer["Reply"]" onclick="handleReplyClick(event)"
+               data-sender="@Model.Email.From"
+               data-subject="@Model.Email.Subject"
+               data-date="@Model.Email.SentDate.ToString("yyyy-MM-dd HH:mm")"
+               data-body="@Model.Email.Body">
+                <i class="bi bi-arrow-return-left"></i>
             </a>
             <a asp-action="Export" asp-route-id="@Model.Email.Id" asp-route-format="Eml"
                 class="btn btn-outline-primary">
@@ -296,7 +310,61 @@
             fileTypeCannotBePreviewed: '@Localizer["FileTypeCannotBePreviewed"]'
         };
 
+        // Function to format email body for reply (prefix each line with "> ")
+        function formatReplyBody(body) {
+            if (!body) return '';
+            
+            // Split into lines, prefix each line with "> ", and join back
+            return body.split('\n').map(line => `> ${line}`).join('\n');
+        }
+
+        // Function to handle reply button click
+        function handleReplyClick(event) {
+            event.preventDefault();
+            
+            // Get data from data attributes set on the button
+            const button = event.currentTarget;
+            const sender = button.getAttribute('data-sender');
+            const subject = button.getAttribute('data-subject');
+            const sentDate = button.getAttribute('data-date');
+            const originalBody = button.getAttribute('data-body') || "[Original content not available]";
+            
+            // Format the body with ">" prefix for each line
+            let formattedBody = formatReplyBody(originalBody);
+            
+            // Add the header information
+            const replyHeader = `On ${sentDate}, ${sender} wrote:\n\n`;
+            const fullBody = replyHeader + formattedBody;
+            
+            // Check size limitations (mailto URLs typically have ~2000 character limit)
+            const maxBodyLength = 1500; // Conservative limit to account for other URL parts
+            let finalBody = fullBody;
+            if (fullBody.length > maxBodyLength) {
+                // Truncate and add notice
+                finalBody = fullBody.substring(0, maxBodyLength - 100) + "\n\n[Message truncated due to size limitations]";
+            }
+            
+            // Create and trigger mailto link
+            const mailtoUrl = `mailto:${sender}?subject=${encodeURIComponent("Re: " + subject)}&body=${encodeURIComponent(finalBody)}`;
+            
+            // Check if URL is too long
+            if (mailtoUrl.length > 1800) {
+                console.warn('Mailto URL is very long and may exceed browser/email client limits');
+            }
+            
+            window.location.href = mailtoUrl;
+        }
+
+        // Handle mobile reply button click
         document.addEventListener('DOMContentLoaded', function () {
+            const mobileReplyButton = document.getElementById('replyButtonMobile');
+            if (mobileReplyButton) {
+                mobileReplyButton.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    handleReplyClick(e);
+                });
+            }
+
             // Attachment preview functionality
             const previewButtons = document.querySelectorAll('.attachment-preview-btn');
             const previewModal = new bootstrap.Modal(document.getElementById('attachmentPreviewModal'));
