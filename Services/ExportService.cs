@@ -120,7 +120,7 @@ namespace MailArchiver.Services
             return false;
         }
 
-        public async Task<FileResult?> DownloadExportAsync(string jobId)
+        public FileResult? GetExportForDownload(string jobId)
         {
             var job = GetJob(jobId);
             if (job == null || job.Status != AccountExportJobStatus.Completed || string.IsNullOrEmpty(job.OutputFilePath))
@@ -133,12 +133,11 @@ namespace MailArchiver.Services
                 return null;
             }
 
-            var fileBytes = await File.ReadAllBytesAsync(job.OutputFilePath);
             var fileName = $"{job.MailAccountName}_{job.Format}_{job.Created:yyyyMMdd_HHmmss}.zip";
 
             return new FileResult
             {
-                Content = fileBytes,
+                FilePath = job.OutputFilePath,
                 FileName = fileName,
                 ContentType = "application/zip"
             };
@@ -149,22 +148,12 @@ namespace MailArchiver.Services
             if (_allJobs.TryGetValue(jobId, out var job))
             {
                 job.Status = AccountExportJobStatus.Downloaded;
+                job.Completed = DateTime.UtcNow; // Update completion time for cleanup
                 
-                // Delete the export file after download
-                if (!string.IsNullOrEmpty(job.OutputFilePath) && File.Exists(job.OutputFilePath))
-                {
-                    try
-                    {
-                        File.Delete(job.OutputFilePath);
-                        _logger.LogInformation("Deleted export file {FilePath} after download for job {JobId}", 
-                            job.OutputFilePath, jobId);
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogWarning(ex, "Failed to delete export file {FilePath} after download for job {JobId}", 
-                            job.OutputFilePath, jobId);
-                    }
-                }
+                // Don't delete the file immediately - it's still being streamed to the client
+                // The file will be cleaned up automatically by the cleanup job after 7 days
+                _logger.LogInformation("Marked export job {JobId} as downloaded. File will be cleaned up automatically.", jobId);
+                
                 return true;
             }
             return false;
@@ -599,14 +588,23 @@ namespace MailArchiver.Services
                 {
                     try
                     {
+                        // Extract just the filename in case attachment.FileName contains a path or URI
+                        var fileName = Path.GetFileName(attachment.FileName);
+                        if (string.IsNullOrEmpty(fileName))
+                            fileName = "attachment";
+                        
                         var contentType = ContentType.Parse(attachment.ContentType);
-                        var mimePart = bodyBuilder.LinkedResources.Add(attachment.FileName, attachment.Content, contentType);
+                        var mimePart = bodyBuilder.LinkedResources.Add(fileName, attachment.Content, contentType);
                         mimePart.ContentId = attachment.ContentId;
                     }
                     catch
                     {
                         // Fallback for invalid content types
-                        var mimePart = bodyBuilder.LinkedResources.Add(attachment.FileName, attachment.Content);
+                        var fileName = Path.GetFileName(attachment.FileName);
+                        if (string.IsNullOrEmpty(fileName))
+                            fileName = "attachment";
+                        
+                        var mimePart = bodyBuilder.LinkedResources.Add(fileName, attachment.Content);
                         mimePart.ContentId = attachment.ContentId;
                     }
                 }
@@ -616,13 +614,22 @@ namespace MailArchiver.Services
                 {
                     try
                     {
+                        // Extract just the filename in case attachment.FileName contains a path or URI
+                        var fileName = Path.GetFileName(attachment.FileName);
+                        if (string.IsNullOrEmpty(fileName))
+                            fileName = "attachment";
+                        
                         var contentType = ContentType.Parse(attachment.ContentType);
-                        bodyBuilder.Attachments.Add(attachment.FileName, attachment.Content, contentType);
+                        bodyBuilder.Attachments.Add(fileName, attachment.Content, contentType);
                     }
                     catch
                     {
                         // Fallback for invalid content types
-                        bodyBuilder.Attachments.Add(attachment.FileName, attachment.Content);
+                        var fileName = Path.GetFileName(attachment.FileName);
+                        if (string.IsNullOrEmpty(fileName))
+                            fileName = "attachment";
+                        
+                        bodyBuilder.Attachments.Add(fileName, attachment.Content);
                     }
                 }
             }

@@ -11,7 +11,7 @@ namespace MailArchiver.Services
         List<SelectedEmailsExportJob> GetActiveJobs();
         List<SelectedEmailsExportJob> GetAllJobs();
         bool CancelJob(string jobId);
-        Task<FileResult?> DownloadExportAsync(string jobId);
+        FileResult? GetExportForDownload(string jobId);
         bool MarkAsDownloaded(string jobId);
     }
 }

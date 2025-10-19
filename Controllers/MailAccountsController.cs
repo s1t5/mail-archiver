@@ -1398,12 +1398,20 @@ var model = new MailAccountViewModel
 
             try
             {
-                var fileResult = await _exportService.DownloadExportAsync(jobId);
+                var fileResult = _exportService.GetExportForDownload(jobId);
+                if (fileResult == null || string.IsNullOrEmpty(fileResult.FilePath) || !System.IO.File.Exists(fileResult.FilePath))
+                {
+                    TempData["ErrorMessage"] = _localizer["ExportFileNotFound"].Value;
+                    return RedirectToAction("ExportStatus", new { jobId });
+                }
                 
-                // Mark as downloaded to clean up the file
+                // Stream the file directly without loading it into memory
+                var fileStream = new FileStream(fileResult.FilePath, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, FileOptions.Asynchronous | FileOptions.SequentialScan);
+                
+                // Mark as downloaded - the file will be deleted after download completes
                 _exportService.MarkAsDownloaded(jobId);
 
-                return File(fileResult.Content, fileResult.ContentType, fileResult.FileName);
+                return File(fileStream, fileResult.ContentType, fileResult.FileName);
             }
             catch (Exception ex)
             {

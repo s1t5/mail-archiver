@@ -1858,7 +1858,7 @@ namespace MailArchiver.Controllers
 
         // GET: Emails/DownloadSelectedEmailsExport
         [HttpGet]
-        public async Task<IActionResult> DownloadSelectedEmailsExport(string jobId)
+        public IActionResult DownloadSelectedEmailsExport(string jobId)
         {
             if (_selectedEmailsExportService == null)
             {
@@ -1886,23 +1886,22 @@ namespace MailArchiver.Controllers
                 return RedirectToAction("Index");
             }
 
-            // Check if file exists
-            if (string.IsNullOrEmpty(job.OutputFilePath) || !System.IO.File.Exists(job.OutputFilePath))
-            {
-                TempData["ErrorMessage"] = "Export file not found.";
-                return RedirectToAction("Index");
-            }
-
             try
             {
-                var fileBytes = await System.IO.File.ReadAllBytesAsync(job.OutputFilePath);
-                var fileName = $"selected-emails-export-{jobId}-{job.Created:yyyyMMdd-HHmmss}.zip";
+                var fileResult = _selectedEmailsExportService.GetExportForDownload(jobId);
+                if (fileResult == null || string.IsNullOrEmpty(fileResult.FilePath) || !System.IO.File.Exists(fileResult.FilePath))
+                {
+                    TempData["ErrorMessage"] = "Export file not found.";
+                    return RedirectToAction("Index");
+                }
+
+                // Stream the file directly without loading it into memory
+                var fileStream = new FileStream(fileResult.FilePath, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, FileOptions.Asynchronous | FileOptions.SequentialScan);
 
                 // Mark as downloaded (this will delete the file after download)
                 _selectedEmailsExportService.MarkAsDownloaded(jobId);
 
-                Response.Headers.Add("Content-Disposition", $"attachment; filename=\"{fileName}\"");
-                return File(fileBytes, "application/zip", fileName);
+                return File(fileStream, fileResult.ContentType, fileResult.FileName);
             }
             catch (Exception ex)
             {
