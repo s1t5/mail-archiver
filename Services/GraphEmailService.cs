@@ -822,16 +822,50 @@ namespace MailArchiver.Services
 
         private async Task<bool> ArchiveGraphEmailAsync(GraphServiceClient graphClient, MailAccount account, Message message, bool isOutgoing, string folderName)
         {
-            // Check if this email is already archived
+            // Verbesserte MessageId-Generierung für M365 E-Mails ohne zuverlässige MessageIds
             var messageId = message.InternetMessageId ?? message.Id;
+            
+            // Wenn keine MessageId vorhanden, generiere Hash basierend auf E-Mail-Inhalt
+            if (string.IsNullOrEmpty(messageId))
+            {
+                var from = message.From?.EmailAddress?.Address ?? "";
+                var to = string.Join(",", message.ToRecipients?.Select(r => r.EmailAddress?.Address) ?? new List<string>());
+                var subject = message.Subject ?? "";
+                var dateTicks = message.SentDateTime?.Ticks ?? DateTime.UtcNow.Ticks;
+                
+                var uniqueString = $"{from}|{to}|{subject}|{dateTicks}";
+                using (var sha256 = System.Security.Cryptography.SHA256.Create())
+                {
+                    var hashBytes = sha256.ComputeHash(System.Text.Encoding.UTF8.GetBytes(uniqueString));
+                    var hashString = Convert.ToBase64String(hashBytes).Replace("+", "-").Replace("/", "_").Substring(0, 16);
+                    messageId = $"generated-{hashString}@mail-archiver.local";
+                }
+                
+                _logger.LogDebug("Generated MessageId for M365 email without MessageId: {MessageId}", messageId);
+            }
             
             _logger.LogDebug("Processing message {MessageId} for account {AccountName}, Subject: {Subject}", 
                 messageId, account.Name, message.Subject ?? "No Subject");
 
             try
             {
+                // ROBUSTE Duplikaterkennung - prüfe mehrere Kriterien  
+                // M365 kann auch fehlende/duplizierte MessageIds haben
+                var checkFrom = message.From?.EmailAddress?.Address ?? "";
+                var checkTo = string.Join(",", message.ToRecipients?.Select(r => r.EmailAddress?.Address) ?? new List<string>());
+                var checkSubject = message.Subject ?? "(No Subject)";
+                var checkDate = message.SentDateTime?.DateTime ?? DateTime.UtcNow;
+                
                 var existingEmail = await _context.ArchivedEmails
-                    .FirstOrDefaultAsync(e => e.MessageId == messageId && e.MailAccountId == account.Id);
+                    .Where(e => e.MailAccountId == account.Id)
+                    .Where(e => 
+                        e.MessageId == messageId ||
+                        (e.From == checkFrom &&
+                         e.To == checkTo &&
+                         e.Subject == checkSubject &&
+                         Math.Abs((e.SentDate - checkDate).TotalSeconds) < 2)
+                    )
+                    .FirstOrDefaultAsync();
 
                 if (existingEmail != null)
                 {
@@ -845,8 +879,8 @@ namespace MailArchiver.Services
                         _logger.LogInformation("Updated folder for existing email: {Subject} from '{OldFolder}' to '{NewFolder}'",
                             existingEmail.Subject, existingEmail.FolderName, cleanFolderName);
                     }
-                    _logger.LogDebug("Email {MessageId} already exists in database for account {AccountName}", 
-                        messageId, account.Name);
+                    _logger.LogInformation("Email already exists (duplicate) - MessageId: {MessageId}, Subject: {Subject}, From: {From}", 
+                        messageId, checkSubject, checkFrom);
                     return false; // Email already exists
                 }
             }

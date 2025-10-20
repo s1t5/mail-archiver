@@ -450,20 +450,52 @@ private readonly IServiceProvider _serviceProvider;
                 using var scope = _serviceProvider.CreateScope();
                 var context = scope.ServiceProvider.GetRequiredService<MailArchiverDbContext>();
 
-                // Erstelle eindeutige Message-ID
-                var messageId = message.MessageId ??
-                    $"mbox-import-{job.JobId}-{job.ProcessedEmails}-{message.Date.Ticks}";
+                // Verbesserte MessageId-Generierung für Provider ohne zuverlässige MessageIds
+                var messageId = message.MessageId;
+                
+                // Wenn keine MessageId vorhanden, generiere Hash basierend auf E-Mail-Inhalt
+                if (string.IsNullOrEmpty(messageId))
+                {
+                    var from = string.Join(",", message.From.Mailboxes.Select(m => m.Address));
+                    var to = string.Join(",", message.To.Mailboxes.Select(m => m.Address));
+                    var subject = message.Subject ?? "";
+                    var dateTicks = message.Date.Ticks;
+                    
+                    var uniqueString = $"{from}|{to}|{subject}|{dateTicks}";
+                    using (var sha256 = System.Security.Cryptography.SHA256.Create())
+                    {
+                        var hashBytes = sha256.ComputeHash(System.Text.Encoding.UTF8.GetBytes(uniqueString));
+                        var hashString = Convert.ToBase64String(hashBytes).Replace("+", "-").Replace("/", "_").Substring(0, 16);
+                        messageId = $"generated-{hashString}@mail-archiver.local";
+                    }
+                    
+                    _logger.LogDebug("Job {JobId}: Generated MessageId for email without MessageId: {MessageId}", 
+                        job.JobId, messageId);
+                }
 
                 _logger.LogDebug("Job {JobId}: Processing email with MessageId: {MessageId}, Subject: {Subject}", 
                     job.JobId, messageId, message.Subject ?? "(No Subject)");
 
-                // Prüfe ob E-Mail bereits existiert
+                // ROBUSTE Duplikaterkennung - prüfe mehrere Kriterien
+                var checkFrom = string.Join(",", message.From.Mailboxes.Select(m => m.Address));
+                var checkTo = string.Join(",", message.To.Mailboxes.Select(m => m.Address));
+                var checkSubject = message.Subject ?? "(No Subject)";
+                
                 var existing = await context.ArchivedEmails
-                    .FirstOrDefaultAsync(e => e.MessageId == messageId && e.MailAccountId == account.Id);
+                    .Where(e => e.MailAccountId == account.Id)
+                    .Where(e => 
+                        e.MessageId == messageId ||
+                        (e.From == checkFrom &&
+                         e.To == checkTo &&
+                         e.Subject == checkSubject &&
+                         Math.Abs((e.SentDate - message.Date.DateTime).TotalSeconds) < 2)
+                    )
+                    .FirstOrDefaultAsync();
 
                 if (existing != null)
                 {
-                    _logger.LogDebug("Job {JobId}: Email already exists: {MessageId}", job.JobId, messageId);
+                    _logger.LogInformation("Job {JobId}: Email already exists (duplicate) - MessageId: {MessageId}, Subject: {Subject}, From: {From}", 
+                        job.JobId, messageId, checkSubject, checkFrom);
                     return ImportResult.CreateAlreadyExists();
                 }
 

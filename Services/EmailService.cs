@@ -142,47 +142,80 @@ namespace MailArchiver.Services
                 {
                     _logger.LogInformation("Retrieving all folders from IMAP server for account: {AccountName}", account.Name);
                     
+                    // IMPORTANT: First always try to add INBOX explicitly
+                    // Some IMAP servers have INBOX as a special folder
+                    try
+                    {
+                        var inbox = client.Inbox;
+                        if (inbox != null)
+                        {
+                            _logger.LogInformation("Adding INBOX explicitly: {FullName}", inbox.FullName);
+                            if (!inbox.Attributes.HasFlag(FolderAttributes.NonExistent) &&
+                                !inbox.Attributes.HasFlag(FolderAttributes.NoSelect))
+                            {
+                                allFolders.Add(inbox);
+                            }
+                        }
+                    }
+                    catch (Exception inboxEx)
+                    {
+                        _logger.LogWarning(inboxEx, "Could not access INBOX for {AccountName}", account.Name);
+                    }
+                    
                     if (client.PersonalNamespaces != null && client.PersonalNamespaces.Count > 0)
                     {
                         var ns = client.PersonalNamespaces[0];
                         _logger.LogDebug("Using PersonalNamespace: {Path}", ns.Path);
                         
-                        // Get ALL folders recursively from the namespace root
-                        var rootFolders = await client.GetFoldersAsync(ns, true);  // true = recursive
-                        _logger.LogInformation("GetFoldersAsync(recursive) returned {Count} folders", rootFolders.Count);
-                        
-                        foreach (var folder in rootFolders)
-                        {
-                            _logger.LogDebug("Found folder: Name={Name}, FullName={FullName}, Attributes={Attributes}",
-                                folder.Name ?? "NULL", folder.FullName ?? "NULL", folder.Attributes);
-                            
-                            // Add all folders that are not non-existent and can be selected
-                            if (!folder.Attributes.HasFlag(FolderAttributes.NonExistent) &&
-                                !folder.Attributes.HasFlag(FolderAttributes.NoSelect))
-                            {
-                                allFolders.Add(folder);
-                            }
-                        }
-                        
-                        // IMPORTANT: Also add INBOX if it's not already in the list
-                        // Some IMAP servers don't include INBOX in GetFoldersAsync results
                         try
                         {
-                            var inbox = client.Inbox;
-                            if (inbox != null && !allFolders.Any(f => f.FullName == inbox.FullName))
+                            // Try GetFoldersAsync first (works for most servers)
+                            var rootFolders = await client.GetFoldersAsync(ns, true);  // true = recursive
+                            _logger.LogInformation("GetFoldersAsync(recursive) returned {Count} folders", rootFolders.Count);
+                            
+                            foreach (var folder in rootFolders)
                             {
-                                _logger.LogInformation("INBOX was not in folder list, adding it explicitly");
-                                if (!inbox.Attributes.HasFlag(FolderAttributes.NonExistent) &&
-                                    !inbox.Attributes.HasFlag(FolderAttributes.NoSelect))
+                                _logger.LogDebug("Found folder: Name={Name}, FullName={FullName}, Attributes={Attributes}",
+                                    folder.Name ?? "NULL", folder.FullName ?? "NULL", folder.Attributes);
+                                
+                                // Add all folders that are not non-existent, can be selected, and not already in list
+                                if (!folder.Attributes.HasFlag(FolderAttributes.NonExistent) &&
+                                    !folder.Attributes.HasFlag(FolderAttributes.NoSelect) &&
+                                    !allFolders.Any(f => f.FullName == folder.FullName))
                                 {
-                                    allFolders.Add(inbox);
+                                    allFolders.Add(folder);
                                 }
                             }
                         }
-                        catch (Exception inboxEx)
+                        catch (Exception getFoldersEx)
                         {
-                            _logger.LogWarning(inboxEx, "Could not access INBOX for {AccountName}", account.Name);
+                            _logger.LogWarning(getFoldersEx, "GetFoldersAsync failed for {AccountName}, will try alternative method", account.Name);
                         }
+                        
+                        // If GetFoldersAsync returned 0 folders, use alternative method
+                        if (allFolders.Count <= 1) // Only INBOX or less
+                        {
+                            _logger.LogInformation("Few folders found via GetFoldersAsync, trying alternative folder discovery method for {AccountName}", account.Name);
+                            
+                            try
+                            {
+                                // Get the root folder from the namespace path
+                                var rootFolder = await client.GetFolderAsync(ns.Path ?? string.Empty);
+                                _logger.LogDebug("Got root folder: {FullName}", rootFolder.FullName);
+                                
+                                // Recursively get all subfolders
+                                await AddSubfoldersRecursively(rootFolder, allFolders);
+                                _logger.LogInformation("Alternative method found {Count} additional folders", allFolders.Count - 1);
+                            }
+                            catch (Exception altEx)
+                            {
+                                _logger.LogWarning(altEx, "Alternative folder discovery method also failed for {AccountName}", account.Name);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        _logger.LogWarning("No PersonalNamespaces available for account {AccountName}", account.Name);
                     }
                     
                     _logger.LogInformation("Total selectable folders found for {AccountName}: {Count}", account.Name, allFolders.Count);
