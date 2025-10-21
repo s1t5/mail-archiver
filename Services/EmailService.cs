@@ -486,7 +486,7 @@ namespace MailArchiver.Services
                     }
                     catch (Exception searchEx)
                     {
-                        // Some servers (like STRATO) may not support DeliveredAfter properly
+                        // Some servers may not support DeliveredAfter properly
                         _logger.LogWarning(searchEx, "DeliveredAfter search failed for folder {FolderName}, falling back to SentSince", 
                             folder.FullName);
                         
