@@ -2105,4 +2105,7 @@
   <data name="AllFolders" xml:space="preserve">
     <value>Minden mappa</value>
   </data>
+  <data name="Reply" xml:space="preserve">
+    <value>Válasz</value>
+  </data>
 </root>

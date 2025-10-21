@@ -2113,4 +2113,7 @@
   <data name="AllFolders" xml:space="preserve">
     <value>Vse mape</value>
   </data>
+  <data name="Reply" xml:space="preserve">
+    <value>Odgovori</value>
+  </data>
 </root>

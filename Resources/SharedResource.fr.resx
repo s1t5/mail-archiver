@@ -2113,4 +2113,7 @@
   <data name="AllFolders" xml:space="preserve">
     <value>Tous les dossiers</value>
   </data>
+  <data name="Reply" xml:space="preserve">
+    <value>Répondre</value>
+  </data>
 </root>
