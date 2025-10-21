@@ -874,10 +874,11 @@ namespace MailArchiver.Services
                     if (existingEmail.FolderName != cleanFolderName)
                     {
                         // Ordner hat sich geändert, aktualisieren
+                        var oldFolder = existingEmail.FolderName;
                         existingEmail.FolderName = cleanFolderName;
                         await _context.SaveChangesAsync();
                         _logger.LogInformation("Updated folder for existing email: {Subject} from '{OldFolder}' to '{NewFolder}'",
-                            existingEmail.Subject, existingEmail.FolderName, cleanFolderName);
+                            existingEmail.Subject, oldFolder, cleanFolderName);
                     }
                     _logger.LogInformation("Email already exists (duplicate) - MessageId: {MessageId}, Subject: {Subject}, From: {From}", 
                         messageId, checkSubject, checkFrom);
