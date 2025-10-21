@@ -13,6 +13,20 @@ namespace MailArchiver.Models.ViewModels
         public int PageNumber { get; set; } = 1;
         public int PageSize { get; set; } = 20;
         public string UserTimezone { get; set; } = "UTC";
+        
+        // Available page sizes
+        public List<SelectListItem> PageSizeOptions => new List<SelectListItem>
+        {
+            new SelectListItem { Text = "20", Value = "20", Selected = PageSize == 20 },
+            new SelectListItem { Text = "50", Value = "50", Selected = PageSize == 50 },
+            new SelectListItem { Text = "75", Value = "75", Selected = PageSize == 75 },
+            new SelectListItem { Text = "100", Value = "100", Selected = PageSize == 100 },
+            new SelectListItem { Text = "150", Value = "150", Selected = PageSize == 150 }
+        };
+        
+        // Sorting properties
+        public string SortBy { get; set; } = "SentDate";
+        public string SortOrder { get; set; } = "desc";
 
         // Dropdown-Optionen
         public List<SelectListItem> AccountOptions { get; set; }

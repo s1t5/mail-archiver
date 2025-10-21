@@ -16,7 +16,9 @@ namespace MailArchiver.Services
             bool? isOutgoing,
             int skip,
             int take,
-            List<int> allowedAccountIds = null);
+            List<int> allowedAccountIds = null,
+            string sortBy = "SentDate",
+            string sortOrder = "desc");
         Task<byte[]> ExportEmailsAsync(ExportViewModel parameters, List<int> allowedAccountIds = null);
         Task<DashboardViewModel> GetDashboardStatisticsAsync();
         Task<bool> TestConnectionAsync(MailAccount account);

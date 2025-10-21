@@ -1709,7 +1709,9 @@ namespace MailArchiver.Services
             bool? isOutgoing,
             int skip,
             int take,
-            List<int> allowedAccountIds = null)
+            List<int> allowedAccountIds = null,
+            string sortBy = "SentDate",
+            string sortOrder = "desc")
         {
             var startTime = DateTime.UtcNow;
 
@@ -1720,7 +1722,7 @@ namespace MailArchiver.Services
             try
             {
                 // Use optimized raw SQL query for better performance
-                return await SearchEmailsOptimizedAsync(searchTerm, fromDate, toDate, accountId, folderName, isOutgoing, skip, take, allowedAccountIds);
+                return await SearchEmailsOptimizedAsync(searchTerm, fromDate, toDate, accountId, folderName, isOutgoing, skip, take, allowedAccountIds, sortBy, sortOrder);
             }
             catch (Exception ex)
             {
@@ -1740,7 +1742,9 @@ namespace MailArchiver.Services
             bool? isOutgoing,
             int skip,
             int take,
-            List<int> allowedAccountIds = null)
+            List<int> allowedAccountIds = null,
+            string sortBy = "SentDate",
+            string sortOrder = "desc")
         {
             var startTime = DateTime.UtcNow;
 
@@ -1910,6 +1914,9 @@ namespace MailArchiver.Services
             _logger.LogInformation("Optimized count query took {Duration}ms for {Count} matching records",
                 countDuration.TotalMilliseconds, totalCount);
 
+            // Build dynamic ORDER BY clause based on sortBy and sortOrder parameters
+            var orderByClause = GetOrderByClause(sortBy, sortOrder);
+
             // Data query (optimized)
             var dataSql = $@"
                 SELECT e.""Id"", e.""MailAccountId"", e.""MessageId"", e.""Subject"", e.""Body"", e.""HtmlBody"",
@@ -1919,7 +1926,7 @@ namespace MailArchiver.Services
                 FROM mail_archiver.""ArchivedEmails"" e
                 INNER JOIN mail_archiver.""MailAccounts"" ma ON e.""MailAccountId"" = ma.""Id""
                 {whereClause}
-                ORDER BY e.""SentDate"" DESC
+                {orderByClause}
                 LIMIT {take} OFFSET {skip}";
 
             var dataStartTime = DateTime.UtcNow;
@@ -2105,6 +2112,31 @@ namespace MailArchiver.Services
                 "to" => "To",
                 _ => null
             };
+        }
+
+        /// <summary>
+        /// Generates the ORDER BY clause for SQL query based on sortBy and sortOrder parameters
+        /// </summary>
+        /// <param name="sortBy">The column to sort by</param>
+        /// <param name="sortOrder">The sort direction (asc or desc)</param>
+        /// <returns>SQL ORDER BY clause</returns>
+        private string GetOrderByClause(string sortBy, string sortOrder)
+        {
+            // Validate and sanitize sortBy parameter
+            var columnName = sortBy?.ToLower() switch
+            {
+                "subject" => "Subject",
+                "from" => "From",
+                "to" => "To",
+                "sentdate" => "SentDate",
+                "receiveddate" => "ReceivedDate",
+                _ => "SentDate" // Default to SentDate
+            };
+
+            // Validate and sanitize sortOrder parameter
+            var direction = sortOrder?.ToLower() == "asc" ? "ASC" : "DESC";
+
+            return $@"ORDER BY e.""{columnName}"" {direction}";
         }
 
         private List<Npgsql.NpgsqlParameter> CloneParameters(List<Npgsql.NpgsqlParameter> parameters)

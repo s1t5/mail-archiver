@@ -75,7 +75,13 @@ namespace MailArchiver.Controllers
                 model = new SearchViewModel();
             }
             if (model.PageNumber <= 0) model.PageNumber = 1;
-            if (model.PageSize <= 0) model.PageSize = 20;
+            
+            // Validate and set page size to allowed values
+            var allowedPageSizes = new[] { 20, 50, 75, 100, 150 };
+            if (!allowedPageSizes.Contains(model.PageSize))
+            {
+                model.PageSize = 20; // Default to 20 if invalid value
+            }
 
             // Ensure DirectionOptions are localized if model was created by the binder (parameterless ctor)
             if (model.DirectionOptions == null || model.DirectionOptions.Count < 3)
@@ -195,7 +201,9 @@ namespace MailArchiver.Controllers
                 model.IsOutgoing,
                 skip,
                 model.PageSize,
-                allowedAccountIds);
+                allowedAccountIds,
+                model.SortBy ?? "SentDate",
+                model.SortOrder ?? "desc");
 
             model.SearchResults = emails;
             model.TotalResults = totalCount;

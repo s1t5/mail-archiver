@@ -95,6 +95,7 @@
                                            @(Model.ShowSelectionControls ? "checked" : "")>
                                     <label class="form-check-label small" for="toggleSelectionMode">@Localizer["SelectionMode"]</label>
                                     <input type="hidden" id="userTimezone" name="UserTimezone" value="" />
+                                    <input type="hidden" id="pageSizeHidden" name="PageSize" value="@Model.PageSize" />
                                 </div>
                             </div>
                         </div>
@@ -174,7 +175,10 @@
             <div class="card-header bg-light">
                 <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-2">
                     <span class="small"><strong>@Model.TotalResults</strong> @Localizer["EmailsFound", ""]</span>
-                    <span class="small">@Localizer["PageOf", Model.PageNumber, Model.TotalPages]</span>
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="small">@Localizer["PageOf", Model.PageNumber, Model.TotalPages]</span>
+                        <select asp-for="PageSize" asp-items="Model.PageSizeOptions" class="form-select form-select-sm" id="pageSizeSelect" style="width: 80px;"></select>
+                    </div>
                 </div>
             </div>
             
@@ -223,10 +227,82 @@
                                         </div>
                                     </th>
                                 }
-                                <th>@Localizer["Subject"]</th>
-                                <th>@Localizer["From"]</th>
-                                <th>@Localizer["To"]</th>
-                                <th>@Localizer["Date"]</th>
+                                <th style="cursor: pointer;" onclick="window.location.href='@Url.Action("Index", new {
+                                    SearchTerm = Model.SearchTerm,
+                                    FromDate = Model.FromDate?.ToString("yyyy-MM-dd"),
+                                    ToDate = Model.ToDate?.ToString("yyyy-MM-dd"),
+                                    SelectedAccountId = Model.SelectedAccountId,
+                                    SelectedFolder = Model.SelectedFolder,
+                                    IsOutgoing = Model.IsOutgoing,
+                                    PageNumber = 1,
+                                    PageSize = Model.PageSize,
+                                    ShowSelectionControls = Model.ShowSelectionControls,
+                                    SortBy = "Subject",
+                                    SortOrder = (Model.SortBy == "Subject" && Model.SortOrder == "asc") ? "desc" : "asc"
+                                })'">
+                                    @Localizer["Subject"]
+                                    @if (Model.SortBy == "Subject")
+                                    {
+                                        <i class="bi bi-@(Model.SortOrder == "asc" ? "arrow-up" : "arrow-down")"></i>
+                                    }
+                                </th>
+                                <th style="cursor: pointer;" onclick="window.location.href='@Url.Action("Index", new {
+                                    SearchTerm = Model.SearchTerm,
+                                    FromDate = Model.FromDate?.ToString("yyyy-MM-dd"),
+                                    ToDate = Model.ToDate?.ToString("yyyy-MM-dd"),
+                                    SelectedAccountId = Model.SelectedAccountId,
+                                    SelectedFolder = Model.SelectedFolder,
+                                    IsOutgoing = Model.IsOutgoing,
+                                    PageNumber = 1,
+                                    PageSize = Model.PageSize,
+                                    ShowSelectionControls = Model.ShowSelectionControls,
+                                    SortBy = "From",
+                                    SortOrder = (Model.SortBy == "From" && Model.SortOrder == "asc") ? "desc" : "asc"
+                                })'">
+                                    @Localizer["From"]
+                                    @if (Model.SortBy == "From")
+                                    {
+                                        <i class="bi bi-@(Model.SortOrder == "asc" ? "arrow-up" : "arrow-down")"></i>
+                                    }
+                                </th>
+                                <th style="cursor: pointer;" onclick="window.location.href='@Url.Action("Index", new {
+                                    SearchTerm = Model.SearchTerm,
+                                    FromDate = Model.FromDate?.ToString("yyyy-MM-dd"),
+                                    ToDate = Model.ToDate?.ToString("yyyy-MM-dd"),
+                                    SelectedAccountId = Model.SelectedAccountId,
+                                    SelectedFolder = Model.SelectedFolder,
+                                    IsOutgoing = Model.IsOutgoing,
+                                    PageNumber = 1,
+                                    PageSize = Model.PageSize,
+                                    ShowSelectionControls = Model.ShowSelectionControls,
+                                    SortBy = "To",
+                                    SortOrder = (Model.SortBy == "To" && Model.SortOrder == "asc") ? "desc" : "asc"
+                                })'">
+                                    @Localizer["To"]
+                                    @if (Model.SortBy == "To")
+                                    {
+                                        <i class="bi bi-@(Model.SortOrder == "asc" ? "arrow-up" : "arrow-down")"></i>
+                                    }
+                                </th>
+                                <th style="cursor: pointer;" onclick="window.location.href='@Url.Action("Index", new {
+                                    SearchTerm = Model.SearchTerm,
+                                    FromDate = Model.FromDate?.ToString("yyyy-MM-dd"),
+                                    ToDate = Model.ToDate?.ToString("yyyy-MM-dd"),
+                                    SelectedAccountId = Model.SelectedAccountId,
+                                    SelectedFolder = Model.SelectedFolder,
+                                    IsOutgoing = Model.IsOutgoing,
+                                    PageNumber = 1,
+                                    PageSize = Model.PageSize,
+                                    ShowSelectionControls = Model.ShowSelectionControls,
+                                    SortBy = "SentDate",
+                                    SortOrder = (Model.SortBy == "SentDate" && Model.SortOrder == "asc") ? "desc" : "asc"
+                                })'">
+                                    @Localizer["Date"]
+                                    @if (Model.SortBy == "SentDate")
+                                    {
+                                        <i class="bi bi-@(Model.SortOrder == "asc" ? "arrow-up" : "arrow-down")"></i>
+                                    }
+                                </th>
                                 <th>@Localizer["Account"]</th>
                                 <th>@Localizer["Attachments"]</th>
                                 <th></th>
@@ -488,6 +564,18 @@
             const timezoneInput = document.getElementById('userTimezone');
             if (timezoneInput) {
                 timezoneInput.value = Intl.DateTimeFormat().resolvedOptions().timeZone;
+            }
+
+            // Auto-submit form when page size changes
+            const pageSizeSelect = document.getElementById('pageSizeSelect');
+            const pageSizeHidden = document.getElementById('pageSizeHidden');
+            if (pageSizeSelect && pageSizeHidden) {
+                pageSizeSelect.addEventListener('change', function() {
+                    console.log("Page size changed to:", this.value);
+                    // Sync hidden field
+                    pageSizeHidden.value = this.value;
+                    searchForm.submit();
+                });
             }
 
             // Load folders dynamically when account selection changes
