@@ -33,8 +33,10 @@ The server retention policy automatically deletes emails from the mail server af
 3. Deletion is performed using IMAP EXPUNGE command
 
 ### Requirements
-- **IMAP Support**: Requires IMAP EXPUNGE support from the mail server
-- **Gmail**: Auto-Expunge must be disabled in Gmail settings
+> 🚨 **Important note for retention policies**
+> - Requires IMAP Expunge support from the mail server to permanently delete emails
+> - For Gmail accounts, Auto-Expunge must be disabled in Gmail settings under the "Forwarding and POP/IMAP" tab! (See [Gmail Best Practices](doc/GmailBestPractices.md) for more details)
+
 
 ## Local Archive Retention Policy
 

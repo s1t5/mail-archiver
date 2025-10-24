@@ -27,7 +27,7 @@
 ### 👥 User Management
 - Multi-user support with account-specific permissions
 - Dashboard with statistics, storage monitoring, and sender analysis
-- Access log tracking all user activities
+- Comprehensive access logging with detailed activity tracking of user activities (Access, Export, Deletion, Restore and many more) - see [Access Logging Guide](doc/Logs.md) for details
 
 ### 🧩 Email Provider Support
 - **IMAP**: Traditional IMAP accounts with full synchronization capabilities
@@ -42,13 +42,8 @@
 - Configure automatic deletion of archived emails from mailserver after specified days
 - Set retention period per email account (e.g., 30, 90, or 365 days)
 - **Local Archive Retention**: Configure separate retention period for local archive
-- Helps manage storage space while maintaining complete archive
 
-> 🚨 **Important note for retention policies**
-> - Requires IMAP Expunge support from the mail server to permanently delete emails
-> - For Gmail accounts, Auto-Expunge must be disabled in Gmail settings under the "Forwarding and POP/IMAP" tab! (See [Gmail Best Practices](doc/GmailBestPractices.md) for more details)
-> - Local archive retention can only be set if server retention is also configured
-> - Local archive retention days must be greater than or equal to server retention days
+For detailed information about retention policies, see [Retention Policies Documentation](doc/RetentionPolicies.md).
 
 ## 📚 Documentation
 
