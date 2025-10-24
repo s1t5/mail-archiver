@@ -297,7 +297,7 @@ namespace MailArchiver.Services
                     }
                 }
 
-                // Delete old emails if configured
+                // Delete old emails from mail server if configured
                 if (account.DeleteAfterDays.HasValue && account.DeleteAfterDays.Value > 0)
                 {
                     deletedEmails = await DeleteOldEmailsAsync(account, client, jobId);
@@ -309,6 +309,14 @@ namespace MailArchiver.Services
                             job.DeletedEmails = deletedEmails;
                         });
                     }
+                }
+
+                // Delete old emails from local archive if configured
+                if (account.LocalRetentionDays.HasValue && account.LocalRetentionDays.Value > 0)
+                {
+                    var localDeletedCount = await DeleteOldLocalEmailsAsync(account, jobId);
+                    _logger.LogInformation("Deleted {Count} emails from local archive for account {AccountName} based on local retention policy",
+                        localDeletedCount, account.Name);
                 }
 
                 // Update lastSync only if no individual email failed
@@ -3531,6 +3539,115 @@ namespace MailArchiver.Services
             {
                 _logger.LogWarning(ex, "Error retrieving subfolders for {FolderName}: {Message}",
                     folder.FullName, ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// Deletes old emails from the local archive based on LocalRetentionDays setting
+        /// </summary>
+        private async Task<int> DeleteOldLocalEmailsAsync(MailAccount account, string? jobId = null)
+        {
+            if (!account.LocalRetentionDays.HasValue || account.LocalRetentionDays.Value <= 0)
+            {
+                return 0;
+            }
+
+            var cutoffDate = DateTime.UtcNow.AddDays(-account.LocalRetentionDays.Value);
+
+            _logger.LogInformation("Starting deletion of local archived emails older than {Days} days (before {CutoffDate}) for account {AccountName}",
+                account.LocalRetentionDays.Value, cutoffDate, account.Name);
+
+            try
+            {
+                // Find all emails older than the cutoff date for this account
+                var emailsToDelete = await _context.ArchivedEmails
+                    .Where(e => e.MailAccountId == account.Id && e.SentDate < cutoffDate)
+                    .Select(e => new { e.Id, e.Subject, e.From, e.SentDate })
+                    .ToListAsync();
+
+                if (emailsToDelete.Count == 0)
+                {
+                    _logger.LogInformation("No emails found to delete from local archive for account {AccountName}", account.Name);
+                    return 0;
+                }
+
+                _logger.LogInformation("Found {Count} emails to delete from local archive for account {AccountName}",
+                    emailsToDelete.Count, account.Name);
+
+                // Delete in batches to avoid memory issues
+                var batchSize = _batchOptions.BatchSize;
+                var deletedCount = 0;
+
+                for (int i = 0; i < emailsToDelete.Count; i += batchSize)
+                {
+                    var batch = emailsToDelete.Skip(i).Take(batchSize).ToList();
+                    var batchIds = batch.Select(e => e.Id).ToList();
+
+                    try
+                    {
+                        // Delete attachments first (cascade delete should handle this, but being explicit)
+                        var attachmentsDeleted = await _context.EmailAttachments
+                            .Where(a => batchIds.Contains(a.ArchivedEmailId))
+                            .ExecuteDeleteAsync();
+
+                        // Delete emails
+                        var emailsDeleted = await _context.ArchivedEmails
+                            .Where(e => batchIds.Contains(e.Id))
+                            .ExecuteDeleteAsync();
+
+                        deletedCount += emailsDeleted;
+
+                        _logger.LogDebug("Deleted batch of {Count} emails ({Attachments} attachments) from local archive",
+                            emailsDeleted, attachmentsDeleted);
+
+                        await _context.SaveChangesAsync();
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Error deleting batch from local archive for account {AccountName}: {Message}",
+                            account.Name, ex.Message);
+                    }
+
+                    // Add a small delay between batches
+                    if (i + batchSize < emailsToDelete.Count && _batchOptions.PauseBetweenBatchesMs > 0)
+                    {
+                        await Task.Delay(_batchOptions.PauseBetweenBatchesMs);
+                    }
+                }
+
+                _logger.LogInformation("Completed local archive deletion for account {AccountName}. Deleted {Count} emails",
+                    account.Name, deletedCount);
+
+                // Log the deletion summary to AccessLogs
+                if (deletedCount > 0)
+                {
+                    try
+                    {
+                        var accessLog = new AccessLog
+                        {
+                            Username = "System",
+                            Type = AccessLogType.Deletion,
+                            Timestamp = DateTime.UtcNow,
+                            SearchParameters = $"Local retention: Deleted {deletedCount} emails older than {account.LocalRetentionDays} days from local archive",
+                            MailAccountId = account.Id
+                        };
+
+                        _context.AccessLogs.Add(accessLog);
+                        await _context.SaveChangesAsync();
+                    }
+                    catch (Exception logEx)
+                    {
+                        _logger.LogWarning(logEx, "Failed to log local retention deletion summary to AccessLogs");
+                    }
+                }
+
+                return deletedCount;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error during local archive deletion for account {AccountName}: {Message}",
+                    account.Name, ex.Message);
+                return 0;
             }
         }
 

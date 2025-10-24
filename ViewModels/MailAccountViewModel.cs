@@ -44,6 +44,10 @@ namespace MailArchiver.Models.ViewModels
         [Range(1, int.MaxValue, ErrorMessage = "Delete after days must be at least 1")]
         public int? DeleteAfterDays { get; set; }
         
+        [Display(Name = "Local Retention Days")]
+        [Range(1, int.MaxValue, ErrorMessage = "Local retention days must be at least 1")]
+        public int? LocalRetentionDays { get; set; }
+        
         [Display(Name = "Provider")]
         public ProviderType Provider { get; set; } = ProviderType.IMAP;
         

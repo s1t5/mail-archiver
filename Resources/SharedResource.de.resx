@@ -2117,4 +2117,16 @@
   <data name="Reply" xml:space="preserve">
     <value>Antworten</value>
   </data>
+  <data name="LocalRetentionDays" xml:space="preserve">
+    <value>Lokale Aufbewahrungstage</value>
+  </data>
+  <data name="LocalRetentionRequiresServerRetention" xml:space="preserve">
+    <value>Lokale Aufbewahrung kann nur gesetzt werden, wenn auch die Server-Aufbewahrung ('Löschen nach Tagen') konfiguriert ist.</value>
+  </data>
+  <data name="LocalRetentionMustBeGreaterOrEqual" xml:space="preserve">
+    <value>Die lokale Aufbewahrungsfrist muss größer oder gleich der Löschfrist auf dem Server sein, um sicherzustellen, dass E-Mails nicht aus dem lokalen Archiv gelöscht werden, bevor sie vom Mailserver gelöscht werden.</value>
+  </data>
+  <data name="LocalRetentionInfo" xml:space="preserve">
+    <value>Anzahl der Tage, nach denen E-Mails aus dem lokalen Archiv gelöscht werden. Leer lassen, um E-Mails unbegrenzt aufzubewahren. Muss größer oder gleich 'Löschen nach Tagen' sein, falls beide gesetzt sind.</value>
+  </data>
 </root>

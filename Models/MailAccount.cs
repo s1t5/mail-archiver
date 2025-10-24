@@ -21,6 +21,9 @@ public class MailAccount
     // Email deletion functionality
     public int? DeleteAfterDays { get; set; }
     
+    // Local archive retention functionality
+    public int? LocalRetentionDays { get; set; }
+    
     // Provider field for account type
     public ProviderType Provider { get; set; } = ProviderType.IMAP;
     

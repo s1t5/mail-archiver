@@ -217,8 +217,25 @@ var model = new MailAccountViewModel
                     TenantId = model.Provider == ProviderType.M365 ? model.TenantId : null,
                     ExcludedFolders = string.Empty,
                     DeleteAfterDays = model.DeleteAfterDays,
+                    LocalRetentionDays = model.LocalRetentionDays,
                     LastSync = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)
                 };
+
+                // Validate local retention policy
+                if (account.LocalRetentionDays.HasValue && !account.DeleteAfterDays.HasValue)
+                {
+                    ModelState.AddModelError("LocalRetentionDays", 
+                        _localizer["LocalRetentionRequiresServerRetention"].Value);
+                    return View(model);
+                }
+                
+                if (account.LocalRetentionDays.HasValue && account.DeleteAfterDays.HasValue &&
+                    account.LocalRetentionDays.Value < account.DeleteAfterDays.Value)
+                {
+                    ModelState.AddModelError("LocalRetentionDays", 
+                        _localizer["LocalRetentionMustBeGreaterOrEqual"].Value);
+                    return View(model);
+                }
 
                 try
                 {
@@ -312,6 +329,7 @@ var model = new MailAccountViewModel
                 LastSync = account.LastSync,
                 ExcludedFolders = account.ExcludedFolders,
                 DeleteAfterDays = account.DeleteAfterDays,
+                LocalRetentionDays = account.LocalRetentionDays,
                 Provider = account.Provider,
                 ClientId = account.ClientId,
                 ClientSecret = account.ClientSecret,
@@ -447,6 +465,23 @@ var model = new MailAccountViewModel
                     account.UseSSL = model.UseSSL;
                     account.ExcludedFolders = model.ExcludedFolders ?? string.Empty;
                     account.DeleteAfterDays = model.DeleteAfterDays;
+                    account.LocalRetentionDays = model.LocalRetentionDays;
+
+                    // Validate local retention policy
+                    if (account.LocalRetentionDays.HasValue && !account.DeleteAfterDays.HasValue)
+                    {
+                        ModelState.AddModelError("LocalRetentionDays", 
+                            _localizer["LocalRetentionRequiresServerRetention"].Value);
+                        return View(model);
+                    }
+                    
+                    if (account.LocalRetentionDays.HasValue && account.DeleteAfterDays.HasValue &&
+                        account.LocalRetentionDays.Value < account.DeleteAfterDays.Value)
+                    {
+                        ModelState.AddModelError("LocalRetentionDays", 
+                            _localizer["LocalRetentionMustBeGreaterOrEqual"].Value);
+                        return View(model);
+                    }
 
                     // Test connection before saving (only for IMAP accounts)
                     if (!string.IsNullOrEmpty(model.Password) && account.Provider == ProviderType.IMAP)

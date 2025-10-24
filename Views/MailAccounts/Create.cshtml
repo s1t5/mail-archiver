@@ -107,6 +107,12 @@
                         <div class="form-text">@Localizer["AutoDeleteText"]</div>
                         <span asp-validation-for="DeleteAfterDays" class="text-danger"></span>
                     </div>
+                    <div class="mb-3">
+                        <label asp-for="LocalRetentionDays" class="form-label">@Localizer["LocalRetentionDays"]</label>
+                        <input asp-for="LocalRetentionDays" class="form-control" type="number" min="1" placeholder="@Localizer["LeaveEmptyToDisableAutomaticDeletion"]" />
+                        <div class="form-text">@Localizer["LocalRetentionInfo"]</div>
+                        <span asp-validation-for="LocalRetentionDays" class="text-danger"></span>
+                    </div>
                 </div>
                 
                 <div class="mt-4">

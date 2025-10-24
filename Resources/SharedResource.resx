@@ -2127,4 +2127,16 @@
   <data name="Reply" xml:space="preserve">
     <value>Reply</value>
   </data>
+  <data name="LocalRetentionDays" xml:space="preserve">
+    <value>Local Retention Days</value>
+  </data>
+  <data name="LocalRetentionRequiresServerRetention" xml:space="preserve">
+    <value>Local retention can only be set if server retention ('Delete After Days') is also configured.</value>
+  </data>
+  <data name="LocalRetentionMustBeGreaterOrEqual" xml:space="preserve">
+    <value>Local retention days must be greater than or equal to delete after days to ensure emails are not deleted from the local archive before they are deleted from the mail server.</value>
+  </data>
+  <data name="LocalRetentionInfo" xml:space="preserve">
+    <value>Number of days after which emails are deleted from the local archive. Leave empty to keep emails indefinitely. Must be greater than or equal to 'Delete After Days' if both are set.</value>
+  </data>
 </root>

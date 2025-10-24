@@ -56,5 +56,9 @@ namespace MailArchiver.Models.ViewModels
         [Display(Name = "Delete After Days")]
         [Range(1, int.MaxValue, ErrorMessage = "Delete after days must be at least 1")]
         public int? DeleteAfterDays { get; set; }
+        
+        [Display(Name = "Local Retention Days")]
+        [Range(1, int.MaxValue, ErrorMessage = "Local retention days must be at least 1")]
+        public int? LocalRetentionDays { get; set; }
     }
 }
