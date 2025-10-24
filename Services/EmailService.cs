@@ -2627,7 +2627,7 @@ namespace MailArchiver.Services
 
             model.RecentEmails = await _context.ArchivedEmails
                 .Include(e => e.MailAccount)
-                .OrderByDescending(e => e.ReceivedDate)
+                .OrderByDescending(e => e.SentDate)
                 .Take(10)
                 .ToListAsync();
 
