@@ -2116,4 +2116,16 @@
   <data name="Reply" xml:space="preserve">
     <value>Ответить</value>
   </data>
+  <data name="LocalRetentionDays" xml:space="preserve">
+    <value>Срок локального хранения (в днях)</value>
+  </data>
+  <data name="LocalRetentionInfo" xml:space="preserve">
+      <value>Количество дней, по истечении которых электронные письма будут удалены из локального архива. Оставьте поле пустым, чтобы хранить письма бессрочно. Должно быть больше или равно 'Удалить через (дней)', если оба параметра заданы.</value>
+  </data>
+  <data name="LocalRetentionMustBeGreaterOrEqual" xml:space="preserve">
+      <value>Срок локального хранения должен быть больше или равен сроку удаления, чтобы гарантировать, что письма не будут удалены из локального архива раньше, чем с почтового сервера.</value>
+  </data>
+  <data name="LocalRetentionRequiresServerRetention" xml:space="preserve">
+      <value>Локальное хранение можно установить только в том случае, если также настроено хранение на сервере ('Удалить через (дней)').</value>
+  </data>
 </root>

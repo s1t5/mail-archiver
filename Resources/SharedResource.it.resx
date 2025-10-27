@@ -2116,4 +2116,16 @@
   <data name="Reply" xml:space="preserve">
     <value>Rispondi</value>
   </data>
+  <data name="LocalRetentionDays" xml:space="preserve">
+    <value>Giorni di conservazione locale</value>
+  </data>
+  <data name="LocalRetentionInfo" xml:space="preserve">
+      <value>Numero di giorni dopo i quali le e-mail vengono eliminate dall'archivio locale. Lasciare vuoto per conservare le e-mail indefinitamente. Deve essere maggiore o uguale a 'Elimina dopo X giorni' se entrambi sono impostati.</value>
+  </data>
+  <data name="LocalRetentionMustBeGreaterOrEqual" xml:space="preserve">
+      <value>I giorni di conservazione locale devono essere maggiori o uguali ai giorni di eliminazione per garantire che le e-mail non vengano eliminate dall'archivio locale prima di essere eliminate dal server di posta.</value>
+  </data>
+  <data name="LocalRetentionRequiresServerRetention" xml:space="preserve">
+      <value>La conservazione locale può essere impostata solo se è configurata anche la conservazione sul server ('Elimina dopo X giorni').</value>
+  </data>
 </root>

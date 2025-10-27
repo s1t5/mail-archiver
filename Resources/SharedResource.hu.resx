@@ -2108,4 +2108,16 @@
   <data name="Reply" xml:space="preserve">
     <value>Válasz</value>
   </data>
+  <data name="LocalRetentionDays" xml:space="preserve">
+    <value>Helyi megőrzési napok</value>
+  </data>
+  <data name="LocalRetentionInfo" xml:space="preserve">
+      <value>Annak a napoknak a száma, amelyek után az e-maileket törlésre kerülnek a helyi archívumból. Hagyja üresen az e-mailek határozatlan idejű megőrzéséhez. Nagyobbnak vagy egyenlőnek kell lennie, mint a 'Törlés ennyi nap után' érték, ha mindkettő be van állítva.</value>
+  </data>
+  <data name="LocalRetentionMustBeGreaterOrEqual" xml:space="preserve">
+      <value>A helyi megőrzési napoknak nagyobbnak vagy egyenlőnek kell lenniük a törlés utáni napoknál, hogy biztosított legyen, hogy az e-mailek ne törlődjenek a helyi archívumból, mielőtt a levelezőszerverről törlődnének.</value>
+  </data>
+  <data name="LocalRetentionRequiresServerRetention" xml:space="preserve">
+      <value>A helyi megőrzés csak akkor állítható be, ha a szerveroldali megőrzés ('Törlés ennyi nap után') szintén be van állítva.</value>
+  </data>
 </root>

@@ -2115,4 +2115,16 @@
   <data name="Reply" xml:space="preserve">
     <value>Responder</value>
   </data>
+  <data name="LocalRetentionDays" xml:space="preserve">
+    <value>Días de retención local</value>
+  </data>
+  <data name="LocalRetentionInfo" xml:space="preserve">
+      <value>Número de días después de los cuales los correos electrónicos se eliminan del archivo local. Déjelo vacío para conservar los correos electrónicos indefinidamente. Debe ser mayor o igual que 'Eliminar después de días' si ambos están configurados.</value>
+  </data>
+  <data name="LocalRetentionMustBeGreaterOrEqual" xml:space="preserve">
+      <value>Los días de retención local deben ser mayores o iguales que los días de eliminación para garantizar que los correos electrónicos no se eliminen del archivo local antes de ser eliminados del servidor de correo.</value>
+  </data>
+  <data name="LocalRetentionRequiresServerRetention" xml:space="preserve">
+      <value>La retención local solo se puede configurar si la retención en el servidor ('Eliminar después de días') también está configurada.</value>
+  </data>
 </root>

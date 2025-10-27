@@ -2116,4 +2116,16 @@
   <data name="Reply" xml:space="preserve">
     <value>Répondre</value>
   </data>
+  <data name="LocalRetentionDays" xml:space="preserve">
+    <value>Jours de rétention locale</value>
+  </data>
+  <data name="LocalRetentionInfo" xml:space="preserve">
+      <value>Nombre de jours après lesquels les e-mails sont supprimés de l'archive locale. Laissez vide pour conserver les e-mails indéfiniment. Doit être supérieur ou égal à 'Supprimer après X jours' si les deux sont définis.</value>
+  </data>
+  <data name="LocalRetentionMustBeGreaterOrEqual" xml:space="preserve">
+      <value>Les jours de rétention locale doivent être supérieurs ou égaux aux jours de suppression pour garantir que les e-mails ne sont pas supprimés de l'archive locale avant de l'être du serveur de messagerie.</value>
+  </data>
+  <data name="LocalRetentionRequiresServerRetention" xml:space="preserve">
+      <value>La rétention locale ne peut être définie que si la rétention sur le serveur ('Supprimer après X jours') est également configurée.</value>
+  </data>
 </root>

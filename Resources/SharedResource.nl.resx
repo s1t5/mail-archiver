@@ -2116,4 +2116,16 @@
   <data name="Reply" xml:space="preserve">
     <value>Antwoord</value>
   </data>
+  <data name="LocalRetentionDays" xml:space="preserve">
+    <value>Lokale retentiedagen</value>
+  </data>
+  <data name="LocalRetentionInfo" xml:space="preserve">
+      <value>Aantal dagen waarna e-mails uit het lokale archief worden verwijderd. Laat leeg om e-mails onbeperkt te bewaren. Moet groter of gelijk zijn aan 'Verwijderen na dagen' als beide zijn ingesteld.</value>
+  </data>
+  <data name="LocalRetentionMustBeGreaterOrEqual" xml:space="preserve">
+      <value>Lokale retentiedagen moeten groter of gelijk zijn aan de dagen voor verwijderen om ervoor te zorgen dat e-mails niet uit het lokale archief worden verwijderd voordat ze van de mailserver worden verwijderd.</value>
+  </data>
+  <data name="LocalRetentionRequiresServerRetention" xml:space="preserve">
+      <value>Lokale retentie kan alleen worden ingesteld als serverretentie ('Verwijderen na dagen') ook is geconfigureerd.</value>
+  </data>
 </root>

@@ -2116,4 +2116,16 @@
   <data name="Reply" xml:space="preserve">
     <value>Odgovori</value>
   </data>
+  <data name="LocalRetentionDays" xml:space="preserve">
+    <value>Dnevi lokalnega hranjenja</value>
+  </data>
+  <data name="LocalRetentionInfo" xml:space="preserve">
+      <value>Število dni, po katerih bodo e-poštna sporočila izbrisana iz lokalnega arhiva. Pustite prazno za neskončno hranjenje sporočil. Mora biti večje ali enako 'Izbriši po dneh', če sta oba nastavljena.</value>
+  </data>
+  <data name="LocalRetentionMustBeGreaterOrEqual" xml:space="preserve">
+      <value>Dnevi lokalnega hranjenja morajo biti večji ali enaki dnevom za brisanje, da se zagotovi, da sporočila niso izbrisana iz lokalnega arhiva, preden so izbrisana z poštnega strežnika.</value>
+  </data>
+  <data name="LocalRetentionRequiresServerRetention" xml:space="preserve">
+      <value>Lokalno hranjenje je mogoče nastaviti le, če je nastavljeno tudi hranjenje na strežniku ('Izbriši po dneh').</value>
+  </data>
 </root>
