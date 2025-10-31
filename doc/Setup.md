@@ -183,6 +183,52 @@ docker compose restart
 - `Logging__LogLevel__Microsoft_AspNetCore`: Log level for ASP.NET Core framework messages. Default is `Warning`.
 - `Logging__LogLevel__Microsoft_EntityFrameworkCore_Database_Command`: Log level for Entity Framework database commands. Default is `Warning`.
 
+## 🔐 Kestrel HTTPS Configuration (Optional)
+
+While the application is meant to be accessed through a reverse proxy with HTTPS, you can also configure the Kestrel web server to use SSL/TLS certificates. This provides end-to-end encryption between the reverse proxy and the application container.
+
+### Configuration Steps
+
+1. **Generate or obtain an SSL certificate** in PFX format (e.g., `localhost.pfx`)
+
+2. **Add the following environment variables** to your `docker-compose.yml` for the `mailarchive-app` service:
+
+```yaml
+environment:
+  # Kestrel HTTPS Settings
+  - Kestrel__Endpoints__Http__Url=http://0.0.0.0:5000
+  - Kestrel__Endpoints__Https__Url=https://0.0.0.0:5001
+  - Kestrel__Endpoints__Https__Certificate__Path=/https/localhost.pfx
+  - Kestrel__Endpoints__Https__Certificate__Password=MyPassword
+```
+
+3. **Update the ports mapping** in the `mailarchive-app` service:
+
+```yaml
+ports:
+  - "5000:5000"
+  - "5001:5001"  # HTTPS port
+```
+
+4. **Add a volume mapping** for the certificate:
+
+```yaml
+volumes:
+  - ./data-protection-keys:/app/DataProtection-Keys
+  - ./certs:/https  # Certificate directory
+```
+
+5. **Place your certificate file** (e.g., `localhost.pfx`) in the `./certs` directory on your host system.
+
+### Environment Variable Explanations
+
+- `Kestrel__Endpoints__Http__Url`: HTTP endpoint URL (default: http://0.0.0.0:5000)
+- `Kestrel__Endpoints__Https__Url`: HTTPS endpoint URL (default: https://0.0.0.0:5001)
+- `Kestrel__Endpoints__Https__Certificate__Path`: Path to the PFX certificate file inside the container
+- `Kestrel__Endpoints__Https__Certificate__Password`: Password for the PFX certificate file
+
+> 💡 **Note**: This configuration is optional. If you're using a reverse proxy with HTTPS (recommended), the communication between reverse proxy and application can remain HTTP. However, for maximum security in sensitive environments, you may want to enable HTTPS on Kestrel as well to encrypt the entire communication path.
+
 ## 🔒 Security Notes
 
 - Use strong passwords and change default credentials. Passwords should be at least 12 characters long and include a mix of uppercase letters, lowercase letters, numbers, and special characters. Avoid using common words or easily guessable information.
