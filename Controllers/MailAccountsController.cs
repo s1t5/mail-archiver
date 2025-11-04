@@ -339,20 +339,8 @@ var model = new MailAccountViewModel
             // Set ViewBag properties
             ViewBag.Provider = account.Provider;
             
-            // Load available folders for exclusion selection (only for IMAP accounts)
-            if (account.Provider == ProviderType.IMAP)
-            {
-                try
-                {
-                    var folders = await _emailService.GetMailFoldersAsync(id);
-                    ViewBag.AvailableFolders = folders;
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogWarning(ex, "Could not load folders for account {AccountId}", id);
-                    ViewBag.AvailableFolders = new List<string>();
-                }
-            }
+            // Note: Folders are now loaded on-demand via AJAX to improve page load performance
+            // The GetFolders endpoint handles folder loading when the user clicks the "Load Folders" button
 
             return View(model);
         }

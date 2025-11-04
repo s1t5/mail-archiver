@@ -15,13 +15,17 @@ namespace MailArchiver.Controllers
         private readonly MailArchiver.Services.IAuthenticationService _authService;
         private readonly ILogger<TwoFactorController> _logger;
         private readonly IStringLocalizer<SharedResource> _localizer;
+        private readonly IAccessLogService _accessLogService;
+        private readonly IServiceScopeFactory _serviceScopeFactory;
 
-        public TwoFactorController(IUserService userService, MailArchiver.Services.IAuthenticationService authService, ILogger<TwoFactorController> logger, IStringLocalizer<SharedResource> localizer)
+        public TwoFactorController(IUserService userService, MailArchiver.Services.IAuthenticationService authService, ILogger<TwoFactorController> logger, IStringLocalizer<SharedResource> localizer, IAccessLogService accessLogService, IServiceScopeFactory serviceScopeFactory)
         {
             _userService = userService;
             _authService = authService;
             _logger = logger;
             _localizer = localizer;
+            _accessLogService = accessLogService;
+            _serviceScopeFactory = serviceScopeFactory;
         }
 
         // GET: TwoFactor/Setup
@@ -249,6 +253,23 @@ namespace MailArchiver.Controllers
                     }
                     // Sign in the user
                     _authService.SignIn(HttpContext, user.Username, rememberMe);
+                    
+                    // Log the successful login to access log
+                    var sourceIp = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
+                    Task.Run(async () =>
+                    {
+                        try
+                        {
+                            using var scope = _serviceScopeFactory.CreateScope();
+                            var accessLogService = scope.ServiceProvider.GetRequiredService<IAccessLogService>();
+                            await accessLogService.LogAccessAsync(user.Username, AccessLogType.Login, searchParameters: $"IP: {sourceIp} (2FA Backup Code)");
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError(ex, "Error logging 2FA login action for user {Username}", user.Username);
+                        }
+                    });
+                    
                     // Clear 2FA session data
                     HttpContext.Session.Remove("TwoFactorUsername");
                     HttpContext.Session.Remove("TwoFactorRememberMe");
@@ -283,6 +304,23 @@ namespace MailArchiver.Controllers
                 }
                 // Sign in the user
                 _authService.SignIn(HttpContext, user.Username, rememberMe);
+                
+                // Log the successful login to access log
+                var sourceIp = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
+                Task.Run(async () =>
+                {
+                    try
+                    {
+                        using var scope = _serviceScopeFactory.CreateScope();
+                        var accessLogService = scope.ServiceProvider.GetRequiredService<IAccessLogService>();
+                        await accessLogService.LogAccessAsync(user.Username, AccessLogType.Login, searchParameters: $"IP: {sourceIp} (2FA)");
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Error logging 2FA login action for user {Username}", user.Username);
+                    }
+                });
+                
                 // Clear 2FA session data
                 HttpContext.Session.Remove("TwoFactorUsername");
                 HttpContext.Session.Remove("TwoFactorRememberMe");

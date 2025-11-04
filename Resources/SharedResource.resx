@@ -2139,4 +2139,16 @@
   <data name="LocalRetentionInfo" xml:space="preserve">
     <value>Number of days after which emails are deleted from the local archive. Leave empty to keep emails indefinitely. Must be greater than or equal to 'Delete After Days' if both are set.</value>
   </data>
+  <data name="LoadAvailableFolders" xml:space="preserve">
+    <value>Load Available Folders</value>
+  </data>
+  <data name="LoadingFolders" xml:space="preserve">
+    <value>Loading folders...</value>
+  </data>
+  <data name="CouldNotLoadFolders" xml:space="preserve">
+    <value>Could not load folders from server</value>
+  </data>
+  <data name="NoFoldersFound" xml:space="preserve">
+    <value>No folders found on server</value>
+  </data>
 </root>

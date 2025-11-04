@@ -72,13 +72,14 @@ namespace MailArchiver.Controllers
                     _authService.SignIn(HttpContext, model.Username, model.RememberMe);
                     
                     // Log the successful login using a separate task to avoid DbContext concurrency issues
+                    var sourceIp = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
                     Task.Run(async () =>
                     {
                         try
                         {
                             using var scope = _serviceScopeFactory.CreateScope();
                             var accessLogService = scope.ServiceProvider.GetRequiredService<IAccessLogService>();
-                            await accessLogService.LogAccessAsync(model.Username, AccessLogType.Login);
+                            await accessLogService.LogAccessAsync(model.Username, AccessLogType.Login, searchParameters: $"IP: {sourceIp}");
                         }
                         catch (Exception ex)
                         {
@@ -109,13 +110,14 @@ namespace MailArchiver.Controllers
             // Log the logout if we have a username using a separate task to avoid DbContext concurrency issues
             if (!string.IsNullOrEmpty(username))
             {
+                var sourceIp = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
                 Task.Run(async () =>
                 {
                     try
                     {
                         using var scope = _serviceScopeFactory.CreateScope();
                         var accessLogService = scope.ServiceProvider.GetRequiredService<IAccessLogService>();
-                        await accessLogService.LogAccessAsync(username, AccessLogType.Logout);
+                        await accessLogService.LogAccessAsync(username, AccessLogType.Logout, searchParameters: $"IP: {sourceIp}");
                     }
                     catch (Exception ex)
                     {

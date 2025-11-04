@@ -101,23 +101,31 @@
                         <span asp-validation-for="ExcludedFolders" class="text-danger"></span>
                     </div>
                     
-                    @if (ViewBag.AvailableFolders != null && ((List<string>)ViewBag.AvailableFolders).Any())
-                    {
-                        <div class="mb-3">
-                            <label class="form-label">@Localizer["AvailableFolders"]</label>
+                    <div class="mb-3">
+                        <label class="form-label">@Localizer["AvailableFolders"]</label>
+                        <button type="button" class="btn btn-sm btn-outline-primary" id="loadFoldersBtn">
+                            <i class="bi bi-folder"></i> @Localizer["LoadAvailableFolders"]
+                        </button>
+                        <div id="foldersContainer" style="display: none;" class="mt-2">
                             <div class="card">
                                 <div class="card-body">
-                                    <div class="d-flex flex-wrap gap-2">
-                                        @foreach (var folder in (List<string>)ViewBag.AvailableFolders)
-                                        {
-                                            <span class="badge bg-light text-dark">@folder</span>
-                                        }
+                                    <div id="foldersContent" class="d-flex flex-wrap gap-2">
+                                        <!-- Folders will be loaded here -->
                                     </div>
                                 </div>
                             </div>
                             <div class="form-text">@Localizer["FoldersOnServer"]</div>
                         </div>
-                    }
+                        <div id="foldersLoading" style="display: none;" class="mt-2">
+                            <div class="spinner-border spinner-border-sm" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            @Localizer["LoadingFolders"]
+                        </div>
+                        <div id="foldersError" style="display: none;" class="mt-2 alert alert-warning">
+                            @Localizer["CouldNotLoadFolders"]
+                        </div>
+                    </div>
                     
                     @if (Model.LastSync.HasValue)
                     {
@@ -156,6 +164,11 @@
             const imapSettings = document.getElementById('imapSettings');
             const microsoft365Settings = document.getElementById('microsoft365Settings');
             const emailDeletionSettings = document.getElementById('emailDeletionSettings');
+            const loadFoldersBtn = document.getElementById('loadFoldersBtn');
+            const foldersContainer = document.getElementById('foldersContainer');
+            const foldersContent = document.getElementById('foldersContent');
+            const foldersLoading = document.getElementById('foldersLoading');
+            const foldersError = document.getElementById('foldersError');
             
             function toggleSettings() {
                 const providerValue = providerSelect.value;
@@ -179,6 +192,56 @@
             
             // Add event listeners
             providerSelect.addEventListener('change', toggleSettings);
+            
+            // Load folders on demand
+            if (loadFoldersBtn) {
+                loadFoldersBtn.addEventListener('click', function() {
+                    // Hide button and error, show loading
+                    loadFoldersBtn.style.display = 'none';
+                    foldersError.style.display = 'none';
+                    foldersLoading.style.display = 'block';
+                    foldersContainer.style.display = 'none';
+                    
+                    // Make AJAX request
+                    fetch('@Url.Action("GetFolders", "MailAccounts")?accountId=@Model.Id')
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error('Network response was not ok');
+                            }
+                            return response.json();
+                        })
+                        .then(folders => {
+                            // Clear previous content
+                            foldersContent.innerHTML = '';
+                            
+                            // Add folders as badges
+                            if (folders && folders.length > 0) {
+                                folders.forEach(folder => {
+                                    const badge = document.createElement('span');
+                                    badge.className = 'badge bg-light text-dark';
+                                    badge.textContent = folder;
+                                    foldersContent.appendChild(badge);
+                                });
+                                
+                                // Show container
+                                foldersLoading.style.display = 'none';
+                                foldersContainer.style.display = 'block';
+                            } else {
+                                // No folders found
+                                foldersLoading.style.display = 'none';
+                                foldersError.textContent = '@Localizer["NoFoldersFound"]';
+                                foldersError.style.display = 'block';
+                                loadFoldersBtn.style.display = 'inline-block';
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error loading folders:', error);
+                            foldersLoading.style.display = 'none';
+                            foldersError.style.display = 'block';
+                            loadFoldersBtn.style.display = 'inline-block';
+                        });
+                });
+            }
         });
     </script>
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
