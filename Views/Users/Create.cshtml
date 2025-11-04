@@ -38,17 +38,21 @@
 <div class="row">
                     <div class="col-md-12">
                         <div class="mb-3">
-                            <label for="password" class="form-label">@Localizer["PasswordLabel"]</label>
+                            <label for="password" class="form-label">@Localizer["Password"]</label>
                             <input type="password" id="password" name="password" class="form-control" value="@ViewBag.Password" required />
-                            <div class="form-text">@Localizer["PasswordHint"]</div>
-                            @if (ViewData.ModelState["password"]?.Errors?.Count > 0)
-                            {
-                                <div class="text-warning mt-1">
-                                    <i class="bi bi-exclamation-triangle me-1"></i>
-                                    @Localizer["PasswordHint"]
-                                </div>
-                            }
                             <span class="text-danger" id="password-error"></span>
+                            
+                            <!-- Password Requirements -->
+                            <div class="mt-2">
+                                <small class="text-muted">@Localizer["PasswordRequirements"]:</small>
+                                <ul class="small text-muted mt-1" id="passwordRequirements">
+                                    <li id="create-req-length" class="requirement-unchecked"><i class="bi bi-x-circle"></i> @Localizer["PasswordMinLength"]</li>
+                                    <li id="create-req-uppercase" class="requirement-unchecked"><i class="bi bi-x-circle"></i> @Localizer["PasswordRequiresUppercase"]</li>
+                                    <li id="create-req-lowercase" class="requirement-unchecked"><i class="bi bi-x-circle"></i> @Localizer["PasswordRequiresLowercase"]</li>
+                                    <li id="create-req-number" class="requirement-unchecked"><i class="bi bi-x-circle"></i> @Localizer["PasswordRequiresNumber"]</li>
+                                    <li id="create-req-special" class="requirement-unchecked"><i class="bi bi-x-circle"></i> @Localizer["PasswordRequiresSpecialChar"]</li>
+                                </ul>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -87,4 +91,51 @@
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        $(document).ready(function() {
+            // Password validation UI updates
+            $('#password').on('input', function() {
+                var password = $(this).val();
+                
+                // Check length
+                updateRequirement('create-req-length', password.length >= 10);
+                
+                // Check uppercase
+                updateRequirement('create-req-uppercase', /[A-Z]/.test(password));
+                
+                // Check lowercase
+                updateRequirement('create-req-lowercase', /[a-z]/.test(password));
+                
+                // Check number
+                updateRequirement('create-req-number', /[0-9]/.test(password));
+                
+                // Check special character
+                updateRequirement('create-req-special', /[^A-Za-z0-9]/.test(password));
+            });
+            
+            function updateRequirement(elementId, isValid) {
+                var element = $('#' + elementId);
+                if (isValid) {
+                    element.removeClass('requirement-unchecked text-muted').addClass('requirement-checked text-success');
+                    element.find('i').removeClass('bi-x-circle').addClass('bi-check-circle');
+                } else {
+                    element.removeClass('requirement-checked text-success').addClass('requirement-unchecked text-muted');
+                    element.find('i').removeClass('bi-check-circle').addClass('bi-x-circle');
+                }
+            }
+            
+            // Trigger initial check if password is pre-filled
+            if ($('#password').val()) {
+                $('#password').trigger('input');
+            }
+        });
+    </script>
+    <style>
+        .requirement-checked {
+            color: #28a745 !important;
+        }
+        .requirement-unchecked {
+            color: #6c757d !important;
+        }
+    </style>
 }

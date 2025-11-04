@@ -305,7 +305,11 @@ builder.Services.Configure<Microsoft.AspNetCore.Http.Features.FormOptions>(optio
 });
 
 // MVC hinzufügen
-builder.Services.AddControllersWithViews()
+builder.Services.AddControllersWithViews(options =>
+{
+    // Add global filter for password change requirement
+    options.Filters.Add<MailArchiver.Attributes.PasswordChangeRequiredAttribute>();
+})
     .AddViewLocalization();
 
 builder.Services.Configure<BatchRestoreOptions>(

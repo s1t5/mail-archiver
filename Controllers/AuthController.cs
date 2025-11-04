@@ -1,8 +1,10 @@
+using MailArchiver.Data;
 using MailArchiver.Models;
 using MailArchiver.Models.ViewModels;
 using MailArchiver.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
 
 namespace MailArchiver.Controllers
@@ -72,6 +74,22 @@ namespace MailArchiver.Controllers
                     }
                     
                     _authService.SignIn(HttpContext, model.Username, model.RememberMe);
+                    
+                    // Check if this is initial setup (no mail accounts + default credentials)
+                    var configuration = HttpContext.RequestServices.GetRequiredService<IConfiguration>();
+                    var defaultUsername = configuration["Authentication:Username"];
+                    var defaultPassword = configuration["Authentication:Password"];
+                    var dbContext = HttpContext.RequestServices.GetRequiredService<MailArchiverDbContext>();
+                    var mailAccountCount = await dbContext.MailAccounts.CountAsync();
+                    
+                    if (mailAccountCount == 0 && 
+                        model.Username == defaultUsername && 
+                        model.Password == defaultPassword)
+                    {
+                        // Force password change for initial setup
+                        HttpContext.Session.SetString("MustChangePassword", "true");
+                        _logger.LogWarning("User {Username} logged in with default credentials on initial setup - forcing password change", model.Username);
+                    }
                     
                     // Log the successful login using a separate task to avoid DbContext concurrency issues
                     var sourceIp = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown";

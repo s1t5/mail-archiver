@@ -1682,6 +1682,33 @@
   <data name="PasswordRequiresSpecialChar" xml:space="preserve">
     <value>Password must contain at least one special character</value>
   </data>
+  <data name="PasswordMustBeDifferent" xml:space="preserve">
+    <value>New password must be different from the current password</value>
+  </data>
+  <data name="PasswordRequirements" xml:space="preserve">
+    <value>Password Requirements</value>
+  </data>
+  <data name="PasswordChangeRequired" xml:space="preserve">
+    <value>Password Change Required</value>
+  </data>
+  <data name="PasswordChangeRequiredMessage" xml:space="preserve">
+    <value>For security reasons, you must change your password before continuing. This is required because you are using the default system credentials on a newly set up system.</value>
+  </data>
+  <data name="PasswordChangeRequiredInfo" xml:space="preserve">
+    <value>Your new password must be different from the current password and meet all security requirements.</value>
+  </data>
+  <data name="CannotLeavePasswordChange" xml:space="preserve">
+    <value>You must change your password before you can continue using the system.</value>
+  </data>
+  <data name="TwoFactorEnabled" xml:space="preserve">
+    <value>Two-factor authentication is currently enabled for this user.</value>
+  </data>
+  <data name="ConfirmResetTwoFactor" xml:space="preserve">
+    <value>Are you sure you want to reset two-factor authentication for this user? They will need to set it up again.</value>
+  </data>
+  <data name="ResetTwoFactor" xml:space="preserve">
+    <value>Reset Two-Factor Authentication</value>
+  </data>
   <data name="TooManyAttempts" xml:space="preserve">
     <value>Too many attempts. Please wait {0} seconds before trying again.</value>
   </data>

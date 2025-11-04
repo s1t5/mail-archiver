@@ -295,3 +295,4 @@ update_resource_files.ps1
 *.cache
 /exports
 /obj
+/.clinerules

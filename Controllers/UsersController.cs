@@ -521,6 +521,9 @@ namespace MailArchiver.Controllers
                 return RedirectToAction("Index", "Home");
             }
 
+            // Check if password change is forced
+            var mustChangePassword = HttpContext.Session.GetString("MustChangePassword") == "true";
+
             // Validate input
             if (string.IsNullOrWhiteSpace(currentPassword))
             {
@@ -554,32 +557,48 @@ namespace MailArchiver.Controllers
                 }
                 else
                 {
-                    // Update password
-                    try
+                    // If forced password change, ensure new password is different from current
+                    if (mustChangePassword && currentPassword == newPassword)
                     {
-                        currentUser.PasswordHash = _userService.HashPassword(newPassword);
-                        var result = await _userService.UpdateUserAsync(currentUser);
-
-                        if (result)
-                        {
-                            TempData["SuccessMessage"] = _localizer["PasswordChangeSuccess"].Value;
-                            return RedirectToAction("Index", "Home");
-                        }
-                        else
-                        {
-                            ModelState.AddModelError("", _localizer["PasswordChangeFail"]);
-                        }
+                        ModelState.AddModelError("newPassword", _localizer["PasswordMustBeDifferent"]);
                     }
-                    catch (Exception ex)
+                    else
                     {
-                        _logger.LogError(ex, "Error updating password for user: {Username}", currentUser.Username);
-                        ModelState.AddModelError("", $"{_localizer["ErrorOccurred"]}: {ex.Message}");
+                        // Update password
+                        try
+                        {
+                            currentUser.PasswordHash = _userService.HashPassword(newPassword);
+                            var result = await _userService.UpdateUserAsync(currentUser);
+
+                            if (result)
+                            {
+                                // Clear the forced password change flag
+                                if (mustChangePassword)
+                                {
+                                    HttpContext.Session.Remove("MustChangePassword");
+                                    _logger.LogInformation("User {Username} successfully changed password after initial setup", currentUser.Username);
+                                }
+                                
+                                TempData["SuccessMessage"] = _localizer["PasswordChangeSuccess"].Value;
+                                return RedirectToAction("Index", "Home");
+                            }
+                            else
+                            {
+                                ModelState.AddModelError("", _localizer["PasswordChangeFail"]);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError(ex, "Error updating password for user: {Username}", currentUser.Username);
+                            ModelState.AddModelError("", $"{_localizer["ErrorOccurred"]}: {ex.Message}");
+                        }
                     }
                 }
             }
 
             // If we get here, something went wrong
             ViewBag.Username = currentUser.Username;
+            ViewBag.MustChangePassword = mustChangePassword;
             return View();
         }
 
