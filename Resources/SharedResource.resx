@@ -1652,6 +1652,36 @@
   <data name="RateLimitExceeded" xml:space="preserve">
     <value>Rate limit exceeded. Please try again later.</value>
   </data>
+  <data name="LoginBlocked" xml:space="preserve">
+    <value>Login Temporarily Blocked</value>
+  </data>
+  <data name="LoginBlockedTitle" xml:space="preserve">
+    <value>Access Blocked</value>
+  </data>
+  <data name="LoginBlockedMessage" xml:space="preserve">
+    <value>Too many failed login attempts detected</value>
+  </data>
+  <data name="LoginBlockedInfo" xml:space="preserve">
+    <value>For security reasons, login attempts from your IP address have been temporarily blocked due to multiple failed authentication attempts. Please wait 10 minutes before trying again.</value>
+  </data>
+  <data name="BackToLogin" xml:space="preserve">
+    <value>Back to Login</value>
+  </data>
+  <data name="PasswordMinLength" xml:space="preserve">
+    <value>Password must be at least 10 characters long</value>
+  </data>
+  <data name="PasswordRequiresUppercase" xml:space="preserve">
+    <value>Password must contain at least one uppercase letter</value>
+  </data>
+  <data name="PasswordRequiresLowercase" xml:space="preserve">
+    <value>Password must contain at least one lowercase letter</value>
+  </data>
+  <data name="PasswordRequiresNumber" xml:space="preserve">
+    <value>Password must contain at least one number</value>
+  </data>
+  <data name="PasswordRequiresSpecialChar" xml:space="preserve">
+    <value>Password must contain at least one special character</value>
+  </data>
   <data name="TooManyAttempts" xml:space="preserve">
     <value>Too many attempts. Please wait {0} seconds before trying again.</value>
   </data>

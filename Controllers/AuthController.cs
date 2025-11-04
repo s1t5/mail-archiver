@@ -2,6 +2,7 @@ using MailArchiver.Models;
 using MailArchiver.Models.ViewModels;
 using MailArchiver.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.Localization;
 
 namespace MailArchiver.Controllers
@@ -46,6 +47,7 @@ namespace MailArchiver.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [EnableRateLimiting("LoginAttempts")]
         public async Task<IActionResult> Login(LoginViewModel model, string returnUrl = null)
         {
             ViewData["ReturnUrl"] = returnUrl;
@@ -131,6 +133,12 @@ namespace MailArchiver.Controllers
         
         [HttpGet]
         public IActionResult AccessDenied()
+        {
+            return View();
+        }
+        
+        [HttpGet]
+        public IActionResult Blocked()
         {
             return View();
         }

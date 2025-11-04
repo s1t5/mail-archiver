@@ -115,6 +115,23 @@ builder.Services.AddDataProtection()
 // Add Rate Limiting
 builder.Services.AddRateLimiter(options =>
 {
+    // Login Attempt Rate Limiting: 5 attempts per 10 minutes per IP
+    options.AddPolicy("LoginAttempts", httpContext =>
+    {
+        var clientIp = httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+        var partitionKey = $"login-{clientIp}";
+        
+        return RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey,
+            _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 5,
+                Window = TimeSpan.FromMinutes(10),
+                QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                QueueLimit = 0
+            });
+    });
+    
     // 2FA Verification Rate Limiting: 5 attempts per 15 minutes per IP/User
     options.AddPolicy("TwoFactorVerify", httpContext =>
     {
@@ -154,17 +171,27 @@ builder.Services.AddRateLimiter(options =>
     {
         context.HttpContext.Response.StatusCode = 429;
         
-        if (context.Lease.TryGetMetadata("RETRY_AFTER", out var retryAfter))
+        if (context.Lease.TryGetMetadata(System.Threading.RateLimiting.MetadataName.RetryAfter, out var retryAfter))
         {
-            context.HttpContext.Response.Headers.RetryAfter = ((TimeSpan)retryAfter).TotalSeconds.ToString();
+            var retryAfterSeconds = retryAfter is TimeSpan ts ? ts.TotalSeconds : 0;
+            context.HttpContext.Response.Headers.RetryAfter = retryAfterSeconds.ToString();
         }
         
-        // Get localizer for rate limit message
-        var serviceProvider = context.HttpContext.RequestServices;
-        var localizer = serviceProvider.GetService<Microsoft.Extensions.Localization.IStringLocalizer<MailArchiver.SharedResource>>();
-        var message = localizer?["RateLimitExceeded"] ?? "Rate limit exceeded. Please try again later.";
-        
-        await context.HttpContext.Response.WriteAsync(message, cancellationToken: token);
+        // Redirect to blocked page for login and 2FA endpoints
+        var path = context.HttpContext.Request.Path.Value?.ToLowerInvariant() ?? "";
+        if (path.Contains("/auth/login") || path.Contains("/twofactor/verify"))
+        {
+            context.HttpContext.Response.Redirect("/Auth/Blocked");
+        }
+        else
+        {
+            // Get localizer for rate limit message
+            var serviceProvider = context.HttpContext.RequestServices;
+            var localizer = serviceProvider.GetService<Microsoft.Extensions.Localization.IStringLocalizer<MailArchiver.SharedResource>>();
+            var message = localizer?["RateLimitExceeded"] ?? "Rate limit exceeded. Please try again later.";
+            
+            await context.HttpContext.Response.WriteAsync(message, cancellationToken: token);
+        }
     };
 });
 

@@ -18,7 +18,7 @@ namespace MailArchiver.Middleware
         {
             // Skip authentication for certain paths
             var path = context.Request.Path.Value?.ToLower() ?? string.Empty;
-            var skipPaths = new[] { "/auth/login", "/auth/logout", "/twofactor/", "/css/", "/js/", "/images/", "/favicon" };
+            var skipPaths = new[] { "/auth/login", "/auth/logout", "/auth/blocked", "/twofactor/", "/css/", "/js/", "/images/", "/favicon" };
             
             var shouldSkip = skipPaths.Any(skipPath => path.StartsWith(skipPath));
 

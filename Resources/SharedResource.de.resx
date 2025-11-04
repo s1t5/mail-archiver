@@ -1355,6 +1355,36 @@
   <data name="InvalidUserPassword" xml:space="preserve">
     <value>Ungültiger Benutzername oder ungültiges Passwort.</value>
   </data>
+  <data name="LoginBlocked" xml:space="preserve">
+    <value>Anmeldung vorübergehend gesperrt</value>
+  </data>
+  <data name="LoginBlockedTitle" xml:space="preserve">
+    <value>Zugriff gesperrt</value>
+  </data>
+  <data name="LoginBlockedMessage" xml:space="preserve">
+    <value>Zu viele fehlgeschlagene Anmeldeversuche erkannt</value>
+  </data>
+  <data name="LoginBlockedInfo" xml:space="preserve">
+    <value>Aus Sicherheitsgründen wurden Anmeldeversuche von Ihrer IP-Adresse aufgrund mehrerer fehlgeschlagener Authentifizierungsversuche vorübergehend gesperrt. Bitte warten Sie 10 Minuten, bevor Sie es erneut versuchen.</value>
+  </data>
+  <data name="BackToLogin" xml:space="preserve">
+    <value>Zurück zur Anmeldung</value>
+  </data>
+  <data name="PasswordMinLength" xml:space="preserve">
+    <value>Passwort muss mindestens 10 Zeichen lang sein</value>
+  </data>
+  <data name="PasswordRequiresUppercase" xml:space="preserve">
+    <value>Passwort muss mindestens einen Großbuchstaben enthalten</value>
+  </data>
+  <data name="PasswordRequiresLowercase" xml:space="preserve">
+    <value>Passwort muss mindestens einen Kleinbuchstaben enthalten</value>
+  </data>
+  <data name="PasswordRequiresNumber" xml:space="preserve">
+    <value>Passwort muss mindestens eine Zahl enthalten</value>
+  </data>
+  <data name="PasswordRequiresSpecialChar" xml:space="preserve">
+    <value>Passwort muss mindestens ein Sonderzeichen enthalten</value>
+  </data>
   <!-- Self-Manager Feature -->
   <data name="SelfManager" xml:space="preserve">
     <value>Selbstverwaltung</value>

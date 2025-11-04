@@ -76,13 +76,15 @@ namespace MailArchiver.Controllers
             if (string.IsNullOrWhiteSpace(password))
             {
                 _logger.LogWarning("Password is null or empty");
-
                 ModelState.AddModelError("password", _localizer["PasswordRequired"]);
             }
-            else if (password.Length < 6)
+            else if (!ValidatePasswordRequirements(password, out var passwordErrors))
             {
-                _logger.LogWarning("Password too short: {Length}", password.Length);
-                ModelState.AddModelError("password", _localizer["PasswordTooShort"]);
+                _logger.LogWarning("Password does not meet requirements");
+                foreach (var error in passwordErrors)
+                {
+                    ModelState.AddModelError("password", error);
+                }
             }
 
             // Check if username or email already exists only if other validations pass
@@ -186,10 +188,16 @@ namespace MailArchiver.Controllers
             }
 
             // Validate new password if provided
-            if (!string.IsNullOrWhiteSpace(newPassword) && newPassword.Length < 6)
+            if (!string.IsNullOrWhiteSpace(newPassword))
             {
-                _logger.LogWarning("New password too short: {Length}", newPassword.Length);
-                ModelState.AddModelError("newPassword", _localizer["PasswordTooShort"]);
+                if (!ValidatePasswordRequirements(newPassword, out var passwordErrors))
+                {
+                    _logger.LogWarning("New password does not meet requirements");
+                    foreach (var error in passwordErrors)
+                    {
+                        ModelState.AddModelError("newPassword", error);
+                    }
+                }
             }
 
             _logger.LogInformation("ModelState.IsValid: {IsValid}", ModelState.IsValid);
@@ -523,9 +531,12 @@ namespace MailArchiver.Controllers
             {
                 ModelState.AddModelError("newPassword", _localizer["PasswordNewRequired"]);
             }
-            else if (newPassword.Length < 6)
+            else if (!ValidatePasswordRequirements(newPassword, out var passwordErrors))
             {
-                ModelState.AddModelError("newPassword", _localizer["PasswordTooShort"]);
+                foreach (var error in passwordErrors)
+                {
+                    ModelState.AddModelError("newPassword", error);
+                }
             }
             else if (newPassword != confirmNewPassword)
             {
@@ -615,6 +626,39 @@ namespace MailArchiver.Controllers
             }
 
             return RedirectToAction(nameof(Index));
+        }
+
+        // Helper method to validate password requirements
+        private bool ValidatePasswordRequirements(string password, out List<string> errors)
+        {
+            errors = new List<string>();
+            
+            if (password.Length < 10)
+            {
+                errors.Add(_localizer["PasswordMinLength"].Value);
+            }
+            
+            if (!password.Any(char.IsUpper))
+            {
+                errors.Add(_localizer["PasswordRequiresUppercase"].Value);
+            }
+            
+            if (!password.Any(char.IsLower))
+            {
+                errors.Add(_localizer["PasswordRequiresLowercase"].Value);
+            }
+            
+            if (!password.Any(char.IsDigit))
+            {
+                errors.Add(_localizer["PasswordRequiresNumber"].Value);
+            }
+            
+            if (!password.Any(ch => !char.IsLetterOrDigit(ch)))
+            {
+                errors.Add(_localizer["PasswordRequiresSpecialChar"].Value);
+            }
+            
+            return errors.Count == 0;
         }
     }
 }

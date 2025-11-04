@@ -1,0 +1,31 @@
+@inject Microsoft.Extensions.Localization.IStringLocalizer<MailArchiver.SharedResource> Localizer
+@{
+    ViewData["Title"] = Localizer["LoginBlockedTitle"];
+    Layout = "_LoginLayout";
+}
+
+<div class="login-container">
+    <div class="card login-card">
+        <div class="card-body">
+            <div class="text-center mb-4">
+                <i class="bi bi-shield-x display-3 text-danger"></i>
+                <h2 class="mt-3 text-danger">@Localizer["LoginBlocked"]</h2>
+                <p class="text-muted">@Localizer["LoginBlockedMessage"]</p>
+            </div>
+
+            <div class="alert alert-warning" role="alert">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                @Localizer["LoginBlockedInfo"]
+            </div>
+
+            <div class="d-grid mt-4">
+                <a href="@Url.Action("Login", "Auth")" class="btn btn-primary btn-lg">
+                    <i class="bi bi-arrow-left me-2"></i>@Localizer["BackToLogin"]
+                </a>
+            </div>
+        </div>
+        <div class="card-footer text-center text-muted">
+            <small>@DateTime.Now.Year - s1t5</small>
+        </div>
+    </div>
+</div>
