@@ -60,6 +60,9 @@ namespace MailArchiver.Migrations
                     b.Property<DateTime>("LastSync")
                         .HasColumnType("timestamp without time zone");
 
+                    b.Property<int?>("LocalRetentionDays")
+                        .HasColumnType("integer");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("text");
@@ -105,6 +108,9 @@ namespace MailArchiver.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<string>("ContentHash")
+                        .HasColumnType("varchar(64)");
+
                     b.Property<string>("FolderName")
                         .IsRequired()
                         .HasColumnType("text");
@@ -116,9 +122,15 @@ namespace MailArchiver.Migrations
                     b.Property<bool>("HasAttachments")
                         .HasColumnType("boolean");
 
+                    b.Property<DateTime?>("HashCreatedAt")
+                        .HasColumnType("timestamp without time zone");
+
                     b.Property<string>("HtmlBody")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<bool>("IsLocked")
+                        .HasColumnType("boolean");
 
                     b.Property<bool>("IsOutgoing")
                         .HasColumnType("boolean");
@@ -146,11 +158,61 @@ namespace MailArchiver.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ContentHash")
+                        .HasDatabaseName("IX_ArchivedEmails_ContentHash");
+
                     b.HasIndex("MailAccountId");
 
                     b.HasIndex("SentDate");
 
                     b.ToTable("ArchivedEmails", "mail_archiver");
+                });
+
+            modelBuilder.Entity("MailArchiver.Models.AccessLog", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("EmailId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("EmailFrom")
+                        .HasColumnType("text");
+
+                    b.Property<string>("EmailSubject")
+                        .HasColumnType("text");
+
+                    b.Property<int?>("MailAccountId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("SearchParameters")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("Timestamp")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Username")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Timestamp")
+                        .HasDatabaseName("IX_AccessLogs_Timestamp");
+
+                    b.HasIndex("Type")
+                        .HasDatabaseName("IX_AccessLogs_Type");
+
+                    b.HasIndex("Username")
+                        .HasDatabaseName("IX_AccessLogs_Username");
+
+                    b.ToTable("AccessLogs", "mail_archiver");
                 });
 
             modelBuilder.Entity("MailArchiver.Models.EmailAttachment", b =>

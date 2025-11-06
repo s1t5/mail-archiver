@@ -179,6 +179,15 @@ namespace MailArchiver.Data
             modelBuilder.Entity<AccessLog>()
                 .Property(a => a.Type)
                 .HasConversion<int>();
+                
+            // Compliance fields configuration
+            modelBuilder.Entity<ArchivedEmail>()
+                .Property(e => e.ContentHash)
+                .HasColumnType("varchar(64)");
+
+            modelBuilder.Entity<ArchivedEmail>()
+                .HasIndex(e => e.ContentHash)
+                .HasDatabaseName("IX_ArchivedEmails_ContentHash");
         }
     }
 }
