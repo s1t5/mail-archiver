@@ -167,17 +167,98 @@ namespace MailArchiver.Services
                         var ns = client.PersonalNamespaces[0];
                         _logger.LogDebug("Using PersonalNamespace: {Path}", ns.Path);
                         
+                        //New Hybrid folder retrieval
+                        try
+                        {
+                            //recursive fetch
+                            var rootFolders = await client.GetFoldersAsync(ns, true); // true = recursive
+                            _logger.LogInformation("GetFoldersAsync(recursive) returned {Count} folders", rootFolders.Count);
+
+                            foreach (var folder in rootFolders)
+                            {
+                                _logger.LogDebug("Found folder: Name={Name}, FullName={FullName}, Attributes={Attributes}",
+                                    folder.Name ?? "NULL", folder.FullName ?? "NULL", folder.Attributes);
+
+                                if (!folder.Attributes.HasFlag(FolderAttributes.NonExistent) &&
+                                    !folder.Attributes.HasFlag(FolderAttributes.NoSelect) &&
+                                    !allFolders.Any(f => f.FullName == folder.FullName))
+                                {
+                                    allFolders.Add(folder);
+                                }
+                            }
+                        }
+                        catch (Exception getFoldersEx)
+                        {
+                            _logger.LogWarning(getFoldersEx, "GetFoldersAsync(recursive) failed for {AccountName}, trying non-recursive fallback", account.Name);
+
+                            try
+                            {
+                                //fallback non rec
+                                var toProcess = new Queue<IMailFolder>();
+
+                                //tl folder ret
+                                var topFolders = await client.GetFoldersAsync(ns, StatusItems.None, false);
+                                _logger.LogInformation("Fallback: got {Count} top-level folders", topFolders.Count);
+
+                                foreach (var topFolder in topFolders)
+                                {
+                                    _logger.LogDebug("Found top-level folder: Name={Name}, FullName={FullName}, Attributes={Attributes}",
+                                        topFolder.Name ?? "NULL", topFolder.FullName ?? "NULL", topFolder.Attributes);
+
+                                    if (!topFolder.Attributes.HasFlag(FolderAttributes.NonExistent) &&
+                                        !topFolder.Attributes.HasFlag(FolderAttributes.NoSelect) &&
+                                        !allFolders.Any(f => f.FullName == topFolder.FullName))
+                                    {
+                                        allFolders.Add(topFolder);
+                                        toProcess.Enqueue(topFolder);
+                                    }
+                                }
+
+                                while (toProcess.Count > 0)
+                                {
+                                    var currentFolder = toProcess.Dequeue();
+                                    try
+                                    {
+                                        //fetch subfodlers without rec
+                                        var subFolders = await currentFolder.GetSubfoldersAsync(false);
+                                        foreach (var subFolder in subFolders)
+                                        {
+                                            _logger.LogDebug("Found subfolder: Name={Name}, FullName={FullName}, Attributes={Attributes}",
+                                                subFolder.Name ?? "NULL", subFolder.FullName ?? "NULL", subFolder.Attributes);
+
+                                            if (!subFolder.Attributes.HasFlag(FolderAttributes.NonExistent) &&
+                                                !subFolder.Attributes.HasFlag(FolderAttributes.NoSelect) &&
+                                                !allFolders.Any(f => f.FullName == subFolder.FullName))
+                                            {
+                                                allFolders.Add(subFolder);
+                                                toProcess.Enqueue(subFolder); //add to queue
+                                            }
+                                        }
+                                    }
+                                    catch (Exception subEx)
+                                    {
+                                        _logger.LogWarning(subEx, "Could not get subfolders for {Folder}", currentFolder.FullName);
+                                    }
+                                }
+                            }
+                            catch (Exception fallbackEx)
+                            {
+                                _logger.LogError(fallbackEx, "Fallback also failed for {AccountName}", account.Name);
+                            }
+                        }
+
+                        /* Variant 2 (old logic from prev. Version)
                         try
                         {
                             // Try GetFoldersAsync first (works for most servers)
                             var rootFolders = await client.GetFoldersAsync(ns, true);  // true = recursive
                             _logger.LogInformation("GetFoldersAsync(recursive) returned {Count} folders", rootFolders.Count);
-                            
+
                             foreach (var folder in rootFolders)
                             {
                                 _logger.LogDebug("Found folder: Name={Name}, FullName={FullName}, Attributes={Attributes}",
                                     folder.Name ?? "NULL", folder.FullName ?? "NULL", folder.Attributes);
-                                
+
                                 // Add all folders that are not non-existent, can be selected, and not already in list
                                 if (!folder.Attributes.HasFlag(FolderAttributes.NonExistent) &&
                                     !folder.Attributes.HasFlag(FolderAttributes.NoSelect) &&
@@ -191,18 +272,34 @@ namespace MailArchiver.Services
                         {
                             _logger.LogWarning(getFoldersEx, "GetFoldersAsync failed for {AccountName}, will try alternative method", account.Name);
                         }
+                        */
+
+                        /* Variant 3
+                        // Get all folders (top-level and subfolders)
+                        var folders = await client.GetFoldersAsync(ns, StatusItems.None, false);
                         
+                        // Add folders that are not non-existent and not non-selectable
+                        foreach (var f in folders)
+                        {
+                            if (!f.Attributes.HasFlag(FolderAttributes.NonExistent) &&
+                                !f.Attributes.HasFlag(FolderAttributes.NoSelect))
+                            {
+                                allFolders.Add(f);
+                            }
+                        }
+                        */
+
                         // If GetFoldersAsync returned 0 folders, use alternative method
                         if (allFolders.Count <= 1) // Only INBOX or less
                         {
                             _logger.LogInformation("Few folders found via GetFoldersAsync, trying alternative folder discovery method for {AccountName}", account.Name);
-                            
+
                             try
                             {
                                 // Get the root folder from the namespace path
                                 var rootFolder = await client.GetFolderAsync(ns.Path ?? string.Empty);
                                 _logger.LogDebug("Got root folder: {FullName}", rootFolder.FullName);
-                                
+
                                 // Recursively get all subfolders
                                 await AddSubfoldersRecursively(rootFolder, allFolders);
                                 _logger.LogInformation("Alternative method found {Count} additional folders", allFolders.Count - 1);
