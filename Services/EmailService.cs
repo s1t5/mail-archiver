@@ -170,9 +170,9 @@ namespace MailArchiver.Services
                         //New Hybrid folder retrieval
                         try
                         {
-                            //recursive fetch
-                            var rootFolders = await client.GetFoldersAsync(ns, true); // true = recursive
-                            _logger.LogInformation("GetFoldersAsync(recursive) returned {Count} folders", rootFolders.Count);
+                            //recursive fetch - explicitly include non-subscribed folders
+                            var rootFolders = await client.GetFoldersAsync(ns, StatusItems.None, subscribedOnly: false); 
+                            _logger.LogInformation("GetFoldersAsync(including non-subscribed) returned {Count} folders", rootFolders.Count);
 
                             foreach (var folder in rootFolders)
                             {
@@ -196,9 +196,9 @@ namespace MailArchiver.Services
                                 //fallback non rec
                                 var toProcess = new Queue<IMailFolder>();
 
-                                //tl folder ret
-                                var topFolders = await client.GetFoldersAsync(ns, StatusItems.None, false);
-                                _logger.LogInformation("Fallback: got {Count} top-level folders", topFolders.Count);
+                                //tl folder ret - explicitly include non-subscribed folders
+                                var topFolders = await client.GetFoldersAsync(ns, StatusItems.None, subscribedOnly: false);
+                                _logger.LogInformation("Fallback: got {Count} top-level folders (including non-subscribed)", topFolders.Count);
 
                                 foreach (var topFolder in topFolders)
                                 {
