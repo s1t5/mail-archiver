@@ -18,6 +18,11 @@ namespace MailArchiver.Models
         public bool HasAttachments { get; set; }
         public string FolderName { get; set; }
 
+        // Compliance fields for integrity and immutability
+        public string? ContentHash { get; set; }
+        public DateTime? HashCreatedAt { get; set; }
+        public bool IsLocked { get; set; } = true;
+
         public virtual MailAccount MailAccount { get; set; }
         public virtual ICollection<EmailAttachment> Attachments { get; set; } = new List<EmailAttachment>();
     }
