@@ -539,17 +539,25 @@ namespace MailArchiver.Services
                 }
             }
 
-            // Create body
+            // Create body - use untruncated body if available for compliance
             var bodyBuilder = new BodyBuilder();
 
-            if (!string.IsNullOrEmpty(email.Body))
+            var textBodyToExport = !string.IsNullOrEmpty(email.BodyUntruncatedText) 
+                ? email.BodyUntruncatedText 
+                : email.Body;
+
+            var htmlBodyToExport = !string.IsNullOrEmpty(email.BodyUntruncatedHtml) 
+                ? email.BodyUntruncatedHtml 
+                : email.HtmlBody;
+
+            if (!string.IsNullOrEmpty(textBodyToExport))
             {
-                bodyBuilder.TextBody = email.Body;
+                bodyBuilder.TextBody = textBodyToExport;
             }
 
-            if (!string.IsNullOrEmpty(email.HtmlBody))
+            if (!string.IsNullOrEmpty(htmlBodyToExport))
             {
-                bodyBuilder.HtmlBody = email.HtmlBody;
+                bodyBuilder.HtmlBody = htmlBodyToExport;
             }
 
             // Add attachments

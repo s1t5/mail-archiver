@@ -1972,29 +1972,49 @@ namespace MailArchiver.Controllers
 
             try
             {
-                // Get distinct folders from archived emails for this account
-                var folders = await _context.ArchivedEmails
-                    .Where(e => e.MailAccountId == accountId)
-                    .Select(e => e.FolderName)
-                    .Distinct()
-                    .Where(f => !string.IsNullOrEmpty(f))
-                    .OrderBy(f => f)
-                    .ToListAsync();
+                // Get the target account to check provider type
+                var targetAccount = await _context.MailAccounts.FindAsync(accountId);
+                if (targetAccount == null)
+                {
+                    _logger.LogWarning("Account {AccountId} not found", accountId);
+                    return Json(new List<string> { "INBOX" });
+                }
+
+                // Get folders from the mail server using appropriate service
+                List<string> folders;
+                
+                if (targetAccount.Provider == ProviderType.M365)
+                {
+                    _logger.LogInformation("Using Graph API service to get folders for M365 account {AccountId}", accountId);
+                    folders = await _graphEmailService.GetMailFoldersAsync(targetAccount);
+                }
+                else if (targetAccount.Provider == ProviderType.IMAP)
+                {
+                    _logger.LogInformation("Using Email service to get folders for IMAP account {AccountId}", accountId);
+                    folders = await _emailService.GetMailFoldersAsync(accountId);
+                }
+                else
+                {
+                    // For IMPORT accounts or unknown providers, return INBOX as default
+                    _logger.LogWarning("Account {AccountId} has provider type {Provider}, returning default INBOX", 
+                        accountId, targetAccount.Provider);
+                    return Json(new List<string> { "INBOX" });
+                }
 
                 if (folders == null || !folders.Any())
                 {
-                    _logger.LogWarning("No folders found in archive for account {AccountId}", accountId);
-                    return Json(new List<string>());
+                    _logger.LogWarning("No folders found for account {AccountId}, returning default INBOX", accountId);
+                    return Json(new List<string> { "INBOX" });
                 }
 
-                _logger.LogInformation("Successfully retrieved {Count} folders from archive for account {AccountId}",
+                _logger.LogInformation("Successfully retrieved {Count} folders for account {AccountId}",
                     folders.Count, accountId);
                 return Json(folders);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Exception while retrieving folders from archive for account {AccountId}", accountId);
-                return Json(new List<string>());
+                _logger.LogError(ex, "Exception while retrieving folders for account {AccountId}", accountId);
+                return Json(new List<string> { "INBOX" });
             }
         }
 

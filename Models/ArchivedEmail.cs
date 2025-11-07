@@ -23,7 +23,7 @@ namespace MailArchiver.Models
         // Compliance fields for integrity and immutability
         public string? ContentHash { get; set; }
         public DateTime? HashCreatedAt { get; set; }
-        public bool IsLocked { get; set; } = true;
+        public bool IsLocked { get; set; }
 
         public virtual MailAccount MailAccount { get; set; }
         public virtual ICollection<EmailAttachment> Attachments { get; set; } = new List<EmailAttachment>();
