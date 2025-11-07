@@ -292,13 +292,18 @@ namespace MailArchiver.Controllers
             _logger.LogInformation("Found email with ID {EmailId} from account {AccountId}", 
                 id, email.MailAccountId);
 
+            // Use untruncated body if available for compliance
+            var htmlBodyToDisplay = !string.IsNullOrEmpty(email.BodyUntruncatedHtml) 
+                ? email.BodyUntruncatedHtml 
+                : email.HtmlBody;
+
             var model = new EmailDetailViewModel
             {
                 Email = email,
                 AccountName = email.MailAccount?.Name ?? "Unknown account",
-                FormattedHtmlBody = !string.IsNullOrEmpty(email.HtmlBody) 
-                    ? ResolveInlineImagesInHtml(SanitizeHtml(email.HtmlBody), email.Attachments) 
-                    : string.Empty
+                FormattedHtmlBody = !string.IsNullOrEmpty(htmlBodyToDisplay) 
+                    ? ResolveInlineImagesInHtml(SanitizeHtml(htmlBodyToDisplay), email.Attachments) 
+                    : string.Empty,
             };
 
             // Store return URL in ViewBag
@@ -2129,10 +2134,19 @@ namespace MailArchiver.Controllers
                 return View("Details404");
             }
 
+            // Use untruncated body if available for compliance
+            var htmlBodyToDisplay = !string.IsNullOrEmpty(email.BodyUntruncatedHtml) 
+                ? email.BodyUntruncatedHtml 
+                : email.HtmlBody;
+            
+            var textBodyToDisplay = !string.IsNullOrEmpty(email.BodyUntruncatedText) 
+                ? email.BodyUntruncatedText 
+                : email.Body;
+
             // Bereiten Sie das HTML für die direkte Anzeige vor
-            string html = !string.IsNullOrEmpty(email.HtmlBody)
-                ? ResolveInlineImagesInHtml(SanitizeHtml(email.HtmlBody), email.Attachments)
-                : $"<pre>{HttpUtility.HtmlEncode(email.Body)}</pre>";
+            string html = !string.IsNullOrEmpty(htmlBodyToDisplay)
+                ? ResolveInlineImagesInHtml(SanitizeHtml(htmlBodyToDisplay), email.Attachments)
+                : $"<pre>{HttpUtility.HtmlEncode(textBodyToDisplay)}</pre>";
 
             // Fügen Sie die Basis-HTML-Struktur hinzu, wenn sie fehlt
             if (!html.Contains("<!DOCTYPE") && !html.Contains("<html"))

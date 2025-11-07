@@ -910,6 +910,8 @@ namespace MailArchiver.Services
                 // Extract body content
                 var body = string.Empty;
                 var htmlBody = string.Empty;
+                var bodyUntruncatedText = string.Empty;
+                var bodyUntruncatedHtml = string.Empty;
                 var isHtmlTruncated = false;
                 var isBodyTruncated = false;
 
@@ -918,9 +920,14 @@ namespace MailArchiver.Services
                     if (message.Body.ContentType == BodyType.Html)
                     {
                         var cleanedHtmlBody = CleanText(message.Body.Content);
+                        
+                        // Check if HTML body needs truncation
                         if (Encoding.UTF8.GetByteCount(cleanedHtmlBody) > 1_000_000)
                         {
                             isHtmlTruncated = true;
+                            // Store original in untruncated column
+                            bodyUntruncatedHtml = cleanedHtmlBody;
+                            // Store truncated version for search index
                             htmlBody = CleanHtmlForStorage(cleanedHtmlBody);
                         }
                         else
@@ -934,6 +941,9 @@ namespace MailArchiver.Services
                         if (Encoding.UTF8.GetByteCount(bodyPreview) > 500_000)
                         {
                             isBodyTruncated = true;
+                            // Store original in untruncated column
+                            bodyUntruncatedText = bodyPreview;
+                            // Store truncated version for search index
                             body = TruncateTextForStorage(bodyPreview, 500_000);
                         }
                         else
@@ -948,6 +958,9 @@ namespace MailArchiver.Services
                         if (Encoding.UTF8.GetByteCount(cleanedTextBody) > 500_000)
                         {
                             isBodyTruncated = true;
+                            // Store original in untruncated column
+                            bodyUntruncatedText = cleanedTextBody;
+                            // Store truncated version for search index
                             body = TruncateTextForStorage(cleanedTextBody, 500_000);
                         }
                         else
@@ -963,6 +976,9 @@ namespace MailArchiver.Services
                     if (Encoding.UTF8.GetByteCount(bodyPreview) > 500_000)
                     {
                         isBodyTruncated = true;
+                        // Store original in untruncated column
+                        bodyUntruncatedText = bodyPreview;
+                        // Store truncated version for search index
                         body = TruncateTextForStorage(bodyPreview, 500_000);
                     }
                     else
@@ -1042,8 +1058,8 @@ namespace MailArchiver.Services
                     HasAttachments = false, // Will be set correctly after checking for attachments
                     Body = body,
                     HtmlBody = htmlBody,
-                    BodyUntruncatedText = isBodyTruncated && message.Body?.Content != null ? message.Body.Content : null,
-                    BodyUntruncatedHtml = isHtmlTruncated && message.Body?.ContentType == BodyType.Html && message.Body?.Content != null ? message.Body.Content : null,
+                    BodyUntruncatedText = !string.IsNullOrEmpty(bodyUntruncatedText) ? bodyUntruncatedText : null,
+                    BodyUntruncatedHtml = !string.IsNullOrEmpty(bodyUntruncatedHtml) ? bodyUntruncatedHtml : null,
                     FolderName = cleanFolderName,
                     Attachments = new List<EmailAttachment>() // Initialize collection for hash calculation
                 };

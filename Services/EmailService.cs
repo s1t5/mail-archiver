@@ -2535,9 +2535,18 @@ namespace MailArchiver.Services
                 }
             }
 
-            var body = !string.IsNullOrEmpty(email.HtmlBody)
-                ? new TextPart("html") { Text = email.HtmlBody }
-                : new TextPart("plain") { Text = email.Body };
+            // Use untruncated body if available for compliance
+            var htmlBodyToExport = !string.IsNullOrEmpty(email.BodyUntruncatedHtml) 
+                ? email.BodyUntruncatedHtml 
+                : email.HtmlBody;
+            
+            var textBodyToExport = !string.IsNullOrEmpty(email.BodyUntruncatedText) 
+                ? email.BodyUntruncatedText 
+                : email.Body;
+
+            var body = !string.IsNullOrEmpty(htmlBodyToExport)
+                ? new TextPart("html") { Text = htmlBodyToExport }
+                : new TextPart("plain") { Text = textBodyToExport };
 
             if (email.Attachments.Any())
             {
@@ -2936,14 +2945,23 @@ namespace MailArchiver.Services
                         }
                     }
 
+                    // Use untruncated body if available for compliance
+                    var htmlBodyToRestore = !string.IsNullOrEmpty(email.BodyUntruncatedHtml) 
+                        ? email.BodyUntruncatedHtml 
+                        : email.HtmlBody;
+                    
+                    var textBodyToRestore = !string.IsNullOrEmpty(email.BodyUntruncatedText) 
+                        ? email.BodyUntruncatedText 
+                        : email.Body;
+
                     var bodyBuilder = new BodyBuilder();
-                    if (!string.IsNullOrEmpty(email.HtmlBody))
+                    if (!string.IsNullOrEmpty(htmlBodyToRestore))
                     {
-                        bodyBuilder.HtmlBody = email.HtmlBody;
+                        bodyBuilder.HtmlBody = htmlBodyToRestore;
                     }
-                    if (!string.IsNullOrEmpty(email.Body))
+                    if (!string.IsNullOrEmpty(textBodyToRestore))
                     {
-                        bodyBuilder.TextBody = email.Body;
+                        bodyBuilder.TextBody = textBodyToRestore;
                     }
 
                     // Add attachments
@@ -3488,15 +3506,24 @@ namespace MailArchiver.Services
                     }
                 }
 
+                // Use untruncated body if available for compliance
+                var htmlBodyToRestore = !string.IsNullOrEmpty(email.BodyUntruncatedHtml) 
+                    ? email.BodyUntruncatedHtml 
+                    : email.HtmlBody;
+                
+                var textBodyToRestore = !string.IsNullOrEmpty(email.BodyUntruncatedText) 
+                    ? email.BodyUntruncatedText 
+                    : email.Body;
+
                 // Create body with attachments
                 var bodyBuilder = new BodyBuilder();
-                if (!string.IsNullOrEmpty(email.HtmlBody))
+                if (!string.IsNullOrEmpty(htmlBodyToRestore))
                 {
-                    bodyBuilder.HtmlBody = email.HtmlBody;
+                    bodyBuilder.HtmlBody = htmlBodyToRestore;
                 }
-                if (!string.IsNullOrEmpty(email.Body))
+                if (!string.IsNullOrEmpty(textBodyToRestore))
                 {
-                    bodyBuilder.TextBody = email.Body;
+                    bodyBuilder.TextBody = textBodyToRestore;
                 }
 
                 // Add attachments
