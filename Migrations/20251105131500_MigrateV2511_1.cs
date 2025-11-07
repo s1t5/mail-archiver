@@ -70,6 +70,46 @@ namespace MailArchiver.Migrations
                 COMMENT ON COLUMN mail_archiver.""ArchivedEmails"".""IsLocked"" IS 'Indicates if email is locked and cannot be modified (compliance)';
             ");
 
+            // Add BodyUntruncatedText column for full untruncated text body (not in search index)
+            migrationBuilder.Sql(@"
+                DO $$ 
+                BEGIN
+                    IF NOT EXISTS (
+                        SELECT 1 
+                        FROM information_schema.columns 
+                        WHERE table_schema = 'mail_archiver' 
+                        AND table_name = 'ArchivedEmails' 
+                        AND column_name = 'BodyUntruncatedText'
+                    ) THEN
+                        ALTER TABLE mail_archiver.""ArchivedEmails"" ADD COLUMN ""BodyUntruncatedText"" text;
+                    END IF;
+                END $$;
+            ");
+            
+            migrationBuilder.Sql(@"
+                COMMENT ON COLUMN mail_archiver.""ArchivedEmails"".""BodyUntruncatedText"" IS 'Full untruncated text body (not indexed for search due to size limits)';
+            ");
+
+            // Add BodyUntruncatedHtml column for full untruncated HTML body (not in search index)
+            migrationBuilder.Sql(@"
+                DO $$ 
+                BEGIN
+                    IF NOT EXISTS (
+                        SELECT 1 
+                        FROM information_schema.columns 
+                        WHERE table_schema = 'mail_archiver' 
+                        AND table_name = 'ArchivedEmails' 
+                        AND column_name = 'BodyUntruncatedHtml'
+                    ) THEN
+                        ALTER TABLE mail_archiver.""ArchivedEmails"" ADD COLUMN ""BodyUntruncatedHtml"" text;
+                    END IF;
+                END $$;
+            ");
+            
+            migrationBuilder.Sql(@"
+                COMMENT ON COLUMN mail_archiver.""ArchivedEmails"".""BodyUntruncatedHtml"" IS 'Full untruncated HTML body (not indexed for search due to size limits)';
+            ");
+
             // Create index for ContentHash
             migrationBuilder.Sql(@"
                 DO $$ 
@@ -211,6 +251,26 @@ namespace MailArchiver.Migrations
                         AND column_name = 'IsLocked'
                     ) THEN
                         ALTER TABLE mail_archiver.""ArchivedEmails"" DROP COLUMN ""IsLocked"";
+                    END IF;
+
+                    IF EXISTS (
+                        SELECT 1 
+                        FROM information_schema.columns 
+                        WHERE table_schema = 'mail_archiver' 
+                        AND table_name = 'ArchivedEmails' 
+                        AND column_name = 'BodyUntruncatedText'
+                    ) THEN
+                        ALTER TABLE mail_archiver.""ArchivedEmails"" DROP COLUMN ""BodyUntruncatedText"";
+                    END IF;
+
+                    IF EXISTS (
+                        SELECT 1 
+                        FROM information_schema.columns 
+                        WHERE table_schema = 'mail_archiver' 
+                        AND table_name = 'ArchivedEmails' 
+                        AND column_name = 'BodyUntruncatedHtml'
+                    ) THEN
+                        ALTER TABLE mail_archiver.""ArchivedEmails"" DROP COLUMN ""BodyUntruncatedHtml"";
                     END IF;
                 END $$;
             ");

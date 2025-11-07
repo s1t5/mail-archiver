@@ -592,10 +592,13 @@ namespace MailArchiver.Services
                     SentDate = convertedSentDate,
                     ReceivedDate = DateTime.UtcNow,
                     IsOutgoing = DetermineIfOutgoing(message, account),
-                    HasAttachments = allAttachments.Any() || isHtmlTruncated || isBodyTruncated,
+                    HasAttachments = allAttachments.Any(),
                     Body = body,
                     HtmlBody = htmlBody,
-                    FolderName = targetFolder
+                    BodyUntruncatedText = isBodyTruncated && !string.IsNullOrEmpty(message.TextBody) ? message.TextBody : (isBodyTruncated && !string.IsNullOrEmpty(message.HtmlBody) ? message.HtmlBody : null),
+                    BodyUntruncatedHtml = isHtmlTruncated && !string.IsNullOrEmpty(message.HtmlBody) ? message.HtmlBody : null,
+                    FolderName = targetFolder,
+                    Attachments = new List<EmailAttachment>() // Initialize collection for hash calculation
                 };
 
                 _logger.LogDebug("Job {JobId}: Adding email to database: {MessageId}", job.JobId, messageId);
@@ -611,26 +614,8 @@ namespace MailArchiver.Services
                     await SaveAllAttachments(context, allAttachments, archivedEmail.Id);
                 }
 
-                // If HTML was truncated, save the original HTML as an attachment
-                if (isHtmlTruncated)
-                {
-                    // Save the UTF-8 encoded HTML
-                    var htmlBytes = Encoding.UTF8.GetBytes(message.HtmlBody);
-                    var utf8Html = Encoding.UTF8.GetString(htmlBytes);
-                    await SaveTruncatedHtmlAsAttachment(context, utf8Html, archivedEmail.Id, job.JobId, messageId);
-                }
-
-                // If Body was truncated, save the original text content as an attachment
-                if (isBodyTruncated)
-                {
-                    var originalTextContent = !string.IsNullOrEmpty(message.TextBody) ? message.TextBody : message.HtmlBody;
-                    if (!string.IsNullOrEmpty(originalTextContent))
-                    {
-                        await SaveTruncatedTextAsAttachment(context, originalTextContent, archivedEmail.Id, job.JobId, messageId);
-                    }
-                }
-
-                _logger.LogDebug("Job {JobId}: Successfully imported email: {MessageId}", job.JobId, messageId);
+                _logger.LogDebug("Job {JobId}: Successfully imported email: {MessageId}, Truncated: {IsTruncated}", 
+                    job.JobId, messageId, isHtmlTruncated || isBodyTruncated ? "Yes" : "No");
                 return ImportResult.CreateSuccess();
             }
             catch (Exception ex)

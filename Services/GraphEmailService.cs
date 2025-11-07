@@ -1042,7 +1042,10 @@ namespace MailArchiver.Services
                     HasAttachments = false, // Will be set correctly after checking for attachments
                     Body = body,
                     HtmlBody = htmlBody,
-                    FolderName = cleanFolderName
+                    BodyUntruncatedText = isBodyTruncated && message.Body?.Content != null ? message.Body.Content : null,
+                    BodyUntruncatedHtml = isHtmlTruncated && message.Body?.ContentType == BodyType.Html && message.Body?.Content != null ? message.Body.Content : null,
+                    FolderName = cleanFolderName,
+                    Attachments = new List<EmailAttachment>() // Initialize collection for hash calculation
                 };
 
                 _context.ArchivedEmails.Add(archivedEmail);
@@ -1053,22 +1056,12 @@ namespace MailArchiver.Services
                 var attachmentCount = await SaveGraphAttachmentsAsync(graphClient, message.Id, archivedEmail.Id, account.EmailAddress);
                 
                 // Update HasAttachments flag based on actual attachments found
-                archivedEmail.HasAttachments = attachmentCount > 0 || isHtmlTruncated || isBodyTruncated;
+                archivedEmail.HasAttachments = attachmentCount > 0;
                 await _context.SaveChangesAsync();
 
-                // Save truncated content as attachments if needed
-                if (isHtmlTruncated && message.Body?.Content != null)
-                {
-                    await SaveTruncatedHtmlAsAttachment(message.Body.Content, archivedEmail.Id);
-                }
-
-                if (isBodyTruncated && message.Body?.Content != null)
-                {
-                    await SaveTruncatedTextAsAttachment(message.Body.Content, archivedEmail.Id);
-                }
-
-                _logger.LogInformation("Archived Graph API email: {Subject}, From: {From}, To: {To}, Account: {AccountName}",
-                    archivedEmail.Subject, archivedEmail.From, archivedEmail.To, account.Name);
+                _logger.LogInformation("Archived Graph API email: {Subject}, From: {From}, To: {To}, Account: {AccountName}, Truncated: {IsTruncated}",
+                    archivedEmail.Subject, archivedEmail.From, archivedEmail.To, account.Name, 
+                    isHtmlTruncated || isBodyTruncated ? "Yes" : "No");
 
                 return true; // New email successfully archived
             }

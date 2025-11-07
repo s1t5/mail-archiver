@@ -907,10 +907,13 @@ namespace MailArchiver.Services
                     SentDate = convertedSentDate,
                     ReceivedDate = DateTime.UtcNow,
                     IsOutgoing = (isOutgoingEmail || isOutgoingFolder) && !isDraftsFolder,
-                    HasAttachments = allAttachments.Any() || isHtmlTruncated || isBodyTruncated, // Set to true if there are attachments or content was truncated
+                    HasAttachments = false, // Will be set correctly after checking for attachments
                     Body = body,
                     HtmlBody = htmlBody,
-                    FolderName = cleanFolderName
+                    BodyUntruncatedText = isBodyTruncated ? (!string.IsNullOrEmpty(message.TextBody) ? message.TextBody : message.HtmlBody) : null,
+                    BodyUntruncatedHtml = isHtmlTruncated ? message.HtmlBody : null,
+                    FolderName = cleanFolderName,
+                    Attachments = new List<EmailAttachment>() // Initialize collection for hash calculation
                 };
 
                 try
@@ -924,28 +927,10 @@ namespace MailArchiver.Services
                         await SaveAllAttachments(allAttachments, archivedEmail.Id);
                     }
 
-                    // If HTML was truncated, save the original HTML as an attachment
-                    if (isHtmlTruncated)
-                    {
-                        // Save the UTF-8 encoded HTML
-                        var htmlBytes = Encoding.UTF8.GetBytes(message.HtmlBody);
-                        var utf8Html = Encoding.UTF8.GetString(htmlBytes);
-                        await SaveTruncatedHtmlAsAttachment(utf8Html, archivedEmail.Id);
-                    }
-
-                    // If Body was truncated, save the original text content as an attachment
-                    if (isBodyTruncated)
-                    {
-                        var originalTextContent = !string.IsNullOrEmpty(message.TextBody) ? message.TextBody : message.HtmlBody;
-                        if (!string.IsNullOrEmpty(originalTextContent))
-                        {
-                            await SaveTruncatedTextAsAttachment(originalTextContent, archivedEmail.Id);
-                        }
-                    }
-
                     _logger.LogInformation(
-                        "Archived email: {Subject}, From: {From}, To: {To}, Account: {AccountName}, Total Attachments: {AttachmentCount}",
-                        archivedEmail.Subject, archivedEmail.From, archivedEmail.To, account.Name, allAttachments.Count + (isHtmlTruncated ? 1 : 0));
+                        "Archived email: {Subject}, From: {From}, To: {To}, Account: {AccountName}, Attachments: {AttachmentCount}, Truncated: {IsTruncated}",
+                        archivedEmail.Subject, archivedEmail.From, archivedEmail.To, account.Name, allAttachments.Count, 
+                        isHtmlTruncated || isBodyTruncated ? "Yes" : "No");
 
                     return true; // Neue E-Mail erfolgreich archiviert
                 }

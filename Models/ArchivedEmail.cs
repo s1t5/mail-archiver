@@ -8,6 +8,8 @@ namespace MailArchiver.Models
         public string Subject { get; set; }
         public string Body { get; set; }
         public string HtmlBody { get; set; }
+        public string? BodyUntruncatedText { get; set; }
+        public string? BodyUntruncatedHtml { get; set; }
         public string From { get; set; }
         public string To { get; set; }
         public string Cc { get; set; }
