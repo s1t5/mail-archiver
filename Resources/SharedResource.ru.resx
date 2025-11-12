@@ -2128,4 +2128,178 @@
   <data name="LocalRetentionRequiresServerRetention" xml:space="preserve">
       <value>Локальное хранение можно установить только в том случае, если также настроено хранение на сервере ('Удалить через (дней)').</value>
   </data>
+  <data name="AffectedAccounts" xml:space="preserve">
+    <value>Влияние на аккаунты</value>
+  </data>
+  <data name="ApplicationStarted" xml:space="preserve">
+    <value>Приложение запущено</value>
+  </data>
+  <data name="ApplyToAllAccounts" xml:space="preserve">
+    <value>Применить ко всем аккаунтам в этом домене</value>
+  </data>
+  <data name="ApplyToAllDomainAccountsPrompt" xml:space="preserve">
+    <value>Вы изменили учетные данные Microsoft 365. Хотите применить эти изменения ко всем другим аккаунтам в этом домене?</value>
+  </data>
+  <data name="BackToLogin" xml:space="preserve">
+    <value>Вернуться к входу</value>
+  </data>
+  <data name="CannotLeavePasswordChange" xml:space="preserve">
+    <value>Вы должны изменить пароль, прежде чем продолжить использование системы.</value>
+  </data>
+  <data name="ComplianceInformation" xml:space="preserve">
+    <value>Информация о соответствии</value>
+  </data>
+  <data name="ComplianceModeActive" xml:space="preserve">
+    <value>Режим соответствия АКТИВЕН</value>
+  </data>
+  <data name="ComplianceModeDisabled" xml:space="preserve">
+    <value>Режим соответствия ОТКЛЮЧЕН</value>
+  </data>
+  <data name="ComplianceModeStarted" xml:space="preserve">
+    <value>Режим соответствия запущен</value>
+  </data>
+  <data name="ComplianceStatus" xml:space="preserve">
+    <value>Статус соответствия</value>
+  </data>
+  <data name="ConfirmResetTwoFactor" xml:space="preserve">
+    <value>Вы уверены, что хотите сбросить двухфакторную аутентификацию для этого пользователя? Им придется настроить её снова.</value>
+  </data>
+  <data name="ContentHash" xml:space="preserve">
+    <value>Хеш содержимого (SHA-256)</value>
+  </data>
+  <data name="CopyCredentials" xml:space="preserve">
+    <value>Копировать учетные данные</value>
+  </data>
+  <data name="CouldNotLoadFolders" xml:space="preserve">
+    <value>Не удалось загрузить папки с сервера</value>
+  </data>
+  <data name="CredentialChangeDetected" xml:space="preserve">
+    <value>Обнаружено изменение учетных данных</value>
+  </data>
+  <data name="CredentialsCopied" xml:space="preserve">
+    <value>Учетные данные успешно скопированы!</value>
+  </data>
+  <data name="CurrentHash" xml:space="preserve">
+    <value>Текущий хеш</value>
+  </data>
+  <data name="EmailDeletionAllowed" xml:space="preserve">
+    <value>Удаление email РАЗРЕШЕНО</value>
+  </data>
+  <data name="EmailDeletionPrevented" xml:space="preserve">
+    <value>Удаление email ЗАПРЕЩЕНО</value>
+  </data>
+  <data name="EmailLocked" xml:space="preserve">
+    <value>Заблокировано</value>
+  </data>
+  <data name="EmailLockedDescription" xml:space="preserve">
+    <value>Этот email заблокирован, и целостность его содержимого защищена криптографическим хешем</value>
+  </data>
+  <data name="ErrorCopyingCredentials" xml:space="preserve">
+    <value>Ошибка при копировании учетных данных</value>
+  </data>
+  <data name="ErrorSavingChanges" xml:space="preserve">
+    <value>Ошибка при сохранении изменений</value>
+  </data>
+  <data name="ExistingM365AccountsFound" xml:space="preserve">
+    <value>Найдены существующие аккаунты M365</value>
+  </data>
+  <data name="HasAttachments" xml:space="preserve">
+    <value>Есть вложения</value>
+  </data>
+  <data name="HashCreated" xml:space="preserve">
+    <value>Хеш создан</value>
+  </data>
+  <data name="IntegrityCheck" xml:space="preserve">
+    <value>Проверка целостности</value>
+  </data>
+  <data name="IntegrityValid" xml:space="preserve">
+    <value>Целостность действительна</value>
+  </data>
+  <data name="IntegrityValidDescription" xml:space="preserve">
+    <value>Содержимое email не было изменено. Текущий хеш совпадает с сохраненным хешем.</value>
+  </data>
+  <data name="IntegrityViolation" xml:space="preserve">
+    <value>Нарушение целостности</value>
+  </data>
+  <data name="IntegrityViolationDescription" xml:space="preserve">
+    <value>ВНИМАНИЕ: Текущий хеш не совпадает с сохраненным хешем. Содержимое email могло быть изменено.</value>
+  </data>
+  <data name="LoadAvailableFolders" xml:space="preserve">
+    <value>Загрузить доступные папки</value>
+  </data>
+  <data name="LockedEmail" xml:space="preserve">
+    <value>Заблокированный email - содержимое защищено для соответствия</value>
+  </data>
+  <data name="LoginBlocked" xml:space="preserve">
+    <value>Вход временно заблокирован</value>
+  </data>
+  <data name="LoginBlockedInfo" xml:space="preserve">
+    <value>По соображениям безопасности попытки входа с вашего IP-адреса временно заблокированы из-за множества неудачных попыток аутентификации. Пожалуйста, подождите 10 минут перед повторной попыткой.</value>
+  </data>
+  <data name="LoginBlockedMessage" xml:space="preserve">
+    <value>Обнаружено слишком много неудачных попыток входа</value>
+  </data>
+  <data name="LoginBlockedTitle" xml:space="preserve">
+    <value>Доступ заблокирован</value>
+  </data>
+  <data name="Mismatch" xml:space="preserve">
+    <value>Несоответствие</value>
+  </data>
+  <data name="NoFoldersFound" xml:space="preserve">
+    <value>На сервере нет папок</value>
+  </data>
+  <data name="PasswordChangeRequired" xml:space="preserve">
+    <value>Требуется смена пароля</value>
+  </data>
+  <data name="PasswordChangeRequiredInfo" xml:space="preserve">
+    <value>Ваш новый пароль должен отличаться от текущего пароля и соответствовать всем требованиям безопасности.</value>
+  </data>
+  <data name="PasswordChangeRequiredMessage" xml:space="preserve">
+    <value>По соображениям безопасности вы должны изменить пароль перед продолжением. Это необходимо, потому что вы используете стандартные учетные данные системы на недавно настроенной системе.</value>
+  </data>
+  <data name="PasswordMinLength" xml:space="preserve">
+    <value>Пароль должен содержать не менее 10 символов</value>
+  </data>
+  <data name="PasswordMustBeDifferent" xml:space="preserve">
+    <value>Новый пароль должен отличаться от текущего пароля</value>
+  </data>
+  <data name="PasswordRequirements" xml:space="preserve">
+    <value>Требования к паролю</value>
+  </data>
+  <data name="PasswordRequiresLowercase" xml:space="preserve">
+    <value>Пароль должен содержать хотя бы одну строчную букву</value>
+  </data>
+  <data name="PasswordRequiresNumber" xml:space="preserve">
+    <value>Пароль должен содержать хотя бы одну цифру</value>
+  </data>
+  <data name="PasswordRequiresSpecialChar" xml:space="preserve">
+    <value>Пароль должен содержать хотя бы один специальный символ</value>
+  </data>
+  <data name="PasswordRequiresUppercase" xml:space="preserve">
+    <value>Пароль должен содержать хотя бы одну заглавную букву</value>
+  </data>
+  <data name="PleaseSelectAccount" xml:space="preserve">
+    <value>Пожалуйста, сначала выберите аккаунт</value>
+  </data>
+  <data name="Provider" xml:space="preserve">
+    <value>Поставщик</value>
+  </data>
+  <data name="ResetTwoFactor" xml:space="preserve">
+    <value>Сбросить двухфакторную аутентификацию</value>
+  </data>
+  <data name="SelectAccount" xml:space="preserve">
+    <value>-- Выберите аккаунт --</value>
+  </data>
+  <data name="StoredHash" xml:space="preserve">
+    <value>Сохраненный хеш</value>
+  </data>
+  <data name="TenantId" xml:space="preserve">
+    <value>ID арендатора</value>
+  </data>
+  <data name="TwoFactorEnabled" xml:space="preserve">
+    <value>Двухфакторная аутентификация в настоящее время включена для этого пользователя.</value>
+  </data>
+  <data name="UseExistingCredentialsPrompt" xml:space="preserve">
+    <value>Другие аккаунты Microsoft 365 в этом домене уже существуют. Вы можете скопировать их учетные данные, чтобы сэкономить время.</value>
+  </data>
 </root>

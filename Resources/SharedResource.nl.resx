@@ -2128,4 +2128,178 @@
   <data name="LocalRetentionRequiresServerRetention" xml:space="preserve">
       <value>Lokale retentie kan alleen worden ingesteld als serverretentie ('Verwijderen na dagen') ook is geconfigureerd.</value>
   </data>
+  <data name="AffectedAccounts" xml:space="preserve">
+    <value>Geraakte accounts</value>
+  </data>
+  <data name="ApplicationStarted" xml:space="preserve">
+    <value>Toepassing gestart</value>
+  </data>
+  <data name="ApplyToAllAccounts" xml:space="preserve">
+    <value>Toepassen op alle accounts in dit domein</value>
+  </data>
+  <data name="ApplyToAllDomainAccountsPrompt" xml:space="preserve">
+    <value>U heeft de Microsoft 365-referenties gewijzigd. Wilt u deze wijzigingen toepassen op alle andere accounts van hetzelfde domein?</value>
+  </data>
+  <data name="BackToLogin" xml:space="preserve">
+    <value>Terug naar inloggen</value>
+  </data>
+  <data name="CannotLeavePasswordChange" xml:space="preserve">
+    <value>U moet uw wachtwoord wijzigen voordat u het systeem verder kunt gebruiken.</value>
+  </data>
+  <data name="ComplianceInformation" xml:space="preserve">
+    <value>Nalevingsinformatie</value>
+  </data>
+  <data name="ComplianceModeActive" xml:space="preserve">
+    <value>Nalevingsmodus ACTIEF</value>
+  </data>
+  <data name="ComplianceModeDisabled" xml:space="preserve">
+    <value>Nalevingsmodus UITGESCHAKELD</value>
+  </data>
+  <data name="ComplianceModeStarted" xml:space="preserve">
+    <value>Nalevingsmodus gestart</value>
+  </data>
+  <data name="ComplianceStatus" xml:space="preserve">
+    <value>Nalevingsstatus</value>
+  </data>
+  <data name="ConfirmResetTwoFactor" xml:space="preserve">
+    <value>Weet u zeker dat u de tweestapsverificatie voor deze gebruiker wilt terugzetten? Zij moeten het opnieuw instellen.</value>
+  </data>
+  <data name="ContentHash" xml:space="preserve">
+    <value>Inhouds-Hash (SHA-256)</value>
+  </data>
+  <data name="CopyCredentials" xml:space="preserve">
+    <value>Referenties kopiëren</value>
+  </data>
+  <data name="CouldNotLoadFolders" xml:space="preserve">
+    <value>Mappen konden niet worden geladen van de server</value>
+  </data>
+  <data name="CredentialChangeDetected" xml:space="preserve">
+    <value>Wijziging referenties gedetecteerd</value>
+  </data>
+  <data name="CredentialsCopied" xml:space="preserve">
+    <value>Referenties succesvol gekopieerd!</value>
+  </data>
+  <data name="CurrentHash" xml:space="preserve">
+    <value>Huidige Hash</value>
+  </data>
+  <data name="EmailDeletionAllowed" xml:space="preserve">
+    <value>E-mailverwijdering TOEGESTAAN</value>
+  </data>
+  <data name="EmailDeletionPrevented" xml:space="preserve">
+    <value>E-mailverwijdering VERHOED</value>
+  </data>
+  <data name="EmailLocked" xml:space="preserve">
+    <value>Vergrendeld</value>
+  </data>
+  <data name="EmailLockedDescription" xml:space="preserve">
+    <value>Deze e-mail is vergrendeld en de integriteit van de inhoud wordt beschermd door een cryptografische hash</value>
+  </data>
+  <data name="ErrorCopyingCredentials" xml:space="preserve">
+    <value>Fout bij kopiëren van referenties</value>
+  </data>
+  <data name="ErrorSavingChanges" xml:space="preserve">
+    <value>Fout bij opslaan van wijzigingen</value>
+  </data>
+  <data name="ExistingM365AccountsFound" xml:space="preserve">
+    <value>Bestaande M365-accounts gevonden</value>
+  </data>
+  <data name="HasAttachments" xml:space="preserve">
+    <value>Heeft bijlagen</value>
+  </data>
+  <data name="HashCreated" xml:space="preserve">
+    <value>Hash aangemaakt</value>
+  </data>
+  <data name="IntegrityCheck" xml:space="preserve">
+    <value>Integriteitscontrole</value>
+  </data>
+  <data name="IntegrityValid" xml:space="preserve">
+    <value>Integriteit geldig</value>
+  </data>
+  <data name="IntegrityValidDescription" xml:space="preserve">
+    <value>De e-mailinhoud is niet gewijzigd. De huidige hash komt overeen met de opgeslagen hash.</value>
+  </data>
+  <data name="IntegrityViolation" xml:space="preserve">
+    <value>Integriteitsverletzing</value>
+  </data>
+  <data name="IntegrityViolationDescription" xml:space="preserve">
+    <value>WAARSCHUWING: De huidige hash komt niet overeen met de opgeslagen hash. De e-mailinhoud is mogelijk aangepast.</value>
+  </data>
+  <data name="LoadAvailableFolders" xml:space="preserve">
+    <value>Beschikbare mappen laden</value>
+  </data>
+  <data name="LockedEmail" xml:space="preserve">
+    <value>Vergrendelede e-mail - inhoud beschermd voor naleving</value>
+  </data>
+  <data name="LoginBlocked" xml:space="preserve">
+    <value>Inloggen tijdelijk geblokkeerd</value>
+  </data>
+  <data name="LoginBlockedInfo" xml:space="preserve">
+    <value>Om veiligheidsredenen zijn inlogpogingen vanaf uw IP-adres tijdelijk geblokkeerd vanwege meerdere mislukte authenticatiepogingen. Wacht 10 minuten voordat u het opnieuw probeert.</value>
+  </data>
+  <data name="LoginBlockedMessage" xml:space="preserve">
+    <value>Te veel mislukte inlogpogingen gedetecteerd</value>
+  </data>
+  <data name="LoginBlockedTitle" xml:space="preserve">
+    <value>Toegang geblokkeerd</value>
+  </data>
+  <data name="Mismatch" xml:space="preserve">
+    <value>Overeenkomstig</value>
+  </data>
+  <data name="NoFoldersFound" xml:space="preserve">
+    <value>Geen mappen gevonden op de server</value>
+  </data>
+  <data name="PasswordChangeRequired" xml:space="preserve">
+    <value>Wachtwoordwijziging vereist</value>
+  </data>
+  <data name="PasswordChangeRequiredInfo" xml:space="preserve">
+    <value>Uw nieuwe wachtwoord moet verschillen van het huidige wachtwoord en aan alle veiligheidseisen voldoen.</value>
+  </data>
+  <data name="PasswordChangeRequiredMessage" xml:space="preserve">
+    <value>Om veiligheidsredenen moet u uw wachtwoord wijzigen voordat u verdergaat. Dit is vereist omdat u de standaard systeemreferenties gebruikt op een nieuw ingesteld systeem.</value>
+  </data>
+  <data name="PasswordMinLength" xml:space="preserve">
+    <value>Wachtwoord moet minimaal 10 tekens lang zijn</value>
+  </data>
+  <data name="PasswordMustBeDifferent" xml:space="preserve">
+    <value>Nieuw wachtwoord moet verschillen van het huidige wachtwoord</value>
+  </data>
+  <data name="PasswordRequirements" xml:space="preserve">
+    <value>Wachtwoordvereisten</value>
+  </data>
+  <data name="PasswordRequiresLowercase" xml:space="preserve">
+    <value>Wachtwoord moet minimaal een kleine letter bevatten</value>
+  </data>
+  <data name="PasswordRequiresNumber" xml:space="preserve">
+    <value>Wachtwoord moet minimaal een nummer bevatten</value>
+  </data>
+  <data name="PasswordRequiresSpecialChar" xml:space="preserve">
+    <value>Wachtwoord moet minimaal een speciaal teken bevatten</value>
+  </data>
+  <data name="PasswordRequiresUppercase" xml:space="preserve">
+    <value>Wachtwoord moet minimaal een hoofdletter bevatten</value>
+  </data>
+  <data name="PleaseSelectAccount" xml:space="preserve">
+    <value>Selecteer eerst een account</value>
+  </data>
+  <data name="Provider" xml:space="preserve">
+    <value>Provider</value>
+  </data>
+  <data name="ResetTwoFactor" xml:space="preserve">
+    <value>Tweestapsverificatie terugzetten</value>
+  </data>
+  <data name="SelectAccount" xml:space="preserve">
+    <value>-- Account selecteren --</value>
+  </data>
+  <data name="StoredHash" xml:space="preserve">
+    <value>Opgeslagen Hash</value>
+  </data>
+  <data name="TenantId" xml:space="preserve">
+    <value>Tenant-ID</value>
+  </data>
+  <data name="TwoFactorEnabled" xml:space="preserve">
+    <value>Tweestapsverificatie is momenteel ingeschakeld voor deze gebruiker.</value>
+  </data>
+  <data name="UseExistingCredentialsPrompt" xml:space="preserve">
+    <value>Andere Microsoft 365-accounts van dit domein bestaan al. U kunt hun referenties kopiëren om tijd te besparen.</value>
+  </data>
 </root>

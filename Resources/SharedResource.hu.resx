@@ -2120,4 +2120,178 @@
   <data name="LocalRetentionRequiresServerRetention" xml:space="preserve">
       <value>A helyi megőrzés csak akkor állítható be, ha a szerveroldali megőrzés ('Törlés ennyi nap után') szintén be van állítva.</value>
   </data>
+  <data name="AffectedAccounts" xml:space="preserve">
+    <value>Érintett fiókok</value>
+  </data>
+  <data name="ApplicationStarted" xml:space="preserve">
+    <value>Alkalmazás indítva</value>
+  </data>
+  <data name="ApplyToAllAccounts" xml:space="preserve">
+    <value>Alkalmazás minden fiókra ezen a domainen</value>
+  </data>
+  <data name="ApplyToAllDomainAccountsPrompt" xml:space="preserve">
+    <value>Módosította a Microsoft 365 hitelesítő adatokat. Szeretné alkalmazni ezeket a változtatásokat az összes többi fiókra ezen a domainen?</value>
+  </data>
+  <data name="BackToLogin" xml:space="preserve">
+    <value>Vissza a bejelentkezéshez</value>
+  </data>
+  <data name="CannotLeavePasswordChange" xml:space="preserve">
+    <value>Meg kell változtatnia a jelszavát, mielőtt folytatná a rendszer használatát.</value>
+  </data>
+  <data name="ComplianceInformation" xml:space="preserve">
+    <value>Eltartozási információk</value>
+  </data>
+  <data name="ComplianceModeActive" xml:space="preserve">
+    <value>Eltartozási mód AKTÍV</value>
+  </data>
+  <data name="ComplianceModeDisabled" xml:space="preserve">
+    <value>Eltartozási mód LEKAPCSOLVA</value>
+  </data>
+  <data name="ComplianceModeStarted" xml:space="preserve">
+    <value>Eltartozási mód indítva</value>
+  </data>
+  <data name="ComplianceStatus" xml:space="preserve">
+    <value>Eltartozási állapot</value>
+  </data>
+  <data name="ConfirmResetTwoFactor" xml:space="preserve">
+    <value>Biztos benne, hogy visszaállítja a kétfaktoros hitelesítést ezen a felhasználónál? Újra be kell állítania.</value>
+  </data>
+  <data name="ContentHash" xml:space="preserve">
+    <value>Tartalom hash (SHA-256)</value>
+  </data>
+  <data name="CopyCredentials" xml:space="preserve">
+    <value>Hitelesítő adatok másolása</value>
+  </data>
+  <data name="CouldNotLoadFolders" xml:space="preserve">
+    <value>Nem sikerült betölteni a mappákat a szerverről</value>
+  </data>
+  <data name="CredentialChangeDetected" xml:space="preserve">
+    <value>Hitelesítő adatok változtatása észlelve</value>
+  </data>
+  <data name="CredentialsCopied" xml:space="preserve">
+    <value>Hitelesítő adatok sikeresen másolva!</value>
+  </data>
+  <data name="CurrentHash" xml:space="preserve">
+    <value>Aktuális hash</value>
+  </data>
+  <data name="EmailDeletionAllowed" xml:space="preserve">
+    <value>E-mail törlés ENGEDÉLYEZETT</value>
+  </data>
+  <data name="EmailDeletionPrevented" xml:space="preserve">
+    <value>E-mail törlés MEGAKADÁLYOZOTT</value>
+  </data>
+  <data name="EmailLocked" xml:space="preserve">
+    <value>Zárolva</value>
+  </data>
+  <data name="EmailLockedDescription" xml:space="preserve">
+    <value>Ez az e-mail zárolva van, és tartalmának integritása kriptográfiai hash védelme alatt áll</value>
+  </data>
+  <data name="ErrorCopyingCredentials" xml:space="preserve">
+    <value>Hiba a hitelesítő adatok másolása közben</value>
+  </data>
+  <data name="ErrorSavingChanges" xml:space="preserve">
+    <value>Hiba a változtatások mentése közben</value>
+  </data>
+  <data name="ExistingM365AccountsFound" xml:space="preserve">
+    <value>Létező M365 fiókok találhatók</value>
+  </data>
+  <data name="HasAttachments" xml:space="preserve">
+    <value>Csatolmányok vannak</value>
+  </data>
+  <data name="HashCreated" xml:space="preserve">
+    <value>Hash létrehozva</value>
+  </data>
+  <data name="IntegrityCheck" xml:space="preserve">
+    <value>Integritás ellenőrzés</value>
+  </data>
+  <data name="IntegrityValid" xml:space="preserve">
+    <value>Integritás érvényes</value>
+  </data>
+  <data name="IntegrityValidDescription" xml:space="preserve">
+    <value>Az e-mail tartalma nem módosult. Az aktuális hash megegyezik az elmentett hash-hel.</value>
+  </data>
+  <data name="IntegrityViolation" xml:space="preserve">
+    <value>Integritás megsértése</value>
+  </data>
+  <data name="IntegrityViolationDescription" xml:space="preserve">
+    <value>FIGYELMEZTETÉS: Az aktuális hash nem egyezik meg az elmentett hash-hel. Az e-mail tartalma manipulálhatott lehet.</value>
+  </data>
+  <data name="LoadAvailableFolders" xml:space="preserve">
+    <value>Elérhető mappák betöltése</value>
+  </data>
+  <data name="LockedEmail" xml:space="preserve">
+    <value>Zárolt e-mail - tartalom védve az eltartozási szabályok szerint</value>
+  </data>
+  <data name="LoginBlocked" xml:space="preserve">
+    <value>Bejelentkezés ideiglenesen blokkolva</value>
+  </data>
+  <data name="LoginBlockedInfo" xml:space="preserve">
+    <value>Biztonsági okokból a bejelentkezési kísérletek az Ön IP-címéről ideiglenesen blokkolva lettek több sikertelen hitelesítési kísérlet miatt. Várjon 10 percet, majd próbálja újra.</value>
+  </data>
+  <data name="LoginBlockedMessage" xml:space="preserve">
+    <value>Túl sok sikertelen bejelentkezési kísérlet észlelve</value>
+  </data>
+  <data name="LoginBlockedTitle" xml:space="preserve">
+    <value>Hozzáférés blokkolva</value>
+  </data>
+  <data name="Mismatch" xml:space="preserve">
+    <value>Nem egyezik</value>
+  </data>
+  <data name="NoFoldersFound" xml:space="preserve">
+    <value>Nincsenek mappák a szerveren</value>
+  </data>
+  <data name="PasswordChangeRequired" xml:space="preserve">
+    <value>Jelszó változtatás szükséges</value>
+  </data>
+  <data name="PasswordChangeRequiredInfo" xml:space="preserve">
+    <value>Az új jelszó különböző kell legyen az aktuális jelszótól, és minden biztonsági követelményt kell teljesítenie.</value>
+  </data>
+  <data name="PasswordChangeRequiredMessage" xml:space="preserve">
+    <value>Biztonsági okokból meg kell változtatnia a jelszavát, mielőtt folytatná. Ez szükséges, mert a rendszer alapértelmezett hitelesítő adatokat használ egy frissen beállított rendszeren.</value>
+  </data>
+  <data name="PasswordMinLength" xml:space="preserve">
+    <value>A jelszónak legalább 10 karakter hosszú kell lennie</value>
+  </data>
+  <data name="PasswordMustBeDifferent" xml:space="preserve">
+    <value>Az új jelszó különböző kell legyen az aktuális jelszótól</value>
+  </data>
+  <data name="PasswordRequirements" xml:space="preserve">
+    <value>Jelszó követelmények</value>
+  </data>
+  <data name="PasswordRequiresLowercase" xml:space="preserve">
+    <value>A jelszónak legalább egy kisbetűt kell tartalmaznia</value>
+  </data>
+  <data name="PasswordRequiresNumber" xml:space="preserve">
+    <value>A jelszónak legalább egy számot kell tartalmaznia</value>
+  </data>
+  <data name="PasswordRequiresSpecialChar" xml:space="preserve">
+    <value>A jelszónak legalább egy speciális karaktert kell tartalmaznia</value>
+  </data>
+  <data name="PasswordRequiresUppercase" xml:space="preserve">
+    <value>A jelszónak legalább egy nagybetűt kell tartalmaznia</value>
+  </data>
+  <data name="PleaseSelectAccount" xml:space="preserve">
+    <value>Válasszon ki először egy fiókot</value>
+  </data>
+  <data name="Provider" xml:space="preserve">
+    <value>Szolgáltató</value>
+  </data>
+  <data name="ResetTwoFactor" xml:space="preserve">
+    <value>Kétfaktoros hitelesítés visszaállítása</value>
+  </data>
+  <data name="SelectAccount" xml:space="preserve">
+    <value>-- Fiók kiválasztása --</value>
+  </data>
+  <data name="StoredHash" xml:space="preserve">
+    <value>Elmentett hash</value>
+  </data>
+  <data name="TenantId" xml:space="preserve">
+    <value>Bérlő azonosító</value>
+  </data>
+  <data name="TwoFactorEnabled" xml:space="preserve">
+    <value>A kétfaktoros hitelesítés jelenleg engedélyezve van ezen a felhasználónál.</value>
+  </data>
+  <data name="UseExistingCredentialsPrompt" xml:space="preserve">
+    <value>Már léteznek más Microsoft 365 fiókok ezen a domainen. Másolhatja a hitelesítő adatokat időt takarítva.</value>
+  </data>
 </root>

@@ -2128,4 +2128,178 @@
   <data name="LocalRetentionRequiresServerRetention" xml:space="preserve">
       <value>La rétention locale ne peut être définie que si la rétention sur le serveur ('Supprimer après X jours') est également configurée.</value>
   </data>
+  <data name="AffectedAccounts" xml:space="preserve">
+    <value>Comptes affectés</value>
+  </data>
+  <data name="ApplicationStarted" xml:space="preserve">
+    <value>Application démarrée</value>
+  </data>
+  <data name="ApplyToAllAccounts" xml:space="preserve">
+    <value>Appliquer à tous les comptes de ce domaine</value>
+  </data>
+  <data name="ApplyToAllDomainAccountsPrompt" xml:space="preserve">
+    <value>Vous avez modifié les identifiants Microsoft 365. Souhaitez-vous appliquer ces modifications à tous les autres comptes du même domaine ?</value>
+  </data>
+  <data name="BackToLogin" xml:space="preserve">
+    <value>Retour à la connexion</value>
+  </data>
+  <data name="CannotLeavePasswordChange" xml:space="preserve">
+    <value>Vous devez changer votre mot de passe avant de pouvoir continuer à utiliser le système.</value>
+  </data>
+  <data name="ComplianceInformation" xml:space="preserve">
+    <value>Informations de conformité</value>
+  </data>
+  <data name="ComplianceModeActive" xml:space="preserve">
+    <value>Mode conformité ACTIF</value>
+  </data>
+  <data name="ComplianceModeDisabled" xml:space="preserve">
+    <value>Mode conformité DÉSACTIVÉ</value>
+  </data>
+  <data name="ComplianceModeStarted" xml:space="preserve">
+    <value>Mode conformité démarré</value>
+  </data>
+  <data name="ComplianceStatus" xml:space="preserve">
+    <value>Statut de conformité</value>
+  </data>
+  <data name="ConfirmResetTwoFactor" xml:space="preserve">
+    <value>Êtes-vous sûr de vouloir réinitialiser l'authentification à deux facteurs pour cet utilisateur ? Ils devront la configurer à nouveau.</value>
+  </data>
+  <data name="ContentHash" xml:space="preserve">
+    <value>Hachage de contenu (SHA-256)</value>
+  </data>
+  <data name="CopyCredentials" xml:space="preserve">
+    <value>Copier les identifiants</value>
+  </data>
+  <data name="CouldNotLoadFolders" xml:space="preserve">
+    <value>Impossible de charger les dossiers depuis le serveur</value>
+  </data>
+  <data name="CredentialChangeDetected" xml:space="preserve">
+    <value>Changement d'identifiants détecté</value>
+  </data>
+  <data name="CredentialsCopied" xml:space="preserve">
+    <value>Identifiants copiés avec succès !</value>
+  </data>
+  <data name="CurrentHash" xml:space="preserve">
+    <value>Hachage actuel</value>
+  </data>
+  <data name="EmailDeletionAllowed" xml:space="preserve">
+    <value>Suppression d'e-mail AUTORISÉE</value>
+  </data>
+  <data name="EmailDeletionPrevented" xml:space="preserve">
+    <value>Suppression d'e-mail EMPECHÉE</value>
+  </data>
+  <data name="EmailLocked" xml:space="preserve">
+    <value>Verrouillé</value>
+  </data>
+  <data name="EmailLockedDescription" xml:space="preserve">
+    <value>Cet e-mail est verrouillé et son intégrité de contenu est protégée par un hachage cryptographique</value>
+  </data>
+  <data name="ErrorCopyingCredentials" xml:space="preserve">
+    <value>Erreur lors de la copie des identifiants</value>
+  </data>
+  <data name="ErrorSavingChanges" xml:space="preserve">
+    <value>Erreur lors de l'enregistrement des modifications</value>
+  </data>
+  <data name="ExistingM365AccountsFound" xml:space="preserve">
+    <value>Comptes M365 existants trouvés</value>
+  </data>
+  <data name="HasAttachments" xml:space="preserve">
+    <value>Contient des pièces jointes</value>
+  </data>
+  <data name="HashCreated" xml:space="preserve">
+    <value>Hachage créé</value>
+  </data>
+  <data name="IntegrityCheck" xml:space="preserve">
+    <value>Vérification d'intégrité</value>
+  </data>
+  <data name="IntegrityValid" xml:space="preserve">
+    <value>Intégrité valide</value>
+  </data>
+  <data name="IntegrityValidDescription" xml:space="preserve">
+    <value>Le contenu de l'e-mail n'a pas été modifié. Le hachage actuel correspond au hachage stocké.</value>
+  </data>
+  <data name="IntegrityViolation" xml:space="preserve">
+    <value>Violation d'intégrité</value>
+  </data>
+  <data name="IntegrityViolationDescription" xml:space="preserve">
+    <value>ATTENTION : Le hachage actuel ne correspond pas au hachage stocké. Le contenu de l'e-mail a peut-être été altéré.</value>
+  </data>
+  <data name="LoadAvailableFolders" xml:space="preserve">
+    <value>Charger les dossiers disponibles</value>
+  </data>
+  <data name="LockedEmail" xml:space="preserve">
+    <value>E-mail verrouillé - contenu protégé pour conformité</value>
+  </data>
+  <data name="LoginBlocked" xml:space="preserve">
+    <value>Connexion temporairement bloquée</value>
+  </data>
+  <data name="LoginBlockedInfo" xml:space="preserve">
+    <value>Pour des raisons de sécurité, les tentatives de connexion depuis votre adresse IP ont été temporairement bloquées en raison de multiples tentatives d'authentification échouées. Veuillez attendre 10 minutes avant de réessayer.</value>
+  </data>
+  <data name="LoginBlockedMessage" xml:space="preserve">
+    <value>Trop de tentatives de connexion échouées détectées</value>
+  </data>
+  <data name="LoginBlockedTitle" xml:space="preserve">
+    <value>Accès bloqué</value>
+  </data>
+  <data name="Mismatch" xml:space="preserve">
+    <value>Incohérences</value>
+  </data>
+  <data name="NoFoldersFound" xml:space="preserve">
+    <value>Aucun dossier trouvé sur le serveur</value>
+  </data>
+  <data name="PasswordChangeRequired" xml:space="preserve">
+    <value>Changement de mot de passe requis</value>
+  </data>
+  <data name="PasswordChangeRequiredInfo" xml:space="preserve">
+    <value>Votre nouveau mot de passe doit être différent du mot de passe actuel et répondre à toutes les exigences de sécurité.</value>
+  </data>
+  <data name="PasswordChangeRequiredMessage" xml:space="preserve">
+    <value>Pour des raisons de sécurité, vous devez changer votre mot de passe avant de continuer. Cela est requis car vous utilisez les identifiants système par défaut sur un système nouvellement configuré.</value>
+  </data>
+  <data name="PasswordMinLength" xml:space="preserve">
+    <value>Le mot de passe doit comporter au moins 10 caractères</value>
+  </data>
+  <data name="PasswordMustBeDifferent" xml:space="preserve">
+    <value>Le nouveau mot de passe doit être différent du mot de passe actuel</value>
+  </data>
+  <data name="PasswordRequirements" xml:space="preserve">
+    <value>Exigences du mot de passe</value>
+  </data>
+  <data name="PasswordRequiresLowercase" xml:space="preserve">
+    <value>Le mot de passe doit contenir au moins une lettre minuscule</value>
+  </data>
+  <data name="PasswordRequiresNumber" xml:space="preserve">
+    <value>Le mot de passe doit contenir au moins un chiffre</value>
+  </data>
+  <data name="PasswordRequiresSpecialChar" xml:space="preserve">
+    <value>Le mot de passe doit contenir au moins un caractère spécial</value>
+  </data>
+  <data name="PasswordRequiresUppercase" xml:space="preserve">
+    <value>Le mot de passe doit contenir au moins une lettre majuscule</value>
+  </data>
+  <data name="PleaseSelectAccount" xml:space="preserve">
+    <value>Veuillez sélectionner un compte d'abord</value>
+  </data>
+  <data name="Provider" xml:space="preserve">
+    <value>Fournisseur</value>
+  </data>
+  <data name="ResetTwoFactor" xml:space="preserve">
+    <value>Réinitialiser l'authentification à deux facteurs</value>
+  </data>
+  <data name="SelectAccount" xml:space="preserve">
+    <value>-- Sélectionner un compte --</value>
+  </data>
+  <data name="StoredHash" xml:space="preserve">
+    <value>Hachage stocké</value>
+  </data>
+  <data name="TenantId" xml:space="preserve">
+    <value>ID de locataire</value>
+  </data>
+  <data name="TwoFactorEnabled" xml:space="preserve">
+    <value>L'authentification à deux facteurs est actuellement activée pour cet utilisateur.</value>
+  </data>
+  <data name="UseExistingCredentialsPrompt" xml:space="preserve">
+    <value>D'autres comptes Microsoft 365 de ce domaine existent déjà. Vous pouvez copier leurs identifiants pour gagner du temps.</value>
+  </data>
 </root>

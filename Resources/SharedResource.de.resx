@@ -2159,4 +2159,148 @@
   <data name="LocalRetentionInfo" xml:space="preserve">
     <value>Anzahl der Tage, nach denen E-Mails aus dem lokalen Archiv gelöscht werden. Leer lassen, um E-Mails unbegrenzt aufzubewahren. Muss größer oder gleich 'Löschen nach Tagen' sein, falls beide gesetzt sind.</value>
   </data>
+  <data name="AffectedAccounts" xml:space="preserve">
+    <value>Betroffene Konten</value>
+  </data>
+  <data name="ApplicationStarted" xml:space="preserve">
+      <value>Anwendung gestartet</value>
+  </data>
+  <data name="ApplyToAllAccounts" xml:space="preserve">
+      <value>Auf alle Konten in dieser Domain anwenden</value>
+  </data>
+  <data name="ApplyToAllDomainAccountsPrompt" xml:space="preserve">
+      <value>Sie haben die Microsoft 365-Anmeldedaten geändert. Möchten Sie diese Änderungen auf alle anderen Konten derselben Domain anwenden?</value>
+  </data>
+  <data name="CannotLeavePasswordChange" xml:space="preserve">
+      <value>Sie müssen Ihr Passwort ändern, bevor Sie das System weiter nutzen können.</value>
+  </data>
+  <data name="ComplianceInformation" xml:space="preserve">
+      <value>Compliance-Informationen</value>
+  </data>
+  <data name="ComplianceModeActive" xml:space="preserve">
+      <value>Compliance-Modus AKTIV</value>
+  </data>
+  <data name="ComplianceModeDisabled" xml:space="preserve">
+      <value>Compliance-Modus DEAKTIVIERT</value>
+  </data>
+  <data name="ComplianceModeStarted" xml:space="preserve">
+      <value>Compliance-Modus gestartet</value>
+  </data>
+  <data name="ComplianceStatus" xml:space="preserve">
+      <value>Compliance-Status</value>
+  </data>
+  <data name="ConfirmResetTwoFactor" xml:space="preserve">
+      <value>Sind Sie sicher, dass Sie die Zwei-Faktor-Authentifizierung für diesen Benutzer zurücksetzen möchten? Sie müssen sie erneut einrichten.</value>
+  </data>
+  <data name="ContentHash" xml:space="preserve">
+      <value>Inhalts-Hash (SHA-256)</value>
+  </data>
+  <data name="CopyCredentials" xml:space="preserve">
+      <value>Anmeldedaten kopieren</value>
+  </data>
+  <data name="CouldNotLoadFolders" xml:space="preserve">
+      <value>Ordner konnten nicht vom Server geladen werden</value>
+  </data>
+  <data name="CredentialChangeDetected" xml:space="preserve">
+      <value>Änderung der Anmeldedaten erkannt</value>
+  </data>
+  <data name="CredentialsCopied" xml:space="preserve">
+      <value>Anmeldedaten erfolgreich kopiert!</value>
+  </data>
+  <data name="CurrentHash" xml:space="preserve">
+      <value>Aktueller Hash</value>
+  </data>
+  <data name="EmailDeletionAllowed" xml:space="preserve">
+      <value>E-Mail-Löschung ERLAUBT</value>
+  </data>
+  <data name="EmailDeletionPrevented" xml:space="preserve">
+      <value>E-Mail-Löschung VERHINDERT</value>
+  </data>
+  <data name="EmailLocked" xml:space="preserve">
+      <value>Gesperrt</value>
+  </data>
+  <data name="EmailLockedDescription" xml:space="preserve">
+      <value>Diese E-Mail ist gesperrt und ihr Inhalt ist durch einen kryptografischen Hash geschützt</value>
+  </data>
+  <data name="ErrorCopyingCredentials" xml:space="preserve">
+      <value>Fehler beim Kopieren der Anmeldedaten</value>
+  </data>
+  <data name="ErrorSavingChanges" xml:space="preserve">
+      <value>Fehler beim Speichern der Änderungen</value>
+  </data>
+  <data name="ExistingM365AccountsFound" xml:space="preserve">
+      <value>Bestehende M365-Konten gefunden</value>
+  </data>
+  <data name="HasAttachments" xml:space="preserve">
+      <value>Enthält Anhänge</value>
+  </data>
+  <data name="HashCreated" xml:space="preserve">
+      <value>Hash erstellt</value>
+  </data>
+  <data name="IntegrityCheck" xml:space="preserve">
+      <value>Integritätsprüfung</value>
+  </data>
+  <data name="IntegrityValid" xml:space="preserve">
+      <value>Integrität gültig</value>
+  </data>
+  <data name="IntegrityValidDescription" xml:space="preserve">
+      <value>Der E-Mail-Inhalt wurde nicht verändert. Der aktuelle Hash entspricht dem gespeicherten Hash.</value>
+  </data>
+  <data name="IntegrityViolation" xml:space="preserve">
+      <value>Integritätsverletzung</value>
+  </data>
+  <data name="IntegrityViolationDescription" xml:space="preserve">
+      <value>WARNUNG: Der aktuelle Hash entspricht nicht dem gespeicherten Hash. Der E-Mail-Inhalt könnte manipuliert worden sein.</value>
+  </data>
+  <data name="LoadAvailableFolders" xml:space="preserve">
+      <value>Verfügbare Ordner laden</value>
+  </data>
+  <data name="LockedEmail" xml:space="preserve">
+      <value>Gesperrte E-Mail - Inhalt für Compliance geschützt</value>
+  </data>
+  <data name="Mismatch" xml:space="preserve">
+      <value>Nicht übereinstimmend</value>
+  </data>
+  <data name="NoFoldersFound" xml:space="preserve">
+      <value>Keine Ordner auf dem Server gefunden</value>
+  </data>
+  <data name="PasswordChangeRequired" xml:space="preserve">
+      <value>Passwortänderung erforderlich</value>
+  </data>
+  <data name="PasswordChangeRequiredInfo" xml:space="preserve">
+      <value>Ihr neues Passwort muss sich vom aktuellen Passwort unterscheiden und alle Sicherheitsanforderungen erfüllen.</value>
+  </data>
+  <data name="PasswordChangeRequiredMessage" xml:space="preserve">
+      <value>Aus Sicherheitsgründen müssen Sie Ihr Passwort ändern, bevor Sie fortfahren. Dies ist erforderlich, weil Sie die Standard-Anmeldedaten des Systems auf einem neu eingerichteten System verwenden.</value>
+  </data>
+  <data name="PasswordMustBeDifferent" xml:space="preserve">
+      <value>Neues Passwort muss sich vom aktuellen Passwort unterscheiden</value>
+  </data>
+  <data name="PasswordRequirements" xml:space="preserve">
+      <value>Passwortanforderungen</value>
+  </data>
+  <data name="PleaseSelectAccount" xml:space="preserve">
+      <value>Bitte wählen Sie zunächst ein Konto aus</value>
+  </data>
+  <data name="Provider" xml:space="preserve">
+      <value>Anbieter</value>
+  </data>
+  <data name="ResetTwoFactor" xml:space="preserve">
+      <value>Zwei-Faktor-Authentifizierung zurücksetzen</value>
+  </data>
+  <data name="SelectAccount" xml:space="preserve">
+      <value>-- Konto auswählen --</value>
+  </data>
+  <data name="StoredHash" xml:space="preserve">
+      <value>Gespeicherter Hash</value>
+  </data>
+  <data name="TenantId" xml:space="preserve">
+      <value>Mandanten-ID</value>
+  </data>
+  <data name="TwoFactorEnabled" xml:space="preserve">
+      <value>Zwei-Faktor-Authentifizierung ist für diesen Benutzer derzeit aktiviert.</value>
+  </data>
+  <data name="UseExistingCredentialsPrompt" xml:space="preserve">
+      <value>Es existieren bereits andere Microsoft 365-Konten dieser Domain. Sie können deren Anmeldedaten kopieren, um Zeit zu sparen.</value>
+  </data>
 </root>
