@@ -188,6 +188,11 @@ namespace MailArchiver.Data
             modelBuilder.Entity<ArchivedEmail>()
                 .HasIndex(e => e.ContentHash)
                 .HasDatabaseName("IX_ArchivedEmails_ContentHash");
+
+            // Configure IsLocked default value
+            modelBuilder.Entity<ArchivedEmail>()
+                .Property(e => e.IsLocked)
+                .HasDefaultValue(false);
         }
     }
 }

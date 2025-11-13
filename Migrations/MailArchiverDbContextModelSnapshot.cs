@@ -130,7 +130,8 @@ namespace MailArchiver.Migrations
                         .HasColumnType("text");
 
                     b.Property<bool>("IsLocked")
-                        .HasColumnType("boolean");
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
 
                     b.Property<bool>("IsOutgoing")
                         .HasColumnType("boolean");
