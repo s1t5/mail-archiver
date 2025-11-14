@@ -1907,10 +1907,28 @@ namespace MailArchiver.Services
             }
 
             // Account filtering
-            if (allowedAccountIds != null)
+            if (accountId.HasValue)
             {
+                // User selected a specific account
+                // Check if user has access to this account
+                if (allowedAccountIds != null && allowedAccountIds.Any() && !allowedAccountIds.Contains(accountId.Value))
+                {
+                    // User doesn't have access to this account, return empty results
+                    _logger.LogWarning("User attempted to access account {AccountId} which is not in their allowed accounts list", accountId.Value);
+                    return (new List<ArchivedEmail>(), 0);
+                }
+                
+                // Filter by the selected account
+                whereConditions.Add($@"""MailAccountId"" = @param{paramCounter}");
+                parameters.Add(new Npgsql.NpgsqlParameter($"@param{paramCounter}", accountId.Value));
+                paramCounter++;
+            }
+            else if (allowedAccountIds != null)
+            {
+                // No specific account selected, but user has restricted access
                 if (allowedAccountIds.Any())
                 {
+                    // Filter by all allowed accounts
                     whereConditions.Add($@"""MailAccountId"" = ANY(@param{paramCounter})");
                     parameters.Add(new Npgsql.NpgsqlParameter($"@param{paramCounter}", allowedAccountIds.ToArray()));
                     paramCounter++;
@@ -1918,21 +1936,11 @@ namespace MailArchiver.Services
                 else
                 {
                     // User has no access to any accounts
+                    _logger.LogWarning("User has no allowed accounts, returning empty result set");
                     return (new List<ArchivedEmail>(), 0);
                 }
             }
-            else if (accountId.HasValue)
-            {
-                // Additional check to ensure user has access to the requested account
-                if (allowedAccountIds != null && allowedAccountIds.Any() && !allowedAccountIds.Contains(accountId.Value))
-                {
-                    // User doesn't have access to this account, return empty results
-                    return (new List<ArchivedEmail>(), 0);
-                }
-                whereConditions.Add($@"""MailAccountId"" = @param{paramCounter}");
-                parameters.Add(new Npgsql.NpgsqlParameter($"@param{paramCounter}", accountId.Value));
-                paramCounter++;
-            }
+            // else: Admin user with no specific account selected - no account filter needed
 
             // Date filtering (these will use the composite indexes)
             if (fromDate.HasValue)
