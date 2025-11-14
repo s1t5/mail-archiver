@@ -10,11 +10,11 @@ namespace MailArchiver.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            // Update all existing emails to be unlocked (IsLocked = false)
+            // Update all existing emails to be unlocked (IsLocked = false) where ContentHash is null
             migrationBuilder.Sql(@"
                 UPDATE mail_archiver.""ArchivedEmails"" 
                 SET ""IsLocked"" = false 
-                WHERE ""IsLocked"" = true;
+                WHERE ""IsLocked"" = true AND ""ContentHash"" IS NULL;
             ");
             
             migrationBuilder.Sql(@"
@@ -37,10 +37,11 @@ namespace MailArchiver.Migrations
                 ALTER COLUMN ""IsLocked"" SET DEFAULT true;
             ");
 
-            // Update all emails back to locked (IsLocked = true)
+            // Update all emails back to locked (IsLocked = true) where ContentHash is null
             migrationBuilder.Sql(@"
                 UPDATE mail_archiver.""ArchivedEmails"" 
-                SET ""IsLocked"" = true;
+                SET ""IsLocked"" = true
+                WHERE ""ContentHash"" IS NULL;
             ");
             
             migrationBuilder.Sql(@"
