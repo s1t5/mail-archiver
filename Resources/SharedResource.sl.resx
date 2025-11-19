@@ -1,5 +1,64 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
   <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
     <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
     <xsd:element name="root" msdata:IsDataSet="true">
@@ -82,9 +141,6 @@
   <data name="LastUpdate" xml:space="preserve">
     <value>Zadnja posodobitev:</value>
   </data>
-  <data name="Search" xml:space="preserve">
-    <value>Iskanje</value>
-  </data>
   <data name="SearchTerm" xml:space="preserve">
     <value>Iskalni izraz</value>
   </data>
@@ -93,9 +149,6 @@
   </data>
   <data name="To" xml:space="preserve">
     <value>Za</value>
-  </data>
-  <data name="Account" xml:space="preserve">
-    <value>Račun</value>
   </data>
   <data name="Direction" xml:space="preserve">
     <value>Smer</value>
@@ -679,6 +732,9 @@
   <data name="FullResync" xml:space="preserve">
     <value>Polna ponovna sinhronizacija</value>
   </data>
+  <data name="FullResyncConfirm" xml:space="preserve">
+    <value>Ali ste prepričani, da želite izvesti popolno resinhronizacijo? To bo primerjalo celotno vsebino strežnika z arhivom in lahko traja dolgo časa.</value>
+  </data>
   <data name="CopyAllEmailsToAnotherMailbox" xml:space="preserve">
     <value>Kopiraj vso pošto v drug nabiralnik</value>
   </data>
@@ -688,8 +744,8 @@
   <data name="DangerZoneInfo" xml:space="preserve">
     <value>Naslednja dejanja so nepovratna in trajno izbrišejo podatke.</value>
   </data>
-  <data name="DeleteAccountAllEmailsButton" xml:space="preserve">
-    <value>Izbriši račun in vso pošto ({0})</value>
+  <data name="DeleteAccountWithEmailsButton" xml:space="preserve">
+    <value>Izbriši račun in vsa e-poštna sporočila ({0})</value>
   </data>
   <data name="DeleteAccountWithEmailsConfirm" xml:space="preserve">
     <value>Res želite izbrisati ta račun in VSO ({0}) arhivirano e-pošto? Dejanja ni mogoče razveljaviti!</value>
@@ -801,9 +857,6 @@
   </data>
   <data name="EmailsLabelStatus" xml:space="preserve">
     <value>Sporočila:</value>
-  </data>
-  <data name="ProcessedSuffix" xml:space="preserve">
-    <value>obdelanih</value>
   </data>
   <data name="EstimatedSuffix" xml:space="preserve">
     <value>ocenjenih</value>
@@ -1165,17 +1218,11 @@
   <data name="Preview" xml:space="preserve">
     <value>Predogled</value>
   </data>
-  <data name="Download" xml:space="preserve">
-    <value>Prenesi</value>
+  <data name="Close" xml:space="preserve">
+    <value>Zapri</value>
   </data>
-  <data name="Restore" xml:space="preserve">
-    <value>Obnovi</value>
-  </data>
-  <data name="Deletion" xml:space="preserve">
-    <value>Brisanje</value>
-  </data>
-  <data name="FromDate" xml:space="preserve">
-    <value>Od</value>
+  <data name="AttachmentPreview" xml:space="preserve">
+    <value>Predogled priponke</value>
   </data>
   <data name="PreviewNotAvailable" xml:space="preserve">
     <value>Predogled ni na voljo</value>
@@ -1189,14 +1236,14 @@
   <data name="ChangePassword" xml:space="preserve">
     <value>Zamenjaj geslo</value>
   </data>
-  <data name="Sign Out" xml:space="preserve">
-    <value>Odjava</value>
-  </data>
   <data name="PasswordHint" xml:space="preserve">
     <value>Geslo mora imeti vsaj 6 znakov.</value>
   </data>
   <data name="AllAccounts" xml:space="preserve">
     <value>Vsi računi</value>
+  </data>
+  <data name="AllFolders" xml:space="preserve">
+    <value>Vse mape</value>
   </data>
   <data name="All" xml:space="preserve">
     <value>Vse</value>
@@ -1255,14 +1302,14 @@
   <data name="PasswordCurrentIncorrect" xml:space="preserve">
     <value>Trenutno geslo je napačno.</value>
   </data>
-  <data name="CannotDisableAdmin" xml:space="preserve">
-    <value>Zadnjega skrbniškega uporabnika ni mogoče onemogočiti. Obstajati mora vsaj en skrbnik.</value>
+  <data name="PasswordChangeSuccess" xml:space="preserve">
+    <value>Geslo je bilo uspešno spremenjeno.</value>
   </data>
   <data name="PasswordChangeFail" xml:space="preserve">
     <value>Gesla ni bilo mogoče posodobiti.</value>
   </data>
-  <data name="PasswordChangeSuccess" xml:space="preserve">
-    <value>Geslo je bilo uspešno spremenjeno.</value>
+  <data name="CannotDisableAdmin" xml:space="preserve">
+    <value>Zadnjega skrbniškega uporabnika ni mogoče onemogočiti. Obstajati mora vsaj en skrbnik.</value>
   </data>
   <data name="UserChangeActiveSuccess" xml:space="preserve">
     <value>Uporabnik '{0}' je bil {1}</value>
@@ -1282,11 +1329,11 @@
   <data name="EmailAccountCreateSuccess" xml:space="preserve">
     <value>E-poštni račun je bil uspešno ustvarjen.</value>
   </data>
-  <data name="EmailAccountDisabled" xml:space="preserve">
-    <value>Sinhronizacija računa '{0}' je bila onemogočena.</value>
-  </data>
   <data name="EmailAccountEnabled" xml:space="preserve">
     <value>Sinhronizacija računa '{0}' je bila omogočena.</value>
+  </data>
+  <data name="EmailAccountDisabled" xml:space="preserve">
+    <value>Sinhronizacija računa '{0}' je bila onemogočena.</value>
   </data>
   <data name="EmailAccountUpdateSuccess" xml:space="preserve">
     <value>E-poštni račun je bil uspešno posodobljen.</value>
@@ -1303,9 +1350,6 @@
   </data>
   <data name="SyncFailed" xml:space="preserve">
     <value>Napaka med sinhronizacijo</value>
-  </data>
-  <data name="FullResyncConfirm" xml:space="preserve">
-    <value>Ali ste prepričani, da želite izvesti popolno resinhronizacijo? To bo primerjalo celotno vsebino strežnika z arhivom in lahko traja dolgo časa.</value>
   </data>
   <data name="FullSyncStarted" xml:space="preserve">
     <value>Popolna ponovna sinhronizacija za '{0}' se je uspešno začela.</value>
@@ -1355,13 +1399,9 @@
   <data name="InvalidUserPassword" xml:space="preserve">
     <value>Neveljavno uporabniško ime ali geslo.</value>
   </data>
-
-  <!-- Self-Manager Feature -->
   <data name="SelfManager" xml:space="preserve">
     <value>Samo-Upravitelj</value>
   </data>
-
-  <!-- Import-Only Account Feature -->
   <data name="ImportOnlyAccount" xml:space="preserve">
     <value>Račun samo za uvoz</value>
   </data>
@@ -1371,8 +1411,6 @@
   <data name="ImportOnlyAccountNoSync" xml:space="preserve">
     <value>Računi samo za uvoz se ne morejo sinhronizirati</value>
   </data>
-
-  <!-- Job Status Translations -->
   <data name="Running" xml:space="preserve">
     <value>Teče</value>
   </data>
@@ -1391,22 +1429,21 @@
   <data name="Folders" xml:space="preserve">
     <value>Mape</value>
   </data>
+  <data name="ProcessedSuffix" xml:space="preserve">
+    <value>obdelanih</value>
+  </data>
   <data name="New" xml:space="preserve">
     <value>Novo</value>
   </data>
   <data name="Deleted" xml:space="preserve">
     <value>Izbrisano</value>
   </data>
-
-  <!-- Role Explanations -->
   <data name="AdminRoleDescription" xml:space="preserve">
     <value>Popoln dostop do sistema vključno z upravljanjem uporabnikov in vseh e-poštnih računov</value>
   </data>
   <data name="SelfManagerRoleDescription" xml:space="preserve">
     <value>Lahko upravlja nastavitve svojega računa ter dodaja nove račune</value>
   </data>
-
-  <!-- EML Import -->
   <data name="ImportEml" xml:space="preserve">
     <value>Uvozi EML</value>
   </data>
@@ -1464,7 +1501,6 @@
   <data name="Import" xml:space="preserve">
     <value>Uvozi</value>
   </data>
-  <!-- Microsoft 365 -->
   <data name="Microsoft365Account" xml:space="preserve">
     <value>Microsoft 365 račun</value>
   </data>
@@ -1483,7 +1519,6 @@
   <data name="LeaveEmptyToKeepCurrent" xml:space="preserve">
     <value>Pustite prazno, da obdržite trenutno vrednost</value>
   </data>
-  <!-- Two-Factor Authentication -->
   <data name="TwoFactorEnabledSuccess" xml:space="preserve">
     <value>Dvofaktorska avtentifikacija je bila uspešno omogočena.</value>
   </data>
@@ -1619,10 +1654,89 @@
   <data name="EnterCode" xml:space="preserve">
     <value>Vnesite kodo</value>
   </data>
-
-  <!-- Rate Limiting -->
+  <data name="DeleteEmail" xml:space="preserve">
+    <value>Briši E-pošto</value>
+  </data>
+  <data name="DeleteSelected" xml:space="preserve">
+    <value>Briši Izbrane</value>
+  </data>
+  <data name="ConfirmDeletion" xml:space="preserve">
+    <value>Potrdi Brisanje</value>
+  </data>
+  <data name="DeleteEmailConfirm" xml:space="preserve">
+    <value>Ali ste prepričani, da želite trajno izbrisati to e-pošto? Tega dejanja ni mogoče razveljaviti in bo zabeleženo za namene revizije.</value>
+  </data>
+  <data name="DeleteSelectedEmailsConfirm" xml:space="preserve">
+    <value>Ali ste prepričani, da želite trajno izbrisati {0} izbranih e-poštnih sporočil? Tega dejanja ni mogoče razveljaviti in vsako brisanje bo zabeleženo za namene revizije.</value>
+  </data>
+  <data name="DeleteButton" xml:space="preserve">
+    <value>Briši</value>
+  </data>
+  <data name="EmailDeleted" xml:space="preserve">
+    <value>E-pošta uspešno izbrisana</value>
+  </data>
+  <data name="EmailsDeleted" xml:space="preserve">
+    <value>{0} e-poštnih sporočil uspešno izbrisanih</value>
+  </data>
   <data name="RateLimitExceeded" xml:space="preserve">
     <value>Omejitev hitrosti presežena. Poskusite pozneje.</value>
+  </data>
+  <data name="LoginBlocked" xml:space="preserve">
+    <value>Login Temporarily Blocked</value>
+  </data>
+  <data name="LoginBlockedTitle" xml:space="preserve">
+    <value>Access Blocked</value>
+  </data>
+  <data name="LoginBlockedMessage" xml:space="preserve">
+    <value>Too many failed login attempts detected</value>
+  </data>
+  <data name="LoginBlockedInfo" xml:space="preserve">
+    <value>For security reasons, login attempts from your IP address have been temporarily blocked due to multiple failed authentication attempts. Please wait 10 minutes before trying again.</value>
+  </data>
+  <data name="BackToLogin" xml:space="preserve">
+    <value>Back to Login</value>
+  </data>
+  <data name="PasswordMinLength" xml:space="preserve">
+    <value>Password must be at least 10 characters long</value>
+  </data>
+  <data name="PasswordRequiresUppercase" xml:space="preserve">
+    <value>Password must contain at least one uppercase letter</value>
+  </data>
+  <data name="PasswordRequiresLowercase" xml:space="preserve">
+    <value>Password must contain at least one lowercase letter</value>
+  </data>
+  <data name="PasswordRequiresNumber" xml:space="preserve">
+    <value>Password must contain at least one number</value>
+  </data>
+  <data name="PasswordRequiresSpecialChar" xml:space="preserve">
+    <value>Password must contain at least one special character</value>
+  </data>
+  <data name="PasswordMustBeDifferent" xml:space="preserve">
+    <value>New password must be different from the current password</value>
+  </data>
+  <data name="PasswordRequirements" xml:space="preserve">
+    <value>Password Requirements</value>
+  </data>
+  <data name="PasswordChangeRequired" xml:space="preserve">
+    <value>Password Change Required</value>
+  </data>
+  <data name="PasswordChangeRequiredMessage" xml:space="preserve">
+    <value>For security reasons, you must change your password before continuing. This is required because you are using the default system credentials on a newly set up system.</value>
+  </data>
+  <data name="PasswordChangeRequiredInfo" xml:space="preserve">
+    <value>Your new password must be different from the current password and meet all security requirements.</value>
+  </data>
+  <data name="CannotLeavePasswordChange" xml:space="preserve">
+    <value>You must change your password before you can continue using the system.</value>
+  </data>
+  <data name="TwoFactorEnabled" xml:space="preserve">
+    <value>Two-factor authentication is currently enabled for this user.</value>
+  </data>
+  <data name="ConfirmResetTwoFactor" xml:space="preserve">
+    <value>Are you sure you want to reset two-factor authentication for this user? They will need to set it up again.</value>
+  </data>
+  <data name="ResetTwoFactor" xml:space="preserve">
+    <value>Reset Two-Factor Authentication</value>
   </data>
   <data name="TooManyAttempts" xml:space="preserve">
     <value>Preveč poskusov. Počakajte {0} sekund pred ponovnim poskusom.</value>
@@ -1633,8 +1747,6 @@
   <data name="RateLimitTwoFactorMessage" xml:space="preserve">
     <value>Naredili ste preveč poskusov preverjanja 2FA. Počakajte in poskusite pozneje.</value>
   </data>
-
-  <!-- Account Export Feature -->
   <data name="ExportAccount" xml:space="preserve">
     <value>Izvozi Račun</value>
   </data>
@@ -1767,7 +1879,6 @@
   <data name="AutoRefresh" xml:space="preserve">
     <value>Samodejno osvežuj vsakih 3 sekund</value>
   </data>
-  <!-- Missing Export Strings -->
   <data name="NoEmailsToExport" xml:space="preserve">
     <value>V tem računu ni e-poštnih sporočil za izvoz.</value>
   </data>
@@ -1831,8 +1942,6 @@
   <data name="Refresh" xml:space="preserve">
     <value>Osveži</value>
   </data>
-
-  <!-- Export Format Selection Modal -->
   <data name="ExportFormatSelection" xml:space="preserve">
     <value>Izbira Formata Izvoza</value>
   </data>
@@ -1842,8 +1951,6 @@
   <data name="ExportSelectedInfo" xml:space="preserve">
     <value>Izvoz se bo izvajal v ozadju in rezultat boste lahko prenesli s strani Nalog, ko bo dokončan.</value>
   </data>
-
-  <!-- Selected Emails Export Feature -->
   <data name="ExportSelected" xml:space="preserve">
     <value>Izvozi Izbrane</value>
   </data>
@@ -1871,8 +1978,6 @@
   <data name="EMLImportJobs" xml:space="preserve">
     <value>Naloge Uvoza EML</value>
   </data>
-
-  <!-- EmailsController Messages -->
   <data name="EmailHasNoAttachments" xml:space="preserve">
     <value>Ta e-pošta nima prilog.</value>
   </data>
@@ -2020,8 +2125,8 @@
   <data name="DeselectAllOnPage" xml:space="preserve">
     <value>Počisti vse na strani</value>
   </data>
-  <data name="DeleteAccountWithEmailsButton" xml:space="preserve">
-    <value>Izbriši račun in vsa e-poštna sporočila ({0})</value>
+  <data name="Log" xml:space="preserve">
+    <value>Dnevnik</value>
   </data>
   <data name="AccessLog" xml:space="preserve">
     <value>Dnevnik dostopa</value>
@@ -2029,17 +2134,20 @@
   <data name="AccessLogEntries" xml:space="preserve">
     <value>Vnosi dnevnika dostopa</value>
   </data>
+  <data name="Account" xml:space="preserve">
+    <value>Račun</value>
+  </data>
+  <data name="Timestamp" xml:space="preserve">
+    <value>Časovni žig</value>
+  </data>
+  <data name="Type" xml:space="preserve">
+    <value>Tip</value>
+  </data>
   <data name="EmailSubject" xml:space="preserve">
     <value>Zadeva e-pošte</value>
   </data>
-  <data name="Filter" xml:space="preserve">
-    <value>Filter</value>
-  </data>
-  <data name="Info" xml:space="preserve">
-    <value>Informacije</value>
-  </data>
-  <data name="Log" xml:space="preserve">
-    <value>Dnevnik</value>
+  <data name="SearchParameters" xml:space="preserve">
+    <value>Parametri iskanja</value>
   </data>
   <data name="Login" xml:space="preserve">
     <value>Prijava</value>
@@ -2047,26 +2155,38 @@
   <data name="Logout" xml:space="preserve">
     <value>Odjava</value>
   </data>
-  <data name="NoAccessLogEntries" xml:space="preserve">
-    <value>Ni najdenih vnosov dnevnika dostopa</value>
-  </data>
-  <data name="NoInfo" xml:space="preserve">
-    <value>Ni informacij</value>
+  <data name="Search" xml:space="preserve">
+    <value>Iskanje</value>
   </data>
   <data name="Open" xml:space="preserve">
     <value>Odpri</value>
   </data>
-  <data name="SearchParameters" xml:space="preserve">
-    <value>Parametri iskanja</value>
+  <data name="Download" xml:space="preserve">
+    <value>Prenesi</value>
   </data>
-  <data name="Timestamp" xml:space="preserve">
-    <value>Časovni žig</value>
+  <data name="Restore" xml:space="preserve">
+    <value>Obnovi</value>
+  </data>
+  <data name="Deletion" xml:space="preserve">
+    <value>Brisanje</value>
+  </data>
+  <data name="FromDate" xml:space="preserve">
+    <value>Od</value>
   </data>
   <data name="ToDate" xml:space="preserve">
     <value>Do</value>
   </data>
-  <data name="Type" xml:space="preserve">
-    <value>Tip</value>
+  <data name="Filter" xml:space="preserve">
+    <value>Filter</value>
+  </data>
+  <data name="Info" xml:space="preserve">
+    <value>Informacije</value>
+  </data>
+  <data name="NoInfo" xml:space="preserve">
+    <value>Ni informacij</value>
+  </data>
+  <data name="NoAccessLogEntries" xml:space="preserve">
+    <value>Ni najdenih vnosov dnevnika dostopa</value>
   </data>
   <data name="EmailNotFoundTitle" xml:space="preserve">
     <value>E-pošta Ni Najdena</value>
@@ -2080,74 +2200,32 @@
   <data name="EmailNotFoundHelp" xml:space="preserve">
     <value>Če menite, da je to napaka, se obrnite na svojega sistemskega administratorja.</value>
   </data>
-  <data name="ConfirmDeletion" xml:space="preserve">
-    <value>Potrdi Brisanje</value>
-  </data>
-  <data name="DeleteButton" xml:space="preserve">
-    <value>Briši</value>
-  </data>
-  <data name="DeleteEmail" xml:space="preserve">
-    <value>Briši E-pošto</value>
-  </data>
-  <data name="DeleteEmailConfirm" xml:space="preserve">
-    <value>Ali ste prepričani, da želite trajno izbrisati to e-pošto? Tega dejanja ni mogoče razveljaviti in bo zabeleženo za namene revizije.</value>
-  </data>
-  <data name="DeleteSelected" xml:space="preserve">
-    <value>Briši Izbrane</value>
-  </data>
-  <data name="DeleteSelectedEmailsConfirm" xml:space="preserve">
-    <value>Ali ste prepričani, da želite trajno izbrisati {0} izbranih e-poštnih sporočil? Tega dejanja ni mogoče razveljaviti in vsako brisanje bo zabeleženo za namene revizije.</value>
-  </data>
-  <data name="EmailDeleted" xml:space="preserve">
-    <value>E-pošta uspešno izbrisana</value>
-  </data>
-  <data name="EmailsDeleted" xml:space="preserve">
-    <value>{0} e-poštnih sporočil uspešno izbrisanih</value>
-  </data>
-  <data name="AttachmentPreview" xml:space="preserve">
-    <value>Predogled priponke</value>
-  </data>
-  <data name="Close" xml:space="preserve">
-    <value>Zapri</value>
-  </data>
-  <data name="AllFolders" xml:space="preserve">
-    <value>Vse mape</value>
-  </data>
   <data name="Reply" xml:space="preserve">
     <value>Odgovori</value>
   </data>
   <data name="LocalRetentionDays" xml:space="preserve">
     <value>Dnevi lokalnega hranjenja</value>
   </data>
-  <data name="LocalRetentionInfo" xml:space="preserve">
-      <value>Število dni, po katerih bodo e-poštna sporočila izbrisana iz lokalnega arhiva. Pustite prazno za neskončno hranjenje sporočil. Mora biti večje ali enako 'Izbriši po dneh', če sta oba nastavljena.</value>
+  <data name="LocalRetentionRequiresServerRetention" xml:space="preserve">
+    <value>Lokalno hranjenje je mogoče nastaviti le, če je nastavljeno tudi hranjenje na strežniku ('Izbriši po dneh').</value>
   </data>
   <data name="LocalRetentionMustBeGreaterOrEqual" xml:space="preserve">
-      <value>Dnevi lokalnega hranjenja morajo biti večji ali enaki dnevom za brisanje, da se zagotovi, da sporočila niso izbrisana iz lokalnega arhiva, preden so izbrisana z poštnega strežnika.</value>
+    <value>Dnevi lokalnega hranjenja morajo biti večji ali enaki dnevom za brisanje, da se zagotovi, da sporočila niso izbrisana iz lokalnega arhiva, preden so izbrisana z poštnega strežnika.</value>
   </data>
-  <data name="LocalRetentionRequiresServerRetention" xml:space="preserve">
-      <value>Lokalno hranjenje je mogoče nastaviti le, če je nastavljeno tudi hranjenje na strežniku ('Izbriši po dneh').</value>
+  <data name="LocalRetentionInfo" xml:space="preserve">
+    <value>Število dni, po katerih bodo e-poštna sporočila izbrisana iz lokalnega arhiva. Pustite prazno za neskončno hranjenje sporočil. Mora biti večje ali enako 'Izbriši po dneh', če sta oba nastavljena.</value>
   </data>
-  <data name="AffectedAccounts" xml:space="preserve">
-    <value>Affected Accounts</value>
+  <data name="LoadAvailableFolders" xml:space="preserve">
+    <value>Load Available Folders</value>
   </data>
-  <data name="ApplicationStarted" xml:space="preserve">
-    <value>Application Started</value>
+  <data name="CouldNotLoadFolders" xml:space="preserve">
+    <value>Could not load folders from server</value>
   </data>
-  <data name="ApplyToAllAccounts" xml:space="preserve">
-    <value>Apply to all accounts in this domain</value>
+  <data name="NoFoldersFound" xml:space="preserve">
+    <value>No folders found on server</value>
   </data>
-  <data name="ApplyToAllDomainAccountsPrompt" xml:space="preserve">
-    <value>You have modified the Microsoft 365 credentials. Would you like to apply these changes to all other accounts from the same domain?</value>
-  </data>
-  <data name="BackToLogin" xml:space="preserve">
-    <value>Back to Login</value>
-  </data>
-  <data name="CannotLeavePasswordChange" xml:space="preserve">
-    <value>You must change your password before you can continue using the system.</value>
-  </data>
-  <data name="ComplianceInformation" xml:space="preserve">
-    <value>Compliance Information</value>
+  <data name="ComplianceModeStarted" xml:space="preserve">
+    <value>Compliance Mode Started</value>
   </data>
   <data name="ComplianceModeActive" xml:space="preserve">
     <value>Compliance Mode ACTIVE</value>
@@ -2155,56 +2233,11 @@
   <data name="ComplianceModeDisabled" xml:space="preserve">
     <value>Compliance Mode DISABLED</value>
   </data>
-  <data name="ComplianceModeStarted" xml:space="preserve">
-    <value>Compliance Mode Started</value>
-  </data>
-  <data name="ComplianceStatus" xml:space="preserve">
-    <value>Compliance Status</value>
-  </data>
-  <data name="ConfirmResetTwoFactor" xml:space="preserve">
-    <value>Are you sure you want to reset two-factor authentication for this user? They will need to set it up again.</value>
-  </data>
-  <data name="ContentHash" xml:space="preserve">
-    <value>Content Hash (SHA-256)</value>
-  </data>
-  <data name="CopyCredentials" xml:space="preserve">
-    <value>Copy Credentials</value>
-  </data>
-  <data name="CouldNotLoadFolders" xml:space="preserve">
-    <value>Could not load folders from server</value>
-  </data>
-  <data name="CredentialChangeDetected" xml:space="preserve">
-    <value>Credential Change Detected</value>
-  </data>
-  <data name="CredentialsCopied" xml:space="preserve">
-    <value>Credentials successfully copied!</value>
-  </data>
-  <data name="CurrentHash" xml:space="preserve">
-    <value>Current Hash</value>
-  </data>
-  <data name="EmailDeletionAllowed" xml:space="preserve">
-    <value>Email deletion ALLOWED</value>
-  </data>
   <data name="EmailDeletionPrevented" xml:space="preserve">
     <value>Email deletion PREVENTED</value>
   </data>
-  <data name="EmailLocked" xml:space="preserve">
-    <value>Locked</value>
-  </data>
-  <data name="EmailLockedDescription" xml:space="preserve">
-    <value>This email is locked and its content integrity is protected by a cryptographic hash</value>
-  </data>
-  <data name="ErrorCopyingCredentials" xml:space="preserve">
-    <value>Error copying credentials</value>
-  </data>
-  <data name="ErrorSavingChanges" xml:space="preserve">
-    <value>Error saving changes</value>
-  </data>
-  <data name="ExistingM365AccountsFound" xml:space="preserve">
-    <value>Existing M365 Accounts Found</value>
-  </data>
-  <data name="HasAttachments" xml:space="preserve">
-    <value>Has attachments</value>
+  <data name="EmailDeletionAllowed" xml:space="preserve">
+    <value>Email deletion ALLOWED</value>
   </data>
   <data name="HashCreated" xml:space="preserve">
     <value>Hash Created</value>
@@ -2212,94 +2245,101 @@
   <data name="IntegrityCheck" xml:space="preserve">
     <value>Integrity Check</value>
   </data>
+  <data name="IntegrityViolation" xml:space="preserve">
+    <value>Integrity Violation</value>
+  </data>
+  <data name="ComplianceStatus" xml:space="preserve">
+    <value>Compliance Status</value>
+  </data>
+  <data name="ApplicationStarted" xml:space="preserve">
+    <value>Application Started</value>
+  </data>
+  <data name="ComplianceInformation" xml:space="preserve">
+    <value>Compliance Information</value>
+  </data>
+  <data name="ContentHash" xml:space="preserve">
+    <value>Content Hash (SHA-256)</value>
+  </data>
+  <data name="EmailLocked" xml:space="preserve">
+    <value>Locked</value>
+  </data>
+  <data name="EmailLockedDescription" xml:space="preserve">
+    <value>This email is locked and its content integrity is protected by a cryptographic hash</value>
+  </data>
+  <data name="StoredHash" xml:space="preserve">
+    <value>Stored Hash</value>
+  </data>
+  <data name="CurrentHash" xml:space="preserve">
+    <value>Current Hash</value>
+  </data>
   <data name="IntegrityValid" xml:space="preserve">
     <value>Integrity Valid</value>
   </data>
   <data name="IntegrityValidDescription" xml:space="preserve">
     <value>The email content has not been modified. The current hash matches the stored hash.</value>
   </data>
-  <data name="IntegrityViolation" xml:space="preserve">
-    <value>Integrity Violation</value>
-  </data>
   <data name="IntegrityViolationDescription" xml:space="preserve">
     <value>WARNING: The current hash does not match the stored hash. The email content may have been tampered with.</value>
-  </data>
-  <data name="LoadAvailableFolders" xml:space="preserve">
-    <value>Load Available Folders</value>
-  </data>
-  <data name="LockedEmail" xml:space="preserve">
-    <value>Locked email - content protected for compliance</value>
-  </data>
-  <data name="LoginBlocked" xml:space="preserve">
-    <value>Login Temporarily Blocked</value>
-  </data>
-  <data name="LoginBlockedInfo" xml:space="preserve">
-    <value>For security reasons, login attempts from your IP address have been temporarily blocked due to multiple failed authentication attempts. Please wait 10 minutes before trying again.</value>
-  </data>
-  <data name="LoginBlockedMessage" xml:space="preserve">
-    <value>Too many failed login attempts detected</value>
-  </data>
-  <data name="LoginBlockedTitle" xml:space="preserve">
-    <value>Access Blocked</value>
   </data>
   <data name="Mismatch" xml:space="preserve">
     <value>Mismatch</value>
   </data>
-  <data name="NoFoldersFound" xml:space="preserve">
-    <value>No folders found on server</value>
+  <data name="HasAttachments" xml:space="preserve">
+    <value>Has attachments</value>
   </data>
-  <data name="PasswordChangeRequired" xml:space="preserve">
-    <value>Password Change Required</value>
+  <data name="LockedEmail" xml:space="preserve">
+    <value>Locked email - content protected for compliance</value>
   </data>
-  <data name="PasswordChangeRequiredInfo" xml:space="preserve">
-    <value>Your new password must be different from the current password and meet all security requirements.</value>
+  <data name="ExistingM365AccountsFound" xml:space="preserve">
+    <value>Existing M365 Accounts Found</value>
   </data>
-  <data name="PasswordChangeRequiredMessage" xml:space="preserve">
-    <value>For security reasons, you must change your password before continuing. This is required because you are using the default system credentials on a newly set up system.</value>
-  </data>
-  <data name="PasswordMinLength" xml:space="preserve">
-    <value>Password must be at least 10 characters long</value>
-  </data>
-  <data name="PasswordMustBeDifferent" xml:space="preserve">
-    <value>New password must be different from the current password</value>
-  </data>
-  <data name="PasswordRequirements" xml:space="preserve">
-    <value>Password Requirements</value>
-  </data>
-  <data name="PasswordRequiresLowercase" xml:space="preserve">
-    <value>Password must contain at least one lowercase letter</value>
-  </data>
-  <data name="PasswordRequiresNumber" xml:space="preserve">
-    <value>Password must contain at least one number</value>
-  </data>
-  <data name="PasswordRequiresSpecialChar" xml:space="preserve">
-    <value>Password must contain at least one special character</value>
-  </data>
-  <data name="PasswordRequiresUppercase" xml:space="preserve">
-    <value>Password must contain at least one uppercase letter</value>
-  </data>
-  <data name="PleaseSelectAccount" xml:space="preserve">
-    <value>Please select an account first</value>
-  </data>
-  <data name="Provider" xml:space="preserve">
-    <value>Provider</value>
-  </data>
-  <data name="ResetTwoFactor" xml:space="preserve">
-    <value>Reset Two-Factor Authentication</value>
+  <data name="UseExistingCredentialsPrompt" xml:space="preserve">
+    <value>Other Microsoft 365 accounts from this domain already exist. You can copy their credentials to save time.</value>
   </data>
   <data name="SelectAccount" xml:space="preserve">
     <value>-- Select Account --</value>
   </data>
-  <data name="StoredHash" xml:space="preserve">
-    <value>Stored Hash</value>
+  <data name="CopyCredentials" xml:space="preserve">
+    <value>Copy Credentials</value>
+  </data>
+  <data name="CredentialsCopied" xml:space="preserve">
+    <value>Credentials successfully copied!</value>
+  </data>
+  <data name="ErrorCopyingCredentials" xml:space="preserve">
+    <value>Error copying credentials</value>
+  </data>
+  <data name="PleaseSelectAccount" xml:space="preserve">
+    <value>Please select an account first</value>
+  </data>
+  <data name="CredentialChangeDetected" xml:space="preserve">
+    <value>Credential Change Detected</value>
+  </data>
+  <data name="ApplyToAllDomainAccountsPrompt" xml:space="preserve">
+    <value>You have modified the Microsoft 365 credentials. Would you like to apply these changes to all other accounts from the same domain?</value>
+  </data>
+  <data name="AffectedAccounts" xml:space="preserve">
+    <value>Affected Accounts</value>
+  </data>
+  <data name="ApplyToAllAccounts" xml:space="preserve">
+    <value>Apply to all accounts in this domain</value>
+  </data>
+  <data name="ErrorSavingChanges" xml:space="preserve">
+    <value>Error saving changes</value>
   </data>
   <data name="TenantId" xml:space="preserve">
     <value>Tenant-ID</value>
   </data>
-  <data name="TwoFactorEnabled" xml:space="preserve">
-    <value>Two-factor authentication is currently enabled for this user.</value>
+  <data name="Provider" xml:space="preserve">
+    <value>Provider</value>
   </data>
-  <data name="UseExistingCredentialsPrompt" xml:space="preserve">
-    <value>Other Microsoft 365 accounts from this domain already exist. You can copy their credentials to save time.</value>
+  <data name="DeleteAccountAllEmailsButton" xml:space="preserve">
+    <value>Izbriši račun in vso pošto ({0})</value>
+  </data>
+  <data name="Sign Out" xml:space="preserve">
+    <value>Odjava</value>
+  </data>
+  <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+  <data name="SignInWithOAuth" type="System.Resources.ResXNullRef, System.Windows.Forms">
+    <value />
   </data>
 </root>

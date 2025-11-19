@@ -41,12 +41,23 @@
                     <input asp-for="RememberMe" class="form-check-input" />
                     <label asp-for="RememberMe" class="form-check-label">@Localizer["RememberMe"]</label>
                 </div>
-                <div class="d-grid">
+                <div class="mb-3 d-grid">
                     <button type="submit" class="btn btn-primary btn-lg">
                         <i class="bi bi-box-arrow-in-right me-2"></i>@Localizer["SignIn"]
                     </button>
-                </div>
+                </div>                
             </form>
+            @if (ViewBag.OAuthEnabled)
+            {
+                <form asp-action="LoginWithOAuth" method="post">
+                    <input type="hidden" name="ReturnUrl" value="@ViewData["ReturnUrl"]" />
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="bi bi-box-arrow-in-right me-2"></i>@Localizer["SignInWithOAuth"]
+                        </button>
+                    </div>
+                </form>
+            }            
         </div>
         <div class="card-footer text-center text-muted">
             <small>@DateTime.Now.Year - s1t5</small>

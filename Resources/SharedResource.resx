@@ -1,5 +1,64 @@
 <?xml version="1.0" encoding="utf-8"?>
 <root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
   <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
     <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
     <xsd:element name="root" msdata:IsDataSet="true">
@@ -14,7 +73,7 @@
               <xsd:attribute name="type" type="xsd:string" />
               <xsd:attribute name="mimetype" type="xsd:string" />
               <xsd:attribute ref="xml:space" />
-              </xsd:complexType>
+            </xsd:complexType>
           </xsd:element>
           <xsd:element name="assembly">
             <xsd:complexType>
@@ -28,10 +87,10 @@
                 <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
                 <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
               </xsd:sequence>
-                <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
-                <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
-                <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
-                <xsd:attribute ref="xml:space" />
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
             </xsd:complexType>
           </xsd:element>
           <xsd:element name="resheader">
@@ -1352,13 +1411,9 @@
   <data name="InvalidUserPassword" xml:space="preserve">
     <value>Invalid username or password.</value>
   </data>
-  
-  <!-- Self-Manager Feature -->
   <data name="SelfManager" xml:space="preserve">
     <value>Self-Manager</value>
   </data>
-  
-  <!-- Import-Only Account Feature -->
   <data name="ImportOnlyAccount" xml:space="preserve">
     <value>Import-Only Account</value>
   </data>
@@ -1368,8 +1423,6 @@
   <data name="ImportOnlyAccountNoSync" xml:space="preserve">
     <value>Import-only accounts cannot be synchronized</value>
   </data>
-  
-  <!-- Job Status Translations -->
   <data name="Running" xml:space="preserve">
     <value>Running</value>
   </data>
@@ -1397,16 +1450,12 @@
   <data name="Deleted" xml:space="preserve">
     <value>Deleted</value>
   </data>
-  
-  <!-- Role Explanations -->
   <data name="AdminRoleDescription" xml:space="preserve">
     <value>Full system access including user management and all email accounts</value>
   </data>
   <data name="SelfManagerRoleDescription" xml:space="preserve">
     <value>Can manage their own account settings as well as add new Accounts</value>
   </data>
-  
-  <!-- EML Import -->
   <data name="ImportEml" xml:space="preserve">
     <value>Import Eml</value>
   </data>
@@ -1464,8 +1513,6 @@
   <data name="Import" xml:space="preserve">
     <value>Import</value>
   </data>
-  
-  <!-- Microsoft 365 -->
   <data name="Microsoft365Account" xml:space="preserve">
     <value>Microsoft 365 Account</value>
   </data>
@@ -1484,8 +1531,6 @@
   <data name="LeaveEmptyToKeepCurrent" xml:space="preserve">
     <value>Leave empty to keep current value</value>
   </data>
-  
-  <!-- Two-Factor Authentication -->
   <data name="TwoFactorEnabledSuccess" xml:space="preserve">
     <value>Two-factor authentication has been successfully enabled.</value>
   </data>
@@ -1621,8 +1666,6 @@
   <data name="EnterCode" xml:space="preserve">
     <value>Enter Code</value>
   </data>
-  
-  <!-- Delete Email Feature -->
   <data name="DeleteEmail" xml:space="preserve">
     <value>Delete Email</value>
   </data>
@@ -1647,8 +1690,6 @@
   <data name="EmailsDeleted" xml:space="preserve">
     <value>{0} email(s) successfully deleted</value>
   </data>
-
-  <!-- Rate Limiting -->
   <data name="RateLimitExceeded" xml:space="preserve">
     <value>Rate limit exceeded. Please try again later.</value>
   </data>
@@ -1718,8 +1759,6 @@
   <data name="RateLimitTwoFactorMessage" xml:space="preserve">
     <value>You have made too many 2FA verification attempts. Please wait and try again later.</value>
   </data>
-
-  <!-- Account Export Feature -->
   <data name="ExportAccount" xml:space="preserve">
     <value>Export Account</value>
   </data>
@@ -1852,8 +1891,6 @@
   <data name="AutoRefresh" xml:space="preserve">
     <value>Auto-refresh every 3 seconds</value>
   </data>
-  
-  <!-- Missing Export Strings -->
   <data name="NoEmailsToExport" xml:space="preserve">
     <value>No emails available for export in this account.</value>
   </data>
@@ -1917,8 +1954,6 @@
   <data name="Refresh" xml:space="preserve">
     <value>Refresh</value>
   </data>
-
-  <!-- Export Format Selection Modal -->
   <data name="ExportFormatSelection" xml:space="preserve">
     <value>Export Format Selection</value>
   </data>
@@ -1928,8 +1963,6 @@
   <data name="ExportSelectedInfo" xml:space="preserve">
     <value>The export will run in the background and you will be able to download the result from the Jobs page once completed.</value>
   </data>
-
-  <!-- Selected Emails Export Feature -->
   <data name="ExportSelected" xml:space="preserve">
     <value>Export Selected</value>
   </data>
@@ -1957,8 +1990,6 @@
   <data name="EMLImportJobs" xml:space="preserve">
     <value>EML Import Jobs</value>
   </data>
-
-  <!-- EmailsController Messages -->
   <data name="EmailHasNoAttachments" xml:space="preserve">
     <value>This email has no attachments.</value>
   </data>
@@ -2205,8 +2236,6 @@
   <data name="NoFoldersFound" xml:space="preserve">
     <value>No folders found on server</value>
   </data>
-  
-  <!-- Compliance Feature -->
   <data name="ComplianceModeStarted" xml:space="preserve">
     <value>Compliance Mode Started</value>
   </data>
@@ -2273,8 +2302,6 @@
   <data name="LockedEmail" xml:space="preserve">
     <value>Locked email - content protected for compliance</value>
   </data>
-  
-  <!-- M365 Credential Sharing Feature -->
   <data name="ExistingM365AccountsFound" xml:space="preserve">
     <value>Existing M365 Accounts Found</value>
   </data>
@@ -2316,5 +2343,8 @@
   </data>
   <data name="Provider" xml:space="preserve">
     <value>Provider</value>
+  </data>
+  <data name="SignInWithOAuth" xml:space="preserve">
+    <value>Login with OAuth</value>
   </data>
 </root>

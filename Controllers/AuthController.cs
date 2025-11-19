@@ -2,10 +2,13 @@ using MailArchiver.Data;
 using MailArchiver.Models;
 using MailArchiver.Models.ViewModels;
 using MailArchiver.Services;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
+using Microsoft.Extensions.Options;
 
 namespace MailArchiver.Controllers
 {
@@ -17,8 +20,16 @@ namespace MailArchiver.Controllers
         private readonly IStringLocalizer<SharedResource> _localizer;
         private readonly IAccessLogService _accessLogService;
         private readonly IServiceScopeFactory _serviceScopeFactory;
+        private readonly IOptions<OAuthOptions> _oAuthOptions;
 
-        public AuthController(MailArchiver.Services.IAuthenticationService authService, IUserService userService, ILogger<AuthController> logger, IStringLocalizer<SharedResource> localizer, IAccessLogService accessLogService, IServiceScopeFactory serviceScopeFactory)
+        public AuthController(
+            MailArchiver.Services.IAuthenticationService authService
+            , IUserService userService
+            , ILogger<AuthController> logger
+            , IStringLocalizer<SharedResource> localizer
+            , IAccessLogService accessLogService
+            , IServiceScopeFactory serviceScopeFactory
+            , IOptions<OAuthOptions> oAuthOptions)
         {
             _authService = authService;
             _userService = userService;
@@ -26,6 +37,7 @@ namespace MailArchiver.Controllers
             _localizer = localizer;
             _accessLogService = accessLogService;
             _serviceScopeFactory = serviceScopeFactory;
+            _oAuthOptions = oAuthOptions;
         }
 
         [HttpGet]
@@ -43,6 +55,7 @@ namespace MailArchiver.Controllers
                 return RedirectToLocal(returnUrl);
             }
 
+            ViewBag.OAuthEnabled = _oAuthOptions.Value.Enabled;
             ViewData["ReturnUrl"] = returnUrl;
             return View(new LoginViewModel());
         }
@@ -118,6 +131,24 @@ namespace MailArchiver.Controllers
             }
 
             return View(model);
+        }
+
+        [HttpPost]
+        public async Task LoginWithOAuth(OAuthLoginViewModel oAuthLoginViewModel) {
+            var properties = new AuthenticationProperties();
+
+            if(!string.IsNullOrWhiteSpace(oAuthLoginViewModel.ReturnUrl))
+                properties.Items["returnUrl"] = oAuthLoginViewModel.ReturnUrl;
+
+
+            // trigger the  OIDC login flow
+            await HttpContext.ChallengeAsync(OpenIdConnectDefaults.AuthenticationScheme).ConfigureAwait(false);
+        }
+
+        [HttpGet("[Controller]/LoginWithOAuth")]
+        public async Task<IActionResult> OidcCallback()
+        {
+            return View();
         }
 
         [HttpPost]

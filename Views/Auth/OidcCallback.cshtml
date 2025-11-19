@@ -1,0 +1,29 @@
+﻿@inject Microsoft.Extensions.Localization.IStringLocalizer<MailArchiver.SharedResource> Localizer
+@model MailArchiver.Models.ViewModels.LoginViewModel
+@{
+    ViewData["Title"] = Localizer["LoginTitle"];
+    Layout = "_LoginLayout";
+}
+
+<div class="login-container">
+    <div class="card login-card">
+        <div class="card-body">
+            <div class="text-center mb-4">
+                <i class="bi bi-envelope-check display-3 text-primary"></i>
+                <h2 class="mt-3">@Localizer["AppName"]</h2>
+                <p class="text-muted">@Localizer["LoginSubtitle"]</p>
+            </div>
+
+            <div class="text-center">
+                Redirecting...
+            </div>
+        </div>
+        <div class="card-footer text-center text-muted">
+            <small>@DateTime.Now.Year - s1t5</small>
+        </div>
+    </div>
+</div>
+
+<script>
+    window.location.href = '/';
+</script>

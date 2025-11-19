@@ -1,15 +1,17 @@
 using MailArchiver.Data;
-using MailArchiver.Models;
 using MailArchiver.Middleware;
+using MailArchiver.Models;
 using MailArchiver.Services;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.Localization;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
-using Microsoft.AspNetCore.Localization;
-using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.RateLimiting;
-using System.Globalization;
+using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using System.Data.Common;
+using System.Globalization;
 using System.Threading.RateLimiting;
 
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
@@ -69,6 +71,10 @@ if (authEnabled != null && authEnabled.Equals("false", StringComparison.OrdinalI
 // Add Authentication Options
 builder.Services.Configure<AuthenticationOptions>(
     builder.Configuration.GetSection(AuthenticationOptions.Authentication));
+
+// Add OAuth Options
+builder.Services.Configure<OAuthOptions>(
+    builder.Configuration.GetSection(OAuthOptions.OAuth));
 
 // Add Batch Restore Options
 builder.Services.Configure<BatchRestoreOptions>(
@@ -196,8 +202,8 @@ builder.Services.AddRateLimiter(options =>
 });
 
 // Add Authentication
-builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-    .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
+var authBuilder = builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme);
+authBuilder.AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
     {
         options.LoginPath = "/Auth/Login";
         options.LogoutPath = "/Auth/Logout";
@@ -209,6 +215,33 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         options.ExpireTimeSpan = TimeSpan.FromMinutes(60);
         options.SlidingExpiration = true;
     });
+
+// conditional OAuth setup
+var oauthOptions = builder.Configuration.GetSection(OAuthOptions.OAuth).Get<OAuthOptions>();
+if (oauthOptions?.Enabled ?? false) {
+    authBuilder.AddOpenIdConnect(OpenIdConnectDefaults.AuthenticationScheme, (o) => { 
+        o.ClientId = oauthOptions.ClientId;
+        o.ClientSecret = oauthOptions.ClientSecret;
+        o.CallbackPath = "/oidc-signin-completed";
+        o.Authority = oauthOptions.Authority;
+        o.ResponseType = OpenIdConnectResponseType.CodeIdToken;
+        o.GetClaimsFromUserInfoEndpoint = true;
+        o.SaveTokens = true;
+        o.TokenValidationParameters.NameClaimType = "name";
+        if (oauthOptions.ClientScopes != null) { 
+            o.Scope.Clear();
+            foreach (var scope in oauthOptions.ClientScopes)
+            {
+                o.Scope.Add(scope);
+            }
+        }
+        o.Events.OnUserInformationReceived = async (UserInformationReceivedContext ctx) => {
+            var handler = ctx.Request.HttpContext.RequestServices.GetRequiredService<OAuthAuthenticationService>();
+            await handler.HandleLoginAsync(ctx);
+        };
+    });
+}
+
 
 // Set global encoding to UTF-8
 System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
@@ -256,6 +289,7 @@ builder.Services.AddScoped<IGraphEmailService, GraphEmailService>(provider =>
         provider.GetRequiredService<MailArchiver.Utilities.DateTimeHelper>()
     ));
 builder.Services.AddScoped<IAuthenticationService, CookieAuthenticationService>();
+builder.Services.AddScoped<OAuthAuthenticationService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddSingleton<ISyncJobService, SyncJobService>(); // NEUE SERVICE
 

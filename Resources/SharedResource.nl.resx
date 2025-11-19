@@ -1,5 +1,64 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
   <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
     <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
     <xsd:element name="root" msdata:IsDataSet="true">
@@ -82,9 +141,6 @@
   <data name="LastUpdate" xml:space="preserve">
     <value>Laatste update:</value>
   </data>
-  <data name="Search" xml:space="preserve">
-    <value>Zoeken</value>
-  </data>
   <data name="SearchTerm" xml:space="preserve">
     <value>Zoekterm</value>
   </data>
@@ -93,9 +149,6 @@
   </data>
   <data name="To" xml:space="preserve">
     <value>Aan</value>
-  </data>
-  <data name="Account" xml:space="preserve">
-    <value>Account</value>
   </data>
   <data name="Direction" xml:space="preserve">
     <value>Richting</value>
@@ -679,6 +732,9 @@
   <data name="FullResync" xml:space="preserve">
     <value>Volledige hersynchronisatie</value>
   </data>
+  <data name="FullResyncConfirm" xml:space="preserve">
+    <value>Weet u zeker dat u een volledige hersynchronisatie wilt uitvoeren? Dit zal de gehele serverinhoud vergelijken met het archief en kan lang duren om te voltooien.</value>
+  </data>
   <data name="CopyAllEmailsToAnotherMailbox" xml:space="preserve">
     <value>Alle e-mails naar andere mailbox kopiëren</value>
   </data>
@@ -688,7 +744,7 @@
   <data name="DangerZoneInfo" xml:space="preserve">
     <value>De volgende acties zijn onomkeerbaar en verwijderen permanent gegevens.</value>
   </data>
-  <data name="DeleteAccountAllEmailsButton" xml:space="preserve">
+  <data name="DeleteAccountWithEmailsButton" xml:space="preserve">
     <value>Account en alle e-mails verwijderen ({0})</value>
   </data>
   <data name="DeleteAccountWithEmailsConfirm" xml:space="preserve">
@@ -801,9 +857,6 @@
   </data>
   <data name="EmailsLabelStatus" xml:space="preserve">
     <value>E-mails:</value>
-  </data>
-  <data name="ProcessedSuffix" xml:space="preserve">
-    <value>verwerkt</value>
   </data>
   <data name="EstimatedSuffix" xml:space="preserve">
     <value>geschat</value>
@@ -1165,17 +1218,11 @@
   <data name="Preview" xml:space="preserve">
     <value>Voorbeeld</value>
   </data>
-  <data name="Download" xml:space="preserve">
-    <value>Downloaden</value>
+  <data name="Close" xml:space="preserve">
+    <value>Sluiten</value>
   </data>
-  <data name="Restore" xml:space="preserve">
-    <value>Herstellen</value>
-  </data>
-  <data name="Deletion" xml:space="preserve">
-    <value>Verwijdering</value>
-  </data>
-  <data name="FromDate" xml:space="preserve">
-    <value>Van</value>
+  <data name="AttachmentPreview" xml:space="preserve">
+    <value>Voorbeeld van bijlage</value>
   </data>
   <data name="PreviewNotAvailable" xml:space="preserve">
     <value>Voorbeeld niet beschikbaar</value>
@@ -1189,23 +1236,23 @@
   <data name="ChangePassword" xml:space="preserve">
     <value>Wachtwoord wijzigen</value>
   </data>
-  <data name="Sign Out" xml:space="preserve">
-    <value>Uitloggen</value>
-  </data>
   <data name="PasswordHint" xml:space="preserve">
-    <value>Het wachtwoord moet ten minste 6 tekens bevatten.</value>
-  </data>
-  <data name="PasswordTooShort" xml:space="preserve">
     <value>Het wachtwoord moet ten minste 6 tekens bevatten.</value>
   </data>
   <data name="AllAccounts" xml:space="preserve">
     <value>Alle accounts</value>
+  </data>
+  <data name="AllFolders" xml:space="preserve">
+    <value>Alle mappen</value>
   </data>
   <data name="All" xml:space="preserve">
     <value>Alle</value>
   </data>
   <data name="PasswordRequired" xml:space="preserve">
     <value>Wachtwoord is vereist.</value>
+  </data>
+  <data name="PasswordTooShort" xml:space="preserve">
+    <value>Het wachtwoord moet ten minste 6 tekens bevatten.</value>
   </data>
   <data name="UsernameExists" xml:space="preserve">
     <value>Gebruikersnaam bestaat al.</value>
@@ -1304,9 +1351,6 @@
   <data name="SyncFailed" xml:space="preserve">
     <value>Fout tijdens synchronisatie</value>
   </data>
-  <data name="FullResyncConfirm" xml:space="preserve">
-    <value>Weet u zeker dat u een volledige hersynchronisatie wilt uitvoeren? Dit zal de gehele serverinhoud vergelijken met het archief en kan lang duren om te voltooien.</value>
-  </data>
   <data name="FullSyncStarted" xml:space="preserve">
     <value>Volledige resync voor '{0}' werd met succes gestart.</value>
   </data>
@@ -1355,13 +1399,9 @@
   <data name="InvalidUserPassword" xml:space="preserve">
     <value>Ongeldige gebruikersnaam of wachtwoord.</value>
   </data>
-
-  <!-- Self-Manager Feature -->
   <data name="SelfManager" xml:space="preserve">
     <value>Zelf-Beheerder</value>
   </data>
-
-  <!-- Import-Only Account Feature -->
   <data name="ImportOnlyAccount" xml:space="preserve">
     <value>Alleen-Import Account</value>
   </data>
@@ -1371,8 +1411,6 @@
   <data name="ImportOnlyAccountNoSync" xml:space="preserve">
     <value>Alleen-import accounts kunnen niet gesynchroniseerd worden</value>
   </data>
-
-  <!-- Job Status Translations -->
   <data name="Running" xml:space="preserve">
     <value>Bezig</value>
   </data>
@@ -1391,22 +1429,21 @@
   <data name="Folders" xml:space="preserve">
     <value>Mappen</value>
   </data>
+  <data name="ProcessedSuffix" xml:space="preserve">
+    <value>verwerkt</value>
+  </data>
   <data name="New" xml:space="preserve">
     <value>Nieuw</value>
   </data>
   <data name="Deleted" xml:space="preserve">
     <value>Verwijderd</value>
   </data>
-
-  <!-- Role Explanations -->
   <data name="AdminRoleDescription" xml:space="preserve">
     <value>Volledige systeemtoegang inclusief gebruikersbeheer en alle e-mailaccounts</value>
   </data>
   <data name="SelfManagerRoleDescription" xml:space="preserve">
     <value>Kan zijn eigen accountinstellingen beheren en nieuwe accounts toevoegen</value>
   </data>
-
-  <!-- EML Import -->
   <data name="ImportEml" xml:space="preserve">
     <value>EML Importeren</value>
   </data>
@@ -1464,7 +1501,6 @@
   <data name="Import" xml:space="preserve">
     <value>Importeren</value>
   </data>
-  <!-- Microsoft 365 -->
   <data name="Microsoft365Account" xml:space="preserve">
     <value>Microsoft 365 Account</value>
   </data>
@@ -1483,7 +1519,6 @@
   <data name="LeaveEmptyToKeepCurrent" xml:space="preserve">
     <value>Leeg laten om huidige waarde te behouden</value>
   </data>
-  <!-- Two-Factor Authentication -->
   <data name="TwoFactorEnabledSuccess" xml:space="preserve">
     <value>Tweefactorauthenticatie is succesvol ingeschakeld.</value>
   </data>
@@ -1619,10 +1654,89 @@
   <data name="EnterCode" xml:space="preserve">
     <value>Code Invoeren</value>
   </data>
-
-  <!-- Rate Limiting -->
+  <data name="DeleteEmail" xml:space="preserve">
+    <value>E-mail Verwijderen</value>
+  </data>
+  <data name="DeleteSelected" xml:space="preserve">
+    <value>Geselecteerde Verwijderen</value>
+  </data>
+  <data name="ConfirmDeletion" xml:space="preserve">
+    <value>Verwijdering Bevestigen</value>
+  </data>
+  <data name="DeleteEmailConfirm" xml:space="preserve">
+    <value>Weet u zeker dat u deze e-mail permanent wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt en wordt gelogd voor auditdoeleinden.</value>
+  </data>
+  <data name="DeleteSelectedEmailsConfirm" xml:space="preserve">
+    <value>Weet u zeker dat u {0} geselecteerde e-mail(s) permanent wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt en elke verwijdering wordt gelogd voor auditdoeleinden.</value>
+  </data>
+  <data name="DeleteButton" xml:space="preserve">
+    <value>Verwijderen</value>
+  </data>
+  <data name="EmailDeleted" xml:space="preserve">
+    <value>E-mail succesvol verwijderd</value>
+  </data>
+  <data name="EmailsDeleted" xml:space="preserve">
+    <value>{0} e-mail(s) succesvol verwijderd</value>
+  </data>
   <data name="RateLimitExceeded" xml:space="preserve">
     <value>Snelheidslimiet overschreden. Probeer later opnieuw.</value>
+  </data>
+  <data name="LoginBlocked" xml:space="preserve">
+    <value>Inloggen tijdelijk geblokkeerd</value>
+  </data>
+  <data name="LoginBlockedTitle" xml:space="preserve">
+    <value>Toegang geblokkeerd</value>
+  </data>
+  <data name="LoginBlockedMessage" xml:space="preserve">
+    <value>Te veel mislukte inlogpogingen gedetecteerd</value>
+  </data>
+  <data name="LoginBlockedInfo" xml:space="preserve">
+    <value>Om veiligheidsredenen zijn inlogpogingen vanaf uw IP-adres tijdelijk geblokkeerd vanwege meerdere mislukte authenticatiepogingen. Wacht 10 minuten voordat u het opnieuw probeert.</value>
+  </data>
+  <data name="BackToLogin" xml:space="preserve">
+    <value>Terug naar inloggen</value>
+  </data>
+  <data name="PasswordMinLength" xml:space="preserve">
+    <value>Wachtwoord moet minimaal 10 tekens lang zijn</value>
+  </data>
+  <data name="PasswordRequiresUppercase" xml:space="preserve">
+    <value>Wachtwoord moet minimaal een hoofdletter bevatten</value>
+  </data>
+  <data name="PasswordRequiresLowercase" xml:space="preserve">
+    <value>Wachtwoord moet minimaal een kleine letter bevatten</value>
+  </data>
+  <data name="PasswordRequiresNumber" xml:space="preserve">
+    <value>Wachtwoord moet minimaal een nummer bevatten</value>
+  </data>
+  <data name="PasswordRequiresSpecialChar" xml:space="preserve">
+    <value>Wachtwoord moet minimaal een speciaal teken bevatten</value>
+  </data>
+  <data name="PasswordMustBeDifferent" xml:space="preserve">
+    <value>Nieuw wachtwoord moet verschillen van het huidige wachtwoord</value>
+  </data>
+  <data name="PasswordRequirements" xml:space="preserve">
+    <value>Wachtwoordvereisten</value>
+  </data>
+  <data name="PasswordChangeRequired" xml:space="preserve">
+    <value>Wachtwoordwijziging vereist</value>
+  </data>
+  <data name="PasswordChangeRequiredMessage" xml:space="preserve">
+    <value>Om veiligheidsredenen moet u uw wachtwoord wijzigen voordat u verdergaat. Dit is vereist omdat u de standaard systeemreferenties gebruikt op een nieuw ingesteld systeem.</value>
+  </data>
+  <data name="PasswordChangeRequiredInfo" xml:space="preserve">
+    <value>Uw nieuwe wachtwoord moet verschillen van het huidige wachtwoord en aan alle veiligheidseisen voldoen.</value>
+  </data>
+  <data name="CannotLeavePasswordChange" xml:space="preserve">
+    <value>U moet uw wachtwoord wijzigen voordat u het systeem verder kunt gebruiken.</value>
+  </data>
+  <data name="TwoFactorEnabled" xml:space="preserve">
+    <value>Tweestapsverificatie is momenteel ingeschakeld voor deze gebruiker.</value>
+  </data>
+  <data name="ConfirmResetTwoFactor" xml:space="preserve">
+    <value>Weet u zeker dat u de tweestapsverificatie voor deze gebruiker wilt terugzetten? Zij moeten het opnieuw instellen.</value>
+  </data>
+  <data name="ResetTwoFactor" xml:space="preserve">
+    <value>Tweestapsverificatie terugzetten</value>
   </data>
   <data name="TooManyAttempts" xml:space="preserve">
     <value>Te veel pogingen. Wacht {0} seconden voordat u opnieuw probeert.</value>
@@ -1633,8 +1747,6 @@
   <data name="RateLimitTwoFactorMessage" xml:space="preserve">
     <value>U heeft te veel 2FA-verificatiepogingen gedaan. Wacht en probeer later opnieuw.</value>
   </data>
-
-  <!-- Account Export Feature -->
   <data name="ExportAccount" xml:space="preserve">
     <value>Account Exporteren</value>
   </data>
@@ -1767,7 +1879,6 @@
   <data name="AutoRefresh" xml:space="preserve">
     <value>Automatisch vernieuwen elke 3 seconden</value>
   </data>
-  <!-- Missing Export Strings -->
   <data name="NoEmailsToExport" xml:space="preserve">
     <value>Geen e-mails beschikbaar voor export in dit account.</value>
   </data>
@@ -1831,8 +1942,6 @@
   <data name="Refresh" xml:space="preserve">
     <value>Vernieuwen</value>
   </data>
-
-  <!-- Export Format Selection Modal -->
   <data name="ExportFormatSelection" xml:space="preserve">
     <value>Export Formaat Selectie</value>
   </data>
@@ -1842,8 +1951,6 @@
   <data name="ExportSelectedInfo" xml:space="preserve">
     <value>De export wordt op de achtergrond uitgevoerd en u kunt het resultaat downloaden van de Jobs pagina zodra het voltooid is.</value>
   </data>
-
-  <!-- Selected Emails Export Feature -->
   <data name="ExportSelected" xml:space="preserve">
     <value>Geselecteerde Exporteren</value>
   </data>
@@ -1871,8 +1978,6 @@
   <data name="EMLImportJobs" xml:space="preserve">
     <value>EML Import Taken</value>
   </data>
-
-  <!-- EmailsController Messages -->
   <data name="EmailHasNoAttachments" xml:space="preserve">
     <value>Deze e-mail heeft geen bijlagen.</value>
   </data>
@@ -2020,8 +2125,8 @@
   <data name="DeselectAllOnPage" xml:space="preserve">
     <value>Alles op pagina deselecteren</value>
   </data>
-  <data name="DeleteAccountWithEmailsButton" xml:space="preserve">
-    <value>Account en alle e-mails verwijderen ({0})</value>
+  <data name="Log" xml:space="preserve">
+    <value>Log</value>
   </data>
   <data name="AccessLog" xml:space="preserve">
     <value>Toegangslog</value>
@@ -2029,17 +2134,20 @@
   <data name="AccessLogEntries" xml:space="preserve">
     <value>Toegangslog Vermeldingen</value>
   </data>
+  <data name="Account" xml:space="preserve">
+    <value>Account</value>
+  </data>
+  <data name="Timestamp" xml:space="preserve">
+    <value>Tijdstempel</value>
+  </data>
+  <data name="Type" xml:space="preserve">
+    <value>Type</value>
+  </data>
   <data name="EmailSubject" xml:space="preserve">
     <value>E-mail Onderwerp</value>
   </data>
-  <data name="Filter" xml:space="preserve">
-    <value>Filter</value>
-  </data>
-  <data name="Info" xml:space="preserve">
-    <value>Info</value>
-  </data>
-  <data name="Log" xml:space="preserve">
-    <value>Log</value>
+  <data name="SearchParameters" xml:space="preserve">
+    <value>Zoekparameters</value>
   </data>
   <data name="Login" xml:space="preserve">
     <value>Inloggen</value>
@@ -2047,26 +2155,38 @@
   <data name="Logout" xml:space="preserve">
     <value>Uitloggen</value>
   </data>
-  <data name="NoAccessLogEntries" xml:space="preserve">
-    <value>Geen toegangslog vermeldingen gevonden</value>
-  </data>
-  <data name="NoInfo" xml:space="preserve">
-    <value>Geen informatie</value>
+  <data name="Search" xml:space="preserve">
+    <value>Zoeken</value>
   </data>
   <data name="Open" xml:space="preserve">
     <value>Openen</value>
   </data>
-  <data name="SearchParameters" xml:space="preserve">
-    <value>Zoekparameters</value>
+  <data name="Download" xml:space="preserve">
+    <value>Downloaden</value>
   </data>
-  <data name="Timestamp" xml:space="preserve">
-    <value>Tijdstempel</value>
+  <data name="Restore" xml:space="preserve">
+    <value>Herstellen</value>
+  </data>
+  <data name="Deletion" xml:space="preserve">
+    <value>Verwijdering</value>
+  </data>
+  <data name="FromDate" xml:space="preserve">
+    <value>Van</value>
   </data>
   <data name="ToDate" xml:space="preserve">
     <value>Tot</value>
   </data>
-  <data name="Type" xml:space="preserve">
-    <value>Type</value>
+  <data name="Filter" xml:space="preserve">
+    <value>Filter</value>
+  </data>
+  <data name="Info" xml:space="preserve">
+    <value>Info</value>
+  </data>
+  <data name="NoInfo" xml:space="preserve">
+    <value>Geen informatie</value>
+  </data>
+  <data name="NoAccessLogEntries" xml:space="preserve">
+    <value>Geen toegangslog vermeldingen gevonden</value>
   </data>
   <data name="EmailNotFoundTitle" xml:space="preserve">
     <value>E-mail Niet Gevonden</value>
@@ -2080,74 +2200,32 @@
   <data name="EmailNotFoundHelp" xml:space="preserve">
     <value>Als u denkt dat dit een fout is, neem dan contact op met uw systeembeheerder.</value>
   </data>
-  <data name="ConfirmDeletion" xml:space="preserve">
-    <value>Verwijdering Bevestigen</value>
-  </data>
-  <data name="DeleteButton" xml:space="preserve">
-    <value>Verwijderen</value>
-  </data>
-  <data name="DeleteEmail" xml:space="preserve">
-    <value>E-mail Verwijderen</value>
-  </data>
-  <data name="DeleteEmailConfirm" xml:space="preserve">
-    <value>Weet u zeker dat u deze e-mail permanent wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt en wordt gelogd voor auditdoeleinden.</value>
-  </data>
-  <data name="DeleteSelected" xml:space="preserve">
-    <value>Geselecteerde Verwijderen</value>
-  </data>
-  <data name="DeleteSelectedEmailsConfirm" xml:space="preserve">
-    <value>Weet u zeker dat u {0} geselecteerde e-mail(s) permanent wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt en elke verwijdering wordt gelogd voor auditdoeleinden.</value>
-  </data>
-  <data name="EmailDeleted" xml:space="preserve">
-    <value>E-mail succesvol verwijderd</value>
-  </data>
-  <data name="EmailsDeleted" xml:space="preserve">
-    <value>{0} e-mail(s) succesvol verwijderd</value>
-  </data>
-  <data name="AttachmentPreview" xml:space="preserve">
-    <value>Voorbeeld van bijlage</value>
-  </data>
-  <data name="Close" xml:space="preserve">
-    <value>Sluiten</value>
-  </data>
-  <data name="AllFolders" xml:space="preserve">
-    <value>Alle mappen</value>
-  </data>
   <data name="Reply" xml:space="preserve">
     <value>Antwoord</value>
   </data>
   <data name="LocalRetentionDays" xml:space="preserve">
     <value>Lokale retentiedagen</value>
   </data>
-  <data name="LocalRetentionInfo" xml:space="preserve">
-      <value>Aantal dagen waarna e-mails uit het lokale archief worden verwijderd. Laat leeg om e-mails onbeperkt te bewaren. Moet groter of gelijk zijn aan 'Verwijderen na dagen' als beide zijn ingesteld.</value>
+  <data name="LocalRetentionRequiresServerRetention" xml:space="preserve">
+    <value>Lokale retentie kan alleen worden ingesteld als serverretentie ('Verwijderen na dagen') ook is geconfigureerd.</value>
   </data>
   <data name="LocalRetentionMustBeGreaterOrEqual" xml:space="preserve">
-      <value>Lokale retentiedagen moeten groter of gelijk zijn aan de dagen voor verwijderen om ervoor te zorgen dat e-mails niet uit het lokale archief worden verwijderd voordat ze van de mailserver worden verwijderd.</value>
+    <value>Lokale retentiedagen moeten groter of gelijk zijn aan de dagen voor verwijderen om ervoor te zorgen dat e-mails niet uit het lokale archief worden verwijderd voordat ze van de mailserver worden verwijderd.</value>
   </data>
-  <data name="LocalRetentionRequiresServerRetention" xml:space="preserve">
-      <value>Lokale retentie kan alleen worden ingesteld als serverretentie ('Verwijderen na dagen') ook is geconfigureerd.</value>
+  <data name="LocalRetentionInfo" xml:space="preserve">
+    <value>Aantal dagen waarna e-mails uit het lokale archief worden verwijderd. Laat leeg om e-mails onbeperkt te bewaren. Moet groter of gelijk zijn aan 'Verwijderen na dagen' als beide zijn ingesteld.</value>
   </data>
-  <data name="AffectedAccounts" xml:space="preserve">
-    <value>Geraakte accounts</value>
+  <data name="LoadAvailableFolders" xml:space="preserve">
+    <value>Beschikbare mappen laden</value>
   </data>
-  <data name="ApplicationStarted" xml:space="preserve">
-    <value>Toepassing gestart</value>
+  <data name="CouldNotLoadFolders" xml:space="preserve">
+    <value>Mappen konden niet worden geladen van de server</value>
   </data>
-  <data name="ApplyToAllAccounts" xml:space="preserve">
-    <value>Toepassen op alle accounts in dit domein</value>
+  <data name="NoFoldersFound" xml:space="preserve">
+    <value>Geen mappen gevonden op de server</value>
   </data>
-  <data name="ApplyToAllDomainAccountsPrompt" xml:space="preserve">
-    <value>U heeft de Microsoft 365-referenties gewijzigd. Wilt u deze wijzigingen toepassen op alle andere accounts van hetzelfde domein?</value>
-  </data>
-  <data name="BackToLogin" xml:space="preserve">
-    <value>Terug naar inloggen</value>
-  </data>
-  <data name="CannotLeavePasswordChange" xml:space="preserve">
-    <value>U moet uw wachtwoord wijzigen voordat u het systeem verder kunt gebruiken.</value>
-  </data>
-  <data name="ComplianceInformation" xml:space="preserve">
-    <value>Nalevingsinformatie</value>
+  <data name="ComplianceModeStarted" xml:space="preserve">
+    <value>Nalevingsmodus gestart</value>
   </data>
   <data name="ComplianceModeActive" xml:space="preserve">
     <value>Nalevingsmodus ACTIEF</value>
@@ -2155,56 +2233,11 @@
   <data name="ComplianceModeDisabled" xml:space="preserve">
     <value>Nalevingsmodus UITGESCHAKELD</value>
   </data>
-  <data name="ComplianceModeStarted" xml:space="preserve">
-    <value>Nalevingsmodus gestart</value>
-  </data>
-  <data name="ComplianceStatus" xml:space="preserve">
-    <value>Nalevingsstatus</value>
-  </data>
-  <data name="ConfirmResetTwoFactor" xml:space="preserve">
-    <value>Weet u zeker dat u de tweestapsverificatie voor deze gebruiker wilt terugzetten? Zij moeten het opnieuw instellen.</value>
-  </data>
-  <data name="ContentHash" xml:space="preserve">
-    <value>Inhouds-Hash (SHA-256)</value>
-  </data>
-  <data name="CopyCredentials" xml:space="preserve">
-    <value>Referenties kopiëren</value>
-  </data>
-  <data name="CouldNotLoadFolders" xml:space="preserve">
-    <value>Mappen konden niet worden geladen van de server</value>
-  </data>
-  <data name="CredentialChangeDetected" xml:space="preserve">
-    <value>Wijziging referenties gedetecteerd</value>
-  </data>
-  <data name="CredentialsCopied" xml:space="preserve">
-    <value>Referenties succesvol gekopieerd!</value>
-  </data>
-  <data name="CurrentHash" xml:space="preserve">
-    <value>Huidige Hash</value>
-  </data>
-  <data name="EmailDeletionAllowed" xml:space="preserve">
-    <value>E-mailverwijdering TOEGESTAAN</value>
-  </data>
   <data name="EmailDeletionPrevented" xml:space="preserve">
     <value>E-mailverwijdering VERHOED</value>
   </data>
-  <data name="EmailLocked" xml:space="preserve">
-    <value>Vergrendeld</value>
-  </data>
-  <data name="EmailLockedDescription" xml:space="preserve">
-    <value>Deze e-mail is vergrendeld en de integriteit van de inhoud wordt beschermd door een cryptografische hash</value>
-  </data>
-  <data name="ErrorCopyingCredentials" xml:space="preserve">
-    <value>Fout bij kopiëren van referenties</value>
-  </data>
-  <data name="ErrorSavingChanges" xml:space="preserve">
-    <value>Fout bij opslaan van wijzigingen</value>
-  </data>
-  <data name="ExistingM365AccountsFound" xml:space="preserve">
-    <value>Bestaande M365-accounts gevonden</value>
-  </data>
-  <data name="HasAttachments" xml:space="preserve">
-    <value>Heeft bijlagen</value>
+  <data name="EmailDeletionAllowed" xml:space="preserve">
+    <value>E-mailverwijdering TOEGESTAAN</value>
   </data>
   <data name="HashCreated" xml:space="preserve">
     <value>Hash aangemaakt</value>
@@ -2212,94 +2245,101 @@
   <data name="IntegrityCheck" xml:space="preserve">
     <value>Integriteitscontrole</value>
   </data>
+  <data name="IntegrityViolation" xml:space="preserve">
+    <value>Integriteitsverletzing</value>
+  </data>
+  <data name="ComplianceStatus" xml:space="preserve">
+    <value>Nalevingsstatus</value>
+  </data>
+  <data name="ApplicationStarted" xml:space="preserve">
+    <value>Toepassing gestart</value>
+  </data>
+  <data name="ComplianceInformation" xml:space="preserve">
+    <value>Nalevingsinformatie</value>
+  </data>
+  <data name="ContentHash" xml:space="preserve">
+    <value>Inhouds-Hash (SHA-256)</value>
+  </data>
+  <data name="EmailLocked" xml:space="preserve">
+    <value>Vergrendeld</value>
+  </data>
+  <data name="EmailLockedDescription" xml:space="preserve">
+    <value>Deze e-mail is vergrendeld en de integriteit van de inhoud wordt beschermd door een cryptografische hash</value>
+  </data>
+  <data name="StoredHash" xml:space="preserve">
+    <value>Opgeslagen Hash</value>
+  </data>
+  <data name="CurrentHash" xml:space="preserve">
+    <value>Huidige Hash</value>
+  </data>
   <data name="IntegrityValid" xml:space="preserve">
     <value>Integriteit geldig</value>
   </data>
   <data name="IntegrityValidDescription" xml:space="preserve">
     <value>De e-mailinhoud is niet gewijzigd. De huidige hash komt overeen met de opgeslagen hash.</value>
   </data>
-  <data name="IntegrityViolation" xml:space="preserve">
-    <value>Integriteitsverletzing</value>
-  </data>
   <data name="IntegrityViolationDescription" xml:space="preserve">
     <value>WAARSCHUWING: De huidige hash komt niet overeen met de opgeslagen hash. De e-mailinhoud is mogelijk aangepast.</value>
-  </data>
-  <data name="LoadAvailableFolders" xml:space="preserve">
-    <value>Beschikbare mappen laden</value>
-  </data>
-  <data name="LockedEmail" xml:space="preserve">
-    <value>Vergrendelede e-mail - inhoud beschermd voor naleving</value>
-  </data>
-  <data name="LoginBlocked" xml:space="preserve">
-    <value>Inloggen tijdelijk geblokkeerd</value>
-  </data>
-  <data name="LoginBlockedInfo" xml:space="preserve">
-    <value>Om veiligheidsredenen zijn inlogpogingen vanaf uw IP-adres tijdelijk geblokkeerd vanwege meerdere mislukte authenticatiepogingen. Wacht 10 minuten voordat u het opnieuw probeert.</value>
-  </data>
-  <data name="LoginBlockedMessage" xml:space="preserve">
-    <value>Te veel mislukte inlogpogingen gedetecteerd</value>
-  </data>
-  <data name="LoginBlockedTitle" xml:space="preserve">
-    <value>Toegang geblokkeerd</value>
   </data>
   <data name="Mismatch" xml:space="preserve">
     <value>Overeenkomstig</value>
   </data>
-  <data name="NoFoldersFound" xml:space="preserve">
-    <value>Geen mappen gevonden op de server</value>
+  <data name="HasAttachments" xml:space="preserve">
+    <value>Heeft bijlagen</value>
   </data>
-  <data name="PasswordChangeRequired" xml:space="preserve">
-    <value>Wachtwoordwijziging vereist</value>
+  <data name="LockedEmail" xml:space="preserve">
+    <value>Vergrendelede e-mail - inhoud beschermd voor naleving</value>
   </data>
-  <data name="PasswordChangeRequiredInfo" xml:space="preserve">
-    <value>Uw nieuwe wachtwoord moet verschillen van het huidige wachtwoord en aan alle veiligheidseisen voldoen.</value>
+  <data name="ExistingM365AccountsFound" xml:space="preserve">
+    <value>Bestaande M365-accounts gevonden</value>
   </data>
-  <data name="PasswordChangeRequiredMessage" xml:space="preserve">
-    <value>Om veiligheidsredenen moet u uw wachtwoord wijzigen voordat u verdergaat. Dit is vereist omdat u de standaard systeemreferenties gebruikt op een nieuw ingesteld systeem.</value>
-  </data>
-  <data name="PasswordMinLength" xml:space="preserve">
-    <value>Wachtwoord moet minimaal 10 tekens lang zijn</value>
-  </data>
-  <data name="PasswordMustBeDifferent" xml:space="preserve">
-    <value>Nieuw wachtwoord moet verschillen van het huidige wachtwoord</value>
-  </data>
-  <data name="PasswordRequirements" xml:space="preserve">
-    <value>Wachtwoordvereisten</value>
-  </data>
-  <data name="PasswordRequiresLowercase" xml:space="preserve">
-    <value>Wachtwoord moet minimaal een kleine letter bevatten</value>
-  </data>
-  <data name="PasswordRequiresNumber" xml:space="preserve">
-    <value>Wachtwoord moet minimaal een nummer bevatten</value>
-  </data>
-  <data name="PasswordRequiresSpecialChar" xml:space="preserve">
-    <value>Wachtwoord moet minimaal een speciaal teken bevatten</value>
-  </data>
-  <data name="PasswordRequiresUppercase" xml:space="preserve">
-    <value>Wachtwoord moet minimaal een hoofdletter bevatten</value>
-  </data>
-  <data name="PleaseSelectAccount" xml:space="preserve">
-    <value>Selecteer eerst een account</value>
-  </data>
-  <data name="Provider" xml:space="preserve">
-    <value>Provider</value>
-  </data>
-  <data name="ResetTwoFactor" xml:space="preserve">
-    <value>Tweestapsverificatie terugzetten</value>
+  <data name="UseExistingCredentialsPrompt" xml:space="preserve">
+    <value>Andere Microsoft 365-accounts van dit domein bestaan al. U kunt hun referenties kopiëren om tijd te besparen.</value>
   </data>
   <data name="SelectAccount" xml:space="preserve">
     <value>-- Account selecteren --</value>
   </data>
-  <data name="StoredHash" xml:space="preserve">
-    <value>Opgeslagen Hash</value>
+  <data name="CopyCredentials" xml:space="preserve">
+    <value>Referenties kopiëren</value>
+  </data>
+  <data name="CredentialsCopied" xml:space="preserve">
+    <value>Referenties succesvol gekopieerd!</value>
+  </data>
+  <data name="ErrorCopyingCredentials" xml:space="preserve">
+    <value>Fout bij kopiëren van referenties</value>
+  </data>
+  <data name="PleaseSelectAccount" xml:space="preserve">
+    <value>Selecteer eerst een account</value>
+  </data>
+  <data name="CredentialChangeDetected" xml:space="preserve">
+    <value>Wijziging referenties gedetecteerd</value>
+  </data>
+  <data name="ApplyToAllDomainAccountsPrompt" xml:space="preserve">
+    <value>U heeft de Microsoft 365-referenties gewijzigd. Wilt u deze wijzigingen toepassen op alle andere accounts van hetzelfde domein?</value>
+  </data>
+  <data name="AffectedAccounts" xml:space="preserve">
+    <value>Geraakte accounts</value>
+  </data>
+  <data name="ApplyToAllAccounts" xml:space="preserve">
+    <value>Toepassen op alle accounts in dit domein</value>
+  </data>
+  <data name="ErrorSavingChanges" xml:space="preserve">
+    <value>Fout bij opslaan van wijzigingen</value>
   </data>
   <data name="TenantId" xml:space="preserve">
     <value>Tenant-ID</value>
   </data>
-  <data name="TwoFactorEnabled" xml:space="preserve">
-    <value>Tweestapsverificatie is momenteel ingeschakeld voor deze gebruiker.</value>
+  <data name="Provider" xml:space="preserve">
+    <value>Provider</value>
   </data>
-  <data name="UseExistingCredentialsPrompt" xml:space="preserve">
-    <value>Andere Microsoft 365-accounts van dit domein bestaan al. U kunt hun referenties kopiëren om tijd te besparen.</value>
+  <data name="DeleteAccountAllEmailsButton" xml:space="preserve">
+    <value>Account en alle e-mails verwijderen ({0})</value>
+  </data>
+  <data name="Sign Out" xml:space="preserve">
+    <value>Uitloggen</value>
+  </data>
+  <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+  <data name="SignInWithOAuth" type="System.Resources.ResXNullRef, System.Windows.Forms">
+    <value />
   </data>
 </root>
