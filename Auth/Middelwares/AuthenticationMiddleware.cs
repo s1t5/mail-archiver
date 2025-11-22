@@ -1,7 +1,7 @@
 using MailArchiver.Services;
 using Microsoft.AspNetCore.Authentication;
 
-namespace MailArchiver.Middleware
+namespace MailArchiver.Auth.Middlewares
 {
     public class AuthenticationMiddleware
     {
@@ -22,7 +22,7 @@ namespace MailArchiver.Middleware
             
             var shouldSkip = skipPaths.Any(skipPath => path.StartsWith(skipPath));
 
-            if (!shouldSkip && authService.IsAuthenticationRequired())
+            if (!shouldSkip)
             {
                 // Check if user is authenticated through framework
                 var isAuthenticated = await context.AuthenticateAsync();

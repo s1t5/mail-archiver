@@ -4,76 +4,74 @@
 @inject Microsoft.Extensions.Localization.IStringLocalizer<MailArchiver.SharedResource> Localizer
 @{ var currentCulture = System.Globalization.CultureInfo.CurrentUICulture.Name; }
 
-@if (AuthService.IsAuthenticationRequired())
-{
-    <div class="dropdown">
-        <button class="btn btn-outline-light btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-            <i class="bi bi-person-circle me-1"></i>
-            <span class="d-none d-md-inline">@AuthService.GetCurrentUser(Context)</span>
-        </button>
-        <ul class="dropdown-menu dropdown-menu-end">
-            <li>
-                <h6 class="dropdown-header">
-                    <i class="bi bi-person me-2"></i>@AuthService.GetCurrentUser(Context)
-                </h6>
-            </li>
-            <li><hr class="dropdown-divider"></li>
-            @{
-                var currentUser = await UserService.GetUserByUsernameAsync(AuthService.GetCurrentUser(Context));
-                if (currentUser != null)
-                {
-                    <li>
-                        @if (currentUser.IsTwoFactorEnabled)
-                        {
-                            <a asp-controller="TwoFactor" asp-action="Disable" class="dropdown-item">
-                                <i class="bi bi-shield-lock me-2"></i>@Localizer["DisableTwoFactor"]
-                            </a>
-                        }
-                        else
-                        {
-                            <a asp-controller="TwoFactor" asp-action="Setup" class="dropdown-item">
-                                <i class="bi bi-shield-lock me-2"></i>@Localizer["EnableTwoFactor"]
-                            </a>
-                        }
-                    </li>
-                    <li><hr class="dropdown-divider"></li>
-                }
+
+<div class="dropdown">
+    <button class="btn btn-outline-light btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+        <i class="bi bi-person-circle me-1"></i>
+        <span class="d-none d-md-inline">@AuthService.GetCurrentUser(Context)</span>
+    </button>
+    <ul class="dropdown-menu dropdown-menu-end">
+        <li>
+            <h6 class="dropdown-header">
+                <i class="bi bi-person me-2"></i>@AuthService.GetCurrentUser(Context)
+            </h6>
+        </li>
+        <li><hr class="dropdown-divider"></li>
+        @{
+            var currentUser = await UserService.GetUserByUsernameAsync(AuthService.GetCurrentUser(Context));
+            if (currentUser != null)
+            {
+                <li>
+                    @if (currentUser.IsTwoFactorEnabled)
+                    {
+                        <a asp-controller="TwoFactor" asp-action="Disable" class="dropdown-item">
+                            <i class="bi bi-shield-lock me-2"></i>@Localizer["DisableTwoFactor"]
+                        </a>
+                    }
+                    else
+                    {
+                        <a asp-controller="TwoFactor" asp-action="Setup" class="dropdown-item">
+                            <i class="bi bi-shield-lock me-2"></i>@Localizer["EnableTwoFactor"]
+                        </a>
+                    }
+                </li>
+                <li><hr class="dropdown-divider"></li>
             }
-            <li>
-                <a asp-controller="Users" asp-action="ChangePassword" class="dropdown-item">
-                    <i class="bi bi-key me-2"></i>@Localizer["ChangePassword"]
-                </a>
-            </li>
-            <li><hr class="dropdown-divider"></li>
+        }
+        <li>
+            <a asp-controller="Users" asp-action="ChangePassword" class="dropdown-item">
+                <i class="bi bi-key me-2"></i>@Localizer["ChangePassword"]
+            </a>
+        </li>
+        <li><hr class="dropdown-divider"></li>
 <li class="px-3 py-2">
-                <form method="post" action="/Localization/SetLanguage">
-                    <input type="hidden" name="returnUrl" value="@Context.Request.Path@Context.Request.QueryString" />
-                    <div class="mb-2">
-                        <label class="form-label small text-muted mb-1">@Localizer["Language"]</label>
-                        <select name="culture" class="form-select form-select-sm" onchange="this.form.submit()">
-                            @{ var cultureName = System.Threading.Thread.CurrentThread.CurrentUICulture.Name; }
-                            <option value="en" selected="@(cultureName=="en" ? "selected" : null)">English</option>
-                            <option value="en-GB" selected="@(cultureName=="en-GB" ? "selected" : null)">English (GB)</option>
-                            <option value="sl" selected="@(cultureName=="sl" ? "selected" : null)">Slovenščina</option>
-                            <option value="de" selected="@(cultureName=="de" ? "selected" : null)">Deutsch</option>
-                            <option value="it" selected="@(cultureName=="it" ? "selected" : null)">Italiano</option>
-                            <option value="fr" selected="@(cultureName=="fr" ? "selected" : null)">Français</option>
-                            <option value="es" selected="@(cultureName=="es" ? "selected" : null)">Español</option>
-                            <option value="nl" selected="@(cultureName=="nl" ? "selected" : null)">Nederlands</option>
-                            <option value="ru" selected="@(cultureName=="ru" ? "selected" : null)">Русский</option>
-                            <option value="hu" selected="@(cultureName=="hu" ? "selected" : null)">Magyar</option>
-                        </select>
-                    </div>
-                </form>
-            </li>
-            <li><hr class="dropdown-divider"></li>
-            <li>
-                <form asp-controller="Auth" asp-action="Logout" method="post" class="d-inline">
-                    <button type="submit" class="dropdown-item">
-                        <i class="bi bi-box-arrow-right me-2"></i>@Localizer["SignOut"]
-                    </button>
-                </form>
-            </li>
-        </ul>
-    </div>
-}
+            <form method="post" action="/Localization/SetLanguage">
+                <input type="hidden" name="returnUrl" value="@Context.Request.Path@Context.Request.QueryString" />
+                <div class="mb-2">
+                    <label class="form-label small text-muted mb-1">@Localizer["Language"]</label>
+                    <select name="culture" class="form-select form-select-sm" onchange="this.form.submit()">
+                        @{ var cultureName = System.Threading.Thread.CurrentThread.CurrentUICulture.Name; }
+                        <option value="en" selected="@(cultureName=="en" ? "selected" : null)">English</option>
+                        <option value="en-GB" selected="@(cultureName=="en-GB" ? "selected" : null)">English (GB)</option>
+                        <option value="sl" selected="@(cultureName=="sl" ? "selected" : null)">Slovenščina</option>
+                        <option value="de" selected="@(cultureName=="de" ? "selected" : null)">Deutsch</option>
+                        <option value="it" selected="@(cultureName=="it" ? "selected" : null)">Italiano</option>
+                        <option value="fr" selected="@(cultureName=="fr" ? "selected" : null)">Français</option>
+                        <option value="es" selected="@(cultureName=="es" ? "selected" : null)">Español</option>
+                        <option value="nl" selected="@(cultureName=="nl" ? "selected" : null)">Nederlands</option>
+                        <option value="ru" selected="@(cultureName=="ru" ? "selected" : null)">Русский</option>
+                        <option value="hu" selected="@(cultureName=="hu" ? "selected" : null)">Magyar</option>
+                    </select>
+                </div>
+            </form>
+        </li>
+        <li><hr class="dropdown-divider"></li>
+        <li>
+            <form asp-controller="Auth" asp-action="Logout" method="post" class="d-inline">
+                <button type="submit" class="dropdown-item">
+                    <i class="bi bi-box-arrow-right me-2"></i>@Localizer["SignOut"]
+                </button>
+            </form>
+        </li>
+    </ul>
+</div>

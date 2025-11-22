@@ -43,12 +43,6 @@ namespace MailArchiver.Controllers
         [HttpGet]
         public IActionResult Login(string returnUrl = null)
         {
-            // If authentication is disabled, redirect to home
-            if (!_authService.IsAuthenticationRequired())
-            {
-                return RedirectToAction("Index", "Home");
-            }
-
             // If already authenticated, redirect to return URL or home
             if (_authService.IsAuthenticated(HttpContext))
             {
@@ -66,11 +60,6 @@ namespace MailArchiver.Controllers
         public async Task<IActionResult> Login(LoginViewModel model, string returnUrl = null)
         {
             ViewData["ReturnUrl"] = returnUrl;
-
-            if (!_authService.IsAuthenticationRequired())
-            {
-                return RedirectToAction("Index", "Home");
-            }
 
             if (ModelState.IsValid)
             {

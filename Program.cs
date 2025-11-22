@@ -1,5 +1,5 @@
+using MailArchiver.Auth.Middlewares;
 using MailArchiver.Data;
-using MailArchiver.Middleware;
 using MailArchiver.Models;
 using MailArchiver.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
