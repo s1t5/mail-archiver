@@ -1,23 +1,23 @@
 using MailArchiver.Data;
 using MailArchiver.Models;
+using MailArchiver.Services;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using System.Security.Claims;
 
-namespace MailArchiver.Services
+namespace MailArchiver.Auth.Services
 {
-    public class CookieAuthenticationService : IAuthenticationService
+    public class CookieAuthenticationService : MailArchiver.Services.IAuthenticationService
     {
-        private readonly MailArchiver.Models.AuthenticationOptions _authOptions;
+        private readonly Models.AuthenticationOptions _authOptions;
         private readonly IUserService _userService;
         private readonly MailArchiverDbContext _dbContext;
         private readonly ILogger<CookieAuthenticationService> _logger;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
         public CookieAuthenticationService(
-            IOptions<MailArchiver.Models.AuthenticationOptions> authOptions,
+            IOptions<Models.AuthenticationOptions> authOptions,
             IUserService userService,
             MailArchiverDbContext dbContext,
             ILogger<CookieAuthenticationService> logger,

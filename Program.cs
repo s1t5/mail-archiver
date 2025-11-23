@@ -1,5 +1,6 @@
 using MailArchiver.Auth.Handlers;
 using MailArchiver.Auth.Middlewares;
+using MailArchiver.Auth.Services;
 using MailArchiver.Data;
 using MailArchiver.Models;
 using MailArchiver.Services;
