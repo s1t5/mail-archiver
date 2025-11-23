@@ -1,9 +1,11 @@
-using System.Security.Claims;
-using System.Security.Principal;
+using MailArchiver.Auth.Exceptions;
 using MailArchiver.Models;
 using MailArchiver.Services;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+using System.Security.Claims;
+using System.Security.Principal;
 
 namespace MailArchiver.Auth.Handlers
 {
@@ -35,13 +37,18 @@ namespace MailArchiver.Auth.Handlers
             , bool persistAuthentication = false
             , IIdentity? remoteIdentity = null)
         {
+            // get the local user
             User localUser;
-            if(authenticationSchema != CookieAuthenticationDefaults.AuthenticationScheme)
+            if (authenticationSchema == OpenIdConnectDefaults.AuthenticationScheme)
             {
                 localUser = await _userService.GetOrCreateUserFromRemoteIdentity(remoteIdentity as ClaimsIdentity);
-            } else
+            }
+            else if (authenticationSchema == CookieAuthenticationDefaults.AuthenticationScheme)
             {
                 localUser = await _userService.GetUserByUsernameAsync(userIdentifier);
+            }
+            else { 
+                throw new UnknwonAuthenticationSchemeException(authenticationSchema);
             }
 
             // start a user session
