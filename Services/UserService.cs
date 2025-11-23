@@ -54,13 +54,27 @@ namespace MailArchiver.Services
                 .FirstOrDefault()?
                 .Value;
 
+            // try to find existing user by remote identity ID
             var user = await _context.Users
-                .Where(u => u.OAuthRemoteUserId == userId || u.Email.ToLower() == email.ToLower()) 
+                .Where(u => u.OAuthRemoteUserId == userId) 
                 .FirstOrDefaultAsync();
 
-            if(user != null)
+            if (user != null)
                 return user;
-            
+
+            // try to find existing user by email that has no remote identity linked yet
+            user = await _context.Users
+                .Where(u => u.Email.ToLower() == email.ToLower() && u.OAuthRemoteUserId == null)
+                .FirstOrDefaultAsync();
+
+            if (user != null) { 
+                // link existing user to remote identity
+                user.OAuthRemoteUserId = userId;
+                await _context.SaveChangesAsync();
+                return user;
+            }
+
+            // create a new user
             var displayName = remoteIdentity.Claims
                 .Where(c => c.Type == ClaimTypes.Name)
                 .FirstOrDefault()?
