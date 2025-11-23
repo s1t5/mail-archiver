@@ -504,13 +504,14 @@ namespace MailArchiver.Controllers
             // For security reasons, we don't want to pass the full user object to the view
             // Instead, we'll create a simple view model with just the username
             ViewBag.Username = currentUser.Username;
+            ViewBag.UserHasPassword = !string.IsNullOrEmpty(currentUser.PasswordHash);
             return View();
         }
 
         // POST: Users/ChangePassword
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> ChangePassword(string currentPassword, string newPassword, string confirmNewPassword)
+        public async Task<IActionResult> ChangePassword(string? currentPassword, string newPassword, string confirmNewPassword)
         {
             // Get the current user's information
             var currentUsername = _authService.GetCurrentUserDisplayName(HttpContext);
@@ -523,9 +524,10 @@ namespace MailArchiver.Controllers
 
             // Check if password change is forced
             var mustChangePassword = HttpContext.Session.GetString("MustChangePassword") == "true";
+            var userHasPassword = !string.IsNullOrEmpty(currentUser.PasswordHash);
 
             // Validate input
-            if (string.IsNullOrWhiteSpace(currentPassword))
+            if (userHasPassword && string.IsNullOrWhiteSpace(currentPassword))
             {
                 ModelState.AddModelError("currentPassword", _localizer["PasswordCurrentRequired"]);
             }
@@ -549,8 +551,8 @@ namespace MailArchiver.Controllers
             // If validation passes, check current password
             if (ModelState.IsValid)
             {
-                // Verify current password
-                var isCurrentPasswordValid = await _userService.AuthenticateUserAsync(currentUser.Username, currentPassword);
+                // Verify current password if user has a password
+                var isCurrentPasswordValid = !userHasPassword || await _userService.AuthenticateUserAsync(currentUser.Username, currentPassword);
                 if (!isCurrentPasswordValid)
                 {
                     ModelState.AddModelError("currentPassword", _localizer["PasswordCurrentIncorrect"]);
@@ -599,6 +601,7 @@ namespace MailArchiver.Controllers
             // If we get here, something went wrong
             ViewBag.Username = currentUser.Username;
             ViewBag.MustChangePassword = mustChangePassword;
+            ViewBag.UserHasPassword = !string.IsNullOrEmpty(currentUser.PasswordHash);
             return View();
         }
 
