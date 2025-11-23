@@ -1,4 +1,5 @@
-﻿using MailArchiver.Auth.Handlers;
+﻿using MailArchiver.Auth.Exceptions;
+using MailArchiver.Auth.Handlers;
 using MailArchiver.Models;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
@@ -52,9 +53,17 @@ namespace MailArchiver.Auth.Extensions
                     o.Events.OnUserInformationReceived = async (UserInformationReceivedContext ctx) => {
                         var handler = ctx.Request.HttpContext.RequestServices.GetRequiredService<AuthenticationHandler>();
 
-                        var email = ctx.User.RootElement.GetProperty("email").GetString();
                         var id = ctx.User.RootElement.GetProperty("sub").GetString();
                         var name = ctx.User.RootElement.GetProperty("name").GetString();
+                        var email = ctx.User.RootElement.GetProperty("email").GetString();
+
+                        if(string.IsNullOrWhiteSpace(id))
+                            throw new MissingClaimException("sub");
+                        if(string.IsNullOrWhiteSpace(name))
+                            throw new MissingClaimException("name");
+                        if(string.IsNullOrWhiteSpace(email))
+                            throw new MissingClaimException("email");
+
 
                         var identity = ctx.Principal.Identity as ClaimsIdentity;
                         identity.AddClaim(new Claim(ClaimTypes.Email, email));
@@ -65,7 +74,6 @@ namespace MailArchiver.Auth.Extensions
                             , id
                             , persistAuthentication: false
                             , remoteIdentity: ctx.Principal.Identity);
-
                     };
                 });
             }
