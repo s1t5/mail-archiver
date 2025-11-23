@@ -106,6 +106,7 @@ namespace MailArchiver.Controllers
                 else
                 {
                     ModelState.AddModelError("", _localizer["InvalidUserPassword"]);
+                    ViewBag.OAuthEnabled = _oAuthOptions.Value.Enabled;
                     _logger.LogWarning("Failed login attempt for username: {Username} from IP: {IP}", 
                         model.Username, HttpContext.Connection.RemoteIpAddress);
                 }
