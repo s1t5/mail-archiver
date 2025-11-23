@@ -1,5 +1,6 @@
 using MailArchiver.Models;
 using MailArchiver.Services;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.Localization;
@@ -31,7 +32,7 @@ namespace MailArchiver.Controllers
         // GET: TwoFactor/Setup
         public async Task<IActionResult> Setup()
         {
-            var currentUsername = _authService.GetCurrentUser(HttpContext);
+            var currentUsername = _authService.GetCurrentUserDisplayName(HttpContext);
             var user = await _userService.GetUserByUsernameAsync(currentUsername);
             
             if (user == null)
@@ -71,7 +72,7 @@ namespace MailArchiver.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Enable(string token)
         {
-            var currentUsername = _authService.GetCurrentUser(HttpContext);
+            var currentUsername = _authService.GetCurrentUserDisplayName(HttpContext);
             var user = await _userService.GetUserByUsernameAsync(currentUsername);
             
             if (user == null)
@@ -136,7 +137,7 @@ namespace MailArchiver.Controllers
         // GET: TwoFactor/Disable
         public async Task<IActionResult> Disable()
         {
-            var currentUsername = _authService.GetCurrentUser(HttpContext);
+            var currentUsername = _authService.GetCurrentUserDisplayName(HttpContext);
             var user = await _userService.GetUserByUsernameAsync(currentUsername);
             
             if (user == null || !user.IsTwoFactorEnabled || string.IsNullOrEmpty(user.TwoFactorSecret))
@@ -153,7 +154,7 @@ namespace MailArchiver.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Disable(string password)
         {
-            var currentUsername = _authService.GetCurrentUser(HttpContext);
+            var currentUsername = _authService.GetCurrentUserDisplayName(HttpContext);
             var user = await _userService.GetUserByUsernameAsync(currentUsername);
             
             if (user == null || !user.IsTwoFactorEnabled || string.IsNullOrEmpty(user.TwoFactorSecret))
@@ -252,7 +253,11 @@ namespace MailArchiver.Controllers
                         bool.TryParse(rememberMeString, out rememberMe);
                     }
                     // Sign in the user
-                    _authService.SignIn(HttpContext, user.Username, rememberMe);
+                    await _authService.StartUserSessionAsync(
+                        HttpContext
+                        , CookieAuthenticationDefaults.AuthenticationScheme
+                        , user.Username
+                        , rememberMe);
                     
                     // Log the successful login to access log
                     var sourceIp = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
@@ -303,7 +308,11 @@ namespace MailArchiver.Controllers
                     bool.TryParse(rememberMeString, out rememberMe);
                 }
                 // Sign in the user
-                _authService.SignIn(HttpContext, user.Username, rememberMe);
+                await _authService.StartUserSessionAsync(
+                    HttpContext
+                    , CookieAuthenticationDefaults.AuthenticationScheme
+                    , user.Username
+                    , rememberMe);
                 
                 // Log the successful login to access log
                 var sourceIp = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown";

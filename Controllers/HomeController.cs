@@ -37,7 +37,7 @@ namespace MailArchiver.Controllers
         public async Task<IActionResult> Index()
         {
             // Get current user
-            var currentUsername = _authenticationService.GetCurrentUser(HttpContext);
+            var currentUsername = _authenticationService.GetCurrentUserDisplayName(HttpContext);
             var currentUser = await _userService.GetUserByUsernameAsync(currentUsername);
             
             DashboardViewModel model;

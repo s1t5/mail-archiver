@@ -111,7 +111,7 @@ namespace MailArchiver.Controllers
             
             if (authService != null && userService != null && !authService.IsCurrentUserAdmin(HttpContext))
             {
-                var username = authService.GetCurrentUser(HttpContext);
+                var username = authService.GetCurrentUserDisplayName(HttpContext);
                 var user = await userService.GetUserByUsernameAsync(username);
                 if (user != null)
                 {
@@ -212,7 +212,7 @@ namespace MailArchiver.Controllers
                     if (_accessLogService != null && _serviceScopeFactory != null)
                     {
                         // Capture the current username before starting the background task
-                        var currentUsername = _authService?.GetCurrentUser(HttpContext);
+                        var currentUsername = _authService?.GetCurrentUserDisplayName(HttpContext);
                         
                         if (!string.IsNullOrEmpty(currentUsername))
                         {
@@ -313,7 +313,7 @@ namespace MailArchiver.Controllers
             if (_accessLogService != null && _serviceScopeFactory != null)
             {
                 // Capture the current username before starting the background task
-                var currentUsername = _authService?.GetCurrentUser(HttpContext);
+                var currentUsername = _authService?.GetCurrentUserDisplayName(HttpContext);
                 
                 if (!string.IsNullOrEmpty(currentUsername))
                 {
@@ -513,7 +513,7 @@ namespace MailArchiver.Controllers
             
             if (authService != null && userService != null && !authService.IsCurrentUserAdmin(HttpContext))
             {
-                var username = authService.GetCurrentUser(HttpContext);
+                var username = authService.GetCurrentUserDisplayName(HttpContext);
                 var user = await userService.GetUserByUsernameAsync(username);
                 if (user != null)
                 {
@@ -577,7 +577,7 @@ namespace MailArchiver.Controllers
                 if (_accessLogService != null && _serviceScopeFactory != null)
                 {
                     // Capture the current username before starting the background task
-                    var currentUsername = _authService?.GetCurrentUser(HttpContext);
+                    var currentUsername = _authService?.GetCurrentUserDisplayName(HttpContext);
                     
                     if (!string.IsNullOrEmpty(currentUsername))
                     {
@@ -632,7 +632,7 @@ namespace MailArchiver.Controllers
             
             if (authService != null && userService != null && !authService.IsCurrentUserAdmin(HttpContext))
             {
-                var username = authService.GetCurrentUser(HttpContext);
+                var username = authService.GetCurrentUserDisplayName(HttpContext);
                 var user = await userService.GetUserByUsernameAsync(username);
                 if (user != null)
                 {
@@ -731,7 +731,7 @@ namespace MailArchiver.Controllers
             
             if (authService != null && userService != null && !authService.IsCurrentUserAdmin(HttpContext))
             {
-                var username = authService.GetCurrentUser(HttpContext);
+                var username = authService.GetCurrentUserDisplayName(HttpContext);
                 var user = await userService.GetUserByUsernameAsync(username);
                 if (user != null)
                 {
@@ -744,7 +744,7 @@ namespace MailArchiver.Controllers
             if (allowedAccountIds != null && allowedAccountIds.Any() && !allowedAccountIds.Contains(model.TargetAccountId))
             {
                 _logger.LogWarning("User {Username} attempted to restore email to account {AccountId} which they don't have access to", 
-                    authService?.GetCurrentUser(HttpContext), model.TargetAccountId);
+                    authService?.GetCurrentUserDisplayName(HttpContext), model.TargetAccountId);
                 TempData["ErrorMessage"] = "You do not have access to the selected account.";
                 return RedirectToAction(nameof(Details), new { id = model.EmailId });
             }
@@ -851,7 +851,7 @@ namespace MailArchiver.Controllers
                     if (_accessLogService != null && _serviceScopeFactory != null)
                     {
                         // Capture the current username before starting the background task
-                        var currentUsername = _authService?.GetCurrentUser(HttpContext);
+                        var currentUsername = _authService?.GetCurrentUserDisplayName(HttpContext);
                         
                         if (!string.IsNullOrEmpty(currentUsername))
                         {
@@ -1005,7 +1005,7 @@ namespace MailArchiver.Controllers
             
             if (authService != null && userService != null && !authService.IsCurrentUserAdmin(HttpContext))
             {
-                var username = authService.GetCurrentUser(HttpContext);
+                var username = authService.GetCurrentUserDisplayName(HttpContext);
                 var user = await userService.GetUserByUsernameAsync(username);
                 if (user != null)
                 {
@@ -1096,7 +1096,7 @@ namespace MailArchiver.Controllers
             
             if (authService != null && userService != null && !authService.IsCurrentUserAdmin(HttpContext))
             {
-                var username = authService.GetCurrentUser(HttpContext);
+                var username = authService.GetCurrentUserDisplayName(HttpContext);
                 var user = await userService.GetUserByUsernameAsync(username);
                 if (user != null)
                 {
@@ -1109,7 +1109,7 @@ namespace MailArchiver.Controllers
             if (allowedAccountIds != null && allowedAccountIds.Any() && !allowedAccountIds.Contains(model.TargetAccountId))
             {
                 _logger.LogWarning("User {Username} attempted to restore emails to account {AccountId} which they don't have access to", 
-                    authService?.GetCurrentUser(HttpContext), model.TargetAccountId);
+                    authService?.GetCurrentUserDisplayName(HttpContext), model.TargetAccountId);
                 TempData["ErrorMessage"] = "You do not have access to the selected account.";
                 return Redirect(model.ReturnUrl ?? Url.Action("Index"));
             }
@@ -1172,7 +1172,7 @@ namespace MailArchiver.Controllers
                     model.SelectedEmailIds.Count, model.TargetFolder, model.TargetAccountId);
 
                 // Log the batch restore action
-                var currentUsername = _authService?.GetCurrentUser(HttpContext);
+                var currentUsername = _authService?.GetCurrentUserDisplayName(HttpContext);
                 if (!string.IsNullOrEmpty(currentUsername))
                 {
                     await _accessLogService.LogAccessAsync(currentUsername, AccessLogType.Restore, 
@@ -1399,7 +1399,7 @@ namespace MailArchiver.Controllers
             
             if (authService != null && userService != null && !authService.IsCurrentUserAdmin(HttpContext))
             {
-                var username = authService.GetCurrentUser(HttpContext);
+                var username = authService.GetCurrentUserDisplayName(HttpContext);
                 var user = await userService.GetUserByUsernameAsync(username);
                 if (user != null)
                 {
@@ -1501,7 +1501,7 @@ namespace MailArchiver.Controllers
             
             if (authService != null && userService != null && !authService.IsCurrentUserAdmin(HttpContext))
             {
-                var username = authService.GetCurrentUser(HttpContext);
+                var username = authService.GetCurrentUserDisplayName(HttpContext);
                 var user = await userService.GetUserByUsernameAsync(username);
                 if (user != null)
                 {
@@ -1514,7 +1514,7 @@ namespace MailArchiver.Controllers
             if (allowedAccountIds != null && allowedAccountIds.Any() && !allowedAccountIds.Contains(model.TargetAccountId))
             {
                 _logger.LogWarning("User {Username} attempted to restore emails to account {AccountId} which they don't have access to", 
-                    authService?.GetCurrentUser(HttpContext), model.TargetAccountId);
+                    authService?.GetCurrentUserDisplayName(HttpContext), model.TargetAccountId);
                 TempData["ErrorMessage"] = "You do not have access to the selected account.";
                 return Redirect(model.ReturnUrl ?? Url.Action("Index"));
             }
@@ -1565,7 +1565,7 @@ namespace MailArchiver.Controllers
                 var jobId = _batchRestoreService.QueueJob(job);
 
                 // Log the batch restore action
-                var currentUsername = _authService?.GetCurrentUser(HttpContext);
+                var currentUsername = _authService?.GetCurrentUserDisplayName(HttpContext);
                 if (!string.IsNullOrEmpty(currentUsername))
                 {
                     await _accessLogService.LogAccessAsync(currentUsername, AccessLogType.Restore, 
@@ -2047,7 +2047,7 @@ namespace MailArchiver.Controllers
             
             if (authService != null && userService != null && !authService.IsCurrentUserAdmin(HttpContext))
             {
-                var username = authService.GetCurrentUser(HttpContext);
+                var username = authService.GetCurrentUserDisplayName(HttpContext);
                 var user = await userService.GetUserByUsernameAsync(username);
                 if (user != null)
                 {
@@ -2309,7 +2309,7 @@ namespace MailArchiver.Controllers
                 // Log the deletion action
                 if (_accessLogService != null && _serviceScopeFactory != null)
                 {
-                    var currentUsername = _authService?.GetCurrentUser(HttpContext);
+                    var currentUsername = _authService?.GetCurrentUserDisplayName(HttpContext);
                     if (!string.IsNullOrEmpty(currentUsername))
                     {
                         await _accessLogService.LogAccessAsync(currentUsername, AccessLogType.Deletion,
@@ -2379,7 +2379,7 @@ namespace MailArchiver.Controllers
                         // Log the deletion action for each email
                         if (_accessLogService != null && _serviceScopeFactory != null)
                         {
-                            var currentUsername = _authService?.GetCurrentUser(HttpContext);
+                            var currentUsername = _authService?.GetCurrentUserDisplayName(HttpContext);
                             if (!string.IsNullOrEmpty(currentUsername))
                             {
                                 await _accessLogService.LogAccessAsync(currentUsername, AccessLogType.Deletion,
@@ -2456,7 +2456,7 @@ namespace MailArchiver.Controllers
 
                 if (authService != null && userService != null && !authService.IsCurrentUserAdmin(HttpContext))
                 {
-                    var username = authService.GetCurrentUser(HttpContext);
+                    var username = authService.GetCurrentUserDisplayName(HttpContext);
                     var user = await userService.GetUserByUsernameAsync(username);
                     if (user != null)
                     {
@@ -2483,7 +2483,7 @@ namespace MailArchiver.Controllers
                 }
 
                 // Log the export action
-                var currentUsername = _authService?.GetCurrentUser(HttpContext);
+                var currentUsername = _authService?.GetCurrentUserDisplayName(HttpContext);
                 if (!string.IsNullOrEmpty(currentUsername))
                 {
                     await _accessLogService.LogAccessAsync(currentUsername, AccessLogType.Download, 

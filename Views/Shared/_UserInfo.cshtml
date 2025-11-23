@@ -8,17 +8,17 @@
 <div class="dropdown">
     <button class="btn btn-outline-light btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
         <i class="bi bi-person-circle me-1"></i>
-        <span class="d-none d-md-inline">@AuthService.GetCurrentUser(Context)</span>
+        <span class="d-none d-md-inline">@AuthService.GetCurrentUserDisplayName(Context)</span>
     </button>
     <ul class="dropdown-menu dropdown-menu-end">
         <li>
             <h6 class="dropdown-header">
-                <i class="bi bi-person me-2"></i>@AuthService.GetCurrentUser(Context)
+                <i class="bi bi-person me-2"></i>@AuthService.GetCurrentUserDisplayName(Context)
             </h6>
         </li>
         <li><hr class="dropdown-divider"></li>
         @{
-            var currentUser = await UserService.GetUserByUsernameAsync(AuthService.GetCurrentUser(Context));
+            var currentUser = await UserService.GetUserByUsernameAsync(AuthService.GetCurrentUserDisplayName(Context));
             if (currentUser != null)
             {
                 <li>

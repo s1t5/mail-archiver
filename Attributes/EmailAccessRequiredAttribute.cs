@@ -80,7 +80,7 @@ namespace MailArchiver.Attributes
                 logger.LogInformation("Email {EmailId} belongs to account {AccountId}", email.Id, email.MailAccountId);
             }
             // Check if the user has access to this email's account
-            var username = authService.GetCurrentUser(context.HttpContext);
+            var username = authService.GetCurrentUserDisplayName(context.HttpContext);
             var user = await userService.GetUserByUsernameAsync(username);
             
             if (user == null)

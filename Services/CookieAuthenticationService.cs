@@ -38,7 +38,7 @@ namespace MailArchiver.Services
             return _userService.AuthenticateUserAsync(username, password).Result;
         }
 
-        public void SignIn(HttpContext context, string username, bool rememberMe = false)
+        public async Task StartUserSessionAsync(HttpContext context, string authenticationSchema, string username, bool rememberMe = false)
         {
             // Get the user to build claims
             var user = _userService.GetUserByUsernameAsync(username).Result;
@@ -89,7 +89,7 @@ namespace MailArchiver.Services
 
         public void SignOut(HttpContext context)
         {
-            var username = GetCurrentUser(context);
+            var username = GetCurrentUserDisplayName(context);
             context.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme).Wait();
 
             if (!string.IsNullOrEmpty(username))
@@ -112,7 +112,7 @@ namespace MailArchiver.Services
             return context.User?.Identity?.IsAuthenticated ?? false;
         }
 
-        public string GetCurrentUser(HttpContext context)
+        public string GetCurrentUserDisplayName(HttpContext context)
         {
             // Get username from claims
             var username = context.User?.Identity?.Name;
@@ -123,7 +123,7 @@ namespace MailArchiver.Services
 
         public bool IsCurrentUserAdmin(HttpContext context)
         {
-            var username = GetCurrentUser(context);
+            var username = GetCurrentUserDisplayName(context);
             _logger.LogDebug("Checking if user '{Username}' is admin", username);
 
             if (string.IsNullOrEmpty(username))
@@ -140,7 +140,7 @@ namespace MailArchiver.Services
 
         public bool IsCurrentUserSelfManager(HttpContext context)
         {
-            var username = GetCurrentUser(context);
+            var username = GetCurrentUserDisplayName(context);
             _logger.LogDebug("Checking if user '{Username}' is self-manager", username);
 
             if (string.IsNullOrEmpty(username))

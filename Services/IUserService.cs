@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using MailArchiver.Models;
 
 namespace MailArchiver.Services
@@ -7,6 +8,7 @@ namespace MailArchiver.Services
         Task<User?> GetUserByIdAsync(int id);
         Task<User?> GetUserByUsernameAsync(string username);
         Task<User?> GetUserByEmailAsync(string email);
+        Task<User> GetOrCreateUserFromRemoteIdentity(ClaimsIdentity remoteIdentity);
         Task<List<User>> GetAllUsersAsync();
         Task<User> CreateUserAsync(string username, string email, string password, bool isAdmin = false);
         Task<bool> UpdateUserAsync(User user);

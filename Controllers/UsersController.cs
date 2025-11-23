@@ -129,7 +129,7 @@ namespace MailArchiver.Controllers
                 }
 
                     // Log the user creation action using a separate task to avoid DbContext concurrency issues
-                    var currentUsername = _authService.GetCurrentUser(HttpContext);
+                    var currentUsername = _authService.GetCurrentUserDisplayName(HttpContext);
                     if (!string.IsNullOrEmpty(currentUsername))
                     {
                         Task.Run(async () =>
@@ -253,7 +253,7 @@ namespace MailArchiver.Controllers
                     _logger.LogInformation("User '{Username}' updated successfully.", existingUser.Username);
                     
                     // Log the user update action using a separate task to avoid DbContext concurrency issues
-                    var currentUsername = _authService.GetCurrentUser(HttpContext);
+                    var currentUsername = _authService.GetCurrentUserDisplayName(HttpContext);
                     if (!string.IsNullOrEmpty(currentUsername))
                     {
                         Task.Run(async () =>
@@ -377,7 +377,7 @@ namespace MailArchiver.Controllers
                 if (result)
                 {
                     // Log the user deletion action using a separate task to avoid DbContext concurrency issues
-                    var currentUsername = _authService.GetCurrentUser(HttpContext);
+                    var currentUsername = _authService.GetCurrentUserDisplayName(HttpContext);
                     if (!string.IsNullOrEmpty(currentUsername))
                     {
                         Task.Run(async () =>
@@ -493,7 +493,7 @@ namespace MailArchiver.Controllers
         public async Task<IActionResult> ChangePassword()
         {
             // Get the current user's information
-            var currentUsername = _authService.GetCurrentUser(HttpContext);
+            var currentUsername = _authService.GetCurrentUserDisplayName(HttpContext);
             var currentUser = await _userService.GetUserByUsernameAsync(currentUsername);
             if (currentUser == null)
             {
@@ -513,7 +513,7 @@ namespace MailArchiver.Controllers
         public async Task<IActionResult> ChangePassword(string currentPassword, string newPassword, string confirmNewPassword)
         {
             // Get the current user's information
-            var currentUsername = _authService.GetCurrentUser(HttpContext);
+            var currentUsername = _authService.GetCurrentUserDisplayName(HttpContext);
             var currentUser = await _userService.GetUserByUsernameAsync(currentUsername);
             if (currentUser == null)
             {

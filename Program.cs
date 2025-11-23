@@ -12,6 +12,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using System.Data.Common;
 using System.Globalization;
+using System.Security.Claims;
 using System.Threading.RateLimiting;
 
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
@@ -202,6 +203,8 @@ builder.Services.AddRateLimiter(options =>
 });
 
 // Add Authentication
+builder.Services.AddScoped<AuthenticationHandler>();
+builder.Services.AddHttpContextAccessor();
 var authBuilder = builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme);
 authBuilder.AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
     {
@@ -236,8 +239,22 @@ if (oauthOptions?.Enabled ?? false) {
             }
         }
         o.Events.OnUserInformationReceived = async (UserInformationReceivedContext ctx) => {
-            var handler = ctx.Request.HttpContext.RequestServices.GetRequiredService<OAuthAuthenticationService>();
-            await handler.HandleLoginAsync(ctx);
+            var handler = ctx.Request.HttpContext.RequestServices.GetRequiredService<AuthenticationHandler>();
+            
+            var email = ctx.User.RootElement.GetProperty("email").GetString();
+            var id = ctx.User.RootElement.GetProperty("sub").GetString();
+            var name = ctx.User.RootElement.GetProperty("name").GetString();
+
+            var identity = ctx.Principal.Identity as ClaimsIdentity;
+            identity.AddClaim(new Claim(ClaimTypes.Email, email));
+            identity.AddClaim(new Claim(ClaimTypes.Name, name));
+            
+            await handler.HandleUserAuthenticated(
+                OpenIdConnectDefaults.AuthenticationScheme
+                , id
+                , persistAuthentication: false
+                , remoteIdentity: ctx.Principal.Identity);
+            
         };
     });
 }

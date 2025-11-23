@@ -1,8 +1,10 @@
+using MailArchiver.Auth.Handlers;
 using MailArchiver.Data;
 using MailArchiver.Models;
 using MailArchiver.Models.ViewModels;
 using MailArchiver.Services;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
@@ -14,6 +16,7 @@ namespace MailArchiver.Controllers
 {
     public class AuthController : Controller
     {
+        private readonly AuthenticationHandler _authenticationHandler;
         private readonly MailArchiver.Services.IAuthenticationService _authService;
         private readonly IUserService _userService;
         private readonly ILogger<AuthController> _logger;
@@ -24,6 +27,7 @@ namespace MailArchiver.Controllers
 
         public AuthController(
             MailArchiver.Services.IAuthenticationService authService
+            , AuthenticationHandler authenticationHandler
             , IUserService userService
             , ILogger<AuthController> logger
             , IStringLocalizer<SharedResource> localizer
@@ -32,6 +36,7 @@ namespace MailArchiver.Controllers
             , IOptions<OAuthOptions> oAuthOptions)
         {
             _authService = authService;
+            _authenticationHandler = authenticationHandler;
             _userService = userService;
             _logger = logger;
             _localizer = localizer;
@@ -74,8 +79,11 @@ namespace MailArchiver.Controllers
                         HttpContext.Session.SetString("TwoFactorRememberMe", model.RememberMe.ToString());
                         return RedirectToAction("Verify", "TwoFactor");
                     }
-                    
-                    _authService.SignIn(HttpContext, model.Username, model.RememberMe);
+
+                    await _authenticationHandler.HandleUserAuthenticated(
+                        CookieAuthenticationDefaults.AuthenticationScheme
+                        , model.Username
+                        , model.RememberMe);
                     
                     // Check if this is initial setup (no mail accounts + default credentials)
                     var configuration = HttpContext.RequestServices.GetRequiredService<IConfiguration>();
@@ -144,7 +152,7 @@ namespace MailArchiver.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Logout()
         {
-            var username = _authService.GetCurrentUser(HttpContext);
+            var username = _authService.GetCurrentUserDisplayName(HttpContext);
             _authService.SignOut(HttpContext);
             
             // Log the logout if we have a username using a separate task to avoid DbContext concurrency issues

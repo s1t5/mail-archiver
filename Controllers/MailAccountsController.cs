@@ -64,7 +64,7 @@ namespace MailArchiver.Controllers
         {
             // Use the authentication service to get user info properly
             var authService = HttpContext.RequestServices.GetService<MailArchiver.Services.IAuthenticationService>();
-            var currentUsername = authService.GetCurrentUser(HttpContext);
+            var currentUsername = authService.GetCurrentUserDisplayName(HttpContext);
             var isAdmin = authService.IsCurrentUserAdmin(HttpContext);
             var isSelfManager = authService.IsCurrentUserSelfManager(HttpContext);
 
@@ -97,7 +97,7 @@ namespace MailArchiver.Controllers
         {
             // Use the authentication service to get user info properly
             var authService = HttpContext.RequestServices.GetService<MailArchiver.Services.IAuthenticationService>();
-            var currentUsername = authService.GetCurrentUser(HttpContext);
+            var currentUsername = authService.GetCurrentUserDisplayName(HttpContext);
             var isAdmin = authService.IsCurrentUserAdmin(HttpContext);
             var isSelfManager = authService.IsCurrentUserSelfManager(HttpContext);
             
@@ -262,7 +262,7 @@ var model = new MailAccountViewModel
 
                     // Auto-assign the account to the current user if they are a SelfManager (not Admin)
                     var authService = HttpContext.RequestServices.GetService<MailArchiver.Services.IAuthenticationService>();
-                    var currentUsername = authService.GetCurrentUser(HttpContext);
+                    var currentUsername = authService.GetCurrentUserDisplayName(HttpContext);
                     var currentUser = await _context.Users
                         .FirstOrDefaultAsync(u => u.Username.ToLower() == currentUsername.ToLower());
                     
@@ -370,7 +370,7 @@ var model = new MailAccountViewModel
 
             // Log the account enable/disable action
             var authService = HttpContext.RequestServices.GetService<MailArchiver.Services.IAuthenticationService>();
-            var currentUsername = authService.GetCurrentUser(HttpContext);
+            var currentUsername = authService.GetCurrentUserDisplayName(HttpContext);
             if (!string.IsNullOrEmpty(currentUsername))
             {
                 await _accessLogService.LogAccessAsync(currentUsername, AccessLogType.Account, 
@@ -486,7 +486,7 @@ var model = new MailAccountViewModel
                     
                     // Log the account update action
                     var authService = HttpContext.RequestServices.GetService<MailArchiver.Services.IAuthenticationService>();
-                    var currentUsername = authService.GetCurrentUser(HttpContext);
+                    var currentUsername = authService.GetCurrentUserDisplayName(HttpContext);
                     if (!string.IsNullOrEmpty(currentUsername))
                     {
                         await _accessLogService.LogAccessAsync(currentUsername, AccessLogType.Account, 
@@ -590,7 +590,7 @@ var model = new MailAccountViewModel
 
                 // Log the account deletion action
                 var authService = HttpContext.RequestServices.GetService<MailArchiver.Services.IAuthenticationService>();
-                var currentUsername = authService.GetCurrentUser(HttpContext);
+                var currentUsername = authService.GetCurrentUserDisplayName(HttpContext);
                 if (!string.IsNullOrEmpty(currentUsername))
                 {
                     await _accessLogService.LogAccessAsync(currentUsername, AccessLogType.Account, 
@@ -690,7 +690,7 @@ var model = new MailAccountViewModel
                     
                     // Log the sync action
                     var authService = HttpContext.RequestServices.GetService<MailArchiver.Services.IAuthenticationService>();
-                    var currentUsername = authService.GetCurrentUser(HttpContext);
+                    var currentUsername = authService.GetCurrentUserDisplayName(HttpContext);
                     if (!string.IsNullOrEmpty(currentUsername))
                     {
                         await _accessLogService.LogAccessAsync(currentUsername, AccessLogType.Account, 
@@ -745,7 +745,7 @@ var model = new MailAccountViewModel
                 {
                     // Log the resync action
                     var authService = HttpContext.RequestServices.GetService<MailArchiver.Services.IAuthenticationService>();
-                    var currentUsername = authService.GetCurrentUser(HttpContext);
+                    var currentUsername = authService.GetCurrentUserDisplayName(HttpContext);
                     if (!string.IsNullOrEmpty(currentUsername))
                     {
                         await _accessLogService.LogAccessAsync(currentUsername, AccessLogType.Account, 
@@ -844,7 +844,7 @@ var model = new MailAccountViewModel
         {
             // Use the authentication service to get user info properly
             var authService = HttpContext.RequestServices.GetService<MailArchiver.Services.IAuthenticationService>();
-            var currentUsername = authService.GetCurrentUser(HttpContext);
+            var currentUsername = authService.GetCurrentUserDisplayName(HttpContext);
             var isAdmin = authService.IsCurrentUserAdmin(HttpContext);
             var isSelfManager = authService.IsCurrentUserSelfManager(HttpContext);
 
@@ -959,7 +959,7 @@ var model = new MailAccountViewModel
 
                 // Log the MBox import action
                 var authService = HttpContext.RequestServices.GetService<MailArchiver.Services.IAuthenticationService>();
-                var currentUsername = authService.GetCurrentUser(HttpContext);
+                var currentUsername = authService.GetCurrentUserDisplayName(HttpContext);
                 if (!string.IsNullOrEmpty(currentUsername))
                 {
                     await _accessLogService.LogAccessAsync(currentUsername, AccessLogType.Account, 
@@ -1072,7 +1072,7 @@ var model = new MailAccountViewModel
         {
             // Use the authentication service to get user info properly
             var authService = HttpContext.RequestServices.GetService<MailArchiver.Services.IAuthenticationService>();
-            var currentUsername = authService.GetCurrentUser(HttpContext);
+            var currentUsername = authService.GetCurrentUserDisplayName(HttpContext);
             var isAdmin = authService.IsCurrentUserAdmin(HttpContext);
             var isSelfManager = authService.IsCurrentUserSelfManager(HttpContext);
 
@@ -1186,7 +1186,7 @@ var model = new MailAccountViewModel
 
                 // Log the EML import action
                 var authService = HttpContext.RequestServices.GetService<MailArchiver.Services.IAuthenticationService>();
-                var currentUsername = authService.GetCurrentUser(HttpContext);
+                var currentUsername = authService.GetCurrentUserDisplayName(HttpContext);
                 if (!string.IsNullOrEmpty(currentUsername))
                 {
                     await _accessLogService.LogAccessAsync(currentUsername, AccessLogType.Account, 
@@ -1338,7 +1338,7 @@ var model = new MailAccountViewModel
             {
                 // Get current user info
                 var authService = HttpContext.RequestServices.GetService<MailArchiver.Services.IAuthenticationService>();
-                var currentUsername = authService.GetCurrentUser(HttpContext);
+                var currentUsername = authService.GetCurrentUserDisplayName(HttpContext);
 
                     // Log the export action
                     if (!string.IsNullOrEmpty(currentUsername))
