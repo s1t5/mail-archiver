@@ -1,4 +1,5 @@
 using MailArchiver.Auth.Handlers;
+using MailArchiver.Auth.Options;
 using MailArchiver.Data;
 using MailArchiver.Models;
 using MailArchiver.Models.ViewModels;

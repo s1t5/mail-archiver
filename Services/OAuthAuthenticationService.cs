@@ -1,4 +1,4 @@
-﻿using MailArchiver.Models;
+﻿using MailArchiver.Auth.Options;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;

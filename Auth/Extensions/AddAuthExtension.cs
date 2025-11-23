@@ -1,6 +1,6 @@
 ﻿using MailArchiver.Auth.Exceptions;
 using MailArchiver.Auth.Handlers;
-using MailArchiver.Models;
+using MailArchiver.Auth.Options;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
@@ -32,7 +32,7 @@ namespace MailArchiver.Auth.Extensions
             var oauthOptions = builder.Configuration.GetSection(OAuthOptions.OAuth).Get<OAuthOptions>();
             if (oauthOptions?.Enabled ?? false)
             {
-                authBuilder.AddCookie("OidcCookie"); // temporary storage for OIDC result
+                authBuilder.AddCookie(OAuthOptions.SignInScheme); // temporary storage for OIDC result
                 authBuilder.AddOpenIdConnect(OpenIdConnectDefaults.AuthenticationScheme, (o) => {
                     o.ClientId = oauthOptions.ClientId;
                     o.ClientSecret = oauthOptions.ClientSecret;
@@ -40,7 +40,7 @@ namespace MailArchiver.Auth.Extensions
                     o.Authority = oauthOptions.Authority;
                     o.ResponseType = OpenIdConnectResponseType.Code;
                     o.GetClaimsFromUserInfoEndpoint = true;
-                    o.SignInScheme = "OidcCookie";
+                    o.SignInScheme = OAuthOptions.SignInScheme;
                     o.TokenValidationParameters.NameClaimType = "name";
                     if (oauthOptions.ClientScopes != null)
                     {
