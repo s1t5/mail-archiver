@@ -1,3 +1,4 @@
+using MailArchiver.Models;
 using MailArchiver.Services;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -50,11 +51,7 @@ namespace MailArchiver.Auth.Services
             throw new NotImplementedException();
         }
 
-        public async Task StartUserSessionAsync(
-            HttpContext context
-            , string authenticationSchema
-            , string username
-            , bool rememberMe = false)
+        public async Task StartUserSessionAsync(User user, bool rememberMe = false)
         {
             throw new NotImplementedException();
         }

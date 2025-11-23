@@ -99,23 +99,7 @@ namespace MailArchiver.Controllers
                         // Force password change for initial setup
                         HttpContext.Session.SetString("MustChangePassword", "true");
                         _logger.LogWarning("User {Username} logged in with default credentials on initial setup - forcing password change", model.Username);
-                    }
-                    
-                    // Log the successful login using a separate task to avoid DbContext concurrency issues
-                    var sourceIp = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
-                    Task.Run(async () =>
-                    {
-                        try
-                        {
-                            using var scope = _serviceScopeFactory.CreateScope();
-                            var accessLogService = scope.ServiceProvider.GetRequiredService<IAccessLogService>();
-                            await accessLogService.LogAccessAsync(model.Username, AccessLogType.Login, searchParameters: $"IP: {sourceIp}");
-                        }
-                        catch (Exception ex)
-                        {
-                            _logger.LogError(ex, "Error logging login action for user {Username}", model.Username);
-                        }
-                    });
+                    }                    
                     
                     return RedirectToLocal(returnUrl);
                 }

@@ -1,5 +1,6 @@
 using MailArchiver.Services;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 
 namespace MailArchiver.Auth.Middlewares
 {
@@ -25,7 +26,7 @@ namespace MailArchiver.Auth.Middlewares
             if (!shouldSkip)
             {
                 // Check if user is authenticated through framework
-                var isAuthenticated = await context.AuthenticateAsync();
+                var isAuthenticated = await context.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme);
                 
                 // Also check our custom service for 2FA state
                 if (!authService.IsAuthenticated(context))

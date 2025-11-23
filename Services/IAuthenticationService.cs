@@ -1,13 +1,11 @@
+using MailArchiver.Models;
+
 namespace MailArchiver.Services
 {
     public interface IAuthenticationService
     {
         bool ValidateCredentials(string username, string password);
-        Task StartUserSessionAsync(
-            HttpContext context
-            , string authenticationSchema
-            , string username
-            , bool rememberMe = false);
+        Task StartUserSessionAsync(User user, bool rememberMe = false);
         void SignOut(HttpContext context);
         bool IsAuthenticated(HttpContext context);
         string GetCurrentUserDisplayName(HttpContext context);

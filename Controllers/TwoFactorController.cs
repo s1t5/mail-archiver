@@ -254,9 +254,7 @@ namespace MailArchiver.Controllers
                     }
                     // Sign in the user
                     await _authService.StartUserSessionAsync(
-                        HttpContext
-                        , CookieAuthenticationDefaults.AuthenticationScheme
-                        , user.Username
+                        user
                         , rememberMe);
                     
                     // Log the successful login to access log
@@ -309,9 +307,7 @@ namespace MailArchiver.Controllers
                 }
                 // Sign in the user
                 await _authService.StartUserSessionAsync(
-                    HttpContext
-                    , CookieAuthenticationDefaults.AuthenticationScheme
-                    , user.Username
+                    user
                     , rememberMe);
                 
                 // Log the successful login to access log

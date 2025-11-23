@@ -14,17 +14,20 @@ namespace MailArchiver.Services
         private readonly IUserService _userService;
         private readonly MailArchiverDbContext _dbContext;
         private readonly ILogger<CookieAuthenticationService> _logger;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
         public CookieAuthenticationService(
             IOptions<MailArchiver.Models.AuthenticationOptions> authOptions,
             IUserService userService,
             MailArchiverDbContext dbContext,
-            ILogger<CookieAuthenticationService> logger)
+            ILogger<CookieAuthenticationService> logger,
+            IHttpContextAccessor httpContextAccessor)
         {
             _authOptions = authOptions.Value;
             _userService = userService;
             _dbContext = dbContext;
             _logger = logger;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         public bool IsAuthenticationRequired()
@@ -38,13 +41,14 @@ namespace MailArchiver.Services
             return _userService.AuthenticateUserAsync(username, password).Result;
         }
 
-        public async Task StartUserSessionAsync(HttpContext context, string authenticationSchema, string username, bool rememberMe = false)
+        public async Task StartUserSessionAsync(
+            User user
+            , bool rememberMe = false)
         {
             // Get the user to build claims
-            var user = _userService.GetUserByUsernameAsync(username).Result;
             if (user == null)
             {
-                _logger.LogWarning("Attempt to sign in non-existent user: {Username}", username);
+                _logger.LogWarning("Attempt to sign in non-existent user");
                 return;
             }
 
@@ -79,12 +83,9 @@ namespace MailArchiver.Services
             };
 
             // Sign in the user using ASP.NET Core authentication
-            context.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, claimsPrincipal, authProperties).Wait();
+            _httpContextAccessor.HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, claimsPrincipal, authProperties).Wait();
 
-            // Update user's last login time
-            UpdateUserLastLogin(username);
-
-            _logger.LogInformation("User '{Username}' signed in successfully", username);
+            _logger.LogInformation("User '{Username}' signed in successfully", user.Username);
         }
 
         public void SignOut(HttpContext context)
@@ -153,25 +154,6 @@ namespace MailArchiver.Services
             var isSelfManager = context.User?.IsInRole("SelfManager") ?? false;
             _logger.LogDebug("User '{Username}' claims self-manager status: {IsSelfManager}", username, isSelfManager);
             return isSelfManager;
-        }
-
-        private void UpdateUserLastLogin(string username)
-        {
-            try
-            {
-                // Try to find the user in the new user system first
-                var user = _userService.GetUserByUsernameAsync(username).Result;
-                if (user != null)
-                {
-                    user.LastLoginAt = DateTime.UtcNow;
-                    _userService.UpdateUserAsync(user).Wait();
-                    _logger.LogInformation("Updated last login time for user '{Username}'", username);
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error updating last login time for user '{Username}'", username);
-            }
         }
     }
 }

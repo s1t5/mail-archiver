@@ -222,15 +222,17 @@ authBuilder.AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options
 
 // conditional OAuth setup
 var oauthOptions = builder.Configuration.GetSection(OAuthOptions.OAuth).Get<OAuthOptions>();
-if (oauthOptions?.Enabled ?? false) {
+if (oauthOptions?.Enabled ?? false)
+{
+    authBuilder.AddCookie("OidcCookie"); // temporary storage for OIDC result
     authBuilder.AddOpenIdConnect(OpenIdConnectDefaults.AuthenticationScheme, (o) => { 
         o.ClientId = oauthOptions.ClientId;
         o.ClientSecret = oauthOptions.ClientSecret;
         o.CallbackPath = "/oidc-signin-completed";
         o.Authority = oauthOptions.Authority;
-        o.ResponseType = OpenIdConnectResponseType.CodeIdToken;
+        o.ResponseType = OpenIdConnectResponseType.Code;
         o.GetClaimsFromUserInfoEndpoint = true;
-        o.SaveTokens = true;
+        o.SignInScheme = "OidcCookie";
         o.TokenValidationParameters.NameClaimType = "name";
         if (oauthOptions.ClientScopes != null) { 
             o.Scope.Clear();
