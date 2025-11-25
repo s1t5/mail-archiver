@@ -41,6 +41,14 @@ namespace MailArchiver.Controllers
                 return RedirectToAction("Index", "Home");
             }
 
+            // SECURITY: OIDC users cannot use 2FA (they authenticate via OIDC provider)
+            if (!string.IsNullOrEmpty(user.OAuthRemoteUserId))
+            {
+                _logger.LogWarning("OIDC user {Username} attempted to access 2FA setup - denied", user.Username);
+                TempData["ErrorMessage"] = "OIDC users cannot enable 2FA. Authentication is managed by your OIDC provider.";
+                return RedirectToAction("Index", "Home");
+            }
+
             // Generate a new TOTP secret if not already set
             if (string.IsNullOrEmpty(user.TwoFactorSecret))
             {
@@ -140,7 +148,21 @@ namespace MailArchiver.Controllers
             var currentUsername = _authService.GetCurrentUserDisplayName(HttpContext);
             var user = await _userService.GetUserByUsernameAsync(currentUsername);
             
-            if (user == null || !user.IsTwoFactorEnabled || string.IsNullOrEmpty(user.TwoFactorSecret))
+            if (user == null)
+            {
+                TempData["ErrorMessage"] = _localizer["UserNotFound"].Value;
+                return RedirectToAction("Index", "Home");
+            }
+
+            // SECURITY: OIDC users cannot use 2FA
+            if (!string.IsNullOrEmpty(user.OAuthRemoteUserId))
+            {
+                _logger.LogWarning("OIDC user {Username} attempted to access 2FA disable - denied", user.Username);
+                TempData["ErrorMessage"] = "OIDC users cannot manage 2FA. Authentication is managed by your OIDC provider.";
+                return RedirectToAction("Index", "Home");
+            }
+            
+            if (!user.IsTwoFactorEnabled || string.IsNullOrEmpty(user.TwoFactorSecret))
             {
                 TempData["ErrorMessage"] = _localizer["TwoFactorNotEnabled"].Value;
                 return RedirectToAction("Index", "Home");

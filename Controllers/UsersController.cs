@@ -187,7 +187,31 @@ namespace MailArchiver.Controllers
                 return NotFound();
             }
 
-            // Validate new password if provided
+            // Get existing user to check if it's an OIDC user
+            var existingUser = await _userService.GetUserByIdAsync(id);
+            if (existingUser == null)
+            {
+                _logger.LogWarning("User not found with id: {Id}", id);
+                return NotFound();
+            }
+
+            // SECURITY: OIDC users cannot have passwords set
+            if (!string.IsNullOrEmpty(existingUser.OAuthRemoteUserId) && !string.IsNullOrWhiteSpace(newPassword))
+            {
+                _logger.LogWarning("Attempted to set password for OIDC user {Username} (ID: {UserId}) - denied", 
+                    existingUser.Username, existingUser.Id);
+                ModelState.AddModelError("newPassword", _localizer["OidcUserCannotHavePassword" ]);
+            }
+
+            // SECURITY: OIDC users cannot have their username changed
+            if (!string.IsNullOrEmpty(existingUser.OAuthRemoteUserId) && existingUser.Username != user.Username)
+            {
+                _logger.LogWarning("Attempted to change username for OIDC user {Username} (ID: {UserId}) - denied", 
+                    existingUser.Username, existingUser.Id);
+                ModelState.AddModelError("Username", _localizer["OidcUserCannotChangeUsername"]);
+            }
+
+            // Validate new password if provided (and not an OIDC user)
             if (!string.IsNullOrWhiteSpace(newPassword))
             {
                 if (!ValidatePasswordRequirements(newPassword, out var passwordErrors))
@@ -211,13 +235,7 @@ namespace MailArchiver.Controllers
             {
                 try
                 {
-                    _logger.LogInformation("Attempting to get user with id: {Id}", id);
-                    var existingUser = await _userService.GetUserByIdAsync(id);
-                    if (existingUser == null)
-                    {
-                        _logger.LogWarning("User not found with id: {Id}", id);
-                        return NotFound();
-                    }
+                    _logger.LogInformation("Attempting to update user with id: {Id}", id);
 
                     // Check if trying to remove admin rights from the last admin
                     if (existingUser.IsAdmin && !user.IsAdmin)
@@ -498,6 +516,13 @@ namespace MailArchiver.Controllers
             if (currentUser == null)
             {
                 TempData["ErrorMessage"] = _localizer["UserNotFound"].Value;
+                return RedirectToAction("Index", "Home");
+            }
+
+            // SECURITY: OIDC users cannot change their password (they authenticate via OIDC provider)
+            if (!string.IsNullOrEmpty(currentUser.OAuthRemoteUserId))
+            {
+                TempData["ErrorMessage"] = _localizer["OidcUserCannotChangePassword"].Value;
                 return RedirectToAction("Index", "Home");
             }
 

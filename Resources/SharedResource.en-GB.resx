@@ -172,4 +172,13 @@
   <data name="EMLFormatDescription" xml:space="preserve">
     <value>Creates individual .eml files organised in folders.</value>
   </data>
+  <data name="OidcUserCannotHavePassword" xml:space="preserve">
+    <value>OIDC users cannot have a password. They authenticate through the OIDC provider.</value>
+  </data>
+  <data name="OidcUserCannotChangeUsername" xml:space="preserve">
+    <value>OIDC user usernames cannot be changed as they are linked to the OIDC provider identity.</value>
+  </data>
+  <data name="OidcUserCannotChangePassword" xml:space="preserve">
+    <value>OIDC users cannot change their password. Password management is handled by your OIDC provider.</value>
+  </data>
 </root>

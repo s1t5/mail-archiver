@@ -14,6 +14,14 @@
                 <p class="text-muted">@Localizer["LoginSubtitle"]</p>
             </div>
 
+            @if (!string.IsNullOrEmpty(Context.Request.Query["error"]))
+            {
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    @Context.Request.Query["error"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+            
             <form asp-action="Login" method="post">
                 <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
                 <input type="hidden" name="ReturnUrl" value="@ViewData["ReturnUrl"]" />

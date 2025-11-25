@@ -198,6 +198,22 @@ namespace MailArchiver.Services
             if (user == null)
                 return false;
 
+            // SECURITY: OIDC users cannot login with username/password
+            if (!string.IsNullOrEmpty(user.OAuthRemoteUserId))
+            {
+                _logger.LogWarning("OIDC user {Username} (ID: {UserId}) attempted to login with password - denied", 
+                    user.Username, user.Id);
+                return false;
+            }
+
+            // SECURITY: Users without password (OIDC users) cannot login with password
+            if (string.IsNullOrEmpty(user.PasswordHash))
+            {
+                _logger.LogWarning("User {Username} (ID: {UserId}) has no password but attempted password login - denied", 
+                    user.Username, user.Id);
+                return false;
+            }
+
             return VerifyPassword(password, user.PasswordHash);
         }
 
@@ -369,6 +385,14 @@ namespace MailArchiver.Services
             var user = await _context.Users.FindAsync(userId);
             if (user == null)
                 return false;
+
+            // SECURITY: OIDC users cannot use 2FA (they authenticate via OIDC provider)
+            if (!string.IsNullOrEmpty(user.OAuthRemoteUserId))
+            {
+                _logger.LogWarning("Attempted to set 2FA for OIDC user {Username} (ID: {UserId}) - denied", 
+                    user.Username, user.Id);
+                return false;
+            }
 
             user.IsTwoFactorEnabled = enabled;
             _context.Users.Update(user);

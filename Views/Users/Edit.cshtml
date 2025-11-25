@@ -13,7 +13,32 @@
             <input type="hidden" asp-for="PasswordHash" />
             <input type="hidden" asp-for="CreatedAt" />
             <input type="hidden" asp-for="LastLoginAt" />
-                <div class="row"><div class="col-md-6"><div class="mb-3"><label asp-for="Username" class="form-label">@Localizer["Username"]</label><input asp-for="Username" class="form-control" /><span asp-validation-for="Username" class="text-danger"></span></div></div><div class="col-md-6"><div class="mb-3"><label asp-for="Email" class="form-label">@Localizer["Email"]</label><input asp-for="Email" class="form-control" /><span asp-validation-for="Email" class="text-danger"></span></div></div></div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label asp-for="Username" class="form-label">@Localizer["Username"]</label>
+                            @if (!string.IsNullOrEmpty(Model.OAuthRemoteUserId))
+                            {
+                                <input asp-for="Username" class="form-control" readonly />
+                                <small class="form-text text-muted">
+                                    <i class="bi bi-lock"></i> OIDC user - username cannot be changed
+                                </small>
+                            }
+                            else
+                            {
+                                <input asp-for="Username" class="form-control" />
+                            }
+                            <span asp-validation-for="Username" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label asp-for="Email" class="form-label">@Localizer["Email"]</label>
+                            <input asp-for="Email" class="form-control" />
+                            <span asp-validation-for="Email" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
             <div class="row">
                 <div class="col-md-4">
                     <div class="mb-3 form-check">
@@ -37,31 +62,41 @@
                     </div>
                 </div>
             </div>
-            <div class="row">
-                <div class="col-md-12">
-                    <div class="mb-3">
-                        <label for="newPassword" class="form-label">@Localizer["NewPassword"]</label>
-                        <input type="password" name="newPassword" id="newPassword" class="form-control" placeholder="@Localizer["LeaveBlankToKeepPassword"]" />
-                        <small class="form-text text-muted">@Localizer["LeaveBlankToKeepPassword"]</small>
-                        <span class="text-danger" id="newPassword-error"></span>
-                        
-                        <!-- Password Requirements (shown only when typing) -->
-                        <div class="mt-2" id="passwordRequirementsContainer" style="display: none;">
-                            <small class="text-muted">@Localizer["PasswordRequirements"]:</small>
-                            <ul class="small text-muted mt-1" id="passwordRequirements">
-                                <li id="edit-req-length" class="requirement-unchecked"><i class="bi bi-x-circle"></i> @Localizer["PasswordMinLength"]</li>
-                                <li id="edit-req-uppercase" class="requirement-unchecked"><i class="bi bi-x-circle"></i> @Localizer["PasswordRequiresUppercase"]</li>
-                                <li id="edit-req-lowercase" class="requirement-unchecked"><i class="bi bi-x-circle"></i> @Localizer["PasswordRequiresLowercase"]</li>
-                                <li id="edit-req-number" class="requirement-unchecked"><i class="bi bi-x-circle"></i> @Localizer["PasswordRequiresNumber"]</li>
-                                <li id="edit-req-special" class="requirement-unchecked"><i class="bi bi-x-circle"></i> @Localizer["PasswordRequiresSpecialChar"]</li>
-                            </ul>
+            @if (string.IsNullOrEmpty(Model.OAuthRemoteUserId))
+            {
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="mb-3">
+                            <label for="newPassword" class="form-label">@Localizer["NewPassword"]</label>
+                            <input type="password" name="newPassword" id="newPassword" class="form-control" placeholder="@Localizer["LeaveBlankToKeepPassword"]" />
+                            <small class="form-text text-muted">@Localizer["LeaveBlankToKeepPassword"]</small>
+                            <span class="text-danger" id="newPassword-error"></span>
+                            
+                            <!-- Password Requirements (shown only when typing) -->
+                            <div class="mt-2" id="passwordRequirementsContainer" style="display: none;">
+                                <small class="text-muted">@Localizer["PasswordRequirements"]:</small>
+                                <ul class="small text-muted mt-1" id="passwordRequirements">
+                                    <li id="edit-req-length" class="requirement-unchecked"><i class="bi bi-x-circle"></i> @Localizer["PasswordMinLength"]</li>
+                                    <li id="edit-req-uppercase" class="requirement-unchecked"><i class="bi bi-x-circle"></i> @Localizer["PasswordRequiresUppercase"]</li>
+                                    <li id="edit-req-lowercase" class="requirement-unchecked"><i class="bi bi-x-circle"></i> @Localizer["PasswordRequiresLowercase"]</li>
+                                    <li id="edit-req-number" class="requirement-unchecked"><i class="bi bi-x-circle"></i> @Localizer["PasswordRequiresNumber"]</li>
+                                    <li id="edit-req-special" class="requirement-unchecked"><i class="bi bi-x-circle"></i> @Localizer["PasswordRequiresSpecialChar"]</li>
+                                </ul>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
+            }
+            else
+            {
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle"></i> This is an OIDC user. Password management is handled by the OIDC provider.
+                </div>
+            }
             <div class="d-flex justify-content-between"><a asp-action="Index" class="btn btn-secondary">@Localizer["Cancel"]</a><button type="submit" class="btn btn-primary"><i class="bi bi-save"></i> @Localizer["SaveChanges"]</button></div>
         </form>
-        @if (Model.IsTwoFactorEnabled)
+        @* 2FA is only available for non-OIDC users *@
+        @if (string.IsNullOrEmpty(Model.OAuthRemoteUserId) && Model.IsTwoFactorEnabled)
         {
             <div class="mt-4">
                 <h5>@Localizer["TwoFactorAuthentication"]</h5>

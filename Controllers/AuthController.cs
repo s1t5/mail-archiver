@@ -55,7 +55,7 @@ namespace MailArchiver.Controllers
                 return RedirectToLocal(returnUrl);
             }
 
-            ViewBag.OAuthEnabled = _oAuthOptions.Value.Enabled;
+            ViewBag.OAuthEnabled = _oAuthOptions.Value?.Enabled ?? false;
             ViewData["ReturnUrl"] = returnUrl;
             return View(new LoginViewModel());
         }
@@ -74,7 +74,7 @@ namespace MailArchiver.Controllers
                     // Check if 2FA is enabled for the user
                     var user = await _userService.GetUserByUsernameAsync(model.Username);
                     if (user != null && user.IsTwoFactorEnabled)
-                    {
+       {
                         // Store username in session for 2FA verification
                         HttpContext.Session.SetString("TwoFactorUsername", model.Username);
                         HttpContext.Session.SetString("TwoFactorRememberMe", model.RememberMe.ToString());
@@ -107,12 +107,14 @@ namespace MailArchiver.Controllers
                 else
                 {
                     ModelState.AddModelError("", _localizer["InvalidUserPassword"]);
-                    ViewBag.OAuthEnabled = _oAuthOptions.Value.Enabled;
+                    ViewBag.OAuthEnabled = _oAuthOptions.Value?.Enabled ?? false;
                     _logger.LogWarning("Failed login attempt for username: {Username} from IP: {IP}", 
                         model.Username, HttpContext.Connection.RemoteIpAddress);
                 }
             }
 
+            // Ensure OAuthEnabled is set when returning view on validation errors
+            ViewBag.OAuthEnabled = _oAuthOptions.Value?.Enabled ?? false;
             return View(model);
         }
 
