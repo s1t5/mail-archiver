@@ -117,15 +117,18 @@ namespace MailArchiver.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken] // SECURITY: CSRF protection for OIDC login
         public async Task LoginWithOAuth(OAuthLoginViewModel oAuthLoginViewModel) {
             var properties = new AuthenticationProperties();
 
             if(!string.IsNullOrWhiteSpace(oAuthLoginViewModel.ReturnUrl))
                 properties.Items["returnUrl"] = oAuthLoginViewModel.ReturnUrl;
 
+            // SECURITY: Add state parameter for CSRF protection
+            properties.Items["state"] = Guid.NewGuid().ToString();
 
-            // trigger the  OIDC login flow
-            await HttpContext.ChallengeAsync(OpenIdConnectDefaults.AuthenticationScheme).ConfigureAwait(false);
+            // Trigger the OIDC login flow
+            await HttpContext.ChallengeAsync(OpenIdConnectDefaults.AuthenticationScheme, properties).ConfigureAwait(false);
         }
 
         [HttpGet("[Controller]/LoginWithOAuth")]
@@ -139,7 +142,28 @@ namespace MailArchiver.Controllers
         public async Task<IActionResult> Logout()
         {
             var username = _authService.GetCurrentUserDisplayName(HttpContext);
-            _authService.SignOut(HttpContext);
+            
+            // Check if user was authenticated via OIDC by looking for OAuthRemoteUserId
+            User? user = null;
+            if (!string.IsNullOrEmpty(username))
+            {
+                user = await _userService.GetUserByUsernameAsync(username);
+            }
+
+            // SECURITY: Sign out from OIDC provider if user authenticated via OIDC
+            if (_oAuthOptions.Value.Enabled && user?.OAuthRemoteUserId != null)
+            {
+                _logger.LogInformation("User {Username} authenticated via OIDC, signing out from both local and remote provider", username);
+                
+                // Sign out from both OIDC and local cookie authentication
+                await HttpContext.SignOutAsync(OpenIdConnectDefaults.AuthenticationScheme);
+                await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            }
+            else
+            {
+                // Regular sign out for non-OIDC users
+                _authService.SignOut(HttpContext);
+            }
             
             // Log the logout if we have a username using a separate task to avoid DbContext concurrency issues
             if (!string.IsNullOrEmpty(username))

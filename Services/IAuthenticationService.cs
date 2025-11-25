@@ -9,6 +9,7 @@ namespace MailArchiver.Services
         void SignOut(HttpContext context);
         bool IsAuthenticated(HttpContext context);
         string GetCurrentUserDisplayName(HttpContext context);
+        int? GetCurrentUserId(HttpContext context);
         bool IsCurrentUserAdmin(HttpContext context);
         bool IsCurrentUserSelfManager(HttpContext context);
     }

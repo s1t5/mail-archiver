@@ -172,8 +172,4 @@
   <data name="EMLFormatDescription" xml:space="preserve">
     <value>Creates individual .eml files organised in folders.</value>
   </data>
-  <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
-  <data name="SignInWithOAuth" type="System.Resources.ResXNullRef, System.Windows.Forms">
-    <value />
-  </data>
 </root>

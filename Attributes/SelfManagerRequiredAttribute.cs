@@ -22,14 +22,14 @@ namespace MailArchiver.Attributes
             // Then check if user is admin or self-manager
             var isAdmin = authService.IsCurrentUserAdmin(context.HttpContext);
             var isSelfManager = authService.IsCurrentUserSelfManager(context.HttpContext);
-            var username = authService.GetCurrentUserDisplayName(context.HttpContext);
-            
+            var userId = authService.GetCurrentUserId(context.HttpContext);
+
             if (!isAdmin && !isSelfManager)
             {
                 var logger = context.HttpContext.RequestServices.GetService<ILogger<SelfManagerRequiredAttribute>>();
                 if (logger != null)
                 {
-                    logger.LogWarning("User {Username} attempted to access self-manager resource but was denied", username);
+                    logger.LogWarning("User {UserId} attempted to access self-manager resource but was denied", userId);
                 }
                 
                 // User is authenticated but not admin or self-manager - show access denied
@@ -41,7 +41,7 @@ namespace MailArchiver.Attributes
                 var logger = context.HttpContext.RequestServices.GetService<ILogger<SelfManagerRequiredAttribute>>();
                 if (logger != null)
                 {
-                    logger.LogDebug("User {Username} is admin or self-manager, granting access", username);
+                    logger.LogDebug("User {UserId} is admin or self-manager, granting access", userId);
                 }
             }
 

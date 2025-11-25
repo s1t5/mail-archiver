@@ -122,6 +122,20 @@ namespace MailArchiver.Auth.Services
             return username;
         }
 
+        public int? GetCurrentUserId(HttpContext context)
+        {
+            // Get UserId from claims
+            var userIdClaim = context.User?.FindFirst("UserId")?.Value;
+            
+            if (string.IsNullOrEmpty(userIdClaim))
+                return null;
+                
+            if (int.TryParse(userIdClaim, out var userId))
+                return userId;
+                
+            return null;
+        }
+
         public bool IsCurrentUserAdmin(HttpContext context)
         {
             var username = GetCurrentUserDisplayName(context);

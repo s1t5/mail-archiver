@@ -1,6 +1,7 @@
 using MailArchiver.Data;
 using MailArchiver.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Localization;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
@@ -11,11 +12,16 @@ namespace MailArchiver.Services
     {
         private readonly MailArchiverDbContext _context;
         private readonly ILogger<UserService> _logger;
+        private readonly IStringLocalizer<SharedResource> _localizer;
 
-        public UserService(MailArchiverDbContext context, ILogger<UserService> logger)
+        public UserService(
+            MailArchiverDbContext context, 
+            ILogger<UserService> logger,
+            IStringLocalizer<SharedResource> localizer)
         {
             _context = context;
             _logger = logger;
+            _localizer = localizer;
         }
 
         public async Task<User?> GetUserByIdAsync(int id)
@@ -54,42 +60,57 @@ namespace MailArchiver.Services
                 .FirstOrDefault()?
                 .Value;
 
-            // try to find existing user by remote identity ID
+            var displayName = remoteIdentity.Claims
+                .Where(c => c.Type == ClaimTypes.Name)
+                .FirstOrDefault()?
+                .Value;
+
+            // Try to find existing user by remote identity ID (already linked)
             var user = await _context.Users
                 .Where(u => u.OAuthRemoteUserId == userId) 
                 .FirstOrDefaultAsync();
 
             if (user != null)
-                return user;
-
-            // try to find existing user by email that has no remote identity linked yet
-            user = await _context.Users
-                .Where(u => u.Email.ToLower() == email.ToLower() && u.OAuthRemoteUserId == null)
-                .FirstOrDefaultAsync();
-
-            if (user != null) { 
-                // link existing user to remote identity
-                user.OAuthRemoteUserId = userId;
-                await _context.SaveChangesAsync();
+            {
+                _logger.LogInformation("Found existing OIDC user by remote ID: {RemoteId}, Username: {Username}", userId, user.Username);
                 return user;
             }
 
-            // create a new user
-            var displayName = remoteIdentity.Claims
-                .Where(c => c.Type == ClaimTypes.Name)
-                .FirstOrDefault()?
-                .Value;
+            // SECURITY: Do NOT automatically link accounts based on email
+            // Check if email already exists - if so, user must manually link their account
+            var existingEmailUser = await _context.Users
+                .Where(u => u.Email.ToLower() == email.ToLower())
+                .FirstOrDefaultAsync();
+
+            if (existingEmailUser != null)
+            {
+                _logger.LogWarning("OIDC login attempted with email {Email} that already exists for user {Username}. Automatic linking is disabled for security. User must manually link their account.", 
+                    email, existingEmailUser.Username);
+                throw new InvalidOperationException(_localizer["OidcAccountAlreadyExists"]);
+            }
+
+            // Create a new user that requires admin approval
+            _logger.LogInformation("Creating new OIDC user: Email={Email}, DisplayName={DisplayName}, RemoteId={RemoteId}", 
+                email, displayName, userId);
             
-            user = new User(){
-                Username = displayName,
+            user = new User()
+            {
+                Username = $"{displayName}_{userId.Substring(0, 8)}", // Add unique suffix to prevent username collisions
                 Email = email,
-                PasswordHash = null,
+                PasswordHash = null, // OIDC users don't have passwords
                 IsAdmin = false,
-                IsActive = true,
+                IsActive = false, // Inactive until approved
+                RequiresApproval = true, // Requires admin approval
+                OAuthRemoteUserId = userId,
                 CreatedAt = DateTime.UtcNow
             };
+            
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
+            
+            _logger.LogWarning("New OIDC user created and requires approval: {Username} (ID: {UserId}, Email: {Email})", 
+                user.Username, user.Id, user.Email);
+            
             return user;
         }
 
@@ -187,6 +208,15 @@ namespace MailArchiver.Services
                 return false;
 
             user.IsActive = isActive;
+            
+            // SECURITY: When activating an OIDC user, also clear the RequiresApproval flag
+            if (isActive && user.RequiresApproval)
+            {
+                user.RequiresApproval = false;
+                _logger.LogInformation("Clearing RequiresApproval flag for activated OIDC user {Username} (ID: {UserId})",
+                    user.Username, user.Id);
+            }
+            
             _context.Users.Update(user);
 
             try

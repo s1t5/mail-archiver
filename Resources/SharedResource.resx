@@ -2347,4 +2347,19 @@
   <data name="SignInWithOAuth" xml:space="preserve">
     <value>Login with OAuth</value>
   </data>
+  <data name="OidcAccountAlreadyExists" xml:space="preserve">
+    <value>An account with this email already exists. Please login with your password and link your OIDC account in your profile settings.</value>
+  </data>
+  <data name="OidcAccountPendingApproval" xml:space="preserve">
+    <value>Your account is pending admin approval. Please contact an administrator.</value>
+  </data>
+  <data name="OidcAccountDeactivated" xml:space="preserve">
+    <value>Your account has been deactivated. Please contact an administrator.</value>
+  </data>
+  <data name="OidcInvalidEmailFormat" xml:space="preserve">
+    <value>Invalid email format received from identity provider</value>
+  </data>
+  <data name="OidcClaimLengthExceeded" xml:space="preserve">
+    <value>Claim values exceed maximum allowed length</value>
+  </data>
 </root>
