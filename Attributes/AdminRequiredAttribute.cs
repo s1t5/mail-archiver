@@ -21,7 +21,7 @@ namespace MailArchiver.Attributes
             
             // Then check if user is admin
             var isAdmin = authService.IsCurrentUserAdmin(context.HttpContext);
-            var username = authService.GetCurrentUser(context.HttpContext);
+            var username = authService.GetCurrentUserDisplayName(context.HttpContext);
             
             if (!isAdmin)
             {

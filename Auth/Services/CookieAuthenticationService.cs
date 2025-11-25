@@ -1,30 +1,33 @@
 using MailArchiver.Data;
 using MailArchiver.Models;
+using MailArchiver.Services;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using System.Security.Claims;
 
-namespace MailArchiver.Services
+namespace MailArchiver.Auth.Services
 {
-    public class CookieAuthenticationService : IAuthenticationService
+    public class CookieAuthenticationService : MailArchiver.Services.IAuthenticationService
     {
-        private readonly MailArchiver.Models.AuthenticationOptions _authOptions;
+        private readonly Models.AuthenticationOptions _authOptions;
         private readonly IUserService _userService;
         private readonly MailArchiverDbContext _dbContext;
         private readonly ILogger<CookieAuthenticationService> _logger;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
         public CookieAuthenticationService(
-            IOptions<MailArchiver.Models.AuthenticationOptions> authOptions,
+            IOptions<Models.AuthenticationOptions> authOptions,
             IUserService userService,
             MailArchiverDbContext dbContext,
-            ILogger<CookieAuthenticationService> logger)
+            ILogger<CookieAuthenticationService> logger,
+            IHttpContextAccessor httpContextAccessor)
         {
             _authOptions = authOptions.Value;
             _userService = userService;
             _dbContext = dbContext;
             _logger = logger;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         public bool IsAuthenticationRequired()
@@ -38,13 +41,14 @@ namespace MailArchiver.Services
             return _userService.AuthenticateUserAsync(username, password).Result;
         }
 
-        public void SignIn(HttpContext context, string username, bool rememberMe = false)
+        public async Task StartUserSessionAsync(
+            User user
+            , bool rememberMe = false)
         {
             // Get the user to build claims
-            var user = _userService.GetUserByUsernameAsync(username).Result;
             if (user == null)
             {
-                _logger.LogWarning("Attempt to sign in non-existent user: {Username}", username);
+                _logger.LogWarning("Attempt to sign in non-existent user");
                 return;
             }
 
@@ -79,17 +83,14 @@ namespace MailArchiver.Services
             };
 
             // Sign in the user using ASP.NET Core authentication
-            context.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, claimsPrincipal, authProperties).Wait();
+            _httpContextAccessor.HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, claimsPrincipal, authProperties).Wait();
 
-            // Update user's last login time
-            UpdateUserLastLogin(username);
-
-            _logger.LogInformation("User '{Username}' signed in successfully", username);
+            _logger.LogInformation("User '{Username}' signed in successfully", user.Username);
         }
 
         public void SignOut(HttpContext context)
         {
-            var username = GetCurrentUser(context);
+            var username = GetCurrentUserDisplayName(context);
             context.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme).Wait();
 
             if (!string.IsNullOrEmpty(username))
@@ -112,7 +113,7 @@ namespace MailArchiver.Services
             return context.User?.Identity?.IsAuthenticated ?? false;
         }
 
-        public string GetCurrentUser(HttpContext context)
+        public string GetCurrentUserDisplayName(HttpContext context)
         {
             // Get username from claims
             var username = context.User?.Identity?.Name;
@@ -123,7 +124,7 @@ namespace MailArchiver.Services
 
         public bool IsCurrentUserAdmin(HttpContext context)
         {
-            var username = GetCurrentUser(context);
+            var username = GetCurrentUserDisplayName(context);
             _logger.LogDebug("Checking if user '{Username}' is admin", username);
 
             if (string.IsNullOrEmpty(username))
@@ -140,7 +141,7 @@ namespace MailArchiver.Services
 
         public bool IsCurrentUserSelfManager(HttpContext context)
         {
-            var username = GetCurrentUser(context);
+            var username = GetCurrentUserDisplayName(context);
             _logger.LogDebug("Checking if user '{Username}' is self-manager", username);
 
             if (string.IsNullOrEmpty(username))
@@ -153,25 +154,6 @@ namespace MailArchiver.Services
             var isSelfManager = context.User?.IsInRole("SelfManager") ?? false;
             _logger.LogDebug("User '{Username}' claims self-manager status: {IsSelfManager}", username, isSelfManager);
             return isSelfManager;
-        }
-
-        private void UpdateUserLastLogin(string username)
-        {
-            try
-            {
-                // Try to find the user in the new user system first
-                var user = _userService.GetUserByUsernameAsync(username).Result;
-                if (user != null)
-                {
-                    user.LastLoginAt = DateTime.UtcNow;
-                    _userService.UpdateUserAsync(user).Wait();
-                    _logger.LogInformation("Updated last login time for user '{Username}'", username);
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error updating last login time for user '{Username}'", username);
-            }
         }
     }
 }

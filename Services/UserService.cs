@@ -1,6 +1,7 @@
 using MailArchiver.Data;
 using MailArchiver.Models;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -38,6 +39,58 @@ namespace MailArchiver.Services
                 
             return await _context.Users
                 .FirstOrDefaultAsync(u => u.Email.ToLower() == email.ToLower());
+        }
+
+        public async Task<User> GetOrCreateUserFromRemoteIdentity(
+            ClaimsIdentity remoteIdentity)
+        {
+            var userId = remoteIdentity.Claims
+                .Where(c => c.Type == ClaimTypes.NameIdentifier)
+                .FirstOrDefault()?
+                .Value;
+
+            var email = remoteIdentity.Claims
+                .Where(c => c.Type == ClaimTypes.Email)
+                .FirstOrDefault()?
+                .Value;
+
+            // try to find existing user by remote identity ID
+            var user = await _context.Users
+                .Where(u => u.OAuthRemoteUserId == userId) 
+                .FirstOrDefaultAsync();
+
+            if (user != null)
+                return user;
+
+            // try to find existing user by email that has no remote identity linked yet
+            user = await _context.Users
+                .Where(u => u.Email.ToLower() == email.ToLower() && u.OAuthRemoteUserId == null)
+                .FirstOrDefaultAsync();
+
+            if (user != null) { 
+                // link existing user to remote identity
+                user.OAuthRemoteUserId = userId;
+                await _context.SaveChangesAsync();
+                return user;
+            }
+
+            // create a new user
+            var displayName = remoteIdentity.Claims
+                .Where(c => c.Type == ClaimTypes.Name)
+                .FirstOrDefault()?
+                .Value;
+            
+            user = new User(){
+                Username = displayName,
+                Email = email,
+                PasswordHash = null,
+                IsAdmin = false,
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow
+            };
+            _context.Users.Add(user);
+            await _context.SaveChangesAsync();
+            return user;
         }
 
         public async Task<List<User>> GetAllUsersAsync()

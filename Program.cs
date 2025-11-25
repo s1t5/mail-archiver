@@ -1,15 +1,12 @@
+using MailArchiver.Auth.Extensions;
+using MailArchiver.Auth.Options;
+using MailArchiver.Auth.Services;
 using MailArchiver.Data;
 using MailArchiver.Models;
-using MailArchiver.Middleware;
 using MailArchiver.Services;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
-using Microsoft.AspNetCore.Localization;
-using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.RateLimiting;
-using System.Globalization;
-using System.Data.Common;
 using System.Threading.RateLimiting;
 
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
@@ -69,6 +66,10 @@ if (authEnabled != null && authEnabled.Equals("false", StringComparison.OrdinalI
 // Add Authentication Options
 builder.Services.Configure<AuthenticationOptions>(
     builder.Configuration.GetSection(AuthenticationOptions.Authentication));
+
+// Add OAuth Options
+builder.Services.Configure<OAuthOptions>(
+    builder.Configuration.GetSection(OAuthOptions.OAuth));
 
 // Add Batch Restore Options
 builder.Services.Configure<BatchRestoreOptions>(
@@ -196,19 +197,7 @@ builder.Services.AddRateLimiter(options =>
 });
 
 // Add Authentication
-builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-    .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
-    {
-        options.LoginPath = "/Auth/Login";
-        options.LogoutPath = "/Auth/Logout";
-        options.AccessDeniedPath = "/Auth/AccessDenied";
-        options.Cookie.Name = "MailArchiverAuth";
-        options.Cookie.HttpOnly = true;
-        options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
-        options.Cookie.SameSite = SameSiteMode.Strict;
-        options.ExpireTimeSpan = TimeSpan.FromMinutes(60);
-        options.SlidingExpiration = true;
-    });
+builder.AddAuth();
 
 // Set global encoding to UTF-8
 System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
@@ -256,6 +245,7 @@ builder.Services.AddScoped<IGraphEmailService, GraphEmailService>(provider =>
         provider.GetRequiredService<MailArchiver.Utilities.DateTimeHelper>()
     ));
 builder.Services.AddScoped<IAuthenticationService, CookieAuthenticationService>();
+builder.Services.AddScoped<OAuthAuthenticationService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddSingleton<ISyncJobService, SyncJobService>(); // NEUE SERVICE
 
@@ -412,10 +402,7 @@ app.UseSession();
 // Add Rate Limiting Middleware
 app.UseRateLimiter();
 
-// Add our custom authentication middleware
-app.UseMiddleware<AuthenticationMiddleware>();
-
-app.UseAuthorization();
+app.UseAuth();
 
 app.MapControllerRoute(
     name: "default",

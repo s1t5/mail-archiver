@@ -1,7 +1,8 @@
 using MailArchiver.Services;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 
-namespace MailArchiver.Middleware
+namespace MailArchiver.Auth.Middlewares
 {
     public class AuthenticationMiddleware
     {
@@ -18,14 +19,14 @@ namespace MailArchiver.Middleware
         {
             // Skip authentication for certain paths
             var path = context.Request.Path.Value?.ToLower() ?? string.Empty;
-            var skipPaths = new[] { "/auth/login", "/auth/logout", "/auth/blocked", "/twofactor/", "/css/", "/js/", "/images/", "/favicon" };
+            var skipPaths = new[] { "/auth/login", "/auth/logout", "/auth/blocked", "/oidc-signin-completed", "/twofactor/", "/css/", "/js/", "/images/", "/favicon" };
             
             var shouldSkip = skipPaths.Any(skipPath => path.StartsWith(skipPath));
 
-            if (!shouldSkip && authService.IsAuthenticationRequired())
+            if (!shouldSkip)
             {
                 // Check if user is authenticated through framework
-                var isAuthenticated = await context.AuthenticateAsync();
+                var isAuthenticated = await context.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme);
                 
                 // Also check our custom service for 2FA state
                 if (!authService.IsAuthenticated(context))

@@ -1,5 +1,64 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
   <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
     <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
     <xsd:element name="root" msdata:IsDataSet="true">
@@ -58,8 +117,6 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  
-  <!-- RÉSZ 1: Fő navigáció és UI elemek -->
   <data name="EmailArchive" xml:space="preserve">
     <value>E-mail Archívum</value>
   </data>
@@ -84,9 +141,6 @@
   <data name="LastUpdate" xml:space="preserve">
     <value>Utolsó frissítés:</value>
   </data>
-  <data name="Search" xml:space="preserve">
-    <value>Keresés</value>
-  </data>
   <data name="SearchTerm" xml:space="preserve">
     <value>Keresési Kifejezés</value>
   </data>
@@ -95,9 +149,6 @@
   </data>
   <data name="To" xml:space="preserve">
     <value>Címzett</value>
-  </data>
-  <data name="Account" xml:space="preserve">
-    <value>Fiók</value>
   </data>
   <data name="Direction" xml:space="preserve">
     <value>Irány</value>
@@ -516,7 +567,6 @@
   <data name="EmailDeletion" xml:space="preserve">
     <value>E-mail Törlés</value>
   </data>
-  <!-- Delete Account Dialog -->
   <data name="DeleteEmailAccountTitle" xml:space="preserve">
     <value>E-mail Fiók Törlése</value>
   </data>
@@ -682,6 +732,9 @@
   <data name="FullResync" xml:space="preserve">
     <value>Teljes Újraszinkronizálás</value>
   </data>
+  <data name="FullResyncConfirm" xml:space="preserve">
+    <value>Biztosan végrehajt egy teljes újraszinkronizálást? Ez összehasonlítja a teljes szerver tartalmat az archívummal és hosszú időt vehet igénybe.</value>
+  </data>
   <data name="CopyAllEmailsToAnotherMailbox" xml:space="preserve">
     <value>Összes E-mail Másolása Másik Postafiókba</value>
   </data>
@@ -690,9 +743,6 @@
   </data>
   <data name="DangerZoneInfo" xml:space="preserve">
     <value>A következő műveletek visszafordíthatatlanok és véglegesen törlik az adatokat.</value>
-  </data>
-  <data name="DeleteAccountAllEmailsButton" xml:space="preserve">
-    <value>Fiók és összes e-mail törlése ({0})</value>
   </data>
   <data name="DeleteAccountWithEmailsButton" xml:space="preserve">
     <value>Fiók és Összes E-mail Törlése ({0})</value>
@@ -808,9 +858,6 @@
   <data name="EmailsLabelStatus" xml:space="preserve">
     <value>E-mailek:</value>
   </data>
-  <data name="ProcessedSuffix" xml:space="preserve">
-    <value>Feldolgozva</value>
-  </data>
   <data name="EstimatedSuffix" xml:space="preserve">
     <value>becsült</value>
   </data>
@@ -920,9 +967,6 @@
     <value>Vezérlőpultra</value>
   </data>
   <data name="SignOut" xml:space="preserve">
-    <value>Kijelentkezés</value>
-  </data>
-  <data name="Sign Out" xml:space="preserve">
     <value>Kijelentkezés</value>
   </data>
   <data name="RestoreEmailTitle" xml:space="preserve">
@@ -1174,17 +1218,11 @@
   <data name="Preview" xml:space="preserve">
     <value>Előnézet</value>
   </data>
-  <data name="Download" xml:space="preserve">
-    <value>Letöltés</value>
+  <data name="Close" xml:space="preserve">
+    <value>Bezárás</value>
   </data>
-  <data name="Restore" xml:space="preserve">
-    <value>Visszaállítás</value>
-  </data>
-  <data name="Deletion" xml:space="preserve">
-    <value>Törlés</value>
-  </data>
-  <data name="FromDate" xml:space="preserve">
-    <value>Kezdő dátum</value>
+  <data name="AttachmentPreview" xml:space="preserve">
+    <value>Melléklet előnézete</value>
   </data>
   <data name="PreviewNotAvailable" xml:space="preserve">
     <value>Előnézet nem elérhető</value>
@@ -1203,6 +1241,9 @@
   </data>
   <data name="AllAccounts" xml:space="preserve">
     <value>Minden fiók</value>
+  </data>
+  <data name="AllFolders" xml:space="preserve">
+    <value>Minden mappa</value>
   </data>
   <data name="All" xml:space="preserve">
     <value>Mind</value>
@@ -1320,9 +1361,6 @@
   <data name="SyncFailed" xml:space="preserve">
     <value>Hiba a szinkronizálás során</value>
   </data>
-  <data name="FullResyncConfirm" xml:space="preserve">
-    <value>Biztosan végrehajt egy teljes újraszinkronizálást? Ez összehasonlítja a teljes szerver tartalmat az archívummal és hosszú időt vehet igénybe.</value>
-  </data>
   <data name="FullSyncStarted" xml:space="preserve">
     <value>'{0}' teljes újraszinkronizálása sikeresen elindult.</value>
     <comment>{0} - fiók név</comment>
@@ -1402,6 +1440,9 @@
   </data>
   <data name="Folders" xml:space="preserve">
     <value>Mappák</value>
+  </data>
+  <data name="ProcessedSuffix" xml:space="preserve">
+    <value>Feldolgozva</value>
   </data>
   <data name="New" xml:space="preserve">
     <value>Új</value>
@@ -1625,8 +1666,89 @@
   <data name="EnterCode" xml:space="preserve">
     <value>Kód Megadása</value>
   </data>
+  <data name="DeleteEmail" xml:space="preserve">
+    <value>E-mail Törlése</value>
+  </data>
+  <data name="DeleteSelected" xml:space="preserve">
+    <value>Kiválasztottak Törlése</value>
+  </data>
+  <data name="ConfirmDeletion" xml:space="preserve">
+    <value>Törlés Megerősítése</value>
+  </data>
+  <data name="DeleteEmailConfirm" xml:space="preserve">
+    <value>Biztosan véglegesen törölni szeretné ezt az e-mailt? Ez a művelet nem vonható vissza és audit célokból naplózásra kerül.</value>
+  </data>
+  <data name="DeleteSelectedEmailsConfirm" xml:space="preserve">
+    <value>Biztosan véglegesen törölni szeretné a(z) {0} kiválasztott e-mailt? Ez a művelet nem vonható vissza és minden törlés naplózásra kerül audit célokból.</value>
+  </data>
+  <data name="DeleteButton" xml:space="preserve">
+    <value>Törlés</value>
+  </data>
+  <data name="EmailDeleted" xml:space="preserve">
+    <value>E-mail sikeresen törölve</value>
+  </data>
+  <data name="EmailsDeleted" xml:space="preserve">
+    <value>{0} e-mail sikeresen törölve</value>
+  </data>
   <data name="RateLimitExceeded" xml:space="preserve">
     <value>Sebességkorlát túllépve. Kérem próbálja később.</value>
+  </data>
+  <data name="LoginBlocked" xml:space="preserve">
+    <value>Bejelentkezés ideiglenesen blokkolva</value>
+  </data>
+  <data name="LoginBlockedTitle" xml:space="preserve">
+    <value>Hozzáférés blokkolva</value>
+  </data>
+  <data name="LoginBlockedMessage" xml:space="preserve">
+    <value>Túl sok sikertelen bejelentkezési kísérlet észlelve</value>
+  </data>
+  <data name="LoginBlockedInfo" xml:space="preserve">
+    <value>Biztonsági okokból a bejelentkezési kísérletek az Ön IP-címéről ideiglenesen blokkolva lettek több sikertelen hitelesítési kísérlet miatt. Várjon 10 percet, majd próbálja újra.</value>
+  </data>
+  <data name="BackToLogin" xml:space="preserve">
+    <value>Vissza a bejelentkezéshez</value>
+  </data>
+  <data name="PasswordMinLength" xml:space="preserve">
+    <value>A jelszónak legalább 10 karakter hosszú kell lennie</value>
+  </data>
+  <data name="PasswordRequiresUppercase" xml:space="preserve">
+    <value>A jelszónak legalább egy nagybetűt kell tartalmaznia</value>
+  </data>
+  <data name="PasswordRequiresLowercase" xml:space="preserve">
+    <value>A jelszónak legalább egy kisbetűt kell tartalmaznia</value>
+  </data>
+  <data name="PasswordRequiresNumber" xml:space="preserve">
+    <value>A jelszónak legalább egy számot kell tartalmaznia</value>
+  </data>
+  <data name="PasswordRequiresSpecialChar" xml:space="preserve">
+    <value>A jelszónak legalább egy speciális karaktert kell tartalmaznia</value>
+  </data>
+  <data name="PasswordMustBeDifferent" xml:space="preserve">
+    <value>Az új jelszó különböző kell legyen az aktuális jelszótól</value>
+  </data>
+  <data name="PasswordRequirements" xml:space="preserve">
+    <value>Jelszó követelmények</value>
+  </data>
+  <data name="PasswordChangeRequired" xml:space="preserve">
+    <value>Jelszó változtatás szükséges</value>
+  </data>
+  <data name="PasswordChangeRequiredMessage" xml:space="preserve">
+    <value>Biztonsági okokból meg kell változtatnia a jelszavát, mielőtt folytatná. Ez szükséges, mert a rendszer alapértelmezett hitelesítő adatokat használ egy frissen beállított rendszeren.</value>
+  </data>
+  <data name="PasswordChangeRequiredInfo" xml:space="preserve">
+    <value>Az új jelszó különböző kell legyen az aktuális jelszótól, és minden biztonsági követelményt kell teljesítenie.</value>
+  </data>
+  <data name="CannotLeavePasswordChange" xml:space="preserve">
+    <value>Meg kell változtatnia a jelszavát, mielőtt folytatná a rendszer használatát.</value>
+  </data>
+  <data name="TwoFactorEnabled" xml:space="preserve">
+    <value>A kétfaktoros hitelesítés jelenleg engedélyezve van ezen a felhasználónál.</value>
+  </data>
+  <data name="ConfirmResetTwoFactor" xml:space="preserve">
+    <value>Biztos benne, hogy visszaállítja a kétfaktoros hitelesítést ezen a felhasználónál? Újra be kell állítania.</value>
+  </data>
+  <data name="ResetTwoFactor" xml:space="preserve">
+    <value>Kétfaktoros hitelesítés visszaállítása</value>
   </data>
   <data name="TooManyAttempts" xml:space="preserve">
     <value>Túl sok próbálkozás. Kérem várjon {0} másodpercet az újrapróbálkozás előtt.</value>
@@ -2015,23 +2137,29 @@
   <data name="DeselectAllOnPage" xml:space="preserve">
     <value>Összes kijelölés törlése az oldalon</value>
   </data>
+  <data name="Log" xml:space="preserve">
+    <value>Napló</value>
+  </data>
   <data name="AccessLog" xml:space="preserve">
     <value>Hozzáférési napló</value>
   </data>
   <data name="AccessLogEntries" xml:space="preserve">
     <value>Hozzáférési napló bejegyzések</value>
   </data>
+  <data name="Account" xml:space="preserve">
+    <value>Fiók</value>
+  </data>
+  <data name="Timestamp" xml:space="preserve">
+    <value>Időbélyeg</value>
+  </data>
+  <data name="Type" xml:space="preserve">
+    <value>Típus</value>
+  </data>
   <data name="EmailSubject" xml:space="preserve">
     <value>E-mail tárgy</value>
   </data>
-  <data name="Filter" xml:space="preserve">
-    <value>Szűrő</value>
-  </data>
-  <data name="Info" xml:space="preserve">
-    <value>Információ</value>
-  </data>
-  <data name="Log" xml:space="preserve">
-    <value>Napló</value>
+  <data name="SearchParameters" xml:space="preserve">
+    <value>Keresési paraméterek</value>
   </data>
   <data name="Login" xml:space="preserve">
     <value>Bejelentkezés</value>
@@ -2039,26 +2167,38 @@
   <data name="Logout" xml:space="preserve">
     <value>Kijelentkezés</value>
   </data>
-  <data name="NoAccessLogEntries" xml:space="preserve">
-    <value>Nem találhatók hozzáférési napló bejegyzések</value>
-  </data>
-  <data name="NoInfo" xml:space="preserve">
-    <value>Nincs információ</value>
+  <data name="Search" xml:space="preserve">
+    <value>Keresés</value>
   </data>
   <data name="Open" xml:space="preserve">
     <value>Megnyitás</value>
   </data>
-  <data name="SearchParameters" xml:space="preserve">
-    <value>Keresési paraméterek</value>
+  <data name="Download" xml:space="preserve">
+    <value>Letöltés</value>
   </data>
-  <data name="Timestamp" xml:space="preserve">
-    <value>Időbélyeg</value>
+  <data name="Restore" xml:space="preserve">
+    <value>Visszaállítás</value>
+  </data>
+  <data name="Deletion" xml:space="preserve">
+    <value>Törlés</value>
+  </data>
+  <data name="FromDate" xml:space="preserve">
+    <value>Kezdő dátum</value>
   </data>
   <data name="ToDate" xml:space="preserve">
     <value>Eddig</value>
   </data>
-  <data name="Type" xml:space="preserve">
-    <value>Típus</value>
+  <data name="Filter" xml:space="preserve">
+    <value>Szűrő</value>
+  </data>
+  <data name="Info" xml:space="preserve">
+    <value>Információ</value>
+  </data>
+  <data name="NoInfo" xml:space="preserve">
+    <value>Nincs információ</value>
+  </data>
+  <data name="NoAccessLogEntries" xml:space="preserve">
+    <value>Nem találhatók hozzáférési napló bejegyzések</value>
   </data>
   <data name="EmailNotFoundTitle" xml:space="preserve">
     <value>E-mail Nem Található</value>
@@ -2072,74 +2212,32 @@
   <data name="EmailNotFoundHelp" xml:space="preserve">
     <value>Ha úgy gondolja, hogy ez egy hiba, kérjük, lépjen kapcsolatba a rendszergazdával.</value>
   </data>
-  <data name="ConfirmDeletion" xml:space="preserve">
-    <value>Törlés Megerősítése</value>
-  </data>
-  <data name="DeleteButton" xml:space="preserve">
-    <value>Törlés</value>
-  </data>
-  <data name="DeleteEmail" xml:space="preserve">
-    <value>E-mail Törlése</value>
-  </data>
-  <data name="DeleteEmailConfirm" xml:space="preserve">
-    <value>Biztosan véglegesen törölni szeretné ezt az e-mailt? Ez a művelet nem vonható vissza és audit célokból naplózásra kerül.</value>
-  </data>
-  <data name="DeleteSelected" xml:space="preserve">
-    <value>Kiválasztottak Törlése</value>
-  </data>
-  <data name="DeleteSelectedEmailsConfirm" xml:space="preserve">
-    <value>Biztosan véglegesen törölni szeretné a(z) {0} kiválasztott e-mailt? Ez a művelet nem vonható vissza és minden törlés naplózásra kerül audit célokból.</value>
-  </data>
-  <data name="EmailDeleted" xml:space="preserve">
-    <value>E-mail sikeresen törölve</value>
-  </data>
-  <data name="EmailsDeleted" xml:space="preserve">
-    <value>{0} e-mail sikeresen törölve</value>
-  </data>
-  <data name="AttachmentPreview" xml:space="preserve">
-    <value>Melléklet előnézete</value>
-  </data>
-  <data name="Close" xml:space="preserve">
-    <value>Bezárás</value>
-  </data>
-  <data name="AllFolders" xml:space="preserve">
-    <value>Minden mappa</value>
-  </data>
   <data name="Reply" xml:space="preserve">
     <value>Válasz</value>
   </data>
   <data name="LocalRetentionDays" xml:space="preserve">
     <value>Helyi megőrzési napok</value>
   </data>
-  <data name="LocalRetentionInfo" xml:space="preserve">
-      <value>Annak a napoknak a száma, amelyek után az e-maileket törlésre kerülnek a helyi archívumból. Hagyja üresen az e-mailek határozatlan idejű megőrzéséhez. Nagyobbnak vagy egyenlőnek kell lennie, mint a 'Törlés ennyi nap után' érték, ha mindkettő be van állítva.</value>
+  <data name="LocalRetentionRequiresServerRetention" xml:space="preserve">
+    <value>A helyi megőrzés csak akkor állítható be, ha a szerveroldali megőrzés ('Törlés ennyi nap után') szintén be van állítva.</value>
   </data>
   <data name="LocalRetentionMustBeGreaterOrEqual" xml:space="preserve">
-      <value>A helyi megőrzési napoknak nagyobbnak vagy egyenlőnek kell lenniük a törlés utáni napoknál, hogy biztosított legyen, hogy az e-mailek ne törlődjenek a helyi archívumból, mielőtt a levelezőszerverről törlődnének.</value>
+    <value>A helyi megőrzési napoknak nagyobbnak vagy egyenlőnek kell lenniük a törlés utáni napoknál, hogy biztosított legyen, hogy az e-mailek ne törlődjenek a helyi archívumból, mielőtt a levelezőszerverről törlődnének.</value>
   </data>
-  <data name="LocalRetentionRequiresServerRetention" xml:space="preserve">
-      <value>A helyi megőrzés csak akkor állítható be, ha a szerveroldali megőrzés ('Törlés ennyi nap után') szintén be van állítva.</value>
+  <data name="LocalRetentionInfo" xml:space="preserve">
+    <value>Annak a napoknak a száma, amelyek után az e-maileket törlésre kerülnek a helyi archívumból. Hagyja üresen az e-mailek határozatlan idejű megőrzéséhez. Nagyobbnak vagy egyenlőnek kell lennie, mint a 'Törlés ennyi nap után' érték, ha mindkettő be van állítva.</value>
   </data>
-  <data name="AffectedAccounts" xml:space="preserve">
-    <value>Érintett fiókok</value>
+  <data name="LoadAvailableFolders" xml:space="preserve">
+    <value>Elérhető mappák betöltése</value>
   </data>
-  <data name="ApplicationStarted" xml:space="preserve">
-    <value>Alkalmazás indítva</value>
+  <data name="CouldNotLoadFolders" xml:space="preserve">
+    <value>Nem sikerült betölteni a mappákat a szerverről</value>
   </data>
-  <data name="ApplyToAllAccounts" xml:space="preserve">
-    <value>Alkalmazás minden fiókra ezen a domainen</value>
+  <data name="NoFoldersFound" xml:space="preserve">
+    <value>Nincsenek mappák a szerveren</value>
   </data>
-  <data name="ApplyToAllDomainAccountsPrompt" xml:space="preserve">
-    <value>Módosította a Microsoft 365 hitelesítő adatokat. Szeretné alkalmazni ezeket a változtatásokat az összes többi fiókra ezen a domainen?</value>
-  </data>
-  <data name="BackToLogin" xml:space="preserve">
-    <value>Vissza a bejelentkezéshez</value>
-  </data>
-  <data name="CannotLeavePasswordChange" xml:space="preserve">
-    <value>Meg kell változtatnia a jelszavát, mielőtt folytatná a rendszer használatát.</value>
-  </data>
-  <data name="ComplianceInformation" xml:space="preserve">
-    <value>Eltartozási információk</value>
+  <data name="ComplianceModeStarted" xml:space="preserve">
+    <value>Eltartozási mód indítva</value>
   </data>
   <data name="ComplianceModeActive" xml:space="preserve">
     <value>Eltartozási mód AKTÍV</value>
@@ -2147,56 +2245,11 @@
   <data name="ComplianceModeDisabled" xml:space="preserve">
     <value>Eltartozási mód LEKAPCSOLVA</value>
   </data>
-  <data name="ComplianceModeStarted" xml:space="preserve">
-    <value>Eltartozási mód indítva</value>
-  </data>
-  <data name="ComplianceStatus" xml:space="preserve">
-    <value>Eltartozási állapot</value>
-  </data>
-  <data name="ConfirmResetTwoFactor" xml:space="preserve">
-    <value>Biztos benne, hogy visszaállítja a kétfaktoros hitelesítést ezen a felhasználónál? Újra be kell állítania.</value>
-  </data>
-  <data name="ContentHash" xml:space="preserve">
-    <value>Tartalom hash (SHA-256)</value>
-  </data>
-  <data name="CopyCredentials" xml:space="preserve">
-    <value>Hitelesítő adatok másolása</value>
-  </data>
-  <data name="CouldNotLoadFolders" xml:space="preserve">
-    <value>Nem sikerült betölteni a mappákat a szerverről</value>
-  </data>
-  <data name="CredentialChangeDetected" xml:space="preserve">
-    <value>Hitelesítő adatok változtatása észlelve</value>
-  </data>
-  <data name="CredentialsCopied" xml:space="preserve">
-    <value>Hitelesítő adatok sikeresen másolva!</value>
-  </data>
-  <data name="CurrentHash" xml:space="preserve">
-    <value>Aktuális hash</value>
-  </data>
-  <data name="EmailDeletionAllowed" xml:space="preserve">
-    <value>E-mail törlés ENGEDÉLYEZETT</value>
-  </data>
   <data name="EmailDeletionPrevented" xml:space="preserve">
     <value>E-mail törlés MEGAKADÁLYOZOTT</value>
   </data>
-  <data name="EmailLocked" xml:space="preserve">
-    <value>Zárolva</value>
-  </data>
-  <data name="EmailLockedDescription" xml:space="preserve">
-    <value>Ez az e-mail zárolva van, és tartalmának integritása kriptográfiai hash védelme alatt áll</value>
-  </data>
-  <data name="ErrorCopyingCredentials" xml:space="preserve">
-    <value>Hiba a hitelesítő adatok másolása közben</value>
-  </data>
-  <data name="ErrorSavingChanges" xml:space="preserve">
-    <value>Hiba a változtatások mentése közben</value>
-  </data>
-  <data name="ExistingM365AccountsFound" xml:space="preserve">
-    <value>Létező M365 fiókok találhatók</value>
-  </data>
-  <data name="HasAttachments" xml:space="preserve">
-    <value>Csatolmányok vannak</value>
+  <data name="EmailDeletionAllowed" xml:space="preserve">
+    <value>E-mail törlés ENGEDÉLYEZETT</value>
   </data>
   <data name="HashCreated" xml:space="preserve">
     <value>Hash létrehozva</value>
@@ -2204,94 +2257,101 @@
   <data name="IntegrityCheck" xml:space="preserve">
     <value>Integritás ellenőrzés</value>
   </data>
+  <data name="IntegrityViolation" xml:space="preserve">
+    <value>Integritás megsértése</value>
+  </data>
+  <data name="ComplianceStatus" xml:space="preserve">
+    <value>Eltartozási állapot</value>
+  </data>
+  <data name="ApplicationStarted" xml:space="preserve">
+    <value>Alkalmazás indítva</value>
+  </data>
+  <data name="ComplianceInformation" xml:space="preserve">
+    <value>Eltartozási információk</value>
+  </data>
+  <data name="ContentHash" xml:space="preserve">
+    <value>Tartalom hash (SHA-256)</value>
+  </data>
+  <data name="EmailLocked" xml:space="preserve">
+    <value>Zárolva</value>
+  </data>
+  <data name="EmailLockedDescription" xml:space="preserve">
+    <value>Ez az e-mail zárolva van, és tartalmának integritása kriptográfiai hash védelme alatt áll</value>
+  </data>
+  <data name="StoredHash" xml:space="preserve">
+    <value>Elmentett hash</value>
+  </data>
+  <data name="CurrentHash" xml:space="preserve">
+    <value>Aktuális hash</value>
+  </data>
   <data name="IntegrityValid" xml:space="preserve">
     <value>Integritás érvényes</value>
   </data>
   <data name="IntegrityValidDescription" xml:space="preserve">
     <value>Az e-mail tartalma nem módosult. Az aktuális hash megegyezik az elmentett hash-hel.</value>
   </data>
-  <data name="IntegrityViolation" xml:space="preserve">
-    <value>Integritás megsértése</value>
-  </data>
   <data name="IntegrityViolationDescription" xml:space="preserve">
     <value>FIGYELMEZTETÉS: Az aktuális hash nem egyezik meg az elmentett hash-hel. Az e-mail tartalma manipulálhatott lehet.</value>
-  </data>
-  <data name="LoadAvailableFolders" xml:space="preserve">
-    <value>Elérhető mappák betöltése</value>
-  </data>
-  <data name="LockedEmail" xml:space="preserve">
-    <value>Zárolt e-mail - tartalom védve az eltartozási szabályok szerint</value>
-  </data>
-  <data name="LoginBlocked" xml:space="preserve">
-    <value>Bejelentkezés ideiglenesen blokkolva</value>
-  </data>
-  <data name="LoginBlockedInfo" xml:space="preserve">
-    <value>Biztonsági okokból a bejelentkezési kísérletek az Ön IP-címéről ideiglenesen blokkolva lettek több sikertelen hitelesítési kísérlet miatt. Várjon 10 percet, majd próbálja újra.</value>
-  </data>
-  <data name="LoginBlockedMessage" xml:space="preserve">
-    <value>Túl sok sikertelen bejelentkezési kísérlet észlelve</value>
-  </data>
-  <data name="LoginBlockedTitle" xml:space="preserve">
-    <value>Hozzáférés blokkolva</value>
   </data>
   <data name="Mismatch" xml:space="preserve">
     <value>Nem egyezik</value>
   </data>
-  <data name="NoFoldersFound" xml:space="preserve">
-    <value>Nincsenek mappák a szerveren</value>
+  <data name="HasAttachments" xml:space="preserve">
+    <value>Csatolmányok vannak</value>
   </data>
-  <data name="PasswordChangeRequired" xml:space="preserve">
-    <value>Jelszó változtatás szükséges</value>
+  <data name="LockedEmail" xml:space="preserve">
+    <value>Zárolt e-mail - tartalom védve az eltartozási szabályok szerint</value>
   </data>
-  <data name="PasswordChangeRequiredInfo" xml:space="preserve">
-    <value>Az új jelszó különböző kell legyen az aktuális jelszótól, és minden biztonsági követelményt kell teljesítenie.</value>
+  <data name="ExistingM365AccountsFound" xml:space="preserve">
+    <value>Létező M365 fiókok találhatók</value>
   </data>
-  <data name="PasswordChangeRequiredMessage" xml:space="preserve">
-    <value>Biztonsági okokból meg kell változtatnia a jelszavát, mielőtt folytatná. Ez szükséges, mert a rendszer alapértelmezett hitelesítő adatokat használ egy frissen beállított rendszeren.</value>
-  </data>
-  <data name="PasswordMinLength" xml:space="preserve">
-    <value>A jelszónak legalább 10 karakter hosszú kell lennie</value>
-  </data>
-  <data name="PasswordMustBeDifferent" xml:space="preserve">
-    <value>Az új jelszó különböző kell legyen az aktuális jelszótól</value>
-  </data>
-  <data name="PasswordRequirements" xml:space="preserve">
-    <value>Jelszó követelmények</value>
-  </data>
-  <data name="PasswordRequiresLowercase" xml:space="preserve">
-    <value>A jelszónak legalább egy kisbetűt kell tartalmaznia</value>
-  </data>
-  <data name="PasswordRequiresNumber" xml:space="preserve">
-    <value>A jelszónak legalább egy számot kell tartalmaznia</value>
-  </data>
-  <data name="PasswordRequiresSpecialChar" xml:space="preserve">
-    <value>A jelszónak legalább egy speciális karaktert kell tartalmaznia</value>
-  </data>
-  <data name="PasswordRequiresUppercase" xml:space="preserve">
-    <value>A jelszónak legalább egy nagybetűt kell tartalmaznia</value>
-  </data>
-  <data name="PleaseSelectAccount" xml:space="preserve">
-    <value>Válasszon ki először egy fiókot</value>
-  </data>
-  <data name="Provider" xml:space="preserve">
-    <value>Szolgáltató</value>
-  </data>
-  <data name="ResetTwoFactor" xml:space="preserve">
-    <value>Kétfaktoros hitelesítés visszaállítása</value>
+  <data name="UseExistingCredentialsPrompt" xml:space="preserve">
+    <value>Már léteznek más Microsoft 365 fiókok ezen a domainen. Másolhatja a hitelesítő adatokat időt takarítva.</value>
   </data>
   <data name="SelectAccount" xml:space="preserve">
     <value>-- Fiók kiválasztása --</value>
   </data>
-  <data name="StoredHash" xml:space="preserve">
-    <value>Elmentett hash</value>
+  <data name="CopyCredentials" xml:space="preserve">
+    <value>Hitelesítő adatok másolása</value>
+  </data>
+  <data name="CredentialsCopied" xml:space="preserve">
+    <value>Hitelesítő adatok sikeresen másolva!</value>
+  </data>
+  <data name="ErrorCopyingCredentials" xml:space="preserve">
+    <value>Hiba a hitelesítő adatok másolása közben</value>
+  </data>
+  <data name="PleaseSelectAccount" xml:space="preserve">
+    <value>Válasszon ki először egy fiókot</value>
+  </data>
+  <data name="CredentialChangeDetected" xml:space="preserve">
+    <value>Hitelesítő adatok változtatása észlelve</value>
+  </data>
+  <data name="ApplyToAllDomainAccountsPrompt" xml:space="preserve">
+    <value>Módosította a Microsoft 365 hitelesítő adatokat. Szeretné alkalmazni ezeket a változtatásokat az összes többi fiókra ezen a domainen?</value>
+  </data>
+  <data name="AffectedAccounts" xml:space="preserve">
+    <value>Érintett fiókok</value>
+  </data>
+  <data name="ApplyToAllAccounts" xml:space="preserve">
+    <value>Alkalmazás minden fiókra ezen a domainen</value>
+  </data>
+  <data name="ErrorSavingChanges" xml:space="preserve">
+    <value>Hiba a változtatások mentése közben</value>
   </data>
   <data name="TenantId" xml:space="preserve">
     <value>Bérlő azonosító</value>
   </data>
-  <data name="TwoFactorEnabled" xml:space="preserve">
-    <value>A kétfaktoros hitelesítés jelenleg engedélyezve van ezen a felhasználónál.</value>
+  <data name="Provider" xml:space="preserve">
+    <value>Szolgáltató</value>
   </data>
-  <data name="UseExistingCredentialsPrompt" xml:space="preserve">
-    <value>Már léteznek más Microsoft 365 fiókok ezen a domainen. Másolhatja a hitelesítő adatokat időt takarítva.</value>
+  <data name="DeleteAccountAllEmailsButton" xml:space="preserve">
+    <value>Fiók és összes e-mail törlése ({0})</value>
+  </data>
+  <data name="Sign Out" xml:space="preserve">
+    <value>Kijelentkezés</value>
+  </data>
+  <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+  <data name="SignInWithOAuth" type="System.Resources.ResXNullRef, System.Windows.Forms">
+    <value />
   </data>
 </root>

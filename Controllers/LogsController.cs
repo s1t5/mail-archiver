@@ -25,7 +25,7 @@ namespace MailArchiver.Controllers
 
         public async Task<IActionResult> Index(int page = 1, int pageSize = 50, DateTime? fromDate = null, DateTime? toDate = null, string username = null, AccessLogType? type = null)
         {
-            var currentUsername = _authenticationService.GetCurrentUser(HttpContext);
+            var currentUsername = _authenticationService.GetCurrentUserDisplayName(HttpContext);
             var isAdmin = _authenticationService.IsCurrentUserAdmin(HttpContext);
 
             // Set default page size to 50

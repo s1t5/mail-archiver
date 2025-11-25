@@ -14,8 +14,7 @@ namespace MailArchiver.Models
         [StringLength(100)]
         public string Email { get; set; }
         
-        [Required]
-        public string PasswordHash { get; set; }
+        public string? PasswordHash { get; set; }
         
         [Required]
         public bool IsAdmin { get; set; } = false;
@@ -33,6 +32,9 @@ namespace MailArchiver.Models
         public bool IsTwoFactorEnabled { get; set; } = false;
         public string? TwoFactorSecret { get; set; }
         public string? TwoFactorBackupCodes { get; set; }
+
+        // OAuth properties
+        public string? OAuthRemoteUserId { get; set; }
         
         // Navigation properties
         public virtual ICollection<UserMailAccount> UserMailAccounts { get; set; } = new List<UserMailAccount>();

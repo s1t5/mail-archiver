@@ -22,7 +22,7 @@ namespace MailArchiver.Attributes
             // Then check if user is admin or self-manager
             var isAdmin = authService.IsCurrentUserAdmin(context.HttpContext);
             var isSelfManager = authService.IsCurrentUserSelfManager(context.HttpContext);
-            var username = authService.GetCurrentUser(context.HttpContext);
+            var username = authService.GetCurrentUserDisplayName(context.HttpContext);
             
             if (!isAdmin && !isSelfManager)
             {

@@ -1,48 +1,61 @@
+using MailArchiver.Auth.Handlers;
+using MailArchiver.Auth.Options;
 using MailArchiver.Data;
 using MailArchiver.Models;
 using MailArchiver.Models.ViewModels;
 using MailArchiver.Services;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
+using Microsoft.Extensions.Options;
 
 namespace MailArchiver.Controllers
 {
     public class AuthController : Controller
     {
+        private readonly AuthenticationHandler _authenticationHandler;
         private readonly MailArchiver.Services.IAuthenticationService _authService;
         private readonly IUserService _userService;
         private readonly ILogger<AuthController> _logger;
         private readonly IStringLocalizer<SharedResource> _localizer;
         private readonly IAccessLogService _accessLogService;
         private readonly IServiceScopeFactory _serviceScopeFactory;
+        private readonly IOptions<OAuthOptions> _oAuthOptions;
 
-        public AuthController(MailArchiver.Services.IAuthenticationService authService, IUserService userService, ILogger<AuthController> logger, IStringLocalizer<SharedResource> localizer, IAccessLogService accessLogService, IServiceScopeFactory serviceScopeFactory)
+        public AuthController(
+            MailArchiver.Services.IAuthenticationService authService
+            , AuthenticationHandler authenticationHandler
+            , IUserService userService
+            , ILogger<AuthController> logger
+            , IStringLocalizer<SharedResource> localizer
+            , IAccessLogService accessLogService
+            , IServiceScopeFactory serviceScopeFactory
+            , IOptions<OAuthOptions> oAuthOptions)
         {
             _authService = authService;
+            _authenticationHandler = authenticationHandler;
             _userService = userService;
             _logger = logger;
             _localizer = localizer;
             _accessLogService = accessLogService;
             _serviceScopeFactory = serviceScopeFactory;
+            _oAuthOptions = oAuthOptions;
         }
 
         [HttpGet]
         public IActionResult Login(string returnUrl = null)
         {
-            // If authentication is disabled, redirect to home
-            if (!_authService.IsAuthenticationRequired())
-            {
-                return RedirectToAction("Index", "Home");
-            }
-
             // If already authenticated, redirect to return URL or home
             if (_authService.IsAuthenticated(HttpContext))
             {
                 return RedirectToLocal(returnUrl);
             }
 
+            ViewBag.OAuthEnabled = _oAuthOptions.Value.Enabled;
             ViewData["ReturnUrl"] = returnUrl;
             return View(new LoginViewModel());
         }
@@ -53,11 +66,6 @@ namespace MailArchiver.Controllers
         public async Task<IActionResult> Login(LoginViewModel model, string returnUrl = null)
         {
             ViewData["ReturnUrl"] = returnUrl;
-
-            if (!_authService.IsAuthenticationRequired())
-            {
-                return RedirectToAction("Index", "Home");
-            }
 
             if (ModelState.IsValid)
             {
@@ -72,8 +80,11 @@ namespace MailArchiver.Controllers
                         HttpContext.Session.SetString("TwoFactorRememberMe", model.RememberMe.ToString());
                         return RedirectToAction("Verify", "TwoFactor");
                     }
-                    
-                    _authService.SignIn(HttpContext, model.Username, model.RememberMe);
+
+                    await _authenticationHandler.HandleUserAuthenticated(
+                        CookieAuthenticationDefaults.AuthenticationScheme
+                        , model.Username
+                        , model.RememberMe);
                     
                     // Check if this is initial setup (no mail accounts + default credentials)
                     var configuration = HttpContext.RequestServices.GetRequiredService<IConfiguration>();
@@ -89,29 +100,14 @@ namespace MailArchiver.Controllers
                         // Force password change for initial setup
                         HttpContext.Session.SetString("MustChangePassword", "true");
                         _logger.LogWarning("User {Username} logged in with default credentials on initial setup - forcing password change", model.Username);
-                    }
-                    
-                    // Log the successful login using a separate task to avoid DbContext concurrency issues
-                    var sourceIp = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
-                    Task.Run(async () =>
-                    {
-                        try
-                        {
-                            using var scope = _serviceScopeFactory.CreateScope();
-                            var accessLogService = scope.ServiceProvider.GetRequiredService<IAccessLogService>();
-                            await accessLogService.LogAccessAsync(model.Username, AccessLogType.Login, searchParameters: $"IP: {sourceIp}");
-                        }
-                        catch (Exception ex)
-                        {
-                            _logger.LogError(ex, "Error logging login action for user {Username}", model.Username);
-                        }
-                    });
+                    }                    
                     
                     return RedirectToLocal(returnUrl);
                 }
                 else
                 {
                     ModelState.AddModelError("", _localizer["InvalidUserPassword"]);
+                    ViewBag.OAuthEnabled = _oAuthOptions.Value.Enabled;
                     _logger.LogWarning("Failed login attempt for username: {Username} from IP: {IP}", 
                         model.Username, HttpContext.Connection.RemoteIpAddress);
                 }
@@ -121,10 +117,28 @@ namespace MailArchiver.Controllers
         }
 
         [HttpPost]
+        public async Task LoginWithOAuth(OAuthLoginViewModel oAuthLoginViewModel) {
+            var properties = new AuthenticationProperties();
+
+            if(!string.IsNullOrWhiteSpace(oAuthLoginViewModel.ReturnUrl))
+                properties.Items["returnUrl"] = oAuthLoginViewModel.ReturnUrl;
+
+
+            // trigger the  OIDC login flow
+            await HttpContext.ChallengeAsync(OpenIdConnectDefaults.AuthenticationScheme).ConfigureAwait(false);
+        }
+
+        [HttpGet("[Controller]/LoginWithOAuth")]
+        public async Task<IActionResult> OidcCallback()
+        {
+            return View();
+        }
+
+        [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Logout()
         {
-            var username = _authService.GetCurrentUser(HttpContext);
+            var username = _authService.GetCurrentUserDisplayName(HttpContext);
             _authService.SignOut(HttpContext);
             
             // Log the logout if we have a username using a separate task to avoid DbContext concurrency issues

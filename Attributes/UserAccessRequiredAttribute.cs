@@ -21,7 +21,7 @@ namespace MailArchiver.Attributes
             
             // For admin users, allow access
             var isAdmin = authService.IsCurrentUserAdmin(context.HttpContext);
-            var username = authService.GetCurrentUser(context.HttpContext);
+            var username = authService.GetCurrentUserDisplayName(context.HttpContext);
             
             if (isAdmin)
             {
@@ -55,7 +55,7 @@ namespace MailArchiver.Attributes
             }
             
             // Check if the user has access to this specific account
-            var currentUser = authService.GetCurrentUser(context.HttpContext);
+            var currentUser = authService.GetCurrentUserDisplayName(context.HttpContext);
             var user = userService.GetUserByUsernameAsync(currentUser).Result;
             
             if (user == null)

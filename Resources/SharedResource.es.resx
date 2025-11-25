@@ -1,7 +1,65 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
-  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-    xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
     <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
     <xsd:element name="root" msdata:IsDataSet="true">
       <xsd:complexType>
@@ -54,12 +112,10 @@
     <value>2.0</value>
   </resheader>
   <resheader name="reader">
-    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0,
-      Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <resheader name="writer">
-    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0,
-      Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="EmailArchive" xml:space="preserve">
     <value>Archivo de Correos</value>
@@ -85,9 +141,6 @@
   <data name="LastUpdate" xml:space="preserve">
     <value>Última actualización:</value>
   </data>
-  <data name="Search" xml:space="preserve">
-    <value>Buscar</value>
-  </data>
   <data name="SearchTerm" xml:space="preserve">
     <value>Término de Búsqueda</value>
   </data>
@@ -96,9 +149,6 @@
   </data>
   <data name="To" xml:space="preserve">
     <value>Para</value>
-  </data>
-  <data name="Account" xml:space="preserve">
-    <value>Cuenta</value>
   </data>
   <data name="Direction" xml:space="preserve">
     <value>Dirección</value>
@@ -1168,17 +1218,11 @@
   <data name="Preview" xml:space="preserve">
     <value>Vista Previa</value>
   </data>
-  <data name="Download" xml:space="preserve">
-    <value>Descargar</value>
+  <data name="Close" xml:space="preserve">
+    <value>Cerrar</value>
   </data>
-  <data name="Restore" xml:space="preserve">
-    <value>Restaurar</value>
-  </data>
-  <data name="Deletion" xml:space="preserve">
-    <value>Eliminación</value>
-  </data>
-  <data name="FromDate" xml:space="preserve">
-    <value>Desde</value>
+  <data name="AttachmentPreview" xml:space="preserve">
+    <value>Vista previa del archivo adjunto</value>
   </data>
   <data name="PreviewNotAvailable" xml:space="preserve">
     <value>Vista previa no disponible</value>
@@ -1197,6 +1241,9 @@
   </data>
   <data name="AllAccounts" xml:space="preserve">
     <value>Todas las cuentas</value>
+  </data>
+  <data name="AllFolders" xml:space="preserve">
+    <value>Todas las carpetas</value>
   </data>
   <data name="All" xml:space="preserve">
     <value>Todo</value>
@@ -1364,11 +1411,9 @@
   <data name="InvalidUserPassword" xml:space="preserve">
     <value>Nombre de usuario o contraseña inválidos.</value>
   </data>
-  <!-- Self-Manager Feature -->
   <data name="SelfManager" xml:space="preserve">
     <value>Auto-Administrador</value>
   </data>
-  <!-- Import-Only Account Feature -->
   <data name="ImportOnlyAccount" xml:space="preserve">
     <value>Cuenta Solo de Importación</value>
   </data>
@@ -1378,7 +1423,6 @@
   <data name="ImportOnlyAccountNoSync" xml:space="preserve">
     <value>Las cuentas solo de importación no se pueden sincronizar</value>
   </data>
-  <!-- Job Status Translations -->
   <data name="Running" xml:space="preserve">
     <value>Ejecutándose</value>
   </data>
@@ -1406,14 +1450,12 @@
   <data name="Deleted" xml:space="preserve">
     <value>Eliminado</value>
   </data>
-  <!-- Role Explanations -->
   <data name="AdminRoleDescription" xml:space="preserve">
     <value>Acceso completo al sistema incluyendo administración de usuarios y todas las cuentas de correo</value>
   </data>
   <data name="SelfManagerRoleDescription" xml:space="preserve">
     <value>Puede administrar la configuración de su propia cuenta, así como añadir nuevas cuentas</value>
   </data>
-  <!-- EML Import -->
   <data name="ImportEml" xml:space="preserve">
     <value>Importar Eml</value>
   </data>
@@ -1471,7 +1513,6 @@
   <data name="Import" xml:space="preserve">
     <value>Importar</value>
   </data>
-  <!-- Microsoft 365 -->
   <data name="Microsoft365Account" xml:space="preserve">
     <value>Cuenta Microsoft 365</value>
   </data>
@@ -1490,7 +1531,6 @@
   <data name="LeaveEmptyToKeepCurrent" xml:space="preserve">
     <value>Dejar vacío para mantener el valor actual</value>
   </data>
-  <!-- Two-Factor Authentication -->
   <data name="TwoFactorEnabledSuccess" xml:space="preserve">
     <value>La autenticación de dos factores ha sido habilitada exitosamente.</value>
   </data>
@@ -1626,9 +1666,89 @@
   <data name="EnterCode" xml:space="preserve">
     <value>Ingresar Código</value>
   </data>
-  <!-- Rate Limiting -->
+  <data name="DeleteEmail" xml:space="preserve">
+    <value>Eliminar Correo</value>
+  </data>
+  <data name="DeleteSelected" xml:space="preserve">
+    <value>Eliminar Seleccionados</value>
+  </data>
+  <data name="ConfirmDeletion" xml:space="preserve">
+    <value>Confirmar Eliminación</value>
+  </data>
+  <data name="DeleteEmailConfirm" xml:space="preserve">
+    <value>¿Está seguro de que desea eliminar permanentemente este correo? Esta acción no se puede deshacer y se registrará con fines de auditoría.</value>
+  </data>
+  <data name="DeleteSelectedEmailsConfirm" xml:space="preserve">
+    <value>¿Está seguro de que desea eliminar permanentemente {0} correo(s) seleccionado(s)? Esta acción no se puede deshacer y cada eliminación se registrará con fines de auditoría.</value>
+  </data>
+  <data name="DeleteButton" xml:space="preserve">
+    <value>Eliminar</value>
+  </data>
+  <data name="EmailDeleted" xml:space="preserve">
+    <value>Correo eliminado exitosamente</value>
+  </data>
+  <data name="EmailsDeleted" xml:space="preserve">
+    <value>{0} correo(s) eliminado(s) exitosamente</value>
+  </data>
   <data name="RateLimitExceeded" xml:space="preserve">
     <value>Límite de velocidad excedido. Por favor intente de nuevo más tarde.</value>
+  </data>
+  <data name="LoginBlocked" xml:space="preserve">
+    <value>Inicio de sesión bloqueado temporalmente</value>
+  </data>
+  <data name="LoginBlockedTitle" xml:space="preserve">
+    <value>Acceso bloqueado</value>
+  </data>
+  <data name="LoginBlockedMessage" xml:space="preserve">
+    <value>Se detectaron demasiados intentos de inicio de sesión fallidos</value>
+  </data>
+  <data name="LoginBlockedInfo" xml:space="preserve">
+    <value>Por razones de seguridad, los intentos de inicio de sesión desde su dirección IP han sido temporalmente bloqueados debido a múltiples intentos de autenticación fallidos. Espere 10 minutos antes de volver a intentarlo.</value>
+  </data>
+  <data name="BackToLogin" xml:space="preserve">
+    <value>Volver al inicio de sesión</value>
+  </data>
+  <data name="PasswordMinLength" xml:space="preserve">
+    <value>La contraseña debe tener al menos 10 caracteres de largo</value>
+  </data>
+  <data name="PasswordRequiresUppercase" xml:space="preserve">
+    <value>La contraseña debe contener al menos una letra mayúscula</value>
+  </data>
+  <data name="PasswordRequiresLowercase" xml:space="preserve">
+    <value>La contraseña debe contener al menos una letra minúscula</value>
+  </data>
+  <data name="PasswordRequiresNumber" xml:space="preserve">
+    <value>La contraseña debe contener al menos un número</value>
+  </data>
+  <data name="PasswordRequiresSpecialChar" xml:space="preserve">
+    <value>La contraseña debe contener al menos un carácter especial</value>
+  </data>
+  <data name="PasswordMustBeDifferent" xml:space="preserve">
+    <value>La nueva contraseña debe ser diferente de la contraseña actual</value>
+  </data>
+  <data name="PasswordRequirements" xml:space="preserve">
+    <value>Requisitos de contraseña</value>
+  </data>
+  <data name="PasswordChangeRequired" xml:space="preserve">
+    <value>Cambio de contraseña requerido</value>
+  </data>
+  <data name="PasswordChangeRequiredMessage" xml:space="preserve">
+    <value>Por razones de seguridad, debe cambiar su contraseña antes de continuar. Esto es necesario porque está utilizando las credenciales del sistema predeterminadas en un sistema recién configurado.</value>
+  </data>
+  <data name="PasswordChangeRequiredInfo" xml:space="preserve">
+    <value>Su nueva contraseña debe ser diferente de la contraseña actual y cumplir con todos los requisitos de seguridad.</value>
+  </data>
+  <data name="CannotLeavePasswordChange" xml:space="preserve">
+    <value>Debe cambiar su contraseña antes de poder continuar utilizando el sistema.</value>
+  </data>
+  <data name="TwoFactorEnabled" xml:space="preserve">
+    <value>La autenticación de dos factores está actualmente habilitada para este usuario.</value>
+  </data>
+  <data name="ConfirmResetTwoFactor" xml:space="preserve">
+    <value>¿Está seguro de que desea restablecer la autenticación de dos factores para este usuario? Tendrá que configurarla nuevamente.</value>
+  </data>
+  <data name="ResetTwoFactor" xml:space="preserve">
+    <value>Restablecer autenticación de dos factores</value>
   </data>
   <data name="TooManyAttempts" xml:space="preserve">
     <value>Demasiados intentos. Por favor espere {0} segundos antes de intentar de nuevo.</value>
@@ -1639,7 +1759,6 @@
   <data name="RateLimitTwoFactorMessage" xml:space="preserve">
     <value>Ha hecho demasiados intentos de verificación 2FA. Por favor espere e intente de nuevo más tarde.</value>
   </data>
-  <!-- Account Export Feature -->
   <data name="ExportAccount" xml:space="preserve">
     <value>Exportar Cuenta</value>
   </data>
@@ -1772,7 +1891,6 @@
   <data name="AutoRefresh" xml:space="preserve">
     <value>Auto-actualización cada 3 segundos</value>
   </data>
-  <!-- Missing Export Strings -->
   <data name="NoEmailsToExport" xml:space="preserve">
     <value>No hay correos disponibles para exportar en esta cuenta.</value>
   </data>
@@ -1836,7 +1954,6 @@
   <data name="Refresh" xml:space="preserve">
     <value>Actualizar</value>
   </data>
-  <!-- Export Format Selection Modal -->
   <data name="ExportFormatSelection" xml:space="preserve">
     <value>Selección de Formato de Exportación</value>
   </data>
@@ -1846,7 +1963,6 @@
   <data name="ExportSelectedInfo" xml:space="preserve">
     <value>La exportación se ejecutará en segundo plano y podrá descargar el resultado desde la página de Trabajos una vez completado.</value>
   </data>
-  <!-- Selected Emails Export Feature -->
   <data name="ExportSelected" xml:space="preserve">
     <value>Exportar Seleccionados</value>
   </data>
@@ -1874,7 +1990,6 @@
   <data name="EMLImportJobs" xml:space="preserve">
     <value>Trabajos de Importación EML</value>
   </data>
-  <!-- EmailsController Messages -->
   <data name="EmailHasNoAttachments" xml:space="preserve">
     <value>Este correo no tiene adjuntos.</value>
   </data>
@@ -2022,23 +2137,29 @@
   <data name="DeselectAllOnPage" xml:space="preserve">
     <value>Deseleccionar todo en la página</value>
   </data>
+  <data name="Log" xml:space="preserve">
+    <value>Registro</value>
+  </data>
   <data name="AccessLog" xml:space="preserve">
     <value>Registro de Acceso</value>
   </data>
   <data name="AccessLogEntries" xml:space="preserve">
     <value>Entradas del Registro de Acceso</value>
   </data>
+  <data name="Account" xml:space="preserve">
+    <value>Cuenta</value>
+  </data>
+  <data name="Timestamp" xml:space="preserve">
+    <value>Marca de Tiempo</value>
+  </data>
+  <data name="Type" xml:space="preserve">
+    <value>Tipo</value>
+  </data>
   <data name="EmailSubject" xml:space="preserve">
     <value>Asunto del Correo</value>
   </data>
-  <data name="Filter" xml:space="preserve">
-    <value>Filtro</value>
-  </data>
-  <data name="Info" xml:space="preserve">
-    <value>Información</value>
-  </data>
-  <data name="Log" xml:space="preserve">
-    <value>Registro</value>
+  <data name="SearchParameters" xml:space="preserve">
+    <value>Parámetros de Búsqueda</value>
   </data>
   <data name="Login" xml:space="preserve">
     <value>Iniciar Sesión</value>
@@ -2046,26 +2167,38 @@
   <data name="Logout" xml:space="preserve">
     <value>Cerrar Sesión</value>
   </data>
-  <data name="NoAccessLogEntries" xml:space="preserve">
-    <value>No se encontraron entradas del registro de acceso</value>
-  </data>
-  <data name="NoInfo" xml:space="preserve">
-    <value>Sin información</value>
+  <data name="Search" xml:space="preserve">
+    <value>Buscar</value>
   </data>
   <data name="Open" xml:space="preserve">
     <value>Abrir</value>
   </data>
-  <data name="SearchParameters" xml:space="preserve">
-    <value>Parámetros de Búsqueda</value>
+  <data name="Download" xml:space="preserve">
+    <value>Descargar</value>
   </data>
-  <data name="Timestamp" xml:space="preserve">
-    <value>Marca de Tiempo</value>
+  <data name="Restore" xml:space="preserve">
+    <value>Restaurar</value>
+  </data>
+  <data name="Deletion" xml:space="preserve">
+    <value>Eliminación</value>
+  </data>
+  <data name="FromDate" xml:space="preserve">
+    <value>Desde</value>
   </data>
   <data name="ToDate" xml:space="preserve">
     <value>Hasta</value>
   </data>
-  <data name="Type" xml:space="preserve">
-    <value>Tipo</value>
+  <data name="Filter" xml:space="preserve">
+    <value>Filtro</value>
+  </data>
+  <data name="Info" xml:space="preserve">
+    <value>Información</value>
+  </data>
+  <data name="NoInfo" xml:space="preserve">
+    <value>Sin información</value>
+  </data>
+  <data name="NoAccessLogEntries" xml:space="preserve">
+    <value>No se encontraron entradas del registro de acceso</value>
   </data>
   <data name="EmailNotFoundTitle" xml:space="preserve">
     <value>Correo Electrónico No Encontrado</value>
@@ -2079,74 +2212,32 @@
   <data name="EmailNotFoundHelp" xml:space="preserve">
     <value>Si cree que esto es un error, póngase en contacto con su administrador del sistema.</value>
   </data>
-  <data name="ConfirmDeletion" xml:space="preserve">
-    <value>Confirmar Eliminación</value>
-  </data>
-  <data name="DeleteButton" xml:space="preserve">
-    <value>Eliminar</value>
-  </data>
-  <data name="DeleteEmail" xml:space="preserve">
-    <value>Eliminar Correo</value>
-  </data>
-  <data name="DeleteEmailConfirm" xml:space="preserve">
-    <value>¿Está seguro de que desea eliminar permanentemente este correo? Esta acción no se puede deshacer y se registrará con fines de auditoría.</value>
-  </data>
-  <data name="DeleteSelected" xml:space="preserve">
-    <value>Eliminar Seleccionados</value>
-  </data>
-  <data name="DeleteSelectedEmailsConfirm" xml:space="preserve">
-    <value>¿Está seguro de que desea eliminar permanentemente {0} correo(s) seleccionado(s)? Esta acción no se puede deshacer y cada eliminación se registrará con fines de auditoría.</value>
-  </data>
-  <data name="EmailDeleted" xml:space="preserve">
-    <value>Correo eliminado exitosamente</value>
-  </data>
-  <data name="EmailsDeleted" xml:space="preserve">
-    <value>{0} correo(s) eliminado(s) exitosamente</value>
-  </data>
-  <data name="AttachmentPreview" xml:space="preserve">
-    <value>Vista previa del archivo adjunto</value>
-  </data>
-  <data name="Close" xml:space="preserve">
-    <value>Cerrar</value>
-  </data>
-  <data name="AllFolders" xml:space="preserve">
-    <value>Todas las carpetas</value>
-  </data>
   <data name="Reply" xml:space="preserve">
     <value>Responder</value>
   </data>
   <data name="LocalRetentionDays" xml:space="preserve">
     <value>Días de retención local</value>
   </data>
-  <data name="LocalRetentionInfo" xml:space="preserve">
-      <value>Número de días después de los cuales los correos electrónicos se eliminan del archivo local. Déjelo vacío para conservar los correos electrónicos indefinidamente. Debe ser mayor o igual que 'Eliminar después de días' si ambos están configurados.</value>
+  <data name="LocalRetentionRequiresServerRetention" xml:space="preserve">
+    <value>La retención local solo se puede configurar si la retención en el servidor ('Eliminar después de días') también está configurada.</value>
   </data>
   <data name="LocalRetentionMustBeGreaterOrEqual" xml:space="preserve">
-      <value>Los días de retención local deben ser mayores o iguales que los días de eliminación para garantizar que los correos electrónicos no se eliminen del archivo local antes de ser eliminados del servidor de correo.</value>
+    <value>Los días de retención local deben ser mayores o iguales que los días de eliminación para garantizar que los correos electrónicos no se eliminen del archivo local antes de ser eliminados del servidor de correo.</value>
   </data>
-  <data name="LocalRetentionRequiresServerRetention" xml:space="preserve">
-      <value>La retención local solo se puede configurar si la retención en el servidor ('Eliminar después de días') también está configurada.</value>
+  <data name="LocalRetentionInfo" xml:space="preserve">
+    <value>Número de días después de los cuales los correos electrónicos se eliminan del archivo local. Déjelo vacío para conservar los correos electrónicos indefinidamente. Debe ser mayor o igual que 'Eliminar después de días' si ambos están configurados.</value>
   </data>
-  <data name="AffectedAccounts" xml:space="preserve">
-    <value>Cuentas afectadas</value>
+  <data name="LoadAvailableFolders" xml:space="preserve">
+    <value>Cargar carpetas disponibles</value>
   </data>
-  <data name="ApplicationStarted" xml:space="preserve">
-    <value>Aplicación iniciada</value>
+  <data name="CouldNotLoadFolders" xml:space="preserve">
+    <value>No se pudieron cargar las carpetas del servidor</value>
   </data>
-  <data name="ApplyToAllAccounts" xml:space="preserve">
-    <value>Aplicar a todas las cuentas de este dominio</value>
+  <data name="NoFoldersFound" xml:space="preserve">
+    <value>No se encontraron carpetas en el servidor</value>
   </data>
-  <data name="ApplyToAllDomainAccountsPrompt" xml:space="preserve">
-    <value>Ha modificado las credenciales de Microsoft 365. ¿Desea aplicar estos cambios a todas las demás cuentas del mismo dominio?</value>
-  </data>
-  <data name="BackToLogin" xml:space="preserve">
-    <value>Volver al inicio de sesión</value>
-  </data>
-  <data name="CannotLeavePasswordChange" xml:space="preserve">
-    <value>Debe cambiar su contraseña antes de poder continuar utilizando el sistema.</value>
-  </data>
-  <data name="ComplianceInformation" xml:space="preserve">
-    <value>Información de cumplimiento</value>
+  <data name="ComplianceModeStarted" xml:space="preserve">
+    <value>Modo de cumplimiento iniciado</value>
   </data>
   <data name="ComplianceModeActive" xml:space="preserve">
     <value>Modo de cumplimiento ACTIVO</value>
@@ -2154,56 +2245,11 @@
   <data name="ComplianceModeDisabled" xml:space="preserve">
     <value>Modo de cumplimiento DESACTIVADO</value>
   </data>
-  <data name="ComplianceModeStarted" xml:space="preserve">
-    <value>Modo de cumplimiento iniciado</value>
-  </data>
-  <data name="ComplianceStatus" xml:space="preserve">
-    <value>Estado de cumplimiento</value>
-  </data>
-  <data name="ConfirmResetTwoFactor" xml:space="preserve">
-    <value>¿Está seguro de que desea restablecer la autenticación de dos factores para este usuario? Tendrá que configurarla nuevamente.</value>
-  </data>
-  <data name="ContentHash" xml:space="preserve">
-    <value>Hash de contenido (SHA-256)</value>
-  </data>
-  <data name="CopyCredentials" xml:space="preserve">
-    <value>Copiar credenciales</value>
-  </data>
-  <data name="CouldNotLoadFolders" xml:space="preserve">
-    <value>No se pudieron cargar las carpetas del servidor</value>
-  </data>
-  <data name="CredentialChangeDetected" xml:space="preserve">
-    <value>Cambio de credenciales detectado</value>
-  </data>
-  <data name="CredentialsCopied" xml:space="preserve">
-    <value>¡Credenciales copiadas con éxito!</value>
-  </data>
-  <data name="CurrentHash" xml:space="preserve">
-    <value>Hash actual</value>
-  </data>
-  <data name="EmailDeletionAllowed" xml:space="preserve">
-    <value>Eliminación de correo ELECTRÓNICO PERMITIDA</value>
-  </data>
   <data name="EmailDeletionPrevented" xml:space="preserve">
     <value>Eliminación de correo ELECTRÓNICO EVITADA</value>
   </data>
-  <data name="EmailLocked" xml:space="preserve">
-    <value>Bloqueado</value>
-  </data>
-  <data name="EmailLockedDescription" xml:space="preserve">
-    <value>Este correo electrónico está bloqueado y su integridad de contenido está protegida por un hash criptográfico</value>
-  </data>
-  <data name="ErrorCopyingCredentials" xml:space="preserve">
-    <value>Error al copiar credenciales</value>
-  </data>
-  <data name="ErrorSavingChanges" xml:space="preserve">
-    <value>Error al guardar cambios</value>
-  </data>
-  <data name="ExistingM365AccountsFound" xml:space="preserve">
-    <value>Se encontraron cuentas de M365 existentes</value>
-  </data>
-  <data name="HasAttachments" xml:space="preserve">
-    <value>Tiene adjuntos</value>
+  <data name="EmailDeletionAllowed" xml:space="preserve">
+    <value>Eliminación de correo ELECTRÓNICO PERMITIDA</value>
   </data>
   <data name="HashCreated" xml:space="preserve">
     <value>Hash creado</value>
@@ -2211,94 +2257,95 @@
   <data name="IntegrityCheck" xml:space="preserve">
     <value>Verificación de integridad</value>
   </data>
+  <data name="IntegrityViolation" xml:space="preserve">
+    <value>Violación de integridad</value>
+  </data>
+  <data name="ComplianceStatus" xml:space="preserve">
+    <value>Estado de cumplimiento</value>
+  </data>
+  <data name="ApplicationStarted" xml:space="preserve">
+    <value>Aplicación iniciada</value>
+  </data>
+  <data name="ComplianceInformation" xml:space="preserve">
+    <value>Información de cumplimiento</value>
+  </data>
+  <data name="ContentHash" xml:space="preserve">
+    <value>Hash de contenido (SHA-256)</value>
+  </data>
+  <data name="EmailLocked" xml:space="preserve">
+    <value>Bloqueado</value>
+  </data>
+  <data name="EmailLockedDescription" xml:space="preserve">
+    <value>Este correo electrónico está bloqueado y su integridad de contenido está protegida por un hash criptográfico</value>
+  </data>
+  <data name="StoredHash" xml:space="preserve">
+    <value>Hash almacenado</value>
+  </data>
+  <data name="CurrentHash" xml:space="preserve">
+    <value>Hash actual</value>
+  </data>
   <data name="IntegrityValid" xml:space="preserve">
     <value>Integridad válida</value>
   </data>
   <data name="IntegrityValidDescription" xml:space="preserve">
     <value>El contenido del correo electrónico no ha sido modificado. El hash actual coincide con el hash almacenado.</value>
   </data>
-  <data name="IntegrityViolation" xml:space="preserve">
-    <value>Violación de integridad</value>
-  </data>
   <data name="IntegrityViolationDescription" xml:space="preserve">
     <value>ADVERTENCIA: El hash actual no coincide con el hash almacenado. El contenido del correo electrónico puede haber sido manipulado.</value>
-  </data>
-  <data name="LoadAvailableFolders" xml:space="preserve">
-    <value>Cargar carpetas disponibles</value>
-  </data>
-  <data name="LockedEmail" xml:space="preserve">
-    <value>Correo electrónico bloqueado - contenido protegido para cumplimiento</value>
-  </data>
-  <data name="LoginBlocked" xml:space="preserve">
-    <value>Inicio de sesión bloqueado temporalmente</value>
-  </data>
-  <data name="LoginBlockedInfo" xml:space="preserve">
-    <value>Por razones de seguridad, los intentos de inicio de sesión desde su dirección IP han sido temporalmente bloqueados debido a múltiples intentos de autenticación fallidos. Espere 10 minutos antes de volver a intentarlo.</value>
-  </data>
-  <data name="LoginBlockedMessage" xml:space="preserve">
-    <value>Se detectaron demasiados intentos de inicio de sesión fallidos</value>
-  </data>
-  <data name="LoginBlockedTitle" xml:space="preserve">
-    <value>Acceso bloqueado</value>
   </data>
   <data name="Mismatch" xml:space="preserve">
     <value>No coincide</value>
   </data>
-  <data name="NoFoldersFound" xml:space="preserve">
-    <value>No se encontraron carpetas en el servidor</value>
+  <data name="HasAttachments" xml:space="preserve">
+    <value>Tiene adjuntos</value>
   </data>
-  <data name="PasswordChangeRequired" xml:space="preserve">
-    <value>Cambio de contraseña requerido</value>
+  <data name="LockedEmail" xml:space="preserve">
+    <value>Correo electrónico bloqueado - contenido protegido para cumplimiento</value>
   </data>
-  <data name="PasswordChangeRequiredInfo" xml:space="preserve">
-    <value>Su nueva contraseña debe ser diferente de la contraseña actual y cumplir con todos los requisitos de seguridad.</value>
+  <data name="ExistingM365AccountsFound" xml:space="preserve">
+    <value>Se encontraron cuentas de M365 existentes</value>
   </data>
-  <data name="PasswordChangeRequiredMessage" xml:space="preserve">
-    <value>Por razones de seguridad, debe cambiar su contraseña antes de continuar. Esto es necesario porque está utilizando las credenciales del sistema predeterminadas en un sistema recién configurado.</value>
-  </data>
-  <data name="PasswordMinLength" xml:space="preserve">
-    <value>La contraseña debe tener al menos 10 caracteres de largo</value>
-  </data>
-  <data name="PasswordMustBeDifferent" xml:space="preserve">
-    <value>La nueva contraseña debe ser diferente de la contraseña actual</value>
-  </data>
-  <data name="PasswordRequirements" xml:space="preserve">
-    <value>Requisitos de contraseña</value>
-  </data>
-  <data name="PasswordRequiresLowercase" xml:space="preserve">
-    <value>La contraseña debe contener al menos una letra minúscula</value>
-  </data>
-  <data name="PasswordRequiresNumber" xml:space="preserve">
-    <value>La contraseña debe contener al menos un número</value>
-  </data>
-  <data name="PasswordRequiresSpecialChar" xml:space="preserve">
-    <value>La contraseña debe contener al menos un carácter especial</value>
-  </data>
-  <data name="PasswordRequiresUppercase" xml:space="preserve">
-    <value>La contraseña debe contener al menos una letra mayúscula</value>
-  </data>
-  <data name="PleaseSelectAccount" xml:space="preserve">
-    <value>Por favor, seleccione una cuenta primero</value>
-  </data>
-  <data name="Provider" xml:space="preserve">
-    <value>Proveedor</value>
-  </data>
-  <data name="ResetTwoFactor" xml:space="preserve">
-    <value>Restablecer autenticación de dos factores</value>
+  <data name="UseExistingCredentialsPrompt" xml:space="preserve">
+    <value>Otras cuentas de Microsoft 365 de este dominio ya existen. Puede copiar sus credenciales para ahorrar tiempo.</value>
   </data>
   <data name="SelectAccount" xml:space="preserve">
     <value>-- Seleccionar cuenta --</value>
   </data>
-  <data name="StoredHash" xml:space="preserve">
-    <value>Hash almacenado</value>
+  <data name="CopyCredentials" xml:space="preserve">
+    <value>Copiar credenciales</value>
+  </data>
+  <data name="CredentialsCopied" xml:space="preserve">
+    <value>¡Credenciales copiadas con éxito!</value>
+  </data>
+  <data name="ErrorCopyingCredentials" xml:space="preserve">
+    <value>Error al copiar credenciales</value>
+  </data>
+  <data name="PleaseSelectAccount" xml:space="preserve">
+    <value>Por favor, seleccione una cuenta primero</value>
+  </data>
+  <data name="CredentialChangeDetected" xml:space="preserve">
+    <value>Cambio de credenciales detectado</value>
+  </data>
+  <data name="ApplyToAllDomainAccountsPrompt" xml:space="preserve">
+    <value>Ha modificado las credenciales de Microsoft 365. ¿Desea aplicar estos cambios a todas las demás cuentas del mismo dominio?</value>
+  </data>
+  <data name="AffectedAccounts" xml:space="preserve">
+    <value>Cuentas afectadas</value>
+  </data>
+  <data name="ApplyToAllAccounts" xml:space="preserve">
+    <value>Aplicar a todas las cuentas de este dominio</value>
+  </data>
+  <data name="ErrorSavingChanges" xml:space="preserve">
+    <value>Error al guardar cambios</value>
   </data>
   <data name="TenantId" xml:space="preserve">
     <value>ID de inquilino</value>
   </data>
-  <data name="TwoFactorEnabled" xml:space="preserve">
-    <value>La autenticación de dos factores está actualmente habilitada para este usuario.</value>
+  <data name="Provider" xml:space="preserve">
+    <value>Proveedor</value>
   </data>
-  <data name="UseExistingCredentialsPrompt" xml:space="preserve">
-    <value>Otras cuentas de Microsoft 365 de este dominio ya existen. Puede copiar sus credenciales para ahorrar tiempo.</value>
+  <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+  <data name="SignInWithOAuth" type="System.Resources.ResXNullRef, System.Windows.Forms">
+    <value />
   </data>
 </root>
