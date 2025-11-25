@@ -17,6 +17,7 @@
 - Automated archiving of incoming and outgoing emails from multiple accounts
 - Storage of email content and attachments with scheduled synchronization
 - Mobile and desktop optimized, multilingual responsive UI with dark mode
+- OpenID Connect (OIDC) for integration of external authentication services ([OIDC Implementation Guide](doc/OIDC_Implementation.md))
 
 ### 🔍 Search & Access
 - Advanced search across all archived emails with filtering options
@@ -39,11 +40,9 @@
 - Restore selected emails or entire mailboxes to destination mailboxes
 
 ### 🗑️ Retention Policies
-- Configure automatic deletion of archived emails from mailserver after specified days
+- Configure automatic deletion of archived emails from mailserver after specified days ([Retention Policies Documentation](doc/RetentionPolicies.md))
 - Set retention period per email account (e.g., 30, 90, or 365 days)
 - **Local Archive Retention**: Configure separate retention period for local archive
-
-For detailed information about retention policies, see [Retention Policies Documentation](doc/RetentionPolicies.md).
 
 ## 📚 Documentation
 
@@ -155,7 +154,6 @@ docker compose restart
 - Regular backups of the PostgreSQL database recommended (see [Backup & Restore Guide](doc/BackupRestore.md) for detailed instructions)
 
 ## ⚙️ Advanced Setup
-
 For a complete list of all configuration options, please refer to the [Setup Guide](doc/Setup.md).
 
 
