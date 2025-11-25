@@ -84,7 +84,7 @@ namespace MailArchiver.Services
 
             if (existingEmailUser != null)
             {
-                _logger.LogWarning("OIDC login attempted with email {Email} that already exists for user {Username}. Automatic linking is disabled for security. User must manually link their account.", 
+                _logger.LogWarning("OIDC login attempted with email {Email} that already exists for user {Username}. Automatic linking is disabled for security. Administrator must remove or modify the existing local account before using OIDC authentication.", 
                     email, existingEmailUser.Username);
                 throw new InvalidOperationException(_localizer["OidcAccountAlreadyExists"]);
             }

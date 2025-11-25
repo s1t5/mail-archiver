@@ -2347,8 +2347,17 @@
   <data name="SignInWithOAuth" xml:space="preserve">
     <value>Login with OAuth</value>
   </data>
+  <data name="OidcUserCannotHavePassword" xml:space="preserve">
+    <value>OIDC users cannot have a password. They authenticate through the OIDC provider.</value>
+  </data>
+  <data name="OidcUserCannotChangeUsername" xml:space="preserve">
+    <value>OIDC user usernames cannot be changed as they are linked to the OIDC provider identity.</value>
+  </data>
+  <data name="OidcUserCannotChangePassword" xml:space="preserve">
+    <value>OIDC users cannot change their password. Password management is handled by your OIDC provider.</value>
+  </data>
   <data name="OidcAccountAlreadyExists" xml:space="preserve">
-    <value>An account with this email already exists. Please login with your password and link your OIDC account in your profile settings.</value>
+    <value>An account with this email already exists. Please contact your administrator to remove or modify the existing local account before using OIDC authentication.</value>
   </data>
   <data name="OidcAccountPendingApproval" xml:space="preserve">
     <value>Your account is pending admin approval. Please contact an administrator.</value>

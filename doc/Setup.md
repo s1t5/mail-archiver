@@ -70,6 +70,18 @@ services:
       - Logging__LogLevel__Default=Information
       - Logging__LogLevel__Microsoft_AspNetCore=Warning
       - Logging__LogLevel__Microsoft_EntityFrameworkCore_Database_Command=Warning
+
+      # Security Settings
+      - AllowedHosts=mailarchiver.example.com;www.mailarchiver.example.com
+
+      # OIDC Configuration (see OIDC_Implementation.md for detailed setup)
+      - OAuth__Enabled=true
+      - OAuth__Authority=https://example.com
+      - OAuth__ClientId=YOUR-CLIENT-ID
+      - OAuth__ClientSecret=YOUR-CLIENT-SECRET
+      - OAuth__ClientScopes__0=openid
+      - OAuth__ClientScopes__1=profile
+      - OAuth__ClientScopes__2=email
     ports:
       - "5000:5000"
     networks:
@@ -182,6 +194,21 @@ docker compose restart
 - `Logging__LogLevel__Default`: The default log level for the application. Available levels are: `Trace`, `Debug`, `Information`, `Warning`, `Error`, `Critical`, `None`. Default is `Information`.
 - `Logging__LogLevel__Microsoft_AspNetCore`: Log level for ASP.NET Core framework messages. Default is `Warning`.
 - `Logging__LogLevel__Microsoft_EntityFrameworkCore_Database_Command`: Log level for Entity Framework database commands. Default is `Warning`.
+
+### 🛡️ Security Settings
+- `AllowedHosts`: A semicolon-separated list of host names that the application is allowed to serve. This helps prevent HTTP Host header attacks. Example: `AllowedHosts=mailarchiver.example.com;www.mailarchiver.example.com`. **Important**: Do not use `*` in production environments as it disables host header validation.
+
+### 🔐 OIDC Configuration
+
+For detailed setup instructions for OpenID Connect authentication, see [OIDC Implementation Guide](OIDC_Implementation.md).
+
+- `OAuth__Enabled`: Enable or disable OIDC authentication (true/false)
+- `OAuth__Authority`: The OpenID Connect authority URL (e.g., https://sts.windows.net/{TENANT-ID}/ for Azure AD)
+- `OAuth__ClientId`: The client ID assigned by your identity provider
+- `OAuth__ClientSecret`: The client secret assigned by your identity provider
+- `OAuth__ClientScopes__0`: First scope requested from the identity provider (openid)
+- `OAuth__ClientScopes__1`: Second scope requested from the identity provider (profile)
+- `OAuth__ClientScopes__2`: Third scope requested from the identity provider (email)
 
 ## 🔐 Kestrel HTTPS Configuration (Optional)
 
