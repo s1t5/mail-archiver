@@ -289,6 +289,9 @@ namespace MailArchiver.Migrations
                     b.Property<string>("PasswordHash")
                         .HasColumnType("text");
 
+                    b.Property<bool>("RequiresApproval")
+                        .HasColumnType("boolean");
+
                     b.Property<string>("TwoFactorBackupCodes")
                         .HasColumnType("text");
 
@@ -304,6 +307,11 @@ namespace MailArchiver.Migrations
 
                     b.HasIndex("Email")
                         .IsUnique();
+
+                    b.HasIndex("OAuthRemoteUserId")
+                        .IsUnique()
+                        .HasDatabaseName("IX_Users_OAuthRemoteUserId")
+                        .HasFilter("\"OAuthRemoteUserId\" IS NOT NULL");
 
                     b.HasIndex("Username")
                         .IsUnique();

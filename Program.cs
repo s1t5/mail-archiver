@@ -402,6 +402,7 @@ app.UseSession();
 // Add Rate Limiting Middleware
 app.UseRateLimiter();
 
+// Add our custom authentication middleware
 app.UseAuth();
 
 app.MapControllerRoute(

@@ -1,64 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
-  <!-- 
-    Microsoft ResX Schema 
-    
-    Version 2.0
-    
-    The primary goals of this format is to allow a simple XML format 
-    that is mostly human readable. The generation and parsing of the 
-    various data types are done through the TypeConverter classes 
-    associated with the data types.
-    
-    Example:
-    
-    ... ado.net/XML headers & schema ...
-    <resheader name="resmimetype">text/microsoft-resx</resheader>
-    <resheader name="version">2.0</resheader>
-    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
-    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
-    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
-    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
-    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
-        <value>[base64 mime encoded serialized .NET Framework object]</value>
-    </data>
-    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
-        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
-        <comment>This is a comment</comment>
-    </data>
-                
-    There are any number of "resheader" rows that contain simple 
-    name/value pairs.
-    
-    Each data row contains a name, and value. The row also contains a 
-    type or mimetype. Type corresponds to a .NET class that support 
-    text/value conversion through the TypeConverter architecture. 
-    Classes that don't support this are serialized and stored with the 
-    mimetype set.
-    
-    The mimetype is used for serialized objects, and tells the 
-    ResXResourceReader how to depersist the object. This is currently not 
-    extensible. For a given mimetype the value must be set accordingly:
-    
-    Note - application/x-microsoft.net.object.binary.base64 is the format 
-    that the ResXResourceWriter will generate, however the reader can 
-    read any of the formats listed below.
-    
-    mimetype: application/x-microsoft.net.object.binary.base64
-    value   : The object must be serialized with 
-            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
-            : and then encoded with base64 encoding.
-    
-    mimetype: application/x-microsoft.net.object.soap.base64
-    value   : The object must be serialized with 
-            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
-            : and then encoded with base64 encoding.
-
-    mimetype: application/x-microsoft.net.object.bytearray.base64
-    value   : The object must be serialized into a byte array 
-            : using a System.ComponentModel.TypeConverter
-            : and then encoded with base64 encoding.
-    -->
   <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
     <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
     <xsd:element name="root" msdata:IsDataSet="true">
@@ -141,6 +82,9 @@
   <data name="LastUpdate" xml:space="preserve">
     <value>Последнее обновление:</value>
   </data>
+  <data name="Search" xml:space="preserve">
+    <value>Поиск</value>
+  </data>
   <data name="SearchTerm" xml:space="preserve">
     <value>Поисковый запрос</value>
   </data>
@@ -149,6 +93,9 @@
   </data>
   <data name="To" xml:space="preserve">
     <value>Кому</value>
+  </data>
+  <data name="Account" xml:space="preserve">
+    <value>Аккаунт</value>
   </data>
   <data name="Direction" xml:space="preserve">
     <value>Направление</value>
@@ -732,9 +679,6 @@
   <data name="FullResync" xml:space="preserve">
     <value>Полная пересинхронизация</value>
   </data>
-  <data name="FullResyncConfirm" xml:space="preserve">
-    <value>Вы уверены, что хотите выполнить полную пересинхронизацию? Это сравнит всё содержимое сервера с архивом и может занять много времени.</value>
-  </data>
   <data name="CopyAllEmailsToAnotherMailbox" xml:space="preserve">
     <value>Копировать все письма в другой почтовый ящик</value>
   </data>
@@ -744,8 +688,8 @@
   <data name="DangerZoneInfo" xml:space="preserve">
     <value>Следующие действия необратимы и окончательно удалят данные.</value>
   </data>
-  <data name="DeleteAccountWithEmailsButton" xml:space="preserve">
-    <value>Удалить учетную запись и все электронные письма ({0})</value>
+  <data name="DeleteAccountAllEmailsButton" xml:space="preserve">
+    <value>Удалить аккаунт и все письма ({0})</value>
   </data>
   <data name="DeleteAccountWithEmailsConfirm" xml:space="preserve">
     <value>Вы уверены, что хотите удалить этот аккаунт и ВСЕ {0} архивированных писем? Это действие нельзя отменить!</value>
@@ -857,6 +801,9 @@
   </data>
   <data name="EmailsLabelStatus" xml:space="preserve">
     <value>Письма:</value>
+  </data>
+  <data name="ProcessedSuffix" xml:space="preserve">
+    <value>обработано</value>
   </data>
   <data name="EstimatedSuffix" xml:space="preserve">
     <value>предполагается</value>
@@ -1218,11 +1165,17 @@
   <data name="Preview" xml:space="preserve">
     <value>Предварительный просмотр</value>
   </data>
-  <data name="Close" xml:space="preserve">
-    <value>Закрыть</value>
+  <data name="Download" xml:space="preserve">
+    <value>Скачать</value>
   </data>
-  <data name="AttachmentPreview" xml:space="preserve">
-    <value>Предпросмотр вложения</value>
+  <data name="Restore" xml:space="preserve">
+    <value>Восстановить</value>
+  </data>
+  <data name="Deletion" xml:space="preserve">
+    <value>Удаление</value>
+  </data>
+  <data name="FromDate" xml:space="preserve">
+    <value>От</value>
   </data>
   <data name="PreviewNotAvailable" xml:space="preserve">
     <value>Предварительный просмотр недоступен</value>
@@ -1236,23 +1189,23 @@
   <data name="ChangePassword" xml:space="preserve">
     <value>Изменить пароль</value>
   </data>
+  <data name="Sign Out" xml:space="preserve">
+    <value>Выйти</value>
+  </data>
   <data name="PasswordHint" xml:space="preserve">
+    <value>Пароль должен содержать не менее 6 символов.</value>
+  </data>
+  <data name="PasswordTooShort" xml:space="preserve">
     <value>Пароль должен содержать не менее 6 символов.</value>
   </data>
   <data name="AllAccounts" xml:space="preserve">
     <value>Все счета</value>
-  </data>
-  <data name="AllFolders" xml:space="preserve">
-    <value>Все папки</value>
   </data>
   <data name="All" xml:space="preserve">
     <value>Все</value>
   </data>
   <data name="PasswordRequired" xml:space="preserve">
     <value>Требуется пароль.</value>
-  </data>
-  <data name="PasswordTooShort" xml:space="preserve">
-    <value>Пароль должен содержать не менее 6 символов.</value>
   </data>
   <data name="UsernameExists" xml:space="preserve">
     <value>Имя пользователя уже существует.</value>
@@ -1351,6 +1304,9 @@
   <data name="SyncFailed" xml:space="preserve">
     <value>Ошибка во время синхронизации</value>
   </data>
+  <data name="FullResyncConfirm" xml:space="preserve">
+    <value>Вы уверены, что хотите выполнить полную пересинхронизацию? Это сравнит всё содержимое сервера с архивом и может занять много времени.</value>
+  </data>
   <data name="FullSyncStarted" xml:space="preserve">
     <value>Полный ресинхронизация для '{0}' был успешно начат.</value>
   </data>
@@ -1399,9 +1355,13 @@
   <data name="InvalidUserPassword" xml:space="preserve">
     <value>Неверное имя пользователя или пароль.</value>
   </data>
+
+  <!-- Self-Manager Feature -->
   <data name="SelfManager" xml:space="preserve">
     <value>Само-Менеджер</value>
   </data>
+
+  <!-- Import-Only Account Feature -->
   <data name="ImportOnlyAccount" xml:space="preserve">
     <value>Учётная запись только для импорта</value>
   </data>
@@ -1411,6 +1371,8 @@
   <data name="ImportOnlyAccountNoSync" xml:space="preserve">
     <value>Учётные записи только для импорта не могут быть синхронизированы</value>
   </data>
+
+  <!-- Job Status Translations -->
   <data name="Running" xml:space="preserve">
     <value>Выполняется</value>
   </data>
@@ -1429,21 +1391,22 @@
   <data name="Folders" xml:space="preserve">
     <value>Папки</value>
   </data>
-  <data name="ProcessedSuffix" xml:space="preserve">
-    <value>обработано</value>
-  </data>
   <data name="New" xml:space="preserve">
     <value>Новый</value>
   </data>
   <data name="Deleted" xml:space="preserve">
     <value>Удалено</value>
   </data>
+
+  <!-- Role Explanations -->
   <data name="AdminRoleDescription" xml:space="preserve">
     <value>Полный доступ к системе, включая управление пользователями и всеми учетными записями электронной почты</value>
   </data>
   <data name="SelfManagerRoleDescription" xml:space="preserve">
     <value>Может управлять настройками своей учетной записи, а также добавлять новые учетные записи</value>
   </data>
+
+  <!-- EML Import -->
   <data name="ImportEml" xml:space="preserve">
     <value>Импорт EML</value>
   </data>
@@ -1501,6 +1464,7 @@
   <data name="Import" xml:space="preserve">
     <value>Импорт</value>
   </data>
+  <!-- Microsoft 365 -->
   <data name="Microsoft365Account" xml:space="preserve">
     <value>Учётная запись Microsoft 365</value>
   </data>
@@ -1519,6 +1483,7 @@
   <data name="LeaveEmptyToKeepCurrent" xml:space="preserve">
     <value>Оставьте пустым, чтобы сохранить текущее значение</value>
   </data>
+  <!-- Two-Factor Authentication -->
   <data name="TwoFactorEnabledSuccess" xml:space="preserve">
     <value>Двухфакторная аутентификация успешно включена.</value>
   </data>
@@ -1654,89 +1619,10 @@
   <data name="EnterCode" xml:space="preserve">
     <value>Введите код</value>
   </data>
-  <data name="DeleteEmail" xml:space="preserve">
-    <value>Удалить Письмо</value>
-  </data>
-  <data name="DeleteSelected" xml:space="preserve">
-    <value>Удалить Выбранные</value>
-  </data>
-  <data name="ConfirmDeletion" xml:space="preserve">
-    <value>Подтвердить Удаление</value>
-  </data>
-  <data name="DeleteEmailConfirm" xml:space="preserve">
-    <value>Вы уверены, что хотите безвозвратно удалить это письмо? Это действие невозможно отменить и оно будет записано в журнал для целей аудита.</value>
-  </data>
-  <data name="DeleteSelectedEmailsConfirm" xml:space="preserve">
-    <value>Вы уверены, что хотите безвозвратно удалить {0} выбранных писем? Это действие невозможно отменить и каждое удаление будет записано в журнал для целей аудита.</value>
-  </data>
-  <data name="DeleteButton" xml:space="preserve">
-    <value>Удалить</value>
-  </data>
-  <data name="EmailDeleted" xml:space="preserve">
-    <value>Письмо успешно удалено</value>
-  </data>
-  <data name="EmailsDeleted" xml:space="preserve">
-    <value>{0} писем успешно удалено</value>
-  </data>
+
+  <!-- Rate Limiting -->
   <data name="RateLimitExceeded" xml:space="preserve">
     <value>Превышен лимит скорости. Попробуйте позже.</value>
-  </data>
-  <data name="LoginBlocked" xml:space="preserve">
-    <value>Вход временно заблокирован</value>
-  </data>
-  <data name="LoginBlockedTitle" xml:space="preserve">
-    <value>Доступ заблокирован</value>
-  </data>
-  <data name="LoginBlockedMessage" xml:space="preserve">
-    <value>Обнаружено слишком много неудачных попыток входа</value>
-  </data>
-  <data name="LoginBlockedInfo" xml:space="preserve">
-    <value>По соображениям безопасности попытки входа с вашего IP-адреса временно заблокированы из-за множества неудачных попыток аутентификации. Пожалуйста, подождите 10 минут перед повторной попыткой.</value>
-  </data>
-  <data name="BackToLogin" xml:space="preserve">
-    <value>Вернуться к входу</value>
-  </data>
-  <data name="PasswordMinLength" xml:space="preserve">
-    <value>Пароль должен содержать не менее 10 символов</value>
-  </data>
-  <data name="PasswordRequiresUppercase" xml:space="preserve">
-    <value>Пароль должен содержать хотя бы одну заглавную букву</value>
-  </data>
-  <data name="PasswordRequiresLowercase" xml:space="preserve">
-    <value>Пароль должен содержать хотя бы одну строчную букву</value>
-  </data>
-  <data name="PasswordRequiresNumber" xml:space="preserve">
-    <value>Пароль должен содержать хотя бы одну цифру</value>
-  </data>
-  <data name="PasswordRequiresSpecialChar" xml:space="preserve">
-    <value>Пароль должен содержать хотя бы один специальный символ</value>
-  </data>
-  <data name="PasswordMustBeDifferent" xml:space="preserve">
-    <value>Новый пароль должен отличаться от текущего пароля</value>
-  </data>
-  <data name="PasswordRequirements" xml:space="preserve">
-    <value>Требования к паролю</value>
-  </data>
-  <data name="PasswordChangeRequired" xml:space="preserve">
-    <value>Требуется смена пароля</value>
-  </data>
-  <data name="PasswordChangeRequiredMessage" xml:space="preserve">
-    <value>По соображениям безопасности вы должны изменить пароль перед продолжением. Это необходимо, потому что вы используете стандартные учетные данные системы на недавно настроенной системе.</value>
-  </data>
-  <data name="PasswordChangeRequiredInfo" xml:space="preserve">
-    <value>Ваш новый пароль должен отличаться от текущего пароля и соответствовать всем требованиям безопасности.</value>
-  </data>
-  <data name="CannotLeavePasswordChange" xml:space="preserve">
-    <value>Вы должны изменить пароль, прежде чем продолжить использование системы.</value>
-  </data>
-  <data name="TwoFactorEnabled" xml:space="preserve">
-    <value>Двухфакторная аутентификация в настоящее время включена для этого пользователя.</value>
-  </data>
-  <data name="ConfirmResetTwoFactor" xml:space="preserve">
-    <value>Вы уверены, что хотите сбросить двухфакторную аутентификацию для этого пользователя? Им придется настроить её снова.</value>
-  </data>
-  <data name="ResetTwoFactor" xml:space="preserve">
-    <value>Сбросить двухфакторную аутентификацию</value>
   </data>
   <data name="TooManyAttempts" xml:space="preserve">
     <value>Слишком много попыток. Подождите {0} секунд перед повторной попыткой.</value>
@@ -1747,6 +1633,8 @@
   <data name="RateLimitTwoFactorMessage" xml:space="preserve">
     <value>Вы сделали слишком много попыток проверки 2FA. Подождите и попробуйте позже.</value>
   </data>
+
+  <!-- Account Export Feature -->
   <data name="ExportAccount" xml:space="preserve">
     <value>Экспорт Учетной Записи</value>
   </data>
@@ -1879,6 +1767,7 @@
   <data name="AutoRefresh" xml:space="preserve">
     <value>Автообновление каждые 3 секунды</value>
   </data>
+  <!-- Missing Export Strings -->
   <data name="NoEmailsToExport" xml:space="preserve">
     <value>Нет писем для экспорта в этой учетной записи.</value>
   </data>
@@ -1942,6 +1831,8 @@
   <data name="Refresh" xml:space="preserve">
     <value>Обновить</value>
   </data>
+
+  <!-- Export Format Selection Modal -->
   <data name="ExportFormatSelection" xml:space="preserve">
     <value>Выбор Формата Экспорта</value>
   </data>
@@ -1951,6 +1842,8 @@
   <data name="ExportSelectedInfo" xml:space="preserve">
     <value>Экспорт будет выполняться в фоновом режиме, и вы сможете загрузить результат со страницы Задач после завершения.</value>
   </data>
+
+  <!-- Selected Emails Export Feature -->
   <data name="ExportSelected" xml:space="preserve">
     <value>Экспорт Выбранных</value>
   </data>
@@ -1978,6 +1871,8 @@
   <data name="EMLImportJobs" xml:space="preserve">
     <value>Задачи Импорта EML</value>
   </data>
+
+  <!-- EmailsController Messages -->
   <data name="EmailHasNoAttachments" xml:space="preserve">
     <value>В этом письме нет вложений.</value>
   </data>
@@ -2125,8 +2020,8 @@
   <data name="DeselectAllOnPage" xml:space="preserve">
     <value>Отменить выбор всех на странице</value>
   </data>
-  <data name="Log" xml:space="preserve">
-    <value>Журнал</value>
+  <data name="DeleteAccountWithEmailsButton" xml:space="preserve">
+    <value>Удалить учетную запись и все электронные письма ({0})</value>
   </data>
   <data name="AccessLog" xml:space="preserve">
     <value>Журнал доступа</value>
@@ -2134,47 +2029,8 @@
   <data name="AccessLogEntries" xml:space="preserve">
     <value>Записи журнала доступа</value>
   </data>
-  <data name="Account" xml:space="preserve">
-    <value>Аккаунт</value>
-  </data>
-  <data name="Timestamp" xml:space="preserve">
-    <value>Временная метка</value>
-  </data>
-  <data name="Type" xml:space="preserve">
-    <value>Тип</value>
-  </data>
   <data name="EmailSubject" xml:space="preserve">
     <value>Тема письма</value>
-  </data>
-  <data name="SearchParameters" xml:space="preserve">
-    <value>Параметры поиска</value>
-  </data>
-  <data name="Login" xml:space="preserve">
-    <value>Вход</value>
-  </data>
-  <data name="Logout" xml:space="preserve">
-    <value>Выход</value>
-  </data>
-  <data name="Search" xml:space="preserve">
-    <value>Поиск</value>
-  </data>
-  <data name="Open" xml:space="preserve">
-    <value>Открыть</value>
-  </data>
-  <data name="Download" xml:space="preserve">
-    <value>Скачать</value>
-  </data>
-  <data name="Restore" xml:space="preserve">
-    <value>Восстановить</value>
-  </data>
-  <data name="Deletion" xml:space="preserve">
-    <value>Удаление</value>
-  </data>
-  <data name="FromDate" xml:space="preserve">
-    <value>От</value>
-  </data>
-  <data name="ToDate" xml:space="preserve">
-    <value>По</value>
   </data>
   <data name="Filter" xml:space="preserve">
     <value>Фильтр</value>
@@ -2182,11 +2038,35 @@
   <data name="Info" xml:space="preserve">
     <value>Информация</value>
   </data>
-  <data name="NoInfo" xml:space="preserve">
-    <value>Нет информации</value>
+  <data name="Log" xml:space="preserve">
+    <value>Журнал</value>
+  </data>
+  <data name="Login" xml:space="preserve">
+    <value>Вход</value>
+  </data>
+  <data name="Logout" xml:space="preserve">
+    <value>Выход</value>
   </data>
   <data name="NoAccessLogEntries" xml:space="preserve">
     <value>Записи журнала доступа не найдены</value>
+  </data>
+  <data name="NoInfo" xml:space="preserve">
+    <value>Нет информации</value>
+  </data>
+  <data name="Open" xml:space="preserve">
+    <value>Открыть</value>
+  </data>
+  <data name="SearchParameters" xml:space="preserve">
+    <value>Параметры поиска</value>
+  </data>
+  <data name="Timestamp" xml:space="preserve">
+    <value>Временная метка</value>
+  </data>
+  <data name="ToDate" xml:space="preserve">
+    <value>По</value>
+  </data>
+  <data name="Type" xml:space="preserve">
+    <value>Тип</value>
   </data>
   <data name="EmailNotFoundTitle" xml:space="preserve">
     <value>Письмо Не Найдено</value>
@@ -2200,32 +2080,74 @@
   <data name="EmailNotFoundHelp" xml:space="preserve">
     <value>Если вы считаете, что это ошибка, обратитесь к системному администратору.</value>
   </data>
+  <data name="ConfirmDeletion" xml:space="preserve">
+    <value>Подтвердить Удаление</value>
+  </data>
+  <data name="DeleteButton" xml:space="preserve">
+    <value>Удалить</value>
+  </data>
+  <data name="DeleteEmail" xml:space="preserve">
+    <value>Удалить Письмо</value>
+  </data>
+  <data name="DeleteEmailConfirm" xml:space="preserve">
+    <value>Вы уверены, что хотите безвозвратно удалить это письмо? Это действие невозможно отменить и оно будет записано в журнал для целей аудита.</value>
+  </data>
+  <data name="DeleteSelected" xml:space="preserve">
+    <value>Удалить Выбранные</value>
+  </data>
+  <data name="DeleteSelectedEmailsConfirm" xml:space="preserve">
+    <value>Вы уверены, что хотите безвозвратно удалить {0} выбранных писем? Это действие невозможно отменить и каждое удаление будет записано в журнал для целей аудита.</value>
+  </data>
+  <data name="EmailDeleted" xml:space="preserve">
+    <value>Письмо успешно удалено</value>
+  </data>
+  <data name="EmailsDeleted" xml:space="preserve">
+    <value>{0} писем успешно удалено</value>
+  </data>
+  <data name="AttachmentPreview" xml:space="preserve">
+    <value>Предпросмотр вложения</value>
+  </data>
+  <data name="Close" xml:space="preserve">
+    <value>Закрыть</value>
+  </data>
+  <data name="AllFolders" xml:space="preserve">
+    <value>Все папки</value>
+  </data>
   <data name="Reply" xml:space="preserve">
     <value>Ответить</value>
   </data>
   <data name="LocalRetentionDays" xml:space="preserve">
     <value>Срок локального хранения (в днях)</value>
   </data>
-  <data name="LocalRetentionRequiresServerRetention" xml:space="preserve">
-    <value>Локальное хранение можно установить только в том случае, если также настроено хранение на сервере ('Удалить через (дней)').</value>
+  <data name="LocalRetentionInfo" xml:space="preserve">
+      <value>Количество дней, по истечении которых электронные письма будут удалены из локального архива. Оставьте поле пустым, чтобы хранить письма бессрочно. Должно быть больше или равно 'Удалить через (дней)', если оба параметра заданы.</value>
   </data>
   <data name="LocalRetentionMustBeGreaterOrEqual" xml:space="preserve">
-    <value>Срок локального хранения должен быть больше или равен сроку удаления, чтобы гарантировать, что письма не будут удалены из локального архива раньше, чем с почтового сервера.</value>
+      <value>Срок локального хранения должен быть больше или равен сроку удаления, чтобы гарантировать, что письма не будут удалены из локального архива раньше, чем с почтового сервера.</value>
   </data>
-  <data name="LocalRetentionInfo" xml:space="preserve">
-    <value>Количество дней, по истечении которых электронные письма будут удалены из локального архива. Оставьте поле пустым, чтобы хранить письма бессрочно. Должно быть больше или равно 'Удалить через (дней)', если оба параметра заданы.</value>
+  <data name="LocalRetentionRequiresServerRetention" xml:space="preserve">
+      <value>Локальное хранение можно установить только в том случае, если также настроено хранение на сервере ('Удалить через (дней)').</value>
   </data>
-  <data name="LoadAvailableFolders" xml:space="preserve">
-    <value>Загрузить доступные папки</value>
+  <data name="AffectedAccounts" xml:space="preserve">
+    <value>Влияние на аккаунты</value>
   </data>
-  <data name="CouldNotLoadFolders" xml:space="preserve">
-    <value>Не удалось загрузить папки с сервера</value>
+  <data name="ApplicationStarted" xml:space="preserve">
+    <value>Приложение запущено</value>
   </data>
-  <data name="NoFoldersFound" xml:space="preserve">
-    <value>На сервере нет папок</value>
+  <data name="ApplyToAllAccounts" xml:space="preserve">
+    <value>Применить ко всем аккаунтам в этом домене</value>
   </data>
-  <data name="ComplianceModeStarted" xml:space="preserve">
-    <value>Режим соответствия запущен</value>
+  <data name="ApplyToAllDomainAccountsPrompt" xml:space="preserve">
+    <value>Вы изменили учетные данные Microsoft 365. Хотите применить эти изменения ко всем другим аккаунтам в этом домене?</value>
+  </data>
+  <data name="BackToLogin" xml:space="preserve">
+    <value>Вернуться к входу</value>
+  </data>
+  <data name="CannotLeavePasswordChange" xml:space="preserve">
+    <value>Вы должны изменить пароль, прежде чем продолжить использование системы.</value>
+  </data>
+  <data name="ComplianceInformation" xml:space="preserve">
+    <value>Информация о соответствии</value>
   </data>
   <data name="ComplianceModeActive" xml:space="preserve">
     <value>Режим соответствия АКТИВЕН</value>
@@ -2233,32 +2155,38 @@
   <data name="ComplianceModeDisabled" xml:space="preserve">
     <value>Режим соответствия ОТКЛЮЧЕН</value>
   </data>
-  <data name="EmailDeletionPrevented" xml:space="preserve">
-    <value>Удаление email ЗАПРЕЩЕНО</value>
-  </data>
-  <data name="EmailDeletionAllowed" xml:space="preserve">
-    <value>Удаление email РАЗРЕШЕНО</value>
-  </data>
-  <data name="HashCreated" xml:space="preserve">
-    <value>Хеш создан</value>
-  </data>
-  <data name="IntegrityCheck" xml:space="preserve">
-    <value>Проверка целостности</value>
-  </data>
-  <data name="IntegrityViolation" xml:space="preserve">
-    <value>Нарушение целостности</value>
+  <data name="ComplianceModeStarted" xml:space="preserve">
+    <value>Режим соответствия запущен</value>
   </data>
   <data name="ComplianceStatus" xml:space="preserve">
     <value>Статус соответствия</value>
   </data>
-  <data name="ApplicationStarted" xml:space="preserve">
-    <value>Приложение запущено</value>
-  </data>
-  <data name="ComplianceInformation" xml:space="preserve">
-    <value>Информация о соответствии</value>
+  <data name="ConfirmResetTwoFactor" xml:space="preserve">
+    <value>Вы уверены, что хотите сбросить двухфакторную аутентификацию для этого пользователя? Им придется настроить её снова.</value>
   </data>
   <data name="ContentHash" xml:space="preserve">
     <value>Хеш содержимого (SHA-256)</value>
+  </data>
+  <data name="CopyCredentials" xml:space="preserve">
+    <value>Копировать учетные данные</value>
+  </data>
+  <data name="CouldNotLoadFolders" xml:space="preserve">
+    <value>Не удалось загрузить папки с сервера</value>
+  </data>
+  <data name="CredentialChangeDetected" xml:space="preserve">
+    <value>Обнаружено изменение учетных данных</value>
+  </data>
+  <data name="CredentialsCopied" xml:space="preserve">
+    <value>Учетные данные успешно скопированы!</value>
+  </data>
+  <data name="CurrentHash" xml:space="preserve">
+    <value>Текущий хеш</value>
+  </data>
+  <data name="EmailDeletionAllowed" xml:space="preserve">
+    <value>Удаление email РАЗРЕШЕНО</value>
+  </data>
+  <data name="EmailDeletionPrevented" xml:space="preserve">
+    <value>Удаление email ЗАПРЕЩЕНО</value>
   </data>
   <data name="EmailLocked" xml:space="preserve">
     <value>Заблокировано</value>
@@ -2266,11 +2194,23 @@
   <data name="EmailLockedDescription" xml:space="preserve">
     <value>Этот email заблокирован, и целостность его содержимого защищена криптографическим хешем</value>
   </data>
-  <data name="StoredHash" xml:space="preserve">
-    <value>Сохраненный хеш</value>
+  <data name="ErrorCopyingCredentials" xml:space="preserve">
+    <value>Ошибка при копировании учетных данных</value>
   </data>
-  <data name="CurrentHash" xml:space="preserve">
-    <value>Текущий хеш</value>
+  <data name="ErrorSavingChanges" xml:space="preserve">
+    <value>Ошибка при сохранении изменений</value>
+  </data>
+  <data name="ExistingM365AccountsFound" xml:space="preserve">
+    <value>Найдены существующие аккаунты M365</value>
+  </data>
+  <data name="HasAttachments" xml:space="preserve">
+    <value>Есть вложения</value>
+  </data>
+  <data name="HashCreated" xml:space="preserve">
+    <value>Хеш создан</value>
+  </data>
+  <data name="IntegrityCheck" xml:space="preserve">
+    <value>Проверка целостности</value>
   </data>
   <data name="IntegrityValid" xml:space="preserve">
     <value>Целостность действительна</value>
@@ -2278,68 +2218,115 @@
   <data name="IntegrityValidDescription" xml:space="preserve">
     <value>Содержимое email не было изменено. Текущий хеш совпадает с сохраненным хешем.</value>
   </data>
+  <data name="IntegrityViolation" xml:space="preserve">
+    <value>Нарушение целостности</value>
+  </data>
   <data name="IntegrityViolationDescription" xml:space="preserve">
     <value>ВНИМАНИЕ: Текущий хеш не совпадает с сохраненным хешем. Содержимое email могло быть изменено.</value>
   </data>
-  <data name="Mismatch" xml:space="preserve">
-    <value>Несоответствие</value>
-  </data>
-  <data name="HasAttachments" xml:space="preserve">
-    <value>Есть вложения</value>
+  <data name="LoadAvailableFolders" xml:space="preserve">
+    <value>Загрузить доступные папки</value>
   </data>
   <data name="LockedEmail" xml:space="preserve">
     <value>Заблокированный email - содержимое защищено для соответствия</value>
   </data>
-  <data name="ExistingM365AccountsFound" xml:space="preserve">
-    <value>Найдены существующие аккаунты M365</value>
+  <data name="LoginBlocked" xml:space="preserve">
+    <value>Вход временно заблокирован</value>
   </data>
-  <data name="UseExistingCredentialsPrompt" xml:space="preserve">
-    <value>Другие аккаунты Microsoft 365 в этом домене уже существуют. Вы можете скопировать их учетные данные, чтобы сэкономить время.</value>
+  <data name="LoginBlockedInfo" xml:space="preserve">
+    <value>По соображениям безопасности попытки входа с вашего IP-адреса временно заблокированы из-за множества неудачных попыток аутентификации. Пожалуйста, подождите 10 минут перед повторной попыткой.</value>
   </data>
-  <data name="SelectAccount" xml:space="preserve">
-    <value>-- Выберите аккаунт --</value>
+  <data name="LoginBlockedMessage" xml:space="preserve">
+    <value>Обнаружено слишком много неудачных попыток входа</value>
   </data>
-  <data name="CopyCredentials" xml:space="preserve">
-    <value>Копировать учетные данные</value>
+  <data name="LoginBlockedTitle" xml:space="preserve">
+    <value>Доступ заблокирован</value>
   </data>
-  <data name="CredentialsCopied" xml:space="preserve">
-    <value>Учетные данные успешно скопированы!</value>
+  <data name="Mismatch" xml:space="preserve">
+    <value>Несоответствие</value>
   </data>
-  <data name="ErrorCopyingCredentials" xml:space="preserve">
-    <value>Ошибка при копировании учетных данных</value>
+  <data name="NoFoldersFound" xml:space="preserve">
+    <value>На сервере нет папок</value>
+  </data>
+  <data name="PasswordChangeRequired" xml:space="preserve">
+    <value>Требуется смена пароля</value>
+  </data>
+  <data name="PasswordChangeRequiredInfo" xml:space="preserve">
+    <value>Ваш новый пароль должен отличаться от текущего пароля и соответствовать всем требованиям безопасности.</value>
+  </data>
+  <data name="PasswordChangeRequiredMessage" xml:space="preserve">
+    <value>По соображениям безопасности вы должны изменить пароль перед продолжением. Это необходимо, потому что вы используете стандартные учетные данные системы на недавно настроенной системе.</value>
+  </data>
+  <data name="PasswordMinLength" xml:space="preserve">
+    <value>Пароль должен содержать не менее 10 символов</value>
+  </data>
+  <data name="PasswordMustBeDifferent" xml:space="preserve">
+    <value>Новый пароль должен отличаться от текущего пароля</value>
+  </data>
+  <data name="PasswordRequirements" xml:space="preserve">
+    <value>Требования к паролю</value>
+  </data>
+  <data name="PasswordRequiresLowercase" xml:space="preserve">
+    <value>Пароль должен содержать хотя бы одну строчную букву</value>
+  </data>
+  <data name="PasswordRequiresNumber" xml:space="preserve">
+    <value>Пароль должен содержать хотя бы одну цифру</value>
+  </data>
+  <data name="PasswordRequiresSpecialChar" xml:space="preserve">
+    <value>Пароль должен содержать хотя бы один специальный символ</value>
+  </data>
+  <data name="PasswordRequiresUppercase" xml:space="preserve">
+    <value>Пароль должен содержать хотя бы одну заглавную букву</value>
   </data>
   <data name="PleaseSelectAccount" xml:space="preserve">
     <value>Пожалуйста, сначала выберите аккаунт</value>
   </data>
-  <data name="CredentialChangeDetected" xml:space="preserve">
-    <value>Обнаружено изменение учетных данных</value>
+  <data name="Provider" xml:space="preserve">
+    <value>Поставщик</value>
   </data>
-  <data name="ApplyToAllDomainAccountsPrompt" xml:space="preserve">
-    <value>Вы изменили учетные данные Microsoft 365. Хотите применить эти изменения ко всем другим аккаунтам в этом домене?</value>
+  <data name="ResetTwoFactor" xml:space="preserve">
+    <value>Сбросить двухфакторную аутентификацию</value>
   </data>
-  <data name="AffectedAccounts" xml:space="preserve">
-    <value>Влияние на аккаунты</value>
+  <data name="SelectAccount" xml:space="preserve">
+    <value>-- Выберите аккаунт --</value>
   </data>
-  <data name="ApplyToAllAccounts" xml:space="preserve">
-    <value>Применить ко всем аккаунтам в этом домене</value>
-  </data>
-  <data name="ErrorSavingChanges" xml:space="preserve">
-    <value>Ошибка при сохранении изменений</value>
+  <data name="StoredHash" xml:space="preserve">
+    <value>Сохраненный хеш</value>
   </data>
   <data name="TenantId" xml:space="preserve">
     <value>ID арендатора</value>
   </data>
-  <data name="Provider" xml:space="preserve">
-    <value>Поставщик</value>
+  <data name="TwoFactorEnabled" xml:space="preserve">
+    <value>Двухфакторная аутентификация в настоящее время включена для этого пользователя.</value>
   </data>
-  <data name="DeleteAccountAllEmailsButton" xml:space="preserve">
-    <value>Удалить аккаунт и все письма ({0})</value>
+  <data name="UseExistingCredentialsPrompt" xml:space="preserve">
+    <value>Другие аккаунты Microsoft 365 в этом домене уже существуют. Вы можете скопировать их учетные данные, чтобы сэкономить время.</value>
   </data>
-  <data name="Sign Out" xml:space="preserve">
-    <value>Выйти</value>
+  <data name="OidcAccountAlreadyExists" xml:space="preserve">
+    <value>Учетная запись с этим адресом электронной почты уже существует. Пожалуйста, свяжитесь с вашим администратором для удаления или изменения существующей локальной учетной записи перед использованием аутентификации OIDC.</value>
   </data>
-  <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
-  <data name="SignInWithOAuth" type="System.Resources.ResXNullRef, System.Windows.Forms">
-    <value />
+  <data name="OidcAccountDeactivated" xml:space="preserve">
+    <value>Ваша учетная запись была деактивирована. Пожалуйста, свяжитесь с администратором.</value>
+  </data>
+  <data name="OidcAccountPendingApproval" xml:space="preserve">
+    <value>Ваша учетная запись ожидает одобрения администратором. Пожалуйста, свяжитесь с администратором.</value>
+  </data>
+  <data name="OidcClaimLengthExceeded" xml:space="preserve">
+    <value>Значения заявок превышают максимально допустимую длину</value>
+  </data>
+  <data name="OidcInvalidEmailFormat" xml:space="preserve">
+    <value>Неверный формат электронной почты, полученный от провайдера идентификации</value>
+  </data>
+  <data name="OidcUserCannotChangePassword" xml:space="preserve">
+    <value>Пользователи OIDC не могут изменить свой пароль. Управление паролями осуществляется вашим провайдером OIDC.</value>
+  </data>
+  <data name="OidcUserCannotChangeUsername" xml:space="preserve">
+    <value>Имена пользователей OIDC не могут быть изменены, так как они связаны с идентификацией провайдера OIDC.</value>
+  </data>
+  <data name="OidcUserCannotHavePassword" xml:space="preserve">
+    <value>Пользователи OIDC не могут иметь пароль. Они аутентифицируются через провайдера OIDC.</value>
+  </data>
+  <data name="SignInWithOAuth" xml:space="preserve">
+    <value>Войти с OAuth</value>
   </data>
 </root>

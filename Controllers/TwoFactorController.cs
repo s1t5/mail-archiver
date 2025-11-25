@@ -161,7 +161,7 @@ namespace MailArchiver.Controllers
                 TempData["ErrorMessage"] = "OIDC users cannot manage 2FA. Authentication is managed by your OIDC provider.";
                 return RedirectToAction("Index", "Home");
             }
-            
+
             if (!user.IsTwoFactorEnabled || string.IsNullOrEmpty(user.TwoFactorSecret))
             {
                 TempData["ErrorMessage"] = _localizer["TwoFactorNotEnabled"].Value;
@@ -275,7 +275,7 @@ namespace MailArchiver.Controllers
                         bool.TryParse(rememberMeString, out rememberMe);
                     }
                     // Sign in the user
-                    await _authService.StartUserSessionAsync(
+                     await _authService.StartUserSessionAsync(
                         user
                         , rememberMe);
                     

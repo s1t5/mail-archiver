@@ -1,5 +1,4 @@
 using MailArchiver.Models;
-
 namespace MailArchiver.Services
 {
     public interface IAuthenticationService
