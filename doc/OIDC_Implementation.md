@@ -17,9 +17,11 @@ This guide provides comprehensive instructions for setting up OpenID Connect (OI
    - [Create App Registration](#create-app-registration)
    - [Configure Authentication](#configure-authentication)
    - [Set Token Configuration](#set-token-configuration)
-5. [Testing and Validation](#testing-and-validation)
-6. [User Management with OIDC](#user-management-with-oidc)
-7. [Troubleshooting](#troubleshooting)
+5. [Authelia Setup](#authelia-setup)
+   - [Authelia Configuration](#authelia-configuration)
+   - [Client Registration](#client-registration)
+6. [Testing and Validation](#testing-and-validation)
+7. [User Management with OIDC](#user-management-with-oidc)
 
 ## 🌐 Overview
 
@@ -136,6 +138,53 @@ This section provides step-by-step instructions for configuring Microsoft Entra 
 4. Select an expiration period
 5. Click **Add**
 6. **Important**: Copy the **Value** immediately and store it securely. This secret will not be shown again. It's needed as the `OAuth__ClientSecret`
+
+## 🔐 Authelia Setup
+
+This section provides configuration details for setting up Authelia as an OIDC identity provider for Mail Archiver. Authelia is an open-source authentication and authorization server that supports OIDC.
+
+### 🛠️ Authelia Configuration
+
+To configure Mail Archiver as an OIDC client in Authelia, add the following client configuration to your Authelia `configuration.yml` file under the `identity_providers.oidc.clients` section:
+
+```yaml
+identity_providers:
+  oidc:
+    clients:
+      - client_id: 'mailarchiver'
+        client_name: 'mailarchiver'
+        client_secret: '$xyzg'  # The digest of 'insecure_secret'.
+        public: false
+        redirect_uris:
+          - 'https://your-mail-archiver-domain/oidc-signin-completed'
+        scopes:
+          - 'openid'
+          - 'profile'
+          - 'email'
+          - 'groups'
+        response_types:
+          - 'code'
+        grant_types:
+          - 'authorization_code'
+        token_endpoint_auth_method: 'client_secret_post'
+```
+
+### 📝 Client Registration Details
+
+- **client_id**: `mailarchiver` - The unique identifier for the Mail Archiver application
+- **client_name**: `mailarchiver` - The display name shown to users during authentication
+- **client_secret**: The hashed secret used for client authentication (replace with your own secure secret in production)
+- **redirect_uris**: The callback URL where Authelia will redirect users after authentication. Replace `[YOUR_MAILARCHIVER_URL]` with your actual Mail Archiver domain
+- **scopes**: The permissions requested from Authelia:
+  - `openid`: Required for OIDC authentication
+  - `profile`: Access to basic profile information
+  - `email`: Access to email address
+  - `groups`: Access to group memberships (optional, can be removed if not needed)
+- **response_types**: `code` - Authorization code flow
+- **grant_types**: `authorization_code` - Authorization code grant type
+- **token_endpoint_auth_method**: `client_secret_post` - Client authentication method
+
+> ⚠️ **Security Note**: The example uses a default secret for demonstration. In production, generate a secure secret and hash it using Authelia's tools. Never use the example secret in production environments.
 
 ## 🧪 Testing and Validation
 

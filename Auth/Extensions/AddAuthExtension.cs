@@ -71,6 +71,25 @@ namespace MailArchiver.Auth.Extensions
                         }
                     }
                     
+                    o.Events.OnRemoteSignOut = context =>
+                    {
+                        // Handle remote sign-out requests from the OIDC provider
+                        var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<Program>>();
+                        logger.LogInformation("Received remote sign-out request from OIDC provider");
+                        return Task.CompletedTask;
+                    };
+
+                    o.Events.OnRedirectToIdentityProviderForSignOut = context =>
+                    {
+                        // Customize the redirect to identity provider for sign-out
+                        var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<Program>>();
+                        logger.LogInformation("Redirecting to identity provider for sign-out");
+                        
+                        // Add post-logout redirect URI to return user to login page after OIDC logout
+                        context.ProtocolMessage.PostLogoutRedirectUri = context.Request.Scheme + "://" + context.Request.Host + "/Auth/Login";
+                        return Task.CompletedTask;
+                    };
+
                     o.Events.OnUserInformationReceived = async (UserInformationReceivedContext ctx) => {
                         var handler = ctx.Request.HttpContext.RequestServices.GetRequiredService<AuthenticationHandler>();
                         var logger = ctx.Request.HttpContext.RequestServices.GetRequiredService<ILogger<AuthenticationHandler>>();

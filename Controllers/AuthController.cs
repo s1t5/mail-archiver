@@ -152,21 +152,6 @@ namespace MailArchiver.Controllers
                 user = await _userService.GetUserByUsernameAsync(username);
             }
 
-            // SECURITY: Sign out from OIDC provider if user authenticated via OIDC
-            if (_oAuthOptions.Value.Enabled && user?.OAuthRemoteUserId != null)
-            {
-                _logger.LogInformation("User {Username} authenticated via OIDC, signing out from both local and remote provider", username);
-                
-                // Sign out from both OIDC and local cookie authentication
-                await HttpContext.SignOutAsync(OpenIdConnectDefaults.AuthenticationScheme);
-                await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-            }
-            else
-            {
-                // Regular sign out for non-OIDC users
-                _authService.SignOut(HttpContext);
-            }
-            
             // Log the logout if we have a username using a separate task to avoid DbContext concurrency issues
             if (!string.IsNullOrEmpty(username))
             {
@@ -185,8 +170,25 @@ namespace MailArchiver.Controllers
                     }
                 });
             }
-            
-            return RedirectToAction("Login");
+
+            // SECURITY: Sign out from OIDC provider if user authenticated via OIDC
+            if (_oAuthOptions.Value.Enabled && user?.OAuthRemoteUserId != null)
+            {
+                _logger.LogInformation("User {Username} authenticated via OIDC, signing out from both local and remote provider", username);
+                
+                // Sign out from both OIDC and local cookie authentication
+                // This will trigger the OnRedirectToIdentityProviderForSignOut event and redirect to OIDC provider logout
+                await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+                await HttpContext.SignOutAsync(OpenIdConnectDefaults.AuthenticationScheme);
+                // The OIDC sign-out will handle the redirect, so we don't return anything here
+                return new EmptyResult();
+            }
+            else
+            {
+                // Regular sign out for non-OIDC users
+                _authService.SignOut(HttpContext);
+                return RedirectToAction("Login");
+            }
         }
         
         [HttpGet]
