@@ -179,16 +179,15 @@ namespace MailArchiver.Controllers
                 // Sign out from both OIDC and local cookie authentication
                 // This will trigger the OnRedirectToIdentityProviderForSignOut event and redirect to OIDC provider logout
                 await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-                await HttpContext.SignOutAsync(OpenIdConnectDefaults.AuthenticationScheme);
-                // The OIDC sign-out will handle the redirect, so we don't return anything here
-                return new EmptyResult();
+                await HttpContext.SignOutAsync(OAuthOptions.SignInScheme);
             }
             else
             {
                 // Regular sign out for non-OIDC users
                 _authService.SignOut(HttpContext);
-                return RedirectToAction("Login");
             }
+
+            return RedirectToAction("Login");
         }
         
         [HttpGet]
