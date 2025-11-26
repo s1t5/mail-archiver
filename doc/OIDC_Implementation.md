@@ -145,8 +145,6 @@ This section provides configuration details for setting up Authelia as an OIDC i
 
 ### 🛠️ Authelia Configuration
 
-To configure Mail Archiver as an OIDC client in Authelia, add the following client configuration to your Authelia `configuration.yml` file under the `identity_providers.oidc.clients` section:
-
 ```yaml
 identity_providers:
   oidc:
