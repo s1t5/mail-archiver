@@ -176,12 +176,41 @@ namespace MailArchiver.Controllers
             {
                 _logger.LogInformation("User {Username} authenticated via OIDC, signing out from both local and remote provider", username);
                 
-                // Sign out from both OIDC and local cookie authentication
-                // This will trigger the OnRedirectToIdentityProviderForSignOut event and redirect to OIDC provider logout
-                await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-                await HttpContext.SignOutAsync(OpenIdConnectDefaults.AuthenticationScheme);
-                // The OIDC sign-out will handle the redirect, so we don't return anything here
-                return new EmptyResult();
+                try
+                {
+                    // Sign out from both OIDC and local cookie authentication
+                    // This will trigger the OnRedirectToIdentityProviderForSignOut event and redirect to OIDC provider logout
+                    await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+                    await HttpContext.SignOutAsync(OpenIdConnectDefaults.AuthenticationScheme);
+                    // The OIDC sign-out will handle the redirect, so we don't return anything here
+                    return new EmptyResult();
+                }
+                catch (InvalidOperationException ex)
+                {
+                    // Handle other OIDC providers that may not support standard sign-out
+                    _logger.LogWarning(ex, "Standard OIDC sign-out failed for user {Username}, fallback", username);
+                                        
+                    await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+                    await HttpContext.SignOutAsync(OAuthOptions.SignInScheme);
+                    
+                    return RedirectToAction("Login");
+                }
+                catch (Exception ex)
+                {
+                    // Handle any other exceptions during sign-out
+                    _logger.LogError(ex, "Unexpected error during OIDC sign-out for user {Username}", username);
+                    
+                    try
+                    {
+                        await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+                    }
+                    catch (Exception signOutEx)
+                    {
+                        _logger.LogError(signOutEx, "Failed to sign out user {Username} locally", username);
+                    }
+                    
+                    return RedirectToAction("Login");
+                }
             }
             else
             {
