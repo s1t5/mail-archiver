@@ -33,6 +33,7 @@ The Mail Archiver application supports OpenID Connect (OIDC) authentication, all
 - Mail Archiver application already deployed and accessible via HTTPS
 - DNS name configured for your Mail Archiver instance (required for callback URLs)
 - Administrative access to the Mail Archiver application and host system for configuration
+- If using a reverse proxy, proper [reverse proxy configuration](ReverseProxy.md) for HTTPS header handling
 
 ## ⚙️ OIDC Configuration
 

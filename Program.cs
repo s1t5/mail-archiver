@@ -5,6 +5,7 @@ using MailArchiver.Data;
 using MailArchiver.Models;
 using MailArchiver.Services;
 using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using System.Threading.RateLimiting;
@@ -51,6 +52,16 @@ async static Task EnsureMigrationsHistoryTableExists(MailArchiverDbContext conte
 }
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Configure Forwarded Headers for reverse proxy support
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedFor | 
+                              Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedHost | 
+                              Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedProto;
+    options.KnownNetworks.Clear();
+    options.KnownProxies.Clear();
+});
 
 // Check if authentication is explicitly disabled in appsettings.json
 var authEnabled = builder.Configuration.GetSection("Authentication:Enabled").Value;
@@ -389,6 +400,9 @@ else
     app.UseExceptionHandler("/Home/Error");
     app.UseHsts();
 }
+
+// Use Forwarded Headers middleware for reverse proxy support
+app.UseForwardedHeaders();
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();

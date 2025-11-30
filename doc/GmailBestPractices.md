@@ -47,6 +47,10 @@ To configure this setting:
 1. Go to Gmail Settings → See all settings → Forwarding and POP/IMAP tab
 2. In the "IMAP Access" section, select "Auto-Expunge off - Wait for the client to update the server." and "Move the message to the Bin"
 
+## ⚠️ Gmail IMAP Rate Limiting
+
+Gmail imposes a daily rate limit of 2500MB for IMAP retrieval. When archiving large volumes of emails, be aware that you may hit this limit, which could temporarily pause email retrieval until the next day. Plan your archiving schedule accordingly to work within these limitations.
+
 ## ✅ Best Practices Summary
 
 Following these best practices will help ensure smooth operation of the Mail Archiver with your Gmail accounts while maintaining data integrity and optimal performance.

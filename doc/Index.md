@@ -2,7 +2,6 @@
 
 **Welcome to the Mail Archiver documentation** - Your central hub for all documentation related to the Mail Archiver application.
 
-
 ## 📋 Overview
 
 Mail Archiver is a comprehensive application designed to archive emails from various providers. This documentation section provides guides and instructions for configuring and using the application.
@@ -17,14 +16,15 @@ Mail Archiver is a comprehensive application designed to archive emails from var
 
 ### ⚙️ Configuration & Usage
 - [Access Logging](Logs.md)
-- [OpenID Connect (OIDC) Authentication](OIDC_Implementation.md)
 - [Docker Compose Logs Guide](DockerComposeLogs.md)
-- [Retention Policies](RetentionPolicies.md)
-- [Mailbox Migration](MailboxMigration.md)
 - [Mail Search Guide](Search.md)
-- [Using Development Versions (Dev Tag)](DevTag.md)
+- [OpenID Connect (OIDC) Authentication](OIDC_Implementation.md)
+- [Retention Policies](RetentionPolicies.md)
+- [Reverse Proxy Configuration](ReverseProxy.md)
 - [User Management and Mailbox Permissions](UserManagement.md)
+- [Using Development Versions (Dev Tag)](DevTag.md)
 
 ### ☁️ Provider Specific Guides
 - [Azure App Registration and Retention Policy for M365](AZURE_APP_REGISTRATION_M365.md)
 - [Gmail Best Practices](GmailBestPractices.md)
+- [Mailbox Migration](MailboxMigration.md)
