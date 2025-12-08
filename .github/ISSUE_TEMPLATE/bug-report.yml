@@ -37,6 +37,7 @@ body:
       label: Application Version
       description: Which version are you using?
       options:
+        - "2512.1"
         - "2511.3"
         - "2511.2"
         - "2511.1"
