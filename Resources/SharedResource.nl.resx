@@ -2329,4 +2329,25 @@
   <data name="SignInWithOAuth" xml:space="preserve">
     <value>Inloggen met OAuth</value>
   </data>
+  <data name="CurrentSyncTime" xml:space="preserve">
+    <value>Huidige synchronisatietijd</value>
+  </data>
+  <data name="EditSyncTime" xml:space="preserve">
+    <value>Bewerk synchronisatietijd</value>
+  </data>
+  <data name="EditSyncTimeForAccount" xml:space="preserve">
+    <value>Bewerk synchronisatietijd voor account: {0}</value>
+  </data>
+  <data name="EditSyncTimeNote" xml:space="preserve">
+    <value>Opmerking: Dit stelt de synchronisatietijd in op de opgegeven datum en tijd. Het systeem zal alleen e-mails synchroniseren die nieuwer zijn dan deze tijdstempel. Gebruik deze functie wanneer je de synchronisatiepunt handmatig moet aanpassen, bijvoorbeeld na gedeeltelijke synchronisatiefouten.</value>
+  </data>
+  <data name="EditSyncTimeTitle" xml:space="preserve">
+    <value>Bewerk synchronisatietijd</value>
+  </data>
+  <data name="NewSyncTime" xml:space="preserve">
+    <value>Nieuwe synchronisatietijd</value>
+  </data>
+  <data name="SyncTimeUpdatedSuccess" xml:space="preserve">
+    <value>De synchronisatietijd is succesvol bijgewerkt. Het systeem zal nu e-mails synchroniseren op basis van de nieuwe tijdstempel.</value>
+  </data>
 </root>

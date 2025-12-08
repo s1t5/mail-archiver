@@ -2329,4 +2329,25 @@
   <data name="SignInWithOAuth" xml:space="preserve">
     <value>Accedi con OAuth</value>
   </data>
+  <data name="CurrentSyncTime" xml:space="preserve">
+    <value>Ora di sincronizzazione corrente</value>
+  </data>
+  <data name="EditSyncTime" xml:space="preserve">
+    <value>Modifica ora di sincronizzazione</value>
+  </data>
+  <data name="EditSyncTimeForAccount" xml:space="preserve">
+    <value>Modifica ora di sincronizzazione per l'account: {0}</value>
+  </data>
+  <data name="EditSyncTimeNote" xml:space="preserve">
+    <value>Nota: Questo imposta l'ora di sincronizzazione alla data e all'ora specificate. Il sistema sincronizzerà solo le email più recenti di questo timestamp. Utilizza questa funzione quando devi regolare manualmente il punto di sincronizzazione, ad esempio dopo fallimenti di sincronizzazione parziale.</value>
+  </data>
+  <data name="EditSyncTimeTitle" xml:space="preserve">
+    <value>Modifica ora di sincronizzazione</value>
+  </data>
+  <data name="NewSyncTime" xml:space="preserve">
+    <value>Nuova ora di sincronizzazione</value>
+  </data>
+  <data name="SyncTimeUpdatedSuccess" xml:space="preserve">
+    <value>L'ora di sincronizzazione è stata aggiornata con successo. Il sistema sincronizzerà ora le email in base al nuovo timestamp.</value>
+  </data>
 </root>

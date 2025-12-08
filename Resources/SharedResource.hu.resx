@@ -2321,4 +2321,25 @@
   <data name="SignInWithOAuth" xml:space="preserve">
     <value>Bejelentkezés OAuth segítségével</value>
   </data>
+  <data name="CurrentSyncTime" xml:space="preserve">
+    <value>Jelenlegi szinkronidő</value>
+  </data>
+  <data name="EditSyncTime" xml:space="preserve">
+    <value>Szinkronidő szerkesztése</value>
+  </data>
+  <data name="EditSyncTimeForAccount" xml:space="preserve">
+    <value>Szinkronidő szerkesztése a fiókhoz: {0}</value>
+  </data>
+  <data name="EditSyncTimeNote" xml:space="preserve">
+    <value>Megjegyzés: Ez beállítja a szinkronidőt a megadott dátumra és időpontra. A rendszer csak az ezen időbélyegnél újabb e-maileket szinkronizál. Használja ezt a funkciót, ha manuálisan kell állítani a szinkronizációs pontot, például részleges szinkronizációs hibák után.</value>
+  </data>
+  <data name="EditSyncTimeTitle" xml:space="preserve">
+    <value>Szinkronidő szerkesztése</value>
+  </data>
+  <data name="NewSyncTime" xml:space="preserve">
+    <value>Új szinkronidő</value>
+  </data>
+  <data name="SyncTimeUpdatedSuccess" xml:space="preserve">
+    <value>A szinkronidő sikeresen frissült. A rendszer most az új időbélyeg alapján szinkronizálja az e-maileket.</value>
+  </data>
 </root>

@@ -1067,6 +1067,68 @@ var model = new MailAccountViewModel
             return RedirectToAction(nameof(Details), new { id });
         }
 
+        // GET: MailAccounts/EditSyncTime/5
+        public async Task<IActionResult> EditSyncTime(int id)
+        {
+            // Use proper authentication service
+            if (!await HasAccessToAccountAsync(id))
+            {
+                return NotFound();
+            }
+
+            var account = await _context.MailAccounts.FindAsync(id);
+            if (account == null)
+            {
+                return NotFound();
+            }
+
+            var model = new EditSyncTimeViewModel
+            {
+                Id = account.Id,
+                AccountName = account.Name,
+                CurrentSyncTime = account.LastSync,
+                NewSyncTime = account.LastSync
+            };
+
+            return View(model);
+        }
+
+        // POST: MailAccounts/EditSyncTime/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditSyncTime(int id, EditSyncTimeViewModel model)
+        {
+            // Use proper authentication service
+            if (!await HasAccessToAccountAsync(id))
+            {
+                return NotFound();
+            }
+
+            if (!ModelState.IsValid)
+            {
+                // Reload account name for display
+                var account = await _context.MailAccounts.FindAsync(id);
+                if (account != null)
+                {
+                    model.AccountName = account.Name;
+                }
+                return View(model);
+            }
+
+            var accountToUpdate = await _context.MailAccounts.FindAsync(id);
+            if (accountToUpdate == null)
+            {
+                return NotFound();
+            }
+
+            // Set LastSync to the specified time (treat as local time and convert to UTC)
+            accountToUpdate.LastSync = model.NewSyncTime.ToUniversalTime();
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = _localizer["SyncTimeUpdatedSuccess"].Value;
+            return RedirectToAction(nameof(Details), new { id });
+        }
+
         // GET: MailAccounts/ImportEml
         public async Task<IActionResult> ImportEml()
         {
@@ -1491,12 +1553,27 @@ var model = new MailAccountViewModel
 
             try
             {
-                var folders = await _emailService.GetMailFoldersAsync(accountId);
-                if (!folders.Any())
+                var account = await _context.MailAccounts.FindAsync(accountId);
+                if (account?.Provider == ProviderType.M365)
                 {
-                    return Json(new List<string> { "INBOX" });
+                    // Für M365-Konten den GraphEmailService verwenden
+                    var folders = await _graphEmailService.GetMailFoldersAsync(account);
+                    if (!folders.Any())
+                    {
+                        return Json(new List<string> { "INBOX" });
+                    }
+                    return Json(folders);
                 }
-                return Json(folders);
+                else
+                {
+                    // Für IMAP-Konten den bestehenden EmailService verwenden
+                    var folders = await _emailService.GetMailFoldersAsync(accountId);
+                    if (!folders.Any())
+                    {
+                        return Json(new List<string> { "INBOX" });
+                    }
+                    return Json(folders);
+                }
             }
             catch (Exception ex)
             {

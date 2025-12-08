@@ -74,14 +74,19 @@
                         <span class="text-muted">@Localizer["NotYetSynchronized"]</span>
                     }
                     <div class="mt-2">
-                        <form asp-action="ResetSyncTime" asp-route-id="@Model.Id" method="post"
-                            style="display: inline;">
-                            @Html.AntiForgeryToken()
-                            <button type="submit" class="btn btn-sm btn-outline-info"
-                                onclick="return confirm('@Localizer["ResetSyncTimeConfirm"]');">
-                                <i class="bi bi-arrow-clockwise"></i> @Localizer["ResetSyncTime"]
-                            </button>
-                        </form>
+                        <div class="d-flex flex-wrap gap-2">
+                            <form asp-action="ResetSyncTime" asp-route-id="@Model.Id" method="post"
+                                style="display: inline;">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-sm btn-outline-info"
+                                    onclick="return confirm('@Localizer["ResetSyncTimeConfirm"]');">
+                                    <i class="bi bi-arrow-clockwise"></i> @Localizer["ResetSyncTime"]
+                                </button>
+                            </form>
+                            <a asp-action="EditSyncTime" asp-route-id="@Model.Id" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-pencil"></i> @Localizer["EditSyncTime"]
+                            </a>
+                        </div>
                         <div class="small text-muted mt-1">
                             @Localizer["ResetSyncTimeNote"]
                         </div>

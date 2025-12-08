@@ -2329,4 +2329,25 @@
   <data name="SignInWithOAuth" xml:space="preserve">
     <value>Prijava z OAuth</value>
   </data>
+  <data name="CurrentSyncTime" xml:space="preserve">
+    <value>Trenutni čas sinhronizacije</value>
+  </data>
+  <data name="EditSyncTime" xml:space="preserve">
+    <value>Uredi čas sinhronizacije</value>
+  </data>
+  <data name="EditSyncTimeForAccount" xml:space="preserve">
+    <value>Uredi čas sinhronizacije za račun: {0}</value>
+  </data>
+  <data name="EditSyncTimeNote" xml:space="preserve">
+    <value>Opomba: To nastavi čas sinhronizacije na določeno datum in uro. Sistem bo sinhroniziral le e-pošte, ki so novejše od tega časovnega žiga. Uporabite to funkcijo, ko morate ročno prilagoditi točko sinhronizacije, na primer po delnih zgreškah sinhronizacije.</value>
+  </data>
+  <data name="EditSyncTimeTitle" xml:space="preserve">
+    <value>Uredi čas sinhronizacije</value>
+  </data>
+  <data name="NewSyncTime" xml:space="preserve">
+    <value>Nov čas sinhronizacije</value>
+  </data>
+  <data name="SyncTimeUpdatedSuccess" xml:space="preserve">
+    <value>Čas sinhronizacije je bil uspešno posodobljen. Sistem bo zdaj sinhroniziral e-pošte na podlagi novega časovnega žiga.</value>
+  </data>
 </root>

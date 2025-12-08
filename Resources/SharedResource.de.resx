@@ -1352,6 +1352,27 @@
   <data name="SyncTimeResetSuccess" xml:space="preserve">
     <value>Synchronisationszeit wurde auf die aktuelle Zeit zurückgesetzt. Dies verhindert, dass wiederholte Synchronisationsfehler unvollständige Synchronisationen verursachen, da das System im Normalfall nur E-Mails synchronisiert, die neuer als dieser Zeitstempel sind.</value>
   </data>
+  <data name="EditSyncTime" xml:space="preserve">
+    <value>Sync-Zeit bearbeiten</value>
+  </data>
+  <data name="EditSyncTimeTitle" xml:space="preserve">
+    <value>Synchronisationszeit bearbeiten</value>
+  </data>
+  <data name="EditSyncTimeForAccount" xml:space="preserve">
+    <value>Synchronisationszeit für Konto bearbeiten: {0}</value>
+  </data>
+  <data name="CurrentSyncTime" xml:space="preserve">
+    <value>Aktuelle Synchronisationszeit</value>
+  </data>
+  <data name="NewSyncTime" xml:space="preserve">
+    <value>Neue Synchronisationszeit</value>
+  </data>
+  <data name="SyncTimeUpdatedSuccess" xml:space="preserve">
+    <value>Synchronisationszeit wurde erfolgreich aktualisiert. Das System wird nun E-Mails basierend auf dem neuen Zeitstempel synchronisieren.</value>
+  </data>
+  <data name="EditSyncTimeNote" xml:space="preserve">
+    <value>Hinweis: Dadurch wird die Synchronisationszeit auf das angegebene Datum und die Uhrzeit festgelegt. Das System synchronisiert nur E-Mails, die neuer als dieser Zeitstempel sind. Verwenden Sie diese Funktion, wenn Sie den Synchronisationspunkt manuell anpassen müssen, z. B. nach teilweisen Synchronisationsfehlern.</value>
+  </data>
   <data name="InvalidUserPassword" xml:space="preserve">
     <value>Ungültiger Benutzername oder ungültiges Passwort.</value>
   </data>

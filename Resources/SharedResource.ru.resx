@@ -2329,4 +2329,25 @@
   <data name="SignInWithOAuth" xml:space="preserve">
     <value>Войти с OAuth</value>
   </data>
+  <data name="CurrentSyncTime" xml:space="preserve">
+    <value>Текущее время синхронизации</value>
+  </data>
+  <data name="EditSyncTime" xml:space="preserve">
+    <value>Редактировать время синхронизации</value>
+  </data>
+  <data name="EditSyncTimeForAccount" xml:space="preserve">
+    <value>Редактировать время синхронизации для аккаунта: {0}</value>
+  </data>
+  <data name="EditSyncTimeNote" xml:space="preserve">
+    <value>Примечание: Это устанавливает время синхронизации на указанную дату и время. Система будет синхронизировать только электронные письма, более новые, чем этот временной штамп. Используйте эту функцию, когда нужно вручную настроить точку синхронизации, например, после частичных сбоев синхронизации.</value>
+  </data>
+  <data name="EditSyncTimeTitle" xml:space="preserve">
+    <value>Редактировать время синхронизации</value>
+  </data>
+  <data name="NewSyncTime" xml:space="preserve">
+    <value>Новое время синхронизации</value>
+  </data>
+  <data name="SyncTimeUpdatedSuccess" xml:space="preserve">
+    <value>Время синхронизации успешно обновлено. Система теперь будет синхронизировать электронные письма на основе нового временного штампа.</value>
+  </data>
 </root>

@@ -2328,4 +2328,25 @@
   <data name="SignInWithOAuth" xml:space="preserve">
     <value>Iniciar sesión con OAuth</value>
   </data>
+  <data name="CurrentSyncTime" xml:space="preserve">
+    <value>Hora de sincronización actual</value>
+  </data>
+  <data name="EditSyncTime" xml:space="preserve">
+    <value>Editar hora de sincronización</value>
+  </data>
+  <data name="EditSyncTimeForAccount" xml:space="preserve">
+    <value>Editar hora de sincronización para la cuenta: {0}</value>
+  </data>
+  <data name="EditSyncTimeNote" xml:space="preserve">
+    <value>Nota: Esto establece la hora de sincronización en la fecha y hora especificadas. El sistema solo sincronizará correos electrónicos más nuevos que esta marca de tiempo. Use esta característica cuando necesite ajustar manualmente el punto de sincronización, por ejemplo, después de fallos de sincronización parcial.</value>
+  </data>
+  <data name="EditSyncTimeTitle" xml:space="preserve">
+    <value>Editar hora de sincronización</value>
+  </data>
+  <data name="NewSyncTime" xml:space="preserve">
+    <value>Nueva hora de sincronización</value>
+  </data>
+  <data name="SyncTimeUpdatedSuccess" xml:space="preserve">
+    <value>La hora de sincronización se ha actualizado correctamente. El sistema ahora sincronizará correos electrónicos en función de la nueva marca de tiempo.</value>
+  </data>
 </root>

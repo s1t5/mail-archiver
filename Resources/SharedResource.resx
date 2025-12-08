@@ -1349,6 +1349,27 @@
   <data name="SyncTimeResetSuccess" xml:space="preserve">
     <value>Sync time has been reset to current time. This will prevent repeated sync errors from causing incomplete syncs, as the system will only sync emails newer than this timestamp.</value>
   </data>
+  <data name="EditSyncTime" xml:space="preserve">
+    <value>Edit Sync Time</value>
+  </data>
+  <data name="EditSyncTimeTitle" xml:space="preserve">
+    <value>Edit Synchronization Time</value>
+  </data>
+  <data name="EditSyncTimeForAccount" xml:space="preserve">
+    <value>Edit Synchronization Time for Account: {0}</value>
+  </data>
+  <data name="CurrentSyncTime" xml:space="preserve">
+    <value>Current Synchronization Time</value>
+  </data>
+  <data name="NewSyncTime" xml:space="preserve">
+    <value>New Synchronization Time</value>
+  </data>
+  <data name="SyncTimeUpdatedSuccess" xml:space="preserve">
+    <value>Sync time has been successfully updated. The system will now sync emails based on the new timestamp.</value>
+  </data>
+  <data name="EditSyncTimeNote" xml:space="preserve">
+    <value>Note: This sets the sync time to the specified date and time. The system will only sync emails newer than this timestamp. Use this feature when you need to manually adjust the synchronization point, for example after partial sync failures.</value>
+  </data>
   <data name="InvalidUserPassword" xml:space="preserve">
     <value>Invalid username or password.</value>
   </data>
