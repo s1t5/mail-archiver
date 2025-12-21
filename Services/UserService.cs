@@ -1,7 +1,9 @@
+using MailArchiver.Auth.Options;
 using MailArchiver.Data;
 using MailArchiver.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
+using Microsoft.Extensions.Options;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
@@ -13,15 +15,18 @@ namespace MailArchiver.Services
         private readonly MailArchiverDbContext _context;
         private readonly ILogger<UserService> _logger;
         private readonly IStringLocalizer<SharedResource> _localizer;
+        private readonly IOptions<OAuthOptions> _oAuthOptions;
 
         public UserService(
             MailArchiverDbContext context, 
             ILogger<UserService> logger,
-            IStringLocalizer<SharedResource> localizer)
+            IStringLocalizer<SharedResource> localizer,
+            IOptions<OAuthOptions> oAuthOptions)
         {
             _context = context;
             _logger = logger;
             _localizer = localizer;
+            _oAuthOptions = oAuthOptions;
         }
 
         public async Task<User?> GetUserByIdAsync(int id)
@@ -89,18 +94,34 @@ namespace MailArchiver.Services
                 throw new InvalidOperationException(_localizer["OidcAccountAlreadyExists"]);
             }
 
-            // Create a new user that requires admin approval
-            _logger.LogInformation("Creating new OIDC user: Email={Email}, DisplayName={DisplayName}, RemoteId={RemoteId}", 
-                email, displayName, userId);
+            // Check if user email is in the admin emails list
+            bool isAdminEmail = false;
+            bool autoApprove = false;
+            
+            if (_oAuthOptions.Value.AdminEmails != null && _oAuthOptions.Value.AdminEmails.Length > 0)
+            {
+                isAdminEmail = _oAuthOptions.Value.AdminEmails.Any(adminEmail => 
+                    string.Equals(adminEmail, email, StringComparison.OrdinalIgnoreCase));
+                
+                if (isAdminEmail)
+                {
+                    autoApprove = true;
+                    _logger.LogInformation("Email {Email} found in AdminEmails configuration - user will be provisioned as admin", email);
+                }
+            }
+            
+            // Create a new user
+            _logger.LogInformation("Creating new OIDC user: Email={Email}, DisplayName={DisplayName}, RemoteId={RemoteId}, IsAdmin={IsAdmin}", 
+                email, displayName, userId, isAdminEmail);
             
             user = new User()
             {
                 Username = $"{displayName}_{userId.Substring(0, 8)}", // Add unique suffix to prevent username collisions
                 Email = email,
                 PasswordHash = null, // OIDC users don't have passwords
-                IsAdmin = false,
-                IsActive = false, // Inactive until approved
-                RequiresApproval = true, // Requires admin approval
+                IsAdmin = isAdminEmail,
+                IsActive = autoApprove, // Auto-approve admins
+                RequiresApproval = !autoApprove, // Admin emails don't require approval
                 OAuthRemoteUserId = userId,
                 CreatedAt = DateTime.UtcNow
             };
@@ -108,8 +129,16 @@ namespace MailArchiver.Services
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
             
-            _logger.LogWarning("New OIDC user created and requires approval: {Username} (ID: {UserId}, Email: {Email})", 
-                user.Username, user.Id, user.Email);
+            if (autoApprove)
+            {
+                _logger.LogInformation("New OIDC admin user created and auto-approved: {Username} (ID: {UserId}, Email: {Email})", 
+                    user.Username, user.Id, user.Email);
+            }
+            else
+            {
+                _logger.LogWarning("New OIDC user created and requires approval: {Username} (ID: {UserId}, Email: {Email})", 
+                    user.Username, user.Id, user.Email);
+            }
             
             return user;
         }

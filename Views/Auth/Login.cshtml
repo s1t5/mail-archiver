@@ -3,6 +3,7 @@
 @{
     ViewData["Title"] = Localizer["LoginTitle"];
     Layout = "_LoginLayout";
+    var disablePasswordLogin = ViewBag.DisablePasswordLogin ?? false;
 }
 
 <div class="login-container">
@@ -22,39 +23,43 @@
                 </div>
             }
             
-            <form asp-action="Login" method="post">
-                <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
-                <input type="hidden" name="ReturnUrl" value="@ViewData["ReturnUrl"]" />
-                <div class="mb-3">
-                    <label asp-for="Username" class="form-label">@Localizer["UsernameLabel"]</label>
-                    <div class="input-group">
-                        <span class="input-group-text">
-                            <i class="bi bi-person"></i>
-                        </span>
-                        <input asp-for="Username" class="form-control" placeholder="@Localizer["UsernamePlaceholder"]" autofocus />
+            @if (!disablePasswordLogin)
+            {
+                <form asp-action="Login" method="post">
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+                    <input type="hidden" name="ReturnUrl" value="@ViewData["ReturnUrl"]" />
+                    <div class="mb-3">
+                        <label asp-for="Username" class="form-label">@Localizer["UsernameLabel"]</label>
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="bi bi-person"></i>
+                            </span>
+                            <input asp-for="Username" class="form-control" placeholder="@Localizer["UsernamePlaceholder"]" autofocus />
+                        </div>
+                        <span asp-validation-for="Username" class="text-danger"></span>
                     </div>
-                    <span asp-validation-for="Username" class="text-danger"></span>
-                </div>
-                <div class="mb-3">
-                    <label asp-for="Password" class="form-label">@Localizer["PasswordLabel"]</label>
-                    <div class="input-group">
-                        <span class="input-group-text">
-                            <i class="bi bi-lock"></i>
-                        </span>
-                        <input asp-for="Password" class="form-control" placeholder="@Localizer["PasswordPlaceholder"]" />
+                    <div class="mb-3">
+                        <label asp-for="Password" class="form-label">@Localizer["PasswordLabel"]</label>
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="bi bi-lock"></i>
+                            </span>
+                            <input asp-for="Password" class="form-control" placeholder="@Localizer["PasswordPlaceholder"]" />
+                        </div>
+                        <span asp-validation-for="Password" class="text-danger"></span>
                     </div>
-                    <span asp-validation-for="Password" class="text-danger"></span>
-                </div>
-                <div class="mb-3 form-check">
-                    <input asp-for="RememberMe" class="form-check-input" />
-                    <label asp-for="RememberMe" class="form-check-label">@Localizer["RememberMe"]</label>
-                </div>
-                <div class="mb-3 d-grid">
-                    <button type="submit" class="btn btn-primary btn-lg">
-                        <i class="bi bi-box-arrow-in-right me-2"></i>@Localizer["SignIn"]
-                    </button>
-                </div>                
-            </form>
+                    <div class="mb-3 form-check">
+                        <input asp-for="RememberMe" class="form-check-input" />
+                        <label asp-for="RememberMe" class="form-check-label">@Localizer["RememberMe"]</label>
+                    </div>
+                    <div class="mb-3 d-grid">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="bi bi-box-arrow-in-right me-2"></i>@Localizer["SignIn"]
+                        </button>
+                    </div>                
+                </form>
+            }
+            
             @if (ViewBag.OAuthEnabled)
             {
                 <form asp-action="LoginWithOAuth" method="post">

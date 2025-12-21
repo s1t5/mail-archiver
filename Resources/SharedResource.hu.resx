@@ -2342,4 +2342,82 @@
   <data name="SyncTimeUpdatedSuccess" xml:space="preserve">
     <value>A szinkronidő sikeresen frissült. A rendszer most az új időbélyeg alapján szinkronizálja az e-maileket.</value>
   </data>
+  <data name="AccountDeleted" xml:space="preserve">
+    <value>Az '{0}' fiók sikeresen törölve lett, beleértve az összes archivált e-maileket és mellékleteket.</value>
+  </data>
+  <data name="AccountDeletionQueued" xml:space="preserve">
+    <value>Az '{0}' fiók törlése sorba állítva lett és háttérben fog feldolgozódni.</value>
+  </data>
+  <data name="AccountDeletionStatus" xml:space="preserve">
+    <value>Fióktörlés állapota</value>
+  </data>
+  <data name="AttachmentDeletionProgress" xml:space="preserve">
+    <value>Melléklet törlési előrehaladása</value>
+  </data>
+  <data name="AttachmentProgress" xml:space="preserve">
+    <value>Melléklet előrehaladása</value>
+  </data>
+  <data name="BackToJobs" xml:space="preserve">
+    <value>Vissza a feladatokhoz</value>
+  </data>
+  <data name="CancelDeletion" xml:space="preserve">
+    <value>Törlés megszakítása</value>
+  </data>
+  <data name="CancelDeletionConfirm" xml:space="preserve">
+    <value>Biztosan megszakítja ezt a törlési feladatot? Ha a törlés már elkezdődött, egyes adatok már törölhettek.</value>
+  </data>
+  <data name="ConfirmCancelEmailDeletion" xml:space="preserve">
+    <value>Biztosan megszakítja ezt az e-mail törlési feladatot?</value>
+  </data>
+  <data name="CurrentPhase" xml:space="preserve">
+    <value>Aktuális fázis</value>
+  </data>
+  <data name="DatabaseMaintenance" xml:space="preserve">
+    <value>Adatbázis karbantartás</value>
+  </data>
+  <data name="DeletedAttachments" xml:space="preserve">
+    <value>Törölt mellékletek</value>
+  </data>
+  <data name="DeletedEmails" xml:space="preserve">
+    <value>Törölt e-mailek</value>
+  </data>
+  <data name="DeletionCancelError" xml:space="preserve">
+    <value>Nem sikerült megszakítani a törlési feladatot. A feladat már befejeződhetett vagy nem létezik.</value>
+  </data>
+  <data name="DeletionCancelled" xml:space="preserve">
+    <value>A törlési feladat megszakítva lett.</value>
+  </data>
+  <data name="DeletionCompletedSuccessfully" xml:space="preserve">
+    <value>Törlés sikeresen befejeződött</value>
+  </data>
+  <data name="DeletionJobNotFound" xml:space="preserve">
+    <value>Törlési feladat nem található.</value>
+  </data>
+  <data name="DeletionProgress" xml:space="preserve">
+    <value>Törlési előrehaladás</value>
+  </data>
+  <data name="DeletionStatus" xml:space="preserve">
+    <value>Törlési állapot</value>
+  </data>
+  <data name="EmailDeletionJobs" xml:space="preserve">
+    <value>E-mail törlési feladatok</value>
+  </data>
+  <data name="EmailDeletionProgress" xml:space="preserve">
+    <value>E-mail törlési előrehaladás</value>
+  </data>
+  <data name="EmailDeletionStatus" xml:space="preserve">
+    <value>E-mail törlési állapot</value>
+  </data>
+  <data name="EmailProgress" xml:space="preserve">
+    <value>E-mail előrehaladás</value>
+  </data>
+  <data name="InvalidDeletionJobID" xml:space="preserve">
+    <value>Érvénytelen törlési feladat azonosító.</value>
+  </data>
+  <data name="JobDetails" xml:space="preserve">
+    <value>Feladat részletei</value>
+  </data>
+  <data name="TotalAttachments" xml:space="preserve">
+    <value>Összes melléklet</value>
+  </data>
 </root>

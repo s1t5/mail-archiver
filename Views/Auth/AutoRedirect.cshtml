@@ -1,0 +1,38 @@
+@inject Microsoft.Extensions.Localization.IStringLocalizer<MailArchiver.SharedResource> Localizer
+@model MailArchiver.Models.ViewModels.OAuthLoginViewModel
+@{
+    ViewData["Title"] = Localizer["LoginTitle"];
+    Layout = "_LoginLayout";
+}
+
+<div class="login-container">
+    <div class="card login-card">
+        <div class="card-body">
+            <div class="text-center mb-4">
+                <i class="bi bi-envelope-check display-3 text-primary"></i>
+                <h2 class="mt-3">@Localizer["AppName"]</h2>
+                <p class="text-muted">Redirecting to authentication provider...</p>
+            </div>
+
+            <div class="text-center mb-4">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="mt-3 text-muted">Please wait while we redirect you to the login provider...</p>
+            </div>
+
+            <form id="autoRedirectForm" asp-action="LoginWithOAuth" method="post">
+                <input type="hidden" name="ReturnUrl" value="@Model.ReturnUrl" />
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Auto-submit the form after a brief delay
+        setTimeout(function() {
+            document.getElementById('autoRedirectForm').submit();
+        }, 1000);
+    </script>
+}

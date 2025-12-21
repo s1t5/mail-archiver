@@ -2349,4 +2349,82 @@
   <data name="SyncTimeUpdatedSuccess" xml:space="preserve">
     <value>La hora de sincronización se ha actualizado correctamente. El sistema ahora sincronizará correos electrónicos en función de la nueva marca de tiempo.</value>
   </data>
+  <data name="AccountDeleted" xml:space="preserve">
+    <value>La cuenta '{0}' ha sido eliminada correctamente junto con todos los correos electrónicos archivados y los archivos adjuntos.</value>
+  </data>
+  <data name="AccountDeletionQueued" xml:space="preserve">
+    <value>La eliminación de la cuenta '{0}' se ha puesto en cola y se procesará en segundo plano.</value>
+  </data>
+  <data name="AccountDeletionStatus" xml:space="preserve">
+    <value>Estado de eliminación de cuenta</value>
+  </data>
+  <data name="AttachmentDeletionProgress" xml:space="preserve">
+    <value>Progreso de eliminación de archivos adjuntos</value>
+  </data>
+  <data name="AttachmentProgress" xml:space="preserve">
+    <value>Progreso de archivos adjuntos</value>
+  </data>
+  <data name="BackToJobs" xml:space="preserve">
+    <value>Volver a trabajos</value>
+  </data>
+  <data name="CancelDeletion" xml:space="preserve">
+    <value>Cancelar eliminación</value>
+  </data>
+  <data name="CancelDeletionConfirm" xml:space="preserve">
+    <value>¿Está seguro de que desea cancelar este trabajo de eliminación? Si la eliminación ya ha comenzado, es posible que algunos datos ya hayan sido eliminados.</value>
+  </data>
+  <data name="ConfirmCancelEmailDeletion" xml:space="preserve">
+    <value>¿Está seguro de que desea cancelar este trabajo de eliminación de correos electrónicos?</value>
+  </data>
+  <data name="CurrentPhase" xml:space="preserve">
+    <value>Fase actual</value>
+  </data>
+  <data name="DatabaseMaintenance" xml:space="preserve">
+    <value>Mantenimiento de la base de datos</value>
+  </data>
+  <data name="DeletedAttachments" xml:space="preserve">
+    <value>Archivos adjuntos eliminados</value>
+  </data>
+  <data name="DeletedEmails" xml:space="preserve">
+    <value>Correos electrónicos eliminados</value>
+  </data>
+  <data name="DeletionCancelError" xml:space="preserve">
+    <value>No se pudo cancelar el trabajo de eliminación. El trabajo puede haber finalizado o no existir.</value>
+  </data>
+  <data name="DeletionCancelled" xml:space="preserve">
+    <value>El trabajo de eliminación ha sido cancelado.</value>
+  </data>
+  <data name="DeletionCompletedSuccessfully" xml:space="preserve">
+    <value>Eliminación completada con éxito</value>
+  </data>
+  <data name="DeletionJobNotFound" xml:space="preserve">
+    <value>Trabajo de eliminación no encontrado.</value>
+  </data>
+  <data name="DeletionProgress" xml:space="preserve">
+    <value>Progreso de eliminación</value>
+  </data>
+  <data name="DeletionStatus" xml:space="preserve">
+    <value>Estado de eliminación</value>
+  </data>
+  <data name="EmailDeletionJobs" xml:space="preserve">
+    <value>Trabajos de eliminación de correos electrónicos</value>
+  </data>
+  <data name="EmailDeletionProgress" xml:space="preserve">
+    <value>Progreso de eliminación de correos electrónicos</value>
+  </data>
+  <data name="EmailDeletionStatus" xml:space="preserve">
+    <value>Estado de eliminación de correos electrónicos</value>
+  </data>
+  <data name="EmailProgress" xml:space="preserve">
+    <value>Progreso de correos electrónicos</value>
+  </data>
+  <data name="InvalidDeletionJobID" xml:space="preserve">
+    <value>ID de trabajo de eliminación no válida.</value>
+  </data>
+  <data name="JobDetails" xml:space="preserve">
+    <value>Detalles del trabajo</value>
+  </data>
+  <data name="TotalAttachments" xml:space="preserve">
+    <value>Archivos adjuntos totales</value>
+  </data>
 </root>

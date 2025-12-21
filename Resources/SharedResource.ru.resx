@@ -2350,4 +2350,82 @@
   <data name="SyncTimeUpdatedSuccess" xml:space="preserve">
     <value>Время синхронизации успешно обновлено. Система теперь будет синхронизировать электронные письма на основе нового временного штампа.</value>
   </data>
+  <data name="AccountDeleted" xml:space="preserve">
+    <value>Аккаунт '{0}' был успешно удалён вместе со всеми архивными письмами и вложениями.</value>
+  </data>
+  <data name="AccountDeletionQueued" xml:space="preserve">
+    <value>Удаление аккаунта '{0}' поставлено в очередь и будет обработано в фоновом режиме.</value>
+  </data>
+  <data name="AccountDeletionStatus" xml:space="preserve">
+    <value>Статус удаления аккаунта</value>
+  </data>
+  <data name="AttachmentDeletionProgress" xml:space="preserve">
+    <value>Прогресс удаления вложений</value>
+  </data>
+  <data name="AttachmentProgress" xml:space="preserve">
+    <value>Прогресс вложений</value>
+  </data>
+  <data name="BackToJobs" xml:space="preserve">
+    <value>Назад к задачам</value>
+  </data>
+  <data name="CancelDeletion" xml:space="preserve">
+    <value>Отменить удаление</value>
+  </data>
+  <data name="CancelDeletionConfirm" xml:space="preserve">
+    <value>Вы уверены, что хотите отменить эту задачу удаления? Если удаление уже началось, некоторые данные могут уже быть удалены.</value>
+  </data>
+  <data name="ConfirmCancelEmailDeletion" xml:space="preserve">
+    <value>Вы уверены, что хотите отменить эту задачу удаления писем?</value>
+  </data>
+  <data name="CurrentPhase" xml:space="preserve">
+    <value>Текущая фаза</value>
+  </data>
+  <data name="DatabaseMaintenance" xml:space="preserve">
+    <value>Обслуживание базы данных</value>
+  </data>
+  <data name="DeletedAttachments" xml:space="preserve">
+    <value>Удалённые вложения</value>
+  </data>
+  <data name="DeletedEmails" xml:space="preserve">
+    <value>Удалённые письма</value>
+  </data>
+  <data name="DeletionCancelError" xml:space="preserve">
+    <value>Не удалось отменить задачу удаления. Задача может уже быть завершена или не существует.</value>
+  </data>
+  <data name="DeletionCancelled" xml:space="preserve">
+    <value>Задача удаления была отменена.</value>
+  </data>
+  <data name="DeletionCompletedSuccessfully" xml:space="preserve">
+    <value>Удаление завершено успешно</value>
+  </data>
+  <data name="DeletionJobNotFound" xml:space="preserve">
+    <value>Задача удаления не найдена.</value>
+  </data>
+  <data name="DeletionProgress" xml:space="preserve">
+    <value>Прогресс удаления</value>
+  </data>
+  <data name="DeletionStatus" xml:space="preserve">
+    <value>Статус удаления</value>
+  </data>
+  <data name="EmailDeletionJobs" xml:space="preserve">
+    <value>Задачи удаления писем</value>
+  </data>
+  <data name="EmailDeletionProgress" xml:space="preserve">
+    <value>Прогресс удаления писем</value>
+  </data>
+  <data name="EmailDeletionStatus" xml:space="preserve">
+    <value>Статус удаления писем</value>
+  </data>
+  <data name="EmailProgress" xml:space="preserve">
+    <value>Прогресс писем</value>
+  </data>
+  <data name="InvalidDeletionJobID" xml:space="preserve">
+    <value>Неверный ID задачи удаления.</value>
+  </data>
+  <data name="JobDetails" xml:space="preserve">
+    <value>Детали задачи</value>
+  </data>
+  <data name="TotalAttachments" xml:space="preserve">
+    <value>Всего вложений</value>
+  </data>
 </root>

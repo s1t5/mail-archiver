@@ -2350,4 +2350,82 @@
   <data name="SyncTimeUpdatedSuccess" xml:space="preserve">
     <value>L'ora di sincronizzazione è stata aggiornata con successo. Il sistema sincronizzerà ora le email in base al nuovo timestamp.</value>
   </data>
+  <data name="AccountDeleted" xml:space="preserve">
+    <value>L'account '{0}' è stato eliminato con successo insieme a tutte le email archiviate e gli allegati.</value>
+  </data>
+  <data name="AccountDeletionQueued" xml:space="preserve">
+    <value>L'eliminazione dell'account '{0}' è stata messa in coda e verrà elaborata in background.</value>
+  </data>
+  <data name="AccountDeletionStatus" xml:space="preserve">
+    <value>Stato eliminazione account</value>
+  </data>
+  <data name="AttachmentDeletionProgress" xml:space="preserve">
+    <value>Progresso eliminazione allegati</value>
+  </data>
+  <data name="AttachmentProgress" xml:space="preserve">
+    <value>Progresso allegati</value>
+  </data>
+  <data name="BackToJobs" xml:space="preserve">
+    <value>Torna ai lavori</value>
+  </data>
+  <data name="CancelDeletion" xml:space="preserve">
+    <value>Annulla eliminazione</value>
+  </data>
+  <data name="CancelDeletionConfirm" xml:space="preserve">
+    <value>Sei sicuro di voler annullare questo lavoro di eliminazione? Se l'eliminazione è già iniziata, alcuni dati potrebbero già essere stati rimossi.</value>
+  </data>
+  <data name="ConfirmCancelEmailDeletion" xml:space="preserve">
+    <value>Sei sicuro di voler annullare questo lavoro di eliminazione email?</value>
+  </data>
+  <data name="CurrentPhase" xml:space="preserve">
+    <value>Fase corrente</value>
+  </data>
+  <data name="DatabaseMaintenance" xml:space="preserve">
+    <value>Manutenzione database</value>
+  </data>
+  <data name="DeletedAttachments" xml:space="preserve">
+    <value>Allegati eliminati</value>
+  </data>
+  <data name="DeletedEmails" xml:space="preserve">
+    <value>Email eliminate</value>
+  </data>
+  <data name="DeletionCancelError" xml:space="preserve">
+    <value>Impossibile annullare il lavoro di eliminazione. Il lavoro potrebbe già essere completato o non esistere.</value>
+  </data>
+  <data name="DeletionCancelled" xml:space="preserve">
+    <value>Il lavoro di eliminazione è stato annullato.</value>
+  </data>
+  <data name="DeletionCompletedSuccessfully" xml:space="preserve">
+    <value>Eliminazione completata con successo</value>
+  </data>
+  <data name="DeletionJobNotFound" xml:space="preserve">
+    <value>Lavoro di eliminazione non trovato.</value>
+  </data>
+  <data name="DeletionProgress" xml:space="preserve">
+    <value>Progresso eliminazione</value>
+  </data>
+  <data name="DeletionStatus" xml:space="preserve">
+    <value>Stato eliminazione</value>
+  </data>
+  <data name="EmailDeletionJobs" xml:space="preserve">
+    <value>Lavori di eliminazione email</value>
+  </data>
+  <data name="EmailDeletionProgress" xml:space="preserve">
+    <value>Progresso eliminazione email</value>
+  </data>
+  <data name="EmailDeletionStatus" xml:space="preserve">
+    <value>Stato eliminazione email</value>
+  </data>
+  <data name="EmailProgress" xml:space="preserve">
+    <value>Progresso email</value>
+  </data>
+  <data name="InvalidDeletionJobID" xml:space="preserve">
+    <value>ID lavoro di eliminazione non valido.</value>
+  </data>
+  <data name="JobDetails" xml:space="preserve">
+    <value>Dettagli lavoro</value>
+  </data>
+  <data name="TotalAttachments" xml:space="preserve">
+    <value>Allegati totali</value>
+  </data>
 </root>

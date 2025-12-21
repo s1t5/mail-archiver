@@ -206,9 +206,52 @@ identity_providers:
 ### User Roles and Permissions
 
 OIDC users follow the same role-based access control as local users:
-- **Admin**: Full system access (requires manual assignment by existing admin)
+- **Admin**: Full system access (requires manual assignment by existing admin, or automatic via AdminEmails configuration)
 - **User**: Standard user access to assigned mail accounts
 - **Self-Manager**: Can manage their own account and add new accounts
+
+### Auto-Provisioning Administrators
+
+You can configure specific email addresses to be automatically provisioned as administrators when they first log in via OIDC:
+
+```json
+{
+  "OAuth": {
+    "AdminEmails": [
+      "admin@example.com",
+      "it-manager@example.com"
+    ]
+  }
+}
+```
+
+When a user with one of these email addresses logs in for the first time:
+- They are automatically created as an active administrator
+- No manual approval is required
+- They gain full administrative privileges immediately
+- Email matching is case-insensitive
+
+**Security Note**: Only add trusted email addresses to this list, as these users will have full system access.
+
+### User Provisioning Flow
+
+#### New Users (Not in AdminEmails)
+1. User authenticates via OAuth provider
+2. System checks if email exists in local database
+3. If new user:
+   - Account is created with username format: `{DisplayName}_{UniqueId}`
+   - User is marked as **inactive** and **requires approval**
+   - Admin must manually activate the user in Users management
+4. User receives "Account pending approval" message
+
+#### New Users (In AdminEmails)
+1. User authenticates via OAuth provider
+2. System recognizes email is in AdminEmails list
+3. Account is automatically created:
+   - User is marked as **active** and **admin**
+   - No approval required
+   - User can immediately access the system
+4. User is logged in successfully
 
 ### Password Management
 
@@ -216,6 +259,75 @@ OIDC users cannot have or change passwords within Mail Archiver since authentica
 - The "Change Password" option will be disabled for OIDC users
 - Password reset must be handled through the OIDC provider
 - Local password fields will remain empty for OIDC users
+
+## 🔒 Passwordless Login Configuration
+
+For organizations that want to enforce OAuth-only authentication, the application supports disabling password login entirely.
+
+### Disabling Password Login
+
+Set `DisablePasswordLogin` to `true` to hide username/password fields:
+
+```json
+{
+  "OAuth": {
+    "Enabled": true,
+    "DisablePasswordLogin": true,
+    "Authority": "https://your-provider.com",
+    "ClientId": "your-client-id",
+    "ClientSecret": "your-secret"
+  }
+}
+```
+
+**Result**: Login page displays only the "Login with OAuth" button.
+
+### Auto-Redirect to OAuth Provider
+
+Enable `AutoRedirect` to automatically redirect users to your OAuth provider:
+
+```json
+{
+  "OAuth": {
+    "Enabled": true,
+    "DisablePasswordLogin": true,
+    "AutoRedirect": true,
+    "Authority": "https://your-provider.com",
+    "ClientId": "your-client-id",
+    "ClientSecret": "your-secret"
+  }
+}
+```
+
+**Requirements**: 
+- `DisablePasswordLogin` must be `true`
+- `OAuth.Enabled` must be `true`
+
+**Result**: Users see a brief loading screen and are automatically redirected to the OAuth provider.
+
+### Complete Passwordless Setup Example
+
+```json
+{
+  "OAuth": {
+    "Enabled": true,
+    "Authority": "https://login.microsoftonline.com/YOUR_TENANT_ID/v2.0",
+    "ClientId": "your-client-id",
+    "ClientSecret": "your-secret",
+    "ClientScopes": ["openid", "profile", "email"],
+    "DisablePasswordLogin": true,
+    "AutoRedirect": true,
+    "AdminEmails": ["admin@company.com", "it@company.com"]
+  }
+}
+```
+
+### Security Considerations
+
+- **Admin Email Provisioning**: The OAuth provider is trusted to verify email addresses. Only add trusted addresses to AdminEmails.
+- **Emergency Access**: Consider keeping one password-based admin account for emergency access before fully disabling password login.
+- **Testing**: Thoroughly test OAuth authentication before disabling password login in production.
+- **SSO Environment**: Auto-redirect is best suited for single sign-on environments where all users authenticate via the same provider.
 
 ---
 

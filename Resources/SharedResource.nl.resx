@@ -2350,4 +2350,82 @@
   <data name="SyncTimeUpdatedSuccess" xml:space="preserve">
     <value>De synchronisatietijd is succesvol bijgewerkt. Het systeem zal nu e-mails synchroniseren op basis van de nieuwe tijdstempel.</value>
   </data>
+  <data name="AccountDeleted" xml:space="preserve">
+    <value>Account '{0}' is succesvol verwijderd samen met alle archief-e-mails en bijlagen.</value>
+  </data>
+  <data name="AccountDeletionQueued" xml:space="preserve">
+    <value>Verwijdering van account '{0}' is in de wachtrij geplaatst en wordt in de achtergrond verwerkt.</value>
+  </data>
+  <data name="AccountDeletionStatus" xml:space="preserve">
+    <value>Accountverwijderingsstatus</value>
+  </data>
+  <data name="AttachmentDeletionProgress" xml:space="preserve">
+    <value>Bijlageverwijderingsvoortgang</value>
+  </data>
+  <data name="AttachmentProgress" xml:space="preserve">
+    <value>Bijlagevoortgang</value>
+  </data>
+  <data name="BackToJobs" xml:space="preserve">
+    <value>Terug naar taken</value>
+  </data>
+  <data name="CancelDeletion" xml:space="preserve">
+    <value>Verwijdering annuleren</value>
+  </data>
+  <data name="CancelDeletionConfirm" xml:space="preserve">
+    <value>Weet u zeker dat u deze verwijderingsopdracht wilt annuleren? Als de verwijdering al is gestart, kunnen sommige gegevens al verwijderd zijn.</value>
+  </data>
+  <data name="ConfirmCancelEmailDeletion" xml:space="preserve">
+    <value>Weet u zeker dat u deze e-mailverwijderingsopdracht wilt annuleren?</value>
+  </data>
+  <data name="CurrentPhase" xml:space="preserve">
+    <value>Huidige fase</value>
+  </data>
+  <data name="DatabaseMaintenance" xml:space="preserve">
+    <value>Databaseonderhoud</value>
+  </data>
+  <data name="DeletedAttachments" xml:space="preserve">
+    <value>Verwijderde bijlagen</value>
+  </data>
+  <data name="DeletedEmails" xml:space="preserve">
+    <value>Verwijderde e-mails</value>
+  </data>
+  <data name="DeletionCancelError" xml:space="preserve">
+    <value>Kon de verwijderingsopdracht niet annuleren. De opdracht is mogelijk al voltooid of bestaat niet.</value>
+  </data>
+  <data name="DeletionCancelled" xml:space="preserve">
+    <value>De verwijderingsopdracht is geannuleerd.</value>
+  </data>
+  <data name="DeletionCompletedSuccessfully" xml:space="preserve">
+    <value>Verwijdering succesvol voltooid</value>
+  </data>
+  <data name="DeletionJobNotFound" xml:space="preserve">
+    <value>Verwijderingsopdracht niet gevonden.</value>
+  </data>
+  <data name="DeletionProgress" xml:space="preserve">
+    <value>Verwijderingsvoortgang</value>
+  </data>
+  <data name="DeletionStatus" xml:space="preserve">
+    <value>Verwijderingsstatus</value>
+  </data>
+  <data name="EmailDeletionJobs" xml:space="preserve">
+    <value>E-mailverwijderingsopdrachten</value>
+  </data>
+  <data name="EmailDeletionProgress" xml:space="preserve">
+    <value>E-mailverwijderingsvoortgang</value>
+  </data>
+  <data name="EmailDeletionStatus" xml:space="preserve">
+    <value>E-mailverwijderingsstatus</value>
+  </data>
+  <data name="EmailProgress" xml:space="preserve">
+    <value>E-mailvoortgang</value>
+  </data>
+  <data name="InvalidDeletionJobID" xml:space="preserve">
+    <value>Ongeldige verwijderingsopdracht-ID.</value>
+  </data>
+  <data name="JobDetails" xml:space="preserve">
+    <value>Opdrachtdetails</value>
+  </data>
+  <data name="TotalAttachments" xml:space="preserve">
+    <value>Totaal aantal bijlagen</value>
+  </data>
 </root>

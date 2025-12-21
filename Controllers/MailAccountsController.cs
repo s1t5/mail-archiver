@@ -29,6 +29,7 @@ namespace MailArchiver.Controllers
     private readonly IServiceScopeFactory _serviceScopeFactory;
     private readonly IExportService _exportService;
     private readonly IAccessLogService _accessLogService;
+    private readonly IMailAccountDeletionService _mailAccountDeletionService;
 
     public MailAccountsController(
         MailArchiverDbContext context,
@@ -43,7 +44,8 @@ namespace MailArchiver.Controllers
         IStringLocalizer<SharedResource> localizer,
         IServiceScopeFactory serviceScopeFactory,
         IExportService exportService,
-        IAccessLogService accessLogService)
+        IAccessLogService accessLogService,
+        IMailAccountDeletionService mailAccountDeletionService)
     {
         _context = context;
         _emailService = emailService;
@@ -58,6 +60,7 @@ namespace MailArchiver.Controllers
         _serviceScopeFactory = serviceScopeFactory;
         _exportService = exportService;
         _accessLogService = accessLogService;
+        _mailAccountDeletionService = mailAccountDeletionService;
     }
 
         private async Task<bool> HasAccessToAccountAsync(int accountId)
@@ -554,54 +557,154 @@ var model = new MailAccountViewModel
                 return NotFound();
             }
 
+            var account = await _context.MailAccounts.FindAsync(id);
+            if (account == null)
+            {
+                return NotFound();
+            }
+
             // Determine number of emails to delete
             var emailCount = await _context.ArchivedEmails.CountAsync(e => e.MailAccountId == id);
 
-            var account = await _context.MailAccounts.FindAsync(id);
-            if (account != null)
+            _logger.LogInformation("Account {AccountId} has {Count} emails. Deletion threshold: {Threshold}",
+                id, emailCount, _batchOptions.AsyncThreshold);
+
+            // Get current user info for logging
+            var authService = HttpContext.RequestServices.GetService<MailArchiver.Services.IAuthenticationService>();
+            var currentUsername = authService.GetCurrentUserDisplayName(HttpContext);
+
+            // Check if async deletion is needed (for large accounts)
+            if (emailCount > _batchOptions.AsyncThreshold)
             {
-                // Cancel any running sync jobs for this account before deletion
-                _syncJobService.CancelJobsForAccount(id);
-                _logger.LogInformation("Cancelled any running sync jobs for account {AccountId} ({AccountName}) before deletion", id, account.Name);
+                _logger.LogInformation("Using async deletion for {Count} emails from account {AccountId}", emailCount, id);
 
-                // First delete attachments
-                var emailIds = await _context.ArchivedEmails
-                    .Where(e => e.MailAccountId == id)
-                    .Select(e => e.Id)
-                    .ToListAsync();
+                // Queue async deletion
+                var jobId = _mailAccountDeletionService.QueueDeletion(id, account.Name, currentUsername ?? "System");
 
-                var attachments = await _context.EmailAttachments
-                    .Where(a => emailIds.Contains(a.ArchivedEmailId))
-                    .ToListAsync();
-
-                _context.EmailAttachments.RemoveRange(attachments);
-
-                // Then delete emails
-                var emails = await _context.ArchivedEmails
-                    .Where(e => e.MailAccountId == id)
-                    .ToListAsync();
-
-                _context.ArchivedEmails.RemoveRange(emails);
-
-                // Finally delete the account
-                _context.MailAccounts.Remove(account);
-
-                await _context.SaveChangesAsync();
-
-                // Log the account deletion action
-                var authService = HttpContext.RequestServices.GetService<MailArchiver.Services.IAuthenticationService>();
-                var currentUsername = authService.GetCurrentUserDisplayName(HttpContext);
+                // Log the deletion request
                 if (!string.IsNullOrEmpty(currentUsername))
                 {
                     await _accessLogService.LogAccessAsync(currentUsername, AccessLogType.Account, 
-                        searchParameters: $"Deleted mail account: {account.Name} with {emailCount} emails",
+                        searchParameters: $"Queued async deletion for mail account: {account.Name} with {emailCount} emails",
                         mailAccountId: account.Id);
                 }
 
-                TempData["SuccessMessage"] = _localizer["EmailAccountDeleteSuccess", emailCount].Value;
+                TempData["SuccessMessage"] = _localizer["AccountDeletionQueued", account.Name].Value;
+                return RedirectToAction("DeletionStatus", new { jobId });
             }
 
+            // For smaller accounts, delete synchronously (original logic)
+            _logger.LogInformation("Using sync deletion for {Count} emails from account {AccountId}", emailCount, id);
+
+            // Cancel any running sync jobs for this account before deletion
+            _syncJobService.CancelJobsForAccount(id);
+            _logger.LogInformation("Cancelled any running sync jobs for account {AccountId} ({AccountName}) before deletion", id, account.Name);
+
+            // Unlock all emails for this account (required for compliance mode)
+            var lockedEmails = await _context.ArchivedEmails
+                .Where(e => e.MailAccountId == id && e.IsLocked)
+                .ToListAsync();
+
+            if (lockedEmails.Any())
+            {
+                _logger.LogInformation("Unlocking {Count} locked emails for account {AccountId} ({AccountName}) before deletion", 
+                    lockedEmails.Count, id, account.Name);
+                
+                foreach (var email in lockedEmails)
+                {
+                    email.IsLocked = false;
+                }
+                await _context.SaveChangesAsync();
+            }
+
+            // First delete attachments
+            var emailIds = await _context.ArchivedEmails
+                .Where(e => e.MailAccountId == id)
+                .Select(e => e.Id)
+                .ToListAsync();
+
+            var attachments = await _context.EmailAttachments
+                .Where(a => emailIds.Contains(a.ArchivedEmailId))
+                .ToListAsync();
+
+            _context.EmailAttachments.RemoveRange(attachments);
+
+            // Then delete emails
+            var emails = await _context.ArchivedEmails
+                .Where(e => e.MailAccountId == id)
+                .ToListAsync();
+
+            _context.ArchivedEmails.RemoveRange(emails);
+
+            // Finally delete the account
+            _context.MailAccounts.Remove(account);
+
+            await _context.SaveChangesAsync();
+
+            // Log the account deletion action
+            if (!string.IsNullOrEmpty(currentUsername))
+            {
+                await _accessLogService.LogAccessAsync(currentUsername, AccessLogType.Account, 
+                    searchParameters: $"Deleted mail account: {account.Name} with {emailCount} emails",
+                    mailAccountId: account.Id);
+            }
+
+            TempData["SuccessMessage"] = _localizer["EmailAccountDeleteSuccess", emailCount].Value;
+
             return RedirectToAction(nameof(Index));
+        }
+
+        // GET: MailAccounts/DeletionStatus
+        [HttpGet]
+        public async Task<IActionResult> DeletionStatus(string jobId)
+        {
+            if (string.IsNullOrEmpty(jobId))
+            {
+                TempData["ErrorMessage"] = _localizer["InvalidDeletionJobID"].Value;
+                return RedirectToAction(nameof(Index));
+            }
+
+            var job = _mailAccountDeletionService.GetJob(jobId);
+            if (job == null)
+            {
+                TempData["ErrorMessage"] = _localizer["DeletionJobNotFound"].Value;
+                return RedirectToAction(nameof(Index));
+            }
+
+            // Check if user had access to the account (if account still exists)
+            if (!job.IsCompleted)
+            {
+                if (!await HasAccessToAccountAsync(job.MailAccountId))
+                {
+                    return NotFound();
+                }
+            }
+
+            return View(job);
+        }
+
+        // POST: MailAccounts/CancelDeletion
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult CancelDeletion(string jobId, string returnUrl = null)
+        {
+            if (string.IsNullOrEmpty(jobId))
+            {
+                TempData["ErrorMessage"] = _localizer["InvalidDeletionJobID"].Value;
+                return Redirect(returnUrl ?? Url.Action(nameof(Index)));
+            }
+
+            var success = _mailAccountDeletionService.CancelJob(jobId);
+            if (success)
+            {
+                TempData["SuccessMessage"] = _localizer["DeletionCancelled"].Value;
+            }
+            else
+            {
+                TempData["ErrorMessage"] = _localizer["DeletionCancelError"].Value;
+            }
+
+            return Redirect(returnUrl ?? Url.Action(nameof(Index)));
         }
 
         // POST: MailAccounts/Sync/5
