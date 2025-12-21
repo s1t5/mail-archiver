@@ -168,7 +168,15 @@ For a complete list of all configuration options, please refer to the [Setup Gui
 - Bootstrap 5 and Chart.js for frontend
 
 ## 🤝 Contributing
-Contributions welcome! Please open an Issue or Pull Request. Also feel free to contact me by mail.
+
+We welcome contributions from the community! Please read our [Contributing Guide](CONTRIBUTING.md) for detailed information about how to contribute to Mail Archiver.
+
+For code changes by third parties, please coordinate with us via email at mail@s1t5.dev before making any changes.
+
+You can also:
+- Open an Issue for bug reports or feature requests
+- Submit a Pull Request for improvements
+- Help improve documentation
 
 ## 💖 Support the Project
 If you find this project useful and would like to support its continued development, you can buy me a coffee! Your support helps me dedicate more time and resources to improving the application and adding new features. While financial support is not required, it is greatly appreciated and helps ensure the project's ongoing maintenance and enhancement.
