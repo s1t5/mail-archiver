@@ -262,6 +262,8 @@ OIDC users cannot have or change passwords within Mail Archiver since authentica
 
 ## 🔒 Passwordless Login Configuration
 
+> ⚠️ **Important**: Even with passwordless login configuration, an initial admin user is still created during the first startup. You must set a secure password for this admin user in your `appsettings.json` or `docker-compose.yml` file to ensure system security.
+
 For organizations that want to enforce OAuth-only authentication, the application supports disabling password login entirely.
 
 ### Disabling Password Login
