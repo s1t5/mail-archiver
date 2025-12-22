@@ -10,5 +10,8 @@
         public string? ClientId { get; set; }
         public string? ClientSecret { get; set; }
         public string[]? ClientScopes { get; set; }
+        public bool DisablePasswordLogin { get; set; }
+        public bool AutoRedirect { get; set; }
+        public string[]? AdminEmails { get; set; }
     }
 }

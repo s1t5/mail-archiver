@@ -1,0 +1,157 @@
+@using Microsoft.Extensions.Localization
+@model MailArchiver.Models.EmailDeletionJob
+@inject IStringLocalizer<SharedResource> Localizer
+
+@{
+    ViewData["Title"] = Localizer["EmailDeletionStatus"];
+}
+
+<div class="container mt-4">
+    <h2>@Localizer["EmailDeletionStatus"]</h2>
+
+    <div class="card mt-3">
+        <div class="card-body">
+            <h5 class="card-title">@Localizer["JobDetails"]</h5>
+            
+            <dl class="row">
+                <dt class="col-sm-3">@Localizer["JobID"]:</dt>
+                <dd class="col-sm-9"><code>@Model.JobId</code></dd>
+
+                <dt class="col-sm-3">@Localizer["Status"]:</dt>
+                <dd class="col-sm-9">
+                    @if (Model.Status == MailArchiver.Models.EmailDeletionJobStatus.Queued)
+                    {
+                        <span class="badge bg-secondary">@Localizer["Queued"]</span>
+                    }
+                    else if (Model.Status == MailArchiver.Models.EmailDeletionJobStatus.Running)
+                    {
+                        <span class="badge bg-primary">@Localizer["Running"]</span>
+                    }
+                    else if (Model.Status == MailArchiver.Models.EmailDeletionJobStatus.Completed)
+                    {
+                        <span class="badge bg-success">@Localizer["Completed"]</span>
+                    }
+                    else if (Model.Status == MailArchiver.Models.EmailDeletionJobStatus.Failed)
+                    {
+                        <span class="badge bg-danger">@Localizer["Failed"]</span>
+                    }
+                    else if (Model.Status == MailArchiver.Models.EmailDeletionJobStatus.Cancelled)
+                    {
+                        <span class="badge bg-warning text-dark">@Localizer["Cancelled"]</span>
+                    }
+                </dd>
+
+                <dt class="col-sm-3">@Localizer["Created"]:</dt>
+                <dd class="col-sm-9">@Model.Created.ToString("yyyy-MM-dd HH:mm:ss")</dd>
+
+                @if (Model.Started.HasValue)
+                {
+                    <dt class="col-sm-3">@Localizer["Started"]:</dt>
+                    <dd class="col-sm-9">@Model.Started.Value.ToString("yyyy-MM-dd HH:mm:ss")</dd>
+                }
+
+                @if (Model.Completed.HasValue)
+                {
+                    <dt class="col-sm-3">@Localizer["Completed"]:</dt>
+                    <dd class="col-sm-9">@Model.Completed.Value.ToString("yyyy-MM-dd HH:mm:ss")</dd>
+                }
+
+                <dt class="col-sm-3">@Localizer["User"]:</dt>
+                <dd class="col-sm-9">@Model.UserId</dd>
+
+                <dt class="col-sm-3">@Localizer["CurrentPhase"]:</dt>
+                <dd class="col-sm-9">@Model.CurrentPhase</dd>
+            </dl>
+
+            @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+            {
+                <div class="alert alert-danger mt-3">
+                    <strong>@Localizer["Error"]:</strong> @Model.ErrorMessage
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="card mt-3">
+        <div class="card-body">
+            <h5 class="card-title">@Localizer["Progress"]</h5>
+            
+            <dl class="row">
+                <dt class="col-sm-3">@Localizer["TotalEmails"]:</dt>
+                <dd class="col-sm-9">@Model.TotalEmails.ToString("N0")</dd>
+
+                <dt class="col-sm-3">@Localizer["DeletedEmails"]:</dt>
+                <dd class="col-sm-9">@Model.DeletedEmails.ToString("N0")</dd>
+
+                <dt class="col-sm-3">@Localizer["TotalAttachments"]:</dt>
+                <dd class="col-sm-9">@Model.TotalAttachments.ToString("N0")</dd>
+
+                <dt class="col-sm-3">@Localizer["DeletedAttachments"]:</dt>
+                <dd class="col-sm-9">@Model.DeletedAttachments.ToString("N0")</dd>
+            </dl>
+
+            @if (Model.Status == MailArchiver.Models.EmailDeletionJobStatus.Running)
+            {
+                var emailProgress = Model.TotalEmails > 0 ? (Model.DeletedEmails * 100.0 / Model.TotalEmails) : 0;
+                var attachmentProgress = Model.TotalAttachments > 0 ? (Model.DeletedAttachments * 100.0 / Model.TotalAttachments) : 0;
+                
+                <div class="mt-3">
+                    <label>@Localizer["EmailProgress"]:</label>
+                    <div class="progress" style="height: 25px;">
+                        <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                             role="progressbar" 
+                             style="width: @emailProgress.ToString("F1")%"
+                             aria-valuenow="@emailProgress.ToString("F1")" 
+                             aria-valuemin="0" 
+                             aria-valuemax="100">
+                            @emailProgress.ToString("F1")%
+                        </div>
+                    </div>
+                </div>
+
+                @if (Model.TotalAttachments > 0)
+                {
+                    <div class="mt-3">
+                        <label>@Localizer["AttachmentProgress"]:</label>
+                        <div class="progress" style="height: 25px;">
+                            <div class="progress-bar progress-bar-striped progress-bar-animated bg-info" 
+                                 role="progressbar" 
+                                 style="width: @attachmentProgress.ToString("F1")%"
+                                 aria-valuenow="@attachmentProgress.ToString("F1")" 
+                                 aria-valuemin="0" 
+                                 aria-valuemax="100">
+                                @attachmentProgress.ToString("F1")%
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+    </div>
+
+    <div class="mt-3">
+        @if (Model.Status == MailArchiver.Models.EmailDeletionJobStatus.Running || Model.Status == MailArchiver.Models.EmailDeletionJobStatus.Queued)
+        {
+            <form asp-action="CancelEmailDeletion" method="post" class="d-inline">
+                <input type="hidden" name="jobId" value="@Model.JobId" />
+                <button type="submit" class="btn btn-warning" onclick="return confirm('@Localizer["ConfirmCancelDeletion"]');">
+                    <i class="bi bi-x-circle"></i> @Localizer["CancelDeletion"]
+                </button>
+            </form>
+        }
+        
+        <a asp-controller="Emails" asp-action="Jobs" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> @Localizer["BackToJobs"]
+        </a>
+    </div>
+</div>
+
+@if (Model.Status == MailArchiver.Models.EmailDeletionJobStatus.Running || Model.Status == MailArchiver.Models.EmailDeletionJobStatus.Queued)
+{
+    <script>
+        // Auto-refresh every 2 seconds when job is running or queued
+        setTimeout(function() {
+            location.reload();
+        }, 2000);
+    </script>
+}

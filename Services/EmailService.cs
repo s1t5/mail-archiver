@@ -1857,7 +1857,8 @@ namespace MailArchiver.Services
                     _logger.LogDebug("Added exact phrase condition for: '{Phrase}'", phrase);
                 }
 
-                // Handle field-specific word searches
+                // Handle field-specific word searches using POSITION for partial matching
+                // This allows searching for "to:alex" to match "alex@domain.tld"
                 foreach (var fieldSearch in fieldSearches)
                 {
                     var field = fieldSearch.Key;
@@ -1869,11 +1870,10 @@ namespace MailArchiver.Services
                         foreach (var term in terms)
                         {
                             searchConditions.Add($@"
-                                to_tsvector('simple', COALESCE(""{columnName}"", '')) 
-                                @@ to_tsquery('simple', @param{paramCounter})");
-                            parameters.Add(new Npgsql.NpgsqlParameter($"@param{paramCounter}", term.Replace("'", "''")));
+                                POSITION(LOWER(@param{paramCounter}) IN LOWER(COALESCE(""{columnName}"", ''))) > 0");
+                            parameters.Add(new Npgsql.NpgsqlParameter($"@param{paramCounter}", term));
                             paramCounter++;
-                            _logger.LogDebug("Added field-specific tsquery condition for {Field}: {Term}", field, term);
+                            _logger.LogDebug("Added field-specific partial match condition for {Field}: {Term}", field, term);
                         }
                     }
                 }

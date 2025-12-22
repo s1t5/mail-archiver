@@ -2222,6 +2222,9 @@
   <data name="IntegrityViolation" xml:space="preserve">
     <value>Integrity Violation</value>
   </data>
+  <data name="DatabaseMaintenance" xml:space="preserve">
+    <value>Database Maintenance</value>
+  </data>
   <data name="ComplianceStatus" xml:space="preserve">
     <value>Compliance Status</value>
   </data>
@@ -2332,5 +2335,82 @@
   </data>
   <data name="OidcClaimLengthExceeded" xml:space="preserve">
     <value>Claim values exceed maximum allowed length</value>
+  </data>
+  <data name="AccountDeletionQueued" xml:space="preserve">
+    <value>Deletion of account '{0}' has been queued and will be processed in the background.</value>
+    <comment>{0} - account name</comment>
+  </data>
+  <data name="InvalidDeletionJobID" xml:space="preserve">
+    <value>Invalid deletion job ID.</value>
+  </data>
+  <data name="DeletionJobNotFound" xml:space="preserve">
+    <value>Deletion job not found.</value>
+  </data>
+  <data name="DeletionCancelled" xml:space="preserve">
+    <value>Deletion job has been cancelled.</value>
+  </data>
+  <data name="DeletionCancelError" xml:space="preserve">
+    <value>Could not cancel the deletion job. The job may have already completed or does not exist.</value>
+  </data>
+  <data name="DeletionStatus" xml:space="preserve">
+    <value>Deletion Status</value>
+  </data>
+  <data name="AccountDeletionStatus" xml:space="preserve">
+    <value>Account Deletion Status</value>
+  </data>
+  <data name="CurrentPhase" xml:space="preserve">
+    <value>Current Phase</value>
+  </data>
+  <data name="DeletedEmails" xml:space="preserve">
+    <value>Deleted Emails</value>
+  </data>
+  <data name="TotalAttachments" xml:space="preserve">
+    <value>Total Attachments</value>
+  </data>
+  <data name="DeletedAttachments" xml:space="preserve">
+    <value>Deleted Attachments</value>
+  </data>
+  <data name="DeletionProgress" xml:space="preserve">
+    <value>Deletion Progress</value>
+  </data>
+  <data name="EmailDeletionProgress" xml:space="preserve">
+    <value>Email Deletion Progress</value>
+  </data>
+  <data name="AttachmentDeletionProgress" xml:space="preserve">
+    <value>Attachment Deletion Progress</value>
+  </data>
+  <data name="DeletionCompletedSuccessfully" xml:space="preserve">
+    <value>Deletion Completed Successfully</value>
+  </data>
+  <data name="AccountDeleted" xml:space="preserve">
+    <value>Account '{0}' has been successfully deleted along with all archived emails and attachments.</value>
+    <comment>{0} - account name</comment>
+  </data>
+  <data name="CancelDeletion" xml:space="preserve">
+    <value>Cancel Deletion</value>
+  </data>
+  <data name="CancelDeletionConfirm" xml:space="preserve">
+    <value>Are you sure you want to cancel this deletion job? If the deletion has already started, some data may have already been removed.</value>
+  </data>
+  <data name="EmailDeletionStatus" xml:space="preserve">
+    <value>Email Deletion Status</value>
+  </data>
+  <data name="EmailProgress" xml:space="preserve">
+    <value>Email Progress</value>
+  </data>
+  <data name="AttachmentProgress" xml:space="preserve">
+    <value>Attachment Progress</value>
+  </data>
+  <data name="ConfirmCancelEmailDeletion" xml:space="preserve">
+    <value>Are you sure you want to cancel this email deletion job?</value>
+  </data>
+  <data name="BackToJobs" xml:space="preserve">
+    <value>Back to Jobs</value>
+  </data>
+  <data name="JobDetails" xml:space="preserve">
+    <value>Job Details</value>
+  </data>
+  <data name="EmailDeletionJobs" xml:space="preserve">
+    <value>Email Deletion Jobs</value>
   </data>
 </root>

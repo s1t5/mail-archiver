@@ -285,7 +285,22 @@ builder.Services.AddSingleton<SelectedEmailsExportService>();
 builder.Services.AddSingleton<ISelectedEmailsExportService>(provider => provider.GetRequiredService<SelectedEmailsExportService>());
 builder.Services.AddHostedService<SelectedEmailsExportService>(provider => provider.GetRequiredService<SelectedEmailsExportService>());
 
+// Register MailAccountDeletionService as singleton and hosted service - MUST be the same instance
+builder.Services.AddSingleton<MailAccountDeletionService>();
+builder.Services.AddSingleton<IMailAccountDeletionService>(provider => provider.GetRequiredService<MailAccountDeletionService>());
+builder.Services.AddHostedService<MailAccountDeletionService>(provider => provider.GetRequiredService<MailAccountDeletionService>());
+
+// Register EmailDeletionService as singleton and hosted service - MUST be the same instance
+builder.Services.AddSingleton<EmailDeletionService>();
+builder.Services.AddSingleton<IEmailDeletionService>(provider => provider.GetRequiredService<EmailDeletionService>());
+builder.Services.AddHostedService<EmailDeletionService>(provider => provider.GetRequiredService<EmailDeletionService>());
+
 builder.Services.AddHostedService<MailSyncBackgroundService>();
+
+// Register DatabaseMaintenanceService as singleton and hosted service - MUST be the same instance
+builder.Services.AddSingleton<DatabaseMaintenanceService>();
+builder.Services.AddSingleton<IDatabaseMaintenanceService>(provider => provider.GetRequiredService<DatabaseMaintenanceService>());
+builder.Services.AddHostedService<DatabaseMaintenanceService>(provider => provider.GetRequiredService<DatabaseMaintenanceService>());
 
 // Register AccessLogService
 builder.Services.AddScoped<IAccessLogService, AccessLogService>();

@@ -32,6 +32,7 @@ namespace MailArchiver.Controllers
         private readonly IAccessLogService _accessLogService;
         private readonly IServiceScopeFactory _serviceScopeFactory;
         private readonly MailArchiver.Services.IAuthenticationService _authService;
+        private readonly IEmailDeletionService? _emailDeletionService;
 
         public EmailsController(
             MailArchiverDbContext context,
@@ -47,7 +48,8 @@ namespace MailArchiver.Controllers
             ISelectedEmailsExportService? selectedEmailsExportService = null,
             IAccessLogService? accessLogService = null,
             IServiceScopeFactory? serviceScopeFactory = null,
-            MailArchiver.Services.IAuthenticationService? authService = null)
+            MailArchiver.Services.IAuthenticationService? authService = null,
+            IEmailDeletionService? emailDeletionService = null)
 
         {
             _context = context;
@@ -64,6 +66,7 @@ namespace MailArchiver.Controllers
             _accessLogService = accessLogService;
             _serviceScopeFactory = serviceScopeFactory;
             _authService = authService;
+            _emailDeletionService = emailDeletionService;
         }
 
         // GET: Emails
@@ -2345,6 +2348,28 @@ namespace MailArchiver.Controllers
             
             _logger.LogInformation("Admin user requesting to delete {Count} emails", ids.Count);
             
+            // Check if we should use async deletion for large selections (threshold: 100 emails)
+            const int asyncThreshold = 100;
+            if (ids.Count >= asyncThreshold && _emailDeletionService != null)
+            {
+                _logger.LogInformation("Using async deletion for {Count} emails (threshold: {Threshold})", ids.Count, asyncThreshold);
+                
+                var currentUsername = _authService?.GetCurrentUserDisplayName(HttpContext);
+                var job = new EmailDeletionJob
+                {
+                    EmailIds = ids,
+                    UserId = currentUsername ?? "Anonymous"
+                };
+                
+                var jobId = _emailDeletionService.QueueJob(job);
+                TempData["SuccessMessage"] = $"Email deletion job started for {ids.Count:N0} emails. Job ID: {jobId}";
+                
+                return RedirectToAction("EmailDeletionStatus", new { jobId });
+            }
+            
+            // Synchronous deletion for smaller selections
+            _logger.LogInformation("Using synchronous deletion for {Count} emails", ids.Count);
+            
             var deletedCount = 0;
             var errorCount = 0;
             
@@ -2397,9 +2422,6 @@ namespace MailArchiver.Controllers
                     }
                 }
                 
-                // Save all changes at once for better performance
-                // await _context.SaveChangesAsync();
-                
                 if (deletedCount > 0)
                 {
                     TempData["SuccessMessage"] = $"{deletedCount} email(s) successfully deleted.";
@@ -2417,6 +2439,65 @@ namespace MailArchiver.Controllers
             }
             
             return Redirect(returnUrl ?? Url.Action("Index"));
+        }
+        
+        // GET: Emails/EmailDeletionStatus
+        [HttpGet]
+        [SelfManagerRequired]
+        public IActionResult EmailDeletionStatus(string jobId)
+        {
+            if (_emailDeletionService == null)
+            {
+                TempData["ErrorMessage"] = "Email deletion service is not available.";
+                return RedirectToAction("Index");
+            }
+            
+            if (string.IsNullOrEmpty(jobId))
+            {
+                TempData["ErrorMessage"] = "Invalid job ID.";
+                return RedirectToAction("Index");
+            }
+            
+            var job = _emailDeletionService.GetJob(jobId);
+            if (job == null)
+            {
+                TempData["ErrorMessage"] = "Email deletion job not found.";
+                return RedirectToAction("Jobs");
+            }
+            
+            return View(job);
+        }
+        
+        // POST: Emails/CancelEmailDeletion
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [SelfManagerRequired]
+        public IActionResult CancelEmailDeletion(string jobId, string returnUrl = null)
+        {
+            if (_emailDeletionService == null)
+            {
+                TempData["ErrorMessage"] = "Email deletion service is not available.";
+                return Redirect(returnUrl ?? Url.Action("Index"));
+            }
+            
+            if (string.IsNullOrEmpty(jobId))
+            {
+                TempData["ErrorMessage"] = "Invalid job ID.";
+                return Redirect(returnUrl ?? Url.Action("Index"));
+            }
+            
+            var success = _emailDeletionService.CancelJob(jobId);
+            
+            if (success)
+            {
+                TempData["SuccessMessage"] = "Email deletion job has been cancelled.";
+            }
+            else
+            {
+                TempData["ErrorMessage"] = "Could not cancel the email deletion job.";
+            }
+            
+            return Redirect(returnUrl ?? Url.Action("Jobs"));
         }
         
         // POST: Emails/ExportSelected

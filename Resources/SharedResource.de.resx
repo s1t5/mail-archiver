@@ -2351,4 +2351,82 @@
   <data name="SignInWithOAuth" xml:space="preserve">
     <value>Anmelden mit OAuth</value>
   </data>
+  <data name="AccountDeleted" xml:space="preserve">
+    <value>Account '{0}' wurde erfolgreich gelöscht, einschließlich aller archivierten E-Mails und Anhänge.</value>
+  </data>
+  <data name="AccountDeletionQueued" xml:space="preserve">
+    <value>Die Löschung des Accounts '{0}' wurde in die Warteschlange gestellt und wird im Hintergrund verarbeitet.</value>
+  </data>
+  <data name="AccountDeletionStatus" xml:space="preserve">
+    <value>Account-Löschstatus</value>
+  </data>
+  <data name="AttachmentDeletionProgress" xml:space="preserve">
+    <value>Anhang-Löschfortschritt</value>
+  </data>
+  <data name="AttachmentProgress" xml:space="preserve">
+    <value>Anhang-Fortschritt</value>
+  </data>
+  <data name="BackToJobs" xml:space="preserve">
+    <value>Zurück zu den Jobs</value>
+  </data>
+  <data name="CancelDeletion" xml:space="preserve">
+    <value>Löschung abbrechen</value>
+  </data>
+  <data name="CancelDeletionConfirm" xml:space="preserve">
+    <value>Sind Sie sicher, dass Sie diesen Löschvorgang abbrechen möchten? Falls die Löschung bereits begonnen hat, könnten bereits Daten entfernt worden sein.</value>
+  </data>
+  <data name="ConfirmCancelEmailDeletion" xml:space="preserve">
+    <value>Sind Sie sicher, dass Sie diesen E-Mail-Löschvorgang abbrechen möchten?</value>
+  </data>
+  <data name="CurrentPhase" xml:space="preserve">
+    <value>Aktuelle Phase</value>
+  </data>
+  <data name="DatabaseMaintenance" xml:space="preserve">
+    <value>Datenbankwartung</value>
+  </data>
+  <data name="DeletedAttachments" xml:space="preserve">
+    <value>Gelöschte Anhänge</value>
+  </data>
+  <data name="DeletedEmails" xml:space="preserve">
+    <value>Gelöschte E-Mails</value>
+  </data>
+  <data name="DeletionCancelError" xml:space="preserve">
+    <value>Der Löschvorgang konnte nicht abgebrochen werden. Der Vorgang könnte bereits abgeschlossen sein oder nicht existieren.</value>
+  </data>
+  <data name="DeletionCancelled" xml:space="preserve">
+    <value>Der Löschvorgang wurde abgebrochen.</value>
+  </data>
+  <data name="DeletionCompletedSuccessfully" xml:space="preserve">
+    <value>Löschung erfolgreich abgeschlossen</value>
+  </data>
+  <data name="DeletionJobNotFound" xml:space="preserve">
+    <value>Löschvorgang nicht gefunden.</value>
+  </data>
+  <data name="DeletionProgress" xml:space="preserve">
+    <value>Löschfortschritt</value>
+  </data>
+  <data name="DeletionStatus" xml:space="preserve">
+    <value>Löschstatus</value>
+  </data>
+  <data name="EmailDeletionJobs" xml:space="preserve">
+    <value>E-Mail-Löschvorgänge</value>
+  </data>
+  <data name="EmailDeletionProgress" xml:space="preserve">
+    <value>E-Mail-Löschfortschritt</value>
+  </data>
+  <data name="EmailDeletionStatus" xml:space="preserve">
+    <value>E-Mail-Löschstatus</value>
+  </data>
+  <data name="EmailProgress" xml:space="preserve">
+    <value>E-Mail-Fortschritt</value>
+  </data>
+  <data name="InvalidDeletionJobID" xml:space="preserve">
+    <value>Ungültige Löschvorgangs-ID.</value>
+  </data>
+  <data name="JobDetails" xml:space="preserve">
+    <value>Job-Details</value>
+  </data>
+  <data name="TotalAttachments" xml:space="preserve">
+    <value>Gesamte Anhänge</value>
+  </data>
 </root>

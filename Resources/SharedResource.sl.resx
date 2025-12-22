@@ -2350,4 +2350,82 @@
   <data name="SyncTimeUpdatedSuccess" xml:space="preserve">
     <value>Čas sinhronizacije je bil uspešno posodobljen. Sistem bo zdaj sinhroniziral e-pošte na podlagi novega časovnega žiga.</value>
   </data>
+  <data name="AccountDeleted" xml:space="preserve">
+    <value>Osebni račun '{0}' je bil uspešno izbrisan skupaj z vso arhivirano pošto in priloge.</value>
+  </data>
+  <data name="AccountDeletionQueued" xml:space="preserve">
+    <value>Brisanje osebnega računa '{0}' je bilo postavljeno v vrsto in bo obdelano v ozadju.</value>
+  </data>
+  <data name="AccountDeletionStatus" xml:space="preserve">
+    <value>Status brisanja osebnega računa</value>
+  </data>
+  <data name="AttachmentDeletionProgress" xml:space="preserve">
+    <value>Napredek brisanja prilog</value>
+  </data>
+  <data name="AttachmentProgress" xml:space="preserve">
+    <value>Napredek prilog</value>
+  </data>
+  <data name="BackToJobs" xml:space="preserve">
+    <value>Nazaj na naloge</value>
+  </data>
+  <data name="CancelDeletion" xml:space="preserve">
+    <value>Prekliči brisanje</value>
+  </data>
+  <data name="CancelDeletionConfirm" xml:space="preserve">
+    <value>Ali ste prepričani, da želite preklicati to nalogo brisanja? Če je brisanje že začelo, so lahko neka podatka že izbrisana.</value>
+  </data>
+  <data name="ConfirmCancelEmailDeletion" xml:space="preserve">
+    <value>Ali ste prepričani, da želite preklicati to nalogo brisanja e-pošte?</value>
+  </data>
+  <data name="CurrentPhase" xml:space="preserve">
+    <value>Trenutna faza</value>
+  </data>
+  <data name="DatabaseMaintenance" xml:space="preserve">
+    <value>Vzdrževanje podatkovne baze</value>
+  </data>
+  <data name="DeletedAttachments" xml:space="preserve">
+    <value>Izbrisane priloge</value>
+  </data>
+  <data name="DeletedEmails" xml:space="preserve">
+    <value>Izbrisana pošta</value>
+  </data>
+  <data name="DeletionCancelError" xml:space="preserve">
+    <value>Brisanje naloge ni bilo mogoče preklicati. Naloga je morda že končana ali ne obstaja.</value>
+  </data>
+  <data name="DeletionCancelled" xml:space="preserve">
+    <value>Naloga brisanja je bila preklicana.</value>
+  </data>
+  <data name="DeletionCompletedSuccessfully" xml:space="preserve">
+    <value>Brisanje je bilo uspešno končano</value>
+  </data>
+  <data name="DeletionJobNotFound" xml:space="preserve">
+    <value>Naloga brisanja ni bila najdena.</value>
+  </data>
+  <data name="DeletionProgress" xml:space="preserve">
+    <value>Napredek brisanja</value>
+  </data>
+  <data name="DeletionStatus" xml:space="preserve">
+    <value>Status brisanja</value>
+  </data>
+  <data name="EmailDeletionJobs" xml:space="preserve">
+    <value>Naloge brisanja e-pošte</value>
+  </data>
+  <data name="EmailDeletionProgress" xml:space="preserve">
+    <value>Napredek brisanja e-pošte</value>
+  </data>
+  <data name="EmailDeletionStatus" xml:space="preserve">
+    <value>Status brisanja e-pošte</value>
+  </data>
+  <data name="EmailProgress" xml:space="preserve">
+    <value>Napredek e-pošte</value>
+  </data>
+  <data name="InvalidDeletionJobID" xml:space="preserve">
+    <value>Neveljavna ID naloge brisanja.</value>
+  </data>
+  <data name="JobDetails" xml:space="preserve">
+    <value>Podrobnosti naloge</value>
+  </data>
+  <data name="TotalAttachments" xml:space="preserve">
+    <value>Vse priloge</value>
+  </data>
 </root>

@@ -2350,4 +2350,82 @@
   <data name="SyncTimeUpdatedSuccess" xml:space="preserve">
     <value>L'heure de synchronisation a été mise à jour avec succès. Le système synchronisera désormais les e-mails en fonction du nouvel horodatage.</value>
   </data>
+  <data name="AccountDeleted" xml:space="preserve">
+    <value>Le compte '{0}' a été supprimé avec succès avec tous les emails archivés et les pièces jointes.</value>
+  </data>
+  <data name="AccountDeletionQueued" xml:space="preserve">
+    <value>La suppression du compte '{0}' a été mise en file d'attente et sera traitée en arrière-plan.</value>
+  </data>
+  <data name="AccountDeletionStatus" xml:space="preserve">
+    <value>Statut de suppression de compte</value>
+  </data>
+  <data name="AttachmentDeletionProgress" xml:space="preserve">
+    <value>Progression de suppression des pièces jointes</value>
+  </data>
+  <data name="AttachmentProgress" xml:space="preserve">
+    <value>Progression des pièces jointes</value>
+  </data>
+  <data name="BackToJobs" xml:space="preserve">
+    <value>Retour aux tâches</value>
+  </data>
+  <data name="CancelDeletion" xml:space="preserve">
+    <value>Annuler la suppression</value>
+  </data>
+  <data name="CancelDeletionConfirm" xml:space="preserve">
+    <value>Êtes-vous sûr de vouloir annuler cette tâche de suppression ? Si la suppression a déjà commencé, certaines données peuvent déjà avoir été supprimées.</value>
+  </data>
+  <data name="ConfirmCancelEmailDeletion" xml:space="preserve">
+    <value>Êtes-vous sûr de vouloir annuler cette tâche de suppression d'emails ?</value>
+  </data>
+  <data name="CurrentPhase" xml:space="preserve">
+    <value>Phase actuelle</value>
+  </data>
+  <data name="DatabaseMaintenance" xml:space="preserve">
+    <value>Maintenance de la base de données</value>
+  </data>
+  <data name="DeletedAttachments" xml:space="preserve">
+    <value>Pièces jointes supprimées</value>
+  </data>
+  <data name="DeletedEmails" xml:space="preserve">
+    <value>Emails supprimés</value>
+  </data>
+  <data name="DeletionCancelError" xml:space="preserve">
+    <value>Impossible d'annuler la tâche de suppression. La tâche peut déjà être terminée ou n'exister pas.</value>
+  </data>
+  <data name="DeletionCancelled" xml:space="preserve">
+    <value>La tâche de suppression a été annulée.</value>
+  </data>
+  <data name="DeletionCompletedSuccessfully" xml:space="preserve">
+    <value>Suppression terminée avec succès</value>
+  </data>
+  <data name="DeletionJobNotFound" xml:space="preserve">
+    <value>Tâche de suppression introuvable.</value>
+  </data>
+  <data name="DeletionProgress" xml:space="preserve">
+    <value>Progression de suppression</value>
+  </data>
+  <data name="DeletionStatus" xml:space="preserve">
+    <value>Statut de suppression</value>
+  </data>
+  <data name="EmailDeletionJobs" xml:space="preserve">
+    <value>Tâches de suppression d'emails</value>
+  </data>
+  <data name="EmailDeletionProgress" xml:space="preserve">
+    <value>Progression de suppression d'emails</value>
+  </data>
+  <data name="EmailDeletionStatus" xml:space="preserve">
+    <value>Statut de suppression d'emails</value>
+  </data>
+  <data name="EmailProgress" xml:space="preserve">
+    <value>Progression des emails</value>
+  </data>
+  <data name="InvalidDeletionJobID" xml:space="preserve">
+    <value>ID de tâche de suppression invalide.</value>
+  </data>
+  <data name="JobDetails" xml:space="preserve">
+    <value>Détails de la tâche</value>
+  </data>
+  <data name="TotalAttachments" xml:space="preserve">
+    <value>Pièces jointes totales</value>
+  </data>
 </root>

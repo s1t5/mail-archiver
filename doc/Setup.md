@@ -66,6 +66,11 @@ services:
       # TimeZone Settings
       - TimeZone__DisplayTimeZoneId=Etc/UCT
 
+      # Database Maintenance Settings (Optional)
+      - DatabaseMaintenance__Enabled=false
+      - DatabaseMaintenance__DailyExecutionTime=02:00
+      - DatabaseMaintenance__TimeoutMinutes=30
+
       # Logging Settings (Optional - defaults to Information level)
       - Logging__LogLevel__Default=Information
       - Logging__LogLevel__Microsoft_AspNetCore=Warning
@@ -82,6 +87,9 @@ services:
       - OAuth__ClientScopes__0=openid
       - OAuth__ClientScopes__1=profile
       - OAuth__ClientScopes__2=email
+      - OAuth__DisablePasswordLogin=false
+      - OAuth__AutoRedirect=false
+      - OAuth__AdminEmails__0=admin@example.com
     ports:
       - "5000:5000"
     networks:
@@ -190,7 +198,12 @@ docker compose restart
 ### 🕐 TimeZone Settings
 - `TimeZone__DisplayTimeZoneId`: The time zone used for displaying email timestamps in the UI. Uses IANA time zone identifiers (e.g., "Europe/Berlin", "Asia/Tokyo"). Default is "Etc/UCT" for backward compatibility. When importing emails timestamps will be converted to this time zone for display purposes.
 
-### 📝 Logging Settings
+### 🔧 Database Maintenance Settings
+- `DatabaseMaintenance__Enabled`: Enable or disable automatic daily database maintenance (true/false). Default is `false`. When enabled, the system will automatically run VACUUM ANALYZE operations to optimize database performance and prevent bloat. See [Database Maintenance Guide](DatabaseMaintenance.md) for more details.
+- `DatabaseMaintenance__DailyExecutionTime`: The time of day when database maintenance should run, in 24-hour format (HH:mm). Default is `02:00`. Choose a time during low system activity.
+- `DatabaseMaintenance__TimeoutMinutes`: Maximum time allowed for maintenance operations in minutes. Default is `30`. Increase this value for larger databases.
+
+### Logging Settings
 - `Logging__LogLevel__Default`: The default log level for the application. Available levels are: `Trace`, `Debug`, `Information`, `Warning`, `Error`, `Critical`, `None`. Default is `Information`.
 - `Logging__LogLevel__Microsoft_AspNetCore`: Log level for ASP.NET Core framework messages. Default is `Warning`.
 - `Logging__LogLevel__Microsoft_EntityFrameworkCore_Database_Command`: Log level for Entity Framework database commands. Default is `Warning`.
@@ -202,6 +215,7 @@ docker compose restart
 
 For detailed setup instructions for OpenID Connect authentication, see [OIDC Implementation Guide](OIDC_Implementation.md).
 
+#### Basic OIDC Settings
 - `OAuth__Enabled`: Enable or disable OIDC authentication (true/false)
 - `OAuth__Authority`: The OpenID Connect authority URL (e.g., https://sts.windows.net/{TENANT-ID}/ for Azure AD)
 - `OAuth__ClientId`: The client ID assigned by your identity provider
@@ -209,6 +223,27 @@ For detailed setup instructions for OpenID Connect authentication, see [OIDC Imp
 - `OAuth__ClientScopes__0`: First scope requested from the identity provider (openid)
 - `OAuth__ClientScopes__1`: Second scope requested from the identity provider (profile)
 - `OAuth__ClientScopes__2`: Third scope requested from the identity provider (email)
+
+#### Passwordless Login Settings
+- `OAuth__DisablePasswordLogin`: Hide username/password fields on login page (true/false). Default is `false`. When enabled, only the OAuth login button is displayed.
+- `OAuth__AutoRedirect`: Automatically redirect users to OAuth provider (true/false). Default is `false`. Requires `OAuth__DisablePasswordLogin` to be `true`. Users will see a brief loading screen before being redirected.
+- `OAuth__AdminEmails__0`, `OAuth__AdminEmails__1`, etc.: Email addresses that should be automatically provisioned as administrators. Users with these email addresses will be created as active admins on first OAuth login, bypassing the normal approval process. Email matching is case-insensitive.
+
+#### Example: Full Passwordless Configuration
+```yaml
+environment:
+  - OAuth__Enabled=true
+  - OAuth__Authority=https://login.microsoftonline.com/YOUR_TENANT_ID/v2.0
+  - OAuth__ClientId=your-client-id
+  - OAuth__ClientSecret=your-client-secret
+  - OAuth__ClientScopes__0=openid
+  - OAuth__ClientScopes__1=profile
+  - OAuth__ClientScopes__2=email
+  - OAuth__DisablePasswordLogin=true
+  - OAuth__AutoRedirect=true
+  - OAuth__AdminEmails__0=admin@example.com
+  - OAuth__AdminEmails__1=manager@example.com
+```
 
 ## 🔐 Kestrel HTTPS Configuration (Optional)
 

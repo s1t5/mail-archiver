@@ -40,6 +40,7 @@ namespace MailArchiver.Models
         Download,
         Restore,
         Account,
-        Deletion
+        Deletion,
+        DatabaseMaintenance
     }
 }

@@ -55,8 +55,22 @@ namespace MailArchiver.Controllers
                 return RedirectToLocal(returnUrl);
             }
 
-            ViewBag.OAuthEnabled = _oAuthOptions.Value?.Enabled ?? false;
+            var oAuthEnabled = _oAuthOptions.Value?.Enabled ?? false;
+            var disablePasswordLogin = _oAuthOptions.Value?.DisablePasswordLogin ?? false;
+            var autoRedirect = _oAuthOptions.Value?.AutoRedirect ?? false;
+
+            ViewBag.OAuthEnabled = oAuthEnabled;
+            ViewBag.DisablePasswordLogin = disablePasswordLogin;
+            ViewBag.AutoRedirect = autoRedirect;
             ViewData["ReturnUrl"] = returnUrl;
+
+            // Auto-redirect to OAuth if enabled and password login is disabled
+            if (oAuthEnabled && disablePasswordLogin && autoRedirect)
+            {
+                _logger.LogInformation("Auto-redirecting to OAuth provider (password login disabled, auto-redirect enabled)");
+                return View("AutoRedirect", new OAuthLoginViewModel { ReturnUrl = returnUrl });
+            }
+
             return View(new LoginViewModel());
         }
 
