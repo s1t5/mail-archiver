@@ -160,7 +160,7 @@ For a complete list of all configuration options, please refer to the [Setup Gui
 ## 📋 Technical Details
 
 ### Architecture
-- ASP.NET Core 8 MVC application
+- ASP.NET Core 10 MVC application
 - PostgreSQL database for email storage
 - MailKit library for IMAP communication
 - Microsoft Graph API for M365 email access
