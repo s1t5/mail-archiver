@@ -22,6 +22,7 @@ This guide provides comprehensive instructions for setting up OpenID Connect (OI
    - [Client Registration](#client-registration)
 6. [Testing and Validation](#testing-and-validation)
 7. [User Management with OIDC](#user-management-with-oidc)
+8. [Passwordless Login Configuration](#passwordless-login-configuration)
 
 ## 🌐 Overview
 
