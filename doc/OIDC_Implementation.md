@@ -54,7 +54,8 @@ To enable OIDC authentication, you need to configure the OAuth section in your `
       "openid",
       "profile",
       "email"
-    ]
+    ],
+    "DisablePasswordLogin": false
   }
 }
 ```
@@ -73,6 +74,7 @@ environment:
   - OAuth__ClientScopes__0=openid
   - OAuth__ClientScopes__1=profile
   - OAuth__ClientScopes__2=email
+  - OAuth__DisablePasswordLogin=false
 ```
 
 ### Configuration Parameters Explained
@@ -82,6 +84,7 @@ environment:
 - **OAuth__ClientId**: The client ID assigned by your identity provider
 - **OAuth__ClientSecret**: The client secret assigned by your identity provider
 - **OAuth__ClientScopes**: Array of scopes requested from the identity provider
+- **OAuth__DisablePasswordLogin**: Set to `true` to disable traditional username/password login and enforce OAuth-only authentication (see Passwordless Login Configuration for more details)
 
 > ⚠️ **Important**: The Client Secret should be kept secure. Use Docker secrets or environment variables in production environments.
 
