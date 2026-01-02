@@ -164,7 +164,6 @@ identity_providers:
           - 'openid'
           - 'profile'
           - 'email'
-          - 'groups'
         response_types:
           - 'code'
         grant_types:
@@ -182,7 +181,6 @@ identity_providers:
   - `openid`: Required for OIDC authentication
   - `profile`: Access to basic profile information
   - `email`: Access to email address
-  - `groups`: Access to group memberships (optional, can be removed if not needed)
 - **response_types**: `code` - Authorization code flow
 - **grant_types**: `authorization_code` - Authorization code grant type
 - **token_endpoint_auth_method**: `client_secret_post` - Client authentication method
