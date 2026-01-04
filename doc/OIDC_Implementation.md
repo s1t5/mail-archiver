@@ -22,6 +22,7 @@ This guide provides comprehensive instructions for setting up OpenID Connect (OI
    - [Client Registration](#client-registration)
 6. [Testing and Validation](#testing-and-validation)
 7. [User Management with OIDC](#user-management-with-oidc)
+8. [Passwordless Login Configuration](#passwordless-login-configuration)
 
 ## 🌐 Overview
 
@@ -54,7 +55,8 @@ To enable OIDC authentication, you need to configure the OAuth section in your `
       "openid",
       "profile",
       "email"
-    ]
+    ],
+    "DisablePasswordLogin": false
   }
 }
 ```
@@ -73,6 +75,7 @@ environment:
   - OAuth__ClientScopes__0=openid
   - OAuth__ClientScopes__1=profile
   - OAuth__ClientScopes__2=email
+  - OAuth__DisablePasswordLogin=false
 ```
 
 ### Configuration Parameters Explained
@@ -82,6 +85,7 @@ environment:
 - **OAuth__ClientId**: The client ID assigned by your identity provider
 - **OAuth__ClientSecret**: The client secret assigned by your identity provider
 - **OAuth__ClientScopes**: Array of scopes requested from the identity provider
+- **OAuth__DisablePasswordLogin**: Set to `true` to disable traditional username/password login and enforce OAuth-only authentication (see Passwordless Login Configuration for more details)
 
 > ⚠️ **Important**: The Client Secret should be kept secure. Use Docker secrets or environment variables in production environments.
 
@@ -160,7 +164,6 @@ identity_providers:
           - 'openid'
           - 'profile'
           - 'email'
-          - 'groups'
         response_types:
           - 'code'
         grant_types:
@@ -178,7 +181,6 @@ identity_providers:
   - `openid`: Required for OIDC authentication
   - `profile`: Access to basic profile information
   - `email`: Access to email address
-  - `groups`: Access to group memberships (optional, can be removed if not needed)
 - **response_types**: `code` - Authorization code flow
 - **grant_types**: `authorization_code` - Authorization code grant type
 - **token_endpoint_auth_method**: `client_secret_post` - Client authentication method

@@ -357,56 +357,89 @@ namespace MailArchiver.Services
 
         private async Task ProcessEmailsForEmlExportByFolder(AccountExportJob job, MailArchiverDbContext context, ZipArchive archive, string folderName, CancellationToken cancellationToken)
         {
-            var emails = context.ArchivedEmails
-                .Where(e => e.MailAccountId == job.MailAccountId && e.FolderName == folderName)
-                .Include(e => e.Attachments)
-                .AsAsyncEnumerable();
+            // Get total count for this folder
+            var totalEmailsInFolder = await context.ArchivedEmails
+                .CountAsync(e => e.MailAccountId == job.MailAccountId && e.FolderName == folderName, cancellationToken);
 
             var emailIndex = 1;
-            await foreach (var email in emails.WithCancellation(cancellationToken))
+            var offset = 0;
+            var batchSize = _batchOptions.BatchSize;
+
+            while (offset < totalEmailsInFolder)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                try
+                // Load batch of emails with AsNoTracking to prevent memory buildup
+                var emailBatch = await context.ArchivedEmails
+                    .Where(e => e.MailAccountId == job.MailAccountId && e.FolderName == folderName)
+                    .Include(e => e.Attachments)
+                    .OrderBy(e => e.Id)
+                    .Skip(offset)
+                    .Take(batchSize)
+                    .AsNoTracking()
+                    .ToListAsync(cancellationToken);
+
+                if (!emailBatch.Any())
+                    break;
+
+                foreach (var email in emailBatch)
                 {
-                    job.CurrentEmailSubject = email.Subject;
+                    cancellationToken.ThrowIfCancellationRequested();
 
-                    // Create MIME message from archived email
-                    var mimeMessage = await CreateMimeMessageFromArchived(email);
-
-                    // Generate safe filename with In/Out indicator
-                    var safeSubject = SanitizeFileName(email.Subject);
-                    var inOutIndicator = email.IsOutgoing ? "Out" : "In";
-                    var fileName = $"{emailIndex:D6}_{email.SentDate:yyyyMMdd_HHmmss}_{inOutIndicator}_{safeSubject}.eml";
-                    var entryName = $"{SanitizeFileName(folderName)}/{fileName}";
-
-                    // Add to ZIP archive
-                    var entry = archive.CreateEntry(entryName);
-                    using var entryStream = entry.Open();
-                    await mimeMessage.WriteToAsync(entryStream, cancellationToken);
-
-                    job.ProcessedEmails++;
-                    emailIndex++;
-
-                    // Small pause every 10 emails
-                    if (job.ProcessedEmails % 10 == 0 && _batchOptions.PauseBetweenEmailsMs > 0)
+                    try
                     {
-                        await Task.Delay(_batchOptions.PauseBetweenEmailsMs, cancellationToken);
+                        job.CurrentEmailSubject = email.Subject;
+
+                        // Create MIME message from archived email
+                        var mimeMessage = await CreateMimeMessageFromArchived(email);
+
+                        // Generate safe filename with In/Out indicator
+                        var safeSubject = SanitizeFileName(email.Subject);
+                        var inOutIndicator = email.IsOutgoing ? "Out" : "In";
+                        var fileName = $"{emailIndex:D6}_{email.SentDate:yyyyMMdd_HHmmss}_{inOutIndicator}_{safeSubject}.eml";
+                        var entryName = $"{SanitizeFileName(folderName)}/{fileName}";
+
+                        // Add to ZIP archive
+                        var entry = archive.CreateEntry(entryName);
+                        using var entryStream = entry.Open();
+                        await mimeMessage.WriteToAsync(entryStream, cancellationToken);
+
+                        job.ProcessedEmails++;
+                        emailIndex++;
+
+                        // Small pause every 10 emails
+                        if (job.ProcessedEmails % 10 == 0 && _batchOptions.PauseBetweenEmailsMs > 0)
+                        {
+                            await Task.Delay(_batchOptions.PauseBetweenEmailsMs, cancellationToken);
+                        }
+
+                        // Log progress every 100 emails
+                        if (job.ProcessedEmails % 100 == 0)
+                        {
+                            var progressPercent = job.TotalEmails > 0 ? (job.ProcessedEmails * 100.0 / job.TotalEmails) : 0;
+                            _logger.LogInformation("Job {JobId}: Processed {Processed} emails ({Progress:F1}%)",
+                                job.JobId, job.ProcessedEmails, progressPercent);
+                        }
                     }
-
-                    // Log progress every 100 emails
-                    if (job.ProcessedEmails % 100 == 0)
+                    catch (Exception ex)
                     {
-                        var progressPercent = job.TotalEmails > 0 ? (job.ProcessedEmails * 100.0 / job.TotalEmails) : 0;
-                        _logger.LogInformation("Job {JobId}: Processed {Processed} emails ({Progress:F1}%)",
-                            job.JobId, job.ProcessedEmails, progressPercent);
+                        _logger.LogWarning(ex, "Job {JobId}: Failed to export email {EmailId}: {Subject}", 
+                            job.JobId, email.Id, email.Subject);
                     }
                 }
-                catch (Exception ex)
+
+                offset += batchSize;
+
+                // Pause between batches
+                if (offset < totalEmailsInFolder && _batchOptions.PauseBetweenBatchesMs > 0)
                 {
-                    _logger.LogWarning(ex, "Job {JobId}: Failed to export email {EmailId}: {Subject}", 
-                        job.JobId, email.Id, email.Subject);
+                    await Task.Delay(_batchOptions.PauseBetweenBatchesMs, cancellationToken);
                 }
+
+                // Force garbage collection after each batch to free memory
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
+                GC.Collect();
             }
         }
 
@@ -435,67 +468,99 @@ namespace MailArchiver.Services
         {
             using var writer = new StreamWriter(mboxStream, Encoding.UTF8, leaveOpen: true);
 
-            var emails = context.ArchivedEmails
-                .Where(e => e.MailAccountId == job.MailAccountId && e.FolderName == folderName)
-                .Include(e => e.Attachments)
-                .OrderBy(e => e.SentDate)
-                .AsAsyncEnumerable();
+            // Get total count for this folder
+            var totalEmailsInFolder = await context.ArchivedEmails
+                .CountAsync(e => e.MailAccountId == job.MailAccountId && e.FolderName == folderName, cancellationToken);
 
-            await foreach (var email in emails.WithCancellation(cancellationToken))
+            var offset = 0;
+            var batchSize = _batchOptions.BatchSize;
+
+            while (offset < totalEmailsInFolder)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                try
+                // Load batch of emails with AsNoTracking to prevent memory buildup
+                var emailBatch = await context.ArchivedEmails
+                    .Where(e => e.MailAccountId == job.MailAccountId && e.FolderName == folderName)
+                    .Include(e => e.Attachments)
+                    .OrderBy(e => e.SentDate)
+                    .Skip(offset)
+                    .Take(batchSize)
+                    .AsNoTracking()
+                    .ToListAsync(cancellationToken);
+
+                if (!emailBatch.Any())
+                    break;
+
+                foreach (var email in emailBatch)
                 {
-                    job.CurrentEmailSubject = email.Subject;
+                    cancellationToken.ThrowIfCancellationRequested();
 
-                    // Write mbox separator line
-                    var fromLine = CreateMBoxFromLine(email);
-                    await writer.WriteLineAsync(fromLine);
-
-                    // Create MIME message and write to mbox
-                    var mimeMessage = await CreateMimeMessageFromArchived(email);
-                    
-                    using var messageStream = new MemoryStream();
-                    await mimeMessage.WriteToAsync(messageStream, cancellationToken);
-                    messageStream.Position = 0;
-
-                    using var messageReader = new StreamReader(messageStream, Encoding.UTF8);
-                    string? line;
-                    while ((line = await messageReader.ReadLineAsync()) != null)
+                    try
                     {
-                        // Escape lines that start with "From " (mbox format requirement)
-                        if (line.StartsWith("From "))
+                        job.CurrentEmailSubject = email.Subject;
+
+                        // Write mbox separator line
+                        var fromLine = CreateMBoxFromLine(email);
+                        await writer.WriteLineAsync(fromLine);
+
+                        // Create MIME message and write to mbox
+                        var mimeMessage = await CreateMimeMessageFromArchived(email);
+                        
+                        using var messageStream = new MemoryStream();
+                        await mimeMessage.WriteToAsync(messageStream, cancellationToken);
+                        messageStream.Position = 0;
+
+                        using var messageReader = new StreamReader(messageStream, Encoding.UTF8);
+                        string? line;
+                        while ((line = await messageReader.ReadLineAsync()) != null)
                         {
-                            line = ">" + line;
+                            // Escape lines that start with "From " (mbox format requirement)
+                            if (line.StartsWith("From "))
+                            {
+                                line = ">" + line;
+                            }
+                            await writer.WriteLineAsync(line);
                         }
-                        await writer.WriteLineAsync(line);
+
+                        // Add empty line after message
+                        await writer.WriteLineAsync();
+
+                        job.ProcessedEmails++;
+
+                        // Small pause every 10 emails
+                        if (job.ProcessedEmails % 10 == 0 && _batchOptions.PauseBetweenEmailsMs > 0)
+                        {
+                            await Task.Delay(_batchOptions.PauseBetweenEmailsMs, cancellationToken);
+                        }
+
+                        // Log progress every 100 emails
+                        if (job.ProcessedEmails % 100 == 0)
+                        {
+                            var progressPercent = job.TotalEmails > 0 ? (job.ProcessedEmails * 100.0 / job.TotalEmails) : 0;
+                            _logger.LogInformation("Job {JobId}: Processed {Processed} emails ({Progress:F1}%)",
+                                job.JobId, job.ProcessedEmails, progressPercent);
+                        }
                     }
-
-                    // Add empty line after message
-                    await writer.WriteLineAsync();
-
-                    job.ProcessedEmails++;
-
-                    // Small pause every 10 emails
-                    if (job.ProcessedEmails % 10 == 0 && _batchOptions.PauseBetweenEmailsMs > 0)
+                    catch (Exception ex)
                     {
-                        await Task.Delay(_batchOptions.PauseBetweenEmailsMs, cancellationToken);
-                    }
-
-                    // Log progress every 100 emails
-                    if (job.ProcessedEmails % 100 == 0)
-                    {
-                        var progressPercent = job.TotalEmails > 0 ? (job.ProcessedEmails * 100.0 / job.TotalEmails) : 0;
-                        _logger.LogInformation("Job {JobId}: Processed {Processed} emails ({Progress:F1}%)",
-                            job.JobId, job.ProcessedEmails, progressPercent);
+                        _logger.LogWarning(ex, "Job {JobId}: Failed to export email {EmailId}: {Subject}", 
+                            job.JobId, email.Id, email.Subject);
                     }
                 }
-                catch (Exception ex)
+
+                offset += batchSize;
+
+                // Pause between batches
+                if (offset < totalEmailsInFolder && _batchOptions.PauseBetweenBatchesMs > 0)
                 {
-                    _logger.LogWarning(ex, "Job {JobId}: Failed to export email {EmailId}: {Subject}", 
-                        job.JobId, email.Id, email.Subject);
+                    await Task.Delay(_batchOptions.PauseBetweenBatchesMs, cancellationToken);
                 }
+
+                // Force garbage collection after each batch to free memory
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
+                GC.Collect();
             }
 
             await writer.FlushAsync();
