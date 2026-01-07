@@ -4,6 +4,7 @@ using MailArchiver.Auth.Services;
 using MailArchiver.Data;
 using MailArchiver.Models;
 using MailArchiver.Services;
+using MailArchiver.Services.Providers;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
@@ -70,6 +71,17 @@ if (authEnabled != null && authEnabled.Equals("false", StringComparison.OrdinalI
     // Create a logger to log the error message
     var logger = builder.Services.BuildServiceProvider().GetRequiredService<ILogger<Program>>();
     logger.LogError("Authentication is now mandatory and must be enabled. Please remove the 'Enabled' property from the 'Authentication' section in appsettings.json or set it to 'true' and define admin credentials to access the application.");
+    logger.LogError("For more information, please refer to the documentation ( https://github.com/s1t5/mail-archiver/blob/main/doc/Setup.md ) on how to set up username and password using environment variables.");
+    Environment.Exit(1);
+}
+
+// Check if authentication password is set and not empty
+var authPassword = builder.Configuration.GetSection("Authentication:Password").Value;
+if (string.IsNullOrWhiteSpace(authPassword))
+{
+    // Create a logger to log the error message
+    var logger = builder.Services.BuildServiceProvider().GetRequiredService<ILogger<Program>>();
+    logger.LogError("Authentication password must be set and cannot be empty. Please define a valid password in the 'Authentication' section in appsettings.json or using environment variables.");
     logger.LogError("For more information, please refer to the documentation ( https://github.com/s1t5/mail-archiver/blob/main/doc/Setup.md ) on how to set up username and password using environment variables.");
     Environment.Exit(1);
 }
@@ -236,16 +248,6 @@ builder.Services.AddDbContext<MailArchiverDbContext>(options =>
 });
 
 // Services hinzufügen
-builder.Services.AddScoped<IEmailService, EmailService>(provider =>
-    new EmailService(
-        provider.GetRequiredService<MailArchiverDbContext>(),
-        provider.GetRequiredService<ILogger<EmailService>>(),
-        provider.GetRequiredService<ISyncJobService>(),
-        provider.GetRequiredService<IOptions<BatchOperationOptions>>(),
-        provider.GetRequiredService<IOptions<MailSyncOptions>>(),
-        provider.GetRequiredService<IGraphEmailService>(),
-        provider.GetRequiredService<MailArchiver.Utilities.DateTimeHelper>()
-    ));
 builder.Services.AddScoped<IGraphEmailService, GraphEmailService>(provider =>
     new GraphEmailService(
         provider.GetRequiredService<MailArchiverDbContext>(),
@@ -253,8 +255,12 @@ builder.Services.AddScoped<IGraphEmailService, GraphEmailService>(provider =>
         provider.GetRequiredService<ISyncJobService>(),
         provider.GetRequiredService<IOptions<BatchOperationOptions>>(),
         provider.GetRequiredService<IOptions<MailSyncOptions>>(),
-        provider.GetRequiredService<MailArchiver.Utilities.DateTimeHelper>()
+        provider.GetRequiredService<MailArchiver.Utilities.DateTimeHelper>(),
+        provider.GetRequiredService<MailArchiver.Services.Core.EmailCoreService>()
     ));
+// Register GraphEmailService also for IProviderEmailService
+builder.Services.AddScoped<MailArchiver.Services.Providers.IProviderEmailService>(provider => 
+    provider.GetRequiredService<IGraphEmailService>() as MailArchiver.Services.Providers.IProviderEmailService);
 builder.Services.AddScoped<IAuthenticationService, CookieAuthenticationService>();
 builder.Services.AddScoped<OAuthAuthenticationService>();
 builder.Services.AddScoped<IUserService, UserService>();
@@ -304,7 +310,14 @@ builder.Services.AddHostedService<DatabaseMaintenanceService>(provider => provid
 
 // Register AccessLogService
 builder.Services.AddScoped<IAccessLogService, AccessLogService>();
-builder.Services.AddScoped<IEmailService, EmailService>();
+
+// ====================
+// NEW: Provider-based Architecture Services
+// ====================
+builder.Services.AddScoped<MailArchiver.Services.Core.EmailCoreService>();
+builder.Services.AddScoped<MailArchiver.Services.Providers.ImapEmailService>();
+builder.Services.AddScoped<MailArchiver.Services.Providers.ImportEmailService>();
+builder.Services.AddScoped<MailArchiver.Services.Factories.ProviderEmailServiceFactory>();
 
 // Add Localization
 builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
@@ -385,13 +398,14 @@ using (var scope = app.Services.CreateScope())
             var adminUser = await userService.GetUserByUsernameAsync(authOptions.Username);
             if (adminUser == null)
             {
+                var adminEmail = $"{authOptions.Username}@local";
                 adminUser = await userService.CreateUserAsync(
                     authOptions.Username,
-                    "admin@local",
+                    adminEmail,
                     authOptions.Password,
                     true);
                 var userLogger = services.GetRequiredService<ILogger<Program>>();
-                userLogger.LogInformation("Admin user created: {Username}", authOptions.Username);
+                userLogger.LogInformation("Admin user created: {Username} with email {Email}", authOptions.Username, adminEmail);
             }
         }
 

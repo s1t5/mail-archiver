@@ -1,7 +1,8 @@
 using MailArchiver.Data;
 using MailArchiver.Models;
-using MailArchiver.Services;
+using MailArchiver.Services.Providers;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 
 namespace MailArchiver.Services
 {
@@ -36,7 +37,7 @@ namespace MailArchiver.Services
                 {
                     using var scope = _serviceProvider.CreateScope();
                     var dbContext = scope.ServiceProvider.GetRequiredService<MailArchiverDbContext>();
-                    var emailService = scope.ServiceProvider.GetRequiredService<IEmailService>();
+                    var providerFactory = scope.ServiceProvider.GetRequiredService<MailArchiver.Services.Factories.ProviderEmailServiceFactory>();
                     var graphEmailService = scope.ServiceProvider.GetRequiredService<IGraphEmailService>();
                     var syncJobService = scope.ServiceProvider.GetRequiredService<ISyncJobService>();
 
@@ -96,7 +97,8 @@ namespace MailArchiver.Services
                             else
                             {
                                 _logger.LogInformation("Using IMAP for account: {AccountName}", account.Name);
-                                await emailService.SyncMailAccountAsync(account, jobId);
+                                var provider = await providerFactory.GetServiceForAccountAsync(account.Id);
+                                await provider.SyncMailAccountAsync(account, jobId);
                             }
                             
                             _logger.LogInformation("Mail sync completed for account: {AccountName}", account.Name);

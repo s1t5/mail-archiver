@@ -3,6 +3,7 @@ using MailArchiver.Data;
 using MailArchiver.Models;
 using MailArchiver.Models.ViewModels;
 using MailArchiver.Services;
+using MailArchiver.Services.Providers;
 using MailArchiver.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -19,7 +20,8 @@ namespace MailArchiver.Controllers
     public class EmailsController : Controller
     {
         private readonly MailArchiverDbContext _context;
-        private readonly IEmailService _emailService;
+        private readonly MailArchiver.Services.Core.EmailCoreService _emailCoreService;
+        private readonly MailArchiver.Services.Factories.ProviderEmailServiceFactory _providerFactory;
         private readonly IGraphEmailService _graphEmailService;
         private readonly ILogger<EmailsController> _logger;
         private readonly IBatchRestoreService? _batchRestoreService;
@@ -36,7 +38,8 @@ namespace MailArchiver.Controllers
 
         public EmailsController(
             MailArchiverDbContext context,
-            IEmailService emailService,
+            MailArchiver.Services.Core.EmailCoreService emailCoreService,
+            MailArchiver.Services.Factories.ProviderEmailServiceFactory providerFactory,
             IGraphEmailService graphEmailService,
             ILogger<EmailsController> logger,
             IOptions<BatchRestoreOptions> batchOptions,
@@ -53,7 +56,8 @@ namespace MailArchiver.Controllers
 
         {
             _context = context;
-            _emailService = emailService;
+            _emailCoreService = emailCoreService;
+            _providerFactory = providerFactory;
             _graphEmailService = graphEmailService;
             _logger = logger;
             _batchRestoreService = batchRestoreService;
@@ -195,7 +199,7 @@ namespace MailArchiver.Controllers
             int? accountIdForSearch = model.SelectedAccountId;
             
             // Suche durchführen
-            var (emails, totalCount) = await _emailService.SearchEmailsAsync(
+            var (emails, totalCount) = await _emailCoreService.SearchEmailsAsync(
                 model.SearchTerm,
                 model.FromDate,
                 model.ToDate,
@@ -540,7 +544,7 @@ namespace MailArchiver.Controllers
                     EmailId = id
                 };
 
-                var fileBytes = await _emailService.ExportEmailsAsync(exportParams, allowedAccountIds);
+                var fileBytes = await _emailCoreService.ExportEmailsAsync(exportParams, allowedAccountIds);
 
                 string contentType;
                 string fileName;
@@ -693,7 +697,8 @@ namespace MailArchiver.Controllers
                 }
                 else
                 {
-                    folders = await _emailService.GetMailFoldersAsync(model.TargetAccountId);
+                    var provider = await _providerFactory.GetServiceForAccountAsync(model.TargetAccountId);
+                    folders = await provider.GetMailFoldersAsync(model.TargetAccountId);
                 }
                 
                 model.AvailableFolders = folders.Select(f => new SelectListItem
@@ -788,7 +793,8 @@ namespace MailArchiver.Controllers
                     }
                     else
                     {
-                        folders = await _emailService.GetMailFoldersAsync(model.TargetAccountId);
+                        var provider = await _providerFactory.GetServiceForAccountAsync(model.TargetAccountId);
+                        folders = await provider.GetMailFoldersAsync(model.TargetAccountId);
                     }
                     
                     model.AvailableFolders = folders.Select(f => new SelectListItem
@@ -839,7 +845,8 @@ namespace MailArchiver.Controllers
                 }
                 else
                 {
-                    result = await _emailService.RestoreEmailToFolderAsync(
+                    var restoreProvider = await _providerFactory.GetServiceForAccountAsync(model.TargetAccountId);
+                    result = await restoreProvider.RestoreEmailToFolderAsync(
                         model.EmailId,
                         model.TargetAccountId,
                         model.TargetFolder);
@@ -1063,7 +1070,8 @@ namespace MailArchiver.Controllers
                 }
                 else
                 {
-                    folders = await _emailService.GetMailFoldersAsync(model.TargetAccountId);
+                    var provider = await _providerFactory.GetServiceForAccountAsync(model.TargetAccountId);
+                    folders = await provider.GetMailFoldersAsync(model.TargetAccountId);
                 }
                 
                 model.AvailableFolders = folders.Select(f => new SelectListItem
@@ -1155,7 +1163,8 @@ namespace MailArchiver.Controllers
                     }
                     else
                     {
-                        folders = await _emailService.GetMailFoldersAsync(model.TargetAccountId);
+                        var provider = await _providerFactory.GetServiceForAccountAsync(model.TargetAccountId);
+                        folders = await provider.GetMailFoldersAsync(model.TargetAccountId);
                     }
                     
                     model.AvailableFolders = folders.Select(f => new SelectListItem
@@ -1231,7 +1240,8 @@ namespace MailArchiver.Controllers
                 }
                 else
                 {
-                    var result = await _emailService.RestoreMultipleEmailsWithProgressAsync(
+                    var batchProvider = await _providerFactory.GetServiceForAccountAsync(model.TargetAccountId);
+                    var result = await batchProvider.RestoreMultipleEmailsWithProgressAsync(
                         model.SelectedEmailIds,
                         model.TargetAccountId,
                         model.TargetFolder,
@@ -1457,7 +1467,8 @@ namespace MailArchiver.Controllers
             if (model.AvailableAccounts.Count == 1)
             {
                 model.TargetAccountId = int.Parse(model.AvailableAccounts[0].Value);
-                var folders = await _emailService.GetMailFoldersAsync(model.TargetAccountId);
+                var provider = await _providerFactory.GetServiceForAccountAsync(model.TargetAccountId);
+                var folders = await provider.GetMailFoldersAsync(model.TargetAccountId);
                 model.AvailableFolders = folders.Select(f => new SelectListItem
                 {
                     Value = f,
@@ -1539,7 +1550,8 @@ namespace MailArchiver.Controllers
 
                 if (model.TargetAccountId > 0)
                 {
-                    var folders = await _emailService.GetMailFoldersAsync(model.TargetAccountId);
+                    var provider = await _providerFactory.GetServiceForAccountAsync(model.TargetAccountId);
+                    var folders = await provider.GetMailFoldersAsync(model.TargetAccountId);
                     model.AvailableFolders = folders.Select(f => new SelectListItem
                     {
                         Value = f,
@@ -1994,7 +2006,7 @@ namespace MailArchiver.Controllers
                 else if (targetAccount.Provider == ProviderType.IMAP)
                 {
                     _logger.LogInformation("Using Email service to get folders for IMAP account {AccountId}", accountId);
-                    folders = await _emailService.GetMailFoldersAsync(accountId);
+                    var tmpProvider = await _providerFactory.GetServiceForAccountAsync(accountId); folders = await tmpProvider.GetMailFoldersAsync(accountId);
                 }
                 else
                 {
@@ -2081,7 +2093,7 @@ namespace MailArchiver.Controllers
                 // For single email export, we don't need to filter by accounts
                 if (model.EmailId.HasValue)
                 {
-                    var fileBytes = await _emailService.ExportEmailsAsync(model, allowedAccountIds);
+                    var fileBytes = await _emailCoreService.ExportEmailsAsync(model, allowedAccountIds);
                     
                     string contentType;
                     string fileName;
@@ -2111,7 +2123,7 @@ namespace MailArchiver.Controllers
                 else
                 {
                     // For search results export, we need to ensure proper filtering
-                    var fileBytes = await _emailService.ExportEmailsAsync(model, allowedAccountIds);
+                    var fileBytes = await _emailCoreService.ExportEmailsAsync(model, allowedAccountIds);
 
                     string contentType;
                     string fileName;

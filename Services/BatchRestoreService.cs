@@ -1,6 +1,7 @@
 // Services/BatchRestoreService.cs
 using MailArchiver.Data;
 using MailArchiver.Models;
+using MailArchiver.Services.Providers;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using System.Collections.Concurrent;
@@ -163,12 +164,12 @@ public class BatchRestoreService : BackgroundService, IBatchRestoreService
                     job.JobId, job.EmailIds.Count);
 
                 using var scope = _serviceProvider.CreateScope();
-                var emailService = scope.ServiceProvider.GetRequiredService<IEmailService>();
+                var imapEmailService = scope.ServiceProvider.GetRequiredService<MailArchiver.Services.Providers.ImapEmailService>();
                 var graphEmailService = scope.ServiceProvider.GetRequiredService<IGraphEmailService>();
                 var dbContext = scope.ServiceProvider.GetRequiredService<MailArchiverDbContext>();
 
                 // Verarbeite in Batches mit Progress-Updates
-                await ProcessJobWithProgress(job, emailService, graphEmailService, dbContext, cancellationToken);
+                await ProcessJobWithProgress(job, imapEmailService, graphEmailService, dbContext, cancellationToken);
 
                 if (job.Status != BatchRestoreJobStatus.Cancelled)
                 {
@@ -199,7 +200,7 @@ public class BatchRestoreService : BackgroundService, IBatchRestoreService
             }
         }
 
-private async Task ProcessJobWithProgress(BatchRestoreJob job, IEmailService emailService, IGraphEmailService graphEmailService, MailArchiverDbContext dbContext, CancellationToken cancellationToken)
+        private async Task ProcessJobWithProgress(BatchRestoreJob job, MailArchiver.Services.Providers.ImapEmailService imapEmailService, IGraphEmailService graphEmailService, MailArchiverDbContext dbContext, CancellationToken cancellationToken)
         {
             var batchSize = _batchOptions.BatchSize;
             var totalEmails = job.EmailIds.Count;
@@ -254,7 +255,7 @@ private async Task ProcessJobWithProgress(BatchRestoreJob job, IEmailService ema
                         }
                     };
 
-                    var (successful, failed) = await emailService.RestoreMultipleEmailsWithProgressAsync(
+                    var (successful, failed) = await imapEmailService.RestoreMultipleEmailsWithProgressAsync(
                         job.EmailIds, job.TargetAccountId, job.TargetFolder, progressCallback, cancellationToken);
 
                     job.SuccessCount = successful;

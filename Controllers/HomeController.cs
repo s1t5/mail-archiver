@@ -11,7 +11,7 @@ namespace MailArchiver.Controllers
 {
     public class HomeController : Controller
     {
-        private readonly IEmailService _emailService;
+        private readonly MailArchiver.Services.Core.EmailCoreService _emailCoreService;
         private readonly IUserService _userService;
         private readonly MailArchiverDbContext _context;
         private readonly ILogger<HomeController> _logger;
@@ -19,14 +19,14 @@ namespace MailArchiver.Controllers
         private readonly MailArchiver.Services.IAuthenticationService _authenticationService;
 
         public HomeController(
-            IEmailService emailService, 
+            MailArchiver.Services.Core.EmailCoreService emailCoreService, 
             IUserService userService,
             MailArchiverDbContext context,
             MailArchiver.Services.IAuthenticationService authenticationService,
             ILogger<HomeController> logger, 
             IBatchRestoreService? batchRestoreService = null)
         {
-            _emailService = emailService;
+            _emailCoreService = emailCoreService;
             _userService = userService;
             _context = context;
             _authenticationService = authenticationService;
@@ -45,7 +45,7 @@ namespace MailArchiver.Controllers
             // If user is admin, show all accounts, otherwise show only assigned accounts
             if (currentUser != null && currentUser.IsAdmin)
             {
-                model = await _emailService.GetDashboardStatisticsAsync();
+                model = await _emailCoreService.GetDashboardStatisticsAsync();
             }
             else if (currentUser != null)
             {
@@ -59,7 +59,7 @@ namespace MailArchiver.Controllers
             else
             {
                 // Fallback to default dashboard
-                model = await _emailService.GetDashboardStatisticsAsync();
+                model = await _emailCoreService.GetDashboardStatisticsAsync();
             }
 
             // Aktive Jobs für Dashboard anzeigen

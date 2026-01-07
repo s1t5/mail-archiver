@@ -1,7 +1,7 @@
 using MailArchiver.Models;
 using Microsoft.Graph.Models;
 
-namespace MailArchiver.Services
+namespace MailArchiver.Services.Providers
 {
     /// <summary>
     /// Service interface for Microsoft Graph email operations

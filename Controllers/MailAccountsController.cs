@@ -3,6 +3,7 @@ using MailArchiver.Models;
 using MailArchiver.Models.ViewModels;
 using MailArchiver.ViewModels;
 using MailArchiver.Services;
+using MailArchiver.Services.Providers;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -17,7 +18,8 @@ namespace MailArchiver.Controllers
     public class MailAccountsController : Controller
     {
     private readonly MailArchiverDbContext _context;
-    private readonly IEmailService _emailService;
+    private readonly MailArchiver.Services.Core.EmailCoreService _emailCoreService;
+    private readonly MailArchiver.Services.Factories.ProviderEmailServiceFactory _providerFactory;
     private readonly IGraphEmailService _graphEmailService;
     private readonly ILogger<MailAccountsController> _logger;
     private readonly BatchRestoreOptions _batchOptions;
@@ -33,14 +35,15 @@ namespace MailArchiver.Controllers
 
     public MailAccountsController(
         MailArchiverDbContext context,
-        IEmailService emailService,
+        MailArchiver.Services.Core.EmailCoreService emailCoreService,
+        MailArchiver.Services.Factories.ProviderEmailServiceFactory providerFactory,
         IGraphEmailService graphEmailService,
         ILogger<MailAccountsController> logger,
         IOptions<BatchRestoreOptions> batchOptions,
         ISyncJobService syncJobService,
         IMBoxImportService mboxImportService,
         IEmlImportService emlImportService,
-        IOptions<UploadOptions> uploadOptions, 
+        IOptions<UploadOptions> uploadOptions,
         IStringLocalizer<SharedResource> localizer,
         IServiceScopeFactory serviceScopeFactory,
         IExportService exportService,
@@ -48,7 +51,8 @@ namespace MailArchiver.Controllers
         IMailAccountDeletionService mailAccountDeletionService)
     {
         _context = context;
-        _emailService = emailService;
+        _emailCoreService = emailCoreService;
+        _providerFactory = providerFactory;
         _graphEmailService = graphEmailService;
         _logger = logger;
         _batchOptions = batchOptions.Value;
@@ -164,7 +168,7 @@ namespace MailArchiver.Controllers
             }
 
             // E-Mail-Anzahl abrufen
-            var emailCount = await _emailService.GetEmailCountByAccountAsync(id);
+            var emailCount = await _emailCoreService.GetEmailCountByAccountAsync(id);
 
 var model = new MailAccountViewModel
             {
@@ -250,7 +254,8 @@ var model = new MailAccountViewModel
                     {
                         _logger.LogInformation("Testing connection for account: {Name}, Server: {Server}:{Port}",
                             model.Name, model.ImapServer, model.ImapPort);
-                        var connectionResult = await _emailService.TestConnectionAsync(account);
+                        var imapService = HttpContext.RequestServices.GetService<MailArchiver.Services.Providers.ImapEmailService>();
+                        var connectionResult = await imapService.TestConnectionAsync(account);
                         if (!connectionResult)
                         {
                             _logger.LogWarning("Connection test failed for account {Name}", model.Name);
@@ -477,7 +482,9 @@ var model = new MailAccountViewModel
                     // Test connection before saving (only for IMAP accounts)
                     if (!string.IsNullOrEmpty(model.Password) && account.Provider == ProviderType.IMAP)
                     {
-                        var connectionResult = await _emailService.TestConnectionAsync(account);
+                        var provider = await _providerFactory.GetServiceForAccountAsync(account.Id);
+
+                        var connectionResult = await provider.TestConnectionAsync(account);
                         if (!connectionResult)
                         {
                             ModelState.AddModelError("", _localizer["EmailAccountError"]);
@@ -530,8 +537,9 @@ var model = new MailAccountViewModel
                 return NotFound();
             }
 
-            // E-Mail-Anzahl abrufen (das war der fehlende Teil!)
-            var emailCount = await _emailService.GetEmailCountByAccountAsync(id);
+            // E-Mail-Anzahl abrufen
+            var provider = await _providerFactory.GetServiceForAccountAsync(account.Id);
+            var emailCount = await provider.GetEmailCountByAccountAsync(id);
 
             var model = new MailAccountViewModel
             {
@@ -773,14 +781,14 @@ var model = new MailAccountViewModel
                             {
                                 // Create a new service scope for the background task to avoid disposed context issues
                                 using var scope = _serviceScopeFactory.CreateScope();
-                                var emailService = scope.ServiceProvider.GetRequiredService<IEmailService>();
+                                var imapService = scope.ServiceProvider.GetRequiredService<MailArchiver.Services.Providers.ImapEmailService>();
                                 var dbContext = scope.ServiceProvider.GetRequiredService<MailArchiverDbContext>();
                                 
                                 // Get a fresh copy of the account from the new context
                                 var freshAccount = await dbContext.MailAccounts.FindAsync(account.Id);
                                 if (freshAccount != null)
                                 {
-                                    await emailService.SyncMailAccountAsync(freshAccount, jobId);
+                                    await imapService.SyncMailAccountAsync(freshAccount, jobId);
                                 }
                             }
                             catch (Exception ex)
@@ -843,7 +851,8 @@ var model = new MailAccountViewModel
 
             try
             {
-                var success = await _emailService.ResyncAccountAsync(id);
+                var provider = await _providerFactory.GetServiceForAccountAsync(id);
+                var success = await provider.ResyncAccountAsync(id);
                 if (success)
                 {
                     // Log the resync action
@@ -1450,7 +1459,7 @@ var model = new MailAccountViewModel
             }
 
             // Get email counts
-            var emailCount = await _emailService.GetEmailCountByAccountAsync(id);
+            var emailCount = await _emailCoreService.GetEmailCountByAccountAsync(id);
             var incomingCount = await _context.ArchivedEmails
                 .CountAsync(e => e.MailAccountId == id && !e.IsOutgoing);
             var outgoingCount = await _context.ArchivedEmails
@@ -1492,7 +1501,7 @@ var model = new MailAccountViewModel
             }
 
             // Validate email count
-            var emailCount = await _emailService.GetEmailCountByAccountAsync(model.MailAccountId);
+            var emailCount = await _emailCoreService.GetEmailCountByAccountAsync(model.MailAccountId);
             if (emailCount == 0)
             {
                 TempData["ErrorMessage"] = _localizer["NoEmailsToExport"].Value;
@@ -1670,7 +1679,8 @@ var model = new MailAccountViewModel
                 else
                 {
                     // Für IMAP-Konten den bestehenden EmailService verwenden
-                    var folders = await _emailService.GetMailFoldersAsync(accountId);
+                    var provider = await _providerFactory.GetServiceForAccountAsync(accountId);
+                    var folders = await provider.GetMailFoldersAsync(accountId);
                     if (!folders.Any())
                     {
                         return Json(new List<string> { "INBOX" });

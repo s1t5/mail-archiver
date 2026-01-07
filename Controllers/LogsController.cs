@@ -13,14 +13,12 @@ namespace MailArchiver.Controllers
         private readonly IAccessLogService _accessLogService;
         private readonly IAuthenticationService _authenticationService;
         private readonly MailArchiverDbContext _context;
-        private readonly IEmailService _emailService;
 
-        public LogsController(IAccessLogService accessLogService, IAuthenticationService authenticationService, MailArchiverDbContext context, IEmailService emailService)
+        public LogsController(IAccessLogService accessLogService, IAuthenticationService authenticationService, MailArchiverDbContext context)
         {
             _accessLogService = accessLogService;
             _authenticationService = authenticationService;
             _context = context;
-            _emailService = emailService;
         }
 
         public async Task<IActionResult> Index(int page = 1, int pageSize = 50, DateTime? fromDate = null, DateTime? toDate = null, string username = null, AccessLogType? type = null)

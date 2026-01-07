@@ -14,12 +14,12 @@ using Microsoft.Kiota.Abstractions.Authentication;
 using Microsoft.Kiota.Http.HttpClientLibrary;
 using Microsoft.Kiota.Abstractions;
 
-namespace MailArchiver.Services
+namespace MailArchiver.Services.Providers
 {
     /// <summary>
     /// Service for Microsoft Graph email operations for M365 accounts
     /// </summary>
-    public class GraphEmailService : IGraphEmailService
+    public class GraphEmailService : IGraphEmailService, IProviderEmailService
     {
         private readonly MailArchiverDbContext _context;
         private readonly ILogger<GraphEmailService> _logger;
@@ -27,6 +27,7 @@ namespace MailArchiver.Services
         private readonly BatchOperationOptions _batchOptions;
         private readonly MailSyncOptions _mailSyncOptions;
         private readonly DateTimeHelper _dateTimeHelper;
+        private readonly MailArchiver.Services.Core.EmailCoreService _coreService;
 
         public GraphEmailService(
             MailArchiverDbContext context,
@@ -34,7 +35,8 @@ namespace MailArchiver.Services
             ISyncJobService syncJobService,
             IOptions<BatchOperationOptions> batchOptions,
             IOptions<MailSyncOptions> mailSyncOptions,
-            DateTimeHelper dateTimeHelper)
+            DateTimeHelper dateTimeHelper,
+            MailArchiver.Services.Core.EmailCoreService coreService)
         {
             _context = context;
             _logger = logger;
@@ -42,6 +44,7 @@ namespace MailArchiver.Services
             _batchOptions = batchOptions.Value;
             _mailSyncOptions = mailSyncOptions.Value;
             _dateTimeHelper = dateTimeHelper;
+            _coreService = coreService;
         }
 
         /// <summary>
@@ -2493,6 +2496,78 @@ namespace MailArchiver.Services
                 _logger.LogError(ex, "Failed to save original text content as attachment for email {EmailId}", archivedEmailId);
             }
         }
+
+        #region IProviderEmailService Implementation - Wrapper Methods
+
+        // IProviderEmailService requires method signatures with IDs instead of objects
+        // These wrapper methods adapt between the interfaces
+
+        Task<List<string>> MailArchiver.Services.Providers.IProviderEmailService.GetMailFoldersAsync(int accountId)
+        {
+            var account = _context.MailAccounts.FindAsync(accountId).GetAwaiter().GetResult();
+            if (account == null)
+                return Task.FromResult(new List<string>());
+            
+            return GetMailFoldersAsync(account);
+        }
+
+        async Task<bool> MailArchiver.Services.Providers.IProviderEmailService.RestoreEmailToFolderAsync(
+            int emailId, int targetAccountId, string folderName)
+        {
+            var email = await _context.ArchivedEmails
+                .Include(e => e.Attachments)
+                .FirstOrDefaultAsync(e => e.Id == emailId);
+            
+            if (email == null)
+                return false;
+            
+            var targetAccount = await _context.MailAccounts.FindAsync(targetAccountId);
+            if (targetAccount == null)
+                return false;
+            
+            return await RestoreEmailToFolderAsync(email, targetAccount, folderName);
+        }
+
+        Task<(int Successful, int Failed)> MailArchiver.Services.Providers.IProviderEmailService.RestoreMultipleEmailsWithProgressAsync(
+            List<int> emailIds,
+            int targetAccountId,
+            string folderName,
+            Action<int, int, int> progressCallback,
+            CancellationToken cancellationToken = default)
+        {
+            // Graph API restore - not yet optimized for bulk operations
+            throw new NotImplementedException("Bulk restore with progress not yet implemented for Graph API provider");
+        }
+
+        async Task<bool> MailArchiver.Services.Providers.IProviderEmailService.ResyncAccountAsync(int accountId)
+        {
+            try
+            {
+                var account = await _context.MailAccounts.FindAsync(accountId);
+                if (account == null)
+                    return false;
+                
+                account.LastSync = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+                await _context.SaveChangesAsync();
+                
+                var jobId = _syncJobService.StartSync(account.Id, account.Name, account.LastSync);
+                await SyncMailAccountAsync(account, jobId);
+                
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error during resync for Graph API account {AccountId}", accountId);
+                return false;
+            }
+        }
+
+        Task<int> MailArchiver.Services.Providers.IProviderEmailService.GetEmailCountByAccountAsync(int accountId)
+        {
+            return _coreService.GetEmailCountByAccountAsync(accountId);
+        }
+
+        #endregion
     }
 
     /// <summary>

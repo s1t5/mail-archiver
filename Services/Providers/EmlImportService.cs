@@ -11,7 +11,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.IO.Compression;
 
-namespace MailArchiver.Services
+namespace MailArchiver.Services.Providers
 {
     public class EmlImportService : BackgroundService, IEmlImportService
     {
