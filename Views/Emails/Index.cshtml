@@ -423,7 +423,9 @@
                                     IsOutgoing = Model.IsOutgoing,
                                     PageNumber = Model.PageNumber - 1,
                                     PageSize = Model.PageSize,
-                                    ShowSelectionControls = Model.ShowSelectionControls
+                                    ShowSelectionControls = Model.ShowSelectionControls,
+                                    SortBy = Model.SortBy,
+                                    SortOrder = Model.SortOrder
                                 })">@Localizer["Previous"]</a>
                             </li>
                         }
@@ -443,7 +445,9 @@
                                     IsOutgoing = Model.IsOutgoing,
                                     PageNumber = i,
                                     PageSize = Model.PageSize,
-                                    ShowSelectionControls = Model.ShowSelectionControls
+                                    ShowSelectionControls = Model.ShowSelectionControls,
+                                    SortBy = Model.SortBy,
+                                    SortOrder = Model.SortOrder
                                 })">@i</a>
                             </li>
                         }
@@ -459,7 +463,9 @@
                                     IsOutgoing = Model.IsOutgoing,
                                     PageNumber = Model.PageNumber + 1,
                                     PageSize = Model.PageSize,
-                                    ShowSelectionControls = Model.ShowSelectionControls
+                                    ShowSelectionControls = Model.ShowSelectionControls,
+                                    SortBy = Model.SortBy,
+                                    SortOrder = Model.SortOrder
                                 })">@Localizer["Next"]</a>
                             </li>
                         }
