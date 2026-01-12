@@ -36,6 +36,31 @@ The Mail Archiver application supports OpenID Connect (OIDC) authentication, all
 - Administrative access to the Mail Archiver application and host system for configuration
 - If using a reverse proxy, proper [reverse proxy configuration](ReverseProxy.md) for HTTPS header handling
 
+## 🔧 Reverse Proxy Configuration for OIDC
+
+When deploying Mail Archiver behind a reverse proxy with OIDC authentication, additional configuration may be required to ensure proper handling of authentication flows and token exchanges. OIDC authentication involves larger HTTP headers and response bodies that may exceed default buffer sizes in some reverse proxy configurations.
+
+### Nginx Proxy Manager Configuration
+
+If you're using Nginx Proxy Manager as your reverse proxy, you may need to add the following configuration to handle OIDC authentication properly:
+
+```nginx
+proxy_busy_buffers_size 512k;
+proxy_buffers 4 512k;
+proxy_buffer_size 256k;
+```
+
+These settings increase the buffer sizes to accommodate larger OIDC tokens and authentication responses. Without these settings, you may encounter issues with authentication flows, particularly with providers that return large ID tokens or when using additional scopes.
+
+### General Reverse Proxy Considerations
+
+- Ensure your reverse proxy preserves HTTPS headers (`X-Forwarded-Proto`, `X-Forwarded-Host`)
+- Configure appropriate timeout settings for authentication flows
+- Verify that large header sizes are supported
+- Test the authentication flow thoroughly after configuration changes
+
+For detailed reverse proxy configuration guidance, refer to the [Reverse Proxy Configuration Guide](ReverseProxy.md).
+
 ## ⚙️ OIDC Configuration
 
 ### Enable OIDC in Configuration

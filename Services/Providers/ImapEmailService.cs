@@ -909,6 +909,25 @@ namespace MailArchiver.Services.Providers
                             _logger.LogInformation("SearchQuery.All found {Count} messages in folder {FolderName}",
                                 uids.Count, folder.FullName);
                         }
+
+                        // Some IMAP servers have limitations where SearchAsync returns a limited number
+                        // of results even when more messages exist. Detect this by comparing search results to actual folder count.
+                        // If search returned fewer results than the folder contains, fall back to fetching all UIDs by sequence.
+                        if (folder.Count > 0 && uids.Count > 0 && uids.Count < folder.Count)
+                        {
+                            double percentageReturned = (double)uids.Count / folder.Count * 100;
+                            
+                            _logger.LogWarning("Search returned only {ReturnedCount} of {TotalCount} messages ({Percentage:F1}%) for {FolderName}. " +
+                                "Server likely has SEARCH result limit. Fetching all UIDs by sequence instead.",
+                                uids.Count, folder.Count, percentageReturned, folder.FullName);
+                            
+                            // Fetch all UIDs using sequence numbers (1:*)
+                            var allUids = await folder.FetchAsync(0, -1, MessageSummaryItems.UniqueId);
+                            uids = allUids.Select(msg => msg.UniqueId).ToList();
+                            
+                            _logger.LogInformation("Retrieved {Count} UIDs by sequence for folder {FolderName}",
+                                uids.Count, folder.FullName);
+                        }
                     }
                     catch (Exception searchEx)
                     {
@@ -922,6 +941,22 @@ namespace MailArchiver.Services.Providers
                             uids = await folder.SearchAsync(SearchQuery.SentSince(lastSync.Date));
                             _logger.LogDebug("SentSince search found {Count} messages in folder {FolderName}",
                                 uids.Count, folder.FullName);
+                            
+                            // Check for server search limit on fallback too
+                            if (folder.Count > 0 && uids.Count > 0 && uids.Count < folder.Count)
+                            {
+                                double percentageReturned = (double)uids.Count / folder.Count * 100;
+                                
+                                _logger.LogWarning("SentSince returned only {ReturnedCount} of {TotalCount} messages ({Percentage:F1}%) for {FolderName}. " +
+                                    "Fetching all UIDs by sequence instead.",
+                                    uids.Count, folder.Count, percentageReturned, folder.FullName);
+                                
+                                var allUids = await folder.FetchAsync(0, -1, MessageSummaryItems.UniqueId);
+                                uids = allUids.Select(msg => msg.UniqueId).ToList();
+                                
+                                _logger.LogInformation("Retrieved {Count} UIDs by sequence for folder {FolderName}",
+                                    uids.Count, folder.FullName);
+                            }
                         }
                         catch (Exception fallbackEx)
                         {
@@ -931,6 +966,22 @@ namespace MailArchiver.Services.Providers
                             uids = await folder.SearchAsync(SearchQuery.All);
                             _logger.LogInformation("All query found {Count} total messages in folder {FolderName}, will filter by date client-side",
                                 uids.Count, folder.FullName);
+                            
+                            // Check for server search limit on All query too
+                            if (folder.Count > 0 && uids.Count > 0 && uids.Count < folder.Count)
+                            {
+                                double percentageReturned = (double)uids.Count / folder.Count * 100;
+                                
+                                _logger.LogWarning("SearchQuery.All returned only {ReturnedCount} of {TotalCount} messages ({Percentage:F1}%) for {FolderName}. " +
+                                    "Fetching all UIDs by sequence instead.",
+                                    uids.Count, folder.Count, percentageReturned, folder.FullName);
+                                
+                                var allUids = await folder.FetchAsync(0, -1, MessageSummaryItems.UniqueId);
+                                uids = allUids.Select(msg => msg.UniqueId).ToList();
+                                
+                                _logger.LogInformation("Retrieved {Count} UIDs by sequence for folder {FolderName}",
+                                    uids.Count, folder.FullName);
+                            }
                         }
                     }
 
