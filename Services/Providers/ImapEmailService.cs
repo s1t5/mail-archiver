@@ -163,9 +163,13 @@ namespace MailArchiver.Services.Providers
 
                 if (failedEmails == 0)
                 {
-                    account.LastSync = DateTime.UtcNow;
-                    _context.Entry(account).Property(a => a.LastSync).IsModified = true;
-                    await _context.SaveChangesAsync();
+                    // Update LastSync using a separate tracked entity to avoid tracking conflicts
+                    var trackedAccount = await _context.MailAccounts.FindAsync(account.Id);
+                    if (trackedAccount != null)
+                    {
+                        trackedAccount.LastSync = DateTime.UtcNow;
+                        await _context.SaveChangesAsync();
+                    }
                 }
                 else
                 {
@@ -649,6 +653,7 @@ namespace MailArchiver.Services.Providers
         {
             try
             {
+                // First, update LastSync in the database using a tracked entity
                 var account = await _context.MailAccounts.FindAsync(accountId);
                 if (account == null)
                 {
@@ -659,11 +664,18 @@ namespace MailArchiver.Services.Providers
                 _logger.LogInformation("Starting full resync for IMAP account {AccountName}", account.Name);
 
                 account.LastSync = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-                _context.Entry(account).Property(a => a.LastSync).IsModified = true;
                 await _context.SaveChangesAsync();
 
-                var jobId = _syncJobService.StartSync(account.Id, account.Name, account.LastSync);
-                await SyncMailAccountAsync(account, jobId);
+                // Now fetch the account again for the sync operation to avoid tracking conflicts
+                var accountForSync = await _context.MailAccounts.AsNoTracking().FirstOrDefaultAsync(a => a.Id == accountId);
+                if (accountForSync == null)
+                {
+                    _logger.LogError("Account with ID {AccountId} not found after update", accountId);
+                    return false;
+                }
+
+                var jobId = _syncJobService.StartSync(accountForSync.Id, accountForSync.Name, accountForSync.LastSync);
+                await SyncMailAccountAsync(accountForSync, jobId);
 
                 return true;
             }

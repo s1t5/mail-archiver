@@ -11,6 +11,9 @@
 # Import
 uploads/*
 
+# DataProtection Keys
+DataProtection-Keys/
+
 # Build-Ergebnisse
 [Dd]ebug/
 [Dd]ebugPublic/

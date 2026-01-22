@@ -42,7 +42,7 @@
                 <div class="mb-3">
                     <label asp-for="TargetAccountId" class="form-label">@Localizer["TargetAccount"]</label>
                     <select asp-for="TargetAccountId" asp-items="Model.AvailableAccounts" class="form-select" id="accountSelect">
-                        <option value="">-- @Localizer["SelectAccount"] --</option>
+                        <option value=""> @Localizer["SelectAccount"] </option>
                     </select>
                     <span asp-validation-for="TargetAccountId" class="text-danger"></span>
                 </div>

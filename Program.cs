@@ -132,8 +132,9 @@ builder.Services.AddSession(options =>
 });
 
 // Add Data Protection with persistent key storage
+var dataProtectionPath = builder.Configuration.GetValue<string>("DataProtection:KeyPath") ?? "/app/DataProtection-Keys";
 builder.Services.AddDataProtection()
-    .PersistKeysToFileSystem(new DirectoryInfo("/app/DataProtection-Keys"))
+    .PersistKeysToFileSystem(new DirectoryInfo(dataProtectionPath))
     .SetApplicationName("MailArchiver");
 
 // Add Rate Limiting
