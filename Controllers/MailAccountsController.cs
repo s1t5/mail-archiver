@@ -758,8 +758,10 @@ var model = new MailAccountViewModel
                                 var graphEmailService = scope.ServiceProvider.GetRequiredService<IGraphEmailService>();
                                 var dbContext = scope.ServiceProvider.GetRequiredService<MailArchiverDbContext>();
                                 
-                                // Get a fresh copy of the account from the new context
-                                var freshAccount = await dbContext.MailAccounts.FindAsync(account.Id);
+                                // Get a fresh untracked copy of the account from the new context to avoid tracking conflicts
+                                var freshAccount = await dbContext.MailAccounts
+                                    .AsNoTracking()
+                                    .FirstOrDefaultAsync(a => a.Id == account.Id);
                                 if (freshAccount != null)
                                 {
                                     await graphEmailService.SyncMailAccountAsync(freshAccount, jobId);
@@ -784,8 +786,10 @@ var model = new MailAccountViewModel
                                 var imapService = scope.ServiceProvider.GetRequiredService<MailArchiver.Services.Providers.ImapEmailService>();
                                 var dbContext = scope.ServiceProvider.GetRequiredService<MailArchiverDbContext>();
                                 
-                                // Get a fresh copy of the account from the new context
-                                var freshAccount = await dbContext.MailAccounts.FindAsync(account.Id);
+                                // Get a fresh untracked copy of the account from the new context to avoid tracking conflicts
+                                var freshAccount = await dbContext.MailAccounts
+                                    .AsNoTracking()
+                                    .FirstOrDefaultAsync(a => a.Id == account.Id);
                                 if (freshAccount != null)
                                 {
                                     await imapService.SyncMailAccountAsync(freshAccount, jobId);
