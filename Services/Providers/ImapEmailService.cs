@@ -874,8 +874,11 @@ namespace MailArchiver.Services.Providers
                 bool isOutgoing = IsOutgoingFolder(folder);
                 var lastSync = account.LastSync;
 
+                // Check if this is a full sync or first sync (LastSync is Unix Epoch)
+                bool isFullSync = account.LastSync == new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+
                 // Subtract 12 hours from lastSync for the query, but only if it's not the Unix epoch (1/1/1970)
-                if (lastSync != new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc))
+                if (!isFullSync)
                 {
                     lastSync = lastSync.AddHours(-12);
                 }
@@ -912,8 +915,7 @@ namespace MailArchiver.Services.Providers
                         // Check if this is a full sync (LastSync is Unix Epoch) and the search returned 0 results
                         // but the folder actually contains messages. This indicates the server doesn't support
                         // DeliveredAfter properly
-                        if (uids.Count == 0 && folder.Count > 0 &&
-                            account.LastSync == new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc))
+                        if (uids.Count == 0 && folder.Count > 0 && isFullSync)
                         {
                             _logger.LogWarning("DeliveredAfter returned 0 results but folder contains {Count} messages during full sync for {FolderName}. Server may not support DeliveredAfter. Using SearchQuery.All instead.",
                                 folder.Count, folder.FullName);
@@ -924,8 +926,9 @@ namespace MailArchiver.Services.Providers
 
                         // Some IMAP servers have limitations where SearchAsync returns a limited number
                         // of results even when more messages exist. Detect this by comparing search results to actual folder count.
-                        // If search returned fewer results than the folder contains, fall back to fetching all UIDs by sequence.
-                        if (folder.Count > 0 && uids.Count > 0 && uids.Count < folder.Count)
+                        // IMPORTANT: Only trigger this fallback during full sync or first sync to avoid fetching all messages
+                        // during incremental syncs (where it's expected to have fewer results than total folder count)
+                        if (isFullSync && folder.Count > 0 && uids.Count > 0 && uids.Count < folder.Count)
                         {
                             double percentageReturned = (double)uids.Count / folder.Count * 100;
                             
@@ -954,8 +957,8 @@ namespace MailArchiver.Services.Providers
                             _logger.LogDebug("SentSince search found {Count} messages in folder {FolderName}",
                                 uids.Count, folder.FullName);
                             
-                            // Check for server search limit on fallback too
-                            if (folder.Count > 0 && uids.Count > 0 && uids.Count < folder.Count)
+                            // Check for server search limit on fallback too (only during full sync)
+                            if (isFullSync && folder.Count > 0 && uids.Count > 0 && uids.Count < folder.Count)
                             {
                                 double percentageReturned = (double)uids.Count / folder.Count * 100;
                                 
@@ -979,8 +982,8 @@ namespace MailArchiver.Services.Providers
                             _logger.LogInformation("All query found {Count} total messages in folder {FolderName}, will filter by date client-side",
                                 uids.Count, folder.FullName);
                             
-                            // Check for server search limit on All query too
-                            if (folder.Count > 0 && uids.Count > 0 && uids.Count < folder.Count)
+                            // Check for server search limit on All query too (only during full sync)
+                            if (isFullSync && folder.Count > 0 && uids.Count > 0 && uids.Count < folder.Count)
                             {
                                 double percentageReturned = (double)uids.Count / folder.Count * 100;
                                 
