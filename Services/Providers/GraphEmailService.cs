@@ -53,12 +53,13 @@ namespace MailArchiver.Services.Providers
 /// Creates a GraphServiceClient for the specified M365 account using client credentials flow
 /// with automatic token refresh via Azure.Identity.
 /// </summary>
-private Task<GraphServiceClient> CreateGraphClientAsync(MailAccount account)
+///         /// <param name="account">The M365 mail account</param>
+/// <returns>Configured GraphServiceClient</returns>
+private async Task<GraphServiceClient> CreateGraphClientAsync(MailAccount account)
 {
     if (string.IsNullOrEmpty(account.ClientId) || string.IsNullOrEmpty(account.ClientSecret))
     {
-        throw new InvalidOperationException(
-            $"M365 account '{account.Name}' requires ClientId and ClientSecret for OAuth authentication");
+         throw new InvalidOperationException($"M365 account '{account.Name}' requires ClientId and ClientSecret for OAuth authentication");
     }
 
     var tenantId = !string.IsNullOrEmpty(account.TenantId) ? account.TenantId : "common";
@@ -74,16 +75,11 @@ private Task<GraphServiceClient> CreateGraphClientAsync(MailAccount account)
         credential,
         new[] { "https://graph.microsoft.com/.default" });
 
-    return Task.FromResult(graphServiceClient);
+    return graphServiceClient;
 }
 
 
-        /// <summary>
-        /// Gets an OAuth access token for Microsoft Graph API
-        /// </summary>
-        /// <param name="account">The M365 mail account</param>
-        /// <returns>Access token string</returns>
-        ///MODDED HERE
+       
 
 
 
