@@ -537,9 +537,8 @@ var model = new MailAccountViewModel
                 return NotFound();
             }
 
-            // E-Mail-Anzahl abrufen
-            var provider = await _providerFactory.GetServiceForAccountAsync(account.Id);
-            var emailCount = await provider.GetEmailCountByAccountAsync(id);
+            // E-Mail-Anzahl abrufen (use EmailCoreService to support all provider types including IMPORT)
+            var emailCount = await _emailCoreService.GetEmailCountByAccountAsync(id);
 
             var model = new MailAccountViewModel
             {
