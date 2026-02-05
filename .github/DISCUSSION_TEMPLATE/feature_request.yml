@@ -1,0 +1,42 @@
+name: Feature Request (Idea)
+description: Suggest a new feature or improvement for the project
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        👍 Thank you for taking the time to suggest a new feature!
+        
+        🔍 **Please check first** if a similar feature request already exists in our [GitHub Discussions](https://github.com/s1t5/mail-archiver/discussions?discussions_q=category%3AIdeas).
+        
+        If you find a similar idea, please add your thoughts or upvote it instead of creating a duplicate.
+        
+        Please fill out the form below to help us understand your idea and its potential impact.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Is your feature request related to a problem?
+      description: A clear and concise description of what the problem is. (e.g., "I'm always frustrated when [...]")
+      placeholder: 'Example: "I often need to export specific emails, but the current export function lacks filtering options."'
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Describe the solution you'd like
+      description: A clear and concise description of what you want to happen.
+      placeholder: 'Example: "Add a date range filter to the export function so I can export emails from a specific period."'
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Add any other context, screenshots, or examples to help explain your feature request.
+      placeholder: 'Example: "This would be especially useful for users who need to archive emails for specific projects or time periods."'
+    validations:
+      required: false
