@@ -1,7 +1,6 @@
-name: Feature Request (Idea)
-description: Suggest a new feature or improvement for the project
 title: "[Feature]: "
-category: ideas
+labels: [enhancement]
+
 body:
   - type: markdown
     attributes:
