@@ -6,6 +6,10 @@ body:
   - type: markdown
     attributes:
       value: |
+        ⚠️ **Important: This template is only for technical bugs (issues with the software).**
+        
+        For questions (Q&A) and feature requests (Ideas), please use [GitHub Discussions](https://github.com/s1t5/mail-archiver/discussions) instead.
+        
         Thanks for taking the time to report this bug!
         Please fill out the form below to help us understand and fix the issue.
 
