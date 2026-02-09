@@ -35,6 +35,7 @@ namespace MailArchiver.Controllers
         private readonly IServiceScopeFactory _serviceScopeFactory;
         private readonly MailArchiver.Services.IAuthenticationService _authService;
         private readonly IEmailDeletionService? _emailDeletionService;
+        private readonly ViewOptions _viewOptions;
 
         public EmailsController(
             MailArchiverDbContext context,
@@ -44,6 +45,7 @@ namespace MailArchiver.Controllers
             ILogger<EmailsController> logger,
             IOptions<BatchRestoreOptions> batchOptions,
             IOptions<SelectionOptions> selectionOptions,
+            IOptions<ViewOptions> viewOptions,
             IBatchRestoreService? batchRestoreService = null,
             ISyncJobService? syncJobService = null,
             IStringLocalizer<SharedResource> localizer = null,
@@ -64,6 +66,7 @@ namespace MailArchiver.Controllers
             _syncJobService = syncJobService;
             _batchOptions = batchOptions.Value;
             _selectionOptions = selectionOptions.Value;
+            _viewOptions = viewOptions.Value;
             _localizer = localizer;
             _exportService = exportService;
             _selectedEmailsExportService = selectedEmailsExportService;
@@ -303,14 +306,23 @@ namespace MailArchiver.Controllers
             var htmlBodyToDisplay = !string.IsNullOrEmpty(email.BodyUntruncatedHtml) 
                 ? email.BodyUntruncatedHtml 
                 : email.HtmlBody;
+            
+            var textBodyToDisplay = !string.IsNullOrEmpty(email.BodyUntruncatedText) 
+                ? email.BodyUntruncatedText 
+                : email.Body;
 
             var model = new EmailDetailViewModel
             {
                 Email = email,
                 AccountName = email.MailAccount?.Name ?? "Unknown account",
                 FormattedHtmlBody = !string.IsNullOrEmpty(htmlBodyToDisplay) 
-                    ? ResolveInlineImagesInHtml(SanitizeHtml(htmlBodyToDisplay), email.Attachments) 
+                    ? ResolveInlineImagesInHtml(SanitizeHtml(htmlBodyToDisplay, _viewOptions.BlockExternalResources), email.Attachments) 
                     : string.Empty,
+                PlainTextBody = textBodyToDisplay ?? string.Empty,
+                DefaultToPlainText = _viewOptions.DefaultToPlainText,
+                BlockExternalResources = _viewOptions.BlockExternalResources,
+                HasHtmlBody = !string.IsNullOrEmpty(htmlBodyToDisplay),
+                HasPlainTextBody = !string.IsNullOrEmpty(textBodyToDisplay),
             };
 
             // Store return URL in ViewBag
@@ -2157,7 +2169,7 @@ namespace MailArchiver.Controllers
 
         // GET: Emails/RawContent/5
         [EmailAccessRequired]
-        public async Task<IActionResult> RawContent(int id)
+        public async Task<IActionResult> RawContent(int id, bool plainText = false)
         {
             var email = await _context.ArchivedEmails
                 .Include(e => e.Attachments)
@@ -2178,29 +2190,58 @@ namespace MailArchiver.Controllers
                 ? email.BodyUntruncatedText 
                 : email.Body;
 
-            // Bereiten Sie das HTML für die direkte Anzeige vor
-            string html = !string.IsNullOrEmpty(htmlBodyToDisplay)
-                ? ResolveInlineImagesInHtml(SanitizeHtml(htmlBodyToDisplay), email.Attachments)
-                : $"<pre>{HttpUtility.HtmlEncode(textBodyToDisplay)}</pre>";
+            string html;
 
-            // Fügen Sie die Basis-HTML-Struktur hinzu, wenn sie fehlt
-            if (!html.Contains("<!DOCTYPE") && !html.Contains("<html"))
+            // If plain text is requested or if there's no HTML body
+            if (plainText || string.IsNullOrEmpty(htmlBodyToDisplay))
             {
+                // Display plain text
                 html = $@"<!DOCTYPE html>
                 <html>
                 <head>
                     <meta charset=""utf-8"">
                     <meta name=""viewport"" content=""width=device-width, initial-scale=1.0"">
-                    <base target=""_blank"">
                     <style>
-                        body {{ font-family: Arial, sans-serif; margin: 15px; }}
-                        pre {{ white-space: pre-wrap; }}
+                        body {{ font-family: Arial, sans-serif; margin: 15px; background-color: #f8f9fa; }}
+                        pre {{ 
+                            white-space: pre-wrap; 
+                            word-wrap: break-word;
+                            background-color: white;
+                            padding: 20px;
+                            border: 1px solid #dee2e6;
+                            border-radius: 4px;
+                        }}
                     </style>
                 </head>
                 <body>
-                    {html}
+                    <pre>{HttpUtility.HtmlEncode(textBodyToDisplay ?? "[No content available]")}</pre>
                 </body>
                 </html>";
+            }
+            else
+            {
+                // Display HTML with external resource blocking if configured
+                html = ResolveInlineImagesInHtml(SanitizeHtml(htmlBodyToDisplay, _viewOptions.BlockExternalResources), email.Attachments);
+
+                // Fügen Sie die Basis-HTML-Struktur hinzu, wenn sie fehlt
+                if (!html.Contains("<!DOCTYPE") && !html.Contains("<html"))
+                {
+                    html = $@"<!DOCTYPE html>
+                    <html>
+                    <head>
+                        <meta charset=""utf-8"">
+                        <meta name=""viewport"" content=""width=device-width, initial-scale=1.0"">
+                        <base target=""_blank"">
+                        <style>
+                            body {{ font-family: Arial, sans-serif; margin: 15px; }}
+                            pre {{ white-space: pre-wrap; }}
+                        </style>
+                    </head>
+                    <body>
+                        {html}
+                    </body>
+                    </html>";
+                }
             }
 
             // Set proper content type with UTF-8 encoding to ensure correct character display
@@ -2208,7 +2249,7 @@ namespace MailArchiver.Controllers
         }
 
         // Hilfsmethode zur Bereinigung von HTML für die sichere Darstellung
-        private string SanitizeHtml(string html)
+        private string SanitizeHtml(string html, bool blockExternalResources = false)
         {
             if (string.IsNullOrEmpty(html))
                 return string.Empty;
@@ -2221,6 +2262,40 @@ namespace MailArchiver.Controllers
 
             // Entfernen von javascript: URLs
             html = Regex.Replace(html, @"href=([""'])javascript:.*?\1", "href=\"#\"", RegexOptions.IgnoreCase);
+
+            // Block external resources if configured
+            if (blockExternalResources)
+            {
+                // Block external images (except data: URIs and cid: references for inline images)
+                html = Regex.Replace(html, 
+                    @"<img\s+([^>]*\s+)?src\s*=\s*([""'])(?!data:|cid:)https?://[^""']+\2", 
+                    "<img $1src=$2$2", 
+                    RegexOptions.IgnoreCase);
+                
+                // Block external stylesheets
+                html = Regex.Replace(html, 
+                    @"<link\s+([^>]*\s+)?href\s*=\s*([""'])https?://[^""']+\2[^>]*>", 
+                    "", 
+                    RegexOptions.IgnoreCase);
+                
+                // Block external CSS imports in style tags
+                html = Regex.Replace(html, 
+                    @"@import\s+url\s*\(\s*[""']?https?://[^)]+\)?", 
+                    "", 
+                    RegexOptions.IgnoreCase);
+                
+                // Block external fonts
+                html = Regex.Replace(html, 
+                    @"@font-face\s*\{[^}]*url\s*\(\s*[""']?https?://[^)]+\)[^}]*\}", 
+                    "", 
+                    RegexOptions.IgnoreCase);
+                
+                // Block external background images in inline styles (but keep data: URIs)
+                html = Regex.Replace(html, 
+                    @"(style\s*=\s*[""'][^""']*)(background(?:-image)?\s*:\s*url\s*\(\s*[""']?)(?!data:)https?://[^)]+\)", 
+                    "$1none)", 
+                    RegexOptions.IgnoreCase);
+            }
 
             // WICHTIG: Style-Tags und inline-style Attribute NICHT entfernen
             // Dadurch bleibt das originale Styling der E-Mail erhalten

@@ -2428,4 +2428,16 @@
   <data name="TotalAttachments" xml:space="preserve">
     <value>Totaal aantal bijlagen</value>
   </data>
+  <data name="ShowHtml" xml:space="preserve">
+    <value>HTML weergeven</value>
+  </data>
+  <data name="ShowPlainText" xml:space="preserve">
+    <value>Platte tekst weergeven</value>
+  </data>
+  <data name="SwitchToHtml" xml:space="preserve">
+    <value>Wissel naar HTML-weergave</value>
+  </data>
+  <data name="SwitchToPlainText" xml:space="preserve">
+    <value>Wissel naar platte tekstweergave</value>
+  </data>
 </root>

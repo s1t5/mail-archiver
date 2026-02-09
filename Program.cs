@@ -114,6 +114,10 @@ builder.Services.Configure<UploadOptions>(
 builder.Services.Configure<SelectionOptions>(
     builder.Configuration.GetSection("Selection"));
 
+// Add View Options
+builder.Services.Configure<ViewOptions>(
+    builder.Configuration.GetSection("View"));
+
 // Add TimeZone Options
 builder.Services.Configure<TimeZoneOptions>(
     builder.Configuration.GetSection("TimeZone"));

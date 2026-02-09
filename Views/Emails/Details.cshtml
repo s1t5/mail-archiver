@@ -218,24 +218,45 @@
             <div class="email-content mt-3">
                 <div class="d-flex justify-content-between align-items-center mb-2">
                     <h6 class="mb-0 text-muted">@Localizer["EmailContent"]</h6>
-                    <a asp-action="RawContent" asp-route-id="@Model.Email.Id" target="_blank"
-                        class="btn btn-outline-secondary btn-sm">
-                        <i class="bi bi-arrows-fullscreen"></i>
-                        <span class="d-none d-sm-inline">@Localizer["FullView"]</span>
-                    </a>
+                    <div class="btn-group" role="group">
+                        @* Show toggle button only if both HTML and plain text are available *@
+                        @if (Model.HasHtmlBody && Model.HasPlainTextBody)
+                        {
+                            <button type="button" id="view-toggle-btn" class="btn btn-outline-primary btn-sm" onclick="toggleEmailView()">
+                                <i class="bi bi-file-text"></i>
+                                <span id="toggle-btn-text">@(Model.DefaultToPlainText ? Localizer["ShowHtml"] : Localizer["ShowPlainText"])</span>
+                            </button>
+                        }
+                        <a id="full-view-link" asp-action="RawContent" asp-route-id="@Model.Email.Id" asp-route-plainText="@(Model.DefaultToPlainText ? "true" : "false")" target="_blank"
+                            class="btn btn-outline-secondary btn-sm">
+                            <i class="bi bi-arrows-fullscreen"></i>
+                            <span class="d-none d-sm-inline">@Localizer["FullView"]</span>
+                        </a>
+                    </div>
                 </div>
 
-        @if (!string.IsNullOrEmpty(Model.Email.HtmlBody))
-        {
-            <div class="email-content-container" style="min-height: 800px;">
-                <iframe id="email-content-frame" src="@Url.Action("RawContent", new { id = Model.Email.Id })"
-                    class="w-100 border rounded email-iframe" sandbox="allow-same-origin allow-popups allow-downloads allow-forms allow-modals allow-orientation-lock allow-pointer-lock allow-presentation allow-scripts allow-top-navigation-by-user-activation" style="min-height: 800px; height: 800px; max-height: 1200px;"></iframe>
-            </div>
-        }
-                else
+                @* HTML View Container *@
+                @if (Model.HasHtmlBody)
                 {
-                    <div class="border rounded p-3 bg-light">
-                        <pre class="mb-0 email-text-content">@Model.Email.Body</pre>
+                    <div id="html-view-container" class="email-content-container" style="min-height: 800px; display: @(Model.DefaultToPlainText && Model.HasPlainTextBody ? "none" : "block");">
+                        <iframe id="email-content-frame" src="@Url.Action("RawContent", new { id = Model.Email.Id })"
+                            class="w-100 border rounded email-iframe" sandbox="allow-same-origin allow-popups allow-downloads allow-forms allow-modals allow-orientation-lock allow-pointer-lock allow-presentation allow-scripts allow-top-navigation-by-user-activation" style="min-height: 800px; height: 800px; max-height: 1200px;"></iframe>
+                    </div>
+                }
+
+                @* Plain Text View Container *@
+                @if (Model.HasPlainTextBody)
+                {
+                    <div id="text-view-container" class="border rounded p-3 bg-light" style="display: @(Model.DefaultToPlainText || !Model.HasHtmlBody ? "block" : "none");">
+                        <pre class="mb-0 email-text-content" style="white-space: pre-wrap; word-wrap: break-word;">@Model.PlainTextBody</pre>
+                    </div>
+                }
+
+                @* Fallback if neither HTML nor plain text is available *@
+                @if (!Model.HasHtmlBody && !Model.HasPlainTextBody)
+                {
+                    <div class="border rounded p-3 bg-light text-muted">
+                        <p class="mb-0">@Localizer["EmailContent"] not available</p>
                     </div>
                 }
             </div>
@@ -303,142 +324,183 @@
     </div>
 </div>
 
-    <script>
-        // Localized strings for JavaScript
-        const localizedStrings = {
-            previewNotAvailable: '@Localizer["PreviewNotAvailable"]',
-            fileTypeCannotBePreviewed: '@Localizer["FileTypeCannotBePreviewed"]'
-        };
 
-        // Function to format email body for reply (prefix each line with "> ")
-        function formatReplyBody(body) {
-            if (!body) return '';
-            
-            // Split into lines, prefix each line with "> ", and join back
-            return body.split('\n').map(line => `> ${line}`).join('\n');
+<script>
+    // Localized strings for JavaScript
+    const localizedStrings = {
+        previewNotAvailable: '@Localizer["PreviewNotAvailable"]',
+        fileTypeCannotBePreviewed: '@Localizer["FileTypeCannotBePreviewed"]',
+        showPlainText: '@Localizer["ShowPlainText"]',
+        showHtml: '@Localizer["ShowHtml"]'
+    };
+
+    // Track current view state (true = HTML, false = plain text)
+    let isShowingHtml = @(Model.DefaultToPlainText && Model.HasPlainTextBody ? "false" : "true");
+
+    // Function to toggle between HTML and plain text views
+    function toggleEmailView() {
+        const htmlContainer = document.getElementById('html-view-container');
+        const textContainer = document.getElementById('text-view-container');
+        const toggleBtn = document.getElementById('view-toggle-btn');
+        const toggleBtnText = document.getElementById('toggle-btn-text');
+        const fullViewLink = document.getElementById('full-view-link');
+
+        if (isShowingHtml) {
+            // Switch to plain text
+            if (htmlContainer) htmlContainer.style.display = 'none';
+            if (textContainer) textContainer.style.display = 'block';
+            if (toggleBtnText) toggleBtnText.textContent = localizedStrings.showHtml;
+            // Update Full View link to use plain text
+            if (fullViewLink) {
+                const url = new URL(fullViewLink.href);
+                url.searchParams.set('plainText', 'true');
+                fullViewLink.href = url.toString();
+            }
+            isShowingHtml = false;
+        } else {
+            // Switch to HTML
+            if (htmlContainer) htmlContainer.style.display = 'block';
+            if (textContainer) textContainer.style.display = 'none';
+            if (toggleBtnText) toggleBtnText.textContent = localizedStrings.showPlainText;
+            // Update Full View link to use HTML
+            if (fullViewLink) {
+                const url = new URL(fullViewLink.href);
+                url.searchParams.set('plainText', 'false');
+                fullViewLink.href = url.toString();
+            }
+            isShowingHtml = true;
         }
+    }
 
-        // Function to handle reply button click
-        function handleReplyClick(event) {
-            event.preventDefault();
-            
-            // Get data from data attributes set on the button
-            const button = event.currentTarget;
-            const sender = button.getAttribute('data-sender');
-            const subject = button.getAttribute('data-subject');
-            const sentDate = button.getAttribute('data-date');
-            const originalBody = button.getAttribute('data-body') || "[Original content not available]";
-            
-            // Format the body with ">" prefix for each line
-            let formattedBody = formatReplyBody(originalBody);
-            
-            // Add the header information
-            const replyHeader = `On ${sentDate}, ${sender} wrote:\n\n`;
-            const fullBody = replyHeader + formattedBody;
-            
-            // Check size limitations (mailto URLs typically have ~2000 character limit)
-            const maxBodyLength = 1500; // Conservative limit to account for other URL parts
-            let finalBody = fullBody;
-            if (fullBody.length > maxBodyLength) {
-                // Truncate and add notice
-                finalBody = fullBody.substring(0, maxBodyLength - 100) + "\n\n[Message truncated due to size limitations]";
-            }
-            
-            // Create and trigger mailto link
-            const mailtoUrl = `mailto:${sender}?subject=${encodeURIComponent("Re: " + subject)}&body=${encodeURIComponent(finalBody)}`;
-            
-            // Check if URL is too long
-            if (mailtoUrl.length > 1800) {
-                console.warn('Mailto URL is very long and may exceed browser/email client limits');
-            }
-            
-            window.location.href = mailtoUrl;
+    // Function to format email body for reply (prefix each line with "> ")
+    function formatReplyBody(body) {
+        if (!body) return '';
+        
+        // Split into lines, prefix each line with "> ", and join back
+        return body.split('\n').map(line => `> ${line}`).join('\n');
+    }
+
+    // Function to handle reply button click
+    function handleReplyClick(event) {
+        event.preventDefault();
+        
+        // Get data from data attributes set on the button
+        const button = event.currentTarget;
+        const sender = button.getAttribute('data-sender');
+        const subject = button.getAttribute('data-subject');
+        const sentDate = button.getAttribute('data-date');
+        const originalBody = button.getAttribute('data-body') || "[Original content not available]";
+        
+        // Format the body with ">" prefix for each line
+        let formattedBody = formatReplyBody(originalBody);
+        
+        // Add the header information
+        const replyHeader = `On ${sentDate}, ${sender} wrote:\n\n`;
+        const fullBody = replyHeader + formattedBody;
+        
+        // Check size limitations (mailto URLs typically have ~2000 character limit)
+        const maxBodyLength = 1500; // Conservative limit to account for other URL parts
+        let finalBody = fullBody;
+        if (fullBody.length > maxBodyLength) {
+            // Truncate and add notice
+            finalBody = fullBody.substring(0, maxBodyLength - 100) + "\n\n[Message truncated due to size limitations]";
         }
+        
+        // Create and trigger mailto link
+        const mailtoUrl = `mailto:${sender}?subject=${encodeURIComponent("Re: " + subject)}&body=${encodeURIComponent(finalBody)}`;
+        
+        // Check if URL is too long
+        if (mailtoUrl.length > 1800) {
+            console.warn('Mailto URL is very long and may exceed browser/email client limits');
+        }
+        
+        window.location.href = mailtoUrl;
+    }
 
-        // Handle mobile reply button click
-        document.addEventListener('DOMContentLoaded', function () {
-            const mobileReplyButton = document.getElementById('replyButtonMobile');
-            if (mobileReplyButton) {
-                mobileReplyButton.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    handleReplyClick(e);
-                });
-            }
-
-            // Attachment preview functionality
-            const previewButtons = document.querySelectorAll('.attachment-preview-btn');
-            const previewModal = new bootstrap.Modal(document.getElementById('attachmentPreviewModal'));
-            const previewContent = document.getElementById('previewContent');
-            const previewFileName = document.getElementById('previewFileName');
-            const downloadBtn = document.getElementById('downloadAttachmentBtn');
-            const downloadBtnFooter = document.getElementById('downloadAttachmentBtnFooter');
-
-            previewButtons.forEach(button => {
-                button.addEventListener('click', function () {
-                    const emailId = this.getAttribute('data-email-id');
-                    const attachmentId = this.getAttribute('data-attachment-id');
-                    const fileName = this.getAttribute('data-filename');
-                    const contentType = this.getAttribute('data-content-type');
-                    const downloadUrl = this.getAttribute('data-download-url');
-                    const previewUrl = this.getAttribute('data-preview-url');
-
-                    // Set file name in modal header
-                    previewFileName.textContent = fileName;
-
-                    // Set download links
-                    downloadBtn.href = downloadUrl;
-                    downloadBtnFooter.href = downloadUrl;
-
-                    // Show loading spinner
-                    previewContent.innerHTML = '<div class="d-flex justify-content-center align-items-center h-100"><div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div></div>';
-
-                    // Show modal
-                    previewModal.show();
-
-                    // Determine how to display based on content type
-                    if (contentType.startsWith('image/')) {
-                        // Display image directly
-                        previewContent.innerHTML = `<img src="${previewUrl}" class="img-fluid" alt="${fileName}" style="max-height: 70vh;">`;
-                    } else if (contentType === 'application/pdf') {
-                        // Display PDF using iframe
-                        previewContent.innerHTML = `<iframe src="${previewUrl}" type="application/pdf" width="100%" height="600px" />`;
-                    } else if (contentType.startsWith('text/')) {
-                        // Display text files
-                        fetch(previewUrl)
-                            .then(response => response.text())
-                            .then(text => {
-                                previewContent.innerHTML = `<pre class="text-start" style="white-space: pre-wrap; max-height: 70vh; overflow: auto;">${escapeHtml(text)}</pre>`;
-                            })
-                            .catch(error => {
-                                previewContent.innerHTML = `<div class="alert alert-danger">Error loading file: ${error.message}</div>`;
-                            });
-                    } else {
-                        // For other file types, show download prompt
-                        previewContent.innerHTML = `
-                            <div class="d-flex flex-column align-items-center justify-content-center h-100">
-                                <i class="bi bi-file-earmark-arrow-down" style="font-size: 4rem;"></i>
-                                <h5 class="mt-3">${localizedStrings.previewNotAvailable}</h5>
-                                <p>${localizedStrings.fileTypeCannotBePreviewed}</p>
-                            </div>
-                        `;
-                    }
-                });
+    // Handle mobile reply button click
+    document.addEventListener('DOMContentLoaded', function () {
+        const mobileReplyButton = document.getElementById('replyButtonMobile');
+        if (mobileReplyButton) {
+            mobileReplyButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                handleReplyClick(e);
             });
+        }
 
-            // Helper function to escape HTML
-            function escapeHtml(text) {
-                const map = {
-                    '&': '&',
-                    '<': '<',
-                    '>': '>',
-                    '"': '"',
-                    "'": '&#039;'
-                };
-                
-                return text.replace(/[&<>"']/g, function(m) { return map[m]; });
-            }
+        // Attachment preview functionality
+        const previewButtons = document.querySelectorAll('.attachment-preview-btn');
+        const previewModal = new bootstrap.Modal(document.getElementById('attachmentPreviewModal'));
+        const previewContent = document.getElementById('previewContent');
+        const previewFileName = document.getElementById('previewFileName');
+        const downloadBtn = document.getElementById('downloadAttachmentBtn');
+        const downloadBtnFooter = document.getElementById('downloadAttachmentBtnFooter');
+
+        previewButtons.forEach(button => {
+            button.addEventListener('click', function () {
+                const emailId = this.getAttribute('data-email-id');
+                const attachmentId = this.getAttribute('data-attachment-id');
+                const fileName = this.getAttribute('data-filename');
+                const contentType = this.getAttribute('data-content-type');
+                const downloadUrl = this.getAttribute('data-download-url');
+                const previewUrl = this.getAttribute('data-preview-url');
+
+                // Set file name in modal header
+                previewFileName.textContent = fileName;
+
+                // Set download links
+                downloadBtn.href = downloadUrl;
+                downloadBtnFooter.href = downloadUrl;
+
+                // Show loading spinner
+                previewContent.innerHTML = '<div class="d-flex justify-content-center align-items-center h-100"><div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div></div>';
+
+                // Show modal
+                previewModal.show();
+
+                // Determine how to display based on content type
+                if (contentType.startsWith('image/')) {
+                    // Display image directly
+                    previewContent.innerHTML = `<img src="${previewUrl}" class="img-fluid" alt="${fileName}" style="max-height: 70vh;">`;
+                } else if (contentType === 'application/pdf') {
+                    // Display PDF using iframe
+                    previewContent.innerHTML = `<iframe src="${previewUrl}" type="application/pdf" width="100%" height="600px" />`;
+                } else if (contentType.startsWith('text/')) {
+                    // Display text files
+                    fetch(previewUrl)
+                        .then(response => response.text())
+                        .then(text => {
+                            previewContent.innerHTML = `<pre class="text-start" style="white-space: pre-wrap; max-height: 70vh; overflow: auto;">${escapeHtml(text)}</pre>`;
+                        })
+                        .catch(error => {
+                            previewContent.innerHTML = `<div class="alert alert-danger">Error loading file: ${error.message}</div>`;
+                        });
+                } else {
+                    // For other file types, show download prompt
+                    previewContent.innerHTML = `
+                        <div class="d-flex flex-column align-items-center justify-content-center h-100">
+                            <i class="bi bi-file-earmark-arrow-down" style="font-size: 4rem;"></i>
+                            <h5 class="mt-3">${localizedStrings.previewNotAvailable}</h5>
+                            <p>${localizedStrings.fileTypeCannotBePreviewed}</p>
+                        </div>
+                    `;
+                }
+            });
         });
-    </script>
+
+        // Helper function to escape HTML
+        function escapeHtml(text) {
+            const map = {
+                '&': '&',
+                '<': '<',
+                '>': '>',
+                '"': '"',
+                "'": '&#039;'
+            };
+            
+            return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+        }
+    });
+</script>
 
 @functions {
     string FormatFileSize(long bytes)

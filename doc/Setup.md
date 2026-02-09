@@ -55,6 +55,10 @@ services:
       # Selection Settings
       - Selection__MaxSelectableEmails=250
 
+      # View Settings (Privacy & Display)
+      - View__DefaultToPlainText=true
+      - View__BlockExternalResources=false
+
       # Npgsql Settings
       - Npgsql__CommandTimeout=900
 
@@ -186,6 +190,29 @@ docker compose restart
 
 ### 🎯 Selection Settings
 - `Selection__MaxSelectableEmails`: The maximum number of emails that can be selected at once.
+
+### 👁️ View Settings (Privacy & Display)
+- `View__DefaultToPlainText`: Controls the default email view mode for privacy and tracking prevention (true/false). Default is `false`.
+  - When set to `true`: Emails open in plain-text view by default, preventing automatic loading of tracking pixels, external images, and web beacons. This is recommended for users concerned about email tracking and privacy.
+  - When set to `false`: Emails open in HTML view by default, displaying the formatted email with images and styling.
+  - Users can toggle between HTML and plain-text views using a button in the email details page (only visible when both formats are available).
+  - The "Full View" link respects the currently selected view mode.
+
+- `View__BlockExternalResources`: Blocks external resources (remote images, external CSS, external scripts, web fonts, etc.) in HTML email views to prevent tracking and improve privacy (true/false). Default is `false`.
+  - When set to `true`: External resources are filtered out when displaying HTML emails. Only inline content and data URIs (including inline attachments via `cid:` references) are displayed.
+  - When set to `false`: HTML emails are displayed with all their original external resources.
+  - **Important**: This setting only affects email **display**. Archived emails are stored completely unchanged in the database with all original content preserved.
+  - Blocked resources include:
+    - Remote images (tracking pixels, external images hosted on servers)
+    - External CSS stylesheets
+    - External fonts via @font-face
+    - External CSS imports via @import
+    - External background images
+  - Allowed resources:
+    - Inline images embedded as data: URIs
+    - Inline attachments referenced via cid: URIs
+    - Inline CSS styles and style tags
+  - This setting works independently from `DefaultToPlainText` and provides an additional layer of privacy protection when viewing HTML emails.
 
 ### 🗃️ Npgsql Settings
 - `Npgsql__CommandTimeout`: The timeout for database commands in seconds.

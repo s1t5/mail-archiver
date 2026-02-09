@@ -2429,4 +2429,16 @@
   <data name="TotalAttachments" xml:space="preserve">
     <value>Gesamte Anhänge</value>
   </data>
+  <data name="ShowHtml" xml:space="preserve">
+    <value>HTML anzeigen</value>
+  </data>
+  <data name="ShowPlainText" xml:space="preserve">
+    <value>Reinen Text anzeigen</value>
+  </data>
+  <data name="SwitchToHtml" xml:space="preserve">
+    <value>Zu HTML-Ansicht wechseln</value>
+  </data>
+  <data name="SwitchToPlainText" xml:space="preserve">
+    <value>Zu reiner Textansicht wechseln</value>
+  </data>
 </root>

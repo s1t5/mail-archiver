@@ -2474,4 +2474,16 @@
   <data name="EmailDeletionJobs" xml:space="preserve">
     <value>Zadania Usuwania E-Mail</value>
   </data>
+  <data name="ShowHtml" xml:space="preserve">
+  <value>Pokaż HTML</value>
+  </data>
+  <data name="ShowPlainText" xml:space="preserve">
+    <value>Pokaż czysty tekst</value>
+  </data>
+  <data name="SwitchToHtml" xml:space="preserve">
+    <value>Przełącz na widok HTML</value>
+  </data>
+  <data name="SwitchToPlainText" xml:space="preserve">
+    <value>Przełącz na widok czystego tekstu</value>
+  </data>
 </root>
