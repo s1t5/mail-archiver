@@ -409,7 +409,11 @@ namespace MailArchiver.Services
 
         private async Task ProcessEmailsForMBoxExportByFolder(SelectedEmailsExportJob job, MailArchiverDbContext context, Stream mboxStream, string folderName, CancellationToken cancellationToken)
         {
-            using var writer = new StreamWriter(mboxStream, Encoding.UTF8, leaveOpen: true);
+            // Use UTF-8 without BOM - mbox files must start with "From " at byte offset 0
+            // A BOM (0xEF 0xBB 0xBF) before "From " causes mbox parsers to reject the file
+            using var writer = new StreamWriter(mboxStream, new UTF8Encoding(false), leaveOpen: true);
+            // Mbox format requires Unix line endings (LF) for cross-platform compatibility
+            writer.NewLine = "\n";
 
             var emails = context.ArchivedEmails
                 .Where(e => job.EmailIds.Contains(e.Id) && e.FolderName == folderName)
