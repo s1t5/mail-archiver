@@ -104,6 +104,12 @@ namespace MailArchiver.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<string>("BodyUntruncatedHtml")
+                        .HasColumnType("text");
+
+                    b.Property<string>("BodyUntruncatedText")
+                        .HasColumnType("text");
+
                     b.Property<string>("Cc")
                         .IsRequired()
                         .HasColumnType("text");
@@ -141,6 +147,9 @@ namespace MailArchiver.Migrations
 
                     b.Property<string>("MessageId")
                         .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("RawHeaders")
                         .HasColumnType("text");
 
                     b.Property<DateTime>("ReceivedDate")

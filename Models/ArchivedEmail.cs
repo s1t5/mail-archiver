@@ -20,6 +20,10 @@ namespace MailArchiver.Models
         public bool HasAttachments { get; set; }
         public string FolderName { get; set; }
 
+        // Raw email headers as stored in the original email
+        // Contains all headers including Received, Return-Path, X-Headers, etc.
+        public string? RawHeaders { get; set; }
+
         // Compliance fields for integrity and immutability
         public string? ContentHash { get; set; }
         public DateTime? HashCreatedAt { get; set; }

@@ -559,6 +559,9 @@ private readonly IServiceProvider _serviceProvider;
                 var dateTimeHelper = scope.ServiceProvider.GetRequiredService<DateTimeHelper>();
                 var convertedSentDate = dateTimeHelper.ConvertToDisplayTimeZone(message.Date);
 
+                // Extract raw headers for forensic/compliance purposes
+                var rawHeaders = ExtractRawHeaders(message);
+
                 var archivedEmail = new ArchivedEmail
                 {
                     MailAccountId = account.Id,
@@ -577,6 +580,7 @@ private readonly IServiceProvider _serviceProvider;
                     BodyUntruncatedText = isBodyTruncated && !string.IsNullOrEmpty(message.TextBody) ? message.TextBody : (isBodyTruncated && !string.IsNullOrEmpty(message.HtmlBody) ? message.HtmlBody : null),
                     BodyUntruncatedHtml = isHtmlTruncated && !string.IsNullOrEmpty(message.HtmlBody) ? message.HtmlBody : null,
                     FolderName = job.TargetFolder,
+                    RawHeaders = rawHeaders, // Store raw headers for forensic/compliance purposes
                     Attachments = new List<EmailAttachment>() // Initialize collection for hash calculation
                 };
 
@@ -924,6 +928,53 @@ private readonly IServiceProvider _serviceProvider;
                 "image/svg+xml" => ".svg",
                 _ => ".dat"
             };
+        }
+
+        /// <summary>
+        /// Extracts all raw headers from a MimeMessage as a string.
+        /// This includes all headers like Received, Return-Path, X-Headers, etc.
+        /// Useful for forensic and compliance purposes.
+        /// </summary>
+        /// <param name="message">The MimeMessage to extract headers from</param>
+        /// <returns>A string containing all raw headers, or null if extraction fails</returns>
+        private string? ExtractRawHeaders(MimeMessage message)
+        {
+            try
+            {
+                if (message.Headers == null || !message.Headers.Any())
+                {
+                    return null;
+                }
+
+                var headersBuilder = new StringBuilder();
+
+                // Iterate through all headers in their original order
+                foreach (var header in message.Headers)
+                {
+                    // Format: "Header-Name: Header-Value\r\n"
+                    headersBuilder.AppendLine($"{header.Field}: {header.Value}");
+                }
+
+                var rawHeaders = headersBuilder.ToString();
+
+                // Limit size to prevent excessive storage (max ~100KB for headers)
+                const int maxHeaderSize = 100_000;
+                if (rawHeaders.Length > maxHeaderSize)
+                {
+                    _logger.LogWarning("Raw headers exceed {MaxSize} bytes, truncating", maxHeaderSize);
+                    rawHeaders = rawHeaders.Substring(0, maxHeaderSize) + "\r\n[... Headers truncated due to size ...]";
+                }
+
+                _logger.LogDebug("Extracted {Count} raw headers ({Size} bytes) from email", 
+                    message.Headers.Count, rawHeaders.Length);
+
+                return rawHeaders;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to extract raw headers from email: {Message}", ex.Message);
+                return null;
+            }
         }
 
         private bool DetermineIfOutgoing(MimeMessage message, MailAccount account)

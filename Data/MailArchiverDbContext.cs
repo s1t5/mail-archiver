@@ -61,6 +61,21 @@ namespace MailArchiver.Data
                 .Property(e => e.FolderName)
                 .HasColumnType("text");
 
+            modelBuilder.Entity<ArchivedEmail>()
+                .Property(e => e.RawHeaders)
+                .HasColumnType("text")
+                .IsRequired(false);
+
+            modelBuilder.Entity<ArchivedEmail>()
+                .Property(e => e.BodyUntruncatedText)
+                .HasColumnType("text")
+                .IsRequired(false);
+
+            modelBuilder.Entity<ArchivedEmail>()
+                .Property(e => e.BodyUntruncatedHtml)
+                .HasColumnType("text")
+                .IsRequired(false);
+
             // Indizes NUR auf kleine oder eindeutige Felder setzen, NICHT auf Text-Felder
             // Entferne die Indizes von Subject, From, und To
 

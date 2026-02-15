@@ -730,6 +730,59 @@ namespace MailArchiver.Services.Core
                 }
             }
 
+            if (!string.IsNullOrEmpty(email.Bcc))
+            {
+                foreach (var bcc in email.Bcc.Split(',', StringSplitOptions.RemoveEmptyEntries))
+                {
+                    try { message.Bcc.Add(InternetAddress.Parse(bcc.Trim())); }
+                    catch { continue; }
+                }
+            }
+
+            // Import raw headers if available (for forensic/compliance purposes)
+            if (!string.IsNullOrEmpty(email.RawHeaders))
+            {
+                try
+                {
+                    // Parse and add raw headers to preserve original headers
+                    using var reader = new StringReader(email.RawHeaders);
+                    string? line;
+                    while ((line = reader.ReadLine()) != null)
+                    {
+                        var colonIndex = line.IndexOf(':');
+                        if (colonIndex > 0)
+                        {
+                            var headerName = line.Substring(0, colonIndex).Trim();
+                            var headerValue = line.Substring(colonIndex + 1).Trim();
+                            
+                            // Skip headers that are already set by MimeMessage properties
+                            // to avoid duplicates
+                            var skipHeaders = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+                            {
+                                "Subject", "From", "To", "Cc", "Bcc", "Date", "Message-ID",
+                                "MIME-Version", "Content-Type"
+                            };
+                            
+                            if (!skipHeaders.Contains(headerName))
+                            {
+                                try
+                                {
+                                    message.Headers.Add(headerName, headerValue);
+                                }
+                                catch (Exception ex)
+                                {
+                                    _logger.LogDebug("Could not add header {HeaderName}: {Error}", headerName, ex.Message);
+                                }
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Error parsing raw headers for email {EmailId}", email.Id);
+                }
+            }
+
             var htmlBodyToExport = !string.IsNullOrEmpty(email.BodyUntruncatedHtml)
                 ? email.BodyUntruncatedHtml
                 : email.HtmlBody;
@@ -953,9 +1006,15 @@ namespace MailArchiver.Services.Core
 
         public async Task<bool> ArchiveEmailAsync(MailAccount account, MimeMessage message, bool isOutgoing, string? folderName = null)
         {
+            // Extract date with fallback handling for malformed Date headers
+            var emailDate = ExtractEmailDate(message);
+
+            // Extract raw headers for forensic/compliance purposes
+            var rawHeaders = ExtractRawHeaders(message);
+
             // Check if this email is already archived
             var messageId = message.MessageId ??
-                $"{message.From}-{message.To}-{message.Subject}-{message.Date.Ticks}";
+                $"{message.From}-{message.To}-{message.Subject}-{emailDate.Ticks}";
 
             var existingEmail = await _context.ArchivedEmails
                 .FirstOrDefaultAsync(e => e.MessageId == messageId && e.MailAccountId == account.Id);
@@ -979,7 +1038,7 @@ namespace MailArchiver.Services.Core
             try
             {
                 // Convert timestamp to configured display timezone
-                var convertedSentDate = _dateTimeHelper.ConvertToDisplayTimeZone(message.Date);
+                var convertedSentDate = _dateTimeHelper.ConvertToDisplayTimeZone(emailDate);
                 var subject = CleanText(message.Subject ?? "(No Subject)");
                 // Extract email address from From field
                 var fromAddress = message.From?.FirstOrDefault() as MailboxAddress;
@@ -1125,6 +1184,7 @@ namespace MailArchiver.Services.Core
                     BodyUntruncatedText = isBodyTruncated ? (!string.IsNullOrEmpty(message.TextBody) ? message.TextBody : message.HtmlBody) : null,
                     BodyUntruncatedHtml = isHtmlTruncated ? message.HtmlBody : null,
                     FolderName = cleanFolderName,
+                    RawHeaders = rawHeaders, // Store raw headers for forensic/compliance purposes
                     Attachments = new List<EmailAttachment>() // Initialize collection for hash calculation
                 };
 
@@ -1363,6 +1423,223 @@ namespace MailArchiver.Services.Core
                 "application/xml" => ".xml",
                 _ => ".dat"
             };
+        }
+
+        #endregion
+
+        #region Raw Headers Extraction
+
+        /// <summary>
+        /// Extracts all raw headers from a MimeMessage as a string.
+        /// This includes all headers like Received, Return-Path, X-Headers, etc.
+        /// Useful for forensic and compliance purposes.
+        /// </summary>
+        /// <param name="message">The MimeMessage to extract headers from</param>
+        /// <returns>A string containing all raw headers, or null if extraction fails</returns>
+        private string? ExtractRawHeaders(MimeMessage message)
+        {
+            try
+            {
+                if (message.Headers == null || !message.Headers.Any())
+                {
+                    return null;
+                }
+
+                var headersBuilder = new StringBuilder();
+
+                // Iterate through all headers in their original order
+                foreach (var header in message.Headers)
+                {
+                    // Format: "Header-Name: Header-Value\r\n"
+                    headersBuilder.AppendLine($"{header.Field}: {header.Value}");
+                }
+
+                var rawHeaders = headersBuilder.ToString();
+
+                // Limit size to prevent excessive storage (max ~100KB for headers)
+                const int maxHeaderSize = 100_000;
+                if (rawHeaders.Length > maxHeaderSize)
+                {
+                    _logger.LogWarning("Raw headers exceed {MaxSize} bytes, truncating", maxHeaderSize);
+                    rawHeaders = rawHeaders.Substring(0, maxHeaderSize) + "\r\n[... Headers truncated due to size ...]";
+                }
+
+                _logger.LogDebug("Extracted {Count} raw headers ({Size} bytes) from email", 
+                    message.Headers.Count, rawHeaders.Length);
+
+                return rawHeaders;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to extract raw headers from email: {Message}", ex.Message);
+                return null;
+            }
+        }
+
+        #endregion
+
+        #region Date Extraction
+
+        /// <summary>
+        /// Extracts the date from a MimeMessage with fallback handling for malformed Date headers.
+        /// Tries the Date header first, then falls back to Received headers, and finally uses a default date.
+        /// </summary>
+        /// <param name="message">The MimeMessage to extract the date from</param>
+        /// <returns>A DateTimeOffset representing the email's date</returns>
+        private DateTimeOffset ExtractEmailDate(MimeMessage message)
+        {
+            // Try to get the date from the Date header
+            try
+            {
+                if (message.Date != default)
+                {
+                    return message.Date;
+                }
+            }
+            catch (ArgumentOutOfRangeException ex)
+            {
+                _logger.LogWarning("Malformed Date header in email Subject={Subject}, attempting fallback to Received headers. Error: {Error}",
+                    message.Subject, ex.Message);
+            }
+            catch (FormatException ex)
+            {
+                _logger.LogWarning("Unparseable Date format in email Subject={Subject}, attempting fallback to Received headers. Error: {Error}",
+                    message.Subject, ex.Message);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning("Error parsing Date header in email Subject={Subject}, attempting fallback to Received headers. Error: {Error}",
+                    message.Subject, ex.Message);
+            }
+
+            // Fallback 1: Try to extract date from Received headers (newest first, which is typically at the top)
+            try
+            {
+                var receivedHeaders = message.Headers.Where(h => h.Id == HeaderId.Received).ToList();
+                
+                // Iterate through Received headers (they're typically in reverse chronological order)
+                // We want the oldest (last in the chain) which represents when the email was originally received
+                for (int i = receivedHeaders.Count - 1; i >= 0; i--)
+                {
+                    var receivedHeader = receivedHeaders[i].Value;
+                    var dateFromReceived = ExtractDateFromReceivedHeader(receivedHeader);
+                    
+                    if (dateFromReceived.HasValue)
+                    {
+                        _logger.LogInformation("Using date from Received header for email Subject={Subject}: {Date}",
+                            message.Subject, dateFromReceived.Value);
+                        return dateFromReceived.Value;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning("Error extracting date from Received headers for email Subject={Subject}: {Error}",
+                    message.Subject, ex.Message);
+            }
+
+            // Fallback 2: Try other date-related headers
+            try
+            {
+                // Try Resent-Date header
+                var resentDateHeader = message.Headers.FirstOrDefault(h => h.Id == HeaderId.ResentDate);
+                if (resentDateHeader != null)
+                {
+                    var dateValue = ParseDateHeaderValue(resentDateHeader.Value);
+                    if (dateValue.HasValue)
+                    {
+                        _logger.LogInformation("Using date from Resent-Date header for email Subject={Subject}: {Date}",
+                            message.Subject, dateValue.Value);
+                        return dateValue.Value;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogDebug("Error checking Resent-Date header: {Error}", ex.Message);
+            }
+
+            // Fallback 3: Use a default date (Unix epoch) to indicate unknown date
+            _logger.LogWarning("Could not extract date from any header for email Subject={Subject}, using default date",
+                message.Subject);
+            
+            return DateTimeOffset.MinValue;
+        }
+
+        /// <summary>
+        /// Extracts a date from a Received header value
+        /// </summary>
+        /// <param name="receivedHeader">The Received header value</param>
+        /// <returns>A DateTimeOffset if parsing was successful, null otherwise</returns>
+        private DateTimeOffset? ExtractDateFromReceivedHeader(string receivedHeader)
+        {
+            if (string.IsNullOrEmpty(receivedHeader))
+                return null;
+
+            // Received headers typically end with a date in format like:
+            // ; Sat, 16 Dec 2000 08:45:05 +0100 (CET)
+            // Find the semicolon that precedes the date
+            var lastSemicolon = receivedHeader.LastIndexOf(';');
+            if (lastSemicolon < 0 || lastSemicolon >= receivedHeader.Length - 1)
+                return null;
+
+            var datePart = receivedHeader.Substring(lastSemicolon + 1).Trim();
+
+            // Try to parse the date part
+            return ParseDateHeaderValue(datePart);
+        }
+
+        /// <summary>
+        /// Parses a date string from a header value, handling various formats gracefully
+        /// </summary>
+        /// <param name="dateString">The date string to parse</param>
+        /// <returns>A DateTimeOffset if parsing was successful, null otherwise</returns>
+        private DateTimeOffset? ParseDateHeaderValue(string dateString)
+        {
+            if (string.IsNullOrEmpty(dateString))
+                return null;
+
+            // Remove any trailing comments in parentheses like (CET) or (GMT)
+            var parenIndex = dateString.IndexOf('(');
+            if (parenIndex > 0)
+            {
+                dateString = dateString.Substring(0, parenIndex).Trim();
+            }
+
+            // Try various date formats
+            var formats = new[]
+            {
+                "ddd, d MMM yyyy H:mm:ss zzz",
+                "ddd, d MMM yyyy HH:mm:ss zzz",
+                "ddd, d MMM yyyy H:mm:ss",
+                "ddd, d MMM yyyy HH:mm:ss",
+                "d MMM yyyy H:mm:ss zzz",
+                "d MMM yyyy HH:mm:ss zzz",
+                "d MMM yyyy H:mm:ss",
+                "d MMM yyyy HH:mm:ss",
+                "ddd, d MMM yy H:mm:ss zzz",
+                "ddd, d MMM yy HH:mm:ss zzz",
+                "d MMM yy H:mm:ss zzz",
+                "d MMM yy HH:mm:ss zzz"
+            };
+
+            foreach (var format in formats)
+            {
+                if (DateTimeOffset.TryParseExact(dateString, format, CultureInfo.InvariantCulture, 
+                    DateTimeStyles.AllowWhiteSpaces | DateTimeStyles.AssumeLocal, out var result))
+                {
+                    return result;
+                }
+            }
+
+            // Try the standard RFC 2822 date parsing as a fallback
+            if (DateTimeOffset.TryParse(dateString, CultureInfo.InvariantCulture, 
+                DateTimeStyles.AllowWhiteSpaces | DateTimeStyles.AssumeLocal, out var parsedDate))
+            {
+                return parsedDate;
+            }
+
+            return null;
         }
 
         #endregion
