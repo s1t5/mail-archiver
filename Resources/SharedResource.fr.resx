@@ -2440,4 +2440,10 @@
   <data name="SwitchToPlainText" xml:space="preserve">
     <value>Passer à la vue texte brut</value>
   </data>
+  <data name="EnterFolderName" xml:space="preserve">
+    <value>Entrez le nom du dossier</value>
+  </data>
+  <data name="EnterFolderNameOrSelect" xml:space="preserve">
+    <value>Entrez un nouveau nom de dossier ou sélectionnez un dossier existant. Le dossier sera créé automatiquement lors de l'importation.</value>
+  </data>
 </root>

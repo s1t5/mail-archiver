@@ -2425,4 +2425,10 @@
   <data name="SwitchToPlainText" xml:space="preserve">
     <value>Switch to Plain Text View</value>
   </data>
+  <data name="EnterFolderName" xml:space="preserve">
+    <value>Enter folder name</value>
+  </data>
+  <data name="EnterFolderNameOrSelect" xml:space="preserve">
+    <value>Enter a new folder name or select an existing one. The folder will be created automatically during import.</value>
+  </data>
 </root>

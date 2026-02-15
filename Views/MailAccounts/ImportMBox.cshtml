@@ -53,11 +53,16 @@
 
                     <div class="col-md-6 mb-3">
                         <label asp-for="TargetFolder" class="form-label">@Localizer["TargetFolder"]</label>
+                        <!-- Dropdown für IMAP/M365 Konten -->
                         <select asp-for="TargetFolder" class="form-select" id="folderSelect">
                             <option value="">@Localizer["PlaceholderSelectAccountFirst"]</option>
                             <option value="INBOX">INBOX</option>
                         </select>
-                        <div class="form-text">
+                        <!-- Freitextfeld für IMPORT-Konten (mit Autovervollständigung) -->
+                        <input type="text" asp-for="TargetFolder" class="form-control" id="folderInput" 
+                               placeholder="@Localizer["EnterFolderName"]" list="folderList" style="display: none;" />
+                        <datalist id="folderList"></datalist>
+                        <div class="form-text" id="folderHelpText">
                             @Localizer["PlaceholderSelectAccountFirst"]
                         </div>
                         <span asp-validation-for="TargetFolder" class="text-danger"></span>
@@ -109,6 +114,12 @@
     }
     <script>
         $(document).ready(function () {
+            // AccountProviders dictionary from server
+            const accountProviders = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.AccountProviders));
+            
+            // Provider type constant for IMPORT
+            const PROVIDER_IMPORT = 2; // ProviderType.IMPORT enum value
+            
             // File input change handler
             $('#mboxFileInput').on('change', function() {
                 const file = this.files[0];
@@ -147,44 +158,91 @@
 
             // Account selection change handler
             $('#accountSelect').change(function () {
-                const accountId = $(this).val();
+                const accountId = parseInt($(this).val());
                 updateSubmitButton();
                 
                 if (accountId) {
-                    $('#folderSelect').html('<option>@Localizer["LoadingFolders"]</option>');
+                    // Check if this is an IMPORT account
+                    const isImportAccount = accountProviders[accountId] === PROVIDER_IMPORT;
                     
-                    $.ajax({
-                        url: '@Url.Action("GetFolders", "MailAccounts")',
-                        data: { accountId: accountId },
-                        type: 'GET',
-                        dataType: 'json',
-                        success: function (data) {
-                            let options = '<option value="">@Localizer["PlaceholderSelectFolder"]</option>';
-                            let inboxFound = false;
-                            
-                            $.each(data, function (index, folderName) {
-                                options += '<option value="' + folderName + '">' + folderName + '</option>';
-                                if (folderName.toUpperCase() === 'INBOX') {
-                                    inboxFound = true;
+                    if (isImportAccount) {
+                        // IMPORT account: Show text input with autocomplete
+                        $('#folderSelect').hide().prop('disabled', true);
+                        $('#folderInput').show().prop('disabled', false);
+                        $('#folderHelpText').text('@Localizer["EnterFolderNameOrSelect"]');
+                        
+                        // Load existing folders for autocomplete
+                        $.ajax({
+                            url: '@Url.Action("GetFolders", "MailAccounts")',
+                            data: { accountId: accountId },
+                            type: 'GET',
+                            dataType: 'json',
+                            success: function (data) {
+                                let options = '';
+                                $.each(data, function (index, folderName) {
+                                    options += '<option value="' + folderName + '">';
+                                });
+                                $('#folderList').html(options);
+                                
+                                // Pre-fill with INBOX if empty
+                                if (!$('#folderInput').val()) {
+                                    $('#folderInput').val('INBOX');
                                 }
-                            });
-                            
-                            $('#folderSelect').html(options);
-                            
-                            if (inboxFound) {
-                                $("#folderSelect option").filter(function () {
-                                    return this.value.toUpperCase() === 'INBOX';
-                                }).prop('selected', true);
+                                updateSubmitButton();
+                            },
+                            error: function () {
+                                // On error, just keep INBOX as default
+                                $('#folderList').html('<option value="INBOX">');
+                                if (!$('#folderInput').val()) {
+                                    $('#folderInput').val('INBOX');
+                                }
+                                updateSubmitButton();
                             }
-                            
-                            updateSubmitButton();
-                        },
-                        error: function () {
-                            $('#folderSelect').html('<option value="">@Localizer["ErrorLoadingFolders"]</option><option value="INBOX">INBOX</option>');
-                        }
-                    });
+                        });
+                    } else {
+                        // IMAP/M365 account: Show dropdown
+                        $('#folderInput').hide().prop('disabled', true);
+                        $('#folderSelect').show().prop('disabled', false);
+                        $('#folderHelpText').text('@Localizer["PlaceholderSelectAccountFirst"]');
+                        $('#folderSelect').html('<option>@Localizer["LoadingFolders"]</option>');
+                        
+                        $.ajax({
+                            url: '@Url.Action("GetFolders", "MailAccounts")',
+                            data: { accountId: accountId },
+                            type: 'GET',
+                            dataType: 'json',
+                            success: function (data) {
+                                let options = '<option value="">@Localizer["PlaceholderSelectFolder"]</option>';
+                                let inboxFound = false;
+                                
+                                $.each(data, function (index, folderName) {
+                                    options += '<option value="' + folderName + '">' + folderName + '</option>';
+                                    if (folderName.toUpperCase() === 'INBOX') {
+                                        inboxFound = true;
+                                    }
+                                });
+                                
+                                $('#folderSelect').html(options);
+                                
+                                if (inboxFound) {
+                                    $("#folderSelect option").filter(function () {
+                                        return this.value.toUpperCase() === 'INBOX';
+                                    }).prop('selected', true);
+                                }
+                                
+                                updateSubmitButton();
+                            },
+                            error: function () {
+                                $('#folderSelect').html('<option value="">@Localizer["ErrorLoadingFolders"]</option><option value="INBOX">INBOX</option>');
+                            }
+                        });
+                    }
                 } else {
+                    // No account selected - reset both inputs
                     $('#folderSelect').html('<option value="">@Localizer["PlaceholderSelectAccountFirst"]</option>');
+                    $('#folderInput').val('').hide();
+                    $('#folderSelect').show();
+                    $('#folderHelpText').text('@Localizer["PlaceholderSelectAccountFirst"]');
                 }
             });
 
@@ -193,10 +251,19 @@
                 updateSubmitButton();
             });
 
+            // Folder input change handler (for IMPORT accounts)
+            $('#folderInput').on('input', function() {
+                updateSubmitButton();
+            });
+
             function updateSubmitButton() {
                 const hasFile = $('#mboxFileInput')[0].files.length > 0;
                 const hasAccount = $('#accountSelect').val() !== '';
-                const hasFolder = $('#folderSelect').val() !== '';
+                
+                // Check which input is visible and get folder value
+                const isImportAccount = $('#folderInput').is(':visible');
+                const folderValue = isImportAccount ? $('#folderInput').val() : $('#folderSelect').val();
+                const hasFolder = folderValue && folderValue.trim() !== '';
                 
                 $('#submitBtn').prop('disabled', !(hasFile && hasAccount && hasFolder));
             }
@@ -210,6 +277,11 @@
 
             // Form submission handler with progress indication
             $('#mboxImportForm').on('submit', function(e) {
+                // Sync folder input to hidden field for IMPORT accounts
+                if ($('#folderInput').is(':visible')) {
+                    $('#folderSelect').val($('#folderInput').val());
+                }
+                
                 const submitBtn = $('#submitBtn');
                 submitBtn.html('<i class="bi bi-hourglass-split me-2"></i>@Localizer["StartingImport"]');
                 submitBtn.prop('disabled', true);

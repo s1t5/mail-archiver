@@ -2486,4 +2486,10 @@
   <data name="SwitchToPlainText" xml:space="preserve">
     <value>Przełącz na widok czystego tekstu</value>
   </data>
+  <data name="EnterFolderName" xml:space="preserve">
+    <value>Wprowadź nazwę folderu</value>
+  </data>
+  <data name="EnterFolderNameOrSelect" xml:space="preserve">
+    <value>Wprowadź nową nazwę folderu lub wybierz istniejącą. Folder zostanie automatycznie utworzony podczas importu.</value>
+  </data>
 </root>

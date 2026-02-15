@@ -2440,4 +2440,10 @@
   <data name="SwitchToPlainText" xml:space="preserve">
     <value>Переключиться на просмотр обычного текста</value>
   </data>
+  <data name="EnterFolderName" xml:space="preserve">
+    <value>Введите имя папки</value>
+  </data>
+  <data name="EnterFolderNameOrSelect" xml:space="preserve">
+    <value>Введите новое имя папки или выберите существующее. Папка будет создана автоматически во время импорта.</value>
+  </data>
 </root>

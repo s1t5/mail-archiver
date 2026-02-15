@@ -2432,4 +2432,10 @@
   <data name="SwitchToPlainText" xml:space="preserve">
     <value>Áttérés a sima szöveg nézetre</value>
   </data>
+  <data name="EnterFolderName" xml:space="preserve">
+    <value>Adja meg a mappa nevét</value>
+  </data>
+  <data name="EnterFolderNameOrSelect" xml:space="preserve">
+    <value>Adjon meg egy új mappanevet vagy válasszon egy létezőt. A mappa az import során automatikusan létrejön.</value>
+  </data>
 </root>

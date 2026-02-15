@@ -2440,4 +2440,10 @@
   <data name="SwitchToPlainText" xml:space="preserve">
     <value>Wissel naar platte tekstweergave</value>
   </data>
+  <data name="EnterFolderName" xml:space="preserve">
+    <value>Voer de mapnaam in</value>
+  </data>
+  <data name="EnterFolderNameOrSelect" xml:space="preserve">
+    <value>Voer een nieuwe mapnaam in of selecteer een bestaande. De map wordt automatisch aangemaakt tijdens het importeren.</value>
+  </data>
 </root>

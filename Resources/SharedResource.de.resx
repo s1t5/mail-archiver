@@ -2441,4 +2441,10 @@
   <data name="SwitchToPlainText" xml:space="preserve">
     <value>Zu reiner Textansicht wechseln</value>
   </data>
+  <data name="EnterFolderName" xml:space="preserve">
+    <value>Ordnername eingeben</value>
+  </data>
+  <data name="EnterFolderNameOrSelect" xml:space="preserve">
+    <value>Geben Sie einen neuen Ordnernamen ein oder wählen Sie einen bestehenden aus. Der Ordner wird während des Imports automatisch erstellt.</value>
+  </data>
 </root>

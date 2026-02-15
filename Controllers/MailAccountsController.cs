@@ -995,7 +995,8 @@ var model = new MailAccountViewModel
                     Value = a.Id.ToString(),
                     Text = $"{a.Name} ({a.EmailAddress})"
                 }).ToList(),
-                MaxFileSize = _uploadOptions.MaxFileSizeBytes
+                MaxFileSize = _uploadOptions.MaxFileSizeBytes,
+                AccountProviders = accounts.ToDictionary(a => a.Id, a => a.Provider)
             };
 
             return View(model);
@@ -1669,7 +1670,30 @@ var model = new MailAccountViewModel
             try
             {
                 var account = await _context.MailAccounts.FindAsync(accountId);
-                if (account?.Provider == ProviderType.M365)
+                if (account == null)
+                {
+                    return Json(new List<string> { "INBOX" });
+                }
+
+                if (account.Provider == ProviderType.IMPORT)
+                {
+                    // Für IMPORT-Konten: Existierende Ordner aus der Datenbank abrufen
+                    var folders = await _context.ArchivedEmails
+                        .Where(e => e.MailAccountId == accountId && !string.IsNullOrEmpty(e.FolderName))
+                        .Select(e => e.FolderName)
+                        .Distinct()
+                        .OrderBy(f => f)
+                        .ToListAsync();
+                    
+                    // IMMER "INBOX" als Standardoption hinzufügen
+                    if (!folders.Contains("INBOX"))
+                    {
+                        folders.Insert(0, "INBOX");
+                    }
+                    
+                    return Json(folders);
+                }
+                else if (account.Provider == ProviderType.M365)
                 {
                     // Für M365-Konten den GraphEmailService verwenden
                     var folders = await _graphEmailService.GetMailFoldersAsync(account);

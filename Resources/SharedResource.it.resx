@@ -2440,4 +2440,10 @@
   <data name="SwitchToPlainText" xml:space="preserve">
     <value>Passa alla visualizzazione testo normale</value>
   </data>
+  <data name="EnterFolderName" xml:space="preserve">
+    <value>Inserisci il nome della cartella</value>
+  </data>
+  <data name="EnterFolderNameOrSelect" xml:space="preserve">
+    <value>Inserisci un nuovo nome della cartella o seleziona una cartella esistente. La cartella verrà creata automaticamente durante l'importazione.</value>
+  </data>
 </root>

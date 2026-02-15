@@ -2439,4 +2439,10 @@
   <data name="SwitchToPlainText" xml:space="preserve">
     <value>Cambiar a vista de texto plano</value>
   </data>
+  <data name="EnterFolderName" xml:space="preserve">
+    <value>Ingrese el nombre de la carpeta</value>
+  </data>
+  <data name="EnterFolderNameOrSelect" xml:space="preserve">
+    <value>Ingrese un nuevo nombre de carpeta o seleccione uno existente. La carpeta se creará automáticamente durante la importación.</value>
+  </data>
 </root>

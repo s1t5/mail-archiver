@@ -2440,4 +2440,10 @@
   <data name="SwitchToPlainText" xml:space="preserve">
     <value>Preklopi na pogled navadnega besedila</value>
   </data>
+  <data name="EnterFolderName" xml:space="preserve">
+    <value>Vnesite ime mape</value>
+  </data>
+  <data name="EnterFolderNameOrSelect" xml:space="preserve">
+    <value>Vnesite novo ime mape ali izberite obstoječo. Mapo bodo med uvozom samodejno ustvarili.</value>
+  </data>
 </root>
