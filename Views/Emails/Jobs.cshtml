@@ -392,6 +392,10 @@
                                                 {
                                                     mboxStatusClass = "success";
                                                 }
+                                                else if (job.Status == MailArchiver.Models.MBoxImportJobStatus.CompletedWithErrors)
+                                                {
+                                                    mboxStatusClass = "warning";
+                                                }
                                                 else if (job.Status == MailArchiver.Models.MBoxImportJobStatus.Failed)
                                                 {
                                                     mboxStatusClass = "danger";
@@ -426,6 +430,10 @@
                                                     @if (job.FailedCount > 0)
                                                     {
                                                         <div class="text-danger">@Localizer["FailedLabel"] @job.FailedCount.ToString("N0")</div>
+                                                    }
+                                                    @if (job.SkippedMalformedCount > 0)
+                                                    {
+                                                        <div class="text-warning">@Localizer["MalformedSkippedLabel"] @job.SkippedMalformedCount.ToString("N0")</div>
                                                     }
                                                 </div>
                                             }
@@ -466,7 +474,7 @@
                         {
                             <div class="card mb-3 border-info">
                                 <div class="card-body">
-                                    <div class="d-flex justify-content-between align-items-start mb-2"><h6 class="card-title mb-0"><i class="bi bi-upload me-1"></i>@(job.FileName.Length > 25 ? job.FileName.Substring(0, 25) + "..." : job.FileName)</h6>@{ var mboxStatusClass = job.Status switch { MailArchiver.Models.MBoxImportJobStatus.Running => "primary", MailArchiver.Models.MBoxImportJobStatus.Completed => "success", MailArchiver.Models.MBoxImportJobStatus.Failed => "danger", MailArchiver.Models.MBoxImportJobStatus.Cancelled => "warning", _ => "secondary" }; }<span class="badge bg-@mboxStatusClass">@Localizer[job.Status.ToString()]</span></div>
+                                    <div class="d-flex justify-content-between align-items-start mb-2"><h6 class="card-title mb-0"><i class="bi bi-upload me-1"></i>@(job.FileName.Length > 25 ? job.FileName.Substring(0, 25) + "..." : job.FileName)</h6>@{ var mboxStatusClass = job.Status switch { MailArchiver.Models.MBoxImportJobStatus.Running => "primary", MailArchiver.Models.MBoxImportJobStatus.Completed => "success", MailArchiver.Models.MBoxImportJobStatus.CompletedWithErrors => "warning", MailArchiver.Models.MBoxImportJobStatus.Failed => "danger", MailArchiver.Models.MBoxImportJobStatus.Cancelled => "warning", _ => "secondary" }; }<span class="badge bg-@mboxStatusClass">@Localizer[job.Status.ToString()]</span></div>
                                     <div class="mb-2"><small><strong>@Localizer["JobID"]</strong> <code>@job.JobId.Substring(0, 8)...</code></small><br><small><strong>@Localizer["FileName"]</strong> @{ string[] sizes = { "B", "KB", "MB", "GB", "TB" }; int counter = 0; decimal number = job.FileSize; while (Math.Round(number / 1024) >= 1){ number /= 1024; counter++; } }@($"{number:n1} {sizes[counter]}")</small><br><small><strong>@Localizer["CreatedLabel"]</strong> <span class="utc-timestamp" data-utc-time="@job.Created.ToString("yyyy-MM-ddTHH:mm:ss")">@job.Created.ToString("g")</span></small></div>
                                     <div class="mb-2">@{ var mboxProgressPercent = job.FileSize > 0 ? (job.ProcessedBytes * 100.0 / job.FileSize) : 0; }<div class="progress" style="height: 20px;"><div class="progress-bar @(job.Status == MailArchiver.Models.MBoxImportJobStatus.Running ? "progress-bar-striped progress-bar-animated" : "")" role="progressbar" style="width: @mboxProgressPercent.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)%">@mboxProgressPercent.ToString("F0")%</div></div></div>
                                     @if (job.ProcessedEmails > 0){<div class="mb-2"><small><span class="text-success">@Localizer["SuccessLabel"] @job.SuccessCount.ToString("N0")</span> | <span class="text-danger">@Localizer["FailedLabel"] @job.FailedCount.ToString("N0")</span> | @Localizer["EmailsLabel"]: @job.ProcessedEmails.ToString("N0")</small></div>}

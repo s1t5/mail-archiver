@@ -2446,4 +2446,22 @@
   <data name="EnterFolderNameOrSelect" xml:space="preserve">
     <value>Vnesite novo ime mape ali izberite obstoječo. Mapo bodo med uvozom samodejno ustvarili.</value>
   </data>
+  <data name="ManualSyncTooltip" xml:space="preserve">
+    <value>Ročna sinhronizacija - račun je onemogočen za avtomatsko sinhronizacijo</value>
+  </data>
+  <data name="CompletedWithErrors" xml:space="preserve">
+    <value>Končano z napakami</value>
+  </data>
+  <data name="ImportCompletedWithErrorsTitle" xml:space="preserve">
+    <value>Uvoz končan z napakami</value>
+  </data>
+  <data name="ImportCompletedWithErrorsDescription" xml:space="preserve">
+    <value>Uvoz je končan, vendar so nekatere e-pošte ne bile obdelane. Uspešno uvožene e-pošte so na voljo v vašem arhivu. Slabo oblikovane e-pošte so bile preskočene. Preverite dnevnike za podrobnosti o prizadetih e-poštah.</value>
+  </data>
+  <data name="MalformedSkippedLabel" xml:space="preserve">
+    <value>Slabo oblikovane (preskočene):</value>
+  </data>
+  <data name="DetailsLabel" xml:space="preserve">
+    <value>Podrobnosti</value>
+  </data>
 </root>

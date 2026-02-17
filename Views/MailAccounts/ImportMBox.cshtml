@@ -120,6 +120,18 @@
             // Provider type constant for IMPORT
             const PROVIDER_IMPORT = 2; // ProviderType.IMPORT enum value
             
+            // Localized strings (properly JavaScript-encoded)
+            const loc = {
+                placeholderSelectAccountFirst: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["PlaceholderSelectAccountFirst"].Value)),
+                placeholderSelectFolder: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["PlaceholderSelectFolder"].Value)),
+                loadingFolders: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["LoadingFolders"].Value)),
+                errorLoadingFolders: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["ErrorLoadingFolders"].Value)),
+                enterFolderNameOrSelect: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["EnterFolderNameOrSelect"].Value)),
+                fileSizeExceedsMax: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(string.Format(Localizer["FileSizeExceedsMax"], Model.MaxFileSizeFormatted))),
+                startingImport: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["StartingImport"].Value)),
+                uploadInProgress: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["UploadInProgress"].Value))
+            };
+            
             // File input change handler
             $('#mboxFileInput').on('change', function() {
                 const file = this.files[0];
@@ -143,7 +155,7 @@
                     // Check file size
                     const maxSize = @Model.MaxFileSize;
                     if (file.size > maxSize) {
-                        alert('@string.Format(Localizer["FileSizeExceedsMax"], Model.MaxFileSizeFormatted)');
+                        alert(loc.fileSizeExceedsMax);
                         submitBtn.prop('disabled', true);
                         return;
                     }
@@ -169,7 +181,7 @@
                         // IMPORT account: Show text input with autocomplete
                         $('#folderSelect').hide().prop('disabled', true);
                         $('#folderInput').show().prop('disabled', false);
-                        $('#folderHelpText').text('@Localizer["EnterFolderNameOrSelect"]');
+                        $('#folderHelpText').text(loc.enterFolderNameOrSelect);
                         
                         // Load existing folders for autocomplete
                         $.ajax({
@@ -203,8 +215,8 @@
                         // IMAP/M365 account: Show dropdown
                         $('#folderInput').hide().prop('disabled', true);
                         $('#folderSelect').show().prop('disabled', false);
-                        $('#folderHelpText').text('@Localizer["PlaceholderSelectAccountFirst"]');
-                        $('#folderSelect').html('<option>@Localizer["LoadingFolders"]</option>');
+                        $('#folderHelpText').text(loc.placeholderSelectAccountFirst);
+                        $('#folderSelect').html('<option>' + loc.loadingFolders + '</option>');
                         
                         $.ajax({
                             url: '@Url.Action("GetFolders", "MailAccounts")',
@@ -212,7 +224,7 @@
                             type: 'GET',
                             dataType: 'json',
                             success: function (data) {
-                                let options = '<option value="">@Localizer["PlaceholderSelectFolder"]</option>';
+                                let options = '<option value="">' + loc.placeholderSelectFolder + '</option>';
                                 let inboxFound = false;
                                 
                                 $.each(data, function (index, folderName) {
@@ -233,16 +245,16 @@
                                 updateSubmitButton();
                             },
                             error: function () {
-                                $('#folderSelect').html('<option value="">@Localizer["ErrorLoadingFolders"]</option><option value="INBOX">INBOX</option>');
+                                $('#folderSelect').html('<option value="">' + loc.errorLoadingFolders + '</option><option value="INBOX">INBOX</option>');
                             }
                         });
                     }
                 } else {
                     // No account selected - reset both inputs
-                    $('#folderSelect').html('<option value="">@Localizer["PlaceholderSelectAccountFirst"]</option>');
+                    $('#folderSelect').html('<option value="">' + loc.placeholderSelectAccountFirst + '</option>');
                     $('#folderInput').val('').hide();
                     $('#folderSelect').show();
-                    $('#folderHelpText').text('@Localizer["PlaceholderSelectAccountFirst"]');
+                    $('#folderHelpText').text(loc.placeholderSelectAccountFirst);
                 }
             });
 
@@ -283,13 +295,13 @@
                 }
                 
                 const submitBtn = $('#submitBtn');
-                submitBtn.html('<i class="bi bi-hourglass-split me-2"></i>@Localizer["StartingImport"]');
+                submitBtn.html('<i class="bi bi-hourglass-split me-2"></i>' + loc.startingImport);
                 submitBtn.prop('disabled', true);
                 
                 // Show processing message
                 const processingAlert = $('<div class="alert alert-info mt-3">' +
                     '<i class="bi bi-clock-history me-2"></i>' +
-                    '@Localizer["UploadInProgress"]' +
+                    loc.uploadInProgress +
                     '</div>');
                 $(this).after(processingAlert);
             });

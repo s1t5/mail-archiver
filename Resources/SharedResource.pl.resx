@@ -2492,4 +2492,22 @@
   <data name="EnterFolderNameOrSelect" xml:space="preserve">
     <value>Wprowadź nową nazwę folderu lub wybierz istniejącą. Folder zostanie automatycznie utworzony podczas importu.</value>
   </data>
+  <data name="ManualSyncTooltip" xml:space="preserve">
+    <value>Ręczna synchronizacja - konto jest wyłączone dla automatycznej synchronizacji</value>
+  </data>
+  <data name="CompletedWithErrors" xml:space="preserve">
+    <value>Ukończono z błędami</value>
+  </data>
+  <data name="ImportCompletedWithErrorsTitle" xml:space="preserve">
+    <value>Import zakończono z błędami</value>
+  </data>
+  <data name="ImportCompletedWithErrorsDescription" xml:space="preserve">
+    <value>Import został zakończony, ale niektóre wiadomości e-mail nie mogły zostać przetworzone. Pomyślnie zaimportowane wiadomości e-mail są dostępne w Twoim archiwum. Nieprawidłowo sformatowane wiadomości e-mail zostały pominięte. Sprawdź dzienniki, aby uzyskać szczegóły na temat dotkniętych wiadomości e-mail.</value>
+  </data>
+  <data name="MalformedSkippedLabel" xml:space="preserve">
+    <value>Nieprawidłowo sformatowane (pominięte):</value>
+  </data>
+  <data name="DetailsLabel" xml:space="preserve">
+    <value>Szczegóły</value>
+  </data>
 </root>

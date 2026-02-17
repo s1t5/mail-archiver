@@ -30,15 +30,16 @@ namespace MailArchiver.Services
         public async Task<string?> StartSyncAsync(int accountId, string accountName, DateTime? lastSync = null)
         {
             // Validate that the account exists in the database
+            // Note: We don't check IsEnabled here to allow manual sync for disabled accounts
             using var scope = _serviceProvider.CreateScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<MailArchiverDbContext>();
             
             var accountExists = await dbContext.MailAccounts
-                .AnyAsync(a => a.Id == accountId && a.IsEnabled && a.Provider != ProviderType.IMPORT);
+                .AnyAsync(a => a.Id == accountId && a.Provider != ProviderType.IMPORT);
             
             if (!accountExists)
             {
-                _logger.LogWarning("Cannot start sync job for account {AccountId} ({AccountName}) - account does not exist or is not enabled", accountId, accountName);
+                _logger.LogWarning("Cannot start sync job for account {AccountId} ({AccountName}) - account does not exist or is an import-only account", accountId, accountName);
                 return null;
             }
 

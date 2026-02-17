@@ -2438,4 +2438,22 @@
   <data name="EnterFolderNameOrSelect" xml:space="preserve">
     <value>Adjon meg egy új mappanevet vagy válasszon egy létezőt. A mappa az import során automatikusan létrejön.</value>
   </data>
+  <data name="ManualSyncTooltip" xml:space="preserve">
+    <value>Kézi szinkronizálás - a fiók le van tiltva az automatikus szinkronizáláshoz</value>
+  </data>
+  <data name="CompletedWithErrors" xml:space="preserve">
+    <value>Hiba mellett befejezve</value>
+  </data>
+  <data name="ImportCompletedWithErrorsTitle" xml:space="preserve">
+    <value>Importálás hiba mellett befejezve</value>
+  </data>
+  <data name="ImportCompletedWithErrorsDescription" xml:space="preserve">
+    <value>Az importálás befejeződött, de néhány e-mailt nem lehetett feldolgozni. A sikeresen importált e-mailek az archívumban érhetők el. A rosszul formázott e-mailek kihagyták. Ellenőrizze a naplókat az érintett e-mailek részleteiről.</value>
+  </data>
+  <data name="MalformedSkippedLabel" xml:space="preserve">
+    <value>Rosszul formázott (kihagyva):</value>
+  </data>
+  <data name="DetailsLabel" xml:space="preserve">
+    <value>Részletek</value>
+  </data>
 </root>

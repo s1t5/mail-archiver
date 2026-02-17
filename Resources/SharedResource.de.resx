@@ -779,7 +779,7 @@
     <value>Fehler beim laden der Ordner</value>
   </data>
   <data name="UploadInProgress" xml:space="preserve">
-    <value>Datei wird hochgeladen... Die Seite darf nicht geschlossen werden. Es folgt eine automatische wWeiterleitung.</value>
+    <value>Datei wird hochgeladen... Die Seite darf nicht geschlossen werden. Es folgt eine automatische Weiterleitung.</value>
   </data>
   <data name="StartingImport" xml:space="preserve">
     <value>Import gestartet...</value>
@@ -858,6 +858,21 @@
   </data>
   <data name="ImportCompletedSummary" xml:space="preserve">
     <value>Erfolgreich {0} E-Mails mit {1} Fehler(n) importiert.</value>
+  </data>
+  <data name="CompletedWithErrors" xml:space="preserve">
+    <value>Mit Fehlern abgeschlossen</value>
+  </data>
+  <data name="ImportCompletedWithErrorsTitle" xml:space="preserve">
+    <value>Import mit Fehlern abgeschlossen</value>
+  </data>
+  <data name="ImportCompletedWithErrorsDescription" xml:space="preserve">
+    <value>Der Import wurde abgeschlossen, aber einige E-Mails konnten nicht verarbeitet werden. Erfolgreich importierte E-Mails sind in Ihrem Archiv verfügbar. Fehlerhafte E-Mails wurden übersprungen. Prüfen Sie die Logs für Details zu den betroffenen E-Mails.</value>
+  </data>
+  <data name="MalformedSkippedLabel" xml:space="preserve">
+    <value>Fehlerhaft (übersprungen):</value>
+  </data>
+  <data name="DetailsLabel" xml:space="preserve">
+    <value>Details</value>
   </data>
   <data name="SearchImportedEmails" xml:space="preserve">
     <value>importierte Mails durchsuchen</value>
@@ -2446,5 +2461,8 @@
   </data>
   <data name="EnterFolderNameOrSelect" xml:space="preserve">
     <value>Geben Sie einen neuen Ordnernamen ein oder wählen Sie einen bestehenden aus. Der Ordner wird während des Imports automatisch erstellt.</value>
+  </data>
+  <data name="ManualSyncTooltip" xml:space="preserve">
+    <value>Manuelle Synchronisierung - Konto ist für automatische Synchronisierung deaktiviert</value>
   </data>
 </root>

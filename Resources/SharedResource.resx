@@ -856,6 +856,21 @@
   <data name="ImportCompletedSummary" xml:space="preserve">
     <value>Successfully imported {0} emails with {1} errors.</value>
   </data>
+  <data name="CompletedWithErrors" xml:space="preserve">
+    <value>Completed with Errors</value>
+  </data>
+  <data name="ImportCompletedWithErrorsTitle" xml:space="preserve">
+    <value>Import Completed with Errors</value>
+  </data>
+  <data name="ImportCompletedWithErrorsDescription" xml:space="preserve">
+    <value>The import finished but some emails could not be processed. Successfully imported emails are available in your archive. Malformed emails were skipped. Check the logs for details about which emails were affected.</value>
+  </data>
+  <data name="MalformedSkippedLabel" xml:space="preserve">
+    <value>Malformed (skipped):</value>
+  </data>
+  <data name="DetailsLabel" xml:space="preserve">
+    <value>Details</value>
+  </data>
   <data name="SearchImportedEmails" xml:space="preserve">
     <value>Search Imported Emails</value>
   </data>
@@ -2430,5 +2445,8 @@
   </data>
   <data name="EnterFolderNameOrSelect" xml:space="preserve">
     <value>Enter a new folder name or select an existing one. The folder will be created automatically during import.</value>
+  </data>
+  <data name="ManualSyncTooltip" xml:space="preserve">
+    <value>Manual sync - account is disabled for automatic synchronization</value>
   </data>
 </root>

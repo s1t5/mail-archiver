@@ -2446,4 +2446,22 @@
   <data name="EnterFolderNameOrSelect" xml:space="preserve">
     <value>Entrez un nouveau nom de dossier ou sélectionnez un dossier existant. Le dossier sera créé automatiquement lors de l'importation.</value>
   </data>
+  <data name="ManualSyncTooltip" xml:space="preserve">
+    <value>Synchronisation manuelle - le compte est désactivé pour la synchronisation automatique</value>
+  </data>
+  <data name="CompletedWithErrors" xml:space="preserve">
+    <value>Terminé avec des erreurs</value>
+  </data>
+  <data name="ImportCompletedWithErrorsTitle" xml:space="preserve">
+    <value>Importation terminée avec des erreurs</value>
+  </data>
+  <data name="ImportCompletedWithErrorsDescription" xml:space="preserve">
+    <value>L'importation est terminée, mais certains e-mails n'ont pas pu être traités. Les e-mails importés avec succès sont disponibles dans votre archive. Les e-mails mal formés ont été ignorés. Consultez les journaux pour obtenir des détails sur les e-mails affectés.</value>
+  </data>
+  <data name="MalformedSkippedLabel" xml:space="preserve">
+    <value>Mauvaise forme (ignorés):</value>
+  </data>
+  <data name="DetailsLabel" xml:space="preserve">
+    <value>Détails</value>
+  </data>
 </root>

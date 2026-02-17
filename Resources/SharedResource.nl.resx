@@ -2446,4 +2446,22 @@
   <data name="EnterFolderNameOrSelect" xml:space="preserve">
     <value>Voer een nieuwe mapnaam in of selecteer een bestaande. De map wordt automatisch aangemaakt tijdens het importeren.</value>
   </data>
+  <data name="ManualSyncTooltip" xml:space="preserve">
+    <value>Handmatige synchronisatie - account is uitgeschakeld voor automatische synchronisatie</value>
+  </data>
+  <data name="CompletedWithErrors" xml:space="preserve">
+    <value>Afgerond met fouten</value>
+  </data>
+  <data name="ImportCompletedWithErrorsTitle" xml:space="preserve">
+    <value>Import afgerond met fouten</value>
+  </data>
+  <data name="ImportCompletedWithErrorsDescription" xml:space="preserve">
+    <value>De import is afgerond, maar sommige e-mails konden niet worden verwerkt. Succesvol geïmporteerde e-mails zijn beschikbaar in uw archief. Verkeerd gevormde e-mails zijn overgeslagen. Raadpleeg de logs voor details over welke e-mails zijn beïnvloed.</value>
+  </data>
+  <data name="MalformedSkippedLabel" xml:space="preserve">
+    <value>Verkeerd gevormd (overgeslagen):</value>
+  </data>
+  <data name="DetailsLabel" xml:space="preserve">
+    <value>Details</value>
+  </data>
 </root>

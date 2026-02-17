@@ -2446,4 +2446,22 @@
   <data name="EnterFolderNameOrSelect" xml:space="preserve">
     <value>Inserisci un nuovo nome della cartella o seleziona una cartella esistente. La cartella verrà creata automaticamente durante l'importazione.</value>
   </data>
+  <data name="ManualSyncTooltip" xml:space="preserve">
+    <value>Sincronizzazione manuale - l'account è disabilitato per la sincronizzazione automatica</value>
+  </data>
+  <data name="CompletedWithErrors" xml:space="preserve">
+    <value>Completato con errori</value>
+  </data>
+  <data name="ImportCompletedWithErrorsTitle" xml:space="preserve">
+    <value>Importazione completata con errori</value>
+  </data>
+  <data name="ImportCompletedWithErrorsDescription" xml:space="preserve">
+    <value>L'importazione è stata completata, ma alcuni messaggi di posta elettronica non sono potuti essere elaborati. I messaggi di posta elettronica importati con successo sono disponibili nel tuo archivio. I messaggi di posta elettronica malformati sono stati saltati. Controlla i log per i dettagli sui messaggi di posta elettronica interessati.</value>
+  </data>
+  <data name="MalformedSkippedLabel" xml:space="preserve">
+    <value>Malformati (saltati):</value>
+  </data>
+  <data name="DetailsLabel" xml:space="preserve">
+    <value>Dettagli</value>
+  </data>
 </root>

@@ -2446,4 +2446,22 @@
   <data name="EnterFolderNameOrSelect" xml:space="preserve">
     <value>Введите новое имя папки или выберите существующее. Папка будет создана автоматически во время импорта.</value>
   </data>
+  <data name="ManualSyncTooltip" xml:space="preserve">
+    <value>Ручная синхронизация - аккаунт отключен для автоматической синхронизации</value>
+  </data>
+  <data name="CompletedWithErrors" xml:space="preserve">
+    <value>Завершено с ошибками</value>
+  </data>
+  <data name="ImportCompletedWithErrorsTitle" xml:space="preserve">
+    <value>Импорт завершен с ошибками</value>
+  </data>
+  <data name="ImportCompletedWithErrorsDescription" xml:space="preserve">
+    <value>Импорт завершен, но некоторые письма не могли быть обработаны. Успешно импортированные письма доступны в вашем архиве. Неправильно оформленные письма были пропущены. Проверьте журналы для получения подробностей о затронутых письмах.</value>
+  </data>
+  <data name="MalformedSkippedLabel" xml:space="preserve">
+    <value>Неправильно оформленные (пропущены):</value>
+  </data>
+  <data name="DetailsLabel" xml:space="preserve">
+    <value>Детали</value>
+  </data>
 </root>

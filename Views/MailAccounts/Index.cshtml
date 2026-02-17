@@ -131,14 +131,24 @@
                                             </button>
                                         </form>
 
-                                        @if (item.IsEnabled && item.Provider != ProviderType.IMPORT)
+                                        @if (item.Provider != ProviderType.IMPORT)
                                         {
                                             <form asp-action="Sync" asp-route-id="@item.Id" method="post" class="d-inline">
                                                 @Html.AntiForgeryToken()
-                                                <button type="submit" class="btn btn-success btn-sm d-flex align-items-center">
-                                                    <i class="bi bi-arrow-clockwise"></i>
-                                                    <span class="ms-1">@Localizer["Sync"]</span>
-                                                </button>
+                                                @if (item.IsEnabled)
+                                                {
+                                                    <button type="submit" class="btn btn-success btn-sm d-flex align-items-center">
+                                                        <i class="bi bi-arrow-clockwise"></i>
+                                                        <span class="ms-1">@Localizer["Sync"]</span>
+                                                    </button>
+                                                }
+                                                else
+                                                {
+                                                    <button type="submit" class="btn btn-success btn-sm d-flex align-items-center" title="@Localizer["ManualSyncTooltip"]">
+                                                        <i class="bi bi-arrow-clockwise"></i>
+                                                        <span class="ms-1">@Localizer["Sync"]</span>
+                                                    </button>
+                                                }
                                             </form>
                                         }
 
@@ -289,14 +299,23 @@
                                     </button>
                                 </form>
                             </div>
-                            @if (item.IsEnabled && item.Provider != ProviderType.IMPORT)
+                            @if (item.Provider != ProviderType.IMPORT)
                             {
                                 <div class="col">
                                     <form asp-action="Sync" asp-route-id="@item.Id" method="post" class="w-100">
                                         @Html.AntiForgeryToken()
-                                        <button type="submit" class="btn btn-success btn-sm w-100">
-                                            <i class="bi bi-arrow-clockwise"></i> Sync
-                                        </button>
+                                        @if (item.IsEnabled)
+                                        {
+                                            <button type="submit" class="btn btn-success btn-sm w-100">
+                                                <i class="bi bi-arrow-clockwise"></i> Sync
+                                            </button>
+                                        }
+                                        else
+                                        {
+                                            <button type="submit" class="btn btn-success btn-sm w-100" title="@Localizer["ManualSyncTooltip"]">
+                                                <i class="bi bi-arrow-clockwise"></i> Sync
+                                            </button>
+                                        }
                                     </form>
                                 </div>
                             }

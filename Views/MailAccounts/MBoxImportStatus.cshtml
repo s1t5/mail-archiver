@@ -36,9 +36,10 @@
                 <dd class="col-sm-9">
                     <span class="badge bg-@(Model.Status == MailArchiver.Models.MBoxImportJobStatus.Running ? "primary" :
                                            Model.Status == MailArchiver.Models.MBoxImportJobStatus.Completed ? "success" :
+                                           Model.Status == MailArchiver.Models.MBoxImportJobStatus.CompletedWithErrors ? "warning" :
                                            Model.Status == MailArchiver.Models.MBoxImportJobStatus.Failed ? "danger" :
                                            Model.Status == MailArchiver.Models.MBoxImportJobStatus.Cancelled ? "warning" : "secondary") fs-6">
-                        @Model.Status
+                        @Localizer[Model.Status.ToString()]
                     </span>
                 </dd>
 
@@ -52,7 +53,7 @@
                             <span class="text-muted"> (@Localizer["EstimatedSuffix"]: @Model.TotalEmails.ToString("N0"))</span>
                         }
                     }
-                    else if (Model.Status == MailArchiver.Models.MBoxImportJobStatus.Completed)
+                    else if (Model.Status == MailArchiver.Models.MBoxImportJobStatus.Completed || Model.Status == MailArchiver.Models.MBoxImportJobStatus.CompletedWithErrors)
                     {
                         <span>@Model.ProcessedEmails.ToString("N0") @Localizer["EmailsProcessedSuffix"]</span>
                         @if (Model.TotalEmails > 0 && Model.ProcessedEmails != Model.TotalEmails)
@@ -87,7 +88,7 @@
                         var displayPercent = Math.Min(100, Math.Max(fileProgressPercent, emailProgressPercent));
                         
                         // Für abgeschlossene Jobs: 100%
-                        if (Model.Status == MailArchiver.Models.MBoxImportJobStatus.Completed)
+                        if (Model.Status == MailArchiver.Models.MBoxImportJobStatus.Completed || Model.Status == MailArchiver.Models.MBoxImportJobStatus.CompletedWithErrors)
                         {
                             displayPercent = 100;
                         }
@@ -144,23 +145,32 @@
                     </div>
                 </dd>
 
-                @if (Model.Status == MailArchiver.Models.MBoxImportJobStatus.Running || Model.Status == MailArchiver.Models.MBoxImportJobStatus.Completed)
+                @if (Model.Status == MailArchiver.Models.MBoxImportJobStatus.Running || Model.Status == MailArchiver.Models.MBoxImportJobStatus.Completed || Model.Status == MailArchiver.Models.MBoxImportJobStatus.CompletedWithErrors)
                 {
                     <dt class="col-sm-3">@Localizer["ResultsLabel"]</dt>
                     <dd class="col-sm-9">
-                        <div class="row">
-                            <div class="col-6">
+                        <div class="row g-2">
+                            <div class="col-auto">
                                 <span class="badge bg-success">
                                     <i class="bi bi-check-circle me-1"></i>
                                     @Localizer["SuccessLabel"] @Model.SuccessCount.ToString("N0")
                                 </span>
                             </div>
-                            <div class="col-6">
+                            <div class="col-auto">
                                 <span class="badge bg-danger">
                                     <i class="bi bi-x-circle me-1"></i>
                                     @Localizer["FailedLabel"] @Model.FailedCount.ToString("N0")
                                 </span>
                             </div>
+                            @if (Model.SkippedMalformedCount > 0)
+                            {
+                                <div class="col-auto">
+                                    <span class="badge bg-warning text-dark">
+                                        <i class="bi bi-exclamation-triangle me-1"></i>
+                                        @Localizer["MalformedSkippedLabel"] @Model.SkippedMalformedCount.ToString("N0")
+                                    </span>
+                                </div>
+                            }
                         </div>
                     </dd>
                 }
@@ -214,9 +224,9 @@
 
                 @if (!string.IsNullOrEmpty(Model.ErrorMessage))
                 {
-                    <dt class="col-sm-3">@Localizer["ErrorLabel"]</dt>
+                    <dt class="col-sm-3">@(Model.Status == MailArchiver.Models.MBoxImportJobStatus.CompletedWithErrors ? Localizer["DetailsLabel"] : Localizer["ErrorLabel"])</dt>
                     <dd class="col-sm-9">
-                        <div class="alert alert-danger">
+                        <div class="alert @(Model.Status == MailArchiver.Models.MBoxImportJobStatus.CompletedWithErrors ? "alert-warning" : "alert-danger")">
                             <i class="bi bi-exclamation-triangle-fill me-2"></i>
                             @Model.ErrorMessage
                         </div>
@@ -241,6 +251,25 @@
                         <i class="bi bi-check-circle-fill me-2"></i>
                         <strong>@Localizer["ImportCompletedTitle"]</strong>
                         @string.Format(Localizer["ImportCompletedSummary"], Model.SuccessCount.ToString("N0"), Model.FailedCount.ToString("N0"))
+                    </div>
+                    <div class="d-flex gap-2">
+                        <a asp-controller="Emails" asp-action="Index" class="btn btn-primary">
+                            <i class="bi bi-search me-1"></i>@Localizer["SearchImportedEmails"]
+                        </a>
+                        <a asp-action="ImportMBox" class="btn btn-outline-success">
+                            <i class="bi bi-upload me-1"></i>@Localizer["ImportAnotherFile"]
+                        </a>
+                    </div>
+                </div>
+            }
+
+            @if (Model.Status == MailArchiver.Models.MBoxImportJobStatus.CompletedWithErrors)
+            {
+                <div class="mt-4 pt-3 border-top">
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                        <strong>@Localizer["ImportCompletedWithErrorsTitle"]</strong>
+                        @Localizer["ImportCompletedWithErrorsDescription"]
                     </div>
                     <div class="d-flex gap-2">
                         <a asp-controller="Emails" asp-action="Index" class="btn btn-primary">

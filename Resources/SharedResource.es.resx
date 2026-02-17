@@ -2445,4 +2445,22 @@
   <data name="EnterFolderNameOrSelect" xml:space="preserve">
     <value>Ingrese un nuevo nombre de carpeta o seleccione uno existente. La carpeta se creará automáticamente durante la importación.</value>
   </data>
+  <data name="ManualSyncTooltip" xml:space="preserve">
+    <value>Sincronización manual - la cuenta está desactivada para la sincronización automática</value>
+  </data>
+  <data name="CompletedWithErrors" xml:space="preserve">
+    <value>Completado con errores</value>
+  </data>
+  <data name="ImportCompletedWithErrorsTitle" xml:space="preserve">
+    <value>Importación completada con errores</value>
+  </data>
+  <data name="ImportCompletedWithErrorsDescription" xml:space="preserve">
+    <value>La importación ha finalizado, pero algunos correos electrónicos no se pudieron procesar. Los correos electrónicos importados con éxito están disponibles en su archivo. Los correos electrónicos mal formados fueron omitidos. Consulte los registros para obtener detalles sobre qué correos electrónicos se vieron afectados.</value>
+  </data>
+  <data name="MalformedSkippedLabel" xml:space="preserve">
+    <value>Mal formados (omitidos):</value>
+  </data>
+  <data name="DetailsLabel" xml:space="preserve">
+    <value>Detalles</value>
+  </data>
 </root>

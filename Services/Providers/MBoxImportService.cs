@@ -277,11 +277,21 @@ private readonly IServiceProvider _serviceProvider;
 
                 if (job.Status != MBoxImportJobStatus.Cancelled)
                 {
-                    job.Status = MBoxImportJobStatus.Completed;
+                    var skippedDuplicates = job.ProcessedEmails - job.SuccessCount - job.FailedCount - job.SkippedMalformedCount;
+
+                    if (job.FailedCount > 0 || job.SkippedMalformedCount > 0)
+                    {
+                        job.Status = MBoxImportJobStatus.CompletedWithErrors;
+                        job.ErrorMessage = $"{job.SuccessCount} imported, {job.FailedCount} failed, {job.SkippedMalformedCount} skipped (malformed), {skippedDuplicates} skipped (duplicates)";
+                    }
+                    else
+                    {
+                        job.Status = MBoxImportJobStatus.Completed;
+                    }
+
                     job.Completed = DateTime.UtcNow;
-                    var skippedCount = job.ProcessedEmails - job.SuccessCount - job.FailedCount;
-                    _logger.LogInformation("Completed MBox import job {JobId}. Success: {Success}, Failed: {Failed}, Skipped (already exists): {Skipped}",
-                        job.JobId, job.SuccessCount, job.FailedCount, skippedCount);
+                    _logger.LogInformation("Completed MBox import job {JobId}. Success: {Success}, Failed: {Failed}, Malformed: {Malformed}, Skipped (duplicates): {Skipped}",
+                        job.JobId, job.SuccessCount, job.FailedCount, job.SkippedMalformedCount, skippedDuplicates);
                 }
 
                 // Lösche die temporäre Datei nach erfolgreichem Import
@@ -406,9 +416,12 @@ private readonly IServiceProvider _serviceProvider;
                     catch (FormatException ex)
                     {
                         var currentPosition = stream.Position;
-                        _logger.LogWarning(ex, "Job {JobId}: Skipping malformed email at position {Position}",
-                            job.JobId, currentPosition);
-                        job.FailedCount++;
+                        job.SkippedMalformedCount++;
+                        
+                        // Extract context bytes around the malformed position for diagnostics
+                        var contextPreview = ExtractStreamContext(stream, currentPosition, 200);
+                        _logger.LogWarning(ex, "Job {JobId}: Skipping malformed email #{SkipCount} at byte position {Position} (approx. email #{EmailNum}). Context: {Context}",
+                            job.JobId, job.SkippedMalformedCount, currentPosition, job.ProcessedEmails + 1, contextPreview);
                         
                         // CRITICAL: Advance stream past the malformed email to prevent infinite loop
                         // Find the next "From " marker which indicates the start of the next email
@@ -416,14 +429,22 @@ private readonly IServiceProvider _serviceProvider;
                         if (nextEmailPosition > currentPosition)
                         {
                             stream.Position = nextEmailPosition;
-                            _logger.LogInformation("Job {JobId}: Advanced stream from position {OldPos} to {NewPos} to skip malformed email",
-                                job.JobId, currentPosition, nextEmailPosition);
+                            
+                            // CRITICAL FIX: Recreate MimeParser after stream repositioning
+                            // The MimeParser has an internal buffer that becomes desynchronized when 
+                            // stream.Position is changed externally. Without recreating the parser,
+                            // subsequent parse attempts will fail with "Failed to find mbox From marker"
+                            // because the parser reads from its stale internal buffer, not the new position.
+                            parser = new MimeParser(stream, MimeFormat.Mbox);
+                            
+                            _logger.LogInformation("Job {JobId}: Advanced stream from position {OldPos} to {NewPos} ({BytesSkipped} bytes skipped) and recreated parser to skip malformed email",
+                                job.JobId, currentPosition, nextEmailPosition, nextEmailPosition - currentPosition);
                         }
                         else
                         {
                             // No more emails found, we're at the end of the file
-                            _logger.LogInformation("Job {JobId}: No more valid emails found after position {Position}, ending import",
-                                job.JobId, currentPosition);
+                            _logger.LogInformation("Job {JobId}: No more valid emails found after position {Position}, ending import. Total malformed skipped: {SkipCount}",
+                                job.JobId, currentPosition, job.SkippedMalformedCount);
                             break;
                         }
                     }
@@ -1198,6 +1219,60 @@ private readonly IServiceProvider _serviceProvider;
             }
 
             return truncatedContent + textTruncationNotice;
+        }
+
+        /// <summary>
+        /// Extracts a preview of bytes around a given stream position for diagnostic logging.
+        /// Reads up to maxBytes starting from the given position and returns a sanitized string preview.
+        /// The stream position is restored after reading.
+        /// </summary>
+        /// <param name="stream">The file stream to read from</param>
+        /// <param name="position">The position to read around</param>
+        /// <param name="maxBytes">Maximum number of bytes to read</param>
+        /// <returns>A sanitized string preview of the content at the given position</returns>
+        private string ExtractStreamContext(FileStream stream, long position, int maxBytes)
+        {
+            var originalPosition = stream.Position;
+            try
+            {
+                // Go back a bit before the error position to provide context
+                var startPos = Math.Max(0, position - 50);
+                stream.Position = startPos;
+
+                var buffer = new byte[maxBytes];
+                var bytesRead = stream.Read(buffer, 0, maxBytes);
+                
+                if (bytesRead == 0)
+                    return "(empty - end of file)";
+
+                // Convert to string, replacing non-printable characters
+                var preview = new StringBuilder();
+                for (int i = 0; i < bytesRead; i++)
+                {
+                    var b = buffer[i];
+                    if (b >= 32 && b < 127)
+                        preview.Append((char)b);
+                    else if (b == '\n')
+                        preview.Append("\\n");
+                    else if (b == '\r')
+                        preview.Append("\\r");
+                    else if (b == '\t')
+                        preview.Append("\\t");
+                    else
+                        preview.Append($"[0x{b:X2}]");
+                }
+
+                return $"[pos {startPos}-{startPos + bytesRead}]: {preview}";
+            }
+            catch (Exception ex)
+            {
+                return $"(failed to extract context: {ex.Message})";
+            }
+            finally
+            {
+                // Restore original stream position
+                stream.Position = originalPosition;
+            }
         }
 
         /// <summary>
