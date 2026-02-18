@@ -93,6 +93,7 @@ services:
       - OAuth__ClientScopes__2=email
       - OAuth__DisablePasswordLogin=false
       - OAuth__AutoRedirect=false
+      - OAuth__AutoApproveUsers=false
       - OAuth__AdminEmails__0=admin@example.com
     ports:
       - "5000:5000"
@@ -251,12 +252,15 @@ For detailed setup instructions for OpenID Connect authentication, see [OIDC Imp
 - `OAuth__ClientScopes__1`: Second scope requested from the identity provider (profile)
 - `OAuth__ClientScopes__2`: Third scope requested from the identity provider (email)
 
+#### User Provisioning Settings
+- `OAuth__AutoApproveUsers`: Automatically approve new OIDC users without requiring manual admin approval (true/false). Default is `false`. When enabled, users who authenticate via the OIDC provider are immediately activated and can access the application. When disabled (default), new OIDC users are created as inactive and require manual activation by an administrator. See [Auto-Approve OIDC Users](OIDC_Implementation.md#auto-approve-oidc-users) for detailed information.
+- `OAuth__AdminEmails__0`, `OAuth__AdminEmails__1`, etc.: Email addresses that should be automatically provisioned as administrators. Users with these email addresses will be created as active admins on first OAuth login, bypassing the normal approval process. Email matching is case-insensitive.
+
 #### Passwordless Login Settings
 - `OAuth__DisablePasswordLogin`: Hide username/password fields on login page (true/false). Default is `false`. When enabled, only the OAuth login button is displayed.
 - `OAuth__AutoRedirect`: Automatically redirect users to OAuth provider (true/false). Default is `false`. Requires `OAuth__DisablePasswordLogin` to be `true`. Users will see a brief loading screen before being redirected.
-- `OAuth__AdminEmails__0`, `OAuth__AdminEmails__1`, etc.: Email addresses that should be automatically provisioned as administrators. Users with these email addresses will be created as active admins on first OAuth login, bypassing the normal approval process. Email matching is case-insensitive.
 
-#### Example: Full Passwordless Configuration
+#### Example: Full OIDC-First Configuration
 ```yaml
 environment:
   - OAuth__Enabled=true
@@ -268,6 +272,7 @@ environment:
   - OAuth__ClientScopes__2=email
   - OAuth__DisablePasswordLogin=true
   - OAuth__AutoRedirect=true
+  - OAuth__AutoApproveUsers=true
   - OAuth__AdminEmails__0=admin@example.com
   - OAuth__AdminEmails__1=manager@example.com
 ```

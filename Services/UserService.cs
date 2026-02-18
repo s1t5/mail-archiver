@@ -110,6 +110,13 @@ namespace MailArchiver.Services
                 }
             }
             
+            // Auto-approve all OIDC users if configured (for OIDC-first deployments where IdP controls access)
+            if (!autoApprove && _oAuthOptions.Value.AutoApproveUsers)
+            {
+                autoApprove = true;
+                _logger.LogInformation("AutoApproveUsers is enabled - OIDC user {Email} will be auto-approved", email);
+            }
+            
             // Create a new user
             _logger.LogInformation("Creating new OIDC user: Email={Email}, DisplayName={DisplayName}, RemoteId={RemoteId}, IsAdmin={IsAdmin}", 
                 email, displayName, userId, isAdminEmail);
@@ -131,8 +138,8 @@ namespace MailArchiver.Services
             
             if (autoApprove)
             {
-                _logger.LogInformation("New OIDC admin user created and auto-approved: {Username} (ID: {UserId}, Email: {Email})", 
-                    user.Username, user.Id, user.Email);
+                _logger.LogInformation("New OIDC user created and auto-approved (IsAdmin={IsAdmin}): {Username} (ID: {UserId}, Email: {Email})", 
+                    isAdminEmail, user.Username, user.Id, user.Email);
             }
             else
             {

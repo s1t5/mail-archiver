@@ -257,6 +257,14 @@ namespace MailArchiver.Controllers
                     existingUser.IsSelfManager = user.IsSelfManager;
                     existingUser.IsActive = user.IsActive;
 
+                    // SECURITY: When activating an OIDC user, also clear the RequiresApproval flag
+                    if (user.IsActive && existingUser.RequiresApproval)
+                    {
+                        existingUser.RequiresApproval = false;
+                        _logger.LogInformation("Clearing RequiresApproval flag for activated OIDC user {Username} (ID: {UserId})",
+                            existingUser.Username, existingUser.Id);
+                    }
+
                     // Update password if provided
                     if (!string.IsNullOrWhiteSpace(newPassword))
                     {

@@ -22,7 +22,8 @@ This guide provides comprehensive instructions for setting up OpenID Connect (OI
    - [Client Registration](#client-registration)
 6. [Testing and Validation](#testing-and-validation)
 7. [User Management with OIDC](#user-management-with-oidc)
-8. [Passwordless Login Configuration](#passwordless-login-configuration)
+8. [Auto-Approve OIDC Users](#auto-approve-oidc-users)
+9. [Passwordless Login Configuration](#passwordless-login-configuration)
 
 ## 🌐 Overview
 
@@ -111,6 +112,7 @@ environment:
 - **OAuth__ClientSecret**: The client secret assigned by your identity provider
 - **OAuth__ClientScopes**: Array of scopes requested from the identity provider
 - **OAuth__DisablePasswordLogin**: Set to `true` to disable traditional username/password login and enforce OAuth-only authentication (see Passwordless Login Configuration for more details)
+- **OAuth__AutoApproveUsers**: Set to `true` to automatically approve new OIDC users without requiring admin approval (default: `false`). See [Auto-Approve OIDC Users](#auto-approve-oidc-users) for details
 
 > ⚠️ **Important**: The Client Secret should be kept secure. Use Docker secrets or environment variables in production environments.
 
@@ -286,6 +288,82 @@ OIDC users cannot have or change passwords within Mail Archiver since authentica
 - The "Change Password" option will be disabled for OIDC users
 - Password reset must be handled through the OIDC provider
 - Local password fields will remain empty for OIDC users
+
+## ✅ Auto-Approve OIDC Users
+
+By default, new OIDC users must be manually approved by a local administrator before they can access the application. This provides a double-gating model where both the IdP and the local admin must grant access.
+
+For **OIDC-first deployments** where the Identity Provider (IdP) is the single source of truth for access control, this manual approval step can be skipped by enabling the `AutoApproveUsers` option.
+
+### Enabling Auto-Approve
+
+Set `AutoApproveUsers` to `true` in your configuration:
+
+```json
+{
+  "OAuth": {
+    "Enabled": true,
+    "AutoApproveUsers": true,
+    "Authority": "https://your-provider.com",
+    "ClientId": "your-client-id",
+    "ClientSecret": "your-secret"
+  }
+}
+```
+
+Or via environment variable:
+
+```yaml
+environment:
+  - OAuth__AutoApproveUsers=true
+```
+
+### Behavior
+
+| Setting | New OIDC User Behavior |
+|---|---|
+| `AutoApproveUsers: false` (default) | User is created as **inactive** and **requires admin approval** before access is granted |
+| `AutoApproveUsers: true` | User is created as **active** and can immediately access the application |
+
+> **Note**: `AdminEmails` always takes precedence — users matching `AdminEmails` are always auto-approved as administrators regardless of this setting.
+
+### When to Use
+
+This option is recommended for environments where:
+- The **IdP controls application access** (e.g., via app assignment or group membership in Authentik, Entra ID, Authelia, etc.)
+- You want to **eliminate the double-gating model** (IdP grant + local admin approval)
+- Access **revocation is managed at the IdP level** (removing app assignment automatically prevents login)
+
+### Complete OIDC-First Setup Example
+
+```json
+{
+  "OAuth": {
+    "Enabled": true,
+    "Authority": "https://login.microsoftonline.com/YOUR_TENANT_ID/v2.0",
+    "ClientId": "your-client-id",
+    "ClientSecret": "your-secret",
+    "ClientScopes": ["openid", "profile", "email"],
+    "DisablePasswordLogin": true,
+    "AutoRedirect": true,
+    "AutoApproveUsers": true,
+    "AdminEmails": ["admin@company.com"]
+  }
+}
+```
+
+In this setup:
+- Users are automatically redirected to the OIDC provider
+- New users are automatically approved on first login
+- Admin emails are auto-provisioned as administrators
+- Access control is fully managed at the IdP level
+
+### Security Considerations
+
+- **Trust**: Enabling `AutoApproveUsers` means you trust the IdP to control who can access the application. Ensure your IdP is properly configured with appropriate app assignments or group-based access.
+- **Role Assignment**: Auto-approved users are created with standard user permissions (not admin). Admin access still requires either `AdminEmails` configuration or manual role assignment.
+- **Revocation**: When a user's access is removed in the IdP, they can no longer authenticate via OIDC. However, their local account remains active. To fully revoke access, also deactivate the user in the Mail Archiver admin panel.
+- **Backward Compatibility**: The default value is `false`, preserving the existing behavior for current deployments.
 
 ## 🔒 Passwordless Login Configuration
 
