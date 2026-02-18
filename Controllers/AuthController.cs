@@ -65,10 +65,19 @@ namespace MailArchiver.Controllers
             ViewData["ReturnUrl"] = returnUrl;
 
             // Auto-redirect to OAuth if enabled and password login is disabled
-            if (oAuthEnabled && disablePasswordLogin && autoRedirect)
+            // SECURITY: Do not auto-redirect if there's an error message (e.g., from failed OIDC auth)
+            // to prevent infinite redirect loops
+            var hasError = !string.IsNullOrEmpty(Request.Query["error"]);
+            if (oAuthEnabled && disablePasswordLogin && autoRedirect && !hasError)
             {
                 _logger.LogInformation("Auto-redirecting to OAuth provider (password login disabled, auto-redirect enabled)");
                 return View("AutoRedirect", new OAuthLoginViewModel { ReturnUrl = returnUrl });
+            }
+
+            // Pass OIDC error message to the view if present
+            if (hasError)
+            {
+                ViewBag.OAuthError = Request.Query["error"].ToString();
             }
 
             return View(new LoginViewModel());
@@ -241,8 +250,12 @@ namespace MailArchiver.Controllers
         }
         
         [HttpGet]
-        public IActionResult Blocked()
+        public IActionResult Blocked(string message = null)
         {
+            if (!string.IsNullOrEmpty(message))
+            {
+                ViewBag.BlockedMessage = message;
+            }
             return View();
         }
 

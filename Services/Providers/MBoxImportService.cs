@@ -523,17 +523,16 @@ private readonly IServiceProvider _serviceProvider;
                 // Extract text and HTML body preserving original encoding
                 var body = string.Empty;
                 var htmlBody = string.Empty;
-                var isHtmlTruncated = false;
-                var isBodyTruncated = false;
+                // Keep references to original unmodified body content
+                var originalTextBody = message.TextBody;
+                var originalHtmlBody = message.HtmlBody;
 
                 // Handle text body - use original content directly to preserve encoding
                 if (!string.IsNullOrEmpty(message.TextBody))
                 {
                     var cleanedTextBody = CleanText(message.TextBody);
-                    // Check if text body needs truncation for tsvector compatibility
-                    if (Encoding.UTF8.GetByteCount(cleanedTextBody) > 800_000) // Leave buffer for other fields in tsvector
+                    if (Encoding.UTF8.GetByteCount(cleanedTextBody) > 800_000)
                     {
-                        isBodyTruncated = true;
                         body = TruncateTextForStorage(cleanedTextBody);
                     }
                     else
@@ -543,12 +542,11 @@ private readonly IServiceProvider _serviceProvider;
                 }
                 else if (!string.IsNullOrEmpty(message.HtmlBody))
                 {
-                    // If no TextBody, try to extract text from HTML body
+                    // For BodyUntruncatedText, the original source is HtmlBody in this case
+                    originalTextBody = message.HtmlBody;
                     var cleanedHtmlAsText = CleanText(message.HtmlBody);
-                    // Check if HTML-as-text body needs truncation for tsvector compatibility
-                    if (Encoding.UTF8.GetByteCount(cleanedHtmlAsText) > 800_000) // Leave buffer for other fields in tsvector
+                    if (Encoding.UTF8.GetByteCount(cleanedHtmlAsText) > 800_000)
                     {
-                        isBodyTruncated = true;
                         body = TruncateTextForStorage(cleanedHtmlAsText);
                     }
                     else
@@ -560,15 +558,13 @@ private readonly IServiceProvider _serviceProvider;
                 // Handle HTML body - preserve original encoding
                 if (!string.IsNullOrEmpty(message.HtmlBody))
                 {
-                    // Check if HTML body will be truncated
-                    isHtmlTruncated = message.HtmlBody.Length > 1_000_000;
-                    if (isHtmlTruncated)
+                    if (message.HtmlBody.Length > 1_000_000)
                     {
                         htmlBody = CleanHtmlForStorage(message.HtmlBody);
                     }
                     else
                     {
-                        htmlBody = CleanText(message.HtmlBody); // Apply CleanText to remove null bytes and control characters
+                        htmlBody = CleanText(message.HtmlBody);
                     }
                 }
 
@@ -598,8 +594,10 @@ private readonly IServiceProvider _serviceProvider;
                     HasAttachments = allAttachments.Any(),
                     Body = body,
                     HtmlBody = htmlBody,
-                    BodyUntruncatedText = isBodyTruncated && !string.IsNullOrEmpty(message.TextBody) ? message.TextBody : (isBodyTruncated && !string.IsNullOrEmpty(message.HtmlBody) ? message.HtmlBody : null),
-                    BodyUntruncatedHtml = isHtmlTruncated && !string.IsNullOrEmpty(message.HtmlBody) ? message.HtmlBody : null,
+                    // Always preserve original body content if it differs from the cleaned/truncated version
+                    // Storage-optimized: only populated when original != stored version (NULL otherwise = no extra storage)
+                    BodyUntruncatedText = !string.IsNullOrEmpty(originalTextBody) && originalTextBody != body ? originalTextBody : null,
+                    BodyUntruncatedHtml = !string.IsNullOrEmpty(originalHtmlBody) && originalHtmlBody != htmlBody ? originalHtmlBody : null,
                     FolderName = job.TargetFolder,
                     RawHeaders = rawHeaders, // Store raw headers for forensic/compliance purposes
                     Attachments = new List<EmailAttachment>() // Initialize collection for hash calculation
@@ -618,8 +616,8 @@ private readonly IServiceProvider _serviceProvider;
                     await SaveAllAttachments(context, allAttachments, archivedEmail.Id);
                 }
 
-                _logger.LogDebug("Job {JobId}: Successfully imported email: {MessageId}, Truncated: {IsTruncated}", 
-                    job.JobId, messageId, isHtmlTruncated || isBodyTruncated ? "Yes" : "No");
+                _logger.LogDebug("Job {JobId}: Successfully imported email: {MessageId}, OriginalPreserved: {OriginalPreserved}", 
+                    job.JobId, messageId, archivedEmail.BodyUntruncatedText != null || archivedEmail.BodyUntruncatedHtml != null ? "Yes" : "No");
                 return ImportResult.CreateSuccess();
             }
             catch (Exception ex)

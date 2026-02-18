@@ -187,9 +187,22 @@ namespace MailArchiver.Auth.Extensions
                             logger.LogWarning(ex, "OIDC authentication failed: {Message}", ex.Message);
                             ctx.HandleResponse();
                             
-                            // The exception message is the already-localized string from IStringLocalizer
-                            // So we can directly use it
-                            ctx.Response.Redirect($"/Auth/Login?error={Uri.EscapeDataString(ex.Message)}");
+                            // Check if this is a pending approval or deactivated account error
+                            // These should redirect to the Blocked page to avoid infinite redirect loops
+                            // when AutoRedirect is enabled
+                            var localizer2 = ctx.Request.HttpContext.RequestServices.GetRequiredService<IStringLocalizer<SharedResource>>();
+                            var pendingApprovalMsg = localizer2["OidcAccountPendingApproval"].Value;
+                            var deactivatedMsg = localizer2["OidcAccountDeactivated"].Value;
+                            
+                            if (ex.Message == pendingApprovalMsg || ex.Message == deactivatedMsg)
+                            {
+                                ctx.Response.Redirect($"/Auth/Blocked?message={Uri.EscapeDataString(ex.Message)}");
+                            }
+                            else
+                            {
+                                // Other errors (e.g., email already exists) go to login page
+                                ctx.Response.Redirect($"/Auth/Login?error={Uri.EscapeDataString(ex.Message)}");
+                            }
                         }
                     };
                 });

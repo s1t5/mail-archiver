@@ -875,10 +875,11 @@ private async Task<GraphServiceClient> CreateGraphClientAsync(MailAccount accoun
                 // Extract body content
                 var body = string.Empty;
                 var htmlBody = string.Empty;
-                var bodyUntruncatedText = string.Empty;
-                var bodyUntruncatedHtml = string.Empty;
-                var isHtmlTruncated = false;
-                var isBodyTruncated = false;
+
+                // Keep references to original unmodified body content from Graph API
+                // These will be stored in BodyUntruncatedText/Html if they differ from the cleaned/truncated versions
+                var originalTextBody = message.Body?.ContentType == BodyType.Text ? message.Body?.Content : (message.BodyPreview ?? "");
+                var originalHtmlBody = message.Body?.ContentType == BodyType.Html ? message.Body?.Content : (string?)null;
 
                 if (message.Body?.Content != null)
                 {
@@ -889,9 +890,6 @@ private async Task<GraphServiceClient> CreateGraphClientAsync(MailAccount accoun
                         // Check if HTML body needs truncation
                         if (Encoding.UTF8.GetByteCount(cleanedHtmlBody) > 1_000_000)
                         {
-                            isHtmlTruncated = true;
-                            // Store original in untruncated column
-                            bodyUntruncatedHtml = cleanedHtmlBody;
                             // Store truncated version for search index
                             htmlBody = CleanHtmlForStorage(cleanedHtmlBody);
                         }
@@ -901,13 +899,11 @@ private async Task<GraphServiceClient> CreateGraphClientAsync(MailAccount accoun
                         }
 
                         // Also extract text version if available
+                        originalTextBody = message.BodyPreview ?? "";
                         var bodyPreview = CleanText(message.BodyPreview ?? "");
                         // Set to 500KB to ensure total of all fields stays under 1MB tsvector limit
                         if (Encoding.UTF8.GetByteCount(bodyPreview) > 500_000)
                         {
-                            isBodyTruncated = true;
-                            // Store original in untruncated column
-                            bodyUntruncatedText = bodyPreview;
                             // Store truncated version for search index
                             body = TruncateTextForStorage(bodyPreview, 500_000);
                         }
@@ -922,9 +918,6 @@ private async Task<GraphServiceClient> CreateGraphClientAsync(MailAccount accoun
                         // Set to 500KB to ensure total of all fields stays under 1MB tsvector limit
                         if (Encoding.UTF8.GetByteCount(cleanedTextBody) > 500_000)
                         {
-                            isBodyTruncated = true;
-                            // Store original in untruncated column
-                            bodyUntruncatedText = cleanedTextBody;
                             // Store truncated version for search index
                             body = TruncateTextForStorage(cleanedTextBody, 500_000);
                         }
@@ -940,9 +933,6 @@ private async Task<GraphServiceClient> CreateGraphClientAsync(MailAccount accoun
                     // Set to 500KB to ensure total of all fields stays under 1MB tsvector limit
                     if (Encoding.UTF8.GetByteCount(bodyPreview) > 500_000)
                     {
-                        isBodyTruncated = true;
-                        // Store original in untruncated column
-                        bodyUntruncatedText = bodyPreview;
                         // Store truncated version for search index
                         body = TruncateTextForStorage(bodyPreview, 500_000);
                     }
@@ -985,14 +975,12 @@ private async Task<GraphServiceClient> CreateGraphClientAsync(MailAccount accoun
                     
                     if (maxBodySize > 0 && Encoding.UTF8.GetByteCount(body) > maxBodySize)
                     {
-                        isBodyTruncated = true;
                         body = TruncateTextForStorage(body, maxBodySize);
                     }
                     else if (maxBodySize <= 0)
                     {
                         // Other fields alone exceed limit, truncate body completely
                         _logger.LogError("Other email fields alone exceed tsvector limit, body will be saved as attachment only");
-                        isBodyTruncated = true;
                         body = "[Body too large - saved as attachment]";
                     }
                 }
@@ -1023,8 +1011,10 @@ private async Task<GraphServiceClient> CreateGraphClientAsync(MailAccount accoun
                     HasAttachments = false, // Will be set correctly after checking for attachments
                     Body = body,
                     HtmlBody = htmlBody,
-                    BodyUntruncatedText = !string.IsNullOrEmpty(bodyUntruncatedText) ? bodyUntruncatedText : null,
-                    BodyUntruncatedHtml = !string.IsNullOrEmpty(bodyUntruncatedHtml) ? bodyUntruncatedHtml : null,
+                    // Always preserve original body content if it differs from the cleaned/truncated version
+                    // Storage-optimized: only populated when original != stored version (NULL otherwise = no extra storage)
+                    BodyUntruncatedText = !string.IsNullOrEmpty(originalTextBody) && originalTextBody != body ? originalTextBody : null,
+                    BodyUntruncatedHtml = !string.IsNullOrEmpty(originalHtmlBody) && originalHtmlBody != htmlBody ? originalHtmlBody : null,
                     FolderName = cleanFolderName,
                     Attachments = new List<EmailAttachment>() // Initialize collection for hash calculation
                 };
@@ -1040,9 +1030,9 @@ private async Task<GraphServiceClient> CreateGraphClientAsync(MailAccount accoun
                 archivedEmail.HasAttachments = attachmentCount > 0;
                 await _context.SaveChangesAsync();
 
-                _logger.LogInformation("Archived Graph API email: {Subject}, From: {From}, To: {To}, Account: {AccountName}, Truncated: {IsTruncated}",
+                _logger.LogInformation("Archived Graph API email: {Subject}, From: {From}, To: {To}, Account: {AccountName}, OriginalPreserved: {OriginalPreserved}",
                     archivedEmail.Subject, archivedEmail.From, archivedEmail.To, account.Name, 
-                    isHtmlTruncated || isBodyTruncated ? "Yes" : "No");
+                    archivedEmail.BodyUntruncatedText != null || archivedEmail.BodyUntruncatedHtml != null ? "Yes" : "No");
 
                 return true; // New email successfully archived
             }

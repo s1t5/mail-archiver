@@ -15,7 +15,14 @@
 
             <div class="alert alert-warning" role="alert">
                 <i class="bi bi-exclamation-triangle-fill me-2"></i>
-                @Localizer["LoginBlockedInfo"]
+                @if (!string.IsNullOrEmpty(ViewBag.BlockedMessage as string))
+                {
+                    @ViewBag.BlockedMessage
+                }
+                else
+                {
+                    @Localizer["LoginBlockedInfo"]
+                }
             </div>
 
             <div class="d-grid mt-4">

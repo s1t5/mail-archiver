@@ -478,10 +478,9 @@ namespace MailArchiver.Services.Providers
                 // Extract text and HTML body preserving original encoding
                 var body = string.Empty;
                 var htmlBody = string.Empty;
-                var bodyUntruncatedText = string.Empty;
-                var bodyUntruncatedHtml = string.Empty;
-                var isHtmlTruncated = false;
-                var isBodyTruncated = false;
+                // Keep references to original unmodified body content
+                var originalTextBody = message.TextBody;
+                var originalHtmlBody = message.HtmlBody;
 
                 // Handle text body - use original content directly to preserve encoding
                 if (!string.IsNullOrEmpty(message.TextBody))
@@ -491,10 +490,6 @@ namespace MailArchiver.Services.Providers
                     // Set to 500KB to ensure total of all fields stays under 1MB tsvector limit
                     if (Encoding.UTF8.GetByteCount(cleanedTextBody) > 500_000)
                     {
-                        isBodyTruncated = true;
-                        // Store original in untruncated column
-                        bodyUntruncatedText = cleanedTextBody;
-                        // Store truncated version for search index
                         body = TruncateTextForStorage(cleanedTextBody, 500_000);
                     }
                     else
@@ -510,10 +505,8 @@ namespace MailArchiver.Services.Providers
                     // Set to 500KB to ensure total of all fields stays under 1MB tsvector limit
                     if (Encoding.UTF8.GetByteCount(cleanedHtmlAsText) > 500_000)
                     {
-                        isBodyTruncated = true;
-                        // Store original in untruncated column
-                        bodyUntruncatedText = cleanedHtmlAsText;
-                        // Store truncated version for search index
+                        // For BodyUntruncatedText, the original source is HtmlBody in this case
+                        originalTextBody = message.HtmlBody;
                         body = TruncateTextForStorage(cleanedHtmlAsText, 500_000);
                     }
                     else
@@ -529,10 +522,6 @@ namespace MailArchiver.Services.Providers
                     // Check if HTML body needs truncation
                     if (Encoding.UTF8.GetByteCount(cleanedHtmlBody) > 1_000_000)
                     {
-                        isHtmlTruncated = true;
-                        // Store original in untruncated column
-                        bodyUntruncatedHtml = cleanedHtmlBody;
-                        // Store truncated version for search index
                         htmlBody = CleanHtmlForStorage(cleanedHtmlBody);
                     }
                     else
@@ -581,13 +570,11 @@ namespace MailArchiver.Services.Providers
                     
                     if (maxBodySize > 0 && Encoding.UTF8.GetByteCount(body) > maxBodySize)
                     {
-                        isBodyTruncated = true;
                         body = TruncateTextForStorage(body, maxBodySize);
                     }
                     else if (maxBodySize <= 0)
                     {
                         _logger.LogError("Job {JobId}: Other email fields alone exceed tsvector limit", job.JobId);
-                        isBodyTruncated = true;
                         body = "[Body too large - saved as attachment]";
                     }
                 }
@@ -610,8 +597,10 @@ namespace MailArchiver.Services.Providers
                     HasAttachments = allAttachments.Any(),
                     Body = body,
                     HtmlBody = htmlBody,
-                    BodyUntruncatedText = !string.IsNullOrEmpty(bodyUntruncatedText) ? bodyUntruncatedText : null,
-                    BodyUntruncatedHtml = !string.IsNullOrEmpty(bodyUntruncatedHtml) ? bodyUntruncatedHtml : null,
+                    // Always preserve original body content if it differs from the cleaned/truncated version
+                    // Storage-optimized: only populated when original != stored version (NULL otherwise = no extra storage)
+                    BodyUntruncatedText = !string.IsNullOrEmpty(originalTextBody) && originalTextBody != body ? originalTextBody : null,
+                    BodyUntruncatedHtml = !string.IsNullOrEmpty(originalHtmlBody) && originalHtmlBody != htmlBody ? originalHtmlBody : null,
                     FolderName = targetFolder,
                     RawHeaders = rawHeaders, // Store raw headers for forensic/compliance purposes
                     Attachments = new List<EmailAttachment>() // Initialize collection for hash calculation
@@ -630,8 +619,8 @@ namespace MailArchiver.Services.Providers
                     await SaveAllAttachments(context, allAttachments, archivedEmail.Id);
                 }
 
-                _logger.LogDebug("Job {JobId}: Successfully imported email: {MessageId}, Truncated: {IsTruncated}", 
-                    job.JobId, messageId, isHtmlTruncated || isBodyTruncated ? "Yes" : "No");
+                _logger.LogDebug("Job {JobId}: Successfully imported email: {MessageId}, OriginalPreserved: {OriginalPreserved}", 
+                    job.JobId, messageId, archivedEmail.BodyUntruncatedText != null || archivedEmail.BodyUntruncatedHtml != null ? "Yes" : "No");
                 return ImportResult.CreateSuccess();
             }
             catch (Exception ex)
