@@ -1,6 +1,7 @@
 ﻿using MailArchiver.Auth.Exceptions;
 using MailArchiver.Auth.Handlers;
 using MailArchiver.Auth.Options;
+using MailArchiver.Models;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.Extensions.Localization;
@@ -13,21 +14,37 @@ namespace MailArchiver.Auth.Extensions
 {
     public static class AddAuthExtension
     {
+        // Helper method to parse SameSite mode from string
+        private static SameSiteMode ParseSameSiteMode(string? value)
+        {
+            return value?.ToLowerInvariant() switch
+            {
+                "strict" => SameSiteMode.Strict,
+                "none" => SameSiteMode.None,
+                _ => SameSiteMode.Lax // Default to Lax for better cross-site navigation support
+            };
+        }
+
         public static WebApplicationBuilder AddAuth(this WebApplicationBuilder builder)
         {
             builder.Services.AddScoped<AuthenticationHandler>();
             builder.Services.AddHttpContextAccessor();
+            
+            // Get authentication options for SameSite configuration
+            var authOptionsConfig = builder.Configuration.GetSection(AuthenticationOptions.Authentication).Get<AuthenticationOptions>() ?? new AuthenticationOptions();
+            var cookieSameSiteMode = ParseSameSiteMode(authOptionsConfig.CookieSameSite);
+            
             var authBuilder = builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme);
             authBuilder.AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
             {
                 options.LoginPath = "/Auth/Login";
                 options.LogoutPath = "/Auth/Logout";
                 options.AccessDeniedPath = "/Auth/AccessDenied";
-                options.Cookie.Name = "MailArchiverAuth";
+                options.Cookie.Name = authOptionsConfig.CookieName;
                 options.Cookie.HttpOnly = true;
                 options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
-                options.Cookie.SameSite = SameSiteMode.Strict;
-                options.ExpireTimeSpan = TimeSpan.FromMinutes(60);
+                options.Cookie.SameSite = cookieSameSiteMode;
+                options.ExpireTimeSpan = TimeSpan.FromMinutes(authOptionsConfig.SessionTimeoutMinutes);
                 options.SlidingExpiration = true;
             });
 
@@ -35,7 +52,12 @@ namespace MailArchiver.Auth.Extensions
             var oauthOptions = builder.Configuration.GetSection(OAuthOptions.OAuth).Get<OAuthOptions>();
             if (oauthOptions?.Enabled ?? false)
             {
-                authBuilder.AddCookie(OAuthOptions.SignInScheme); // temporary storage for OIDC result
+                authBuilder.AddCookie(OAuthOptions.SignInScheme, options =>
+                {
+                    options.Cookie.HttpOnly = true;
+                    options.Cookie.SameSite = cookieSameSiteMode;
+                    options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+                }); // temporary storage for OIDC result
                 authBuilder.AddOpenIdConnect(OpenIdConnectDefaults.AuthenticationScheme, (o) => {
                     o.ClientId = oauthOptions.ClientId;
                     o.ClientSecret = oauthOptions.ClientSecret;

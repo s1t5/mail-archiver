@@ -13,6 +13,17 @@ using System.Threading.RateLimiting;
 
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 
+// Helper method to parse SameSite mode from string
+static SameSiteMode ParseSameSiteMode(string? value)
+{
+    return value?.ToLowerInvariant() switch
+    {
+        "strict" => SameSiteMode.Strict,
+        "none" => SameSiteMode.None,
+        _ => SameSiteMode.Lax // Default to Lax for better cross-site navigation support
+    };
+}
+
 // Helper method to ensure __EFMigrationsHistory table exists
 async static Task EnsureMigrationsHistoryTableExists(MailArchiverDbContext context, IServiceProvider services)
 {
@@ -127,12 +138,25 @@ builder.Services.AddScoped<MailArchiver.Utilities.DateTimeHelper>();
 
 // Add Session support
 builder.Services.AddDistributedMemoryCache();
+
+// Get authentication options for SameSite configuration
+var authOptionsConfig = builder.Configuration.GetSection(AuthenticationOptions.Authentication).Get<AuthenticationOptions>() ?? new AuthenticationOptions();
+var cookieSameSiteMode = ParseSameSiteMode(authOptionsConfig.CookieSameSite);
+
 builder.Services.AddSession(options =>
 {
     options.IdleTimeout = TimeSpan.FromMinutes(60);
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
-    options.Cookie.SameSite = SameSiteMode.Strict;
+    options.Cookie.SameSite = cookieSameSiteMode;
+});
+
+// Configure Anti-forgery (CSRF) cookies with same SameSite policy
+builder.Services.AddAntiforgery(options =>
+{
+    options.Cookie.HttpOnly = true;
+    options.Cookie.SameSite = cookieSameSiteMode;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
 });
 
 // Add Data Protection with persistent key storage

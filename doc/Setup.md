@@ -31,6 +31,7 @@ services:
       - Authentication__Password=secure123!
       - Authentication__SessionTimeoutMinutes=60
       - Authentication__CookieName=MailArchiverAuth
+      - Authentication__CookieSameSite=Lax
 
       # MailSync Settings
       - MailSync__IntervalMinutes=15
@@ -168,7 +169,11 @@ docker compose restart
 - `Authentication__Password`: The password for the admin account.
 - `Authentication__SessionTimeoutMinutes`: The session timeout in minutes.
 - `Authentication__CookieName`: The name of the authentication cookie.
-
+- `Authentication__CookieSameSite`: Configures the SameSite attribute for authentication, session, and CSRF protection cookies. Valid values are:
+  - `Strict` (default): Maximum security. Cookies are only sent with same-site requests. This may cause issues when navigating to the application from external links (e.g., clicking a link from another website), as the existing session won't be recognized.
+  - `Lax`: Recommended when using a reverse proxy. Cookies are sent with top-level navigations and same-site requests, allowing users to follow external links to the application while maintaining CSRF protection for POST requests.
+  - `None`: Cookies are sent with all requests. Requires HTTPS and the `Secure` attribute. Only use this if you have specific cross-site requirements and understand the security implications.
+  
 ### 📨 MailSync Settings
 - `MailSync__IntervalMinutes`: The interval in minutes between email synchronization.
 - `MailSync__TimeoutMinutes`: The timeout for the sync operation in minutes.
