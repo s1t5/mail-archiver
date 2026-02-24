@@ -24,6 +24,12 @@ namespace MailArchiver.Models
         // Contains all headers including Received, Return-Path, X-Headers, etc.
         public string? RawHeaders { get; set; }
 
+        // Original body content with null bytes preserved (stored as byte array)
+        // Only populated when the original body contained null bytes that needed to be cleaned
+        // for PostgreSQL TEXT storage. Used for faithful export/restore of emails.
+        public byte[]? OriginalBodyText { get; set; }
+        public byte[]? OriginalBodyHtml { get; set; }
+
         // Compliance fields for integrity and immutability
         public string? ContentHash { get; set; }
         public DateTime? HashCreatedAt { get; set; }

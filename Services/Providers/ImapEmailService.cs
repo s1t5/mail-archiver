@@ -472,24 +472,29 @@ namespace MailArchiver.Services.Providers
                         }
                     }
 
-                    // Use untruncated body if available
-                    var htmlBodyToRestore = !string.IsNullOrEmpty(email.BodyUntruncatedHtml) 
+                // Use original body if available (preserves null bytes), otherwise use untruncated or regular body
+                // Priority: OriginalBody (bytes with nulls) > BodyUntruncated > Body
+                var htmlBodyToRestore = email.OriginalBodyHtml != null
+                    ? System.Text.Encoding.UTF8.GetString(email.OriginalBodyHtml)
+                    : (!string.IsNullOrEmpty(email.BodyUntruncatedHtml) 
                         ? email.BodyUntruncatedHtml 
-                        : email.HtmlBody;
-                    
-                    var textBodyToRestore = !string.IsNullOrEmpty(email.BodyUntruncatedText) 
+                        : email.HtmlBody);
+                
+                var textBodyToRestore = email.OriginalBodyText != null
+                    ? System.Text.Encoding.UTF8.GetString(email.OriginalBodyText)
+                    : (!string.IsNullOrEmpty(email.BodyUntruncatedText) 
                         ? email.BodyUntruncatedText 
-                        : email.Body;
+                        : email.Body);
 
-                    var bodyBuilder = new BodyBuilder();
-                    if (!string.IsNullOrEmpty(htmlBodyToRestore))
-                    {
-                        bodyBuilder.HtmlBody = htmlBodyToRestore;
-                    }
-                    if (!string.IsNullOrEmpty(textBodyToRestore))
-                    {
-                        bodyBuilder.TextBody = textBodyToRestore;
-                    }
+                var bodyBuilder = new BodyBuilder();
+                if (!string.IsNullOrEmpty(htmlBodyToRestore))
+                {
+                    bodyBuilder.HtmlBody = htmlBodyToRestore;
+                }
+                if (!string.IsNullOrEmpty(textBodyToRestore))
+                {
+                    bodyBuilder.TextBody = textBodyToRestore;
+                }
 
                     // Add attachments
                     if (email.Attachments?.Any() == true)
@@ -1856,14 +1861,19 @@ namespace MailArchiver.Services.Providers
                     }
                 }
 
-                // Use untruncated body if available
-                var htmlBodyToRestore = !string.IsNullOrEmpty(email.BodyUntruncatedHtml) 
-                    ? email.BodyUntruncatedHtml 
-                    : email.HtmlBody;
+                // Use original body if available (preserves null bytes), otherwise use untruncated or regular body
+                // Priority: OriginalBody (bytes with nulls) > BodyUntruncated > Body
+                var htmlBodyToRestore = email.OriginalBodyHtml != null
+                    ? System.Text.Encoding.UTF8.GetString(email.OriginalBodyHtml)
+                    : (!string.IsNullOrEmpty(email.BodyUntruncatedHtml) 
+                        ? email.BodyUntruncatedHtml 
+                        : email.HtmlBody);
                 
-                var textBodyToRestore = !string.IsNullOrEmpty(email.BodyUntruncatedText) 
-                    ? email.BodyUntruncatedText 
-                    : email.Body;
+                var textBodyToRestore = email.OriginalBodyText != null
+                    ? System.Text.Encoding.UTF8.GetString(email.OriginalBodyText)
+                    : (!string.IsNullOrEmpty(email.BodyUntruncatedText) 
+                        ? email.BodyUntruncatedText 
+                        : email.Body);
 
                 // Create body with attachments
                 var bodyBuilder = new BodyBuilder();

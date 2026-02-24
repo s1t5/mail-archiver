@@ -155,6 +155,12 @@ namespace MailArchiver.Migrations
                     b.Property<DateTime>("ReceivedDate")
                         .HasColumnType("timestamp without time zone");
 
+                    b.Property<byte[]>("OriginalBodyHtml")
+                        .HasColumnType("bytea");
+
+                    b.Property<byte[]>("OriginalBodyText")
+                        .HasColumnType("bytea");
+
                     b.Property<DateTime>("SentDate")
                         .HasColumnType("timestamp without time zone");
 

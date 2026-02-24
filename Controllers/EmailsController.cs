@@ -302,14 +302,20 @@ namespace MailArchiver.Controllers
             _logger.LogInformation("Found email with ID {EmailId} from account {AccountId}", 
                 id, email.MailAccountId);
 
-            // Use untruncated body if available for compliance
-            var htmlBodyToDisplay = !string.IsNullOrEmpty(email.BodyUntruncatedHtml) 
-                ? email.BodyUntruncatedHtml 
-                : email.HtmlBody;
+
+            // Use original body if available (preserves null bytes and truncation), with fallback to untruncated and regular body
+            // Priority: OriginalBody (bytes with nulls/truncation) > BodyUntruncated (legacy) > Body
+            var htmlBodyToDisplay = email.OriginalBodyHtml != null
+                ? System.Text.Encoding.UTF8.GetString(email.OriginalBodyHtml)
+                : (!string.IsNullOrEmpty(email.BodyUntruncatedHtml) 
+                    ? email.BodyUntruncatedHtml 
+                    : email.HtmlBody);
             
-            var textBodyToDisplay = !string.IsNullOrEmpty(email.BodyUntruncatedText) 
-                ? email.BodyUntruncatedText 
-                : email.Body;
+            var textBodyToDisplay = email.OriginalBodyText != null
+                ? System.Text.Encoding.UTF8.GetString(email.OriginalBodyText)
+                : (!string.IsNullOrEmpty(email.BodyUntruncatedText) 
+                    ? email.BodyUntruncatedText 
+                    : email.Body);
 
             var model = new EmailDetailViewModel
             {
@@ -2181,14 +2187,19 @@ namespace MailArchiver.Controllers
                 return View("Details404");
             }
 
-            // Use untruncated body if available for compliance
-            var htmlBodyToDisplay = !string.IsNullOrEmpty(email.BodyUntruncatedHtml) 
-                ? email.BodyUntruncatedHtml 
-                : email.HtmlBody;
+            // Use original body if available (preserves null bytes and truncation), with fallback to untruncated and regular body
+            // Priority: OriginalBody (bytes with nulls/truncation) > BodyUntruncated (legacy) > Body
+            var htmlBodyToDisplay = email.OriginalBodyHtml != null
+                ? System.Text.Encoding.UTF8.GetString(email.OriginalBodyHtml)
+                : (!string.IsNullOrEmpty(email.BodyUntruncatedHtml) 
+                    ? email.BodyUntruncatedHtml 
+                    : email.HtmlBody);
             
-            var textBodyToDisplay = !string.IsNullOrEmpty(email.BodyUntruncatedText) 
-                ? email.BodyUntruncatedText 
-                : email.Body;
+            var textBodyToDisplay = email.OriginalBodyText != null
+                ? System.Text.Encoding.UTF8.GetString(email.OriginalBodyText)
+                : (!string.IsNullOrEmpty(email.BodyUntruncatedText) 
+                    ? email.BodyUntruncatedText 
+                    : email.Body);
 
             string html;
 

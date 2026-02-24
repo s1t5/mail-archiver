@@ -783,13 +783,19 @@ namespace MailArchiver.Services.Core
                 }
             }
 
-            var htmlBodyToExport = !string.IsNullOrEmpty(email.BodyUntruncatedHtml)
-                ? email.BodyUntruncatedHtml
-                : email.HtmlBody;
+            // Priority: Original body (with null bytes) > Untruncated body > Regular body
+            // Use OriginalBody if available (contains original content including null bytes)
+            var htmlBodyToExport = email.OriginalBodyHtml != null
+                ? Encoding.UTF8.GetString(email.OriginalBodyHtml)
+                : (!string.IsNullOrEmpty(email.BodyUntruncatedHtml)
+                    ? email.BodyUntruncatedHtml
+                    : email.HtmlBody);
 
-            var textBodyToExport = !string.IsNullOrEmpty(email.BodyUntruncatedText)
-                ? email.BodyUntruncatedText
-                : email.Body;
+            var textBodyToExport = email.OriginalBodyText != null
+                ? Encoding.UTF8.GetString(email.OriginalBodyText)
+                : (!string.IsNullOrEmpty(email.BodyUntruncatedText)
+                    ? email.BodyUntruncatedText
+                    : email.Body);
 
             var body = !string.IsNullOrEmpty(htmlBodyToExport)
                 ? new TextPart("html") { Text = htmlBodyToExport }
@@ -1063,10 +1069,20 @@ namespace MailArchiver.Services.Core
                 var body = string.Empty;
                 var htmlBody = string.Empty;
 
+                // Store raw body content BEFORE cleaning to detect null bytes
+                // This preserves the original content including any null bytes for faithful export
+                var rawTextBody = message.TextBody;
+                var rawHtmlBody = message.HtmlBody;
+                
+                // Check if original bodies contain null bytes - if so, store them as byte arrays
+                var hasNullBytesInText = !string.IsNullOrEmpty(rawTextBody) && rawTextBody.Contains('\0');
+                var hasNullBytesInHtml = !string.IsNullOrEmpty(rawHtmlBody) && rawHtmlBody.Contains('\0');
+                
                 // Keep references to the original unmodified body content
-                // These will be stored in BodyUntruncatedText/Html if they differ from the cleaned/truncated versions
-                var originalTextBody = message.TextBody;
-                var originalHtmlBody = message.HtmlBody;
+                // These will be stored in OriginalBodyText/Html (as byte[]) if they differ from the stored version
+                // IMPORTANT: Clean the original bodies to remove null bytes for the cleaned version
+                var originalTextBody = !string.IsNullOrEmpty(rawTextBody) ? CleanText(rawTextBody) : null;
+                var originalHtmlBody = !string.IsNullOrEmpty(rawHtmlBody) ? CleanText(rawHtmlBody) : null;
 
                 // Handle text body - use original content directly to preserve encoding
                 if (!string.IsNullOrEmpty(message.TextBody))
@@ -1187,10 +1203,16 @@ namespace MailArchiver.Services.Core
                     HasAttachments = allAttachments.Any(),
                     Body = body,
                     HtmlBody = htmlBody,
-                    // Always preserve original body content if it differs from the cleaned/truncated version
-                    // Storage-optimized: only populated when original != stored version (NULL otherwise = no extra storage)
-                    BodyUntruncatedText = !string.IsNullOrEmpty(originalTextBody) && originalTextBody != body ? originalTextBody : null,
-                    BodyUntruncatedHtml = !string.IsNullOrEmpty(originalHtmlBody) && originalHtmlBody != htmlBody ? originalHtmlBody : null,
+                    // LEGACY: BodyUntruncated fields are no longer populated for new emails (kept for backward compatibility)
+                    // Original body content is now stored in OriginalBody* fields (as byte[]) for both truncation AND null-byte cases
+                    BodyUntruncatedText = null,  // Not populated for new emails - use OriginalBodyText instead
+                    BodyUntruncatedHtml = null,  // Not populated for new emails - use OriginalBodyHtml instead
+                    // Store original body as byte array for faithful export/restore
+                    // Populated when: (1) original contained null bytes, OR (2) original was truncated
+                    OriginalBodyText = (hasNullBytesInText || (!string.IsNullOrEmpty(originalTextBody) && originalTextBody != body)) 
+                        ? Encoding.UTF8.GetBytes(hasNullBytesInText ? rawTextBody! : originalTextBody!) : null,
+                    OriginalBodyHtml = (hasNullBytesInHtml || (!string.IsNullOrEmpty(originalHtmlBody) && originalHtmlBody != htmlBody)) 
+                        ? Encoding.UTF8.GetBytes(hasNullBytesInHtml ? rawHtmlBody! : originalHtmlBody!) : null,
                     FolderName = cleanFolderName,
                     RawHeaders = rawHeaders, // Store raw headers for forensic/compliance purposes
                     Attachments = new List<EmailAttachment>() // Initialize collection for hash calculation

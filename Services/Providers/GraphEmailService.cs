@@ -880,6 +880,10 @@ private async Task<GraphServiceClient> CreateGraphClientAsync(MailAccount accoun
                 // These will be stored in BodyUntruncatedText/Html if they differ from the cleaned/truncated versions
                 var originalTextBody = message.Body?.ContentType == BodyType.Text ? message.Body?.Content : (message.BodyPreview ?? "");
                 var originalHtmlBody = message.Body?.ContentType == BodyType.Html ? message.Body?.Content : (string?)null;
+                
+                // Check if original bodies contain null bytes - if so, store them as byte arrays
+                var hasNullBytesInText = !string.IsNullOrEmpty(originalTextBody) && originalTextBody.Contains('\0');
+                var hasNullBytesInHtml = !string.IsNullOrEmpty(originalHtmlBody) && originalHtmlBody.Contains('\0');
 
                 if (message.Body?.Content != null)
                 {
@@ -1011,10 +1015,16 @@ private async Task<GraphServiceClient> CreateGraphClientAsync(MailAccount accoun
                     HasAttachments = false, // Will be set correctly after checking for attachments
                     Body = body,
                     HtmlBody = htmlBody,
-                    // Always preserve original body content if it differs from the cleaned/truncated version
-                    // Storage-optimized: only populated when original != stored version (NULL otherwise = no extra storage)
-                    BodyUntruncatedText = !string.IsNullOrEmpty(originalTextBody) && originalTextBody != body ? originalTextBody : null,
-                    BodyUntruncatedHtml = !string.IsNullOrEmpty(originalHtmlBody) && originalHtmlBody != htmlBody ? originalHtmlBody : null,
+                    // LEGACY: BodyUntruncated fields are no longer populated for new emails (kept for backward compatibility)
+                    // Original body content is now stored in OriginalBody* fields (as byte[]) for both truncation AND null-byte cases
+                    BodyUntruncatedText = null,  // Not populated for new emails - use OriginalBodyText instead
+                    BodyUntruncatedHtml = null,  // Not populated for new emails - use OriginalBodyHtml instead
+                    // Store original body as byte array for faithful export/restore
+                    // Populated when: (1) original contained null bytes, OR (2) original was truncated
+                    OriginalBodyText = (hasNullBytesInText || (!string.IsNullOrEmpty(originalTextBody) && originalTextBody != body)) 
+                        ? Encoding.UTF8.GetBytes(hasNullBytesInText ? originalTextBody! : originalTextBody!) : null,
+                    OriginalBodyHtml = (hasNullBytesInHtml || (!string.IsNullOrEmpty(originalHtmlBody) && originalHtmlBody != htmlBody)) 
+                        ? Encoding.UTF8.GetBytes(hasNullBytesInHtml ? originalHtmlBody! : originalHtmlBody!) : null,
                     FolderName = cleanFolderName,
                     Attachments = new List<EmailAttachment>() // Initialize collection for hash calculation
                 };

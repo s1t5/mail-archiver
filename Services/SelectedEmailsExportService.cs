@@ -546,13 +546,18 @@ namespace MailArchiver.Services
             // Create body - use untruncated body if available for compliance
             var bodyBuilder = new BodyBuilder();
 
-            var textBodyToExport = !string.IsNullOrEmpty(email.BodyUntruncatedText) 
-                ? email.BodyUntruncatedText 
-                : email.Body;
+            // Priority: Original body (with null bytes) > Untruncated body > Regular body
+            var textBodyToExport = email.OriginalBodyText != null
+                ? System.Text.Encoding.UTF8.GetString(email.OriginalBodyText)
+                : (!string.IsNullOrEmpty(email.BodyUntruncatedText)
+                    ? email.BodyUntruncatedText
+                    : email.Body);
 
-            var htmlBodyToExport = !string.IsNullOrEmpty(email.BodyUntruncatedHtml) 
-                ? email.BodyUntruncatedHtml 
-                : email.HtmlBody;
+            var htmlBodyToExport = email.OriginalBodyHtml != null
+                ? System.Text.Encoding.UTF8.GetString(email.OriginalBodyHtml)
+                : (!string.IsNullOrEmpty(email.BodyUntruncatedHtml) 
+                    ? email.BodyUntruncatedHtml 
+                    : email.HtmlBody);
 
             if (!string.IsNullOrEmpty(textBodyToExport))
             {

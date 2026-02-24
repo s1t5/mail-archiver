@@ -635,20 +635,23 @@ namespace MailArchiver.Services
             // Create body - use untruncated versions if available for compliance
             var bodyBuilder = new BodyBuilder();
 
-            // Use BodyUntruncatedText if available, otherwise fall back to Body
-            var textBody = !string.IsNullOrEmpty(email.BodyUntruncatedText) 
-                ? email.BodyUntruncatedText 
-                : email.Body;
+            // Priority: Original body (with null bytes) > Untruncated body > Regular body
+            var textBody = email.OriginalBodyText != null
+                ? System.Text.Encoding.UTF8.GetString(email.OriginalBodyText)
+                : (!string.IsNullOrEmpty(email.BodyUntruncatedText) 
+                    ? email.BodyUntruncatedText 
+                    : email.Body);
 
             if (!string.IsNullOrEmpty(textBody))
             {
                 bodyBuilder.TextBody = textBody;
             }
 
-            // Use BodyUntruncatedHtml if available, otherwise fall back to HtmlBody
-            var htmlBody = !string.IsNullOrEmpty(email.BodyUntruncatedHtml) 
-                ? email.BodyUntruncatedHtml 
-                : email.HtmlBody;
+            var htmlBody = email.OriginalBodyHtml != null
+                ? System.Text.Encoding.UTF8.GetString(email.OriginalBodyHtml)
+                : (!string.IsNullOrEmpty(email.BodyUntruncatedHtml) 
+                    ? email.BodyUntruncatedHtml 
+                    : email.HtmlBody);
 
             if (!string.IsNullOrEmpty(htmlBody))
             {

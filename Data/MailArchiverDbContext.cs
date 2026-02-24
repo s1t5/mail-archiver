@@ -208,6 +208,17 @@ namespace MailArchiver.Data
             modelBuilder.Entity<ArchivedEmail>()
                 .Property(e => e.IsLocked)
                 .HasDefaultValue(false);
+
+            // Original body content with null bytes preserved (stored as byte array)
+            modelBuilder.Entity<ArchivedEmail>()
+                .Property(e => e.OriginalBodyText)
+                .HasColumnType("bytea")
+                .IsRequired(false);
+
+            modelBuilder.Entity<ArchivedEmail>()
+                .Property(e => e.OriginalBodyHtml)
+                .HasColumnType("bytea")
+                .IsRequired(false);
         }
     }
 }
