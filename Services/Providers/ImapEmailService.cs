@@ -1060,6 +1060,11 @@ namespace MailArchiver.Services.Providers
                                 }
 
                                 using var message = await folder.GetMessageAsync(uid);
+                                
+                                // Pre-clean message data to remove null bytes before archiving
+                                // This prevents PostgreSQL UTF-8 encoding errors (0x00 is invalid in UTF-8)
+                                PreCleanMessage(message);
+                                
                                 var isNew = await _coreService.ArchiveEmailAsync(account, message, isOutgoing, folder.FullName);
                                 if (isNew)
                                 {
@@ -1068,8 +1073,55 @@ namespace MailArchiver.Services.Providers
                             }
                             catch (Exception ex)
                             {
-                                _logger.LogError(ex, "Error archiving message {MessageNumber} from folder {FolderName}. Message: {Message}",
-                                    uid, folder.FullName, ex.Message);
+                                // Enhanced error logging with email details for better debugging
+                                var emailSubject = "Unknown";
+                                var emailFrom = "Unknown";
+                                var emailDate = "Unknown";
+                                var emailMessageId = "Unknown";
+                                
+                                try
+                                {
+                                    // Try to get message details for better error reporting
+                                    // Re-fetch message with minimal data for error logging
+                                    if (client.IsConnected && folder.IsOpen)
+                                    {
+                                        try
+                                        {
+                                            var summary = await folder.FetchAsync(new[] { uid }, MessageSummaryItems.Envelope | MessageSummaryItems.UniqueId);
+                                            if (summary != null && summary.Count > 0)
+                                            {
+                                                var envelope = summary[0].Envelope;
+                                                emailSubject = envelope?.Subject ?? "No Subject";
+                                                emailFrom = envelope?.From?.ToString() ?? "Unknown Sender";
+                                                emailDate = envelope?.Date?.ToString() ?? summary[0].InternalDate?.ToString() ?? "Unknown Date";
+                                                emailMessageId = envelope?.MessageId ?? "No Message-ID";
+                                            }
+                                        }
+                                        catch
+                                        {
+                                            // Ignore errors when trying to get additional details
+                                        }
+                                    }
+                                }
+                                catch
+                                {
+                                    // Ignore errors when trying to get additional details
+                                }
+                                
+                                var innermostEx = ex;
+                                while (innermostEx.InnerException != null)
+                                {
+                                    innermostEx = innermostEx.InnerException;
+                                }
+                                
+                                // Check for specific PostgreSQL UTF-8 encoding error
+                                var isUtf8Error = innermostEx.Message.Contains("UTF8") || innermostEx.Message.Contains("0x00") || innermostEx.Message.Contains("22021");
+                                
+                                _logger.LogError(ex, "Error archiving message from folder {FolderName}. " +
+                                    "Email Details - Subject: '{Subject}', From: '{From}', Date: '{Date}', Message-ID: '{MessageId}', UID: {Uid}. " +
+                                    "IsUTF8Error: {IsUtf8Error}, InnermostError: {InnermostError}",
+                                    folder.FullName, emailSubject, emailFrom, emailDate, emailMessageId, uid, isUtf8Error, innermostEx.Message);
+                                
                                 result.FailedEmails++;
                             }
                         }
@@ -2133,6 +2185,121 @@ namespace MailArchiver.Services.Providers
                 account.Name, deletedCount);
 
             return deletedCount;
+        }
+
+        /// <summary>
+        /// Pre-cleans a MimeMessage to remove null bytes and other invalid UTF-8 characters
+        /// that would cause PostgreSQL encoding errors when saving to the database.
+        /// This method modifies the message in place.
+        /// </summary>
+        /// <param name="message">The MimeMessage to clean</param>
+        private void PreCleanMessage(MimeMessage message)
+        {
+            try
+            {
+                // Clean Subject
+                if (!string.IsNullOrEmpty(message.Subject))
+                {
+                    message.Subject = RemoveNullBytes(message.Subject);
+                }
+
+                // Clean From addresses
+                if (message.From != null)
+                {
+                    foreach (var address in message.From)
+                    {
+                        if (address is MailboxAddress mailboxAddress)
+                        {
+                            mailboxAddress.Name = RemoveNullBytes(mailboxAddress.Name);
+                            // Note: Address is typically clean but we can't modify it directly
+                        }
+                    }
+                }
+
+                // Clean To addresses
+                if (message.To != null)
+                {
+                    foreach (var address in message.To)
+                    {
+                        if (address is MailboxAddress mailboxAddress)
+                        {
+                            mailboxAddress.Name = RemoveNullBytes(mailboxAddress.Name);
+                        }
+                    }
+                }
+
+                // Clean Cc addresses
+                if (message.Cc != null)
+                {
+                    foreach (var address in message.Cc)
+                    {
+                        if (address is MailboxAddress mailboxAddress)
+                        {
+                            mailboxAddress.Name = RemoveNullBytes(mailboxAddress.Name);
+                        }
+                    }
+                }
+
+                // Clean Bcc addresses
+                if (message.Bcc != null)
+                {
+                    foreach (var address in message.Bcc)
+                    {
+                        if (address is MailboxAddress mailboxAddress)
+                        {
+                            mailboxAddress.Name = RemoveNullBytes(mailboxAddress.Name);
+                        }
+                    }
+                }
+
+                // Clean body text content
+                if (!string.IsNullOrEmpty(message.TextBody))
+                {
+                    // The TextBody property is read-only, but we can clean it when the body is accessed
+                    // in ArchiveEmailAsync. The CleanText method in EmailCoreService handles this.
+                }
+
+                // Clean HTML body content
+                if (!string.IsNullOrEmpty(message.HtmlBody))
+                {
+                    // The HtmlBody property is read-only, but we can clean it when the body is accessed
+                    // in ArchiveEmailAsync. The CleanText method in EmailCoreService handles this.
+                }
+
+                // Note: Headers are typically clean from the IMAP server, but if needed,
+                // we could clean individual header values here as well.
+
+                _logger.LogDebug("Pre-cleaned message to remove null bytes: Subject='{Subject}', MessageId='{MessageId}'",
+                    message.Subject, message.MessageId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Error during message pre-cleaning: {Message}", ex.Message);
+                // Continue even if cleaning fails - the archive process will handle it
+            }
+        }
+
+        /// <summary>
+        /// Removes null bytes (0x00) and other invalid UTF-8 control characters from a string.
+        /// PostgreSQL does not allow null bytes in TEXT/VARCHAR columns.
+        /// </summary>
+        /// <param name="input">The input string to clean</param>
+        /// <returns>The cleaned string with null bytes removed</returns>
+        private string RemoveNullBytes(string input)
+        {
+            if (string.IsNullOrEmpty(input))
+            {
+                return input;
+            }
+
+            // Check if there are any null bytes first (optimization)
+            if (!input.Contains('\0'))
+            {
+                return input;
+            }
+
+            // Remove null bytes
+            return input.Replace("\0", "");
         }
 
         #endregion

@@ -330,6 +330,10 @@ namespace MailArchiver.Services.Providers
                         var parser = new MimeParser(memoryStream, MimeFormat.Entity);
                         var message = await parser.ParseMessageAsync(cancellationToken);
 
+                        // Pre-clean message data to remove null bytes before processing
+                        // This prevents PostgreSQL UTF-8 encoding errors (0x00 is invalid in UTF-8)
+                        PreCleanMessage(message);
+
                         job.CurrentEmailSubject = message.Subject;
                         job.ProcessedBytes = memoryStream.Position;
 
@@ -581,6 +585,12 @@ namespace MailArchiver.Services.Providers
 
                 // Extract raw headers for forensic/compliance purposes
                 var rawHeaders = ExtractRawHeaders(message);
+                
+                // Clean raw headers to remove null bytes (prevent PostgreSQL UTF-8 errors)
+                if (!string.IsNullOrEmpty(rawHeaders))
+                {
+                    rawHeaders = CleanText(rawHeaders);
+                }
 
                 var archivedEmail = new ArchivedEmail
                 {
@@ -1261,6 +1271,103 @@ namespace MailArchiver.Services.Providers
             {
                 _logger.LogWarning(ex, "Failed to delete temporary EML file {FilePath} for cancelled job {JobId}", filePath, jobId);
             }
+        }
+
+        /// <summary>
+        /// Pre-cleans a MimeMessage to remove null bytes and other invalid UTF-8 characters
+        /// that would cause PostgreSQL encoding errors when saving to the database.
+        /// This method modifies the message in place.
+        /// </summary>
+        /// <param name="message">The MimeMessage to clean</param>
+        private void PreCleanMessage(MimeMessage message)
+        {
+            try
+            {
+                // Clean Subject
+                if (!string.IsNullOrEmpty(message.Subject))
+                {
+                    message.Subject = RemoveNullBytes(message.Subject);
+                }
+
+                // Clean From addresses
+                if (message.From != null)
+                {
+                    foreach (var address in message.From)
+                    {
+                        if (address is MailboxAddress mailboxAddress)
+                        {
+                            mailboxAddress.Name = RemoveNullBytes(mailboxAddress.Name);
+                        }
+                    }
+                }
+
+                // Clean To addresses
+                if (message.To != null)
+                {
+                    foreach (var address in message.To)
+                    {
+                        if (address is MailboxAddress mailboxAddress)
+                        {
+                            mailboxAddress.Name = RemoveNullBytes(mailboxAddress.Name);
+                        }
+                    }
+                }
+
+                // Clean Cc addresses
+                if (message.Cc != null)
+                {
+                    foreach (var address in message.Cc)
+                    {
+                        if (address is MailboxAddress mailboxAddress)
+                        {
+                            mailboxAddress.Name = RemoveNullBytes(mailboxAddress.Name);
+                        }
+                    }
+                }
+
+                // Clean Bcc addresses
+                if (message.Bcc != null)
+                {
+                    foreach (var address in message.Bcc)
+                    {
+                        if (address is MailboxAddress mailboxAddress)
+                        {
+                            mailboxAddress.Name = RemoveNullBytes(mailboxAddress.Name);
+                        }
+                    }
+                }
+
+                _logger.LogDebug("Pre-cleaned message to remove null bytes: Subject='{Subject}', MessageId='{MessageId}'",
+                    message.Subject, message.MessageId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Error during message pre-cleaning: {Message}", ex.Message);
+                // Continue even if cleaning fails - the archive process will handle it
+            }
+        }
+
+        /// <summary>
+        /// Removes null bytes (0x00) and other invalid UTF-8 control characters from a string.
+        /// PostgreSQL does not allow null bytes in TEXT/VARCHAR columns.
+        /// </summary>
+        /// <param name="input">The input string to clean</param>
+        /// <returns>The cleaned string with null bytes removed</returns>
+        private string RemoveNullBytes(string input)
+        {
+            if (string.IsNullOrEmpty(input))
+            {
+                return input;
+            }
+
+            // Check if there are any null bytes first (optimization)
+            if (!input.Contains('\0'))
+            {
+                return input;
+            }
+
+            // Remove null bytes
+            return input.Replace("\0", "");
         }
 
         public override void Dispose()

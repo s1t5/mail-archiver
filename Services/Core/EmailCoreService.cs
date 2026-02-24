@@ -1010,9 +1010,15 @@ namespace MailArchiver.Services.Core
             var emailDate = ExtractEmailDate(message);
 
             // Extract raw headers for forensic/compliance purposes
-            var rawHeaders = ExtractRawHeaders(message);
+                var rawHeaders = ExtractRawHeaders(message);
+                
+                // Clean raw headers to remove null bytes (prevent PostgreSQL UTF-8 errors)
+                if (!string.IsNullOrEmpty(rawHeaders))
+                {
+                    rawHeaders = CleanText(rawHeaders);
+                }
 
-            // Check if this email is already archived
+                // Check if this email is already archived
             var messageId = message.MessageId ??
                 $"{message.From}-{message.To}-{message.Subject}-{emailDate.Ticks}";
 
