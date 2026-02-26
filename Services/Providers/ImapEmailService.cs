@@ -98,7 +98,7 @@ namespace MailArchiver.Services.Providers
 
                     try
                     {
-                        if (account.ExcludedFoldersList.Contains(folder.FullName))
+                        if (account.ExcludedFoldersList.Any(f => f.Equals(folder.FullName, StringComparison.OrdinalIgnoreCase)))
                         {
                             _logger.LogInformation("Skipping excluded folder: {FolderName} for account: {AccountName}",
                                 folder.FullName, account.Name);
@@ -1975,7 +1975,7 @@ namespace MailArchiver.Services.Providers
                     }
 
                     // Skip excluded folders
-                    if (account.ExcludedFoldersList.Contains(folder.FullName))
+                    if (account.ExcludedFoldersList.Any(f => f.Equals(folder.FullName, StringComparison.OrdinalIgnoreCase)))
                     {
                         _logger.LogInformation("Skipping excluded folder for deletion: {FolderName} for account: {AccountName}",
                             folder.FullName, account.Name);

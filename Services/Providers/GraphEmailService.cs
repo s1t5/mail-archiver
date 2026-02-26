@@ -130,7 +130,7 @@ private async Task<GraphServiceClient> CreateGraphClientAsync(MailAccount accoun
                     try
                     {
                         // Skip excluded folders
-                        if (!string.IsNullOrEmpty(folder.DisplayName) && account.ExcludedFoldersList.Contains(folder.DisplayName))
+                        if (!string.IsNullOrEmpty(folder.DisplayName) && account.ExcludedFoldersList.Any(f => f.Equals(folder.DisplayName, StringComparison.OrdinalIgnoreCase)))
                         {
                             _logger.LogInformation("Skipping excluded folder: {FolderName} for account: {AccountName}",
                                 folder.DisplayName, account.Name);
@@ -1317,7 +1317,7 @@ private async Task<GraphServiceClient> CreateGraphClientAsync(MailAccount accoun
                 foreach (var folder in folders)
                 {
                     // Skip excluded folders
-                    if (account.ExcludedFoldersList.Contains(folder.DisplayName))
+                    if (account.ExcludedFoldersList.Any(f => f.Equals(folder.DisplayName, StringComparison.OrdinalIgnoreCase)))
                     {
                         _logger.LogInformation("Skipping excluded folder for deletion: {FolderName} for account: {AccountName}",
                             folder.DisplayName, account.Name);
