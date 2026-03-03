@@ -112,6 +112,9 @@ private async Task<GraphServiceClient> CreateGraphClientAsync(MailAccount accoun
 
                 _logger.LogInformation("Found {Count} folders for M365 account: {AccountName}", folders.Count, account.Name);
 
+                // Build folder paths for proper hierarchical naming
+                var folderPaths = BuildFolderPathsMap(folders);
+
                 // Process each folder
                 foreach (var folder in folders)
                 {
@@ -129,11 +132,16 @@ private async Task<GraphServiceClient> CreateGraphClientAsync(MailAccount accoun
 
                     try
                     {
-                        // Skip excluded folders
-                        if (!string.IsNullOrEmpty(folder.DisplayName) && account.ExcludedFoldersList.Any(f => f.Equals(folder.DisplayName, StringComparison.OrdinalIgnoreCase)))
+                        // Get the full folder path for this folder
+                        var fullFolderPath = folderPaths.TryGetValue(folder.Id, out var path) ? path : folder.DisplayName;
+                        
+                        // Skip excluded folders - check both full path and display name for backward compatibility
+                        if (!string.IsNullOrEmpty(folder.DisplayName) && 
+                            (account.ExcludedFoldersList.Any(f => f.Equals(fullFolderPath, StringComparison.OrdinalIgnoreCase)) ||
+                             account.ExcludedFoldersList.Any(f => f.Equals(folder.DisplayName, StringComparison.OrdinalIgnoreCase))))
                         {
-                            _logger.LogInformation("Skipping excluded folder: {FolderName} for account: {AccountName}",
-                                folder.DisplayName, account.Name);
+                            _logger.LogInformation("Skipping excluded folder: {FolderName} (full path: {FullPath}) for account: {AccountName}",
+                                folder.DisplayName, fullFolderPath, account.Name);
                             processedFolders++;
                             continue;
                         }
@@ -142,12 +150,12 @@ private async Task<GraphServiceClient> CreateGraphClientAsync(MailAccount accoun
                         {
                             _syncJobService.UpdateJobProgress(jobId, job =>
                             {
-                                job.CurrentFolder = folder.DisplayName;
+                                job.CurrentFolder = fullFolderPath;
                                 job.ProcessedFolders = processedFolders;
                             });
                         }
 
-                        var folderResult = await SyncFolderAsync(graphClient, folder, account, jobId);
+                        var folderResult = await SyncFolderAsync(graphClient, folder, account, jobId, fullFolderPath);
                         processedEmails += folderResult.ProcessedEmails;
                         newEmails += folderResult.NewEmails;
                         failedEmails += folderResult.FailedEmails;
@@ -380,12 +388,15 @@ private async Task<GraphServiceClient> CreateGraphClientAsync(MailAccount accoun
             return childFolders;
         }
 
-        private async Task<SyncFolderResult> SyncFolderAsync(GraphServiceClient graphClient, MailFolder folder, MailAccount account, string? jobId = null)
+        private async Task<SyncFolderResult> SyncFolderAsync(GraphServiceClient graphClient, MailFolder folder, MailAccount account, string? jobId = null, string? fullFolderPath = null)
         {
             var result = new SyncFolderResult();
 
-            _logger.LogInformation("Syncing Graph API folder: {FolderName} for account: {AccountName}",
-                folder.DisplayName, account.Name);
+            // Use the full folder path if provided, otherwise fall back to display name
+            var folderNameForStorage = fullFolderPath ?? folder.DisplayName;
+
+            _logger.LogInformation("Syncing Graph API folder: {FolderName} (full path: {FullPath}) for account: {AccountName}",
+                folder.DisplayName, folderNameForStorage, account.Name);
 
             try
             {
@@ -601,26 +612,26 @@ private async Task<GraphServiceClient> CreateGraphClientAsync(MailAccount accoun
                                     }
                                 }
 
-                                var isNew = await ArchiveGraphEmailAsync(graphClient, account, fullMessage, isOutgoing, folder.DisplayName);
-                                if (isNew)
-                                {
-                                    result.NewEmails++;
+                                    var isNew = await ArchiveGraphEmailAsync(graphClient, account, fullMessage, isOutgoing, folderNameForStorage);
+                                    if (isNew)
+                                    {
+                                        result.NewEmails++;
+                                    }
+                                    
+                                    processedInThisFolder++;
                                 }
-                                
-                                processedInThisFolder++;
+                                catch (Exception ex)
+                                {
+                                    var subject = message.Subject ?? "Unknown";
+                                    var date = message.SentDateTime?.ToString() ?? "Unknown";
+                                    _logger.LogError(ex, "Error archiving Graph API message {MessageId} from folder {FolderName}. Subject: {Subject}, Date: {Date}, Message: {Message}",
+                                        message.Id, folderNameForStorage, subject, date, ex.Message);
+                                    result.FailedEmails++;
+                                    processedInThisFolder++;
+                                }
                             }
-                            catch (Exception ex)
-                            {
-                                var subject = message.Subject ?? "Unknown";
-                                var date = message.SentDateTime?.ToString() ?? "Unknown";
-                                _logger.LogError(ex, "Error archiving Graph API message {MessageId} from folder {FolderName}. Subject: {Subject}, Date: {Date}, Message: {Message}",
-                                    message.Id, folder.DisplayName, subject, date, ex.Message);
-                                result.FailedEmails++;
-                                processedInThisFolder++;
-                            }
-                        }
 
-                        // Log memory usage after each batch (including the last one)
+                            // Log memory usage after each batch (including the last one)
                         _logger.LogInformation("Memory usage after processing batch {BatchNumber}: {MemoryUsage}",
                             (i / _batchOptions.BatchSize) + 1, MemoryMonitor.GetMemoryUsageFormatted());
 
@@ -725,7 +736,7 @@ private async Task<GraphServiceClient> CreateGraphClientAsync(MailAccount accoun
                                         }
                                     }
 
-                                    var isNew = await ArchiveGraphEmailAsync(graphClient, account, fullMessage, isOutgoing, folder.DisplayName);
+                                    var isNew = await ArchiveGraphEmailAsync(graphClient, account, fullMessage, isOutgoing, folderNameForStorage);
                                     if (isNew)
                                     {
                                         result.NewEmails++;
@@ -738,7 +749,7 @@ private async Task<GraphServiceClient> CreateGraphClientAsync(MailAccount accoun
                                     var subject = message.Subject ?? "Unknown";
                                     var date = message.SentDateTime?.ToString() ?? "Unknown";
                                     _logger.LogError(ex, "Error archiving Graph API message {MessageId} from folder {FolderName}. Subject: {Subject}, Date: {Date}, Message: {Message}",
-                                        message.Id, folder.DisplayName, subject, date, ex.Message);
+                                        message.Id, folderNameForStorage, subject, date, ex.Message);
                                     result.FailedEmails++;
                                     processedInThisFolder++;
                                 }
@@ -1277,13 +1288,108 @@ private async Task<GraphServiceClient> CreateGraphClientAsync(MailAccount accoun
                 var graphClient = await CreateGraphClientAsync(account);
                 var folders = await GetAllMailFoldersAsync(graphClient, account.EmailAddress);
 
-                return folders.Select(f => f.DisplayName).OrderBy(f => f).ToList();
+                // Build full folder paths using ParentFolderId
+                var folderPaths = BuildFolderPaths(folders);
+                return folderPaths.OrderBy(f => f).ToList();
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error retrieving Graph API folders for account {AccountId}: {Message}", account.Id, ex.Message);
                 return new List<string>();
             }
+        }
+
+        /// <summary>
+        /// Builds full folder paths from a flat list of folders with ParentFolderId references.
+        /// This allows subfolders to be displayed with their full path (e.g., "Customers/Customer A")
+        /// similar to how IMAP returns folder paths.
+        /// </summary>
+        /// <param name="folders">List of all mail folders</param>
+        /// <returns>List of full folder paths</returns>
+        private List<string> BuildFolderPaths(List<MailFolder> folders)
+        {
+            var folderPaths = new Dictionary<string, string>(); // folderId -> full path
+            var folderDict = folders.ToDictionary(f => f.Id, f => f);
+
+            foreach (var folder in folders)
+            {
+                var path = BuildFolderPathRecursive(folder, folderDict, new HashSet<string>());
+                if (!string.IsNullOrEmpty(path))
+                {
+                    folderPaths[folder.Id] = path;
+                }
+            }
+
+            return folderPaths.Values.ToList();
+        }
+
+        /// <summary>
+        /// Builds a dictionary mapping folder IDs to their full paths.
+        /// Used during email sync to store the complete folder path.
+        /// </summary>
+        /// <param name="folders">List of all mail folders</param>
+        /// <returns>Dictionary mapping folder ID to full folder path</returns>
+        private Dictionary<string, string> BuildFolderPathsMap(List<MailFolder> folders)
+        {
+            var folderPaths = new Dictionary<string, string>();
+            var folderDict = folders.ToDictionary(f => f.Id, f => f);
+
+            foreach (var folder in folders)
+            {
+                var path = BuildFolderPathRecursive(folder, folderDict, new HashSet<string>());
+                if (!string.IsNullOrEmpty(path))
+                {
+                    folderPaths[folder.Id] = path;
+                }
+            }
+
+            return folderPaths;
+        }
+
+        /// <summary>
+        /// Recursively builds the full path for a folder by traversing parent references.
+        /// Includes cycle detection to prevent infinite loops.
+        /// </summary>
+        /// <param name="folder">The folder to build the path for</param>
+        /// <param name="folderDict">Dictionary of all folders by ID</param>
+        /// <param name="visited">Set of visited folder IDs for cycle detection</param>
+        /// <returns>The full folder path</returns>
+        private string BuildFolderPathRecursive(MailFolder folder, Dictionary<string, MailFolder> folderDict, HashSet<string> visited)
+        {
+            if (folder == null || string.IsNullOrEmpty(folder.Id))
+            {
+                return string.Empty;
+            }
+
+            // Cycle detection - prevent infinite loops if there's a circular reference
+            if (visited.Contains(folder.Id))
+            {
+                _logger.LogWarning("Circular folder reference detected for folder {FolderId}", folder.Id);
+                return folder.DisplayName ?? "Unknown";
+            }
+            visited.Add(folder.Id);
+
+            var displayName = folder.DisplayName ?? "Unknown";
+
+            // If no parent, this is a root folder - return just the display name
+            if (string.IsNullOrEmpty(folder.ParentFolderId))
+            {
+                return displayName;
+            }
+
+            // Try to find the parent folder
+            if (folderDict.TryGetValue(folder.ParentFolderId, out var parentFolder))
+            {
+                var parentPath = BuildFolderPathRecursive(parentFolder, folderDict, visited);
+                if (!string.IsNullOrEmpty(parentPath))
+                {
+                    return $"{parentPath}/{displayName}";
+                }
+            }
+
+            // If parent not found in dictionary (shouldn't happen with proper API response),
+            // just return the display name
+            return displayName;
         }
 
         /// <summary>
