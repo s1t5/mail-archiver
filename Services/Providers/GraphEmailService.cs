@@ -238,7 +238,8 @@ private async Task<GraphServiceClient> CreateGraphClientAsync(MailAccount accoun
                 var response = await graphClient.Users[userPrincipalName].MailFolders.GetAsync((requestConfiguration) =>
                 {
                     requestConfiguration.QueryParameters.Select = new string[] { "id", "displayName", "parentFolderId", "childFolderCount", "totalItemCount" };
-                    requestConfiguration.QueryParameters.Top = 100; // Increase from BatchSize to ensure we get all top-level folders
+                    requestConfiguration.QueryParameters.Top = 250;
+                    requestConfiguration.QueryParameters.IncludeHiddenFolders = "true";
                 });
 
                 int folderCount = 0;
@@ -320,7 +321,8 @@ private async Task<GraphServiceClient> CreateGraphClientAsync(MailAccount accoun
                 var response = await graphClient.Users[userPrincipalName].MailFolders[parentFolderId].ChildFolders.GetAsync((requestConfiguration) =>
                 {
                     requestConfiguration.QueryParameters.Select = new string[] { "id", "displayName", "parentFolderId", "childFolderCount", "totalItemCount" };
-                    requestConfiguration.QueryParameters.Top = 100; // Increase from BatchSize to ensure we get all child folders
+                    requestConfiguration.QueryParameters.Top = 250;
+                    requestConfiguration.QueryParameters.IncludeHiddenFolders = "true";
                 });
 
                 int childFolderCount = 0;
