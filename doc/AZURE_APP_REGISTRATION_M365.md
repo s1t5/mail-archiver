@@ -114,6 +114,42 @@ The Mail Archiver application provides retention policy functionality to automat
    - Leave empty to disable automatic deletion
 5. Save the account configuration
 
+
+## ℹ️ Information Regarding Migrated Mailboxes
+
+### 📁 Folders Not Visible After Migration
+
+If you have migrated your mailbox from another email provider to Microsoft 365, some folders may not appear in the folder list.
+
+#### 🔍 Background
+
+Mail Archiver retrieves folder information from M365 mailboxes via the Microsoft Graph API. The application correctly requests all available folders (including hidden folders) and traverses the complete folder hierarchy.
+
+However, the Microsoft Graph API returns only folders with `PR_CONTAINER_CLASS` set to `IPF.Note`. During mailbox migrations from other email systems, folders may be assigned a different container class such as `IPF.Imap`. These folders are not exposed through the Graph API's folder listing endpoints.
+
+This behavior affects all applications using this API for folder retrieval.
+
+#### 🔧 Workaround Options
+
+**Option 1: Use MFCMAPI Tool (Recommended)**
+
+1. Download [MFCMAPI](https://github.com/Microsoft/mfcmapi/) from Microsoft's official repository
+2. Launch MFCMAPI and connect to your mailbox
+3. Navigate to each missing folder
+4. Change the `PR_CONTAINER_CLASS` property from `IPF.Imap` to `IPF.Note`
+5. Restart Outlook and reload the folders in Mail Archiver
+
+**Option 2: Recreate Folders in Outlook**
+
+1. Create new folders directly in Outlook (these will have the correct `IPF.Note` class)
+2. Move all emails from the migrated folders to the new folders
+3. Delete the old migrated folders if desired
+
+**Option 3: PowerShell Script (For Bulk Changes)**
+
+For mailboxes with many migrated folders, you can use PowerShell with Exchange Online module to change the container class for multiple folders at once. Contact your Exchange administrator for assistance with this approach.
+
+
 ---
 
 **Note**: This guide is current as of 2025. Microsoft regularly updates their services, so some UI elements may differ. Always refer to the latest Microsoft documentation for the most up-to-date information.
