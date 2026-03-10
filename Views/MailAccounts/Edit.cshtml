@@ -66,22 +66,37 @@
                 <div id="microsoft365Settings" style="display: none;">
                     <h4 class="mt-4">@Localizer["Microsoft365Settings"]</h4>
                     
+                    <div id="bulkUpdateSuggestion" class="m365-suggestion-box m365-warning" style="display: none;">
+                        <h6 class="alert-heading"><i class="bi bi-exclamation-triangle"></i> @Localizer["CredentialChangeDetected"]</h6>
+                        <p>@Localizer["ApplyToAllDomainAccountsPrompt"]</p>
+                        <div id="affectedAccountsList" class="mb-2">
+                            <small>@Localizer["AffectedAccounts"]:</small>
+                            <ul id="affectedAccountsUl" class="mb-0"></ul>
+                        </div>
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" id="applyToAllDomainAccounts" name="ApplyToAllDomainAccounts" value="true">
+                            <label class="form-check-label" for="applyToAllDomainAccounts">
+                                @Localizer["ApplyToAllAccounts"]
+                            </label>
+                        </div>
+                    </div>
+                    
                     <div class="mb-3">
                         <label asp-for="ClientId" class="form-label">@Localizer["ClientId"]</label>
-                        <input asp-for="ClientId" class="form-control" />
+                        <input asp-for="ClientId" class="form-control" id="ClientIdInput" />
                         <span asp-validation-for="ClientId" class="text-danger"></span>
                     </div>
                     
                     <div class="mb-3">
                         <label asp-for="ClientSecret" class="form-label">@Localizer["ClientSecret"]</label>
-                        <input asp-for="ClientSecret" class="form-control" type="password" placeholder="@Localizer["LeaveEmptyToKeepCurrent"]" />
+                        <input asp-for="ClientSecret" class="form-control" type="password" id="ClientSecretInput" placeholder="@Localizer["LeaveEmptyToKeepCurrent"]" />
                         <div class="form-text">@Localizer["LeaveEmptyToKeepCurrent"]</div>
                         <span asp-validation-for="ClientSecret" class="text-danger"></span>
                     </div>
                     
                     <div class="mb-3">
                         <label asp-for="TenantId" class="form-label">@Localizer["TenantId"]</label>
-                        <input asp-for="TenantId" class="form-control" />
+                        <input asp-for="TenantId" class="form-control" id="TenantIdInput" />
                         <span asp-validation-for="TenantId" class="text-danger"></span>
                     </div>
                 </div>
@@ -169,6 +184,21 @@
             const foldersContent = document.getElementById('foldersContent');
             const foldersLoading = document.getElementById('foldersLoading');
             const foldersError = document.getElementById('foldersError');
+            const clientIdInput = document.getElementById('ClientIdInput');
+            const clientSecretInput = document.getElementById('ClientSecretInput');
+            const tenantIdInput = document.getElementById('TenantIdInput');
+            const bulkUpdateSuggestion = document.getElementById('bulkUpdateSuggestion');
+            const affectedAccountsUl = document.getElementById('affectedAccountsUl');
+            const applyToAllCheckbox = document.getElementById('applyToAllDomainAccounts');
+            const editForm = document.querySelector('form');
+            
+            console.log('Edit form found:', editForm);
+            console.log('Apply checkbox found:', applyToAllCheckbox);
+            
+            let originalClientId = '@Model.ClientId';
+            let originalTenantId = '@Model.TenantId';
+            let affectedAccounts = [];
+            let bulkUpdateRequested = false;
             
             function toggleSettings() {
                 const providerValue = providerSelect.value;
@@ -187,11 +217,184 @@
                 }
             }
             
+            function checkCredentialChanges() {
+                const providerValue = providerSelect.value;
+                if (providerValue !== '@ProviderType.M365') {
+                    bulkUpdateSuggestion.style.display = 'none';
+                    return;
+                }
+                
+                const currentClientId = clientIdInput.value.trim();
+                const currentClientSecret = clientSecretInput.value.trim();
+                const currentTenantId = tenantIdInput.value.trim();
+                
+                // Check if any credential has changed
+                const credentialsChanged = 
+                    (currentClientId && currentClientId !== originalClientId) ||
+                    currentClientSecret ||
+                    (currentTenantId && currentTenantId !== originalTenantId);
+                
+                if (credentialsChanged) {
+                    checkForDomainAccounts();
+                } else {
+                    bulkUpdateSuggestion.style.display = 'none';
+                }
+            }
+            
+            function checkForDomainAccounts() {
+                const emailAddress = '@Model.EmailAddress';
+                
+                fetch('@Url.Action("CheckM365AccountsForDomain", "MailAccounts")?emailAddress=' + 
+                      encodeURIComponent(emailAddress) + '&excludeAccountId=@Model.Id')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.exists && data.accounts && data.accounts.length > 0) {
+                            affectedAccounts = data.accounts;
+                            
+                            // Clear and populate affected accounts list
+                            affectedAccountsUl.innerHTML = '';
+                            data.accounts.forEach(account => {
+                                const li = document.createElement('li');
+                                li.textContent = account.name + ' (' + account.emailAddress + ')';
+                                affectedAccountsUl.appendChild(li);
+                            });
+                            
+                            bulkUpdateSuggestion.style.display = 'block';
+                        } else {
+                            bulkUpdateSuggestion.style.display = 'none';
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error checking for domain accounts:', error);
+                        bulkUpdateSuggestion.style.display = 'none';
+                    });
+            }
+            
+            function performBulkUpdate() {
+                if (!applyToAllCheckbox.checked || affectedAccounts.length === 0) {
+                    console.log('Bulk update skipped - checkbox not checked or no affected accounts');
+                    return Promise.resolve();
+                }
+                
+                console.log('Starting bulk update for', affectedAccounts.length, 'accounts');
+                console.log('Affected accounts:', affectedAccounts);
+                
+                const formData = new FormData();
+                formData.append('accountId', '@Model.Id');
+                formData.append('clientId', clientIdInput.value.trim());
+                formData.append('clientSecret', clientSecretInput.value.trim());
+                formData.append('tenantId', tenantIdInput.value.trim());
+                formData.append('__RequestVerificationToken', document.querySelector('input[name="__RequestVerificationToken"]').value);
+                
+                console.log('Bulk update data:', {
+                    accountId: '@Model.Id',
+                    clientId: clientIdInput.value.trim(),
+                    clientSecret: clientSecretInput.value.trim() ? '***' : '(empty)',
+                    tenantId: tenantIdInput.value.trim()
+                });
+                
+                return fetch('@Url.Action("UpdateM365CredentialsForDomain", "MailAccounts")', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => {
+                    console.log('Bulk update response status:', response.status);
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Bulk update response data:', data);
+                    if (data.success) {
+                        console.log('Bulk update successful! Updated', data.updatedCount, 'accounts');
+                        console.log('Updated accounts:', data.accountNames);
+                        return data;
+                    } else {
+                        console.error('Bulk update failed:', data.message);
+                        throw new Error(data.message || 'Bulk update failed');
+                    }
+                })
+                .catch(error => {
+                    console.error('Bulk update error:', error);
+                    throw error;
+                });
+            }
+            
             // Initial check
             toggleSettings();
             
             // Add event listeners
             providerSelect.addEventListener('change', toggleSettings);
+            
+            // Monitor credential changes
+            if (clientIdInput) {
+                clientIdInput.addEventListener('blur', checkCredentialChanges);
+            }
+            if (clientSecretInput) {
+                clientSecretInput.addEventListener('blur', checkCredentialChanges);
+            }
+            if (tenantIdInput) {
+                tenantIdInput.addEventListener('blur', checkCredentialChanges);
+            }
+            
+            // Intercept form submission
+            if (editForm) {
+                editForm.addEventListener('submit', function(e) {
+                    console.log('Form submit triggered!');
+                    const providerValue = providerSelect.value;
+                    console.log('Provider value:', providerValue);
+                    console.log('Checkbox element:', applyToAllCheckbox);
+                    console.log('Checkbox checked:', applyToAllCheckbox ? applyToAllCheckbox.checked : 'checkbox not found');
+                    console.log('Affected accounts length:', affectedAccounts.length);
+                    console.log('Affected accounts:', affectedAccounts);
+                    
+                    // Check if bulk update is requested
+                    if (providerValue === '@ProviderType.M365' && applyToAllCheckbox && applyToAllCheckbox.checked && affectedAccounts.length > 0) {
+                        console.log('Bulk update condition MET! Intercepting form submission...');
+                        e.preventDefault();
+                        e.stopPropagation();
+                        
+                        // Disable submit button to prevent double submission
+                        const submitBtn = editForm.querySelector('button[type="submit"]');
+                        if (submitBtn) {
+                            submitBtn.disabled = true;
+                            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status"></span> Saving...';
+                        }
+                        
+                        // First save the current account
+                        const formData = new FormData(editForm);
+                        
+                        fetch(editForm.action, {
+                            method: 'POST',
+                            body: formData
+                        })
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error('Form submission failed');
+                            }
+                            return response.text(); // Get response as text first
+                        })
+                        .then(text => {
+                            // Now perform bulk update
+                            return performBulkUpdate();
+                        })
+                        .then(bulkResult => {
+                            console.log('Bulk update completed successfully');
+                            // Redirect to index with success message
+                            window.location.href = '@Url.Action("Index", "MailAccounts")';
+                        })
+                        .catch(error => {
+                            console.error('Error during save/bulk update:', error);
+                            alert('@Localizer["ErrorSavingChanges"]: ' + error.message);
+                            // Re-enable submit button
+                            if (submitBtn) {
+                                submitBtn.disabled = false;
+                                submitBtn.innerHTML = '@Localizer["Save"]';
+                            }
+                        });
+                        
+                        return false;
+                    }
+                });
+            }
             
             // Load folders on demand
             if (loadFoldersBtn) {

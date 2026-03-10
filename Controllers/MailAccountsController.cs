@@ -397,7 +397,7 @@ var model = new MailAccountViewModel
         // POST: MailAccounts/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, MailAccountViewModel model)
+        public async Task<IActionResult> Edit(int id, MailAccountViewModel model, bool ApplyToAllDomainAccounts = false)
         {
             if (id != model.Id)
             {
@@ -504,7 +504,73 @@ var model = new MailAccountViewModel
                             mailAccountId: account.Id);
                     }
                     
-                    TempData["SuccessMessage"] = _localizer["EmailAccountUpdateSuccess"].Value;
+                    // Handle bulk update if requested
+                    if (ApplyToAllDomainAccounts && account.Provider == ProviderType.M365)
+                    {
+                        _logger.LogInformation("Bulk update requested for account {AccountId} ({AccountName})", account.Id, account.Name);
+                        
+                        var domain = ExtractDomain(account.EmailAddress);
+                        if (!string.IsNullOrEmpty(domain))
+                        {
+                            // Get user info for permission checking
+                            var isAdmin = authService.IsCurrentUserAdmin(HttpContext);
+                            var isSelfManager = authService.IsCurrentUserSelfManager(HttpContext);
+
+                            IQueryable<MailAccount> accountsQuery = _context.MailAccounts
+                                .Where(ma => ma.Provider == ProviderType.M365 &&
+                                             ma.EmailAddress.ToLower().Contains("@" + domain) &&
+                                             ma.Id != account.Id);
+
+                            // Apply security filter for Self Manager users
+                            if (!isAdmin && isSelfManager)
+                            {
+                                accountsQuery = accountsQuery
+                                    .Where(ma => ma.UserMailAccounts.Any(uma => uma.User.Username.ToLower() == currentUsername.ToLower()));
+                            }
+
+                            var accountsToUpdate = await accountsQuery.ToListAsync();
+                            
+                            if (accountsToUpdate.Any())
+                            {
+                                _logger.LogInformation("Updating {Count} accounts in domain {Domain}", accountsToUpdate.Count, domain);
+                                
+                                foreach (var acc in accountsToUpdate)
+                                {
+                                    acc.ClientId = account.ClientId;
+                                    if (!string.IsNullOrEmpty(account.ClientSecret))
+                                    {
+                                        acc.ClientSecret = account.ClientSecret;
+                                    }
+                                    acc.TenantId = account.TenantId;
+                                }
+                                
+                                await _context.SaveChangesAsync();
+                                
+                                // Log the bulk update
+                                if (!string.IsNullOrEmpty(currentUsername))
+                                {
+                                    await _accessLogService.LogAccessAsync(currentUsername, AccessLogType.Account,
+                                        searchParameters: $"Bulk updated M365 credentials for {accountsToUpdate.Count} accounts in domain {domain}");
+                                }
+                                
+                                TempData["SuccessMessage"] = _localizer["EmailAccountUpdateSuccess"].Value + 
+                                    $" Updated credentials for {accountsToUpdate.Count} additional account(s) in the same domain.";
+                            }
+                            else
+                            {
+                                TempData["SuccessMessage"] = _localizer["EmailAccountUpdateSuccess"].Value;
+                            }
+                        }
+                        else
+                        {
+                            TempData["SuccessMessage"] = _localizer["EmailAccountUpdateSuccess"].Value;
+                        }
+                    }
+                    else
+                    {
+                        TempData["SuccessMessage"] = _localizer["EmailAccountUpdateSuccess"].Value;
+                    }
+                    
                     return RedirectToAction(nameof(Index));
                 }
                 catch (DbUpdateConcurrencyException)
@@ -1719,6 +1785,206 @@ var model = new MailAccountViewModel
             {
                 _logger.LogError(ex, "Error loading folders for account {AccountId}", accountId);
                 return Json(new List<string> { "INBOX" });
+            }
+        }
+
+        // Helper method to extract domain from email address
+        private string ExtractDomain(string emailAddress)
+        {
+            if (string.IsNullOrWhiteSpace(emailAddress))
+                return string.Empty;
+
+            var atIndex = emailAddress.IndexOf('@');
+            if (atIndex > 0 && atIndex < emailAddress.Length - 1)
+            {
+                return emailAddress.Substring(atIndex + 1).ToLowerInvariant();
+            }
+            return string.Empty;
+        }
+
+        // AJAX endpoint to check for existing M365 accounts with same domain
+        [HttpGet]
+        public async Task<JsonResult> CheckM365AccountsForDomain(string emailAddress, int? excludeAccountId = null)
+        {
+            try
+            {
+                var domain = ExtractDomain(emailAddress);
+                if (string.IsNullOrEmpty(domain))
+                {
+                    return Json(new { exists = false });
+                }
+
+                // Get user info for permission checking
+                var authService = HttpContext.RequestServices.GetService<MailArchiver.Services.IAuthenticationService>();
+                var currentUsername = authService.GetCurrentUserDisplayName(HttpContext);
+                var isAdmin = authService.IsCurrentUserAdmin(HttpContext);
+                var isSelfManager = authService.IsCurrentUserSelfManager(HttpContext);
+
+                IQueryable<MailAccount> accountsQuery = _context.MailAccounts
+                    .Where(ma => ma.Provider == ProviderType.M365 &&
+                                 ma.EmailAddress.ToLower().Contains("@" + domain) &&
+                                 ma.ClientId != null);
+
+                // Apply security filter for Self Manager users
+                if (!isAdmin && isSelfManager)
+                {
+                    accountsQuery = accountsQuery
+                        .Where(ma => ma.UserMailAccounts.Any(uma => uma.User.Username.ToLower() == currentUsername.ToLower()));
+                }
+
+                // Exclude current account if editing
+                if (excludeAccountId.HasValue)
+                {
+                    accountsQuery = accountsQuery.Where(ma => ma.Id != excludeAccountId.Value);
+                }
+
+                var existingAccounts = await accountsQuery
+                    .Select(ma => new
+                    {
+                        id = ma.Id,
+                        name = ma.Name,
+                        emailAddress = ma.EmailAddress,
+                        hasCredentials = !string.IsNullOrEmpty(ma.ClientId) &&
+                                        !string.IsNullOrEmpty(ma.ClientSecret) &&
+                                        !string.IsNullOrEmpty(ma.TenantId)
+                    })
+                    .ToListAsync();
+
+                return Json(new
+                {
+                    exists = existingAccounts.Any(),
+                    accounts = existingAccounts,
+                    domain = domain
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error checking M365 accounts for email {EmailAddress}", emailAddress);
+                return Json(new { exists = false, error = ex.Message });
+            }
+        }
+
+        // AJAX endpoint to get M365 credentials from an existing account
+        [HttpGet]
+        public async Task<JsonResult> GetM365Credentials(int accountId)
+        {
+            try
+            {
+                // Check if user has access to this account
+                if (!await HasAccessToAccountAsync(accountId))
+                {
+                    return Json(new { success = false, message = "Access denied" });
+                }
+
+                var account = await _context.MailAccounts
+                    .Where(ma => ma.Id == accountId && ma.Provider == ProviderType.M365)
+                    .FirstOrDefaultAsync();
+
+                if (account == null)
+                {
+                    return Json(new { success = false, message = "Account not found" });
+                }
+
+                return Json(new
+                {
+                    success = true,
+                    clientId = account.ClientId,
+                    clientSecret = account.ClientSecret,
+                    tenantId = account.TenantId
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting M365 credentials for account {AccountId}", accountId);
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        // AJAX endpoint to update M365 credentials for all accounts in a domain
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<JsonResult> UpdateM365CredentialsForDomain(int accountId, string clientId, string clientSecret, string tenantId)
+        {
+            try
+            {
+                // Check if user has access to the source account
+                if (!await HasAccessToAccountAsync(accountId))
+                {
+                    return Json(new { success = false, message = "Access denied to source account" });
+                }
+
+                var sourceAccount = await _context.MailAccounts.FindAsync(accountId);
+                if (sourceAccount == null || sourceAccount.Provider != ProviderType.M365)
+                {
+                    return Json(new { success = false, message = "Source account not found or not M365" });
+                }
+
+                var domain = ExtractDomain(sourceAccount.EmailAddress);
+                if (string.IsNullOrEmpty(domain))
+                {
+                    return Json(new { success = false, message = "Could not extract domain from email" });
+                }
+
+                // Get user info for permission checking
+                var authService = HttpContext.RequestServices.GetService<MailArchiver.Services.IAuthenticationService>();
+                var currentUsername = authService.GetCurrentUserDisplayName(HttpContext);
+                var isAdmin = authService.IsCurrentUserAdmin(HttpContext);
+                var isSelfManager = authService.IsCurrentUserSelfManager(HttpContext);
+
+                // Get all M365 accounts with same domain
+                IQueryable<MailAccount> accountsQuery = _context.MailAccounts
+                    .Where(ma => ma.Provider == ProviderType.M365 &&
+                                 ma.EmailAddress.ToLower().Contains("@" + domain) &&
+                                 ma.Id != accountId); // Exclude the source account
+
+                // Apply security filter for Self Manager users
+                if (!isAdmin && isSelfManager)
+                {
+                    accountsQuery = accountsQuery
+                        .Where(ma => ma.UserMailAccounts.Any(uma => uma.User.Username.ToLower() == currentUsername.ToLower()));
+                }
+
+                var accountsToUpdate = await accountsQuery.ToListAsync();
+
+                if (!accountsToUpdate.Any())
+                {
+                    return Json(new { success = true, updatedCount = 0, message = "No other accounts to update" });
+                }
+
+                // Update credentials
+                int updatedCount = 0;
+                foreach (var account in accountsToUpdate)
+                {
+                    account.ClientId = clientId;
+                    if (!string.IsNullOrEmpty(clientSecret))
+                    {
+                        account.ClientSecret = clientSecret;
+                    }
+                    account.TenantId = tenantId;
+                    updatedCount++;
+                }
+
+                await _context.SaveChangesAsync();
+
+                // Log the bulk update action
+                if (!string.IsNullOrEmpty(currentUsername))
+                {
+                    await _accessLogService.LogAccessAsync(currentUsername, AccessLogType.Account,
+                        searchParameters: $"Updated M365 credentials for {updatedCount} accounts in domain {domain}");
+                }
+
+                return Json(new
+                {
+                    success = true,
+                    updatedCount = updatedCount,
+                    message = $"Updated credentials for {updatedCount} account(s)",
+                    accountNames = accountsToUpdate.Select(a => a.Name).ToList()
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating M365 credentials for domain");
+                return Json(new { success = false, message = ex.Message });
             }
         }
     }

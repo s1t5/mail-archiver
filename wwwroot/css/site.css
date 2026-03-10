@@ -735,3 +735,38 @@ body {
       padding: 0.5rem;
   }
 }
+
+/* M365 Credential Suggestion Box - Custom persistent alert */
+.m365-suggestion-box {
+  position: relative;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1rem;
+  border: 1px solid #b8daff;
+  border-radius: 0.375rem;
+  background-color: #d1ecf1;
+  color: #0c5460;
+}
+
+.m365-suggestion-box .alert-heading {
+  color: #0c5460;
+  margin-bottom: 0.5rem;
+}
+
+.m365-suggestion-box p {
+  margin-bottom: 0.5rem;
+}
+
+.m365-suggestion-box .bi {
+  margin-right: 0.5rem;
+}
+
+/* Warning variant for Edit page */
+.m365-suggestion-box.m365-warning {
+  border-color: #ffc107;
+  background-color: #fff3cd;
+  color: #856404;
+}
+
+.m365-suggestion-box.m365-warning .alert-heading {
+  color: #856404;
+}

@@ -74,6 +74,17 @@
                 <div id="microsoft365Settings" style="display: none;">
                     <h4 class="mt-4">@Localizer["Microsoft365Settings"]</h4>
                     
+                    <div id="existingAccountSuggestion" class="m365-suggestion-box" style="display: none;">
+                        <h6 class="alert-heading"><i class="bi bi-info-circle"></i> @Localizer["ExistingM365AccountsFound"]</h6>
+                        <p class="mb-2">@Localizer["UseExistingCredentialsPrompt"]</p>
+                        <select id="existingAccountSelect" class="form-select mb-2">
+                            <option value="">@Localizer["SelectAccount"]</option>
+                        </select>
+                        <button type="button" id="copyCredentialsBtn" class="btn btn-sm btn-primary">
+                            <i class="bi bi-copy"></i> @Localizer["CopyCredentials"]
+                        </button>
+                    </div>
+                    
                     <div class="mb-3">
                         <label asp-for="ClientId" class="form-label">@Localizer["ClientId"]</label>
                         <input asp-for="ClientId" class="form-control" />
@@ -131,29 +142,183 @@
             const imapSettings = document.getElementById('imapSettings');
             const microsoft365Settings = document.getElementById('microsoft365Settings');
             const emailDeletionSettings = document.getElementById('emailDeletionSettings');
+            const emailAddressInput = document.getElementById('EmailAddress');
+            const existingAccountSuggestion = document.getElementById('existingAccountSuggestion');
+            const existingAccountSelect = document.getElementById('existingAccountSelect');
+            const copyCredentialsBtn = document.getElementById('copyCredentialsBtn');
+            const clientIdInput = document.getElementById('ClientId');
+            const clientSecretInput = document.getElementById('ClientSecret');
+            const tenantIdInput = document.getElementById('TenantId');
             
-            function toggleSettings() {
+            let existingAccounts = [];
+            let isSettingProvider = false;
+            
+            function toggleSettings(skipSuggestionCheck) {
                 const providerValue = providerSelect.value;
+                const hasSuggestions = existingAccountSuggestion.style.display === 'block';
+                
                 if (providerValue === '@ProviderType.IMPORT') {
                     imapSettings.style.display = 'none';
                     microsoft365Settings.style.display = 'none';
                     emailDeletionSettings.style.display = 'none';
+                    existingAccountSuggestion.style.display = 'none';
                 } else if (providerValue === '@ProviderType.M365') {
                     imapSettings.style.display = 'none';
                     microsoft365Settings.style.display = 'block';
                     emailDeletionSettings.style.display = 'block';
+                    // Only check for existing accounts if not skipping
+                    if (!skipSuggestionCheck && !hasSuggestions) {
+                        checkForExistingAccounts();
+                    }
                 } else {
                     imapSettings.style.display = 'block';
-                    microsoft365Settings.style.display = 'none';
+                    // Keep M365 settings visible if there are suggestions
+                    if (!hasSuggestions) {
+                        microsoft365Settings.style.display = 'none';
+                    }
                     emailDeletionSettings.style.display = 'block';
                 }
+            }
+            
+            let lastCheckedEmail = '';
+            let lastCheckedDomain = '';
+            
+            function checkForExistingAccounts() {
+                const emailAddress = emailAddressInput.value.trim();
+                
+                // Need at least an at-symbol to have a domain
+                if (!emailAddress || !emailAddress.includes(String.fromCharCode(64))) {
+                    // Only hide if we haven't found accounts yet
+                    if (existingAccounts.length === 0) {
+                        existingAccountSuggestion.style.display = 'none';
+                    }
+                    return;
+                }
+                
+                // Extract domain from email
+                const domain = emailAddress.split(String.fromCharCode(64))[1];
+                if (!domain) {
+                    return;
+                }
+                
+                // If domain hasn't changed and we have accounts, don't check again
+                if (domain === lastCheckedDomain && existingAccounts.length > 0) {
+                    return;
+                }
+                
+                // If domain changed, we need to check again but don't reset yet
+                const domainChanged = (domain !== lastCheckedDomain);
+                
+                lastCheckedEmail = emailAddress;
+                lastCheckedDomain = domain;
+                
+                fetch('@Url.Action("CheckM365AccountsForDomain", "MailAccounts")?emailAddress=' + encodeURIComponent(emailAddress))
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.exists && data.accounts && data.accounts.length > 0) {
+                            existingAccounts = data.accounts;
+                            
+                            // Clear and populate select
+                            existingAccountSelect.innerHTML = '<option value="">@Localizer["SelectAccount"]</option>';
+                            data.accounts.forEach(account => {
+                                const option = document.createElement('option');
+                                option.value = account.id;
+                                option.textContent = account.name + ' (' + account.emailAddress + ')';
+                                existingAccountSelect.appendChild(option);
+                            });
+                            
+                            // Automatically switch provider to M365
+                            if (providerSelect.value !== '@ProviderType.M365') {
+                                isSettingProvider = true;
+                                providerSelect.value = '@ProviderType.M365';
+                                isSettingProvider = false;
+                            }
+                            
+                            // Show M365 settings and hide IMAP settings
+                            imapSettings.style.display = 'none';
+                            microsoft365Settings.style.display = 'block';
+                            emailDeletionSettings.style.display = 'block';
+                            
+                            // Show suggestion box - this must be shown AFTER settings are visible
+                            existingAccountSuggestion.style.display = 'block';
+                        } else {
+                            existingAccounts = [];
+                            lastCheckedEmail = '';
+                            existingAccountSuggestion.style.display = 'none';
+                            // Only hide M365 settings if no suggestions and provider is not M365
+                            if (providerSelect.value !== '@ProviderType.M365') {
+                                microsoft365Settings.style.display = 'none';
+                            }
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error checking for existing accounts:', error);
+                        existingAccounts = [];
+                        lastCheckedEmail = '';
+                        existingAccountSuggestion.style.display = 'none';
+                    });
+            }
+            
+            function copyCredentials() {
+                const selectedAccountId = existingAccountSelect.value;
+                if (!selectedAccountId) {
+                    alert('@Localizer["PleaseSelectAccount"]');
+                    return;
+                }
+                
+                fetch('@Url.Action("GetM365Credentials", "MailAccounts")?accountId=' + selectedAccountId)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Switch provider to M365 if not already set
+                            if (providerSelect.value !== '@ProviderType.M365') {
+                                providerSelect.value = '@ProviderType.M365';
+                                toggleSettings(); // This will show M365 settings
+                            }
+                            
+                            // Fill in the credentials
+                            clientIdInput.value = data.clientId || '';
+                            clientSecretInput.value = data.clientSecret || '';
+                            tenantIdInput.value = data.tenantId || '';
+                            
+                            // Hide suggestion box after copying
+                            existingAccountSuggestion.style.display = 'none';
+                            
+                            // Show success message
+                            const successMsg = document.createElement('div');
+                            successMsg.className = 'alert alert-success alert-dismissible fade show mt-2';
+                            successMsg.innerHTML = '<button type="button" class="btn-close" data-bs-dismiss="alert"></button>@Localizer["CredentialsCopied"]';
+                            microsoft365Settings.insertBefore(successMsg, microsoft365Settings.firstChild.nextSibling);
+                            
+                            setTimeout(() => {
+                                successMsg.remove();
+                            }, 3000);
+                        } else {
+                            alert('@Localizer["ErrorCopyingCredentials"]: ' + (data.message || 'Unknown error'));
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error copying credentials:', error);
+                        alert('@Localizer["ErrorCopyingCredentials"]');
+                    });
             }
             
             // Initial check
             toggleSettings();
             
             // Add event listeners
-            providerSelect.addEventListener('change', toggleSettings);
+            providerSelect.addEventListener('change', function() {
+                if (!isSettingProvider) {
+                    toggleSettings();
+                }
+            });
+            
+            // Check for existing accounts while typing email address
+            emailAddressInput.addEventListener('input', function() {
+                checkForExistingAccounts();
+            });
+            
+            copyCredentialsBtn.addEventListener('click', copyCredentials);
         });
     </script>
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
