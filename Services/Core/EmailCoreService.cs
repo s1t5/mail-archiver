@@ -398,7 +398,10 @@ namespace MailArchiver.Services.Core
             string tsQuery = null;
             if (individualWords.Any())
             {
-                var escapedTerms = individualWords.Select(t => t.Replace("'", "''"));
+                // Use prefix matching (:*) for each term to enable partial word matching
+                // This allows "isenb" to match "isenboeck", "isenböck", etc.
+                // The GIN index supports prefix matching efficiently
+                var escapedTerms = individualWords.Select(t => t.Replace("'", "''") + ":*");
                 tsQuery = string.Join(" & ", escapedTerms);
             }
 
@@ -490,8 +493,10 @@ namespace MailArchiver.Services.Core
 
                 if (!string.IsNullOrEmpty(tsQuery))
                 {
+                    // Split terms and strip the ':*' suffix (used for prefix matching in PostgreSQL full-text search)
+                    // The fallback ILike search already supports partial matching via %wildcard%
                     var words = tsQuery.Split('&', StringSplitOptions.RemoveEmptyEntries)
-                                      .Select(w => w.Trim().Replace("''", "'"))
+                                      .Select(w => w.Trim().Replace("''", "'").Replace(":*", ""))
                                       .ToList();
 
                     foreach (var word in words)
