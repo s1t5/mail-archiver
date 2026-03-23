@@ -161,19 +161,19 @@ namespace MailArchiver.Services.Providers
                         localDeletedCount, account.Name);
                 }
 
-                if (failedEmails == 0)
+                // Always update LastSync to prevent endless sync loops.
+                // Failed emails (e.g. permanently unparseable messages) should not block
+                // the sync progress for the entire account.
+                var trackedAccount = await _context.MailAccounts.FindAsync(account.Id);
+                if (trackedAccount != null)
                 {
-                    // Update LastSync using a separate tracked entity to avoid tracking conflicts
-                    var trackedAccount = await _context.MailAccounts.FindAsync(account.Id);
-                    if (trackedAccount != null)
-                    {
-                        trackedAccount.LastSync = DateTime.UtcNow;
-                        await _context.SaveChangesAsync();
-                    }
+                    trackedAccount.LastSync = DateTime.UtcNow;
+                    await _context.SaveChangesAsync();
                 }
-                else
+
+                if (failedEmails > 0)
                 {
-                    _logger.LogWarning("Not updating LastSync for account {AccountName} due to {FailedCount} failed emails",
+                    _logger.LogWarning("Sync for account {AccountName} completed with {FailedCount} failed emails. LastSync updated despite failures to prevent sync loop.",
                         account.Name, failedEmails);
                 }
 
@@ -1064,16 +1064,39 @@ namespace MailArchiver.Services.Providers
                                     await folder.OpenAsync(FolderAccess.ReadOnly);
                                 }
 
-                                using var message = await folder.GetMessageAsync(uid);
-                                
-                                // Pre-clean message data to remove null bytes before archiving
-                                // This prevents PostgreSQL UTF-8 encoding errors (0x00 is invalid in UTF-8)
-                                PreCleanMessage(message);
-                                
-                                var isNew = await _coreService.ArchiveEmailAsync(account, message, isOutgoing, folder.FullName);
-                                if (isNew)
+                                MimeMessage message = null;
+                                try
                                 {
-                                    result.NewEmails++;
+                                    message = await folder.GetMessageAsync(uid);
+                                }
+                                catch (FormatException parseEx)
+                                {
+                                    // Fallback: fetch raw stream and parse manually for malformed messages
+                                    _logger.LogWarning("GetMessageAsync failed for UID {Uid} in folder {Folder}, attempting raw stream fallback. Error: {Error}",
+                                        uid, folder.FullName, parseEx.Message);
+                                    try
+                                    {
+                                        using var rawStream = await folder.GetStreamAsync(uid);
+                                        message = await MimeMessage.LoadAsync(rawStream);
+                                    }
+                                    catch (Exception rawEx)
+                                    {
+                                        _logger.LogWarning("Raw stream fallback also failed for UID {Uid}: {Error}", uid, rawEx.Message);
+                                        throw new FormatException($"Failed to parse message headers (both standard and raw fallback)", parseEx);
+                                    }
+                                }
+
+                                using (message)
+                                {
+                                    // Pre-clean message data to remove null bytes before archiving
+                                    // This prevents PostgreSQL UTF-8 encoding errors (0x00 is invalid in UTF-8)
+                                    PreCleanMessage(message);
+
+                                    var isNew = await _coreService.ArchiveEmailAsync(account, message, isOutgoing, folder.FullName);
+                                    if (isNew)
+                                    {
+                                        result.NewEmails++;
+                                    }
                                 }
                             }
                             catch (Exception ex)
