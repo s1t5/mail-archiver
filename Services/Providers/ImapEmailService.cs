@@ -161,19 +161,19 @@ namespace MailArchiver.Services.Providers
                         localDeletedCount, account.Name);
                 }
 
-                // Always update LastSync to prevent endless sync loops.
-                // Failed emails (e.g. permanently unparseable messages) should not block
-                // the sync progress for the entire account.
-                var trackedAccount = await _context.MailAccounts.FindAsync(account.Id);
-                if (trackedAccount != null)
+                if (failedEmails == 0)
                 {
-                    trackedAccount.LastSync = DateTime.UtcNow;
-                    await _context.SaveChangesAsync();
+                    // Update LastSync using a separate tracked entity to avoid tracking conflicts
+                    var trackedAccount = await _context.MailAccounts.FindAsync(account.Id);
+                    if (trackedAccount != null)
+                    {
+                        trackedAccount.LastSync = DateTime.UtcNow;
+                        await _context.SaveChangesAsync();
+                    }
                 }
-
-                if (failedEmails > 0)
+                else
                 {
-                    _logger.LogWarning("Sync for account {AccountName} completed with {FailedCount} failed emails. LastSync updated despite failures to prevent sync loop.",
+                    _logger.LogWarning("Not updating LastSync for account {AccountName} due to {FailedCount} failed emails",
                         account.Name, failedEmails);
                 }
 
