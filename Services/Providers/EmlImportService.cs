@@ -612,7 +612,7 @@ namespace MailArchiver.Services.Providers
                     Bcc = bcc,
                     SentDate = convertedSentDate,
                     ReceivedDate = DateTime.UtcNow,
-                    IsOutgoing = DetermineIfOutgoing(message, account),
+                    IsOutgoing = DetermineIfOutgoing(message, account, targetFolder),
                     HasAttachments = allAttachments.Any(),
                     Body = body,
                     HtmlBody = htmlBody,
@@ -1024,13 +1024,151 @@ namespace MailArchiver.Services.Providers
             }
         }
 
-        private bool DetermineIfOutgoing(MimeMessage message, MailAccount account)
+        private bool DetermineIfOutgoing(MimeMessage message, MailAccount account, string folderName)
         {
             // Prüfe ob die E-Mail vom Account gesendet wurde
             var accountEmail = account.EmailAddress.ToLowerInvariant();
             var fromAddress = message.From.Mailboxes.FirstOrDefault()?.Address?.ToLowerInvariant();
+            
+            // Absender-Vergleich: Prüfe ob die Absender-Adresse mit der Account-Adresse übereinstimmt
+            bool isOutgoingEmail = !string.IsNullOrEmpty(fromAddress) &&
+                                   !string.IsNullOrEmpty(accountEmail) &&
+                                   fromAddress.Equals(accountEmail, StringComparison.OrdinalIgnoreCase);
+            
+            // Ordner-basierte Erkennung: Prüfe ob der Ordner ein typischer Sent-Ordner ist
+            bool isOutgoingFolder = IsOutgoingFolderByName(folderName);
+            
+            // Ausschluss von Drafts-Ordnern
+            bool isDraftsFolder = IsDraftsFolder(folderName);
+            
+            // Kombinierte Logik: Outgoing wenn (Absender passt ODER Sent-Ordner) UND kein Drafts-Ordner
+            return (isOutgoingEmail || isOutgoingFolder) && !isDraftsFolder;
+        }
 
-            return fromAddress == accountEmail;
+        /// <summary>
+        /// Checks if a folder name indicates outgoing mail based on its name in multiple languages
+        /// </summary>
+        /// <param name="folderName">The folder name to check</param>
+        /// <returns>True if the folder name indicates outgoing mail, false otherwise</returns>
+        private bool IsOutgoingFolderByName(string folderName)
+        {
+            var outgoingFolderNames = new[]
+            {
+                // Arabic
+                "المرسلة", "البريد المرسل",
+
+                // Bulgarian
+                "изпратени", "изпратена поща",
+
+                // Chinese (Simplified)
+                "已发送", "已传送",
+
+                // Croatian
+                "poslano", "poslana pošta",
+
+                // Czech
+                "odeslané", "odeslaná pošta",
+
+                // Danish
+                "sendt", "sendte elementer",
+
+                // Dutch
+                "verzonden", "verzonden items", "verzonden e-mail",
+
+                // English
+                "sent", "sent items", "sent mail",
+
+                // Estonian
+                "saadetud", "saadetud kirjad",
+
+                // Finnish
+                "lähetetyt", "lähetetyt kohteet",
+
+                // French
+                "envoyé", "éléments envoyés", "mail envoyé",
+
+                // German
+                "gesendet", "gesendete objekte", "gesendete",
+
+                // Greek
+                "απεσταλμένα", "σταλμένα", "σταλμένα μηνύματα",
+
+                // Hebrew
+                "נשלחו", "דואר יוצא",
+
+                // Hungarian
+                "elküldött", "elküldött elemek",
+
+                // Irish
+                "seolta", "r-phost seolta",
+
+                // Italian
+                "inviato", "posta inviata", "elementi inviati",
+
+                // Japanese
+                "送信済み", "送信済メール", "送信メール",
+
+                // Korean
+                "보낸편지함", "발신함", "보낸메일",
+
+                // Latvian
+                "nosūtītie", "nosūtītās vēstules",
+
+                // Lithuanian
+                "išsiųsta", "išsiųsti laiškai",
+
+                // Maltese
+                "mibgħuta", "posta mibgħuta",
+
+                // Norwegian
+                "sendt", "sendte elementer",
+
+                // Polish
+                "wysłane", "elementy wysłane",
+
+                // Portuguese
+                "enviados", "itens enviados", "mensagens enviadas",
+
+                // Romanian
+                "trimise", "elemente trimise", "mail trimis",
+
+                // Russian
+                "отправленные", "исходящие", "отправлено",
+
+                // Slovak
+                "odoslané", "odoslaná pošta",
+
+                // Slovenian
+                "poslano", "poslana pošta",
+
+                // Spanish
+                "enviado", "elementos enviados", "correo enviado",
+
+                // Swedish
+                "skickat", "skickade objekt",
+
+                // Turkish
+                "gönderilen", "gönderilmiş öğeler"
+            };
+
+            string folderNameLower = folderName?.ToLowerInvariant() ?? "";
+            return outgoingFolderNames.Any(name => folderNameLower.Contains(name));
+        }
+
+        /// <summary>
+        /// Checks if a folder name indicates drafts
+        /// </summary>
+        /// <param name="folderName">The folder name to check</param>
+        /// <returns>True if the folder name indicates drafts, false otherwise</returns>
+        private bool IsDraftsFolder(string folderName)
+        {
+            var draftsFolderNames = new[]
+            {
+                "drafts", "entwürfe", "brouillons", "bozze", "draft", "sketches", "wachtwoorden"
+            };
+
+            string folderNameLower = folderName?.ToLowerInvariant() ?? "";
+            return draftsFolderNames.Any(name => folderNameLower.Contains(name));
         }
 
         private string CleanText(string text)
