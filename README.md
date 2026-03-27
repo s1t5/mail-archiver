@@ -200,12 +200,13 @@ With the generous support of our sponsors, Mail Archiver continues to evolve. Th
 <tr>
 <td align="center">
 <a href="https://www.admin-intelligence.de/" target="_blank">
-<img width="210" src="https://www.admin-intelligence.de/img/logos/admin/admin-intelligence-white.svg" alt="Admin Intelligence">
+<img width="210" src="https://github.com/user-attachments/assets/f0a8f1fc-e5a5-4900-95c5-809a18b5b719" alt="Admin Intelligence">
 </a>
 </td>
 </tr>
 </tbody>
 </table>
+
 
 ### 💝 Individual Sponsors
 
