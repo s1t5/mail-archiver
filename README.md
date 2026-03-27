@@ -2,7 +2,10 @@
 
 **A comprehensive solution for archiving, searching, and exporting emails**
 
+🌐 **Website:** [mail-archiver.org](https://mail-archiver.org)
+
 <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px;">
+  <a href="https://mail-archiver.org" target="_blank"><img src="https://img.shields.io/badge/Website-mail--archiver.org-4A90D9?style=for-the-badge&logo=globe&logoColor=white" alt="Website"></a>
   <a href="#"><img src="https://img.shields.io/badge/Docker-2CA5E0?style=for-the-badge&logo=docker&logoColor=white" alt="Docker"></a>
   <a href="#"><img src="https://img.shields.io/badge/.NET-512BD4?style=for-the-badge&logo=dotnet&logoColor=white" alt=".NET"></a>
   <a href="#"><img src="https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white" alt="PostgreSQL"></a>
@@ -128,7 +131,7 @@ networks:
 6. Configure a reverse proxy of your choice with https to secure access to the application. 
 
 > ⚠️ **Attention**
-> The application itself does not provide encrypted access via https! It must be set up via a reverse proxy! Moreover the application is not build for public internet access!
+> The application itself does not provide encrypted access via https! It must be set up via a reverse proxy!
 
 7. Initial start of the containers:
 ```bash
@@ -184,6 +187,29 @@ If you find this project useful and would like to support its continued developm
 
 <a href="https://www.buymeacoffee.com/s1t5" target="_blank"><img src="https://img.shields.io/badge/Buy%20Me%20a%20Coffee-s1t5-FFDD00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=black" alt="Buy Me a Coffee"></a>
 <a href="https://ko-fi.com/s1t5dev" target="_blank"><img src="https://img.shields.io/badge/Ko--Fi-s1t5dev-FF5E5B?style=for-the-badge&logo=ko-fi&logoColor=white" alt="Ko-fi"></a>
+<a href="https://github.com/sponsors/s1t5" target="_blank"><img src="https://img.shields.io/badge/GitHub%20Sponsors-s1t5-FF9A00?style=for-the-badge&logo=github-sponsors&logoColor=white" alt="GitHub Sponsors"></a>
+
+## 🌟 Project Sponsors
+
+With the generous support of our sponsors, Mail Archiver continues to evolve. Thank you for making it possible!
+
+*Disclaimer: The services listed above are third-party offerings and are neither affiliated with, endorsed by, nor tested by the Mail Archiver project.*
+
+<table>
+<tbody>
+<tr>
+<td align="center">
+<a href="https://www.admin-intelligence.de/" target="_blank">
+<img width="210" src="https://www.admin-intelligence.de/img/logos/admin/admin-intelligence-white.svg" alt="Admin Intelligence">
+</a>
+</td>
+</tr>
+</tbody>
+</table>
+
+### 💝 Individual Sponsors
+
+A special thanks to all individual sponsors who support this project through [GitHub Sponsors](https://github.com/sponsors/s1t5), [Ko-fi](https://ko-fi.com/s1t5dev), and [Buy Me a Coffee](https://www.buymeacoffee.com/s1t5). Your contributions make a real difference!
 
 ---
 
