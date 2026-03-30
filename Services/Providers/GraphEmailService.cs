@@ -116,6 +116,9 @@ private async Task<GraphServiceClient> CreateGraphClientAsync(MailAccount accoun
                 var folderPaths = BuildFolderPathsMap(folders);
 
                 // Process each folder
+                int consecutiveFolderDbErrors = 0;
+                const int maxConsecutiveFolderDbErrors = 2;
+
                 foreach (var folder in folders)
                 {
                     // Check if job has been cancelled
@@ -128,6 +131,23 @@ private async Task<GraphServiceClient> CreateGraphClientAsync(MailAccount accoun
                             _syncJobService.CompleteJob(jobId, false, "Job was cancelled");
                             return;
                         }
+                    }
+
+                    // Circuit breaker: if multiple folders in a row failed due to DB issues, check connectivity before continuing
+                    if (consecutiveFolderDbErrors >= maxConsecutiveFolderDbErrors)
+                    {
+                        _logger.LogError("Circuit breaker triggered at folder level: {Count} consecutive folders failed due to database connectivity issues. Checking database health...",
+                            consecutiveFolderDbErrors);
+                        if (!await IsDatabaseReachableAsync())
+                        {
+                            _logger.LogError("Database is unreachable. Aborting sync for account {AccountName}.", account.Name);
+                            if (jobId != null)
+                            {
+                                _syncJobService.CompleteJob(jobId, false, "Database connectivity lost during sync");
+                            }
+                            return;
+                        }
+                        consecutiveFolderDbErrors = 0; // DB is back, reset counter
                     }
 
                     try
@@ -159,6 +179,7 @@ private async Task<GraphServiceClient> CreateGraphClientAsync(MailAccount accoun
                         processedEmails += folderResult.ProcessedEmails;
                         newEmails += folderResult.NewEmails;
                         failedEmails += folderResult.FailedEmails;
+                        consecutiveFolderDbErrors = 0; // Folder completed, reset DB error counter
 
                         processedFolders++;
 
@@ -178,6 +199,15 @@ private async Task<GraphServiceClient> CreateGraphClientAsync(MailAccount accoun
                         _logger.LogError(ex, "Error syncing folder {FolderName} for account {AccountName}: {Message}",
                             folder.DisplayName, account.Name, ex.Message);
                         failedEmails++;
+
+                        if (IsDbConnectivityError(ex))
+                        {
+                            consecutiveFolderDbErrors++;
+                        }
+                        else
+                        {
+                            consecutiveFolderDbErrors = 0;
+                        }
                     }
                 }
 
@@ -562,6 +592,10 @@ private async Task<GraphServiceClient> CreateGraphClientAsync(MailAccount accoun
                     _logger.LogInformation("Processing page 1 with {Count} messages in folder {FolderName} for account: {AccountName}",
                         filteredMessages.Count, folder.DisplayName, account.Name);
 
+                    // Circuit breaker: abort folder sync after consecutive DB connectivity failures
+                    const int maxConsecutiveDbErrors = 5;
+                    int consecutiveDbErrors = 0;
+
                     // Process messages in batches for better memory management
                     for (int i = 0; i < filteredMessages.Count; i += _batchOptions.BatchSize)
                     {
@@ -619,11 +653,27 @@ private async Task<GraphServiceClient> CreateGraphClientAsync(MailAccount accoun
                                     {
                                         result.NewEmails++;
                                     }
-                                    
+                                    consecutiveDbErrors = 0; // Reset on success
+
                                     processedInThisFolder++;
+                                }
+                                catch (Exception ex) when (IsDbConnectivityError(ex))
+                                {
+                                    consecutiveDbErrors++;
+                                    result.FailedEmails++;
+                                    processedInThisFolder++;
+                                    _logger.LogError("Database connectivity error ({ConsecutiveCount}/{MaxCount}) while archiving message in folder {FolderName}",
+                                        consecutiveDbErrors, maxConsecutiveDbErrors, folderNameForStorage);
+                                    if (consecutiveDbErrors >= maxConsecutiveDbErrors)
+                                    {
+                                        _logger.LogError("Circuit breaker triggered: {MaxCount} consecutive database connectivity failures in folder {FolderName}. Aborting folder sync.",
+                                            maxConsecutiveDbErrors, folderNameForStorage);
+                                        return result;
+                                    }
                                 }
                                 catch (Exception ex)
                                 {
+                                    consecutiveDbErrors = 0; // Non-DB errors don't count
                                     var subject = message.Subject ?? "Unknown";
                                     var date = message.SentDateTime?.ToString() ?? "Unknown";
                                     _logger.LogError(ex, "Error archiving Graph API message {MessageId} from folder {FolderName}. Subject: {Subject}, Date: {Date}, Message: {Message}",
@@ -687,7 +737,22 @@ private async Task<GraphServiceClient> CreateGraphClientAsync(MailAccount accoun
                             await Task.Delay(_batchOptions.PauseBetweenBatchesMs);
                         }
 
-                        _logger.LogInformation("Fetching page {PageNumber} for folder {FolderName} (Total processed so far: {TotalProcessed})", 
+                        // Circuit breaker check: if too many DB errors accumulated, stop pagination
+                        if (consecutiveDbErrors >= maxConsecutiveDbErrors)
+                        {
+                            _logger.LogError("Circuit breaker active: skipping further pagination for folder {FolderName} due to database connectivity issues", folderNameForStorage);
+                            break;
+                        }
+
+                        // DB health check before fetching next page to avoid wasting API calls
+                        if (consecutiveDbErrors > 0 && !await IsDatabaseReachableAsync())
+                        {
+                            _logger.LogError("Database unreachable before fetching page {PageNumber} for folder {FolderName}. Aborting folder sync.",
+                                paginationCount, folderNameForStorage);
+                            break;
+                        }
+
+                        _logger.LogInformation("Fetching page {PageNumber} for folder {FolderName} (Total processed so far: {TotalProcessed})",
                             paginationCount, folder.DisplayName, result.ProcessedEmails);
 
                         // Get next page
@@ -743,11 +808,27 @@ private async Task<GraphServiceClient> CreateGraphClientAsync(MailAccount accoun
                                     {
                                         result.NewEmails++;
                                     }
-                                    
+                                    consecutiveDbErrors = 0; // Reset on success
+
                                     processedInThisFolder++;
+                                }
+                                catch (Exception ex) when (IsDbConnectivityError(ex))
+                                {
+                                    consecutiveDbErrors++;
+                                    result.FailedEmails++;
+                                    processedInThisFolder++;
+                                    _logger.LogError("Database connectivity error ({ConsecutiveCount}/{MaxCount}) during pagination page {PageNumber} in folder {FolderName}",
+                                        consecutiveDbErrors, maxConsecutiveDbErrors, paginationCount, folderNameForStorage);
+                                    if (consecutiveDbErrors >= maxConsecutiveDbErrors)
+                                    {
+                                        _logger.LogError("Circuit breaker triggered during pagination: {MaxCount} consecutive database connectivity failures in folder {FolderName}. Aborting folder sync.",
+                                            maxConsecutiveDbErrors, folderNameForStorage);
+                                        return result;
+                                    }
                                 }
                                 catch (Exception ex)
                                 {
+                                    consecutiveDbErrors = 0; // Non-DB errors don't count
                                     var subject = message.Subject ?? "Unknown";
                                     var date = message.SentDateTime?.ToString() ?? "Unknown";
                                     _logger.LogError(ex, "Error archiving Graph API message {MessageId} from folder {FolderName}. Subject: {Subject}, Date: {Date}, Message: {Message}",
@@ -755,7 +836,7 @@ private async Task<GraphServiceClient> CreateGraphClientAsync(MailAccount accoun
                                     result.FailedEmails++;
                                     processedInThisFolder++;
                                 }
-                                
+
                                 // Force garbage collection after each email to free memory
                                 if (processedInThisFolder % 10 == 0)
                                 {
@@ -863,9 +944,15 @@ private async Task<GraphServiceClient> CreateGraphClientAsync(MailAccount accoun
                     return false; // Email already exists
                 }
             }
+            catch (Exception ex) when (IsDbConnectivityError(ex))
+            {
+                _logger.LogError(ex, "Database connectivity error while checking email {MessageId} for account {AccountName}",
+                    messageId, account.Name);
+                throw; // Let caller handle DB connectivity failures via circuit breaker
+            }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error checking if email {MessageId} exists for account {AccountName}: {Message}", 
+                _logger.LogError(ex, "Error checking if email {MessageId} exists for account {AccountName}: {Message}",
                     messageId, account.Name, ex.Message);
                 return false;
             }
@@ -2644,6 +2731,52 @@ private async Task<GraphServiceClient> CreateGraphClientAsync(MailAccount accoun
         Task<int> MailArchiver.Services.Providers.IProviderEmailService.GetEmailCountByAccountAsync(int accountId)
         {
             return _coreService.GetEmailCountByAccountAsync(accountId);
+        }
+
+        #endregion
+
+        #region Database Connectivity Helpers
+
+        /// <summary>
+        /// Checks if an exception indicates a database connectivity issue (connection refused, DNS failure, timeout).
+        /// Used by the circuit breaker to distinguish transient DB failures from application-level errors.
+        /// </summary>
+        private static bool IsDbConnectivityError(Exception ex)
+        {
+            // Check the full exception chain for connectivity indicators
+            var current = ex;
+            while (current != null)
+            {
+                var message = current.Message ?? "";
+                if (current is System.Net.Sockets.SocketException ||
+                    message.Contains("Name or service not known", StringComparison.OrdinalIgnoreCase) ||
+                    message.Contains("Connection refused", StringComparison.OrdinalIgnoreCase) ||
+                    message.Contains("No such host", StringComparison.OrdinalIgnoreCase) ||
+                    message.Contains("connection to server", StringComparison.OrdinalIgnoreCase) ||
+                    message.Contains("An exception has been raised that is likely due to a transient failure", StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+                current = current.InnerException;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Performs a lightweight database connectivity check by executing a simple query.
+        /// Returns true if the database is reachable, false otherwise.
+        /// </summary>
+        private async Task<bool> IsDatabaseReachableAsync()
+        {
+            try
+            {
+                await _context.Database.CanConnectAsync();
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         #endregion
