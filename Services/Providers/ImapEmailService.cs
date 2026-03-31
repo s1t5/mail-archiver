@@ -83,6 +83,10 @@ namespace MailArchiver.Services.Providers
 
                 _logger.LogInformation("Found {Count} folders for account: {AccountName}", allFolders.Count, account.Name);
 
+                // Circuit breaker: abort sync after consecutive DB connectivity failures across folders
+                int consecutiveFolderDbErrors = 0;
+                const int maxConsecutiveFolderDbErrors = 2;
+
                 foreach (var folder in allFolders)
                 {
                     if (jobId != null)
@@ -94,6 +98,23 @@ namespace MailArchiver.Services.Providers
                             _syncJobService.CompleteJob(jobId, false, "Job was cancelled");
                             return;
                         }
+                    }
+
+                    // Circuit breaker: check DB health if previous folders failed due to DB issues
+                    if (consecutiveFolderDbErrors >= maxConsecutiveFolderDbErrors)
+                    {
+                        _logger.LogError("Circuit breaker triggered at folder level: {Count} consecutive folders failed due to database connectivity issues. Checking database health...",
+                            consecutiveFolderDbErrors);
+                        if (!await IsDatabaseReachableAsync())
+                        {
+                            _logger.LogError("Database is unreachable. Aborting sync for account {AccountName}.", account.Name);
+                            if (jobId != null)
+                            {
+                                _syncJobService.CompleteJob(jobId, false, "Database connectivity lost during sync");
+                            }
+                            return;
+                        }
+                        consecutiveFolderDbErrors = 0; // DB is back, reset counter
                     }
 
                     try
@@ -119,6 +140,7 @@ namespace MailArchiver.Services.Providers
                         processedEmails += folderResult.ProcessedEmails;
                         newEmails += folderResult.NewEmails;
                         failedEmails += folderResult.FailedEmails;
+                        consecutiveFolderDbErrors = 0; // Folder completed, reset DB error counter
 
                         processedFolders++;
 
@@ -138,6 +160,15 @@ namespace MailArchiver.Services.Providers
                         _logger.LogError(ex, "Error syncing folder {FolderName} for account {AccountName}: {Message}",
                             folder.FullName, account.Name, ex.Message);
                         failedEmails++;
+
+                        if (IsDbConnectivityError(ex))
+                        {
+                            consecutiveFolderDbErrors++;
+                        }
+                        else
+                        {
+                            consecutiveFolderDbErrors = 0;
+                        }
                     }
                 }
 
@@ -1010,6 +1041,10 @@ namespace MailArchiver.Services.Providers
 
                     result.ProcessedEmails = uids.Count;
 
+                    // Circuit breaker: abort folder sync after consecutive DB connectivity failures
+                    const int maxConsecutiveDbErrors = 5;
+                    int consecutiveDbErrors = 0;
+
                     // Process emails in smaller chunks to reduce memory usage
                     for (int i = 0; i < uids.Count; i += _batchOptions.BatchSize)
                     {
@@ -1075,9 +1110,24 @@ namespace MailArchiver.Services.Providers
                                 {
                                     result.NewEmails++;
                                 }
+                                consecutiveDbErrors = 0; // Reset on success
+                            }
+                            catch (Exception ex) when (IsDbConnectivityError(ex))
+                            {
+                                consecutiveDbErrors++;
+                                result.FailedEmails++;
+                                _logger.LogError("Database connectivity error ({ConsecutiveCount}/{MaxCount}) while archiving message in folder {FolderName}",
+                                    consecutiveDbErrors, maxConsecutiveDbErrors, folder.FullName);
+                                if (consecutiveDbErrors >= maxConsecutiveDbErrors)
+                                {
+                                    _logger.LogError("Circuit breaker triggered: {MaxCount} consecutive database connectivity failures in folder {FolderName}. Aborting folder sync.",
+                                        maxConsecutiveDbErrors, folder.FullName);
+                                    return result;
+                                }
                             }
                             catch (Exception ex)
                             {
+                                consecutiveDbErrors = 0; // Non-DB errors don't count
                                 // Enhanced error logging with email details for better debugging
                                 var emailSubject = "Unknown";
                                 var emailFrom = "Unknown";
@@ -2310,6 +2360,51 @@ namespace MailArchiver.Services.Providers
 
             // Remove null bytes
             return input.Replace("\0", "");
+        }
+
+        #endregion
+
+        #region Database Connectivity Helpers
+
+        /// <summary>
+        /// Checks if an exception indicates a database connectivity issue (connection refused, DNS failure, timeout).
+        /// Used by the circuit breaker to distinguish transient DB failures from application-level errors.
+        /// </summary>
+        private static bool IsDbConnectivityError(Exception ex)
+        {
+            var current = ex;
+            while (current != null)
+            {
+                var message = current.Message ?? "";
+                if (current is System.Net.Sockets.SocketException ||
+                    message.Contains("Name or service not known", StringComparison.OrdinalIgnoreCase) ||
+                    message.Contains("Connection refused", StringComparison.OrdinalIgnoreCase) ||
+                    message.Contains("No such host", StringComparison.OrdinalIgnoreCase) ||
+                    message.Contains("connection to server", StringComparison.OrdinalIgnoreCase) ||
+                    message.Contains("An exception has been raised that is likely due to a transient failure", StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+                current = current.InnerException;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Performs a lightweight database connectivity check.
+        /// Returns true if the database is reachable, false otherwise.
+        /// </summary>
+        private async Task<bool> IsDatabaseReachableAsync()
+        {
+            try
+            {
+                await _context.Database.CanConnectAsync();
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         #endregion
