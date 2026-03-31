@@ -1064,16 +1064,39 @@ namespace MailArchiver.Services.Providers
                                     await folder.OpenAsync(FolderAccess.ReadOnly);
                                 }
 
-                                using var message = await folder.GetMessageAsync(uid);
-                                
-                                // Pre-clean message data to remove null bytes before archiving
-                                // This prevents PostgreSQL UTF-8 encoding errors (0x00 is invalid in UTF-8)
-                                PreCleanMessage(message);
-                                
-                                var isNew = await _coreService.ArchiveEmailAsync(account, message, isOutgoing, folder.FullName);
-                                if (isNew)
+                                MimeMessage message = null;
+                                try
                                 {
-                                    result.NewEmails++;
+                                    message = await folder.GetMessageAsync(uid);
+                                }
+                                catch (FormatException parseEx)
+                                {
+                                    // Fallback: fetch raw stream and parse manually for malformed messages
+                                    _logger.LogWarning("GetMessageAsync failed for UID {Uid} in folder {Folder}, attempting raw stream fallback. Error: {Error}",
+                                        uid, folder.FullName, parseEx.Message);
+                                    try
+                                    {
+                                        using var rawStream = await folder.GetStreamAsync(uid);
+                                        message = await MimeMessage.LoadAsync(rawStream);
+                                    }
+                                    catch (Exception rawEx)
+                                    {
+                                        _logger.LogWarning("Raw stream fallback also failed for UID {Uid}: {Error}", uid, rawEx.Message);
+                                        throw new FormatException($"Failed to parse message headers (both standard and raw fallback)", parseEx);
+                                    }
+                                }
+
+                                using (message)
+                                {
+                                    // Pre-clean message data to remove null bytes before archiving
+                                    // This prevents PostgreSQL UTF-8 encoding errors (0x00 is invalid in UTF-8)
+                                    PreCleanMessage(message);
+
+                                    var isNew = await _coreService.ArchiveEmailAsync(account, message, isOutgoing, folder.FullName);
+                                    if (isNew)
+                                    {
+                                        result.NewEmails++;
+                                    }
                                 }
                             }
                             catch (Exception ex)
