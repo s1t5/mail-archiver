@@ -194,6 +194,9 @@ namespace MailArchiver.Controllers
                     }));
             }
 
+            // Load folder tree for the selected account (or all accounts if none selected)
+            model.FolderTree = await _emailCoreService.GetFolderTreeAsync(model.SelectedAccountId, allowedAccountIds);
+
             // Berechnen der Anzahl zu überspringender Elemente für die Paginierung
             int skip = (model.PageNumber - 1) * model.PageSize;
 
@@ -2048,6 +2051,54 @@ namespace MailArchiver.Controllers
             {
                 _logger.LogError(ex, "Exception while retrieving folders for account {AccountId}", accountId);
                 return Json(new List<string> { "INBOX" });
+            }
+        }
+
+        // GET: Emails/GetFolderTree
+        [HttpGet]
+        public async Task<JsonResult> GetFolderTree(int? accountId)
+        {
+            var currentUsername = _authService?.GetCurrentUserDisplayName(HttpContext) ?? "Unknown";
+            _logger.LogInformation("GetFolderTree called by user {Username} for account {AccountId}", 
+                currentUsername, accountId);
+
+            try
+            {
+                // Get current user's allowed accounts
+                List<int> allowedAccountIds = null;
+                var authService = HttpContext.RequestServices.GetService<MailArchiver.Services.IAuthenticationService>();
+                var userService = HttpContext.RequestServices.GetService<IUserService>();
+                
+                if (authService != null && userService != null && !authService.IsCurrentUserAdmin(HttpContext))
+                {
+                    var username = authService.GetCurrentUserDisplayName(HttpContext);
+                    var user = await userService.GetUserByUsernameAsync(username);
+                    if (user != null)
+                    {
+                        var userAccounts = await userService.GetUserMailAccountsAsync(user.Id);
+                        allowedAccountIds = userAccounts.Select(a => a.Id).ToList();
+                        
+                        // Security: Log if user requests folder tree for an account they don't have access to
+                        if (accountId.HasValue && !allowedAccountIds.Contains(accountId.Value))
+                        {
+                            _logger.LogWarning("User {Username} attempted to access folder tree for unauthorized account {AccountId}", 
+                                username, accountId.Value);
+                        }
+                    }
+                }
+
+                // Get folder tree
+                var folderTree = await _emailCoreService.GetFolderTreeAsync(accountId, allowedAccountIds);
+
+                _logger.LogDebug("Returning {Count} folders for user {Username}", folderTree.Count, currentUsername);
+
+                return Json(folderTree);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Exception while retrieving folder tree for account {AccountId} by user {Username}", 
+                    accountId, currentUsername);
+                return Json(new List<FolderTreeNode>());
             }
         }
 

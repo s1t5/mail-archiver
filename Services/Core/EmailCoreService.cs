@@ -2182,5 +2182,236 @@ namespace MailArchiver.Services.Core
         }
 
         #endregion
+
+        #region Folder Tree
+
+        /// <summary>
+        /// Gets the folder tree hierarchy with email counts for a specific account or all accounts
+        /// </summary>
+        /// <param name="accountId">Optional account ID to filter folders</param>
+        /// <param name="allowedAccountIds">List of account IDs the user has access to</param>
+        /// <returns>A list of folder tree nodes representing the folder hierarchy</returns>
+        public async Task<List<FolderTreeNode>> GetFolderTreeAsync(int? accountId, List<int> allowedAccountIds = null)
+        {
+            try
+            {
+                // Build base query for folders
+                var query = _context.ArchivedEmails.AsNoTracking();
+
+                // Filter by account if specified
+                if (accountId.HasValue)
+                {
+                    // Check access permission
+                    if (allowedAccountIds != null && allowedAccountIds.Any() && !allowedAccountIds.Contains(accountId.Value))
+                    {
+                        _logger.LogWarning("User attempted to access folder tree for account {AccountId} which is not in their allowed accounts list", accountId.Value);
+                        return new List<FolderTreeNode>();
+                    }
+                    query = query.Where(e => e.MailAccountId == accountId.Value);
+                }
+                else if (allowedAccountIds != null)
+                {
+                    if (allowedAccountIds.Any())
+                    {
+                        query = query.Where(e => allowedAccountIds.Contains(e.MailAccountId));
+                    }
+                    else
+                    {
+                        // User has no allowed accounts
+                        return new List<FolderTreeNode>();
+                    }
+                }
+
+                // Get folder names with counts
+                var folderData = await query
+                    .Where(e => !string.IsNullOrEmpty(e.FolderName))
+                    .GroupBy(e => e.FolderName)
+                    .Select(g => new { FolderName = g.Key, Count = g.Count() })
+                    .ToListAsync();
+
+                if (!folderData.Any())
+                {
+                    return new List<FolderTreeNode>();
+                }
+
+                // Security: Validate folder names to prevent potential injection attacks
+                const int maxFolderNameLength = 500;
+                const int maxTotalFolders = 10000;
+                
+                var validFolderData = folderData
+                    .Where(f => 
+                        f.FolderName != null && 
+                        f.FolderName.Length <= maxFolderNameLength &&
+                        !f.FolderName.Contains("..") && // Prevent path traversal
+                        !f.FolderName.Contains("<") &&  // Prevent XSS
+                        !f.FolderName.Contains(">") &&
+                        !f.FolderName.Contains("javascript:", StringComparison.OrdinalIgnoreCase))
+                    .Take(maxTotalFolders)
+                    .ToList();
+
+                if (validFolderData.Count < folderData.Count)
+                {
+                    _logger.LogWarning("Folder tree validation filtered out {InvalidCount} suspicious folder names for account {AccountId}",
+                        folderData.Count - validFolderData.Count, accountId);
+                }
+
+                // Build the folder tree
+                var rootNode = new Dictionary<string, FolderTreeNode>(StringComparer.OrdinalIgnoreCase);
+
+                foreach (var folder in folderData)
+                {
+                    var parts = folder.FolderName.Split(new[] { '/', '\\' }, StringSplitOptions.RemoveEmptyEntries);
+                    
+                    // Find or create the path in the tree
+                    var currentLevel = rootNode;
+                    FolderTreeNode? currentNode = null;
+                    
+                    for (int i = 0; i < parts.Length; i++)
+                    {
+                        var part = parts[i].Trim();
+                        var fullPath = string.Join("/", parts.Take(i + 1));
+
+                        if (!currentLevel.TryGetValue(part, out var node))
+                        {
+                            node = new FolderTreeNode
+                            {
+                                Name = part,
+                                FullPath = fullPath,
+                                Level = i,
+                                TotalCount = 0, // Will be set for leaf nodes
+                                UnreadCount = 0,
+                                Children = new List<FolderTreeNode>()
+                            };
+                            currentLevel[part] = node;
+                        }
+
+                        currentNode = node;
+                        
+                        // Move to next level
+                        if (i < parts.Length - 1)
+                        {
+                            currentLevel = GetOrCreateChildrenDict(node);
+                        }
+                    }
+
+                    // Set count on the leaf node (the actual folder)
+                    if (currentNode != null)
+                    {
+                        currentNode.TotalCount = folder.Count;
+                    }
+                }
+
+                // Convert the dictionary tree to a list structure
+                var result = BuildFolderTreeList(rootNode);
+
+                // Sort folders alphabetically, but keep INBOX-like folders at top
+                return SortFolderTree(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting folder tree for account {AccountId}", accountId);
+                return new List<FolderTreeNode>();
+            }
+        }
+
+        /// <summary>
+        /// Helper method to get or create the children dictionary for a node
+        /// </summary>
+        private Dictionary<string, FolderTreeNode> GetOrCreateChildrenDict(FolderTreeNode node)
+        {
+            // We use a temporary dictionary during building, then convert to list
+            if (node._childrenDict == null)
+            {
+                node._childrenDict = new Dictionary<string, FolderTreeNode>(StringComparer.OrdinalIgnoreCase);
+            }
+            return node._childrenDict;
+        }
+
+        /// <summary>
+        /// Builds a list of FolderTreeNode from the dictionary structure
+        /// </summary>
+        private List<FolderTreeNode> BuildFolderTreeList(Dictionary<string, FolderTreeNode> nodeDict)
+        {
+            var result = new List<FolderTreeNode>();
+            
+            foreach (var kvp in nodeDict)
+            {
+                var node = kvp.Value;
+                
+                // Convert children dictionary to list
+                if (node._childrenDict != null && node._childrenDict.Any())
+                {
+                    node.Children = BuildFolderTreeList(node._childrenDict);
+                    node._childrenDict = null; // Clear the dictionary, we don't need it anymore
+                }
+                else
+                {
+                    node.Children = new List<FolderTreeNode>();
+                }
+                
+                // Calculate total count including children (for parent folders)
+                // The count shown should be emails in this folder specifically, not including subfolders
+                // (This matches typical email client behavior where subfolders show separately)
+                
+                result.Add(node);
+            }
+            
+            return result;
+        }
+
+        /// <summary>
+        /// Sorts the folder tree with INBOX at the top, then special folders, then alphabetically
+        /// </summary>
+        private List<FolderTreeNode> SortFolderTree(List<FolderTreeNode> nodes)
+        {
+            if (nodes == null || !nodes.Any())
+                return nodes;
+
+            // Priority order for special folders
+            var priorityFolders = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase)
+            {
+                { "inbox", 1 },
+                { "drafts", 2 },
+                { "sent", 3 },
+                { "junk", 4 },
+                { "spam", 5 },
+                { "trash", 6 },
+                { "deleted", 7 },
+                { "archive", 8 }
+            };
+
+            // Sort each level
+            foreach (var node in nodes)
+            {
+                if (node.Children != null && node.Children.Any())
+                {
+                    node.Children = SortFolderTree(node.Children.ToList());
+                }
+            }
+
+            // Sort this level
+            return nodes
+                .OrderBy(n =>
+                {
+                    // Check if this folder or any parent is a priority folder
+                    var lowerName = n.Name.ToLowerInvariant();
+                    if (priorityFolders.TryGetValue(lowerName, out var priority))
+                        return priority;
+                    
+                    // Check if the full path contains a priority folder
+                    foreach (var pf in priorityFolders)
+                    {
+                        if (n.FullPath.ToLowerInvariant().StartsWith(pf.Key + "/") || 
+                            n.FullPath.ToLowerInvariant() == pf.Key)
+                            return pf.Value;
+                    }
+                    
+                    return 100; // Default priority for non-special folders
+                })
+                .ThenBy(n => n.Name, StringComparer.OrdinalIgnoreCase)
+                .ToList();
+        }
+
+        #endregion
     }
 }

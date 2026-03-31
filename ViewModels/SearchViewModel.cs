@@ -33,6 +33,9 @@ namespace MailArchiver.Models.ViewModels
         public List<SelectListItem> FolderOptions { get; set; }
         public List<SelectListItem> DirectionOptions { get; set; }
 
+        // Folder tree for hierarchical display
+        public List<FolderTreeNode> FolderTree { get; set; } = new List<FolderTreeNode>();
+
         public SearchViewModel() { }
 
         // Methode zur Konvertierung von UTC zu lokaler Zeit

@@ -1,0 +1,60 @@
+@model List<MailArchiver.Models.ViewModels.FolderTreeNode>
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<MailArchiver.SharedResource> Localizer
+@{
+    var selectedFolder = ViewData["SelectedFolder"] as string;
+}
+
+@functions {
+    public string GetFolderIcon(string folderName)
+    {
+        var lowerName = folderName?.ToLowerInvariant() ?? "";
+        
+        if (lowerName == "inbox" || lowerName.EndsWith("/inbox")) return "bi-inbox";
+        if (lowerName.Contains("draft")) return "bi-file-earmark-text";
+        if (lowerName.Contains("sent")) return "bi-send";
+        if (lowerName.Contains("spam") || lowerName.Contains("junk")) return "bi-exclamation-triangle";
+        if (lowerName.Contains("trash") || lowerName.Contains("deleted")) return "bi-trash";
+        if (lowerName.Contains("archive")) return "bi-archive";
+        
+        return "bi-folder";
+    }
+    
+    public void RenderFolderTree(List<MailArchiver.Models.ViewModels.FolderTreeNode> nodes, string selectedFolder, IStringLocalizer Localizer, int level = 0)
+    {
+        foreach (var node in nodes)
+        {
+            var isSelected = node.FullPath == selectedFolder;
+            var hasChildren = node.Children != null && node.Children.Any();
+            var indentStyle = level > 0 ? $"padding-left: {(level * 1.5)}rem;" : "";
+            
+            <div class="folder-tree-item @(isSelected ? "selected" : "")" data-folder="@node.FullPath" style="@indentStyle">
+                @if (hasChildren)
+                {
+                    <span class="folder-tree-toggle" role="button" tabindex="0">
+                        <i class="bi bi-chevron-right"></i>
+                    </span>
+                }
+                else
+                {
+                    <span class="folder-tree-toggle empty"></span>
+                }
+                <i class="bi @GetFolderIcon(node.Name) folder-tree-icon"></i>
+                <span class="folder-tree-name">@node.Name</span>
+                @if (node.TotalCount > 0)
+                {
+                    <span class="folder-tree-count">(@node.TotalCount)</span>
+                }
+            </div>
+            
+            @if (hasChildren)
+            {
+                <div class="folder-tree-children" style="display: @(isSelected || level == 0 ? "" : "none");">
+                    @{ RenderFolderTree(node.Children.ToList(), selectedFolder, Localizer, level + 1); }
+                </div>
+            }
+        }
+    }
+}
+
+@{ RenderFolderTree(Model, selectedFolder, Localizer); }

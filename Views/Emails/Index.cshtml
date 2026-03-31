@@ -1,4 +1,4 @@
-﻿@using Microsoft.AspNetCore.Http.Extensions
+@using Microsoft.AspNetCore.Http.Extensions
 @using MailArchiver.Services
 @inject MailArchiver.Services.IAuthenticationService AuthService
 @inject Microsoft.Extensions.Localization.IStringLocalizer<MailArchiver.SharedResource> Localizer
@@ -13,6 +13,10 @@
 <div class="container-fluid">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h1 class="h3">@Localizer["EmailArchive"]</h1>
+        @* Mobile folder tree toggle button *@
+        <button type="button" class="btn btn-outline-secondary folder-tree-mobile-toggle" data-bs-toggle="offcanvas" data-bs-target="#folderTreeOffcanvas">
+            <i class="bi bi-folder"></i> <span>@Localizer["Folders"]</span>
+        </button>
     </div>
 
     @* Active Jobs Alert *@
@@ -60,24 +64,11 @@
                         <label asp-for="ToDate" class="form-label">@Localizer["ToDate"]</label>
                         <input asp-for="ToDate" class="form-control form-control-sm" type="date" />
                     </div>
-                    <div class="col-12 col-md-6 col-lg-2 mb-3">
+                    <div class="col-12 col-md-6 col-lg-3 mb-3">
                         <label asp-for="SelectedAccountId" class="form-label">@Localizer["Account"]</label>
                         <select asp-for="SelectedAccountId" asp-items="Model.AccountOptions" class="form-select form-select-sm" id="accountSelect"></select>
                     </div>
-                    <div class="col-12 col-md-6 col-lg-2 mb-3" id="folderFilterContainer" style="@(Model.SelectedAccountId.HasValue ? "" : "display: none;")">
-                        <label asp-for="SelectedFolder" class="form-label">@Localizer["Folder"]</label>
-                        <select asp-for="SelectedFolder" id="folderSelect" class="form-select form-select-sm">
-                            <option value="">@Localizer["AllFolders"]</option>
-                            @if (Model.SelectedAccountId.HasValue && Model.FolderOptions != null)
-                            {
-                                @foreach (var folder in Model.FolderOptions.Where(f => !string.IsNullOrEmpty(f.Value)))
-                                {
-                                    <option value="@folder.Value" selected="@folder.Selected">@folder.Text</option>
-                                }
-                            }
-                        </select>
-                    </div>
-                    <div class="col-12 col-md-6 @(Model.SelectedAccountId.HasValue ? "col-lg-1" : "col-lg-3") mb-3" id="directionFilterContainer">
+                    <div class="col-12 col-md-6 col-lg-2 mb-3">
                         <label asp-for="IsOutgoing" class="form-label">@Localizer["Direction"]</label>
                         <select asp-for="IsOutgoing" asp-items="Model.DirectionOptions" class="form-select form-select-sm"></select>
                     </div>
@@ -169,321 +160,277 @@
         </div>
     }
 
-    @if (Model.SearchResults != null && Model.SearchResults.Any())
-    {
-        <div class="card">
-            <div class="card-header bg-light">
-                <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-2">
-                    <span class="small"><strong>@Model.TotalResults</strong> @Localizer["EmailsFound", ""]</span>
-                    <div class="d-flex align-items-center gap-2">
-                        <span class="small">@Localizer["PageOf", Model.PageNumber, Model.TotalPages]</span>
-                        <select asp-for="PageSize" asp-items="Model.PageSizeOptions" class="form-select form-select-sm" id="pageSizeSelect" style="width: 80px;"></select>
-                    </div>
+    @* Folder Tree Panel - Desktop *@
+    <div class="row">
+        <div class="col-lg-2 d-none d-lg-block">
+            <div class="folder-tree-panel">
+                <div class="folder-tree-header">
+                    <i class="bi bi-folder me-2"></i>@Localizer["Folders"]
+                </div>
+                <div class="folder-tree-content" id="folderTreeContent">
+                    @if (Model.FolderTree != null && Model.FolderTree.Any())
+                    {
+                        @await Html.PartialAsync("_FolderTree", Model.FolderTree, new ViewDataDictionary(ViewData) { { "SelectedFolder", Model.SelectedFolder } })
+                    }
+                    else
+                    {
+                        <div class="folder-tree-empty">
+                            <i class="bi bi-folder2-open d-block mb-2" style="font-size: 1.5rem;"></i>
+                            <span class="text-muted">@Localizer["NoFolders"]</span>
+                        </div>
+                    }
                 </div>
             </div>
-            
-            @if (Model.ShowSelectionControls)
+        </div>
+        <div class="col-lg-10">
+            @if (Model.SearchResults != null && Model.SearchResults.Any())
             {
-                <div class="p-2 bg-light border-bottom">
-                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start gap-2">
-                        <div class="d-flex flex-wrap gap-2 align-items-center">
-                            <button type="button" id="selectAllBtn" class="btn btn-sm btn-outline-primary">@Localizer["SelectAll"]</button>
-                            <button type="button" id="deselectAllBtn" class="btn btn-sm btn-outline-secondary">@Localizer["DeselectAll"]</button>
-                            <span id="selectionCounter" class="badge bg-primary">0 selected</span>
-                            <span id="operationMode" class="badge bg-info" style="display:none;"></span>
-                        </div>
-                        <div id="selectionActions" style="display:none;">
-                            <button type="button" id="batchRestoreBtn" class="btn btn-sm btn-success me-2">
-                                <i class="bi bi-envelope-arrow-up"></i>
-                                <span class="d-inline">@Localizer["CopySelected"]</span>
-                            </button>
-                            <button type="button" id="exportSelectedBtn" class="btn btn-sm btn-primary me-2">
-                                <i class="bi bi-download"></i>
-                                <span class="d-inline">@Localizer["ExportSelected"]</span>
-                            </button>
-                            @if (User.IsInRole("Admin") || User.IsInRole("SelfManager"))
-                            {
-                                <button type="button" id="deleteSelectedBtn" class="btn btn-sm btn-danger">
-                                    <i class="bi bi-trash"></i>
-                                    <span class="d-inline">@Localizer["DeleteSelected"]</span>
-                                </button>
-                            }
+                <div class="card">
+                    <div class="card-header bg-light">
+                        <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-2">
+                            <span class="small"><strong>@Model.TotalResults</strong> @Localizer["EmailsFound", ""]</span>
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="small">@Localizer["PageOf", Model.PageNumber, Model.TotalPages]</span>
+                                <select asp-for="PageSize" asp-items="Model.PageSizeOptions" class="form-select form-select-sm" id="pageSizeSelect" style="width: 80px;"></select>
+                            </div>
                         </div>
                     </div>
-                </div>
-            }
-
-            <!-- Desktop Tabelle -->
-            <div class="card-body p-0 d-none d-lg-block">
-                <div class="table-responsive">
-                    <table class="table table-hover table-striped mb-0">
-                        <thead class="table-dark">
-                            <tr>
-                                @if (Model.ShowSelectionControls)
-                                {
-                                    <th style="width: 50px;">
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="checkbox" id="selectAllCheckbox">
-                                        </div>
-                                    </th>
-                                }
-                                <th style="cursor: pointer;" onclick="window.location.href='@Url.Action("Index", new {
-                                    SearchTerm = Model.SearchTerm,
-                                    FromDate = Model.FromDate?.ToString("yyyy-MM-dd"),
-                                    ToDate = Model.ToDate?.ToString("yyyy-MM-dd"),
-                                    SelectedAccountId = Model.SelectedAccountId,
-                                    SelectedFolder = Model.SelectedFolder,
-                                    IsOutgoing = Model.IsOutgoing,
-                                    PageNumber = 1,
-                                    PageSize = Model.PageSize,
-                                    ShowSelectionControls = Model.ShowSelectionControls,
-                                    SortBy = "Subject",
-                                    SortOrder = (Model.SortBy == "Subject" && Model.SortOrder == "asc") ? "desc" : "asc"
-                                })'">
-                                    @Localizer["Subject"]
-                                    @if (Model.SortBy == "Subject")
+                    
+                    @if (Model.ShowSelectionControls)
+                    {
+                        <div class="p-2 bg-light border-bottom">
+                            <div class="d-flex flex-column flex-md-row justify-content-between align-items-start gap-2">
+                                <div class="d-flex flex-wrap gap-2 align-items-center">
+                                    <button type="button" id="selectAllBtn" class="btn btn-sm btn-outline-primary">@Localizer["SelectAll"]</button>
+                                    <button type="button" id="deselectAllBtn" class="btn btn-sm btn-outline-secondary">@Localizer["DeselectAll"]</button>
+                                    <span id="selectionCounter" class="badge bg-primary">0 selected</span>
+                                    <span id="operationMode" class="badge bg-info" style="display:none;"></span>
+                                </div>
+                                <div id="selectionActions" style="display:none;">
+                                    <button type="button" id="batchRestoreBtn" class="btn btn-sm btn-success me-2">
+                                        <i class="bi bi-envelope-arrow-up"></i>
+                                        <span class="d-inline">@Localizer["CopySelected"]</span>
+                                    </button>
+                                    <button type="button" id="exportSelectedBtn" class="btn btn-sm btn-primary me-2">
+                                        <i class="bi bi-download"></i>
+                                        <span class="d-inline">@Localizer["ExportSelected"]</span>
+                                    </button>
+                                    @if (User.IsInRole("Admin") || User.IsInRole("SelfManager"))
                                     {
-                                        <i class="bi bi-@(Model.SortOrder == "asc" ? "arrow-up" : "arrow-down")"></i>
-                                    }
-                                </th>
-                                <th style="cursor: pointer;" onclick="window.location.href='@Url.Action("Index", new {
-                                    SearchTerm = Model.SearchTerm,
-                                    FromDate = Model.FromDate?.ToString("yyyy-MM-dd"),
-                                    ToDate = Model.ToDate?.ToString("yyyy-MM-dd"),
-                                    SelectedAccountId = Model.SelectedAccountId,
-                                    SelectedFolder = Model.SelectedFolder,
-                                    IsOutgoing = Model.IsOutgoing,
-                                    PageNumber = 1,
-                                    PageSize = Model.PageSize,
-                                    ShowSelectionControls = Model.ShowSelectionControls,
-                                    SortBy = "From",
-                                    SortOrder = (Model.SortBy == "From" && Model.SortOrder == "asc") ? "desc" : "asc"
-                                })'">
-                                    @Localizer["From"]
-                                    @if (Model.SortBy == "From")
-                                    {
-                                        <i class="bi bi-@(Model.SortOrder == "asc" ? "arrow-up" : "arrow-down")"></i>
-                                    }
-                                </th>
-                                <th style="cursor: pointer;" onclick="window.location.href='@Url.Action("Index", new {
-                                    SearchTerm = Model.SearchTerm,
-                                    FromDate = Model.FromDate?.ToString("yyyy-MM-dd"),
-                                    ToDate = Model.ToDate?.ToString("yyyy-MM-dd"),
-                                    SelectedAccountId = Model.SelectedAccountId,
-                                    SelectedFolder = Model.SelectedFolder,
-                                    IsOutgoing = Model.IsOutgoing,
-                                    PageNumber = 1,
-                                    PageSize = Model.PageSize,
-                                    ShowSelectionControls = Model.ShowSelectionControls,
-                                    SortBy = "To",
-                                    SortOrder = (Model.SortBy == "To" && Model.SortOrder == "asc") ? "desc" : "asc"
-                                })'">
-                                    @Localizer["To"]
-                                    @if (Model.SortBy == "To")
-                                    {
-                                        <i class="bi bi-@(Model.SortOrder == "asc" ? "arrow-up" : "arrow-down")"></i>
-                                    }
-                                </th>
-                                <th style="cursor: pointer;" onclick="window.location.href='@Url.Action("Index", new {
-                                    SearchTerm = Model.SearchTerm,
-                                    FromDate = Model.FromDate?.ToString("yyyy-MM-dd"),
-                                    ToDate = Model.ToDate?.ToString("yyyy-MM-dd"),
-                                    SelectedAccountId = Model.SelectedAccountId,
-                                    SelectedFolder = Model.SelectedFolder,
-                                    IsOutgoing = Model.IsOutgoing,
-                                    PageNumber = 1,
-                                    PageSize = Model.PageSize,
-                                    ShowSelectionControls = Model.ShowSelectionControls,
-                                    SortBy = "SentDate",
-                                    SortOrder = (Model.SortBy == "SentDate" && Model.SortOrder == "asc") ? "desc" : "asc"
-                                })'">
-                                    @Localizer["Date"]
-                                    @if (Model.SortBy == "SentDate")
-                                    {
-                                        <i class="bi bi-@(Model.SortOrder == "asc" ? "arrow-up" : "arrow-down")"></i>
-                                    }
-                                </th>
-                                <th>@Localizer["Account"]</th>
-                                <th>@Localizer["Attachments"]</th>
-                                <th></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var email in Model.SearchResults)
-                            {
-                                <tr>
-                                    @if (Model.ShowSelectionControls)
-                                    {
-                                        <td>
-                                            <div class="form-check">
-                                                <input class="form-check-input email-select-checkbox" type="checkbox"
-                                                       name="ids" value="@email.Id">
-                                            </div>
-                                        </td>
-                                    }
-                                    <td>
-                                        @if (email.IsOutgoing)
-                                        {
-                                            <span class="badge bg-info">@Localizer["Out"]</span>
-                                        }
-                                        else
-                                        {
-                                            <span class="badge bg-secondary">@Localizer["In"]</span>
-                                        }
-                                        @email.Subject
-                                    </td>
-                                    <td>@email.From</td>
-                                    <td>@email.To</td>
-                                    <td>@email.SentDate.ToString("g")</td>
-                                    <td>@email.MailAccount.Name</td>
-                                    <td>
-                                        @if (email.HasAttachments)
-                                        {
-                                            <i class="bi bi-paperclip text-warning"></i>
-                                        }
-                                    </td>
-                                    <td>
-                                        <a asp-action="Details" 
-                                        asp-route-id="@email.Id" 
-                                        asp-route-returnUrl="@Context.Request.GetDisplayUrl()" 
-                                        class="btn btn-sm btn-outline-primary">@Localizer["Details"]</a>
-                                    </td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- Mobile Cards - Diese werden auf Mobilgeräten UND Tablets angezeigt -->
-            <div class="d-lg-none p-3">
-                @foreach (var email in Model.SearchResults)
-                {
-                    <div class="card mb-3 email-card-mobile">
-                        @if (Model.ShowSelectionControls)
-                        {
-                            <div class="form-check">
-                                <input class="form-check-input email-select-checkbox" type="checkbox"
-                                       name="ids" value="@email.Id" id="email-mobile-@email.Id">
-                                <label class="form-check-label" for="email-mobile-@email.Id">
-                                    @Localizer["SelectThisEmail"]
-                                </label>
-                            </div>
-                        }
-                        <div class="card-body p-3">
-                            <div class="email-card-header">
-                                <div class="email-card-title">
-                                    @if (email.IsOutgoing)
-                                    {
-                                        <i class="bi bi-arrow-up-right text-primary me-1"></i>
-                                    }
-                                    else
-                                    {
-                                        <i class="bi bi-arrow-down-left text-success me-1"></i>
-                                    }
-                                    @email.Subject
-                                    @if (email.HasAttachments)
-                                    {
-                                        <i class="bi bi-paperclip text-warning ms-1"></i>
+                                        <button type="button" id="deleteSelectedBtn" class="btn btn-sm btn-danger">
+                                            <i class="bi bi-trash"></i>
+                                            <span class="d-inline">@Localizer["DeleteSelected"]</span>
+                                        </button>
                                     }
                                 </div>
                             </div>
-                            <div class="email-card-meta">
-                                <div><strong>@Localizer["From"]:</strong> @email.From</div>
-                                <div><strong>@Localizer["To"]:</strong> @(email.To.Length > 50 ? email.To.Substring(0, 50) + "..." : email.To)</div>
-                                <div><strong>@Localizer["Date"]:</strong> @email.SentDate.ToString("g")</div>
-                                <div><strong>@Localizer["Account"]:</strong> @email.MailAccount.Name</div>
-                            </div>
-                            <div class="email-card-actions">
-                                <a asp-action="Details" 
-                                asp-route-id="@email.Id" 
-                                asp-route-returnUrl="@Context.Request.GetDisplayUrl()" 
-                                class="btn btn-outline-primary btn-sm w-100">
-                                    <i class="bi bi-eye"></i> @Localizer["Details"]
-                                </a>
-                            </div>
+                        </div>
+                    }
+
+                    <!-- Desktop Table -->
+                    <div class="card-body p-0 d-none d-lg-block">
+                        <div class="table-responsive">
+                            <table class="table table-hover table-striped mb-0">
+                                <thead class="table-dark">
+                                    <tr>
+                                        @if (Model.ShowSelectionControls)
+                                        {
+                                            <th style="width: 50px;">
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" id="selectAllCheckbox">
+                                                </div>
+                                            </th>
+                                        }
+                                        <th style="cursor: pointer;" onclick="window.location.href='@Url.Action("Index", new { SearchTerm = Model.SearchTerm, FromDate = Model.FromDate?.ToString("yyyy-MM-dd"), ToDate = Model.ToDate?.ToString("yyyy-MM-dd"), SelectedAccountId = Model.SelectedAccountId, SelectedFolder = Model.SelectedFolder, IsOutgoing = Model.IsOutgoing, PageNumber = 1, PageSize = Model.PageSize, ShowSelectionControls = Model.ShowSelectionControls, SortBy = "Subject", SortOrder = (Model.SortBy == "Subject" && Model.SortOrder == "asc") ? "desc" : "asc" })'">
+                                            @Localizer["Subject"]
+                                            @if (Model.SortBy == "Subject")
+                                            {
+                                                <i class="bi bi-@(Model.SortOrder == "asc" ? "arrow-up" : "arrow-down")"></i>
+                                            }
+                                        </th>
+                                        <th style="cursor: pointer;" onclick="window.location.href='@Url.Action("Index", new { SearchTerm = Model.SearchTerm, FromDate = Model.FromDate?.ToString("yyyy-MM-dd"), ToDate = Model.ToDate?.ToString("yyyy-MM-dd"), SelectedAccountId = Model.SelectedAccountId, SelectedFolder = Model.SelectedFolder, IsOutgoing = Model.IsOutgoing, PageNumber = 1, PageSize = Model.PageSize, ShowSelectionControls = Model.ShowSelectionControls, SortBy = "From", SortOrder = (Model.SortBy == "From" && Model.SortOrder == "asc") ? "desc" : "asc" })'">
+                                            @Localizer["From"]
+                                            @if (Model.SortBy == "From")
+                                            {
+                                                <i class="bi bi-@(Model.SortOrder == "asc" ? "arrow-up" : "arrow-down")"></i>
+                                            }
+                                        </th>
+                                        <th style="cursor: pointer;" onclick="window.location.href='@Url.Action("Index", new { SearchTerm = Model.SearchTerm, FromDate = Model.FromDate?.ToString("yyyy-MM-dd"), ToDate = Model.ToDate?.ToString("yyyy-MM-dd"), SelectedAccountId = Model.SelectedAccountId, SelectedFolder = Model.SelectedFolder, IsOutgoing = Model.IsOutgoing, PageNumber = 1, PageSize = Model.PageSize, ShowSelectionControls = Model.ShowSelectionControls, SortBy = "To", SortOrder = (Model.SortBy == "To" && Model.SortOrder == "asc") ? "desc" : "asc" })'">
+                                            @Localizer["To"]
+                                            @if (Model.SortBy == "To")
+                                            {
+                                                <i class="bi bi-@(Model.SortOrder == "asc" ? "arrow-up" : "arrow-down")"></i>
+                                            }
+                                        </th>
+                                        <th style="cursor: pointer;" onclick="window.location.href='@Url.Action("Index", new { SearchTerm = Model.SearchTerm, FromDate = Model.FromDate?.ToString("yyyy-MM-dd"), ToDate = Model.ToDate?.ToString("yyyy-MM-dd"), SelectedAccountId = Model.SelectedAccountId, SelectedFolder = Model.SelectedFolder, IsOutgoing = Model.IsOutgoing, PageNumber = 1, PageSize = Model.PageSize, ShowSelectionControls = Model.ShowSelectionControls, SortBy = "SentDate", SortOrder = (Model.SortBy == "SentDate" && Model.SortOrder == "asc") ? "desc" : "asc" })'">
+                                            @Localizer["Date"]
+                                            @if (Model.SortBy == "SentDate")
+                                            {
+                                                <i class="bi bi-@(Model.SortOrder == "asc" ? "arrow-up" : "arrow-down")"></i>
+                                            }
+                                        </th>
+                                        <th>@Localizer["Account"]</th>
+                                        <th>@Localizer["Status"]</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var email in Model.SearchResults)
+                                    {
+                                        <tr>
+                                            @if (Model.ShowSelectionControls)
+                                            {
+                                                <td>
+                                                    <div class="form-check">
+                                                        <input class="form-check-input email-select-checkbox" type="checkbox" name="ids" value="@email.Id">
+                                                    </div>
+                                                </td>
+                                            }
+                                            <td>
+                                                @if (email.IsOutgoing)
+                                                {
+                                                    <span class="badge bg-info">@Localizer["Out"]</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-secondary">@Localizer["In"]</span>
+                                                }
+                                                @email.Subject
+                                            </td>
+                                            <td>@email.From</td>
+                                            <td>@email.To</td>
+                                            <td>@email.SentDate.ToString("g")</td>
+                                            <td>@email.MailAccount.Name</td>
+                                            <td>
+                                                @if (email.HasAttachments)
+                                                {
+                                                    <i class="bi bi-paperclip text-warning" title="@Localizer["HasAttachments"]"></i>
+                                                }
+                                            </td>
+                                            <td>
+                                                <a asp-action="Details" asp-route-id="@email.Id" asp-route-returnUrl="@Context.Request.GetDisplayUrl()" class="btn btn-sm btn-outline-primary">@Localizer["Details"]</a>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
                         </div>
                     </div>
-                }
-            </div>
 
-            <!-- Pagination -->
-            <div class="card-footer">
-                <nav>
-                    <ul class="pagination pagination-sm justify-content-center mb-0">
-                        @if (Model.PageNumber > 1)
+                    <!-- Mobile Cards -->
+                    <div class="d-lg-none p-3">
+                        @foreach (var email in Model.SearchResults)
                         {
-                            <li class="page-item">
-                                <a class="page-link" href="@Url.Action("Index", new {
-                                    SearchTerm = Model.SearchTerm,
-                                    FromDate = Model.FromDate?.ToString("yyyy-MM-dd"),
-                                    ToDate = Model.ToDate?.ToString("yyyy-MM-dd"),
-                                    SelectedAccountId = Model.SelectedAccountId,
-                                    SelectedFolder = Model.SelectedFolder,
-                                    IsOutgoing = Model.IsOutgoing,
-                                    PageNumber = Model.PageNumber - 1,
-                                    PageSize = Model.PageSize,
-                                    ShowSelectionControls = Model.ShowSelectionControls,
-                                    SortBy = Model.SortBy,
-                                    SortOrder = Model.SortOrder
-                                })">@Localizer["Previous"]</a>
-                            </li>
+                            <div class="card mb-3 email-card-mobile">
+                                @if (Model.ShowSelectionControls)
+                                {
+                                    <div class="form-check">
+                                        <input class="form-check-input email-select-checkbox" type="checkbox" name="ids" value="@email.Id" id="email-mobile-@email.Id">
+                                        <label class="form-check-label" for="email-mobile-@email.Id">@Localizer["SelectThisEmail"]</label>
+                                    </div>
+                                }
+                                <div class="card-body p-3">
+                                    <div class="email-card-header">
+                                        <div class="email-card-title">
+                                            @if (email.IsOutgoing)
+                                            {
+                                                <i class="bi bi-arrow-up-right text-primary me-1"></i>
+                                            }
+                                            else
+                                            {
+                                                <i class="bi bi-arrow-down-left text-success me-1"></i>
+                                            }
+                                            @email.Subject
+                                            @if (email.HasAttachments)
+                                            {
+                                                <i class="bi bi-paperclip text-warning ms-1" title="@Localizer["HasAttachments"]"></i>
+                                            }
+                                        </div>
+                                    </div>
+                                    <div class="email-card-meta">
+                                        <div><strong>@Localizer["From"]:</strong> @email.From</div>
+                                        <div><strong>@Localizer["To"]:</strong> @(email.To.Length > 50 ? email.To.Substring(0, 50) + "..." : email.To)</div>
+                                        <div><strong>@Localizer["Date"]:</strong> @email.SentDate.ToString("g")</div>
+                                        <div><strong>@Localizer["Account"]:</strong> @email.MailAccount.Name</div>
+                                    </div>
+                                    <div class="email-card-actions">
+                                        <a asp-action="Details" asp-route-id="@email.Id" asp-route-returnUrl="@Context.Request.GetDisplayUrl()" class="btn btn-outline-primary btn-sm w-100">
+                                            <i class="bi bi-eye"></i> @Localizer["Details"]
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
                         }
-                        @{
-                            var startPage = Math.Max(1, Model.PageNumber - 1);
-                            var endPage = Math.Min(Model.TotalPages, Model.PageNumber + 1);
-                        }
-                        @for (int i = startPage; i <= endPage; i++)
-                        {
-                            <li class="page-item @(i == Model.PageNumber ? "active" : "")">
-                                <a class="page-link" href="@Url.Action("Index", new {
-                                    SearchTerm = Model.SearchTerm,
-                                    FromDate = Model.FromDate?.ToString("yyyy-MM-dd"),
-                                    ToDate = Model.ToDate?.ToString("yyyy-MM-dd"),
-                                    SelectedAccountId = Model.SelectedAccountId,
-                                    SelectedFolder = Model.SelectedFolder,
-                                    IsOutgoing = Model.IsOutgoing,
-                                    PageNumber = i,
-                                    PageSize = Model.PageSize,
-                                    ShowSelectionControls = Model.ShowSelectionControls,
-                                    SortBy = Model.SortBy,
-                                    SortOrder = Model.SortOrder
-                                })">@i</a>
-                            </li>
-                        }
-                        @if (Model.PageNumber < Model.TotalPages)
-                        {
-                            <li class="page-item">
-                                <a class="page-link" href="@Url.Action("Index", new {
-                                    SearchTerm = Model.SearchTerm,
-                                    FromDate = Model.FromDate?.ToString("yyyy-MM-dd"),
-                                    ToDate = Model.ToDate?.ToString("yyyy-MM-dd"),
-                                    SelectedAccountId = Model.SelectedAccountId,
-                                    SelectedFolder = Model.SelectedFolder,
-                                    IsOutgoing = Model.IsOutgoing,
-                                    PageNumber = Model.PageNumber + 1,
-                                    PageSize = Model.PageSize,
-                                    ShowSelectionControls = Model.ShowSelectionControls,
-                                    SortBy = Model.SortBy,
-                                    SortOrder = Model.SortOrder
-                                })">@Localizer["Next"]</a>
-                            </li>
-                        }
-                    </ul>
-                </nav>
-            </div>
+                    </div>
+
+                    <!-- Pagination -->
+                    <div class="card-footer">
+                        <nav>
+                            <ul class="pagination pagination-sm justify-content-center mb-0">
+                                @if (Model.PageNumber > 1)
+                                {
+                                    <li class="page-item">
+                                        <a class="page-link" href="@Url.Action("Index", new { SearchTerm = Model.SearchTerm, FromDate = Model.FromDate?.ToString("yyyy-MM-dd"), ToDate = Model.ToDate?.ToString("yyyy-MM-dd"), SelectedAccountId = Model.SelectedAccountId, SelectedFolder = Model.SelectedFolder, IsOutgoing = Model.IsOutgoing, PageNumber = Model.PageNumber - 1, PageSize = Model.PageSize, ShowSelectionControls = Model.ShowSelectionControls, SortBy = Model.SortBy, SortOrder = Model.SortOrder })">@Localizer["Previous"]</a>
+                                    </li>
+                                }
+                                @{
+                                    var startPage = Math.Max(1, Model.PageNumber - 1);
+                                    var endPage = Math.Min(Model.TotalPages, Model.PageNumber + 1);
+                                }
+                                @for (int i = startPage; i <= endPage; i++)
+                                {
+                                    <li class="page-item @(i == Model.PageNumber ? "active" : "")">
+                                        <a class="page-link" href="@Url.Action("Index", new { SearchTerm = Model.SearchTerm, FromDate = Model.FromDate?.ToString("yyyy-MM-dd"), ToDate = Model.ToDate?.ToString("yyyy-MM-dd"), SelectedAccountId = Model.SelectedAccountId, SelectedFolder = Model.SelectedFolder, IsOutgoing = Model.IsOutgoing, PageNumber = i, PageSize = Model.PageSize, ShowSelectionControls = Model.ShowSelectionControls, SortBy = Model.SortBy, SortOrder = Model.SortOrder })">@i</a>
+                                    </li>
+                                }
+                                @if (Model.PageNumber < Model.TotalPages)
+                                {
+                                    <li class="page-item">
+                                        <a class="page-link" href="@Url.Action("Index", new { SearchTerm = Model.SearchTerm, FromDate = Model.FromDate?.ToString("yyyy-MM-dd"), ToDate = Model.ToDate?.ToString("yyyy-MM-dd"), SelectedAccountId = Model.SelectedAccountId, SelectedFolder = Model.SelectedFolder, IsOutgoing = Model.IsOutgoing, PageNumber = Model.PageNumber + 1, PageSize = Model.PageSize, ShowSelectionControls = Model.ShowSelectionControls, SortBy = Model.SortBy, SortOrder = Model.SortOrder })">@Localizer["Next"]</a>
+                                    </li>
+                                }
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            }
+            else if (Model.SearchResults != null)
+            {
+                <div class="text-center py-5">
+                    <div class="mb-3">
+                        <i class="bi bi-search display-1 text-muted"></i>
+                    </div>
+                    <h5 class="text-muted">@Localizer["NoEmailsFoundTitle"]</h5>
+                    <p class="text-muted">@Localizer["NoEmailsFoundText"]</p>
+                </div>
+            }
         </div>
-    }
-    else if (Model.SearchResults != null)
-    {
-        <div class="text-center py-5">
-            <div class="mb-3">
-                <i class="bi bi-search display-1 text-muted"></i>
-            </div>
-            <h5 class="text-muted">@Localizer["NoEmailsFoundTitle"]</h5>
-            <p class="text-muted">@Localizer["NoEmailsFoundText"]</p>
+    </div>
+</div>
+
+<!-- Mobile Folder Tree Offcanvas -->
+<div class="offcanvas offcanvas-start" tabindex="-1" id="folderTreeOffcanvas" aria-labelledby="folderTreeOffcanvasLabel">
+    <div class="offcanvas-header">
+        <h5 class="offcanvas-title" id="folderTreeOffcanvasLabel">
+            <i class="bi bi-folder me-2"></i>@Localizer["Folders"]
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+    <div class="offcanvas-body p-0">
+        <div class="folder-tree-content" id="folderTreeContentMobile">
+            @if (Model.FolderTree != null && Model.FolderTree.Any())
+            {
+                @await Html.PartialAsync("_FolderTree", Model.FolderTree, new ViewDataDictionary(ViewData) { { "SelectedFolder", Model.SelectedFolder } })
+            }
+            else
+            {
+                <div class="folder-tree-empty">
+                    <i class="bi bi-folder2-open d-block mb-2" style="font-size: 1.5rem;"></i>
+                    <span class="text-muted">@Localizer["NoFolders"]</span>
+                </div>
+            }
         </div>
-    }
+    </div>
 </div>
 
 <!-- Batch Restore Confirmation Modal -->
@@ -518,16 +465,13 @@
                     <h6>@Localizer["ExportFormatSelection"]</h6>
                     <p class="text-muted small">@Localizer["ExportFormatSelectionInfo"]</p>
                 </div>
-                
                 <div class="row">
                     <div class="col-md-6 mb-3">
                         <div class="card h-100">
                             <div class="card-body">
                                 <div class="form-check">
                                     <input class="form-check-input" type="radio" name="exportFormat" id="formatEML" value="EML" checked>
-                                    <label class="form-check-label" for="formatEML">
-                                        <strong>@Localizer["EMLFormat"]</strong>
-                                    </label>
+                                    <label class="form-check-label" for="formatEML"><strong>@Localizer["EMLFormat"]</strong></label>
                                 </div>
                                 <small class="text-muted">@Localizer["EMLFormatDescription"]</small>
                             </div>
@@ -538,21 +482,15 @@
                             <div class="card-body">
                                 <div class="form-check">
                                     <input class="form-check-input" type="radio" name="exportFormat" id="formatMBox" value="MBox">
-                                    <label class="form-check-label" for="formatMBox">
-                                        <strong>@Localizer["MBoxFormat"]</strong>
-                                    </label>
+                                    <label class="form-check-label" for="formatMBox"><strong>@Localizer["MBoxFormat"]</strong></label>
                                 </div>
                                 <small class="text-muted">@Localizer["MBoxFormatDescription"]</small>
                             </div>
                         </div>
                     </div>
                 </div>
-                
-                <div class="alert alert-info alert-persistent">
-                    <small>
-                        <i class="bi bi-info-circle me-1"></i>
-                        @Localizer["ExportSelectedInfo"]
-                    </small>
+                <div class="alert alert-info">
+                    <small><i class="bi bi-info-circle me-1"></i>@Localizer["ExportSelectedInfo"]</small>
                 </div>
             </div>
             <div class="modal-footer">
@@ -564,618 +502,369 @@
 </div>
 
 @section Scripts {
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log("Email selection script initialized");
-            const timezoneInput = document.getElementById('userTimezone');
-            if (timezoneInput) {
-                timezoneInput.value = Intl.DateTimeFormat().resolvedOptions().timeZone;
-            }
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log("Email archive page initialized");
+        const timezoneInput = document.getElementById('userTimezone');
+        if (timezoneInput) {
+            timezoneInput.value = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        }
 
-            // Auto-submit form when page size changes
-            const pageSizeSelect = document.getElementById('pageSizeSelect');
-            const pageSizeHidden = document.getElementById('pageSizeHidden');
-            if (pageSizeSelect && pageSizeHidden) {
-                pageSizeSelect.addEventListener('change', function() {
-                    console.log("Page size changed to:", this.value);
-                    // Sync hidden field
-                    pageSizeHidden.value = this.value;
-                    searchForm.submit();
-                });
-            }
+        // Auto-submit form when page size changes
+        const pageSizeSelect = document.getElementById('pageSizeSelect');
+        const pageSizeHidden = document.getElementById('pageSizeHidden');
+        if (pageSizeSelect && pageSizeHidden) {
+            pageSizeSelect.addEventListener('change', function() {
+                pageSizeHidden.value = this.value;
+                searchForm.submit();
+            });
+        }
 
-            // Load folders dynamically when account selection changes
-            const accountSelect = document.getElementById('accountSelect');
-            const folderContainer = document.getElementById('folderFilterContainer');
-            const folderSelect = document.getElementById('folderSelect');
-            const directionContainer = document.getElementById('directionFilterContainer');
-            
-            if (accountSelect && folderContainer && folderSelect && directionContainer) {
-                // Initialize on page load
-                const currentAccountId = accountSelect.value;
-                if (currentAccountId && currentAccountId !== '') {
-                    // Account is already selected, ensure proper classes
-                    directionContainer.className = 'col-12 col-md-6 col-lg-1 mb-3';
+        // Account selection change handler - now updates folder tree via AJAX
+        const accountSelect = document.getElementById('accountSelect');
+        
+        if (accountSelect) {
+            accountSelect.addEventListener('change', function() {
+                const accountId = this.value;
+                // Reload page with new account selection to update folder tree
+                const url = new URL(window.location.href);
+                if (accountId && accountId !== '') {
+                    url.searchParams.set('SelectedAccountId', accountId);
                 } else {
-                    // No account selected, make direction field wider
-                    directionContainer.className = 'col-12 col-md-6 col-lg-3 mb-3';
+                    url.searchParams.delete('SelectedAccountId');
                 }
-                
-                accountSelect.addEventListener('change', function() {
-                    const accountId = this.value;
-                    console.log("Account selection changed to:", accountId);
-                    
-                    if (!accountId || accountId === '') {
-                        // Hide folder dropdown if no account selected
-                        folderContainer.style.display = 'none';
-                        folderSelect.innerHTML = '<option value="">@Localizer["AllFolders"]</option>';
-                        
-                        // Make direction field wider
-                        directionContainer.className = 'col-12 col-md-6 col-lg-3 mb-3';
-                    } else {
-                        // Load folders for selected account via AJAX
-                        fetch('@Url.Action("GetFolders", "Emails")?accountId=' + accountId)
-                            .then(response => response.json())
-                            .then(folders => {
-                                console.log("Loaded folders:", folders);
-                                
-                                // Clear existing options
-                                folderSelect.innerHTML = '<option value="">@Localizer["AllFolders"]</option>';
-                                
-                                // Add folder options
-                                folders.forEach(function(folder) {
-                                    const option = document.createElement('option');
-                                    option.value = folder;
-                                    option.textContent = folder;
-                                    folderSelect.appendChild(option);
-                                });
-                                
-                                // Show folder container and make direction field narrower
-                                folderContainer.style.display = '';
-                                directionContainer.className = 'col-12 col-md-6 col-lg-1 mb-3';
-                            })
-                            .catch(error => {
-                                console.error('Error loading folders:', error);
-                                // Show container anyway with just "All Folders"
-                                folderSelect.innerHTML = '<option value="">@Localizer["AllFolders"]</option>';
-                                folderContainer.style.display = '';
-                                directionContainer.className = 'col-12 col-md-6 col-lg-1 mb-3';
-                            });
+                url.searchParams.delete('SelectedFolder');
+                url.searchParams.set('PageNumber', '1');
+                window.location.href = url.toString();
+            });
+        }
+
+        // Folder tree click handler
+        function initializeFolderTree() {
+            document.querySelectorAll('.folder-tree-item').forEach(function(item) {
+                item.addEventListener('click', function(e) {
+                    if (e.target.closest('.folder-tree-toggle')) {
+                        return; // Let toggle handle expand/collapse
+                    }
+                    const folder = this.dataset.folder;
+                    if (folder) {
+                        const url = new URL(window.location.href);
+                        url.searchParams.set('SelectedFolder', folder);
+                        url.searchParams.set('PageNumber', '1');
+                        window.location.href = url.toString();
                     }
                 });
-            }
-
-            // Configuration from ViewBag
-            const asyncThreshold = @ViewBag.AsyncThreshold;
-            const maxAsyncEmails = @ViewBag.MaxAsyncEmails;
-            const maxSelectableEmails = @(ViewBag.MaxSelectableEmails ?? 250);
+            });
             
-            // Cross-page selection storage key
-            const STORAGE_KEY = 'emailSelection';
+            // Toggle expand/collapse
+            document.querySelectorAll('.folder-tree-toggle').forEach(function(toggle) {
+                toggle.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const parent = this.closest('.folder-tree-item');
+                    const children = parent.querySelector('.folder-tree-children');
+                    if (children) {
+                        children.style.display = children.style.display === 'none' ? '' : 'none';
+                        this.classList.toggle('expanded');
+                    }
+                });
+            });
+        }
+        initializeFolderTree();
+
+        // Selection mode and batch operations
+        const asyncThreshold = @ViewBag.AsyncThreshold;
+        const maxAsyncEmails = @ViewBag.MaxAsyncEmails;
+        const maxSelectableEmails = @(ViewBag.MaxSelectableEmails ?? 250);
+        const STORAGE_KEY = 'emailSelection';
+        
+        const toggleSelectionMode = document.getElementById('toggleSelectionMode');
+        const searchForm = document.getElementById('searchForm');
+        const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+        const selectAllBtn = document.getElementById('selectAllBtn');
+        const deselectAllBtn = document.getElementById('deselectAllBtn');
+        const selectionCounter = document.getElementById('selectionCounter');
+        const selectionActions = document.getElementById('selectionActions');
+        const batchRestoreBtn = document.getElementById('batchRestoreBtn');
+        const operationMode = document.getElementById('operationMode');
+
+        function getStoredSelections() {
+            try {
+                const stored = localStorage.getItem(STORAGE_KEY);
+                return stored ? JSON.parse(stored) : [];
+            } catch (e) { return []; }
+        }
+
+        function saveStoredSelections(selections) {
+            try { localStorage.setItem(STORAGE_KEY, JSON.stringify(selections)); } catch (e) {}
+        }
+
+        function addToStoredSelections(emailIds) {
+            const stored = getStoredSelections();
+            const updated = [...new Set([...stored, ...emailIds])];
+            if (updated.length > maxSelectableEmails) {
+                alert('@Localizer["MaxSelectionsReached"]'.replace('{0}', maxSelectableEmails));
+                return false;
+            }
+            saveStoredSelections(updated);
+            return true;
+        }
+
+        function removeFromStoredSelections(emailIds) {
+            const stored = getStoredSelections();
+            saveStoredSelections(stored.filter(id => !emailIds.includes(id)));
+        }
+
+        function clearStoredSelections() { localStorage.removeItem(STORAGE_KEY); }
+        function getTotalSelectedCount() { return getStoredSelections().length; }
+
+        function updateSelectionCounter() {
+            const totalSelected = getTotalSelectedCount();
+            const emailCheckboxes = document.querySelectorAll('.email-select-checkbox');
+            const checkedBoxes = document.querySelectorAll('.email-select-checkbox:checked');
             
-            // Get elements
-            const toggleSelectionMode = document.getElementById('toggleSelectionMode');
-            const searchForm = document.getElementById('searchForm');
-            const selectAllCheckbox = document.getElementById('selectAllCheckbox');
-            const selectAllBtn = document.getElementById('selectAllBtn');
-            const deselectAllBtn = document.getElementById('deselectAllBtn');
-            const selectionCounter = document.getElementById('selectionCounter');
-            const selectionActions = document.getElementById('selectionActions');
-            const batchRestoreBtn = document.getElementById('batchRestoreBtn');
-            const operationMode = document.getElementById('operationMode');
-
-            console.log("Selection controls visible: " + @(Model.ShowSelectionControls ? "true" : "false"));
-            console.log("Max selectable emails: " + maxSelectableEmails);
-
-            // Cross-page selection management
-            function getStoredSelections() {
-                try {
-                    const stored = localStorage.getItem(STORAGE_KEY);
-                    return stored ? JSON.parse(stored) : [];
-                } catch (e) {
-                    console.warn('Error reading stored selections:', e);
-                    return [];
+            if (selectionCounter) {
+                if (totalSelected >= maxSelectableEmails) {
+                    selectionCounter.innerHTML = '@Localizer["MaxSelectionsReached"]'.replace('{0}', maxSelectableEmails);
+                    selectionCounter.className = 'badge bg-warning';
+                } else {
+                    selectionCounter.innerHTML = '@Localizer["SelectedOf"]'.replace('{0}', totalSelected).replace('{1}', maxSelectableEmails);
+                    selectionCounter.className = 'badge bg-primary';
                 }
             }
 
-            function saveStoredSelections(selections) {
-                try {
-                    localStorage.setItem(STORAGE_KEY, JSON.stringify(selections));
-                } catch (e) {
-                    console.warn('Error saving selections:', e);
+            if (operationMode && totalSelected > 0) {
+                operationMode.style.display = 'inline';
+                if (totalSelected <= asyncThreshold) {
+                    operationMode.textContent = '@Localizer["DirectProcessingMode"]';
+                    operationMode.className = 'badge bg-success';
+                } else if (totalSelected <= maxAsyncEmails) {
+                    operationMode.textContent = '@Localizer["BackgroundJobMode"]';
+                    operationMode.className = 'badge bg-primary';
+                } else {
+                    operationMode.textContent = '@Localizer["TooManySelected"]';
+                    operationMode.className = 'badge bg-danger';
+                }
+            } else if (operationMode) {
+                operationMode.style.display = 'none';
+            }
+
+            if (selectionActions) {
+                selectionActions.style.display = totalSelected > 0 ? 'block' : 'none';
+                if (batchRestoreBtn && totalSelected > 0) {
+                    if (totalSelected > maxAsyncEmails) {
+                        batchRestoreBtn.disabled = true;
+                        batchRestoreBtn.innerHTML = '<i class="bi bi-exclamation-triangle"></i> <span class="d-inline">@Localizer["TooManySelected"]</span>';
+                        batchRestoreBtn.className = 'btn btn-sm btn-danger me-2';
+                    } else {
+                        batchRestoreBtn.disabled = false;
+                        batchRestoreBtn.innerHTML = '<i class="bi bi-envelope-arrow-up"></i> <span class="d-inline">@Localizer["CopySelected"]</span>';
+                        batchRestoreBtn.className = 'btn btn-sm btn-success me-2';
+                    }
                 }
             }
 
-            function addToStoredSelections(emailIds) {
-                const stored = getStoredSelections();
-                const updated = [...new Set([...stored, ...emailIds])]; // Remove duplicates
-                
-                // Enforce maximum limit
-                if (updated.length > maxSelectableEmails) {
-                    const message = '@Localizer["MaxSelectionsReached"]'.replace('{0}', maxSelectableEmails);
-                    alert(message);
-                    return false;
+            if (selectAllCheckbox && emailCheckboxes.length > 0) {
+                selectAllCheckbox.checked = checkedBoxes.length === emailCheckboxes.length;
+                selectAllCheckbox.indeterminate = checkedBoxes.length > 0 && checkedBoxes.length < emailCheckboxes.length;
+            }
+        }
+
+        function initializeSelectionHandlers() {
+            const emailCheckboxes = document.querySelectorAll('.email-select-checkbox');
+            const storedSelections = getStoredSelections();
+            emailCheckboxes.forEach(function(checkbox) {
+                if (storedSelections.includes(checkbox.value)) checkbox.checked = true;
+                checkbox.addEventListener('change', function() {
+                    if (this.checked) {
+                        if (!addToStoredSelections([this.value])) this.checked = false;
+                    } else {
+                        removeFromStoredSelections([this.value]);
+                    }
+                    updateSelectionCounter();
+                });
+            });
+            updateSelectionCounter();
+        }
+
+        if (toggleSelectionMode) {
+            toggleSelectionMode.addEventListener('change', function() {
+                clearStoredSelections();
+                searchForm.submit();
+            });
+        }
+
+        if (selectAllCheckbox) {
+            selectAllCheckbox.addEventListener('change', function() {
+                const emailCheckboxes = document.querySelectorAll('.email-select-checkbox');
+                const currentPageIds = Array.from(emailCheckboxes).map(cb => cb.value);
+                if (this.checked) {
+                    if (addToStoredSelections(currentPageIds)) {
+                        emailCheckboxes.forEach(cb => cb.checked = true);
+                    } else { this.checked = false; }
+                } else {
+                    removeFromStoredSelections(currentPageIds);
+                    emailCheckboxes.forEach(cb => cb.checked = false);
                 }
-                
-                saveStoredSelections(updated);
-                return true;
-            }
+                updateSelectionCounter();
+            });
+        }
 
-            function removeFromStoredSelections(emailIds) {
-                const stored = getStoredSelections();
-                const updated = stored.filter(id => !emailIds.includes(id));
-                saveStoredSelections(updated);
-            }
-
-            function clearStoredSelections() {
-                localStorage.removeItem(STORAGE_KEY);
-            }
-
-            function getTotalSelectedCount() {
-                return getStoredSelections().length;
-            }
-
-            // Update button texts based on selection state
-            function updateButtonTexts() {
+        if (selectAllBtn) {
+            selectAllBtn.addEventListener('click', function() {
                 const emailCheckboxes = document.querySelectorAll('.email-select-checkbox');
                 const currentPageIds = Array.from(emailCheckboxes).map(cb => cb.value);
                 const storedSelections = getStoredSelections();
                 const currentPageSelected = currentPageIds.filter(id => storedSelections.includes(id));
-                
-                if (selectAllBtn) {
-                    if (currentPageSelected.length === currentPageIds.length) {
-                        selectAllBtn.innerHTML = '@Html.Raw(Localizer["DeselectAllOnPage"].Value)';
-                        selectAllBtn.className = 'btn btn-sm btn-outline-secondary';
-                    } else {
-                        selectAllBtn.innerHTML = '@Html.Raw(Localizer["SelectAllOnPage"].Value)';
-                        selectAllBtn.className = 'btn btn-sm btn-outline-primary';
+                if (currentPageSelected.length === currentPageIds.length) {
+                    removeFromStoredSelections(currentPageIds);
+                    emailCheckboxes.forEach(cb => cb.checked = false);
+                } else {
+                    if (addToStoredSelections(currentPageIds)) {
+                        emailCheckboxes.forEach(cb => cb.checked = true);
                     }
                 }
-            }
-
-            // Toggle selection mode using form submit
-            if (toggleSelectionMode) {
-                toggleSelectionMode.addEventListener('change', function() {
-                    console.log("Selection mode toggled: " + this.checked);
-                    clearStoredSelections();
-                    searchForm.submit();
-                });
-            }
-
-            // Update selection counter and mode indicator
-            function updateSelectionCounter() {
-                const totalSelected = getTotalSelectedCount();
-                const emailCheckboxes = document.querySelectorAll('.email-select-checkbox');
-                const checkedBoxes = document.querySelectorAll('.email-select-checkbox:checked');
-                
-                console.log("Total selected across all pages: " + totalSelected);
-                console.log("Selected on current page: " + checkedBoxes.length);
-                
-                if (selectionCounter) {
-                    if (totalSelected >= maxSelectableEmails) {
-                        selectionCounter.innerHTML = '@Html.Raw(Localizer["MaxSelectionsReached"].Value)'.replace('{0}', maxSelectableEmails);
-                        selectionCounter.className = 'badge bg-warning';
-                    } else {
-                        selectionCounter.innerHTML = '@Html.Raw(Localizer["SelectedOf"].Value)'.replace('{0}', totalSelected).replace('{1}', maxSelectableEmails);
-                        selectionCounter.className = 'badge bg-primary';
-                    }
-                }
-
-                // Update operation mode indicator
-                if (operationMode && totalSelected > 0) {
-                    operationMode.style.display = 'inline';
-                    if (totalSelected <= asyncThreshold) {
-                        operationMode.textContent = '@Localizer["DirectProcessingMode"]';
-                        operationMode.className = 'badge bg-success';
-                    } else if (totalSelected <= maxAsyncEmails) {
-                        operationMode.textContent = '@Localizer["BackgroundJobMode"]';
-                        operationMode.className = 'badge bg-primary';
-                    } else {
-                        operationMode.textContent = '@Localizer["TooManySelected"]';
-                        operationMode.className = 'badge bg-danger';
-                    }
-                } else if (operationMode) {
-                    operationMode.style.display = 'none';
-                }
-
-                // Show/hide batch actions
-                if (selectionActions) {
-                    if (totalSelected > 0) {
-                        selectionActions.style.display = 'block';
-                        
-                        // Update button state based on count
-                        if (batchRestoreBtn) {
-                            if (totalSelected > maxAsyncEmails) {
-                                batchRestoreBtn.disabled = true;
-                                batchRestoreBtn.innerHTML = '<i class="bi bi-exclamation-triangle"></i> <span class="d-inline">@Localizer["TooManySelected"]</span>';
-                                batchRestoreBtn.className = 'btn btn-sm btn-danger me-2';
-                            } else {
-                                batchRestoreBtn.disabled = false;
-                                batchRestoreBtn.innerHTML = '<i class="bi bi-envelope-arrow-up"></i> <span class="d-inline">@Localizer["CopySelected"]</span>';
-                                batchRestoreBtn.className = 'btn btn-sm btn-success me-2';
-                            }
-                        }
-                    } else {
-                        selectionActions.style.display = 'none';
-                    }
-                }
-
-                // Update select all checkbox state on current page
-                if (selectAllCheckbox && emailCheckboxes.length > 0) {
-                    selectAllCheckbox.checked = checkedBoxes.length === emailCheckboxes.length;
-                    selectAllCheckbox.indeterminate = checkedBoxes.length > 0 && checkedBoxes.length < emailCheckboxes.length;
-                }
-
-                updateButtonTexts();
-            }
-
-            // Initialize counter and attach events
-            function initializeSelectionHandlers() {
-                const emailCheckboxes = document.querySelectorAll('.email-select-checkbox');
-                const storedSelections = getStoredSelections();
-                
-                console.log("Found email checkboxes: " + emailCheckboxes.length);
-                console.log("Stored selections: ", storedSelections);
-
-                // Restore selections for current page
-                emailCheckboxes.forEach(function(checkbox) {
-                    if (storedSelections.includes(checkbox.value)) {
-                        checkbox.checked = true;
-                    }
-                    
-                    // Individual checkbox change
-                    checkbox.addEventListener('change', function() {
-                        const isChecked = this.checked;
-                        const emailId = this.value;
-                        
-                        if (isChecked) {
-                            if (!addToStoredSelections([emailId])) {
-                                // Maximum reached, uncheck the box
-                                this.checked = false;
-                                return;
-                            }
-                        } else {
-                            removeFromStoredSelections([emailId]);
-                        }
-                        
-                        updateSelectionCounter();
-                    });
-                });
-
                 updateSelectionCounter();
-            }
+            });
+        }
 
-            // Select/deselect all checkboxes on current page
-            if (selectAllCheckbox) {
-                selectAllCheckbox.addEventListener('change', function() {
-                    const isChecked = this.checked;
-                    const emailCheckboxes = document.querySelectorAll('.email-select-checkbox');
-                    const currentPageIds = Array.from(emailCheckboxes).map(cb => cb.value);
-                    
-                    if (isChecked) {
-                        // Try to add all current page IDs
-                        if (addToStoredSelections(currentPageIds)) {
-                            emailCheckboxes.forEach(function(checkbox) {
-                                checkbox.checked = true;
-                            });
-                        } else {
-                            // If we can't add all, uncheck the select all box
-                            this.checked = false;
-                        }
-                    } else {
-                        // Remove all current page IDs
-                        removeFromStoredSelections(currentPageIds);
-                        emailCheckboxes.forEach(function(checkbox) {
-                            checkbox.checked = false;
-                        });
-                    }
-                    
-                    updateSelectionCounter();
-                });
-            }
+        if (deselectAllBtn) {
+            deselectAllBtn.addEventListener('click', function() {
+                clearStoredSelections();
+                document.querySelectorAll('.email-select-checkbox').forEach(cb => cb.checked = false);
+                updateSelectionCounter();
+            });
+        }
 
-            // Select all button - only for current page
-            if (selectAllBtn) {
-                selectAllBtn.addEventListener('click', function() {
-                    const emailCheckboxes = document.querySelectorAll('.email-select-checkbox');
-                    const currentPageIds = Array.from(emailCheckboxes).map(cb => cb.value);
-                    const storedSelections = getStoredSelections();
-                    const currentPageSelected = currentPageIds.filter(id => storedSelections.includes(id));
-                    
-                    if (currentPageSelected.length === currentPageIds.length) {
-                        // All are selected, deselect all on current page
-                        removeFromStoredSelections(currentPageIds);
-                        emailCheckboxes.forEach(function(checkbox) {
-                            checkbox.checked = false;
-                        });
-                    } else {
-                        // Not all are selected, select all on current page
-                        if (addToStoredSelections(currentPageIds)) {
-                            emailCheckboxes.forEach(function(checkbox) {
-                                checkbox.checked = true;
-                            });
-                        }
-                    }
-                    
-                    updateSelectionCounter();
-                });
-            }
-
-            // Deselect all button - clears all selections across all pages
-            if (deselectAllBtn) {
-                deselectAllBtn.addEventListener('click', function() {
-                    clearStoredSelections();
-                    const emailCheckboxes = document.querySelectorAll('.email-select-checkbox');
-                    emailCheckboxes.forEach(function(checkbox) {
-                        checkbox.checked = false;
-                    });
-                    updateSelectionCounter();
-                });
-            }
-
-            // Batch restore button
-            if (batchRestoreBtn) {
-                batchRestoreBtn.addEventListener('click', function() {
-                    if (this.disabled) {
-                        return;
-                    }
-
-                    const totalSelected = getTotalSelectedCount();
-                    const storedSelections = getStoredSelections();
-                    
-                    if (totalSelected === 0) {
-                        // Show modal for no emails selected
-                        document.getElementById('confirmMessage').innerHTML = '@Html.Raw(Localizer["PleaseSelectAtLeastOne"].Value)';
-                        var confirmModal = new bootstrap.Modal(document.getElementById('batchRestoreConfirmModal'));
-                        document.getElementById('confirmBatchRestoreBtn').style.display = 'none';
-                        confirmModal.show();
-                        
-                        // Hide modal after 3 seconds
-                        setTimeout(function() {
-                            confirmModal.hide();
-                        }, 3000);
-                        return;
-                    }
-
-                    if (totalSelected > maxAsyncEmails) {
-                        // Show modal for too many emails selected
-                        const tooManyMessage = '@Html.Raw(Localizer["TooManyEmailsSelected"].Value)'.replace('{0}', totalSelected.toLocaleString()).replace('{1}', maxAsyncEmails.toLocaleString());
-                        document.getElementById('confirmMessage').innerHTML = tooManyMessage;
-                        var confirmModal = new bootstrap.Modal(document.getElementById('batchRestoreConfirmModal'));
-                        document.getElementById('confirmBatchRestoreBtn').style.display = 'none';
-                        confirmModal.show();
-                        
-                        // Hide modal after 5 seconds
-                        setTimeout(function() {
-                            confirmModal.hide();
-                        }, 5000);
-                        return;
-                    }
-
-                    // Show confirmation for large operations
-                    if (totalSelected > asyncThreshold) {
-                        // Show confirmation modal
-                        const message = '@Html.Raw(Localizer["ContinueWithOperation"].Value)'.replace('{0}', totalSelected.toLocaleString());
-                        document.getElementById('confirmMessage').innerHTML = message;
-                        var confirmModal = new bootstrap.Modal(document.getElementById('batchRestoreConfirmModal'));
-                        document.getElementById('confirmBatchRestoreBtn').style.display = 'inline-block';
-                        
-                        // Handle confirmation
-                        document.getElementById('confirmBatchRestoreBtn').onclick = function() {
-                            confirmModal.hide();
-                            submitBatchRestoreForm(storedSelections);
-                        };
-                        
-                        confirmModal.show();
-                        return;
-                    }
-                    
-                    // For small operations, proceed directly
-                    submitBatchRestoreForm(storedSelections);
-                });
-            }
-
-            // Export selected button
-            const exportSelectedBtn = document.getElementById('exportSelectedBtn');
-            if (exportSelectedBtn) {
-                exportSelectedBtn.addEventListener('click', function() {
-                    const totalSelected = getTotalSelectedCount();
-                    const storedSelections = getStoredSelections();
-                    
-                    if (totalSelected === 0) {
-                        // Show modal for no emails selected
-                        document.getElementById('confirmMessage').innerHTML = '@Html.Raw(Localizer["PleaseSelectAtLeastOne"].Value)';
-                        var confirmModal = new bootstrap.Modal(document.getElementById('batchRestoreConfirmModal'));
-                        document.getElementById('confirmBatchRestoreBtn').style.display = 'none';
-                        confirmModal.show();
-                        
-                        // Hide modal after 3 seconds
-                        setTimeout(function() {
-                            confirmModal.hide();
-                        }, 3000);
-                        return;
-                    }
-
-                    // Show export format selection modal
-                    var exportFormatModal = new bootstrap.Modal(document.getElementById('exportFormatModal'));
-                    exportFormatModal.show();
-                    
-                    // Store the selected IDs for later use
-                    window.selectedEmailsForExport = storedSelections;
-                });
-            }
-
-            // Export format confirmation button
-            const confirmExportBtn = document.getElementById('confirmExportBtn');
-            if (confirmExportBtn) {
-                confirmExportBtn.addEventListener('click', function() {
-                    const selectedFormat = document.querySelector('input[name="exportFormat"]:checked').value;
-                    const selectedIds = window.selectedEmailsForExport;
-                    
-                    // Close the modal
-                    var exportFormatModal = bootstrap.Modal.getInstance(document.getElementById('exportFormatModal'));
-                    exportFormatModal.hide();
-                    
-                    // Submit export form with selected format
-                    submitExportForm(selectedIds, selectedFormat);
-                });
-            }
-
-            // Delete selected button
-            const deleteSelectedBtn = document.getElementById('deleteSelectedBtn');
-            if (deleteSelectedBtn) {
-                deleteSelectedBtn.addEventListener('click', function() {
-                    const totalSelected = getTotalSelectedCount();
-                    const storedSelections = getStoredSelections();
-                    
-                    if (totalSelected === 0) {
-                        // Show modal for no emails selected
-                        document.getElementById('confirmMessage').innerHTML = '@Html.Raw(Localizer["PleaseSelectAtLeastOne"].Value)';
-                        var confirmModal = new bootstrap.Modal(document.getElementById('batchRestoreConfirmModal'));
-                        document.getElementById('confirmBatchRestoreBtn').style.display = 'none';
-                        confirmModal.show();
-                        
-                        // Hide modal after 3 seconds
-                        setTimeout(function() {
-                            confirmModal.hide();
-                        }, 3000);
-                        return;
-                    }
-
-                    // Show confirmation modal for deletion
-                    const deleteConfirmMessage = '@Html.Raw(Localizer["DeleteSelectedEmailsConfirm"].Value)'.replace('{0}', totalSelected.toLocaleString());
-                    document.getElementById('confirmMessage').innerHTML = deleteConfirmMessage;
+        if (batchRestoreBtn) {
+            batchRestoreBtn.addEventListener('click', function() {
+                if (this.disabled) return;
+                const totalSelected = getTotalSelectedCount();
+                const storedSelections = getStoredSelections();
+                if (totalSelected === 0) {
+                    document.getElementById('confirmMessage').innerHTML = '@Localizer["PleaseSelectAtLeastOne"]';
+                    var confirmModal = new bootstrap.Modal(document.getElementById('batchRestoreConfirmModal'));
+                    document.getElementById('confirmBatchRestoreBtn').style.display = 'none';
+                    confirmModal.show();
+                    setTimeout(function() { confirmModal.hide(); }, 3000);
+                    return;
+                }
+                if (totalSelected > maxAsyncEmails) {
+                    document.getElementById('confirmMessage').innerHTML = '@Localizer["TooManyEmailsSelected"]'.replace('{0}', totalSelected.toLocaleString()).replace('{1}', maxAsyncEmails.toLocaleString());
+                    var confirmModal = new bootstrap.Modal(document.getElementById('batchRestoreConfirmModal'));
+                    document.getElementById('confirmBatchRestoreBtn').style.display = 'none';
+                    confirmModal.show();
+                    setTimeout(function() { confirmModal.hide(); }, 5000);
+                    return;
+                }
+                if (totalSelected > asyncThreshold) {
+                    document.getElementById('confirmMessage').innerHTML = '@Localizer["ContinueWithOperation"]'.replace('{0}', totalSelected.toLocaleString());
                     var confirmModal = new bootstrap.Modal(document.getElementById('batchRestoreConfirmModal'));
                     document.getElementById('confirmBatchRestoreBtn').style.display = 'inline-block';
-                    
-                    // Handle confirmation
                     document.getElementById('confirmBatchRestoreBtn').onclick = function() {
                         confirmModal.hide();
-                        submitDeleteForm(storedSelections);
+                        submitBatchRestoreForm(storedSelections);
                     };
-                    
                     confirmModal.show();
-                });
-            }
+                    return;
+                }
+                submitBatchRestoreForm(storedSelections);
+            });
+        }
 
-            // Function to submit the delete form
-            function submitDeleteForm(selectedIds) {
-                // Create a new form for POST request
-                const form = document.createElement('form');
-                form.method = 'post';
-                form.action = '@Url.Action("DeleteSelected", "Emails")';
-                
-                // Add anti-forgery token
-                const tokenInput = document.createElement('input');
-                tokenInput.type = 'hidden';
-                tokenInput.name = '__RequestVerificationToken';
-                tokenInput.value = document.querySelector('input[name="__RequestVerificationToken"]').value;
-                form.appendChild(tokenInput);
+        function submitBatchRestoreForm(selectedIds) {
+            const form = document.createElement('form');
+            form.method = 'post';
+            form.action = '@Url.Action("BatchRestoreStart", "Emails")';
+            form.appendChild(createHiddenInput('__RequestVerificationToken', document.querySelector('input[name="__RequestVerificationToken"]').value));
+            form.appendChild(createHiddenInput('returnUrl', '@Context.Request.Path@Context.Request.QueryString'));
+            selectedIds.forEach(id => form.appendChild(createHiddenInput('ids', id)));
+            document.body.appendChild(form);
+            form.submit();
+        }
 
-                // Add ReturnUrl
-                const returnUrlInput = document.createElement('input');
-                returnUrlInput.type = 'hidden';
-                returnUrlInput.name = 'returnUrl';
-                returnUrlInput.value = '@Context.Request.Path@Context.Request.QueryString';
-                form.appendChild(returnUrlInput);
+        function createHiddenInput(name, value) {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = name;
+            input.value = value;
+            return input;
+        }
 
-                // Add all selected IDs
-                selectedIds.forEach(function(emailId) {
-                    const idInput = document.createElement('input');
-                    idInput.type = 'hidden';
-                    idInput.name = 'ids';
-                    idInput.value = emailId;
-                    form.appendChild(idInput);
-                });
+        const exportSelectedBtn = document.getElementById('exportSelectedBtn');
+        if (exportSelectedBtn) {
+            exportSelectedBtn.addEventListener('click', function() {
+                if (getTotalSelectedCount() === 0) {
+                    document.getElementById('confirmMessage').innerHTML = '@Localizer["PleaseSelectAtLeastOne"]';
+                    var confirmModal = new bootstrap.Modal(document.getElementById('batchRestoreConfirmModal'));
+                    document.getElementById('confirmBatchRestoreBtn').style.display = 'none';
+                    confirmModal.show();
+                    setTimeout(function() { confirmModal.hide(); }, 3000);
+                    return;
+                }
+                var exportFormatModal = new bootstrap.Modal(document.getElementById('exportFormatModal'));
+                exportFormatModal.show();
+                window.selectedEmailsForExport = getStoredSelections();
+            });
+        }
 
-                // Add form to body and submit
-                document.body.appendChild(form);
-                form.submit();
-            }
+        const confirmExportBtn = document.getElementById('confirmExportBtn');
+        if (confirmExportBtn) {
+            confirmExportBtn.addEventListener('click', function() {
+                const selectedFormat = document.querySelector('input[name="exportFormat"]:checked').value;
+                bootstrap.Modal.getInstance(document.getElementById('exportFormatModal')).hide();
+                submitExportForm(window.selectedEmailsForExport, selectedFormat);
+            });
+        }
 
-            // Function to submit the batch restore form
-            function submitBatchRestoreForm(selectedIds) {
-                // Create a new form for POST request
-                const form = document.createElement('form');
-                form.method = 'post';
-                form.action = '@Url.Action("BatchRestoreStart", "Emails")';
-                
-                // Add anti-forgery token
-                const tokenInput = document.createElement('input');
-                tokenInput.type = 'hidden';
-                tokenInput.name = '__RequestVerificationToken';
-                tokenInput.value = document.querySelector('input[name="__RequestVerificationToken"]').value;
-                form.appendChild(tokenInput);
+        function submitExportForm(selectedIds, selectedFormat) {
+            const form = document.createElement('form');
+            form.method = 'post';
+            form.action = '@Url.Action("ExportSelected", "Emails")';
+            form.appendChild(createHiddenInput('__RequestVerificationToken', document.querySelector('input[name="__RequestVerificationToken"]').value));
+            form.appendChild(createHiddenInput('format', selectedFormat));
+            form.appendChild(createHiddenInput('returnUrl', '@Context.Request.Path@Context.Request.QueryString'));
+            selectedIds.forEach(id => form.appendChild(createHiddenInput('ids', id)));
+            document.body.appendChild(form);
+            form.submit();
+        }
 
-                // Add ReturnUrl
-                const returnUrlInput = document.createElement('input');
-                returnUrlInput.type = 'hidden';
-                returnUrlInput.name = 'returnUrl';
-                returnUrlInput.value = '@Context.Request.Path@Context.Request.QueryString';
-                form.appendChild(returnUrlInput);
+        const deleteSelectedBtn = document.getElementById('deleteSelectedBtn');
+        if (deleteSelectedBtn) {
+            deleteSelectedBtn.addEventListener('click', function() {
+                if (getTotalSelectedCount() === 0) {
+                    document.getElementById('confirmMessage').innerHTML = '@Localizer["PleaseSelectAtLeastOne"]';
+                    var confirmModal = new bootstrap.Modal(document.getElementById('batchRestoreConfirmModal'));
+                    document.getElementById('confirmBatchRestoreBtn').style.display = 'none';
+                    confirmModal.show();
+                    setTimeout(function() { confirmModal.hide(); }, 3000);
+                    return;
+                }
+                document.getElementById('confirmMessage').innerHTML = '@Localizer["DeleteSelectedEmailsConfirm"]'.replace('{0}', getTotalSelectedCount().toLocaleString());
+                var confirmModal = new bootstrap.Modal(document.getElementById('batchRestoreConfirmModal'));
+                document.getElementById('confirmBatchRestoreBtn').style.display = 'inline-block';
+                document.getElementById('confirmBatchRestoreBtn').onclick = function() {
+                    confirmModal.hide();
+                    submitDeleteForm(getStoredSelections());
+                };
+                confirmModal.show();
+            });
+        }
 
-                // Add all selected IDs
-                selectedIds.forEach(function(emailId) {
-                    const idInput = document.createElement('input');
-                    idInput.type = 'hidden';
-                    idInput.name = 'ids';
-                    idInput.value = emailId;
-                    form.appendChild(idInput);
-                });
+        function submitDeleteForm(selectedIds) {
+            const form = document.createElement('form');
+            form.method = 'post';
+            form.action = '@Url.Action("DeleteSelected", "Emails")';
+            form.appendChild(createHiddenInput('__RequestVerificationToken', document.querySelector('input[name="__RequestVerificationToken"]').value));
+            form.appendChild(createHiddenInput('returnUrl', '@Context.Request.Path@Context.Request.QueryString'));
+            selectedIds.forEach(id => form.appendChild(createHiddenInput('ids', id)));
+            document.body.appendChild(form);
+            form.submit();
+        }
 
-                // Add form to body and submit
-                document.body.appendChild(form);
-                form.submit();
-            }
-
-            // Function to submit the export form
-            function submitExportForm(selectedIds, selectedFormat) {
-                // Create a new form for POST request
-                const form = document.createElement('form');
-                form.method = 'post';
-                form.action = '@Url.Action("ExportSelected", "Emails")';
-                
-                // Add anti-forgery token
-                const tokenInput = document.createElement('input');
-                tokenInput.type = 'hidden';
-                tokenInput.name = '__RequestVerificationToken';
-                tokenInput.value = document.querySelector('input[name="__RequestVerificationToken"]').value;
-                form.appendChild(tokenInput);
-
-                // Add export format
-                const formatInput = document.createElement('input');
-                formatInput.type = 'hidden';
-                formatInput.name = 'format';
-                formatInput.value = selectedFormat;
-                form.appendChild(formatInput);
-
-                // Add ReturnUrl
-                const returnUrlInput = document.createElement('input');
-                returnUrlInput.type = 'hidden';
-                returnUrlInput.name = 'returnUrl';
-                returnUrlInput.value = '@Context.Request.Path@Context.Request.QueryString';
-                form.appendChild(returnUrlInput);
-
-                // Add all selected IDs
-                selectedIds.forEach(function(emailId) {
-                    const idInput = document.createElement('input');
-                    idInput.type = 'hidden';
-                    idInput.name = 'ids';
-                    idInput.value = emailId;
-                    form.appendChild(idInput);
-                });
-
-                // Add form to body and submit
-                document.body.appendChild(form);
-                form.submit();
-            }
-
-            // Initialize selection handlers when in selection mode
-            @if (Model.ShowSelectionControls) {
-                <text>
-                initializeSelectionHandlers();
-                </text>
-            }
-        });
-    </script>
+        @if (Model.ShowSelectionControls)
+        {
+            <text>initializeSelectionHandlers();</text>
+        }
+    });
+</script>
 }
