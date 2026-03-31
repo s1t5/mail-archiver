@@ -75,16 +75,9 @@
                     @{
                         // Verwende File-Progress als primären Indikator, da E-Mail-Schätzung ungenau sein kann
                         var fileProgressPercent = Model.FileSize > 0 ? Math.Round((double)Model.ProcessedBytes * 100.0 / Model.FileSize, 1) : 0;
-                        
-                        // E-Mail-Progress nur wenn verfügbar und sinnvoll
-                        var emailProgressPercent = 0.0;
-                        if (Model.TotalEmails > 0 && Model.ProcessedEmails <= Model.TotalEmails * 1.2) // Max 120% um Schätzfehler zu berücksichtigen
-                        {
-                            emailProgressPercent = Math.Round((double)Model.ProcessedEmails * 100.0 / Model.TotalEmails, 1);
-                        }
-                        
-                        // Verwende den höheren Wert, aber begrenzt auf 100%
-                        var displayPercent = Math.Min(100, Math.Max(fileProgressPercent, emailProgressPercent));
+
+                        // Datei-basierter Fortschritt ist zuverlässiger als E-Mail-Schätzung
+                        var displayPercent = Math.Min(100, fileProgressPercent);
                         
                         // Für abgeschlossene Jobs: 100%
                         if (Model.Status == MailArchiver.Models.EmlImportJobStatus.Completed)
