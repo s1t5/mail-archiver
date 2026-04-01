@@ -53,6 +53,13 @@ services:
       - BatchOperation__PauseBetweenEmailsMs=50
       - BatchOperation__PauseBetweenBatchesMs=250
 
+      # Bandwidth Tracking Settings (for IMAP rate limit handling)
+      - BandwidthTracking__Enabled=false
+      - BandwidthTracking__DailyLimitMb=25000
+      - BandwidthTracking__WarningThresholdPercent=80
+      - BandwidthTracking__PauseHoursOnLimit=24
+      - BandwidthTracking__TrackUploadBytes=false
+
       # Selection Settings
       - Selection__MaxSelectableEmails=250
 
@@ -193,6 +200,13 @@ docker compose restart
 - `BatchOperation__BatchSize`: The batch size for email operations.
 - `BatchOperation__PauseBetweenEmailsMs`: The pause between individual emails in milliseconds.
 - `BatchOperation__PauseBetweenBatchesMs`: The pause between batches in milliseconds.
+
+### 📊 Bandwidth Tracking Settings
+- `BandwidthTracking__Enabled`: Enable or disable bandwidth tracking for IMAP rate limit handling (true/false). Default is `false`. When enabled, the system tracks bandwidth usage per account and can pause synchronization when provider limits are reached. See [Rate Limit Handling](RateLimitHandling.md) for detailed information.
+- `BandwidthTracking__DailyLimitMb`: Daily download limit in megabytes per account. Default is `25000` (25 GB). For providers with bandwidth limits, set this to match their rate limit (e.g., `2500` for providers with ~2500 MB daily limits). The system will pause syncing when this limit is reached.
+- `BandwidthTracking__WarningThresholdPercent`: Percentage of the daily limit at which warning messages are logged. Default is `80`. When bandwidth usage reaches this percentage, warnings are logged to help monitor approaching limits.
+- `BandwidthTracking__PauseHoursOnLimit`: Number of hours to pause synchronization when the daily limit is reached. Default is `24`. After this period, the limit flag is automatically cleared and syncing resumes.
+- `BandwidthTracking__TrackUploadBytes`: Whether to also track upload bandwidth (true/false). Default is `false`. Most IMAP providers only limit downloads, so this is typically not needed.
 
 ### 🎯 Selection Settings
 - `Selection__MaxSelectableEmails`: The maximum number of emails that can be selected at once.

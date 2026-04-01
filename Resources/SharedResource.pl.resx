@@ -2510,4 +2510,10 @@
   <data name="DetailsLabel" xml:space="preserve">
     <value>Szczegóły</value>
   </data>
+  <data name="RateLimited" xml:space="preserve">
+    <value>Limit prędkości osiągnięty</value>
+  </data>
+  <data name="SyncJobRateLimited" xml:space="preserve">
+    <value>Synchronizacja wstrzymana z powodu limitu przepustowości. Będzie kontynuowana automatycznie.</value>
+  </data>
 </root>

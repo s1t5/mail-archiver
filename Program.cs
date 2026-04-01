@@ -133,6 +133,10 @@ builder.Services.Configure<ViewOptions>(
 builder.Services.Configure<TimeZoneOptions>(
     builder.Configuration.GetSection("TimeZone"));
 
+// Add Bandwidth Tracking Options
+builder.Services.Configure<BandwidthTrackingOptions>(
+    builder.Configuration.GetSection(BandwidthTrackingOptions.BandwidthTracking));
+
 // Add DateTimeHelper
 builder.Services.AddScoped<MailArchiver.Utilities.DateTimeHelper>();
 
@@ -339,6 +343,9 @@ builder.Services.AddHostedService<DatabaseMaintenanceService>(provider => provid
 
 // Register AccessLogService
 builder.Services.AddScoped<IAccessLogService, AccessLogService>();
+
+// Register BandwidthService for rate limit management
+builder.Services.AddScoped<IBandwidthService, BandwidthService>();
 
 // ====================
 // NEW: Provider-based Architecture Services

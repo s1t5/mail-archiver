@@ -2464,4 +2464,10 @@
   <data name="DetailsLabel" xml:space="preserve">
     <value>Details</value>
   </data>
+  <data name="RateLimited" xml:space="preserve">
+    <value>Bandbreedtebeperking bereikt</value>
+  </data>
+  <data name="SyncJobRateLimited" xml:space="preserve">
+    <value>Synchronisatie gepauzeerd door bandbreedtebeperking. Wordt automatisch hervat.</value>
+  </data>
 </root>

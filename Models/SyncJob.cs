@@ -25,6 +25,7 @@ namespace MailArchiver.Models
         Running,
         Completed,
         Failed,
-        Cancelled
+        Cancelled,
+        RateLimited
     }
 }

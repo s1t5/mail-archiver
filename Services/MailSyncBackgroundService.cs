@@ -40,6 +40,8 @@ namespace MailArchiver.Services
                     var providerFactory = scope.ServiceProvider.GetRequiredService<MailArchiver.Services.Factories.ProviderEmailServiceFactory>();
                     var graphEmailService = scope.ServiceProvider.GetRequiredService<IGraphEmailService>();
                     var syncJobService = scope.ServiceProvider.GetRequiredService<ISyncJobService>();
+                    var bandwidthService = scope.ServiceProvider.GetRequiredService<IBandwidthService>();
+                    var bandwidthOptions = scope.ServiceProvider.GetRequiredService<IOptions<BandwidthTrackingOptions>>();
 
                     // First load accounts to check if AlwaysForceFullSync needs to update LastSync
                     var accountsForSync = await dbContext.MailAccounts
@@ -76,6 +78,23 @@ namespace MailArchiver.Services
 
                     foreach (var account in accounts)
                     {
+                        // Pre-sync bandwidth limit check
+                        if (bandwidthOptions.Value.Enabled)
+                        {
+                            var limitReached = await bandwidthService.IsLimitReachedAsync(account.Id);
+                            if (limitReached)
+                            {
+                                var status = await bandwidthService.GetStatusAsync(account.Id);
+                                _logger.LogWarning("Skipping sync for account {AccountName} - bandwidth limit reached. " +
+                                    "Downloaded: {DownloadedMB:F2} MB / {LimitMB:F2} MB. Reset at: {ResetTime}",
+                                    account.Name, 
+                                    status.BytesDownloaded / (1024.0 * 1024.0),
+                                    status.DailyLimitBytes / (1024.0 * 1024.0),
+                                    status.ResetTime);
+                                continue;
+                            }
+                        }
+
                         try
                         {
                             using var accountCts = new CancellationTokenSource(TimeSpan.FromMinutes(syncTimeoutMinutes));
@@ -112,6 +131,13 @@ namespace MailArchiver.Services
                                 var provider = await providerFactory.GetServiceForAccountAsync(account.Id);
                                 await provider.SyncMailAccountAsync(account, jobId);
                             }
+
+                            // Clear checkpoints after successful sync
+                            if (bandwidthOptions.Value.Enabled)
+                            {
+                                await bandwidthService.ClearCheckpointsAsync(account.Id);
+                                _logger.LogDebug("Cleared sync checkpoints for account {AccountName}", account.Name);
+                            }
                             
                             _logger.LogInformation("Mail sync completed for account: {AccountName}", account.Name);
                         }
@@ -124,6 +150,9 @@ namespace MailArchiver.Services
                         {
                             _logger.LogError(ex, "Error syncing mail account {AccountName}: {Message}",
                                 account.Name, ex.Message);
+                            
+                            // Checkpoints will be preserved for interrupted syncs
+                            // They will be used for resumption on next sync cycle
                         }
 
                         await Task.Delay(TimeSpan.FromSeconds(10), stoppingToken);

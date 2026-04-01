@@ -142,6 +142,12 @@ namespace MailArchiver.Services
                             AccessLogType.DatabaseMaintenance,
                             searchParameters: $"Database maintenance completed in {duration.TotalSeconds:F1} seconds"
                         );
+
+                        // Cleanup old bandwidth usage records
+                        await CleanupBandwidthRecordsAsync(scope.ServiceProvider);
+                        
+                        // Cleanup old sync checkpoints
+                        await CleanupSyncCheckpointsAsync(scope.ServiceProvider);
                     }
 
                     return true;
@@ -203,6 +209,52 @@ namespace MailArchiver.Services
         {
             _logger.LogInformation("Database Maintenance Service is stopping.");
             return base.StopAsync(cancellationToken);
+        }
+
+        /// <summary>
+        /// Cleans up old bandwidth usage records.
+        /// </summary>
+        private async Task CleanupBandwidthRecordsAsync(IServiceProvider serviceProvider)
+        {
+            try
+            {
+                var bandwidthService = serviceProvider.GetService<IBandwidthService>();
+                if (bandwidthService != null)
+                {
+                    var removedCount = await bandwidthService.CleanupOldBandwidthRecordsAsync(olderThanDays: 7);
+                    if (removedCount > 0)
+                    {
+                        _logger.LogInformation("Cleaned up {Count} old bandwidth usage records during maintenance", removedCount);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error cleaning up bandwidth records: {Message}", ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// Cleans up old sync checkpoints.
+        /// </summary>
+        private async Task CleanupSyncCheckpointsAsync(IServiceProvider serviceProvider)
+        {
+            try
+            {
+                var bandwidthService = serviceProvider.GetService<IBandwidthService>();
+                if (bandwidthService != null)
+                {
+                    var removedCount = await bandwidthService.CleanupOldCheckpointsAsync(olderThanDays: 30);
+                    if (removedCount > 0)
+                    {
+                        _logger.LogInformation("Cleaned up {Count} old sync checkpoints during maintenance", removedCount);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error cleaning up sync checkpoints: {Message}", ex.Message);
+            }
         }
     }
 }

@@ -123,6 +123,21 @@ namespace MailArchiver.Services
             }
         }
 
+        public void CompleteJobRateLimited(string jobId, string? errorMessage = null)
+        {
+            if (_jobs.TryGetValue(jobId, out var job))
+            {
+                job.Status = SyncJobStatus.RateLimited;
+                job.Completed = DateTime.UtcNow;
+                job.ErrorMessage = errorMessage;
+                
+                // Remove from active account jobs
+                _activeAccountJobs.TryRemove(job.MailAccountId, out _);
+                
+                _logger.LogWarning("Sync job {JobId} paused due to rate limit. Checkpoints saved for resume.", jobId);
+            }
+        }
+
         public bool CancelJob(string jobId)
         {
             if (_jobs.TryGetValue(jobId, out var job))

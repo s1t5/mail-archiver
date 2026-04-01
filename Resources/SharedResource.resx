@@ -1412,6 +1412,12 @@
   <data name="Cancelled" xml:space="preserve">
     <value>Cancelled</value>
   </data>
+  <data name="RateLimited" xml:space="preserve">
+    <value>Rate Limited</value>
+  </data>
+  <data name="SyncJobRateLimited" xml:space="preserve">
+    <value>Sync paused due to bandwidth limit. Will resume automatically.</value>
+  </data>
   <data name="Queued" xml:space="preserve">
     <value>Queued</value>
   </data>

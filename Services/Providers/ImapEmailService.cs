@@ -27,8 +27,10 @@ namespace MailArchiver.Services.Providers
         private readonly ILogger<ImapEmailService> _logger;
         private readonly EmailCoreService _coreService;
         private readonly ISyncJobService _syncJobService;
+        private readonly IBandwidthService _bandwidthService;
         private readonly BatchOperationOptions _batchOptions;
         private readonly MailSyncOptions _mailSyncOptions;
+        private readonly BandwidthTrackingOptions _bandwidthOptions;
         private readonly DateTimeHelper _dateTimeHelper;
 
         public ImapEmailService(
@@ -36,16 +38,20 @@ namespace MailArchiver.Services.Providers
             ILogger<ImapEmailService> logger,
             EmailCoreService coreService,
             ISyncJobService syncJobService,
+            IBandwidthService bandwidthService,
             IOptions<BatchOperationOptions> batchOptions,
             IOptions<MailSyncOptions> mailSyncOptions,
+            IOptions<BandwidthTrackingOptions> bandwidthOptions,
             DateTimeHelper dateTimeHelper)
         {
             _context = context;
             _logger = logger;
             _coreService = coreService;
             _syncJobService = syncJobService;
+            _bandwidthService = bandwidthService;
             _batchOptions = batchOptions.Value;
             _mailSyncOptions = mailSyncOptions.Value;
+            _bandwidthOptions = bandwidthOptions.Value;
             _dateTimeHelper = dateTimeHelper;
         }
 
@@ -54,6 +60,33 @@ namespace MailArchiver.Services.Providers
         public async Task SyncMailAccountAsync(MailAccount account, string? jobId = null)
         {
             _logger.LogInformation("Starting IMAP sync for account: {AccountName}", account.Name);
+
+            // Check bandwidth limit before starting sync
+            if (_bandwidthOptions.Enabled)
+            {
+                var limitReached = await _bandwidthService.IsLimitReachedAsync(account.Id);
+                if (limitReached)
+                {
+                    var status = await _bandwidthService.GetStatusAsync(account.Id);
+                    _logger.LogWarning("Sync skipped for account {AccountName} - bandwidth limit reached. " +
+                        "Downloaded: {DownloadedMB:F2} MB / {LimitMB:F2} MB. Reset at: {ResetTime}",
+                        account.Name, status.BytesDownloaded / (1024.0 * 1024.0), 
+                        status.DailyLimitBytes / (1024.0 * 1024.0), status.ResetTime);
+                    
+                    if (jobId != null)
+                    {
+                        _syncJobService.CompleteJobRateLimited(jobId, "Bandwidth limit reached - sync paused");
+                    }
+                    return;
+                }
+            }
+
+            // Check for incomplete checkpoints (interrupted sync)
+            var hasIncompleteCheckpoints = await _bandwidthService.HasIncompleteCheckpointsAsync(account.Id);
+            if (hasIncompleteCheckpoints)
+            {
+                _logger.LogInformation("Found incomplete checkpoints for account {AccountName} - resuming from last position", account.Name);
+            }
 
             using var client = CreateImapClient(account.Name);
             client.Timeout = 300000;
@@ -64,6 +97,8 @@ namespace MailArchiver.Services.Providers
             var newEmails = 0;
             var failedEmails = 0;
             var deletedEmails = 0;
+            var totalBytesDownloaded = 0L;
+            var wasRateLimited = false;
 
             try
             {
@@ -119,6 +154,14 @@ namespace MailArchiver.Services.Providers
                         processedEmails += folderResult.ProcessedEmails;
                         newEmails += folderResult.NewEmails;
                         failedEmails += folderResult.FailedEmails;
+                        
+                        // Track if rate limit was hit during this folder
+                        if (folderResult.WasRateLimited)
+                        {
+                            wasRateLimited = true;
+                            _logger.LogWarning("Rate limit hit during folder {FolderName} for account {AccountName}. " +
+                                "Sync will pause and checkpoints will be preserved.", folder.FullName, account.Name);
+                        }
 
                         processedFolders++;
 
@@ -161,6 +204,27 @@ namespace MailArchiver.Services.Providers
                         localDeletedCount, account.Name);
                 }
 
+                // Handle rate-limited sync: do NOT update LastSync and do NOT clear checkpoints
+                if (wasRateLimited)
+                {
+                    _logger.LogWarning("Sync for account {AccountName} was rate-limited. Preserving checkpoints for resume. " +
+                        "LastSync will NOT be updated. Processed: {Processed}, New: {New}",
+                        account.Name, processedEmails, newEmails);
+                    
+                    // Clear checkpoints ONLY for folders that completed successfully before rate limit
+                    // Folders hit by rate limit will have incomplete checkpoints preserved
+                    // Note: Checkpoints are preserved per-folder, so only completed folders' checkpoints are cleared
+                    
+                    await client.DisconnectAsync(true);
+                    
+                    if (jobId != null)
+                    {
+                        _syncJobService.CompleteJobRateLimited(jobId, 
+                            $"Bandwidth limit reached during sync. Processed: {processedEmails}, New: {newEmails}. Sync will resume from checkpoint.");
+                    }
+                    return;
+                }
+
                 if (failedEmails == 0)
                 {
                     // Update LastSync using a separate tracked entity to avoid tracking conflicts
@@ -169,6 +233,13 @@ namespace MailArchiver.Services.Providers
                     {
                         trackedAccount.LastSync = DateTime.UtcNow;
                         await _context.SaveChangesAsync();
+                    }
+                    
+                    // Clear checkpoints after successful sync completion
+                    if (_bandwidthOptions.Enabled)
+                    {
+                        await _bandwidthService.ClearCheckpointsAsync(account.Id);
+                        _logger.LogDebug("Cleared sync checkpoints for account {AccountName} after successful sync", account.Name);
                     }
                 }
                 else
@@ -843,6 +914,7 @@ namespace MailArchiver.Services.Providers
         private async Task<SyncFolderResult> SyncFolderAsync(IMailFolder folder, MailAccount account, ImapClient client, string? jobId = null)
         {
             var result = new SyncFolderResult();
+            var totalBytesDownloaded = 0L;
 
             _logger.LogInformation("Syncing folder: {FolderName} for account: {AccountName}",
                 folder.FullName, account.Name);
@@ -1008,7 +1080,8 @@ namespace MailArchiver.Services.Providers
                     _logger.LogInformation("Found {Count} messages to process in folder {FolderName} for account: {AccountName}",
                         uids.Count, folder.FullName, account.Name);
 
-                    result.ProcessedEmails = uids.Count;
+                    // Note: ProcessedEmails will be incremented for each actually processed email
+                    // This ensures correct count when rate-limited mid-folder
 
                     // Process emails in smaller chunks to reduce memory usage
                     for (int i = 0; i < uids.Count; i += _batchOptions.BatchSize)
@@ -1070,10 +1143,72 @@ namespace MailArchiver.Services.Providers
                                 // This prevents PostgreSQL UTF-8 encoding errors (0x00 is invalid in UTF-8)
                                 PreCleanMessage(message);
                                 
+                                // Track bandwidth usage if enabled
+                                long messageSize = 0;
+                                if (_bandwidthOptions.Enabled)
+                                {
+                                    try
+                                    {
+                                        // Estimate message size in actual bytes (not string length) for accurate bandwidth tracking.
+                                        // Using UTF8.GetByteCount accounts for multi-byte characters correctly.
+                                        var messageString = message.ToString();
+                                        messageSize = System.Text.Encoding.UTF8.GetByteCount(messageString);
+                                        
+                                        // Track usage and check limit in a single combined call to reduce DB roundtrips
+                                        var (_, limitReached) = await _bandwidthService.TrackUsageAndCheckLimitAsync(account.Id, messageSize);
+                                        totalBytesDownloaded += messageSize;
+                                        
+                                        _logger.LogDebug("Tracked {Size} bytes for email in folder {FolderName}", messageSize, folder.FullName);
+                                        
+                                        // Check if bandwidth limit reached during sync
+                                        if (limitReached)
+                                        {
+                                            _logger.LogWarning("Bandwidth limit reached during sync of folder {FolderName} for account {AccountName}. " +
+                                                "Saving checkpoint and pausing sync. Processed: {Processed}, New: {New}", 
+                                                folder.FullName, account.Name, result.ProcessedEmails, result.NewEmails);
+                                            
+                                            // Save checkpoint for resume
+                                            await _bandwidthService.UpdateCheckpointAsync(
+                                                account.Id, folder.FullName,
+                                                message.Date.DateTime, message.MessageId,
+                                                messageSize);
+                                            
+                                            // Mark as rate limited
+                                            result.WasRateLimited = true;
+                                            
+                                            // Return without incrementing failed count - this is a controlled pause, not an error
+                                            return result;
+                                        }
+                                    }
+                                    catch (Exception bwEx)
+                                    {
+                                        _logger.LogWarning(bwEx, "Error tracking bandwidth usage");
+                                    }
+                                }
+                                
                                 var isNew = await _coreService.ArchiveEmailAsync(account, message, isOutgoing, folder.FullName);
                                 if (isNew)
                                 {
                                     result.NewEmails++;
+                                }
+                                
+                                // Count this as processed (whether new or existing)
+                                result.ProcessedEmails++;
+                                
+                                // Update checkpoint after successful processing
+                                if (_bandwidthOptions.Enabled && messageSize > 0)
+                                {
+                                    try
+                                    {
+                                        await _bandwidthService.UpdateCheckpointAsync(
+                                            account.Id, folder.FullName,
+                                            message.Date.DateTime, message.MessageId,
+                                            messageSize);
+                                    }
+                                    catch (Exception cpEx)
+                                    {
+                                        _logger.LogWarning(cpEx, "Error updating checkpoint");
+                                    }
                                 }
                             }
                             catch (Exception ex)
@@ -1286,6 +1421,8 @@ namespace MailArchiver.Services.Providers
             public int ProcessedEmails { get; set; }
             public int NewEmails { get; set; }
             public int FailedEmails { get; set; }
+            public long BytesDownloaded { get; set; }
+            public bool WasRateLimited { get; set; }
         }
 
         #endregion

@@ -2464,4 +2464,10 @@
   <data name="DetailsLabel" xml:space="preserve">
     <value>Dettagli</value>
   </data>
+  <data name="RateLimited" xml:space="preserve">
+    <value>Limite di velocità raggiunto</value>
+  </data>
+  <data name="SyncJobRateLimited" xml:space="preserve">
+    <value>Sincronizzazione in pausa a causa del limite di banda. Riprenderà automaticamente.</value>
+  </data>
 </root>

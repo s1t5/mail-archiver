@@ -11,6 +11,8 @@ namespace MailArchiver.Data
         public DbSet<User> Users { get; set; }
         public DbSet<UserMailAccount> UserMailAccounts { get; set; }
         public DbSet<AccessLog> AccessLogs { get; set; }
+        public DbSet<BandwidthUsage> BandwidthUsages { get; set; }
+        public DbSet<SyncCheckpoint> SyncCheckpoints { get; set; }
 
         public MailArchiverDbContext(DbContextOptions<MailArchiverDbContext> options)
             : base(options)
@@ -219,6 +221,66 @@ namespace MailArchiver.Data
                 .Property(e => e.OriginalBodyHtml)
                 .HasColumnType("bytea")
                 .IsRequired(false);
+
+            // BandwidthUsage entity configuration
+            modelBuilder.Entity<BandwidthUsage>()
+                .HasIndex(b => new { b.MailAccountId, b.Date })
+                .IsUnique()
+                .HasDatabaseName("IX_BandwidthUsage_Account_Date");
+
+            modelBuilder.Entity<BandwidthUsage>()
+                .HasIndex(b => b.Date)
+                .HasDatabaseName("IX_BandwidthUsage_Date");
+
+            modelBuilder.Entity<BandwidthUsage>()
+                .Property(b => b.BytesDownloaded)
+                .HasDefaultValue(0);
+
+            modelBuilder.Entity<BandwidthUsage>()
+                .Property(b => b.BytesUploaded)
+                .HasDefaultValue(0);
+
+            modelBuilder.Entity<BandwidthUsage>()
+                .Property(b => b.EmailsProcessed)
+                .HasDefaultValue(0);
+
+            modelBuilder.Entity<BandwidthUsage>()
+                .Property(b => b.LimitReached)
+                .HasDefaultValue(false);
+
+            modelBuilder.Entity<BandwidthUsage>()
+                .HasOne(b => b.MailAccount)
+                .WithMany()
+                .HasForeignKey(b => b.MailAccountId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // SyncCheckpoint entity configuration
+            modelBuilder.Entity<SyncCheckpoint>()
+                .HasIndex(s => new { s.MailAccountId, s.FolderName })
+                .IsUnique()
+                .HasDatabaseName("IX_SyncCheckpoints_Account_Folder");
+
+            modelBuilder.Entity<SyncCheckpoint>()
+                .HasIndex(s => s.MailAccountId)
+                .HasDatabaseName("IX_SyncCheckpoints_AccountId");
+
+            modelBuilder.Entity<SyncCheckpoint>()
+                .Property(s => s.ProcessedCount)
+                .HasDefaultValue(0);
+
+            modelBuilder.Entity<SyncCheckpoint>()
+                .Property(s => s.IsCompleted)
+                .HasDefaultValue(false);
+
+            modelBuilder.Entity<SyncCheckpoint>()
+                .Property(s => s.BytesDownloaded)
+                .HasDefaultValue(0);
+
+            modelBuilder.Entity<SyncCheckpoint>()
+                .HasOne(s => s.MailAccount)
+                .WithMany()
+                .HasForeignKey(s => s.MailAccountId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

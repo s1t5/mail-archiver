@@ -2456,4 +2456,10 @@
   <data name="DetailsLabel" xml:space="preserve">
     <value>Részletek</value>
   </data>
+  <data name="RateLimited" xml:space="preserve">
+    <value>Sávszélső határ</value>
+  </data>
+  <data name="SyncJobRateLimited" xml:space="preserve">
+    <value>Szinkronizáció felfüggesztve a sávszélességi korláton miatt. Automatikusan folytatódik.</value>
+  </data>
 </root>

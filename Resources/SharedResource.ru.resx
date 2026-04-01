@@ -2464,4 +2464,10 @@
   <data name="DetailsLabel" xml:space="preserve">
     <value>Детали</value>
   </data>
+  <data name="RateLimited" xml:space="preserve">
+    <value>Лимит скорости достигнут</value>
+  </data>
+  <data name="SyncJobRateLimited" xml:space="preserve">
+    <value>Синхронизация приостановлена из-за ограничения пропускной способности. Будет автоматически продолжена.</value>
+  </data>
 </root>
