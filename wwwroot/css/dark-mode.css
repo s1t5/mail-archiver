@@ -470,3 +470,85 @@
   text-align: center;
   margin: 10px 0;
 }
+
+/* Dark Mode für Folder Tree Panel */
+[data-theme="dark"] .folder-tree-panel {
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
+}
+
+[data-theme="dark"] .folder-tree-header {
+  background-color: rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-color);
+}
+
+[data-theme="dark"] .folder-tree-content {
+  background-color: var(--card-bg);
+}
+
+[data-theme="dark"] .folder-tree-item {
+  color: var(--text-color);
+}
+
+[data-theme="dark"] .folder-tree-item:hover {
+  background-color: var(--table-hover-bg);
+}
+
+[data-theme="dark"] .folder-tree-item.selected {
+  background-color: rgba(52, 152, 219, 0.2);
+  border-left-color: var(--primary-color);
+}
+
+[data-theme="dark"] .folder-tree-item.selected:hover {
+  background-color: rgba(52, 152, 219, 0.3);
+}
+
+[data-theme="dark"] .folder-tree-toggle {
+  color: var(--text-muted);
+}
+
+[data-theme="dark"] .folder-tree-icon {
+  color: #ffc107;
+}
+
+[data-theme="dark"] .folder-tree-name {
+  color: var(--text-color);
+}
+
+[data-theme="dark"] .folder-tree-count {
+  background-color: var(--table-hover-bg);
+  color: var(--text-muted);
+}
+
+[data-theme="dark"] .folder-tree-item.selected .folder-tree-count {
+  background-color: rgba(52, 152, 219, 0.3);
+  color: #90cdf4;
+}
+
+[data-theme="dark"] .folder-tree-empty {
+  color: var(--text-muted);
+}
+
+/* Dark Mode für Folder Tree Offcanvas (mobile) */
+[data-theme="dark"] .folder-tree-offcanvas {
+  background-color: var(--card-bg);
+}
+
+[data-theme="dark"] .offcanvas {
+  background-color: var(--card-bg);
+}
+
+[data-theme="dark"] .offcanvas-header {
+  background-color: rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-color);
+}
+
+[data-theme="dark"] .offcanvas-title {
+  color: var(--text-color);
+}
+
+[data-theme="dark"] .btn-close {
+  filter: invert(1) grayscale(100%) brightness(200%);
+}
