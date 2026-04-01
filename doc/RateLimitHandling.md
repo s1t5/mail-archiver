@@ -1,14 +1,18 @@
-# Rate Limit Handling
+# 📊 Rate Limit Handling
 
 [← Back to Documentation Index](Index.md)
 
+<<<<<<< Updated upstream
 ## Overview
+=======
+## 📋 Overview
+>>>>>>> Stashed changes
 
 Many email providers impose bandwidth limits on IMAP access. These limits typically range from a few hundred megabytes to several gigabytes per 24-hour period. When syncing large mailboxes that exceed these limits, the sync process would normally fail or be incomplete.
 
-MailArchiver includes a built-in rate limit handling system that automatically manages these limitations, ensuring reliable synchronization even for large mailboxes.
+Mail Archiver includes a built-in rate limit handling system that automatically manages these limitations, ensuring reliable synchronization even for large mailboxes.
 
-## How It Works
+## ⚙️ How It Works
 
 ### Automatic Bandwidth Tracking
 
@@ -35,7 +39,7 @@ Day 4-6: Continues...
 Day N:   All 14 GB synced → Status: Completed
 ```
 
-## Configuration
+## 🔧 Configuration
 
 ### Enabling Bandwidth Tracking
 
@@ -71,7 +75,7 @@ To determine the appropriate `DailyLimitMb` value:
 4. Start with a conservative value if unsure (e.g., 2000 MB)
 5. Monitor logs for rate limit warnings during initial syncs
 
-## User Experience
+## 👤 User Experience
 
 ### Dashboard Indicators
 
@@ -95,7 +99,7 @@ When a rate limit occurs, the system saves:
 - **Bandwidth Usage**: Total bytes downloaded for the current day
 - **Limit State**: Whether limit is reached and when it will reset
 
-## Database Maintenance
+## 🗄️ Database Maintenance
 
 The `DatabaseMaintenanceService` automatically cleans up old data:
 
@@ -103,7 +107,7 @@ The `DatabaseMaintenanceService` automatically cleans up old data:
 - **Sync Checkpoints**: Completed checkpoints deleted after 30 days
 - **Incomplete Checkpoints**: Preserved until sync completes
 
-## Best Practices
+## ✅ Best Practices
 
 ### For Large Mailboxes
 
@@ -121,10 +125,14 @@ The `DatabaseMaintenanceService` automatically cleans up old data:
 
 ### Performance Considerations
 
-- **Memory Impact**: Negligible - only tracking bytes, not storing emails
-- **Database Impact**: Minimal - small records cleaned up automatically
-- **Sync Speed**: No performance impact during active syncing
+- ✅ **Memory Impact**: Negligible - only tracking bytes, not storing emails
+- ✅ **Database Impact**: Minimal - small records cleaned up automatically
+- ✅ **Sync Speed**: No performance impact during active syncing
 
-## Related Documentation
+## 📚 Related Documentation
 
 - [DatabaseMaintenance.md](DatabaseMaintenance.md) - Database cleanup procedures
+<<<<<<< Updated upstream
+=======
+- [GmailBestPractices.md](GmailBestPractices.md) - Gmail-specific configuration
+>>>>>>> Stashed changes
