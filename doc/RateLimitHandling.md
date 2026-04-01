@@ -1,5 +1,7 @@
 # Rate Limit Handling
 
+[← Back to Documentation Index](Index.md)
+
 ## Overview
 
 Many email providers impose bandwidth limits on IMAP access. These limits typically range from a few hundred megabytes to several gigabytes per 24-hour period. When syncing large mailboxes that exceed these limits, the sync process would normally fail or be incomplete.
