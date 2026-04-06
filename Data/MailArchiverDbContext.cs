@@ -86,6 +86,9 @@ namespace MailArchiver.Data
             modelBuilder.Entity<ArchivedEmail>()
                 .HasIndex(e => e.MailAccountId);
 
+            modelBuilder.Entity<ArchivedEmail>()
+                .HasIndex(e => new { e.MailAccountId, e.MessageId });
+
             // Beziehungen
             modelBuilder.Entity<ArchivedEmail>()
                 .HasOne(e => e.MailAccount)

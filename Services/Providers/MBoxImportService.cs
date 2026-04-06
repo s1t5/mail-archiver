@@ -336,6 +336,10 @@ private readonly IServiceProvider _serviceProvider;
         {
             var stream = new FileStream(job.FilePath, FileMode.Open, FileAccess.Read);
             var parser = new MimeParser(stream, MimeFormat.Mbox);
+            const int batchSize = 50;
+
+            // Parse messages in batches for efficient DB operations
+            var batch = new List<MimeMessage>(batchSize);
 
             try
             {
@@ -346,108 +350,34 @@ private readonly IServiceProvider _serviceProvider;
                     try
                     {
                         var message = await parser.ParseMessageAsync(cancellationToken);
-
-                        // Pre-clean message data to remove null bytes before processing
-                        // This prevents PostgreSQL UTF-8 encoding errors (0x00 is invalid in UTF-8)
                         PreCleanMessage(message);
-
-                        job.CurrentEmailSubject = message.Subject;
-                        job.ProcessedBytes = stream.Position;
-
-                        // Importiere E-Mail in die Datenbank
-                        var importResult = await ImportEmailToDatabase(message, targetAccount, job);
-
-                        // Explicitly dispose of the message to free memory
-                        message?.Dispose();
-
-                        if (importResult.Success)
-                        {
-                            job.SuccessCount++;
-                        }
-                        else if (importResult.AlreadyExists)
-                        {
-                            // Bereits vorhandene E-Mails als skipped zählen, nicht als failed
-                            // job.SkippedCount++; // Falls wir später einen SkippedCount hinzufügen wollen
-                        }
-                        else
-                        {
-                            job.FailedCount++;
-                        }
-
-                        job.ProcessedEmails++;
-
-                        // Clear Entity Framework Change Tracker every 50 emails to prevent memory accumulation
-                        if (job.ProcessedEmails % 50 == 0)
-                        {
-                            using var scope = _serviceProvider.CreateScope();
-                            var context = scope.ServiceProvider.GetRequiredService<MailArchiverDbContext>();
-                            context.ChangeTracker.Clear();
-                        }
-
-                        // Kleine Pause alle 10 E-Mails
-                        if (job.ProcessedEmails % 10 == 0 && _batchOptions.PauseBetweenEmailsMs > 0)
-                        {
-                            await Task.Delay(_batchOptions.PauseBetweenEmailsMs, cancellationToken);
-                            
-                            // Force garbage collection after every 10 emails to free memory
-                            if (job.ProcessedEmails % 50 == 0)
-                            {
-                                GC.Collect();
-                                GC.WaitForPendingFinalizers();
-                            }
-                        }
-
-                        // Log Progress alle 100 E-Mails
-                        if (job.ProcessedEmails % 100 == 0)
-                        {
-                            var progressPercent = job.TotalEmails > 0 ? (job.ProcessedEmails * 100.0 / job.TotalEmails) : 0;
-                            _logger.LogInformation("Job {JobId}: Processed {Processed} emails ({Progress:F1}%)",
-                                job.JobId, job.ProcessedEmails, progressPercent);
-                            
-                            // Clear Entity Framework Change Tracker for comprehensive cleanup every 100 emails
-                            using var scope = _serviceProvider.CreateScope();
-                            var context = scope.ServiceProvider.GetRequiredService<MailArchiverDbContext>();
-                            context.ChangeTracker.Clear();
-                            
-                            // Force garbage collection after every 100 emails to free memory
-                            GC.Collect();
-                            GC.WaitForPendingFinalizers();
-                            
-                            // Log memory usage after processing batch
-                            _logger.LogInformation("Memory usage after processing batch: {MemoryUsage}",
-                                MemoryMonitor.GetMemoryUsageFormatted());
-                        }
+                        batch.Add(message);
                     }
                     catch (FormatException ex)
                     {
                         var currentPosition = stream.Position;
                         job.SkippedMalformedCount++;
-                        
+
                         // Extract context bytes around the malformed position for diagnostics
                         var contextPreview = ExtractStreamContext(stream, currentPosition, 200);
                         _logger.LogWarning(ex, "Job {JobId}: Skipping malformed email #{SkipCount} at byte position {Position} (approx. email #{EmailNum}). Context: {Context}",
                             job.JobId, job.SkippedMalformedCount, currentPosition, job.ProcessedEmails + 1, contextPreview);
-                        
+
                         // CRITICAL: Advance stream past the malformed email to prevent infinite loop
                         // Find the next "From " marker which indicates the start of the next email
                         var nextEmailPosition = FindNextMboxMarker(stream);
                         if (nextEmailPosition > currentPosition)
                         {
                             stream.Position = nextEmailPosition;
-                            
+
                             // CRITICAL FIX: Recreate MimeParser after stream repositioning
-                            // The MimeParser has an internal buffer that becomes desynchronized when 
-                            // stream.Position is changed externally. Without recreating the parser,
-                            // subsequent parse attempts will fail with "Failed to find mbox From marker"
-                            // because the parser reads from its stale internal buffer, not the new position.
                             parser = new MimeParser(stream, MimeFormat.Mbox);
-                            
+
                             _logger.LogInformation("Job {JobId}: Advanced stream from position {OldPos} to {NewPos} ({BytesSkipped} bytes skipped) and recreated parser to skip malformed email",
                                 job.JobId, currentPosition, nextEmailPosition, nextEmailPosition - currentPosition);
                         }
                         else
                         {
-                            // No more emails found, we're at the end of the file
                             _logger.LogInformation("Job {JobId}: No more valid emails found after position {Position}, ending import. Total malformed skipped: {SkipCount}",
                                 job.JobId, currentPosition, job.SkippedMalformedCount);
                             break;
@@ -459,14 +389,123 @@ private readonly IServiceProvider _serviceProvider;
                             job.JobId, stream.Position);
                         job.FailedCount++;
                     }
+
+                    // Process batch when full or at end of stream
+                    if (batch.Count >= batchSize || parser.IsEndOfStream)
+                    {
+                        if (batch.Count > 0)
+                        {
+                            await ImportBatchToDatabase(batch, targetAccount, job, cancellationToken);
+
+                            // Dispose all messages in the batch
+                            foreach (var msg in batch)
+                                msg.Dispose();
+                            batch.Clear();
+
+                            job.ProcessedBytes = stream.Position;
+
+                            // Log progress every 500 emails
+                            if (job.ProcessedEmails % 500 == 0)
+                            {
+                                var progressPercent = job.TotalEmails > 0 ? (job.ProcessedEmails * 100.0 / job.TotalEmails) : 0;
+                                _logger.LogInformation("Job {JobId}: Processed {Processed} emails ({Progress:F1}%)",
+                                    job.JobId, job.ProcessedEmails, progressPercent);
+                                _logger.LogInformation("Memory usage after processing batch: {MemoryUsage}",
+                                    MemoryMonitor.GetMemoryUsageFormatted());
+
+                                // GC only every 500 emails instead of every 50
+                                GC.Collect();
+                                GC.WaitForPendingFinalizers();
+                            }
+                        }
+                    }
                 }
             }
             finally
             {
-                // Stream und Parser explizit freigeben
-                parser = null; // Parser hat keinen Dispose
+                // Dispose any remaining messages in batch
+                foreach (var msg in batch)
+                    msg.Dispose();
+                parser = null;
                 stream?.Dispose();
             }
+        }
+
+        /// <summary>
+        /// Imports a batch of messages to the database with batched duplicate detection.
+        /// </summary>
+        private async Task ImportBatchToDatabase(List<MimeMessage> messages, MailAccount account, MBoxImportJob job, CancellationToken cancellationToken)
+        {
+            using var scope = _serviceProvider.CreateScope();
+            var context = scope.ServiceProvider.GetRequiredService<MailArchiverDbContext>();
+            var dateTimeHelper = scope.ServiceProvider.GetRequiredService<DateTimeHelper>();
+
+            // Step 1: Prepare message metadata and generate MessageIds
+            var messageInfos = new List<(MimeMessage Message, string MessageId, string From, string To, string Subject)>();
+            foreach (var message in messages)
+            {
+                var messageId = message.MessageId;
+                if (string.IsNullOrEmpty(messageId))
+                {
+                    var hashFrom = string.Join(",", message.From.Mailboxes.Select(m => m.Address));
+                    var hashTo = string.Join(",", message.To.Mailboxes.Select(m => m.Address));
+                    var hashSubject = message.Subject ?? "";
+                    var dateTicks = message.Date.Ticks;
+                    var uniqueString = $"{hashFrom}|{hashTo}|{hashSubject}|{dateTicks}";
+                    using var sha256 = System.Security.Cryptography.SHA256.Create();
+                    var hashBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(uniqueString));
+                    var hashString = Convert.ToBase64String(hashBytes).Replace("+", "-").Replace("/", "_").Substring(0, 16);
+                    messageId = $"generated-{hashString}@mail-archiver.local";
+                }
+                var from = string.Join(",", message.From.Mailboxes.Select(m => m.Address));
+                var to = string.Join(",", message.To.Mailboxes.Select(m => m.Address));
+                var subject = message.Subject ?? "(No Subject)";
+                messageInfos.Add((message, messageId, from, to, subject));
+            }
+
+            // Step 2: Batch duplicate check - single query for all MessageIds in the batch
+            var batchMessageIds = messageInfos.Select(m => m.MessageId).ToList();
+            var existingMessageIds = await context.ArchivedEmails
+                .Where(e => e.MailAccountId == account.Id && batchMessageIds.Contains(e.MessageId))
+                .Select(e => e.MessageId)
+                .ToHashSetAsync(cancellationToken);
+
+            // Step 3: Process each message - skip duplicates, import new ones
+            foreach (var (message, messageId, from, to, subject) in messageInfos)
+            {
+                try
+                {
+                    job.CurrentEmailSubject = message.Subject;
+
+                    // Duplicate check using pre-fetched MessageId set
+                    // Content-based fallback is unnecessary: when no MessageId exists,
+                    // we generate a deterministic hash from From+To+Subject+Date,
+                    // so the MessageId check already covers content duplicates.
+                    if (existingMessageIds.Contains(messageId))
+                    {
+                        job.ProcessedEmails++;
+                        continue;
+                    }
+
+                    // Import the email
+                    await ImportSingleEmailToDatabase(context, dateTimeHelper, message, messageId, from, to, subject, account, job);
+                    job.SuccessCount++;
+                    job.ProcessedEmails++;
+
+                    // Also add to the existing set so later messages in the same batch don't duplicate
+                    existingMessageIds.Add(messageId);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Job {JobId}: Failed to import email. Subject: {Subject}, MessageId: {MessageId}",
+                        job.JobId, message.Subject ?? "(No Subject)", messageId);
+                    job.FailedCount++;
+                    job.ProcessedEmails++;
+                }
+            }
+
+            // Clear change tracker after batch
+            context.ChangeTracker.Clear();
         }
 
         private async Task<ImportResult> ImportEmailToDatabase(MimeMessage message, MailAccount account, MBoxImportJob job)
@@ -478,7 +517,7 @@ private readonly IServiceProvider _serviceProvider;
 
                 // Verbesserte MessageId-Generierung für Provider ohne zuverlässige MessageIds
                 var messageId = message.MessageId;
-                
+
                 // Wenn keine MessageId vorhanden, generiere Hash basierend auf E-Mail-Inhalt
                 if (string.IsNullOrEmpty(messageId))
                 {
@@ -486,7 +525,7 @@ private readonly IServiceProvider _serviceProvider;
                     var to = string.Join(",", message.To.Mailboxes.Select(m => m.Address));
                     var subject = message.Subject ?? "";
                     var dateTicks = message.Date.Ticks;
-                    
+
                     var uniqueString = $"{from}|{to}|{subject}|{dateTicks}";
                     using (var sha256 = System.Security.Cryptography.SHA256.Create())
                     {
@@ -494,22 +533,22 @@ private readonly IServiceProvider _serviceProvider;
                         var hashString = Convert.ToBase64String(hashBytes).Replace("+", "-").Replace("/", "_").Substring(0, 16);
                         messageId = $"generated-{hashString}@mail-archiver.local";
                     }
-                    
-                    _logger.LogDebug("Job {JobId}: Generated MessageId for email without MessageId: {MessageId}", 
+
+                    _logger.LogDebug("Job {JobId}: Generated MessageId for email without MessageId: {MessageId}",
                         job.JobId, messageId);
                 }
 
-                _logger.LogDebug("Job {JobId}: Processing email with MessageId: {MessageId}, Subject: {Subject}", 
+                _logger.LogDebug("Job {JobId}: Processing email with MessageId: {MessageId}, Subject: {Subject}",
                     job.JobId, messageId, message.Subject ?? "(No Subject)");
 
                 // ROBUSTE Duplikaterkennung - prüfe mehrere Kriterien
                 var checkFrom = string.Join(",", message.From.Mailboxes.Select(m => m.Address));
                 var checkTo = string.Join(",", message.To.Mailboxes.Select(m => m.Address));
                 var checkSubject = message.Subject ?? "(No Subject)";
-                
+
                 var existing = await context.ArchivedEmails
                     .Where(e => e.MailAccountId == account.Id)
-                    .Where(e => 
+                    .Where(e =>
                         e.MessageId == messageId ||
                         (e.From == checkFrom &&
                          e.To == checkTo &&
@@ -520,7 +559,7 @@ private readonly IServiceProvider _serviceProvider;
 
                 if (existing != null)
                 {
-                    _logger.LogInformation("Job {JobId}: Email already exists (duplicate) - MessageId: {MessageId}, Subject: {Subject}, From: {From}", 
+                    _logger.LogInformation("Job {JobId}: Email already exists (duplicate) - MessageId: {MessageId}, Subject: {Subject}, From: {From}",
                         job.JobId, messageId, checkSubject, checkFrom);
                     return ImportResult.CreateAlreadyExists();
                 }
@@ -654,6 +693,89 @@ private readonly IServiceProvider _serviceProvider;
                 _logger.LogError(ex, "Job {JobId}: Failed to import email to database. Subject: {Subject}, MessageId: {MessageId}, Error: {Error}", 
                     job.JobId, message.Subject ?? "(No Subject)", message.MessageId ?? "None", ex.Message);
                 return ImportResult.CreateFailed(ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// Imports a single email to the database. Used by batch import after duplicate check.
+        /// </summary>
+        private async Task ImportSingleEmailToDatabase(MailArchiverDbContext context, DateTimeHelper dateTimeHelper,
+            MimeMessage message, string messageId, string from, string to, string subject,
+            MailAccount account, MBoxImportJob job)
+        {
+            // Extract text and HTML body preserving original encoding
+            var body = string.Empty;
+            var htmlBody = string.Empty;
+            var rawTextBody = message.TextBody;
+            var rawHtmlBody = message.HtmlBody;
+
+            var hasNullBytesInText = !string.IsNullOrEmpty(rawTextBody) && rawTextBody.Contains('\0');
+            var hasNullBytesInHtml = !string.IsNullOrEmpty(rawHtmlBody) && rawHtmlBody.Contains('\0');
+
+            var originalTextBody = !string.IsNullOrEmpty(rawTextBody) ? CleanText(rawTextBody) : null;
+            var originalHtmlBody = !string.IsNullOrEmpty(rawHtmlBody) ? CleanText(rawHtmlBody) : null;
+
+            if (!string.IsNullOrEmpty(message.TextBody))
+            {
+                var cleanedTextBody = CleanText(message.TextBody);
+                body = Encoding.UTF8.GetByteCount(cleanedTextBody) > 800_000
+                    ? TruncateTextForStorage(cleanedTextBody) : cleanedTextBody;
+            }
+            else if (!string.IsNullOrEmpty(message.HtmlBody))
+            {
+                originalTextBody = message.HtmlBody;
+                var cleanedHtmlAsText = CleanText(message.HtmlBody);
+                body = Encoding.UTF8.GetByteCount(cleanedHtmlAsText) > 800_000
+                    ? TruncateTextForStorage(cleanedHtmlAsText) : cleanedHtmlAsText;
+            }
+
+            if (!string.IsNullOrEmpty(message.HtmlBody))
+            {
+                htmlBody = message.HtmlBody.Length > 1_000_000
+                    ? CleanHtmlForStorage(message.HtmlBody) : CleanText(message.HtmlBody);
+            }
+
+            var allAttachments = new List<MimePart>();
+            CollectAllAttachments(message.Body, allAttachments);
+
+            var convertedSentDate = dateTimeHelper.ConvertToDisplayTimeZone(message.Date);
+
+            var rawHeaders = ExtractRawHeaders(message);
+            if (!string.IsNullOrEmpty(rawHeaders))
+                rawHeaders = CleanText(rawHeaders);
+
+            var archivedEmail = new ArchivedEmail
+            {
+                MailAccountId = account.Id,
+                MessageId = messageId,
+                Subject = CleanText(message.Subject ?? "(No Subject)"),
+                From = CleanText(string.Join(", ", message.From.Mailboxes.Select(m => m.Address))),
+                To = CleanText(string.Join(", ", message.To.Mailboxes.Select(m => m.Address))),
+                Cc = CleanText(string.Join(", ", message.Cc?.Mailboxes.Select(m => m.Address) ?? Enumerable.Empty<string>())),
+                Bcc = CleanText(string.Join(", ", message.Bcc?.Mailboxes.Select(m => m.Address) ?? Enumerable.Empty<string>())),
+                SentDate = convertedSentDate,
+                ReceivedDate = DateTime.UtcNow,
+                IsOutgoing = DetermineIfOutgoing(message, account),
+                HasAttachments = allAttachments.Any(),
+                Body = body,
+                HtmlBody = htmlBody,
+                BodyUntruncatedText = null,
+                BodyUntruncatedHtml = null,
+                OriginalBodyText = (hasNullBytesInText || (!string.IsNullOrEmpty(originalTextBody) && originalTextBody != body))
+                    ? Encoding.UTF8.GetBytes(hasNullBytesInText ? rawTextBody! : originalTextBody!) : null,
+                OriginalBodyHtml = (hasNullBytesInHtml || (!string.IsNullOrEmpty(originalHtmlBody) && originalHtmlBody != htmlBody))
+                    ? Encoding.UTF8.GetBytes(hasNullBytesInHtml ? rawHtmlBody! : originalHtmlBody!) : null,
+                FolderName = job.TargetFolder,
+                RawHeaders = rawHeaders,
+                Attachments = new List<EmailAttachment>()
+            };
+
+            context.ArchivedEmails.Add(archivedEmail);
+            await context.SaveChangesAsync();
+
+            if (allAttachments.Any())
+            {
+                await SaveAllAttachments(context, allAttachments, archivedEmail.Id);
             }
         }
 
