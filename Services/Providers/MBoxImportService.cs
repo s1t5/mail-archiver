@@ -450,7 +450,9 @@ private readonly IServiceProvider _serviceProvider;
                     var hashFrom = string.Join(",", message.From.Mailboxes.Select(m => m.Address));
                     var hashTo = string.Join(",", message.To.Mailboxes.Select(m => m.Address));
                     var hashSubject = message.Subject ?? "";
-                    var dateTicks = message.Date.Ticks;
+                    long dateTicks;
+                    try { dateTicks = message.Date.Ticks; }
+                    catch (ArgumentOutOfRangeException) { dateTicks = 0; }
                     var uniqueString = $"{hashFrom}|{hashTo}|{hashSubject}|{dateTicks}";
                     using var sha256 = System.Security.Cryptography.SHA256.Create();
                     var hashBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(uniqueString));
@@ -750,7 +752,17 @@ private readonly IServiceProvider _serviceProvider;
             var allAttachments = new List<MimePart>();
             CollectAllAttachments(message.Body, allAttachments);
 
-            var convertedSentDate = dateTimeHelper.ConvertToDisplayTimeZone(message.Date);
+            DateTimeOffset messageDate;
+            try
+            {
+                messageDate = message.Date;
+            }
+            catch (ArgumentOutOfRangeException)
+            {
+                // Some emails have malformed date headers that crash MimeKit's date parser
+                messageDate = DateTimeOffset.MinValue;
+            }
+            var convertedSentDate = dateTimeHelper.ConvertToDisplayTimeZone(messageDate);
 
             var rawHeaders = ExtractRawHeaders(message);
             if (!string.IsNullOrEmpty(rawHeaders))
