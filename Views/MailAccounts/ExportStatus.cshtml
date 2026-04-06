@@ -116,11 +116,11 @@
                                     var progressPercent = Model.TotalEmails > 0 ? (Model.ProcessedEmails * 100.0 / Model.TotalEmails) : 0;
                                 }
                                 <div class="progress mb-2">
-                                    <div class="progress-bar progress-bar-striped progress-bar-animated" 
-                                         role="progressbar" 
-                                         style="width: @progressPercent.ToString("F1")%" 
-                                         aria-valuenow="@progressPercent.ToString("F1")" 
-                                         aria-valuemin="0" 
+                                    <div class="progress-bar progress-bar-striped progress-bar-animated"
+                                         role="progressbar"
+                                         style="width: @progressPercent.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)%"
+                                         aria-valuenow="@progressPercent.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)"
+                                         aria-valuemin="0"
                                          aria-valuemax="100">
                                         @progressPercent.ToString("F1")%
                                     </div>

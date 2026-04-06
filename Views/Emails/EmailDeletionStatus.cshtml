@@ -100,8 +100,8 @@
                     <div class="progress" style="height: 25px;">
                         <div class="progress-bar progress-bar-striped progress-bar-animated" 
                              role="progressbar" 
-                             style="width: @emailProgress.ToString("F1")%"
-                             aria-valuenow="@emailProgress.ToString("F1")" 
+                             style="width: @emailProgress.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)%"
+                             aria-valuenow="@emailProgress.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)" 
                              aria-valuemin="0" 
                              aria-valuemax="100">
                             @emailProgress.ToString("F1")%
@@ -116,8 +116,8 @@
                         <div class="progress" style="height: 25px;">
                             <div class="progress-bar progress-bar-striped progress-bar-animated bg-info" 
                                  role="progressbar" 
-                                 style="width: @attachmentProgress.ToString("F1")%"
-                                 aria-valuenow="@attachmentProgress.ToString("F1")" 
+                                 style="width: @attachmentProgress.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)%"
+                                 aria-valuenow="@attachmentProgress.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)" 
                                  aria-valuemin="0" 
                                  aria-valuemax="100">
                                 @attachmentProgress.ToString("F1")%
