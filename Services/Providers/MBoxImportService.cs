@@ -501,6 +501,18 @@ private readonly IServiceProvider _serviceProvider;
                         job.JobId, message.Subject ?? "(No Subject)", messageId);
                     job.FailedCount++;
                     job.ProcessedEmails++;
+
+                    // Detach all failed/added entities to prevent cascade failures
+                    // Without this, a failed SaveChanges leaves the entity in Added state,
+                    // causing all subsequent SaveChanges in this batch to re-attempt the
+                    // broken entity and fail too.
+                    foreach (var entry in context.ChangeTracker.Entries()
+                        .Where(e => e.State == Microsoft.EntityFrameworkCore.EntityState.Added ||
+                                    e.State == Microsoft.EntityFrameworkCore.EntityState.Modified)
+                        .ToList())
+                    {
+                        entry.State = Microsoft.EntityFrameworkCore.EntityState.Detached;
+                    }
                 }
             }
 
