@@ -473,8 +473,8 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRequestLocalization(new RequestLocalizationOptions()
     .SetDefaultCulture("en")
-    .AddSupportedCultures("en", "en-GB", "de", "es", "fr", "it", "sl", "nl", "ru", "hu", "pl")
-    .AddSupportedUICultures("en", "en-GB", "de", "es", "fr", "it", "sl", "nl", "ru", "hu", "pl"));
+    .AddSupportedCultures("en", "en-GB", "de", "es", "fr", "it", "sl", "nl", "ru", "hu", "pl", "zh-CN")
+    .AddSupportedUICultures("en", "en-GB", "de", "es", "fr", "it", "sl", "nl", "ru", "hu", "pl", "zh-CN"));
 app.UseRouting();
 app.UseSession();
 
