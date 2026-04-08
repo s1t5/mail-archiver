@@ -162,10 +162,13 @@
 
     @* Folder Tree Panel - Desktop *@
     <div class="row">
-        <div class="col-lg-2 d-none d-lg-block">
-            <div class="folder-tree-panel">
-                <div class="folder-tree-header">
-                    <i class="bi bi-folder me-2"></i>@Localizer["Folders"]
+        <div class="col-lg-2 d-none d-lg-block" id="folderTreeColumn">
+            <div class="folder-tree-panel" id="folderTreePanel">
+                <div class="folder-tree-header" id="folderTreeHeader" role="button" tabindex="0" title="@Localizer["ToggleFolderTree"]">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-folder me-2"></i><span class="folder-tree-header-text">@Localizer["Folders"]</span>
+                    </div>
+                    <i class="bi bi-chevron-down folder-tree-collapse-icon" id="folderTreeCollapseIcon"></i>
                 </div>
                 <div class="folder-tree-content" id="folderTreeContent">
                     @if (Model.FolderTree != null && Model.FolderTree.Any())
@@ -188,7 +191,12 @@
                 <div class="card">
                     <div class="card-header bg-light">
                         <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-2">
-                            <span class="small"><strong>@Model.TotalResults</strong> @Localizer["EmailsFound", ""]</span>
+                            <div class="d-flex align-items-center gap-2">
+                                <button type="button" class="btn btn-outline-secondary btn-sm folder-tree-toggle-btn" id="folderTreeToggleBtn" title="@Localizer["ToggleFolderTree"]" style="display: none;">
+                                    <i class="bi bi-folder me-1"></i><i class="bi bi-chevron-right"></i>
+                                </button>
+                                <span class="small"><strong>@Model.TotalResults</strong> @Localizer["EmailsFound", ""]</span>
+                            </div>
                             <div class="d-flex align-items-center gap-2">
                                 <span class="small">@Localizer["PageOf", Model.PageNumber, Model.TotalPages]</span>
                                 <select asp-for="PageSize" asp-items="Model.PageSizeOptions" class="form-select form-select-sm" id="pageSizeSelect" style="width: 80px;"></select>
@@ -536,6 +544,78 @@
                 url.searchParams.delete('SelectedFolder');
                 url.searchParams.set('PageNumber', '1');
                 window.location.href = url.toString();
+            });
+        }
+
+        // Folder Tree Panel Collapse/Expand functionality
+        const FOLDER_TREE_COLLAPSED_KEY = 'folderTreeCollapsed';
+        const folderTreePanel = document.getElementById('folderTreePanel');
+        const folderTreeHeader = document.getElementById('folderTreeHeader');
+        const folderTreeColumn = document.getElementById('folderTreeColumn');
+
+        function isFolderTreeCollapsed() {
+            return localStorage.getItem(FOLDER_TREE_COLLAPSED_KEY) === 'true';
+        }
+
+        function saveFolderTreeState(collapsed) {
+            try { localStorage.setItem(FOLDER_TREE_COLLAPSED_KEY, collapsed.toString()); } catch (e) {}
+        }
+
+        function toggleFolderTree() {
+            const isCollapsed = folderTreePanel.classList.toggle('collapsed');
+            folderTreeColumn.classList.toggle('collapsed-col', isCollapsed);
+            saveFolderTreeState(isCollapsed);
+        }
+
+        function initializeFolderTreeState() {
+            if (isFolderTreeCollapsed()) {
+                folderTreePanel.classList.add('collapsed');
+                folderTreeColumn.classList.add('collapsed-col');
+            }
+        }
+
+        // Toggle button in table header
+        const folderTreeToggleBtn = document.getElementById('folderTreeToggleBtn');
+        
+        function updateToggleBtnState() {
+            if (folderTreeToggleBtn && folderTreePanel) {
+                const isCollapsed = folderTreePanel.classList.contains('collapsed');
+                folderTreeToggleBtn.classList.toggle('collapsed', isCollapsed);
+                // Show button only when folder tree is collapsed
+                folderTreeToggleBtn.style.display = isCollapsed ? 'inline-block' : 'none';
+            }
+        }
+
+        // Initialize folder tree state on page load
+        if (folderTreePanel && folderTreeColumn) {
+            initializeFolderTreeState();
+            
+            // Update toggle button state after initializing folder tree state
+            updateToggleBtnState();
+            
+            // Click handler for header in folder tree panel
+            if (folderTreeHeader) {
+                folderTreeHeader.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    toggleFolderTree();
+                    updateToggleBtnState();
+                });
+                
+                // Keyboard support
+                folderTreeHeader.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        toggleFolderTree();
+                        updateToggleBtnState();
+                    }
+                });
+            }
+        }
+        
+        if (folderTreeToggleBtn) {
+            folderTreeToggleBtn.addEventListener('click', function() {
+                toggleFolderTree();
+                updateToggleBtnState();
             });
         }
 

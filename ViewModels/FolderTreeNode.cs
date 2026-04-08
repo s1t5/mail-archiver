@@ -50,9 +50,5 @@ namespace MailArchiver.Models.ViewModels
         /// </summary>
         public bool IsExpanded { get; set; }
 
-        /// <summary>
-        /// Internal dictionary for building the tree structure (used during construction only)
-        /// </summary>
-        internal Dictionary<string, FolderTreeNode>? _childrenDict { get; set; }
     }
 }

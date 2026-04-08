@@ -132,12 +132,11 @@ namespace MailArchiver.Services
                                 await provider.SyncMailAccountAsync(account, jobId);
                             }
 
-                            // Clear checkpoints after successful sync
-                            if (bandwidthOptions.Value.Enabled)
-                            {
-                                await bandwidthService.ClearCheckpointsAsync(account.Id);
-                                _logger.LogDebug("Cleared sync checkpoints for account {AccountName}", account.Name);
-                            }
+                            // NOTE: Checkpoint clearing is handled by SyncMailAccountAsync itself.
+                            // - On successful sync: checkpoints are cleared after updating LastSync
+                            // - On rate-limited sync: checkpoints are preserved for resume
+                            // Do NOT clear checkpoints here, as it would destroy resume data
+                            // for rate-limited syncs (see Bug #3 in rate-limit analysis).
                             
                             _logger.LogInformation("Mail sync completed for account: {AccountName}", account.Name);
                         }

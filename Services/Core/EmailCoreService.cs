@@ -2255,108 +2255,75 @@ namespace MailArchiver.Services.Core
                         folderData.Count - validFolderData.Count, accountId);
                 }
 
-                // Build the folder tree
-                var rootNode = new Dictionary<string, FolderTreeNode>(StringComparer.OrdinalIgnoreCase);
+                // Build the folder tree based on actual parent-child relationships.
+                // Only create hierarchy when a parent folder actually exists in the data.
+                // This prevents folder names containing '/'
+                // from being incorrectly split into phantom sub-hierarchies.
+                var folderNameSet = new HashSet<string>(
+                    validFolderData.Select(f => f.FolderName),
+                    StringComparer.OrdinalIgnoreCase);
 
-                foreach (var folder in folderData)
+                // Create all nodes
+                var allNodes = new Dictionary<string, FolderTreeNode>(StringComparer.OrdinalIgnoreCase);
+                foreach (var folder in validFolderData)
                 {
-                    var parts = folder.FolderName.Split(new[] { '/', '\\' }, StringSplitOptions.RemoveEmptyEntries);
-                    
-                    // Find or create the path in the tree
-                    var currentLevel = rootNode;
-                    FolderTreeNode? currentNode = null;
-                    
-                    for (int i = 0; i < parts.Length; i++)
+                    allNodes[folder.FolderName] = new FolderTreeNode
                     {
-                        var part = parts[i].Trim();
-                        var fullPath = string.Join("/", parts.Take(i + 1));
+                        Name = folder.FolderName,
+                        FullPath = folder.FolderName,
+                        TotalCount = folder.Count,
+                        UnreadCount = 0,
+                        Children = new List<FolderTreeNode>()
+                    };
+                }
 
-                        if (!currentLevel.TryGetValue(part, out var node))
+                // Build parent-child relationships.
+                // Process shortest names first so parents are set up before their children.
+                var rootNodes = new List<FolderTreeNode>();
+
+                foreach (var folder in validFolderData.OrderBy(f => f.FolderName.Length).ThenBy(f => f.FolderName))
+                {
+                    var node = allNodes[folder.FolderName];
+                    string? parentPath = null;
+
+                    // Find the nearest existing parent by scanning for hierarchy separators from right to left.
+                    // Common IMAP separators: '/' (most servers), '.', '\\' (rare)
+                    for (int i = folder.FolderName.Length - 1; i >= 0; i--)
+                    {
+                        if (folder.FolderName[i] == '/' || folder.FolderName[i] == '\\' || folder.FolderName[i] == '.')
                         {
-                            node = new FolderTreeNode
+                            var candidate = folder.FolderName.Substring(0, i);
+                            if (folderNameSet.Contains(candidate))
                             {
-                                Name = part,
-                                FullPath = fullPath,
-                                Level = i,
-                                TotalCount = 0, // Will be set for leaf nodes
-                                UnreadCount = 0,
-                                Children = new List<FolderTreeNode>()
-                            };
-                            currentLevel[part] = node;
-                        }
-
-                        currentNode = node;
-                        
-                        // Move to next level
-                        if (i < parts.Length - 1)
-                        {
-                            currentLevel = GetOrCreateChildrenDict(node);
+                                parentPath = candidate;
+                                break;
+                            }
                         }
                     }
 
-                    // Set count on the leaf node (the actual folder)
-                    if (currentNode != null)
+                    if (parentPath != null && allNodes.TryGetValue(parentPath, out var parentNode))
                     {
-                        currentNode.TotalCount = folder.Count;
+                        // Child folder — display name is the suffix after the parent path
+                        node.Name = folder.FolderName.Substring(parentPath.Length + 1);
+                        node.Level = parentNode.Level + 1;
+                        parentNode.Children.Add(node);
+                    }
+                    else
+                    {
+                        // Root folder — display name stays as the full folder name
+                        node.Level = 0;
+                        rootNodes.Add(node);
                     }
                 }
 
-                // Convert the dictionary tree to a list structure
-                var result = BuildFolderTreeList(rootNode);
-
                 // Sort folders alphabetically, but keep INBOX-like folders at top
-                return SortFolderTree(result);
+                return SortFolderTree(rootNodes);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error getting folder tree for account {AccountId}", accountId);
                 return new List<FolderTreeNode>();
             }
-        }
-
-        /// <summary>
-        /// Helper method to get or create the children dictionary for a node
-        /// </summary>
-        private Dictionary<string, FolderTreeNode> GetOrCreateChildrenDict(FolderTreeNode node)
-        {
-            // We use a temporary dictionary during building, then convert to list
-            if (node._childrenDict == null)
-            {
-                node._childrenDict = new Dictionary<string, FolderTreeNode>(StringComparer.OrdinalIgnoreCase);
-            }
-            return node._childrenDict;
-        }
-
-        /// <summary>
-        /// Builds a list of FolderTreeNode from the dictionary structure
-        /// </summary>
-        private List<FolderTreeNode> BuildFolderTreeList(Dictionary<string, FolderTreeNode> nodeDict)
-        {
-            var result = new List<FolderTreeNode>();
-            
-            foreach (var kvp in nodeDict)
-            {
-                var node = kvp.Value;
-                
-                // Convert children dictionary to list
-                if (node._childrenDict != null && node._childrenDict.Any())
-                {
-                    node.Children = BuildFolderTreeList(node._childrenDict);
-                    node._childrenDict = null; // Clear the dictionary, we don't need it anymore
-                }
-                else
-                {
-                    node.Children = new List<FolderTreeNode>();
-                }
-                
-                // Calculate total count including children (for parent folders)
-                // The count shown should be emails in this folder specifically, not including subfolders
-                // (This matches typical email client behavior where subfolders show separately)
-                
-                result.Add(node);
-            }
-            
-            return result;
         }
 
         /// <summary>
@@ -2399,10 +2366,12 @@ namespace MailArchiver.Services.Core
                         return priority;
                     
                     // Check if the full path contains a priority folder
+                    var lowerPath = n.FullPath.ToLowerInvariant();
                     foreach (var pf in priorityFolders)
                     {
-                        if (n.FullPath.ToLowerInvariant().StartsWith(pf.Key + "/") || 
-                            n.FullPath.ToLowerInvariant() == pf.Key)
+                        if (lowerPath.StartsWith(pf.Key + "/") || 
+                            lowerPath.StartsWith(pf.Key + ".") ||
+                            lowerPath == pf.Key)
                             return pf.Value;
                     }
                     

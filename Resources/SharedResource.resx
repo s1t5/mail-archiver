@@ -1424,6 +1424,12 @@
   <data name="Folders" xml:space="preserve">
     <value>Folders</value>
   </data>
+  <data name="ToggleFolderTree" xml:space="preserve">
+    <value>Click to expand/collapse folder tree</value>
+  </data>
+  <data name="NoFolders" xml:space="preserve">
+    <value>No folders available</value>
+  </data>
   <data name="ProcessedSuffix" xml:space="preserve">
     <value>Processed</value>
   </data>

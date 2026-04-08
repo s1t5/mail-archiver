@@ -1460,6 +1460,12 @@
   <data name="Folders" xml:space="preserve">
     <value>Ordner</value>
   </data>
+  <data name="ToggleFolderTree" xml:space="preserve">
+    <value>Klicken zum Ein-/Ausklappen der Ordnerübersicht</value>
+  </data>
+  <data name="NoFolders" xml:space="preserve">
+    <value>Keine Ordner verfügbar</value>
+  </data>
   <data name="ProcessedSuffix" xml:space="preserve">
     <value>verarbeitet</value>
   </data>

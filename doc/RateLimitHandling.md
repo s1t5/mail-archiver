@@ -2,11 +2,7 @@
 
 [← Back to Documentation Index](Index.md)
 
-<<<<<<< Updated upstream
-## Overview
-=======
 ## 📋 Overview
->>>>>>> Stashed changes
 
 Many email providers impose bandwidth limits on IMAP access. These limits typically range from a few hundred megabytes to several gigabytes per 24-hour period. When syncing large mailboxes that exceed these limits, the sync process would normally fail or be incomplete.
 
@@ -132,7 +128,4 @@ The `DatabaseMaintenanceService` automatically cleans up old data:
 ## 📚 Related Documentation
 
 - [DatabaseMaintenance.md](DatabaseMaintenance.md) - Database cleanup procedures
-<<<<<<< Updated upstream
-=======
 - [GmailBestPractices.md](GmailBestPractices.md) - Gmail-specific configuration
->>>>>>> Stashed changes

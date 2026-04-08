@@ -483,6 +483,18 @@
   color: var(--text-color);
 }
 
+[data-theme="dark"] .folder-tree-header:hover {
+  background-color: var(--table-hover-bg);
+}
+
+[data-theme="dark"] .folder-tree-collapse-icon {
+  color: var(--text-muted);
+}
+
+[data-theme="dark"] .folder-tree-panel.collapsed .folder-tree-header {
+  border-bottom: none;
+}
+
 [data-theme="dark"] .folder-tree-content {
   background-color: var(--card-bg);
 }
