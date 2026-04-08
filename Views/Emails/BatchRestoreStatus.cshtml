@@ -117,7 +117,7 @@
                         <dt class="col-sm-3">@Localizer["DurationLabel"]</dt>
                         <dd class="col-sm-9">
                             <span class="badge bg-info">
-                                @duration.ToString(@"hh\:mm\:ss")
+                                @(duration.Days > 0 ? $"{duration.Days}d " : "")@duration.ToString(@"hh\:mm\:ss")
                             </span>
                         </dd>
                     }
