@@ -2469,4 +2469,10 @@
   <data name="SyncJobRateLimited" xml:space="preserve">
     <value>Sincronización pausada por límite de ancho de banda. Reanudará automáticamente.</value>
   </data>
+  <data name="ToggleFolderTree" xml:space="preserve">
+    <value>Haga clic para expandir/contraer el árbol de carpetas</value>
+  </data>
+  <data name="NoFolders" xml:space="preserve">
+    <value>No hay carpetas disponibles</value>
+  </data>
 </root>

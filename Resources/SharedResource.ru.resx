@@ -2470,4 +2470,10 @@
   <data name="SyncJobRateLimited" xml:space="preserve">
     <value>Синхронизация приостановлена из-за ограничения пропускной способности. Будет автоматически продолжена.</value>
   </data>
+  <data name="ToggleFolderTree" xml:space="preserve">
+    <value>Нажмите, чтобы развернуть/свернуть дерево папок</value>
+  </data>
+  <data name="NoFolders" xml:space="preserve">
+    <value>Папки недоступны</value>
+  </data>
 </root>

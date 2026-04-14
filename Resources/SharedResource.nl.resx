@@ -2470,4 +2470,10 @@
   <data name="SyncJobRateLimited" xml:space="preserve">
     <value>Synchronisatie gepauzeerd door bandbreedtebeperking. Wordt automatisch hervat.</value>
   </data>
+  <data name="ToggleFolderTree" xml:space="preserve">
+    <value>Klik om mappenboom in/uit te klappen</value>
+  </data>
+  <data name="NoFolders" xml:space="preserve">
+    <value>Geen mappen beschikbaar</value>
+  </data>
 </root>

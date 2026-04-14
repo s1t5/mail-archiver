@@ -285,6 +285,13 @@
   border: 1px solid var(--border-color) !important;
 }
 
+/* Dark Mode für Danger Zone (Gefahren-Zone) */
+[data-theme="dark"] .border.border-danger.rounded.p-3.bg-light {
+  background-color: var(--alert-danger-bg) !important;
+  color: var(--text-color) !important;
+  border-color: var(--danger-color) !important;
+}
+
 /* Dark Mode für HTML Email Body */
 [data-theme="dark"] .email-html-body {
   background-color: #ffffff;

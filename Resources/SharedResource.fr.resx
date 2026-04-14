@@ -2470,4 +2470,10 @@
   <data name="SyncJobRateLimited" xml:space="preserve">
     <value>Synchronisation suspendue en raison de la limite de bande passante. Reprendra automatiquement.</value>
   </data> 
+  <data name="ToggleFolderTree" xml:space="preserve">
+    <value>Cliquer pour développer/réduire l'arborescence des dossiers</value>
+  </data>
+  <data name="NoFolders" xml:space="preserve">
+    <value>Aucun dossier disponible</value>
+  </data>
 </root>
