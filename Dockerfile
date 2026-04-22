@@ -7,6 +7,11 @@ RUN dotnet restore && dotnet publish -c Release -o out
 
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
 
+# Install Kerberos library required by MailKit (libgssapi_krb5.so.2)r
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends libgssapi-krb5-2 \
+    && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app
 
 COPY --from=build /app/out ./
