@@ -117,12 +117,17 @@ namespace MailArchiver.Controllers
                     var mailAccountCount = await dbContext.MailAccounts.CountAsync();
                     
                     if (mailAccountCount == 0 && 
-                        model.Username == defaultUsername && 
-                        model.Password == defaultPassword)
+                        model.Username == defaultUsername)
                     {
-                        // Force password change for initial setup
-                        HttpContext.Session.SetString("MustChangePassword", "true");
-                        _logger.LogWarning("User {Username} logged in with default credentials on initial setup - forcing password change", model.Username);
+                        // Compare stored password hash against the default password hash
+                        // to determine if the user has actually changed their password
+                        var defaultPasswordHash = _userService.HashPassword(defaultPassword);
+                        if (user?.PasswordHash == defaultPasswordHash)
+                        {
+                            // Force password change for initial setup
+                            HttpContext.Session.SetString("MustChangePassword", "true");
+                            _logger.LogWarning("User {Username} logged in with default credentials on initial setup - forcing password change", model.Username);
+                        }
                     }                    
                     
                     return RedirectToLocal(returnUrl);
