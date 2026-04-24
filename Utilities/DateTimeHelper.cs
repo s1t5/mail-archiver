@@ -55,5 +55,30 @@ namespace MailArchiver.Utilities
                 
             return dateTime; // Already UTC
         }
+
+        /// <summary>
+        /// Inverse of <see cref="ConvertToDisplayTimeZone(DateTime)"/>.
+        /// Interprets a DateTime stored in the configured display timezone (or with
+        /// <see cref="DateTimeKind.Unspecified"/> because it has round-tripped through
+        /// PostgreSQL, which strips the kind information for <c>timestamp without time zone</c>
+        /// columns) and returns the equivalent UTC DateTime.
+        /// Values explicitly marked as <see cref="DateTimeKind.Utc"/> are passed through
+        /// unchanged; <see cref="DateTimeKind.Local"/> values are converted via the OS.
+        /// </summary>
+        /// <param name="dateTime">The DateTime value to convert</param>
+        /// <returns>The equivalent UTC DateTime (Kind=Utc)</returns>
+        public DateTime ConvertFromDisplayTimeZoneToUtc(DateTime dateTime)
+        {
+            if (dateTime.Kind == DateTimeKind.Utc)
+                return dateTime;
+
+            if (dateTime.Kind == DateTimeKind.Local)
+                return dateTime.ToUniversalTime();
+
+            // Unspecified - assume it is in the configured display timezone
+            var unspecified = DateTime.SpecifyKind(dateTime, DateTimeKind.Unspecified);
+            return TimeZoneInfo.ConvertTimeToUtc(unspecified, _displayTimeZone);
+        }
+
     }
 }

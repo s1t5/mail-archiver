@@ -1638,14 +1638,29 @@ private async Task<GraphServiceClient> CreateGraphClientAsync(MailAccount accoun
                     IsRead = false, // Mark as unread
                     Importance = Importance.Normal,
                     InferenceClassification = InferenceClassificationType.Focused,
-                    // CRITICAL: Set extended property to prevent draft behavior
-                    // PidTagMessageFlags (0x0E07) = 3591 with value 1 prevents the message from appearing as a draft
+                    // CRITICAL: Set extended properties to preserve original timestamps and prevent draft behavior
+                    // Exchange/Graph API ignores the SentDateTime/ReceivedDateTime values on the Message object
+                    // when creating via POST and sets them to "now". To preserve the original timestamps we must
+                    // set the underlying MAPI properties directly:
+                    //   - PidTagClientSubmitTime     (0x0039, SystemTime) -> SentDateTime
+                    //   - PidTagMessageDeliveryTime  (0x0E06, SystemTime) -> ReceivedDateTime
+                    //   - PidTagMessageFlags         (0x0E07, Integer)    -> prevents the message from appearing as a draft
                     SingleValueExtendedProperties = new List<SingleValueLegacyExtendedProperty>
                     {
                         new SingleValueLegacyExtendedProperty
                         {
                             Id = "Integer 0x0E07", // PidTagMessageFlags
                             Value = "1" // Mark as not a draft (MSGFLAG_READ)
+                        },
+                        new SingleValueLegacyExtendedProperty
+                        {
+                            Id = "SystemTime 0x0039", // PidTagClientSubmitTime -> SentDateTime
+                            Value = NormalizeToUtcIso8601(email.SentDate)
+                        },
+                        new SingleValueLegacyExtendedProperty
+                        {
+                            Id = "SystemTime 0x0E06", // PidTagMessageDeliveryTime -> ReceivedDateTime
+                            Value = NormalizeToUtcIso8601(email.ReceivedDate)
                         }
                     }
                 };
@@ -2155,6 +2170,27 @@ private async Task<GraphServiceClient> CreateGraphClientAsync(MailAccount accoun
 
             return cleanedText.ToString();
         }
+
+        /// <summary>
+        /// Normalizes a DateTime value to a UTC ISO-8601 string suitable for the
+        /// SystemTime MAPI extended properties (e.g. PidTagClientSubmitTime,
+        /// PidTagMessageDeliveryTime).
+        /// <para>
+        /// IMPORTANT: <see cref="ArchivedEmail.SentDate"/> is persisted in the configured
+        /// display timezone (see <c>ArchiveGraphEmailAsync</c> / <c>ArchiveImapEmailAsync</c>
+        /// where <see cref="DateTimeHelper.ConvertToDisplayTimeZone(DateTime)"/> is applied
+        /// before saving). After the round-trip through PostgreSQL the values come back
+        /// with <see cref="DateTimeKind.Unspecified"/>. We therefore must convert those
+        /// values back from the display timezone to UTC - otherwise Outlook would render
+        /// the restored mail with a timezone offset (observed +2h on Europe/Berlin).
+        /// </para>
+        /// </summary>
+        private string NormalizeToUtcIso8601(DateTime value)
+        {
+            var utc = _dateTimeHelper.ConvertFromDisplayTimeZoneToUtc(value);
+            return utc.ToString("yyyy-MM-ddTHH:mm:ss.fffZ", System.Globalization.CultureInfo.InvariantCulture);
+        }
+
 
         /// <summary>
         /// Truncates a single field to ensure it doesn't exceed tsvector limits

@@ -609,7 +609,14 @@ namespace MailArchiver.Services.Providers
                     }
 
                     message.Body = bodyBuilder.ToMessageBody();
-                    message.Date = email.SentDate;
+                    // IMPORTANT: ArchivedEmail.SentDate is persisted in the configured display
+                    // timezone with Kind=Unspecified (see Archive* methods). Assigning it
+                    // directly to MimeMessage.Date would cause MimeKit to interpret it as the
+                    // container's local time, which is frequently UTC in Docker and therefore
+                    // produces a Date header with the wrong timezone offset. Convert back to
+                    // UTC first to ensure the restored mail carries the correct original time.
+                    var sentUtc = _dateTimeHelper.ConvertFromDisplayTimeZoneToUtc(email.SentDate);
+                    message.Date = new DateTimeOffset(sentUtc, TimeSpan.Zero);
                     if (!string.IsNullOrEmpty(email.MessageId) && email.MessageId.Contains('@'))
                     {
                         message.MessageId = email.MessageId;
@@ -682,8 +689,17 @@ namespace MailArchiver.Services.Providers
                     try
                     {
                         _logger.LogInformation("Appending message to folder {FolderName}", folder.FullName);
-                        await folder.AppendAsync(message, MessageFlags.Seen);
-                        _logger.LogInformation("Message successfully appended to folder {FolderName}", folder.FullName);
+                        // Pass the original received date as IMAP INTERNALDATE so that the
+                        // server preserves the archival received-time instead of setting it
+                        // to "now" (which would put the mail at the top of the list sorted
+                        // by INTERNALDATE). Fall back to the sent date when ReceivedDate is
+                        // at the epoch default.
+                        var receivedSource = email.ReceivedDate == default ? email.SentDate : email.ReceivedDate;
+                        var internalDateUtc = _dateTimeHelper.ConvertFromDisplayTimeZoneToUtc(receivedSource);
+                        var internalDate = new DateTimeOffset(internalDateUtc, TimeSpan.Zero);
+                        await folder.AppendAsync(message, MessageFlags.Seen, internalDate);
+                        _logger.LogInformation("Message successfully appended to folder {FolderName} with INTERNALDATE {InternalDate}",
+                            folder.FullName, internalDate);
                     }
                     catch (Exception ex)
                     {
@@ -1946,9 +1962,14 @@ namespace MailArchiver.Services.Providers
                     return false;
                 }
 
-                // Append message to folder using existing connection
-                await targetFolder.AppendAsync(message, MessageFlags.Seen);
-                _logger.LogDebug("Email {EmailId} successfully appended to folder {FolderName}", emailId, targetFolder.FullName);
+                // Preserve the original received date as IMAP INTERNALDATE (see
+                // RestoreEmailToFolderAsync for full rationale).
+                var receivedSource = email.ReceivedDate == default ? email.SentDate : email.ReceivedDate;
+                var internalDateUtc = _dateTimeHelper.ConvertFromDisplayTimeZoneToUtc(receivedSource);
+                var internalDate = new DateTimeOffset(internalDateUtc, TimeSpan.Zero);
+                await targetFolder.AppendAsync(message, MessageFlags.Seen, internalDate);
+                _logger.LogDebug("Email {EmailId} successfully appended to folder {FolderName} with INTERNALDATE {InternalDate}",
+                    emailId, targetFolder.FullName, internalDate);
 
                 return true;
             }
@@ -2090,7 +2111,10 @@ namespace MailArchiver.Services.Providers
                 }
 
                 message.Body = bodyBuilder.ToMessageBody();
-                message.Date = email.SentDate;
+                // Convert from display timezone back to UTC - see comment on the
+                // corresponding assignment in RestoreEmailToFolderAsync.
+                var sentUtc = _dateTimeHelper.ConvertFromDisplayTimeZoneToUtc(email.SentDate);
+                message.Date = new DateTimeOffset(sentUtc, TimeSpan.Zero);
                 if (!string.IsNullOrEmpty(email.MessageId) && email.MessageId.Contains('@'))
                 {
                     message.MessageId = email.MessageId;
