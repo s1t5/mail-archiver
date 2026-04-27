@@ -1632,7 +1632,7 @@ private async Task<GraphServiceClient> CreateGraphClientAsync(MailAccount accoun
                     CcRecipients = ParseEmailAddresses(email.Cc),
                     BccRecipients = ParseEmailAddresses(email.Bcc),
                     SentDateTime = email.SentDate,
-                    ReceivedDateTime = email.ReceivedDate,
+                    ReceivedDateTime = email.SentDate,
                     InternetMessageId = email.MessageId,
                     // Set properties that might help with proper display
                     IsRead = false, // Mark as unread
@@ -1643,7 +1643,7 @@ private async Task<GraphServiceClient> CreateGraphClientAsync(MailAccount accoun
                     // when creating via POST and sets them to "now". To preserve the original timestamps we must
                     // set the underlying MAPI properties directly:
                     //   - PidTagClientSubmitTime     (0x0039, SystemTime) -> SentDateTime
-                    //   - PidTagMessageDeliveryTime  (0x0E06, SystemTime) -> ReceivedDateTime
+                    //   - PidTagMessageDeliveryTime  (0x0E06, SystemTime) -> ReceivedDateTime (using SentDate since ReceivedDate only stores archive timestamp)
                     //   - PidTagMessageFlags         (0x0E07, Integer)    -> prevents the message from appearing as a draft
                     SingleValueExtendedProperties = new List<SingleValueLegacyExtendedProperty>
                     {
@@ -1659,8 +1659,8 @@ private async Task<GraphServiceClient> CreateGraphClientAsync(MailAccount accoun
                         },
                         new SingleValueLegacyExtendedProperty
                         {
-                            Id = "SystemTime 0x0E06", // PidTagMessageDeliveryTime -> ReceivedDateTime
-                            Value = NormalizeToUtcIso8601(email.ReceivedDate)
+                            Id = "SystemTime 0x0E06", // PidTagMessageDeliveryTime -> ReceivedDateTime (using SentDate since ReceivedDate only stores archive timestamp)
+                            Value = NormalizeToUtcIso8601(email.SentDate)
                         }
                     }
                 };
