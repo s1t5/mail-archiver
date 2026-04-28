@@ -695,10 +695,24 @@ private async Task<GraphServiceClient> CreateGraphClientAsync(MailAccount accoun
 
                         if (messagesResponse?.Value != null)
                         {
+                            // MEMORY FIX: Hold onto the next-page URL and drop the previous response
+                            // reference as soon as we have extracted what we need. Each Graph page
+                            // contains up to BatchSize (default 50) fully deserialized Message
+                            // objects - including the full HTML body 
+                            var nextLink = messagesResponse.OdataNextLink;
+
                             // Apply the same filtering logic for pagination results as for the main query
                             var filteredPaginationMessages = messagesResponse.Value
                                 .Where(m => m.LastModifiedDateTime >= lastSync)
                                 .ToList();
+
+                            // Explicitly drop the reference to the full page response so its large
+                            // HTML bodies become eligible for GC while we process the filtered set.
+                            messagesResponse.Value.Clear();
+                            messagesResponse = new Microsoft.Graph.Models.MessageCollectionResponse
+                            {
+                                OdataNextLink = nextLink
+                            };
 
                             _logger.LogInformation("Processing page {PageNumber} with {Count} messages in folder {FolderName} for account: {AccountName}",
                                 paginationCount, filteredPaginationMessages.Count, folder.DisplayName, account.Name);
@@ -834,31 +848,41 @@ private async Task<GraphServiceClient> CreateGraphClientAsync(MailAccount accoun
                 var checkSubject = message.Subject ?? "(No Subject)";
                 var checkDate = message.SentDateTime?.DateTime ?? DateTime.UtcNow;
                 
-                var existingEmail = await _context.ArchivedEmails
+                // MEMORY OPTIMIZATION: Use AsNoTracking + projection for the duplicate check.
+                var existingInfo = await _context.ArchivedEmails
+                    .AsNoTracking()
                     .Where(e => e.MailAccountId == account.Id)
-                    .Where(e => 
+                    .Where(e =>
                         e.MessageId == messageId ||
                         (e.From == checkFrom &&
                          e.To == checkTo &&
                          e.Subject == checkSubject &&
                          Math.Abs((e.SentDate - checkDate).TotalSeconds) < 2)
                     )
+                    .Select(e => new { e.Id, e.FolderName, e.Subject })
                     .FirstOrDefaultAsync();
 
-                if (existingEmail != null)
+                if (existingInfo != null)
                 {
                     // E-Mail existiert bereits, prüfen ob der Ordner geändert wurde
                     var cleanFolderName = CleanText(folderName);
-                    if (existingEmail.FolderName != cleanFolderName)
+                    if (existingInfo.FolderName != cleanFolderName)
                     {
-                        // Ordner hat sich geändert, aktualisieren
-                        var oldFolder = existingEmail.FolderName;
-                        existingEmail.FolderName = cleanFolderName;
-                        await _context.SaveChangesAsync();
-                        _logger.LogInformation("Updated folder for existing email: {Subject} from '{OldFolder}' to '{NewFolder}'",
-                            existingEmail.Subject, oldFolder, cleanFolderName);
+                        // Ordner hat sich geändert, aktualisieren - erst JETZT tracked laden
+                        var existingEmail = await _context.ArchivedEmails.FindAsync(existingInfo.Id);
+                        if (existingEmail != null)
+                        {
+                            var oldFolder = existingEmail.FolderName;
+                            existingEmail.FolderName = cleanFolderName;
+                            await _context.SaveChangesAsync();
+                            _logger.LogInformation("Updated folder for existing email: {Subject} from '{OldFolder}' to '{NewFolder}'",
+                                existingEmail.Subject, oldFolder, cleanFolderName);
+                            // Clear the change tracker so the updated entity (with Body etc.)
+                            // doesn't remain in memory for the rest of the sync batch.
+                            _context.ChangeTracker.Clear();
+                        }
                     }
-                    _logger.LogInformation("Email already exists (duplicate) - MessageId: {MessageId}, Subject: {Subject}, From: {From}", 
+                    _logger.LogInformation("Email already exists (duplicate) - MessageId: {MessageId}, Subject: {Subject}, From: {From}",
                         messageId, checkSubject, checkFrom);
                     return false; // Email already exists
                 }
@@ -1042,19 +1066,118 @@ private async Task<GraphServiceClient> CreateGraphClientAsync(MailAccount accoun
                     Attachments = new List<EmailAttachment>() // Initialize collection for hash calculation
                 };
 
+                // CRITICAL: Load attachments BEFORE calculating hash
+                // This ensures the hash includes the attachment content
+                try
+                {
+                    _logger.LogDebug("Loading attachments for Graph API message {MessageId} before hash calculation", message.Id);
+                    
+                    var attachmentsResponse = await graphClient.Users[account.EmailAddress].Messages[message.Id].Attachments.GetAsync();
+
+                    if (attachmentsResponse?.Value != null)
+                    {
+                        _logger.LogDebug("Found {Count} attachments for message {MessageId}", attachmentsResponse.Value.Count, message.Id);
+                        
+                        foreach (var attachment in attachmentsResponse.Value)
+                        {
+                            try
+                            {
+                                if (attachment is FileAttachment fileAttachment && fileAttachment.ContentBytes != null)
+                                {
+                                    var cleanFileName = CleanText(fileAttachment.Name ?? "attachment");
+                                    var contentType = CleanText(fileAttachment.ContentType ?? "application/octet-stream");
+                                    
+                                    var contentId = !string.IsNullOrEmpty(fileAttachment.ContentId) 
+                                        ? fileAttachment.ContentId.Trim().Trim('<', '>') 
+                                        : null;
+                                    
+                                    bool isInlineContent = IsGraphInlineContent(fileAttachment);
+                                    
+                                    if (isInlineContent && (string.IsNullOrEmpty(cleanFileName) || cleanFileName == "attachment"))
+                                    {
+                                        var extension = GetExtensionFromContentType(contentType);
+                                        if (!string.IsNullOrEmpty(contentId))
+                                        {
+                                            var cidPart = contentId.Trim('<', '>').Split('@')[0];
+                                            cleanFileName = $"inline_{cidPart}{extension}";
+                                        }
+                                        else
+                                        {
+                                            cleanFileName = $"inline_image_{Guid.NewGuid().ToString("N")[..8]}{extension}";
+                                        }
+                                    }
+
+                                    var emailAttachment = new EmailAttachment
+                                    {
+                                        FileName = cleanFileName,
+                                        ContentType = contentType,
+                                        Content = fileAttachment.ContentBytes,
+                                        Size = fileAttachment.ContentBytes.Length,
+                                        ContentId = contentId
+                                    };
+
+                                    archivedEmail.Attachments.Add(emailAttachment);
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                _logger.LogError(ex, "Failed to process Graph API attachment: {AttachmentName}", attachment.Name);
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to load attachments for Graph API message {MessageId} before hash calculation", message.Id);
+                }
+
+                // MEMORY FIX (memory-leak-graph-sync):
+                // Previously attachments were saved TWICE – once implicitly via the navigation
+                // property, and again via a follow-up SaveGraphAttachmentsAsync() call that re-downloaded every
+                // attachment from Microsoft Graph and inserted another set of EmailAttachment rows.
+                // Consequences:
+                //   * Attachment byte[] content was held twice in the change tracker (often many MB)
+                //   * Graph API traffic and bandwidth usage were doubled
+                //   * EmailAttachments table contained duplicate rows for every M365 sync
+                // Fix: set HasAttachments from the already-loaded collection and persist once.
+                archivedEmail.HasAttachments = archivedEmail.Attachments != null && archivedEmail.Attachments.Count > 0;
+
                 _context.ArchivedEmails.Add(archivedEmail);
                 await _context.SaveChangesAsync();
 
-                // Always try to get attachments, regardless of HasAttachments flag
-                // This is important because inline images might not be reflected in HasAttachments
-                var attachmentCount = await SaveGraphAttachmentsAsync(graphClient, message.Id, archivedEmail.Id, account.EmailAddress);
-                
-                // Update HasAttachments flag based on actual attachments found
-                archivedEmail.HasAttachments = attachmentCount > 0;
-                await _context.SaveChangesAsync();
+                var attachmentCount = archivedEmail.Attachments?.Count ?? 0;
 
-                _logger.LogInformation("Archived Graph API email: {Subject}, From: {From}, To: {To}, Account: {AccountName}, OriginalPreserved: {OriginalPreserved}",
-                    archivedEmail.Subject, archivedEmail.From, archivedEmail.To, account.Name, 
+                // MEMORY FIX: Release all large payloads now that they are persisted.
+                //   * Attachment byte[] content (often many MB, LOH-resident)
+                //   * Body / HtmlBody strings (HTML mails frequently 500 KB - several MB each)
+                //   * OriginalBodyText / OriginalBodyHtml byte arrays (same order of magnitude)
+                // Without this explicit nulling the entity graph that was just attached stays
+                // alive as long as anything holds the archivedEmail reference (even after
+                // ChangeTracker.Clear, EF's relationship fixup can still hold navigation
+                // references transiently), and more importantly the large strings go to the
+                // Large Object Heap where they are never compacted.
+                if (archivedEmail.Attachments != null)
+                {
+                    foreach (var att in archivedEmail.Attachments)
+                    {
+                        att.Content = null!;
+                    }
+                    archivedEmail.Attachments = null!;
+                }
+                archivedEmail.Body = null!;
+                archivedEmail.HtmlBody = null;
+                archivedEmail.OriginalBodyText = null;
+                archivedEmail.OriginalBodyHtml = null;
+                archivedEmail.BodyUntruncatedText = null;
+                archivedEmail.BodyUntruncatedHtml = null;
+
+                // Detach just-saved entities so the next email in the batch starts with an
+                // empty change tracker. This also prevents the duplicate-check query inside
+                // ArchiveGraphEmailAsync from ever accidentally materializing a tracked copy.
+                _context.ChangeTracker.Clear();
+
+                _logger.LogInformation("Archived Graph API email: {Subject}, From: {From}, To: {To}, Account: {AccountName}, Attachments: {AttachmentCount}, OriginalPreserved: {OriginalPreserved}",
+                    archivedEmail.Subject, archivedEmail.From, archivedEmail.To, account.Name, attachmentCount,
                     archivedEmail.BodyUntruncatedText != null || archivedEmail.BodyUntruncatedHtml != null ? "Yes" : "No");
 
                 return true; // New email successfully archived

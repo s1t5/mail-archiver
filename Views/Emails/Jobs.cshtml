@@ -1,4 +1,4 @@
-﻿@inject Microsoft.Extensions.Localization.IStringLocalizer<MailArchiver.SharedResource> Localizer
+@inject Microsoft.Extensions.Localization.IStringLocalizer<MailArchiver.SharedResource> Localizer
 @model List<MailArchiver.Models.BatchRestoreJob>
 @{
     ViewData["Title"] = Localizer["Jobs"];
@@ -903,7 +903,7 @@
         document.addEventListener('DOMContentLoaded', function(){
             const refreshInfo=document.createElement('small');
             refreshInfo.className='text-muted float-end';
-            refreshInfo.textContent='@Localizer["LastUpdate"] ' + new Date().toLocaleTimeString();
+            refreshInfo.innerHTML='@Localizer["LastUpdate"] ' + new Date().toLocaleTimeString();
             const firstCardHeader=document.querySelector('.card .card-header');
             if(firstCardHeader){ firstCardHeader.appendChild(refreshInfo);} });
     </script>
