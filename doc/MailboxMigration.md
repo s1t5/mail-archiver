@@ -6,7 +6,7 @@ This guide explains how to migrate a mailbox from one email provider to another 
 
 ## 📋 Overview
 
-The Mail Archiver application provides functionality to migrate emails from a source mailbox to a target mailbox. This is particularly useful when changing email providers while preserving your email history.
+The Mail Archiver application provides functionality to migrate emails from a source mailbox to a target mailbox. This is particularly useful when changing email providers while preserving your email history. The folder structure of the source mailbox is also preserved during migration.
 
 ## 🚀 Migration Process
 
@@ -35,7 +35,9 @@ Follow these steps to migrate your mailbox:
    - In the "Email Accounts" section, identify the source account
    - Go to the account details
    - Select "Copy All Emails to Another Mailbox" option
-   - Choose the target account and the target folder in this account
+   - Choose the target account and a target folder
+   - Enable the **"Preserve Folder Structure"** option – the selected target folder then serves as the root under which the entire source folder structure is recursively recreated
+   - If this option is not enabled, all emails are placed directly into the selected target folder (flat, without subfolders)
    - Start the migration process
 
 6. **Monitor the migration**

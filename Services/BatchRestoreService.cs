@@ -8,7 +8,7 @@ using System.Collections.Concurrent;
 
 namespace MailArchiver.Services
 {
-public class BatchRestoreService : BackgroundService, IBatchRestoreService
+    public class BatchRestoreService : BackgroundService, IBatchRestoreService
     {
         private readonly IServiceProvider _serviceProvider;
         private readonly ILogger<BatchRestoreService> _logger;
@@ -165,11 +165,11 @@ public class BatchRestoreService : BackgroundService, IBatchRestoreService
 
                 using var scope = _serviceProvider.CreateScope();
                 var imapEmailService = scope.ServiceProvider.GetRequiredService<MailArchiver.Services.Providers.ImapEmailService>();
-                var graphEmailService = scope.ServiceProvider.GetRequiredService<IGraphEmailService>();
+                var providerEmailService = scope.ServiceProvider.GetRequiredService<IProviderEmailService>();
                 var dbContext = scope.ServiceProvider.GetRequiredService<MailArchiverDbContext>();
 
                 // Verarbeite in Batches mit Progress-Updates
-                await ProcessJobWithProgress(job, imapEmailService, graphEmailService, dbContext, cancellationToken);
+                await ProcessJobWithProgress(job, imapEmailService, providerEmailService, dbContext, cancellationToken);
 
                 if (job.Status != BatchRestoreJobStatus.Cancelled)
                 {
@@ -200,12 +200,17 @@ public class BatchRestoreService : BackgroundService, IBatchRestoreService
             }
         }
 
-        private async Task ProcessJobWithProgress(BatchRestoreJob job, MailArchiver.Services.Providers.ImapEmailService imapEmailService, IGraphEmailService graphEmailService, MailArchiverDbContext dbContext, CancellationToken cancellationToken)
+        private async Task ProcessJobWithProgress(
+            BatchRestoreJob job,
+            MailArchiver.Services.Providers.ImapEmailService imapEmailService,
+            IProviderEmailService providerEmailService,
+            MailArchiverDbContext dbContext,
+            CancellationToken cancellationToken)
         {
             var batchSize = _batchOptions.BatchSize;
             var totalEmails = job.EmailIds.Count;
 
-                _logger.LogInformation("Job {JobId}: Starting batch restore with {TotalEmails} emails to account {AccountId}, folder {Folder}, preserveFolderStructure={Preserve}",
+            _logger.LogInformation("Job {JobId}: Starting batch restore with {TotalEmails} emails to account {AccountId}, folder {Folder}, preserveFolderStructure={Preserve}",
                 job.JobId, totalEmails, job.TargetAccountId, job.TargetFolder, job.PreserveFolderStructure);
 
             // Get target account to check provider type - ensure we have a fresh copy from the database
@@ -274,8 +279,9 @@ public class BatchRestoreService : BackgroundService, IBatchRestoreService
             }
             else
             {
-                // Handle M365 accounts with individual email processing using Graph API
-                _logger.LogInformation("Job {JobId}: Using Graph API individual email processing for M365 account", job.JobId);
+                // Handle M365 accounts with optimized batch processing using Graph API
+                // Each batch pre-fetches the folder hierarchy once, avoiding redundant API calls
+                _logger.LogInformation("Job {JobId}: Using optimized Graph API batch restore for M365 account", job.JobId);
 
                 for (int i = 0; i < totalEmails; i += batchSize)
                 {
@@ -283,78 +289,57 @@ public class BatchRestoreService : BackgroundService, IBatchRestoreService
 
                     var batch = job.EmailIds.Skip(i).Take(batchSize).ToList();
                     
-                    _logger.LogInformation("Job {JobId}: Processing batch {Current}/{Total} ({BatchStart}-{BatchEnd} of {Total})",
-                        job.JobId,
-                        (i / batchSize) + 1, 
-                        (totalEmails + batchSize - 1) / batchSize,
-                        i + 1, 
-                        Math.Min(i + batchSize, totalEmails), 
-                        totalEmails);
+                    var batchNumber = (i / batchSize) + 1;
+                    var totalBatches = (totalEmails + batchSize - 1) / batchSize;
 
-                    foreach (var emailId in batch)
+                    _logger.LogInformation("Job {JobId}: Processing batch {Current}/{Total} ({BatchStart}-{BatchEnd} of {TotalEmails})",
+                        job.JobId, batchNumber, totalBatches, i + 1, Math.Min(i + batchSize, totalEmails), totalEmails);
+
+                    _logger.LogInformation("Job {JobId}: Using optimized Graph API batch restore for {Count} emails (folders pre-fetched once per batch)",
+                        job.JobId, batch.Count);
+
+                    try
                     {
-                        cancellationToken.ThrowIfCancellationRequested();
+                        var successCountBeforeBatch = job.SuccessCount;
+                        var failedCountBeforeBatch = job.FailedCount;
+                        var startingProcessedCount = job.ProcessedCount;
 
-                        try
+                        Action<int, int, int> batchProgressCallback = (processed, successful, failed) =>
                         {
-                            _logger.LogDebug("Job {JobId}: Processing email {EmailId} ({Processed}/{Total})",
-                                job.JobId, emailId, job.ProcessedCount + 1, totalEmails);
-
-                            // For M365 accounts - individual restore using Graph API
-                            var email = await dbContext.ArchivedEmails
-                                .Include(e => e.Attachments)
-                                .FirstOrDefaultAsync(e => e.Id == emailId, cancellationToken);
-
-                            if (email == null)
-                            {
-                                _logger.LogWarning("Job {JobId}: Email with ID {EmailId} not found during batch restore", job.JobId, emailId);
-                                job.FailedCount++;
-                                job.ProcessedCount++;
-                                continue;
-                            }
-
-                            _logger.LogDebug("Job {JobId}: Found email {EmailId} - Subject: {Subject}, From: {From}",
-                                job.JobId, emailId, email.Subject, email.From);
-
-                            var result = await graphEmailService.RestoreEmailToFolderAsync(email, targetAccount, job.TargetFolder, job.PreserveFolderStructure);
+                            job.SuccessCount = successCountBeforeBatch + successful;
+                            job.FailedCount = failedCountBeforeBatch + failed;
+                            job.ProcessedCount = startingProcessedCount + processed;
                             
-                            if (result)
+                            if (processed % 10 == 0 || processed == batch.Count)
                             {
-                                job.SuccessCount++;
-                                _logger.LogInformation("Job {JobId}: Successfully restored email {EmailId} to M365 account {AccountId}", 
-                                    job.JobId, emailId, job.TargetAccountId);
+                                _logger.LogInformation("Job {JobId}: Progress - {Processed}/{Total} emails processed. Success: {Success}, Failed: {Failed}",
+                                    job.JobId, job.ProcessedCount, totalEmails, job.SuccessCount, job.FailedCount);
                             }
-                            else
-                            {
-                                job.FailedCount++;
-                                _logger.LogWarning("Job {JobId}: Failed to restore email {EmailId} to M365 account {AccountId}", 
-                                    job.JobId, emailId, job.TargetAccountId);
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            job.FailedCount++;
-                            _logger.LogError(ex, "Job {JobId}: Exception occurred during M365 email restoration of email {EmailId}: {Message}", 
-                                job.JobId, emailId, ex.Message);
-                        }
+                        };
 
-                        job.ProcessedCount++;
+                        var (batchSuccessful, batchFailed) = await providerEmailService.RestoreMultipleEmailsWithProgressAsync(
+                            batch, job.TargetAccountId, job.TargetFolder, job.PreserveFolderStructure, batchProgressCallback, cancellationToken);
 
-                        // Update progress logging every 10 emails or at the end
-                        if (job.ProcessedCount % 10 == 0 || job.ProcessedCount == totalEmails)
-                        {
-                            _logger.LogInformation("Job {JobId}: Progress - {Processed}/{Total} emails processed. Success: {Success}, Failed: {Failed}",
-                                job.JobId, job.ProcessedCount, totalEmails, job.SuccessCount, job.FailedCount);
-                        }
-
-                        // Pause zwischen E-Mails für M365
-                        if (_batchOptions.PauseBetweenEmailsMs > 0)
-                        {
-                            await Task.Delay(_batchOptions.PauseBetweenEmailsMs, cancellationToken);
-                        }
+                        job.SuccessCount = successCountBeforeBatch + batchSuccessful;
+                        job.FailedCount = failedCountBeforeBatch + batchFailed;
+                        job.ProcessedCount = startingProcessedCount + batchSuccessful + batchFailed;
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Job {JobId}: Critical error during M365 batch restore: {Message}", job.JobId, ex.Message);
+                        // Mark all emails in this batch as failed
+                        job.FailedCount += batch.Count;
+                        job.ProcessedCount += batch.Count;
                     }
 
-                    // Pause zwischen Batches
+                    // Pause between emails within a batch for M365
+                    if (_batchOptions.PauseBetweenEmailsMs > 0)
+                    {
+                        _logger.LogDebug("Job {JobId}: Pausing {Ms}ms between emails", job.JobId, _batchOptions.PauseBetweenEmailsMs);
+                        await Task.Delay(_batchOptions.PauseBetweenEmailsMs, cancellationToken);
+                    }
+
+                    // Pause between batches
                     if (i + batchSize < totalEmails && _batchOptions.PauseBetweenBatchesMs > 0)
                     {
                         _logger.LogDebug("Job {JobId}: Pausing {Ms}ms between batches", job.JobId, _batchOptions.PauseBetweenBatchesMs);

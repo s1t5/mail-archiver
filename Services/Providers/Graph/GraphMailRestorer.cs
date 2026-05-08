@@ -46,11 +46,26 @@ namespace MailArchiver.Services.Providers.Graph
             _logger.LogInformation("RestoreEmailToFolderAsync via Graph API called for email {EmailId} to folder {FolderName}, preserveFolderStructure={Preserve}",
                 email.Id, folderName, preserveFolderStructure);
 
+            var graphClient = _authFactory.CreateGraphClient(targetAccount);
+            var folders = await _folderService.GetAllMailFoldersAsync(graphClient, targetAccount.EmailAddress);
+
+            return await RestoreEmailToFolderInternalAsync(email, targetAccount, folderName, preserveFolderStructure, graphClient, folders);
+        }
+
+        /// <summary>
+        /// Internal implementation that accepts pre-fetched folders and Graph client to avoid
+        /// redundant API calls when restoring many emails in a batch.
+        /// </summary>
+        private async Task<bool> RestoreEmailToFolderInternalAsync(
+            ArchivedEmail email,
+            MailAccount targetAccount,
+            string folderName,
+            bool preserveFolderStructure,
+            GraphServiceClient graphClient,
+            List<MailFolder> folders)
+        {
             try
             {
-                var graphClient = _authFactory.CreateGraphClient(targetAccount);
-                var folders = await _folderService.GetAllMailFoldersAsync(graphClient, targetAccount.EmailAddress);
-
                 // Determine the desired full target path
                 string targetFolderPath;
                 if (preserveFolderStructure)
@@ -186,6 +201,7 @@ namespace MailArchiver.Services.Providers.Graph
 
         /// <summary>
         /// Restores multiple emails with progress tracking.
+        /// Fetches the folder hierarchy once and reuses it, avoiding redundant Graph API calls.
         /// </summary>
         public async Task<(int Successful, int Failed)> RestoreMultipleEmailsWithProgressAsync(
             List<int> emailIds,
@@ -205,6 +221,10 @@ namespace MailArchiver.Services.Providers.Graph
                 return (0, emailIds.Count);
             }
 
+            // Pre-fetch Graph client and folders once for the entire batch
+            var graphClient = _authFactory.CreateGraphClient(targetAccount);
+            var folders = await _folderService.GetAllMailFoldersAsync(graphClient, targetAccount.EmailAddress);
+
             foreach (var emailId in emailIds)
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -222,7 +242,7 @@ namespace MailArchiver.Services.Providers.Graph
                         continue;
                     }
 
-                    var result = await RestoreEmailToFolderAsync(email, targetAccount, folderName, preserveFolderStructure);
+                    var result = await RestoreEmailToFolderInternalAsync(email, targetAccount, folderName, preserveFolderStructure, graphClient, folders);
                     if (result)
                         successCount++;
                     else
