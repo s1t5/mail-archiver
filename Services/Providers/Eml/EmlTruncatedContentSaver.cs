@@ -1,5 +1,6 @@
 using MailArchiver.Data;
 using MailArchiver.Models;
+using MailArchiver.Services.Shared;
 using Microsoft.EntityFrameworkCore;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -36,7 +37,7 @@ namespace MailArchiver.Services.Providers.Eml
                     originalHtml = ResolveInlineImagesInHtml(originalHtml, email.Attachments.ToList(), jobId);
                 }
 
-                var cleanFileName = EmlMailCleaner.CleanText($"original_content_{DateTime.UtcNow:yyyyMMddHHmmss}.html");
+                var cleanFileName = MailContentHelper.CleanText($"original_content_{DateTime.UtcNow:yyyyMMddHHmmss}.html");
                 var contentType = "text/html";
 
                 var emailAttachment = new EmailAttachment
@@ -67,7 +68,7 @@ namespace MailArchiver.Services.Providers.Eml
         {
             try
             {
-                var cleanFileName = EmlMailCleaner.CleanText($"original_text_content_{DateTime.UtcNow:yyyyMMddHHmmss}.txt");
+                var cleanFileName = MailContentHelper.CleanText($"original_text_content_{DateTime.UtcNow:yyyyMMddHHmmss}.txt");
                 var contentType = "text/plain";
 
                 var emailAttachment = new EmailAttachment

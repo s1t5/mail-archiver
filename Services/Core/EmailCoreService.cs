@@ -1,6 +1,7 @@
 using MailArchiver.Data;
 using MailArchiver.Models;
 using MailArchiver.Models.ViewModels;
+using MailArchiver.Services.Shared;
 using MailArchiver.Utilities;
 using MailArchiver.ViewModels;
 using Microsoft.EntityFrameworkCore;
@@ -23,22 +24,6 @@ namespace MailArchiver.Services.Core
         private readonly ILogger<EmailCoreService> _logger;
         private readonly DateTimeHelper _dateTimeHelper;
         private readonly BatchOperationOptions _batchOptions;
-
-        // Constants for HTML truncation
-        private static readonly string TruncationNotice = @"
-                    <div style='background-color: #f8f9fa; border: 1px solid #dee2e6; border-radius: 5px; padding: 15px; margin: 10px 0; font-family: Arial, sans-serif;'>
-                        <h4 style='color: #495057; margin-top: 0;'>📎 Email content has been truncated</h4>
-                        <p style='color: #6c757d; margin-bottom: 10px;'>
-                            This email contains very large HTML content (over 1 MB) that has been truncated for better performance.
-                        </p>
-                        <p style='color: #6c757d; margin-bottom: 0;'>
-                            <strong>The complete original HTML content has been saved as an attachment.</strong><br>
-                            Look for a file named 'original_content_*.html' in the attachments.
-                        </p>
-                    </div>";
-
-        private static readonly int TruncationOverhead = Encoding.UTF8.GetByteCount(TruncationNotice + "</body></html>");
-        private const int MaxHtmlSizeBytes = 1_000_000;
 
         public EmailCoreService(
             MailArchiverDbContext context,
@@ -1026,7 +1011,7 @@ namespace MailArchiver.Services.Core
                 // Clean raw headers to remove null bytes (prevent PostgreSQL UTF-8 errors)
                 if (!string.IsNullOrEmpty(rawHeaders))
                 {
-                    rawHeaders = CleanText(rawHeaders);
+                    rawHeaders = MailContentHelper.CleanText(rawHeaders);
                 }
 
                 // Check if this email is already archived
@@ -1039,7 +1024,7 @@ namespace MailArchiver.Services.Core
             if (existingEmail != null)
             {
                 // E-Mail existiert bereits, prüfen ob der Ordner geändert wurde
-                var cleanFolderName = CleanText(folderName ?? string.Empty);
+                var cleanFolderName = MailContentHelper.CleanText(folderName ?? string.Empty);
                 if (existingEmail.FolderName != cleanFolderName)
                 {
                     // Ordner hat sich geändert, aktualisieren
@@ -1056,19 +1041,19 @@ namespace MailArchiver.Services.Core
             {
                 // Convert timestamp to configured display timezone
                 var convertedSentDate = _dateTimeHelper.ConvertToDisplayTimeZone(emailDate);
-                var subject = CleanText(message.Subject ?? "(No Subject)");
+                var subject = MailContentHelper.CleanText(message.Subject ?? "(No Subject)");
                 // Extract email address from From field
                 var fromAddress = message.From?.FirstOrDefault() as MailboxAddress;
-                var from = CleanText(fromAddress?.Address ?? string.Empty);
+                var from = MailContentHelper.CleanText(fromAddress?.Address ?? string.Empty);
                 // Extract email addresses from To field
                 var toAddresses = message.To?.Select(m => m as MailboxAddress).Where(m => m != null).Select(m => m.Address) ?? new List<string>();
-                var to = CleanText(string.Join(", ", toAddresses));
+                var to = MailContentHelper.CleanText(string.Join(", ", toAddresses));
                 // Extract email addresses from Cc field
                 var ccAddresses = message.Cc?.Select(m => m as MailboxAddress).Where(m => m != null).Select(m => m.Address) ?? new List<string>();
-                var cc = CleanText(string.Join(", ", ccAddresses));
+                var cc = MailContentHelper.CleanText(string.Join(", ", ccAddresses));
                 // Extract email addresses from Bcc field
                 var bccAddresses = message.Bcc?.Select(m => m as MailboxAddress).Where(m => m != null).Select(m => m.Address) ?? new List<string>();
-                var bcc = CleanText(string.Join(", ", bccAddresses));
+                var bcc = MailContentHelper.CleanText(string.Join(", ", bccAddresses));
 
                 // Extract text and HTML body preserving original encoding
                 var body = string.Empty;
@@ -1086,18 +1071,18 @@ namespace MailArchiver.Services.Core
                 // Keep references to the original unmodified body content
                 // These will be stored in OriginalBodyText/Html (as byte[]) if they differ from the stored version
                 // IMPORTANT: Clean the original bodies to remove null bytes for the cleaned version
-                var originalTextBody = !string.IsNullOrEmpty(rawTextBody) ? CleanText(rawTextBody) : null;
-                var originalHtmlBody = !string.IsNullOrEmpty(rawHtmlBody) ? CleanText(rawHtmlBody) : null;
+                var originalTextBody = !string.IsNullOrEmpty(rawTextBody) ? MailContentHelper.CleanText(rawTextBody) : null;
+                var originalHtmlBody = !string.IsNullOrEmpty(rawHtmlBody) ? MailContentHelper.CleanText(rawHtmlBody) : null;
 
                 // Handle text body - use original content directly to preserve encoding
                 if (!string.IsNullOrEmpty(message.TextBody))
                 {
-                    var cleanedTextBody = CleanText(message.TextBody);
+                    var cleanedTextBody = MailContentHelper.CleanText(message.TextBody);
                     // Check if text body needs truncation for tsvector compatibility
                     // Set to 500KB to ensure total of all fields stays under 1MB tsvector limit
                     if (Encoding.UTF8.GetByteCount(cleanedTextBody) > 500_000)
                     {
-                        body = TruncateTextForStorage(cleanedTextBody, 500_000);
+                        body = MailContentHelper.TruncateTextForStorage(cleanedTextBody, 500_000);
                     }
                     else
                     {
@@ -1109,12 +1094,12 @@ namespace MailArchiver.Services.Core
                     // If no TextBody, try to extract text from HTML body
                     // For BodyUntruncatedText, the original source is HtmlBody in this case
                     originalTextBody = message.HtmlBody;
-                    var cleanedHtmlAsText = CleanText(message.HtmlBody);
+                    var cleanedHtmlAsText = MailContentHelper.CleanText(message.HtmlBody);
                     // Check if HTML-as-text body needs truncation for tsvector compatibility
                     // Set to 500KB to ensure total of all fields stays under 1MB tsvector limit
                     if (Encoding.UTF8.GetByteCount(cleanedHtmlAsText) > 500_000)
                     {
-                        body = TruncateTextForStorage(cleanedHtmlAsText, 500_000);
+                        body = MailContentHelper.TruncateTextForStorage(cleanedHtmlAsText, 500_000);
                     }
                     else
                     {
@@ -1126,25 +1111,25 @@ namespace MailArchiver.Services.Core
                 if (!string.IsNullOrEmpty(message.HtmlBody))
                 {
                     // Keep the original HTML body with cid: references
-                    htmlBody = CleanText(message.HtmlBody);
+                    htmlBody = MailContentHelper.CleanText(message.HtmlBody);
 
                     // Check if HTML body will be truncated
                     if (htmlBody.Length > 1_000_000)
                     {
-                        htmlBody = CleanHtmlForStorage(htmlBody);
+                        htmlBody = MailContentHelper.CleanHtmlForStorage(htmlBody);
                     }
                 }
 
-                var cleanMessageId = CleanText(messageId);
-                var cleanFolderName = CleanText(folderName ?? string.Empty);
+                var cleanMessageId = MailContentHelper.CleanText(messageId);
+                var cleanFolderName = MailContentHelper.CleanText(folderName ?? string.Empty);
 
                 // Ensure individual fields don't exceed reasonable limits for tsvector
                 // This prevents tsvector size errors when all fields are concatenated
-                subject = TruncateFieldForTsvector(subject, 50_000); // ~50KB for subject
-                from = TruncateFieldForTsvector(from, 10_000); // ~10KB for from
-                to = TruncateFieldForTsvector(to, 50_000); // ~50KB for to (can be many recipients)
-                cc = TruncateFieldForTsvector(cc, 50_000); // ~50KB for cc
-                bcc = TruncateFieldForTsvector(bcc, 50_000); // ~50KB for bcc
+                subject = MailContentHelper.TruncateFieldForTsvector(subject, 50_000); // ~50KB for subject
+                from = MailContentHelper.TruncateFieldForTsvector(from, 10_000); // ~10KB for from
+                to = MailContentHelper.TruncateFieldForTsvector(to, 50_000); // ~50KB for to (can be many recipients)
+                cc = MailContentHelper.TruncateFieldForTsvector(cc, 50_000); // ~50KB for cc
+                bcc = MailContentHelper.TruncateFieldForTsvector(bcc, 50_000); // ~50KB for bcc
                                                              // Body already truncated above to 500KB
 
                 // Final safety check: ensure total size for tsvector doesn't exceed limit
@@ -1168,7 +1153,7 @@ namespace MailArchiver.Services.Core
 
                     if (maxBodySize > 0 && Encoding.UTF8.GetByteCount(body) > maxBodySize)
                     {
-                        body = TruncateTextForStorage(body, maxBodySize);
+                        body = MailContentHelper.TruncateTextForStorage(body, maxBodySize);
                     }
                     else if (maxBodySize <= 0)
                     {
@@ -1256,8 +1241,8 @@ namespace MailArchiver.Services.Core
                                 }
                             }
 
-                            var cleanFileName = CleanText(fileName);
-                            var contentType = CleanText(attachment.ContentType?.MimeType ?? "application/octet-stream");
+                            var cleanFileName = MailContentHelper.CleanText(fileName);
+                            var contentType = MailContentHelper.CleanText(attachment.ContentType?.MimeType ?? "application/octet-stream");
                             var contentId = !string.IsNullOrEmpty(attachment.ContentId) ? attachment.ContentId.Trim() : null;
 
                             var emailAttachment = new EmailAttachment
@@ -1679,274 +1664,6 @@ namespace MailArchiver.Services.Core
 
         #endregion
 
-        #region Text
-
-        private string CleanText(string text)
-        {
-            if (string.IsNullOrEmpty(text))
-                return string.Empty;
-
-            // Remove null characters
-            text = text.Replace("\0", "");
-
-            // Use a more encoding-safe approach to remove control characters
-            // Only remove control characters except for common whitespace characters
-            // This preserves extended ASCII and Unicode characters
-            var cleanedText = new StringBuilder(text.Length);
-            foreach (var c in text)
-            {
-                // Keep common whitespace characters and anything above the control character range
-                if (c == '\r' || c == '\n' || c == '\t' || c >= 32)
-                {
-                    cleanedText.Append(c);
-                }
-                else
-                {
-                    // Replace other control characters with space
-                    cleanedText.Append(' ');
-                }
-            }
-
-            return cleanedText.ToString();
-        }
-
-        private string CleanHtmlForStorage(string html)
-        {
-            if (string.IsNullOrEmpty(html))
-                return string.Empty;
-
-            // Remove null characters efficiently - only if they exist
-            if (html.Contains('\0'))
-            {
-                html = html.Replace("\0", "");
-            }
-
-            // Early return for small HTML content
-            if (html.Length <= MaxHtmlSizeBytes)
-                return html;
-
-            // Calculate safe truncation position
-            int maxContentSize = MaxHtmlSizeBytes - TruncationOverhead;
-            if (maxContentSize <= 0)
-            {
-                // Fallback for edge case - return minimal valid HTML
-                return $"<html><body>{TruncationNotice}</body></html>";
-            }
-
-            int truncatePosition = Math.Min(maxContentSize, html.Length);
-
-            // IMPORTANT: Preserve inline images with cid: references
-            // Find all <img> tags with cid: references and ensure they're included
-            var imgMatches = Regex.Matches(html, @"<img[^>]*src\s*=\s*[""']cid:[^""']+[""'][^>]*>", RegexOptions.IgnoreCase);
-
-            // Find the last complete <img> tag with cid: before truncation point
-            int lastCompleteImgEnd = -1;
-            foreach (Match match in imgMatches)
-            {
-                int imgEnd = match.Index + match.Length;
-                if (imgEnd <= truncatePosition)
-                {
-                    lastCompleteImgEnd = imgEnd;
-                }
-                else
-                {
-                    // This image would be cut off, adjust truncation point if possible
-                    if (match.Index < truncatePosition && match.Index > maxContentSize / 2)
-                    {
-                        // If the image starts before truncation but ends after, try to truncate before it
-                        truncatePosition = match.Index;
-                        _logger.LogDebug("Adjusted truncation to preserve inline images, truncating before <img> tag at position {Position}", match.Index);
-                    }
-                    break;
-                }
-            }
-
-            // Find safe truncation point that doesn't break HTML tags
-            int lastLessThan = html.LastIndexOf('<', truncatePosition - 1);
-            int lastGreaterThan = html.LastIndexOf('>', truncatePosition - 1);
-
-            // If we're inside a tag, truncate before it starts
-            if (lastLessThan > lastGreaterThan && lastLessThan >= 0)
-            {
-                truncatePosition = lastLessThan;
-            }
-            else if (lastGreaterThan >= 0)
-            {
-                // Otherwise, truncate after the last complete tag
-                truncatePosition = lastGreaterThan + 1;
-            }
-
-            // Use StringBuilder for efficient string building
-            var result = new StringBuilder(truncatePosition + TruncationNotice.Length + 50);
-
-            // Get base content as span for better performance
-            ReadOnlySpan<char> baseContent = html.AsSpan(0, truncatePosition);
-
-            // Check for HTML structure efficiently
-            bool hasHtml = baseContent.Contains("<html".AsSpan(), StringComparison.OrdinalIgnoreCase);
-            bool hasBody = baseContent.Contains("<body".AsSpan(), StringComparison.OrdinalIgnoreCase);
-
-            // Build the result efficiently
-            if (!hasHtml)
-            {
-                result.Append("<html>");
-            }
-
-            if (!hasBody)
-            {
-                if (hasHtml)
-                {
-                    // Find where to insert <body> tag efficiently
-                    string contentStr = baseContent.ToString();
-                    int htmlStart = contentStr.IndexOf("<html", StringComparison.OrdinalIgnoreCase);
-                    if (htmlStart >= 0)
-                    {
-                        int htmlTagEnd = contentStr.IndexOf('>', htmlStart);
-                        if (htmlTagEnd >= 0)
-                        {
-                            result.Append(baseContent.Slice(0, htmlTagEnd + 1));
-                            result.Append("<body>");
-                            result.Append(baseContent.Slice(htmlTagEnd + 1));
-                        }
-                        else
-                        {
-                            result.Append("<body>");
-                            result.Append(baseContent);
-                        }
-                    }
-                    else
-                    {
-                        result.Append("<body>");
-                        result.Append(baseContent);
-                    }
-                }
-                else
-                {
-                    result.Append("<body>");
-                    result.Append(baseContent);
-                }
-            }
-            else
-            {
-                result.Append(baseContent);
-            }
-
-            // Add truncation notice
-            result.Append(TruncationNotice);
-
-            // Close tags efficiently
-            string resultStr = result.ToString();
-            if (!resultStr.EndsWith("</body>", StringComparison.OrdinalIgnoreCase))
-            {
-                result.Append("</body>");
-            }
-            if (!resultStr.EndsWith("</html>", StringComparison.OrdinalIgnoreCase))
-            {
-                result.Append("</html>");
-            }
-
-            return result.ToString();
-        }
-
-        /// <summary>
-        /// Truncates a single field to ensure it doesn't exceed tsvector limits
-        /// </summary>
-        /// <param name="text">The field text to truncate</param>
-        /// <param name="maxSizeBytes">Maximum size in bytes</param>
-        /// <returns>Truncated text</returns>
-        private string TruncateFieldForTsvector(string text, int maxSizeBytes)
-        {
-            if (string.IsNullOrEmpty(text))
-                return string.Empty;
-
-            // Check if truncation is needed
-            if (Encoding.UTF8.GetByteCount(text) <= maxSizeBytes)
-            {
-                return text; // No truncation needed
-            }
-
-            // Find a safe truncation point
-            int approximateCharPosition = Math.Min(maxSizeBytes, text.Length);
-
-            // Work backwards to ensure we don't exceed byte limit
-            while (approximateCharPosition > 0 && Encoding.UTF8.GetByteCount(text.Substring(0, approximateCharPosition)) > maxSizeBytes)
-            {
-                approximateCharPosition--;
-            }
-
-            // Try to find a word boundary to avoid breaking in the middle of a word
-            int wordBoundarySearch = Math.Max(0, approximateCharPosition - 50);
-            int lastSpaceIndex = text.LastIndexOf(' ', approximateCharPosition - 1, approximateCharPosition - wordBoundarySearch);
-
-            if (lastSpaceIndex > wordBoundarySearch)
-            {
-                approximateCharPosition = lastSpaceIndex;
-            }
-
-            return text.Substring(0, approximateCharPosition) + "...";
-        }
-
-        /// <summary>
-        /// Truncates text content to fit within tsvector size limits while preserving readability
-        /// </summary>
-        /// <param name="text">The text to truncate</param>
-        /// <param name="maxSizeBytes">Maximum size in bytes</param>
-        /// <returns>Truncated text with notice appended</returns>
-        private string TruncateTextForStorage(string text, int maxSizeBytes)
-        {
-            if (string.IsNullOrEmpty(text))
-                return string.Empty;
-
-            const string textTruncationNotice = "\n\n[CONTENT TRUNCATED - This email contains very large text content that has been truncated for better performance. The complete original content has been saved as an attachment.]";
-
-            // Calculate overhead for the truncation notice
-            int noticeOverhead = Encoding.UTF8.GetByteCount(textTruncationNotice);
-            int maxContentSize = maxSizeBytes - noticeOverhead;
-
-            if (maxContentSize <= 0)
-            {
-                // Edge case - just return the notice
-                return textTruncationNotice;
-            }
-
-            // Check if we need to truncate
-            if (Encoding.UTF8.GetByteCount(text) <= maxSizeBytes)
-            {
-                return text; // No truncation needed
-            }
-
-            // Find a safe truncation point that doesn't break in the middle of a word
-            int approximateCharPosition = Math.Min(maxContentSize, text.Length);
-
-            // Work backwards to find a word boundary or reasonable break point
-            while (approximateCharPosition > 0 && Encoding.UTF8.GetByteCount(text.Substring(0, approximateCharPosition)) > maxContentSize)
-            {
-                approximateCharPosition--;
-            }
-
-            // Try to find a word boundary within the last 100 characters to avoid breaking words
-            int wordBoundarySearch = Math.Max(0, approximateCharPosition - 100);
-            int lastSpaceIndex = text.LastIndexOf(' ', approximateCharPosition - 1, approximateCharPosition - wordBoundarySearch);
-            int lastNewlineIndex = text.LastIndexOf('\n', approximateCharPosition - 1, approximateCharPosition - wordBoundarySearch);
-            int lastPunctuationIndex = text.LastIndexOfAny(new char[] { '.', '!', '?', ';' }, approximateCharPosition - 1, approximateCharPosition - wordBoundarySearch);
-
-            // Use the best break point found
-            int breakPoint = Math.Max(Math.Max(lastSpaceIndex, lastNewlineIndex), lastPunctuationIndex);
-            if (breakPoint > wordBoundarySearch)
-            {
-                approximateCharPosition = breakPoint + 1; // Include the break character
-            }
-
-            // Final safety check to ensure we don't exceed byte limit
-            string truncatedContent = text.Substring(0, approximateCharPosition);
-            while (Encoding.UTF8.GetByteCount(truncatedContent + textTruncationNotice) > maxSizeBytes && truncatedContent.Length > 0)
-            {
-                truncatedContent = truncatedContent.Substring(0, truncatedContent.Length - 1);
-            }
-
-            return truncatedContent + textTruncationNotice;
-        }
-
         /// <summary>
         /// Checks if a folder name indicates outgoing mail based on its name in multiple languages
         /// </summary>
@@ -2067,8 +1784,6 @@ namespace MailArchiver.Services.Core
             string folderNameLower = folderName?.ToLowerInvariant() ?? "";
             return draftsFolderNames.Any(name => folderNameLower.Contains(name));
         }
-
-        #endregion
 
         #region Local Retention
 

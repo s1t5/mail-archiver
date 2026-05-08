@@ -362,7 +362,6 @@ builder.Services.AddScoped<IBandwidthService, BandwidthService>();
 // IMAP services (refactored from monolithic ImapEmailService)
 builder.Services.AddScoped<MailArchiver.Services.Providers.Imap.ImapConnectionFactory>();
 builder.Services.AddScoped<MailArchiver.Services.Providers.Imap.IImapFolderService, MailArchiver.Services.Providers.Imap.ImapFolderService>();
-builder.Services.AddScoped<MailArchiver.Services.Providers.Imap.ImapMailCleaner>();
 builder.Services.AddScoped<MailArchiver.Services.Providers.Imap.ImapMailRestorer>();
 builder.Services.AddScoped<MailArchiver.Services.Providers.Imap.ImapMailSyncService>();
 

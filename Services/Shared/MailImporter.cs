@@ -13,15 +13,13 @@ namespace MailArchiver.Services.Shared
     {
         private readonly IServiceProvider _serviceProvider;
         private readonly ILogger<MailImporter> _logger;
-        private readonly EmlMailCleaner _mailCleaner;
         private readonly EmlAttachmentCollector _attachmentCollector;
 
         public MailImporter(IServiceProvider serviceProvider, ILogger<MailImporter> logger,
-            EmlMailCleaner mailCleaner, EmlAttachmentCollector attachmentCollector)
+            EmlAttachmentCollector attachmentCollector)
         {
             _serviceProvider = serviceProvider;
             _logger = logger;
-            _mailCleaner = mailCleaner;
             _attachmentCollector = attachmentCollector;
         }
 
@@ -58,23 +56,23 @@ namespace MailArchiver.Services.Shared
                 var rawHtmlBody = message.HtmlBody;
                 var hasNullBytesInText = !string.IsNullOrEmpty(rawTextBody) && rawTextBody.Contains('\0');
                 var hasNullBytesInHtml = !string.IsNullOrEmpty(rawHtmlBody) && rawHtmlBody.Contains('\0');
-                var originalTextBody = !string.IsNullOrEmpty(rawTextBody) ? EmlMailCleaner.CleanText(rawTextBody) : null;
-                var originalHtmlBody = !string.IsNullOrEmpty(rawHtmlBody) ? EmlMailCleaner.CleanText(rawHtmlBody) : null;
+                var originalTextBody = !string.IsNullOrEmpty(rawTextBody) ? MailContentHelper.CleanText(rawTextBody) : null;
+                var originalHtmlBody = !string.IsNullOrEmpty(rawHtmlBody) ? MailContentHelper.CleanText(rawHtmlBody) : null;
 
                 var body = string.Empty;
                 if (!string.IsNullOrEmpty(message.TextBody))
                 {
-                    var cleaned = EmlMailCleaner.CleanText(message.TextBody);
+                    var cleaned = MailContentHelper.CleanText(message.TextBody);
                     body = Encoding.UTF8.GetByteCount(cleaned) > 500_000
-                        ? EmlMailCleaner.TruncateTextForStorage(cleaned, 500_000) : cleaned;
+                        ? MailContentHelper.TruncateTextForStorage(cleaned, 500_000) : cleaned;
                 }
                 else if (!string.IsNullOrEmpty(message.HtmlBody))
                 {
-                    var cleaned = EmlMailCleaner.CleanText(message.HtmlBody);
+                    var cleaned = MailContentHelper.CleanText(message.HtmlBody);
                     if (Encoding.UTF8.GetByteCount(cleaned) > 500_000)
                     {
                         originalTextBody = message.HtmlBody;
-                        body = EmlMailCleaner.TruncateTextForStorage(cleaned, 500_000);
+                        body = MailContentHelper.TruncateTextForStorage(cleaned, 500_000);
                     }
                     else body = cleaned;
                 }
@@ -82,9 +80,9 @@ namespace MailArchiver.Services.Shared
                 var htmlBody = string.Empty;
                 if (!string.IsNullOrEmpty(message.HtmlBody))
                 {
-                    var cleaned = EmlMailCleaner.CleanText(message.HtmlBody);
+                    var cleaned = MailContentHelper.CleanText(message.HtmlBody);
                     htmlBody = Encoding.UTF8.GetByteCount(cleaned) > 1_000_000
-                        ? _mailCleaner.CleanHtmlForStorage(cleaned) : cleaned;
+                        ? MailContentHelper.CleanHtmlForStorage(cleaned) : cleaned;
                 }
 
                 var allAttachments = new List<MimePart>();
@@ -93,16 +91,16 @@ namespace MailArchiver.Services.Shared
                 var dateTimeHelper = scope.ServiceProvider.GetRequiredService<DateTimeHelper>();
                 var convertedSentDate = dateTimeHelper.ConvertToDisplayTimeZone(message.Date);
 
-                var subject = EmlMailCleaner.TruncateFieldForTsvector(
-                    EmlMailCleaner.CleanText(message.Subject ?? "(No Subject)"), 50_000);
-                var from = EmlMailCleaner.TruncateFieldForTsvector(
-                    EmlMailCleaner.CleanText(string.Join(", ", message.From.Mailboxes.Select(m => m.Address))), 10_000);
-                var to = EmlMailCleaner.TruncateFieldForTsvector(
-                    EmlMailCleaner.CleanText(string.Join(", ", message.To.Mailboxes.Select(m => m.Address))), 50_000);
-                var cc = EmlMailCleaner.TruncateFieldForTsvector(
-                    EmlMailCleaner.CleanText(string.Join(", ", message.Cc?.Mailboxes.Select(m => m.Address) ?? Enumerable.Empty<string>())), 50_000);
-                var bcc = EmlMailCleaner.TruncateFieldForTsvector(
-                    EmlMailCleaner.CleanText(string.Join(", ", message.Bcc?.Mailboxes.Select(m => m.Address) ?? Enumerable.Empty<string>())), 50_000);
+                var subject = MailContentHelper.TruncateFieldForTsvector(
+                    MailContentHelper.CleanText(message.Subject ?? "(No Subject)"), 50_000);
+                var from = MailContentHelper.TruncateFieldForTsvector(
+                    MailContentHelper.CleanText(string.Join(", ", message.From.Mailboxes.Select(m => m.Address))), 10_000);
+                var to = MailContentHelper.TruncateFieldForTsvector(
+                    MailContentHelper.CleanText(string.Join(", ", message.To.Mailboxes.Select(m => m.Address))), 50_000);
+                var cc = MailContentHelper.TruncateFieldForTsvector(
+                    MailContentHelper.CleanText(string.Join(", ", message.Cc?.Mailboxes.Select(m => m.Address) ?? Enumerable.Empty<string>())), 50_000);
+                var bcc = MailContentHelper.TruncateFieldForTsvector(
+                    MailContentHelper.CleanText(string.Join(", ", message.Bcc?.Mailboxes.Select(m => m.Address) ?? Enumerable.Empty<string>())), 50_000);
 
                 var totalTsvectorSize = Encoding.UTF8.GetByteCount(subject + body + from + to + cc + bcc);
                 if (totalTsvectorSize > 900_000)
@@ -110,14 +108,14 @@ namespace MailArchiver.Services.Shared
                     var otherFieldsSize = totalTsvectorSize - Encoding.UTF8.GetByteCount(body);
                     var maxBodySize = 900_000 - otherFieldsSize - 10_000;
                     if (maxBodySize > 0 && Encoding.UTF8.GetByteCount(body) > maxBodySize)
-                        body = EmlMailCleaner.TruncateTextForStorage(body, maxBodySize);
+                        body = MailContentHelper.TruncateTextForStorage(body, maxBodySize);
                     else if (maxBodySize <= 0)
                         body = "[Body too large - saved as attachment]";
                 }
 
                 var rawHeaders = ExtractRawHeaders(message);
                 if (!string.IsNullOrEmpty(rawHeaders))
-                    rawHeaders = EmlMailCleaner.CleanText(rawHeaders);
+                    rawHeaders = MailContentHelper.CleanText(rawHeaders);
 
                 var archivedEmail = new ArchivedEmail
                 {
@@ -146,9 +144,9 @@ namespace MailArchiver.Services.Shared
                             var fileName = GetAttachmentFileName(attachment);
                             archivedEmail.Attachments.Add(new EmailAttachment
                             {
-                                FileName = EmlMailCleaner.CleanText(fileName),
-                                ContentType = EmlMailCleaner.CleanText(attachment.ContentType?.MimeType ?? "application/octet-stream"),
-                                ContentId = !string.IsNullOrEmpty(attachment.ContentId) ? EmlMailCleaner.CleanText(attachment.ContentId) : null,
+                                FileName = MailContentHelper.CleanText(fileName),
+                                ContentType = MailContentHelper.CleanText(attachment.ContentType?.MimeType ?? "application/octet-stream"),
+                                ContentId = !string.IsNullOrEmpty(attachment.ContentId) ? MailContentHelper.CleanText(attachment.ContentId) : null,
                                 Content = ms.ToArray(), Size = ms.Length
                             });
                         }

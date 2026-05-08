@@ -1,5 +1,6 @@
 using MailArchiver.Data;
 using MailArchiver.Models;
+using MailArchiver.Services.Shared;
 using MimeKit;
 using System.Text.RegularExpressions;
 
@@ -168,9 +169,9 @@ namespace MailArchiver.Services.Providers.Eml
                     var emailAttachment = new EmailAttachment
                     {
                         ArchivedEmailId = archivedEmailId,
-                        FileName = EmlMailCleaner.CleanText(fileName),
-                        ContentType = EmlMailCleaner.CleanText(attachment.ContentType?.MimeType ?? "application/octet-stream"),
-                        ContentId = !string.IsNullOrEmpty(attachment.ContentId) ? EmlMailCleaner.CleanText(attachment.ContentId) : null,
+                        FileName = MailContentHelper.CleanText(fileName),
+                        ContentType = MailContentHelper.CleanText(attachment.ContentType?.MimeType ?? "application/octet-stream"),
+                        ContentId = !string.IsNullOrEmpty(attachment.ContentId) ? MailContentHelper.CleanText(attachment.ContentId) : null,
                         Content = ms.ToArray(),
                         Size = ms.Length
                     };

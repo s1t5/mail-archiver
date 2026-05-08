@@ -1,6 +1,7 @@
 using MailArchiver.Data;
 using MailArchiver.Models;
 using MailArchiver.Services.Core;
+using MailArchiver.Services.Providers.Eml;
 using MailArchiver.Utilities;
 using MailKit;
 using MailKit.Net.Imap;
@@ -23,7 +24,7 @@ namespace MailArchiver.Services.Providers.Imap
         private readonly ISyncJobService _syncJobService;
         private readonly IBandwidthService _bandwidthService;
         private readonly ImapConnectionFactory _connectionFactory;
-        private readonly ImapMailCleaner _mailCleaner;
+        private readonly EmlMailCleaner _mailCleaner;
         private readonly IImapFolderService _folderService;
         private readonly DateTimeHelper _dateTimeHelper;
         private readonly BatchOperationOptions _batchOptions;
@@ -37,7 +38,7 @@ namespace MailArchiver.Services.Providers.Imap
             ISyncJobService syncJobService,
             IBandwidthService bandwidthService,
             ImapConnectionFactory connectionFactory,
-            ImapMailCleaner mailCleaner,
+            EmlMailCleaner mailCleaner,
             IImapFolderService folderService,
             DateTimeHelper dateTimeHelper,
             IOptions<BatchOperationOptions> batchOptions,

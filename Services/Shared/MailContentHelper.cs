@@ -37,6 +37,25 @@ namespace MailArchiver.Services.Shared
         }
 
         /// <summary>
+        /// Removes null bytes (0x00) from a string. PostgreSQL does not allow null bytes in TEXT/VARCHAR columns.
+        /// Returns null if input is null.
+        /// </summary>
+        public static string? RemoveNullBytes(string? input)
+        {
+            if (string.IsNullOrEmpty(input))
+            {
+                return input;
+            }
+
+            if (!input.Contains('\0'))
+            {
+                return input;
+            }
+
+            return input.Replace("\0", "");
+        }
+
+        /// <summary>
         /// Truncates a single field to ensure it doesn't exceed tsvector limits.
         /// </summary>
         public static string TruncateFieldForTsvector(string? text, int maxSizeBytes)
