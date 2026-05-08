@@ -862,7 +862,7 @@ namespace MailArchiver.Controllers
                         return RedirectToAction(nameof(Details), new { id = model.EmailId });
                     }
                     
-                    result = await _graphEmailService.RestoreEmailToFolderAsync(email, targetAccount, model.TargetFolder);
+                    result = await _graphEmailService.RestoreEmailToFolderAsync(email, targetAccount, model.TargetFolder, model.PreserveFolderStructure);
                 }
                 else
                 {
@@ -870,7 +870,8 @@ namespace MailArchiver.Controllers
                     result = await restoreProvider.RestoreEmailToFolderAsync(
                         model.EmailId,
                         model.TargetAccountId,
-                        model.TargetFolder);
+                        model.TargetFolder,
+                        model.PreserveFolderStructure);
                 }
 
                 if (result)
@@ -1219,7 +1220,7 @@ namespace MailArchiver.Controllers
                 // Route to appropriate service based on provider type
                 if (targetAccount?.Provider == ProviderType.M365)
                 {
-                    _logger.LogInformation("Using Graph API service for M365 account {AccountId}", model.TargetAccountId);
+                    _logger.LogInformation("Using Graph API service for M365 account {AccountId}, preserveFolderStructure={Preserve}", model.TargetAccountId, model.PreserveFolderStructure);
                     
                     // For M365, we need to restore emails one by one using the Graph API
                     successful = 0;
@@ -1240,7 +1241,7 @@ namespace MailArchiver.Controllers
                                 continue;
                             }
                             
-                            var result = await _graphEmailService.RestoreEmailToFolderAsync(email, targetAccount, model.TargetFolder);
+                            var result = await _graphEmailService.RestoreEmailToFolderAsync(email, targetAccount, model.TargetFolder, model.PreserveFolderStructure);
                             if (result)
                             {
                                 successful++;
@@ -1266,6 +1267,7 @@ namespace MailArchiver.Controllers
                         model.SelectedEmailIds,
                         model.TargetAccountId,
                         model.TargetFolder,
+                        model.PreserveFolderStructure,
                         (processed, successCount, failedCount) => {
                             // Empty progress callback for synchronous processing
                         });
@@ -1594,6 +1596,7 @@ namespace MailArchiver.Controllers
                     EmailIds = emailIds, // Verwende IDs aus Session
                     TargetAccountId = model.TargetAccountId,
                     TargetFolder = model.TargetFolder,
+                    PreserveFolderStructure = model.PreserveFolderStructure,
                     ReturnUrl = model.ReturnUrl ?? "",
                     UserId = HttpContext.User.Identity?.Name ?? "Anonymous"
                 };
@@ -1690,7 +1693,7 @@ namespace MailArchiver.Controllers
         // POST: Emails/CancelSyncJob
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult CancelSyncJob(string jobId, string returnUrl = null)
+        public async Task<IActionResult> CancelSyncJob(string jobId, string returnUrl = null)
         {
             if (_syncJobService == null)
             {
@@ -1698,11 +1701,21 @@ namespace MailArchiver.Controllers
                 return Redirect(returnUrl ?? Url.Action("Index"));
             }
 
+            var job = _syncJobService.GetJob(jobId);
             var success = _syncJobService.CancelJob(jobId);
 
             if (success)
             {
                 TempData["SuccessMessage"] = "Sync job has been cancelled.";
+                
+                // Log the cancellation
+                var currentUsername = _authService.GetCurrentUserDisplayName(HttpContext);
+                if (!string.IsNullOrEmpty(currentUsername) && _accessLogService != null && job != null)
+                {
+                    await _accessLogService.LogAccessAsync(currentUsername, AccessLogType.SyncCancel,
+                        searchParameters: $"Cancelled sync job for account: {job.AccountName}",
+                        mailAccountId: job.MailAccountId);
+                }
             }
             else
             {

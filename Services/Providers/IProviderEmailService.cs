@@ -39,6 +39,16 @@ namespace MailArchiver.Services.Providers
         Task<bool> RestoreEmailToFolderAsync(int emailId, int targetAccountId, string folderName);
 
         /// <summary>
+        /// Restores a single email to a specific folder with optional folder structure preservation
+        /// </summary>
+        /// <param name="emailId">The archived email ID to restore</param>
+        /// <param name="targetAccountId">The target account ID</param>
+        /// <param name="folderName">The target folder name (base folder when preserving structure)</param>
+        /// <param name="preserveFolderStructure">If true, recreates the original folder hierarchy under the target folder</param>
+        /// <returns>True if restoration is successful</returns>
+        Task<bool> RestoreEmailToFolderAsync(int emailId, int targetAccountId, string folderName, bool preserveFolderStructure);
+
+        /// <summary>
         /// Restores multiple emails to a specific folder with progress tracking
         /// </summary>
         /// <param name="emailIds">List of email IDs to restore</param>
@@ -51,6 +61,24 @@ namespace MailArchiver.Services.Providers
             List<int> emailIds,
             int targetAccountId,
             string folderName,
+            Action<int, int, int> progressCallback,
+            CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Restores multiple emails with optional folder structure preservation
+        /// </summary>
+        /// <param name="emailIds">List of email IDs to restore</param>
+        /// <param name="targetAccountId">The target account ID</param>
+        /// <param name="folderName">The target folder name (base folder when preserving structure)</param>
+        /// <param name="preserveFolderStructure">If true, recreates the original folder hierarchy under the target folder</param>
+        /// <param name="progressCallback">Progress callback (total, successful, failed)</param>
+        /// <param name="cancellationToken">Cancellation token</param>
+        /// <returns>Tuple with successful and failed counts</returns>
+        Task<(int Successful, int Failed)> RestoreMultipleEmailsWithProgressAsync(
+            List<int> emailIds,
+            int targetAccountId,
+            string folderName,
+            bool preserveFolderStructure,
             Action<int, int, int> progressCallback,
             CancellationToken cancellationToken = default);
 

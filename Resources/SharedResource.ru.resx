@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
     <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
@@ -579,6 +579,12 @@
   </data>
   <data name="CancelKeepAccount" xml:space="preserve">
     <value>Отмена - Сохранить аккаунт</value>
+  </data>
+  <data name="CancelKeepAccountMessage" xml:space="preserve">
+    <value>Вы уверены, что хотите отменить? Аккаунт будет сохранен, и никаких изменений не будет внесено.</value>
+  </data>
+  <data name="YesCancel" xml:space="preserve">
+    <value>Да, Отменить</value>
   </data>
   <data name="DisableInstead" xml:space="preserve">
     <value>Отключить вместо этого</value>
@@ -2475,5 +2481,23 @@
   </data>
   <data name="NoFolders" xml:space="preserve">
     <value>Папки недоступны</value>
+  </data>
+  <data name="PreserveFolderStructure" xml:space="preserve">
+    <value>Сохранить структуру папок</value>
+  </data>
+  <data name="PreserveFolderStructureHelp" xml:space="preserve">
+    <value>Восстанавливает электронные письма в подпапки, соответствующие их исходной структуре папок, в выбранной целевой папке.</value>
+  </data>
+  <data name="SkippedLabel" xml:space="preserve">
+    <value>Пропущено (дубликаты):</value>
+  </data>
+  <data name="DuplicatesSkippedTitle" xml:space="preserve">
+    <value>Дубликаты электронной почты пропущены</value>
+  </data>
+  <data name="DuplicatesSkippedSummary" xml:space="preserve">
+    <value>{0} электронных писем были пропущены, так как они уже существуют в целевом аккаунте.</value>
+  </data>
+  <data name="SyncCancel" xml:space="preserve">
+    <value>Синхронизация отменена</value>
   </data>
 </root>

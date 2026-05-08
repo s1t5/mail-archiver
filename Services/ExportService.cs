@@ -632,7 +632,7 @@ namespace MailArchiver.Services
                 }
             }
 
-            // Create body - use untruncated versions if available for compliance
+            // Create body - use untruncated versions if available
             var bodyBuilder = new BodyBuilder();
 
             // Priority: Original body (with null bytes) > Untruncated body > Regular body

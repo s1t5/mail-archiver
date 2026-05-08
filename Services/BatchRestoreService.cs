@@ -205,8 +205,8 @@ public class BatchRestoreService : BackgroundService, IBatchRestoreService
             var batchSize = _batchOptions.BatchSize;
             var totalEmails = job.EmailIds.Count;
 
-            _logger.LogInformation("Job {JobId}: Starting batch restore with {TotalEmails} emails to account {AccountId}, folder {Folder}",
-                job.JobId, totalEmails, job.TargetAccountId, job.TargetFolder);
+                _logger.LogInformation("Job {JobId}: Starting batch restore with {TotalEmails} emails to account {AccountId}, folder {Folder}, preserveFolderStructure={Preserve}",
+                job.JobId, totalEmails, job.TargetAccountId, job.TargetFolder, job.PreserveFolderStructure);
 
             // Get target account to check provider type - ensure we have a fresh copy from the database
             var targetAccount = await dbContext.MailAccounts
@@ -256,7 +256,7 @@ public class BatchRestoreService : BackgroundService, IBatchRestoreService
                     };
 
                     var (successful, failed) = await imapEmailService.RestoreMultipleEmailsWithProgressAsync(
-                        job.EmailIds, job.TargetAccountId, job.TargetFolder, progressCallback, cancellationToken);
+                        job.EmailIds, job.TargetAccountId, job.TargetFolder, job.PreserveFolderStructure, progressCallback, cancellationToken);
 
                     job.SuccessCount = successful;
                     job.FailedCount = failed;
@@ -316,7 +316,7 @@ public class BatchRestoreService : BackgroundService, IBatchRestoreService
                             _logger.LogDebug("Job {JobId}: Found email {EmailId} - Subject: {Subject}, From: {From}",
                                 job.JobId, emailId, email.Subject, email.From);
 
-                            var result = await graphEmailService.RestoreEmailToFolderAsync(email, targetAccount, job.TargetFolder);
+                            var result = await graphEmailService.RestoreEmailToFolderAsync(email, targetAccount, job.TargetFolder, job.PreserveFolderStructure);
                             
                             if (result)
                             {

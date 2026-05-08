@@ -1,4 +1,4 @@
-﻿@inject Microsoft.Extensions.Localization.IStringLocalizer<MailArchiver.SharedResource> Localizer
+@inject Microsoft.Extensions.Localization.IStringLocalizer<MailArchiver.SharedResource> Localizer
 @model MailArchiver.Models.ViewModels.CreateMailAccountViewModel
 @{
     ViewData["Title"] = @Localizer["CreateNewEmailAccount"];
@@ -259,10 +259,15 @@
                     });
             }
             
+            function htmlDecode(input) {
+                const doc = new DOMParser().parseFromString(input, "text/html");
+                return doc.documentElement.textContent;
+            }
+
             function copyCredentials() {
                 const selectedAccountId = existingAccountSelect.value;
                 if (!selectedAccountId) {
-                    alert('@Localizer["PleaseSelectAccount"]');
+                    alert(htmlDecode('@Localizer["PleaseSelectAccount"]'));
                     return;
                 }
                 
@@ -294,12 +299,12 @@
                                 successMsg.remove();
                             }, 3000);
                         } else {
-                            alert('@Localizer["ErrorCopyingCredentials"]: ' + (data.message || 'Unknown error'));
+                            alert(htmlDecode('@Localizer["ErrorCopyingCredentials"]: ' + (data.message || 'Unknown error')));
                         }
                     })
                     .catch(error => {
                         console.error('Error copying credentials:', error);
-                        alert('@Localizer["ErrorCopyingCredentials"]');
+                        alert(htmlDecode('@Localizer["ErrorCopyingCredentials"]'));
                     });
             }
             

@@ -673,6 +673,14 @@ var model = new MailAccountViewModel
             _syncJobService.CancelJobsForAccount(id);
             _logger.LogInformation("Cancelled any running sync jobs for account {AccountId} ({AccountName}) before deletion", id, account.Name);
 
+            // Log sync job cancellations
+            if (!string.IsNullOrEmpty(currentUsername))
+            {
+                await _accessLogService.LogAccessAsync(currentUsername, AccessLogType.SyncCancel,
+                    searchParameters: $"Cancelled sync jobs for account: {account.Name} (account deletion)",
+                    mailAccountId: account.Id);
+            }
+
             // Unlock all emails for this account (required for compliance mode)
             var lockedEmails = await _context.ArchivedEmails
                 .Where(e => e.MailAccountId == id && e.IsLocked)

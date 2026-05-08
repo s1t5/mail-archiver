@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
     <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
@@ -579,6 +579,12 @@
   </data>
   <data name="CancelKeepAccount" xml:space="preserve">
     <value>Annuleren - Account behouden</value>
+  </data>
+  <data name="CancelKeepAccountMessage" xml:space="preserve">
+    <value>Weet u zeker dat u wilt annuleren? Het account blijft behouden en er worden geen wijzigingen aangebracht.</value>
+  </data>
+  <data name="YesCancel" xml:space="preserve">
+    <value>Ja, annuleren</value>
   </data>
   <data name="DisableInstead" xml:space="preserve">
     <value>In plaats daarvan uitschakelen</value>
@@ -2475,5 +2481,23 @@
   </data>
   <data name="NoFolders" xml:space="preserve">
     <value>Geen mappen beschikbaar</value>
+  </data>
+  <data name="PreserveFolderStructure" xml:space="preserve">
+    <value>Mapstructuur behouden</value>
+  </data>
+  <data name="PreserveFolderStructureHelp" xml:space="preserve">
+    <value>Herstelt e-mails in submappen die overeenkomen met de oorspronkelijke mapstructuur onder de geselecteerde doelmap.</value>
+  </data>
+  <data name="SkippedLabel" xml:space="preserve">
+    <value>Overgeslagen (duplicaten):</value>
+  </data>
+  <data name="DuplicatesSkippedTitle" xml:space="preserve">
+    <value>Dubbele e-mails overgeslagen</value>
+  </data>
+  <data name="DuplicatesSkippedSummary" xml:space="preserve">
+    <value>{0} e-mails zijn overgeslagen omdat ze al bestaan in het doelaccount.</value>
+  </data>
+  <data name="SyncCancel" xml:space="preserve">
+    <value>Synchronisatie geannuleerd</value>
   </data>
 </root>

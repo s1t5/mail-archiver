@@ -41,6 +41,7 @@ namespace MailArchiver.Models
         Restore,
         Account,
         Deletion,
-        DatabaseMaintenance
+        DatabaseMaintenance,
+        SyncCancel
     }
 }

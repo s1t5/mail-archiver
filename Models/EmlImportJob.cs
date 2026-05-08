@@ -15,6 +15,7 @@ namespace MailArchiver.Models
         public int ProcessedEmails { get; set; }
         public int SuccessCount { get; set; }
         public int FailedCount { get; set; }
+        public int SkippedAlreadyExistsCount { get; set; }
         public int TotalEmails { get; set; }
         public string? ErrorMessage { get; set; }
         public string? CurrentEmailSubject { get; set; }

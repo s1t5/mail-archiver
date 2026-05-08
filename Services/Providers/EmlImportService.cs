@@ -1,18 +1,19 @@
 using MailArchiver.Data;
 using MailArchiver.Models;
+using MailArchiver.Services.Providers.Eml;
+using MailArchiver.Services.Shared;
 using MailArchiver.Utilities;
-using MailKit.Net.Imap;
-using MailKit;
-using MimeKit;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using MimeKit;
 using System.Collections.Concurrent;
-using System.Text;
-using System.Text.RegularExpressions;
 using System.IO.Compression;
 
 namespace MailArchiver.Services.Providers
 {
+    /// <summary>
+    /// BackgroundService that processes EML import jobs from a queue.
+    /// Delegates email parsing, cleaning, and importing to specialized services.
+    /// </summary>
     public class EmlImportService : BackgroundService, IEmlImportService
     {
         private readonly IServiceProvider _serviceProvider;
@@ -24,78 +25,56 @@ namespace MailArchiver.Services.Providers
         private CancellationTokenSource? _currentJobCancellation;
         private readonly string _uploadsPath;
 
-        public EmlImportService(IServiceProvider serviceProvider, ILogger<EmlImportService> logger, IWebHostEnvironment environment, IOptions<BatchOperationOptions> batchOptions)
+        public EmlImportService(IServiceProvider serviceProvider, ILogger<EmlImportService> logger,
+            IWebHostEnvironment environment, IOptions<BatchOperationOptions> batchOptions)
         {
             _serviceProvider = serviceProvider;
             _logger = logger;
             _batchOptions = batchOptions.Value;
             _uploadsPath = Path.Combine(environment.ContentRootPath, "uploads", "eml");
-
-            // Erstelle Upload-Verzeichnis falls es nicht existiert
             Directory.CreateDirectory(_uploadsPath);
-
-            // Cleanup-Timer: Jeden Tag alte Jobs und Dateien entfernen
-            _cleanupTimer = new Timer(
-                callback: _ => CleanupOldJobs(),
-                state: null,
-                dueTime: TimeSpan.FromHours(24),
-                period: TimeSpan.FromHours(24)
-            );
+            _cleanupTimer = new Timer(_ => CleanupOldJobs(), null, TimeSpan.FromHours(24), TimeSpan.FromHours(24));
         }
+
+        // ========================================
+        // IEmlImportService
+        // ========================================
 
         public string QueueImport(EmlImportJob job)
         {
             job.Status = EmlImportJobStatus.Queued;
             _allJobs[job.JobId] = job;
             _jobQueue.Enqueue(job);
-            _logger.LogInformation("Queued EML import job {JobId} for file {FileName} ({FileSize} bytes)",
-                job.JobId, job.FileName, job.FileSize);
+            _logger.LogInformation("Queued EML import job {JobId} for {FileName}", job.JobId, job.FileName);
             return job.JobId;
         }
 
         public EmlImportJob? GetJob(string jobId)
-        {
-            return _allJobs.TryGetValue(jobId, out var job) ? job : null;
-        }
+            => _allJobs.TryGetValue(jobId, out var job) ? job : null;
 
         public List<EmlImportJob> GetActiveJobs()
-        {
-            return _allJobs.Values
-                .Where(j => j.Status == EmlImportJobStatus.Queued || j.Status == EmlImportJobStatus.Running)
-                .OrderBy(j => j.Created)
-                .ToList();
-        }
+            => _allJobs.Values.Where(j => j.Status == EmlImportJobStatus.Queued || j.Status == EmlImportJobStatus.Running)
+                .OrderBy(j => j.Created).ToList();
 
         public List<EmlImportJob> GetAllJobs()
-        {
-            return _allJobs.Values
-                .OrderByDescending(j => j.Status == EmlImportJobStatus.Running || j.Status == EmlImportJobStatus.Queued)
-                .ThenByDescending(j => j.Created)
-                .ToList();
-        }
+            => _allJobs.Values.OrderByDescending(j => j.Status == EmlImportJobStatus.Running || j.Status == EmlImportJobStatus.Queued)
+                .ThenByDescending(j => j.Created).ToList();
 
         public bool CancelJob(string jobId)
         {
-            if (_allJobs.TryGetValue(jobId, out var job))
+            if (!_allJobs.TryGetValue(jobId, out var job)) return false;
+            if (job.Status == EmlImportJobStatus.Queued)
             {
-                if (job.Status == EmlImportJobStatus.Queued)
-                {
-                    job.Status = EmlImportJobStatus.Cancelled;
-                    job.Completed = DateTime.UtcNow;
-                    
-                    // Delete the temporary file for queued jobs
-                    DeleteTempFile(job.FilePath, jobId);
-                    
-                    _logger.LogInformation("Cancelled queued EML import job {JobId}", jobId);
-                    return true;
-                }
-                else if (job.Status == EmlImportJobStatus.Running)
-                {
-                    job.Status = EmlImportJobStatus.Cancelled;
-                    _currentJobCancellation?.Cancel();
-                    _logger.LogInformation("Requested cancellation of running EML import job {JobId}", jobId);
-                    return true;
-                }
+                job.Status = EmlImportJobStatus.Cancelled;
+                job.Completed = DateTime.UtcNow;
+                DeleteTempFile(job.FilePath, jobId);
+                return true;
+            }
+            if (job.Status == EmlImportJobStatus.Running)
+            {
+                job.Status = EmlImportJobStatus.Cancelled;
+                _currentJobCancellation?.Cancel();
+                return true;
             }
             return false;
         }
@@ -104,13 +83,8 @@ namespace MailArchiver.Services.Providers
         {
             var fileName = $"{Guid.NewGuid()}_{Path.GetFileName(file.FileName)}";
             var filePath = Path.Combine(_uploadsPath, fileName);
-
             using (var stream = new FileStream(filePath, FileMode.Create))
-            {
                 await file.CopyToAsync(stream);
-            }
-
-            _logger.LogInformation("Saved uploaded EML file to {FilePath}", filePath);
             return filePath;
         }
 
@@ -119,48 +93,31 @@ namespace MailArchiver.Services.Providers
             try
             {
                 using var zip = ZipFile.OpenRead(filePath);
-                int count = zip.Entries.Count(e => e.Name.EndsWith(".eml", StringComparison.OrdinalIgnoreCase));
-                _logger.LogInformation("Estimated {Count} emails in ZIP file {FilePath}", count, filePath);
-                return count;
+                return zip.Entries.Count(e => e.Name.EndsWith(".eml", StringComparison.OrdinalIgnoreCase));
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error estimating email count for file {FilePath}", filePath);
+                _logger.LogError(ex, "Error estimating email count for {FilePath}", filePath);
                 return 0;
             }
         }
 
         public void CleanupOldJobs()
         {
-            var cutoffTime = DateTime.UtcNow.AddDays(-7); // Jobs älter als 7 Tage entfernen
-            var toRemove = _allJobs.Values
-                .Where(j => j.Completed.HasValue && j.Completed < cutoffTime)
-                .ToList();
-
+            var cutoff = DateTime.UtcNow.AddDays(-7);
+            var toRemove = _allJobs.Values.Where(j => j.Completed.HasValue && j.Completed < cutoff).ToList();
             foreach (var job in toRemove)
             {
                 _allJobs.TryRemove(job.JobId, out _);
-
-                // Lösche auch die zugehörige Datei
-                try
-                {
-                    if (File.Exists(job.FilePath))
-                    {
-                        File.Delete(job.FilePath);
-                        _logger.LogInformation("Deleted old EML file {FilePath}", job.FilePath);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogWarning(ex, "Failed to delete old EML file {FilePath}", job.FilePath);
-                }
+                try { if (File.Exists(job.FilePath)) File.Delete(job.FilePath); }
+                catch (Exception ex) { _logger.LogWarning(ex, "Failed to delete old EML file"); }
             }
-
-            if (toRemove.Any())
-            {
-                _logger.LogInformation("Cleaned up {Count} old EML import jobs", toRemove.Count);
-            }
+            if (toRemove.Any()) _logger.LogInformation("Cleaned up {Count} old EML import jobs", toRemove.Count);
         }
+
+        // ========================================
+        // BackgroundService
+        // ========================================
 
         public override Task StartAsync(CancellationToken cancellationToken)
         {
@@ -171,36 +128,21 @@ namespace MailArchiver.Services.Providers
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             _logger.LogInformation("EML Import Background Service started");
-
             while (!stoppingToken.IsCancellationRequested)
             {
                 try
                 {
                     if (_jobQueue.TryDequeue(out var job))
                     {
-                        if (job.Status == EmlImportJobStatus.Cancelled)
-                        {
-                            _logger.LogInformation("Skipping cancelled EML import job {JobId}", job.JobId);
-                            continue;
-                        }
-
-                        await ProcessJob(job, stoppingToken);
+                        if (job.Status != EmlImportJobStatus.Cancelled)
+                            await ProcessJob(job, stoppingToken);
                     }
-                    else
-                    {
-                        // Kürzere Wartezeit für bessere Reaktionsfähigkeit
-                        await Task.Delay(100, stoppingToken);
-                    }
+                    else await Task.Delay(100, stoppingToken);
                 }
-                catch (OperationCanceledException)
-                {
-                    _logger.LogInformation("EML Import Background Service stopping");
-                    break;
-                }
+                catch (OperationCanceledException) { break; }
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, "Error in EML Import Background Service");
-                    // Kürzere Wartezeit nach Fehler
                     await Task.Delay(1000, stoppingToken);
                 }
             }
@@ -212,70 +154,54 @@ namespace MailArchiver.Services.Providers
             return base.StopAsync(cancellationToken);
         }
 
+        public override void Dispose()
+        {
+            _cleanupTimer?.Dispose();
+            _currentJobCancellation?.Dispose();
+            base.Dispose();
+        }
+
+        // ========================================
+        // Job Processing
+        // ========================================
+
         private async Task ProcessJob(EmlImportJob job, CancellationToken stoppingToken)
         {
             _currentJobCancellation = CancellationTokenSource.CreateLinkedTokenSource(stoppingToken);
-            var cancellationToken = _currentJobCancellation.Token;
+            var ct = _currentJobCancellation.Token;
 
             try
             {
                 job.Status = EmlImportJobStatus.Running;
                 job.Started = DateTime.UtcNow;
-
-                _logger.LogInformation("Starting EML import job {JobId} for file {FileName}",
-                    job.JobId, job.FileName);
+                _logger.LogInformation("Starting EML import job {JobId} for {FileName}", job.JobId, job.FileName);
 
                 using var scope = _serviceProvider.CreateScope();
                 var context = scope.ServiceProvider.GetRequiredService<MailArchiverDbContext>();
-
-                // Lade Target Account
                 var targetAccount = await context.MailAccounts.FindAsync(job.TargetAccountId);
                 if (targetAccount == null)
-                {
-                    throw new InvalidOperationException($"Target account {job.TargetAccountId} not found");
-                }
+                    throw new InvalidOperationException("Target account " + job.TargetAccountId + " not found");
 
-                // Schätze E-Mail-Anzahl wenn noch nicht vorhanden
                 if (job.TotalEmails == 0)
-                {
                     job.TotalEmails = await EstimateEmailCountAsync(job.FilePath);
-                }
 
-                // Verarbeite ZIP-Datei mit EML-Dateien
-                await ProcessZipFile(job, targetAccount, cancellationToken);
+                await ProcessZipFile(job, targetAccount, ct);
 
                 if (job.Status != EmlImportJobStatus.Cancelled)
                 {
                     job.Status = EmlImportJobStatus.Completed;
                     job.Completed = DateTime.UtcNow;
-                    var skippedCount = job.ProcessedEmails - job.SuccessCount - job.FailedCount;
-                    _logger.LogInformation("Completed EML import job {JobId}. Success: {Success}, Failed: {Failed}, Skipped (already exists): {Skipped}",
-                        job.JobId, job.SuccessCount, job.FailedCount, skippedCount);
+                    _logger.LogInformation("Completed job {JobId}. Success: {Success}, Failed: {Failed}, SkippedDuplicates: {Skipped}",
+                        job.JobId, job.SuccessCount, job.FailedCount, job.SkippedAlreadyExistsCount);
                 }
 
-                // Lösche die temporäre Datei nach erfolgreichem Import
-                try
-                {
-                    if (File.Exists(job.FilePath))
-                    {
-                        File.Delete(job.FilePath);
-                        _logger.LogInformation("Deleted temporary EML file {FilePath}", job.FilePath);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogWarning(ex, "Failed to delete temporary EML file {FilePath}", job.FilePath);
-                }
+                TryDeleteFile(job.FilePath);
             }
             catch (OperationCanceledException)
             {
                 job.Status = EmlImportJobStatus.Cancelled;
                 job.Completed = DateTime.UtcNow;
-                
-                // Delete the temporary file for cancelled running jobs
                 DeleteTempFile(job.FilePath, job.JobId);
-                
-                _logger.LogInformation("EML import job {JobId} was cancelled", job.JobId);
             }
             catch (Exception ex)
             {
@@ -291,1243 +217,103 @@ namespace MailArchiver.Services.Providers
             }
         }
 
-        private async Task ProcessZipFile(EmlImportJob job, MailAccount targetAccount, CancellationToken cancellationToken)
+        private async Task ProcessZipFile(EmlImportJob job, MailAccount targetAccount, CancellationToken ct)
         {
-            try
+            using var zip = ZipFile.OpenRead(job.FilePath);
+            var emlEntries = zip.Entries.Where(e => e.Name.EndsWith(".eml", StringComparison.OrdinalIgnoreCase)).ToList();
+            job.TotalEmails = emlEntries.Count;
+
+            using var scope = _serviceProvider.CreateScope();
+            var mailCleaner = scope.ServiceProvider.GetRequiredService<EmlMailCleaner>();
+            var mailImporter = scope.ServiceProvider.GetRequiredService<MailImporter>();
+
+            foreach (var entry in emlEntries)
             {
-                using var zip = ZipFile.OpenRead(job.FilePath);
-                var emlEntries = zip.Entries.Where(e => e.Name.EndsWith(".eml", StringComparison.OrdinalIgnoreCase)).ToList();
-                job.TotalEmails = emlEntries.Count;
+                ct.ThrowIfCancellationRequested();
 
-                foreach (var entry in emlEntries)
-                {
-                    cancellationToken.ThrowIfCancellationRequested();
-
-                    try
-                    {
-                        // Bestimme den Zielordner basierend auf dem Pfad innerhalb der ZIP-Datei
-                        string targetFolder = "INBOX";
-                        if (!string.IsNullOrEmpty(entry.FullName))
-                        {
-                            // Entferne den Dateinamen, um nur den Ordnerpfad zu erhalten
-                            var folderPath = Path.GetDirectoryName(entry.FullName);
-                            if (!string.IsNullOrEmpty(folderPath))
-                            {
-                                // Verwende den letzten Teil des Pfades als Ordnernamen
-                                var folders = folderPath.Split(new[] { '/', '\\' }, StringSplitOptions.RemoveEmptyEntries);
-                                if (folders.Length > 0)
-                                {
-                                    targetFolder = folders[folders.Length - 1];
-                                }
-                            }
-                        }
-
-                        using var entryStream = entry.Open();
-                        using var memoryStream = new MemoryStream();
-                        await entryStream.CopyToAsync(memoryStream, cancellationToken);
-                        memoryStream.Position = 0;
-
-                        var parser = new MimeParser(memoryStream, MimeFormat.Entity);
-                        var message = await parser.ParseMessageAsync(cancellationToken);
-
-                        // Pre-clean message data to remove null bytes before processing
-                        // This prevents PostgreSQL UTF-8 encoding errors (0x00 is invalid in UTF-8)
-                        PreCleanMessage(message);
-
-                        job.CurrentEmailSubject = message.Subject;
-                        job.ProcessedBytes = memoryStream.Position;
-
-                        // Importiere E-Mail in die Datenbank
-                        var importResult = await ImportEmailToDatabase(message, targetAccount, job, targetFolder);
-
-                        // Explicitly dispose of the message to free memory
-                        message?.Dispose();
-
-                        if (importResult.Success)
-                        {
-                            job.SuccessCount++;
-                        }
-                        else if (importResult.AlreadyExists)
-                        {
-                            // Bereits vorhandene E-Mails als skipped zählen, nicht als failed
-                        }
-                        else
-                        {
-                            job.FailedCount++;
-                        }
-
-                        job.ProcessedEmails++;
-
-                        // Clear Entity Framework Change Tracker every 50 emails to prevent memory accumulation
-                        if (job.ProcessedEmails % 50 == 0)
-                        {
-                            using var scope = _serviceProvider.CreateScope();
-                            var context = scope.ServiceProvider.GetRequiredService<MailArchiverDbContext>();
-                            context.ChangeTracker.Clear();
-                        }
-
-                        // Kleine Pause alle 10 E-Mails
-                        if (job.ProcessedEmails % 10 == 0 && _batchOptions.PauseBetweenEmailsMs > 0)
-                        {
-                            await Task.Delay(_batchOptions.PauseBetweenEmailsMs, cancellationToken);
-                            
-                            // Force garbage collection after every 10 emails to free memory
-                            if (job.ProcessedEmails % 50 == 0)
-                            {
-                                GC.Collect();
-                                GC.WaitForPendingFinalizers();
-                            }
-                        }
-
-                        // Log Progress alle 100 E-Mails
-                        if (job.ProcessedEmails % 100 == 0)
-                        {
-                            var progressPercent = job.TotalEmails > 0 ? (job.ProcessedEmails * 100.0 / job.TotalEmails) : 0;
-                            _logger.LogInformation("Job {JobId}: Processed {Processed} emails ({Progress:F1}%)",
-                                job.JobId, job.ProcessedEmails, progressPercent);
-                            
-                            // Clear Entity Framework Change Tracker for comprehensive cleanup every 100 emails
-                            using var scope = _serviceProvider.CreateScope();
-                            var context = scope.ServiceProvider.GetRequiredService<MailArchiverDbContext>();
-                            context.ChangeTracker.Clear();
-                            
-                            // Force garbage collection after every 100 emails to free memory
-                            GC.Collect();
-                            GC.WaitForPendingFinalizers();
-                            
-                            // Log memory usage after processing batch
-                            _logger.LogInformation("Memory usage after processing batch: {MemoryUsage}",
-                                MemoryMonitor.GetMemoryUsageFormatted());
-                        }
-                    }
-                    catch (FormatException ex)
-                    {
-                        _logger.LogWarning(ex, "Job {JobId}: Skipping malformed email in entry {EntryName}",
-                            job.JobId, entry.FullName);
-                        job.FailedCount++;
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogError(ex, "Job {JobId}: Error processing email in entry {EntryName}",
-                            job.JobId, entry.FullName);
-                        job.FailedCount++;
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Job {JobId}: Error processing ZIP file {FilePath}",
-                    job.JobId, job.FilePath);
-                throw;
-            }
-        }
-
-        private async Task<ImportResult> ImportEmailToDatabase(MimeMessage message, MailAccount account, EmlImportJob job, string targetFolder)
-        {
-            try
-            {
-                using var scope = _serviceProvider.CreateScope();
-                var context = scope.ServiceProvider.GetRequiredService<MailArchiverDbContext>();
-
-                // Verbesserte MessageId-Generierung für Provider ohne zuverlässige MessageIds
-                var messageId = message.MessageId;
-                
-                // Wenn keine MessageId vorhanden, generiere Hash basierend auf E-Mail-Inhalt
-                if (string.IsNullOrEmpty(messageId))
-                {
-                    var hashFrom = string.Join(",", message.From.Mailboxes.Select(m => m.Address));
-                    var hashTo = string.Join(",", message.To.Mailboxes.Select(m => m.Address));
-                    var hashSubject = message.Subject ?? "";
-                    var dateTicks = message.Date.Ticks;
-                    
-                    var uniqueString = $"{hashFrom}|{hashTo}|{hashSubject}|{dateTicks}";
-                    using (var sha256 = System.Security.Cryptography.SHA256.Create())
-                    {
-                        var hashBytes = sha256.ComputeHash(System.Text.Encoding.UTF8.GetBytes(uniqueString));
-                        var hashString = Convert.ToBase64String(hashBytes).Replace("+", "-").Replace("/", "_").Substring(0, 16);
-                        messageId = $"generated-{hashString}@mail-archiver.local";
-                    }
-                    
-                    _logger.LogDebug("Job {JobId}: Generated MessageId for email without MessageId: {MessageId}", 
-                        job.JobId, messageId);
-                }
-
-                _logger.LogDebug("Job {JobId}: Processing email with MessageId: {MessageId}, Subject: {Subject}", 
-                    job.JobId, messageId, message.Subject ?? "(No Subject)");
-
-                // ROBUSTE Duplikaterkennung - prüfe mehrere Kriterien
-                var checkFrom = string.Join(",", message.From.Mailboxes.Select(m => m.Address));
-                var checkTo = string.Join(",", message.To.Mailboxes.Select(m => m.Address));
-                var checkSubject = message.Subject ?? "(No Subject)";
-                
-                var existing = await context.ArchivedEmails
-                    .Where(e => e.MailAccountId == account.Id)
-                    .Where(e => 
-                        e.MessageId == messageId ||
-                        (e.From == checkFrom &&
-                         e.To == checkTo &&
-                         e.Subject == checkSubject &&
-                         Math.Abs((e.SentDate - message.Date.DateTime).TotalSeconds) < 2)
-                    )
-                    .FirstOrDefaultAsync();
-
-                if (existing != null)
-                {
-                    _logger.LogInformation("Job {JobId}: Email already exists (duplicate) - MessageId: {MessageId}, Subject: {Subject}, From: {From}", 
-                        job.JobId, messageId, checkSubject, checkFrom);
-                    return ImportResult.CreateAlreadyExists();
-                }
-
-                // Extract text and HTML body preserving original encoding
-                var body = string.Empty;
-                var htmlBody = string.Empty;
-                // Store raw body content BEFORE cleaning to detect null bytes
-                // This preserves the original content including any null bytes for faithful export
-                var rawTextBody = message.TextBody;
-                var rawHtmlBody = message.HtmlBody;
-                
-                // Check if original bodies contain null bytes - if so, store them as byte arrays
-                var hasNullBytesInText = !string.IsNullOrEmpty(rawTextBody) && rawTextBody.Contains('\0');
-                var hasNullBytesInHtml = !string.IsNullOrEmpty(rawHtmlBody) && rawHtmlBody.Contains('\0');
-                
-                // Keep references to original unmodified body content
-                // IMPORTANT: Clean the original bodies to remove null bytes (prevent PostgreSQL UTF-8 errors)
-                var originalTextBody = !string.IsNullOrEmpty(rawTextBody) ? CleanText(rawTextBody) : null;
-                var originalHtmlBody = !string.IsNullOrEmpty(rawHtmlBody) ? CleanText(rawHtmlBody) : null;
-
-                // Handle text body - use original content directly to preserve encoding
-                if (!string.IsNullOrEmpty(message.TextBody))
-                {
-                    var cleanedTextBody = CleanText(message.TextBody);
-                    // Check if text body needs truncation for tsvector compatibility
-                    // Set to 500KB to ensure total of all fields stays under 1MB tsvector limit
-                    if (Encoding.UTF8.GetByteCount(cleanedTextBody) > 500_000)
-                    {
-                        body = TruncateTextForStorage(cleanedTextBody, 500_000);
-                    }
-                    else
-                    {
-                        body = cleanedTextBody;
-                    }
-                }
-                else if (!string.IsNullOrEmpty(message.HtmlBody))
-                {
-                    // If no TextBody, try to extract text from HTML body
-                    var cleanedHtmlAsText = CleanText(message.HtmlBody);
-                    // Check if HTML-as-text body needs truncation for tsvector compatibility
-                    // Set to 500KB to ensure total of all fields stays under 1MB tsvector limit
-                    if (Encoding.UTF8.GetByteCount(cleanedHtmlAsText) > 500_000)
-                    {
-                        // For BodyUntruncatedText, the original source is HtmlBody in this case
-                        originalTextBody = message.HtmlBody;
-                        body = TruncateTextForStorage(cleanedHtmlAsText, 500_000);
-                    }
-                    else
-                    {
-                        body = cleanedHtmlAsText;
-                    }
-                }
-
-                // Handle HTML body - preserve original encoding
-                if (!string.IsNullOrEmpty(message.HtmlBody))
-                {
-                    var cleanedHtmlBody = CleanText(message.HtmlBody);
-                    // Check if HTML body needs truncation
-                    if (Encoding.UTF8.GetByteCount(cleanedHtmlBody) > 1_000_000)
-                    {
-                        htmlBody = CleanHtmlForStorage(cleanedHtmlBody);
-                    }
-                    else
-                    {
-                        htmlBody = cleanedHtmlBody;
-                    }
-                }
-
-                // Sammle ALLE Anhänge einschließlich inline Images
-                var allAttachments = new List<MimePart>();
-                CollectAllAttachments(message.Body, allAttachments);
-
-                // Convert timestamp to configured display timezone
-                var dateTimeHelper = scope.ServiceProvider.GetRequiredService<DateTimeHelper>();
-                var convertedSentDate = dateTimeHelper.ConvertToDisplayTimeZone(message.Date);
-
-                var subject = CleanText(message.Subject ?? "(No Subject)");
-                var from = CleanText(string.Join(", ", message.From.Mailboxes.Select(m => m.Address)));
-                var to = CleanText(string.Join(", ", message.To.Mailboxes.Select(m => m.Address)));
-                var cc = CleanText(string.Join(", ", message.Cc?.Mailboxes.Select(m => m.Address) ?? Enumerable.Empty<string>()));
-                var bcc = CleanText(string.Join(", ", message.Bcc?.Mailboxes.Select(m => m.Address) ?? Enumerable.Empty<string>()));
-
-                // Ensure individual fields don't exceed reasonable limits for tsvector
-                subject = TruncateFieldForTsvector(subject, 50_000);
-                from = TruncateFieldForTsvector(from, 10_000);
-                to = TruncateFieldForTsvector(to, 50_000);
-                cc = TruncateFieldForTsvector(cc, 50_000);
-                bcc = TruncateFieldForTsvector(bcc, 50_000);
-                
-                // Final safety check: ensure total size for tsvector doesn't exceed limit
-                var totalTsvectorSize = Encoding.UTF8.GetByteCount(subject) +
-                                       Encoding.UTF8.GetByteCount(body) +
-                                       Encoding.UTF8.GetByteCount(from) +
-                                       Encoding.UTF8.GetByteCount(to) +
-                                       Encoding.UTF8.GetByteCount(cc) +
-                                       Encoding.UTF8.GetByteCount(bcc);
-
-                const int maxTsvectorSize = 900_000;
-                if (totalTsvectorSize > maxTsvectorSize)
-                {
-                    _logger.LogWarning("Job {JobId}: Email fields exceed tsvector limit ({TotalSize} > {MaxSize}), truncating body further",
-                        job.JobId, totalTsvectorSize, maxTsvectorSize);
-                    
-                    var otherFieldsSize = totalTsvectorSize - Encoding.UTF8.GetByteCount(body);
-                    var maxBodySize = maxTsvectorSize - otherFieldsSize - 10_000;
-                    
-                    if (maxBodySize > 0 && Encoding.UTF8.GetByteCount(body) > maxBodySize)
-                    {
-                        body = TruncateTextForStorage(body, maxBodySize);
-                    }
-                    else if (maxBodySize <= 0)
-                    {
-                        _logger.LogError("Job {JobId}: Other email fields alone exceed tsvector limit", job.JobId);
-                        body = "[Body too large - saved as attachment]";
-                    }
-                }
-
-                // Extract raw headers for forensic/compliance purposes
-                var rawHeaders = ExtractRawHeaders(message);
-                
-                // Clean raw headers to remove null bytes (prevent PostgreSQL UTF-8 errors)
-                if (!string.IsNullOrEmpty(rawHeaders))
-                {
-                    rawHeaders = CleanText(rawHeaders);
-                }
-
-                var archivedEmail = new ArchivedEmail
-                {
-                    MailAccountId = account.Id,
-                    MessageId = messageId,
-                    Subject = subject,
-                    From = from,
-                    To = to,
-                    Cc = cc,
-                    Bcc = bcc,
-                    SentDate = convertedSentDate,
-                    ReceivedDate = DateTime.UtcNow,
-                    IsOutgoing = DetermineIfOutgoing(message, account, targetFolder),
-                    HasAttachments = allAttachments.Any(),
-                    Body = body,
-                    HtmlBody = htmlBody,
-                    // LEGACY: BodyUntruncated fields are no longer populated for new emails (kept for backward compatibility)
-                    // Original body content is now stored in OriginalBody* fields (as byte[]) for both truncation AND null-byte cases
-                    BodyUntruncatedText = null,  // Not populated for new emails - use OriginalBodyText instead
-                    BodyUntruncatedHtml = null,  // Not populated for new emails - use OriginalBodyHtml instead
-                    // Store original body as byte array for faithful export/restore
-                    // Populated when: (1) original contained null bytes, OR (2) original was truncated
-                    OriginalBodyText = (hasNullBytesInText || (!string.IsNullOrEmpty(originalTextBody) && originalTextBody != body)) 
-                        ? Encoding.UTF8.GetBytes(hasNullBytesInText ? rawTextBody! : originalTextBody!) : null,
-                    OriginalBodyHtml = (hasNullBytesInHtml || (!string.IsNullOrEmpty(originalHtmlBody) && originalHtmlBody != htmlBody)) 
-                        ? Encoding.UTF8.GetBytes(hasNullBytesInHtml ? rawHtmlBody! : originalHtmlBody!) : null,
-                    FolderName = targetFolder,
-                    RawHeaders = rawHeaders, // Store raw headers for forensic/compliance purposes
-                    Attachments = new List<EmailAttachment>() // Initialize collection for hash calculation
-                };
-
-                _logger.LogDebug("Job {JobId}: Adding email to database: {MessageId}", job.JobId, messageId);
-                context.ArchivedEmails.Add(archivedEmail);
-                await context.SaveChangesAsync();
-                _logger.LogDebug("Job {JobId}: Successfully saved email: {MessageId}", job.JobId, messageId);
-
-                // Speichere ALLE Anhänge als normale Attachments
-                if (allAttachments.Any())
-                {
-                    _logger.LogDebug("Job {JobId}: Saving {Count} attachments for email: {MessageId}", 
-                        job.JobId, allAttachments.Count, messageId);
-                    await SaveAllAttachments(context, allAttachments, archivedEmail.Id);
-                }
-
-                _logger.LogDebug("Job {JobId}: Successfully imported email: {MessageId}, OriginalPreserved: {OriginalPreserved}", 
-                    job.JobId, messageId, archivedEmail.BodyUntruncatedText != null || archivedEmail.BodyUntruncatedHtml != null ? "Yes" : "No");
-                return ImportResult.CreateSuccess();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Job {JobId}: Failed to import email to database. Subject: {Subject}, MessageId: {MessageId}, Error: {Error}", 
-                    job.JobId, message.Subject ?? "(No Subject)", message.MessageId ?? "None", ex.Message);
-                return ImportResult.CreateFailed(ex.Message);
-            }
-        }
-
-        // Hilfsmethoden für EML Import - umfassende Inline-Image-Erkennung
-        private void CollectAllAttachments(MimeEntity entity, List<MimePart> attachments)
-        {
-            _logger.LogDebug("CollectAllAttachments: Processing entity type: {EntityType}", entity.GetType().Name);
-
-            if (entity is MimePart mimePart)
-            {
-                _logger.LogDebug("Processing MimePart: ContentType={ContentType}, FileName={FileName}, ContentId={ContentId}, IsAttachment={IsAttachment}, ContentDisposition={ContentDisposition}",
-                    mimePart.ContentType?.MimeType, mimePart.FileName, mimePart.ContentId, mimePart.IsAttachment, mimePart.ContentDisposition?.Disposition);
-
-                // Sammle normale Attachments
-                if (mimePart.IsAttachment)
-                {
-                    attachments.Add(mimePart);
-                    _logger.LogDebug("Found attachment: FileName={FileName}, ContentType={ContentType}",
-                        mimePart.FileName, mimePart.ContentType?.MimeType);
-                }
-                // Sammle inline Images und andere inline Content
-                else if (IsInlineContent(mimePart))
-                {
-                    attachments.Add(mimePart);
-                    _logger.LogDebug("Found inline content: ContentId={ContentId}, ContentType={ContentType}, FileName={FileName}",
-                        mimePart.ContentId, mimePart.ContentType?.MimeType, mimePart.FileName);
-                }
-                else
-                {
-                    _logger.LogDebug("Skipping MimePart: Not attachment and not inline content");
-                }
-            }
-            else if (entity is Multipart multipart)
-            {
-                _logger.LogDebug("Processing Multipart with {Count} children", multipart.Count);
-                // Rekursiv durch alle Teile einer Multipart-Nachricht gehen
-                foreach (var child in multipart)
-                {
-                    CollectAllAttachments(child, attachments);
-                }
-            }
-            else if (entity is MessagePart messagePart)
-            {
-                _logger.LogDebug("Processing MessagePart");
-                // Auch in eingebetteten Nachrichten suchen
-                CollectAllAttachments(messagePart.Message.Body, attachments);
-            }
-            else
-            {
-                _logger.LogDebug("Skipping entity type: {EntityType}", entity.GetType().Name);
-            }
-        }
-
-        /// <summary>
-        /// Umfassende Erkennung von Inline-Content für EML Import
-        /// </summary>
-        private bool IsInlineContent(MimePart mimePart)
-        {
-            // Primäre Prüfung: Content-Disposition = inline
-            if (mimePart.ContentDisposition?.Disposition?.Equals("inline", StringComparison.OrdinalIgnoreCase) == true)
-            {
-                _logger.LogDebug("Found inline content via Content-Disposition: ContentId={ContentId}, ContentType={ContentType}, FileName={FileName}",
-                    mimePart.ContentId, mimePart.ContentType?.MimeType, mimePart.FileName);
-                return true;
-            }
-
-            // Sekundäre Prüfung: Content-ID vorhanden (klassisches Inline-Image)
-            if (!string.IsNullOrEmpty(mimePart.ContentId))
-            {
-                _logger.LogDebug("Found inline content via Content-ID: ContentId={ContentId}, ContentType={ContentType}, FileName={FileName}",
-                    mimePart.ContentId, mimePart.ContentType?.MimeType, mimePart.FileName);
-                return true;
-            }
-
-            // Tertiäre Prüfung: Image ohne Content-Disposition oder mit generic filename
-            var contentType = mimePart.ContentType?.MimeType?.ToLowerInvariant() ?? "";
-            var fileName = mimePart.FileName ?? "";
-            
-            if (contentType.StartsWith("image/"))
-            {
-                // Bilder ohne Content-Disposition sind oft inline
-                if (mimePart.ContentDisposition == null)
-                {
-                    _logger.LogDebug("Found potential inline image (no ContentDisposition): ContentType={ContentType}, FileName={FileName}",
-                        mimePart.ContentType?.MimeType, fileName);
-                    return true;
-                }
-
-                // Bilder mit generischen Dateinamen sind oft inline
-                if (string.IsNullOrEmpty(fileName) || 
-                    fileName.StartsWith("image", StringComparison.OrdinalIgnoreCase) ||
-                    fileName.Contains("inline", StringComparison.OrdinalIgnoreCase) ||
-                    fileName.Contains("embed", StringComparison.OrdinalIgnoreCase) ||
-                    Regex.IsMatch(fileName, @"^(img|pic|photo)\d*\.", RegexOptions.IgnoreCase))
-                {
-                    _logger.LogDebug("Found potential inline image (generic filename): ContentType={ContentType}, FileName={FileName}",
-                        mimePart.ContentType?.MimeType, fileName);
-                    return true;
-                }
-            }
-
-            // Quartiäre Prüfung: RFC2387 related content
-            if (contentType.StartsWith("text/") && contentType.Contains("related"))
-            {
-                _logger.LogDebug("Found potential inline content (related text): ContentType={ContentType}, FileName={FileName}",
-                    mimePart.ContentType?.MimeType, fileName);
-                return true;
-            }
-
-            return false;
-        }
-
-        private async Task SaveAllAttachments(MailArchiverDbContext context, List<MimePart> attachments, int archivedEmailId)
-        {
-            foreach (var attachment in attachments)
-            {
                 try
                 {
-                    using var ms = new MemoryStream();
-                    await attachment.Content.DecodeToAsync(ms);
-
-                    var fileName = attachment.FileName;
-                    if (string.IsNullOrEmpty(fileName))
+                    string targetFolder = "INBOX";
+                    if (!string.IsNullOrEmpty(entry.FullName))
                     {
-                        if (!string.IsNullOrEmpty(attachment.ContentId))
+                        var folderPath = Path.GetDirectoryName(entry.FullName);
+                        if (!string.IsNullOrEmpty(folderPath))
                         {
-                            var extension = GetFileExtensionFromContentType(attachment.ContentType?.MimeType);
-                            var cleanContentId = attachment.ContentId.Trim('<', '>');
-                            fileName = $"inline_{cleanContentId}{extension}";
-                        }
-                        else
-                        {
-                            var extension = GetFileExtensionFromContentType(attachment.ContentType?.MimeType);
-                            fileName = $"attachment_{Guid.NewGuid().ToString("N")[..8]}{extension}";
+                            var folders = folderPath.Split(new[] { '/', '\\' }, StringSplitOptions.RemoveEmptyEntries);
+                            if (folders.Length > 0) targetFolder = folders[folders.Length - 1];
                         }
                     }
 
-                    var emailAttachment = new EmailAttachment
-                    {
-                        ArchivedEmailId = archivedEmailId,
-                        FileName = CleanText(fileName),
-                        ContentType = CleanText(attachment.ContentType?.MimeType ?? "application/octet-stream"),
-                        ContentId = !string.IsNullOrEmpty(attachment.ContentId) ? CleanText(attachment.ContentId) : null,
-                        Content = ms.ToArray(),
-                        Size = ms.Length
-                    };
+                    using var entryStream = entry.Open();
+                    using var memoryStream = new MemoryStream();
+                    await entryStream.CopyToAsync(memoryStream, ct);
+                    memoryStream.Position = 0;
 
-                    context.EmailAttachments.Add(emailAttachment);
+                    var parser = new MimeParser(memoryStream, MimeFormat.Entity);
+                    var message = await parser.ParseMessageAsync(ct);
+
+                    mailCleaner.PreCleanMessage(message);
+
+                    job.CurrentEmailSubject = message.Subject;
+                    job.ProcessedBytes = memoryStream.Position;
+
+                    var importResult = await mailImporter.ImportEmailToDatabase(message, targetAccount, job.JobId, targetFolder);
+                    message?.Dispose();
+
+                    if (importResult.Success) job.SuccessCount++;
+                    else if (importResult.AlreadyExists) job.SkippedAlreadyExistsCount++;
+                    else job.FailedCount++;
+
+                    job.ProcessedEmails++;
+
+                    if (job.ProcessedEmails % 50 == 0)
+                    {
+                        using var ctxScope = _serviceProvider.CreateScope();
+                        var ctx = ctxScope.ServiceProvider.GetRequiredService<MailArchiverDbContext>();
+                        ctx.ChangeTracker.Clear();
+                    }
+
+                    if (job.ProcessedEmails % 10 == 0 && _batchOptions.PauseBetweenEmailsMs > 0)
+                    {
+                        await Task.Delay(_batchOptions.PauseBetweenEmailsMs, ct);
+                        if (job.ProcessedEmails % 50 == 0) { GC.Collect(); GC.WaitForPendingFinalizers(); }
+                    }
+
+                    if (job.ProcessedEmails % 100 == 0)
+                    {
+                        var pct = job.TotalEmails > 0 ? (job.ProcessedEmails * 100.0 / job.TotalEmails) : 0;
+                        _logger.LogInformation("Job {JobId}: {Processed}/{Total} ({Progress:F1}%)",
+                            job.JobId, job.ProcessedEmails, job.TotalEmails, pct);
+                        using var memScope = _serviceProvider.CreateScope();
+                        var ctx = memScope.ServiceProvider.GetRequiredService<MailArchiverDbContext>();
+                        ctx.ChangeTracker.Clear();
+                        GC.Collect(); GC.WaitForPendingFinalizers();
+                        _logger.LogInformation("Memory: {Mem}", MemoryMonitor.GetMemoryUsageFormatted());
+                    }
+                }
+                catch (FormatException ex)
+                {
+                    _logger.LogWarning(ex, "Job {JobId}: Skipping malformed email in {Entry}", job.JobId, entry.FullName);
+                    job.FailedCount++;
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogWarning(ex, "Failed to save attachment {FileName}", attachment.FileName);
+                    _logger.LogError(ex, "Job {JobId}: Error processing {Entry}", job.JobId, entry.FullName);
+                    job.FailedCount++;
                 }
             }
-
-            try
-            {
-                await context.SaveChangesAsync();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "Failed to save attachments for email");
-            }
-        }
-
-        /// <summary>
-        /// Saves the original HTML content as an attachment when it was truncated
-        /// </summary>
-        /// <param name="context">The database context</param>
-        /// <param name="originalHtml">The original HTML content</param>
-        /// <param name="archivedEmailId">The email ID to attach to</param>
-        /// <param name="jobId">The job ID for logging</param>
-        /// <param name="messageId">The message ID for logging</param>
-        /// <returns>Task</returns>
-        private async Task SaveTruncatedHtmlAsAttachment(MailArchiverDbContext context, string originalHtml, int archivedEmailId, string jobId, string messageId)
-        {
-            try
-            {
-                // Get the email's attachments to resolve inline images
-                var email = await context.ArchivedEmails
-                    .Include(e => e.Attachments)
-                    .FirstOrDefaultAsync(e => e.Id == archivedEmailId);
-
-                if (email != null && email.Attachments != null && email.Attachments.Any())
-                {
-                    // Resolve inline images by converting cid: references to data URLs
-                    originalHtml = ResolveInlineImagesInHtml(originalHtml, email.Attachments.ToList(), jobId);
-                }
-
-                var cleanFileName = CleanText($"original_content_{DateTime.UtcNow:yyyyMMddHHmmss}.html");
-                var contentType = "text/html";
-
-                var emailAttachment = new EmailAttachment
-                {
-                    ArchivedEmailId = archivedEmailId,
-                    FileName = cleanFileName,
-                    ContentType = contentType,
-                    Content = Encoding.UTF8.GetBytes(originalHtml),
-                    Size = Encoding.UTF8.GetByteCount(originalHtml)
-                };
-
-                context.EmailAttachments.Add(emailAttachment);
-                await context.SaveChangesAsync();
-
-                _logger.LogInformation("Job {JobId}: Successfully saved original HTML content as attachment for email {MessageId} with {ImageCount} inline images resolved",
-                    jobId, messageId, email?.Attachments?.Count(a => !string.IsNullOrEmpty(a.ContentId)) ?? 0);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Job {JobId}: Failed to save original HTML content as attachment for email {MessageId}", jobId, messageId);
-            }
-        }
-
-        /// <summary>
-        /// Resolves inline images in HTML by converting cid: references to data URLs
-        /// </summary>
-        private string ResolveInlineImagesInHtml(string htmlBody, List<EmailAttachment> attachments, string jobId)
-        {
-            if (string.IsNullOrEmpty(htmlBody) || attachments == null || !attachments.Any())
-                return htmlBody;
-
-            var resultHtml = htmlBody;
-
-            // Find all cid: references in the HTML
-            var cidMatches = Regex.Matches(htmlBody, @"src\s*=\s*[""']cid:([^""']+)[""']", RegexOptions.IgnoreCase);
-
-            foreach (Match match in cidMatches)
-            {
-                var cid = match.Groups[1].Value;
-
-                // Find the corresponding attachment - try multiple matching strategies
-                var attachment = attachments.FirstOrDefault(a => 
-                    !string.IsNullOrEmpty(a.ContentId) && 
-                    (a.ContentId.Equals($"<{cid}>", StringComparison.OrdinalIgnoreCase) ||
-                     a.ContentId.Equals(cid, StringComparison.OrdinalIgnoreCase)));
-
-                // If no attachment with ContentId found, try matching by filename
-                if (attachment == null)
-                {
-                    attachment = attachments.FirstOrDefault(a => 
-                        !string.IsNullOrEmpty(a.FileName) && 
-                        (a.FileName.Equals($"inline_{cid}", StringComparison.OrdinalIgnoreCase) ||
-                         a.FileName.StartsWith($"inline_{cid}.", StringComparison.OrdinalIgnoreCase) ||
-                         a.FileName.Contains($"_{cid}")));
-                }
-
-                if (attachment != null && attachment.Content != null && attachment.Content.Length > 0)
-                {
-                    try
-                    {
-                        // Create a data URL for the inline image
-                        var base64Content = Convert.ToBase64String(attachment.Content);
-                        var dataUrl = $"data:{attachment.ContentType ?? "image/png"};base64,{base64Content}";
-                        
-                        // Replace the cid: reference with the data URL
-                        resultHtml = resultHtml.Replace(match.Groups[0].Value, $"src=\"{dataUrl}\"");
-                        
-                        _logger.LogDebug("Job {JobId}: Resolved inline image with CID: {Cid} to data URL", jobId, cid);
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogWarning(ex, "Job {JobId}: Failed to resolve inline image with CID: {Cid}", jobId, cid);
-                    }
-                }
-                else
-                {
-                    _logger.LogWarning("Job {JobId}: Could not find attachment for CID: {Cid}", jobId, cid);
-                }
-            }
-
-            return resultHtml;
-        }
-
-        /// <summary>
-        /// Saves the original text content as an attachment when it was truncated
-        /// </summary>
-        /// <param name="context">The database context</param>
-        /// <param name="originalText">The original text content</param>
-        /// <param name="archivedEmailId">The email ID to attach to</param>
-        /// <param name="jobId">The job ID for logging</param>
-        /// <param name="messageId">The message ID for logging</param>
-        /// <returns>Task</returns>
-        private async Task SaveTruncatedTextAsAttachment(MailArchiverDbContext context, string originalText, int archivedEmailId, string jobId, string messageId)
-        {
-            try
-            {
-                var cleanFileName = CleanText($"original_text_content_{DateTime.UtcNow:yyyyMMddHHmmss}.txt");
-                var contentType = "text/plain";
-
-                var emailAttachment = new EmailAttachment
-                {
-                    ArchivedEmailId = archivedEmailId,
-                    FileName = cleanFileName,
-                    ContentType = contentType,
-                    Content = Encoding.UTF8.GetBytes(originalText),
-                    Size = Encoding.UTF8.GetByteCount(originalText)
-                };
-
-                context.EmailAttachments.Add(emailAttachment);
-                await context.SaveChangesAsync();
-
-                _logger.LogInformation("Job {JobId}: Successfully saved original text content as attachment for email {MessageId}",
-                    jobId, messageId);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Job {JobId}: Failed to save original text content as attachment for email {MessageId}", jobId, messageId);
-            }
-        }
-
-        private string GetFileExtensionFromContentType(string? contentType)
-        {
-            return contentType?.ToLowerInvariant() switch
-            {
-                "image/jpeg" or "image/jpg" => ".jpg",
-                "image/png" => ".png",
-                "image/gif" => ".gif",
-                "image/bmp" => ".bmp",
-                "image/webp" => ".webp",
-                "image/svg+xml" => ".svg",
-                _ => ".dat"
-            };
-        }
-
-        /// <summary>
-        /// Extracts all raw headers from a MimeMessage as a string.
-        /// This includes all headers like Received, Return-Path, X-Headers, etc.
-        /// Useful for forensic and compliance purposes.
-        /// </summary>
-        /// <param name="message">The MimeMessage to extract headers from</param>
-        /// <returns>A string containing all raw headers, or null if extraction fails</returns>
-        private string? ExtractRawHeaders(MimeMessage message)
-        {
-            try
-            {
-                if (message.Headers == null || !message.Headers.Any())
-                {
-                    return null;
-                }
-
-                var headersBuilder = new StringBuilder();
-
-                // Iterate through all headers in their original order
-                foreach (var header in message.Headers)
-                {
-                    // Format: "Header-Name: Header-Value\r\n"
-                    headersBuilder.AppendLine($"{header.Field}: {header.Value}");
-                }
-
-                var rawHeaders = headersBuilder.ToString();
-
-                // Limit size to prevent excessive storage (max ~100KB for headers)
-                const int maxHeaderSize = 100_000;
-                if (rawHeaders.Length > maxHeaderSize)
-                {
-                    _logger.LogWarning("Raw headers exceed {MaxSize} bytes, truncating", maxHeaderSize);
-                    rawHeaders = rawHeaders.Substring(0, maxHeaderSize) + "\r\n[... Headers truncated due to size ...]";
-                }
-
-                _logger.LogDebug("Extracted {Count} raw headers ({Size} bytes) from email", 
-                    message.Headers.Count, rawHeaders.Length);
-
-                return rawHeaders;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "Failed to extract raw headers from email: {Message}", ex.Message);
-                return null;
-            }
-        }
-
-        private bool DetermineIfOutgoing(MimeMessage message, MailAccount account, string folderName)
-        {
-            // Prüfe ob die E-Mail vom Account gesendet wurde
-            var accountEmail = account.EmailAddress.ToLowerInvariant();
-            var fromAddress = message.From.Mailboxes.FirstOrDefault()?.Address?.ToLowerInvariant();
-            
-            // Absender-Vergleich: Prüfe ob die Absender-Adresse mit der Account-Adresse übereinstimmt
-            bool isOutgoingEmail = !string.IsNullOrEmpty(fromAddress) &&
-                                   !string.IsNullOrEmpty(accountEmail) &&
-                                   fromAddress.Equals(accountEmail, StringComparison.OrdinalIgnoreCase);
-            
-            // Ordner-basierte Erkennung: Prüfe ob der Ordner ein typischer Sent-Ordner ist
-            bool isOutgoingFolder = IsOutgoingFolderByName(folderName);
-            
-            // Ausschluss von Drafts-Ordnern
-            bool isDraftsFolder = IsDraftsFolder(folderName);
-            
-            // Kombinierte Logik: Outgoing wenn (Absender passt ODER Sent-Ordner) UND kein Drafts-Ordner
-            return (isOutgoingEmail || isOutgoingFolder) && !isDraftsFolder;
-        }
-
-        /// <summary>
-        /// Checks if a folder name indicates outgoing mail based on its name in multiple languages
-        /// </summary>
-        /// <param name="folderName">The folder name to check</param>
-        /// <returns>True if the folder name indicates outgoing mail, false otherwise</returns>
-        private bool IsOutgoingFolderByName(string folderName)
-        {
-            var outgoingFolderNames = new[]
-            {
-                // Arabic
-                "المرسلة", "البريد المرسل",
-
-                // Bulgarian
-                "изпратени", "изпратена поща",
-
-                // Chinese (Simplified)
-                "已发送", "已传送",
-
-                // Croatian
-                "poslano", "poslana pošta",
-
-                // Czech
-                "odeslané", "odeslaná pošta",
-
-                // Danish
-                "sendt", "sendte elementer",
-
-                // Dutch
-                "verzonden", "verzonden items", "verzonden e-mail",
-
-                // English
-                "sent", "sent items", "sent mail",
-
-                // Estonian
-                "saadetud", "saadetud kirjad",
-
-                // Finnish
-                "lähetetyt", "lähetetyt kohteet",
-
-                // French
-                "envoyé", "éléments envoyés", "mail envoyé",
-
-                // German
-                "gesendet", "gesendete objekte", "gesendete",
-
-                // Greek
-                "απεσταλμένα", "σταλμένα", "σταλμένα μηνύματα",
-
-                // Hebrew
-                "נשלחו", "דואר יוצא",
-
-                // Hungarian
-                "elküldött", "elküldött elemek",
-
-                // Irish
-                "seolta", "r-phost seolta",
-
-                // Italian
-                "inviato", "posta inviata", "elementi inviati",
-
-                // Japanese
-                "送信済み", "送信済メール", "送信メール",
-
-                // Korean
-                "보낸편지함", "발신함", "보낸메일",
-
-                // Latvian
-                "nosūtītie", "nosūtītās vēstules",
-
-                // Lithuanian
-                "išsiųsta", "išsiųsti laiškai",
-
-                // Maltese
-                "mibgħuta", "posta mibgħuta",
-
-                // Norwegian
-                "sendt", "sendte elementer",
-
-                // Polish
-                "wysłane", "elementy wysłane",
-
-                // Portuguese
-                "enviados", "itens enviados", "mensagens enviadas",
-
-                // Romanian
-                "trimise", "elemente trimise", "mail trimis",
-
-                // Russian
-                "отправленные", "исходящие", "отправлено",
-
-                // Slovak
-                "odoslané", "odoslaná pošta",
-
-                // Slovenian
-                "poslano", "poslana pošta",
-
-                // Spanish
-                "enviado", "elementos enviados", "correo enviado",
-
-                // Swedish
-                "skickat", "skickade objekt",
-
-                // Turkish
-                "gönderilen", "gönderilmiş öğeler"
-            };
-
-            string folderNameLower = folderName?.ToLowerInvariant() ?? "";
-            return outgoingFolderNames.Any(name => folderNameLower.Contains(name));
-        }
-
-        /// <summary>
-        /// Checks if a folder name indicates drafts
-        /// </summary>
-        /// <param name="folderName">The folder name to check</param>
-        /// <returns>True if the folder name indicates drafts, false otherwise</returns>
-        private bool IsDraftsFolder(string folderName)
-        {
-            var draftsFolderNames = new[]
-            {
-                "drafts", "entwürfe", "brouillons", "bozze", "draft", "sketches", "wachtwoorden"
-            };
-
-            string folderNameLower = folderName?.ToLowerInvariant() ?? "";
-            return draftsFolderNames.Any(name => folderNameLower.Contains(name));
-        }
-
-        private string CleanText(string text)
-        {
-            if (string.IsNullOrEmpty(text))
-                return string.Empty;
-
-            text = text.Replace("\0", "");
-            var cleanedText = new StringBuilder();
-
-            foreach (var c in text)
-            {
-                if (c < 32 && c != '\r' && c != '\n' && c != '\t')
-                {
-                    cleanedText.Append(' ');
-                }
-                else
-                {
-                    cleanedText.Append(c);
-                }
-            }
-
-            return cleanedText.ToString();
-        }
-
-        // Constants for HTML truncation - calculated once to avoid repeated computations
-        private static readonly string TruncationNotice = @"
-                    <div style='background-color: #f8f9fa; border: 1px solid #dee2e6; border-radius: 5px; padding: 15px; margin: 10px 0; font-family: Arial, sans-serif;'>
-                        <h4 style='color: #495057; margin-top: 0;'>📎 Email content has been truncated</h4>
-                        <p style='color: #6c757d; margin-bottom: 10px;'>
-                            This email contains very large HTML content (over 1 MB) that has been truncated for better performance.
-                        </p>
-                        <p style='color: #6c757d; margin-bottom: 0;'>
-                            <strong>The complete original HTML content has been saved as an attachment.</strong><br>
-                            Look for a file named 'original_content_*.html' in the attachments.
-                        </p>
-                    </div>";
-        
-        private static readonly int TruncationOverhead = Encoding.UTF8.GetByteCount(TruncationNotice + "</body></html>");
-        private const int MaxHtmlSizeBytes = 1_000_000;
-
-        private string CleanHtmlForStorage(string html)
-        {
-            if (string.IsNullOrEmpty(html))
-                return string.Empty;
-
-            // Remove null characters efficiently - only if they exist
-            if (html.Contains('\0'))
-            {
-                html = html.Replace("\0", "");
-            }
-
-            // Early return for small HTML content
-            if (html.Length <= MaxHtmlSizeBytes)
-                return html;
-
-            // Calculate safe truncation position
-            int maxContentSize = MaxHtmlSizeBytes - TruncationOverhead;
-            if (maxContentSize <= 0)
-            {
-                // Fallback for edge case - return minimal valid HTML
-                return $"<html><body>{TruncationNotice}</body></html>";
-            }
-
-            int truncatePosition = Math.Min(maxContentSize, html.Length);
-
-            // Find safe truncation point that doesn't break HTML tags
-            int lastLessThan = html.LastIndexOf('<', truncatePosition - 1);
-            int lastGreaterThan = html.LastIndexOf('>', truncatePosition - 1);
-            
-            // If we're inside a tag, truncate before it starts
-            if (lastLessThan > lastGreaterThan && lastLessThan >= 0)
-            {
-                truncatePosition = lastLessThan;
-            }
-            else if (lastGreaterThan >= 0)
-            {
-                // Otherwise, truncate after the last complete tag
-                truncatePosition = lastGreaterThan + 1;
-            }
-
-            // Use StringBuilder for efficient string building
-            var result = new StringBuilder(truncatePosition + TruncationNotice.Length + 50);
-            
-            // Get base content as span for better performance
-            ReadOnlySpan<char> baseContent = html.AsSpan(0, truncatePosition);
-            
-            // Check for HTML structure efficiently
-            bool hasHtml = baseContent.Contains("<html".AsSpan(), StringComparison.OrdinalIgnoreCase);
-            bool hasBody = baseContent.Contains("<body".AsSpan(), StringComparison.OrdinalIgnoreCase);
-
-            // Build the result efficiently
-            if (!hasHtml)
-            {
-                result.Append("<html>");
-            }
-
-            if (!hasBody)
-            {
-                if (hasHtml)
-                {
-                    // Find where to insert <body> tag efficiently
-                    string contentStr = baseContent.ToString();
-                    int htmlStart = contentStr.IndexOf("<html", StringComparison.OrdinalIgnoreCase);
-                    if (htmlStart >= 0)
-                    {
-                        int htmlTagEnd = contentStr.IndexOf('>', htmlStart);
-                        if (htmlTagEnd >= 0)
-                        {
-                            result.Append(baseContent.Slice(0, htmlTagEnd + 1));
-                            result.Append("<body>");
-                            result.Append(baseContent.Slice(htmlTagEnd + 1));
-                        }
-                        else
-                        {
-                            result.Append("<body>");
-                            result.Append(baseContent);
-                        }
-                    }
-                    else
-                    {
-                        result.Append("<body>");
-                        result.Append(baseContent);
-                    }
-                }
-                else
-                {
-                    result.Append("<body>");
-                    result.Append(baseContent);
-                }
-            }
-            else
-            {
-                result.Append(baseContent);
-            }
-
-            // Add truncation notice
-            result.Append(TruncationNotice);
-
-            // Close tags efficiently
-            string resultStr = result.ToString();
-            if (!resultStr.EndsWith("</body>", StringComparison.OrdinalIgnoreCase))
-            {
-                result.Append("</body>");
-            }
-            if (!resultStr.EndsWith("</html>", StringComparison.OrdinalIgnoreCase))
-            {
-                result.Append("</html>");
-            }
-
-            return result.ToString();
-        }
-
-        private string TruncateFieldForTsvector(string text, int maxSizeBytes)
-        {
-            if (string.IsNullOrEmpty(text))
-                return string.Empty;
-
-            if (Encoding.UTF8.GetByteCount(text) <= maxSizeBytes)
-                return text;
-
-            int approximateCharPosition = Math.Min(maxSizeBytes, text.Length);
-
-            while (approximateCharPosition > 0 && Encoding.UTF8.GetByteCount(text.Substring(0, approximateCharPosition)) > maxSizeBytes)
-            {
-                approximateCharPosition--;
-            }
-
-            int wordBoundarySearch = Math.Max(0, approximateCharPosition - 50);
-            int lastSpaceIndex = text.LastIndexOf(' ', approximateCharPosition - 1, approximateCharPosition - wordBoundarySearch);
-
-            if (lastSpaceIndex > wordBoundarySearch)
-            {
-                approximateCharPosition = lastSpaceIndex;
-            }
-
-            return text.Substring(0, approximateCharPosition) + "...";
-        }
-
-        /// <summary>
-        /// Truncates text content to fit within tsvector size limits while preserving readability
-        /// </summary>
-        /// <param name="text">The text to truncate</param>
-        /// <param name="maxSizeBytes">Maximum size in bytes</param>
-        /// <returns>Truncated text with notice appended</returns>
-        private string TruncateTextForStorage(string text, int maxSizeBytes)
-        {
-            
-            if (string.IsNullOrEmpty(text))
-                return string.Empty;
-
-            const string textTruncationNotice = "\n\n[CONTENT TRUNCATED - This email contains very large text content that has been truncated for better performance. The complete original content has been saved as an attachment.]";
-            
-            // Calculate overhead for the truncation notice
-            int noticeOverhead = Encoding.UTF8.GetByteCount(textTruncationNotice);
-            int maxContentSize = maxSizeBytes - noticeOverhead;
-            
-            if (maxContentSize <= 0)
-            {
-                // Edge case - just return the notice
-                return textTruncationNotice;
-            }
-
-            // Check if we need to truncate
-            if (Encoding.UTF8.GetByteCount(text) <= maxSizeBytes)
-            {
-                return text; // No truncation needed
-            }
-
-            // Find a safe truncation point that doesn't break in the middle of a word
-            int approximateCharPosition = Math.Min(maxContentSize, text.Length);
-            
-            // Work backwards to find a word boundary or reasonable break point
-            while (approximateCharPosition > 0 && Encoding.UTF8.GetByteCount(text.Substring(0, approximateCharPosition)) > maxContentSize)
-            {
-                approximateCharPosition--;
-            }
-
-            // Try to find a word boundary within the last 100 characters to avoid breaking words
-            int wordBoundarySearch = Math.Max(0, approximateCharPosition - 100);
-            int lastSpaceIndex = text.LastIndexOf(' ', approximateCharPosition - 1, approximateCharPosition - wordBoundarySearch);
-            int lastNewlineIndex = text.LastIndexOf('\n', approximateCharPosition - 1, approximateCharPosition - wordBoundarySearch);
-            int lastPunctuationIndex = text.LastIndexOfAny(new char[] { '.', '!', '?', ';' }, approximateCharPosition - 1, approximateCharPosition - wordBoundarySearch);
-
-            // Use the best break point found
-            int breakPoint = Math.Max(Math.Max(lastSpaceIndex, lastNewlineIndex), lastPunctuationIndex);
-            if (breakPoint > wordBoundarySearch)
-            {
-                approximateCharPosition = breakPoint + 1; // Include the break character
-            }
-
-            // Final safety check to ensure we don't exceed byte limit
-            string truncatedContent = text.Substring(0, approximateCharPosition);
-            while (Encoding.UTF8.GetByteCount(truncatedContent + textTruncationNotice) > maxSizeBytes && truncatedContent.Length > 0)
-            {
-                truncatedContent = truncatedContent.Substring(0, truncatedContent.Length - 1);
-            }
-
-            return truncatedContent + textTruncationNotice;
         }
 
         private void DeleteTempFile(string filePath, string jobId)
         {
-            try
-            {
-                if (File.Exists(filePath))
-                {
-                    File.Delete(filePath);
-                    _logger.LogInformation("Deleted temporary EML file {FilePath} for cancelled job {JobId}", filePath, jobId);
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "Failed to delete temporary EML file {FilePath} for cancelled job {JobId}", filePath, jobId);
-            }
+            try { if (File.Exists(filePath)) File.Delete(filePath); }
+            catch (Exception ex) { _logger.LogWarning(ex, "Failed to delete temp EML file"); }
         }
 
-        /// <summary>
-        /// Pre-cleans a MimeMessage to remove null bytes and other invalid UTF-8 characters
-        /// that would cause PostgreSQL encoding errors when saving to the database.
-        /// This method modifies the message in place.
-        /// </summary>
-        /// <param name="message">The MimeMessage to clean</param>
-        private void PreCleanMessage(MimeMessage message)
+        private void TryDeleteFile(string filePath)
         {
-            try
-            {
-                // Clean Subject
-                if (!string.IsNullOrEmpty(message.Subject))
-                {
-                    message.Subject = RemoveNullBytes(message.Subject);
-                }
-
-                // Clean From addresses
-                if (message.From != null)
-                {
-                    foreach (var address in message.From)
-                    {
-                        if (address is MailboxAddress mailboxAddress)
-                        {
-                            mailboxAddress.Name = RemoveNullBytes(mailboxAddress.Name);
-                        }
-                    }
-                }
-
-                // Clean To addresses
-                if (message.To != null)
-                {
-                    foreach (var address in message.To)
-                    {
-                        if (address is MailboxAddress mailboxAddress)
-                        {
-                            mailboxAddress.Name = RemoveNullBytes(mailboxAddress.Name);
-                        }
-                    }
-                }
-
-                // Clean Cc addresses
-                if (message.Cc != null)
-                {
-                    foreach (var address in message.Cc)
-                    {
-                        if (address is MailboxAddress mailboxAddress)
-                        {
-                            mailboxAddress.Name = RemoveNullBytes(mailboxAddress.Name);
-                        }
-                    }
-                }
-
-                // Clean Bcc addresses
-                if (message.Bcc != null)
-                {
-                    foreach (var address in message.Bcc)
-                    {
-                        if (address is MailboxAddress mailboxAddress)
-                        {
-                            mailboxAddress.Name = RemoveNullBytes(mailboxAddress.Name);
-                        }
-                    }
-                }
-
-                _logger.LogDebug("Pre-cleaned message to remove null bytes: Subject='{Subject}', MessageId='{MessageId}'",
-                    message.Subject, message.MessageId);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "Error during message pre-cleaning: {Message}", ex.Message);
-                // Continue even if cleaning fails - the archive process will handle it
-            }
-        }
-
-        /// <summary>
-        /// Removes null bytes (0x00) and other invalid UTF-8 control characters from a string.
-        /// PostgreSQL does not allow null bytes in TEXT/VARCHAR columns.
-        /// </summary>
-        /// <param name="input">The input string to clean</param>
-        /// <returns>The cleaned string with null bytes removed</returns>
-        private string RemoveNullBytes(string input)
-        {
-            if (string.IsNullOrEmpty(input))
-            {
-                return input;
-            }
-
-            // Check if there are any null bytes first (optimization)
-            if (!input.Contains('\0'))
-            {
-                return input;
-            }
-
-            // Remove null bytes
-            return input.Replace("\0", "");
-        }
-
-        public override void Dispose()
-        {
-            _cleanupTimer?.Dispose();
-            _currentJobCancellation?.Dispose();
-            base.Dispose();
+            try { if (File.Exists(filePath)) File.Delete(filePath); }
+            catch (Exception ex) { _logger.LogWarning(ex, "Failed to delete temporary EML file"); }
         }
     }
 }

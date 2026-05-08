@@ -577,6 +577,12 @@
   <data name="CancelKeepAccount" xml:space="preserve">
     <value>Abbrechen - Account behalten</value>
   </data>
+  <data name="CancelKeepAccountMessage" xml:space="preserve">
+    <value>Sind Sie sicher, dass Sie abbrechen möchten? Der Account wird behalten und es werden keine Änderungen vorgenommen.</value>
+  </data>
+  <data name="YesCancel" xml:space="preserve">
+    <value>Ja, abbrechen</value>
+  </data>
   <data name="DisableInstead" xml:space="preserve">
     <value>stattdessen deaktivieren</value>
   </data>
@@ -2476,5 +2482,23 @@
   </data>
   <data name="ManualSyncTooltip" xml:space="preserve">
     <value>Manuelle Synchronisierung - Konto ist für automatische Synchronisierung deaktiviert</value>
+  </data>
+  <data name="PreserveFolderStructure" xml:space="preserve">
+    <value>Ordnerstruktur beibehalten</value>
+  </data>
+  <data name="PreserveFolderStructureHelp" xml:space="preserve">
+    <value>Stellt E-Mails in Unterordner wieder her, die ihrer ursprünglichen Ordnerstruktur unter dem ausgewählten Zielordner entsprechen.</value>
+  </data>
+  <data name="SkippedLabel" xml:space="preserve">
+    <value>Übersprungen (Duplikate):</value>
+  </data>
+  <data name="DuplicatesSkippedTitle" xml:space="preserve">
+    <value>Doppelte E-Mails übersprungen</value>
+  </data>
+  <data name="DuplicatesSkippedSummary" xml:space="preserve">
+    <value>{0} E-Mails wurden übersprungen, da sie bereits im Zielkonto existieren.</value>
+  </data>
+  <data name="SyncCancel" xml:space="preserve">
+    <value>Sync abgebrochen</value>
   </data>
 </root>

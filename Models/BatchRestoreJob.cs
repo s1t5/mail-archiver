@@ -7,6 +7,13 @@ namespace MailArchiver.Models
         public List<int> EmailIds { get; set; } = new List<int>();
         public int TargetAccountId { get; set; }
         public string TargetFolder { get; set; } = "INBOX";
+        
+        /// <summary>
+        /// If true, preserves the original folder structure from the archived emails
+        /// by recreating the relative folder hierarchy under the target folder.
+        /// </summary>
+        public bool PreserveFolderStructure { get; set; } = false;
+        
         public string UserId { get; set; } = "System";
         public DateTime Created { get; set; } = DateTime.UtcNow;
         public DateTime? Started { get; set; }

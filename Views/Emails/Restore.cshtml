@@ -1,4 +1,4 @@
-﻿@inject Microsoft.Extensions.Localization.IStringLocalizer<MailArchiver.SharedResource> Localizer
+@inject Microsoft.Extensions.Localization.IStringLocalizer<MailArchiver.SharedResource> Localizer
 @model MailArchiver.Models.ViewModels.EmailRestoreViewModel
 @{
     ViewData["Title"] = Localizer["RestoreEmailTitle"];
@@ -66,6 +66,13 @@
                         @Localizer["SelectAccountToViewFolders"]
                     </div>
                     <span asp-validation-for="TargetFolder" class="text-danger"></span>
+                </div>
+                <div class="mb-3 form-check">
+                    <input asp-for="PreserveFolderStructure" class="form-check-input" type="checkbox" id="preserveFolderStructure" />
+                    <label asp-for="PreserveFolderStructure" class="form-check-label">@Localizer["PreserveFolderStructure"]</label>
+                    <div class="form-text">
+                        @Localizer["PreserveFolderStructureHelp"]
+                    </div>
                 </div>
                 <div class="alert alert-info">
                     <i class="bi bi-info-circle-fill me-2"></i>

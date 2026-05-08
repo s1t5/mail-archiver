@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema"
     xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
@@ -582,6 +582,12 @@
   </data>
   <data name="CancelKeepAccount" xml:space="preserve">
     <value>Cancelar - Mantener Cuenta</value>
+  </data>
+  <data name="CancelKeepAccountMessage" xml:space="preserve">
+    <value>¿Está seguro de que desea cancelar? La cuenta se mantendrá y no se realizarán cambios.</value>
+  </data>
+  <data name="YesCancel" xml:space="preserve">
+    <value>Sí, Cancelar</value>
   </data>
   <data name="DisableInstead" xml:space="preserve">
     <value>Deshabilitar en Su Lugar</value>
@@ -2474,5 +2480,23 @@
   </data>
   <data name="NoFolders" xml:space="preserve">
     <value>No hay carpetas disponibles</value>
+  </data>
+  <data name="PreserveFolderStructure" xml:space="preserve">
+    <value>Conservar la estructura de carpetas</value>
+  </data>
+  <data name="PreserveFolderStructureHelp" xml:space="preserve">
+    <value>Restaura los correos electrónicos en subcarpetas que coincidan con su estructura de carpetas original bajo la carpeta de destino seleccionada.</value>
+  </data>
+  <data name="SkippedLabel" xml:space="preserve">
+    <value>Omitido (duplicados):</value>
+  </data>
+  <data name="DuplicatesSkippedTitle" xml:space="preserve">
+    <value>Correos duplicados omitidos</value>
+  </data>
+  <data name="DuplicatesSkippedSummary" xml:space="preserve">
+    <value>{0} correos fueron omitidos porque ya existen en la cuenta de destino.</value>
+  </data>
+  <data name="SyncCancel" xml:space="preserve">
+    <value>Sincronización cancelada</value>
   </data>
 </root>

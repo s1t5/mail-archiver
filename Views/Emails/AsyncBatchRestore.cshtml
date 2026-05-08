@@ -1,4 +1,4 @@
-﻿@inject Microsoft.Extensions.Localization.IStringLocalizer<MailArchiver.SharedResource> Localizer
+@inject Microsoft.Extensions.Localization.IStringLocalizer<MailArchiver.SharedResource> Localizer
 @model MailArchiver.Models.ViewModels.AsyncBatchRestoreViewModel
 @{
     ViewData["Title"] = Localizer["AsynchronousBatchCopyTitle"];
@@ -61,6 +61,13 @@
                         }
                     </select>
                     <span asp-validation-for="TargetFolder" class="text-danger"></span>
+                </div>
+                <div class="mb-3 form-check">
+                    <input asp-for="PreserveFolderStructure" class="form-check-input" type="checkbox" id="preserveFolderStructure" />
+                    <label asp-for="PreserveFolderStructure" class="form-check-label">@Localizer["PreserveFolderStructure"]</label>
+                    <div class="form-text">
+                        @Localizer["PreserveFolderStructureHelp"]
+                    </div>
                 </div>
                 <div class="d-flex mt-4">
                     <button type="submit" class="btn btn-primary">

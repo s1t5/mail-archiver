@@ -574,6 +574,12 @@
   <data name="CancelKeepAccount" xml:space="preserve">
     <value>Cancel - Keep Account</value>
   </data>
+  <data name="CancelKeepAccountMessage" xml:space="preserve">
+    <value>Are you sure you want to cancel? The account will be kept and no changes will be made.</value>
+  </data>
+  <data name="YesCancel" xml:space="preserve">
+    <value>Yes, Cancel</value>
+  </data>
   <data name="DisableInstead" xml:space="preserve">
     <value>Disable Instead</value>
   </data>
@@ -2252,6 +2258,9 @@
   <data name="DatabaseMaintenance" xml:space="preserve">
     <value>Database Maintenance</value>
   </data>
+  <data name="SyncCancel" xml:space="preserve">
+    <value>Sync Cancelled</value>
+  </data>
   <data name="ComplianceStatus" xml:space="preserve">
     <value>Compliance Status</value>
   </data>
@@ -2460,5 +2469,20 @@
   </data>
   <data name="ManualSyncTooltip" xml:space="preserve">
     <value>Manual sync - account is disabled for automatic synchronization</value>
+  </data>
+  <data name="PreserveFolderStructure" xml:space="preserve">
+    <value>Preserve Folder Structure</value>
+  </data>
+  <data name="PreserveFolderStructureHelp" xml:space="preserve">
+    <value>Restores emails to subfolders matching their original folder structure under the selected target folder.</value>
+  </data>
+  <data name="SkippedLabel" xml:space="preserve">
+    <value>Skipped (duplicates):</value>
+  </data>
+  <data name="DuplicatesSkippedTitle" xml:space="preserve">
+    <value>Duplicate Emails Skipped</value>
+  </data>
+  <data name="DuplicatesSkippedSummary" xml:space="preserve">
+    <value>{0} emails were skipped because they already exist in the target account.</value>
   </data>
 </root>

@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
     <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
@@ -579,6 +579,12 @@
   </data>
   <data name="CancelKeepAccount" xml:space="preserve">
     <value>Annulla - Mantieni account</value>
+  </data>
+  <data name="CancelKeepAccountMessage" xml:space="preserve">
+    <value>Sei sicuro di voler annullare? L'account verrà mantenuto e non verrà apportata alcuna modifica.</value>
+  </data>
+  <data name="YesCancel" xml:space="preserve">
+    <value>Sì, Annulla</value>
   </data>
   <data name="DisableInstead" xml:space="preserve">
     <value>Disabilita invece</value>
@@ -2475,5 +2481,23 @@
   </data>
   <data name="NoFolders" xml:space="preserve">
     <value>Nessuna cartella disponibile</value>
+  </data>
+  <data name="PreserveFolderStructure" xml:space="preserve">
+    <value>Conserva la struttura delle cartelle</value>
+  </data>
+  <data name="PreserveFolderStructureHelp" xml:space="preserve">
+    <value>Ripristina le e-mail nelle cartelle secondarie che corrispondono alla struttura delle cartelle originale nella cartella di destinazione selezionata.</value>
+  </data>
+  <data name="SkippedLabel" xml:space="preserve">
+    <value>Salta (duplicati):</value>
+  </data>
+  <data name="DuplicatesSkippedTitle" xml:space="preserve">
+    <value>Email duplicate saltate</value>
+  </data>
+  <data name="DuplicatesSkippedSummary" xml:space="preserve">
+    <value>{0} e-mail sono stati saltati perché esistono già nell'account di destinazione.</value>
+  </data>
+  <data name="SyncCancel" xml:space="preserve">
+    <value>Sincronizzazione annullata</value>
   </data>
 </root>

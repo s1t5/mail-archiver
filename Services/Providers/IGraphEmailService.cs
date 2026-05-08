@@ -38,5 +38,15 @@ namespace MailArchiver.Services.Providers
         /// <param name="folderName">The target folder name</param>
         /// <returns>True if restoration is successful</returns>
         Task<bool> RestoreEmailToFolderAsync(ArchivedEmail email, MailAccount targetAccount, string folderName);
+
+        /// <summary>
+        /// Restores an email to a specific folder using Microsoft Graph API with optional folder structure preservation
+        /// </summary>
+        /// <param name="email">The archived email to restore</param>
+        /// <param name="targetAccount">The target M365 account</param>
+        /// <param name="folderName">The target folder name (base folder when preserving structure)</param>
+        /// <param name="preserveFolderStructure">If true, recreates the original folder hierarchy under the target folder</param>
+        /// <returns>True if restoration is successful</returns>
+        Task<bool> RestoreEmailToFolderAsync(ArchivedEmail email, MailAccount targetAccount, string folderName, bool preserveFolderStructure);
     }
 }

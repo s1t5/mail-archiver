@@ -281,17 +281,16 @@ builder.Services.AddDbContext<MailArchiverDbContext>(options =>
 });
 
 // Services hinzufügen
-builder.Services.AddScoped<IGraphEmailService, GraphEmailService>(provider =>
-    new GraphEmailService(
-        provider.GetRequiredService<MailArchiverDbContext>(),
-        provider.GetRequiredService<ILogger<GraphEmailService>>(),
-        provider.GetRequiredService<ISyncJobService>(),
-        provider.GetRequiredService<IOptions<BatchOperationOptions>>(),
-        provider.GetRequiredService<IOptions<MailSyncOptions>>(),
-        provider.GetRequiredService<MailArchiver.Utilities.DateTimeHelper>(),
-        provider.GetRequiredService<MailArchiver.Services.Core.EmailCoreService>()
-    ));
-// Register GraphEmailService also for IProviderEmailService
+
+// Graph API services (refactored from monolithic GraphEmailService)
+builder.Services.AddSingleton<MailArchiver.Services.Providers.Graph.GraphAuthClientFactory>();
+builder.Services.AddScoped<MailArchiver.Services.Providers.Graph.IGraphFolderService, MailArchiver.Services.Providers.Graph.GraphFolderService>();
+builder.Services.AddScoped<MailArchiver.Services.Providers.Graph.GraphMailArchiver>();
+builder.Services.AddScoped<MailArchiver.Services.Providers.Graph.GraphMailRestorer>();
+builder.Services.AddScoped<MailArchiver.Services.Providers.Graph.GraphMailSyncService>();
+
+// GraphEmailService facade – implements both IGraphEmailService and IProviderEmailService
+builder.Services.AddScoped<IGraphEmailService, GraphEmailService>();
 builder.Services.AddScoped<MailArchiver.Services.Providers.IProviderEmailService>(provider => 
     provider.GetRequiredService<IGraphEmailService>() as MailArchiver.Services.Providers.IProviderEmailService);
 builder.Services.AddScoped<IAuthenticationService, CookieAuthenticationService>();
@@ -304,10 +303,19 @@ builder.Services.AddSingleton<BatchRestoreService>();
 builder.Services.AddSingleton<IBatchRestoreService>(provider => provider.GetRequiredService<BatchRestoreService>());
 builder.Services.AddHostedService<BatchRestoreService>(provider => provider.GetRequiredService<BatchRestoreService>());
 
+// MBox import services (refactored from monolithic MBoxImportService)
+builder.Services.AddScoped<MailArchiver.Services.Providers.MBox.MBoxStreamProcessor>();
+
 // Register MBoxImportService as singleton and hosted service - MUST be the same instance
 builder.Services.AddSingleton<MBoxImportService>();
 builder.Services.AddSingleton<IMBoxImportService>(provider => provider.GetRequiredService<MBoxImportService>());
 builder.Services.AddHostedService<MBoxImportService>(provider => provider.GetRequiredService<MBoxImportService>());
+
+// EML import services (refactored from monolithic EmlImportService)
+builder.Services.AddScoped<MailArchiver.Services.Providers.Eml.EmlMailCleaner>();
+builder.Services.AddScoped<MailArchiver.Services.Providers.Eml.EmlAttachmentCollector>();
+builder.Services.AddScoped<MailArchiver.Services.Shared.MailImporter>();
+builder.Services.AddScoped<MailArchiver.Services.Providers.Eml.EmlTruncatedContentSaver>();
 
 // Register EmlImportService as singleton and hosted service - MUST be the same instance
 builder.Services.AddSingleton<EmlImportService>();
@@ -350,6 +358,14 @@ builder.Services.AddScoped<IBandwidthService, BandwidthService>();
 // ====================
 // NEW: Provider-based Architecture Services
 // ====================
+
+// IMAP services (refactored from monolithic ImapEmailService)
+builder.Services.AddScoped<MailArchiver.Services.Providers.Imap.ImapConnectionFactory>();
+builder.Services.AddScoped<MailArchiver.Services.Providers.Imap.IImapFolderService, MailArchiver.Services.Providers.Imap.ImapFolderService>();
+builder.Services.AddScoped<MailArchiver.Services.Providers.Imap.ImapMailCleaner>();
+builder.Services.AddScoped<MailArchiver.Services.Providers.Imap.ImapMailRestorer>();
+builder.Services.AddScoped<MailArchiver.Services.Providers.Imap.ImapMailSyncService>();
+
 builder.Services.AddScoped<MailArchiver.Services.Core.EmailCoreService>();
 builder.Services.AddScoped<MailArchiver.Services.Providers.ImapEmailService>();
 builder.Services.AddScoped<MailArchiver.Services.Providers.ImportEmailService>();
