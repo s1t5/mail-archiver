@@ -22,6 +22,7 @@ namespace MailArchiver.Services
         Task<bool> IsUserAuthorizedForAccountAsync(int userId, int mailAccountId);
         Task<int> GetAdminCountAsync();
         string HashPassword(string password);
+        bool VerifyPassword(string password, string storedHash);
 
         // Two-Factor Authentication methods
         Task<bool> SetTwoFactorEnabledAsync(int userId, bool enabled);

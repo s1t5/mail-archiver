@@ -119,10 +119,9 @@ namespace MailArchiver.Controllers
                     if (mailAccountCount == 0 && 
                         model.Username == defaultUsername)
                     {
-                        // Compare stored password hash against the default password hash
+                        // Compare stored password hash against the default password
                         // to determine if the user has actually changed their password
-                        var defaultPasswordHash = _userService.HashPassword(defaultPassword);
-                        if (user?.PasswordHash == defaultPasswordHash)
+                        if (user != null && _userService.VerifyPassword(defaultPassword, user.PasswordHash ?? ""))
                         {
                             // Force password change for initial setup
                             HttpContext.Session.SetString("MustChangePassword", "true");

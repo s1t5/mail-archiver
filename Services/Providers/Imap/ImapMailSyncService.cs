@@ -398,10 +398,59 @@ namespace MailArchiver.Services.Providers.Imap
         /// Syncs a single IMAP folder: search with progressive fallback, bandwidth tracking,
         /// batch processing, and memory management.
         /// </summary>
+        // Threshold for consecutive transient FETCH errors (server-side throttling)
+        // before pausing the sync gracefully (analogous to the bandwidth-limit pause).
+        private const int MaxConsecutiveTransientFetchFailures = 10;
+
+        // Backoff delays (in milliseconds) for retrying a single message FETCH after a
+        // transient server response such as "NO Service temporarily unavailable".
+        private static readonly int[] TransientFetchRetryDelaysMs = new[] { 5_000, 15_000, 60_000 };
+
+        /// <summary>
+        /// Detects transient IMAP FETCH errors that indicate server-side throttling
+        /// (e.g. "NO Service temporarily unavailable", over-quota, rate-limit responses).
+        /// These errors are not caused by malformed messages and typically succeed when
+        /// retried after a short backoff.
+        /// </summary>
+        private static bool IsTransientImapError(Exception ex)
+        {
+            if (ex == null) return false;
+
+            var current = ex;
+            while (current != null)
+            {
+                if (current is ImapCommandException imapEx)
+                {
+                    if (imapEx.Response == ImapCommandResponse.No || imapEx.Response == ImapCommandResponse.Bad)
+                    {
+                        var msg = imapEx.Message ?? string.Empty;
+                        if (msg.IndexOf("temporarily unavailable", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                            msg.IndexOf("try again", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                            msg.IndexOf("throttle", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                            msg.IndexOf("rate limit", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                            msg.IndexOf("over quota", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                            msg.IndexOf("[LIMIT]", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                            msg.IndexOf("[OVERQUOTA]", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                            msg.IndexOf("[UNAVAILABLE]", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                            msg.IndexOf("[INUSE]", StringComparison.OrdinalIgnoreCase) >= 0)
+                        {
+                            return true;
+                        }
+                    }
+                }
+
+                current = current.InnerException;
+            }
+
+            return false;
+        }
+
         private async Task<SyncFolderResult> SyncFolderAsync(IMailFolder folder, MailAccount account, ImapClient client, string? jobId = null)
         {
             var result = new SyncFolderResult();
             var totalBytesDownloaded = 0L;
+            var consecutiveTransientFailures = 0;
+
 
             _logger.LogInformation("Syncing folder: {FolderName} for account: {AccountName}",
                 folder.FullName, account.Name);
@@ -619,9 +668,94 @@ namespace MailArchiver.Services.Providers.Imap
                                     await folder.OpenAsync(FolderAccess.ReadOnly);
                                 }
 
-                                using var message = await folder.GetMessageAsync(uid);
+                                // Retry FETCH on transient server-side throttling responses
+                                // (e.g. "NO Service temporarily unavailable", over-quota, rate-limit).
+                                // Non-transient errors (malformed messages, UTF-8 issues, etc.) bubble
+                                // up immediately to the outer catch and are counted as FailedEmails.
+                                MimeKit.MimeMessage? message = null;
+                                var maxAttempts = TransientFetchRetryDelaysMs.Length + 1;
+                                for (int attempt = 1; attempt <= maxAttempts; attempt++)
+                                {
+                                    try
+                                    {
+                                        message = await folder.GetMessageAsync(uid);
+                                        // Success - reset the consecutive throttling counter
+                                        consecutiveTransientFailures = 0;
+                                        break;
+                                    }
+                                    catch (Exception fetchEx) when (IsTransientImapError(fetchEx) && attempt < maxAttempts)
+                                    {
+                                        var delayMs = TransientFetchRetryDelaysMs[attempt - 1];
+                                        _logger.LogWarning(
+                                            "Transient IMAP FETCH error for UID {Uid} in folder {FolderName} on attempt {Attempt}/{Max}. " +
+                                            "Server response indicates throttling. Retrying after {DelayMs}ms. Inner: {Message}",
+                                            uid, folder.FullName, attempt, maxAttempts, delayMs, fetchEx.Message);
+
+                                        await Task.Delay(delayMs);
+
+                                        // Restore connection / folder state before retrying
+                                        try
+                                        {
+                                            if (!client.IsConnected)
+                                            {
+                                                await _connectionFactory.ReconnectClientAsync(client, account);
+                                            }
+                                            else if (!client.IsAuthenticated)
+                                            {
+                                                await _connectionFactory.AuthenticateClientAsync(client, account);
+                                            }
+
+                                            if (!folder.IsOpen)
+                                            {
+                                                await folder.OpenAsync(FolderAccess.ReadOnly);
+                                            }
+                                        }
+                                        catch (Exception reconnectEx)
+                                        {
+                                            _logger.LogWarning(reconnectEx,
+                                                "Reconnect/reopen before retry failed for UID {Uid} in folder {FolderName}",
+                                                uid, folder.FullName);
+                                        }
+                                    }
+                                    catch (Exception fetchEx) when (IsTransientImapError(fetchEx))
+                                    {
+                                        // Final retry attempt also failed with a transient throttling error.
+                                        consecutiveTransientFailures++;
+
+                                        _logger.LogWarning(fetchEx,
+                                            "Transient IMAP FETCH error for UID {Uid} in folder {FolderName} persisted after {Attempts} attempts. " +
+                                            "Consecutive transient failures: {Count}/{Threshold}.",
+                                            uid, folder.FullName, maxAttempts,
+                                            consecutiveTransientFailures, MaxConsecutiveTransientFetchFailures);
+
+                                        if (consecutiveTransientFailures >= MaxConsecutiveTransientFetchFailures)
+                                        {
+                                            _logger.LogWarning(
+                                                "Server-side throttling detected: {Count} consecutive transient FETCH failures in folder {FolderName} " +
+                                                "for account {AccountName}. Pausing sync gracefully; will resume on the next sync run. " +
+                                                "Processed: {Processed}, New: {New}",
+                                                consecutiveTransientFailures, folder.FullName, account.Name,
+                                                result.ProcessedEmails, result.NewEmails);
+
+                                            result.WasRateLimited = true;
+                                            return result;
+                                        }
+
+                                        // Re-throw so the outer catch records it as a normal failed email
+                                        // (preserves existing detailed error logging and FailedEmails counter).
+                                        throw;
+                                    }
+                                }
+
+                                if (message == null)
+                                {
+                                    // Should not happen - either we set it or threw - defensive guard.
+                                    throw new InvalidOperationException(
+                                        $"FETCH for UID {uid} in folder {folder.FullName} returned no message and no exception.");
+                                }
 
                                 _mailCleaner.PreCleanMessage(message);
+
 
                                 long messageSize = 0;
                                 if (_bandwidthOptions.Enabled)

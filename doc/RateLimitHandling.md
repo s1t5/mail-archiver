@@ -125,7 +125,80 @@ The `DatabaseMaintenanceService` automatically cleans up old data:
 - ✅ **Database Impact**: Minimal - small records cleaned up automatically
 - ✅ **Sync Speed**: No performance impact during active syncing
 
+## 🛡️ Transient FETCH Errors / Server-Side Throttling
+
+In addition to the byte-based bandwidth tracking described above, Mail Archiver
+also detects and reacts to **per-message throttling** signaled by the IMAP
+server itself. Some hosted IMAP providers apply per-account or per-IP throttling
+that is **independent of the configured `BatchOperation` pauses**, because the
+throttle is enforced on the server side based on overall request volume during
+the current session.
+
+### Symptoms
+
+The server returns a `NO` (or `BAD`) response to a single `FETCH` command for a
+message body, with messages such as:
+
+- `NO Service temporarily unavailable`
+- `NO Server unavailable, try again later`
+- `NO [LIMIT] ...`
+- `NO [OVERQUOTA] ...`
+- `NO [UNAVAILABLE] ...`
+- `NO [INUSE] ...`
+- responses containing `throttle`, `rate limit` or similar markers
+
+Authentication, folder listing and the message search itself usually still
+succeed — only the actual full-message retrieval fails.
+
+### Automatic Handling
+
+When such a transient error is detected, Mail Archiver applies a per-message
+retry strategy:
+
+1. **Retry with exponential backoff**: Up to **3 retries** for the same
+   message, with delays of **5 s → 15 s → 60 s**.
+2. **Connection recovery**: Before each retry, the connection, authentication
+   and folder selection state are validated and restored if necessary.
+3. **Reset on success**: A successful FETCH resets the consecutive-failure
+   counter.
+4. **Graceful sync pause**: If **10 consecutive messages** still fail with
+   transient errors after all retries, the current sync run is paused
+   gracefully — the same mechanism used by the bandwidth-limit pause:
+   - The `LastSync` timestamp is **not** updated.
+   - If `BandwidthTracking` is enabled, checkpoints are preserved so the next
+     sync run resumes from the last successfully processed message.
+   - The job is marked as rate-limited.
+   - The next scheduled sync will resume automatically.
+
+### Mitigation
+
+If you regularly hit server-side throttling, lower the request rate by
+adjusting your `BatchOperation` settings:
+
+```yaml
+BatchOperation__BatchSize=10
+BatchOperation__PauseBetweenEmailsMs=500
+BatchOperation__PauseBetweenBatchesMs=5000
+```
+
+Note that some providers throttle based on **total bytes** or **total FETCHs
+per time window** rather than per-second rate. In those cases:
+
+- Enable `BandwidthTracking` (see above) and configure `DailyLimitMb` to match
+  the provider's documented limit. Sync will then pause cleanly when the daily
+  budget is exhausted and resume automatically the next day.
+- Initial syncs of very large mailboxes may take several days, which is the
+  intended behavior.
+
+### What Counts as a Transient Error
+
+Only IMAP `NO`/`BAD` responses with throttling-related text or response codes
+are treated as transient. Other errors (malformed messages, UTF-8 decoding
+issues, etc.) are still counted as `FailedEmails` immediately and do **not**
+trigger the retry/pause logic.
+
 ## 📚 Related Documentation
 
 - [DatabaseMaintenance.md](DatabaseMaintenance.md) - Database cleanup procedures
 - [GmailBestPractices.md](GmailBestPractices.md) - Gmail-specific configuration
+

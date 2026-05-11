@@ -250,7 +250,27 @@ namespace MailArchiver.Services
                 return false;
             }
 
-            return VerifyPassword(password, user.PasswordHash);
+            var storedHash = user.PasswordHash;
+            var isValid = VerifyPasswordWithUpgrade(password, ref storedHash);
+
+            if (isValid)
+            {
+                // If the hash was upgraded from legacy SHA256 to PBKDF2, persist the new hash
+                if (storedHash != user.PasswordHash)
+                {
+                    user.PasswordHash = storedHash;
+                    _context.Users.Update(user);
+                    await _context.SaveChangesAsync();
+                    _logger.LogInformation("Upgraded password hash from SHA256 to PBKDF2 for user {Username} (ID: {UserId})",
+                        user.Username, user.Id);
+                }
+
+                user.LastLoginAt = DateTime.UtcNow;
+                _context.Users.Update(user);
+                await _context.SaveChangesAsync();
+            }
+
+            return isValid;
         }
 
         public async Task<bool> SetUserActiveStatusAsync(int id, bool isActive)
@@ -386,13 +406,32 @@ namespace MailArchiver.Services
             return await _context.Users.CountAsync(u => u.IsAdmin && u.IsActive);
         }
 
+        // PBKDF2 constants
+        private const int Pbkdf2Iterations = 600_000;
+        private const int Pbkdf2SaltSize = 16; // 128 Bit
+        private const int Pbkdf2HashSize = 32; // 256 Bit
+
+        /// <summary>
+        /// Public verification for callers that don't need auto-upgrade (e.g., password change form).
+        /// </summary>
+        public bool VerifyPassword(string password, string storedHash)
+        {
+            var hash = storedHash;
+            return VerifyPasswordWithUpgrade(password, ref hash);
+        }
+
         public string HashPassword(string password)
         {
-            using (var sha256 = SHA256.Create())
-            {
-                var hashedBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(password));
-                return Convert.ToBase64String(hashedBytes);
-            }
+            byte[] salt = RandomNumberGenerator.GetBytes(Pbkdf2SaltSize);
+            byte[] hash = Rfc2898DeriveBytes.Pbkdf2(
+                Encoding.UTF8.GetBytes(password),
+                salt,
+                Pbkdf2Iterations,
+                HashAlgorithmName.SHA512,
+                Pbkdf2HashSize);
+
+            // Format: {iterations}.{base64_salt}.{base64_hash}
+            return $"{Pbkdf2Iterations}.{Convert.ToBase64String(salt)}.{Convert.ToBase64String(hash)}";
         }
 
         private string HashBackupCode(string backupCode)
@@ -406,10 +445,68 @@ namespace MailArchiver.Services
 
         #region Password Hashing
 
-        private bool VerifyPassword(string password, string hash)
+        /// <summary>
+        /// Verifies a password against both old (SHA256) and new (PBKDF2) formats.
+        /// Auto-upgrades old SHA256 hashes to PBKDF2 on successful verification.
+        /// </summary>
+        private bool VerifyPasswordWithUpgrade(string password, ref string? storedHash)
         {
-            var hashedInput = HashPassword(password);
-            return hashedInput == hash;
+            if (string.IsNullOrEmpty(storedHash))
+                return false;
+
+            // Detect format: PBKDF2 has two dots separating iterations.salt.hash
+            if (storedHash.Count(c => c == '.') == 2)
+            {
+                // New PBKDF2 format
+                return VerifyPbkdf2(password, storedHash);
+            }
+
+            // Legacy SHA256 format – verify and upgrade
+            if (VerifyLegacySha256(password, storedHash))
+            {
+                // Auto-upgrade: replace old hash with new PBKDF2 hash
+                storedHash = HashPassword(password);
+                return true;
+            }
+
+            return false;
+        }
+
+        private bool VerifyPbkdf2(string password, string storedHash)
+        {
+            try
+            {
+                var parts = storedHash.Split('.', 3);
+                if (parts.Length != 3)
+                    return false;
+
+                int iterations = int.Parse(parts[0]);
+                byte[] salt = Convert.FromBase64String(parts[1]);
+                byte[] expectedHash = Convert.FromBase64String(parts[2]);
+
+                byte[] computedHash = Rfc2898DeriveBytes.Pbkdf2(
+                    Encoding.UTF8.GetBytes(password),
+                    salt,
+                    iterations,
+                    HashAlgorithmName.SHA512,
+                    expectedHash.Length);
+
+                return CryptographicOperations.FixedTimeEquals(computedHash, expectedHash);
+            }
+            catch (FormatException)
+            {
+                return false;
+            }
+        }
+
+        private bool VerifyLegacySha256(string password, string storedHash)
+        {
+            using (var sha256 = SHA256.Create())
+            {
+                var hashedBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(password));
+                var hashedInput = Convert.ToBase64String(hashedBytes);
+                return hashedInput == storedHash;
+            }
         }
 
         #endregion

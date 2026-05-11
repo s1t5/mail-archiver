@@ -267,7 +267,7 @@ builder.Services.AddDbContext<MailArchiverDbContext>(options =>
         connectionString,
         npgsqlOptions => {
             npgsqlOptions.CommandTimeout(
-                builder.Configuration.GetValue<int>("Npgsql:CommandTimeout", 600) // 10 Minuten Standardwert
+                    builder.Configuration.GetValue<int>("Npgsql:CommandTimeout", 60)
             );
         }
     )
