@@ -2500,4 +2500,7 @@
   <data name="SyncCancel" xml:space="preserve">
     <value>Синхронизация отменена</value>
   </data>
+  <data name="ConfirmBatchDelete" xml:space="preserve">
+    <value>Подтвердить пакетное удаление</value>
+  </data>
 </root>

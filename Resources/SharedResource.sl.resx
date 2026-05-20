@@ -2500,4 +2500,7 @@
   <data name="SyncCancel" xml:space="preserve">
     <value>Sinhronizacija preklicana</value>
   </data>
+  <data name="ConfirmBatchDelete" xml:space="preserve">
+    <value>Potrdi množično brisanje</value>
+  </data>
 </root>

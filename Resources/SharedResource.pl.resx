@@ -2546,4 +2546,7 @@
   <data name="SyncCancel" xml:space="preserve">
     <value>Synchronizacja przerwana</value>
   </data>
+  <data name="ConfirmBatchDelete" xml:space="preserve">
+    <value>Potwierdź masowe usuwanie</value>
+  </data>
 </root>

@@ -2500,4 +2500,7 @@
   <data name="SyncCancel" xml:space="preserve">
     <value>Synchronisatie geannuleerd</value>
   </data>
+  <data name="ConfirmBatchDelete" xml:space="preserve">
+    <value>Batchgewijs verwijderen bevestigen</value>
+  </data>
 </root>

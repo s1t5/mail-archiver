@@ -229,6 +229,9 @@
   <data name="ConfirmBatchRestore" xml:space="preserve">
     <value>Confirm Batch Restore</value>
   </data>
+  <data name="ConfirmBatchDelete" xml:space="preserve">
+    <value>Confirm Batch Delete</value>
+  </data>
   <data name="Continue" xml:space="preserve">
     <value>Continue</value>
   </data>

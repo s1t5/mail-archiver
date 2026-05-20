@@ -232,6 +232,9 @@
   <data name="ConfirmBatchRestore" xml:space="preserve">
     <value>Bestätigung der Stapelwiederherstellung</value>
   </data>
+  <data name="ConfirmBatchDelete" xml:space="preserve">
+    <value>Bestätigung der Stapellöschung</value>
+  </data>
   <data name="Continue" xml:space="preserve">
     <value>Fortsetzen</value>
   </data>

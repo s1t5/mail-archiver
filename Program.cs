@@ -377,6 +377,7 @@ builder.Services.Configure<Microsoft.AspNetCore.Http.Features.FormOptions>(optio
 {
     var uploadOptions = builder.Configuration.GetSection(UploadOptions.Upload).Get<UploadOptions>() ?? new UploadOptions();
     
+    options.ValueCountLimit = 100_000; // Allow up to 100k form entries (e.g. batch email IDs) to prevent 400 Bad Request
     options.MultipartBodyLengthLimit = uploadOptions.MaxFileSizeBytes;
     options.ValueLengthLimit = (int)Math.Min(uploadOptions.MaxFileSizeBytes, int.MaxValue);
     options.MultipartHeadersLengthLimit = (int)Math.Min(uploadOptions.MaxFileSizeBytes, int.MaxValue);

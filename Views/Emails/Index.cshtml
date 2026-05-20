@@ -447,6 +447,8 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="batchRestoreConfirmModalLabel">@Localizer["ConfirmBatchRestore"]</h5>
+                <span id="batchRestoreConfirmModalTitleText" style="display:none;">@Localizer["ConfirmBatchRestore"]</span>
+                <span id="batchDeleteConfirmModalTitleText" style="display:none;">@Localizer["ConfirmBatchDelete"]</span>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
@@ -836,6 +838,8 @@
                     setTimeout(function() { confirmModal.hide(); }, 5000);
                     return;
                 }
+                // Set modal title for batch restore
+                document.getElementById('batchRestoreConfirmModalLabel').textContent = document.getElementById('batchRestoreConfirmModalTitleText').textContent;
                 if (totalSelected > asyncThreshold) {
                     document.getElementById('confirmMessage').innerHTML = '@Localizer["ContinueWithOperation"]'.replace('{0}', totalSelected.toLocaleString());
                     var confirmModal = new bootstrap.Modal(document.getElementById('batchRestoreConfirmModal'));
@@ -919,6 +923,8 @@
                     setTimeout(function() { confirmModal.hide(); }, 3000);
                     return;
                 }
+                // Set modal title for batch delete
+                document.getElementById('batchRestoreConfirmModalLabel').textContent = document.getElementById('batchDeleteConfirmModalTitleText').textContent;
                 document.getElementById('confirmMessage').innerHTML = '@Localizer["DeleteSelectedEmailsConfirm"]'.replace('{0}', getTotalSelectedCount().toLocaleString());
                 var confirmModal = new bootstrap.Modal(document.getElementById('batchRestoreConfirmModal'));
                 document.getElementById('confirmBatchRestoreBtn').style.display = 'inline-block';

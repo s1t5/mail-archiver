@@ -2492,4 +2492,7 @@
   <data name="SyncCancel" xml:space="preserve">
     <value>Szinkronizálás megszakítva</value>
   </data>
+  <data name="ConfirmBatchDelete" xml:space="preserve">
+    <value>Kötegyes törlés megerősítése</value>
+  </data>
 </root>

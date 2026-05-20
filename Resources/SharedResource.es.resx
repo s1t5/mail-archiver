@@ -2499,4 +2499,7 @@
   <data name="SyncCancel" xml:space="preserve">
     <value>Sincronización cancelada</value>
   </data>
+  <data name="ConfirmBatchDelete" xml:space="preserve">
+    <value>Confirmar eliminación por lotes</value>
+  </data>
 </root>
