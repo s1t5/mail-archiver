@@ -39,7 +39,10 @@ public class MailAccount
         {
             return string.IsNullOrEmpty(ExcludedFolders) 
                 ? new List<string>() 
-                : ExcludedFolders.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries).ToList();
+                : ExcludedFolders.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries)
+                    .Select(f => f.Trim())
+                    .Where(f => f.Length > 0)
+                    .ToList();
         }
     }
     

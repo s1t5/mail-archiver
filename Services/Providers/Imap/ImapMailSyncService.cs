@@ -141,7 +141,7 @@ namespace MailArchiver.Services.Providers.Imap
 
                     try
                     {
-                        if (account.ExcludedFoldersList.Any(f => f.Equals(folder.FullName, StringComparison.OrdinalIgnoreCase)))
+                        if (IsExcludedFolder(folder, account))
                         {
                             _logger.LogInformation("Skipping excluded folder: {FolderName} for account: {AccountName}",
                                 folder.FullName, account.Name);
@@ -392,6 +392,50 @@ namespace MailArchiver.Services.Providers.Imap
                 _logger.LogError(ex, "Error during resync for account {AccountId}", accountId);
                 return false;
             }
+        }
+
+        /// <summary>
+        /// Determines whether a folder is in the account's excluded list.
+        /// Checks both <see cref="IMailFolder.FullName"/> and <see cref="IMailFolder.Name"/>
+        /// for exact matches, with a leading-path fallback to handle IMAP folder prefixes
+        /// used by different servers (e.g. "INBOX.Drafts", "[Gmail]/Drafts").
+        /// </summary>
+        private static bool IsExcludedFolder(IMailFolder folder, MailAccount account)
+        {
+            var excluded = account.ExcludedFoldersList;
+            if (excluded.Count == 0)
+                return false;
+
+            // 1) Exact match against FullName (most common case)
+            if (excluded.Any(f => f.Equals(folder.FullName, StringComparison.OrdinalIgnoreCase)))
+                return true;
+
+            // 2) Exact match against Name/DisplayName (catches cases where the user
+            //    entered the short folder name but the server prefixes it)
+            if (!string.IsNullOrEmpty(folder.Name) &&
+                excluded.Any(f => f.Equals(folder.Name, StringComparison.OrdinalIgnoreCase)))
+                return true;
+
+            // 3) Suffix match: if the excluded entry matches the trailing part of FullName,
+            //    this catches IMAP path prefix variations (e.g. "Drafts" matches "INBOX.Drafts"
+            //    or "INBOX/Sent" matches "Sent")
+            foreach (var excludedName in excluded)
+            {
+                if (folder.FullName.EndsWith("." + excludedName, StringComparison.OrdinalIgnoreCase) ||
+                    folder.FullName.EndsWith("/" + excludedName, StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+
+                // Also check if Name ends with the excluded entry (handles Gmail-style "[Gmail]/Drafts")
+                if (!string.IsNullOrEmpty(folder.Name) &&
+                    folder.Name.EndsWith(excludedName, StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         /// <summary>
@@ -929,7 +973,7 @@ namespace MailArchiver.Services.Providers.Imap
                         continue;
                     }
 
-                    if (account.ExcludedFoldersList.Any(f => f.Equals(folder.FullName, StringComparison.OrdinalIgnoreCase)))
+                    if (IsExcludedFolder(folder, account))
                     {
                         _logger.LogInformation("Skipping excluded folder for deletion: {FolderName} for account: {AccountName}",
                             folder.FullName, account.Name);
