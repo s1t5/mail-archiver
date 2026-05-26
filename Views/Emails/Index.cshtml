@@ -162,7 +162,7 @@
 
     @* Folder Tree Panel - Desktop *@
     <div class="row">
-        <div class="col-lg-2 d-none d-lg-block" id="folderTreeColumn">
+        <div class="d-none d-lg-block" id="folderTreeColumn">
             <div class="folder-tree-panel" id="folderTreePanel">
                 <div class="folder-tree-header" id="folderTreeHeader" role="button" tabindex="0" title="@Localizer["ToggleFolderTree"]">
                     <div class="d-flex align-items-center">
@@ -183,9 +183,10 @@
                         </div>
                     }
                 </div>
+                <div class="folder-tree-resize-handle" id="folderTreeResizeHandle"></div>
             </div>
         </div>
-        <div class="col-lg-10">
+        <div class="folder-tree-result-col">
             @if (Model.SearchResults != null && Model.SearchResults.Any())
             {
                 <div class="card">
@@ -652,6 +653,70 @@
             });
         }
         initializeFolderTree();
+
+        // Resizable folder tree panel
+        (function() {
+            const FOLDER_TREE_WIDTH_KEY = 'folderTreeWidth';
+            const resizeHandle = document.getElementById('folderTreeResizeHandle');
+            const folderTreeColumn = document.getElementById('folderTreeColumn');
+            let isResizing = false;
+
+            // Restore saved width on page load
+            function restoreFolderTreeWidth() {
+                try {
+                    const savedWidth = localStorage.getItem(FOLDER_TREE_WIDTH_KEY);
+                    if (savedWidth && folderTreeColumn) {
+                        const width = parseInt(savedWidth, 10);
+                        if (!isNaN(width) && width >= 180 && width <= 600) {
+                            folderTreeColumn.style.setProperty('--folder-tree-width', width + 'px');
+                        }
+                    }
+                } catch (e) {}
+            }
+
+            restoreFolderTreeWidth();
+
+            if (resizeHandle && folderTreeColumn) {
+                resizeHandle.addEventListener('mousedown', function(e) {
+                    e.preventDefault();
+                    isResizing = true;
+                    document.body.classList.add('resizing-folder-tree');
+                    resizeHandle.classList.add('active');
+                });
+            }
+
+            document.addEventListener('mousemove', function(e) {
+                if (!isResizing || !folderTreeColumn) return;
+                
+                // Calculate new width relative to the parent row
+                const row = folderTreeColumn.parentElement;
+                const rowRect = row.getBoundingClientRect();
+                const newWidth = e.clientX - rowRect.left;
+                
+                // Clamp between min (180px) and max (600px)
+                const clampedWidth = Math.max(180, Math.min(600, newWidth));
+                
+                folderTreeColumn.style.setProperty('--folder-tree-width', clampedWidth + 'px');
+            });
+
+            document.addEventListener('mouseup', function() {
+                if (isResizing) {
+                    isResizing = false;
+                    document.body.classList.remove('resizing-folder-tree');
+                    if (resizeHandle) resizeHandle.classList.remove('active');
+                    
+                    // Save width to localStorage
+                    if (folderTreeColumn) {
+                        const currentWidth = parseInt(folderTreeColumn.style.getPropertyValue('--folder-tree-width'), 10);
+                        if (!isNaN(currentWidth)) {
+                            try {
+                                localStorage.setItem(FOLDER_TREE_WIDTH_KEY, currentWidth.toString());
+                            } catch (e) {}
+                        }
+                    }
+                }
+            });
+        })();
 
         // Selection mode and batch operations
         const asyncThreshold = @ViewBag.AsyncThreshold;

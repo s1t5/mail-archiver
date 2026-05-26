@@ -838,7 +838,7 @@ body {
 }
 
 /* Result column expands to full width when tree is collapsed */
-#folderTreeColumn.collapsed-col + .col-lg-10 {
+#folderTreeColumn.collapsed-col + .folder-tree-result-col {
   flex: 0 0 100%;
   max-width: 100%;
 }
@@ -852,7 +852,7 @@ body {
 }
 
 /* Show button only when folder tree column is collapsed */
-#folderTreeColumn.collapsed-col + .col-lg-10 .folder-tree-toggle-btn {
+#folderTreeColumn.collapsed-col + .folder-tree-result-col .folder-tree-toggle-btn {
   display: inline-block !important;
 }
 
@@ -1005,4 +1005,67 @@ body {
 /* Offcanvas folder tree */
 .folder-tree-offcanvas .folder-tree-content {
   max-height: calc(100vh - 200px);
+}
+
+/* Resizable folder tree panel */
+#folderTreeColumn {
+  flex: 0 0 var(--folder-tree-width, 250px);
+  min-width: 180px;
+  max-width: 600px;
+  position: relative;
+  overflow: visible;
+}
+
+/* Result column takes remaining space */
+.folder-tree-result-col {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Resize handle */
+.folder-tree-resize-handle {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 6px;
+  height: 100%;
+  cursor: col-resize;
+  z-index: 10;
+  background: transparent;
+  transition: background-color 0.15s ease;
+}
+
+.folder-tree-resize-handle:hover,
+.folder-tree-resize-handle.active {
+  background-color: rgba(52, 152, 219, 0.3);
+}
+
+.folder-tree-resize-handle::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 2px;
+  height: 40px;
+  background-color: #ccc;
+  border-radius: 1px;
+  transition: background-color 0.15s ease, height 0.15s ease;
+}
+
+.folder-tree-resize-handle:hover::after,
+.folder-tree-resize-handle.active::after {
+  background-color: #3498db;
+  height: 60px;
+}
+
+/* Hide resize handle when folder tree is collapsed */
+#folderTreeColumn.collapsed-col .folder-tree-resize-handle {
+  display: none;
+}
+
+/* Prevent text selection while resizing */
+body.resizing-folder-tree {
+  user-select: none;
+  cursor: col-resize;
 }
