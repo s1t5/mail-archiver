@@ -1274,9 +1274,8 @@ namespace MailArchiver.Services.Core
                     _logger.LogInformation("Successfully saved email with {Count} attachments", emailAttachments.Count);
 
                     _logger.LogInformation(
-                        "Archived email: {Subject}, From: {From}, To: {To}, Account: {AccountName}, Attachments: {AttachmentCount}, OriginalPreserved: {OriginalPreserved}",
-                        archivedEmail.Subject, archivedEmail.From, archivedEmail.To, account.Name, allAttachments.Count,
-                        archivedEmail.BodyUntruncatedText != null || archivedEmail.BodyUntruncatedHtml != null ? "Yes" : "No");
+                        "Archived email: {Subject}, From: {From}, To: {To}, Account: {AccountName}, Attachments: {AttachmentCount}",
+                        archivedEmail.Subject, archivedEmail.From, archivedEmail.To, account.Name, allAttachments.Count);
 
                     return true; // Neue E-Mail erfolgreich archiviert
                 }
