@@ -339,6 +339,17 @@ namespace MailArchiver.Services.Providers.Graph
                     await ProcessMessagePageAsync(graphClient, account, folder, currentPageMessages, lastSync,
                         folderNameForStorage, isOutgoing, jobId, result, pageNumber);
 
+                    // MEMORY FIX: Trigger a non-blocking Gen 0 GC after each page to release
+                    // the processed Message objects (with potentially large Body content).
+                    try
+                    {
+                        GC.Collect(0, GCCollectionMode.Optimized, blocking: false);
+                    }
+                    catch (Exception gcEx)
+                    {
+                        _logger.LogDebug(gcEx, "Post-page GC failed (non-fatal)");
+                    }
+
                     // Check for cancellation
                     if (jobId != null)
                     {
@@ -351,18 +362,23 @@ namespace MailArchiver.Services.Providers.Graph
                     }
 
                     // Follow OData nextLink for pagination
-                    if (!string.IsNullOrEmpty(messagesResponse.OdataNextLink))
+                    var nextLink = messagesResponse.OdataNextLink;
+                    if (!string.IsNullOrEmpty(nextLink))
                     {
                         if (_batchOptions.PauseBetweenBatchesMs > 0)
                         {
                             await Task.Delay(_batchOptions.PauseBetweenBatchesMs);
                         }
 
+                        // MEMORY FIX: Drop the reference to the old response so the GC can
+                        // reclaim it (and all contained Message objects) before fetching the next page.
+                        messagesResponse = null;
+
                         _logger.LogDebug("Fetching next page of messages for folder {FolderName}...", folder.DisplayName);
                         messagesResponse = await graphClient.Users[account.EmailAddress]
                             .MailFolders[folder.Id]
                             .Messages
-                            .WithUrl(messagesResponse.OdataNextLink)
+                            .WithUrl(nextLink)
                             .GetAsync();
                     }
                     else
@@ -528,12 +544,14 @@ namespace MailArchiver.Services.Providers.Graph
                     }
                 }
 
+                // MEMORY FIX: Declare fullMessage outside try so both try/catch blocks can
+                // null its Body/BodyPreview. Separate fetches would otherwise pin large strings.
+                Message fullMessage = messages[i];
                 try
                 {
                     var message = messages[i];
 
                     // Enrich with full details if needed
-                    Message fullMessage = message;
                     if (message.Body?.Content == null || message.ToRecipients == null || message.CcRecipients == null)
                     {
                         try
@@ -558,6 +576,35 @@ namespace MailArchiver.Services.Providers.Graph
                         result.NewEmails++;
 
                     processedInBatch++;
+
+                    // MEMORY FIX: Null out Body/BodyPreview on the processed Message objects to release
+                    // the potentially large HTML/text content strings immediately, rather than
+                    // keeping them alive until the entire List<Message> is GC'd at the end of the page.
+                    // fullMessage may be a separately-fetched copy — both need cleanup.
+                    if (!ReferenceEquals(fullMessage, messages[i]))
+                    {
+                        fullMessage.Body = null;
+                        fullMessage.BodyPreview = null;
+                    }
+                    messages[i].Body = null;
+                    messages[i].BodyPreview = null;
+
+                    // MEMORY FIX: For large pages (50+ messages), periodically trigger a
+                    // non-blocking Gen 0 GC to release short-lived objects like enriched
+                    // Message details and intermediate strings.
+                    if (processedInBatch % 50 == 0 && messages.Count >= 50)
+                    {
+                        try
+                        {
+                            GC.Collect(0, GCCollectionMode.Optimized, blocking: false);
+                            _logger.LogDebug("Gen-0 GC after {Count} messages in page {PageNumber}",
+                                processedInBatch, pageNumber);
+                        }
+                        catch (Exception gcEx)
+                        {
+                            _logger.LogDebug(gcEx, "Mid-page GC failed (non-fatal)");
+                        }
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -567,6 +614,15 @@ namespace MailArchiver.Services.Providers.Graph
                         messages[i].Id, folderNameForStorage, subject, date, ex.Message);
                     result.FailedEmails++;
                     processedInBatch++;
+
+                    // Still free up the body content even on failure
+                    if (!ReferenceEquals(fullMessage, messages[i]))
+                    {
+                        fullMessage.Body = null;
+                        fullMessage.BodyPreview = null;
+                    }
+                    messages[i].Body = null;
+                    messages[i].BodyPreview = null;
                 }
 
                 // Memory cleanup after each message
