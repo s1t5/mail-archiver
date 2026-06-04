@@ -263,7 +263,8 @@ Attachment deduplication stores every unique attachment payload only once (conte
 - `AttachmentDeduplication__BatchSize`: Number of existing attachments migrated per transaction during the one-time background migration of pre-existing data. Default is `200`. Larger values migrate faster but use more memory/DB load per batch.
 - `AttachmentDeduplication__DelayBetweenBatchesMs`: Optional pause (in milliseconds) between migration batches to throttle database load on busy systems. Default is `0` (no pause).
 - `AttachmentDeduplication__StartupDelaySeconds`: Delay (in seconds) after application start before the background migration begins, giving the schema migration time to complete. Default is `20`.
-- `AttachmentDeduplication__OrphanCleanupIntervalHours`: Interval (in hours) of the always-on garbage collection that removes attachment payloads no longer referenced by any email. Default is `24`. This runs independently of `DatabaseMaintenance__Enabled`.
+- `AttachmentDeduplication__OrphanCleanupIntervalHours`: Interval (in hours) of the always-on garbage collection that removes attachment payloads no longer referenced by any email. Default is `12`. This runs independently of `DatabaseMaintenance__Enabled`.
+
 
 ### Logging Settings
 

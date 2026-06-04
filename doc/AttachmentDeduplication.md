@@ -56,7 +56,33 @@ unreferenced. A built-in garbage collection removes these orphaned content rows.
 > `DatabaseMaintenance__Enabled=true`, the same cleanup additionally runs before the
 > daily `VACUUM` so freed space is physically reclaimed.
 
+### Disk usage after the migration (important)
+
+> 📈 **The "Storage" value on the dashboard can briefly go UP right after the
+> migration** (e.g. 3.5 GB → 5.3 GB). This is expected and not a bug.
+>
+> The dashboard reports the **physical** database size (`pg_database_size`). When the
+> migration moves a payload into shared storage it sets the old inline copy to `NULL`,
+> but PostgreSQL (MVCC) keeps those old bytes as *dead tuples* until the table file is
+> rewritten — so for a moment the database contains both the old and the new copy.
+>
+> To fix this automatically, the application runs a **one-time**
+> `VACUUM FULL` on the attachments table **once the migration is complete and while no
+> sync jobs are running**. This rewrites the table and returns the freed space to the
+> operating system; afterwards the reported size drops **below** the original. It runs
+> exactly once (tracked via a `ReclaimedAt` marker), is restart-safe, and is deferred
+> as long as a synchronization is in progress (it retries automatically once idle).
+
+>
+> ⚠️ The `VACUUM FULL` locks the attachments table for its duration (no attachment
+> reads/writes meanwhile) and needs some free disk space for the rewrite. If you want
+> to trigger it manually instead, run:
+> ```sql
+> VACUUM (FULL, ANALYZE) mail_archiver."EmailAttachments";
+> ```
+
 ## 🔧 Configuration
+
 
 These settings are optional; defaults are sensible for most installations. See also
 the [Setup Guide](Setup.md#-attachment-deduplication-settings).

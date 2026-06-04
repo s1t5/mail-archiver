@@ -36,9 +36,9 @@ namespace MailArchiver.Migrations
                             ""Hash"" varchar(64) NOT NULL,
                             ""Content"" bytea NOT NULL,
                             ""Size"" bigint NOT NULL,
-                            ""ReferenceCount"" integer NOT NULL DEFAULT 0,
                             ""CreatedAt"" timestamp without time zone NOT NULL DEFAULT now()
                         );
+
                     END IF;
                 END $$;
             ");
@@ -148,7 +148,8 @@ namespace MailArchiver.Migrations
                             ""IsCompleted"" boolean NOT NULL DEFAULT false,
                             ""StartedAt"" timestamp without time zone NOT NULL DEFAULT now(),
                             ""UpdatedAt"" timestamp without time zone NOT NULL DEFAULT now(),
-                            ""CompletedAt"" timestamp without time zone NULL
+                            ""CompletedAt"" timestamp without time zone NULL,
+                            ""ReclaimedAt"" timestamp without time zone NULL
                         );
 
                         INSERT INTO mail_archiver.""AttachmentDeduplicationState""
@@ -157,6 +158,26 @@ namespace MailArchiver.Migrations
                     END IF;
                 END $$;
             ");
+
+            // For existing installations whose state table was created by an earlier
+            // version of this migration: add the space-reclaim marker if it is missing.
+            // ""ReclaimedAt"" records when the one-time VACUUM FULL of EmailAttachments
+            // (which physically frees the now-NULLed legacy inline payloads) has run.
+            migrationBuilder.Sql(@"
+                DO $$
+                BEGIN
+                    IF EXISTS (
+                        SELECT 1 
+                        FROM information_schema.tables 
+                        WHERE table_schema = 'mail_archiver' 
+                        AND table_name = 'AttachmentDeduplicationState'
+                    ) THEN
+                        ALTER TABLE mail_archiver.""AttachmentDeduplicationState""
+                        ADD COLUMN IF NOT EXISTS ""ReclaimedAt"" timestamp without time zone NULL;
+                    END IF;
+                END $$;
+            ");
+
 
             // Comments
             migrationBuilder.Sql(@"

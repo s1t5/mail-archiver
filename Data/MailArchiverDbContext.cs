@@ -158,9 +158,6 @@ namespace MailArchiver.Data
                 .Property(c => c.Size)
                 .HasColumnType("bigint");
 
-            modelBuilder.Entity<AttachmentContent>()
-                .Property(c => c.ReferenceCount)
-                .HasDefaultValue(0);
 
             modelBuilder.Entity<AttachmentContent>()
                 .Property(c => c.CreatedAt)

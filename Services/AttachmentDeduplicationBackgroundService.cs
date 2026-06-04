@@ -26,14 +26,18 @@ namespace MailArchiver.Services
     {
         private readonly ILogger<AttachmentDeduplicationBackgroundService> _logger;
         private readonly IConfiguration _configuration;
+        private readonly ISyncJobService _syncJobService;
 
         public AttachmentDeduplicationBackgroundService(
             ILogger<AttachmentDeduplicationBackgroundService> logger,
-            IConfiguration configuration)
+            IConfiguration configuration,
+            ISyncJobService syncJobService)
         {
             _logger = logger;
             _configuration = configuration;
+            _syncJobService = syncJobService;
         }
+
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
@@ -50,8 +54,9 @@ namespace MailArchiver.Services
             if (batchSize < 1) batchSize = 200;
             var delayMs = _configuration.GetValue<int>("AttachmentDeduplication:DelayBetweenBatchesMs", 0);
             var startupDelaySeconds = _configuration.GetValue<int>("AttachmentDeduplication:StartupDelaySeconds", 20);
-            var cleanupIntervalHours = _configuration.GetValue<int>("AttachmentDeduplication:OrphanCleanupIntervalHours", 24);
-            if (cleanupIntervalHours < 1) cleanupIntervalHours = 24;
+            var cleanupIntervalHours = _configuration.GetValue<int>("AttachmentDeduplication:OrphanCleanupIntervalHours", 12);
+            if (cleanupIntervalHours < 1) cleanupIntervalHours = 12;
+
 
             // Give the schema migration (and the rest of the app startup) time to finish.
             try
@@ -79,9 +84,13 @@ namespace MailArchiver.Services
                     "It will resume on the next application start.", ex.Message);
             }
 
-            // 2) Periodic orphan garbage collection. This ALWAYS runs (independent of the
-            //    DatabaseMaintenance feature) so that unreferenced content rows are freed
-            //    even when database maintenance is disabled.
+            // 2) Periodic orphan garbage collection + the one-time space reclamation.
+            //    Both ALWAYS run (independent of the DatabaseMaintenance feature).
+            //    The reclamation (VACUUM FULL) is only allowed while NO sync jobs are
+            //    running; until it has succeeded we poll on a short interval so it kicks
+            //    in as soon as the syncs are idle, then fall back to the normal cleanup
+            //    interval.
+            var reclaimPending = true;
             while (!stoppingToken.IsCancellationRequested)
             {
                 try
@@ -97,9 +106,28 @@ namespace MailArchiver.Services
                     _logger.LogError(ex, "Attachment Deduplication orphan cleanup failed: {Message}", ex.Message);
                 }
 
+                if (reclaimPending)
+                {
+                    try
+                    {
+                        reclaimPending = !await TryReclaimSpaceAsync(connectionString, stoppingToken);
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        return;
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Attachment Deduplication space reclamation failed: {Message}; will retry", ex.Message);
+                    }
+                }
+
+                // While the one-time reclamation is still pending (e.g. deferred because
+                // sync jobs are running) poll frequently; afterwards use the normal interval.
+                var delay = reclaimPending ? TimeSpan.FromMinutes(5) : TimeSpan.FromHours(cleanupIntervalHours);
                 try
                 {
-                    await Task.Delay(TimeSpan.FromHours(cleanupIntervalHours), stoppingToken);
+                    await Task.Delay(delay, stoppingToken);
                 }
                 catch (OperationCanceledException)
                 {
@@ -107,6 +135,7 @@ namespace MailArchiver.Services
                 }
             }
         }
+
 
         /// <summary>
         /// Deletes AttachmentContents rows that are no longer referenced by any
@@ -160,8 +189,13 @@ namespace MailArchiver.Services
                 if (remaining == 0)
                 {
                     _logger.LogInformation("Attachment Deduplication migration already completed; nothing to do");
+                    // The one-time space reclamation (VACUUM FULL) is handled by the
+                    // periodic loop in ExecuteAsync (gated on no running sync jobs); the
+                    // ReclaimedAt marker makes it a no-op once it has already run.
                     return;
                 }
+
+
 
                 _logger.LogWarning("Attachment Deduplication was flagged completed but {Remaining} legacy attachment(s) remain; resuming from start",
                     remaining);
@@ -202,8 +236,102 @@ namespace MailArchiver.Services
                 var duration = DateTime.UtcNow - startTime;
                 _logger.LogInformation("Attachment Deduplication migration COMPLETED. {Total} attachments processed in {Minutes:F1} minutes.",
                     totalProcessed, duration.TotalMinutes);
+
+                // The physical space reclamation (one-time VACUUM FULL) is performed by the
+                // periodic loop in ExecuteAsync, gated on no running sync jobs.
             }
         }
+
+        /// <summary>
+        /// One-time, restart-safe physical space reclamation after the data migration.
+        ///
+        /// The migration copies every payload into AttachmentContents and sets the legacy
+        /// EmailAttachments.Content to NULL. Due to PostgreSQL MVCC the old bytea values
+        /// remain as dead tuples in the EmailAttachments TOAST table; a normal VACUUM does
+        /// not return that space to the OS. We therefore run a single
+        /// <c>VACUUM FULL mail_archiver."EmailAttachments"</c> (which rewrites the heap and
+        /// its TOAST table) so the deduplication actually lowers the on-disk size.
+        ///
+        /// Guarded by the AttachmentDeduplicationState.ReclaimedAt marker so it runs exactly
+        /// once, even across application restarts/crashes.
+        ///
+        /// It is ONLY allowed to run while NO sync jobs are active, because VACUUM FULL takes
+        /// an ACCESS EXCLUSIVE lock on EmailAttachments (which would block / be blocked by a
+        /// running synchronization that writes attachments). It must also NOT run inside a
+        /// transaction block (none is active on the dedicated connection used here).
+        /// </summary>
+        /// <returns>
+        /// <c>true</c> when nothing more needs to be done (already reclaimed, no state table,
+        /// or the VACUUM just completed); <c>false</c> when it was deferred because sync jobs
+        /// are currently running and it should be retried later.
+        /// </returns>
+        private async Task<bool> TryReclaimSpaceAsync(string connectionString, CancellationToken token)
+        {
+            await using var connection = new NpgsqlConnection(connectionString);
+            await connection.OpenAsync(token);
+
+            // State table missing (schema migration not applied) -> nothing to reclaim.
+            if (!await TableExistsAsync(connection, "AttachmentDeduplicationState", token))
+                return true;
+
+            // Already reclaimed? -> done, stop polling.
+            await using (var checkCmd = connection.CreateCommand())
+            {
+                checkCmd.CommandText = @"
+                    SELECT ""ReclaimedAt"" IS NOT NULL
+                    FROM mail_archiver.""AttachmentDeduplicationState""
+                    WHERE ""Id"" = 1;";
+                var alreadyDone = await checkCmd.ExecuteScalarAsync(token);
+                if (alreadyDone != null && alreadyDone != DBNull.Value && (bool)alreadyDone)
+                    return true;
+            }
+
+            // Only reclaim once the data migration is actually finished. If it is not
+            // completed yet (or still has legacy rows) the migration is still writing, so defer.
+
+            var (isCompleted, _) = await ReadStateAsync(connection, token);
+            if (!isCompleted || await CountRemainingLegacyAsync(connection, token) > 0)
+                return false;
+
+            // Never run VACUUM FULL while a synchronization is in progress: it would take an
+            // exclusive lock on EmailAttachments and block/conflict with the sync writes.
+            var activeSyncJobs = _syncJobService.GetActiveJobs().Count;
+            if (activeSyncJobs > 0)
+            {
+                _logger.LogInformation("Attachment Deduplication: deferring one-time VACUUM FULL because {Count} sync job(s) are running; will retry later",
+                    activeSyncJobs);
+                return false;
+            }
+
+            _logger.LogWarning("Attachment Deduplication: starting one-time VACUUM FULL on EmailAttachments to reclaim freed disk space. " +
+                "This takes an exclusive lock on the table and may run for a while on large databases.");
+
+            var startTime = DateTime.UtcNow;
+            await using (var vacuumCmd = connection.CreateCommand())
+            {
+                // 0 = no timeout; VACUUM FULL can take a long time on big tables.
+                vacuumCmd.CommandTimeout = 0;
+                vacuumCmd.CommandText = @"VACUUM (FULL, ANALYZE) mail_archiver.""EmailAttachments"";";
+                await vacuumCmd.ExecuteNonQueryAsync(token);
+            }
+            var duration = DateTime.UtcNow - startTime;
+
+            await using (var markCmd = connection.CreateCommand())
+            {
+                markCmd.CommandText = @"
+                    UPDATE mail_archiver.""AttachmentDeduplicationState""
+                    SET ""ReclaimedAt"" = now(),
+                        ""UpdatedAt"" = now()
+                    WHERE ""Id"" = 1;";
+                await markCmd.ExecuteNonQueryAsync(token);
+            }
+
+            _logger.LogInformation("Attachment Deduplication: VACUUM FULL on EmailAttachments completed in {Minutes:F1} minutes; disk space reclaimed.",
+                duration.TotalMinutes);
+            return true;
+        }
+
+
 
         /// <summary>
         /// Processes a single batch in its own transaction and persists the new cursor.
@@ -241,9 +369,10 @@ namespace MailArchiver.Services
                                octet_length(""Content"")::bigint AS sz
                         FROM batch
                     )
-                    INSERT INTO mail_archiver.""AttachmentContents"" (""Hash"", ""Content"", ""Size"", ""ReferenceCount"", ""CreatedAt"")
-                    SELECT DISTINCT ON (h) h, c, sz, 0, now()
+                    INSERT INTO mail_archiver.""AttachmentContents"" (""Hash"", ""Content"", ""Size"", ""CreatedAt"")
+                    SELECT DISTINCT ON (h) h, c, sz, now()
                     FROM hashed
+
                     ORDER BY h
                     ON CONFLICT (""Hash"") DO NOTHING;";
                 insCmd.Parameters.AddWithValue("@cursor", cursor);

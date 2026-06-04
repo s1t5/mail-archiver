@@ -18,14 +18,8 @@ namespace MailArchiver.Models
         /// <summary>Size of <see cref="Content"/> in bytes.</summary>
         public long Size { get; set; }
 
-        /// <summary>
-        /// Advisory reference counter. Maintained best-effort by the dedup interceptor.
-        /// The authoritative cleanup is the orphan garbage collection which deletes
-        /// contents that are not referenced by any <see cref="EmailAttachment"/>.
-        /// </summary>
-        public int ReferenceCount { get; set; }
-
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
 
         public virtual ICollection<EmailAttachment> Attachments { get; set; } = new List<EmailAttachment>();
     }

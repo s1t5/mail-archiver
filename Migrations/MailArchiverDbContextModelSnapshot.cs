@@ -292,10 +292,6 @@ namespace MailArchiver.Migrations
                         .IsRequired()
                         .HasColumnType("varchar(64)");
 
-                    b.Property<int>("ReferenceCount")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasDefaultValue(0);
 
                     b.Property<long>("Size")
                         .HasColumnType("bigint");
