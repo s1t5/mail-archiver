@@ -373,6 +373,7 @@ namespace MailArchiver.Services
                 var emailBatch = await context.ArchivedEmails
                     .Where(e => e.MailAccountId == job.MailAccountId && e.FolderName == folderName)
                     .Include(e => e.Attachments)
+                        .ThenInclude(a => a.AttachmentContent)
                     .OrderBy(e => e.Id)
                     .Skip(offset)
                     .Take(batchSize)
@@ -487,6 +488,7 @@ namespace MailArchiver.Services
                 var emailBatch = await context.ArchivedEmails
                     .Where(e => e.MailAccountId == job.MailAccountId && e.FolderName == folderName)
                     .Include(e => e.Attachments)
+                        .ThenInclude(a => a.AttachmentContent)
                     .OrderBy(e => e.SentDate)
                     .Skip(offset)
                     .Take(batchSize)

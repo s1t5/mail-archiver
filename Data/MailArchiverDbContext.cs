@@ -8,6 +8,7 @@ namespace MailArchiver.Data
         public DbSet<MailAccount> MailAccounts { get; set; }
         public DbSet<ArchivedEmail> ArchivedEmails { get; set; }
         public DbSet<EmailAttachment> EmailAttachments { get; set; }
+        public DbSet<AttachmentContent> AttachmentContents { get; set; }
         public DbSet<User> Users { get; set; }
         public DbSet<UserMailAccount> UserMailAccounts { get; set; }
         public DbSet<AccessLog> AccessLogs { get; set; }
@@ -101,10 +102,14 @@ namespace MailArchiver.Data
                 .HasForeignKey(a => a.ArchivedEmailId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // Konfiguration für Bytea (binäre Daten) für Anhänge
+            // Konfiguration für Bytea (binäre Daten) für Anhänge (Legacy-Inline-Speicher).
+            // Bildet die ursprüngliche "Content"-Spalte ab und bleibt während der
+            // Dedup-Migration als nullable erhalten. Nach der Migration ist sie NULL.
             modelBuilder.Entity<EmailAttachment>()
-                .Property(a => a.Content)
-                .HasColumnType("bytea");
+                .Property(a => a.LegacyContent)
+                .HasColumnName("Content")
+                .HasColumnType("bytea")
+                .IsRequired(false);
 
             modelBuilder.Entity<EmailAttachment>()
                 .Property(a => a.FileName)
@@ -118,7 +123,53 @@ namespace MailArchiver.Data
                 .Property(a => a.ContentId)
                 .HasColumnType("text")
                 .IsRequired(false);
-            
+
+            // Attachment deduplication: reference from EmailAttachment to the shared
+            // content-addressed AttachmentContent row. Restrict so that a content row
+            // can never be deleted while still referenced; orphans are removed by the
+            // dedup garbage collection in DatabaseMaintenanceService.
+            modelBuilder.Entity<EmailAttachment>()
+                .HasOne(a => a.AttachmentContent)
+                .WithMany(c => c.Attachments)
+                .HasForeignKey(a => a.AttachmentContentId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<EmailAttachment>()
+                .HasIndex(a => a.AttachmentContentId)
+                .HasDatabaseName("IX_EmailAttachments_AttachmentContentId");
+
+            // AttachmentContent entity configuration (content-addressed storage)
+            modelBuilder.Entity<AttachmentContent>()
+                .Property(c => c.Hash)
+                .HasColumnType("varchar(64)")
+                .IsRequired();
+
+            modelBuilder.Entity<AttachmentContent>()
+                .HasIndex(c => c.Hash)
+                .IsUnique()
+                .HasDatabaseName("IX_AttachmentContents_Hash");
+
+            modelBuilder.Entity<AttachmentContent>()
+                .Property(c => c.Content)
+                .HasColumnType("bytea")
+                .IsRequired();
+
+            modelBuilder.Entity<AttachmentContent>()
+                .Property(c => c.Size)
+                .HasColumnType("bigint");
+
+            modelBuilder.Entity<AttachmentContent>()
+                .Property(c => c.ReferenceCount)
+                .HasDefaultValue(0);
+
+            modelBuilder.Entity<AttachmentContent>()
+                .Property(c => c.CreatedAt)
+                .HasColumnType("timestamp without time zone");
+
+            modelBuilder.Entity<AttachmentContent>()
+                .ToTable("AttachmentContents", "mail_archiver");
+
+
             // User entity configuration
             modelBuilder.Entity<User>()
                 .HasIndex(u => u.Username)

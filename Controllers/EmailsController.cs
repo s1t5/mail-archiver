@@ -294,6 +294,7 @@ namespace MailArchiver.Controllers
             var email = await _context.ArchivedEmails
                 .Include(e => e.MailAccount)
                 .Include(e => e.Attachments)
+                    .ThenInclude(a => a.AttachmentContent)
                 .FirstOrDefaultAsync(e => e.Id == id);
 
             if (email == null)
@@ -437,6 +438,7 @@ namespace MailArchiver.Controllers
         {
             var attachment = await _context.EmailAttachments
                 .Include(a => a.ArchivedEmail)
+                .Include(a => a.AttachmentContent)
                 .FirstOrDefaultAsync(a => a.Id == attachmentId && a.ArchivedEmailId == emailId);
 
             if (attachment == null)
@@ -454,6 +456,7 @@ namespace MailArchiver.Controllers
         {
             var attachment = await _context.EmailAttachments
                 .Include(a => a.ArchivedEmail)
+                .Include(a => a.AttachmentContent)
                 .FirstOrDefaultAsync(a => a.Id == attachmentId && a.ArchivedEmailId == emailId);
 
             if (attachment == null)
@@ -481,6 +484,7 @@ namespace MailArchiver.Controllers
             var email = await _context.ArchivedEmails
                 .Include(e => e.MailAccount)
                 .Include(e => e.Attachments)
+                    .ThenInclude(a => a.AttachmentContent)
                 .FirstOrDefaultAsync(e => e.Id == id);
 
             if (email == null)
@@ -526,6 +530,7 @@ namespace MailArchiver.Controllers
             var email = await _context.ArchivedEmails
                 .Include(e => e.MailAccount)
                 .Include(e => e.Attachments)
+                    .ThenInclude(a => a.AttachmentContent)
                 .FirstOrDefaultAsync(e => e.Id == id);
 
             if (email == null)
@@ -853,6 +858,7 @@ namespace MailArchiver.Controllers
                     _logger.LogInformation("Using Graph API service for M365 account {AccountId}", model.TargetAccountId);
                     var email = await _context.ArchivedEmails
                         .Include(e => e.Attachments)
+                            .ThenInclude(a => a.AttachmentContent)
                         .FirstOrDefaultAsync(e => e.Id == model.EmailId);
                     
                     if (email == null)
@@ -1232,6 +1238,7 @@ namespace MailArchiver.Controllers
                         {
                             var email = await _context.ArchivedEmails
                                 .Include(e => e.Attachments)
+                                    .ThenInclude(a => a.AttachmentContent)
                                 .FirstOrDefaultAsync(e => e.Id == emailId);
                             
                             if (email == null)
@@ -2243,6 +2250,7 @@ namespace MailArchiver.Controllers
         {
             var email = await _context.ArchivedEmails
                 .Include(e => e.Attachments)
+                    .ThenInclude(a => a.AttachmentContent)
                 .FirstOrDefaultAsync(e => e.Id == id);
 
             if (email == null)

@@ -258,8 +258,11 @@ builder.AddAuth();
 // Set global encoding to UTF-8
 System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
 
+// Attachment deduplication interceptor (dedupes attachment payloads on SaveChanges)
+builder.Services.AddSingleton<MailArchiver.Services.AttachmentDeduplicationInterceptor>();
+
 // PostgreSQL-Datenbankkontext hinzufügen
-builder.Services.AddDbContext<MailArchiverDbContext>(options =>
+builder.Services.AddDbContext<MailArchiverDbContext>((serviceProvider, options) =>
 {
     var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
     
@@ -271,7 +274,8 @@ builder.Services.AddDbContext<MailArchiverDbContext>(options =>
             );
         }
     )
-    .ConfigureWarnings(warnings => warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
+    .ConfigureWarnings(warnings => warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning))
+    .AddInterceptors(serviceProvider.GetRequiredService<MailArchiver.Services.AttachmentDeduplicationInterceptor>());
     
     // Enable sensitive data logging for debugging (remove in production)
     if (builder.Environment.IsDevelopment())
@@ -279,6 +283,7 @@ builder.Services.AddDbContext<MailArchiverDbContext>(options =>
         options.EnableSensitiveDataLogging();
     }
 });
+
 
 // Services hinzufügen
 
@@ -349,8 +354,12 @@ builder.Services.AddSingleton<DatabaseMaintenanceService>();
 builder.Services.AddSingleton<IDatabaseMaintenanceService>(provider => provider.GetRequiredService<DatabaseMaintenanceService>());
 builder.Services.AddHostedService<DatabaseMaintenanceService>(provider => provider.GetRequiredService<DatabaseMaintenanceService>());
 
+// Register the resumable attachment deduplication background migration (existing data)
+builder.Services.AddHostedService<AttachmentDeduplicationBackgroundService>();
+
 // Register AccessLogService
 builder.Services.AddScoped<IAccessLogService, AccessLogService>();
+
 
 // Register BandwidthService for rate limit management
 builder.Services.AddScoped<IBandwidthService, BandwidthService>();

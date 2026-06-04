@@ -233,6 +233,7 @@ namespace MailArchiver.Services.Providers.Graph
                 {
                     var email = await _context.ArchivedEmails
                         .Include(e => e.Attachments)
+                            .ThenInclude(a => a.AttachmentContent)
                         .FirstOrDefaultAsync(e => e.Id == emailId, cancellationToken);
 
                     if (email == null)

@@ -242,9 +242,12 @@ namespace MailArchiver.Migrations
                     b.Property<int>("ArchivedEmailId")
                         .HasColumnType("integer");
 
-                    b.Property<byte[]>("Content")
-                        .IsRequired()
-                        .HasColumnType("bytea");
+                    b.Property<int?>("AttachmentContentId")
+                        .HasColumnType("integer");
+
+                    b.Property<byte[]>("LegacyContent")
+                        .HasColumnType("bytea")
+                        .HasColumnName("Content");
 
                     b.Property<string>("ContentId")
                         .HasColumnType("text");
@@ -264,8 +267,48 @@ namespace MailArchiver.Migrations
 
                     b.HasIndex("ArchivedEmailId");
 
+                    b.HasIndex("AttachmentContentId")
+                        .HasDatabaseName("IX_EmailAttachments_AttachmentContentId");
+
                     b.ToTable("EmailAttachments", "mail_archiver");
                 });
+
+            modelBuilder.Entity("MailArchiver.Models.AttachmentContent", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<byte[]>("Content")
+                        .IsRequired()
+                        .HasColumnType("bytea");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<string>("Hash")
+                        .IsRequired()
+                        .HasColumnType("varchar(64)");
+
+                    b.Property<int>("ReferenceCount")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
+
+                    b.Property<long>("Size")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Hash")
+                        .IsUnique()
+                        .HasDatabaseName("IX_AttachmentContents_Hash");
+
+                    b.ToTable("AttachmentContents", "mail_archiver");
+                });
+
 
             modelBuilder.Entity("MailArchiver.Models.User", b =>
                 {
@@ -377,8 +420,16 @@ namespace MailArchiver.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("MailArchiver.Models.AttachmentContent", "AttachmentContent")
+                        .WithMany("Attachments")
+                        .HasForeignKey("AttachmentContentId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.Navigation("ArchivedEmail");
+
+                    b.Navigation("AttachmentContent");
                 });
+
 
             modelBuilder.Entity("MailArchiver.Models.UserMailAccount", b =>
                 {
@@ -411,10 +462,16 @@ namespace MailArchiver.Migrations
                     b.Navigation("Attachments");
                 });
 
+            modelBuilder.Entity("MailArchiver.Models.AttachmentContent", b =>
+                {
+                    b.Navigation("Attachments");
+                });
+
             modelBuilder.Entity("MailArchiver.Models.User", b =>
                 {
                     b.Navigation("UserMailAccounts");
                 });
+
 
             modelBuilder.Entity("MailArchiver.Models.BandwidthUsage", b =>
                 {

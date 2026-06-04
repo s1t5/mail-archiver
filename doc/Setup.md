@@ -83,6 +83,13 @@ services:
       - DatabaseMaintenance__DailyExecutionTime=02:00
       - DatabaseMaintenance__TimeoutMinutes=30
 
+      # Attachment Deduplication Settings (Optional - feature is always on)
+      - AttachmentDeduplication__BatchSize=200
+      - AttachmentDeduplication__DelayBetweenBatchesMs=0
+      - AttachmentDeduplication__StartupDelaySeconds=20
+      - AttachmentDeduplication__OrphanCleanupIntervalHours=12
+
+
       # Logging Settings (Optional - defaults to Information level)
       - Logging__LogLevel__Default=Information
       - Logging__LogLevel__Microsoft_AspNetCore=Warning
@@ -250,7 +257,16 @@ docker compose restart
 - `DatabaseMaintenance__DailyExecutionTime`: The time of day when database maintenance should run, in 24-hour format (HH:mm). Default is `02:00`. Choose a time during low system activity.
 - `DatabaseMaintenance__TimeoutMinutes`: Maximum time allowed for maintenance operations in minutes. Default is `30`. Increase this value for larger databases.
 
+### 🧬 Attachment Deduplication Settings
+Attachment deduplication stores every unique attachment payload only once (content-addressed by SHA-256) and is a **core feature that is always enabled** – there is intentionally no on/off switch. Only the batch/scheduling parameters below can be tuned. See the [Attachment Deduplication Guide](AttachmentDeduplication.md) for full details.
+
+- `AttachmentDeduplication__BatchSize`: Number of existing attachments migrated per transaction during the one-time background migration of pre-existing data. Default is `200`. Larger values migrate faster but use more memory/DB load per batch.
+- `AttachmentDeduplication__DelayBetweenBatchesMs`: Optional pause (in milliseconds) between migration batches to throttle database load on busy systems. Default is `0` (no pause).
+- `AttachmentDeduplication__StartupDelaySeconds`: Delay (in seconds) after application start before the background migration begins, giving the schema migration time to complete. Default is `20`.
+- `AttachmentDeduplication__OrphanCleanupIntervalHours`: Interval (in hours) of the always-on garbage collection that removes attachment payloads no longer referenced by any email. Default is `24`. This runs independently of `DatabaseMaintenance__Enabled`.
+
 ### Logging Settings
+
 - `Logging__LogLevel__Default`: The default log level for the application. Available levels are: `Trace`, `Debug`, `Information`, `Warning`, `Error`, `Critical`, `None`. Default is `Information`.
 - `Logging__LogLevel__Microsoft_AspNetCore`: Log level for ASP.NET Core framework messages. Default is `Warning`.
 - `Logging__LogLevel__Microsoft_EntityFrameworkCore_Database_Command`: Log level for Entity Framework database commands. Default is `Warning`.
