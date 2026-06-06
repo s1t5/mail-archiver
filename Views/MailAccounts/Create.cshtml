@@ -10,7 +10,7 @@
     <div class="card">
         <div class="card-body">
             <form asp-action="Create" id="createMailAccountForm">
-                <div asp-validation-summary="All" class="alert alert-danger"></div>
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
                 
                 <div class="mb-3" id="nameField">
                     <label asp-for="Name" class="form-label">@Localizer["AccountName"]</label>
@@ -236,15 +236,6 @@
             const clearTenantMailboxesBtn = document.getElementById('clearTenantMailboxesBtn');
             
             let existingAccounts = [];
-            let isSettingProvider = false;
-
-            function toggleTenantImportFields() {
-                const isTenantImport = providerSelect.value === '@ProviderType.M365' && importEntireTenantInput.checked;
-                emailAddressField.style.display = isTenantImport ? 'none' : 'block';
-                nameField.style.display = 'block';
-                tenantImportSettings.style.display = isTenantImport ? 'block' : 'none';
-                tenantMailboxSelection.style.display = isTenantImport ? tenantMailboxSelection.style.display : 'none';
-            }
             
             function toggleTenantImportFields() {
                 const isTenantImport = providerSelect.value === '@ProviderType.M365' && importEntireTenantInput.checked;
@@ -256,7 +247,6 @@
 
             function toggleSettings(skipSuggestionCheck) {
                 const providerValue = providerSelect.value;
-                const hasSuggestions = existingAccountSuggestion.style.display === 'block';
                 toggleTenantImportFields();
                 
                 if (providerValue === '@ProviderType.IMPORT') {
@@ -269,16 +259,14 @@
                     microsoft365Settings.style.display = 'block';
                     emailDeletionSettings.style.display = 'block';
                     // Only check for existing accounts if not skipping
-                    if (!skipSuggestionCheck && !hasSuggestions) {
+                    if (!skipSuggestionCheck) {
                         checkForExistingAccounts();
                     }
                 } else {
                     imapSettings.style.display = 'block';
-                    // Keep M365 settings visible if there are suggestions
-                    if (!hasSuggestions) {
-                        microsoft365Settings.style.display = 'none';
-                    }
+                    microsoft365Settings.style.display = 'none';
                     emailDeletionSettings.style.display = 'block';
+                    existingAccountSuggestion.style.display = 'none';
                 }
             }
             
@@ -293,7 +281,7 @@
                     return;
                 }
                 
-                if (importEntireTenantInput.checked) {
+                if (providerSelect.value !== '@ProviderType.M365' || importEntireTenantInput.checked) {
                     existingAccountSuggestion.style.display = 'none';
                     return;
                 }
@@ -339,28 +327,12 @@
                                 existingAccountSelect.appendChild(option);
                             });
                             
-                            // Automatically switch provider to M365
-                            if (providerSelect.value !== '@ProviderType.M365') {
-                                isSettingProvider = true;
-                                providerSelect.value = '@ProviderType.M365';
-                                isSettingProvider = false;
-                            }
-                            
-                            // Show M365 settings and hide IMAP settings
-                            imapSettings.style.display = 'none';
-                            microsoft365Settings.style.display = 'block';
-                            emailDeletionSettings.style.display = 'block';
-                            
-                            // Show suggestion box - this must be shown AFTER settings are visible
+                            // Show the credential suggestion only while the user is explicitly creating an M365 account.
                             existingAccountSuggestion.style.display = 'block';
                         } else {
                             existingAccounts = [];
                             lastCheckedEmail = '';
                             existingAccountSuggestion.style.display = 'none';
-                            // Only hide M365 settings if no suggestions and provider is not M365
-                            if (providerSelect.value !== '@ProviderType.M365') {
-                                microsoft365Settings.style.display = 'none';
-                            }
                         }
                     })
                     .catch(error => {
@@ -605,9 +577,7 @@
             
             // Add event listeners
             providerSelect.addEventListener('change', function() {
-                if (!isSettingProvider) {
-                    toggleSettings();
-                }
+                toggleSettings();
             });
 
             importEntireTenantInput.addEventListener('change', function() {
