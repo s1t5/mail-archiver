@@ -5,6 +5,7 @@
     var imapSettingsDisplay = Model.Provider == ProviderType.IMAP ? "block" : "none";
     var microsoft365SettingsDisplay = Model.Provider == ProviderType.M365 ? "block" : "none";
     var emailDeletionSettingsDisplay = Model.Provider == ProviderType.IMPORT ? "none" : "block";
+    var tenantImportControlsDisplay = Model.Provider == ProviderType.M365 ? "block" : "none";
     var tenantImportSettingsDisplay = Model.Provider == ProviderType.M365 && Model.ImportEntireTenant ? "block" : "none";
 }
 
@@ -107,39 +108,41 @@
                         <span asp-validation-for="TenantId" class="text-danger"></span>
                     </div>
 
-                    <div class="mb-3 form-check">
-                        <input asp-for="ImportEntireTenant" class="form-check-input" />
-                        <label asp-for="ImportEntireTenant" class="form-check-label">Tenant import verwenden</label>
-                        <div class="form-text">Lädt die Mailboxen des Tenants und erstellt Konten mit dem Namensschema: eingegebener Name - &lt;mailbox@example.com&gt;.</div>
-                    </div>
-
-                    <div id="tenantImportSettings" style="display: @tenantImportSettingsDisplay;">
+                    <div id="tenantImportControls" style="display: @tenantImportControlsDisplay;">
                         <div class="mb-3 form-check">
-                            <input asp-for="SkipDisabledMailboxes" class="form-check-input" />
-                            <label asp-for="SkipDisabledMailboxes" class="form-check-label">Deaktivierte Mailboxen überspringen</label>
+                            <input asp-for="ImportEntireTenant" class="form-check-input" />
+                            <label asp-for="ImportEntireTenant" class="form-check-label">Tenant import verwenden</label>
+                            <div class="form-text">Lädt die Mailboxen des Tenants und erstellt Konten mit dem Namensschema: eingegebener Name - &lt;mailbox@example.com&gt;.</div>
                         </div>
 
-                        <div class="mb-3 form-check">
-                            <input asp-for="ImportAllTenantMailboxes" class="form-check-input" />
-                            <label asp-for="ImportAllTenantMailboxes" class="form-check-label">Alle aufgelisteten Mailboxen importieren</label>
-                            <div class="form-text">Wenn deaktiviert, werden nur die unten ausgewählten Mailboxen importiert.</div>
-                        </div>
-
-                        <div class="d-flex gap-2 align-items-center mb-3">
-                            <button type="button" id="loadTenantMailboxesBtn" class="btn btn-outline-primary btn-sm">Mailboxen laden</button>
-                            <span id="tenantMailboxStatus" class="text-muted small"></span>
-                        </div>
-
-                        <div id="tenantMailboxSelection" class="border rounded p-3 mb-3" style="display: none; max-height: 320px; overflow-y: auto;">
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <strong>Tenant-Mailboxen</strong>
-                                <div class="btn-group btn-group-sm">
-                                    <button type="button" id="selectAllTenantMailboxesBtn" class="btn btn-outline-secondary">Alle auswählen</button>
-                                    <button type="button" id="clearTenantMailboxesBtn" class="btn btn-outline-secondary">Auswahl leeren</button>
-                                </div>
+                        <div id="tenantImportSettings" style="display: @tenantImportSettingsDisplay;">
+                            <div class="mb-3 form-check">
+                                <input asp-for="SkipDisabledMailboxes" class="form-check-input" />
+                                <label asp-for="SkipDisabledMailboxes" class="form-check-label">Deaktivierte Mailboxen überspringen</label>
                             </div>
-                            <div id="tenantMailboxList"></div>
-                            <span asp-validation-for="SelectedM365Mailboxes" class="text-danger"></span>
+
+                            <div class="mb-3 form-check">
+                                <input asp-for="ImportAllTenantMailboxes" class="form-check-input" />
+                                <label asp-for="ImportAllTenantMailboxes" class="form-check-label">Alle aufgelisteten Mailboxen importieren</label>
+                                <div class="form-text">Wenn deaktiviert, werden nur die unten ausgewählten Mailboxen importiert.</div>
+                            </div>
+
+                            <div class="d-flex gap-2 align-items-center mb-3">
+                                <button type="button" id="loadTenantMailboxesBtn" class="btn btn-outline-primary btn-sm">Mailboxen laden</button>
+                                <span id="tenantMailboxStatus" class="text-muted small"></span>
+                            </div>
+
+                            <div id="tenantMailboxSelection" class="border rounded p-3 mb-3" style="display: none; max-height: 320px; overflow-y: auto;">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <strong>Tenant-Mailboxen</strong>
+                                    <div class="btn-group btn-group-sm">
+                                        <button type="button" id="selectAllTenantMailboxesBtn" class="btn btn-outline-secondary">Alle auswählen</button>
+                                        <button type="button" id="clearTenantMailboxesBtn" class="btn btn-outline-secondary">Auswahl leeren</button>
+                                    </div>
+                                </div>
+                                <div id="tenantMailboxList"></div>
+                                <span asp-validation-for="SelectedM365Mailboxes" class="text-danger"></span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -231,6 +234,7 @@
             const importEntireTenantInput = document.getElementById('ImportEntireTenant');
             const importAllTenantMailboxesInput = document.getElementById('ImportAllTenantMailboxes');
             const skipDisabledMailboxesInput = document.getElementById('SkipDisabledMailboxes');
+            const tenantImportControls = document.getElementById('tenantImportControls');
             const tenantImportSettings = document.getElementById('tenantImportSettings');
             const loadTenantMailboxesBtn = document.getElementById('loadTenantMailboxesBtn');
             const tenantMailboxStatus = document.getElementById('tenantMailboxStatus');
@@ -248,9 +252,11 @@
             }
 
             function toggleTenantImportFields() {
-                const isTenantImport = providerSelect.value === '@ProviderType.M365' && importEntireTenantInput.checked;
+                const isM365 = providerSelect.value === '@ProviderType.M365';
+                const isTenantImport = isM365 && importEntireTenantInput.checked;
                 emailAddressField.style.display = isTenantImport ? 'none' : 'block';
                 nameField.style.display = 'block';
+                tenantImportControls.style.display = isM365 ? 'block' : 'none';
                 tenantImportSettings.style.display = isTenantImport ? 'block' : 'none';
                 tenantMailboxSelection.style.display = isTenantImport ? tenantMailboxSelection.style.display : 'none';
             }
