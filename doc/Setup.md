@@ -92,6 +92,8 @@ services:
       - AttachmentDeduplication__StartupDelaySeconds=20
       - AttachmentDeduplication__OrphanCleanupIntervalHours=12
 
+      # ReleaseNotes Settings (Version Update Splash Screen)
+      - ReleaseNotes__Enabled=true
 
       # Logging Settings (Optional - defaults to Information level)
       - Logging__LogLevel__Default=Information
@@ -264,6 +266,9 @@ docker compose restart
 
 ### 🕐 TimeZone Settings
 - `TimeZone__DisplayTimeZoneId`: The time zone used for displaying email timestamps in the UI. Uses IANA time zone identifiers (e.g., "Europe/Berlin", "Asia/Tokyo"). Default is "Etc/UCT" for backward compatibility. When importing emails timestamps will be converted to this time zone for display purposes.
+
+### 🎉 ReleaseNotes Settings (Version Update Splash Screen)
+- `ReleaseNotes__Enabled`: Enable or disable the version update splash screen (true/false). Default is `true`. When enabled, administrators will see a one-time changelog modal after an application update, showing the release notes fetched from GitHub Releases for the current version. Each administrator can dismiss the modal, and it will only reappear for a new version. Set to `false` to completely disable this feature.
 
 ### 🔧 Database Maintenance Settings
 - `DatabaseMaintenance__Enabled`: Enable or disable automatic daily database maintenance (true/false). Default is `false`. When enabled, the system will automatically run VACUUM ANALYZE operations to optimize database performance and prevent bloat. See [Database Maintenance Guide](DatabaseMaintenance.md) for more details.

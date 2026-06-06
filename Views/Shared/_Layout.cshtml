@@ -1,4 +1,4 @@
-﻿@using MailArchiver.Services
+@using MailArchiver.Services
 @inject MailArchiver.Services.IAuthenticationService AuthService
 @inject Microsoft.Extensions.Localization.IStringLocalizer<MailArchiver.SharedResource> Localizer
 @{ var currentCulture = System.Globalization.CultureInfo.CurrentUICulture.Name; }
@@ -138,9 +138,44 @@
         </main>
     </div>
     <footer class="footer">
-        <span>@DateTime.Now.Year - Mail-Archiver 2606.1</span>
+        @{
+            var asmVer = ReleaseNotesOptions.Value.AppVersion ?? "dev";
+        }
+        <span>@DateTime.Now.Year - Mail-Archiver @asmVer</span>
         <a href="https://mail-archiver.org/" class="text-muted text-decoration-none" target="_blank">mail-archiver.org</a>
     </footer>
+
+    <!-- =============================================================== -->
+    <!--         Version Update / Changelog Splash Screen Modal           -->
+    <!-- =============================================================== -->
+    <div class="modal fade" id="changelogModal" tabindex="-1" aria-labelledby="changelogModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title fw-bold" id="changelogModalLabel">
+                        <i class="bi bi-stars me-1"></i>Update: <span id="changelogVersion">-</span>
+                    </h5>
+                    <span class="badge bg-light text-dark ms-2">@Localizer["NewFeatures"]</span>
+                </div>
+                <div class="modal-body" id="changelogBody">
+                    <div class="d-flex justify-content-center py-5">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <a href="https://github.com/s1t5/mail-archiver/releases" target="_blank" class="btn btn-outline-secondary me-auto">
+                        <i class="bi bi-github me-1"></i>@Localizer["AllReleases"]
+                    </a>
+                    <button type="button" class="btn btn-primary" id="dismissChangelogBtn">
+                        <i class="bi bi-check-lg me-1"></i>@Localizer["GotIt"]
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="~/lib/jquery/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
@@ -235,6 +270,61 @@
         });
     </script>
     @await RenderSectionAsync("Scripts", required: false)
+
+    @* Changelog / Version Update Splash Screen Logic (admin only) *@
+    @if (AuthService.IsCurrentUserAdmin(Context))
+    {
+        <script>
+            (function() {
+                var changelogModal = null;
+                var dismissBtn = document.getElementById('dismissChangelogBtn');
+
+                function dismissVersion() {
+                    fetch('/Home/DismissVersion', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                        }
+                    }).then(function () {
+                        if (changelogModal) changelogModal.hide();
+                    }).catch(function () {
+                        if (changelogModal) changelogModal.hide();
+                    });
+                }
+
+                if (dismissBtn) {
+                    dismissBtn.addEventListener('click', dismissVersion);
+                }
+
+                document.addEventListener('DOMContentLoaded', function () {
+                    fetch('/Home/GetReleaseNotes')
+                        .then(function (r) { return r.json(); })
+                        .then(function (data) {
+                            if (!data || !data.show) return;
+
+                            // Populate modal
+                            var verSpan = document.getElementById('changelogVersion');
+                            if (verSpan) verSpan.textContent = data.version || '-';
+                            var bodyEl = document.getElementById('changelogBody');
+                            if (bodyEl) bodyEl.innerHTML = data.bodyHtml || '';
+
+                            // Show modal
+                            var modalEl = document.getElementById('changelogModal');
+                            if (!modalEl) return;
+                            changelogModal = new bootstrap.Modal(modalEl, {
+                                backdrop: 'static',
+                                keyboard: false
+                            });
+                            changelogModal.show();
+                        })
+                        .catch(function () {
+                            // Silently ignore - GitHub API may be unreachable
+                        });
+                });
+            })();
+        </script>
+    }
 </body>
 
 </html>

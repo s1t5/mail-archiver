@@ -334,6 +334,10 @@ namespace MailArchiver.Migrations
                     b.Property<bool>("IsTwoFactorEnabled")
                         .HasColumnType("boolean");
 
+                    b.Property<string>("LastSeenChangelogVersion")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
                     b.Property<DateTime?>("LastLoginAt")
                         .HasColumnType("timestamp without time zone");
 

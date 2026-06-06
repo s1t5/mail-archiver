@@ -183,6 +183,10 @@ namespace MailArchiver.Data
             modelBuilder.Entity<User>()
                 .Property(u => u.Email)
                 .HasMaxLength(100);
+
+            modelBuilder.Entity<User>()
+                .Property(u => u.LastSeenChangelogVersion)
+                .HasMaxLength(20);
                 
             // UserMailAccount entity configuration
             modelBuilder.Entity<UserMailAccount>()

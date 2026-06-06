@@ -1069,3 +1069,100 @@ body.resizing-folder-tree {
   user-select: none;
   cursor: col-resize;
 }
+
+/* ======================================================= */
+/*    Version Update / Changelog Splash Screen Modal        */
+/* ======================================================= */
+
+#changelogModal .modal-header {
+  border-bottom: 2px solid rgba(255,255,255,0.2);
+}
+
+#changelogModal .modal-header .modal-title {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+#changelogBody {
+  font-size: 0.95rem;
+  line-height: 1.65;
+  color: var(--dark-color);
+}
+
+/* Markdown-rendered release notes inside the modal */
+#changelogBody h1 {
+  font-size: 1.5rem;
+  margin-top: 0.25rem;
+  margin-bottom: 0.75rem;
+  border-bottom: 1px solid #dee2e6;
+  padding-bottom: 0.4rem;
+}
+
+#changelogBody h2 {
+  font-size: 1.25rem;
+  margin-top: 1.25rem;
+  margin-bottom: 0.5rem;
+}
+
+#changelogBody h3 {
+  font-size: 1.1rem;
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+#changelogBody ul,
+#changelogBody ol {
+  padding-left: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+
+#changelogBody li {
+  margin-bottom: 0.35rem;
+}
+
+#changelogBody code {
+  background: #f4f4f4;
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  font-size: 0.875em;
+  color: #c7254e;
+}
+
+#changelogBody pre {
+  background: #f7f7f7;
+  border: 1px solid #dee2e6;
+  border-radius: 6px;
+  padding: 0.75rem 1rem;
+  overflow-x: auto;
+  font-size: 0.875rem;
+}
+
+#changelogBody pre code {
+  background: none;
+  padding: 0;
+  color: inherit;
+}
+
+#changelogBody p {
+  margin-bottom: 0.75rem;
+}
+
+#changelogBody a {
+  color: var(--primary-color);
+  text-decoration: underline;
+}
+
+#changelogBody blockquote {
+  border-left: 4px solid var(--primary-color);
+  padding: 0.5rem 1rem;
+  margin: 0.75rem 0;
+  background: rgba(52,152,219,0.05);
+  border-radius: 0 4px 4px 0;
+}
+
+#changelogBody img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 4px;
+}

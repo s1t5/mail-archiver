@@ -141,8 +141,15 @@ builder.Services.Configure<TimeZoneOptions>(
 builder.Services.Configure<BandwidthTrackingOptions>(
     builder.Configuration.GetSection(BandwidthTrackingOptions.BandwidthTracking));
 
+// Add ReleaseNotes Options
+builder.Services.Configure<ReleaseNotesOptions>(
+    builder.Configuration.GetSection(ReleaseNotesOptions.ReleaseNotes));
+
 // Add DateTimeHelper
 builder.Services.AddScoped<MailArchiver.Utilities.DateTimeHelper>();
+
+// Add HTTP Client factory (used by VersionUpdateService for GitHub API calls)
+builder.Services.AddHttpClient("GitHubReleases");
 
 // Add Session support
 builder.Services.AddDistributedMemoryCache();
@@ -364,6 +371,9 @@ builder.Services.AddHostedService<AttachmentDeduplicationBackgroundService>();
 // Register AccessLogService
 builder.Services.AddScoped<IAccessLogService, AccessLogService>();
 
+
+// Register VersionUpdateService (release notes / changelog splash screen)
+builder.Services.AddSingleton<IVersionUpdateService, VersionUpdateService>();
 
 // Register BandwidthService for rate limit management
 builder.Services.AddScoped<IBandwidthService, BandwidthService>();

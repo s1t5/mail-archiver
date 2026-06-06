@@ -2558,4 +2558,13 @@
   <data name="EmailId" xml:space="preserve">
     <value>ID e-maila</value>
   </data>
+  <data name="NewFeatures" xml:space="preserve">
+    <value>Nowe funkcje</value>
+  </data>
+  <data name="AllReleases" xml:space="preserve">
+    <value>Wszystkie wydania</value>
+  </data>
+  <data name="GotIt" xml:space="preserve">
+    <value>Rozumiem!</value>
+  </data>
 </root>

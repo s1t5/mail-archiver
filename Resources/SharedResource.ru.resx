@@ -2512,4 +2512,13 @@
   <data name="EmailId" xml:space="preserve">
     <value>ID электронного письма</value>
   </data>
+  <data name="NewFeatures" xml:space="preserve">
+    <value>Новые функции</value>
+  </data>
+  <data name="AllReleases" xml:space="preserve">
+    <value>Все выпуски</value>
+  </data>
+  <data name="GotIt" xml:space="preserve">
+    <value>Понятно!</value>
+  </data>
 </root>

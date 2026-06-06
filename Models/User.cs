@@ -36,6 +36,9 @@ namespace MailArchiver.Models
         // OAuth properties
         public string? OAuthRemoteUserId { get; set; }
         public bool RequiresApproval { get; set; } = false;
+
+        // Version update tracking
+        public string? LastSeenChangelogVersion { get; set; }
         
         // Navigation properties
         public virtual ICollection<UserMailAccount> UserMailAccounts { get; set; } = new List<UserMailAccount>();

@@ -2,6 +2,7 @@ using MailArchiver.Data;
 using MailArchiver.Models;
 using MailArchiver.Models.ViewModels;
 using MailArchiver.Services;
+using Markdig;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Diagnostics;
@@ -17,12 +18,14 @@ namespace MailArchiver.Controllers
         private readonly ILogger<HomeController> _logger;
         private readonly IBatchRestoreService? _batchRestoreService;
         private readonly MailArchiver.Services.IAuthenticationService _authenticationService;
+        private readonly IVersionUpdateService _versionUpdateService;
 
         public HomeController(
             MailArchiver.Services.Core.EmailCoreService emailCoreService, 
             IUserService userService,
             MailArchiverDbContext context,
             MailArchiver.Services.IAuthenticationService authenticationService,
+            IVersionUpdateService versionUpdateService,
             ILogger<HomeController> logger, 
             IBatchRestoreService? batchRestoreService = null)
         {
@@ -30,6 +33,7 @@ namespace MailArchiver.Controllers
             _userService = userService;
             _context = context;
             _authenticationService = authenticationService;
+            _versionUpdateService = versionUpdateService;
             _logger = logger;
             _batchRestoreService = batchRestoreService;
         }
@@ -82,7 +86,57 @@ namespace MailArchiver.Controllers
         {
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
-        
+
+        /// <summary>
+        /// Returns release notes as rendered HTML for the current app version.
+        /// Only accessible by admin users.
+        /// </summary>
+        [HttpGet]
+        [MailArchiver.Attributes.AdminRequired]
+        [MailArchiver.Attributes.EmailAccessRequired]
+        public async Task<IActionResult> GetReleaseNotes()
+        {
+            var currentUsername = _authenticationService.GetCurrentUserDisplayName(HttpContext);
+            var currentUser = await _userService.GetUserByUsernameAsync(currentUsername);
+            if (currentUser == null)
+                return Unauthorized();
+
+            var result = await _versionUpdateService.GetReleaseNotesForCurrentVersionAsync(currentUser.Id);
+
+            if (!result.ShouldShow || string.IsNullOrWhiteSpace(result.Body))
+                return Json(new { show = false });
+
+            // Render Markdown to HTML using Markdig
+            var pipeline = new MarkdownPipelineBuilder()
+                .UseAdvancedExtensions()
+                .Build();
+            var html = Markdown.ToHtml(result.Body, pipeline);
+
+            return Json(new
+            {
+                show = true,
+                version = result.Version,
+                bodyHtml = html
+            });
+        }
+
+        /// <summary>
+        /// Dismisses the current version changelog for the admin user.
+        /// </summary>
+        [HttpPost]
+        [MailArchiver.Attributes.AdminRequired]
+        [MailArchiver.Attributes.EmailAccessRequired]
+        public async Task<IActionResult> DismissVersion()
+        {
+            var currentUsername = _authenticationService.GetCurrentUserDisplayName(HttpContext);
+            var currentUser = await _userService.GetUserByUsernameAsync(currentUsername);
+            if (currentUser == null)
+                return Unauthorized();
+
+            await _versionUpdateService.DismissVersionAsync(currentUser.Id);
+            return Ok();
+        }
+
         private async Task<DashboardViewModel> CreateCustomDashboardStatisticsAsync(List<int> accountIds)
         {
             var model = new DashboardViewModel();

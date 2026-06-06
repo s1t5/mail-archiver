@@ -2512,4 +2512,13 @@
   <data name="EmailId" xml:space="preserve">
     <value>ID e-mail</value>
   </data>
+  <data name="NewFeatures" xml:space="preserve">
+    <value>Nouvelles fonctionnalités</value>
+  </data>
+  <data name="AllReleases" xml:space="preserve">
+    <value>Toutes les versions</value>
+  </data>
+  <data name="GotIt" xml:space="preserve">
+    <value>Compris !</value>
+  </data>
 </root>

@@ -2504,4 +2504,13 @@
   <data name="EmailId" xml:space="preserve">
     <value>E-mail azonosító</value>
   </data>
+  <data name="NewFeatures" xml:space="preserve">
+    <value>Új funkciók</value>
+  </data>
+  <data name="AllReleases" xml:space="preserve">
+    <value>Összes kiadás</value>
+  </data>
+  <data name="GotIt" xml:space="preserve">
+    <value>Értettem!</value>
+  </data>
 </root>
