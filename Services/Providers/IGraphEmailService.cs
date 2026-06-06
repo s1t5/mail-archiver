@@ -24,6 +24,15 @@ namespace MailArchiver.Services.Providers
         Task<bool> TestConnectionAsync(MailAccount account);
 
         /// <summary>
+        /// Lists tenant users that can be imported as M365 mail accounts.
+        /// </summary>
+        /// <param name="clientId">Azure application client ID.</param>
+        /// <param name="clientSecret">Azure application client secret.</param>
+        /// <param name="tenantId">Azure tenant ID.</param>
+        /// <returns>Tenant users with an email address or user principal name.</returns>
+        Task<List<User>> GetTenantMailboxUsersAsync(string clientId, string clientSecret, string tenantId, bool includeDisabled = false);
+
+        /// <summary>
         /// Gets mail folders from Microsoft Graph API
         /// </summary>
         /// <param name="account">The M365 mail account</param>

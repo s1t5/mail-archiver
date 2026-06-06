@@ -1,6 +1,7 @@
 using Azure.Identity;
 using MailArchiver.Models;
 using Microsoft.Graph;
+using Microsoft.Graph.Models;
 
 namespace MailArchiver.Services.Providers.Graph
 {
@@ -35,6 +36,78 @@ namespace MailArchiver.Services.Providers.Graph
                 throw new InvalidOperationException(
                     $"M365 account '{account.Name}' requires a TenantId for application-permission OAuth (client credentials flow).");
             }
+        }
+
+        /// <summary>
+        /// Creates a GraphServiceClient directly from tenant credentials.
+        /// </summary>
+        public GraphServiceClient CreateGraphClient(string clientId, string clientSecret, string tenantId)
+        {
+            if (string.IsNullOrWhiteSpace(clientId) || string.IsNullOrWhiteSpace(clientSecret))
+            {
+                throw new InvalidOperationException("ClientId and ClientSecret are required for OAuth authentication.");
+            }
+
+            if (string.IsNullOrWhiteSpace(tenantId))
+            {
+                throw new InvalidOperationException("TenantId is required for application-permission OAuth (client credentials flow).");
+            }
+
+            var credential = new ClientSecretCredential(
+                tenantId: tenantId,
+                clientId: clientId,
+                clientSecret: clientSecret);
+
+            return new GraphServiceClient(
+                credential,
+                new[] { "https://graph.microsoft.com/.default" });
+        }
+
+        /// <summary>
+        /// Lists tenant users that can be represented as mail accounts.
+        /// </summary>
+        public async Task<List<User>> GetTenantMailboxUsersAsync(string clientId, string clientSecret, string tenantId, bool includeDisabled = false)
+        {
+            var graphClient = CreateGraphClient(clientId, clientSecret, tenantId);
+            var users = new List<User>();
+
+            var response = await graphClient.Users.GetAsync(requestConfiguration =>
+            {
+                requestConfiguration.QueryParameters.Select = new[]
+                {
+                    "id",
+                    "displayName",
+                    "mail",
+                    "userPrincipalName",
+                    "accountEnabled"
+                };
+                if (!includeDisabled)
+                {
+                    requestConfiguration.QueryParameters.Filter = "accountEnabled eq true";
+                }
+
+                requestConfiguration.QueryParameters.Top = 999;
+            });
+
+            while (response != null)
+            {
+                if (response.Value != null)
+                {
+                    users.AddRange(response.Value.Where(user =>
+                        !string.IsNullOrWhiteSpace(user.Mail) ||
+                        !string.IsNullOrWhiteSpace(user.UserPrincipalName)));
+                }
+
+                if (string.IsNullOrWhiteSpace(response.OdataNextLink))
+                {
+                    break;
+                }
+
+                response = await graphClient.Users.WithUrl(response.OdataNextLink).GetAsync();
+            }
+
+            _logger.LogInformation("Found {Count} tenant users with mail addresses or UPNs (include disabled: {IncludeDisabled})", users.Count, includeDisabled);
+            return users;
         }
 
         /// <summary>

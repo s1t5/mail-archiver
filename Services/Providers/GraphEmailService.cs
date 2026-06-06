@@ -3,6 +3,7 @@ using MailArchiver.Models;
 using MailArchiver.Services.Core;
 using MailArchiver.Services.Providers.Graph;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Graph.Models;
 
 namespace MailArchiver.Services.Providers
 {
@@ -45,6 +46,9 @@ namespace MailArchiver.Services.Providers
 
         public Task<bool> TestConnectionAsync(MailAccount account)
             => _syncService.TestConnectionAsync(account);
+
+        public Task<List<User>> GetTenantMailboxUsersAsync(string clientId, string clientSecret, string tenantId, bool includeDisabled = false)
+        => _authFactory.GetTenantMailboxUsersAsync(clientId, clientSecret, tenantId, includeDisabled);
 
         public async Task<List<string>> GetMailFoldersAsync(MailAccount account)
             => await _folderService.GetMailFoldersAsync(account);

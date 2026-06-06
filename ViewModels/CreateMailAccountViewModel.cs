@@ -1,19 +1,20 @@
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using MailArchiver.Attributes;
 using MailArchiver.Models;
 
 namespace MailArchiver.Models.ViewModels
 {
-    public class CreateMailAccountViewModel
+    public class CreateMailAccountViewModel : IValidatableObject
     {
         [Required(ErrorMessage = "Name is required")]
         [Display(Name = "Account name")]
-        public string Name { get; set; }
+        public string? Name { get; set; }
         
         [Required(ErrorMessage = "Email address is required")]
         [EmailAddress(ErrorMessage = "Invalid email format")]
         [Display(Name = "Email address")]
-        public string EmailAddress { get; set; }
+        public string? EmailAddress { get; set; }
         
         [ConditionalRequired(nameof(Provider), ProviderType.IMAP, ErrorMessage = "IMAP server is required for IMAP accounts")]
         [Display(Name = "IMAP server")]
@@ -52,6 +53,17 @@ namespace MailArchiver.Models.ViewModels
         [Display(Name = "Tenant ID")]
         [ConditionalRequired(nameof(Provider), ProviderType.M365, ErrorMessage = "Tenant ID is required for M365 accounts")]
         public string TenantId { get; set; }
+
+        [Display(Name = "Import from tenant")]
+        public bool ImportEntireTenant { get; set; } = true;
+
+        [Display(Name = "Import all listed mailboxes")]
+        public bool ImportAllTenantMailboxes { get; set; } = true;
+
+        [Display(Name = "Skip disabled mailboxes")]
+        public bool SkipDisabledMailboxes { get; set; } = true;
+
+        public List<string> SelectedM365Mailboxes { get; set; } = new();
         
         [Display(Name = "Delete After Days")]
         [Range(1, int.MaxValue, ErrorMessage = "Delete after days must be at least 1")]
@@ -60,5 +72,33 @@ namespace MailArchiver.Models.ViewModels
         [Display(Name = "Local Retention Days")]
         [Range(1, int.MaxValue, ErrorMessage = "Local retention days must be at least 1")]
         public int? LocalRetentionDays { get; set; }
+
+        public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+        {
+            if (string.IsNullOrWhiteSpace(Name))
+            {
+                yield return new ValidationResult(
+                    "Name is required",
+                    new[] { nameof(Name) });
+            }
+
+            if (Provider != ProviderType.M365 || !ImportEntireTenant)
+            {
+                if (string.IsNullOrWhiteSpace(EmailAddress))
+                {
+                    yield return new ValidationResult(
+                        "Email address is required",
+                        new[] { nameof(EmailAddress) });
+                }
+            }
+
+            if (Provider == ProviderType.M365 && ImportEntireTenant && !ImportAllTenantMailboxes &&
+                (SelectedM365Mailboxes == null || SelectedM365Mailboxes.Count == 0))
+            {
+                yield return new ValidationResult(
+                    "Select at least one mailbox or enable importing all listed mailboxes.",
+                    new[] { nameof(SelectedM365Mailboxes) });
+            }
+        }
     }
 }
