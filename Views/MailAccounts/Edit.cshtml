@@ -31,7 +31,7 @@
                     <span asp-validation-for="Provider" class="text-danger"></span>
                 </div>
                 
-                <div id="imapSettings">
+                <div id="imapSettings" style="display: @(Model.Provider == ProviderType.IMAP ? "block" : "none");">
                     <h4 class="mt-4">@Localizer["IMAPSettings"]</h4>
                     <div class="row">
                         <div class="col-md-8 mb-3">
@@ -63,7 +63,7 @@
                     </div>
                 </div>
                 
-                <div id="microsoft365Settings" style="display: none;">
+                <div id="microsoft365Settings" style="display: @(Model.Provider == ProviderType.M365 ? "block" : "none");">
                     <h4 class="mt-4">@Localizer["Microsoft365Settings"]</h4>
                     
                     <div id="bulkUpdateSuggestion" class="m365-suggestion-box m365-warning" style="display: none;">
@@ -101,7 +101,7 @@
                     </div>
                 </div>
                 
-                <div id="emailDeletionSettings" style="display: none;">
+                <div id="emailDeletionSettings" style="display: @(Model.Provider == ProviderType.IMPORT ? "none" : "block");">
                     <div class="mb-3 form-check">
                         <input asp-for="IsEnabled" class="form-check-input" />
                         <label asp-for="IsEnabled" class="form-check-label">@Localizer["AccountEnabled"]</label>
@@ -200,20 +200,26 @@
             let affectedAccounts = [];
             let bulkUpdateRequested = false;
             
+            function setSectionEnabled(section, enabled) {
+                section.querySelectorAll('input, select, textarea, button').forEach(element => {
+                    element.disabled = !enabled;
+                });
+            }
+
             function toggleSettings() {
                 const providerValue = providerSelect.value;
-                if (providerValue === '@ProviderType.IMPORT') {
-                    imapSettings.style.display = 'none';
-                    microsoft365Settings.style.display = 'none';
-                    emailDeletionSettings.style.display = 'none';
-                } else if (providerValue === '@ProviderType.M365') {
-                    imapSettings.style.display = 'none';
-                    microsoft365Settings.style.display = 'block';
-                    emailDeletionSettings.style.display = 'block';
-                } else {
-                    imapSettings.style.display = 'block';
-                    microsoft365Settings.style.display = 'none';
-                    emailDeletionSettings.style.display = 'block';
+                const isImport = providerValue === '@ProviderType.IMPORT';
+                const isM365 = providerValue === '@ProviderType.M365';
+                const isImap = !isImport && !isM365;
+
+                imapSettings.style.display = isImap ? 'block' : 'none';
+                microsoft365Settings.style.display = isM365 ? 'block' : 'none';
+                emailDeletionSettings.style.display = isImport ? 'none' : 'block';
+                setSectionEnabled(imapSettings, isImap);
+                setSectionEnabled(microsoft365Settings, isM365);
+
+                if (!isM365) {
+                    bulkUpdateSuggestion.style.display = 'none';
                 }
             }
             

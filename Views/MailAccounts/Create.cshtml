@@ -34,7 +34,7 @@
                     <span asp-validation-for="Provider" class="text-danger"></span>
                 </div>
                 
-                <div id="imapSettings">
+                <div id="imapSettings" style="display: @(Model.Provider == ProviderType.IMAP ? "block" : "none");">
                     <h4 class="mt-4">IMAP Settings</h4>
                     
                     <div class="row">
@@ -71,7 +71,7 @@
                     </div>
                 </div>
                 
-                <div id="microsoft365Settings" style="display: none;">
+                <div id="microsoft365Settings" style="display: @(Model.Provider == ProviderType.M365 ? "block" : "none");">
                     <h4 class="mt-4">@Localizer["Microsoft365Settings"]</h4>
                     
                     <div id="existingAccountSuggestion" class="m365-suggestion-box" style="display: none;">
@@ -182,7 +182,7 @@
                     <div class="form-text">@Localizer["DisabledAccountsNotSynced"]</div>
                 </div>
                 
-                <div id="emailDeletionSettings">
+                <div id="emailDeletionSettings" style="display: @(Model.Provider == ProviderType.IMPORT ? "none" : "block");">
                     <h4 class="mt-4">@Localizer["EmailDeletion"]</h4>
                     <div class="mb-3">
                         <label asp-for="DeleteAfterDays" class="form-label">@Localizer["DeleteAfterDays"]</label>
@@ -237,6 +237,12 @@
             
             let existingAccounts = [];
             
+            function setSectionEnabled(section, enabled) {
+                section.querySelectorAll('input, select, textarea, button').forEach(element => {
+                    element.disabled = !enabled;
+                });
+            }
+
             function toggleTenantImportFields() {
                 const isTenantImport = providerSelect.value === '@ProviderType.M365' && importEntireTenantInput.checked;
                 emailAddressField.style.display = isTenantImport ? 'none' : 'block';
@@ -247,26 +253,24 @@
 
             function toggleSettings(skipSuggestionCheck) {
                 const providerValue = providerSelect.value;
+                const isImport = providerValue === '@ProviderType.IMPORT';
+                const isM365 = providerValue === '@ProviderType.M365';
+                const isImap = !isImport && !isM365;
+
+                imapSettings.style.display = isImap ? 'block' : 'none';
+                microsoft365Settings.style.display = isM365 ? 'block' : 'none';
+                emailDeletionSettings.style.display = isImport ? 'none' : 'block';
+                setSectionEnabled(imapSettings, isImap);
+                setSectionEnabled(microsoft365Settings, isM365);
+
+                if (!isM365) {
+                    existingAccountSuggestion.style.display = 'none';
+                }
+
                 toggleTenantImportFields();
-                
-                if (providerValue === '@ProviderType.IMPORT') {
-                    imapSettings.style.display = 'none';
-                    microsoft365Settings.style.display = 'none';
-                    emailDeletionSettings.style.display = 'none';
-                    existingAccountSuggestion.style.display = 'none';
-                } else if (providerValue === '@ProviderType.M365') {
-                    imapSettings.style.display = 'none';
-                    microsoft365Settings.style.display = 'block';
-                    emailDeletionSettings.style.display = 'block';
-                    // Only check for existing accounts if not skipping
-                    if (!skipSuggestionCheck) {
-                        checkForExistingAccounts();
-                    }
-                } else {
-                    imapSettings.style.display = 'block';
-                    microsoft365Settings.style.display = 'none';
-                    emailDeletionSettings.style.display = 'block';
-                    existingAccountSuggestion.style.display = 'none';
+
+                if (isM365 && !skipSuggestionCheck) {
+                    checkForExistingAccounts();
                 }
             }
             
