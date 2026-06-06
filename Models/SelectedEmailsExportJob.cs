@@ -21,6 +21,7 @@ namespace MailArchiver.Models
         public string? OutputFilePath { get; set; }
         public long OutputFileSize { get; set; }
         public AccountExportFormat Format { get; set; } = AccountExportFormat.EML;
+        public List<FailedEmailInfo> FailedEmails { get; set; } = new();
     }
 
     public enum SelectedEmailsExportJobStatus

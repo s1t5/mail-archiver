@@ -2503,4 +2503,13 @@
   <data name="ConfirmBatchDelete" xml:space="preserve">
     <value>Batchgewijs verwijderen bevestigen</value>
   </data>
+  <data name="FailedEmailSingular" xml:space="preserve">
+    <value>De e-mail kon niet worden verwerkt</value>
+  </data>
+  <data name="FailedEmailsPlural" xml:space="preserve">
+    <value>De e-mails konden niet worden verwerkt</value>
+  </data>
+  <data name="EmailId" xml:space="preserve">
+    <value>E-mail-ID</value>
+  </data>
 </root>

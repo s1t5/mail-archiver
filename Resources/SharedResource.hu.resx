@@ -2495,4 +2495,13 @@
   <data name="ConfirmBatchDelete" xml:space="preserve">
     <value>Kötegyes törlés megerősítése</value>
   </data>
+  <data name="FailedEmailSingular" xml:space="preserve">
+    <value>Az e-mail nem dolgozható fel</value>
+  </data>
+  <data name="FailedEmailsPlural" xml:space="preserve">
+    <value>Az e-mailek nem dolgozhatók fel</value>
+  </data>
+  <data name="EmailId" xml:space="preserve">
+    <value>E-mail azonosító</value>
+  </data>
 </root>

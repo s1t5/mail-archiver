@@ -2503,4 +2503,13 @@
   <data name="ConfirmBatchDelete" xml:space="preserve">
     <value>Conferma eliminazione batch</value>
   </data>
+  <data name="FailedEmailSingular" xml:space="preserve">
+    <value>L'email non può essere elaborata</value>
+  </data>
+  <data name="FailedEmailsPlural" xml:space="preserve">
+    <value>Le email non possono essere elaborate</value>
+  </data>
+  <data name="EmailId" xml:space="preserve">
+    <value>ID email</value>
+  </data>
 </root>

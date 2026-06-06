@@ -2488,4 +2488,13 @@
   <data name="DuplicatesSkippedSummary" xml:space="preserve">
     <value>{0} emails were skipped because they already exist in the target account.</value>
   </data>
+  <data name="FailedEmailSingular" xml:space="preserve">
+    <value>Email could not be processed</value>
+  </data>
+  <data name="FailedEmailsPlural" xml:space="preserve">
+    <value>Emails could not be processed</value>
+  </data>
+  <data name="EmailId" xml:space="preserve">
+    <value>E-Mail-ID</value>
+  </data>
 </root>

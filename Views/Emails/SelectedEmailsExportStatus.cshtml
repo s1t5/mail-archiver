@@ -140,6 +140,36 @@
                     </a>
                 </div>
             }
+            @if (Model.Status == SelectedEmailsExportJobStatus.Completed && Model.FailedEmails.Any())
+            {
+                <div class="alert alert-warning mt-4">
+                    <h6><i class="bi bi-exclamation-triangle-fill me-2"></i>@Model.ProcessedEmails.ToString("N0") @Localizer["ProcessedEmails"] / @Model.TotalEmails.ToString("N0") @Localizer["TotalEmails"] — @Model.FailedEmails.Count @(Model.FailedEmails.Count == 1 ? Localizer["FailedEmailSingular"] : Localizer["FailedEmailsPlural"])</h6>
+                    <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
+                        <table class="table table-sm table-striped mb-0">
+                            <thead>
+                                <tr>
+                                    <th>@Localizer["EmailId"]</th>
+                                    <th>@Localizer["Subject"]</th>
+                                    <th>@Localizer["Folder"]</th>
+                                    <th>@Localizer["Error"]</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var failed in Model.FailedEmails)
+                                {
+                                    <tr>
+                                        <td><code>@failed.EmailId</code></td>
+                                        <td style="max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="@failed.Subject">@failed.Subject</td>
+                                        <td>@failed.FolderName</td>
+                                        <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="@failed.Error"><small class="text-muted">@failed.Error</small></td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            }
+
             @if (Model.Status == SelectedEmailsExportJobStatus.Completed)
             {
                 <div class="mt-4 pt-3">

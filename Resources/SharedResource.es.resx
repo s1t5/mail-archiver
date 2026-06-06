@@ -2502,4 +2502,13 @@
   <data name="ConfirmBatchDelete" xml:space="preserve">
     <value>Confirmar eliminación por lotes</value>
   </data>
+  <data name="FailedEmailSingular" xml:space="preserve">
+    <value>No se pudo procesar el correo electrónico</value>
+  </data>
+  <data name="FailedEmailsPlural" xml:space="preserve">
+    <value>No se pudieron procesar los correos electrónicos</value>
+  </data>
+  <data name="EmailId" xml:space="preserve">
+    <value>ID de correo electrónico</value>
+  </data>
 </root>

@@ -2503,4 +2503,13 @@
   <data name="ConfirmBatchDelete" xml:space="preserve">
     <value>Подтвердить пакетное удаление</value>
   </data>
+  <data name="FailedEmailSingular" xml:space="preserve">
+    <value>Не удалось обработать электронное письмо</value>
+  </data>
+  <data name="FailedEmailsPlural" xml:space="preserve">
+    <value>Не удалось обработать электронные письма</value>
+  </data>
+  <data name="EmailId" xml:space="preserve">
+    <value>ID электронного письма</value>
+  </data>
 </root>

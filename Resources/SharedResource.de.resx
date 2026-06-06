@@ -2504,4 +2504,13 @@
   <data name="SyncCancel" xml:space="preserve">
     <value>Sync abgebrochen</value>
   </data>
+  <data name="FailedEmailSingular" xml:space="preserve">
+    <value>Die E-Mail konnte nicht verarbeitet werden</value>
+  </data>
+  <data name="FailedEmailsPlural" xml:space="preserve">
+    <value>Die E-Mails konnten nicht verarbeitet werden</value>
+  </data>
+  <data name="EmailId" xml:space="preserve">
+    <value>E-Mail-ID</value>
+  </data>
 </root>

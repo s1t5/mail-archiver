@@ -2549,4 +2549,13 @@
   <data name="ConfirmBatchDelete" xml:space="preserve">
     <value>Potwierdź masowe usuwanie</value>
   </data>
+  <data name="FailedEmailSingular" xml:space="preserve">
+    <value>E-mail nie mógł zostać przetworzony</value>
+  </data>
+  <data name="FailedEmailsPlural" xml:space="preserve">
+    <value>E-maile nie mogły zostać przetworzone</value>
+  </data>
+  <data name="EmailId" xml:space="preserve">
+    <value>ID e-maila</value>
+  </data>
 </root>

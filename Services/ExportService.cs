@@ -426,6 +426,13 @@ namespace MailArchiver.Services
                     {
                         _logger.LogWarning(ex, "Job {JobId}: Failed to export email {EmailId}: {Subject}", 
                             job.JobId, email.Id, email.Subject);
+                        job.FailedEmails.Add(new FailedEmailInfo
+                        {
+                            EmailId = email.Id,
+                            Subject = email.Subject ?? "",
+                            FolderName = folderName,
+                            Error = ex.Message
+                        });
                     }
                 }
 
@@ -552,6 +559,13 @@ namespace MailArchiver.Services
                     {
                         _logger.LogWarning(ex, "Job {JobId}: Failed to export email {EmailId}: {Subject}", 
                             job.JobId, email.Id, email.Subject);
+                        job.FailedEmails.Add(new FailedEmailInfo
+                        {
+                            EmailId = email.Id,
+                            Subject = email.Subject ?? "",
+                            FolderName = folderName,
+                            Error = ex.Message
+                        });
                     }
                 }
 
