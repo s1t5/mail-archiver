@@ -1,5 +1,5 @@
 using MailArchiver.Models;
-using Microsoft.Graph.Models;
+using GraphUser = Microsoft.Graph.Models.User;
 
 namespace MailArchiver.Services.Providers
 {
@@ -30,7 +30,7 @@ namespace MailArchiver.Services.Providers
         /// <param name="clientSecret">Azure application client secret.</param>
         /// <param name="tenantId">Azure tenant ID.</param>
         /// <returns>Tenant users with an email address or user principal name.</returns>
-        Task<List<User>> GetTenantMailboxUsersAsync(string clientId, string clientSecret, string tenantId, bool includeDisabled = false);
+        Task<List<GraphUser>> GetTenantMailboxUsersAsync(string clientId, string clientSecret, string tenantId, bool includeDisabled = false);
 
         /// <summary>
         /// Gets mail folders from Microsoft Graph API

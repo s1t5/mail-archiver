@@ -1,7 +1,7 @@
 using Azure.Identity;
 using MailArchiver.Models;
 using Microsoft.Graph;
-using Microsoft.Graph.Models;
+using GraphUser = Microsoft.Graph.Models.User;
 
 namespace MailArchiver.Services.Providers.Graph
 {
@@ -66,10 +66,10 @@ namespace MailArchiver.Services.Providers.Graph
         /// <summary>
         /// Lists tenant users that can be represented as mail accounts.
         /// </summary>
-        public async Task<List<User>> GetTenantMailboxUsersAsync(string clientId, string clientSecret, string tenantId, bool includeDisabled = false)
+        public async Task<List<GraphUser>> GetTenantMailboxUsersAsync(string clientId, string clientSecret, string tenantId, bool includeDisabled = false)
         {
             var graphClient = CreateGraphClient(clientId, clientSecret, tenantId);
-            var users = new List<User>();
+            var users = new List<GraphUser>();
 
             var response = await graphClient.Users.GetAsync(requestConfiguration =>
             {
