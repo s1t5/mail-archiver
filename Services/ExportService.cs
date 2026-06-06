@@ -648,7 +648,49 @@ namespace MailArchiver.Services
                 }
             }
 
-            // Create body - use untruncated versions if available
+            // Import raw headers if available (for forensic/compliance purposes)
+            if (!string.IsNullOrEmpty(email.RawHeaders))
+            {
+                try
+                {
+                    using var reader = new StringReader(email.RawHeaders);
+                    string? line;
+                    while ((line = reader.ReadLine()) != null)
+                    {
+                        var colonIndex = line.IndexOf(':');
+                        if (colonIndex > 0)
+                        {
+                            var headerName = line.Substring(0, colonIndex).Trim();
+                            var headerValue = line.Substring(colonIndex + 1).Trim();
+
+                            // Skip headers that are already set by MimeMessage properties to avoid duplicates
+                            var skipHeaders = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+                            {
+                                "Subject", "From", "To", "Cc", "Bcc", "Date", "Message-ID",
+                                "MIME-Version", "Content-Type"
+                            };
+
+                            if (!skipHeaders.Contains(headerName))
+                            {
+                                try
+                                {
+                                    message.Headers.Add(headerName, headerValue);
+                                }
+                                catch
+                                {
+                                    // Ignore headers that cannot be added
+                                }
+                            }
+                        }
+                    }
+                }
+                catch
+                {
+                    // Ignore raw header parsing errors to avoid breaking export
+                }
+            }
+
+            // Create body - use untruncated versions if available for compliance
             var bodyBuilder = new BodyBuilder();
 
             // Priority: Original body (with null bytes) > Untruncated body > Regular body
@@ -658,16 +700,20 @@ namespace MailArchiver.Services
                     ? email.BodyUntruncatedText 
                     : email.Body);
 
-            if (!string.IsNullOrEmpty(textBody))
-            {
-                bodyBuilder.TextBody = textBody;
-            }
-
             var htmlBody = email.OriginalBodyHtml != null
                 ? System.Text.Encoding.UTF8.GetString(email.OriginalBodyHtml)
                 : (!string.IsNullOrEmpty(email.BodyUntruncatedHtml) 
                     ? email.BodyUntruncatedHtml 
                     : email.HtmlBody);
+
+            // Only emit a text/plain part when the content is genuine plain text.
+            // When an email was archived without a real text/plain part, the archiving fallback stores the
+            // raw HTML in the Body field; emitting that as text/plain would produce an HTML-in-plain-text part.
+            if (!string.IsNullOrEmpty(textBody)
+                && !MailArchiver.Services.Shared.MailContentHelper.IsHtmlContent(textBody, htmlBody))
+            {
+                bodyBuilder.TextBody = textBody;
+            }
 
             if (!string.IsNullOrEmpty(htmlBody))
             {

@@ -75,6 +75,9 @@ services:
       - Upload__KeepAliveTimeoutHours=4
       - Upload__RequestHeadersTimeoutHours=2
 
+      # Local Import Settings (for CLI imports from mounted volumes)
+      - LocalImport__AllowedPaths__0=/data/import
+
       # TimeZone Settings
       - TimeZone__DisplayTimeZoneId=Etc/UCT
 
@@ -115,6 +118,9 @@ services:
     networks:
       - postgres
     volumes:
+      # Uncomment the following line to mount a directory for local file imports
+      # (also configure LocalImport__AllowedPaths__0=/data/import in environment variables)
+      # - /path/to/your/mbox/files:/data/import
       - ./data-protection-keys:/app/DataProtection-Keys
     depends_on:
       postgres:
@@ -248,6 +254,13 @@ docker compose restart
 - `Upload__MaxFileSizeGB`: The maximum file size for uploads in GB.
 - `Upload__KeepAliveTimeoutHours`: The keep alive timeout for uploads in hours.
 - `Upload__RequestHeadersTimeoutHours`: The timeout for request headers in hours.
+
+### 📥 Local Import Settings
+- `LocalImport__AllowedPaths__0`, `LocalImport__AllowedPaths__1`, etc.: Whitelist of local directories that the CLI import commands (`--import-mbox`, `--import-eml`) are allowed to read files from. Each entry is a path inside the container. You must mount your import files into one of these directories using Docker volumes. Default: `/data/import` (automatically set to `/app/uploads` as fallback).
+  - When using `docker exec` to run the import command, the file path provided via `--file` must be within one of these allowed paths.
+  - This security measure prevents arbitrary file system access from CLI commands.
+  - Multiple paths can be configured for different import sources.
+  - See [CLI Local Import Guide](CLI-Local-Import.md) for detailed usage instructions.
 
 ### 🕐 TimeZone Settings
 - `TimeZone__DisplayTimeZoneId`: The time zone used for displaying email timestamps in the UI. Uses IANA time zone identifiers (e.g., "Europe/Berlin", "Asia/Tokyo"). Default is "Etc/UCT" for backward compatibility. When importing emails timestamps will be converted to this time zone for display purposes.

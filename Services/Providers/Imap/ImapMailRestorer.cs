@@ -777,7 +777,11 @@ namespace MailArchiver.Services.Providers.Imap
                 {
                     bodyBuilder.HtmlBody = htmlBodyToRestore;
                 }
-                if (!string.IsNullOrEmpty(textBodyToRestore))
+                // Only emit a text/plain part when the content is genuine plain text.
+                // When an email was archived without a real text/plain part, the archiving fallback stores the
+                // raw HTML in the Body field; emitting that as text/plain would produce an HTML-in-plain-text part.
+                if (!string.IsNullOrEmpty(textBodyToRestore)
+                    && !MailArchiver.Services.Shared.MailContentHelper.IsHtmlContent(textBodyToRestore, htmlBodyToRestore))
                 {
                     bodyBuilder.TextBody = textBodyToRestore;
                 }

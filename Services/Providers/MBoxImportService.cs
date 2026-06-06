@@ -69,7 +69,7 @@ private readonly IServiceProvider _serviceProvider;
             {
                 job.Status = MBoxImportJobStatus.Cancelled;
                 job.Completed = DateTime.UtcNow;
-                DeleteTempFile(job.FilePath, jobId);
+                if (!job.KeepSourceFile) DeleteTempFile(job.FilePath, jobId);
                 return true;
             }
             if (job.Status == MBoxImportJobStatus.Running)
@@ -124,10 +124,39 @@ private readonly IServiceProvider _serviceProvider;
             foreach (var job in toRemove)
             {
                 _allJobs.TryRemove(job.JobId, out _);
-                try { if (File.Exists(job.FilePath)) File.Delete(job.FilePath); }
-                catch (Exception ex) { _logger.LogWarning(ex, "Failed to delete old MBox file"); }
+                if (!job.KeepSourceFile)
+                {
+                    try { if (File.Exists(job.FilePath)) File.Delete(job.FilePath); }
+                    catch (Exception ex) { _logger.LogWarning(ex, "Failed to delete old MBox file"); }
+                }
             }
             if (toRemove.Any()) _logger.LogInformation("Cleaned up {Count} old MBox import jobs", toRemove.Count);
+        }
+
+        /// <summary>
+        /// Process a local file directly (for CLI imports). Runs synchronously and returns the completed job.
+        /// Does NOT delete the source file after processing.
+        /// </summary>
+        public async Task<MBoxImportJob> ProcessFileAsync(string filePath, string fileName, int targetAccountId, string targetFolder, string userId, CancellationToken cancellationToken = default)
+        {
+            var job = new MBoxImportJob
+            {
+                FileName = fileName,
+                FilePath = filePath,
+                FileSize = new FileInfo(filePath).Length,
+                TargetAccountId = targetAccountId,
+                TargetFolder = targetFolder,
+                UserId = userId,
+                KeepSourceFile = true
+            };
+            _allJobs[job.JobId] = job;
+
+            _logger.LogInformation("Processing local MBox file {FileName} at {FilePath} for account {AccountId}",
+                fileName, filePath, targetAccountId);
+
+            await ProcessJob(job, cancellationToken);
+
+            return job;
         }
 
         // ========================================
@@ -255,13 +284,13 @@ private readonly IServiceProvider _serviceProvider;
                         job.JobId, job.SuccessCount, job.FailedCount, job.SkippedMalformedCount);
                 }
 
-                TryDeleteFile(job.FilePath);
+                if (!job.KeepSourceFile) TryDeleteFile(job.FilePath);
             }
             catch (OperationCanceledException)
             {
                 job.Status = MBoxImportJobStatus.Cancelled;
                 job.Completed = DateTime.UtcNow;
-                DeleteTempFile(job.FilePath, job.JobId);
+                if (!job.KeepSourceFile) DeleteTempFile(job.FilePath, job.JobId);
             }
             catch (Exception ex)
             {

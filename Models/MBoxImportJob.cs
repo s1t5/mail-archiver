@@ -22,6 +22,10 @@ namespace MailArchiver.Models
         public string? ErrorMessage { get; set; }
         public string? CurrentEmailSubject { get; set; }
         public long ProcessedBytes { get; set; }
+        /// <summary>
+        /// If true, the source file will not be deleted after processing (for CLI local imports).
+        /// </summary>
+        public bool KeepSourceFile { get; set; }
     }
 
     public enum MBoxImportJobStatus

@@ -67,7 +67,7 @@ namespace MailArchiver.Services.Providers
             {
                 job.Status = EmlImportJobStatus.Cancelled;
                 job.Completed = DateTime.UtcNow;
-                DeleteTempFile(job.FilePath, jobId);
+                if (!job.KeepSourceFile) DeleteTempFile(job.FilePath, jobId);
                 return true;
             }
             if (job.Status == EmlImportJobStatus.Running)
@@ -109,10 +109,38 @@ namespace MailArchiver.Services.Providers
             foreach (var job in toRemove)
             {
                 _allJobs.TryRemove(job.JobId, out _);
-                try { if (File.Exists(job.FilePath)) File.Delete(job.FilePath); }
-                catch (Exception ex) { _logger.LogWarning(ex, "Failed to delete old EML file"); }
+                if (!job.KeepSourceFile)
+                {
+                    try { if (File.Exists(job.FilePath)) File.Delete(job.FilePath); }
+                    catch (Exception ex) { _logger.LogWarning(ex, "Failed to delete old EML file"); }
+                }
             }
             if (toRemove.Any()) _logger.LogInformation("Cleaned up {Count} old EML import jobs", toRemove.Count);
+        }
+
+        /// <summary>
+        /// Process a local file directly (for CLI imports). Runs synchronously and returns the completed job.
+        /// Does NOT delete the source file after processing.
+        /// </summary>
+        public async Task<EmlImportJob> ProcessFileAsync(string filePath, string fileName, int targetAccountId, string userId, CancellationToken cancellationToken = default)
+        {
+            var job = new EmlImportJob
+            {
+                FileName = fileName,
+                FilePath = filePath,
+                FileSize = new FileInfo(filePath).Length,
+                TargetAccountId = targetAccountId,
+                UserId = userId,
+                KeepSourceFile = true
+            };
+            _allJobs[job.JobId] = job;
+
+            _logger.LogInformation("Processing local EML file {FileName} at {FilePath} for account {AccountId}",
+                fileName, filePath, targetAccountId);
+
+            await ProcessJob(job, cancellationToken);
+
+            return job;
         }
 
         // ========================================
@@ -195,13 +223,13 @@ namespace MailArchiver.Services.Providers
                         job.JobId, job.SuccessCount, job.FailedCount, job.SkippedAlreadyExistsCount);
                 }
 
-                TryDeleteFile(job.FilePath);
+                if (!job.KeepSourceFile) TryDeleteFile(job.FilePath);
             }
             catch (OperationCanceledException)
             {
                 job.Status = EmlImportJobStatus.Cancelled;
                 job.Completed = DateTime.UtcNow;
-                DeleteTempFile(job.FilePath, job.JobId);
+                if (!job.KeepSourceFile) DeleteTempFile(job.FilePath, job.JobId);
             }
             catch (Exception ex)
             {

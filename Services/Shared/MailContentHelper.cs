@@ -37,6 +37,33 @@ namespace MailArchiver.Services.Shared
         }
 
         /// <summary>
+        /// Determines whether the supplied "text" content is actually HTML markup rather than genuine plain text.
+        /// This happens when an email was archived without a real text/plain part: the archiving fallback stores
+        /// the raw HTML in the Body field. Emitting such content as a text/plain MIME part would be incorrect.
+        /// </summary>
+        /// <param name="text">The candidate plain-text content (e.g. the Body field).</param>
+        /// <param name="htmlBody">The HTML body of the same email, used for an equality check.</param>
+        public static bool IsHtmlContent(string? text, string? htmlBody)
+        {
+            if (string.IsNullOrEmpty(text))
+                return false;
+
+            // If the "text" is identical to the HTML body, it is clearly HTML stored as text.
+            if (!string.IsNullOrEmpty(htmlBody) && string.Equals(text, htmlBody, StringComparison.Ordinal))
+                return true;
+
+            // Heuristic: content that begins with an HTML document/markup marker is HTML, not plain text.
+            var trimmed = text.TrimStart();
+            if (trimmed.Length == 0)
+                return false;
+
+            return trimmed.StartsWith("<!doctype", StringComparison.OrdinalIgnoreCase)
+                || trimmed.StartsWith("<html", StringComparison.OrdinalIgnoreCase)
+                || trimmed.StartsWith("<head", StringComparison.OrdinalIgnoreCase)
+                || trimmed.StartsWith("<body", StringComparison.OrdinalIgnoreCase);
+        }
+
+        /// <summary>
         /// Removes null bytes (0x00) from a string. PostgreSQL does not allow null bytes in TEXT/VARCHAR columns.
         /// Returns null if input is null.
         /// </summary>

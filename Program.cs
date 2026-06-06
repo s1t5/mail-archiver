@@ -121,6 +121,10 @@ builder.Services.Configure<MailSyncOptions>(
 builder.Services.Configure<UploadOptions>(
     builder.Configuration.GetSection(UploadOptions.Upload));
 
+// Add Local Import Options
+builder.Services.Configure<LocalImportOptions>(
+    builder.Configuration.GetSection(LocalImportOptions.LocalImport));
+
 // Add Selection Options
 builder.Services.Configure<SelectionOptions>(
     builder.Configuration.GetSection("Selection"));
@@ -417,6 +421,145 @@ builder.WebHost.ConfigureKestrel((context, options) =>
 });
 
 var app = builder.Build();
+
+// Handle CLI commands: S3 disaster recovery and local import
+var cliArgs = Environment.GetCommandLineArgs();
+if (cliArgs.Any(a => a == "--import-mbox" || a == "--import-eml"))
+{
+    using var cliScope = app.Services.CreateScope();
+    var cliServices = cliScope.ServiceProvider;
+    var cliLogger = cliServices.GetRequiredService<ILogger<Program>>();
+    
+    try
+    {      
+        // === Local File Import Commands ===
+        if (cliArgs.Contains("--import-mbox") || cliArgs.Contains("--import-eml"))
+        {
+            var isMbox = cliArgs.Contains("--import-mbox");
+            var formatLabel = isMbox ? "MBox" : "EML";
+            cliLogger.LogInformation("Starting local {Format} import...", formatLabel);
+            
+            // Parse required arguments
+            var filePathIndex = Array.IndexOf(cliArgs, "--file");
+            var accountIdIndex = Array.IndexOf(cliArgs, "--account-id");
+            var folderIndex = Array.IndexOf(cliArgs, "--folder");
+            
+            if (filePathIndex < 0 || filePathIndex + 1 >= cliArgs.Length)
+            {
+                Console.WriteLine($"ERROR: --file <path> is required for {formatLabel} import");
+                Environment.Exit(1);
+            }
+            if (accountIdIndex < 0 || accountIdIndex + 1 >= cliArgs.Length)
+            {
+                Console.WriteLine($"ERROR: --account-id <id> is required for {formatLabel} import");
+                Environment.Exit(1);
+            }
+            
+            var filePath = cliArgs[filePathIndex + 1];
+            var accountIdStr = cliArgs[accountIdIndex + 1];
+            var targetFolder = folderIndex >= 0 && folderIndex + 1 < cliArgs.Length 
+                ? cliArgs[folderIndex + 1] 
+                : "INBOX";
+            
+            if (!int.TryParse(accountIdStr, out var targetAccountId))
+            {
+                Console.WriteLine($"ERROR: Invalid account-id: {accountIdStr}");
+                Environment.Exit(1);
+            }
+            
+            // Validate file exists
+            if (!File.Exists(filePath))
+            {
+                Console.WriteLine($"ERROR: File not found: {filePath}");
+                Environment.Exit(1);
+            }
+            
+            // Validate path is in allowed paths
+            var localImportOptions = cliServices.GetRequiredService<IOptions<LocalImportOptions>>().Value;
+            var normalizedPath = Path.GetFullPath(filePath);
+            var isAllowed = localImportOptions.AllowedPaths.Any(allowed =>
+            {
+                var normalizedAllowed = Path.GetFullPath(allowed);
+                return normalizedPath.StartsWith(normalizedAllowed, StringComparison.OrdinalIgnoreCase);
+            });
+            
+            if (!isAllowed)
+            {
+                Console.WriteLine($"ERROR: File path '{filePath}' is not in an allowed import directory.");
+                Console.WriteLine("Allowed paths (configured in appsettings.json -> LocalImport -> AllowedPaths):");
+                foreach (var allowed in localImportOptions.AllowedPaths)
+                    Console.WriteLine($"  - {Path.GetFullPath(allowed)}");
+                Console.WriteLine("Add the directory to 'LocalImport.AllowedPaths' in appsettings.json, or mount your files into an allowed directory.");
+                Environment.Exit(1);
+            }
+            
+            // Verify target account exists
+            using (var checkScope = cliServices.CreateScope())
+            {
+                var checkContext = checkScope.ServiceProvider.GetRequiredService<MailArchiverDbContext>();
+                var account = await checkContext.MailAccounts.FindAsync(targetAccountId);
+                if (account == null)
+                {
+                    Console.WriteLine($"ERROR: Mail account with ID {targetAccountId} not found in database.");
+                    Environment.Exit(1);
+                }
+                Console.WriteLine($"Target account: {account.EmailAddress} (ID: {account.Id})");
+            }
+            
+            var fileInfo = new FileInfo(filePath);
+            Console.WriteLine($"\n=== Local {formatLabel} Import ===");
+            Console.WriteLine($"File: {filePath}");
+            Console.WriteLine($"Size: {fileInfo.Length / (1024.0 * 1024.0):F2} MB");
+            Console.WriteLine($"Target Account ID: {targetAccountId}");
+            Console.WriteLine($"Target Folder: {targetFolder}");
+            Console.WriteLine();
+            
+            var startTime = DateTime.UtcNow;
+            
+            if (isMbox)
+            {
+                var mboxService = cliServices.GetRequiredService<IMBoxImportService>();
+                var result = await mboxService.ProcessFileAsync(filePath, Path.GetFileName(filePath), targetAccountId, targetFolder, "CLI");
+                
+                Console.WriteLine($"\n=== Import Results ===");
+                Console.WriteLine($"Status: {result.Status}");
+                Console.WriteLine($"Total Emails: {result.TotalEmails}");
+                Console.WriteLine($"Imported Successfully: {result.SuccessCount}");
+                Console.WriteLine($"Failed: {result.FailedCount}");
+                Console.WriteLine($"Skipped (malformed): {result.SkippedMalformedCount}");
+                Console.WriteLine($"Skipped (duplicates): {result.SkippedAlreadyExistsCount}");
+                Console.WriteLine($"Duration: {DateTime.UtcNow - startTime}");
+                if (!string.IsNullOrEmpty(result.ErrorMessage))
+                    Console.WriteLine($"Errors: {result.ErrorMessage}");
+                
+                Environment.Exit(result.Status == MBoxImportJobStatus.Completed ? 0 : 1);
+            }
+            else
+            {
+                var emlService = cliServices.GetRequiredService<IEmlImportService>();
+                var result = await emlService.ProcessFileAsync(filePath, Path.GetFileName(filePath), targetAccountId, "CLI");
+                
+                Console.WriteLine($"\n=== Import Results ===");
+                Console.WriteLine($"Status: {result.Status}");
+                Console.WriteLine($"Total Emails: {result.TotalEmails}");
+                Console.WriteLine($"Imported Successfully: {result.SuccessCount}");
+                Console.WriteLine($"Failed: {result.FailedCount}");
+                Console.WriteLine($"Skipped (duplicates): {result.SkippedAlreadyExistsCount}");
+                Console.WriteLine($"Duration: {DateTime.UtcNow - startTime}");
+                if (!string.IsNullOrEmpty(result.ErrorMessage))
+                    Console.WriteLine($"Errors: {result.ErrorMessage}");
+                
+                Environment.Exit(result.Status == EmlImportJobStatus.Completed ? 0 : 1);
+            }
+        }
+    }
+    catch (Exception ex)
+    {
+        cliLogger.LogError(ex, "CLI command failed");
+        Console.WriteLine($"ERROR: {ex.Message}");
+        Environment.Exit(1);
+    }
+}
 
 // Datenbank initialisieren
 using (var scope = app.Services.CreateScope())

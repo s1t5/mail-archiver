@@ -788,9 +788,30 @@ namespace MailArchiver.Services.Core
                     ? email.BodyUntruncatedText
                     : email.Body);
 
-            var body = !string.IsNullOrEmpty(htmlBodyToExport)
-                ? new TextPart("html") { Text = htmlBodyToExport }
-                : new TextPart("plain") { Text = textBodyToExport };
+            // Build the body so it faithfully reflects the original structure:
+            // - genuine text + html  -> multipart/alternative (text/plain + text/html)
+            // - only html (or text is HTML stored as fallback) -> text/html
+            // - only text -> text/plain
+            var hasHtmlToExport = !string.IsNullOrEmpty(htmlBodyToExport);
+            var hasGenuineTextToExport = !string.IsNullOrEmpty(textBodyToExport)
+                && !MailContentHelper.IsHtmlContent(textBodyToExport, htmlBodyToExport);
+
+            MimeEntity body;
+            if (hasHtmlToExport && hasGenuineTextToExport)
+            {
+                var alternative = new Multipart("alternative");
+                alternative.Add(new TextPart("plain") { Text = textBodyToExport });
+                alternative.Add(new TextPart("html") { Text = htmlBodyToExport });
+                body = alternative;
+            }
+            else if (hasHtmlToExport)
+            {
+                body = new TextPart("html") { Text = htmlBodyToExport };
+            }
+            else
+            {
+                body = new TextPart("plain") { Text = textBodyToExport ?? string.Empty };
+            }
 
             if (email.Attachments.Any())
             {
