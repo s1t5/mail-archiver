@@ -160,34 +160,6 @@ Add more paths by incrementing the index (`__2`, `__3`, etc.).
 
 4. **Never expose** the import directory via the web server – there is no web endpoint for local imports.
 
-## 📂 Importing from Different Sources
-
-### From a Network Share
-
-Mount the network share on your Docker host, then mount it into the container:
-
-```bash
-# On Docker host
-mount -t cifs //nas/email-archives /mnt/email-archives -o username=user,password=pass
-
-# In docker-compose.yml
-volumes:
-  - /mnt/email-archives:/data/import
-```
-
-### From an External USB Drive
-
-Mount the USB drive on your Docker host, then mount it into the container:
-
-```bash
-# On Docker host
-mount /dev/sdb1 /mnt/usb-import
-
-# In docker-compose.yml
-volumes:
-  - /mnt/usb-import:/data/import
-```
-
 ## 📦 Import Formats at a Glance
 
 | CLI Flag | Input Format | Typical File Extension | Single Email | Bulk |
