@@ -2,7 +2,7 @@ using MailArchiver.Data;
 using MailArchiver.Models;
 using MailArchiver.Models.ViewModels;
 using MailArchiver.Services;
-using Markdig;
+using MailArchiver.Services.Shared;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Diagnostics;
@@ -106,11 +106,8 @@ namespace MailArchiver.Controllers
             if (!result.ShouldShow || string.IsNullOrWhiteSpace(result.Body))
                 return Json(new { show = false });
 
-            // Render Markdown to HTML using Markdig
-            var pipeline = new MarkdownPipelineBuilder()
-                .UseAdvancedExtensions()
-                .Build();
-            var html = Markdown.ToHtml(result.Body, pipeline);
+            // Render Markdown to HTML using the built-in converter (no external dependency)
+            var html = MarkdownHelper.ToHtml(result.Body);
 
             return Json(new
             {

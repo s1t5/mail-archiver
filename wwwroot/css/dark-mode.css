@@ -571,3 +571,38 @@
 [data-theme="dark"] .btn-close {
   filter: invert(1) grayscale(100%) brightness(200%);
 }
+
+/* ======================================================= */
+/*    Version Update / Changelog Splash Screen Modal        */
+/* ======================================================= */
+
+[data-theme="dark"] #changelogBody {
+  color: var(--text-color);
+}
+
+[data-theme="dark"] #changelogBody h1 {
+  border-bottom-color: var(--border-color);
+}
+
+[data-theme="dark"] #changelogBody code {
+  background: #4a5568;
+  color: #fc8181;
+}
+
+[data-theme="dark"] #changelogBody pre {
+  background: #2d3748;
+  border-color: var(--border-color);
+}
+
+[data-theme="dark"] #changelogBody pre code {
+  color: var(--text-color);
+}
+
+[data-theme="dark"] #changelogBody a {
+  color: var(--primary-color);
+}
+
+[data-theme="dark"] #changelogBody blockquote {
+  background: rgba(52,152,219,0.1);
+  border-left-color: var(--primary-color);
+}
