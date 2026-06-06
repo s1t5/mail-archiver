@@ -2,6 +2,9 @@
 @model MailArchiver.Models.ViewModels.MailAccountViewModel
 @{
     ViewData["Title"] = @Localizer["EditEmailAccount"];
+    var imapSettingsDisplay = Model.Provider == ProviderType.IMAP ? "block" : "none";
+    var microsoft365SettingsDisplay = Model.Provider == ProviderType.M365 ? "block" : "none";
+    var emailDeletionSettingsDisplay = Model.Provider == ProviderType.IMPORT ? "none" : "block";
 }
 <div class="container">
     <h1>@Localizer["EditEmailAccount"]</h1>
@@ -31,7 +34,7 @@
                     <span asp-validation-for="Provider" class="text-danger"></span>
                 </div>
                 
-                <div id="imapSettings" style="display: @(Model.Provider == ProviderType.IMAP ? "block" : "none");">
+                <div id="imapSettings" style="display: @imapSettingsDisplay;">
                     <h4 class="mt-4">@Localizer["IMAPSettings"]</h4>
                     <div class="row">
                         <div class="col-md-8 mb-3">
@@ -63,7 +66,7 @@
                     </div>
                 </div>
                 
-                <div id="microsoft365Settings" style="display: @(Model.Provider == ProviderType.M365 ? "block" : "none");">
+                <div id="microsoft365Settings" style="display: @microsoft365SettingsDisplay;">
                     <h4 class="mt-4">@Localizer["Microsoft365Settings"]</h4>
                     
                     <div id="bulkUpdateSuggestion" class="m365-suggestion-box m365-warning" style="display: none;">
@@ -101,7 +104,7 @@
                     </div>
                 </div>
                 
-                <div id="emailDeletionSettings" style="display: @(Model.Provider == ProviderType.IMPORT ? "none" : "block");">
+                <div id="emailDeletionSettings" style="display: @emailDeletionSettingsDisplay;">
                     <div class="mb-3 form-check">
                         <input asp-for="IsEnabled" class="form-check-input" />
                         <label asp-for="IsEnabled" class="form-check-label">@Localizer["AccountEnabled"]</label>

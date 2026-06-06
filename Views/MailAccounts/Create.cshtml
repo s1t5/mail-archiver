@@ -2,6 +2,10 @@
 @model MailArchiver.Models.ViewModels.CreateMailAccountViewModel
 @{
     ViewData["Title"] = @Localizer["CreateNewEmailAccount"];
+    var imapSettingsDisplay = Model.Provider == ProviderType.IMAP ? "block" : "none";
+    var microsoft365SettingsDisplay = Model.Provider == ProviderType.M365 ? "block" : "none";
+    var emailDeletionSettingsDisplay = Model.Provider == ProviderType.IMPORT ? "none" : "block";
+    var tenantImportSettingsDisplay = Model.Provider == ProviderType.M365 && Model.ImportEntireTenant ? "block" : "none";
 }
 
 <div class="container">
@@ -34,7 +38,7 @@
                     <span asp-validation-for="Provider" class="text-danger"></span>
                 </div>
                 
-                <div id="imapSettings" style="display: @(Model.Provider == ProviderType.IMAP ? "block" : "none");">
+                <div id="imapSettings" style="display: @imapSettingsDisplay;">
                     <h4 class="mt-4">IMAP Settings</h4>
                     
                     <div class="row">
@@ -71,7 +75,7 @@
                     </div>
                 </div>
                 
-                <div id="microsoft365Settings" style="display: @(Model.Provider == ProviderType.M365 ? "block" : "none");">
+                <div id="microsoft365Settings" style="display: @microsoft365SettingsDisplay;">
                     <h4 class="mt-4">@Localizer["Microsoft365Settings"]</h4>
                     
                     <div id="existingAccountSuggestion" class="m365-suggestion-box" style="display: none;">
@@ -109,7 +113,7 @@
                         <div class="form-text">Lädt die Mailboxen des Tenants und erstellt Konten mit dem Namensschema: eingegebener Name - &lt;mailbox@example.com&gt;.</div>
                     </div>
 
-                    <div id="tenantImportSettings">
+                    <div id="tenantImportSettings" style="display: @tenantImportSettingsDisplay;">
                         <div class="mb-3 form-check">
                             <input asp-for="SkipDisabledMailboxes" class="form-check-input" />
                             <label asp-for="SkipDisabledMailboxes" class="form-check-label">Deaktivierte Mailboxen überspringen</label>
@@ -182,7 +186,7 @@
                     <div class="form-text">@Localizer["DisabledAccountsNotSynced"]</div>
                 </div>
                 
-                <div id="emailDeletionSettings" style="display: @(Model.Provider == ProviderType.IMPORT ? "none" : "block");">
+                <div id="emailDeletionSettings" style="display: @emailDeletionSettingsDisplay;">
                     <h4 class="mt-4">@Localizer["EmailDeletion"]</h4>
                     <div class="mb-3">
                         <label asp-for="DeleteAfterDays" class="form-label">@Localizer["DeleteAfterDays"]</label>
