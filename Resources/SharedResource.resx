@@ -448,6 +448,9 @@
   <data name="ImportMBox" xml:space="preserve">
     <value>Import Mbox</value>
   </data>
+<data name="ImportPst" xml:space="preserve">
+    <value>Import PST/OST</value>
+  </data>
   <data name="IMAPSettings" xml:space="preserve">
     <value>IMAP Settings</value>
   </data>
@@ -706,11 +709,23 @@
   <data name="ImportMBoxFileTitle" xml:space="preserve">
     <value>Import MBox File</value>
   </data>
+  <data name="ImportPstFileTitle" xml:space="preserve">
+    <value>Import PST/OST File</value>
+  </data>
   <data name="MBoxImportInformation" xml:space="preserve">
     <value>MBox Import Information:</value>
   </data>
+  <data name="PstImportInformation" xml:space="preserve">
+    <value>PST/OST Import Information:</value>
+  </data>
+  <data name="PstPreserveFolderInformation" xml:space="preserve">
+    <value>Enable <em>Preserve folder structure</em> to keep Inbox, Sent, etc. separate</value>
+  </data>
   <data name="SupportedFormatsStandard" xml:space="preserve">
     <value>Supported formats: Standard MBox files (.mbox, .mbx)</value>
+  </data>
+	<data name="SupportedFormatsPst" xml:space="preserve">
+    <value>Supported formats: Outlook .pst and .ost files</value>
   </data>
   <data name="MaximumFileSize" xml:space="preserve">
     <value>Maximum file size: {0}</value>
@@ -2470,6 +2485,45 @@
   <data name="EnterFolderNameOrSelect" xml:space="preserve">
     <value>Enter a new folder name or select an existing one. The folder will be created automatically during import.</value>
   </data>
+  <data name="SelectPstFile" xml:space="preserve">
+    <value>Select PST/OST File</value>
+  </data>
+  <data name="SupportedFormatsPstWithMax" xml:space="preserve">
+    <value>Supported formats: .pst, .ost — max {0}</value>
+  </data>
+  <data name="FallbackFolder" xml:space="preserve">
+    <value>Fallback Folder</value>
+  </data>
+  <data name="FallbackFolderHelpText" xml:space="preserve">
+    <value>Used when Preserve folder structure is disabled, or for root-level messages.</value>
+  </data>
+  <data name="PreserveFolderStructureLabel" xml:space="preserve">
+    <value>Preserve folder structure (Inbox, Sent Items, Drafts, etc.)</value>
+  </data>
+  <data name="PreserveFolderStructureImportHelp" xml:space="preserve">
+    <value>When enabled, each PST folder is imported into the matching archive folder. When disabled, all emails go into the selected fallback folder.</value>
+  </data>
+  <data name="PstImportWarningText" xml:space="preserve">
+    <value>The import runs as a background job. Large PST files may take several hours. Calendar entries, contacts, and tasks are automatically skipped — only email messages are imported.</value>
+  </data>
+  <data name="PstImportStatusTitle" xml:space="preserve">
+    <value>PST Import Status</value>
+  </data>
+  <data name="FolderModeLabel" xml:space="preserve">
+    <value>Folder mode:</value>
+  </data>
+  <data name="FolderModePreserve" xml:space="preserve">
+    <value>Preserve folder structure</value>
+  </data>
+  <data name="FolderModeAllTo" xml:space="preserve">
+    <value>All to &quot;{0}&quot;</value>
+  </data>
+  <data name="DuplicatesLabel" xml:space="preserve">
+    <value>Duplicates:</value>
+  </data>
+  <data name="CurrentFolderLabel" xml:space="preserve">
+    <value>Current folder:</value>
+  </data>
   <data name="ManualSyncTooltip" xml:space="preserve">
     <value>Manual sync - account is disabled for automatic synchronization</value>
   </data>
@@ -2488,22 +2542,22 @@
   <data name="DuplicatesSkippedSummary" xml:space="preserve">
     <value>{0} emails were skipped because they already exist in the target account.</value>
   </data>
-  <data name="FailedEmailSingular" xml:space="preserve">
+   <data name="FailedEmailSingular" xml:space="preserve">
     <value>Email could not be processed</value>
   </data>
-  <data name="FailedEmailsPlural" xml:space="preserve">
+	<data name="FailedEmailsPlural" xml:space="preserve">
     <value>Emails could not be processed</value>
   </data>
-  <data name="EmailId" xml:space="preserve">
+	<data name="EmailId" xml:space="preserve">
     <value>E-Mail-ID</value>
   </data>
-  <data name="NewFeatures" xml:space="preserve">
+	<data name="NewFeatures" xml:space="preserve">
     <value>New Features</value>
   </data>
-  <data name="AllReleases" xml:space="preserve">
+	<data name="AllReleases" xml:space="preserve">
     <value>All Releases</value>
   </data>
-  <data name="GotIt" xml:space="preserve">
+	<data name="GotIt" xml:space="preserve">
     <value>Got it!</value>
   </data>
 </root>

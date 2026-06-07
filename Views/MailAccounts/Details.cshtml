@@ -155,8 +155,9 @@
                             <i class="bi bi-upload"></i> @Localizer["Import"]
                         </button>
                         <ul class="dropdown-menu" aria-labelledby="importDropdown">
-                            <li><a class="dropdown-item" asp-action="ImportMBox" asp-route-id="@Model.Id"><i class="bi bi-file-earmark-text me-2"></i>@Localizer["ImportMBox"]</a></li>
-                            <li><a class="dropdown-item" asp-action="ImportEml" asp-route-id="@Model.Id"><i class="bi bi-file-earmark-zip me-2"></i>@Localizer["ImportEml"]</a></li>
+                            <li><a class="dropdown-item" asp-action="ImportPST" asp-route-id="@Model.Id"><i class="bi bi-file-earmark-text me-2"></i>@Localizer["ImportPst"]</a></li>
+	                        <li><a class="dropdown-item" asp-action="ImportMBox" asp-route-id="@Model.Id"><i class="bi bi-file-earmark-text me-2"></i>@Localizer["ImportMBox"]</a></li>
+	                        <li><a class="dropdown-item" asp-action="ImportEml" asp-route-id="@Model.Id"><i class="bi bi-file-earmark-zip me-2"></i>@Localizer["ImportEml"]</a></li>
                         </ul>
                     </div>
                 </div>

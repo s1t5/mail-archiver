@@ -73,6 +73,8 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
                               Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedProto;
     options.KnownNetworks.Clear();
     options.KnownProxies.Clear();
+
+  
 });
 
 // Check if authentication is explicitly disabled in appsettings.json
@@ -338,6 +340,12 @@ builder.Services.AddSingleton<EmlImportService>();
 builder.Services.AddSingleton<IEmlImportService>(provider => provider.GetRequiredService<EmlImportService>());
 builder.Services.AddHostedService<EmlImportService>(provider => provider.GetRequiredService<EmlImportService>());
 
+// PST import services
+builder.Services.AddScoped<MailArchiver.Services.Providers.Pst.PstProcessor>();
+builder.Services.AddSingleton<PstImportService>();
+builder.Services.AddSingleton<IPstImportService>(provider => provider.GetRequiredService<PstImportService>());
+builder.Services.AddHostedService<PstImportService>(provider => provider.GetRequiredService<PstImportService>());
+
 // Register ExportService as singleton and hosted service - MUST be the same instance
 builder.Services.AddSingleton<ExportService>();
 builder.Services.AddSingleton<IExportService>(provider => provider.GetRequiredService<ExportService>());
@@ -439,21 +447,21 @@ if (cliArgs.Any(a => a == "--import-mbox" || a == "--import-eml"))
     using var cliScope = app.Services.CreateScope();
     var cliServices = cliScope.ServiceProvider;
     var cliLogger = cliServices.GetRequiredService<ILogger<Program>>();
-    
+
     try
-    {      
+    {
         // === Local File Import Commands ===
         if (cliArgs.Contains("--import-mbox") || cliArgs.Contains("--import-eml"))
         {
             var isMbox = cliArgs.Contains("--import-mbox");
             var formatLabel = isMbox ? "MBox" : "EML";
             cliLogger.LogInformation("Starting local {Format} import...", formatLabel);
-            
+
             // Parse required arguments
             var filePathIndex = Array.IndexOf(cliArgs, "--file");
             var accountIdIndex = Array.IndexOf(cliArgs, "--account-id");
             var folderIndex = Array.IndexOf(cliArgs, "--folder");
-            
+
             if (filePathIndex < 0 || filePathIndex + 1 >= cliArgs.Length)
             {
                 Console.WriteLine($"ERROR: --file <path> is required for {formatLabel} import");
@@ -464,26 +472,26 @@ if (cliArgs.Any(a => a == "--import-mbox" || a == "--import-eml"))
                 Console.WriteLine($"ERROR: --account-id <id> is required for {formatLabel} import");
                 Environment.Exit(1);
             }
-            
+
             var filePath = cliArgs[filePathIndex + 1];
             var accountIdStr = cliArgs[accountIdIndex + 1];
-            var targetFolder = folderIndex >= 0 && folderIndex + 1 < cliArgs.Length 
-                ? cliArgs[folderIndex + 1] 
+            var targetFolder = folderIndex >= 0 && folderIndex + 1 < cliArgs.Length
+                ? cliArgs[folderIndex + 1]
                 : "INBOX";
-            
+
             if (!int.TryParse(accountIdStr, out var targetAccountId))
             {
                 Console.WriteLine($"ERROR: Invalid account-id: {accountIdStr}");
                 Environment.Exit(1);
             }
-            
+
             // Validate file exists
             if (!File.Exists(filePath))
             {
                 Console.WriteLine($"ERROR: File not found: {filePath}");
                 Environment.Exit(1);
             }
-            
+
             // Validate path is in allowed paths
             var localImportOptions = cliServices.GetRequiredService<IOptions<LocalImportOptions>>().Value;
             var normalizedPath = Path.GetFullPath(filePath);
@@ -492,7 +500,7 @@ if (cliArgs.Any(a => a == "--import-mbox" || a == "--import-eml"))
                 var normalizedAllowed = Path.GetFullPath(allowed);
                 return normalizedPath.StartsWith(normalizedAllowed, StringComparison.OrdinalIgnoreCase);
             });
-            
+
             if (!isAllowed)
             {
                 Console.WriteLine($"ERROR: File path '{filePath}' is not in an allowed import directory.");
@@ -502,7 +510,7 @@ if (cliArgs.Any(a => a == "--import-mbox" || a == "--import-eml"))
                 Console.WriteLine("Add the directory to 'LocalImport.AllowedPaths' in appsettings.json, or mount your files into an allowed directory.");
                 Environment.Exit(1);
             }
-            
+
             // Verify target account exists
             using (var checkScope = cliServices.CreateScope())
             {
@@ -515,7 +523,7 @@ if (cliArgs.Any(a => a == "--import-mbox" || a == "--import-eml"))
                 }
                 Console.WriteLine($"Target account: {account.EmailAddress} (ID: {account.Id})");
             }
-            
+
             var fileInfo = new FileInfo(filePath);
             Console.WriteLine($"\n=== Local {formatLabel} Import ===");
             Console.WriteLine($"File: {filePath}");
@@ -523,15 +531,15 @@ if (cliArgs.Any(a => a == "--import-mbox" || a == "--import-eml"))
             Console.WriteLine($"Target Account ID: {targetAccountId}");
             Console.WriteLine($"Target Folder: {targetFolder}");
             Console.WriteLine();
-            
+
             var startTime = DateTime.UtcNow;
-            
+
             if (isMbox)
             {
                 var mboxService = cliServices.GetRequiredService<IMBoxImportService>();
                 var result = await mboxService.ProcessFileAsync(filePath, Path.GetFileName(filePath), targetAccountId, targetFolder, "CLI");
-                
-                Console.WriteLine($"\n=== Import Results ===");
+
+                Console.WriteLine("\n=== Import Results ===");
                 Console.WriteLine($"Status: {result.Status}");
                 Console.WriteLine($"Total Emails: {result.TotalEmails}");
                 Console.WriteLine($"Imported Successfully: {result.SuccessCount}");
@@ -541,15 +549,15 @@ if (cliArgs.Any(a => a == "--import-mbox" || a == "--import-eml"))
                 Console.WriteLine($"Duration: {DateTime.UtcNow - startTime}");
                 if (!string.IsNullOrEmpty(result.ErrorMessage))
                     Console.WriteLine($"Errors: {result.ErrorMessage}");
-                
+
                 Environment.Exit(result.Status == MBoxImportJobStatus.Completed ? 0 : 1);
             }
             else
             {
                 var emlService = cliServices.GetRequiredService<IEmlImportService>();
                 var result = await emlService.ProcessFileAsync(filePath, Path.GetFileName(filePath), targetAccountId, "CLI");
-                
-                Console.WriteLine($"\n=== Import Results ===");
+
+                Console.WriteLine("\n=== Import Results ===");
                 Console.WriteLine($"Status: {result.Status}");
                 Console.WriteLine($"Total Emails: {result.TotalEmails}");
                 Console.WriteLine($"Imported Successfully: {result.SuccessCount}");
@@ -558,7 +566,7 @@ if (cliArgs.Any(a => a == "--import-mbox" || a == "--import-eml"))
                 Console.WriteLine($"Duration: {DateTime.UtcNow - startTime}");
                 if (!string.IsNullOrEmpty(result.ErrorMessage))
                     Console.WriteLine($"Errors: {result.ErrorMessage}");
-                
+
                 Environment.Exit(result.Status == EmlImportJobStatus.Completed ? 0 : 1);
             }
         }
