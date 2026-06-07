@@ -1,4 +1,5 @@
 using MailArchiver.Models;
+using MailArchiver.Services;
 using MailKit.Net.Imap;
 using MailKit.Security;
 using Microsoft.Extensions.Options;
@@ -18,15 +19,21 @@ namespace MailArchiver.Services.Providers.Imap
         private readonly ILogger<ImapConnectionFactory> _logger;
         private readonly MailSyncOptions _mailSyncOptions;
         private readonly BatchOperationOptions _batchOptions;
+        private readonly IMsaOAuthService _msaOAuthService;
+        private readonly MailArchiver.Data.MailArchiverDbContext _dbContext;
 
         public ImapConnectionFactory(
             ILogger<ImapConnectionFactory> logger,
             IOptions<MailSyncOptions> mailSyncOptions,
-            IOptions<BatchOperationOptions> batchOptions)
+            IOptions<BatchOperationOptions> batchOptions,
+            IMsaOAuthService msaOAuthService,
+            MailArchiver.Data.MailArchiverDbContext dbContext)
         {
             _logger = logger;
             _mailSyncOptions = mailSyncOptions.Value;
             _batchOptions = batchOptions.Value;
+            _msaOAuthService = msaOAuthService;
+            _dbContext = dbContext;
         }
 
         /// <summary>
@@ -88,21 +95,23 @@ namespace MailArchiver.Services.Providers.Imap
         }
 
         /// <summary>
-        /// Authenticates the IMAP client using a fallback authentication strategy.
-        /// Tries SASL PLAIN first (for Exchange compatibility), then falls back to
-        /// auto-negotiation if PLAIN fails (for T-Online and others).
+        /// Authenticates the IMAP client. For MSA accounts uses OAuth2 bearer token;
+        /// for all other accounts tries SASL PLAIN first, then falls back to auto-negotiation.
         /// </summary>
         public async Task AuthenticateClientAsync(ImapClient client, MailAccount account)
         {
-            // Remove GSSAPI and NEGOTIATE mechanisms to prevent Kerberos authentication attempts
-            // which can fail in containerized environments due to missing libraries
             client.AuthenticationMechanisms.Remove("GSSAPI");
             client.AuthenticationMechanisms.Remove("NEGOTIATE");
+
+            if (account.Provider == ProviderType.MSA)
+            {
+                await AuthenticateMsaAsync(client, account);
+                return;
+            }
 
             var username = GetAuthenticationUsername(account);
             var password = account.Password;
 
-            // Try SASL PLAIN first (preferred for Exchange 2019 and similar servers)
             if (client.AuthenticationMechanisms.Contains("PLAIN"))
             {
                 try
@@ -118,7 +127,6 @@ namespace MailArchiver.Services.Providers.Imap
                 {
                     _logger.LogInformation("SASL PLAIN authentication failed for account {AccountName}, trying fallback: {Message}",
                         account.Name, ex.Message);
-                    // Continue to fallback authentication
                 }
             }
             else
@@ -126,9 +134,46 @@ namespace MailArchiver.Services.Providers.Imap
                 _logger.LogInformation("SASL PLAIN not available for account {AccountName}, using fallback authentication", account.Name);
             }
 
-            // Fallback: Let MailKit auto-negotiate the best available mechanism
             _logger.LogDebug("Using auto-negotiated authentication for account {AccountName}", account.Name);
             await client.AuthenticateAsync(username, password);
+        }
+
+        private async Task AuthenticateMsaAsync(ImapClient client, MailAccount account)
+        {
+            if (string.IsNullOrEmpty(account.OAuthRefreshToken))
+                throw new InvalidOperationException($"MSA account '{account.Name}' has no OAuth refresh token. Please authorize the account first.");
+
+            var needsRefresh = string.IsNullOrEmpty(account.OAuthAccessToken)
+                || account.OAuthTokenExpiry == null
+                || account.OAuthTokenExpiry.Value <= DateTime.UtcNow;
+
+            if (needsRefresh)
+            {
+                _logger.LogInformation("Refreshing MSA access token for account {AccountName}", account.Name);
+                var refreshed = await _msaOAuthService.RefreshAccessTokenAsync(
+                    account.OAuthRefreshToken, account.ClientId!, account.ClientSecret!);
+
+                // Update in-memory fields so this sync run uses the new token
+                account.OAuthAccessToken = refreshed.AccessToken;
+                account.OAuthTokenExpiry = refreshed.Expiry;
+                if (!string.IsNullOrEmpty(refreshed.RefreshToken))
+                    account.OAuthRefreshToken = refreshed.RefreshToken;
+
+                // Persist via a freshly-loaded tracked entity (account may be AsNoTracking)
+                var tracked = await _dbContext.MailAccounts.FindAsync(account.Id);
+                if (tracked != null)
+                {
+                    tracked.OAuthAccessToken = refreshed.AccessToken;
+                    tracked.OAuthTokenExpiry = refreshed.Expiry;
+                    if (!string.IsNullOrEmpty(refreshed.RefreshToken))
+                        tracked.OAuthRefreshToken = refreshed.RefreshToken;
+                    await _dbContext.SaveChangesAsync();
+                }
+            }
+
+            var emailAddress = account.Username ?? account.EmailAddress;
+            _logger.LogDebug("Authenticating MSA account {AccountName} via XOAUTH2", account.Name);
+            await client.AuthenticateAsync(new SaslMechanismOAuth2(emailAddress, account.OAuthAccessToken!));
         }
 
         /// <summary>
