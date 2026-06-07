@@ -1,21 +1,11 @@
-using System.Security.Cryptography;
-using System.Text;
 using System.Text.Json;
-using System.Web;
 
 namespace MailArchiver.Services
 {
     public interface IMsaOAuthService
     {
-        // Device Code Flow (recommended — no public URL required)
         Task<DeviceCodeResult> StartDeviceCodeAsync(string clientId);
         Task<MsaTokenResult?> PollDeviceCodeAsync(string clientId, string deviceCode);
-
-        // PKCE Authorization Code Flow (requires public redirect URI)
-        string BuildAuthorizationUrl(string clientId, string redirectUri, string state, out string codeVerifier);
-        Task<MsaTokenResult> ExchangeCodeAsync(string code, string clientId, string? clientSecret, string redirectUri, string codeVerifier);
-
-        // Token refresh (used by both flows)
         Task<MsaTokenResult> RefreshAccessTokenAsync(string refreshToken, string clientId, string? clientSecret);
     }
 
@@ -117,39 +107,6 @@ namespace MailArchiver.Services
             };
         }
 
-        public string BuildAuthorizationUrl(string clientId, string redirectUri, string state, out string codeVerifier)
-        {
-            codeVerifier = GenerateCodeVerifier();
-            var codeChallenge = ComputeCodeChallenge(codeVerifier);
-            var query = HttpUtility.ParseQueryString(string.Empty);
-            query["client_id"] = clientId;
-            query["response_type"] = "code";
-            query["redirect_uri"] = redirectUri;
-            query["scope"] = string.Join(" ", Scopes);
-            query["state"] = state;
-            query["response_mode"] = "query";
-            query["prompt"] = "select_account";
-            query["code_challenge"] = codeChallenge;
-            query["code_challenge_method"] = "S256";
-            return $"{Authority}/authorize?{query}";
-        }
-
-        public async Task<MsaTokenResult> ExchangeCodeAsync(string code, string clientId, string? clientSecret, string redirectUri, string codeVerifier)
-        {
-            var body = new Dictionary<string, string>
-            {
-                ["grant_type"] = "authorization_code",
-                ["client_id"] = clientId,
-                ["code"] = code,
-                ["redirect_uri"] = redirectUri,
-                ["scope"] = string.Join(" ", Scopes),
-                ["code_verifier"] = codeVerifier,
-            };
-            if (!string.IsNullOrEmpty(clientSecret))
-                body["client_secret"] = clientSecret;
-            return await PostTokenAsync(body);
-        }
-
         public async Task<MsaTokenResult> RefreshAccessTokenAsync(string refreshToken, string clientId, string? clientSecret)
         {
             var body = new Dictionary<string, string>
@@ -189,20 +146,5 @@ namespace MailArchiver.Services
             };
         }
 
-        private static string GenerateCodeVerifier()
-        {
-            var bytes = new byte[32];
-            RandomNumberGenerator.Fill(bytes);
-            return Base64UrlEncode(bytes);
-        }
-
-        private static string ComputeCodeChallenge(string codeVerifier)
-        {
-            var hash = SHA256.HashData(Encoding.ASCII.GetBytes(codeVerifier));
-            return Base64UrlEncode(hash);
-        }
-
-        private static string Base64UrlEncode(byte[] bytes)
-            => Convert.ToBase64String(bytes).TrimEnd('=').Replace('+', '-').Replace('/', '_');
     }
 }
