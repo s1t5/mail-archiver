@@ -2335,6 +2335,9 @@
   <data name="SignInWithOAuth" xml:space="preserve">
     <value>Войти с OAuth</value>
   </data>
+  <data name="SignInWithOAuthProvider" xml:space="preserve">
+    <value>Войти с {0}</value>
+  </data>
   <data name="CurrentSyncTime" xml:space="preserve">
     <value>Текущее время синхронизации</value>
   </data>

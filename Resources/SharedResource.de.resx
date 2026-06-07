@@ -2387,6 +2387,9 @@
   <data name="SignInWithOAuth" xml:space="preserve">
     <value>Anmelden mit OAuth</value>
   </data>
+  <data name="SignInWithOAuthProvider" xml:space="preserve">
+    <value>Anmelden mit {0}</value>
+  </data>
   <data name="AccountDeleted" xml:space="preserve">
     <value>Account '{0}' wurde erfolgreich gelöscht, einschließlich aller archivierten E-Mails und Anhänge.</value>
   </data>

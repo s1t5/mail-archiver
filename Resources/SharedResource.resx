@@ -2351,6 +2351,9 @@
   <data name="SignInWithOAuth" xml:space="preserve">
     <value>Login with OAuth</value>
   </data>
+   <data name="SignInWithOAuthProvider" xml:space="preserve">
+    <value>Login with {0}</value>
+  </data>
   <data name="OidcUserCannotHavePassword" xml:space="preserve">
     <value>OIDC users cannot have a password. They authenticate through the OIDC provider.</value>
   </data>
