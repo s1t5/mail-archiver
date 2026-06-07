@@ -64,20 +64,19 @@
                     </div>
                 </div>
                 
-                <div id="msaSettings" style="display: none;">
+                <div id="msaSettings" style="display: @(Model.Provider == ProviderType.MSA ? "block" : "none");">
                     <h4 class="mt-4">Microsoft Personal Account Settings</h4>
 
                     @if (Model.MsaIsAuthorized)
                     {
                         <div class="alert alert-success d-flex align-items-center justify-content-between">
                             <span>
-                                <i class="bi bi-check-circle"></i>
-                                <strong>Authorized.</strong>
-                                Token valid until: @(Model.MsaTokenExpiry.HasValue ? Model.MsaTokenExpiry.Value.ToLocalTime().ToString("g") : "unknown")
+                                <i class="bi bi-check-circle-fill me-2"></i>
+                                <strong>Autorisiert.</strong> Microsoft-Konto verbunden, Token wird automatisch erneuert.
                             </span>
                             @if (Model.Id != 0)
                             {
-                                <a asp-action="AuthorizeMsa" asp-route-id="@Model.Id" class="btn btn-sm btn-outline-success ms-2">
+                                <a asp-action="AuthorizeMsaDevice" asp-route-id="@Model.Id" class="btn btn-sm btn-outline-success ms-2">
                                     <i class="bi bi-arrow-clockwise"></i> Re-authorize
                                 </a>
                             }
@@ -86,9 +85,9 @@
                     else
                     {
                         <div class="alert alert-warning">
-                            <i class="bi bi-exclamation-triangle"></i>
-                            <strong>Not yet authorized.</strong>
-                            Save your Client ID below, then click <strong>Authorize with Microsoft</strong>.
+                            <i class="bi bi-exclamation-triangle me-2"></i>
+                            <strong>Noch nicht autorisiert.</strong>
+                            Client-ID eintragen, speichern, dann <strong>Authorize with Microsoft</strong> klicken.
                         </div>
                     }
 

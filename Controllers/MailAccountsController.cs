@@ -460,14 +460,26 @@ var model = new MailAccountViewModel
                     }
                     else if (model.Provider == ProviderType.MSA)
                     {
+                        var clientIdChanged = !string.IsNullOrEmpty(model.MsaClientId) && model.MsaClientId != account.ClientId;
+                        var clientSecretChanged = !string.IsNullOrEmpty(model.MsaClientSecret);
+
                         if (!string.IsNullOrEmpty(model.MsaClientId))
                             account.ClientId = model.MsaClientId;
-                        if (!string.IsNullOrEmpty(model.MsaClientSecret))
+                        if (clientSecretChanged)
                             account.ClientSecret = model.MsaClientSecret;
                         account.TenantId = null;
-                        // Clear cached tokens when app credentials change
-                        if (!string.IsNullOrEmpty(model.MsaClientId) || !string.IsNullOrEmpty(model.MsaClientSecret))
+
+                        // Clear tokens only when credentials actually changed
+                        if (clientIdChanged)
                         {
+                            // New app registration — all tokens are invalid
+                            account.OAuthAccessToken = null;
+                            account.OAuthTokenExpiry = null;
+                            account.OAuthRefreshToken = null;
+                        }
+                        else if (clientSecretChanged)
+                        {
+                            // New secret — only cached access token needs refresh
                             account.OAuthAccessToken = null;
                             account.OAuthTokenExpiry = null;
                         }
