@@ -1845,7 +1845,6 @@ var model = new MailAccountViewModel
             {
                 var result = await _msaOAuthService.StartDeviceCodeAsync(account.ClientId);
                 HttpContext.Session.SetString($"MsaDeviceCode_{id}", result.DeviceCode);
-                HttpContext.Session.SetInt32($"MsaDeviceInterval_{id}", result.Interval);
 
                 return View(new MsaDeviceCodeViewModel
                 {
@@ -1888,7 +1887,6 @@ var model = new MailAccountViewModel
 
                 // Success — save tokens
                 HttpContext.Session.Remove($"MsaDeviceCode_{id}");
-                HttpContext.Session.Remove($"MsaDeviceInterval_{id}");
 
                 account.OAuthAccessToken = tokens.AccessToken;
                 account.OAuthRefreshToken = tokens.RefreshToken;

@@ -55,7 +55,9 @@
                 return;
             }
             if (data.status === 'error') {
-                setStatus('danger', `<i class="bi bi-x-circle-fill me-2"></i><strong>Fehler:</strong> ${data.message} &nbsp;<a href="/MailAccounts/AuthorizeMsaDevice/${accountId}" class="btn btn-sm btn-outline-danger ms-2">Erneut versuchen</a>`);
+                const safeMsg = document.createElement('span');
+                safeMsg.textContent = data.message;
+                setStatus('danger', `<i class="bi bi-x-circle-fill me-2"></i><strong>Fehler:</strong> ${safeMsg.innerHTML} &nbsp;<a href="/MailAccounts/AuthorizeMsaDevice/${accountId}" class="btn btn-sm btn-outline-danger ms-2">Erneut versuchen</a>`);
                 return;
             }
             // pending — poll again
