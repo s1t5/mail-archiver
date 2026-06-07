@@ -151,7 +151,7 @@ namespace MailArchiver.Services.Providers.Imap
             {
                 _logger.LogInformation("Refreshing MSA access token for account {AccountName}", account.Name);
                 var refreshed = await _msaOAuthService.RefreshAccessTokenAsync(
-                    account.OAuthRefreshToken, account.ClientId!, account.ClientSecret!);
+                    account.OAuthRefreshToken, account.ClientId!, account.ClientSecret);
 
                 // Update in-memory fields so this sync run uses the new token
                 account.OAuthAccessToken = refreshed.AccessToken;

@@ -1812,6 +1812,96 @@ var model = new MailAccountViewModel
             }
         }
 
+        // GET: MailAccounts/AuthorizeMsaDevice/5 — start Device Code Flow (no public URL required)
+        [HttpGet]
+        public async Task<IActionResult> AuthorizeMsaDevice(int id)
+        {
+            if (!await HasAccessToAccountAsync(id))
+                return NotFound();
+
+            var account = await _context.MailAccounts.FindAsync(id);
+            if (account == null || account.Provider != ProviderType.MSA)
+                return NotFound();
+
+            if (string.IsNullOrEmpty(account.ClientId))
+            {
+                TempData["ErrorMessage"] = "Client ID is not configured. Please edit the account first.";
+                return RedirectToAction(nameof(Edit), new { id });
+            }
+
+            try
+            {
+                var result = await _msaOAuthService.StartDeviceCodeAsync(account.ClientId);
+                HttpContext.Session.SetString($"MsaDeviceCode_{id}", result.DeviceCode);
+                HttpContext.Session.SetInt32($"MsaDeviceInterval_{id}", result.Interval);
+
+                return View(new MsaDeviceCodeViewModel
+                {
+                    AccountId = id,
+                    AccountName = account.Name,
+                    UserCode = result.UserCode,
+                    VerificationUri = result.VerificationUri,
+                    ExpiresIn = result.ExpiresIn,
+                    PollIntervalSeconds = result.Interval,
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to start MSA device code flow for account {AccountId}", id);
+                TempData["ErrorMessage"] = $"Failed to start authorization: {ex.Message}";
+                return RedirectToAction(nameof(Edit), new { id });
+            }
+        }
+
+        // GET: MailAccounts/PollMsaDeviceCode?id=5 — called by browser JS every N seconds
+        [HttpGet]
+        public async Task<IActionResult> PollMsaDeviceCode(int id)
+        {
+            if (!await HasAccessToAccountAsync(id))
+                return Json(new { status = "error", message = "Access denied." });
+
+            var deviceCode = HttpContext.Session.GetString($"MsaDeviceCode_{id}");
+            if (string.IsNullOrEmpty(deviceCode))
+                return Json(new { status = "error", message = "Session expired. Please start authorization again." });
+
+            var account = await _context.MailAccounts.FindAsync(id);
+            if (account == null)
+                return Json(new { status = "error", message = "Account not found." });
+
+            try
+            {
+                var tokens = await _msaOAuthService.PollDeviceCodeAsync(account.ClientId!, deviceCode);
+                if (tokens == null)
+                    return Json(new { status = "pending" });
+
+                // Success — save tokens
+                HttpContext.Session.Remove($"MsaDeviceCode_{id}");
+                HttpContext.Session.Remove($"MsaDeviceInterval_{id}");
+
+                account.OAuthAccessToken = tokens.AccessToken;
+                account.OAuthRefreshToken = tokens.RefreshToken;
+                account.OAuthTokenExpiry = tokens.Expiry;
+                await _context.SaveChangesAsync();
+
+                var authService = HttpContext.RequestServices.GetService<MailArchiver.Services.IAuthenticationService>();
+                var currentUsername = authService?.GetCurrentUserDisplayName(HttpContext);
+                if (!string.IsNullOrEmpty(currentUsername))
+                {
+                    await _accessLogService.LogAccessAsync(currentUsername, AccessLogType.Account,
+                        searchParameters: $"Authorized MSA account via device code: {account.Name}",
+                        mailAccountId: account.Id);
+                }
+
+                return Json(new { status = "success" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "MSA device code poll error for account {AccountId}", id);
+                HttpContext.Session.Remove($"MsaDeviceCode_{id}");
+                return Json(new { status = "error", message = ex.Message });
+            }
+        }
+
         // GET: MailAccounts/AuthorizeMsa/5 — redirect user to Microsoft OAuth2 consent screen
         [HttpGet]
         public async Task<IActionResult> AuthorizeMsa(int id)
@@ -1833,7 +1923,8 @@ var model = new MailAccountViewModel
             HttpContext.Session.SetString($"MsaOAuthState_{id}", state);
 
             var redirectUri = BuildMsaRedirectUri();
-            var url = _msaOAuthService.BuildAuthorizationUrl(account.ClientId, redirectUri, state);
+            var url = _msaOAuthService.BuildAuthorizationUrl(account.ClientId, redirectUri, state, out var codeVerifier);
+            HttpContext.Session.SetString($"MsaOAuthCodeVerifier_{id}", codeVerifier);
             return Redirect(url);
         }
 
@@ -1873,6 +1964,15 @@ var model = new MailAccountViewModel
 
             HttpContext.Session.Remove($"MsaOAuthState_{accountId}");
 
+            var codeVerifier = HttpContext.Session.GetString($"MsaOAuthCodeVerifier_{accountId}");
+            HttpContext.Session.Remove($"MsaOAuthCodeVerifier_{accountId}");
+
+            if (string.IsNullOrEmpty(codeVerifier))
+            {
+                TempData["ErrorMessage"] = "OAuth session expired. Please try authorizing again.";
+                return RedirectToAction(nameof(Edit), new { id = accountId });
+            }
+
             if (!await HasAccessToAccountAsync(accountId))
                 return NotFound();
 
@@ -1884,7 +1984,7 @@ var model = new MailAccountViewModel
             {
                 var redirectUri = BuildMsaRedirectUri();
                 var tokens = await _msaOAuthService.ExchangeCodeAsync(
-                    code, account.ClientId!, account.ClientSecret!, redirectUri);
+                    code, account.ClientId!, account.ClientSecret, redirectUri, codeVerifier);
 
                 account.OAuthAccessToken = tokens.AccessToken;
                 account.OAuthRefreshToken = tokens.RefreshToken;

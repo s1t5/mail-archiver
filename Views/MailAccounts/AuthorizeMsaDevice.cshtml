@@ -1,0 +1,71 @@
+@model MailArchiver.ViewModels.MsaDeviceCodeViewModel
+@{
+    ViewData["Title"] = "Microsoft-Konto autorisieren";
+}
+
+<div class="container" style="max-width:600px;">
+    <h2 class="mb-4">Microsoft-Konto autorisieren</h2>
+    <p class="text-muted">Konto: <strong>@Model.AccountName</strong></p>
+
+    <div class="card border-primary mb-4">
+        <div class="card-body text-center py-4">
+            <p class="mb-1">1. Öffne in einem Browser (auch Smartphone o.ä.):</p>
+            <a href="@Model.VerificationUri" target="_blank" class="h5 d-block mb-3">@Model.VerificationUri</a>
+
+            <p class="mb-2">2. Gib diesen Code ein:</p>
+            <div class="d-flex align-items-center justify-content-center gap-3 mb-2">
+                <span id="userCode" class="display-5 font-monospace fw-bold letter-spacing-wide">@Model.UserCode</span>
+                <button type="button" class="btn btn-outline-secondary btn-sm"
+                        onclick="navigator.clipboard.writeText('@Model.UserCode').then(()=>{this.textContent='✓';setTimeout(()=>{this.textContent='Kopieren'},2000)})"
+                        title="Code kopieren">Kopieren</button>
+            </div>
+            <p class="text-muted small">Code gültig für @(Model.ExpiresIn / 60) Minuten.</p>
+        </div>
+    </div>
+
+    <div id="statusBox" class="alert alert-info d-flex align-items-center gap-3">
+        <div class="spinner-border spinner-border-sm flex-shrink-0" role="status" aria-hidden="true"></div>
+        <span id="statusText">Warte auf Autorisierung …</span>
+    </div>
+
+    <a asp-action="Edit" asp-route-id="@Model.AccountId" class="btn btn-outline-secondary">Abbrechen</a>
+</div>
+
+@section Scripts {
+<script>
+(function () {
+    const accountId = @Model.AccountId;
+    const intervalMs = @(Model.PollIntervalSeconds * 1000);
+    const statusBox = document.getElementById('statusBox');
+    const statusText = document.getElementById('statusText');
+
+    function setStatus(type, message) {
+        statusBox.className = `alert alert-${type} d-flex align-items-center gap-3`;
+        statusBox.innerHTML = message;
+    }
+
+    async function poll() {
+        try {
+            const r = await fetch(`/MailAccounts/PollMsaDeviceCode?id=${accountId}`, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+            const data = await r.json();
+
+            if (data.status === 'success') {
+                setStatus('success', '<i class="bi bi-check-circle-fill me-2"></i><strong>Autorisierung erfolgreich!</strong> Weiterleitung …');
+                setTimeout(() => { window.location = `/MailAccounts/Edit/${accountId}`; }, 1500);
+                return;
+            }
+            if (data.status === 'error') {
+                setStatus('danger', `<i class="bi bi-x-circle-fill me-2"></i><strong>Fehler:</strong> ${data.message} &nbsp;<a href="/MailAccounts/AuthorizeMsaDevice/${accountId}" class="btn btn-sm btn-outline-danger ms-2">Erneut versuchen</a>`);
+                return;
+            }
+            // pending — poll again
+            setTimeout(poll, intervalMs);
+        } catch (e) {
+            setTimeout(poll, intervalMs);
+        }
+    }
+
+    setTimeout(poll, intervalMs);
+})();
+</script>
+}

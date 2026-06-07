@@ -59,8 +59,7 @@ namespace MailArchiver.Models.ViewModels
         public string MsaClientId { get; set; }
 
         [Display(Name = "Client Secret (Azure App)")]
-        [ConditionalRequired(nameof(Provider), ProviderType.MSA, ErrorMessage = "Client Secret is required for MSA accounts")]
-        public string MsaClientSecret { get; set; }
+        public string? MsaClientSecret { get; set; }
         
         [Display(Name = "Delete After Days")]
         [Range(1, int.MaxValue, ErrorMessage = "Delete after days must be at least 1")]

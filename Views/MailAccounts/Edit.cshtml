@@ -66,14 +66,21 @@
                 
                 <div id="msaSettings" style="display: none;">
                     <h4 class="mt-4">Microsoft Personal Account Settings</h4>
+
                     @if (Model.MsaIsAuthorized)
                     {
-                        <div class="alert alert-success">
-                            <i class="bi bi-check-circle"></i>
-                            <strong>Authorized.</strong>
-                            Token valid until: @(Model.MsaTokenExpiry.HasValue ? Model.MsaTokenExpiry.Value.ToLocalTime().ToString("g") : "unknown")
-                            &nbsp;
-                            <a asp-action="AuthorizeMsa" asp-route-id="@Model.Id" class="btn btn-sm btn-outline-success ms-2">Re-authorize</a>
+                        <div class="alert alert-success d-flex align-items-center justify-content-between">
+                            <span>
+                                <i class="bi bi-check-circle"></i>
+                                <strong>Authorized.</strong>
+                                Token valid until: @(Model.MsaTokenExpiry.HasValue ? Model.MsaTokenExpiry.Value.ToLocalTime().ToString("g") : "unknown")
+                            </span>
+                            @if (Model.Id != 0)
+                            {
+                                <a asp-action="AuthorizeMsa" asp-route-id="@Model.Id" class="btn btn-sm btn-outline-success ms-2">
+                                    <i class="bi bi-arrow-clockwise"></i> Re-authorize
+                                </a>
+                            }
                         </div>
                     }
                     else
@@ -81,9 +88,30 @@
                         <div class="alert alert-warning">
                             <i class="bi bi-exclamation-triangle"></i>
                             <strong>Not yet authorized.</strong>
-                            After saving, click <strong>Authorize</strong> to connect your Microsoft account.
+                            Save your Client ID below, then click <strong>Authorize with Microsoft</strong>.
                         </div>
                     }
+
+                    <details class="mb-3">
+                        <summary style="cursor:pointer;" class="text-muted">
+                            <i class="bi bi-info-circle"></i> Azure App Registration einrichten (einmalig, ca. 2 Minuten)
+                        </summary>
+                        <div class="mt-2 border rounded p-3 bg-light">
+                            <ol class="mb-2 ps-3">
+                                <li class="mb-2">
+                                    <a href="https://portal.azure.com/#view/Microsoft_AAD_RegisteredApps/CreateApplicationBlade" target="_blank" class="btn btn-sm btn-primary">
+                                        <i class="bi bi-box-arrow-up-right"></i> App Registration erstellen
+                                    </a>
+                                    &nbsp;<span class="text-muted small">(mit deinem Microsoft-Konto anmelden)</span>
+                                </li>
+                                <li class="mb-2">Name frei wählen (z.B. <em>mail-archiver</em>), dann unter <strong>Supported account types</strong> auswählen: <em>Personal Microsoft accounts only</em></li>
+                                <li class="mb-2">Auf <strong>Register</strong> klicken → die angezeigte <strong>Application (client) ID</strong> unten eintragen</li>
+                                <li class="mb-2">In der App unter <strong>Authentication</strong> → <em>Allow public client flows</em> auf <strong>Yes</strong> stellen und speichern</li>
+                            </ol>
+                            <p class="small text-muted mb-0">Kein Secret, keine Redirect-URI erforderlich.</p>
+                        </div>
+                    </details>
+
                     <div class="mb-3">
                         <label asp-for="MsaClientId" class="form-label">@Localizer["ClientId"]</label>
                         <input asp-for="MsaClientId" class="form-control" placeholder="Azure App (client) ID" />
@@ -91,18 +119,22 @@
                         <span asp-validation-for="MsaClientId" class="text-danger"></span>
                     </div>
                     <div class="mb-3">
-                        <label asp-for="MsaClientSecret" class="form-label">@Localizer["ClientSecret"]</label>
-                        <input asp-for="MsaClientSecret" class="form-control" type="password" placeholder="Leave blank to keep existing" />
-                        <div class="form-text">Leave blank to keep existing value.</div>
+                        <label asp-for="MsaClientSecret" class="form-label">@Localizer["ClientSecret"] <span class="text-muted fw-normal">(optional)</span></label>
+                        <input asp-for="MsaClientSecret" class="form-control" type="password" placeholder="Nicht erforderlich beim Device Code Flow" />
+                        <div class="form-text">Nur für Confidential Client Apps. Leer lassen wenn das Script oben verwendet wurde.</div>
                         <span asp-validation-for="MsaClientSecret" class="text-danger"></span>
                     </div>
-                    @if (!Model.MsaIsAuthorized && Model.Id != 0)
+
+                    @if (Model.Id != 0)
                     {
                         <div class="mb-3">
-                            <a asp-action="AuthorizeMsa" asp-route-id="@Model.Id" class="btn btn-primary">
-                                <i class="bi bi-microsoft"></i> Authorize with Microsoft
+                            <a asp-action="AuthorizeMsaDevice" asp-route-id="@Model.Id" class="btn @(Model.MsaIsAuthorized ? "btn-outline-primary" : "btn-primary")">
+                                <i class="bi bi-microsoft"></i> @(Model.MsaIsAuthorized ? "Re-authorize with Microsoft" : "Authorize with Microsoft")
                             </a>
-                            <div class="form-text mt-1">Save your changes first, then click Authorize.</div>
+                            @if (!Model.MsaIsAuthorized)
+                            {
+                                <div class="form-text mt-1">Client-ID zuerst speichern, dann Authorize klicken.</div>
+                            }
                         </div>
                     }
                 </div>

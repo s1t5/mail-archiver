@@ -74,23 +74,34 @@
                 
                 <div id="msaSettings" style="display: none;">
                     <h4 class="mt-4">Microsoft Personal Account Settings</h4>
-                    <div class="alert alert-info">
-                        <strong>Setup required:</strong> You need an Azure App Registration with:
-                        <ul class="mb-0">
-                            <li>Account type: <em>Personal Microsoft accounts only</em></li>
-                            <li>Delegated permission: <code>IMAP.AccessAsUser.All</code></li>
-                            <li>Redirect URI: <code>@($"{Context.Request.Scheme}://{Context.Request.Host}/MailAccounts/MsaOAuthCallback")</code></li>
-                        </ul>
-                        After saving, you'll need to click <strong>Authorize</strong> to log in to your Microsoft account.
-                    </div>
+                    <details class="mb-3" open>
+                        <summary style="cursor:pointer;" class="text-muted">
+                            <i class="bi bi-info-circle"></i> Azure App Registration einrichten (einmalig, ca. 2 Minuten)
+                        </summary>
+                        <div class="mt-2 border rounded p-3 bg-light">
+                            <ol class="mb-2 ps-3">
+                                <li class="mb-2">
+                                    <a href="https://portal.azure.com/#view/Microsoft_AAD_RegisteredApps/CreateApplicationBlade" target="_blank" class="btn btn-sm btn-primary">
+                                        <i class="bi bi-box-arrow-up-right"></i> App Registration erstellen
+                                    </a>
+                                    &nbsp;<span class="text-muted small">(mit deinem Microsoft-Konto anmelden)</span>
+                                </li>
+                                <li class="mb-2">Name frei wählen (z.B. <em>mail-archiver</em>), dann unter <strong>Supported account types</strong> auswählen: <em>Personal Microsoft accounts only</em></li>
+                                <li class="mb-2">Auf <strong>Register</strong> klicken → die angezeigte <strong>Application (client) ID</strong> unten eintragen</li>
+                                <li class="mb-2">In der App unter <strong>Authentication</strong> → <em>Allow public client flows</em> auf <strong>Yes</strong> stellen und speichern</li>
+                            </ol>
+                            <p class="small text-muted mb-0">Kein Secret, keine Redirect-URI erforderlich. Nach dem Speichern auf <strong>Authorize</strong> klicken.</p>
+                        </div>
+                    </details>
                     <div class="mb-3">
                         <label asp-for="MsaClientId" class="form-label">@Localizer["ClientId"]</label>
                         <input asp-for="MsaClientId" class="form-control" placeholder="Azure App (client) ID" />
                         <span asp-validation-for="MsaClientId" class="text-danger"></span>
                     </div>
                     <div class="mb-3">
-                        <label asp-for="MsaClientSecret" class="form-label">@Localizer["ClientSecret"]</label>
-                        <input asp-for="MsaClientSecret" class="form-control" type="password" placeholder="Azure App client secret" />
+                        <label asp-for="MsaClientSecret" class="form-label">@Localizer["ClientSecret"] <span class="text-muted fw-normal">(optional)</span></label>
+                        <input asp-for="MsaClientSecret" class="form-control" type="password" placeholder="Not required when using PKCE Public Client" />
+                        <div class="form-text">Only needed for confidential client apps. Leave blank when using the CLI script above.</div>
                         <span asp-validation-for="MsaClientSecret" class="text-danger"></span>
                     </div>
                 </div>
