@@ -681,8 +681,20 @@ using (var scope = app.Services.CreateScope())
 }
 
 // Configure the HTTP request pipeline
-// API errors must be problem+json, never the /Home/Error HTML page — scope a
-// dedicated exception handler to /api before the global MVC handler.
+if (app.Environment.IsDevelopment())
+{
+    app.UseDeveloperExceptionPage();
+}
+else
+{
+    app.UseExceptionHandler("/Home/Error");
+    app.UseHsts();
+}
+
+// API errors must be problem+json, never the /Home/Error HTML page (and never a
+// login redirect). This /api-scoped handler is registered AFTER the global one
+// so it sits *inside* it: for /api paths it catches exceptions first and emits
+// JSON; non-/api paths skip this branch and fall through to /Home/Error.
 app.UseWhen(
     context => context.Request.Path.StartsWithSegments("/api"),
     apiBranch => apiBranch.UseExceptionHandler(new ExceptionHandlerOptions
@@ -704,16 +716,6 @@ app.UseWhen(
             });
         }
     }));
-
-if (app.Environment.IsDevelopment())
-{
-    app.UseDeveloperExceptionPage();
-}
-else
-{
-    app.UseExceptionHandler("/Home/Error");
-    app.UseHsts();
-}
 
 // Use Forwarded Headers middleware for reverse proxy support
 app.UseForwardedHeaders();

@@ -38,10 +38,12 @@ public sealed class ApiWebApplicationFactory : WebApplicationFactory<Program>
         // at Build() time and are therefore too late for those. Setting them as
         // environment variables makes them visible to WebApplication.CreateBuilder
         // itself. (Connection string is read lazily, so it is fine via config.)
+        // Only the eagerly-read settings need to be environment variables; the
+        // connection string is read lazily (post-Build) so the in-memory config
+        // below suffices and stays isolated per factory instance.
         Environment.SetEnvironmentVariable("DataProtection__KeyPath", _dataProtectionPath);
         Environment.SetEnvironmentVariable("Authentication__Password", "test-password-123!");
         Environment.SetEnvironmentVariable("Authentication__Enabled", "true");
-        Environment.SetEnvironmentVariable("ConnectionStrings__DefaultConnection", _connectionString);
     }
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
