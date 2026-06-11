@@ -244,6 +244,36 @@ builder.Services.AddRateLimiter(options =>
             });
     });
     
+    // Read-only REST API rate limiting: fixed window per API key (prefix),
+    // falling back to client IP. Budget from Api:RateLimitPerMinute (default 120).
+    var apiOptionsForRateLimit = builder.Configuration.GetSection(MailArchiver.Models.ApiOptions.Api)
+        .Get<MailArchiver.Models.ApiOptions>() ?? new MailArchiver.Models.ApiOptions();
+    options.AddPolicy("Api", httpContext =>
+    {
+        string partitionKey;
+        string? authHeader = httpContext.Request.Headers.Authorization;
+        if (!string.IsNullOrEmpty(authHeader) && authHeader.StartsWith("Bearer ", StringComparison.Ordinal))
+        {
+            var token = authHeader.Substring("Bearer ".Length).Trim();
+            // Partition by the non-secret key prefix, never the full key.
+            partitionKey = "apikey-" + (token.Length >= 11 ? token.Substring(0, 11) : token);
+        }
+        else
+        {
+            partitionKey = "apiip-" + (httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown");
+        }
+
+        return RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey,
+            _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = apiOptionsForRateLimit.RateLimitPerMinute,
+                Window = TimeSpan.FromMinutes(1),
+                QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                QueueLimit = 0
+            });
+    });
+
     // Rejection response
     options.OnRejected = async (context, token) =>
     {
