@@ -1,0 +1,241 @@
+@model IEnumerable<MailArchiver.Models.ViewModels.ApiKeyViewModel>
+@inject Microsoft.Extensions.Localization.IStringLocalizer<MailArchiver.SharedResource> Localizer
+@{
+    ViewData["Title"] = Localizer["ApiKeys"];
+    var isAdmin = ViewBag.IsAdmin as bool? == true;
+    var newApiKey = TempData["NewApiKey"] as string;
+    var newApiKeyName = TempData["NewApiKeyName"] as string;
+}
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h1 class="h3 mb-1">@Localizer["ApiKeys"]</h1>
+            <p class="text-muted mb-0">@Localizer["ApiKeysDescription"]</p>
+        </div>
+        <a asp-action="Create" class="btn btn-primary btn-sm">
+            <i class="bi bi-plus-circle"></i>
+            <span class="d-none d-sm-inline">@Localizer["CreateApiKey"]</span>
+        </a>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">@TempData["SuccessMessage"]<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">@TempData["ErrorMessage"]<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>
+    }
+
+    @if (!string.IsNullOrEmpty(newApiKey))
+    {
+        <div class="alert alert-warning" role="alert">
+            <div class="d-flex align-items-start gap-2 mb-2">
+                <i class="bi bi-exclamation-triangle-fill fs-5"></i>
+                <div>
+                    <strong>@Localizer["ApiKeyValue"]</strong>
+                    @if (!string.IsNullOrEmpty(newApiKeyName))
+                    {
+                        <span class="text-muted">(@newApiKeyName)</span>
+                    }
+                    <div>@Localizer["ApiKeyCreatedOnce"]</div>
+                </div>
+            </div>
+            <div class="input-group">
+                <input id="newApiKeyValue" class="form-control font-monospace" value="@newApiKey" readonly />
+                <button type="button" class="btn btn-outline-dark" id="copyApiKeyButton">
+                    <i class="bi bi-clipboard"></i> @Localizer["Copy"]
+                </button>
+            </div>
+        </div>
+    }
+
+    <div class="card d-none d-lg-block">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>@Localizer["ApiKeyName"]</th>
+                            <th>@Localizer["ApiKeyPrefix"]</th>
+                            <th>@Localizer["ApiKeyCreatedColumn"]</th>
+                            <th>@Localizer["ApiKeyLastUsed"]</th>
+                            <th>@Localizer["ApiKeyExpires"]</th>
+                            <th>@Localizer["ApiKeyStatus"]</th>
+                            @if (isAdmin)
+                            {
+                                <th>@Localizer["ApiKeyOwner"]</th>
+                            }
+                            <th class="text-center">@Localizer["Actions"]</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (!Model.Any())
+                        {
+                            <tr>
+                                <td colspan="@(isAdmin ? 8 : 7)" class="text-center text-muted py-4">@Localizer["NoApiKeys"]</td>
+                            </tr>
+                        }
+                        @foreach (var k in Model)
+                        {
+                            <tr>
+                                <td>@k.Name</td>
+                                <td><code>@k.KeyPrefix</code></td>
+                                <td><span class="utc-timestamp" data-utc-time="@k.CreatedAt.ToString("yyyy-MM-ddTHH:mm:ss")">@k.CreatedAt.ToString("g")</span></td>
+                                <td>
+                                    @if (k.LastUsedAt.HasValue)
+                                    {
+                                        <span class="utc-timestamp" data-utc-time="@k.LastUsedAt.Value.ToString("yyyy-MM-ddTHH:mm:ss")">@k.LastUsedAt.Value.ToString("g")</span>
+                                    }
+                                    else
+                                    {
+                                        @Localizer["Never"]
+                                    }
+                                </td>
+                                <td>
+                                    @if (k.ExpiresAt.HasValue)
+                                    {
+                                        <span class="utc-timestamp" data-utc-time="@k.ExpiresAt.Value.ToString("yyyy-MM-ddTHH:mm:ss")">@k.ExpiresAt.Value.ToString("g")</span>
+                                    }
+                                    else
+                                    {
+                                        @Localizer["Never"]
+                                    }
+                                </td>
+                                <td>
+                                    @if (k.RevokedAt.HasValue)
+                                    {
+                                        <span class="badge bg-danger">@Localizer["ApiKeyRevoked"]</span>
+                                    }
+                                    else if (k.ExpiresAt.HasValue && k.ExpiresAt.Value <= DateTime.UtcNow)
+                                    {
+                                        <span class="badge bg-secondary">@Localizer["ApiKeyExpired"]</span>
+                                    }
+                                    else if (k.IsActive)
+                                    {
+                                        <span class="badge bg-success">@Localizer["ApiKeyActive"]</span>
+                                    }
+                                </td>
+                                @if (isAdmin)
+                                {
+                                    <td>@k.OwnerUsername</td>
+                                }
+                                <td>
+                                    <div class="d-flex justify-content-center align-items-center gap-1">
+                                        @if (k.IsActive)
+                                        {
+                                            <form asp-action="Revoke" asp-route-id="@k.Id" method="post" class="d-inline revoke-api-key-form">
+                                                @Html.AntiForgeryToken()
+                                                <button type="submit" class="btn btn-outline-danger btn-sm d-flex align-items-center">
+                                                    <i class="bi bi-slash-circle"></i><span class="ms-1">@Localizer["ApiKeyRevoke"]</span>
+                                                </button>
+                                            </form>
+                                        }
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="d-lg-none">
+        @foreach (var k in Model)
+        {
+            <div class="card mb-3">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <h6 class="card-title mb-0">@k.Name</h6>
+                        @if (k.RevokedAt.HasValue)
+                        {
+                            <span class="badge bg-danger">@Localizer["ApiKeyRevoked"]</span>
+                        }
+                        else if (k.ExpiresAt.HasValue && k.ExpiresAt.Value <= DateTime.UtcNow)
+                        {
+                            <span class="badge bg-secondary">@Localizer["ApiKeyExpired"]</span>
+                        }
+                        else if (k.IsActive)
+                        {
+                            <span class="badge bg-success">@Localizer["ApiKeyActive"]</span>
+                        }
+                    </div>
+                    <p class="card-text small mb-2"><strong>@Localizer["ApiKeyPrefix"]:</strong> <code>@k.KeyPrefix</code></p>
+                    @if (isAdmin)
+                    {
+                        <p class="card-text small mb-2"><strong>@Localizer["ApiKeyOwner"]:</strong> @k.OwnerUsername</p>
+                    }
+                    <p class="card-text small mb-2"><strong>@Localizer["ApiKeyCreatedColumn"]:</strong> <span class="utc-timestamp" data-utc-time="@k.CreatedAt.ToString("yyyy-MM-ddTHH:mm:ss")">@k.CreatedAt.ToString("g")</span></p>
+                    <p class="card-text small mb-2">
+                        <strong>@Localizer["ApiKeyLastUsed"]:</strong>
+                        @if (k.LastUsedAt.HasValue)
+                        {
+                            <span class="utc-timestamp" data-utc-time="@k.LastUsedAt.Value.ToString("yyyy-MM-ddTHH:mm:ss")">@k.LastUsedAt.Value.ToString("g")</span>
+                        }
+                        else
+                        {
+                            @Localizer["Never"]
+                        }
+                    </p>
+                    <p class="card-text small mb-3">
+                        <strong>@Localizer["ApiKeyExpires"]:</strong>
+                        @if (k.ExpiresAt.HasValue)
+                        {
+                            <span class="utc-timestamp" data-utc-time="@k.ExpiresAt.Value.ToString("yyyy-MM-ddTHH:mm:ss")">@k.ExpiresAt.Value.ToString("g")</span>
+                        }
+                        else
+                        {
+                            @Localizer["Never"]
+                        }
+                    </p>
+                    @if (k.IsActive)
+                    {
+                        <form asp-action="Revoke" asp-route-id="@k.Id" method="post" class="revoke-api-key-form">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-outline-danger btn-sm w-100">
+                                <i class="bi bi-slash-circle"></i> @Localizer["ApiKeyRevoke"]
+                            </button>
+                        </form>
+                    }
+                </div>
+            </div>
+        }
+        @if (!Model.Any())
+        {
+            <div class="text-center py-5">
+                <div class="mb-3"><i class="bi bi-key display-1 text-muted"></i></div>
+                <h5 class="text-muted">@Localizer["NoApiKeys"]</h5>
+                <div class="d-grid gap-2 d-md-flex justify-content-center">
+                    <a asp-action="Create" class="btn btn-primary"><i class="bi bi-plus-circle"></i> @Localizer["CreateApiKey"]</a>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const revokeConfirmMessage = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["ApiKeyRevokeConfirm"].ToString()));
+            const copyButton = document.getElementById('copyApiKeyButton');
+            const apiKeyInput = document.getElementById('newApiKeyValue');
+            if (copyButton && apiKeyInput) {
+                copyButton.addEventListener('click', function () {
+                    apiKeyInput.select();
+                    apiKeyInput.setSelectionRange(0, 99999);
+                    navigator.clipboard.writeText(apiKeyInput.value);
+                });
+            }
+
+            document.querySelectorAll('.revoke-api-key-form').forEach(function (form) {
+                form.addEventListener('submit', function (event) {
+                    if (!confirm(revokeConfirmMessage)) {
+                        event.preventDefault();
+                    }
+                });
+            });
+        });
+    </script>
+}
