@@ -667,3 +667,8 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.Run();
+
+// Exposed so the integration test project's WebApplicationFactory<Program> can
+// reference the application's composition root (required with top-level
+// statements). Kept at the end of the file to minimize upstream merge churn.
+public partial class Program { }
