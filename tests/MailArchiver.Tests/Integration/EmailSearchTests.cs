@@ -76,6 +76,28 @@ public class EmailSearchTests : ApiTestBase
     }
 
     [Fact]
+    public async Task AccountFilter_ZeroGrantUser_CannotBypassWithAccountId()
+    {
+        // Regression: an active non-admin with no UserMailAccounts must not be able
+        // to read another account's emails by supplying ?accountId= explicitly.
+        // Previously the .Any() guard in EmailCoreService let an empty allowed list
+        // fall through to the account filter instead of denying.
+        var rA = await SearchAsync(Data.NoGrantsKey, $"?accountId={Data.AccountAId}");
+        Assert.Equal(0, TotalItems(rA));
+        Assert.Equal(0, Items(rA).GetArrayLength());
+
+        var rB = await SearchAsync(Data.NoGrantsKey, $"?accountId={Data.AccountBId}");
+        Assert.Equal(0, TotalItems(rB));
+    }
+
+    [Fact]
+    public async Task NoFilter_ZeroGrantUser_ReturnsNothing()
+    {
+        var r = await SearchAsync(Data.NoGrantsKey, "?pageSize=100");
+        Assert.Equal(0, TotalItems(r));
+    }
+
+    [Fact]
     public async Task FullTextQuery_MatchesSubject()
     {
         var r = await SearchAsync(Data.LimitedKey, "?q=Invoice");

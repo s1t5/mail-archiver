@@ -16,6 +16,7 @@ public sealed record SeededData
     public required int AdminUserId { get; init; }
     public required int LimitedUserId { get; init; }
     public required int InactiveUserId { get; init; }
+    public required int NoGrantsUserId { get; init; }   // active non-admin, zero mailbox grants
 
     public required int AccountAId { get; init; }   // visible to the limited user
     public required int AccountBId { get; init; }   // NOT visible to the limited user
@@ -25,6 +26,7 @@ public sealed record SeededData
     public required string RevokedKey { get; init; }
     public required string ExpiredKey { get; init; }
     public required string InactiveUserKey { get; init; }
+    public required string NoGrantsKey { get; init; }
 
     // Body-fallback-chain sample emails (account A).
     public required int OriginalBodyEmailId { get; init; }
@@ -64,7 +66,10 @@ public static class TestDataSeeder
         var admin = new User { Username = "admin-int", Email = "admin-int@example.com", IsAdmin = true, IsActive = true };
         var limited = new User { Username = "limited-int", Email = "limited-int@example.com", IsAdmin = false, IsActive = true };
         var inactive = new User { Username = "inactive-int", Email = "inactive-int@example.com", IsAdmin = false, IsActive = false };
-        db.Users.AddRange(admin, limited, inactive);
+        // Active non-admin with NO UserMailAccounts rows: a zero-grant user must see
+        // nothing, even when explicitly requesting an account via ?accountId=.
+        var noGrants = new User { Username = "nogrants-int", Email = "nogrants-int@example.com", IsAdmin = false, IsActive = true };
+        db.Users.AddRange(admin, limited, inactive, noGrants);
         await db.SaveChangesAsync();
 
         // --- Mail accounts (account A carries secrets to assert non-leakage) ---
@@ -179,6 +184,7 @@ public static class TestDataSeeder
         var (revokedEntity, revokedKey) = await apiKeys.CreateAsync(limited.Id, "revoked key", null);
         var (_, expiredKey) = await apiKeys.CreateAsync(limited.Id, "expired key", new DateTime(2020, 1, 1, 0, 0, 0, DateTimeKind.Utc));
         var (_, inactiveUserKey) = await apiKeys.CreateAsync(inactive.Id, "inactive user key", null);
+        var (_, noGrantsKey) = await apiKeys.CreateAsync(noGrants.Id, "no grants key", null);
         await apiKeys.RevokeAsync(revokedEntity.Id, limited.Id, isAdmin: false);
 
         return new SeededData
@@ -186,6 +192,7 @@ public static class TestDataSeeder
             AdminUserId = admin.Id,
             LimitedUserId = limited.Id,
             InactiveUserId = inactive.Id,
+            NoGrantsUserId = noGrants.Id,
             AccountAId = accountA.Id,
             AccountBId = accountB.Id,
             AdminKey = adminKey,
@@ -193,6 +200,7 @@ public static class TestDataSeeder
             RevokedKey = revokedKey,
             ExpiredKey = expiredKey,
             InactiveUserKey = inactiveUserKey,
+            NoGrantsKey = noGrantsKey,
             OriginalBodyEmailId = originalBodyEmail.Id,
             UntruncatedBodyEmailId = untruncatedBodyEmail.Id,
             PlainBodyEmailId = plainBodyEmail.Id,
