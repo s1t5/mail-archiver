@@ -145,6 +145,13 @@ builder.Services.Configure<BandwidthTrackingOptions>(
 builder.Services.Configure<ReleaseNotesOptions>(
     builder.Configuration.GetSection(ReleaseNotesOptions.ReleaseNotes));
 
+// ===== Read-only REST API (v1) — kept in one contiguous block to minimize
+// upstream merge churn. Disabled by default via Api:Enabled. =====
+builder.Services.Configure<MailArchiver.Models.ApiOptions>(
+    builder.Configuration.GetSection(MailArchiver.Models.ApiOptions.Api));
+builder.Services.AddScoped<MailArchiver.Services.IApiKeyService, MailArchiver.Services.ApiKeyService>();
+// ===== End read-only REST API block =====
+
 // Add DateTimeHelper
 builder.Services.AddScoped<MailArchiver.Utilities.DateTimeHelper>();
 
