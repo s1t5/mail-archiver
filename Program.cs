@@ -153,6 +153,13 @@ builder.Services.AddScoped<MailArchiver.Services.IApiKeyService, MailArchiver.Se
 // RFC 7807 problem+json for API errors (used by the /api exception handler and
 // the auth middleware's 401 responses).
 builder.Services.AddProblemDetails();
+// OpenAPI document "v1" scoped to the /api/v1 endpoints, with the bearer scheme.
+builder.Services.AddOpenApi("v1", openApiOptions =>
+{
+    openApiOptions.ShouldInclude = description =>
+        description.RelativePath?.StartsWith("api/v1", StringComparison.OrdinalIgnoreCase) ?? false;
+    openApiOptions.AddDocumentTransformer<MailArchiver.Models.Api.OpenApi.BearerSecuritySchemeTransformer>();
+});
 // ===== End read-only REST API block =====
 
 // Add DateTimeHelper
@@ -725,6 +732,21 @@ app.UseRateLimiter();
 
 // Add our custom authentication middleware
 app.UseAuth();
+
+// OpenAPI document + Swagger UI for the read-only REST API. Mapped only when the
+// API and its UI are enabled. Both paths sit OUTSIDE /api/, so the cookie
+// middleware above gates them — a logged-in browser session is required, and
+// they are unreachable with an API key.
+var apiUiOptions = app.Services.GetRequiredService<IOptions<MailArchiver.Models.ApiOptions>>().Value;
+if (apiUiOptions.Enabled && apiUiOptions.EnableSwaggerUi)
+{
+    app.MapOpenApi("/apidocs/spec/{documentName}.json");
+    app.UseSwaggerUI(swaggerOptions =>
+    {
+        swaggerOptions.SwaggerEndpoint("/apidocs/spec/v1.json", "Mail Archiver API v1");
+        swaggerOptions.RoutePrefix = "apidocs";
+    });
+}
 
 app.MapControllerRoute(
     name: "default",
