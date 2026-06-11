@@ -22,11 +22,13 @@ public sealed class ApiWebApplicationFactory : WebApplicationFactory<Program>
     private readonly string _connectionString;
     private readonly string _dataProtectionPath;
     private readonly bool _apiEnabled;
+    private readonly bool _allowAttachmentDownloads;
 
-    public ApiWebApplicationFactory(string connectionString, bool apiEnabled = true)
+    public ApiWebApplicationFactory(string connectionString, bool apiEnabled = true, bool allowAttachmentDownloads = true)
     {
         _connectionString = connectionString;
         _apiEnabled = apiEnabled;
+        _allowAttachmentDownloads = allowAttachmentDownloads;
         _dataProtectionPath = Path.Combine(Path.GetTempPath(), "ma-tests-dp-" + Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(_dataProtectionPath);
 
@@ -55,7 +57,7 @@ public sealed class ApiWebApplicationFactory : WebApplicationFactory<Program>
                 ["Authentication:Password"] = "test-password-123!",
                 ["DataProtection:KeyPath"] = _dataProtectionPath,
                 ["Api:Enabled"] = _apiEnabled ? "true" : "false",
-                ["Api:AllowAttachmentDownloads"] = "true",
+                ["Api:AllowAttachmentDownloads"] = _allowAttachmentDownloads ? "true" : "false",
                 ["Api:EnableSwaggerUi"] = "true",
             });
         });

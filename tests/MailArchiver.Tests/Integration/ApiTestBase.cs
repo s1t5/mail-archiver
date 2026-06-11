@@ -1,5 +1,6 @@
 using System.Net.Http.Headers;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace MailArchiver.Tests.Integration;
 
@@ -29,4 +30,7 @@ public abstract class ApiTestBase
         }
         return client;
     }
+
+    /// <summary>A DI scope over the running app (e.g. to read the AccessLogs table).</summary>
+    protected IServiceScope NewScope() => Fixture.Factory.Services.CreateScope();
 }
