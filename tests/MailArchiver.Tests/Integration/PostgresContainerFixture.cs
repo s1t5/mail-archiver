@@ -23,6 +23,8 @@ public sealed class PostgresContainerFixture : IAsyncLifetime
 
     public ApiWebApplicationFactory Factory { get; private set; } = null!;
 
+    public SeededData Data { get; private set; } = null!;
+
     public string ConnectionString => _container.GetConnectionString();
 
     public async Task InitializeAsync()
@@ -33,6 +35,9 @@ public sealed class PostgresContainerFixture : IAsyncLifetime
         // Force the host to build now so startup migrations run (and surface
         // any failure here rather than inside the first test).
         _ = Factory.Services;
+
+        // Seed the shared data set exactly once for the whole run.
+        Data = await TestDataSeeder.SeedAsync(Factory.Services);
     }
 
     public async Task DisposeAsync()

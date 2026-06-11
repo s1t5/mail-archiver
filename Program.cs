@@ -150,6 +150,9 @@ builder.Services.Configure<ReleaseNotesOptions>(
 builder.Services.Configure<MailArchiver.Models.ApiOptions>(
     builder.Configuration.GetSection(MailArchiver.Models.ApiOptions.Api));
 builder.Services.AddScoped<MailArchiver.Services.IApiKeyService, MailArchiver.Services.ApiKeyService>();
+// RFC 7807 problem+json for API errors (used by the /api exception handler and
+// the auth middleware's 401 responses).
+builder.Services.AddProblemDetails();
 // ===== End read-only REST API block =====
 
 // Add DateTimeHelper
@@ -641,6 +644,30 @@ using (var scope = app.Services.CreateScope())
 }
 
 // Configure the HTTP request pipeline
+// API errors must be problem+json, never the /Home/Error HTML page — scope a
+// dedicated exception handler to /api before the global MVC handler.
+app.UseWhen(
+    context => context.Request.Path.StartsWithSegments("/api"),
+    apiBranch => apiBranch.UseExceptionHandler(new ExceptionHandlerOptions
+    {
+        ExceptionHandler = static async context =>
+        {
+            var problemDetailsService = context.RequestServices
+                .GetRequiredService<Microsoft.AspNetCore.Http.IProblemDetailsService>();
+            context.Response.ContentType = "application/problem+json";
+            await problemDetailsService.WriteAsync(new Microsoft.AspNetCore.Http.ProblemDetailsContext
+            {
+                HttpContext = context,
+                ProblemDetails =
+                {
+                    Status = context.Response.StatusCode,
+                    Title = "An unexpected error occurred.",
+                    Instance = context.Request.Path
+                }
+            });
+        }
+    }));
+
 if (app.Environment.IsDevelopment())
 {
     app.UseDeveloperExceptionPage();
