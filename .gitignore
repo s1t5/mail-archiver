@@ -299,3 +299,4 @@ update_resource_files.ps1
 /exports
 /obj
 /.clinerules
+AGENTS.md
