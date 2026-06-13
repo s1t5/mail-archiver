@@ -25,7 +25,8 @@
                     <label asp-for="Provider" class="form-label">@Localizer["Provider"]</label>
                     <select asp-for="Provider" class="form-select">
                         <option value="@ProviderType.IMAP">IMAP</option>
-                        <option value="@ProviderType.M365">Microsoft 365</option>
+                        <option value="@ProviderType.M365">Microsoft 365 (Exchange Online)</option>
+                        <option value="@ProviderType.MSA">Microsoft Personal Account (Outlook.com)</option>
                         <option value="@ProviderType.IMPORT">Import Only</option>
                     </select>
                     <span asp-validation-for="Provider" class="text-danger"></span>
@@ -63,6 +64,82 @@
                     </div>
                 </div>
                 
+                <div id="msaSettings" style="display: @(Model.Provider == ProviderType.MSA ? "block" : "none");">
+                    <h4 class="mt-4">Microsoft Personal Account Settings</h4>
+
+                    @if (Model.MsaIsAuthorized)
+                    {
+                        <div class="alert alert-success d-flex align-items-center justify-content-between">
+                            <span>
+                                <i class="bi bi-check-circle-fill me-2"></i>
+                                <strong>Autorisiert.</strong> Microsoft-Konto verbunden, Token wird automatisch erneuert.
+                            </span>
+                            @if (Model.Id != 0)
+                            {
+                                <a asp-action="AuthorizeMsaDevice" asp-route-id="@Model.Id" class="btn btn-sm btn-outline-success ms-2">
+                                    <i class="bi bi-arrow-clockwise"></i> Re-authorize
+                                </a>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-warning">
+                            <i class="bi bi-exclamation-triangle me-2"></i>
+                            <strong>Noch nicht autorisiert.</strong>
+                            Client-ID eintragen, speichern, dann <strong>Authorize with Microsoft</strong> klicken.
+                        </div>
+                    }
+
+                    <details class="mb-3">
+                        <summary style="cursor:pointer;" class="text-muted">
+                            <i class="bi bi-info-circle"></i> Azure App Registration einrichten (einmalig, ca. 2 Minuten)
+                        </summary>
+                        <div class="mt-2 border rounded p-3 bg-light">
+                            <ol class="mb-2 ps-3">
+                                <li class="mb-2">
+                                    <a href="https://portal.azure.com/#view/Microsoft_AAD_RegisteredApps/CreateApplicationBlade" target="_blank" class="btn btn-sm btn-primary">
+                                        <i class="bi bi-box-arrow-up-right"></i> App Registration erstellen
+                                    </a>
+                                    &nbsp;<span class="text-muted small">(mit deinem Microsoft-Konto anmelden)</span>
+                                </li>
+                                <li class="mb-2">Name frei wählen (z.B. <em>mail-archiver</em>)</li>
+                                <li class="mb-2">Unter <strong>Supported account types</strong> auswählen: <em>Personal Microsoft accounts only</em> <span class="text-danger fw-bold">(wichtig!)</span></li>
+                                <li class="mb-2">Redirect-URI leer lassen → auf <strong>Register</strong> klicken</li>
+                                <li class="mb-2">Die angezeigte <strong>Application (client) ID</strong> unten eintragen</li>
+                                <li class="mb-2">In der App links auf <strong>Authentication</strong> klicken → Tab <strong>Einstellungen</strong> wählen → <em>Öffentliche Clientflows zulassen</em> (Allow public client flows) aktivieren → <strong>Speichern</strong></li>
+                            </ol>
+                            <p class="small text-muted mb-0">Kein Secret, keine Redirect-URI erforderlich.</p>
+                        </div>
+                    </details>
+
+                    <div class="mb-3">
+                        <label asp-for="MsaClientId" class="form-label">@Localizer["ClientId"]</label>
+                        <input asp-for="MsaClientId" class="form-control" placeholder="Azure App (client) ID" />
+                        <div class="form-text">Leave blank to keep existing value.</div>
+                        <span asp-validation-for="MsaClientId" class="text-danger"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="MsaClientSecret" class="form-label">@Localizer["ClientSecret"] <span class="text-muted fw-normal">(optional)</span></label>
+                        <input asp-for="MsaClientSecret" class="form-control" type="password" placeholder="Nicht erforderlich beim Device Code Flow" />
+                        <div class="form-text">Nur für Confidential Client Apps. Leer lassen wenn das Script oben verwendet wurde.</div>
+                        <span asp-validation-for="MsaClientSecret" class="text-danger"></span>
+                    </div>
+
+                    @if (Model.Id != 0)
+                    {
+                        <div class="mb-3">
+                            <a asp-action="AuthorizeMsaDevice" asp-route-id="@Model.Id" class="btn @(Model.MsaIsAuthorized ? "btn-outline-primary" : "btn-primary")">
+                                <i class="bi bi-microsoft"></i> @(Model.MsaIsAuthorized ? "Re-authorize with Microsoft" : "Authorize with Microsoft")
+                            </a>
+                            @if (!Model.MsaIsAuthorized)
+                            {
+                                <div class="form-text mt-1">Client-ID zuerst speichern, dann Authorize klicken.</div>
+                            }
+                        </div>
+                    }
+                </div>
+
                 <div id="microsoft365Settings" style="display: none;">
                     <h4 class="mt-4">@Localizer["Microsoft365Settings"]</h4>
                     
@@ -178,6 +255,7 @@
             const providerSelect = document.getElementById('Provider');
             const imapSettings = document.getElementById('imapSettings');
             const microsoft365Settings = document.getElementById('microsoft365Settings');
+            const msaSettings = document.getElementById('msaSettings');
             const emailDeletionSettings = document.getElementById('emailDeletionSettings');
             const loadFoldersBtn = document.getElementById('loadFoldersBtn');
             const foldersContainer = document.getElementById('foldersContainer');
@@ -202,17 +280,21 @@
             
             function toggleSettings() {
                 const providerValue = providerSelect.value;
+                imapSettings.style.display = 'none';
+                microsoft365Settings.style.display = 'none';
+                msaSettings.style.display = 'none';
+                emailDeletionSettings.style.display = 'none';
+
                 if (providerValue === '@ProviderType.IMPORT') {
-                    imapSettings.style.display = 'none';
-                    microsoft365Settings.style.display = 'none';
-                    emailDeletionSettings.style.display = 'none';
+                    // nothing
                 } else if (providerValue === '@ProviderType.M365') {
-                    imapSettings.style.display = 'none';
                     microsoft365Settings.style.display = 'block';
+                    emailDeletionSettings.style.display = 'block';
+                } else if (providerValue === '@ProviderType.MSA') {
+                    msaSettings.style.display = 'block';
                     emailDeletionSettings.style.display = 'block';
                 } else {
                     imapSettings.style.display = 'block';
-                    microsoft365Settings.style.display = 'none';
                     emailDeletionSettings.style.display = 'block';
                 }
             }

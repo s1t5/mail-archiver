@@ -44,14 +44,22 @@ namespace MailArchiver.Models.ViewModels
         [Display(Name = "Client ID")]
         [ConditionalRequired(nameof(Provider), ProviderType.M365, ErrorMessage = "Client ID is required for M365 accounts")]
         public string ClientId { get; set; }
-        
+
         [Display(Name = "Client Secret")]
         [ConditionalRequired(nameof(Provider), ProviderType.M365, ErrorMessage = "Client Secret is required for M365 accounts")]
         public string ClientSecret { get; set; }
-        
+
         [Display(Name = "Tenant ID")]
         [ConditionalRequired(nameof(Provider), ProviderType.M365, ErrorMessage = "Tenant ID is required for M365 accounts")]
         public string TenantId { get; set; }
+
+        // MSA (personal Microsoft account) OAuth2 fields
+        [Display(Name = "Client ID (Azure App)")]
+        [ConditionalRequired(nameof(Provider), ProviderType.MSA, ErrorMessage = "Client ID is required for MSA accounts")]
+        public string MsaClientId { get; set; }
+
+        [Display(Name = "Client Secret (Azure App)")]
+        public string? MsaClientSecret { get; set; }
         
         [Display(Name = "Delete After Days")]
         [Range(1, int.MaxValue, ErrorMessage = "Delete after days must be at least 1")]

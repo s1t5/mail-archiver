@@ -2044,15 +2044,15 @@ namespace MailArchiver.Controllers
                     _logger.LogInformation("Using Graph API service to get folders for M365 account {AccountId}", accountId);
                     folders = await _graphEmailService.GetMailFoldersAsync(targetAccount);
                 }
-                else if (targetAccount.Provider == ProviderType.IMAP)
+                else if (targetAccount.Provider == ProviderType.IMAP || targetAccount.Provider == ProviderType.MSA)
                 {
-                    _logger.LogInformation("Using Email service to get folders for IMAP account {AccountId}", accountId);
+                    _logger.LogInformation("Using Email service to get folders for {Provider} account {AccountId}", targetAccount.Provider, accountId);
                     var tmpProvider = await _providerFactory.GetServiceForAccountAsync(accountId); folders = await tmpProvider.GetMailFoldersAsync(accountId);
                 }
                 else
                 {
                     // For IMPORT accounts or unknown providers, return INBOX as default
-                    _logger.LogWarning("Account {AccountId} has provider type {Provider}, returning default INBOX", 
+                    _logger.LogWarning("Account {AccountId} has provider type {Provider}, returning default INBOX",
                         accountId, targetAccount.Provider);
                     return Json(new List<string> { "INBOX" });
                 }

@@ -32,6 +32,7 @@ namespace MailArchiver.Controllers
     private readonly IExportService _exportService;
     private readonly IAccessLogService _accessLogService;
     private readonly IMailAccountDeletionService _mailAccountDeletionService;
+    private readonly IMsaOAuthService _msaOAuthService;
 
     public MailAccountsController(
         MailArchiverDbContext context,
@@ -48,7 +49,8 @@ namespace MailArchiver.Controllers
         IServiceScopeFactory serviceScopeFactory,
         IExportService exportService,
         IAccessLogService accessLogService,
-        IMailAccountDeletionService mailAccountDeletionService)
+        IMailAccountDeletionService mailAccountDeletionService,
+        IMsaOAuthService msaOAuthService)
     {
         _context = context;
         _emailCoreService = emailCoreService;
@@ -65,6 +67,7 @@ namespace MailArchiver.Controllers
         _exportService = exportService;
         _accessLogService = accessLogService;
         _mailAccountDeletionService = mailAccountDeletionService;
+        _msaOAuthService = msaOAuthService;
     }
 
         private async Task<bool> HasAccessToAccountAsync(int accountId)
@@ -212,15 +215,23 @@ var model = new MailAccountViewModel
                 {
                     Name = model.Name,
                     EmailAddress = model.EmailAddress,
-                    ImapServer = model.Provider == ProviderType.IMPORT || model.Provider != ProviderType.IMAP ? null : model.ImapServer,
-                    ImapPort = model.Provider == ProviderType.IMPORT || model.Provider != ProviderType.IMAP ? null : model.ImapPort,
-                    Username = model.Provider == ProviderType.IMPORT || model.Provider != ProviderType.IMAP ? null : model.Username,
-                    Password = model.Provider == ProviderType.IMPORT || model.Provider != ProviderType.IMAP ? null : model.Password,
-                    UseSSL = model.UseSSL,
+                    ImapServer = model.Provider == ProviderType.IMAP ? model.ImapServer
+                                 : model.Provider == ProviderType.MSA ? "outlook.office365.com"
+                                 : null,
+                    ImapPort = model.Provider == ProviderType.IMAP ? model.ImapPort
+                               : model.Provider == ProviderType.MSA ? 993
+                               : null,
+                    Username = model.Provider == ProviderType.IMAP ? model.Username : null,
+                    Password = model.Provider == ProviderType.IMAP ? model.Password : null,
+                    UseSSL = model.Provider == ProviderType.IMAP ? model.UseSSL : true,
                     IsEnabled = model.IsEnabled,
                     Provider = model.Provider,
-                    ClientId = model.Provider == ProviderType.M365 ? model.ClientId : null,
-                    ClientSecret = model.Provider == ProviderType.M365 ? model.ClientSecret : null,
+                    ClientId = model.Provider == ProviderType.M365 ? model.ClientId
+                               : model.Provider == ProviderType.MSA ? model.MsaClientId
+                               : null,
+                    ClientSecret = model.Provider == ProviderType.M365 ? model.ClientSecret
+                                   : model.Provider == ProviderType.MSA ? model.MsaClientSecret
+                                   : null,
                     TenantId = model.Provider == ProviderType.M365 ? model.TenantId : null,
                     ExcludedFolders = string.Empty,
                     DeleteAfterDays = model.DeleteAfterDays,
@@ -249,7 +260,7 @@ var model = new MailAccountViewModel
                     _logger.LogInformation("Creating new account: {Name}, Provider: {Provider}",
                         model.Name, model.Provider);
 
-                    // Test connection before saving (only for non-import-only accounts)
+                    // Test connection before saving (only for IMAP; M365 and MSA use OAuth and can't be tested this way)
                     if (account.Provider == ProviderType.IMAP)
                     {
                         _logger.LogInformation("Testing connection for account: {Name}, Server: {Server}:{Port}",
@@ -341,7 +352,10 @@ var model = new MailAccountViewModel
                 Provider = account.Provider,
                 ClientId = account.ClientId,
                 ClientSecret = account.ClientSecret,
-                TenantId = account.TenantId
+                TenantId = account.TenantId,
+                MsaClientId = account.Provider == ProviderType.MSA ? account.ClientId : null,
+                MsaIsAuthorized = account.Provider == ProviderType.MSA && !string.IsNullOrEmpty(account.OAuthRefreshToken),
+                MsaTokenExpiry = account.OAuthTokenExpiry,
             };
 
             // Set ViewBag properties
@@ -427,30 +441,55 @@ var model = new MailAccountViewModel
 
                     account.Name = model.Name;
                     account.EmailAddress = model.EmailAddress;
-                    account.ImapServer = model.Provider == ProviderType.IMPORT || model.Provider != ProviderType.IMAP ? null : model.ImapServer;
-                    account.ImapPort = model.Provider == ProviderType.IMPORT || model.Provider != ProviderType.IMAP ? null : model.ImapPort;
-                    account.Username = model.Provider == ProviderType.IMPORT || model.Provider != ProviderType.IMAP ? null : model.Username;
+                    account.ImapServer = model.Provider == ProviderType.IMAP ? model.ImapServer
+                                         : model.Provider == ProviderType.MSA ? "outlook.office365.com"
+                                         : null;
+                    account.ImapPort = model.Provider == ProviderType.IMAP ? model.ImapPort
+                                       : model.Provider == ProviderType.MSA ? 993
+                                       : null;
+                    account.Username = model.Provider == ProviderType.IMAP ? model.Username : null;
                     account.IsEnabled = model.IsEnabled;
                     account.Provider = model.Provider;
-                    account.ClientId = model.Provider == ProviderType.M365 ? model.ClientId : null;
-                    
-                    // Only update ClientSecret if provided for M365 accounts
-                    if (model.Provider == ProviderType.M365 && !string.IsNullOrEmpty(model.ClientSecret))
+
+                    if (model.Provider == ProviderType.M365)
                     {
-                        account.ClientSecret = model.ClientSecret;
+                        account.ClientId = model.ClientId;
+                        account.TenantId = model.TenantId;
+                        if (!string.IsNullOrEmpty(model.ClientSecret))
+                            account.ClientSecret = model.ClientSecret;
                     }
-                    else if (model.Provider == ProviderType.M365)
+                    else if (model.Provider == ProviderType.MSA)
                     {
-                        // If no new ClientSecret provided for M365, keep the existing one
-                        // Do not overwrite with null
+                        var clientIdChanged = !string.IsNullOrEmpty(model.MsaClientId) && model.MsaClientId != account.ClientId;
+                        var clientSecretChanged = !string.IsNullOrEmpty(model.MsaClientSecret);
+
+                        if (!string.IsNullOrEmpty(model.MsaClientId))
+                            account.ClientId = model.MsaClientId;
+                        if (clientSecretChanged)
+                            account.ClientSecret = model.MsaClientSecret;
+                        account.TenantId = null;
+
+                        // Clear tokens only when credentials actually changed
+                        if (clientIdChanged)
+                        {
+                            // New app registration — all tokens are invalid
+                            account.OAuthAccessToken = null;
+                            account.OAuthTokenExpiry = null;
+                            account.OAuthRefreshToken = null;
+                        }
+                        else if (clientSecretChanged)
+                        {
+                            // New secret — only cached access token needs refresh
+                            account.OAuthAccessToken = null;
+                            account.OAuthTokenExpiry = null;
+                        }
                     }
                     else
                     {
-                        // For non-M365 accounts, set to null
+                        account.ClientId = null;
                         account.ClientSecret = null;
+                        account.TenantId = null;
                     }
-                    
-                    account.TenantId = model.Provider == ProviderType.M365 ? model.TenantId : null;
 
                     // Only update password if provided
                     if (!string.IsNullOrEmpty(model.Password))
@@ -458,7 +497,7 @@ var model = new MailAccountViewModel
                         account.Password = model.Password;
                     }
 
-                    account.UseSSL = model.UseSSL;
+                    account.UseSSL = model.Provider == ProviderType.MSA ? true : model.UseSSL;
                     account.ExcludedFolders = model.ExcludedFolders ?? string.Empty;
                     account.DeleteAfterDays = model.DeleteAfterDays;
                     account.LocalRetentionDays = model.LocalRetentionDays;
@@ -826,19 +865,14 @@ var model = new MailAccountViewModel
                         {
                             try
                             {
-                                // Create a new service scope for the background task to avoid disposed context issues
                                 using var scope = _serviceScopeFactory.CreateScope();
                                 var graphEmailService = scope.ServiceProvider.GetRequiredService<IGraphEmailService>();
                                 var dbContext = scope.ServiceProvider.GetRequiredService<MailArchiverDbContext>();
-                                
-                                // Get a fresh untracked copy of the account from the new context to avoid tracking conflicts
                                 var freshAccount = await dbContext.MailAccounts
                                     .AsNoTracking()
                                     .FirstOrDefaultAsync(a => a.Id == account.Id);
                                 if (freshAccount != null)
-                                {
                                     await graphEmailService.SyncMailAccountAsync(freshAccount, jobId);
-                                }
                             }
                             catch (Exception ex)
                             {
@@ -849,28 +883,22 @@ var model = new MailAccountViewModel
                     }
                     else
                     {
-                        // For IMAP accounts, use EmailService
+                        // For IMAP and MSA accounts, use ImapEmailService
                         _ = Task.Run(async () =>
                         {
                             try
                             {
-                                // Create a new service scope for the background task to avoid disposed context issues
                                 using var scope = _serviceScopeFactory.CreateScope();
                                 var imapService = scope.ServiceProvider.GetRequiredService<MailArchiver.Services.Providers.ImapEmailService>();
                                 var dbContext = scope.ServiceProvider.GetRequiredService<MailArchiverDbContext>();
-                                
-                                // Get a fresh untracked copy of the account from the new context to avoid tracking conflicts
                                 var freshAccount = await dbContext.MailAccounts
-                                    .AsNoTracking()
                                     .FirstOrDefaultAsync(a => a.Id == account.Id);
                                 if (freshAccount != null)
-                                {
                                     await imapService.SyncMailAccountAsync(freshAccount, jobId);
-                                }
                             }
                             catch (Exception ex)
                             {
-                                _logger.LogError(ex, "Error during IMAP sync for account {AccountName}: {Message}", account.Name, ex.Message);
+                                _logger.LogError(ex, "Error during IMAP/MSA sync for account {AccountName}: {Message}", account.Name, ex.Message);
                                 _syncJobService.CompleteJob(jobId, false, ex.Message);
                             }
                         });
@@ -1793,6 +1821,94 @@ var model = new MailAccountViewModel
             {
                 _logger.LogError(ex, "Error loading folders for account {AccountId}", accountId);
                 return Json(new List<string> { "INBOX" });
+            }
+        }
+
+        // GET: MailAccounts/AuthorizeMsaDevice/5 — start Device Code Flow (no public URL required)
+        [HttpGet]
+        public async Task<IActionResult> AuthorizeMsaDevice(int id)
+        {
+            if (!await HasAccessToAccountAsync(id))
+                return NotFound();
+
+            var account = await _context.MailAccounts.FindAsync(id);
+            if (account == null || account.Provider != ProviderType.MSA)
+                return NotFound();
+
+            if (string.IsNullOrEmpty(account.ClientId))
+            {
+                TempData["ErrorMessage"] = "Client ID is not configured. Please edit the account first.";
+                return RedirectToAction(nameof(Edit), new { id });
+            }
+
+            try
+            {
+                var result = await _msaOAuthService.StartDeviceCodeAsync(account.ClientId);
+                HttpContext.Session.SetString($"MsaDeviceCode_{id}", result.DeviceCode);
+
+                return View(new MsaDeviceCodeViewModel
+                {
+                    AccountId = id,
+                    AccountName = account.Name,
+                    UserCode = result.UserCode,
+                    VerificationUri = result.VerificationUri,
+                    ExpiresIn = result.ExpiresIn,
+                    PollIntervalSeconds = result.Interval,
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to start MSA device code flow for account {AccountId}", id);
+                TempData["ErrorMessage"] = $"Failed to start authorization: {ex.Message}";
+                return RedirectToAction(nameof(Edit), new { id });
+            }
+        }
+
+        // GET: MailAccounts/PollMsaDeviceCode?id=5 — called by browser JS every N seconds
+        [HttpGet]
+        public async Task<IActionResult> PollMsaDeviceCode(int id)
+        {
+            if (!await HasAccessToAccountAsync(id))
+                return Json(new { status = "error", message = "Access denied." });
+
+            var deviceCode = HttpContext.Session.GetString($"MsaDeviceCode_{id}");
+            if (string.IsNullOrEmpty(deviceCode))
+                return Json(new { status = "error", message = "Session expired. Please start authorization again." });
+
+            var account = await _context.MailAccounts.FindAsync(id);
+            if (account == null)
+                return Json(new { status = "error", message = "Account not found." });
+
+            try
+            {
+                var tokens = await _msaOAuthService.PollDeviceCodeAsync(account.ClientId!, deviceCode);
+                if (tokens == null)
+                    return Json(new { status = "pending" });
+
+                // Success — save tokens
+                HttpContext.Session.Remove($"MsaDeviceCode_{id}");
+
+                account.OAuthAccessToken = tokens.AccessToken;
+                account.OAuthRefreshToken = tokens.RefreshToken;
+                account.OAuthTokenExpiry = tokens.Expiry;
+                await _context.SaveChangesAsync();
+
+                var authService = HttpContext.RequestServices.GetService<MailArchiver.Services.IAuthenticationService>();
+                var currentUsername = authService?.GetCurrentUserDisplayName(HttpContext);
+                if (!string.IsNullOrEmpty(currentUsername))
+                {
+                    await _accessLogService.LogAccessAsync(currentUsername, AccessLogType.Account,
+                        searchParameters: $"Authorized MSA account via device code: {account.Name}",
+                        mailAccountId: account.Id);
+                }
+
+                return Json(new { status = "success" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "MSA device code poll error for account {AccountId}", id);
+                HttpContext.Session.Remove($"MsaDeviceCode_{id}");
+                return Json(new { status = "error", message = ex.Message });
             }
         }
 

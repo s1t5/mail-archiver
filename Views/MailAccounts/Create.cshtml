@@ -28,7 +28,8 @@
                     <label asp-for="Provider" class="form-label">@Localizer["Provider"]</label>
                     <select asp-for="Provider" class="form-select">
                         <option value="@ProviderType.IMAP">IMAP</option>
-                        <option value="@ProviderType.M365">Microsoft 365</option>
+                        <option value="@ProviderType.M365">Microsoft 365 (Exchange Online)</option>
+                        <option value="@ProviderType.MSA">Microsoft Personal Account (Outlook.com)</option>
                         <option value="@ProviderType.IMPORT">Import Only</option>
                     </select>
                     <span asp-validation-for="Provider" class="text-danger"></span>
@@ -71,6 +72,42 @@
                     </div>
                 </div>
                 
+                <div id="msaSettings" style="display: none;">
+                    <h4 class="mt-4">Microsoft Personal Account Settings</h4>
+                    <details class="mb-3" open>
+                        <summary style="cursor:pointer;" class="text-muted">
+                            <i class="bi bi-info-circle"></i> Azure App Registration einrichten (einmalig, ca. 2 Minuten)
+                        </summary>
+                        <div class="mt-2 border rounded p-3 bg-light">
+                            <ol class="mb-2 ps-3">
+                                <li class="mb-2">
+                                    <a href="https://portal.azure.com/#view/Microsoft_AAD_RegisteredApps/CreateApplicationBlade" target="_blank" class="btn btn-sm btn-primary">
+                                        <i class="bi bi-box-arrow-up-right"></i> App Registration erstellen
+                                    </a>
+                                    &nbsp;<span class="text-muted small">(mit deinem Microsoft-Konto anmelden)</span>
+                                </li>
+                                <li class="mb-2">Name frei wählen (z.B. <em>mail-archiver</em>)</li>
+                                <li class="mb-2">Unter <strong>Supported account types</strong> auswählen: <em>Personal Microsoft accounts only</em> <span class="text-danger fw-bold">(wichtig!)</span></li>
+                                <li class="mb-2">Redirect-URI leer lassen → auf <strong>Register</strong> klicken</li>
+                                <li class="mb-2">Die angezeigte <strong>Application (client) ID</strong> unten eintragen</li>
+                                <li class="mb-2">In der App links auf <strong>Authentication</strong> klicken → Tab <strong>Einstellungen</strong> wählen → <em>Öffentliche Clientflows zulassen</em> (Allow public client flows) aktivieren → <strong>Speichern</strong></li>
+                            </ol>
+                            <p class="small text-muted mb-0">Kein Secret, keine Redirect-URI erforderlich. Nach dem Speichern auf <strong>Authorize</strong> klicken.</p>
+                        </div>
+                    </details>
+                    <div class="mb-3">
+                        <label asp-for="MsaClientId" class="form-label">@Localizer["ClientId"]</label>
+                        <input asp-for="MsaClientId" class="form-control" placeholder="Azure App (client) ID" />
+                        <span asp-validation-for="MsaClientId" class="text-danger"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="MsaClientSecret" class="form-label">@Localizer["ClientSecret"] <span class="text-muted fw-normal">(optional)</span></label>
+                        <input asp-for="MsaClientSecret" class="form-control" type="password" placeholder="Not required when using PKCE Public Client" />
+                        <div class="form-text">Only needed for confidential client apps. Leave blank when using the CLI script above.</div>
+                        <span asp-validation-for="MsaClientSecret" class="text-danger"></span>
+                    </div>
+                </div>
+
                 <div id="microsoft365Settings" style="display: none;">
                     <h4 class="mt-4">@Localizer["Microsoft365Settings"]</h4>
                     
@@ -141,6 +178,7 @@
             const providerSelect = document.getElementById('Provider');
             const imapSettings = document.getElementById('imapSettings');
             const microsoft365Settings = document.getElementById('microsoft365Settings');
+            const msaSettings = document.getElementById('msaSettings');
             const emailDeletionSettings = document.getElementById('emailDeletionSettings');
             const emailAddressInput = document.getElementById('EmailAddress');
             const existingAccountSuggestion = document.getElementById('existingAccountSuggestion');
@@ -149,33 +187,33 @@
             const clientIdInput = document.getElementById('ClientId');
             const clientSecretInput = document.getElementById('ClientSecret');
             const tenantIdInput = document.getElementById('TenantId');
-            
+
             let existingAccounts = [];
             let isSettingProvider = false;
-            
+
             function toggleSettings(skipSuggestionCheck) {
                 const providerValue = providerSelect.value;
                 const hasSuggestions = existingAccountSuggestion.style.display === 'block';
-                
+
+                imapSettings.style.display = 'none';
+                microsoft365Settings.style.display = 'none';
+                msaSettings.style.display = 'none';
+                emailDeletionSettings.style.display = 'none';
+                existingAccountSuggestion.style.display = 'none';
+
                 if (providerValue === '@ProviderType.IMPORT') {
-                    imapSettings.style.display = 'none';
-                    microsoft365Settings.style.display = 'none';
-                    emailDeletionSettings.style.display = 'none';
-                    existingAccountSuggestion.style.display = 'none';
+                    // nothing shown
                 } else if (providerValue === '@ProviderType.M365') {
-                    imapSettings.style.display = 'none';
                     microsoft365Settings.style.display = 'block';
                     emailDeletionSettings.style.display = 'block';
-                    // Only check for existing accounts if not skipping
                     if (!skipSuggestionCheck && !hasSuggestions) {
                         checkForExistingAccounts();
                     }
+                } else if (providerValue === '@ProviderType.MSA') {
+                    msaSettings.style.display = 'block';
+                    emailDeletionSettings.style.display = 'block';
                 } else {
                     imapSettings.style.display = 'block';
-                    // Keep M365 settings visible if there are suggestions
-                    if (!hasSuggestions) {
-                        microsoft365Settings.style.display = 'none';
-                    }
                     emailDeletionSettings.style.display = 'block';
                 }
             }
