@@ -97,8 +97,10 @@ After completing the app registration, you need to configure a M365 mail account
 
 ### ⚠️ Important Notes:
 
-- The **Email Address** field must contain the actual mailbox you want to archive
-- The app registration must have permissions to access the specified mailbox
+- The **Email Address** field must contain the actual mailbox you want to archive when creating a single M365 account.
+- The app registration must have permissions to access the specified mailbox.
+- To create accounts for all or selected mailboxes in the tenant at once, use the [Microsoft 365 Tenant Mailbox Import](M365TenantImport.md) guide.
+
 
 ## 🗑️ Retention Policy Setup
 
