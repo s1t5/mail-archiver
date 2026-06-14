@@ -111,33 +111,33 @@
                     <div id="tenantImportControls" style="display: @tenantImportControlsDisplay;">
                         <div class="mb-3 form-check">
                             <input asp-for="ImportEntireTenant" class="form-check-input" />
-                            <label asp-for="ImportEntireTenant" class="form-check-label">Tenant import verwenden</label>
-                            <div class="form-text">Lädt die Mailboxen des Tenants und erstellt Konten mit dem Namensschema: eingegebener Name - &lt;mailbox@example.com&gt;.</div>
+                            <label asp-for="ImportEntireTenant" class="form-check-label">@Localizer["UseTenantImport"]</label>
+                            <div class="form-text">@Localizer["UseTenantImportHelp"]</div>
                         </div>
 
                         <div id="tenantImportSettings" style="display: @tenantImportSettingsDisplay;">
                             <div class="mb-3 form-check">
                                 <input asp-for="SkipDisabledMailboxes" class="form-check-input" />
-                                <label asp-for="SkipDisabledMailboxes" class="form-check-label">Deaktivierte Mailboxen überspringen</label>
+                                <label asp-for="SkipDisabledMailboxes" class="form-check-label">@Localizer["SkipDisabledMailboxes"]</label>
                             </div>
 
                             <div class="mb-3 form-check">
                                 <input asp-for="ImportAllTenantMailboxes" class="form-check-input" />
-                                <label asp-for="ImportAllTenantMailboxes" class="form-check-label">Alle aufgelisteten Mailboxen importieren</label>
-                                <div class="form-text">Wenn deaktiviert, werden nur die unten ausgewählten Mailboxen importiert.</div>
+                                <label asp-for="ImportAllTenantMailboxes" class="form-check-label">@Localizer["ImportAllListedMailboxes"]</label>
+                                <div class="form-text">@Localizer["ImportAllListedMailboxesHelp"]</div>
                             </div>
 
                             <div class="d-flex gap-2 align-items-center mb-3">
-                                <button type="button" id="loadTenantMailboxesBtn" class="btn btn-outline-primary btn-sm">Mailboxen laden</button>
+                                <button type="button" id="loadTenantMailboxesBtn" class="btn btn-outline-primary btn-sm">@Localizer["LoadMailboxes"]</button>
                                 <span id="tenantMailboxStatus" class="text-muted small"></span>
                             </div>
 
                             <div id="tenantMailboxSelection" class="border rounded p-3 mb-3" style="display: none; max-height: 320px; overflow-y: auto;">
                                 <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <strong>Tenant-Mailboxen</strong>
+                                    <strong>@Localizer["TenantMailboxes"]</strong>
                                     <div class="btn-group btn-group-sm">
-                                        <button type="button" id="selectAllTenantMailboxesBtn" class="btn btn-outline-secondary">Alle auswählen</button>
-                                        <button type="button" id="clearTenantMailboxesBtn" class="btn btn-outline-secondary">Auswahl leeren</button>
+                                        <button type="button" id="selectAllTenantMailboxesBtn" class="btn btn-outline-secondary">@Localizer["SelectAll"]</button>
+                                        <button type="button" id="clearTenantMailboxesBtn" class="btn btn-outline-secondary">@Localizer["ClearSelection"]</button>
                                     </div>
                                 </div>
                                 <div id="tenantMailboxList"></div>
@@ -258,11 +258,6 @@
                     existingAccountSuggestion.style.display = 'none';
                     return;
                 }
-                
-                if (providerSelect.value !== '@ProviderType.M365' || importEntireTenantInput.checked) {
-                    existingAccountSuggestion.style.display = 'none';
-                    return;
-                }
 
                 // Need at least an at-symbol to have a domain
                 if (!emailAddress || !emailAddress.includes(String.fromCharCode(64))) {
@@ -305,8 +300,13 @@
                                 existingAccountSelect.appendChild(option);
                             });
                             
-                            // Show the credential suggestion only while the user is explicitly creating an M365 account.
+                            if (providerSelect.value !== '@ProviderType.M365') {
+                                providerSelect.value = '@ProviderType.M365';
+                                toggleSettings(true);
+                            }
+
                             existingAccountSuggestion.style.display = 'block';
+                            microsoft365Settings.style.display = 'block';
                         } else {
                             existingAccounts = [];
                             lastCheckedEmail = '';
@@ -374,7 +374,7 @@
                 tenantMailboxList.innerHTML = '';
 
                 if (!mailboxes || mailboxes.length === 0) {
-                    tenantMailboxList.innerHTML = '<div class="text-muted">Keine Mailboxen gefunden.</div>';
+                    tenantMailboxList.innerHTML = '<div class="text-muted">@Localizer["NoMailboxesFound"]</div>';
                     tenantMailboxSelection.style.display = 'block';
                     return;
                 }
@@ -403,14 +403,14 @@
                     if (mailbox.isDisabled) {
                         const disabledBadge = document.createElement('span');
                         disabledBadge.className = 'badge bg-warning text-dark ms-2';
-                        disabledBadge.textContent = 'deaktiviert';
+                        disabledBadge.textContent = '@Localizer["DisabledLowercase"]';
                         label.appendChild(disabledBadge);
                     }
 
                     if (mailbox.alreadyExists) {
                         const existingBadge = document.createElement('span');
                         existingBadge.className = 'badge bg-secondary ms-2';
-                        existingBadge.textContent = 'existiert bereits';
+                        existingBadge.textContent = '@Localizer["AlreadyExistsLowercase"]';
                         label.appendChild(existingBadge);
                     }
 
@@ -431,7 +431,7 @@
                 formData.append('tenantId', tenantIdInput.value);
                 formData.append('skipDisabledMailboxes', skipDisabledMailboxesInput.checked);
 
-                tenantMailboxStatus.textContent = 'Mailboxen werden geladen...';
+                tenantMailboxStatus.textContent = '@Localizer["LoadingMailboxes"]';
                 loadTenantMailboxesBtn.disabled = true;
 
                 fetch('@Url.Action("ListM365TenantMailboxes", "MailAccounts")', {
@@ -441,108 +441,18 @@
                     .then(response => response.json())
                     .then(data => {
                         if (!data.success) {
-                            tenantMailboxStatus.textContent = data.message || 'Mailboxen konnten nicht geladen werden.';
+                            tenantMailboxStatus.textContent = data.message || '@Localizer["MailboxesCouldNotBeLoaded"]';
                             tenantMailboxStatus.className = 'text-danger small';
                             return;
                         }
 
                         renderTenantMailboxes(data.mailboxes);
-                        tenantMailboxStatus.textContent = (data.mailboxes || []).length + ' Mailbox(en) gefunden.';
+                        tenantMailboxStatus.textContent = (data.mailboxes || []).length + ' @Localizer["MailboxesFoundSuffix"]';
                         tenantMailboxStatus.className = 'text-muted small';
                     })
                     .catch(error => {
                         console.error('Error loading tenant mailboxes:', error);
-                        tenantMailboxStatus.textContent = 'Mailboxen konnten nicht geladen werden.';
-                        tenantMailboxStatus.className = 'text-danger small';
-                    })
-                    .finally(() => {
-                        loadTenantMailboxesBtn.disabled = false;
-                    });
-            }
-            
-            function renderTenantMailboxes(mailboxes) {
-                tenantMailboxList.innerHTML = '';
-
-                if (!mailboxes || mailboxes.length === 0) {
-                    tenantMailboxList.innerHTML = '<div class="text-muted">Keine Mailboxen gefunden.</div>';
-                    tenantMailboxSelection.style.display = 'block';
-                    return;
-                }
-
-                mailboxes.forEach((mailbox, index) => {
-                    const wrapper = document.createElement('div');
-                    wrapper.className = 'form-check mb-2';
-
-                    const checkbox = document.createElement('input');
-                    checkbox.type = 'checkbox';
-                    checkbox.className = 'form-check-input';
-                    checkbox.id = 'tenantMailbox_' + index;
-                    checkbox.name = 'SelectedM365Mailboxes';
-                    checkbox.value = mailbox.emailAddress;
-                    checkbox.checked = importAllTenantMailboxesInput.checked && !mailbox.alreadyExists;
-                    checkbox.disabled = importAllTenantMailboxesInput.checked || mailbox.alreadyExists;
-                    if (mailbox.alreadyExists) {
-                        checkbox.dataset.existingAccount = 'true';
-                    }
-
-                    const label = document.createElement('label');
-                    label.className = 'form-check-label';
-                    label.htmlFor = checkbox.id;
-                    label.textContent = mailbox.displayName + ' <' + mailbox.emailAddress + '>';
-
-                    if (mailbox.isDisabled) {
-                        const disabledBadge = document.createElement('span');
-                        disabledBadge.className = 'badge bg-warning text-dark ms-2';
-                        disabledBadge.textContent = 'deaktiviert';
-                        label.appendChild(disabledBadge);
-                    }
-
-                    if (mailbox.alreadyExists) {
-                        const existingBadge = document.createElement('span');
-                        existingBadge.className = 'badge bg-secondary ms-2';
-                        existingBadge.textContent = 'existiert bereits';
-                        label.appendChild(existingBadge);
-                    }
-
-                    wrapper.appendChild(checkbox);
-                    wrapper.appendChild(label);
-                    tenantMailboxList.appendChild(wrapper);
-                });
-
-                tenantMailboxSelection.style.display = 'block';
-            }
-
-            function loadTenantMailboxes() {
-                const tokenInput = createForm.querySelector('input[name="__RequestVerificationToken"]');
-                const formData = new FormData();
-                formData.append('__RequestVerificationToken', tokenInput ? tokenInput.value : '');
-                formData.append('clientId', clientIdInput.value);
-                formData.append('clientSecret', clientSecretInput.value);
-                formData.append('tenantId', tenantIdInput.value);
-                formData.append('skipDisabledMailboxes', skipDisabledMailboxesInput.checked);
-
-                tenantMailboxStatus.textContent = 'Mailboxen werden geladen...';
-                loadTenantMailboxesBtn.disabled = true;
-
-                fetch('@Url.Action("ListM365TenantMailboxes", "MailAccounts")', {
-                    method: 'POST',
-                    body: formData
-                })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (!data.success) {
-                            tenantMailboxStatus.textContent = data.message || 'Mailboxen konnten nicht geladen werden.';
-                            tenantMailboxStatus.className = 'text-danger small';
-                            return;
-                        }
-
-                        renderTenantMailboxes(data.mailboxes);
-                        tenantMailboxStatus.textContent = (data.mailboxes || []).length + ' Mailbox(en) gefunden.';
-                        tenantMailboxStatus.className = 'text-muted small';
-                    })
-                    .catch(error => {
-                        console.error('Error loading tenant mailboxes:', error);
-                        tenantMailboxStatus.textContent = 'Mailboxen konnten nicht geladen werden.';
+                        tenantMailboxStatus.textContent = '@Localizer["MailboxesCouldNotBeLoaded"]';
                         tenantMailboxStatus.className = 'text-danger small';
                     })
                     .finally(() => {
