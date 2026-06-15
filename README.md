@@ -28,6 +28,7 @@
 - Preview emails with attachment list
 - Export entire mail accounts as mbox files or zipped EML archives
 - Export selected individual emails or email batches
+- Read-only REST API (v1) for programmatic access to the archive via scoped per-user API keys — lets scripts and AI agents read archived mail without ever exposing mailbox credentials ([REST API Guide](doc/API.md))
 
 ### 👥 User Management
 - Multi-user support with account-specific permissions

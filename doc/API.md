@@ -4,6 +4,12 @@ Mail Archiver ships an optional, **read-only** REST API for programmatic access
 to archived mail. It is designed for automation and integration use cases
 (reporting, e-discovery exports, monitoring) without going through the web UI.
 
+The point is to let a script or AI agent read archived mail **without ever
+exposing mailbox credentials or talking to the mail provider.** A scoped
+per-user API key is a capability to *read the archive*, not a credential to *be
+the mailbox* — it inherits only its owner's mailbox permissions, grants no write
+path, and can be revoked instantly without touching the underlying mail account.
+
 > ⚠️ **The API is disabled by default.** It must be explicitly enabled in
 > configuration (see [Enabling the API](#enabling-the-api)). When disabled,
 > every `/api/*` route returns `404 Not Found`.
