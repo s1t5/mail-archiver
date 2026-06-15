@@ -2520,13 +2520,13 @@
     <value>Betölti a bérlő postafiókjait, és létrehozza a fiókokat a következő elnevezési sémával: megadott név - &lt;postafiók@pelda.com&gt;.</value>
   </data>
   <data name="SkipDisabledMailboxes" xml:space="preserve">
-    <value letiltott postafiók kihagyása</value>
+    <value>letiltott postafiók kihagyása</value>
   </data>
   <data name="ImportAllListedMailboxes" xml:space="preserve">
     <value>Összes felsorolt postafiók importálása</value>
   </data>
   <data name="ImportAllListedMailboxesHelp" xml:space="preserve">
-    <value letiltva csak a lent kiválasztott postafiókok kerülnek importálásra.</value>
+    <value>letiltva csak a lent kiválasztott postafiókok kerülnek importálásra.</value>
   </data>
   <data name="LoadMailboxes" xml:space="preserve">
     <value>Postafiókok betöltése</value>
@@ -2541,7 +2541,7 @@
     <value>Nem találhatók postafiókok.</value>
   </data>
   <data name="DisabledLowercase" xml:space="preserve">
-    <value letiltva</value>
+    <value>letiltva</value>
   </data>
   <data name="AlreadyExistsLowercase" xml:space="preserve">
     <value>már létezik</value>
