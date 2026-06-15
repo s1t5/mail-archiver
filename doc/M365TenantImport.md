@@ -18,7 +18,9 @@ You need these values from Microsoft Entra ID:
 - **Client Secret**
 - **Tenant ID** / Directory ID
 
-The app registration must have Microsoft Graph **application permissions** that allow Mail Archiver to read the tenant mailboxes. At minimum, use the same permissions that are required for regular M365 account archiving.
+The app registration must have Microsoft Graph **application permissions** that allow Mail Archiver to read the tenant mailboxes. In addition to the permissions required for regular M365 account archiving, the following permission is required for tenant import:
+
+- **User.Read.All** – required to list tenant users and their mailbox addresses.
 
 ## Import Modes
 
@@ -96,6 +98,7 @@ Check the following values and permissions:
 - Client Secret is valid and has not expired.
 - Tenant ID is correct and not empty.
 - Admin consent has been granted for the required Microsoft Graph application permissions.
+- The app registration has been granted the **User.Read.All** application permission (required for listing tenant mailboxes).
 
 ### No mailboxes are shown
 
