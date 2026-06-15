@@ -2567,4 +2567,73 @@
   <data name="GotIt" xml:space="preserve">
     <value>Rozumiem!</value>
   </data>
+  <data name="ApiKeys" xml:space="preserve">
+    <value>Klucze API</value>
+  </data>
+  <data name="ApiKeysDescription" xml:space="preserve">
+    <value>Zarządzaj kluczami API do programowego dostępu tylko do odczytu do zarchiwizowanej poczty.</value>
+  </data>
+  <data name="CreateApiKey" xml:space="preserve">
+    <value>Utwórz klucz API</value>
+  </data>
+  <data name="ApiKeyName" xml:space="preserve">
+    <value>Nazwa</value>
+  </data>
+  <data name="ApiKeyExpiration" xml:space="preserve">
+    <value>Wygaśnięcie (opcjonalnie)</value>
+  </data>
+  <data name="ApiKeyCreatedOnce" xml:space="preserve">
+    <value>Skopiuj ten klucz teraz. Ze względów bezpieczeństwa jest wyświetlany tylko raz i nie można go później odzyskać.</value>
+  </data>
+  <data name="ApiKeyValue" xml:space="preserve">
+    <value>Klucz API</value>
+  </data>
+  <data name="ApiKeyPrefix" xml:space="preserve">
+    <value>Prefiks</value>
+  </data>
+  <data name="ApiKeyCreatedColumn" xml:space="preserve">
+    <value>Utworzono</value>
+  </data>
+  <data name="ApiKeyLastUsed" xml:space="preserve">
+    <value>Ostatnio użyty</value>
+  </data>
+  <data name="ApiKeyExpires" xml:space="preserve">
+    <value>Wygasa</value>
+  </data>
+  <data name="ApiKeyStatus" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="ApiKeyActive" xml:space="preserve">
+    <value>Aktywny</value>
+  </data>
+  <data name="ApiKeyRevoked" xml:space="preserve">
+    <value>Unieważniony</value>
+  </data>
+  <data name="ApiKeyExpired" xml:space="preserve">
+    <value>Wygasły</value>
+  </data>
+  <data name="ApiKeyRevoke" xml:space="preserve">
+    <value>Unieważnij</value>
+  </data>
+  <data name="ApiKeyRevokeConfirm" xml:space="preserve">
+    <value>Unieważnić ten klucz API? Aplikacje, które go używają, natychmiast przestaną działać.</value>
+  </data>
+  <data name="ApiKeyOwner" xml:space="preserve">
+    <value>Właściciel</value>
+  </data>
+  <data name="NoApiKeys" xml:space="preserve">
+    <value>Nie ma jeszcze kluczy API.</value>
+  </data>
+  <data name="ApiKeyCreatedSuccess" xml:space="preserve">
+    <value>Klucz API został utworzony.</value>
+  </data>
+  <data name="ApiKeyRevokedSuccess" xml:space="preserve">
+    <value>Klucz API został unieważniony.</value>
+  </data>
+  <data name="ApiKeyRevokeFailed" xml:space="preserve">
+    <value>Nie można unieważnić klucza API.</value>
+  </data>
+  <data name="Copy" xml:space="preserve">
+    <value>Kopiuj</value>
+  </data>
 </root>

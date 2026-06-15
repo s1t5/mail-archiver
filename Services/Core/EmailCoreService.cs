@@ -167,7 +167,11 @@ namespace MailArchiver.Services.Core
             // Account filtering
             if (accountId.HasValue)
             {
-                if (allowedAccountIds != null && allowedAccountIds.Any() && !allowedAccountIds.Contains(accountId.Value))
+                // A non-null allowed list means the caller is restricted; an empty
+                // list grants access to nothing, so an explicitly requested account
+                // that is not contained must be denied (no .Any() short-circuit, or
+                // a zero-grant user could read any account via ?accountId=).
+                if (allowedAccountIds != null && !allowedAccountIds.Contains(accountId.Value))
                 {
                     _logger.LogWarning("User attempted to access account {AccountId} which is not in their allowed accounts list", accountId.Value);
                     return (new List<ArchivedEmail>(), 0);
@@ -454,7 +458,9 @@ namespace MailArchiver.Services.Core
 
             if (accountId.HasValue)
             {
-                if (allowedAccountIds != null && allowedAccountIds.Any() && !allowedAccountIds.Contains(accountId.Value))
+                // Empty allowed list = restricted to nothing; deny any explicitly
+                // requested account that is not contained (mirrors the optimized path).
+                if (allowedAccountIds != null && !allowedAccountIds.Contains(accountId.Value))
                     return (new List<ArchivedEmail>(), 0);
                 baseQuery = baseQuery.Where(e => e.MailAccountId == accountId.Value);
             }

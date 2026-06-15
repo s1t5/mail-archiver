@@ -293,6 +293,8 @@ coverage/
 /obj
 *.cache
 *.sln
+# The repository's own solution file must be tracked (the test project needs it).
+!MailArchiver.sln
 /ResXManager.config.xml
 update_resource_files.ps1
 *.cache

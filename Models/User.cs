@@ -42,5 +42,6 @@ namespace MailArchiver.Models
         
         // Navigation properties
         public virtual ICollection<UserMailAccount> UserMailAccounts { get; set; } = new List<UserMailAccount>();
+        public virtual ICollection<ApiKey> ApiKeys { get; set; } = new List<ApiKey>();
     }
 }

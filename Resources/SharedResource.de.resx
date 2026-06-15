@@ -2522,4 +2522,73 @@
   <data name="GotIt" xml:space="preserve">
     <value>Verstanden!</value>
   </data>
+  <data name="ApiKeys" xml:space="preserve">
+    <value>API-Schlüssel</value>
+  </data>
+  <data name="ApiKeysDescription" xml:space="preserve">
+    <value>Verwalten Sie API-Schlüssel für programmatischen, schreibgeschützten Zugriff auf Ihre archivierten E-Mails.</value>
+  </data>
+  <data name="CreateApiKey" xml:space="preserve">
+    <value>API-Schlüssel erstellen</value>
+  </data>
+  <data name="ApiKeyName" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="ApiKeyExpiration" xml:space="preserve">
+    <value>Ablaufdatum (optional)</value>
+  </data>
+  <data name="ApiKeyCreatedOnce" xml:space="preserve">
+    <value>Kopieren Sie diesen Schlüssel jetzt. Aus Sicherheitsgründen wird er nur einmal angezeigt und kann später nicht erneut abgerufen werden.</value>
+  </data>
+  <data name="ApiKeyValue" xml:space="preserve">
+    <value>API-Schlüssel</value>
+  </data>
+  <data name="ApiKeyPrefix" xml:space="preserve">
+    <value>Präfix</value>
+  </data>
+  <data name="ApiKeyCreatedColumn" xml:space="preserve">
+    <value>Erstellt</value>
+  </data>
+  <data name="ApiKeyLastUsed" xml:space="preserve">
+    <value>Zuletzt verwendet</value>
+  </data>
+  <data name="ApiKeyExpires" xml:space="preserve">
+    <value>Läuft ab</value>
+  </data>
+  <data name="ApiKeyStatus" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="ApiKeyActive" xml:space="preserve">
+    <value>Aktiv</value>
+  </data>
+  <data name="ApiKeyRevoked" xml:space="preserve">
+    <value>Widerrufen</value>
+  </data>
+  <data name="ApiKeyExpired" xml:space="preserve">
+    <value>Abgelaufen</value>
+  </data>
+  <data name="ApiKeyRevoke" xml:space="preserve">
+    <value>Widerrufen</value>
+  </data>
+  <data name="ApiKeyRevokeConfirm" xml:space="preserve">
+    <value>Diesen API-Schlüssel widerrufen? Anwendungen, die ihn verwenden, funktionieren sofort nicht mehr.</value>
+  </data>
+  <data name="ApiKeyOwner" xml:space="preserve">
+    <value>Besitzer</value>
+  </data>
+  <data name="NoApiKeys" xml:space="preserve">
+    <value>Noch keine API-Schlüssel.</value>
+  </data>
+  <data name="ApiKeyCreatedSuccess" xml:space="preserve">
+    <value>API-Schlüssel erstellt.</value>
+  </data>
+  <data name="ApiKeyRevokedSuccess" xml:space="preserve">
+    <value>API-Schlüssel widerrufen.</value>
+  </data>
+  <data name="ApiKeyRevokeFailed" xml:space="preserve">
+    <value>Der API-Schlüssel konnte nicht widerrufen werden.</value>
+  </data>
+  <data name="Copy" xml:space="preserve">
+    <value>Kopieren</value>
+  </data>
 </root>
