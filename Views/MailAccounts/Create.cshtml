@@ -447,7 +447,7 @@
                         }
 
                         renderTenantMailboxes(data.mailboxes);
-                        tenantMailboxStatus.textContent = (data.mailboxes || []).length + ' @Localizer["MailboxesFoundSuffix"]';
+                        tenantMailboxStatus.textContent = '@Localizer["MailboxesFound"]'.replace('{0}', (data.mailboxes || []).length);
                         tenantMailboxStatus.className = 'text-muted small';
                     })
                     .catch(error => {

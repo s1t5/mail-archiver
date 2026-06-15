@@ -381,12 +381,6 @@ var model = new MailAccountViewModel
                         .Select(address => address.Trim().ToLowerInvariant())
                         .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
-                if (selectedAddressSet != null && selectedAddressSet.Count == 0)
-                {
-                    ModelState.AddModelError(nameof(model.SelectedM365Mailboxes), _localizer["SelectAtLeastOneMailboxOrImportAll"].Value);
-                    return View("Create", model);
-                }
-
                 var selectedMailboxCount = selectedAddressSet?.Count ?? tenantMailboxes.Count;
                 var accountNamePrefix = model.Name!.Trim();
                 var existingAddressSet = existingAddresses.ToHashSet(StringComparer.OrdinalIgnoreCase);
@@ -449,7 +443,7 @@ var model = new MailAccountViewModel
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error importing M365 tenant accounts: {Message}", ex.Message);
-                ModelState.AddModelError("", $"{_localizer["ErrorOccurred"]}: {ex.Message}");
+                ModelState.AddModelError("", _localizer["M365TenantAccountsCouldNotBeImported"].Value);
                 return View("Create", model);
             }
         }

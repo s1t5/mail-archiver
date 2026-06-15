@@ -2561,8 +2561,8 @@
   <data name="MailboxesCouldNotBeLoaded" xml:space="preserve">
     <value>Mailboxen konnten nicht geladen werden.</value>
   </data>
-  <data name="MailboxesFoundSuffix" xml:space="preserve">
-    <value>Mailbox(en) gefunden.</value>
+  <data name="MailboxesFound" xml:space="preserve">
+    <value>{0} Mailbox(en) gefunden.</value>
   </data>
   <data name="M365MailboxDefaultName" xml:space="preserve">
     <value>M365 Mailbox</value>
@@ -2584,5 +2584,14 @@
   </data>
   <data name="M365TenantMailboxesCouldNotBeListed" xml:space="preserve">
     <value>Tenant-Mailboxen konnten nicht aufgelistet werden. Bitte prüfen Sie die M365-Zugangsdaten und Berechtigungen.</value>
+  </data>
+  <data name="M365TenantAccountsCouldNotBeImported" xml:space="preserve">
+    <value>Die M365-Tenant-Mailkonten konnten nicht importiert werden. Bitte prüfen Sie die Zugangsdaten und Berechtigungen.</value>
+  </data>
+  <data name="NameRequired" xml:space="preserve">
+    <value>Name ist erforderlich</value>
+  </data>
+  <data name="EmailAddressRequired" xml:space="preserve">
+    <value>E-Mail-Adresse ist erforderlich</value>
   </data>
 </root>
