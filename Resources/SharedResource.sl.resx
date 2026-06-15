@@ -2521,4 +2521,85 @@
   <data name="GotIt" xml:space="preserve">
     <value>Razumem!</value>
   </data>
+  <data name="UseTenantImport" xml:space="preserve">
+    <value>Uporabi uvoz najemnika</value>
+  </data>
+  <data name="UseTenantImportHelp" xml:space="preserve">
+    <value>Naloži poštne nabiralnike najemnika in ustvari račune po shemi imenovanja: vneseno ime - &lt;nabiralnik@primer.com&gt;.</value>
+  </data>
+  <data name="SkipDisabledMailboxes" xml:space="preserve">
+    <value>Preskoči onemogočene poštne nabiralnike</value>
+  </data>
+  <data name="ImportAllListedMailboxes" xml:space="preserve">
+    <value>Uvozi vse naštete poštne nabiralnike</value>
+  </data>
+  <data name="ImportAllListedMailboxesHelp" xml:space="preserve">
+    <value>Če je onemogočeno, se uvozijo samo spodaj izbrani poštne nabiralnike.</value>
+  </data>
+  <data name="LoadMailboxes" xml:space="preserve">
+    <value>Naloži poštne nabiralnike</value>
+  </data>
+  <data name="TenantMailboxes" xml:space="preserve">
+    <value>Poštne nabiralnike najemnika</value>
+  </data>
+  <data name="ClearSelection" xml:space="preserve">
+    <value>Počisti izbiro</value>
+  </data>
+  <data name="NoMailboxesFound" xml:space="preserve">
+    <value>Poštne nabiralnike niso bile najdene.</value>
+  </data>
+  <data name="DisabledLowercase" xml:space="preserve">
+    <value>onemogočeno</value>
+  </data>
+  <data name="AlreadyExistsLowercase" xml:space="preserve">
+    <value>že obstaja</value>
+  </data>
+  <data name="LoadingMailboxes" xml:space="preserve">
+    <value>Nalaganje poštne nabiralnike...</value>
+  </data>
+  <data name="MailboxesCouldNotBeLoaded" xml:space="preserve">
+    <value>Poštne nabiralnike ni bilo mogoče naložiti.</value>
+  </data>
+  <data name="MailboxesFound" xml:space="preserve">
+    <value>Najdenih je bilo {0} pošten nabiralnik(a).</value>
+  </data>
+  <data name="M365MailboxDefaultName" xml:space="preserve">
+    <value>Poštni nabiralnik M365</value>
+  </data>
+  <data name="NoEnabledM365UsersFound" xml:space="preserve">
+    <value>V tem najemniku ni bilo najdenih omogočenih uporabnikov M365 z e-poštnim naslovom ali glavnim imenom uporabnika.</value>
+  </data>
+  <data name="SelectAtLeastOneMailboxOrImportAll" xml:space="preserve">
+    <value>Izberite vsaj en poštne nabiralnik ali omogočite uvoz vseh naštetih poštne nabiralnike.</value>
+  </data>
+  <data name="AllSelectedM365TenantMailboxesAlreadyExist" xml:space="preserve">
+    <value>Vsi izbrani {0} poštne nabiralnike najemnika M365 že obstajajo.</value>
+  </data>
+  <data name="ImportedM365TenantAccounts" xml:space="preserve">
+    <value>Uvoženih je bilo {0} računov e-pošte najemnika M365. Preskočenih je bilo {1} obstoječih računov.</value>
+  </data>
+  <data name="M365TenantCredentialsRequired" xml:space="preserve">
+    <value>Za našteti poštne nabiralnike najemnika so potrebni ID stranke, skrivnost stranke in ID najemnika.</value>
+  </data>
+  <data name="M365TenantMailboxesCouldNotBeListed" xml:space="preserve">
+    <value>Poštne nabiralnike najemnika ni bilo mogoče našteti. Preverite poverilnice M365 in dovoljenja.</value>
+  </data>
+  <data name="M365TenantAccountsCouldNotBeImported" xml:space="preserve">
+    <value>Računov najemnika M365 ni bilo mogoče uvoziti. Preverite poverilnice in dovoljenja.</value>
+  </data>
+  <data name="NameRequired" xml:space="preserve">
+    <value>Ime je obvezno</value>
+  </data>
+  <data name="EmailAddressRequired" xml:space="preserve">
+    <value>E-poštni naslov je obvezen</value>
+  </data>
+  <data name="ProviderM365Single" xml:space="preserve">
+    <value>Microsoft 365 (posamični nabiralnik)</value>
+  </data>
+  <data name="ProviderM365Tenant" xml:space="preserve">
+    <value>Microsoft 365 (najemnik)</value>
+  </data>
+  <data name="LoadMailboxesHelp" xml:space="preserve">
+    <value>Naložite seznam poštne nabiralnike najemnika, da izberete, katere račune želite uvoziti.</value>
+  </data>
 </root>

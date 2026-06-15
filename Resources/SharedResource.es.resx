@@ -2520,4 +2520,85 @@
   <data name="GotIt" xml:space="preserve">
     <value>¡Entendido!</value>
   </data>
+  <data name="UseTenantImport" xml:space="preserve">
+    <value>Usar importación de inquilino</value>
+  </data>
+  <data name="UseTenantImportHelp" xml:space="preserve">
+    <value>Carga los buzones de correo del inquilino y crea cuentas con el esquema de nombre: nombre introducido - &lt;buzon@ejemplo.com&gt;.</value>
+  </data>
+  <data name="SkipDisabledMailboxes" xml:space="preserve">
+    <value>Omitir buzones deshabilitados</value>
+  </data>
+  <data name="ImportAllListedMailboxes" xml:space="preserve">
+    <value>Importar todos los buzones enumerados</value>
+  </data>
+  <data name="ImportAllListedMailboxesHelp" xml:space="preserve">
+    <value>Cuando está deshabilitado, solo se importan los buzones seleccionados a continuación.</value>
+  </data>
+  <data name="LoadMailboxes" xml:space="preserve">
+    <value>Cargar buzones</value>
+  </data>
+  <data name="TenantMailboxes" xml:space="preserve">
+    <value>Buzones del inquilino</value>
+  </data>
+  <data name="ClearSelection" xml:space="preserve">
+    <value>Borrar selección</value>
+  </data>
+  <data name="NoMailboxesFound" xml:space="preserve">
+    <value>No se encontraron buzones.</value>
+  </data>
+  <data name="DisabledLowercase" xml:space="preserve">
+    <value>deshabilitado</value>
+  </data>
+  <data name="AlreadyExistsLowercase" xml:space="preserve">
+    <value>ya existe</value>
+  </data>
+  <data name="LoadingMailboxes" xml:space="preserve">
+    <value>Cargando buzones...</value>
+  </data>
+  <data name="MailboxesCouldNotBeLoaded" xml:space="preserve">
+    <value>No se pudieron cargar los buzones.</value>
+  </data>
+  <data name="MailboxesFound" xml:space="preserve">
+    <value>Se encontraron {0} buzón(es).</value>
+  </data>
+  <data name="M365MailboxDefaultName" xml:space="preserve">
+    <value>Buzón M365</value>
+  </data>
+  <data name="NoEnabledM365UsersFound" xml:space="preserve">
+    <value>No se encontraron usuarios de M365 habilitados con una dirección de correo electrónico o un nombre principal de usuario en este inquilino.</value>
+  </data>
+  <data name="SelectAtLeastOneMailboxOrImportAll" xml:space="preserve">
+    <value>Seleccione al menos un buzón o habilite la importación de todos los buzones enumerados.</value>
+  </data>
+  <data name="AllSelectedM365TenantMailboxesAlreadyExist" xml:space="preserve">
+    <value>Los {0} buzones del inquilino M365 seleccionados ya existen.</value>
+  </data>
+  <data name="ImportedM365TenantAccounts" xml:space="preserve">
+    <value>Se importaron {0} cuentas de correo del inquilino M365. Se omitieron {1} cuentas existentes.</value>
+  </data>
+  <data name="M365TenantCredentialsRequired" xml:space="preserve">
+    <value>Se requieren la ID de cliente, el secreto del cliente y la ID del inquilino para enumerar los buzones del inquilino.</value>
+  </data>
+  <data name="M365TenantMailboxesCouldNotBeListed" xml:space="preserve">
+    <value>No se pudieron enumerar los buzones del inquilino. Verifique las credenciales y los permisos de M365.</value>
+  </data>
+  <data name="M365TenantAccountsCouldNotBeImported" xml:space="preserve">
+    <value>No se pudieron importar las cuentas del inquilino M365. Verifique las credenciales y los permisos.</value>
+  </data>
+  <data name="NameRequired" xml:space="preserve">
+    <value>Se requiere el nombre</value>
+  </data>
+  <data name="EmailAddressRequired" xml:space="preserve">
+    <value>Se requiere la dirección de correo electrónico</value>
+  </data>
+  <data name="ProviderM365Single" xml:space="preserve">
+    <value>Microsoft 365 (buzón individual)</value>
+  </data>
+  <data name="ProviderM365Tenant" xml:space="preserve">
+    <value>Microsoft 365 (inquilino)</value>
+  </data>
+  <data name="LoadMailboxesHelp" xml:space="preserve">
+    <value>Cargue la lista de buzones del inquilino para elegir qué cuentas importar.</value>
+  </data>
 </root>

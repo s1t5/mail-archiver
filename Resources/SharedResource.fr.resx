@@ -2521,4 +2521,85 @@
   <data name="GotIt" xml:space="preserve">
     <value>Compris !</value>
   </data>
+  <data name="UseTenantImport" xml:space="preserve">
+    <value>Utiliser l'importation du locataire</value>
+  </data>
+  <data name="UseTenantImportHelp" xml:space="preserve">
+    <value>Charge les boîtes aux lettres du locataire et crée des comptes selon le schéma de nom : nom saisi - &lt;boite@exemple.com&gt;.</value>
+  </data>
+  <data name="SkipDisabledMailboxes" xml:space="preserve">
+    <value>Ignorer les boîtes aux lettres désactivées</value>
+  </data>
+  <data name="ImportAllListedMailboxes" xml:space="preserve">
+    <value>Importer toutes les boîtes aux lettres répertoriées</value>
+  </data>
+  <data name="ImportAllListedMailboxesHelp" xml:space="preserve">
+    <value>Lorsqu'il est désactivé, seules les boîtes aux lettres sélectionnées ci-dessous sont importées.</value>
+  </data>
+  <data name="LoadMailboxes" xml:space="preserve">
+    <value>Charger les boîtes aux lettres</value>
+  </data>
+  <data name="TenantMailboxes" xml:space="preserve">
+    <value>Boîtes aux lettres du locataire</value>
+  </data>
+  <data name="ClearSelection" xml:space="preserve">
+    <value>Effacer la sélection</value>
+  </data>
+  <data name="NoMailboxesFound" xml:space="preserve">
+    <value>Aucune boîte aux lettres trouvée.</value>
+  </data>
+  <data name="DisabledLowercase" xml:space="preserve">
+    <value>désactivé</value>
+  </data>
+  <data name="AlreadyExistsLowercase" xml:space="preserve">
+    <value>existe déjà</value>
+  </data>
+  <data name="LoadingMailboxes" xml:space="preserve">
+    <value>Chargement des boîtes aux lettres...</value>
+  </data>
+  <data name="MailboxesCouldNotBeLoaded" xml:space="preserve">
+    <value>Les boîtes aux lettres n'ont pas pu être chargées.</value>
+  </data>
+  <data name="MailboxesFound" xml:space="preserve">
+    <value>{0} boîte(s) aux lettres trouvée(s).</value>
+  </data>
+  <data name="M365MailboxDefaultName" xml:space="preserve">
+    <value>Boîte aux lettres M365</value>
+  </data>
+  <data name="NoEnabledM365UsersFound" xml:space="preserve">
+    <value>Aucun utilisateur M365 activé avec une adresse e-mail ou un nom principal d'utilisateur n'a été trouvé dans ce locataire.</value>
+  </data>
+  <data name="SelectAtLeastOneMailboxOrImportAll" xml:space="preserve">
+    <value>Sélectionnez au moins une boîte aux lettres ou activez l'importation de toutes les boîtes aux lettres répertoriées.</value>
+  </data>
+  <data name="AllSelectedM365TenantMailboxesAlreadyExist" xml:space="preserve">
+    <value>Toutes les {0} boîtes aux lettres du locataire M365 sélectionnées existent déjà.</value>
+  </data>
+  <data name="ImportedM365TenantAccounts" xml:space="preserve">
+    <value>{0} comptes de messagerie du locataire M365 importés. {1} comptes existants ignorés.</value>
+  </data>
+  <data name="M365TenantCredentialsRequired" xml:space="preserve">
+    <value>L'ID client, le secret client et l'ID du locataire sont requis pour répertorier les boîtes aux lettres du locataire.</value>
+  </data>
+  <data name="M365TenantMailboxesCouldNotBeListed" xml:space="preserve">
+    <value>Les boîtes aux lettres du locataire n'ont pas pu être répertoriées. Veuillez vérifier les identifiants et les autorisations M365.</value>
+  </data>
+  <data name="M365TenantAccountsCouldNotBeImported" xml:space="preserve">
+    <value>Les comptes du locataire M365 n'ont pas pu être importés. Veuillez vérifier les identifiants et les autorisations.</value>
+  </data>
+  <data name="NameRequired" xml:space="preserve">
+    <value>Le nom est requis</value>
+  </data>
+  <data name="EmailAddressRequired" xml:space="preserve">
+    <value>L'adresse e-mail est requise</value>
+  </data>
+  <data name="ProviderM365Single" xml:space="preserve">
+    <value>Microsoft 365 (boîte aux lettres unique)</value>
+  </data>
+  <data name="ProviderM365Tenant" xml:space="preserve">
+    <value>Microsoft 365 (locataire)</value>
+  </data>
+  <data name="LoadMailboxesHelp" xml:space="preserve">
+    <value>Chargez la liste des boîtes aux lettres du locataire pour choisir quels comptes importer.</value>
+  </data>
 </root>

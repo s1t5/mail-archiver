@@ -2522,4 +2522,85 @@
   <data name="GotIt" xml:space="preserve">
     <value>Verstanden!</value>
   </data>
+  <data name="UseTenantImport" xml:space="preserve">
+    <value>Mandantenimport verwenden</value>
+  </data>
+  <data name="UseTenantImportHelp" xml:space="preserve">
+    <value>Lädt die Postfächer des Mandanten und erstellt Konten nach dem Namensschema: eingegebener Name - &lt;postfach@beispiel.com&gt;.</value>
+  </data>
+  <data name="SkipDisabledMailboxes" xml:space="preserve">
+    <value>Deaktivierte Postfächer überspringen</value>
+  </data>
+  <data name="ImportAllListedMailboxes" xml:space="preserve">
+    <value>Alle aufgelisteten Postfächer importieren</value>
+  </data>
+  <data name="ImportAllListedMailboxesHelp" xml:space="preserve">
+    <value>Wenn deaktiviert, werden nur die unten ausgewählten Postfächer importiert.</value>
+  </data>
+  <data name="LoadMailboxes" xml:space="preserve">
+    <value>Postfächer laden</value>
+  </data>
+  <data name="TenantMailboxes" xml:space="preserve">
+    <value>Mandantschafts-Postfächer</value>
+  </data>
+  <data name="ClearSelection" xml:space="preserve">
+    <value>Auswahl aufheben</value>
+  </data>
+  <data name="NoMailboxesFound" xml:space="preserve">
+    <value>Keine Postfächer gefunden.</value>
+  </data>
+  <data name="DisabledLowercase" xml:space="preserve">
+    <value>deaktiviert</value>
+  </data>
+  <data name="AlreadyExistsLowercase" xml:space="preserve">
+    <value>existiert bereits</value>
+  </data>
+  <data name="LoadingMailboxes" xml:space="preserve">
+    <value>Postfächer werden geladen...</value>
+  </data>
+  <data name="MailboxesCouldNotBeLoaded" xml:space="preserve">
+    <value>Postfächer konnten nicht geladen werden.</value>
+  </data>
+  <data name="MailboxesFound" xml:space="preserve">
+    <value>{0} Postfach(fächer) gefunden.</value>
+  </data>
+  <data name="M365MailboxDefaultName" xml:space="preserve">
+    <value>M365-Postfach</value>
+  </data>
+  <data name="NoEnabledM365UsersFound" xml:space="preserve">
+    <value>In diesem Mandanten wurden keine aktivierten M365-Benutzer mit einer E-Mail-Adresse oder einem Benutzervorname gefunden.</value>
+  </data>
+  <data name="SelectAtLeastOneMailboxOrImportAll" xml:space="preserve">
+    <value>Wählen Sie mindestens ein Postfach aus oder aktivieren Sie den Import aller aufgelisteten Postfächer.</value>
+  </data>
+  <data name="AllSelectedM365TenantMailboxesAlreadyExist" xml:space="preserve">
+    <value>Alle {0} ausgewählten M365-Mandantschafts-Postfächer existieren bereits.</value>
+  </data>
+  <data name="ImportedM365TenantAccounts" xml:space="preserve">
+    <value>{0} M365-Mandantschafts-E-Mail-Konten importiert. {1} vorhandene Konten übersprungen.</value>
+  </data>
+  <data name="M365TenantCredentialsRequired" xml:space="preserve">
+    <value>Client-ID, Client-Geheimnis und Mandanten-ID sind erforderlich, um Mandantschafts-Postfächer aufzulisten.</value>
+  </data>
+  <data name="M365TenantMailboxesCouldNotBeListed" xml:space="preserve">
+    <value>Mandantschafts-Postfächer konnten nicht aufgelistet werden. Bitte überprüfen Sie die M365-Anmeldedaten und Berechtigungen.</value>
+  </data>
+  <data name="M365TenantAccountsCouldNotBeImported" xml:space="preserve">
+    <value>Die M365-Mandantschaftskonten konnten nicht importiert werden. Bitte überprüfen Sie die Anmeldedaten und Berechtigungen.</value>
+  </data>
+  <data name="NameRequired" xml:space="preserve">
+    <value>Name ist erforderlich</value>
+  </data>
+  <data name="EmailAddressRequired" xml:space="preserve">
+    <value>E-Mail-Adresse ist erforderlich</value>
+  </data>
+  <data name="ProviderM365Single" xml:space="preserve">
+    <value>Microsoft 365 (einzelnes Postfach)</value>
+  </data>
+  <data name="ProviderM365Tenant" xml:space="preserve">
+    <value>Microsoft 365 (Mandant)</value>
+  </data>
+  <data name="LoadMailboxesHelp" xml:space="preserve">
+    <value>Laden Sie die Liste der Mandantschafts-Postfächer, um auszuwählen, welche Konten importiert werden sollen.</value>
+  </data>
 </root>
