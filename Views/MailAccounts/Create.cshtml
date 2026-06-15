@@ -127,9 +127,15 @@
                                 <div class="form-text">@Localizer["ImportAllListedMailboxesHelp"]</div>
                             </div>
 
-                            <div class="d-flex gap-2 align-items-center mb-3">
-                                <button type="button" id="loadTenantMailboxesBtn" class="btn btn-outline-primary btn-sm">@Localizer["LoadMailboxes"]</button>
-                                <span id="tenantMailboxStatus" class="text-muted small"></span>
+                            <div class="card border-light bg-light mb-3">
+                                <div class="card-body">
+                                    <h6 class="card-title">@Localizer["TenantMailboxes"]</h6>
+                                    <p class="card-text small text-muted mb-3">@Localizer["LoadMailboxesHelp"]</p>
+                                    <button type="button" id="loadTenantMailboxesBtn" class="btn btn-outline-primary w-100">
+                                        <i class="bi bi-arrow-repeat"></i> @Localizer["LoadMailboxes"]
+                                    </button>
+                                    <div id="tenantMailboxStatus" class="mt-2 small text-center" style="display: none;"></div>
+                                </div>
                             </div>
 
                             <div id="tenantMailboxSelection" class="border rounded p-3 mb-3" style="display: none; max-height: 320px; overflow-y: auto;">
@@ -445,7 +451,9 @@
                 formData.append('tenantId', tenantIdInput.value);
                 formData.append('skipDisabledMailboxes', skipDisabledMailboxesInput.checked);
 
+                tenantMailboxStatus.style.display = 'block';
                 tenantMailboxStatus.textContent = '@Localizer["LoadingMailboxes"]';
+                tenantMailboxStatus.className = 'mt-2 small text-center text-muted';
                 loadTenantMailboxesBtn.disabled = true;
 
                 fetch('@Url.Action("ListM365TenantMailboxes", "MailAccounts")', {
@@ -456,18 +464,18 @@
                     .then(data => {
                         if (!data.success) {
                             tenantMailboxStatus.textContent = data.message || '@Localizer["MailboxesCouldNotBeLoaded"]';
-                            tenantMailboxStatus.className = 'text-danger small';
+                            tenantMailboxStatus.className = 'mt-2 small text-center text-danger';
                             return;
                         }
 
                         renderTenantMailboxes(data.mailboxes);
                         tenantMailboxStatus.textContent = '@Localizer["MailboxesFound"]'.replace('{0}', (data.mailboxes || []).length);
-                        tenantMailboxStatus.className = 'text-muted small';
+                        tenantMailboxStatus.className = 'mt-2 small text-center text-muted';
                     })
                     .catch(error => {
                         console.error('Error loading tenant mailboxes:', error);
                         tenantMailboxStatus.textContent = '@Localizer["MailboxesCouldNotBeLoaded"]';
-                        tenantMailboxStatus.className = 'text-danger small';
+                        tenantMailboxStatus.className = 'mt-2 small text-center text-danger';
                     })
                     .finally(() => {
                         loadTenantMailboxesBtn.disabled = false;

@@ -2527,4 +2527,7 @@
   <data name="ProviderM365Tenant" xml:space="preserve">
     <value>Microsoft 365 (tenant)</value>
   </data>
+  <data name="LoadMailboxesHelp" xml:space="preserve">
+    <value>Load the list of tenant mailboxes to choose which accounts to import.</value>
+  </data>
 </root>
