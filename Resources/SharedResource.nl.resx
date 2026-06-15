@@ -2521,13 +2521,85 @@
   <data name="GotIt" xml:space="preserve">
     <value>Begrepen!</value>
   </data>
+  <data name="UseTenantImport" xml:space="preserve">
+    <value>Tenantimporteren gebruiken</value>
+  </data>
+  <data name="UseTenantImportHelp" xml:space="preserve">
+    <value>Laadt de postvakken van de tenant en maakt accounts aan volgens het naamgevingsschema: ingevoerde naam - &lt;postvak@voorbeeld.com&gt;.</value>
+  </data>
+  <data name="SkipDisabledMailboxes" xml:space="preserve">
+    <value>Uitgeschakelde postvakken overslaan</value>
+  </data>
+  <data name="ImportAllListedMailboxes" xml:space="preserve">
+    <value>Alle vermelde postvakken importeren</value>
+  </data>
+  <data name="ImportAllListedMailboxesHelp" xml:space="preserve">
+    <value>Wanneer uitgeschakeld, worden alleen de hieronder geselecteerde postvakken geïmporteerd.</value>
+  </data>
+  <data name="LoadMailboxes" xml:space="preserve">
+    <value>Postvakken laden</value>
+  </data>
+  <data name="TenantMailboxes" xml:space="preserve">
+    <value>Tenant-postvakken</value>
+  </data>
+  <data name="ClearSelection" xml:space="preserve">
+    <value>Selectie wissen</value>
+  </data>
+  <data name="NoMailboxesFound" xml:space="preserve">
+    <value>Geen postvakken gevonden.</value>
+  </data>
+  <data name="DisabledLowercase" xml:space="preserve">
+    <value>uitgeschakeld</value>
+  </data>
+  <data name="AlreadyExistsLowercase" xml:space="preserve">
+    <value>bestaat al</value>
+  </data>
+  <data name="LoadingMailboxes" xml:space="preserve">
+    <value>Postvakken laden...</value>
+  </data>
+  <data name="MailboxesCouldNotBeLoaded" xml:space="preserve">
+    <value>Postvakken konden niet worden geladen.</value>
+  </data>
+  <data name="MailboxesFound" xml:space="preserve">
+    <value>{0} postvak(ken) gevonden.</value>
+  </data>
+  <data name="M365MailboxDefaultName" xml:space="preserve">
+    <value>M365-postvak</value>
+  </data>
+  <data name="NoEnabledM365UsersFound" xml:space="preserve">
+    <value>Er zijn geen ingeschakelde M365-gebruikers gevonden met een e-mailadres of een gebruikersprincipalnaam in deze tenant.</value>
+  </data>
+  <data name="SelectAtLeastOneMailboxOrImportAll" xml:space="preserve">
+    <value>Selecteer ten minste één postvak of schakel het importeren van alle vermelde postvakken in.</value>
+  </data>
+  <data name="AllSelectedM365TenantMailboxesAlreadyExist" xml:space="preserve">
+    <value>Alle {0} geselecteerde M365-tenantpostvakken bestaan al.</value>
+  </data>
+  <data name="ImportedM365TenantAccounts" xml:space="preserve">
+    <value>{0} M365-tenant-e-mailaccounts geïmporteerd. {1} bestaande accounts overgeslagen.</value>
+  </data>
+  <data name="M365TenantCredentialsRequired" xml:space="preserve">
+    <value>Client-ID, clientgeheim en tenant-ID zijn vereist om tenantpostvakken op te sommen.</value>
+  </data>
+  <data name="M365TenantMailboxesCouldNotBeListed" xml:space="preserve">
+    <value>Tenantpostvakken konden niet worden opgesomd. Controleer de M365-referenties en machtigingen.</value>
+  </data>
+  <data name="M365TenantAccountsCouldNotBeImported" xml:space="preserve">
+    <value>De M365-tenantaccounts konden niet worden geïmporteerd. Controleer de referenties en machtigingen.</value>
+  </data>
+  <data name="NameRequired" xml:space="preserve">
+    <value>Naam is vereist</value>
+  </data>
+  <data name="EmailAddressRequired" xml:space="preserve">
+    <value>E-mailadres is vereist</value>
+  </data>
   <data name="ProviderM365Single" xml:space="preserve">
-    <value>Microsoft 365 (single mailbox)</value>
+    <value>Microsoft 365 (enkel postvak)</value>
   </data>
   <data name="ProviderM365Tenant" xml:space="preserve">
     <value>Microsoft 365 (tenant)</value>
   </data>
   <data name="LoadMailboxesHelp" xml:space="preserve">
-    <value>Load the list of tenant mailboxes to choose which accounts to import.</value>
+    <value>Laad de lijst met tenantpostvakken om te kiezen welke accounts moeten worden geïmporteerd.</value>
   </data>
 </root>

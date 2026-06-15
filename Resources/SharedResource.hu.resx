@@ -2513,13 +2513,85 @@
   <data name="GotIt" xml:space="preserve">
     <value>Értettem!</value>
   </data>
+  <data name="UseTenantImport" xml:space="preserve">
+    <value>Bérlőimport használata</value>
+  </data>
+  <data name="UseTenantImportHelp" xml:space="preserve">
+    <value>Betölti a bérlő postafiókjait, és létrehozza a fiókokat a következő elnevezési sémával: megadott név - &lt;postafiók@pelda.com&gt;.</value>
+  </data>
+  <data name="SkipDisabledMailboxes" xml:space="preserve">
+    <value letiltott postafiók kihagyása</value>
+  </data>
+  <data name="ImportAllListedMailboxes" xml:space="preserve">
+    <value>Összes felsorolt postafiók importálása</value>
+  </data>
+  <data name="ImportAllListedMailboxesHelp" xml:space="preserve">
+    <value letiltva csak a lent kiválasztott postafiókok kerülnek importálásra.</value>
+  </data>
+  <data name="LoadMailboxes" xml:space="preserve">
+    <value>Postafiókok betöltése</value>
+  </data>
+  <data name="TenantMailboxes" xml:space="preserve">
+    <value>Bérlő postafiók</value>
+  </data>
+  <data name="ClearSelection" xml:space="preserve">
+    <value>Kijelölés törlése</value>
+  </data>
+  <data name="NoMailboxesFound" xml:space="preserve">
+    <value>Nem találhatók postafiókok.</value>
+  </data>
+  <data name="DisabledLowercase" xml:space="preserve">
+    <value letiltva</value>
+  </data>
+  <data name="AlreadyExistsLowercase" xml:space="preserve">
+    <value>már létezik</value>
+  </data>
+  <data name="LoadingMailboxes" xml:space="preserve">
+    <value>Postafiókok betöltése...</value>
+  </data>
+  <data name="MailboxesCouldNotBeLoaded" xml:space="preserve">
+    <value>A postafiókok nem tölthetők be.</value>
+  </data>
+  <data name="MailboxesFound" xml:space="preserve">
+    <value>{0} postafiók(ok) található.</value>
+  </data>
+  <data name="M365MailboxDefaultName" xml:space="preserve">
+    <value>M365 Postafiók</value>
+  </data>
+  <data name="NoEnabledM365UsersFound" xml:space="preserve">
+    <value>Ebben a bérlőben nem találhatók e-mail címmel vagy felhasználói főnévvel rendelkező, engedélyezett M365 felhasználók.</value>
+  </data>
+  <data name="SelectAtLeastOneMailboxOrImportAll" xml:space="preserve">
+    <value>Válasszon ki legalább egy postafiókot, vagy engedélyezze az összes felsorolt postafiók importálását.</value>
+  </data>
+  <data name="AllSelectedM365TenantMailboxesAlreadyExist" xml:space="preserve">
+    <value>A kiválasztott {0} M365 bérlő postafiók már létezik.</value>
+  </data>
+  <data name="ImportedM365TenantAccounts" xml:space="preserve">
+    <value>{0} M365 bérlő e-mail fiók importálva. {1} meglévő fiók kihagyva.</value>
+  </data>
+  <data name="M365TenantCredentialsRequired" xml:space="preserve">
+    <value>A bérlő postafiókok felsorolásához szükséges az ügyfélazonosító, az ügyféltitok és a bérlőazonosító.</value>
+  </data>
+  <data name="M365TenantMailboxesCouldNotBeListed" xml:space="preserve">
+    <value>A bérlő postafiók nem listázható. Ellenőrizze az M365 hitelesítő adatokat és jogosultságokat.</value>
+  </data>
+  <data name="M365TenantAccountsCouldNotBeImported" xml:space="preserve">
+    <value>Az M365 bérlőfiókok nem importálhatók. Ellenőrizze a hitelesítő adatokat és jogosultságokat.</value>
+  </data>
+  <data name="NameRequired" xml:space="preserve">
+    <value>A név megadása kötelező</value>
+  </data>
+  <data name="EmailAddressRequired" xml:space="preserve">
+    <value>E-mail cím megadása kötelező</value>
+  </data>
   <data name="ProviderM365Single" xml:space="preserve">
-    <value>Microsoft 365 (single mailbox)</value>
+    <value>Microsoft 365 (egyetlen postafiók)</value>
   </data>
   <data name="ProviderM365Tenant" xml:space="preserve">
-    <value>Microsoft 365 (tenant)</value>
+    <value>Microsoft 365 (bérlő)</value>
   </data>
   <data name="LoadMailboxesHelp" xml:space="preserve">
-    <value>Load the list of tenant mailboxes to choose which accounts to import.</value>
+    <value>Töltse be a bérlő postafiókok listáját, hogy kiválaszthassa, mely fiókokat szeretné importálni.</value>
   </data>
 </root>

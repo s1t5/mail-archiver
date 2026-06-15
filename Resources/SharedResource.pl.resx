@@ -2567,13 +2567,85 @@
   <data name="GotIt" xml:space="preserve">
     <value>Rozumiem!</value>
   </data>
+  <data name="UseTenantImport" xml:space="preserve">
+    <value>Użyj importu dzierżawy</value>
+  </data>
+  <data name="UseTenantImportHelp" xml:space="preserve">
+    <value>Ładuje skrzynki pocztowe dzierżawy i tworzy konta według schematu nazewnictwa: wprowadzona nazwa - &lt;skrzynka@przyklad.com&gt;.</value>
+  </data>
+  <data name="SkipDisabledMailboxes" xml:space="preserve">
+    <value>Pomiń wyłączone skrzynki pocztowe</value>
+  </data>
+  <data name="ImportAllListedMailboxes" xml:space="preserve">
+    <value>Importuj wszystkie wymienione skrzynki pocztowe</value>
+  </data>
+  <data name="ImportAllListedMailboxesHelp" xml:space="preserve">
+    <value>Gdy wyłączone, importowane są tylko poniżej wybrane skrzynki pocztowe.</value>
+  </data>
+  <data name="LoadMailboxes" xml:space="preserve">
+    <value>Ładuj skrzynki pocztowe</value>
+  </data>
+  <data name="TenantMailboxes" xml:space="preserve">
+    <value>Skrzynki pocztowe dzierżawy</value>
+  </data>
+  <data name="ClearSelection" xml:space="preserve">
+    <value>Wyczyść zaznaczenie</value>
+  </data>
+  <data name="NoMailboxesFound" xml:space="preserve">
+    <value>Nie znaleziono skrzynek pocztowych.</value>
+  </data>
+  <data name="DisabledLowercase" xml:space="preserve">
+    <value>wyłączone</value>
+  </data>
+  <data name="AlreadyExistsLowercase" xml:space="preserve">
+    <value>już istnieje</value>
+  </data>
+  <data name="LoadingMailboxes" xml:space="preserve">
+    <value>Ładowanie skrzynek pocztowych...</value>
+  </data>
+  <data name="MailboxesCouldNotBeLoaded" xml:space="preserve">
+    <value>Nie można załadować skrzynek pocztowych.</value>
+  </data>
+  <data name="MailboxesFound" xml:space="preserve">
+    <value>Znaleziono {0} skrzynkę(i) pocztowe.</value>
+  </data>
+  <data name="M365MailboxDefaultName" xml:space="preserve">
+    <value>Skrzynka pocztowa M365</value>
+  </data>
+  <data name="NoEnabledM365UsersFound" xml:space="preserve">
+    <value>W tej dzierżawie nie znaleziono włączonych użytkowników M365 z adresem e-mail lub nazwą główną użytkownika.</value>
+  </data>
+  <data name="SelectAtLeastOneMailboxOrImportAll" xml:space="preserve">
+    <value>Wybierz przynajmniej jedną skrzynkę pocztową lub włącz importowanie wszystkich wymienionych skrzynek pocztowych.</value>
+  </data>
+  <data name="AllSelectedM365TenantMailboxesAlreadyExist" xml:space="preserve">
+    <value>Wszystkie {0} wybrane skrzynki pocztowe dzierżawy M365 już istnieją.</value>
+  </data>
+  <data name="ImportedM365TenantAccounts" xml:space="preserve">
+    <value>Zaimportowano {0} kont e-mail dzierżawy M365. Pominięto {1} istniejących kont.</value>
+  </data>
+  <data name="M365TenantCredentialsRequired" xml:space="preserve">
+    <value>ID klienta, tajny klucz klienta i ID dzierżawy są wymagane do wyświetlania skrzynek pocztowych dzierżawy.</value>
+  </data>
+  <data name="M365TenantMailboxesCouldNotBeListed" xml:space="preserve">
+    <value>Nie można wyświetlić skrzynek pocztowych dzierżawy. Sprawdź dane logowania M365 i uprawnienia.</value>
+  </data>
+  <data name="M365TenantAccountsCouldNotBeImported" xml:space="preserve">
+    <value>Nie można zaimportować kont dzierżawy M365. Sprawdź dane logowania i uprawnienia.</value>
+  </data>
+  <data name="NameRequired" xml:space="preserve">
+    <value>Nazwa jest wymagana</value>
+  </data>
+  <data name="EmailAddressRequired" xml:space="preserve">
+    <value>Adres e-mail jest wymagany</value>
+  </data>
   <data name="ProviderM365Single" xml:space="preserve">
-    <value>Microsoft 365 (single mailbox)</value>
+    <value>Microsoft 365 (pojedyncza skrzynka)</value>
   </data>
   <data name="ProviderM365Tenant" xml:space="preserve">
-    <value>Microsoft 365 (tenant)</value>
+    <value>Microsoft 365 (dzierżawa)</value>
   </data>
   <data name="LoadMailboxesHelp" xml:space="preserve">
-    <value>Load the list of tenant mailboxes to choose which accounts to import.</value>
+    <value>Ładuj listę skrzynek pocztowych dzierżawy, aby wybrać, które konta mają być importowane.</value>
   </data>
 </root>
