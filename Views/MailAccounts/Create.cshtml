@@ -153,7 +153,7 @@
                     </div>
                 </div>
                 
-                <div class="mb-3 form-check">
+                <div class="mb-3 form-check" id="accountEnabledField">
                     <input asp-for="IsEnabled" class="form-check-input" />
                     <label asp-for="IsEnabled" class="form-check-label">@Localizer["AccountEnabled"]</label>
                     <div class="form-text">@Localizer["DisabledAccountsNotSynced"]</div>
@@ -196,6 +196,8 @@
             const emailDeletionSettings = document.getElementById('emailDeletionSettings');
             const nameField = document.getElementById('nameField');
             const emailAddressField = document.getElementById('emailAddressField');
+            const accountEnabledField = document.getElementById('accountEnabledField');
+            const isEnabledInput = document.getElementById('IsEnabled');
             const emailAddressInput = document.getElementById('EmailAddress');
             const existingAccountSuggestion = document.getElementById('existingAccountSuggestion');
             const existingAccountSelect = document.getElementById('existingAccountSelect');
@@ -252,6 +254,11 @@
                 tenantImportControls.style.display = isTenantImport ? 'block' : 'none';
                 tenantImportSettings.style.display = isTenantImport ? 'block' : 'none';
                 tenantMailboxSelection.style.display = isTenantImport ? tenantMailboxSelection.style.display : 'none';
+                accountEnabledField.style.display = isTenantImport ? 'none' : 'block';
+
+                if (isTenantImport && isEnabledInput) {
+                    isEnabledInput.checked = true;
+                }
             }
 
             function toggleSettings(skipSuggestionCheck) {
