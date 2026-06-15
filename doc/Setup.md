@@ -257,7 +257,7 @@ docker compose restart
 - `Upload__KeepAliveTimeoutHours`: The keep alive timeout for uploads in hours.
 - `Upload__RequestHeadersTimeoutHours`: The timeout for request headers in hours.
 
-### 📥 Local Import Settings
+### 📂 Local Import Settings
 - `LocalImport__AllowedPaths__0`, `LocalImport__AllowedPaths__1`, etc.: Whitelist of local directories that the CLI import commands (`--import-mbox`, `--import-eml`) are allowed to read files from. Each entry is a path inside the container. You must mount your import files into one of these directories using Docker volumes. Default: `/data/import` (automatically set to `/app/uploads` as fallback).
   - When using `docker exec` to run the import command, the file path provided via `--file` must be within one of these allowed paths.
   - This security measure prevents arbitrary file system access from CLI commands.
@@ -284,8 +284,7 @@ Attachment deduplication stores every unique attachment payload only once (conte
 - `AttachmentDeduplication__OrphanCleanupIntervalHours`: Interval (in hours) of the always-on garbage collection that removes attachment payloads no longer referenced by any email. Default is `12`. This runs independently of `DatabaseMaintenance__Enabled`.
 
 
-### Logging Settings
-
+### 📝 Logging Settings
 - `Logging__LogLevel__Default`: The default log level for the application. Available levels are: `Trace`, `Debug`, `Information`, `Warning`, `Error`, `Critical`, `None`. Default is `Information`.
 - `Logging__LogLevel__Microsoft_AspNetCore`: Log level for ASP.NET Core framework messages. Default is `Warning`.
 - `Logging__LogLevel__Microsoft_EntityFrameworkCore_Database_Command`: Log level for Entity Framework database commands. Default is `Warning`.
@@ -376,6 +375,97 @@ volumes:
 - `Kestrel__Endpoints__Https__Certificate__Password`: Password for the PFX certificate file
 
 > 💡 **Note**: This configuration is optional. If you're using a reverse proxy with HTTPS (recommended), the communication between reverse proxy and application can remain HTTP. However, for maximum security in sensitive environments, you may want to enable HTTPS on Kestrel as well to encrypt the entire communication path.
+
+## 🔑 Secrets Management for Production
+
+Hardcoding sensitive data such as database passwords, admin credentials, and OAuth client secrets directly in `docker-compose.yml` is a security risk, especially when the file is checked into version control. The recommended approach is to externalize these values into a `.env` file that Docker Compose loads automatically.
+
+### 📄 The `.env` File
+
+Create a `.env` file in the same directory as your `docker-compose.yml` with the following content:
+
+```env
+# Database
+POSTGRES_PASSWORD=YourSecureDBPassword123!
+
+# Admin Account
+AUTH_USERNAME=admin
+AUTH_PASSWORD=YourSecureAdminPassword456!
+
+# OIDC / OAuth Secrets
+OAUTH_CLIENT_SECRET=YourOAuthClientSecret
+
+# Kestrel HTTPS (optional)
+KESTREL_CERT_PASSWORD=YourCertPassword
+```
+
+**Important**: Docker Compose automatically reads the `.env` file from the same directory — you do **not** need to reference it manually. All variables defined in `.env` are available in `docker-compose.yml` via the `${VARIABLE_NAME}` syntax.
+
+### 🐳 Adapted `docker-compose.yml`
+
+The `docker-compose.yml` from the installation steps should be adapted to use placeholders instead of hardcoded secrets:
+
+```yaml
+services:
+  mailarchive-app:
+    image: s1t5/mailarchiver:latest
+    restart: always
+    environment:
+      # Database Connection
+      - ConnectionStrings__DefaultConnection=Host=postgres;Database=MailArchiver;Username=mailuser;Password=${POSTGRES_PASSWORD}
+
+      # Authentication Settings
+      - Authentication__Username=${AUTH_USERNAME}
+      - Authentication__Password=${AUTH_PASSWORD}
+      # ... other settings remain unchanged ...
+
+      # OIDC Configuration
+      - OAuth__ClientSecret=${OAUTH_CLIENT_SECRET}
+    # ... ports, volumes, networks ...
+
+  postgres:
+    image: postgres:17-alpine
+    restart: always
+    environment:
+      POSTGRES_DB: MailArchiver
+      POSTGRES_USER: mailuser
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    # ... volumes, networks ...
+```
+
+### 📋 `.env.example` Template for Administrators
+
+Create a `.env.example` file in your repository that serves as a template for other administrators. It contains placeholder values and documentation but **no real secrets**:
+
+```env
+# ============================================
+# Mail Archiver - Environment Configuration
+# ============================================
+# Copy this file to .env and fill in your values.
+# Never commit the actual .env file to version control!
+
+# --- PostgreSQL ---
+POSTGRES_PASSWORD=change_me_db_password
+
+# --- Admin Account ---
+AUTH_USERNAME=admin
+AUTH_PASSWORD=change_me_admin_password
+
+# --- OIDC / OAuth ---
+OAUTH_CLIENT_SECRET=change_me_client_secret
+
+#...and so on
+```
+
+### ✅ Best Practices
+
+- **Use `.env.example` as a template**
+- **Set strict file permissions** — Restrict access to the `.env` file:
+  ```bash
+  chmod 600 .env
+  ```
+- **Use strong passwords** — Generate long, random passwords (at least 16 characters) with a mix of letters, numbers, and special characters.
+- **Limit `.env` file access** — Only the user running Docker Compose should have read permissions to the `.env` file.
 
 ## 🔒 Security Notes
 

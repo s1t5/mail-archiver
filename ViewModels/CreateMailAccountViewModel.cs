@@ -1,7 +1,9 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using MailArchiver;
 using MailArchiver.Attributes;
 using MailArchiver.Models;
+using Microsoft.Extensions.Localization;
 
 namespace MailArchiver.Models.ViewModels
 {
@@ -73,10 +75,12 @@ namespace MailArchiver.Models.ViewModels
 
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {
+            var localizer = validationContext.GetService(typeof(IStringLocalizer<SharedResource>)) as IStringLocalizer<SharedResource>;
+
             if (string.IsNullOrWhiteSpace(Name))
             {
                 yield return new ValidationResult(
-                    "Name is required",
+                    localizer?["NameRequired"].Value ?? "Name is required",
                     new[] { nameof(Name) });
             }
 
@@ -85,7 +89,7 @@ namespace MailArchiver.Models.ViewModels
                 if (string.IsNullOrWhiteSpace(EmailAddress))
                 {
                     yield return new ValidationResult(
-                        "Email address is required",
+                        localizer?["EmailAddressRequired"].Value ?? "Email address is required",
                         new[] { nameof(EmailAddress) });
                 }
             }
@@ -94,7 +98,7 @@ namespace MailArchiver.Models.ViewModels
                 (SelectedM365Mailboxes == null || SelectedM365Mailboxes.Count == 0))
             {
                 yield return new ValidationResult(
-                    "Select at least one mailbox or enable importing all listed mailboxes.",
+                    localizer?["SelectAtLeastOneMailboxOrImportAll"].Value ?? "Select at least one mailbox or enable importing all listed mailboxes.",
                     new[] { nameof(SelectedM365Mailboxes) });
             }
         }

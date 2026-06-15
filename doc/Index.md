@@ -13,7 +13,7 @@ Mail Archiver is a comprehensive application designed to archive emails from var
 ### 🛠️ Installation & Maintenance
 - [Backup and Restore Guide](BackupRestore.md)
 - [Database Maintenance Guide](DatabaseMaintenance.md)
-- [Installation and Setup](Setup.md)
+- [Installation, Setup and Parameters](Setup.md)
 - [PostgreSQL Major Version Upgrade Guide](PostgreSQLUpgrade.md)
 
 ### ⚙️ Configuration & Usage
@@ -31,6 +31,7 @@ Mail Archiver is a comprehensive application designed to archive emails from var
 
 ### ☁️ Provider Specific Guides
 - [Azure App Registration and Retention Policy for M365](AZURE_APP_REGISTRATION_M365.md)
+- [Microsoft 365 Tenant Mailbox Import](M365TenantImport.md)
 - [Gmail Best Practices](GmailBestPractices.md)
 - [Mailbox Migration](MailboxMigration.md)
 - [Rate Limit Handling](RateLimitHandling.md)

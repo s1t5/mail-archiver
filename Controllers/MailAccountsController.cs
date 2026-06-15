@@ -349,7 +349,7 @@ var model = new MailAccountViewModel
                     .Select(user => new
                     {
                         Name = string.IsNullOrWhiteSpace(user.DisplayName)
-                            ? user.UserPrincipalName ?? user.Mail ?? model.Name ?? "M365 Mailbox"
+                            ? user.UserPrincipalName ?? user.Mail ?? model.Name ?? _localizer["M365MailboxDefaultName"].Value
                             : user.DisplayName,
                         EmailAddress = string.IsNullOrWhiteSpace(user.Mail)
                             ? user.UserPrincipalName
@@ -362,7 +362,7 @@ var model = new MailAccountViewModel
 
                 if (tenantMailboxes.Count == 0)
                 {
-                    ModelState.AddModelError("", "No enabled M365 users with an email address or user principal name were found in this tenant.");
+                    ModelState.AddModelError("", _localizer["NoEnabledM365UsersFound"].Value);
                     return View("Create", model);
                 }
 
@@ -380,12 +380,6 @@ var model = new MailAccountViewModel
                     : model.SelectedM365Mailboxes
                         .Select(address => address.Trim().ToLowerInvariant())
                         .ToHashSet(StringComparer.OrdinalIgnoreCase);
-
-                if (selectedAddressSet != null && selectedAddressSet.Count == 0)
-                {
-                    ModelState.AddModelError(nameof(model.SelectedM365Mailboxes), "Select at least one mailbox or enable importing all listed mailboxes.");
-                    return View("Create", model);
-                }
 
                 var selectedMailboxCount = selectedAddressSet?.Count ?? tenantMailboxes.Count;
                 var accountNamePrefix = model.Name!.Trim();
@@ -412,14 +406,14 @@ var model = new MailAccountViewModel
 
                 if (accountsToCreate.Count == 0)
                 {
-                    TempData["SuccessMessage"] = $"All {selectedMailboxCount} selected M365 tenant mailboxes already exist.";
+                    TempData["SuccessMessage"] = _localizer["AllSelectedM365TenantMailboxesAlreadyExist", selectedMailboxCount].Value;
                     return RedirectToAction(nameof(Index));
                 }
 
                 _context.MailAccounts.AddRange(accountsToCreate);
                 await _context.SaveChangesAsync();
 
-                var authService = HttpContext.RequestServices.GetRequiredService<MailArchiver.Services.IAuthenticationService>();
+                var authService = HttpContext.RequestServices.GetService<MailArchiver.Services.IAuthenticationService>();
                 var currentUsername = authService.GetCurrentUserDisplayName(HttpContext);
                 var currentUser = await _context.Users
                     .FirstOrDefaultAsync(user => user.Username.ToLower() == currentUsername.ToLower());
@@ -443,13 +437,13 @@ var model = new MailAccountViewModel
                         searchParameters: $"Imported {accountsToCreate.Count} M365 tenant mail accounts for tenant {model.TenantId}");
                 }
 
-                TempData["SuccessMessage"] = $"Imported {accountsToCreate.Count} M365 tenant mail accounts. Skipped {selectedMailboxCount - accountsToCreate.Count} existing accounts.";
+                TempData["SuccessMessage"] = _localizer["ImportedM365TenantAccounts", accountsToCreate.Count, selectedMailboxCount - accountsToCreate.Count].Value;
                 return RedirectToAction(nameof(Index));
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error importing M365 tenant accounts: {Message}", ex.Message);
-                ModelState.AddModelError("", $"{_localizer["ErrorOccurred"]}: {ex.Message}");
+                ModelState.AddModelError("", _localizer["M365TenantAccountsCouldNotBeImported"].Value);
                 return View("Create", model);
             }
         }
@@ -470,7 +464,7 @@ var model = new MailAccountViewModel
                 return Json(new
                 {
                     success = false,
-                    message = "Client ID, client secret and tenant ID are required to list tenant mailboxes."
+                    message = _localizer["M365TenantCredentialsRequired"].Value
                 });
             }
 
@@ -486,7 +480,7 @@ var model = new MailAccountViewModel
                     .Select(user => new
                     {
                         DisplayName = string.IsNullOrWhiteSpace(user.DisplayName)
-                            ? user.UserPrincipalName ?? user.Mail ?? "M365 Mailbox"
+                            ? user.UserPrincipalName ?? user.Mail ?? _localizer["M365MailboxDefaultName"].Value
                             : user.DisplayName,
                         EmailAddress = string.IsNullOrWhiteSpace(user.Mail)
                             ? user.UserPrincipalName
@@ -527,7 +521,7 @@ var model = new MailAccountViewModel
                 return Json(new
                 {
                     success = false,
-                    message = ex.Message
+                    message = _localizer["M365TenantMailboxesCouldNotBeListed"].Value
                 });
             }
         }
@@ -1370,7 +1364,7 @@ var model = new MailAccountViewModel
                 var jobId = _mboxImportService.QueueImport(job);
 
                 // Log the MBox import action
-                var authService = HttpContext.RequestServices.GetRequiredService<MailArchiver.Services.IAuthenticationService>();
+                var authService = HttpContext.RequestServices.GetService<MailArchiver.Services.IAuthenticationService>();
                 var currentUsername = authService.GetCurrentUserDisplayName(HttpContext);
                 if (!string.IsNullOrEmpty(currentUsername))
                 {

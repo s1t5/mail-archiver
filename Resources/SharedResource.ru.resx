@@ -2524,4 +2524,85 @@
   <data name="GotIt" xml:space="preserve">
     <value>Понятно!</value>
   </data>
+  <data name="UseTenantImport" xml:space="preserve">
+    <value>Использовать импорт арендатора</value>
+  </data>
+  <data name="UseTenantImportHelp" xml:space="preserve">
+    <value>Загружает почтовые ящики арендатора и создает учетные записи по схеме именования: введенное имя - &lt;box@example.com&gt;.</value>
+  </data>
+  <data name="SkipDisabledMailboxes" xml:space="preserve">
+    <value>Пропустить отключенные почтовые ящики</value>
+  </data>
+  <data name="ImportAllListedMailboxes" xml:space="preserve">
+    <value>Импортировать все перечисленные почтовые ящики</value>
+  </data>
+  <data name="ImportAllListedMailboxesHelp" xml:space="preserve">
+    <value>Если отключено, импортируются только почтовые ящики, выбранные ниже.</value>
+  </data>
+  <data name="LoadMailboxes" xml:space="preserve">
+    <value>Загрузить почтовые ящики</value>
+  </data>
+  <data name="TenantMailboxes" xml:space="preserve">
+    <value>Почтовые ящики арендатора</value>
+  </data>
+  <data name="ClearSelection" xml:space="preserve">
+    <value>Очистить выбор</value>
+  </data>
+  <data name="NoMailboxesFound" xml:space="preserve">
+    <value>Почтовые ящики не найдены.</value>
+  </data>
+  <data name="DisabledLowercase" xml:space="preserve">
+    <value>отключено</value>
+  </data>
+  <data name="AlreadyExistsLowercase" xml:space="preserve">
+    <value>уже существует</value>
+  </data>
+  <data name="LoadingMailboxes" xml:space="preserve">
+    <value>Загрузка почтовых ящиков...</value>
+  </data>
+  <data name="MailboxesCouldNotBeLoaded" xml:space="preserve">
+    <value>Не удалось загрузить почтовые ящики.</value>
+  </data>
+  <data name="MailboxesFound" xml:space="preserve">
+    <value>Найдено {0} почтовый(ых) ящик(ов).</value>
+  </data>
+  <data name="M365MailboxDefaultName" xml:space="preserve">
+    <value>Почтовый ящик M365</value>
+  </data>
+  <data name="NoEnabledM365UsersFound" xml:space="preserve">
+    <value>В этом арендаторе не найдено включенных пользователей M365 с адресом электронной почты или главным именем пользователя.</value>
+  </data>
+  <data name="SelectAtLeastOneMailboxOrImportAll" xml:space="preserve">
+    <value>Выберите хотя бы один почтовый ящик или включите импорт всех перечисленных почтовых ящиков.</value>
+  </data>
+  <data name="AllSelectedM365TenantMailboxesAlreadyExist" xml:space="preserve">
+    <value>Все {0} выбранных почтовых ящиков арендатора M365 уже существуют.</value>
+  </data>
+  <data name="ImportedM365TenantAccounts" xml:space="preserve">
+    <value>Импортировано {0} учетных записей электронной почты арендатора M365. Пропущено {1} существующих учетных записей.</value>
+  </data>
+  <data name="M365TenantCredentialsRequired" xml:space="preserve">
+    <value>Идентификатор клиента, секрет клиента и идентификатор арендатора требуются для перечисления почтовых ящиков арендатора.</value>
+  </data>
+  <data name="M365TenantMailboxesCouldNotBeListed" xml:space="preserve">
+    <value>Не удалось перечислить почтовые ящики арендатора. Проверьте учетные данные M365 и разрешения.</value>
+  </data>
+  <data name="M365TenantAccountsCouldNotBeImported" xml:space="preserve">
+    <value>Не удалось импортировать учетные записи арендатора M365. Проверьте учетные данные и разрешения.</value>
+  </data>
+  <data name="NameRequired" xml:space="preserve">
+    <value>Имя обязательно</value>
+  </data>
+  <data name="EmailAddressRequired" xml:space="preserve">
+    <value>Адрес электронной почты обязателен</value>
+  </data>
+  <data name="ProviderM365Single" xml:space="preserve">
+    <value>Microsoft 365 (один почтовый ящик)</value>
+  </data>
+  <data name="ProviderM365Tenant" xml:space="preserve">
+    <value>Microsoft 365 (арендатор)</value>
+  </data>
+  <data name="LoadMailboxesHelp" xml:space="preserve">
+    <value>Загрузите список почтовых ящиков арендатора, чтобы выбрать, какие учетные записи импортировать.</value>
+  </data>
 </root>

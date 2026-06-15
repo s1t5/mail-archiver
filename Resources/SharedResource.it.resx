@@ -2524,4 +2524,85 @@
   <data name="GotIt" xml:space="preserve">
     <value>Capito!</value>
   </data>
+  <data name="UseTenantImport" xml:space="preserve">
+    <value>Usa importazione tenant</value>
+  </data>
+  <data name="UseTenantImportHelp" xml:space="preserve">
+    <value>Carica le caselle di posta del tenant e crea account con lo schema di denominazione: nome inserito - &lt;posta@esempio.com&gt;.</value>
+  </data>
+  <data name="SkipDisabledMailboxes" xml:space="preserve">
+    <value>Salta caselle di posta disabilitate</value>
+  </data>
+  <data name="ImportAllListedMailboxes" xml:space="preserve">
+    <value>Importa tutte le caselle di posta elencate</value>
+  </data>
+  <data name="ImportAllListedMailboxesHelp" xml:space="preserve">
+    <value>Se disabilitato, vengono importate solo le caselle di posta selezionate di seguito.</value>
+  </data>
+  <data name="LoadMailboxes" xml:space="preserve">
+    <value>Carica caselle di posta</value>
+  </data>
+  <data name="TenantMailboxes" xml:space="preserve">
+    <value>Caselle di posta del tenant</value>
+  </data>
+  <data name="ClearSelection" xml:space="preserve">
+    <value>Cancella selezione</value>
+  </data>
+  <data name="NoMailboxesFound" xml:space="preserve">
+    <value>Nessuna casella di posta trovata.</value>
+  </data>
+  <data name="DisabledLowercase" xml:space="preserve">
+    <value>disabilitato</value>
+  </data>
+  <data name="AlreadyExistsLowercase" xml:space="preserve">
+    <value>già esistente</value>
+  </data>
+  <data name="LoadingMailboxes" xml:space="preserve">
+    <value>Caricamento caselle di posta...</value>
+  </data>
+  <data name="MailboxesCouldNotBeLoaded" xml:space="preserve">
+    <value>Impossibile caricare le caselle di posta.</value>
+  </data>
+  <data name="MailboxesFound" xml:space="preserve">
+    <value>Trovate {0} casella/e di posta.</value>
+  </data>
+  <data name="M365MailboxDefaultName" xml:space="preserve">
+    <value>Casella di posta M365</value>
+  </data>
+  <data name="NoEnabledM365UsersFound" xml:space="preserve">
+    <value>Nessun utente M365 abilitato con un indirizzo email o un nome principale utente è stato trovato in questo tenant.</value>
+  </data>
+  <data name="SelectAtLeastOneMailboxOrImportAll" xml:space="preserve">
+    <value>Seleziona almeno una casella di posta o abilita l'importazione di tutte le caselle di posta elencate.</value>
+  </data>
+  <data name="AllSelectedM365TenantMailboxesAlreadyExist" xml:space="preserve">
+    <value>Tutte le {0} caselle di posta del tenant M365 selezionate esistono già.</value>
+  </data>
+  <data name="ImportedM365TenantAccounts" xml:space="preserve">
+    <value>Importati {0} account di posta del tenant M365. Saltati {1} account esistenti.</value>
+  </data>
+  <data name="M365TenantCredentialsRequired" xml:space="preserve">
+    <value>L'ID client, il segreto client e l'ID tenant sono richiesti per elencare le caselle di posta del tenant.</value>
+  </data>
+  <data name="M365TenantMailboxesCouldNotBeListed" xml:space="preserve">
+    <value>Impossibile elencare le caselle di posta del tenant. Verificare le credenziali e le autorizzazioni M365.</value>
+  </data>
+  <data name="M365TenantAccountsCouldNotBeImported" xml:space="preserve">
+    <value>Impossibile importare gli account del tenant M365. Verificare le credenziali e le autorizzazioni.</value>
+  </data>
+  <data name="NameRequired" xml:space="preserve">
+    <value>Il nome è obbligatorio</value>
+  </data>
+  <data name="EmailAddressRequired" xml:space="preserve">
+    <value>L'indirizzo email è obbligatorio</value>
+  </data>
+  <data name="ProviderM365Single" xml:space="preserve">
+    <value>Microsoft 365 (casella di posta singola)</value>
+  </data>
+  <data name="ProviderM365Tenant" xml:space="preserve">
+    <value>Microsoft 365 (tenant)</value>
+  </data>
+  <data name="LoadMailboxesHelp" xml:space="preserve">
+    <value>Carica l'elenco delle caselle di posta del tenant per scegliere quali account importare.</value>
+  </data>
 </root>
