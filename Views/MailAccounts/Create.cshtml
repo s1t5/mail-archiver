@@ -40,9 +40,30 @@
                         <option value="M365Tenant" selected="@(visualProvider == "M365Tenant")">@Localizer["ProviderM365Tenant"]</option>
                         <option value="IMPORT" selected="@(visualProvider == "IMPORT")">Import Only</option>
                     </select>
-                    <input type="hidden" asp-for="Provider" />
-                    <input type="hidden" asp-for="ImportEntireTenant" />
+                    <input type="hidden" asp-for="Provider" id="Provider" disabled="disabled" />
+                    <input type="hidden" asp-for="ImportEntireTenant" id="ImportEntireTenant" disabled="disabled" />
                     <span asp-validation-for="Provider" class="text-danger"></span>
+
+                    <noscript>
+                        <style>
+                            #ProviderDisplay,
+                            label[for="ProviderDisplay"] {
+                                display: none !important;
+                            }
+                        </style>
+                        <label asp-for="Provider" class="form-label">@Localizer["Provider"]</label>
+                        <select asp-for="Provider" class="form-select">
+                            <option value="IMAP" selected="@(Model.Provider == ProviderType.IMAP)">IMAP</option>
+                            <option value="M365" selected="@(Model.Provider == ProviderType.M365)">Microsoft 365</option>
+                            <option value="IMPORT" selected="@(Model.Provider == ProviderType.IMPORT)">Import Only</option>
+                        </select>
+                        <span asp-validation-for="Provider" class="text-danger"></span>
+
+                        <div class="mt-3 form-check">
+                            <input asp-for="ImportEntireTenant" class="form-check-input" />
+                            <label asp-for="ImportEntireTenant" class="form-check-label">@Localizer["ImportFromTenant"]</label>
+                        </div>
+                    </noscript>
                 </div>
                 
                 <div id="imapSettings" style="display: @imapSettingsDisplay;">
@@ -249,6 +270,14 @@
             function toggleTenantImportFields() {
                 const isM365 = isM365Selected();
                 const isTenantImport = isTenantImportSelected();
+
+                if (isTenantImport) {
+                    emailAddressInput.value = '';
+                    emailAddressInput.disabled = true;
+                } else {
+                    emailAddressInput.disabled = false;
+                }
+
                 emailAddressField.style.display = isTenantImport ? 'none' : 'block';
                 nameField.style.display = 'block';
                 tenantImportControls.style.display = isTenantImport ? 'block' : 'none';
@@ -488,6 +517,10 @@
                         loadTenantMailboxesBtn.disabled = false;
                     });
             }
+
+            // Enable hidden provider fields for JavaScript-enabled browsers
+            providerInput.disabled = false;
+            importEntireTenantInput.disabled = false;
 
             // Initial check
             syncProviderFields();
