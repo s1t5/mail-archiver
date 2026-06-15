@@ -2578,4 +2578,10 @@
   <data name="EmailAddressRequired" xml:space="preserve">
     <value>Email address is required</value>
   </data>
+  <data name="ProviderM365Single" xml:space="preserve">
+    <value>Microsoft 365 (single mailbox)</value>
+  </data>
+  <data name="ProviderM365Tenant" xml:space="preserve">
+    <value>Microsoft 365 (tenant)</value>
+  </data>
 </root>

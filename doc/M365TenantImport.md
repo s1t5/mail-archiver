@@ -22,6 +22,8 @@ The app registration must have Microsoft Graph **application permissions** that 
 
 - **User.Read.All** – required to list tenant users and their mailbox addresses.
 
+Tenant import is selected as the provider **Microsoft 365 (tenant)** in the create form.
+
 ## Import Modes
 
 Tenant import supports two modes:
@@ -47,19 +49,18 @@ Use this mode when only specific mailboxes in the tenant should be archived.
 
 1. Sign in to Mail Archiver as a user who can create mail accounts.
 2. Open **Mail Accounts** > **Create**.
-3. Select **M365** as the provider.
+3. Select **Microsoft 365 (tenant)** as the provider.
 4. Enter the Microsoft 365 credentials:
    - **Client ID**
    - **Client Secret**
    - **Tenant ID**
 5. Enter the **Account name** prefix that should be used for generated accounts.
-6. Leave **Tenant import** enabled.
-7. Choose whether disabled mailboxes should be skipped.
-8. Click **Load mailboxes** to list tenant mailboxes.
-9. Choose the desired import behavior:
+6. Choose whether disabled mailboxes should be skipped.
+7. Click **Load mailboxes** to list tenant mailboxes.
+8. Choose the desired import behavior:
    - Keep **Import all listed mailboxes** enabled to import all listed mailboxes.
    - Disable it and select individual mailboxes to import only specific mailboxes.
-10. Click **Save**.
+9. Click **Save**.
 
 After creation, Mail Archiver redirects back to the mail account list and shows how many tenant mail accounts were imported and how many existing accounts were skipped.
 

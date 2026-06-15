@@ -2,10 +2,13 @@
 @model MailArchiver.Models.ViewModels.CreateMailAccountViewModel
 @{
     ViewData["Title"] = @Localizer["CreateNewEmailAccount"];
+    var visualProvider = Model.Provider == ProviderType.M365 && Model.ImportEntireTenant ? "M365Tenant"
+        : Model.Provider == ProviderType.M365 ? "M365Single"
+        : Model.Provider.ToString();
     var imapSettingsDisplay = Model.Provider == ProviderType.IMAP ? "block" : "none";
     var microsoft365SettingsDisplay = Model.Provider == ProviderType.M365 ? "block" : "none";
     var emailDeletionSettingsDisplay = Model.Provider == ProviderType.IMPORT ? "none" : "block";
-    var tenantImportControlsDisplay = Model.Provider == ProviderType.M365 ? "block" : "none";
+    var tenantImportControlsDisplay = Model.Provider == ProviderType.M365 && Model.ImportEntireTenant ? "block" : "none";
     var tenantImportSettingsDisplay = Model.Provider == ProviderType.M365 && Model.ImportEntireTenant ? "block" : "none";
 }
 
@@ -30,12 +33,15 @@
                 </div>
                 
                 <div class="mb-3">
-                    <label asp-for="Provider" class="form-label">@Localizer["Provider"]</label>
-                    <select asp-for="Provider" class="form-select">
-                        <option value="@ProviderType.IMAP">IMAP</option>
-                        <option value="@ProviderType.M365">Microsoft 365</option>
-                        <option value="@ProviderType.IMPORT">Import Only</option>
+                    <label for="ProviderDisplay" class="form-label">@Localizer["Provider"]</label>
+                    <select id="ProviderDisplay" class="form-select">
+                        <option value="IMAP" selected="@(visualProvider == "IMAP")">IMAP</option>
+                        <option value="M365Single" selected="@(visualProvider == "M365Single")">@Localizer["ProviderM365Single"]</option>
+                        <option value="M365Tenant" selected="@(visualProvider == "M365Tenant")">@Localizer["ProviderM365Tenant"]</option>
+                        <option value="IMPORT" selected="@(visualProvider == "IMPORT")">Import Only</option>
                     </select>
+                    <input type="hidden" asp-for="Provider" />
+                    <input type="hidden" asp-for="ImportEntireTenant" />
                     <span asp-validation-for="Provider" class="text-danger"></span>
                 </div>
                 
@@ -109,12 +115,6 @@
                     </div>
 
                     <div id="tenantImportControls" style="display: @tenantImportControlsDisplay;">
-                        <div class="mb-3 form-check">
-                            <input asp-for="ImportEntireTenant" class="form-check-input" />
-                            <label asp-for="ImportEntireTenant" class="form-check-label">@Localizer["UseTenantImport"]</label>
-                            <div class="form-text">@Localizer["UseTenantImportHelp"]</div>
-                        </div>
-
                         <div id="tenantImportSettings" style="display: @tenantImportSettingsDisplay;">
                             <div class="mb-3 form-check">
                                 <input asp-for="SkipDisabledMailboxes" class="form-check-input" />
@@ -182,7 +182,9 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const createForm = document.getElementById('createMailAccountForm');
-            const providerSelect = document.getElementById('Provider');
+            const providerDisplaySelect = document.getElementById('ProviderDisplay');
+            const providerInput = document.getElementById('Provider');
+            const importEntireTenantInput = document.getElementById('ImportEntireTenant');
             const imapSettings = document.getElementById('imapSettings');
             const microsoft365Settings = document.getElementById('microsoft365Settings');
             const emailDeletionSettings = document.getElementById('emailDeletionSettings');
@@ -195,7 +197,6 @@
             const clientIdInput = document.getElementById('ClientId');
             const clientSecretInput = document.getElementById('ClientSecret');
             const tenantIdInput = document.getElementById('TenantId');
-            const importEntireTenantInput = document.getElementById('ImportEntireTenant');
             const importAllTenantMailboxesInput = document.getElementById('ImportAllTenantMailboxes');
             const skipDisabledMailboxesInput = document.getElementById('SkipDisabledMailboxes');
             const tenantImportControls = document.getElementById('tenantImportControls');
@@ -215,20 +216,42 @@
                 });
             }
 
+            function syncProviderFields() {
+                const visualValue = providerDisplaySelect.value;
+                if (visualValue === 'M365Single') {
+                    providerInput.value = '@ProviderType.M365';
+                    importEntireTenantInput.value = 'false';
+                } else if (visualValue === 'M365Tenant') {
+                    providerInput.value = '@ProviderType.M365';
+                    importEntireTenantInput.value = 'true';
+                } else {
+                    providerInput.value = visualValue;
+                    importEntireTenantInput.value = 'false';
+                }
+            }
+
+            function isM365Selected() {
+                return providerDisplaySelect.value === 'M365Single' || providerDisplaySelect.value === 'M365Tenant';
+            }
+
+            function isTenantImportSelected() {
+                return providerDisplaySelect.value === 'M365Tenant';
+            }
+
             function toggleTenantImportFields() {
-                const isM365 = providerSelect.value === '@ProviderType.M365';
-                const isTenantImport = isM365 && importEntireTenantInput.checked;
+                const isM365 = isM365Selected();
+                const isTenantImport = isTenantImportSelected();
                 emailAddressField.style.display = isTenantImport ? 'none' : 'block';
                 nameField.style.display = 'block';
-                tenantImportControls.style.display = isM365 ? 'block' : 'none';
+                tenantImportControls.style.display = isTenantImport ? 'block' : 'none';
                 tenantImportSettings.style.display = isTenantImport ? 'block' : 'none';
                 tenantMailboxSelection.style.display = isTenantImport ? tenantMailboxSelection.style.display : 'none';
             }
 
             function toggleSettings(skipSuggestionCheck) {
-                const providerValue = providerSelect.value;
-                const isImport = providerValue === '@ProviderType.IMPORT';
-                const isM365 = providerValue === '@ProviderType.M365';
+                const visualValue = providerDisplaySelect.value;
+                const isImport = visualValue === 'IMPORT';
+                const isM365 = isM365Selected();
                 const isImap = !isImport && !isM365;
 
                 imapSettings.style.display = isImap ? 'block' : 'none';
@@ -253,11 +276,6 @@
             
             function checkForExistingAccounts() {
                 const emailAddress = emailAddressInput.value.trim();
-
-                if (importEntireTenantInput.checked) {
-                    existingAccountSuggestion.style.display = 'none';
-                    return;
-                }
 
                 // Need at least an at-symbol to have a domain
                 if (!emailAddress || !emailAddress.includes(String.fromCharCode(64))) {
@@ -300,8 +318,10 @@
                                 existingAccountSelect.appendChild(option);
                             });
                             
-                            if (providerSelect.value !== '@ProviderType.M365') {
-                                providerSelect.value = '@ProviderType.M365';
+                            // Automatically switch to M365 single mailbox when coming from a non-M365 provider
+                            if (!isM365Selected()) {
+                                providerDisplaySelect.value = 'M365Single';
+                                syncProviderFields();
                                 toggleSettings(true);
                             }
 
@@ -337,12 +357,6 @@
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
-                            // Switch provider to M365 if not already set
-                            if (providerSelect.value !== '@ProviderType.M365') {
-                                providerSelect.value = '@ProviderType.M365';
-                                toggleSettings(); // This will show M365 settings
-                            }
-                            
                             // Fill in the credentials
                             clientIdInput.value = data.clientId || '';
                             clientSecretInput.value = data.clientSecret || '';
@@ -461,20 +475,13 @@
             }
 
             // Initial check
+            syncProviderFields();
             toggleSettings();
             
             // Add event listeners
-            providerSelect.addEventListener('change', function() {
+            providerDisplaySelect.addEventListener('change', function() {
+                syncProviderFields();
                 toggleSettings();
-            });
-
-            importEntireTenantInput.addEventListener('change', function() {
-                toggleTenantImportFields();
-                if (this.checked) {
-                    existingAccountSuggestion.style.display = 'none';
-                } else {
-                    checkForExistingAccounts();
-                }
             });
 
             importAllTenantMailboxesInput.addEventListener('change', function() {

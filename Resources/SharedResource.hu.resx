@@ -2513,4 +2513,10 @@
   <data name="GotIt" xml:space="preserve">
     <value>Értettem!</value>
   </data>
+  <data name="ProviderM365Single" xml:space="preserve">
+    <value>Microsoft 365 (single mailbox)</value>
+  </data>
+  <data name="ProviderM365Tenant" xml:space="preserve">
+    <value>Microsoft 365 (tenant)</value>
+  </data>
 </root>
