@@ -2617,4 +2617,10 @@
   <data name="InvalidImportFileType" xml:space="preserve">
     <value>Neveljavna vrsta datoteke. Dovoljene priponice: .mbox, .eml, .zip</value>
   </data>
+  <data name="ClientSecretWillBeCopiedOnSave" xml:space="preserve">
+    <value>Skrivnost stranke bo ob shranjevanju prenesena iz izbranega obstoječega računa.</value>
+  </data>
+  <data name="ClientSecretRequired" xml:space="preserve">
+    <value>Skrivnost stranke je obvezna za račune M365</value>
+  </data>
 </root>

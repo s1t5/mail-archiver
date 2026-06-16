@@ -2617,4 +2617,10 @@
   <data name="InvalidImportFileType" xml:space="preserve">
     <value>Недопустимый тип файла. Разрешённые расширения: .mbox, .eml, .zip</value>
   </data>
+  <data name="ClientSecretWillBeCopiedOnSave" xml:space="preserve">
+    <value>Секрет клиента будет скопирован из выбранной существующей учётной записи при сохранении.</value>
+  </data>
+  <data name="ClientSecretRequired" xml:space="preserve">
+    <value>Секрет клиента обязателен для учётных записей M365</value>
+  </data>
 </root>

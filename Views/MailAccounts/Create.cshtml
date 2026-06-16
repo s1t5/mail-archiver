@@ -105,6 +105,7 @@
                 
                 <div id="microsoft365Settings" style="display: @microsoft365SettingsDisplay;">
                     <h4 class="mt-4">@Localizer["Microsoft365Settings"]</h4>
+                    <input type="hidden" asp-for="CopyCredentialsFromAccountId" id="copyCredentialsFromAccountId" />
                     
                     <div id="existingAccountSuggestion" class="m365-suggestion-box" style="display: none;">
                         <h6 class="alert-heading"><i class="bi bi-info-circle"></i> @Localizer["ExistingM365AccountsFound"]</h6>
@@ -127,6 +128,9 @@
                         <label asp-for="ClientSecret" class="form-label">@Localizer["ClientSecret"]</label>
                         <input asp-for="ClientSecret" class="form-control" type="password" />
                         <span asp-validation-for="ClientSecret" class="text-danger"></span>
+                        <div id="clientSecretCopiedHint" class="form-text text-success" style="display: none;">
+                            <i class="bi bi-check-circle"></i> @Localizer["ClientSecretWillBeCopiedOnSave"]
+                        </div>
                     </div>
                     
                     <div class="mb-3">
@@ -226,6 +230,8 @@
             const clientIdInput = document.getElementById('ClientId');
             const clientSecretInput = document.getElementById('ClientSecret');
             const tenantIdInput = document.getElementById('TenantId');
+            const copyCredentialsFromAccountIdInput = document.getElementById('copyCredentialsFromAccountId');
+            const clientSecretCopiedHint = document.getElementById('clientSecretCopiedHint');
             const importAllTenantMailboxesInput = document.getElementById('ImportAllTenantMailboxes');
             const skipDisabledMailboxesInput = document.getElementById('SkipDisabledMailboxes');
             const tenantImportControls = document.getElementById('tenantImportControls');
@@ -399,10 +405,22 @@
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
-                            // Fill in the credentials
+                            // Fill in the credentials that are safe to display
                             clientIdInput.value = data.clientId || '';
                             tenantIdInput.value = data.tenantId || '';
-                            // Note: clientSecret is intentionally not copied for security reasons
+                            
+                            // Mark that the client secret should be copied server-side on save
+                            if (copyCredentialsFromAccountIdInput) {
+                                copyCredentialsFromAccountIdInput.value = selectedAccountId;
+                            }
+                            
+                            // Clear any manual secret so the server copies it from the source account
+                            clientSecretInput.value = '';
+                            
+                            // Show hint that the secret will be copied on save
+                            if (clientSecretCopiedHint) {
+                                clientSecretCopiedHint.style.display = 'block';
+                            }
                             
                             // Hide suggestion box after copying
                             existingAccountSuggestion.style.display = 'none';
@@ -569,6 +587,16 @@
             // Check for existing accounts while typing email address
             emailAddressInput.addEventListener('input', function() {
                 checkForExistingAccounts();
+            });
+            
+            // If the user manually enters a client secret, do not overwrite it with the copied one
+            clientSecretInput.addEventListener('input', function() {
+                if (copyCredentialsFromAccountIdInput) {
+                    copyCredentialsFromAccountIdInput.value = '';
+                }
+                if (clientSecretCopiedHint) {
+                    clientSecretCopiedHint.style.display = 'none';
+                }
             });
             
             copyCredentialsBtn.addEventListener('click', copyCredentials);

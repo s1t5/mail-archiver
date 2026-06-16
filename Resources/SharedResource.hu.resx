@@ -2609,4 +2609,10 @@
   <data name="InvalidImportFileType" xml:space="preserve">
     <value>Érvénytelen fájltípus. Engedélyezett kiterjesztések: .mbox, .eml, .zip</value>
   </data>
+  <data name="ClientSecretWillBeCopiedOnSave" xml:space="preserve">
+    <value>Az ügyféltitok a mentéskor át lesz másolva a kiválasztott meglévő fiókból.</value>
+  </data>
+  <data name="ClientSecretRequired" xml:space="preserve">
+    <value>Az ügyféltitok kötelező M365 fiókokhoz</value>
+  </data>
 </root>

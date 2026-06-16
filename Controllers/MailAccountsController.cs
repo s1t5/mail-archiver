@@ -253,6 +253,38 @@ var model = new MailAccountViewModel
                     return View(model);
                 }
 
+                // SECURITY: If the user chose to copy credentials from an existing M365 account,
+                // copy the client secret server-side so it never travels to the browser.
+                if (model.Provider == ProviderType.M365 &&
+                    model.CopyCredentialsFromAccountId.HasValue &&
+                    string.IsNullOrWhiteSpace(model.ClientSecret))
+                {
+                    var sourceAccountId = model.CopyCredentialsFromAccountId.Value;
+                    if (await HasAccessToAccountAsync(sourceAccountId))
+                    {
+                        var sourceAccount = await _context.MailAccounts.FindAsync(sourceAccountId);
+                        if (sourceAccount != null && sourceAccount.Provider == ProviderType.M365)
+                        {
+                            account.ClientSecret = sourceAccount.ClientSecret;
+                            _logger.LogInformation(
+                                "Copying M365 client secret from account {SourceAccountId} to new account {NewAccountEmail}",
+                                sourceAccountId, account.EmailAddress);
+                        }
+                        else
+                        {
+                            _logger.LogWarning(
+                                "Cannot copy M365 credentials: source account {SourceAccountId} not found or not M365",
+                                sourceAccountId);
+                        }
+                    }
+                    else
+                    {
+                        _logger.LogWarning(
+                            "User attempted to copy M365 credentials from account {SourceAccountId} without access",
+                            sourceAccountId);
+                    }
+                }
+
                 try
                 {
                     _logger.LogInformation("Creating new account: {Name}, Provider: {Provider}",

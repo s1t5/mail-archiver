@@ -2617,4 +2617,10 @@
   <data name="InvalidImportFileType" xml:space="preserve">
     <value>Type de fichier invalide. Extensions autorisées : .mbox, .eml, .zip</value>
   </data>
+  <data name="ClientSecretWillBeCopiedOnSave" xml:space="preserve">
+    <value>Le secret client sera copié depuis le compte existant sélectionné lors de l'enregistrement.</value>
+  </data>
+  <data name="ClientSecretRequired" xml:space="preserve">
+    <value>Le secret client est requis pour les comptes M365</value>
+  </data>
 </root>

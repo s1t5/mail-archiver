@@ -2617,4 +2617,10 @@
   <data name="InvalidImportFileType" xml:space="preserve">
     <value>Ongeldig bestandstype. Toegestane extensies: .mbox, .eml, .zip</value>
   </data>
+  <data name="ClientSecretWillBeCopiedOnSave" xml:space="preserve">
+    <value>Het clientgeheim wordt bij het opslaan gekopieerd van het geselecteerde bestaande account.</value>
+  </data>
+  <data name="ClientSecretRequired" xml:space="preserve">
+    <value>Clientgeheim is vereist voor M365-accounts</value>
+  </data>
 </root>

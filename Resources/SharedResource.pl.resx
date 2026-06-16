@@ -2663,4 +2663,10 @@
   <data name="InvalidImportFileType" xml:space="preserve">
     <value>Nieprawidłowy typ pliku. Dozwolone rozszerzenia: .mbox, .eml, .zip</value>
   </data>
+  <data name="ClientSecretWillBeCopiedOnSave" xml:space="preserve">
+    <value>Tajny klucz klienta zostanie skopiowany z wybranego istniejącego konta podczas zapisywania.</value>
+  </data>
+  <data name="ClientSecretRequired" xml:space="preserve">
+    <value>Tajny klucz klienta jest wymagany dla kont M365</value>
+  </data>
 </root>

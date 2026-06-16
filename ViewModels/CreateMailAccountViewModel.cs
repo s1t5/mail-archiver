@@ -47,12 +47,13 @@ namespace MailArchiver.Models.ViewModels
         public string? ClientId { get; set; }
         
         [Display(Name = "Client Secret")]
-        [ConditionalRequired(nameof(Provider), ProviderType.M365, ErrorMessage = "Client Secret is required for M365 accounts")]
         public string? ClientSecret { get; set; }
         
         [Display(Name = "Tenant ID")]
         [ConditionalRequired(nameof(Provider), ProviderType.M365, ErrorMessage = "Tenant ID is required for M365 accounts")]
         public string? TenantId { get; set; }
+
+        public int? CopyCredentialsFromAccountId { get; set; }
 
         [Display(Name = "Import from tenant")]
         public bool ImportEntireTenant { get; set; } = true;
@@ -100,6 +101,16 @@ namespace MailArchiver.Models.ViewModels
                 yield return new ValidationResult(
                     localizer?["SelectAtLeastOneMailboxOrImportAll"].Value ?? "Select at least one mailbox or enable importing all listed mailboxes.",
                     new[] { nameof(SelectedM365Mailboxes) });
+            }
+
+            // Client Secret is required for M365 accounts unless it will be copied from an existing account
+            if (Provider == ProviderType.M365 &&
+                !CopyCredentialsFromAccountId.HasValue &&
+                string.IsNullOrWhiteSpace(ClientSecret))
+            {
+                yield return new ValidationResult(
+                    localizer?["ClientSecretRequired"].Value ?? "Client Secret is required for M365 accounts",
+                    new[] { nameof(ClientSecret) });
             }
         }
     }
