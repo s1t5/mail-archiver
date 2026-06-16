@@ -2338,6 +2338,15 @@
   <data name="SignInWithOAuthProvider" xml:space="preserve">
     <value>Prijava z {0}</value>
   </data>
+  <data name="RedirectingToProvider" xml:space="preserve">
+    <value>Preusmerjanje na {0}...</value>
+  </data>
+  <data name="PleaseWaitRedirectingToProvider" xml:space="preserve">
+    <value>Prosimo počakajte, medtem ko vas preusmerimo na {0}...</value>
+  </data>
+  <data name="Loading" xml:space="preserve">
+    <value>Nalaganje...</value>
+  </data>
   <data name="CurrentSyncTime" xml:space="preserve">
     <value>Trenutni čas sinhronizacije</value>
   </data>

@@ -2338,6 +2338,15 @@
   <data name="SignInWithOAuthProvider" xml:space="preserve">
     <value>Accedi con {0}</value>
   </data>
+  <data name="RedirectingToProvider" xml:space="preserve">
+    <value>Reindirizzamento a {0}...</value>
+  </data>
+  <data name="PleaseWaitRedirectingToProvider" xml:space="preserve">
+    <value>Attendere mentre la reindirizziamo a {0}...</value>
+  </data>
+  <data name="Loading" xml:space="preserve">
+    <value>Caricamento...</value>
+  </data>
   <data name="CurrentSyncTime" xml:space="preserve">
     <value>Ora di sincronizzazione corrente</value>
   </data>

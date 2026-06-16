@@ -83,18 +83,28 @@ namespace MailArchiver.Controllers
         private void ConfigureOAuthViewData(string? returnUrl)
         {
             var options = _oAuthOptions.Value;
+            var enabled = options?.Enabled ?? false;
+
+            ViewBag.OAuthEnabled = enabled;
+            ViewBag.DisablePasswordLogin = options?.DisablePasswordLogin ?? false;
+            ViewBag.AutoRedirect = options?.AutoRedirect ?? false;
+            ViewData["ReturnUrl"] = returnUrl;
+
+            if (!enabled)
+            {
+                ViewBag.OAuthDisplayName = "OAuth";
+                ViewBag.OAuthSignInLabel = null;
+                return;
+            }
+
             var displayName = string.IsNullOrWhiteSpace(options?.DisplayName)
                 ? null
                 : options.DisplayName.Trim();
 
-            ViewBag.OAuthEnabled = options?.Enabled ?? false;
-            ViewBag.DisablePasswordLogin = options?.DisablePasswordLogin ?? false;
-            ViewBag.AutoRedirect = options?.AutoRedirect ?? false;
             ViewBag.OAuthDisplayName = displayName ?? "OAuth";
             ViewBag.OAuthSignInLabel = string.IsNullOrWhiteSpace(displayName)
                 ? _localizer["SignInWithOAuth"].Value
                 : _localizer["SignInWithOAuthProvider", displayName].Value;
-            ViewData["ReturnUrl"] = returnUrl;
         }
 
         [HttpPost]
@@ -148,7 +158,6 @@ namespace MailArchiver.Controllers
                 else
                 {
                     ModelState.AddModelError("", _localizer["InvalidUserPassword"]);
-                    ConfigureOAuthViewData(returnUrl);
                     _logger.LogWarning("Failed login attempt for username: {Username} from IP: {IP}", 
                         model.Username, HttpContext.Connection.RemoteIpAddress);
                 }

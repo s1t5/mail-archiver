@@ -118,7 +118,4 @@
     <data name="EMLFormatDescription" xml:space="preserve">
     <value>Creates individual .eml files organised in folders.</value>
   </data>
-  <data name="SignInWithOAuthProvider" xml:space="preserve">
-    <value>Login with {0}</value>
-  </data>
 </root>
