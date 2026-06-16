@@ -108,6 +108,7 @@ services:
       - OAuth__Authority=https://example.com
       - OAuth__ClientId=YOUR-CLIENT-ID
       - OAuth__ClientSecret=YOUR-CLIENT-SECRET
+      - OAuth__DisplayName=PocketID SSO
       - OAuth__ClientScopes__0=openid
       - OAuth__ClientScopes__1=profile
       - OAuth__ClientScopes__2=email
@@ -301,6 +302,7 @@ For detailed setup instructions for OpenID Connect authentication, see [OIDC Imp
 - `OAuth__Authority`: The OpenID Connect authority URL (e.g., https://sts.windows.net/{TENANT-ID}/ for Azure AD)
 - `OAuth__ClientId`: The client ID assigned by your identity provider
 - `OAuth__ClientSecret`: The client secret assigned by your identity provider
+- `OAuth__DisplayName`: Optional display name shown on the OIDC login button and auto-redirect page (e.g., `PocketID SSO`). If omitted, the generic "Login with OAuth" label is used.
 - `OAuth__ClientScopes__0`: First scope requested from the identity provider (openid)
 - `OAuth__ClientScopes__1`: Second scope requested from the identity provider (profile)
 - `OAuth__ClientScopes__2`: Third scope requested from the identity provider (email)
@@ -320,6 +322,7 @@ environment:
   - OAuth__Authority=https://login.microsoftonline.com/YOUR_TENANT_ID/v2.0
   - OAuth__ClientId=your-client-id
   - OAuth__ClientSecret=your-client-secret
+  - OAuth__DisplayName=PocketID SSO
   - OAuth__ClientScopes__0=openid
   - OAuth__ClientScopes__1=profile
   - OAuth__ClientScopes__2=email
