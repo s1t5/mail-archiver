@@ -2387,6 +2387,18 @@
   <data name="SignInWithOAuth" xml:space="preserve">
     <value>Anmelden mit OAuth</value>
   </data>
+  <data name="SignInWithOAuthProvider" xml:space="preserve">
+    <value>Anmelden mit {0}</value>
+  </data>
+  <data name="RedirectingToProvider" xml:space="preserve">
+    <value>Weiterleitung zu {0}...</value>
+  </data>
+  <data name="PleaseWaitRedirectingToProvider" xml:space="preserve">
+    <value>Bitte warten Sie, während wir Sie zu {0} weiterleiten...</value>
+  </data>
+  <data name="Loading" xml:space="preserve">
+    <value>Wird geladen...</value>
+  </data>
   <data name="AccountDeleted" xml:space="preserve">
     <value>Account '{0}' wurde erfolgreich gelöscht, einschließlich aller archivierten E-Mails und Anhänge.</value>
   </data>

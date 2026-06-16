@@ -98,6 +98,7 @@ environment:
   - OAuth__Authority=https://sts.windows.net/{TENANT-ID}/
   - OAuth__ClientId=YOUR-CLIENT-ID
   - OAuth__ClientSecret=YOUR-CLIENT-SECRET
+  - OAuth__DisplayName=PocketID SSO
   - OAuth__ClientScopes__0=openid
   - OAuth__ClientScopes__1=profile
   - OAuth__ClientScopes__2=email
@@ -110,6 +111,7 @@ environment:
 - **OAuth__Authority**: The OpenID Connect authority URL of your identity provider
 - **OAuth__ClientId**: The client ID assigned by your identity provider
 - **OAuth__ClientSecret**: The client secret assigned by your identity provider
+- **OAuth__DisplayName**: Optional display name for the OIDC login button (for example, `PocketID SSO` renders as `Login with PocketID SSO`)
 - **OAuth__ClientScopes**: Array of scopes requested from the identity provider
 - **OAuth__DisablePasswordLogin**: Set to `true` to disable traditional username/password login and enforce OAuth-only authentication (see Passwordless Login Configuration for more details)
 - **OAuth__AutoApproveUsers**: Set to `true` to automatically approve new OIDC users without requiring admin approval (default: `false`). See [Auto-Approve OIDC Users](#auto-approve-oidc-users) for details
@@ -220,8 +222,8 @@ identity_providers:
 
 1. Restart your Mail Archiver application after configuring OIDC settings
 2. Navigate to your Mail Archiver login page
-3. You should see a new "Login with OAuth" button alongside the regular login form
-4. Click the "Login with OAuth" button to initiate the OIDC flow
+3. You should see a new OAuth login button alongside the regular login form. With `OAuth__DisplayName=PocketID SSO`, the button reads `Login with PocketID SSO`.
+4. Click the OAuth login button to initiate the OIDC flow
 5. You should be redirected to your identity provider's login page
 6. After successful authentication, you should be redirected back to Mail Archiver
 
@@ -343,6 +345,7 @@ This option is recommended for environments where:
     "Authority": "https://login.microsoftonline.com/YOUR_TENANT_ID/v2.0",
     "ClientId": "your-client-id",
     "ClientSecret": "your-secret",
+    "DisplayName": "PocketID SSO",
     "ClientScopes": ["openid", "profile", "email"],
     "DisablePasswordLogin": true,
     "AutoRedirect": true,
@@ -387,7 +390,7 @@ Set `DisablePasswordLogin` to `true` to hide username/password fields:
 }
 ```
 
-**Result**: Login page displays only the "Login with OAuth" button.
+**Result**: Login page displays only the OAuth login button. If `DisplayName` is configured, the button uses that value (for example, `Login with PocketID SSO`).
 
 ### Auto-Redirect to OAuth Provider
 
@@ -421,6 +424,7 @@ Enable `AutoRedirect` to automatically redirect users to your OAuth provider:
     "Authority": "https://login.microsoftonline.com/YOUR_TENANT_ID/v2.0",
     "ClientId": "your-client-id",
     "ClientSecret": "your-secret",
+    "DisplayName": "PocketID SSO",
     "ClientScopes": ["openid", "profile", "email"],
     "DisablePasswordLogin": true,
     "AutoRedirect": true,
