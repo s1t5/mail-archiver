@@ -52,7 +52,7 @@
 - Per-account retention (e.g., 30, 90, or 365 days)
 - Separate retention for the local archive
 
-### 🗑️ Audit Logging
+### 📋 Access Log
 - The application logs various types of user activities such as Login, Opening, Searches, Exports and many more. ([Logging](doc/Logs.md))
 
 ## 📚 Documentation
