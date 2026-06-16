@@ -169,21 +169,34 @@ namespace MailArchiver.Controllers
                 return NotFound();
             }
 
-            return View(user);
+            var model = new EditUserViewModel
+            {
+                Id = user.Id,
+                Username = user.Username,
+                Email = user.Email,
+                IsAdmin = user.IsAdmin,
+                IsSelfManager = user.IsSelfManager,
+                IsActive = user.IsActive
+            };
+
+            ViewBag.IsOidcUser = !string.IsNullOrEmpty(user.OAuthRemoteUserId);
+            ViewBag.IsTwoFactorEnabled = user.IsTwoFactorEnabled;
+
+            return View(model);
         }
 
         // POST: Users/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         [AdminRequired]
-        public async Task<IActionResult> Edit(int id, User user, string? newPassword)
+        public async Task<IActionResult> Edit(int id, EditUserViewModel model, string? newPassword)
         {
             _logger.LogInformation("Edit POST called with id: {Id}, user: {User}, newPassword length: {PasswordLength}",
-                id, user?.Username, newPassword?.Length ?? 0);
+                id, model?.Username, newPassword?.Length ?? 0);
 
-            if (id != user.Id)
+            if (id != model.Id)
             {
-                _logger.LogWarning("ID mismatch: route id {RouteId} != user.Id {UserId}", id, user?.Id);
+                _logger.LogWarning("ID mismatch: route id {RouteId} != model.Id {UserId}", id, model?.Id);
                 return NotFound();
             }
 
@@ -195,6 +208,9 @@ namespace MailArchiver.Controllers
                 return NotFound();
             }
 
+            ViewBag.IsOidcUser = !string.IsNullOrEmpty(existingUser.OAuthRemoteUserId);
+            ViewBag.IsTwoFactorEnabled = existingUser.IsTwoFactorEnabled;
+
             // SECURITY: OIDC users cannot have passwords set
             if (!string.IsNullOrEmpty(existingUser.OAuthRemoteUserId) && !string.IsNullOrWhiteSpace(newPassword))
             {
@@ -204,7 +220,7 @@ namespace MailArchiver.Controllers
             }
 
             // SECURITY: OIDC users cannot have their username changed
-            if (!string.IsNullOrEmpty(existingUser.OAuthRemoteUserId) && existingUser.Username != user.Username)
+            if (!string.IsNullOrEmpty(existingUser.OAuthRemoteUserId) && existingUser.Username != model.Username)
             {
                 _logger.LogWarning("Attempted to change username for OIDC user {Username} (ID: {UserId}) - denied", 
                     existingUser.Username, existingUser.Id);
@@ -238,27 +254,27 @@ namespace MailArchiver.Controllers
                     _logger.LogInformation("Attempting to update user with id: {Id}", id);
 
                     // Check if trying to remove admin rights from the last admin
-                    if (existingUser.IsAdmin && !user.IsAdmin)
+                    if (existingUser.IsAdmin && !model.IsAdmin)
                     {
                         var adminCount = await _userService.GetAdminCountAsync();
                         if (adminCount <= 1)
                         {
                             _logger.LogWarning("Cannot remove admin rights. At least one admin must exist.");
                             ModelState.AddModelError("IsAdmin", _localizer["CannotRemoveAdmin"]);
-                            return View(user);
+                            return View(model);
                         }
                     }
 
                     // Update user properties
                     _logger.LogInformation("Updating user properties for user: {Username}", existingUser.Username);
-                    existingUser.Username = user.Username;
-                    existingUser.Email = user.Email;
-                    existingUser.IsAdmin = user.IsAdmin;
-                    existingUser.IsSelfManager = user.IsSelfManager;
-                    existingUser.IsActive = user.IsActive;
+                    existingUser.Username = model.Username;
+                    existingUser.Email = model.Email;
+                    existingUser.IsAdmin = model.IsAdmin;
+                    existingUser.IsSelfManager = model.IsSelfManager;
+                    existingUser.IsActive = model.IsActive;
 
                     // SECURITY: When activating an OIDC user, also clear the RequiresApproval flag
-                    if (user.IsActive && existingUser.RequiresApproval)
+                    if (model.IsActive && existingUser.RequiresApproval)
                     {
                         existingUser.RequiresApproval = false;
                         _logger.LogInformation("Clearing RequiresApproval flag for activated OIDC user {Username} (ID: {UserId})",
@@ -305,33 +321,21 @@ namespace MailArchiver.Controllers
                     {
                         _logger.LogWarning("Failed to update user: {Username}", existingUser.Username);
                         ModelState.AddModelError("", _localizer["UserUpdateFailed"]);
-                        return View(user);
+                        return View(model);
                     }
                 }
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, "Error updating user: {Message}", ex.Message);
                     ModelState.AddModelError("", $"{_localizer["ErrorOccurred"]}: {ex.Message}");
-                    return View(user);
+                    return View(model);
                 }
             }
 
             // If we get here, something went wrong with validation or model binding
-            // Let's get the user again to ensure we have all the data for the view
+            // Preserve the values that the user entered in the form
             _logger.LogInformation("Returning view with validation errors");
-            var currentUser = await _userService.GetUserByIdAsync(id);
-            if (currentUser != null)
-            {
-                // Preserve the values that the user entered in the form
-                currentUser.Username = user.Username;
-                currentUser.Email = user.Email;
-                currentUser.IsAdmin = user.IsAdmin;
-                currentUser.IsSelfManager = user.IsSelfManager;
-                currentUser.IsActive = user.IsActive;
-                return View(currentUser);
-            }
-
-            return View(user);
+            return View(model);
         }
 
         // POST: Users/ResetTwoFactor/5

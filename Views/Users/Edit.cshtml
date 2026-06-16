@@ -1,5 +1,5 @@
 ﻿@inject Microsoft.Extensions.Localization.IStringLocalizer<MailArchiver.SharedResource> Localizer
-@model MailArchiver.Models.User
+@model MailArchiver.Models.ViewModels.EditUserViewModel
 @{ ViewData["Title"] = Localizer["EditUserTitle"]; }
 <div class="container-fluid">
     <div class="d-flex justify-content-between align-items-center mb-3">
@@ -10,14 +10,11 @@
         <form asp-action="Edit" method="post">
             <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
             <input type="hidden" asp-for="Id" />
-            <input type="hidden" asp-for="PasswordHash" />
-            <input type="hidden" asp-for="CreatedAt" />
-            <input type="hidden" asp-for="LastLoginAt" />
                 <div class="row">
                     <div class="col-md-6">
                         <div class="mb-3">
                             <label asp-for="Username" class="form-label">@Localizer["Username"]</label>
-                            @if (!string.IsNullOrEmpty(Model.OAuthRemoteUserId))
+                            @if (ViewBag.IsOidcUser != null && (bool)ViewBag.IsOidcUser)
                             {
                                 <input asp-for="Username" class="form-control" readonly />
                                 <small class="form-text text-muted">
@@ -62,7 +59,7 @@
                     </div>
                 </div>
             </div>
-            @if (string.IsNullOrEmpty(Model.OAuthRemoteUserId))
+            @if (ViewBag.IsOidcUser != null && !(bool)ViewBag.IsOidcUser)
             {
                 <div class="row">
                     <div class="col-md-12">
@@ -96,8 +93,8 @@
             <div class="d-flex justify-content-between"><a asp-action="Index" class="btn btn-secondary">@Localizer["Cancel"]</a><button type="submit" class="btn btn-primary"><i class="bi bi-save"></i> @Localizer["SaveChanges"]</button></div>
         </form>
         @* 2FA is only available for non-OIDC users *@
-        @if (string.IsNullOrEmpty(Model.OAuthRemoteUserId) && Model.IsTwoFactorEnabled)
-        {
+            @if (ViewBag.IsOidcUser != null && !(bool)ViewBag.IsOidcUser && ViewBag.IsTwoFactorEnabled != null && (bool)ViewBag.IsTwoFactorEnabled)
+            {
             <div class="mt-4">
                 <h5>@Localizer["TwoFactorAuthentication"]</h5>
                 <p>@Localizer["TwoFactorEnabled"]</p>

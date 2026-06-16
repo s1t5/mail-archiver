@@ -2614,4 +2614,7 @@
   <data name="LoadMailboxesHelp" xml:space="preserve">
     <value>Carica l'elenco delle caselle di posta del tenant per scegliere quali account importare.</value>
   </data>
+  <data name="InvalidImportFileType" xml:space="preserve">
+    <value>Tipo di file non valido. Estensioni consentite: .mbox, .eml, .zip</value>
+  </data>
 </root>

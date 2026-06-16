@@ -2613,4 +2613,7 @@
   <data name="LoadMailboxesHelp" xml:space="preserve">
     <value>Cargue la lista de buzones del inquilino para elegir qué cuentas importar.</value>
   </data>
+  <data name="InvalidImportFileType" xml:space="preserve">
+    <value>Tipo de archivo no válido. Extensiones permitidas: .mbox, .eml, .zip</value>
+  </data>
 </root>

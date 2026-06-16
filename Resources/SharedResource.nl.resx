@@ -2614,4 +2614,7 @@
   <data name="LoadMailboxesHelp" xml:space="preserve">
     <value>Laad de lijst met tenantpostvakken om te kiezen welke accounts moeten worden geïmporteerd.</value>
   </data>
+  <data name="InvalidImportFileType" xml:space="preserve">
+    <value>Ongeldig bestandstype. Toegestane extensies: .mbox, .eml, .zip</value>
+  </data>
 </root>

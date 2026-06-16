@@ -2615,4 +2615,7 @@
   <data name="LoadMailboxesHelp" xml:space="preserve">
     <value>Laden Sie die Liste der Mandantschafts-Postfächer, um auszuwählen, welche Konten importiert werden sollen.</value>
   </data>
+  <data name="InvalidImportFileType" xml:space="preserve">
+    <value>Ungültiger Dateityp. Erlaubte Endungen: .mbox, .eml, .zip</value>
+  </data>
 </root>

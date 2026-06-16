@@ -2601,4 +2601,7 @@
   <data name="LoadMailboxesHelp" xml:space="preserve">
     <value>Load the list of tenant mailboxes to choose which accounts to import.</value>
   </data>
+  <data name="InvalidImportFileType" xml:space="preserve">
+    <value>Invalid file type. Allowed extensions: .mbox, .eml, .zip</value>
+  </data>
 </root>

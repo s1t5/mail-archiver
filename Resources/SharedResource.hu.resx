@@ -2606,4 +2606,7 @@
   <data name="LoadMailboxesHelp" xml:space="preserve">
     <value>Töltse be a bérlő postafiókok listáját, hogy kiválaszthassa, mely fiókokat szeretné importálni.</value>
   </data>
+  <data name="InvalidImportFileType" xml:space="preserve">
+    <value>Érvénytelen fájltípus. Engedélyezett kiterjesztések: .mbox, .eml, .zip</value>
+  </data>
 </root>

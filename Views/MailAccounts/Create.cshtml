@@ -401,8 +401,8 @@
                         if (data.success) {
                             // Fill in the credentials
                             clientIdInput.value = data.clientId || '';
-                            clientSecretInput.value = data.clientSecret || '';
                             tenantIdInput.value = data.tenantId || '';
+                            // Note: clientSecret is intentionally not copied for security reasons
                             
                             // Hide suggestion box after copying
                             existingAccountSuggestion.style.display = 'none';

@@ -4,6 +4,7 @@ using MailArchiver.Models.ViewModels;
 using MailArchiver.ViewModels;
 using MailArchiver.Services;
 using MailArchiver.Services.Providers;
+using MailArchiver.Utilities;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -1333,6 +1334,13 @@ var model = new MailAccountViewModel
                 return View(model);
             }
 
+            // Validate file extension
+            if (!FileUploadHelper.IsAllowedImportExtension(model.MBoxFile.FileName))
+            {
+                ModelState.AddModelError("MBoxFile", _localizer["InvalidImportFileType"].Value);
+                return View(model);
+            }
+
             // Validate target account
             var targetAccount = await _context.MailAccounts.FindAsync(model.TargetAccountId);
             if (targetAccount == null)
@@ -1620,6 +1628,13 @@ var model = new MailAccountViewModel
             if (model.EmlFile.Length > model.MaxFileSize)
             {
                 ModelState.AddModelError("EmlFile", _localizer["EmlFileTooLarge", model.MaxFileSizeFormatted].Value);
+                return View(model);
+            }
+
+            // Validate file extension
+            if (!FileUploadHelper.IsAllowedImportExtension(model.EmlFile.FileName))
+            {
+                ModelState.AddModelError("EmlFile", _localizer["InvalidImportFileType"].Value);
                 return View(model);
             }
 
@@ -2113,7 +2128,6 @@ var model = new MailAccountViewModel
                 {
                     success = true,
                     clientId = account.ClientId,
-                    clientSecret = account.ClientSecret,
                     tenantId = account.TenantId
                 });
             }

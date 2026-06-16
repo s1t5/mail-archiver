@@ -2614,4 +2614,7 @@
   <data name="LoadMailboxesHelp" xml:space="preserve">
     <value>Chargez la liste des boîtes aux lettres du locataire pour choisir quels comptes importer.</value>
   </data>
+  <data name="InvalidImportFileType" xml:space="preserve">
+    <value>Type de fichier invalide. Extensions autorisées : .mbox, .eml, .zip</value>
+  </data>
 </root>

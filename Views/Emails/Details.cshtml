@@ -17,11 +17,7 @@
                 <a href="@returnUrl" class="btn btn-outline-secondary btn-sm">
                     <i class="bi bi-arrow-left"></i> @Localizer["BackToList"]
                 </a>
-                <a href="#" class="btn btn-outline-info btn-sm" id="replyButtonMobile" onclick="handleReplyClick(event)"
-                   data-sender="@Model.Email.From"
-                   data-subject="@Model.Email.Subject"
-                   data-date="@Model.Email.SentDate.ToString("yyyy-MM-dd HH:mm")"
-                   data-body="@Model.Email.Body">
+                <a href="#" class="btn btn-outline-info btn-sm" id="replyButtonMobile" onclick="handleReplyClick(event)">
                     <i class="bi bi-arrow-return-left"></i> @Localizer["Reply"]
                 </a>
                 <a asp-action="Export" asp-route-id="@Model.Email.Id" asp-route-format="Eml"
@@ -46,11 +42,7 @@
             <a href="@returnUrl" class="btn btn-outline-secondary">
                 <i class="bi bi-arrow-left"></i> @Localizer["BackToList"]
             </a>
-            <a href="#" class="btn btn-outline-info" id="replyButton" data-bs-toggle="tooltip" title="@Localizer["Reply"]" onclick="handleReplyClick(event)"
-               data-sender="@Model.Email.From"
-               data-subject="@Model.Email.Subject"
-               data-date="@Model.Email.SentDate.ToString("yyyy-MM-dd HH:mm")"
-               data-body="@Model.Email.Body">
+            <a href="#" class="btn btn-outline-info" id="replyButton" data-bs-toggle="tooltip" title="@Localizer["Reply"]" onclick="handleReplyClick(event)">
                 <i class="bi bi-arrow-return-left"></i>
             </a>
             <a asp-action="Export" asp-route-id="@Model.Email.Id" asp-route-format="Eml"
@@ -240,7 +232,7 @@
                 {
                     <div id="html-view-container" class="email-content-container" style="min-height: 800px; display: @(Model.DefaultToPlainText && Model.HasPlainTextBody ? "none" : "block");">
                         <iframe id="email-content-frame" src="@Url.Action("RawContent", new { id = Model.Email.Id })"
-                            class="w-100 border rounded email-iframe" sandbox="allow-same-origin allow-popups allow-downloads allow-forms allow-modals allow-orientation-lock allow-pointer-lock allow-presentation allow-scripts allow-top-navigation-by-user-activation" style="min-height: 800px; height: 800px; max-height: 1200px;"></iframe>
+                            class="w-100 border rounded email-iframe" sandbox="allow-popups allow-downloads allow-forms allow-modals allow-orientation-lock allow-pointer-lock allow-presentation allow-scripts allow-top-navigation-by-user-activation" style="min-height: 800px; height: 800px; max-height: 1200px;"></iframe>
                     </div>
                 }
 
@@ -326,6 +318,14 @@
 
 
 <script>
+    // Securely pass email reply data to JavaScript as JSON (prevents XSS via data-* attributes)
+    window.emailReplyData = {
+        sender: @Json.Serialize(Model.Email.From),
+        subject: @Json.Serialize(Model.Email.Subject),
+        sentDate: @Json.Serialize(Model.Email.SentDate.ToString("yyyy-MM-dd HH:mm")),
+        body: @Json.Serialize(Model.Email.Body)
+    };
+
     // Localized strings for JavaScript
     const localizedStrings = {
         previewNotAvailable: '@Localizer["PreviewNotAvailable"]',
@@ -384,12 +384,11 @@
     function handleReplyClick(event) {
         event.preventDefault();
         
-        // Get data from data attributes set on the button
-        const button = event.currentTarget;
-        const sender = button.getAttribute('data-sender');
-        const subject = button.getAttribute('data-subject');
-        const sentDate = button.getAttribute('data-date');
-        const originalBody = button.getAttribute('data-body') || "[Original content not available]";
+        // Get data from the secure JSON object rendered by the server
+        const sender = window.emailReplyData.sender;
+        const subject = window.emailReplyData.subject;
+        const sentDate = window.emailReplyData.sentDate;
+        const originalBody = window.emailReplyData.body || "[Original content not available]";
         
         // Format the body with ">" prefix for each line
         let formattedBody = formatReplyBody(originalBody);

@@ -2614,4 +2614,7 @@
   <data name="LoadMailboxesHelp" xml:space="preserve">
     <value>Загрузите список почтовых ящиков арендатора, чтобы выбрать, какие учетные записи импортировать.</value>
   </data>
+  <data name="InvalidImportFileType" xml:space="preserve">
+    <value>Недопустимый тип файла. Разрешённые расширения: .mbox, .eml, .zip</value>
+  </data>
 </root>

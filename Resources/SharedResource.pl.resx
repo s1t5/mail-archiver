@@ -2660,4 +2660,7 @@
   <data name="LoadMailboxesHelp" xml:space="preserve">
     <value>Ładuj listę skrzynek pocztowych dzierżawy, aby wybrać, które konta mają być importowane.</value>
   </data>
+  <data name="InvalidImportFileType" xml:space="preserve">
+    <value>Nieprawidłowy typ pliku. Dozwolone rozszerzenia: .mbox, .eml, .zip</value>
+  </data>
 </root>

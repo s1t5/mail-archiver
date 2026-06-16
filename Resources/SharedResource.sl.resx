@@ -2614,4 +2614,7 @@
   <data name="LoadMailboxesHelp" xml:space="preserve">
     <value>Naložite seznam poštne nabiralnike najemnika, da izberete, katere račune želite uvoziti.</value>
   </data>
+  <data name="InvalidImportFileType" xml:space="preserve">
+    <value>Neveljavna vrsta datoteke. Dovoljene priponice: .mbox, .eml, .zip</value>
+  </data>
 </root>
