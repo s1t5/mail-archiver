@@ -2624,4 +2624,25 @@
   <data name="ClientSecretRequired" xml:space="preserve">
     <value>Client Secret ist für M365-Konten erforderlich</value>
   </data>
+  <data name="TenantManagement" xml:space="preserve">
+    <value>Mandantenverwaltung</value>
+  </data>
+  <data name="TenantManagementTitle" xml:space="preserve">
+    <value>Mandantenverwaltung</value>
+  </data>
+  <data name="TenantManagementHelp" xml:space="preserve">
+    <value>Fügt fehlende Postfächer dieses Mandanten hinzu. Neue Konten verwenden die Anmeldedaten des Quellkontos.</value>
+  </data>
+  <data name="AddSelectedMailboxes" xml:space="preserve">
+    <value>Ausgewählte Postfächer hinzufügen</value>
+  </data>
+  <data name="MailboxesAdded" xml:space="preserve">
+    <value>{0} Postfach(fächer) hinzugefügt.</value>
+  </data>
+  <data name="NoNewMailboxesToAdd" xml:space="preserve">
+    <value>Keine neuen Postfächer hinzuzufügen.</value>
+  </data>
+  <data name="SelectAtLeastOneMailboxForManagement" xml:space="preserve">
+    <value>Wählen Sie mindestens ein Postfach zum Hinzufügen aus.</value>
+  </data>
 </root>

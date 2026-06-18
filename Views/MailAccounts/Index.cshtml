@@ -289,6 +289,14 @@
                                     <i class="bi bi-pencil"></i> @Localizer["Edit"]
                                 </a>
                             </div>
+                            @if (isAdmin && item.Provider == ProviderType.M365)
+                            {
+                                <div class="col-4">
+                                    <a asp-action="TenantManagement" asp-route-id="@item.Id" class="btn btn-outline-primary btn-sm w-100">
+                                        <i class="bi bi-building"></i> @Localizer["TenantManagement"]
+                                    </a>
+                                </div>
+                            }
                             @if (canExport)
                             {
                                 <div class="col-4">

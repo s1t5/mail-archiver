@@ -2622,4 +2622,25 @@
   <data name="ClientSecretRequired" xml:space="preserve">
     <value>El secreto de cliente es requerido para cuentas M365</value>
   </data>
+  <data name="TenantManagement" xml:space="preserve">
+    <value>Tenant Management</value>
+  </data>
+  <data name="TenantManagementTitle" xml:space="preserve">
+    <value>Tenant Management</value>
+  </data>
+  <data name="TenantManagementHelp" xml:space="preserve">
+    <value>Add missing mailboxes from this tenant. New accounts use the credentials of the source account.</value>
+  </data>
+  <data name="AddSelectedMailboxes" xml:space="preserve">
+    <value>Add selected mailboxes</value>
+  </data>
+  <data name="MailboxesAdded" xml:space="preserve">
+    <value>{0} mailbox(es) added.</value>
+  </data>
+  <data name="NoNewMailboxesToAdd" xml:space="preserve">
+    <value>No new mailboxes to add.</value>
+  </data>
+  <data name="SelectAtLeastOneMailboxForManagement" xml:space="preserve">
+    <value>Select at least one mailbox to add.</value>
+  </data>
 </root>
