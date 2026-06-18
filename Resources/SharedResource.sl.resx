@@ -2624,24 +2624,24 @@
     <value>Skrivnost stranke je obvezna za račune M365</value>
   </data>
   <data name="TenantManagement" xml:space="preserve">
-    <value>Tenant Management</value>
+    <value>Upravljanje najemnika</value>
   </data>
   <data name="TenantManagementTitle" xml:space="preserve">
-    <value>Tenant Management</value>
+    <value>Upravljanje najemnika</value>
   </data>
   <data name="TenantManagementHelp" xml:space="preserve">
-    <value>Add missing mailboxes from this tenant. New accounts use the credentials of the source account.</value>
+    <value>Dodajte manjkajoče poštne nabiralnike iz tega najemnika. Novi računi uporabljajo poverilnice izvornega računa.</value>
   </data>
   <data name="AddSelectedMailboxes" xml:space="preserve">
-    <value>Add selected mailboxes</value>
+    <value>Dodaj izbrane poštne nabiralnike</value>
   </data>
   <data name="MailboxesAdded" xml:space="preserve">
-    <value>{0} mailbox(es) added.</value>
+    <value>{0} poštnih nabiralnikov dodanih.</value>
   </data>
   <data name="NoNewMailboxesToAdd" xml:space="preserve">
-    <value>No new mailboxes to add.</value>
+    <value>Ni novih poštnih nabiralnikov za dodajanje.</value>
   </data>
   <data name="SelectAtLeastOneMailboxForManagement" xml:space="preserve">
-    <value>Select at least one mailbox to add.</value>
+    <value>Izberite vsaj en poštni nabiralnik za dodajanje.</value>
   </data>
 </root>

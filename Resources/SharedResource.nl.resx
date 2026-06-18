@@ -2624,24 +2624,24 @@
     <value>Clientgeheim is vereist voor M365-accounts</value>
   </data>
   <data name="TenantManagement" xml:space="preserve">
-    <value>Tenant Management</value>
+    <value>Tenantbeheer</value>
   </data>
   <data name="TenantManagementTitle" xml:space="preserve">
-    <value>Tenant Management</value>
+    <value>Tenantbeheer</value>
   </data>
   <data name="TenantManagementHelp" xml:space="preserve">
-    <value>Add missing mailboxes from this tenant. New accounts use the credentials of the source account.</value>
+    <value>Voeg ontbrekende postvakken van deze tenant toe. Nieuwe accounts gebruiken de inloggegevens van het bronaccount.</value>
   </data>
   <data name="AddSelectedMailboxes" xml:space="preserve">
-    <value>Add selected mailboxes</value>
+    <value>Geselecteerde postvakken toevoegen</value>
   </data>
   <data name="MailboxesAdded" xml:space="preserve">
-    <value>{0} mailbox(es) added.</value>
+    <value>{0} postvak(ken) toegevoegd.</value>
   </data>
   <data name="NoNewMailboxesToAdd" xml:space="preserve">
-    <value>No new mailboxes to add.</value>
+    <value>Geen nieuwe postvakken om toe te voegen.</value>
   </data>
   <data name="SelectAtLeastOneMailboxForManagement" xml:space="preserve">
-    <value>Select at least one mailbox to add.</value>
+    <value>Selecteer ten minste één postvak om toe te voegen.</value>
   </data>
 </root>

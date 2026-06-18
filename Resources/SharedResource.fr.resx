@@ -2624,24 +2624,24 @@
     <value>Le secret client est requis pour les comptes M365</value>
   </data>
   <data name="TenantManagement" xml:space="preserve">
-    <value>Tenant Management</value>
+    <value>Gestion du locataire</value>
   </data>
   <data name="TenantManagementTitle" xml:space="preserve">
-    <value>Tenant Management</value>
+    <value>Gestion du locataire</value>
   </data>
   <data name="TenantManagementHelp" xml:space="preserve">
-    <value>Add missing mailboxes from this tenant. New accounts use the credentials of the source account.</value>
+    <value>Ajoutez les boîtes aux lettres manquantes de ce locataire. Les nouveaux comptes utilisent les identifiants du compte source.</value>
   </data>
   <data name="AddSelectedMailboxes" xml:space="preserve">
-    <value>Add selected mailboxes</value>
+    <value>Ajouter les boîtes aux lettres sélectionnées</value>
   </data>
   <data name="MailboxesAdded" xml:space="preserve">
-    <value>{0} mailbox(es) added.</value>
+    <value>{0} boîte(s) aux lettres ajoutée(s).</value>
   </data>
   <data name="NoNewMailboxesToAdd" xml:space="preserve">
-    <value>No new mailboxes to add.</value>
+    <value>Aucune nouvelle boîte aux lettres à ajouter.</value>
   </data>
   <data name="SelectAtLeastOneMailboxForManagement" xml:space="preserve">
-    <value>Select at least one mailbox to add.</value>
+    <value>Sélectionnez au moins une boîte aux lettres à ajouter.</value>
   </data>
 </root>

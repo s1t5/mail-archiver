@@ -2616,24 +2616,24 @@
     <value>Az ügyféltitok kötelező M365 fiókokhoz</value>
   </data>
   <data name="TenantManagement" xml:space="preserve">
-    <value>Tenant Management</value>
+    <value>Bérlőkezelés</value>
   </data>
   <data name="TenantManagementTitle" xml:space="preserve">
-    <value>Tenant Management</value>
+    <value>Bérlőkezelés</value>
   </data>
   <data name="TenantManagementHelp" xml:space="preserve">
-    <value>Add missing mailboxes from this tenant. New accounts use the credentials of the source account.</value>
+    <value>Adja hozzá a hiányzó postafiókokat ebből a bérlőből. Az új fiókok a forrásfiók hitelesítő adatait használják.</value>
   </data>
   <data name="AddSelectedMailboxes" xml:space="preserve">
-    <value>Add selected mailboxes</value>
+    <value>Kiválasztott postafiókok hozzáadása</value>
   </data>
   <data name="MailboxesAdded" xml:space="preserve">
-    <value>{0} mailbox(es) added.</value>
+    <value>{0} postafiók hozzáadva.</value>
   </data>
   <data name="NoNewMailboxesToAdd" xml:space="preserve">
-    <value>No new mailboxes to add.</value>
+    <value>Nincs új postafiók hozzáadandó.</value>
   </data>
   <data name="SelectAtLeastOneMailboxForManagement" xml:space="preserve">
-    <value>Select at least one mailbox to add.</value>
+    <value>Válasszon ki legalább egy hozzáadandó postafiókot.</value>
   </data>
 </root>

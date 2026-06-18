@@ -2624,24 +2624,24 @@
     <value>Секрет клиента обязателен для учётных записей M365</value>
   </data>
   <data name="TenantManagement" xml:space="preserve">
-    <value>Tenant Management</value>
+    <value>Управление арендатором</value>
   </data>
   <data name="TenantManagementTitle" xml:space="preserve">
-    <value>Tenant Management</value>
+    <value>Управление арендатором</value>
   </data>
   <data name="TenantManagementHelp" xml:space="preserve">
-    <value>Add missing mailboxes from this tenant. New accounts use the credentials of the source account.</value>
+    <value>Добавьте недостающие почтовые ящики этого арендатора. Новые учётные записи используют учётные данные исходной учётной записи.</value>
   </data>
   <data name="AddSelectedMailboxes" xml:space="preserve">
-    <value>Add selected mailboxes</value>
+    <value>Добавить выбранные почтовые ящики</value>
   </data>
   <data name="MailboxesAdded" xml:space="preserve">
-    <value>{0} mailbox(es) added.</value>
+    <value>{0} почтовых ящиков добавлено.</value>
   </data>
   <data name="NoNewMailboxesToAdd" xml:space="preserve">
-    <value>No new mailboxes to add.</value>
+    <value>Нет новых почтовых ящиков для добавления.</value>
   </data>
   <data name="SelectAtLeastOneMailboxForManagement" xml:space="preserve">
-    <value>Select at least one mailbox to add.</value>
+    <value>Выберите хотя бы один почтовый ящик для добавления.</value>
   </data>
 </root>
