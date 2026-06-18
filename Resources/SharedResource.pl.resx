@@ -2699,4 +2699,10 @@
   <data name="SelectAtMostMailboxes" xml:space="preserve">
     <value>Wybierz jednorazowo co najwyżej {0} skrzynek pocztowych.</value>
   </data>
+  <data name="SearchMailboxes" xml:space="preserve">
+    <value>Szukaj skrzynek pocztowych...</value>
+  </data>
+  <data name="NoMailboxesMatch" xml:space="preserve">
+    <value>Żadna skrzynka pocztowa nie pasuje do wyszukiwania.</value>
+  </data>
 </root>

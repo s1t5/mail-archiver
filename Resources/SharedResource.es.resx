@@ -2652,4 +2652,10 @@
   <data name="SelectAtMostMailboxes" xml:space="preserve">
     <value>Selecciona como máximo {0} buzones a la vez.</value>
   </data>
+  <data name="SearchMailboxes" xml:space="preserve">
+    <value>Buscar buzones...</value>
+  </data>
+  <data name="NoMailboxesMatch" xml:space="preserve">
+    <value>Ningún buzón coincide con tu búsqueda.</value>
+  </data>
 </root>

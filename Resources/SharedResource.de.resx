@@ -2654,4 +2654,10 @@
   <data name="SelectAtMostMailboxes" xml:space="preserve">
     <value>Wählen Sie höchstens {0} Postfächer gleichzeitig aus.</value>
   </data>
+  <data name="SearchMailboxes" xml:space="preserve">
+    <value>Postfächer suchen...</value>
+  </data>
+  <data name="NoMailboxesMatch" xml:space="preserve">
+    <value>Keine Postfächer entsprechen Ihrer Suche.</value>
+  </data>
 </root>

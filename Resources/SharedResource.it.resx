@@ -2653,4 +2653,10 @@
   <data name="SelectAtMostMailboxes" xml:space="preserve">
     <value>Seleziona al massimo {0} caselle di posta alla volta.</value>
   </data>
+  <data name="SearchMailboxes" xml:space="preserve">
+    <value>Cerca caselle di posta...</value>
+  </data>
+  <data name="NoMailboxesMatch" xml:space="preserve">
+    <value>Nessuna casella di posta corrisponde alla tua ricerca.</value>
+  </data>
 </root>

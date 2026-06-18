@@ -2284,7 +2284,6 @@ var model = new MailAccountViewModel
                 .Where(user => !string.IsNullOrWhiteSpace(user.EmailAddress))
                 .GroupBy(user => user.EmailAddress!.Trim().ToLowerInvariant())
                 .Select(group => group.First())
-                .OrderBy(user => user.EmailAddress)
                 .ToList();
 
             var mailboxAddresses = tenantMailboxes
@@ -2307,6 +2306,8 @@ var model = new MailAccountViewModel
                     IsDisabled = mailbox.IsDisabled,
                     AlreadyExists = existingAddressSet.Contains(mailbox.EmailAddress!)
                 })
+                .OrderBy(m => m.AlreadyExists)
+                .ThenBy(m => m.EmailAddress, StringComparer.OrdinalIgnoreCase)
                 .ToList();
         }
 

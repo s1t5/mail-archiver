@@ -2645,4 +2645,10 @@
   <data name="SelectAtMostMailboxes" xml:space="preserve">
     <value>Egyszerre legfeljebb {0} postafiókot választhat ki.</value>
   </data>
+  <data name="SearchMailboxes" xml:space="preserve">
+    <value>Postafiókok keresése...</value>
+  </data>
+  <data name="NoMailboxesMatch" xml:space="preserve">
+    <value>Egyetlen postafiók sem felel meg a keresésnek.</value>
+  </data>
 </root>

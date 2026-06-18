@@ -2653,4 +2653,10 @@
   <data name="SelectAtMostMailboxes" xml:space="preserve">
     <value>Выбирайте не более {0} почтовых ящиков за раз.</value>
   </data>
+  <data name="SearchMailboxes" xml:space="preserve">
+    <value>Поиск почтовых ящиков...</value>
+  </data>
+  <data name="NoMailboxesMatch" xml:space="preserve">
+    <value>Ни один почтовый ящик не соответствует вашему запросу.</value>
+  </data>
 </root>

@@ -2653,4 +2653,10 @@
   <data name="SelectAtMostMailboxes" xml:space="preserve">
     <value>Selecteer maximaal {0} postvakken tegelijk.</value>
   </data>
+  <data name="SearchMailboxes" xml:space="preserve">
+    <value>Postvakken zoeken...</value>
+  </data>
+  <data name="NoMailboxesMatch" xml:space="preserve">
+    <value>Geen postvakken komen overeen met uw zoekopdracht.</value>
+  </data>
 </root>

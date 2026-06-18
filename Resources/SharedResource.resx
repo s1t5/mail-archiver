@@ -2640,4 +2640,10 @@
   <data name="SelectAtMostMailboxes" xml:space="preserve">
     <value>Select at most {0} mailboxes at once.</value>
   </data>
+  <data name="SearchMailboxes" xml:space="preserve">
+    <value>Search mailboxes...</value>
+  </data>
+  <data name="NoMailboxesMatch" xml:space="preserve">
+    <value>No mailboxes match your search.</value>
+  </data>
 </root>

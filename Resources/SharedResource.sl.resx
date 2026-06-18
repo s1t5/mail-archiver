@@ -2653,4 +2653,10 @@
   <data name="SelectAtMostMailboxes" xml:space="preserve">
     <value>Izberite največ {0} poštnih nabiralnikov naenkrat.</value>
   </data>
+  <data name="SearchMailboxes" xml:space="preserve">
+    <value>Iskanje poštnih nabiralnikov...</value>
+  </data>
+  <data name="NoMailboxesMatch" xml:space="preserve">
+    <value>Noben poštni nabiralnik ne ustreza vašemu iskanju.</value>
+  </data>
 </root>

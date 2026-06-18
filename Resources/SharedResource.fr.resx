@@ -2653,4 +2653,10 @@
   <data name="SelectAtMostMailboxes" xml:space="preserve">
     <value>Sélectionnez au maximum {0} boîtes aux lettres à la fois.</value>
   </data>
+  <data name="SearchMailboxes" xml:space="preserve">
+    <value>Rechercher des boîtes aux lettres...</value>
+  </data>
+  <data name="NoMailboxesMatch" xml:space="preserve">
+    <value>Aucune boîte aux lettres ne correspond à votre recherche.</value>
+  </data>
 </root>
