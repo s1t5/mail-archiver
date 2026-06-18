@@ -79,15 +79,16 @@
                         </div>
                     </div>
 
-                    <div class="border rounded p-3 mb-3" style="max-height: 420px; overflow-y: auto;">
-                        <div class="d-flex justify-content-between align-items-center mb-2 sticky-top bg-white pb-2">
-                            <strong>@Localizer["TenantMailboxes"]</strong>
-                            <div class="btn-group btn-group-sm">
-                                <button type="button" id="selectAllBtn" class="btn btn-outline-secondary">@Localizer["SelectAll"]</button>
-                                <button type="button" id="clearSelectionBtn" class="btn btn-outline-secondary">@Localizer["ClearSelection"]</button>
-                            </div>
-                        </div>
+                    <h6 class="mt-3 mb-2">@Localizer["TenantMailboxes"]</h6>
 
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div class="btn-group btn-group-sm">
+                            <button type="button" id="selectAllBtn" class="btn btn-outline-secondary">@Localizer["SelectAll"]</button>
+                            <button type="button" id="clearSelectionBtn" class="btn btn-outline-secondary">@Localizer["ClearSelection"]</button>
+                        </div>
+                    </div>
+
+                    <div class="border rounded p-3 mb-3" style="max-height: 420px; overflow-y: auto;">
                         <div id="tenantMailboxList">
                             @for (var i = 0; i < Model.Mailboxes.Count; i++)
                             {
