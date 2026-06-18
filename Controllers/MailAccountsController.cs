@@ -133,6 +133,8 @@ namespace MailArchiver.Controllers
             }
 
             var accounts = await mailAccountsQuery
+                .OrderBy(a => a.Name)
+                .ThenBy(a => a.Id)
                 .Select(a => new MailAccountViewModel
                 {
                     Id = a.Id,
