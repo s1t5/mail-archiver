@@ -2645,4 +2645,7 @@
   <data name="SelectAtLeastOneMailboxForManagement" xml:space="preserve">
     <value>Wählen Sie mindestens ein Postfach zum Hinzufügen aus.</value>
   </data>
+  <data name="MoreActions" xml:space="preserve">
+    <value>Weitere Aktionen</value>
+  </data>
 </root>

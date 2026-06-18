@@ -7,6 +7,8 @@
     var isAdmin = AuthService.IsCurrentUserAdmin(Context);
     var isSelfManager = AuthService.IsCurrentUserSelfManager(Context);
     var canExport = isAdmin || isSelfManager;
+    ViewBag.IsAdmin = isAdmin;
+    ViewBag.CanExport = canExport;
 }
 
 <div class="container-fluid">
@@ -66,14 +68,17 @@
                                     }
                                 </td>
                                 <td>
-                                    @if (item.IsEnabled)
-                                    {
-                                        <span class="badge bg-success">@Localizer["Enabled"]</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="badge bg-secondary">@Localizer["Disabled"]</span>
-                                    }
+                                    <form asp-action="ToggleEnabled" asp-route-id="@item.Id" method="post" class="d-inline-flex align-items-center">
+                                        @Html.AntiForgeryToken()
+                                        <div class="form-check form-switch mb-0">
+                                            <input class="form-check-input" type="checkbox" role="switch"
+                                                   id="enableSwitch_@item.Id"
+                                                   checked="@item.IsEnabled"
+                                                   onchange="this.form.submit()"
+                                                   aria-label="@Localizer["AccountEnabled"]" />
+                                            <label class="visually-hidden" for="enableSwitch_@item.Id">@Localizer["AccountEnabled"]</label>
+                                        </div>
+                                    </form>
                                 </td>
                                 <td>
                                     @if (item.LastSync.HasValue)
@@ -99,74 +104,7 @@
                                     }
                                 </td>
                                 <td>
-                                    <div class="d-flex justify-content-center align-items-center gap-1">
-                                        <a asp-action="Details" asp-route-id="@item.Id"
-                                            class="btn btn-info btn-sm d-flex align-items-center">
-                                            <i class="bi bi-eye"></i>
-                                            <span class="ms-1">@Localizer["Details"]</span>
-                                        </a>
-
-                                        <a asp-action="Edit" asp-route-id="@item.Id"
-                                            class="btn btn-warning btn-sm d-flex align-items-center">
-                                            <i class="bi bi-pencil"></i>
-                                            <span class="ms-1">@Localizer["Edit"]</span>
-                                        </a>
-
-                                        @if (isAdmin && item.Provider == ProviderType.M365)
-                                        {
-                                            <a asp-action="TenantManagement" asp-route-id="@item.Id"
-                                               class="btn btn-outline-primary btn-sm d-flex align-items-center"
-                                               title="@Localizer["TenantManagement"]">
-                                                <i class="bi bi-building"></i>
-                                                <span class="ms-1 d-none d-xl-inline">@Localizer["TenantManagement"]</span>
-                                            </a>
-                                        }
-
-                                        @if (canExport)
-                                        {
-                                            <a asp-action="Export" asp-route-id="@item.Id"
-                                                class="btn btn-info btn-sm d-flex align-items-center">
-                                                <i class="bi bi-download"></i>
-                                                <span class="ms-1">@Localizer["Export"]</span>
-                                            </a>
-                                        }
-
-                                        <form asp-action="ToggleEnabled" asp-route-id="@item.Id" method="post"
-                                            class="d-inline">
-                                            @Html.AntiForgeryToken()
-                                            <button type="submit"
-                                                class="btn @(item.IsEnabled ? "btn-outline-secondary" : "btn-outline-success") btn-sm d-flex align-items-center">
-                                                <i class="bi bi-@(item.IsEnabled ? "pause" : "play")"></i>
-                                                <span class="ms-1">@(item.IsEnabled ? @Localizer["Disable"] : @Localizer["Enable"])</span>
-                                            </button>
-                                        </form>
-
-                                        @if (item.Provider != ProviderType.IMPORT)
-                                        {
-                                            <form asp-action="Sync" asp-route-id="@item.Id" method="post" class="d-inline">
-                                                @Html.AntiForgeryToken()
-                                                @if (item.IsEnabled)
-                                                {
-                                                    <button type="submit" class="btn btn-success btn-sm d-flex align-items-center">
-                                                        <i class="bi bi-arrow-clockwise"></i>
-                                                        <span class="ms-1">@Localizer["Sync"]</span>
-                                                    </button>
-                                                }
-                                                else
-                                                {
-                                                    <button type="submit" class="btn btn-success btn-sm d-flex align-items-center" title="@Localizer["ManualSyncTooltip"]">
-                                                        <i class="bi bi-arrow-clockwise"></i>
-                                                        <span class="ms-1">@Localizer["Sync"]</span>
-                                                    </button>
-                                                }
-                                            </form>
-                                        }
-
-<button type="button" class="btn btn-danger btn-sm d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#deleteAccountModal-@item.Id">
-                                            <i class="bi bi-trash"></i>
-                                            <span class="ms-1">@Localizer["Delete"]</span>
-                                        </button>
-                                    </div>
+                                    @{ await Html.RenderPartialAsync("_AccountActionsMenu", item); }
                                 </td>
                             </tr>
                         }
@@ -227,14 +165,17 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-start mb-2">
                         <h6 class="card-title mb-0">@item.Name</h6>
-                        @if (item.IsEnabled)
-                        {
-                            <span class="badge bg-success">@Localizer["Enabled"]</span>
-                        }
-                        else
-                        {
-                            <span class="badge bg-secondary">@Localizer["Disabled"]</span>
-                        }
+                        <form asp-action="ToggleEnabled" asp-route-id="@item.Id" method="post" class="d-inline-flex align-items-center">
+                            @Html.AntiForgeryToken()
+                            <div class="form-check form-switch mb-0">
+                                <input class="form-check-input" type="checkbox" role="switch"
+                                       id="enableSwitchMobile_@item.Id"
+                                       checked="@item.IsEnabled"
+                                       onchange="this.form.submit()"
+                                       aria-label="@Localizer["AccountEnabled"]" />
+                                <label class="visually-hidden" for="enableSwitchMobile_@item.Id">@Localizer["AccountEnabled"]</label>
+                            </div>
+                        </form>
                     </div>
                     <p class="card-text small text-muted mb-2">@item.EmailAddress</p>
                     <p class="card-text small mb-2">
@@ -277,75 +218,7 @@
                         }
                     </p>
                     @* Mobile/Tablet Button Layout *@
-                    <div class="d-grid gap-2">
-                        <div class="row g-2">
-                            <div class="col-4">
-                                <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-outline-info btn-sm w-100">
-                                    <i class="bi bi-eye"></i> @Localizer["Details"]
-                                </a>
-                            </div>
-                            <div class="col-4">
-                                <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-outline-warning btn-sm w-100">
-                                    <i class="bi bi-pencil"></i> @Localizer["Edit"]
-                                </a>
-                            </div>
-                            @if (isAdmin && item.Provider == ProviderType.M365)
-                            {
-                                <div class="col-4">
-                                    <a asp-action="TenantManagement" asp-route-id="@item.Id" class="btn btn-outline-primary btn-sm w-100">
-                                        <i class="bi bi-building"></i> @Localizer["TenantManagement"]
-                                    </a>
-                                </div>
-                            }
-                            @if (canExport)
-                            {
-                                <div class="col-4">
-                                    <a asp-action="Export" asp-route-id="@item.Id" class="btn btn-outline-info btn-sm w-100">
-                                        <i class="bi bi-download"></i> @Localizer["Export"]
-                                    </a>
-                                </div>
-                            }
-                        </div>
-                        <div class="row g-2">
-                            <div class="col">
-                                <form asp-action="ToggleEnabled" asp-route-id="@item.Id" method="post" class="w-100">
-                                    @Html.AntiForgeryToken()
-                                    <button type="submit"
-                                        class="btn @(item.IsEnabled ? "btn-outline-secondary" : "btn-outline-success") btn-sm w-100">
-                                        <i class="bi bi-@(item.IsEnabled ? "pause" : "play")"></i>
-                                        @(item.IsEnabled? @Localizer["Disable"] : @Localizer["Enable"])
-                                    </button>
-                                </form>
-                            </div>
-                            @if (item.Provider != ProviderType.IMPORT)
-                            {
-                                <div class="col">
-                                    <form asp-action="Sync" asp-route-id="@item.Id" method="post" class="w-100">
-                                        @Html.AntiForgeryToken()
-                                        @if (item.IsEnabled)
-                                        {
-                                            <button type="submit" class="btn btn-success btn-sm w-100">
-                                                <i class="bi bi-arrow-clockwise"></i> Sync
-                                            </button>
-                                        }
-                                        else
-                                        {
-                                            <button type="submit" class="btn btn-success btn-sm w-100" title="@Localizer["ManualSyncTooltip"]">
-                                                <i class="bi bi-arrow-clockwise"></i> Sync
-                                            </button>
-                                        }
-                                    </form>
-                                </div>
-                            }
-                        </div>
-                        <div class="row">
-                            <div class="col-12">
-<button type="button" class="btn btn-outline-danger btn-sm w-100" data-bs-toggle="modal" data-bs-target="#deleteAccountModal-@item.Id">
-                                            <i class="bi bi-trash"></i> @Localizer["Delete"]
-                                        </button>
-                            </div>
-                        </div>
-                    </div>
+                    @{ await Html.RenderPartialAsync("_AccountActionsMenu", item); }
                 </div>
             </div>
         }

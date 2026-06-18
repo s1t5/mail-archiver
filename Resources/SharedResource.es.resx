@@ -2643,4 +2643,7 @@
   <data name="SelectAtLeastOneMailboxForManagement" xml:space="preserve">
     <value>Selecciona al menos un buzón para añadir.</value>
   </data>
+  <data name="MoreActions" xml:space="preserve">
+    <value>Más acciones</value>
+  </data>
 </root>

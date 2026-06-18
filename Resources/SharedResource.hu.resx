@@ -2636,4 +2636,7 @@
   <data name="SelectAtLeastOneMailboxForManagement" xml:space="preserve">
     <value>Válasszon ki legalább egy hozzáadandó postafiókot.</value>
   </data>
+  <data name="MoreActions" xml:space="preserve">
+    <value>További műveletek</value>
+  </data>
 </root>

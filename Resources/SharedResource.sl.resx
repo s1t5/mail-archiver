@@ -2644,4 +2644,7 @@
   <data name="SelectAtLeastOneMailboxForManagement" xml:space="preserve">
     <value>Izberite vsaj en poštni nabiralnik za dodajanje.</value>
   </data>
+  <data name="MoreActions" xml:space="preserve">
+    <value>Več dejanj</value>
+  </data>
 </root>

@@ -2644,4 +2644,7 @@
   <data name="SelectAtLeastOneMailboxForManagement" xml:space="preserve">
     <value>Sélectionnez au moins une boîte aux lettres à ajouter.</value>
   </data>
+  <data name="MoreActions" xml:space="preserve">
+    <value>Plus d'actions</value>
+  </data>
 </root>

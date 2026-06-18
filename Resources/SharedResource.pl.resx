@@ -2690,4 +2690,7 @@
   <data name="SelectAtLeastOneMailboxForManagement" xml:space="preserve">
     <value>Wybierz co najmniej jedną skrzynkę pocztową do dodania.</value>
   </data>
+  <data name="MoreActions" xml:space="preserve">
+    <value>Więcej akcji</value>
+  </data>
 </root>

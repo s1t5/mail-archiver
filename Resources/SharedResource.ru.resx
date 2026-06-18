@@ -2644,4 +2644,7 @@
   <data name="SelectAtLeastOneMailboxForManagement" xml:space="preserve">
     <value>Выберите хотя бы один почтовый ящик для добавления.</value>
   </data>
+  <data name="MoreActions" xml:space="preserve">
+    <value>Дополнительные действия</value>
+  </data>
 </root>

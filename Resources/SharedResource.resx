@@ -2631,4 +2631,7 @@
   <data name="SelectAtLeastOneMailboxForManagement" xml:space="preserve">
     <value>Select at least one mailbox to add.</value>
   </data>
+  <data name="MoreActions" xml:space="preserve">
+    <value>More actions</value>
+  </data>
 </root>
