@@ -54,6 +54,12 @@ namespace MailArchiver.Models.ViewModels
                     localizer?["NameRequired"].Value ?? "Name is required",
                     new[] { nameof(Name) });
             }
+            else if (Name.Trim().Length > 200)
+            {
+                yield return new ValidationResult(
+                    localizer?["AccountNameTooLong"].Value ?? "Account name must be at most 200 characters.",
+                    new[] { nameof(Name) });
+            }
 
             if (SelectedMailboxes == null || SelectedMailboxes.Count == 0)
             {

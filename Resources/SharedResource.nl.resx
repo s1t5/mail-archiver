@@ -2647,4 +2647,10 @@
   <data name="MoreActions" xml:space="preserve">
     <value>Meer acties</value>
   </data>
+  <data name="AccountNameTooLong" xml:space="preserve">
+    <value>De accountnaam mag uit maximaal 200 tekens bestaan.</value>
+  </data>
+  <data name="SelectAtMostMailboxes" xml:space="preserve">
+    <value>Selecteer maximaal {0} postvakken tegelijk.</value>
+  </data>
 </root>

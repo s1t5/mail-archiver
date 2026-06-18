@@ -2693,4 +2693,10 @@
   <data name="MoreActions" xml:space="preserve">
     <value>Więcej akcji</value>
   </data>
+  <data name="AccountNameTooLong" xml:space="preserve">
+    <value>Nazwa konta musi mieć co najwyżej 200 znaków.</value>
+  </data>
+  <data name="SelectAtMostMailboxes" xml:space="preserve">
+    <value>Wybierz jednorazowo co najwyżej {0} skrzynek pocztowych.</value>
+  </data>
 </root>

@@ -48,6 +48,9 @@ services:
       - BatchRestore__SessionTimeoutMinutes=30
       - BatchRestore__DefaultBatchSize=50
 
+      # Tenant Management Settings
+      - TenantManagement__MaxSelectedMailboxes=1000
+
       # BatchOperation Settings
       - BatchOperation__BatchSize=50
       - BatchOperation__PauseBetweenEmailsMs=50
@@ -211,6 +214,9 @@ docker compose restart
 - `BatchRestore__MaxAsyncEmails`: The maximum number of emails for async processing.
 - `BatchRestore__SessionTimeoutMinutes`: The session timeout for batch restore in minutes.
 - `BatchRestore__DefaultBatchSize`: The default batch size for email operations.
+
+### 🏢 Tenant Management Settings
+- `TenantManagement__MaxSelectedMailboxes`: Maximum number of mailboxes that can be added in a single Tenant Management operation. Default is `1000`. Increase this for very large tenants, or lower it to prevent accidental mass imports. When the limit is exceeded, the operation is rejected with a validation error and no accounts are created. See [M365 Tenant Import Guide](M365TenantImport.md) for details.
 
 ### 📦 BatchOperation Settings
 - `BatchOperation__BatchSize`: The batch size for email operations.

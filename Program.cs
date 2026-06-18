@@ -113,6 +113,10 @@ builder.Services.Configure<BatchRestoreOptions>(
 builder.Services.Configure<BatchOperationOptions>(
     builder.Configuration.GetSection(BatchOperationOptions.BatchOperation));
 
+// Add Tenant Management Options
+builder.Services.Configure<TenantManagementOptions>(
+    builder.Configuration.GetSection(TenantManagementOptions.TenantManagement));
+
 // Add Mail Sync Options
 builder.Services.Configure<MailSyncOptions>(
     builder.Configuration.GetSection(MailSyncOptions.MailSync));

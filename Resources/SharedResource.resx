@@ -2634,4 +2634,10 @@
   <data name="MoreActions" xml:space="preserve">
     <value>More actions</value>
   </data>
+  <data name="AccountNameTooLong" xml:space="preserve">
+    <value>Account name must be at most 200 characters.</value>
+  </data>
+  <data name="SelectAtMostMailboxes" xml:space="preserve">
+    <value>Select at most {0} mailboxes at once.</value>
+  </data>
 </root>

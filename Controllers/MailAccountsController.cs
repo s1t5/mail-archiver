@@ -24,6 +24,7 @@ namespace MailArchiver.Controllers
     private readonly IGraphEmailService _graphEmailService;
     private readonly ILogger<MailAccountsController> _logger;
     private readonly BatchRestoreOptions _batchOptions;
+    private readonly TenantManagementOptions _tenantManagementOptions;
     private readonly ISyncJobService _syncJobService;
     private readonly IMBoxImportService _mboxImportService;
     private readonly IEmlImportService _emlImportService;
@@ -41,6 +42,7 @@ namespace MailArchiver.Controllers
         IGraphEmailService graphEmailService,
         ILogger<MailAccountsController> logger,
         IOptions<BatchRestoreOptions> batchOptions,
+        IOptions<TenantManagementOptions> tenantManagementOptions,
         ISyncJobService syncJobService,
         IMBoxImportService mboxImportService,
         IEmlImportService emlImportService,
@@ -57,6 +59,7 @@ namespace MailArchiver.Controllers
         _graphEmailService = graphEmailService;
         _logger = logger;
         _batchOptions = batchOptions.Value;
+        _tenantManagementOptions = tenantManagementOptions.Value;
         _syncJobService = syncJobService;
         _mboxImportService = mboxImportService;
         _emlImportService = emlImportService;
@@ -2364,6 +2367,13 @@ var model = new MailAccountViewModel
 
                 _logger.LogInformation("Loaded {Count} tenant mailboxes for account {AccountId}",
                     model.Mailboxes.Count, id);
+
+                var currentUsername = authService.GetCurrentUserDisplayName(HttpContext);
+                if (!string.IsNullOrEmpty(currentUsername))
+                {
+                    await _accessLogService.LogAccessAsync(currentUsername, AccessLogType.Account,
+                        searchParameters: $"Listed {model.Mailboxes.Count} M365 tenant mailboxes for source account {sourceAccount.EmailAddress}");
+                }
             }
             catch (Exception ex)
             {
@@ -2406,6 +2416,13 @@ var model = new MailAccountViewModel
                 ModelState.AddModelError("", _localizer["M365TenantCredentialsRequired"].Value);
                 await PopulateMailboxesForPostErrorAsync(model, sourceAccount);
                 return View("TenantManagement", model);
+            }
+
+            var maxSelected = _tenantManagementOptions.MaxSelectedMailboxes;
+            if (maxSelected > 0 && model.SelectedMailboxes != null && model.SelectedMailboxes.Count > maxSelected)
+            {
+                ModelState.AddModelError("SelectedMailboxes",
+                    _localizer["SelectAtMostMailboxes", maxSelected].Value);
             }
 
             if (!ModelState.IsValid)

@@ -2648,4 +2648,10 @@
   <data name="MoreActions" xml:space="preserve">
     <value>Weitere Aktionen</value>
   </data>
+  <data name="AccountNameTooLong" xml:space="preserve">
+    <value>Der Kontoname darf höchstens 200 Zeichen lang sein.</value>
+  </data>
+  <data name="SelectAtMostMailboxes" xml:space="preserve">
+    <value>Wählen Sie höchstens {0} Postfächer gleichzeitig aus.</value>
+  </data>
 </root>

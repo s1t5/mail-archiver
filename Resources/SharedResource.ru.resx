@@ -2647,4 +2647,10 @@
   <data name="MoreActions" xml:space="preserve">
     <value>Дополнительные действия</value>
   </data>
+  <data name="AccountNameTooLong" xml:space="preserve">
+    <value>Имя учётной записи должно содержать не более 200 символов.</value>
+  </data>
+  <data name="SelectAtMostMailboxes" xml:space="preserve">
+    <value>Выбирайте не более {0} почтовых ящиков за раз.</value>
+  </data>
 </root>

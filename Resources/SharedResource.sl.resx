@@ -2647,4 +2647,10 @@
   <data name="MoreActions" xml:space="preserve">
     <value>Več dejanj</value>
   </data>
+  <data name="AccountNameTooLong" xml:space="preserve">
+    <value>Ime računa je lahko dolgo največ 200 znakov.</value>
+  </data>
+  <data name="SelectAtMostMailboxes" xml:space="preserve">
+    <value>Izberite največ {0} poštnih nabiralnikov naenkrat.</value>
+  </data>
 </root>

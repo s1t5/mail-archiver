@@ -2639,4 +2639,10 @@
   <data name="MoreActions" xml:space="preserve">
     <value>További műveletek</value>
   </data>
+  <data name="AccountNameTooLong" xml:space="preserve">
+    <value>A fiók neve legfeljebb 200 karakter hosszú lehet.</value>
+  </data>
+  <data name="SelectAtMostMailboxes" xml:space="preserve">
+    <value>Egyszerre legfeljebb {0} postafiókot választhat ki.</value>
+  </data>
 </root>

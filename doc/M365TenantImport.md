@@ -88,3 +88,48 @@ The **Skip disabled mailboxes** checkbox controls whether disabled tenant users 
 
 - Enabled: only enabled tenant users are listed and imported.
 - Disabled: disabled tenant users can appear in the list and can be imported if selected or if all listed mailboxes are imported.
+
+## Tenant Management
+
+In addition to the create-form tenant import, Mail Archiver provides a dedicated **Tenant Management** page for administrators. It is reachable from the Mail Accounts index via the **Tenant Management** button (building icon) next to any Microsoft 365 account.
+
+Tenant Management is useful for adding mailboxes that were not imported initially — for example when new mailboxes are created in the tenant after the initial onboarding, or when accounts were skipped originally.
+
+### How it differs from the create-form tenant import
+
+- The Microsoft 365 credentials (Client ID, Client Secret, Tenant ID) are **not entered again**. They are taken from the source account that the button was clicked on.
+- The tenant mailbox list is loaded automatically when the page opens (no "Load mailboxes" button).
+- Already-imported mailboxes are shown with an "already exists" badge and cannot be selected again.
+- Only administrators can access Tenant Management.
+
+### Step-by-Step Usage
+
+1. Sign in to Mail Archiver as an administrator.
+2. Open **Mail Accounts**.
+3. Locate the Microsoft 365 account whose tenant you want to manage and click the **Tenant Management** button next to it.
+4. The page loads and lists all mailboxes returned by Microsoft Graph for the source account's tenant.
+   - Mailboxes that already exist as M365 accounts in Mail Archiver are marked with an "already exists" badge and cannot be selected.
+   - Use the **Skip disabled mailboxes** toggle to reload the list with or without disabled tenant users.
+5. Select the mailboxes you want to add.
+6. Enter the **Account name** prefix that should be used for the new accounts (the naming scheme is `{prefix} - <{email}>`, identical to the create-form tenant import).
+7. Optionally configure **Delete After Days** and **Local Retention Days** for the new accounts.
+8. Click **Add selected mailboxes**.
+
+After creation, Mail Archiver redirects to the mail account list and shows how many mailboxes were added.
+
+### Mailbox limit
+
+A single Tenant Management operation can add at most `TenantManagement__MaxSelectedMailboxes` mailboxes at once (default `1000`). This protects against accidental mass imports and excessive Microsoft Graph / database load. If you need to import more mailboxes, run the operation multiple times. See the [Setup Guide](Setup.md#-tenant-management-settings) for how to adjust this limit.
+
+### Permissions required
+
+Tenant Management uses the same Microsoft Graph application permissions as the create-form tenant import. The source account's app registration must have:
+
+- The permissions required for regular M365 account archiving, **and**
+- **User.Read.All** — required to list tenant users and their mailbox addresses.
+
+See [Azure App Registration and Retention Policy Guide](AZURE_APP_REGISTRATION_M365.md) for the initial setup.
+
+### Audit logging
+
+Each Tenant Management page view and each add operation is recorded in the access log, including the number of mailboxes listed or added and the source account used.
