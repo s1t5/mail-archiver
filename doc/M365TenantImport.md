@@ -109,7 +109,7 @@ Tenant Management is useful for adding mailboxes that were not imported initiall
 3. Locate the Microsoft 365 account whose tenant you want to manage and click the **Tenant Management** button next to it.
 4. The page loads and lists all mailboxes returned by Microsoft Graph for the source account's tenant.
    - Mailboxes that already exist as M365 accounts in Mail Archiver are marked with an "already exists" badge and cannot be selected.
-   - Use the **Skip disabled mailboxes** toggle to reload the list with or without disabled tenant users.
+   - Disabled tenant users are not listed; Tenant Management always skips disabled mailboxes.
 5. Select the mailboxes you want to add.
 6. Enter the **Account name** prefix that should be used for the new accounts (the naming scheme is `{prefix} - <{email}>`, identical to the create-form tenant import).
 7. Optionally configure **Delete After Days** and **Local Retention Days** for the new accounts.

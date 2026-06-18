@@ -65,17 +65,11 @@
                     <p class="card-text small text-muted">@Localizer["TenantManagementHelp"]</p>
 
                     <div class="row">
-                        <div class="col-md-6 mb-3">
+                        <div class="col-md-12 mb-3">
                             <label asp-for="Name" class="form-label">@Localizer["AccountName"]</label>
                             <input asp-for="Name" class="form-control" />
                             <span asp-validation-for="Name" class="text-danger"></span>
                             <div class="form-text">@Localizer["UseTenantImportHelp"]</div>
-                        </div>
-                        <div class="col-md-6 mb-3 d-flex align-items-center">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="skipDisabledReload" checked="@Model.SkipDisabledMailboxes" />
-                                <label class="form-check-label" for="skipDisabledReload">@Localizer["SkipDisabledMailboxes"]</label>
-                            </div>
                         </div>
                     </div>
 
@@ -148,14 +142,6 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             var sourceAccountId = @Model.SourceAccountId;
-
-            // Reload page when skipDisabled toggle changes
-            var skipDisabledReload = document.getElementById('skipDisabledReload');
-            if (skipDisabledReload) {
-                skipDisabledReload.addEventListener('change', function() {
-                    window.location.href = '@Url.Action("TenantManagement", "MailAccounts")/' + sourceAccountId + '?skipDisabled=' + this.checked;
-                });
-            }
 
             var checkboxes = document.querySelectorAll('.tenant-mailbox-checkbox');
             var selectAllBtn = document.getElementById('selectAllBtn');

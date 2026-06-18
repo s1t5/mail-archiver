@@ -2311,7 +2311,7 @@ var model = new MailAccountViewModel
         }
 
         // GET: MailAccounts/TenantManagement/5
-        public async Task<IActionResult> TenantManagement(int id, bool skipDisabled = true)
+        public async Task<IActionResult> TenantManagement(int id)
         {
             var authService = HttpContext.RequestServices.GetService<MailArchiver.Services.IAuthenticationService>();
             if (authService == null || !authService.IsCurrentUserAdmin(HttpContext))
@@ -2353,7 +2353,6 @@ var model = new MailAccountViewModel
                 SourceAccountId = sourceAccount.Id,
                 SourceAccountName = sourceAccount.Name,
                 SourceEmailAddress = sourceAccount.EmailAddress,
-                SkipDisabledMailboxes = skipDisabled,
                 Name = sourceAccount.Name
             };
 
@@ -2363,7 +2362,7 @@ var model = new MailAccountViewModel
                     sourceAccount.ClientId!,
                     sourceAccount.ClientSecret!,
                     sourceAccount.TenantId!,
-                    includeDisabled: !skipDisabled);
+                    includeDisabled: false);
 
                 _logger.LogInformation("Loaded {Count} tenant mailboxes for account {AccountId}",
                     model.Mailboxes.Count, id);
@@ -2438,7 +2437,7 @@ var model = new MailAccountViewModel
                     sourceAccount.ClientId!,
                     sourceAccount.ClientSecret!,
                     sourceAccount.TenantId!,
-                    includeDisabled: !model.SkipDisabledMailboxes);
+                    includeDisabled: false);
 
                 var tenantAddressSet = tenantMailboxes
                     .Select(m => m.EmailAddress.Trim().ToLowerInvariant())
@@ -2458,7 +2457,7 @@ var model = new MailAccountViewModel
                 if (toAdd.Count == 0)
                 {
                     TempData["ErrorMessage"] = _localizer["NoNewMailboxesToAdd"].Value;
-                    return RedirectToAction(nameof(TenantManagement), new { id = model.SourceAccountId, skipDisabled = model.SkipDisabledMailboxes });
+                    return RedirectToAction(nameof(TenantManagement), new { id = model.SourceAccountId });
                 }
 
                 var accountNamePrefix = model.Name!.Trim();
@@ -2529,7 +2528,7 @@ var model = new MailAccountViewModel
                     sourceAccount.ClientId!,
                     sourceAccount.ClientSecret!,
                     sourceAccount.TenantId!,
-                    includeDisabled: !model.SkipDisabledMailboxes);
+                    includeDisabled: false);
 
                 // Preserve the user's selection state on the rendered checkboxes.
                 var selectedSet = (model.SelectedMailboxes ?? new List<string>())

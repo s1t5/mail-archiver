@@ -27,9 +27,6 @@ namespace MailArchiver.Models.ViewModels
         [Display(Name = "Account name")]
         public string? Name { get; set; }
 
-        [Display(Name = "Skip disabled mailboxes")]
-        public bool SkipDisabledMailboxes { get; set; } = true;
-
         [Display(Name = "Delete After Days")]
         [Range(1, int.MaxValue, ErrorMessage = "Delete after days must be at least 1")]
         public int? DeleteAfterDays { get; set; }
