@@ -4,20 +4,24 @@
 @{
     var isAdmin = (bool)ViewBag.IsAdmin;
     var canExport = (bool)ViewBag.CanExport;
+    var isMobile = ViewData["IsMobile"] as bool? ?? false;
     var kebabId = "actionsKebab_" + Model.Id;
+    var kebabDisplayAttr = isMobile ? string.Empty : "data-bs-display=\"static\"";
 }
 
 <div class="d-flex justify-content-center align-items-center gap-1">
     <a asp-action="Details" asp-route-id="@Model.Id"
-       class="btn btn-info btn-sm d-flex align-items-center"
+       class="btn btn-info btn-sm d-flex align-items-center justify-content-center"
        aria-label="@Localizer["Details"]" title="@Localizer["Details"]">
         <i class="bi bi-eye" aria-hidden="true"></i>
+        <span class="ms-1 d-lg-none">@Localizer["Details"]</span>
     </a>
 
     <a asp-action="Edit" asp-route-id="@Model.Id"
-       class="btn btn-warning btn-sm d-flex align-items-center"
+       class="btn btn-warning btn-sm d-flex align-items-center justify-content-center"
        aria-label="@Localizer["Edit"]" title="@Localizer["Edit"]">
         <i class="bi bi-pencil" aria-hidden="true"></i>
+        <span class="ms-1 d-lg-none">@Localizer["Edit"]</span>
     </a>
 
     @if (Model.Provider != ProviderType.IMPORT)
@@ -25,10 +29,11 @@
         <form asp-action="Sync" asp-route-id="@Model.Id" method="post" class="d-inline">
             @Html.AntiForgeryToken()
             <button type="submit"
-                    class="btn btn-success btn-sm d-flex align-items-center"
+                    class="btn btn-success btn-sm d-flex align-items-center justify-content-center"
                     aria-label="@Localizer["Sync"]"
                     title="@(Model.IsEnabled ? @Localizer["Sync"] : @Localizer["ManualSyncTooltip"])">
                 <i class="bi bi-arrow-clockwise" aria-hidden="true"></i>
+                <span class="ms-1 d-lg-none">@Localizer["Sync"]</span>
             </button>
         </form>
     }
@@ -37,7 +42,7 @@
         <button type="button" class="btn btn-outline-secondary btn-sm d-flex align-items-center"
                 id="@kebabId" data-bs-toggle="dropdown" aria-expanded="false"
                 aria-label="@Localizer["MoreActions"]" title="@Localizer["MoreActions"]"
-                data-bs-display="static">
+                @Html.Raw(kebabDisplayAttr)>
             <i class="bi bi-three-dots-vertical" aria-hidden="true"></i>
         </button>
         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="@kebabId">

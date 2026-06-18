@@ -218,7 +218,7 @@
                         }
                     </p>
                     @* Mobile/Tablet Button Layout *@
-                    @{ await Html.RenderPartialAsync("_AccountActionsMenu", item); }
+                    @{ await Html.RenderPartialAsync("_AccountActionsMenu", item, new ViewDataDictionary(ViewData) { { "IsMobile", true } }); }
                 </div>
             </div>
         }
