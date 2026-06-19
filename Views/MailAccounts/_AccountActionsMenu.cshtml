@@ -4,9 +4,7 @@
 @{
     var isAdmin = (bool)ViewBag.IsAdmin;
     var canExport = (bool)ViewBag.CanExport;
-    var isMobile = ViewData["IsMobile"] as bool? ?? false;
     var kebabId = "actionsKebab_" + Model.Id;
-    var kebabDisplayAttr = isMobile ? string.Empty : "data-bs-display=\"static\"";
 }
 
 <div class="d-flex justify-content-center align-items-center gap-1">
@@ -41,8 +39,7 @@
     <div class="dropdown">
         <button type="button" class="btn btn-outline-secondary btn-sm d-flex align-items-center"
                 id="@kebabId" data-bs-toggle="dropdown" aria-expanded="false"
-                aria-label="@Localizer["MoreActions"]" title="@Localizer["MoreActions"]"
-                @Html.Raw(kebabDisplayAttr)>
+                aria-label="@Localizer["MoreActions"]" title="@Localizer["MoreActions"]">
             <i class="bi bi-three-dots-vertical" aria-hidden="true"></i>
         </button>
         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="@kebabId">

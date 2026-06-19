@@ -34,7 +34,7 @@
 
     <div class="card d-none d-lg-block">
         <div class="card-body">
-            <div class="table-responsive">
+            <div class="table-responsive table-responsive-dropdown">
                 <table class="table table-striped table-hover">
                     <thead class="table-dark">
                         <tr>
@@ -218,7 +218,7 @@
                         }
                     </p>
                     @* Mobile/Tablet Button Layout *@
-                    @{ await Html.RenderPartialAsync("_AccountActionsMenu", item, new ViewDataDictionary(ViewData) { { "IsMobile", true } }); }
+                    @{ await Html.RenderPartialAsync("_AccountActionsMenu", item); }
                 </div>
             </div>
         }
