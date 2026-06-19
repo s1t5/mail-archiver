@@ -1255,7 +1255,8 @@ var model = new MailAccountViewModel
                 return RedirectToAction("StartAsyncBatchRestoreFromAccount", "Emails", new
                 {
                     accountId = id,
-                    returnUrl = Url.Action("Details", new { id })
+                    returnUrl = Url.Action("Details", new { id }),
+                    preserveFolders = true
                 });
             }
             else
@@ -1266,6 +1267,7 @@ var model = new MailAccountViewModel
                 {
                     HttpContext.Session.SetString("BatchRestoreIds", string.Join(",", emailIds));
                     HttpContext.Session.SetString("BatchRestoreReturnUrl", Url.Action("Details", new { id }));
+                    HttpContext.Session.SetString("BatchRestorePreserveFolders", "true");
                     return RedirectToAction("BatchRestore", "Emails");
                 }
                 catch (Exception ex)
@@ -1276,7 +1278,8 @@ var model = new MailAccountViewModel
                     return RedirectToAction("StartAsyncBatchRestoreFromAccount", "Emails", new
                     {
                         accountId = id,
-                        returnUrl = Url.Action("Details", new { id })
+                        returnUrl = Url.Action("Details", new { id }),
+                        preserveFolders = true
                     });
                 }
             }

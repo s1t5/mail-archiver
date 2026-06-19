@@ -708,25 +708,47 @@ namespace MailArchiver.Controllers
                 }).ToList()
             };
 
-            // If there's only one account, select it by default and load its folders
-            if (model.AvailableAccounts.Count == 1)
+            // Preselect the source account as the target when it is a valid restore target
+            // (enabled, non-IMPORT and within the user's allowed accounts)
+            var sourceAccountValid = accounts.Any(a => a.Id == email.MailAccountId);
+            if (sourceAccountValid)
             {
-                model.TargetAccountId = int.Parse(model.AvailableAccounts[0].Value);
-                model.AvailableAccounts[0].Selected = true;
-                // Load folders for this account using appropriate service
-                var targetAccount = await _context.MailAccounts.FindAsync(model.TargetAccountId);
-                List<string> folders;
-                
-                if (targetAccount?.Provider == ProviderType.M365)
+                model.TargetAccountId = email.MailAccountId;
+                var sourceItem = model.AvailableAccounts.First(a => a.Value == email.MailAccountId.ToString());
+                sourceItem.Selected = true;
+
+                var folders = await LoadFoldersForAccountAsync(email.MailAccountId);
+                model.AvailableFolders = folders.Select(f => new SelectListItem
                 {
-                    folders = await _graphEmailService.GetMailFoldersAsync(targetAccount);
+                    Value = f,
+                    Text = f
+                }).ToList();
+
+                // Preselect the source folder if present in the target, otherwise INBOX
+                var preselectedFolderItem = !string.IsNullOrEmpty(email.FolderName)
+                    ? model.AvailableFolders.FirstOrDefault(f => string.Equals(f.Value, email.FolderName, StringComparison.OrdinalIgnoreCase))
+                    : null;
+                if (preselectedFolderItem != null)
+                {
+                    preselectedFolderItem.Selected = true;
+                    model.TargetFolder = preselectedFolderItem.Value;
                 }
                 else
                 {
-                    var provider = await _providerFactory.GetServiceForAccountAsync(model.TargetAccountId);
-                    folders = await provider.GetMailFoldersAsync(model.TargetAccountId);
+                    var inbox = model.AvailableFolders.FirstOrDefault(f => f.Value.ToUpper() == "INBOX");
+                    if (inbox != null)
+                    {
+                        inbox.Selected = true;
+                        model.TargetFolder = inbox.Value;
+                    }
                 }
-                
+            }
+            // If there's only one account, select it by default and load its folders
+            else if (model.AvailableAccounts.Count == 1)
+            {
+                model.TargetAccountId = int.Parse(model.AvailableAccounts[0].Value);
+                model.AvailableAccounts[0].Selected = true;
+                var folders = await LoadFoldersForAccountAsync(model.TargetAccountId);
                 model.AvailableFolders = folders.Select(f => new SelectListItem
                 {
                     Value = f,
@@ -975,6 +997,8 @@ namespace MailArchiver.Controllers
 
             try
             {
+                // Fresh user selection: clear any leftover preserve-folder default from a prior "copy all" flow
+                HttpContext.Session.Remove("BatchRestorePreserveFolders");
                 HttpContext.Session.SetString("BatchRestoreIds", string.Join(",", ids));
                 HttpContext.Session.SetString("BatchRestoreReturnUrl", returnUrl ?? "");
                 return RedirectToAction("BatchRestore");
@@ -1021,6 +1045,44 @@ namespace MailArchiver.Controllers
             return false;
         }
 
+        private async Task<List<string>> LoadFoldersForAccountAsync(int accountId)
+        {
+            try
+            {
+                var targetAccount = await _context.MailAccounts.FindAsync(accountId);
+                if (targetAccount == null)
+                {
+                    return new List<string> { "INBOX" };
+                }
+
+                List<string> folders;
+                if (targetAccount.Provider == ProviderType.M365)
+                {
+                    folders = await _graphEmailService.GetMailFoldersAsync(targetAccount);
+                }
+                else if (targetAccount.Provider == ProviderType.IMAP)
+                {
+                    var provider = await _providerFactory.GetServiceForAccountAsync(accountId);
+                    folders = await provider.GetMailFoldersAsync(accountId);
+                }
+                else
+                {
+                    return new List<string> { "INBOX" };
+                }
+
+                if (folders == null || !folders.Any())
+                {
+                    return new List<string> { "INBOX" };
+                }
+                return folders;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Exception while loading folders for account {AccountId}", accountId);
+                return new List<string> { "INBOX" };
+            }
+        }
+
         // GET: Emails/BatchRestore - Zeigt das Form an
         [HttpGet]
         public async Task<IActionResult> BatchRestore()
@@ -1035,6 +1097,11 @@ namespace MailArchiver.Controllers
             }
 
             var ids = idsString.Split(',').Select(int.Parse).ToList();
+
+            // Preserve-folder-structure default (set by the "copy all emails of an account" flow)
+            var preserveFoldersStr = HttpContext.Session.GetString("BatchRestorePreserveFolders");
+            var preserveFolderStructureDefault = string.Equals(preserveFoldersStr, "true", StringComparison.OrdinalIgnoreCase);
+            HttpContext.Session.Remove("BatchRestorePreserveFolders");
 
             // Get current user's allowed accounts
             List<int> allowedAccountIds = null;
@@ -1073,10 +1140,47 @@ namespace MailArchiver.Controllers
             
             var accounts = await accountsQuery.ToListAsync();
 
+            // Detect source mailbox(es) of the selected emails to preselect the target
+            var sourceInfo = await _context.ArchivedEmails
+                .Where(e => ids.Contains(e.Id))
+                .Select(e => new { e.MailAccountId, e.FolderName })
+                .ToListAsync();
+
+            var distinctSourceAccounts = sourceInfo.Select(s => s.MailAccountId).Distinct().ToList();
+            var distinctSourceFolders = sourceInfo.Select(s => s.FolderName ?? "")
+                .Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+
+            _logger.LogInformation("BatchRestore GET: {EmailCount} emails from {SourceCount} distinct source account(s): [{Accounts}], {FolderCount} distinct folder(s), {AvailableCount} available target account(s): [{AvailableAccounts}]",
+                ids.Count, distinctSourceAccounts.Count, string.Join(",", distinctSourceAccounts),
+                distinctSourceFolders.Count, accounts.Count, string.Join(",", accounts.Select(a => a.Id)));
+
+            // Preselect the source account as target when all emails come from one valid source account
+            var preselectedAccountId = 0;
+            string preselectedFolder = null;
+            if (distinctSourceAccounts.Count == 1)
+            {
+                var sourceAccountId = distinctSourceAccounts[0];
+                var sourceInAccounts = accounts.Any(a => a.Id == sourceAccountId);
+                _logger.LogInformation("BatchRestore GET: single source account {AccountId}, in available targets: {InAccounts}", sourceAccountId, sourceInAccounts);
+                if (sourceInAccounts)
+                {
+                    preselectedAccountId = sourceAccountId;
+                    if (distinctSourceFolders.Count == 1 && !string.IsNullOrEmpty(distinctSourceFolders[0]))
+                    {
+                        preselectedFolder = distinctSourceFolders[0];
+                    }
+                }
+            }
+            else
+            {
+                _logger.LogInformation("BatchRestore GET: not preselecting target (sourceAccounts={Count})", distinctSourceAccounts.Count);
+            }
+
             var model = new BatchRestoreViewModel
             {
                 SelectedEmailIds = ids,
                 ReturnUrl = returnUrl,
+                PreserveFolderStructure = preserveFolderStructureDefault,
                 AvailableAccounts = accounts.Select(a => new SelectListItem
                 {
                     Value = a.Id.ToString(),
@@ -1084,24 +1188,45 @@ namespace MailArchiver.Controllers
                 }).ToList()
             };
 
-            // If there's only one account, select it by default and load its folders
-            if (model.AvailableAccounts.Count == 1)
+            // Preselect the source account as the target if all emails come from one valid source account
+            if (preselectedAccountId > 0)
             {
-                model.TargetAccountId = int.Parse(model.AvailableAccounts[0].Value);
-                // Load folders for this account using appropriate service
-                var targetAccount = await _context.MailAccounts.FindAsync(model.TargetAccountId);
-                List<string> folders;
-                
-                if (targetAccount?.Provider == ProviderType.M365)
+                model.TargetAccountId = preselectedAccountId;
+                var sourceItem = model.AvailableAccounts.First(a => a.Value == preselectedAccountId.ToString());
+                sourceItem.Selected = true;
+
+                var folders = await LoadFoldersForAccountAsync(preselectedAccountId);
+                model.AvailableFolders = folders.Select(f => new SelectListItem
                 {
-                    folders = await _graphEmailService.GetMailFoldersAsync(targetAccount);
+                    Value = f,
+                    Text = f
+                }).ToList();
+
+                SelectListItem preselectedFolderItem = null;
+                if (!string.IsNullOrEmpty(preselectedFolder))
+                {
+                    preselectedFolderItem = model.AvailableFolders.FirstOrDefault(f => string.Equals(f.Value, preselectedFolder, StringComparison.OrdinalIgnoreCase));
+                }
+                if (preselectedFolderItem != null)
+                {
+                    preselectedFolderItem.Selected = true;
+                    model.TargetFolder = preselectedFolderItem.Value;
                 }
                 else
                 {
-                    var provider = await _providerFactory.GetServiceForAccountAsync(model.TargetAccountId);
-                    folders = await provider.GetMailFoldersAsync(model.TargetAccountId);
+                    var inbox = model.AvailableFolders.FirstOrDefault(f => f.Value.ToUpper() == "INBOX");
+                    if (inbox != null)
+                    {
+                        inbox.Selected = true;
+                        model.TargetFolder = inbox.Value;
+                    }
                 }
-                
+            }
+            // If there's only one account, select it by default and load its folders
+            else if (model.AvailableAccounts.Count == 1)
+            {
+                model.TargetAccountId = int.Parse(model.AvailableAccounts[0].Value);
+                var folders = await LoadFoldersForAccountAsync(model.TargetAccountId);
                 model.AvailableFolders = folders.Select(f => new SelectListItem
                 {
                     Value = f,
@@ -1316,7 +1441,7 @@ namespace MailArchiver.Controllers
 
         // GET: Emails/StartAsyncBatchRestoreFromAccount
         [HttpGet]
-        public async Task<IActionResult> StartAsyncBatchRestoreFromAccount(int accountId, string returnUrl = null)
+        public async Task<IActionResult> StartAsyncBatchRestoreFromAccount(int accountId, string returnUrl = null, bool preserveFolders = false)
         {
             var account = await _context.MailAccounts.FindAsync(accountId);
             if (account == null)
@@ -1352,7 +1477,7 @@ namespace MailArchiver.Controllers
             if (useBackgroundJob)
             {
                 _logger.LogInformation("Using background job for account restore with {Count} emails", emailIds.Count);
-                return await StartAsyncBatchRestore(emailIds, returnUrl);
+                return await StartAsyncBatchRestore(emailIds, returnUrl, preserveFolderStructureDefault: preserveFolders);
             }
             else
             {
@@ -1368,7 +1493,7 @@ namespace MailArchiver.Controllers
                     
                     if (_batchRestoreService != null)
                     {
-                        return await StartAsyncBatchRestore(emailIds, returnUrl);
+                        return await StartAsyncBatchRestore(emailIds, returnUrl, preserveFolderStructureDefault: preserveFolders);
                     }
                     else
                     {
@@ -1381,6 +1506,10 @@ namespace MailArchiver.Controllers
                 {
                     HttpContext.Session.SetString("BatchRestoreIds", string.Join(",", emailIds));
                     HttpContext.Session.SetString("BatchRestoreReturnUrl", returnUrl ?? "");
+                    if (preserveFolders)
+                    {
+                        HttpContext.Session.SetString("BatchRestorePreserveFolders", "true");
+                    }
                     _logger.LogInformation("Using session-based processing for {Count} emails", emailIds.Count);
                     return RedirectToAction("BatchRestore");
                 }
@@ -1391,7 +1520,7 @@ namespace MailArchiver.Controllers
                     if (_batchRestoreService != null)
                     {
                         _logger.LogWarning("Session storage failed, falling back to background job");
-                        return await StartAsyncBatchRestore(emailIds, returnUrl);
+                        return await StartAsyncBatchRestore(emailIds, returnUrl, preserveFolderStructureDefault: preserveFolders);
                     }
                     else
                     {
@@ -1403,7 +1532,7 @@ namespace MailArchiver.Controllers
         }
 
         // Asynchrone Batch-Restore-Methoden (nur wenn Service verfügbar)
-        private async Task<IActionResult> StartAsyncBatchRestore(List<int> ids, string returnUrl)
+        private async Task<IActionResult> StartAsyncBatchRestore(List<int> ids, string returnUrl, bool preserveFolderStructureDefault = false)
         {
             if (_batchRestoreService == null)
             {
@@ -1412,6 +1541,10 @@ namespace MailArchiver.Controllers
                 {
                     HttpContext.Session.SetString("BatchRestoreIds", string.Join(",", ids));
                     HttpContext.Session.SetString("BatchRestoreReturnUrl", returnUrl ?? "");
+                    if (preserveFolderStructureDefault)
+                    {
+                        HttpContext.Session.SetString("BatchRestorePreserveFolders", "true");
+                    }
                     return RedirectToAction("BatchRestore");
                 }
                 catch
@@ -1478,11 +1611,50 @@ namespace MailArchiver.Controllers
                 return Redirect(returnUrl ?? Url.Action("Index"));
             }
 
+            // Detect source mailbox(es) of the selected emails to preselect the target.
+            // Chunked to avoid huge IN-clauses for large async batches (up to MaxAsyncEmails).
+            var sourceAccountIds = new HashSet<int>();
+            var sourceFolders = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            const int chunkSize = 1000;
+            for (int i = 0; i < ids.Count; i += chunkSize)
+            {
+                var chunk = ids.Skip(i).Take(chunkSize).ToList();
+                var chunkInfo = await _context.ArchivedEmails
+                    .Where(e => chunk.Contains(e.Id))
+                    .Select(e => new { e.MailAccountId, e.FolderName })
+                    .ToListAsync();
+                foreach (var info in chunkInfo)
+                {
+                    sourceAccountIds.Add(info.MailAccountId);
+                    sourceFolders.Add(info.FolderName ?? "");
+                }
+            }
+
+            var distinctSourceAccounts = sourceAccountIds.ToList();
+            var distinctSourceFolders = sourceFolders.ToList();
+
+            // Preselect the source account as target when all emails come from one valid source account
+            var preselectedAccountId = 0;
+            string preselectedFolder = null;
+            if (distinctSourceAccounts.Count == 1)
+            {
+                var sourceAccountId = distinctSourceAccounts[0];
+                if (accounts.Any(a => a.Id == sourceAccountId))
+                {
+                    preselectedAccountId = sourceAccountId;
+                    if (distinctSourceFolders.Count == 1 && !string.IsNullOrEmpty(distinctSourceFolders[0]))
+                    {
+                        preselectedFolder = distinctSourceFolders[0];
+                    }
+                }
+            }
+
             var model = new AsyncBatchRestoreViewModel
             {
                 // Nicht die IDs im ViewModel speichern, um HTTP 400 bei POST zu vermeiden
                 EmailIds = new List<int>(),
                 ReturnUrl = returnUrl,
+                PreserveFolderStructure = preserveFolderStructureDefault,
                 AvailableAccounts = accounts.Select(a => new SelectListItem
                 {
                     Value = a.Id.ToString(),
@@ -1493,12 +1665,45 @@ namespace MailArchiver.Controllers
             // Setze EmailCount für die View
             ViewBag.EmailCount = ids.Count;
 
+            // Preselect the source account as the target if all emails come from one valid source account
+            if (preselectedAccountId > 0)
+            {
+                model.TargetAccountId = preselectedAccountId;
+                var sourceItem = model.AvailableAccounts.First(a => a.Value == preselectedAccountId.ToString());
+                sourceItem.Selected = true;
+
+                var folders = await LoadFoldersForAccountAsync(preselectedAccountId);
+                model.AvailableFolders = folders.Select(f => new SelectListItem
+                {
+                    Value = f,
+                    Text = f
+                }).ToList();
+
+                SelectListItem preselectedFolderItem = null;
+                if (!string.IsNullOrEmpty(preselectedFolder))
+                {
+                    preselectedFolderItem = model.AvailableFolders.FirstOrDefault(f => string.Equals(f.Value, preselectedFolder, StringComparison.OrdinalIgnoreCase));
+                }
+                if (preselectedFolderItem != null)
+                {
+                    preselectedFolderItem.Selected = true;
+                    model.TargetFolder = preselectedFolderItem.Value;
+                }
+                else
+                {
+                    var inbox = model.AvailableFolders.FirstOrDefault(f => f.Value.ToUpper() == "INBOX");
+                    if (inbox != null)
+                    {
+                        inbox.Selected = true;
+                        model.TargetFolder = inbox.Value;
+                    }
+                }
+            }
             // Auto-select single account
-            if (model.AvailableAccounts.Count == 1)
+            else if (model.AvailableAccounts.Count == 1)
             {
                 model.TargetAccountId = int.Parse(model.AvailableAccounts[0].Value);
-                var provider = await _providerFactory.GetServiceForAccountAsync(model.TargetAccountId);
-                var folders = await provider.GetMailFoldersAsync(model.TargetAccountId);
+                var folders = await LoadFoldersForAccountAsync(model.TargetAccountId);
                 model.AvailableFolders = folders.Select(f => new SelectListItem
                 {
                     Value = f,
