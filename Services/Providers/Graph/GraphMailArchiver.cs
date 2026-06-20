@@ -234,6 +234,8 @@ namespace MailArchiver.Services.Providers.Graph
                 }
             }
 
+            body = MailContentHelper.SanitizeLongTokens(body);
+
             // Determine if the email is outgoing
             bool isOutgoingEmail = !string.IsNullOrEmpty(from) &&
                                   !string.IsNullOrEmpty(account.EmailAddress) &&

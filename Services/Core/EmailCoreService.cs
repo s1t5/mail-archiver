@@ -234,19 +234,50 @@ namespace MailArchiver.Services.Core
             var totalCount = await ExecuteScalarQueryAsync<int>(countSql, CloneParameters(parameters));
 
             // Build ORDER BY clause
-            var orderByClause = GetOrderByClause(sortBy, sortOrder);
+            var (orderByClause, sortColumn, isTimestampSort) = GetOrderByClause(sortBy, sortOrder);
 
-            // Data query
-            var dataSql = $@"
-                SELECT e.""Id"", e.""MailAccountId"", e.""MessageId"", e.""Subject"", e.""Body"", e.""HtmlBody"",
-                       e.""From"", e.""To"", e.""Cc"", e.""Bcc"", e.""SentDate"", e.""ReceivedDate"",
-                       e.""IsOutgoing"", e.""HasAttachments"", e.""FolderName"", e.""IsLocked"",
-                       ma.""Id"" as ""AccountId"", ma.""Name"" as ""AccountName"", ma.""EmailAddress"" as ""AccountEmail""
-                FROM mail_archiver.""ArchivedEmails"" e
-                INNER JOIN mail_archiver.""MailAccounts"" ma ON e.""MailAccountId"" = ma.""Id""
-                {whereClause}
-                {orderByClause}
-                LIMIT {take} OFFSET {skip}";
+            // For timestamp sorts (SentDate/ReceivedDate), use a MATERIALIZED CTE to force the planner
+            // to use the GIN full-text index for the FTS predicate instead of doing a backward SentDate
+            // index scan with per-row re-tokenization of the body. The CTE selects only (Id, SortColumn)
+            // so no body detoasting happens during matching; the body is only detoasted for the final page.
+            // For text sorts, keep the flat form (no backward-index-scan antipattern there).
+            string dataSql;
+            if (isTimestampSort)
+            {
+                dataSql = $@"
+                    WITH ""matched"" AS MATERIALIZED (
+                        SELECT e.""Id"", e.""{sortColumn}""
+                        FROM mail_archiver.""ArchivedEmails"" e
+                        {whereClause}
+                    ),
+                    ""page"" AS (
+                        SELECT m.""Id"", m.""{sortColumn}""
+                        FROM ""matched"" m
+                        ORDER BY m.""{sortColumn}"" {(sortOrder?.ToLower() == "asc" ? "ASC" : "DESC")}
+                        LIMIT {take} OFFSET {skip}
+                    )
+                    SELECT e.""Id"", e.""MailAccountId"", e.""MessageId"", e.""Subject"", e.""Body"", e.""HtmlBody"",
+                           e.""From"", e.""To"", e.""Cc"", e.""Bcc"", e.""SentDate"", e.""ReceivedDate"",
+                           e.""IsOutgoing"", e.""HasAttachments"", e.""FolderName"", e.""IsLocked"",
+                           ma.""Id"" as ""AccountId"", ma.""Name"" as ""AccountName"", ma.""EmailAddress"" as ""AccountEmail""
+                    FROM ""page"" p
+                    INNER JOIN mail_archiver.""ArchivedEmails"" e ON e.""Id"" = p.""Id""
+                    INNER JOIN mail_archiver.""MailAccounts"" ma ON e.""MailAccountId"" = ma.""Id""
+                    ORDER BY p.""{sortColumn}"" {(sortOrder?.ToLower() == "asc" ? "ASC" : "DESC")}";
+            }
+            else
+            {
+                dataSql = $@"
+                    SELECT e.""Id"", e.""MailAccountId"", e.""MessageId"", e.""Subject"", e.""Body"", e.""HtmlBody"",
+                           e.""From"", e.""To"", e.""Cc"", e.""Bcc"", e.""SentDate"", e.""ReceivedDate"",
+                           e.""IsOutgoing"", e.""HasAttachments"", e.""FolderName"", e.""IsLocked"",
+                           ma.""Id"" as ""AccountId"", ma.""Name"" as ""AccountName"", ma.""EmailAddress"" as ""AccountEmail""
+                    FROM mail_archiver.""ArchivedEmails"" e
+                    INNER JOIN mail_archiver.""MailAccounts"" ma ON e.""MailAccountId"" = ma.""Id""
+                    {whereClause}
+                    {orderByClause}
+                    LIMIT {take} OFFSET {skip}";
+            }
 
             var emails = await ExecuteDataQueryAsync(dataSql, CloneParameters(parameters));
 
@@ -405,20 +436,20 @@ namespace MailArchiver.Services.Core
             };
         }
 
-        private string GetOrderByClause(string sortBy, string sortOrder)
+        private (string OrderByClause, string SortColumn, bool IsTimestampSort) GetOrderByClause(string sortBy, string sortOrder)
         {
-            var columnName = sortBy?.ToLower() switch
+            var (columnName, isTimestampSort) = (sortBy?.ToLower()) switch
             {
-                "subject" => "Subject",
-                "from" => "From",
-                "to" => "To",
-                "sentdate" => "SentDate",
-                "receiveddate" => "ReceivedDate",
-                _ => "SentDate"
+                "subject" => ("Subject", false),
+                "from" => ("From", false),
+                "to" => ("To", false),
+                "sentdate" => ("SentDate", true),
+                "receiveddate" => ("ReceivedDate", true),
+                _ => ("SentDate", true)
             };
 
             var direction = sortOrder?.ToLower() == "asc" ? "ASC" : "DESC";
-            return $@"ORDER BY e.""{columnName}"" {direction}";
+            return ($@"ORDER BY e.""{columnName}"" {direction}", columnName, isTimestampSort);
         }
 
         private List<Npgsql.NpgsqlParameter> CloneParameters(List<Npgsql.NpgsqlParameter> parameters)
@@ -1184,6 +1215,8 @@ namespace MailArchiver.Services.Core
                         body = "[Body too large - saved as attachment]";
                     }
                 }
+
+                body = MailContentHelper.SanitizeLongTokens(body);
 
                 // Sammle ALLE Anhänge einschließlich inline Images
                 var allAttachments = new List<MimePart>();

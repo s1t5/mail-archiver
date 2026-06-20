@@ -157,6 +157,64 @@ namespace MailArchiver.Services.Shared
             return truncatedContent + textTruncationNotice;
         }
 
+        /// <summary>
+        /// Splits whitespace-delimited tokens longer than <paramref name="maxTokenLength"/> by inserting
+        /// a space every <paramref name="maxTokenLength"/> characters. Prevents PostgreSQL tsvector
+        /// "word is too long to be indexed" warnings and avoids per-row re-tokenization cost for
+        /// inline Base64/Hex/minified blobs. Prose is never affected (ordinary words are far shorter).
+        /// Returns null when <paramref name="text"/> is null, and empty string for empty input.
+        /// </summary>
+        public static string? SanitizeLongTokens(string? text, int maxTokenLength = 2047)
+        {
+            if (text is null) return null;
+            if (text.Length == 0) return string.Empty;
+            if (maxTokenLength <= 0) return text;
+
+            int longestToken = 0;
+            int i = 0;
+            while (i < text.Length)
+            {
+                int start = i;
+                while (i < text.Length && !char.IsWhiteSpace(text[i])) i++;
+                int len = i - start;
+                if (len > longestToken) longestToken = len;
+                while (i < text.Length && char.IsWhiteSpace(text[i])) i++;
+            }
+
+            if (longestToken <= maxTokenLength) return text;
+
+            var sb = new StringBuilder(text.Length + 32);
+            i = 0;
+            while (i < text.Length)
+            {
+                int start = i;
+                while (i < text.Length && !char.IsWhiteSpace(text[i])) i++;
+                int len = i - start;
+                if (len <= maxTokenLength)
+                {
+                    sb.Append(text, start, len);
+                }
+                else
+                {
+                    int written = 0;
+                    while (written < len)
+                    {
+                        int chunk = Math.Min(maxTokenLength, len - written);
+                        sb.Append(text, start + written, chunk);
+                        written += chunk;
+                        if (written < len) sb.Append(' ');
+                    }
+                }
+                while (i < text.Length && char.IsWhiteSpace(text[i]))
+                {
+                    sb.Append(text[i]);
+                    i++;
+                }
+            }
+
+            return sb.ToString();
+        }
+
         private const string HtmlTruncationNotice = @"
                     <div style='background-color: #f8f9fa; border: 1px solid #dee2e6; border-radius: 5px; padding: 15px; margin: 10px 0; font-family: Arial, sans-serif;'>
                         <h4 style='color: #495057; margin-top: 0;'>📎 Email content has been truncated</h4>
