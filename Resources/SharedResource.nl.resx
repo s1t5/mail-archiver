@@ -2659,4 +2659,22 @@
   <data name="NoMailboxesMatch" xml:space="preserve">
     <value>Geen postvakken komen overeen met uw zoekopdracht.</value>
   </data>
+  <data name="SearchAccounts" xml:space="preserve">
+    <value>Accounts zoeken...</value>
+  </data>
+  <data name="NoAccountsMatch" xml:space="preserve">
+    <value>Geen accounts komen overeen met uw zoekopdracht.</value>
+  </data>
+  <data name="SearchUsers" xml:space="preserve">
+    <value>Gebruikers zoeken...</value>
+  </data>
+  <data name="NoUsersMatch" xml:space="preserve">
+    <value>Geen gebruikers komen overeen met uw zoekopdracht.</value>
+  </data>
+  <data name="AccountsFound" xml:space="preserve">
+    <value>{0} accounts gevonden</value>
+  </data>
+  <data name="UsersFound" xml:space="preserve">
+    <value>{0} gebruikers gevonden</value>
+  </data>
 </root>

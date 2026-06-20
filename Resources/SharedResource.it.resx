@@ -2659,4 +2659,22 @@
   <data name="NoMailboxesMatch" xml:space="preserve">
     <value>Nessuna casella di posta corrisponde alla tua ricerca.</value>
   </data>
+  <data name="SearchAccounts" xml:space="preserve">
+    <value>Cerca account...</value>
+  </data>
+  <data name="NoAccountsMatch" xml:space="preserve">
+    <value>Nessun account corrisponde alla tua ricerca.</value>
+  </data>
+  <data name="SearchUsers" xml:space="preserve">
+    <value>Cerca utenti...</value>
+  </data>
+  <data name="NoUsersMatch" xml:space="preserve">
+    <value>Nessun utente corrisponde alla tua ricerca.</value>
+  </data>
+  <data name="AccountsFound" xml:space="preserve">
+    <value>{0} account trovati</value>
+  </data>
+  <data name="UsersFound" xml:space="preserve">
+    <value>{0} utenti trovati</value>
+  </data>
 </root>

@@ -2660,4 +2660,22 @@
   <data name="NoMailboxesMatch" xml:space="preserve">
     <value>Keine Postfächer entsprechen Ihrer Suche.</value>
   </data>
+  <data name="SearchAccounts" xml:space="preserve">
+    <value>Accounts suchen...</value>
+  </data>
+  <data name="NoAccountsMatch" xml:space="preserve">
+    <value>Keine Accounts entsprechen Ihrer Suche.</value>
+  </data>
+  <data name="SearchUsers" xml:space="preserve">
+    <value>Benutzer suchen...</value>
+  </data>
+  <data name="NoUsersMatch" xml:space="preserve">
+    <value>Keine Benutzer entsprechen Ihrer Suche.</value>
+  </data>
+  <data name="AccountsFound" xml:space="preserve">
+    <value>{0} Accounts gefunden</value>
+  </data>
+  <data name="UsersFound" xml:space="preserve">
+    <value>{0} Benutzer gefunden</value>
+  </data>
 </root>

@@ -2646,4 +2646,22 @@
   <data name="NoMailboxesMatch" xml:space="preserve">
     <value>No mailboxes match your search.</value>
   </data>
+  <data name="SearchAccounts" xml:space="preserve">
+    <value>Search accounts...</value>
+  </data>
+  <data name="NoAccountsMatch" xml:space="preserve">
+    <value>No accounts match your search.</value>
+  </data>
+  <data name="SearchUsers" xml:space="preserve">
+    <value>Search users...</value>
+  </data>
+  <data name="NoUsersMatch" xml:space="preserve">
+    <value>No users match your search.</value>
+  </data>
+  <data name="AccountsFound" xml:space="preserve">
+    <value>{0} accounts found</value>
+  </data>
+  <data name="UsersFound" xml:space="preserve">
+    <value>{0} users found</value>
+  </data>
 </root>

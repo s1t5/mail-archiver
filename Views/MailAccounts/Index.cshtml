@@ -9,6 +9,8 @@
     var canExport = isAdmin || isSelfManager;
     ViewBag.IsAdmin = isAdmin;
     ViewBag.CanExport = canExport;
+    var pageSize = 50;
+    var totalPages = (int)Math.Ceiling(Model.Count() / (double)pageSize);
 }
 
 <div class="container-fluid">
@@ -32,6 +34,23 @@
         </div>
     </div>
 
+    <div class="mb-3">
+        <div class="input-group input-group-sm" style="max-width: 400px;">
+            <span class="input-group-text"><i class="bi bi-search" aria-hidden="true"></i></span>
+            <input type="search" id="accountSearch" class="form-control"
+                   placeholder="@Localizer["SearchAccounts"]" aria-label="@Localizer["SearchAccounts"]" autocomplete="off" />
+        </div>
+    </div>
+
+    <div class="card mb-3">
+        <div class="card-header bg-light">
+            <div class="d-flex justify-content-between align-items-center">
+                <span class="small"><strong id="accountTotal">@Model.Count()</strong> @Localizer["AccountsFound", ""]</span>
+                <span class="small" id="accountPageInfo" data-template="@Localizer["PageOf", "{PAGE}", "{TOTAL}"]">@Localizer["PageOf", 1, totalPages]</span>
+            </div>
+        </div>
+    </div>
+
     <div class="card d-none d-lg-block card-dropdown-overflow">
         <div class="card-body">
             <div class="table-responsive table-responsive-dropdown">
@@ -50,7 +69,7 @@
                     <tbody>
                         @foreach (var item in Model)
                         {
-                            <tr class="@(!item.IsEnabled ? "table-secondary" : "")">
+                            <tr class="account-row @(!item.IsEnabled ? "table-secondary" : "")" data-search="@($"{item.Name} {item.EmailAddress} {item.Username}")">
                                 <td>@item.Name</td>
                                 <td>@item.EmailAddress</td>
                                 <td>
@@ -128,7 +147,118 @@
             }
         });
     </script>
-    
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var pageSize = 50;
+            var currentPage = 1;
+            var prevText = '@Localizer["Previous"]';
+            var nextText = '@Localizer["Next"]';
+            var pageInfo = document.getElementById('accountPageInfo');
+            var pageOfTemplate = pageInfo ? pageInfo.getAttribute('data-template') : '';
+            var noMatchHint = document.getElementById('noAccountMatchHint');
+            var searchInput = document.getElementById('accountSearch');
+
+            var desktopRows = Array.from(document.querySelectorAll('.account-row'));
+            var mobileRows = Array.from(document.querySelectorAll('.account-card'));
+            var allRows = desktopRows.map(function(dr, i) {
+                return { desktop: dr, mobile: mobileRows[i], search: (dr.getAttribute('data-search') || '').toLowerCase() };
+            });
+            var filteredRows = allRows;
+
+            function totalPages() { return Math.max(1, Math.ceil(filteredRows.length / pageSize)); }
+
+            function renderPage() {
+                var start = (currentPage - 1) * pageSize;
+                var end = start + pageSize;
+                filteredRows.forEach(function(row, idx) {
+                    var show = (idx >= start && idx < end);
+                    row.desktop.style.display = show ? '' : 'none';
+                    row.mobile.style.display = show ? '' : 'none';
+                });
+            }
+
+            function renderPagination() {
+                var ul = document.getElementById('accountPagination');
+                var card = document.getElementById('accountPaginationCard');
+                var pages = totalPages();
+                if (pages <= 1) {
+                    card.style.display = 'none';
+                    ul.innerHTML = '';
+                    return;
+                }
+                card.style.display = '';
+                var html = '';
+                if (currentPage > 1) {
+                    html += '<li class="page-item"><a class="page-link" href="#" data-page="' + (currentPage - 1) + '">' + prevText + '</a></li>';
+                }
+                var startPage = Math.max(1, currentPage - 1);
+                var endPage = Math.min(pages, currentPage + 1);
+                for (var i = startPage; i <= endPage; i++) {
+                    html += '<li class="page-item ' + (i === currentPage ? 'active' : '') + '"><a class="page-link" href="#" data-page="' + i + '">' + i + '</a></li>';
+                }
+                if (currentPage < pages) {
+                    html += '<li class="page-item"><a class="page-link" href="#" data-page="' + (currentPage + 1) + '">' + nextText + '</a></li>';
+                }
+                ul.innerHTML = html;
+            }
+
+            function updateSummary() {
+                var totalEl = document.getElementById('accountTotal');
+                if (totalEl) { totalEl.textContent = filteredRows.length; }
+                if (pageInfo && pageOfTemplate) {
+                    pageInfo.textContent = pageOfTemplate.replace('{PAGE}', currentPage).replace('{TOTAL}', totalPages());
+                }
+            }
+
+            function updateNoMatchHint() {
+                if (noMatchHint) {
+                    noMatchHint.style.display = (filteredRows.length === 0 && allRows.length > 0) ? '' : 'none';
+                }
+            }
+
+            function applyFilter() {
+                var term = (searchInput.value || '').trim().toLowerCase();
+                if (!term) {
+                    filteredRows = allRows;
+                } else {
+                    filteredRows = allRows.filter(function(row) {
+                        return row.search.indexOf(term) !== -1;
+                    });
+                }
+                currentPage = 1;
+                renderPage();
+                renderPagination();
+                updateSummary();
+                updateNoMatchHint();
+            }
+
+            var pendingFrame = null;
+            if (searchInput) {
+                searchInput.addEventListener('input', function() {
+                    if (pendingFrame) { cancelAnimationFrame(pendingFrame); }
+                    pendingFrame = requestAnimationFrame(applyFilter);
+                });
+            }
+
+            var paginationUl = document.getElementById('accountPagination');
+            if (paginationUl) {
+                paginationUl.addEventListener('click', function(e) {
+                    var link = e.target.closest('.page-link');
+                    if (!link) { return; }
+                    e.preventDefault();
+                    var page = parseInt(link.getAttribute('data-page'), 10);
+                    if (isNaN(page) || page < 1 || page > totalPages()) { return; }
+                    currentPage = page;
+                    renderPage();
+                    renderPagination();
+                    updateSummary();
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                });
+            }
+        });
+    </script>
+
     @foreach (var item in Model)
     {
         var deleteAccountModal = new ModalViewModel
@@ -161,7 +291,7 @@
     <div class="d-lg-none">
         @foreach (var item in Model)
         {
-            <div class="card mb-3 @(!item.IsEnabled ? "border-secondary" : "")">
+            <div class="card mb-3 account-card @(!item.IsEnabled ? "border-secondary" : "")" data-search="@($"{item.Name} {item.EmailAddress} {item.Username}")">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-start mb-2">
                         <h6 class="card-title mb-0">@item.Name</h6>
@@ -295,4 +425,17 @@
             </div>
         </div>
     }
+
+    <div id="noAccountMatchHint" class="text-center py-4" style="display: none;">
+        <i class="bi bi-search text-muted display-6 d-block mb-2"></i>
+        <span class="text-muted">@Localizer["NoAccountsMatch"]</span>
+    </div>
+
+    <div class="card mb-3" id="accountPaginationCard" style="display: none;">
+        <div class="card-footer">
+            <nav>
+                <ul class="pagination pagination-sm justify-content-center mb-0" id="accountPagination"></ul>
+            </nav>
+        </div>
+    </div>
 </div>

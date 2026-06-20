@@ -2659,4 +2659,22 @@
   <data name="NoMailboxesMatch" xml:space="preserve">
     <value>Noben poštni nabiralnik ne ustreza vašemu iskanju.</value>
   </data>
+  <data name="SearchAccounts" xml:space="preserve">
+    <value>Iskanje računov...</value>
+  </data>
+  <data name="NoAccountsMatch" xml:space="preserve">
+    <value>Noben račun ne ustreza vašemu iskanju.</value>
+  </data>
+  <data name="SearchUsers" xml:space="preserve">
+    <value>Iskanje uporabnikov...</value>
+  </data>
+  <data name="NoUsersMatch" xml:space="preserve">
+    <value>Noben uporabnik ne ustreza vašemu iskanju.</value>
+  </data>
+  <data name="AccountsFound" xml:space="preserve">
+    <value>Najdenih {0} računov</value>
+  </data>
+  <data name="UsersFound" xml:space="preserve">
+    <value>Najdenih {0} uporabnikov</value>
+  </data>
 </root>

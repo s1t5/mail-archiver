@@ -2705,4 +2705,22 @@
   <data name="NoMailboxesMatch" xml:space="preserve">
     <value>Żadna skrzynka pocztowa nie pasuje do wyszukiwania.</value>
   </data>
+  <data name="SearchAccounts" xml:space="preserve">
+    <value>Szukaj kont...</value>
+  </data>
+  <data name="NoAccountsMatch" xml:space="preserve">
+    <value>Żadne konto nie pasuje do wyszukiwania.</value>
+  </data>
+  <data name="SearchUsers" xml:space="preserve">
+    <value>Szukaj użytkowników...</value>
+  </data>
+  <data name="NoUsersMatch" xml:space="preserve">
+    <value>Żaden użytkownik nie pasuje do wyszukiwania.</value>
+  </data>
+  <data name="AccountsFound" xml:space="preserve">
+    <value>Znaleziono {0} kont</value>
+  </data>
+  <data name="UsersFound" xml:space="preserve">
+    <value>Znaleziono {0} użytkowników</value>
+  </data>
 </root>

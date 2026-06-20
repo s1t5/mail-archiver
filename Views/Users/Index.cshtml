@@ -3,6 +3,8 @@
 @model IEnumerable<MailArchiver.Models.User>
 @{
     ViewData["Title"] = Localizer["Users"];
+    var pageSize = 50;
+    var totalPages = (int)Math.Ceiling(Model.Count() / (double)pageSize);
 }
 <div class="container-fluid">
     <div class="d-flex justify-content-between align-items-center mb-3">
@@ -12,6 +14,24 @@
             <span class="d-none d-sm-inline">@Localizer["CreateNewUser"]</span>
         </a>
     </div>
+
+    <div class="mb-3">
+        <div class="input-group input-group-sm" style="max-width: 400px;">
+            <span class="input-group-text"><i class="bi bi-search" aria-hidden="true"></i></span>
+            <input type="search" id="userSearch" class="form-control"
+                   placeholder="@Localizer["SearchUsers"]" aria-label="@Localizer["SearchUsers"]" autocomplete="off" />
+        </div>
+    </div>
+
+    <div class="card mb-3">
+        <div class="card-header bg-light">
+            <div class="d-flex justify-content-between align-items-center">
+                <span class="small"><strong id="userTotal">@Model.Count()</strong> @Localizer["UsersFound", ""]</span>
+                <span class="small" id="userPageInfo" data-template="@Localizer["PageOf", "{PAGE}", "{TOTAL}"]">@Localizer["PageOf", 1, totalPages]</span>
+            </div>
+        </div>
+    </div>
+
     @if (TempData["SuccessMessage"] != null)
     {<div class="alert alert-success alert-dismissible fade show" role="alert">@TempData["SuccessMessage"]<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>}
     @if (TempData["ErrorMessage"] != null)
@@ -34,7 +54,7 @@
                     <tbody>
                         @foreach (var item in Model)
                         {
-                            <tr>
+                            <tr class="user-row" data-search="@($"{item.Username} {item.Email}")">
                                 <td><a asp-action="Details" asp-route-id="@item.Id">@item.Username</a></td>
                                 <td>@item.Email</td>
                                 <td>
@@ -118,7 +138,118 @@
             }
         });
     </script>
-    
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var pageSize = 50;
+            var currentPage = 1;
+            var prevText = '@Localizer["Previous"]';
+            var nextText = '@Localizer["Next"]';
+            var pageInfo = document.getElementById('userPageInfo');
+            var pageOfTemplate = pageInfo ? pageInfo.getAttribute('data-template') : '';
+            var noMatchHint = document.getElementById('noUserMatchHint');
+            var searchInput = document.getElementById('userSearch');
+
+            var desktopRows = Array.from(document.querySelectorAll('.user-row'));
+            var mobileRows = Array.from(document.querySelectorAll('.user-card'));
+            var allRows = desktopRows.map(function(dr, i) {
+                return { desktop: dr, mobile: mobileRows[i], search: (dr.getAttribute('data-search') || '').toLowerCase() };
+            });
+            var filteredRows = allRows;
+
+            function totalPages() { return Math.max(1, Math.ceil(filteredRows.length / pageSize)); }
+
+            function renderPage() {
+                var start = (currentPage - 1) * pageSize;
+                var end = start + pageSize;
+                filteredRows.forEach(function(row, idx) {
+                    var show = (idx >= start && idx < end);
+                    row.desktop.style.display = show ? '' : 'none';
+                    row.mobile.style.display = show ? '' : 'none';
+                });
+            }
+
+            function renderPagination() {
+                var ul = document.getElementById('userPagination');
+                var card = document.getElementById('userPaginationCard');
+                var pages = totalPages();
+                if (pages <= 1) {
+                    card.style.display = 'none';
+                    ul.innerHTML = '';
+                    return;
+                }
+                card.style.display = '';
+                var html = '';
+                if (currentPage > 1) {
+                    html += '<li class="page-item"><a class="page-link" href="#" data-page="' + (currentPage - 1) + '">' + prevText + '</a></li>';
+                }
+                var startPage = Math.max(1, currentPage - 1);
+                var endPage = Math.min(pages, currentPage + 1);
+                for (var i = startPage; i <= endPage; i++) {
+                    html += '<li class="page-item ' + (i === currentPage ? 'active' : '') + '"><a class="page-link" href="#" data-page="' + i + '">' + i + '</a></li>';
+                }
+                if (currentPage < pages) {
+                    html += '<li class="page-item"><a class="page-link" href="#" data-page="' + (currentPage + 1) + '">' + nextText + '</a></li>';
+                }
+                ul.innerHTML = html;
+            }
+
+            function updateSummary() {
+                var totalEl = document.getElementById('userTotal');
+                if (totalEl) { totalEl.textContent = filteredRows.length; }
+                if (pageInfo && pageOfTemplate) {
+                    pageInfo.textContent = pageOfTemplate.replace('{PAGE}', currentPage).replace('{TOTAL}', totalPages());
+                }
+            }
+
+            function updateNoMatchHint() {
+                if (noMatchHint) {
+                    noMatchHint.style.display = (filteredRows.length === 0 && allRows.length > 0) ? '' : 'none';
+                }
+            }
+
+            function applyFilter() {
+                var term = (searchInput.value || '').trim().toLowerCase();
+                if (!term) {
+                    filteredRows = allRows;
+                } else {
+                    filteredRows = allRows.filter(function(row) {
+                        return row.search.indexOf(term) !== -1;
+                    });
+                }
+                currentPage = 1;
+                renderPage();
+                renderPagination();
+                updateSummary();
+                updateNoMatchHint();
+            }
+
+            var pendingFrame = null;
+            if (searchInput) {
+                searchInput.addEventListener('input', function() {
+                    if (pendingFrame) { cancelAnimationFrame(pendingFrame); }
+                    pendingFrame = requestAnimationFrame(applyFilter);
+                });
+            }
+
+            var paginationUl = document.getElementById('userPagination');
+            if (paginationUl) {
+                paginationUl.addEventListener('click', function(e) {
+                    var link = e.target.closest('.page-link');
+                    if (!link) { return; }
+                    e.preventDefault();
+                    var page = parseInt(link.getAttribute('data-page'), 10);
+                    if (isNaN(page) || page < 1 || page > totalPages()) { return; }
+                    currentPage = page;
+                    renderPage();
+                    renderPagination();
+                    updateSummary();
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                });
+            }
+        });
+    </script>
+
     @foreach (var item in Model)
     {
         var deleteUserModal = new ModalViewModel
@@ -149,7 +280,7 @@
     <div class="d-lg-none">
         @foreach (var item in Model)
         {
-            <div class="card mb-3">
+            <div class="card mb-3 user-card" data-search="@($"{item.Username} {item.Email}")">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-start mb-2">
                         <h6 class="card-title mb-0">@item.Username</h6>
@@ -211,5 +342,18 @@
                 </div>
             </div>
         }
+    </div>
+
+    <div id="noUserMatchHint" class="text-center py-4" style="display: none;">
+        <i class="bi bi-search text-muted display-6 d-block mb-2"></i>
+        <span class="text-muted">@Localizer["NoUsersMatch"]</span>
+    </div>
+
+    <div class="card mb-3" id="userPaginationCard" style="display: none;">
+        <div class="card-footer">
+            <nav>
+                <ul class="pagination pagination-sm justify-content-center mb-0" id="userPagination"></ul>
+            </nav>
+        </div>
     </div>
 </div>

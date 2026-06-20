@@ -2659,4 +2659,22 @@
   <data name="NoMailboxesMatch" xml:space="preserve">
     <value>Ни один почтовый ящик не соответствует вашему запросу.</value>
   </data>
+  <data name="SearchAccounts" xml:space="preserve">
+    <value>Поиск учётных записей...</value>
+  </data>
+  <data name="NoAccountsMatch" xml:space="preserve">
+    <value>Ни одна учётная запись не соответствует вашему поиску.</value>
+  </data>
+  <data name="SearchUsers" xml:space="preserve">
+    <value>Поиск пользователей...</value>
+  </data>
+  <data name="NoUsersMatch" xml:space="preserve">
+    <value>Ни один пользователь не соответствует вашему поиску.</value>
+  </data>
+  <data name="AccountsFound" xml:space="preserve">
+    <value>Найдено {0} учётных записей</value>
+  </data>
+  <data name="UsersFound" xml:space="preserve">
+    <value>Найдено {0} пользователей</value>
+  </data>
 </root>

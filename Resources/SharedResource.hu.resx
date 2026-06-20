@@ -2651,4 +2651,22 @@
   <data name="NoMailboxesMatch" xml:space="preserve">
     <value>Egyetlen postafiók sem felel meg a keresésnek.</value>
   </data>
+  <data name="SearchAccounts" xml:space="preserve">
+    <value>Fiókok keresése...</value>
+  </data>
+  <data name="NoAccountsMatch" xml:space="preserve">
+    <value>Egyetlen fiók sem felel meg a keresésnek.</value>
+  </data>
+  <data name="SearchUsers" xml:space="preserve">
+    <value>Felhasználók keresése...</value>
+  </data>
+  <data name="NoUsersMatch" xml:space="preserve">
+    <value>Egyetlen felhasználó sem felel meg a keresésnek.</value>
+  </data>
+  <data name="AccountsFound" xml:space="preserve">
+    <value>{0} fiók található</value>
+  </data>
+  <data name="UsersFound" xml:space="preserve">
+    <value>{0} felhasználó található</value>
+  </data>
 </root>
