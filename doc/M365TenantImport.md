@@ -121,6 +121,12 @@ After creation, Mail Archiver redirects to the mail account list and shows how m
 
 For large tenants with several thousand mailboxes, a search field above the mailbox list lets you filter by display name or email address. The filter is case-insensitive and applies instantly as you type. **Select all** and **Clear selection** operate only on the currently visible (filtered) mailboxes, so filtering is a safe way to select a specific subset without affecting hidden entries.
 
+### Renaming existing accounts
+
+The **Rename existing accounts** checkbox applies the naming scheme `{prefix} - <{email}>` to all M365 accounts that share the same app registration (Client ID and Tenant ID) as the source account. This is useful for normalizing account names after an initial import where names were inconsistent.
+
+When checked, saving the form renames every matching account — including the source account — regardless of whether new mailboxes are selected for import. You can use this option alone (without selecting any new mailboxes) to normalize names without adding accounts.
+
 ### Mailbox limit
 
 A single Tenant Management operation can add at most `TenantManagement__MaxSelectedMailboxes` mailboxes at once (default `1000`). This protects against accidental mass imports and excessive Microsoft Graph / database load. If you need to import more mailboxes, run the operation multiple times. See the [Setup Guide](Setup.md#-tenant-management-settings) for how to adjust this limit.

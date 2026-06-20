@@ -2677,4 +2677,16 @@
   <data name="UsersFound" xml:space="preserve">
     <value>Najdenih {0} uporabnikov</value>
   </data>
+  <data name="RenameExistingAccounts" xml:space="preserve">
+    <value>Preimenuj obstoječe račune</value>
+  </data>
+  <data name="RenameExistingAccountsHelp" xml:space="preserve">
+    <value>Po shranjevanju uporabi imenovno shemo na vse račune M365, ki uporabljajo isto registracijo aplikacije.</value>
+  </data>
+  <data name="AccountsRenamed" xml:space="preserve">
+    <value>{0} računov preimenovanih.</value>
+  </data>
+  <data name="MailboxesAddedAndAccountsRenamed" xml:space="preserve">
+    <value>Dodano {0} poštnih nabiralnikov in preimenovanih {1} računov.</value>
+  </data>
 </root>

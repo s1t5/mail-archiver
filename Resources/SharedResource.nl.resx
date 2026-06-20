@@ -2677,4 +2677,16 @@
   <data name="UsersFound" xml:space="preserve">
     <value>{0} gebruikers gevonden</value>
   </data>
+  <data name="RenameExistingAccounts" xml:space="preserve">
+    <value>Bestaande accounts hernoemen</value>
+  </data>
+  <data name="RenameExistingAccountsHelp" xml:space="preserve">
+    <value>Past het naamgevingschema na opslaan toe op alle M365-accounts die dezelfde app-registratie gebruiken.</value>
+  </data>
+  <data name="AccountsRenamed" xml:space="preserve">
+    <value>{0} account(s) hernoemd.</value>
+  </data>
+  <data name="MailboxesAddedAndAccountsRenamed" xml:space="preserve">
+    <value>{0} postvak(ken) toegevoegd en {1} account(s) hernoemd.</value>
+  </data>
 </root>

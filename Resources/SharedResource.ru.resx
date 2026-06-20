@@ -2677,4 +2677,16 @@
   <data name="UsersFound" xml:space="preserve">
     <value>Найдено {0} пользователей</value>
   </data>
+  <data name="RenameExistingAccounts" xml:space="preserve">
+    <value>Переименовать существующие учётные записи</value>
+  </data>
+  <data name="RenameExistingAccountsHelp" xml:space="preserve">
+    <value>После сохранения применить схему именования ко всем учётным записям M365, использующим ту же регистрацию приложения.</value>
+  </data>
+  <data name="AccountsRenamed" xml:space="preserve">
+    <value>Переименовано учётных записей: {0}.</value>
+  </data>
+  <data name="MailboxesAddedAndAccountsRenamed" xml:space="preserve">
+    <value>Добавлено почтовых ящиков: {0}, переименовано учётных записей: {1}.</value>
+  </data>
 </root>

@@ -27,6 +27,9 @@ namespace MailArchiver.Models.ViewModels
         [Display(Name = "Account name")]
         public string? Name { get; set; }
 
+        [Display(Name = "Rename existing accounts")]
+        public bool RenameExistingAccounts { get; set; } = false;
+
         [Display(Name = "Delete After Days")]
         [Range(1, int.MaxValue, ErrorMessage = "Delete after days must be at least 1")]
         public int? DeleteAfterDays { get; set; }
@@ -58,7 +61,7 @@ namespace MailArchiver.Models.ViewModels
                     new[] { nameof(Name) });
             }
 
-            if (SelectedMailboxes == null || SelectedMailboxes.Count == 0)
+            if (!RenameExistingAccounts && (SelectedMailboxes == null || SelectedMailboxes.Count == 0))
             {
                 yield return new ValidationResult(
                     localizer?["SelectAtLeastOneMailboxForManagement"].Value ?? "Select at least one mailbox to add.",

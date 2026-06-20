@@ -71,6 +71,13 @@
                             <span asp-validation-for="Name" class="text-danger"></span>
                             <div class="form-text">@Localizer["UseTenantImportHelp"]</div>
                         </div>
+                        <div class="col-md-12 mb-3">
+                            <div class="form-check">
+                                <input asp-for="RenameExistingAccounts" class="form-check-input" type="checkbox" />
+                                <label asp-for="RenameExistingAccounts" class="form-check-label">@Localizer["RenameExistingAccounts"]</label>
+                                <div class="form-text">@Localizer["RenameExistingAccountsHelp"]</div>
+                            </div>
+                        </div>
                     </div>
 
                     <h6 class="mt-3 mb-2">@Localizer["TenantMailboxes"]</h6>

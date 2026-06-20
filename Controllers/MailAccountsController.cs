@@ -2352,12 +2352,18 @@ var model = new MailAccountViewModel
                 return View(missingModel);
             }
 
+            var sourceName = sourceAccount.Name ?? string.Empty;
+            var separatorIndex = sourceName.IndexOf(" - <");
+            var defaultPrefix = separatorIndex >= 0
+                ? sourceName.Substring(0, separatorIndex).Trim()
+                : sourceName.Trim();
+
             var model = new TenantManagementViewModel
             {
                 SourceAccountId = sourceAccount.Id,
                 SourceAccountName = sourceAccount.Name,
                 SourceEmailAddress = sourceAccount.EmailAddress,
-                Name = sourceAccount.Name
+                Name = defaultPrefix
             };
 
             try
@@ -2458,58 +2464,106 @@ var model = new MailAccountViewModel
                     .Where(m => selectedNormalized.Contains(m.EmailAddress.Trim().ToLowerInvariant()) && !m.AlreadyExists)
                     .ToList();
 
-                if (toAdd.Count == 0)
+                if (toAdd.Count == 0 && !model.RenameExistingAccounts)
                 {
                     TempData["ErrorMessage"] = _localizer["NoNewMailboxesToAdd"].Value;
                     return RedirectToAction(nameof(TenantManagement), new { id = model.SourceAccountId });
                 }
 
                 var accountNamePrefix = model.Name!.Trim();
+                var addedCount = 0;
+                var renamedCount = 0;
 
-                var accountsToCreate = toAdd.Select(mailbox => new MailAccount
+                if (toAdd.Count > 0)
                 {
-                    Name = $"{accountNamePrefix} - <{mailbox.EmailAddress}>",
-                    EmailAddress = mailbox.EmailAddress,
-                    UseSSL = sourceAccount.UseSSL,
-                    IsEnabled = true,
-                    Provider = ProviderType.M365,
-                    ClientId = sourceAccount.ClientId,
-                    ClientSecret = sourceAccount.ClientSecret,
-                    TenantId = sourceAccount.TenantId,
-                    ExcludedFolders = string.Empty,
-                    DeleteAfterDays = model.DeleteAfterDays,
-                    LocalRetentionDays = model.LocalRetentionDays,
-                    LastSync = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)
-                }).ToList();
+                    var accountsToCreate = toAdd.Select(mailbox => new MailAccount
+                    {
+                        Name = $"{accountNamePrefix} - <{mailbox.EmailAddress}>",
+                        EmailAddress = mailbox.EmailAddress,
+                        UseSSL = sourceAccount.UseSSL,
+                        IsEnabled = true,
+                        Provider = ProviderType.M365,
+                        ClientId = sourceAccount.ClientId,
+                        ClientSecret = sourceAccount.ClientSecret,
+                        TenantId = sourceAccount.TenantId,
+                        ExcludedFolders = string.Empty,
+                        DeleteAfterDays = model.DeleteAfterDays,
+                        LocalRetentionDays = model.LocalRetentionDays,
+                        LastSync = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+                    }).ToList();
 
-                _context.MailAccounts.AddRange(accountsToCreate);
-                await _context.SaveChangesAsync();
+                    _context.MailAccounts.AddRange(accountsToCreate);
+                    await _context.SaveChangesAsync();
+                    addedCount = accountsToCreate.Count;
+
+                    // SelfManager auto-assignment (consistent with Create flow)
+                    var currentUsernameForAssignment = authService.GetCurrentUserDisplayName(HttpContext);
+                    var currentUser = await _context.Users
+                        .FirstOrDefaultAsync(user => user.Username.ToLower() == currentUsernameForAssignment.ToLower());
+                    if (currentUser != null && !currentUser.IsAdmin && currentUser.IsSelfManager)
+                    {
+                        _context.UserMailAccounts.AddRange(accountsToCreate.Select(account => new UserMailAccount
+                        {
+                            UserId = currentUser.Id,
+                            MailAccountId = account.Id
+                        }));
+                        await _context.SaveChangesAsync();
+
+                        _logger.LogInformation("Auto-assigned {Count} tenant accounts to SelfManager user {Username}",
+                            accountsToCreate.Count, currentUser.Username);
+                    }
+                }
+
+                if (model.RenameExistingAccounts)
+                {
+                    var accountsToRename = await _context.MailAccounts
+                        .Where(a => a.Provider == ProviderType.M365
+                                 && a.ClientId == sourceAccount.ClientId
+                                 && a.TenantId == sourceAccount.TenantId
+                                 && a.EmailAddress != null)
+                        .ToListAsync();
+
+                    foreach (var account in accountsToRename)
+                    {
+                        account.Name = $"{accountNamePrefix} - <{account.EmailAddress}>";
+                    }
+                    await _context.SaveChangesAsync();
+                    renamedCount = accountsToRename.Count;
+
+                    _logger.LogInformation("Renamed {Count} M365 accounts to schema '{Prefix} - <email>' for app registration {ClientId}",
+                        renamedCount, accountNamePrefix, sourceAccount.ClientId);
+                }
 
                 var currentUsername = authService.GetCurrentUserDisplayName(HttpContext);
 
-                // SelfManager auto-assignment (consistent with Create flow)
-                var currentUser = await _context.Users
-                    .FirstOrDefaultAsync(user => user.Username.ToLower() == currentUsername.ToLower());
-                if (currentUser != null && !currentUser.IsAdmin && currentUser.IsSelfManager)
-                {
-                    _context.UserMailAccounts.AddRange(accountsToCreate.Select(account => new UserMailAccount
-                    {
-                        UserId = currentUser.Id,
-                        MailAccountId = account.Id
-                    }));
-                    await _context.SaveChangesAsync();
-
-                    _logger.LogInformation("Auto-assigned {Count} tenant accounts to SelfManager user {Username}",
-                        accountsToCreate.Count, currentUser.Username);
-                }
-
                 if (!string.IsNullOrEmpty(currentUsername))
                 {
+                    var logParts = new List<string>();
+                    if (addedCount > 0)
+                    {
+                        logParts.Add($"Added {addedCount} M365 tenant mailboxes via Tenant Management from source account {sourceAccount.EmailAddress}");
+                    }
+                    if (renamedCount > 0)
+                    {
+                        logParts.Add($"Renamed {renamedCount} M365 accounts to schema '{accountNamePrefix} - <email>' for app registration {sourceAccount.ClientId}");
+                    }
                     await _accessLogService.LogAccessAsync(currentUsername, AccessLogType.Account,
-                        searchParameters: $"Added {accountsToCreate.Count} M365 tenant mailboxes via Tenant Management from source account {sourceAccount.EmailAddress}");
+                        searchParameters: string.Join("; ", logParts));
                 }
 
-                TempData["SuccessMessage"] = _localizer["MailboxesAdded", accountsToCreate.Count].Value;
+                if (addedCount > 0 && renamedCount > 0)
+                {
+                    TempData["SuccessMessage"] = _localizer["MailboxesAddedAndAccountsRenamed", addedCount, renamedCount].Value;
+                }
+                else if (addedCount > 0)
+                {
+                    TempData["SuccessMessage"] = _localizer["MailboxesAdded", addedCount].Value;
+                }
+                else if (renamedCount > 0)
+                {
+                    TempData["SuccessMessage"] = _localizer["AccountsRenamed", renamedCount].Value;
+                }
+
                 return RedirectToAction(nameof(Index));
             }
             catch (Exception ex)

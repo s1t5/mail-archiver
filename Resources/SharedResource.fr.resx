@@ -2677,4 +2677,16 @@
   <data name="UsersFound" xml:space="preserve">
     <value>{0} utilisateurs trouvés</value>
   </data>
+  <data name="RenameExistingAccounts" xml:space="preserve">
+    <value>Renommer les comptes existants</value>
+  </data>
+  <data name="RenameExistingAccountsHelp" xml:space="preserve">
+    <value>Applique le schéma de nommage à tous les comptes M365 utilisant la même inscription d'application après l'enregistrement.</value>
+  </data>
+  <data name="AccountsRenamed" xml:space="preserve">
+    <value>{0} compte(s) renommé(s).</value>
+  </data>
+  <data name="MailboxesAddedAndAccountsRenamed" xml:space="preserve">
+    <value>{0} boîte(s) aux lettres ajoutée(s) et {1} compte(s) renommé(s).</value>
+  </data>
 </root>

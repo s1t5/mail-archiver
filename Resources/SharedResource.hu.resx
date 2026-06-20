@@ -2669,4 +2669,16 @@
   <data name="UsersFound" xml:space="preserve">
     <value>{0} felhasználó található</value>
   </data>
+  <data name="RenameExistingAccounts" xml:space="preserve">
+    <value>Meglévő fiókok átnevezése</value>
+  </data>
+  <data name="RenameExistingAccountsHelp" xml:space="preserve">
+    <value>Mentés után alkalmazza az elnevezési sémát az összes olyan M365-fiókra, amely ugyanazt az alkalmazásregisztrációt használja.</value>
+  </data>
+  <data name="AccountsRenamed" xml:space="preserve">
+    <value>{0} fiók átnevezve.</value>
+  </data>
+  <data name="MailboxesAddedAndAccountsRenamed" xml:space="preserve">
+    <value>{0} postafiók hozzáadva és {1} fiók átnevezve.</value>
+  </data>
 </root>
