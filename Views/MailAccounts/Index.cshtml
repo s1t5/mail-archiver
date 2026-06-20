@@ -171,10 +171,15 @@
             function renderPage() {
                 var start = (currentPage - 1) * pageSize;
                 var end = start + pageSize;
+                allRows.forEach(function(row) {
+                    row.desktop.style.display = 'none';
+                    row.mobile.style.display = 'none';
+                });
                 filteredRows.forEach(function(row, idx) {
-                    var show = (idx >= start && idx < end);
-                    row.desktop.style.display = show ? '' : 'none';
-                    row.mobile.style.display = show ? '' : 'none';
+                    if (idx >= start && idx < end) {
+                        row.desktop.style.display = '';
+                        row.mobile.style.display = '';
+                    }
                 });
             }
 
