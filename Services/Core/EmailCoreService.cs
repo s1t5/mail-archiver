@@ -110,7 +110,34 @@ namespace MailArchiver.Services.Core
 
                 foreach (var phrase in phrases)
                 {
-                    searchConditions.Add($@"(
+                    var phraseTsQuery = BuildPhraseTsQuery(phrase);
+                    if (!string.IsNullOrEmpty(phraseTsQuery))
+                    {
+                        searchConditions.Add($@"(
+                        to_tsvector('simple', 
+                            COALESCE(""Subject"", '') || ' ' || 
+                            COALESCE(""Body"", '') || ' ' || 
+                            COALESCE(""From"", '') || ' ' || 
+                            COALESCE(""To"", '') || ' ' || 
+                            COALESCE(""Cc"", '') || ' ' || 
+                            COALESCE(""Bcc"", '')) 
+                        @@ to_tsquery('simple', @param{paramCounter})
+                        AND (
+                        POSITION(LOWER(@param{paramCounter + 1}) IN LOWER(COALESCE(""Subject"", ''))) > 0 OR
+                        POSITION(LOWER(@param{paramCounter + 1}) IN LOWER(COALESCE(""Body"", ''))) > 0 OR
+                        POSITION(LOWER(@param{paramCounter + 1}) IN LOWER(COALESCE(""From"", ''))) > 0 OR
+                        POSITION(LOWER(@param{paramCounter + 1}) IN LOWER(COALESCE(""To"", ''))) > 0 OR
+                        POSITION(LOWER(@param{paramCounter + 1}) IN LOWER(COALESCE(""Cc"", ''))) > 0 OR
+                        POSITION(LOWER(@param{paramCounter + 1}) IN LOWER(COALESCE(""Bcc"", ''))) > 0
+                    ))");
+                        parameters.Add(new Npgsql.NpgsqlParameter($"@param{paramCounter}", phraseTsQuery));
+                        paramCounter++;
+                        parameters.Add(new Npgsql.NpgsqlParameter($"@param{paramCounter}", phrase));
+                        paramCounter++;
+                    }
+                    else
+                    {
+                        searchConditions.Add($@"(
                         POSITION(LOWER(@param{paramCounter}) IN LOWER(COALESCE(""Subject"", ''))) > 0 OR
                         POSITION(LOWER(@param{paramCounter}) IN LOWER(COALESCE(""Body"", ''))) > 0 OR
                         POSITION(LOWER(@param{paramCounter}) IN LOWER(COALESCE(""From"", ''))) > 0 OR
@@ -118,8 +145,9 @@ namespace MailArchiver.Services.Core
                         POSITION(LOWER(@param{paramCounter}) IN LOWER(COALESCE(""Cc"", ''))) > 0 OR
                         POSITION(LOWER(@param{paramCounter}) IN LOWER(COALESCE(""Bcc"", ''))) > 0
                     )");
-                    parameters.Add(new Npgsql.NpgsqlParameter($"@param{paramCounter}", phrase));
-                    paramCounter++;
+                        parameters.Add(new Npgsql.NpgsqlParameter($"@param{paramCounter}", phrase));
+                        paramCounter++;
+                    }
                 }
 
                 foreach (var fieldSearch in fieldSearches)
@@ -132,10 +160,31 @@ namespace MailArchiver.Services.Core
                     {
                         foreach (var term in terms)
                         {
-                            searchConditions.Add($@"
+                            var fieldTsQuery = BuildPhraseTsQuery(term);
+                            if (!string.IsNullOrEmpty(fieldTsQuery))
+                            {
+                                searchConditions.Add($@"(
+                                to_tsvector('simple', 
+                                    COALESCE(""Subject"", '') || ' ' || 
+                                    COALESCE(""Body"", '') || ' ' || 
+                                    COALESCE(""From"", '') || ' ' || 
+                                    COALESCE(""To"", '') || ' ' || 
+                                    COALESCE(""Cc"", '') || ' ' || 
+                                    COALESCE(""Bcc"", '')) 
+                                @@ to_tsquery('simple', @param{paramCounter})
+                                AND POSITION(LOWER(@param{paramCounter + 1}) IN LOWER(COALESCE(""{columnName}"", ''))) > 0)");
+                                parameters.Add(new Npgsql.NpgsqlParameter($"@param{paramCounter}", fieldTsQuery));
+                                paramCounter++;
+                                parameters.Add(new Npgsql.NpgsqlParameter($"@param{paramCounter}", term));
+                                paramCounter++;
+                            }
+                            else
+                            {
+                                searchConditions.Add($@"
                                 POSITION(LOWER(@param{paramCounter}) IN LOWER(COALESCE(""{columnName}"", ''))) > 0");
-                            parameters.Add(new Npgsql.NpgsqlParameter($"@param{paramCounter}", term));
-                            paramCounter++;
+                                parameters.Add(new Npgsql.NpgsqlParameter($"@param{paramCounter}", term));
+                                paramCounter++;
+                            }
                         }
                     }
                 }
@@ -150,10 +199,31 @@ namespace MailArchiver.Services.Core
                     {
                         foreach (var phrase in currentFieldPhrases)
                         {
-                            searchConditions.Add($@"
+                            var fieldTsQuery = BuildPhraseTsQuery(phrase);
+                            if (!string.IsNullOrEmpty(fieldTsQuery))
+                            {
+                                searchConditions.Add($@"(
+                                to_tsvector('simple', 
+                                    COALESCE(""Subject"", '') || ' ' || 
+                                    COALESCE(""Body"", '') || ' ' || 
+                                    COALESCE(""From"", '') || ' ' || 
+                                    COALESCE(""To"", '') || ' ' || 
+                                    COALESCE(""Cc"", '') || ' ' || 
+                                    COALESCE(""Bcc"", '')) 
+                                @@ to_tsquery('simple', @param{paramCounter})
+                                AND POSITION(LOWER(@param{paramCounter + 1}) IN LOWER(COALESCE(""{columnName}"", ''))) > 0)");
+                                parameters.Add(new Npgsql.NpgsqlParameter($"@param{paramCounter}", fieldTsQuery));
+                                paramCounter++;
+                                parameters.Add(new Npgsql.NpgsqlParameter($"@param{paramCounter}", phrase));
+                                paramCounter++;
+                            }
+                            else
+                            {
+                                searchConditions.Add($@"
                                 POSITION(LOWER(@param{paramCounter}) IN LOWER(COALESCE(""{columnName}"", ''))) > 0");
-                            parameters.Add(new Npgsql.NpgsqlParameter($"@param{paramCounter}", phrase));
-                            paramCounter++;
+                                parameters.Add(new Npgsql.NpgsqlParameter($"@param{paramCounter}", phrase));
+                                paramCounter++;
+                            }
                         }
                     }
                 }
@@ -434,6 +504,35 @@ namespace MailArchiver.Services.Core
                 "to" => "To",
                 _ => null
             };
+        }
+
+        /// <summary>
+        /// Builds a GIN-indexable tsquery for an exact phrase or single term, using prefix
+        /// matching (:*) and adjacency (<->) between words. Returns null when the input
+        /// contains no usable tokens (only punctuation), in which case the caller should
+        /// fall back to POSITION-only matching.
+        /// Used as a selective pre-filter before the authoritative POSITION substring check,
+        /// so the GIN index narrows the candidate set and the body is not detoasted during
+        /// matching for the common case.
+        /// </summary>
+        private string BuildPhraseTsQuery(string phrase)
+        {
+            if (string.IsNullOrWhiteSpace(phrase))
+                return null;
+
+            var words = phrase.Split((char[])null, StringSplitOptions.RemoveEmptyEntries);
+            var escapedTerms = new List<string>(words.Length);
+            foreach (var word in words)
+            {
+                var sanitized = Regex.Replace(word, @"[&|!():\*]", "", RegexOptions.None);
+                if (!string.IsNullOrEmpty(sanitized))
+                    escapedTerms.Add(sanitized.Replace("'", "''") + ":*");
+            }
+
+            if (escapedTerms.Count == 0)
+                return null;
+
+            return string.Join(" <-> ", escapedTerms);
         }
 
         private (string OrderByClause, string SortColumn, bool IsTimestampSort) GetOrderByClause(string sortBy, string sortOrder)
