@@ -525,8 +525,6 @@
             timezoneInput.value = Intl.DateTimeFormat().resolvedOptions().timeZone;
         }
 
-        const searchForm = document.getElementById('searchForm');
-
         // Aktuelle Formulareingaben (ggf. ungespeichert) in URL uebernehmen,
         // damit Suchbegriff/Datum/Direction beim Account- oder Ordnerwechsel erhalten bleiben.
         function mergeFormValuesIntoUrl(url, form) {
@@ -558,6 +556,7 @@
                 const accountId = this.value;
                 // Reload page with new account selection to update folder tree
                 const url = new URL(window.location.href);
+                mergeFormValuesIntoUrl(url, searchForm);
                 if (accountId && accountId !== '') {
                     url.searchParams.set('SelectedAccountId', accountId);
                 } else {
@@ -651,6 +650,7 @@
                     const folder = this.dataset.folder;
                     if (folder) {
                         const url = new URL(window.location.href);
+                        mergeFormValuesIntoUrl(url, searchForm);
                         url.searchParams.set('SelectedFolder', folder);
                         url.searchParams.set('PageNumber', '1');
                         window.location.href = url.toString();
