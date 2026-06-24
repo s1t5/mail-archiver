@@ -87,6 +87,10 @@
                                     <label class="form-check-label small" for="toggleSelectionMode">@Localizer["SelectionMode"]</label>
                                     <input type="hidden" id="userTimezone" name="UserTimezone" value="" />
                                     <input type="hidden" id="pageSizeHidden" name="PageSize" value="@Model.PageSize" />
+                                    <input type="hidden" name="SelectedFolder" value="@Model.SelectedFolder" />
+                                    <input type="hidden" name="SortBy" value="@Model.SortBy" />
+                                    <input type="hidden" name="SortOrder" value="@Model.SortOrder" />
+                                    <input type="hidden" name="PageNumber" value="@Model.PageNumber" />
                                 </div>
                             </div>
                         </div>
@@ -519,6 +523,21 @@
         const timezoneInput = document.getElementById('userTimezone');
         if (timezoneInput) {
             timezoneInput.value = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        }
+
+        const searchForm = document.getElementById('searchForm');
+
+        // Aktuelle Formulareingaben (ggf. ungespeichert) in URL uebernehmen,
+        // damit Suchbegriff/Datum/Direction beim Account- oder Ordnerwechsel erhalten bleiben.
+        function mergeFormValuesIntoUrl(url, form) {
+            const formData = new FormData(form);
+            for (const [key, value] of formData.entries()) {
+                if (value !== '') {
+                    url.searchParams.set(key, value);
+                } else {
+                    url.searchParams.delete(key);
+                }
+            }
         }
 
         // Auto-submit form when page size changes

@@ -381,9 +381,12 @@ namespace MailArchiver.Controllers
                     FromDate = searchModel.FromDate?.ToString("yyyy-MM-dd"),
                     ToDate = searchModel.ToDate?.ToString("yyyy-MM-dd"),
                     SelectedAccountId = searchModel.SelectedAccountId,
+                    SelectedFolder = searchModel.SelectedFolder,
                     IsOutgoing = searchModel.IsOutgoing,
                     PageNumber = searchModel.PageNumber,
                     PageSize = searchModel.PageSize,
+                    SortBy = searchModel.SortBy,
+                    SortOrder = searchModel.SortOrder,
                     ShowSelectionControls = searchModel.ShowSelectionControls
                 };
 
