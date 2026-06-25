@@ -152,7 +152,12 @@ namespace MailArchiver.Data
             modelBuilder.Entity<AttachmentContent>()
                 .Property(c => c.Content)
                 .HasColumnType("bytea")
-                .IsRequired();
+                .IsRequired(false);
+
+            modelBuilder.Entity<AttachmentContent>()
+                .Property(c => c.StorageType)
+                .HasColumnType("smallint")
+                .HasDefaultValue(AttachmentStorageType.Database);
 
             modelBuilder.Entity<AttachmentContent>()
                 .Property(c => c.Size)

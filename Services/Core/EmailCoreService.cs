@@ -2,6 +2,7 @@ using MailArchiver.Data;
 using MailArchiver.Models;
 using MailArchiver.Models.ViewModels;
 using MailArchiver.Services.Shared;
+using MailArchiver.Services.Storage;
 using MailArchiver.Utilities;
 using MailArchiver.ViewModels;
 using Microsoft.EntityFrameworkCore;
@@ -24,17 +25,20 @@ namespace MailArchiver.Services.Core
         private readonly ILogger<EmailCoreService> _logger;
         private readonly DateTimeHelper _dateTimeHelper;
         private readonly BatchOperationOptions _batchOptions;
+        private readonly AttachmentStorageFactory _storageFactory;
 
         public EmailCoreService(
             MailArchiverDbContext context,
             ILogger<EmailCoreService> logger,
             DateTimeHelper dateTimeHelper,
-            IOptions<BatchOperationOptions> batchOptions)
+            IOptions<BatchOperationOptions> batchOptions,
+            AttachmentStorageFactory storageFactory)
         {
             _context = context;
             _logger = logger;
             _dateTimeHelper = dateTimeHelper;
             _batchOptions = batchOptions.Value;
+            _storageFactory = storageFactory;
         }
 
         #region Search Methods
@@ -956,9 +960,10 @@ namespace MailArchiver.Services.Core
 
                     foreach (var attachment in inlineAttachments)
                     {
+                        var content = await attachment.GetContentAsync(_storageFactory);
                         var mimePart = new MimePart(attachment.ContentType)
                         {
-                            Content = new MimeContent(new MemoryStream(attachment.Content)),
+                            Content = new MimeContent(new MemoryStream(content)),
                             ContentId = attachment.ContentId,
                             ContentDisposition = new ContentDisposition(ContentDisposition.Inline),
                             ContentTransferEncoding = ContentEncoding.Base64,
@@ -976,9 +981,10 @@ namespace MailArchiver.Services.Core
 
                 foreach (var attachment in regularAttachments)
                 {
+                    var content = await attachment.GetContentAsync(_storageFactory);
                     var mimePart = new MimePart(attachment.ContentType)
                     {
-                        Content = new MimeContent(new MemoryStream(attachment.Content)),
+                        Content = new MimeContent(new MemoryStream(content)),
                         ContentDisposition = new ContentDisposition(ContentDisposition.Attachment),
                         ContentTransferEncoding = ContentEncoding.Base64,
                         FileName = attachment.FileName
@@ -1512,66 +1518,6 @@ namespace MailArchiver.Services.Core
             }
 
             return false;
-        }
-
-        /// <summary>
-        /// Resolves inline images in HTML by converting cid: references to data URLs
-        /// </summary>
-        private string ResolveInlineImagesInHtml(string htmlBody, List<EmailAttachment> attachments)
-        {
-            if (string.IsNullOrEmpty(htmlBody) || attachments == null || !attachments.Any())
-                return htmlBody;
-
-            var resultHtml = htmlBody;
-
-            // Find all cid: references in the HTML
-            var cidMatches = Regex.Matches(htmlBody, @"src\s*=\s*[""']cid:([^""']+)[""']", RegexOptions.IgnoreCase);
-
-            foreach (Match match in cidMatches)
-            {
-                var cid = match.Groups[1].Value;
-
-                // Find the corresponding attachment
-                var attachment = attachments.FirstOrDefault(a =>
-                    !string.IsNullOrEmpty(a.ContentId) &&
-                    (a.ContentId.Equals($"<{cid}>", StringComparison.OrdinalIgnoreCase) ||
-                     a.ContentId.Equals(cid, StringComparison.OrdinalIgnoreCase)));
-
-                // If no attachment with ContentId found, try matching by filename
-                if (attachment == null)
-                {
-                    attachment = attachments.FirstOrDefault(a =>
-                        !string.IsNullOrEmpty(a.FileName) &&
-                        (a.FileName.Equals($"inline_{cid}", StringComparison.OrdinalIgnoreCase) ||
-                         a.FileName.StartsWith($"inline_{cid}.", StringComparison.OrdinalIgnoreCase) ||
-                         a.FileName.Contains($"_{cid}")));
-                }
-
-                if (attachment != null && attachment.Content != null && attachment.Content.Length > 0)
-                {
-                    try
-                    {
-                        // Create a data URL for the inline image
-                        var base64Content = Convert.ToBase64String(attachment.Content);
-                        var dataUrl = $"data:{attachment.ContentType ?? "image/png"};base64,{base64Content}";
-
-                        // Replace the cid: reference with the data URL
-                        resultHtml = resultHtml.Replace(match.Groups[0].Value, $"src=\"{dataUrl}\"");
-
-                        _logger.LogDebug("Resolved inline image with CID: {Cid} to data URL", cid);
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogWarning(ex, "Failed to resolve inline image with CID: {Cid}", cid);
-                    }
-                }
-                else
-                {
-                    _logger.LogWarning("Could not find attachment for CID: {Cid}", cid);
-                }
-            }
-
-            return resultHtml;
         }
 
         // Hilfsmethode für Dateierweiterungen

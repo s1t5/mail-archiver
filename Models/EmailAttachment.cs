@@ -1,3 +1,4 @@
+using MailArchiver.Services.Storage;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace MailArchiver.Models
@@ -49,6 +50,16 @@ namespace MailArchiver.Models
 
         /// <summary>Clears the pending bytes after they have been deduplicated.</summary>
         internal void ClearPendingContent() => _pendingContent = null;
+
+        public Task<byte[]> GetContentAsync(AttachmentStorageFactory storageFactory,
+            CancellationToken ct = default)
+        {
+            if (AttachmentContent == null)
+                throw new InvalidOperationException(
+                    $"Attachment {Id} ({FileName}) has no AttachmentContent loaded. " +
+                    "Ensure AttachmentContent is eagerly included in the query.");
+            return AttachmentContent.GetContentAsync(storageFactory, ct);
+        }
 
         public virtual ArchivedEmail ArchivedEmail { get; set; }
     }
