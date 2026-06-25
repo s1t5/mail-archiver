@@ -95,6 +95,11 @@ services:
       - AttachmentDeduplication__StartupDelaySeconds=20
       - AttachmentDeduplication__OrphanCleanupIntervalHours=12
 
+      # Attachment Storage Migration Settings (Optional)
+      - Attachments__MigrationEnabled=true
+      - Attachments__MigrationBatchSize=25
+      - Attachments__MigrationPauseSeconds=1
+
       # ReleaseNotes Settings (Version Update Splash Screen)
       - ReleaseNotes__Enabled=true
 
@@ -276,6 +281,11 @@ docker compose restart
 
 ### 🎉 ReleaseNotes Settings (Version Update Splash Screen)
 - `ReleaseNotes__Enabled`: Enable or disable the version update splash screen (true/false). Default is `true`. When enabled, administrators will see a one-time changelog modal after an application update, showing the release notes fetched from GitHub Releases for the current version. Each administrator can dismiss the modal, and it will only reappear for a new version. Set to `false` to completely disable this feature.
+
+### 📎 Attachment Storage Migration Settings
+- `Attachments__MigrationEnabled`: Enable or disable the background attachment migration service (true/false). Default is `true`. Set to `false` to keep attachments in their current storage locations without any automatic migration.
+- `Attachments__MigrationBatchSize`: Number of attachments migrated per batch by the background migration service. Default is `25`.
+- `Attachments__MigrationPauseSeconds`: Seconds to pause between migration batches to reduce database load. Default is `1`.
 
 ### 🔧 Database Maintenance Settings
 - `DatabaseMaintenance__Enabled`: Enable or disable automatic daily database maintenance (true/false). Default is `false`. When enabled, the system will automatically run VACUUM ANALYZE operations to optimize database performance and prevent bloat. See [Database Maintenance Guide](DatabaseMaintenance.md) for more details.
