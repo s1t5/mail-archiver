@@ -221,16 +221,26 @@
                                             </span>
                                         </td>
                                         <td>
-                                            @{
-                                                var emlProgressPercent = job.FileSize > 0 ? (job.ProcessedBytes * 100.0 / job.FileSize) : 0;
-                                            }
-                                            <div class="progress" style="height: 20px;">
-                                                <div class="progress-bar @(job.Status == MailArchiver.Models.EmlImportJobStatus.Running ? "progress-bar-striped progress-bar-animated" : "")" 
-                                                     role="progressbar"
-                                                     style="width: @emlProgressPercent.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)%">
-                                                    @emlProgressPercent.ToString("F0")%
+
+                                            @if (job.Status == MailArchiver.Models.SyncJobStatus.Running)
+                                            {
+                                                <div class="progress" style="height: 20px;">
+                                                    @{ var emlProgressPercent = job.FileSize > 0 ? (job.ProcessedBytes * 100.0 / job.FileSize) : 0; }
+
+                                                    <div class="progress-bar @(job.Status == MailArchiver.Models.EmlImportJobStatus.Running ? "progress-bar-striped progress-bar-animated" : "")"
+                                                         role="progressbar"
+                                                         style="width: @emlProgressPercent.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)%">
+                                                        @emlProgressPercent.ToString("F0")%
+                                                    </div>
                                                 </div>
-                                            </div>
+                                            }
+                                            else if (job.Status == MailArchiver.Models.EmlImportJobStatus.Completed)
+                                            { <small class="text-success"><i class="bi bi-check-circle"></i> @Localizer["Completed"]</small> }
+                                            else if (job.Status == MailArchiver.Models.EmlImportJobStatus.Failed)
+                                            { <small class="text-danger"><i class="bi bi-x-circle"></i> @Localizer["Failed"]</small> }
+                                            else if (job.Status == MailArchiver.Models.EmlImportJobStatus.Cancelled)
+                                            { <small class="text-warning"><i class="bi bi-stop-circle"></i> @Localizer["Cancelled"]</small> }
+
                                         </td>
                                         <td>
                                             @if (job.ProcessedEmails > 0)
