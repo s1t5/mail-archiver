@@ -1,5 +1,7 @@
 using MailArchiver.Models;
+using MailArchiver.Models.ViewModels;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 
 namespace MailArchiver.Data
 {
@@ -18,6 +20,36 @@ namespace MailArchiver.Data
         public MailArchiverDbContext(DbContextOptions<MailArchiverDbContext> options)
             : base(options)
         {
+        }
+
+        public async Task<StorageSizes> GetStorageSizesAsync(CancellationToken ct = default)
+        {
+            try
+            {
+                using var connection = new NpgsqlConnection(Database.GetConnectionString());
+                await connection.OpenAsync(ct);
+
+                const string sql = @"
+                    SELECT pg_database_size(current_database()),
+                           COALESCE(SUM(pg_column_size(""Content"")), 0),
+                           COALESCE(SUM(""Size""), 0)
+                    FROM mail_archiver.""AttachmentContents""";
+
+                using var command = new NpgsqlCommand(sql, connection);
+                using var reader = await command.ExecuteReaderAsync(ct);
+                await reader.ReadAsync(ct);
+
+                var totalDbSize = reader.GetInt64(0);
+                var contentColumnSize = reader.GetInt64(1);
+                var attachmentsSize = reader.GetInt64(2);
+
+                return new StorageSizes(totalDbSize - contentColumnSize, attachmentsSize);
+            }
+            catch
+            {
+                var attachmentsSize = await AttachmentContents.SumAsync(c => c.Size, ct);
+                return new StorageSizes(0, attachmentsSize);
+            }
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

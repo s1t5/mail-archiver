@@ -1,11 +1,14 @@
 namespace MailArchiver.Models.ViewModels
 {
+    public readonly record struct StorageSizes(long DatabaseSize, long AttachmentsSize);
+
     public class DashboardViewModel
     {
         public int TotalEmails { get; set; }
         public int TotalAccounts { get; set; }
         public int TotalAttachments { get; set; }
-        public string TotalStorageUsed { get; set; } // Formatiert als MB/GB
+        public string TotalStorageUsed { get; set; }
+        public string TotalAttachmentsStorageUsed { get; set; }
         public List<AccountStatistics> EmailsPerAccount { get; set; }
         public List<EmailCountByPeriod> EmailsByMonth { get; set; }
         public List<EmailCountByAddress> TopSenders { get; set; }
