@@ -136,7 +136,6 @@ This section provides step-by-step instructions for configuring Microsoft Entra 
      https://your-mail-archiver-domain/oidc-signin-completed
      ```
      Replace `your-mail-archiver-domain` with your actual domain (e.g., `mailarchiver.example.com`)
-
 6. Click **Register**
 
 ### 🔐 Configure Authentication
@@ -144,23 +143,16 @@ This section provides step-by-step instructions for configuring Microsoft Entra 
 1. After registration, note down the following values from the **Overview** page of the app registration:
    - **Application (client) ID** - You'll need this as `OAuth__ClientId`
    - **Directory (tenant) ID** - You'll need this to construct the Authority URL
-
 2. Construct the **Authority URL** from the **Directory (tenant) ID** you just copied. For Microsoft Entra ID, the Authority is built as:
-
    ```
    https://sts.windows.net/<TENANT-ID>/
    ```
-
    Replace `<TENANT-ID>` (also referred to as Mandanten-ID) with the value shown next to the Application (client) ID on the Overview page of the app registration. For example, if your Directory (tenant) ID is `11111111-2222-3333-4444-555555555555`, your Authority becomes:
-
    ```
    https://sts.windows.net/11111111-2222-3333-4444-555555555555/
    ```
-
    Use this value as `OAuth__Authority` in your configuration. Make sure to include the trailing slash.
-
    > ℹ️ **Note**: Both `https://sts.windows.net/<TENANT-ID>/` and `https://login.microsoftonline.com/<TENANT-ID>/v2.0` are valid Entra ID authority endpoints. The `sts.windows.net` form uses the v1.0 endpoint and is recommended for this guide.
-
 3. In the left menu, select **Authentication**
 4. Click **Settings**
 5. Under **Implicit grant and hybrid flows**, ensure **ID tokens** is checked
