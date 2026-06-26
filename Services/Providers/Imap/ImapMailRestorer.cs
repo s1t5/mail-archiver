@@ -1,5 +1,6 @@
 using MailArchiver.Data;
 using MailArchiver.Models;
+using MailArchiver.Services.Storage;
 using MailArchiver.Utilities;
 using MailKit;
 using MailKit.Net.Imap;
@@ -21,19 +22,22 @@ namespace MailArchiver.Services.Providers.Imap
         private readonly ImapConnectionFactory _connectionFactory;
         private readonly DateTimeHelper _dateTimeHelper;
         private readonly BatchOperationOptions _batchOptions;
+        private readonly AttachmentStorageFactory _storageFactory;
 
         public ImapMailRestorer(
             MailArchiverDbContext context,
             ILogger<ImapMailRestorer> logger,
             ImapConnectionFactory connectionFactory,
             DateTimeHelper dateTimeHelper,
-            IOptions<BatchOperationOptions> batchOptions)
+            IOptions<BatchOperationOptions> batchOptions,
+            AttachmentStorageFactory storageFactory)
         {
             _context = context;
             _logger = logger;
             _connectionFactory = connectionFactory;
             _dateTimeHelper = dateTimeHelper;
             _batchOptions = batchOptions.Value;
+            _storageFactory = storageFactory;
         }
 
         /// <summary>
@@ -797,8 +801,9 @@ namespace MailArchiver.Services.Providers.Imap
                     {
                         try
                         {
+                            var content = await attachment.GetContentAsync(_storageFactory);
                             var contentType = ContentType.Parse(attachment.ContentType);
-                            var mimePart = bodyBuilder.LinkedResources.Add(attachment.FileName, attachment.Content, contentType);
+                            var mimePart = bodyBuilder.LinkedResources.Add(attachment.FileName, content, contentType);
                             mimePart.ContentId = attachment.ContentId;
                         }
                         catch (Exception ex)
@@ -812,8 +817,9 @@ namespace MailArchiver.Services.Providers.Imap
                     {
                         try
                         {
+                            var content = await attachment.GetContentAsync(_storageFactory);
                             bodyBuilder.Attachments.Add(attachment.FileName,
-                                                       attachment.Content,
+                                                       content,
                                                        ContentType.Parse(attachment.ContentType));
                         }
                         catch (Exception ex)

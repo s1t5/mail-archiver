@@ -331,6 +331,9 @@ builder.Services.AddSingleton<MBoxImportService>();
 builder.Services.AddSingleton<IMBoxImportService>(provider => provider.GetRequiredService<MBoxImportService>());
 builder.Services.AddHostedService<MBoxImportService>(provider => provider.GetRequiredService<MBoxImportService>());
 
+builder.Services.AddSingleton<MailArchiver.Services.Storage.AttachmentStorageFactory>();
+builder.Services.AddHostedService<MailArchiver.Services.AttachmentMigrationService>();
+
 // EML import services (refactored from monolithic EmlImportService)
 builder.Services.AddScoped<MailArchiver.Services.Providers.Eml.EmlMailCleaner>();
 builder.Services.AddScoped<MailArchiver.Services.Providers.Eml.EmlAttachmentCollector>();

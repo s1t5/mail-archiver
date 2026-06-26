@@ -4,6 +4,7 @@ using MailArchiver.Models;
 using MailArchiver.Models.ViewModels;
 using MailArchiver.Services;
 using MailArchiver.Services.Providers;
+using MailArchiver.Services.Storage;
 using MailArchiver.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -36,6 +37,7 @@ namespace MailArchiver.Controllers
         private readonly MailArchiver.Services.IAuthenticationService _authService;
         private readonly IEmailDeletionService? _emailDeletionService;
         private readonly ViewOptions _viewOptions;
+        private readonly AttachmentStorageFactory _storageFactory;
 
         public EmailsController(
             MailArchiverDbContext context,
@@ -46,6 +48,7 @@ namespace MailArchiver.Controllers
             IOptions<BatchRestoreOptions> batchOptions,
             IOptions<SelectionOptions> selectionOptions,
             IOptions<ViewOptions> viewOptions,
+            AttachmentStorageFactory storageFactory,
             IBatchRestoreService? batchRestoreService = null,
             ISyncJobService? syncJobService = null,
             IStringLocalizer<SharedResource> localizer = null,
@@ -62,6 +65,7 @@ namespace MailArchiver.Controllers
             _providerFactory = providerFactory;
             _graphEmailService = graphEmailService;
             _logger = logger;
+            _storageFactory = storageFactory;
             _batchRestoreService = batchRestoreService;
             _syncJobService = syncJobService;
             _batchOptions = batchOptions.Value;
@@ -325,8 +329,8 @@ namespace MailArchiver.Controllers
             {
                 Email = email,
                 AccountName = email.MailAccount?.Name ?? "Unknown account",
-                FormattedHtmlBody = !string.IsNullOrEmpty(htmlBodyToDisplay) 
-                    ? ResolveInlineImagesInHtml(SanitizeHtml(htmlBodyToDisplay, _viewOptions.BlockExternalResources), email.Attachments) 
+                FormattedHtmlBody = !string.IsNullOrEmpty(htmlBodyToDisplay)
+                    ? await ResolveInlineImagesInHtml(SanitizeHtml(htmlBodyToDisplay, _viewOptions.BlockExternalResources), email.Attachments)
                     : string.Empty,
                 PlainTextBody = textBodyToDisplay ?? string.Empty,
                 DefaultToPlainText = _viewOptions.DefaultToPlainText,
@@ -450,7 +454,7 @@ namespace MailArchiver.Controllers
                 return View("Details404");
             }
 
-            return File(attachment.Content, attachment.ContentType, attachment.FileName);
+            return File(await attachment.GetContentAsync(_storageFactory), attachment.ContentType, attachment.FileName);
         }
 
         // GET: Emails/AttachmentPreview/5/1
@@ -477,7 +481,7 @@ namespace MailArchiver.Controllers
             }
 
             // Return the attachment content without forcing download
-            return File(attachment.Content, attachment.ContentType);
+            return File(await attachment.GetContentAsync(_storageFactory), attachment.ContentType);
         }
 
         // GET: Emails/DownloadAllAttachments/5
@@ -513,7 +517,8 @@ namespace MailArchiver.Controllers
                         var entry = archive.CreateEntry(attachment.FileName, CompressionLevel.Optimal);
                         using (var entryStream = entry.Open())
                         {
-                            entryStream.Write(attachment.Content, 0, attachment.Content.Length);
+                            var content = await attachment.GetContentAsync(_storageFactory);
+                            await entryStream.WriteAsync(content, 0, content.Length);
                         }
                     }
                 }
@@ -2512,7 +2517,7 @@ namespace MailArchiver.Controllers
             else
             {
                 // Display HTML with external resource blocking if configured
-                html = ResolveInlineImagesInHtml(SanitizeHtml(htmlBodyToDisplay, _viewOptions.BlockExternalResources), email.Attachments);
+                html = await ResolveInlineImagesInHtml(SanitizeHtml(htmlBodyToDisplay, _viewOptions.BlockExternalResources), email.Attachments);
 
                 // Fügen Sie die Basis-HTML-Struktur hinzu, wenn sie fehlt
                 if (!html.Contains("<!DOCTYPE") && !html.Contains("<html"))
@@ -2601,7 +2606,7 @@ namespace MailArchiver.Controllers
         }
 
         // Hilfsmethode zur Auflösung von Inline-Bildern in HTML
-        private string ResolveInlineImagesInHtml(string htmlBody, ICollection<EmailAttachment> attachments)
+        private async Task<string> ResolveInlineImagesInHtml(string htmlBody, ICollection<EmailAttachment> attachments)
         {
             if (string.IsNullOrEmpty(htmlBody) || attachments == null || !attachments.Any())
                 return htmlBody;
@@ -2631,12 +2636,13 @@ namespace MailArchiver.Controllers
                          a.FileName.Contains($"_{cid}")));
                 }
 
-                if (attachment != null && attachment.Content != null && attachment.Content.Length > 0)
+                if (attachment != null)
                 {
                     try
                     {
+                        var content = await attachment.GetContentAsync(_storageFactory);
                         // Erstelle eine data URL für das Inline-Bild
-                        var base64Content = Convert.ToBase64String(attachment.Content);
+                        var base64Content = Convert.ToBase64String(content);
                         var dataUrl = $"data:{attachment.ContentType ?? "image/png"};base64,{base64Content}";
                         
                         // Ersetze die cid: Referenz mit der data URL

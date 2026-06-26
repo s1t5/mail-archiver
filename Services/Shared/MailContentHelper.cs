@@ -385,56 +385,6 @@ namespace MailArchiver.Services.Shared
         }
 
         /// <summary>
-        /// Resolves inline images in HTML by converting cid: references to data URLs.
-        /// </summary>
-        public static string ResolveInlineImagesInHtml(string htmlBody, List<Models.EmailAttachment> attachments)
-        {
-            if (string.IsNullOrEmpty(htmlBody) || attachments == null || !attachments.Any())
-                return htmlBody;
-
-            var resultHtml = htmlBody;
-
-            var cidMatches = Regex.Matches(htmlBody,
-                @"src\s*=\s*[""']cid:([^""']+)[""']",
-                RegexOptions.IgnoreCase);
-
-            foreach (Match match in cidMatches)
-            {
-                var cid = match.Groups[1].Value;
-
-                var attachment = attachments.FirstOrDefault(a =>
-                    !string.IsNullOrEmpty(a.ContentId) &&
-                    (a.ContentId.Equals($"<{cid}>", StringComparison.OrdinalIgnoreCase) ||
-                     a.ContentId.Equals(cid, StringComparison.OrdinalIgnoreCase)));
-
-                if (attachment == null)
-                {
-                    attachment = attachments.FirstOrDefault(a =>
-                        !string.IsNullOrEmpty(a.FileName) &&
-                        (a.FileName.Equals($"inline_{cid}", StringComparison.OrdinalIgnoreCase) ||
-                         a.FileName.StartsWith($"inline_{cid}.", StringComparison.OrdinalIgnoreCase) ||
-                         a.FileName.Contains($"_{cid}")));
-                }
-
-                if (attachment != null && attachment.Content != null && attachment.Content.Length > 0)
-                {
-                    try
-                    {
-                        var base64Content = Convert.ToBase64String(attachment.Content);
-                        var dataUrl = $"data:{attachment.ContentType ?? "image/png"};base64,{base64Content}";
-                        resultHtml = resultHtml.Replace(match.Groups[0].Value, $"src=\"{dataUrl}\"");
-                    }
-                    catch
-                    {
-                        // Ignore resolution failures for individual images
-                    }
-                }
-            }
-
-            return resultHtml;
-        }
-
-        /// <summary>
         /// Processes HTML body to ensure inline images are properly referenced with Content-ID.
         /// </summary>
         public static string ProcessHtmlBodyForInlineImages(string htmlBody, ICollection<Models.EmailAttachment> attachments)

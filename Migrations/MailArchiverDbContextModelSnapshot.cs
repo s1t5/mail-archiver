@@ -263,6 +263,10 @@ namespace MailArchiver.Migrations
                     b.Property<long>("Size")
                         .HasColumnType("bigint");
 
+                    b.Property<byte>("StorageType")
+                        .HasColumnType("smallint")
+                        .HasDefaultValue((byte)0);
+
                     b.HasKey("Id");
 
                     b.HasIndex("ArchivedEmailId");
