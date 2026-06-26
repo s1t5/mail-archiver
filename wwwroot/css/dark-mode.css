@@ -350,6 +350,12 @@
   border-bottom: 1px solid var(--border-color);
 }
 
+/* Dark Mode für nested card (Mandantschafts-Postfächer) */
+[data-theme="dark"] .card.border-light.bg-light {
+  background-color: var(--card-bg) !important;
+  border-color: var(--border-color) !important;
+}
+
 /* Zusätzliche Dark Mode Regeln für Tabellen */
 [data-theme="dark"] .table > :not(caption) > * > * {
   background-color: var(--table-bg);
