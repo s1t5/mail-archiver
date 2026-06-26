@@ -141,15 +141,31 @@ This section provides step-by-step instructions for configuring Microsoft Entra 
 
 ### 🔐 Configure Authentication
 
-1. After registration, note down the following values from the **Overview** page:
+1. After registration, note down the following values from the **Overview** page of the app registration:
    - **Application (client) ID** - You'll need this as `OAuth__ClientId`
-   - **Directory (tenant) ID** - You'll need this in the Authority URL
+   - **Directory (tenant) ID** - You'll need this to construct the Authority URL
 
-2. In the left menu, select **Authentication**
-3. Click **Settings**
-4. Under **Implicit grant and hybrid flows**, ensure **ID tokens** is checked
-5. Under **Supported account types**, verify your selection matches your requirements
-6. Under **Redirect URIs**, ensure your callback URL is listed correctly
+2. Construct the **Authority URL** from the **Directory (tenant) ID** you just copied. For Microsoft Entra ID, the Authority is built as:
+
+   ```
+   https://sts.windows.net/<TENANT-ID>/
+   ```
+
+   Replace `<TENANT-ID>` (also referred to as Mandanten-ID) with the value shown next to the Application (client) ID on the Overview page of the app registration. For example, if your Directory (tenant) ID is `11111111-2222-3333-4444-555555555555`, your Authority becomes:
+
+   ```
+   https://sts.windows.net/11111111-2222-3333-4444-555555555555/
+   ```
+
+   Use this value as `OAuth__Authority` in your configuration. Make sure to include the trailing slash.
+
+   > ℹ️ **Note**: Both `https://sts.windows.net/<TENANT-ID>/` and `https://login.microsoftonline.com/<TENANT-ID>/v2.0` are valid Entra ID authority endpoints. The `sts.windows.net` form uses the v1.0 endpoint and is recommended for this guide.
+
+3. In the left menu, select **Authentication**
+4. Click **Settings**
+5. Under **Implicit grant and hybrid flows**, ensure **ID tokens** is checked
+6. Under **Supported account types**, verify your selection matches your requirements
+7. Under **Redirect URIs**, ensure your callback URL is listed correctly
 
 ### 🎯 Configure API Permissions
 
@@ -342,7 +358,7 @@ This option is recommended for environments where:
 {
   "OAuth": {
     "Enabled": true,
-    "Authority": "https://login.microsoftonline.com/YOUR_TENANT_ID/v2.0",
+    "Authority": "https://sts.windows.net/YOUR_TENANT_ID/",
     "ClientId": "your-client-id",
     "ClientSecret": "your-secret",
     "DisplayName": "PocketID SSO",
@@ -421,7 +437,7 @@ Enable `AutoRedirect` to automatically redirect users to your OAuth provider:
 {
   "OAuth": {
     "Enabled": true,
-    "Authority": "https://login.microsoftonline.com/YOUR_TENANT_ID/v2.0",
+    "Authority": "https://sts.windows.net/YOUR_TENANT_ID/",
     "ClientId": "your-client-id",
     "ClientSecret": "your-secret",
     "DisplayName": "PocketID SSO",
