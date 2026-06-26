@@ -103,6 +103,7 @@ environment:
   - OAuth__ClientScopes__1=profile
   - OAuth__ClientScopes__2=email
   - OAuth__DisablePasswordLogin=false
+  - OAuth__AutoApproveUsers=false
 ```
 
 ### Configuration Parameters Explained
