@@ -115,11 +115,6 @@ namespace MailArchiver.Services.Providers.Graph
         }
 
         /// <summary>
-        /// Checks whether the user has an active Exchange Online service plan.
-        /// Defensive: if assignedPlans is null/empty (e.g. due to permission limits),
-        /// the user is not excluded to avoid hiding valid accounts.
-        /// </summary>
-        /// <summary>
         /// Returns true if the user is a guest account (userType == "Guest").
         /// </summary>
         private static bool IsGuestUser(GraphUser user)
@@ -141,7 +136,8 @@ namespace MailArchiver.Services.Providers.Graph
 
             return user.AssignedPlans.Any(plan =>
                 string.Equals(plan.Service, "exchange", StringComparison.OrdinalIgnoreCase)
-                && !string.Equals(plan.CapabilityStatus, "Deleted", StringComparison.OrdinalIgnoreCase));
+                && !string.Equals(plan.CapabilityStatus, "Deleted", StringComparison.OrdinalIgnoreCase)
+                && !string.Equals(plan.CapabilityStatus, "Suspended", StringComparison.OrdinalIgnoreCase));
         }
 
         /// <summary>
