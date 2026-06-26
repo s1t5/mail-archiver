@@ -312,6 +312,7 @@ For detailed setup instructions for OpenID Connect authentication, see [OIDC Imp
 - `OAuth__ClientScopes__0`: First scope requested from the identity provider (openid)
 - `OAuth__ClientScopes__1`: Second scope requested from the identity provider (profile)
 - `OAuth__ClientScopes__2`: Third scope requested from the identity provider (email)
+- `OAuth__AutoApproveUsers`: Automatically approve new OIDC users without requiring manual admin approval (true/false). Default is `false`.
 
 #### User Provisioning Settings
 - `OAuth__AutoApproveUsers`: Automatically approve new OIDC users without requiring manual admin approval (true/false). Default is `false`. When enabled, users who authenticate via the OIDC provider are immediately activated and can access the application. When disabled (default), new OIDC users are created as inactive and require manual activation by an administrator. See [Auto-Approve OIDC Users](OIDC_Implementation.md#auto-approve-oidc-users) for detailed information.
