@@ -24,6 +24,12 @@ The app registration must have Microsoft Graph **application permissions** that 
 
 Tenant import is selected as the provider **Microsoft 365 (tenant)** in the create form.
 
+### Filtering
+
+Tenant import and Tenant Management automatically exclude:
+- **Guest accounts** (`userType == "Guest"`) — external invited users without their own mailboxes in the tenant.
+- **Users without an Exchange Online license** — only users with an active Exchange service plan in their `assignedPlans` are listed. This avoids importing accounts that cannot be archived.
+
 ## Import Modes
 
 Tenant import supports two modes:

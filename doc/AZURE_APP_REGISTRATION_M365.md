@@ -55,7 +55,7 @@ The Mail Archiver application supports Microsoft 365 (M365) accounts using OAuth
 5. Add the following permissions:
    - **Mail.Read** - Read mail in all mailboxes
    - **Mail.ReadWrite** - Read and write mail in all mailboxes (for restore function as well as deletion)
-   - **User.Read.All** - Read all users' full profiles (required for Microsoft 365 tenant mailbox import)
+   - **User.Read.All** - Read all users' full profiles (required for Microsoft 365 tenant mailbox import; also provides `assignedPlans` for Exchange license filtering)
 
 6. Click **Add permissions**
 7. **CRITICAL**: Click **Grant admin consent for [Your Organization]**

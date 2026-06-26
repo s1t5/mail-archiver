@@ -79,8 +79,11 @@ namespace MailArchiver.Services.Providers.Graph
                     "displayName",
                     "mail",
                     "userPrincipalName",
-                    "accountEnabled"
+                    "accountEnabled",
+                    "userType",
+                    "assignedPlans"
                 };
+
                 if (!includeDisabled)
                 {
                     requestConfiguration.QueryParameters.Filter = "accountEnabled eq true";
@@ -94,8 +97,9 @@ namespace MailArchiver.Services.Providers.Graph
                 if (response.Value != null)
                 {
                     users.AddRange(response.Value.Where(user =>
-                        !string.IsNullOrWhiteSpace(user.Mail) ||
-                        !string.IsNullOrWhiteSpace(user.UserPrincipalName)));
+                        (!string.IsNullOrWhiteSpace(user.Mail) || !string.IsNullOrWhiteSpace(user.UserPrincipalName))
+                        && !IsGuestUser(user)
+                        && HasExchangeLicense(user)));
                 }
 
                 if (string.IsNullOrWhiteSpace(response.OdataNextLink))
@@ -108,6 +112,36 @@ namespace MailArchiver.Services.Providers.Graph
 
             _logger.LogInformation("Found {Count} tenant users with mail addresses or UPNs (include disabled: {IncludeDisabled})", users.Count, includeDisabled);
             return users;
+        }
+
+        /// <summary>
+        /// Checks whether the user has an active Exchange Online service plan.
+        /// Defensive: if assignedPlans is null/empty (e.g. due to permission limits),
+        /// the user is not excluded to avoid hiding valid accounts.
+        /// </summary>
+        /// <summary>
+        /// Returns true if the user is a guest account (userType == "Guest").
+        /// </summary>
+        private static bool IsGuestUser(GraphUser user)
+        {
+            return string.Equals(user.UserType, "Guest", StringComparison.OrdinalIgnoreCase);
+        }
+
+        /// <summary>
+        /// Checks whether the user has an active Exchange Online service plan.
+        /// Defensive: if assignedPlans is null/empty (e.g. due to permission limits),
+        /// the user is not excluded to avoid hiding valid accounts.
+        /// </summary>
+        private static bool HasExchangeLicense(GraphUser user)
+        {
+            if (user.AssignedPlans == null || user.AssignedPlans.Count == 0)
+            {
+                return true;
+            }
+
+            return user.AssignedPlans.Any(plan =>
+                string.Equals(plan.Service, "exchange", StringComparison.OrdinalIgnoreCase)
+                && !string.Equals(plan.CapabilityStatus, "Deleted", StringComparison.OrdinalIgnoreCase));
         }
 
         /// <summary>
