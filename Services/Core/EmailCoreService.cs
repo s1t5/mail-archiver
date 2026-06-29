@@ -1944,7 +1944,7 @@ namespace MailArchiver.Services.Core
                 if (accountId.HasValue)
                 {
                     // Check access permission
-                    if (allowedAccountIds != null && allowedAccountIds.Any() && !allowedAccountIds.Contains(accountId.Value))
+                    if (allowedAccountIds != null && !allowedAccountIds.Contains(accountId.Value))
                     {
                         _logger.LogWarning("User attempted to access folder tree for account {AccountId} which is not in their allowed accounts list", accountId.Value);
                         return new List<FolderTreeNode>();
