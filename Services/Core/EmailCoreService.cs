@@ -160,31 +160,10 @@ namespace MailArchiver.Services.Core
                     {
                         foreach (var term in terms)
                         {
-                            var fieldTsQuery = BuildPhraseTsQuery(term);
-                            if (!string.IsNullOrEmpty(fieldTsQuery))
-                            {
-                                searchConditions.Add($@"(
-                                to_tsvector('simple', 
-                                    COALESCE(""Subject"", '') || ' ' || 
-                                    COALESCE(""Body"", '') || ' ' || 
-                                    COALESCE(""From"", '') || ' ' || 
-                                    COALESCE(""To"", '') || ' ' || 
-                                    COALESCE(""Cc"", '') || ' ' || 
-                                    COALESCE(""Bcc"", '')) 
-                                @@ to_tsquery('simple', @param{paramCounter})
-                                AND POSITION(LOWER(@param{paramCounter + 1}) IN LOWER(COALESCE(""{columnName}"", ''))) > 0)");
-                                parameters.Add(new Npgsql.NpgsqlParameter($"@param{paramCounter}", fieldTsQuery));
-                                paramCounter++;
-                                parameters.Add(new Npgsql.NpgsqlParameter($"@param{paramCounter}", term));
-                                paramCounter++;
-                            }
-                            else
-                            {
-                                searchConditions.Add($@"
+                            searchConditions.Add($@"
                                 POSITION(LOWER(@param{paramCounter}) IN LOWER(COALESCE(""{columnName}"", ''))) > 0");
-                                parameters.Add(new Npgsql.NpgsqlParameter($"@param{paramCounter}", term));
-                                paramCounter++;
-                            }
+                            parameters.Add(new Npgsql.NpgsqlParameter($"@param{paramCounter}", term));
+                            paramCounter++;
                         }
                     }
                 }
@@ -199,31 +178,10 @@ namespace MailArchiver.Services.Core
                     {
                         foreach (var phrase in currentFieldPhrases)
                         {
-                            var fieldTsQuery = BuildPhraseTsQuery(phrase);
-                            if (!string.IsNullOrEmpty(fieldTsQuery))
-                            {
-                                searchConditions.Add($@"(
-                                to_tsvector('simple', 
-                                    COALESCE(""Subject"", '') || ' ' || 
-                                    COALESCE(""Body"", '') || ' ' || 
-                                    COALESCE(""From"", '') || ' ' || 
-                                    COALESCE(""To"", '') || ' ' || 
-                                    COALESCE(""Cc"", '') || ' ' || 
-                                    COALESCE(""Bcc"", '')) 
-                                @@ to_tsquery('simple', @param{paramCounter})
-                                AND POSITION(LOWER(@param{paramCounter + 1}) IN LOWER(COALESCE(""{columnName}"", ''))) > 0)");
-                                parameters.Add(new Npgsql.NpgsqlParameter($"@param{paramCounter}", fieldTsQuery));
-                                paramCounter++;
-                                parameters.Add(new Npgsql.NpgsqlParameter($"@param{paramCounter}", phrase));
-                                paramCounter++;
-                            }
-                            else
-                            {
-                                searchConditions.Add($@"
+                            searchConditions.Add($@"
                                 POSITION(LOWER(@param{paramCounter}) IN LOWER(COALESCE(""{columnName}"", ''))) > 0");
-                                parameters.Add(new Npgsql.NpgsqlParameter($"@param{paramCounter}", phrase));
-                                paramCounter++;
-                            }
+                            parameters.Add(new Npgsql.NpgsqlParameter($"@param{paramCounter}", phrase));
+                            paramCounter++;
                         }
                     }
                 }
