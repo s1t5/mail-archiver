@@ -96,6 +96,17 @@ services:
       - AttachmentDeduplication__OrphanCleanupIntervalHours=12
       - AttachmentDeduplication__CommandTimeoutSeconds=300
 
+      # Attachment Storage Settings (Optional)
+      # Set FilesStoragePath to store attachments on the filesystem instead of the database.
+      # - Attachments__FilesStoragePath=/app/attachments
+      # Set PreferredStorage to explicitly control which storage is active: "database" or "file".
+      # - Attachments__PreferredStorage=file
+
+      # Attachment Storage Migration Settings (Optional)
+      - Attachments__MigrationEnabled=true
+      - Attachments__MigrationBatchSize=25
+      - Attachments__MigrationPauseSeconds=1
+
       # ReleaseNotes Settings (Version Update Splash Screen)
       - ReleaseNotes__Enabled=true
 
@@ -277,6 +288,17 @@ docker compose restart
 
 ### 🎉 ReleaseNotes Settings (Version Update Splash Screen)
 - `ReleaseNotes__Enabled`: Enable or disable the version update splash screen (true/false). Default is `true`. When enabled, administrators will see a one-time changelog modal after an application update, showing the release notes fetched from GitHub Releases for the current version. Each administrator can dismiss the modal, and it will only reappear for a new version. Set to `false` to completely disable this feature.
+
+### 📎 Attachment Storage Settings
+- `Attachments__FilesStoragePath`: Path inside the container where attachment files will be stored. When set, the directory is created automatically if it doesn't exist. Required when using `PreferredStorage=file`.
+- `Attachments__PreferredStorage`: Explicitly sets the active storage backend for new attachments. Valid values are `database` (default when no path is configured) and `file`. When set to `file`, `FilesStoragePath` must also be configured or the application will fail to start. When not set, the active storage defaults to file if `FilesStoragePath` is configured, otherwise database. Once changed, the background migration service will automatically move existing attachments to the new active storage.
+
+> 💡 **Docker volume**: Add a volume mapping when using file storage, e.g. `- ./attachments:/app/attachments`, and set `Attachments__FilesStoragePath=/app/attachments`.
+
+### 📎 Attachment Storage Migration Settings
+- `Attachments__MigrationEnabled`: Enable or disable the background attachment migration service (true/false). Default is `true`. Set to `false` to keep attachments in their current storage locations without any automatic migration.
+- `Attachments__MigrationBatchSize`: Number of attachments migrated per batch by the background migration service. Default is `25`.
+- `Attachments__MigrationPauseSeconds`: Seconds to pause between migration batches to reduce database load. Default is `1`.
 
 ### 🔧 Database Maintenance Settings
 - `DatabaseMaintenance__Enabled`: Enable or disable automatic daily database maintenance (true/false). Default is `false`. When enabled, the system will automatically run VACUUM ANALYZE operations to optimize database performance and prevent bloat. See [Database Maintenance Guide](DatabaseMaintenance.md) for more details.

@@ -1,5 +1,6 @@
 using MailArchiver.Data;
 using MailArchiver.Models;
+using MailArchiver.Services.Storage;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using System.Collections.Concurrent;
@@ -21,18 +22,21 @@ namespace MailArchiver.Services
         private CancellationTokenSource? _currentJobCancellation;
         private readonly string _exportsPath;
         private readonly TimeZoneOptions _timeZoneOptions;
+        private readonly AttachmentStorageFactory _storageFactory;
 
         public ExportService(
             IServiceProvider serviceProvider, 
             ILogger<ExportService> logger, 
             IWebHostEnvironment environment, 
             IOptions<BatchOperationOptions> batchOptions,
-            IOptions<TimeZoneOptions> timeZoneOptions)
+            IOptions<TimeZoneOptions> timeZoneOptions,
+            AttachmentStorageFactory storageFactory)
         {
             _serviceProvider = serviceProvider;
             _logger = logger;
             _batchOptions = batchOptions.Value;
             _timeZoneOptions = timeZoneOptions.Value;
+            _storageFactory = storageFactory;
             _exportsPath = Path.Combine(environment.ContentRootPath, "exports");
 
             // Create exports directory if it doesn't exist
@@ -918,6 +922,7 @@ namespace MailArchiver.Services
                 // Add inline attachments first so they can be referenced in the HTML body
                 foreach (var attachment in inlineAttachments)
                 {
+                    var content = await attachment.GetContentAsync(_storageFactory);
                     try
                     {
                         // Extract just the filename in case attachment.FileName contains a path or URI
@@ -926,7 +931,7 @@ namespace MailArchiver.Services
                             fileName = "attachment";
                         
                         var contentType = ContentType.Parse(attachment.ContentType);
-                        var mimePart = bodyBuilder.LinkedResources.Add(fileName, attachment.Content, contentType);
+                        var mimePart = bodyBuilder.LinkedResources.Add(fileName, content, contentType);
                         mimePart.ContentId = attachment.ContentId;
                     }
                     catch
@@ -936,7 +941,7 @@ namespace MailArchiver.Services
                         if (string.IsNullOrEmpty(fileName))
                             fileName = "attachment";
                         
-                        var mimePart = bodyBuilder.LinkedResources.Add(fileName, attachment.Content);
+                        var mimePart = bodyBuilder.LinkedResources.Add(fileName, content);
                         mimePart.ContentId = attachment.ContentId;
                     }
                 }
@@ -944,6 +949,7 @@ namespace MailArchiver.Services
                 // Add regular attachments
                 foreach (var attachment in regularAttachments)
                 {
+                    var content = await attachment.GetContentAsync(_storageFactory);
                     try
                     {
                         // Extract just the filename in case attachment.FileName contains a path or URI
@@ -952,7 +958,7 @@ namespace MailArchiver.Services
                             fileName = "attachment";
                         
                         var contentType = ContentType.Parse(attachment.ContentType);
-                        bodyBuilder.Attachments.Add(fileName, attachment.Content, contentType);
+                        bodyBuilder.Attachments.Add(fileName, content, contentType);
                     }
                     catch
                     {
@@ -961,7 +967,7 @@ namespace MailArchiver.Services
                         if (string.IsNullOrEmpty(fileName))
                             fileName = "attachment";
                         
-                        bodyBuilder.Attachments.Add(fileName, attachment.Content);
+                        bodyBuilder.Attachments.Add(fileName, content);
                     }
                 }
             }

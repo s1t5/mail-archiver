@@ -1,6 +1,7 @@
 using MailArchiver.Data;
 using MailArchiver.Models;
 using MailArchiver.Services.Shared;
+using MailArchiver.Services.Storage;
 using MailArchiver.Utilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Graph;
@@ -19,19 +20,22 @@ namespace MailArchiver.Services.Providers.Graph
         private readonly MailArchiverDbContext _context;
         private readonly ILogger<GraphMailRestorer> _logger;
         private readonly DateTimeHelper _dateTimeHelper;
+        private readonly AttachmentStorageFactory _storageFactory;
 
         public GraphMailRestorer(
             GraphAuthClientFactory authFactory,
             IGraphFolderService folderService,
             MailArchiverDbContext context,
             ILogger<GraphMailRestorer> logger,
-            DateTimeHelper dateTimeHelper)
+            DateTimeHelper dateTimeHelper,
+            AttachmentStorageFactory storageFactory)
         {
             _authFactory = authFactory;
             _folderService = folderService;
             _context = context;
             _logger = logger;
             _dateTimeHelper = dateTimeHelper;
+            _storageFactory = storageFactory;
         }
 
         /// <summary>
@@ -281,7 +285,7 @@ namespace MailArchiver.Services.Providers.Graph
                             OdataType = "#microsoft.graph.fileAttachment",
                             Name = attachment.FileName,
                             ContentType = attachment.ContentType,
-                            ContentBytes = attachment.Content
+                            ContentBytes = await attachment.GetContentAsync(_storageFactory)
                         };
 
                         if (!string.IsNullOrEmpty(attachment.ContentId))

@@ -1,6 +1,7 @@
 using MailArchiver.Data;
 using MailArchiver.Models;
 using MailArchiver.Services.Shared;
+using MailArchiver.Services.Storage;
 using Microsoft.EntityFrameworkCore;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -14,10 +15,12 @@ namespace MailArchiver.Services.Providers.Eml
     public class EmlTruncatedContentSaver
     {
         private readonly ILogger<EmlTruncatedContentSaver> _logger;
+        private readonly AttachmentStorageFactory _storageFactory;
 
-        public EmlTruncatedContentSaver(ILogger<EmlTruncatedContentSaver> logger)
+        public EmlTruncatedContentSaver(ILogger<EmlTruncatedContentSaver> logger, AttachmentStorageFactory storageFactory)
         {
             _logger = logger;
+            _storageFactory = storageFactory;
         }
 
         /// <summary>
@@ -35,7 +38,7 @@ namespace MailArchiver.Services.Providers.Eml
 
                 if (email != null && email.Attachments != null && email.Attachments.Any())
                 {
-                    originalHtml = ResolveInlineImagesInHtml(originalHtml, email.Attachments.ToList(), jobId);
+                    originalHtml = await ResolveInlineImagesInHtml(originalHtml, email.Attachments.ToList(), jobId);
                 }
 
                 var cleanFileName = MailContentHelper.CleanText($"original_content_{DateTime.UtcNow:yyyyMMddHHmmss}.html");
@@ -97,7 +100,7 @@ namespace MailArchiver.Services.Providers.Eml
         /// Resolves inline images in HTML by converting cid: references to data URLs.
         /// Searches for matching attachments by Content-ID or filename pattern.
         /// </summary>
-        public string ResolveInlineImagesInHtml(string htmlBody, List<EmailAttachment> attachments, string jobId)
+        public async Task<string> ResolveInlineImagesInHtml(string htmlBody, List<EmailAttachment> attachments, string jobId)
         {
             if (string.IsNullOrEmpty(htmlBody) || attachments == null || !attachments.Any())
                 return htmlBody;
@@ -124,11 +127,12 @@ namespace MailArchiver.Services.Providers.Eml
                          a.FileName.Contains($"_{cid}")));
                 }
 
-                if (attachment != null && attachment.Content != null && attachment.Content.Length > 0)
+                if (attachment != null && attachment.Content != null)
                 {
                     try
                     {
-                        var base64Content = Convert.ToBase64String(attachment.Content);
+                        var content = await attachment.GetContentAsync(_storageFactory);
+                        var base64Content = Convert.ToBase64String(content);
                         var dataUrl = $"data:{attachment.ContentType ?? "image/png"};base64,{base64Content}";
                         resultHtml = resultHtml.Replace(match.Groups[0].Value, $"src=\"{dataUrl}\"");
                         _logger.LogDebug("Job {JobId}: Resolved inline image CID: {Cid}", jobId, cid);

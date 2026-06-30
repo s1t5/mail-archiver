@@ -17,6 +17,8 @@ services:
       - ./appsettings.json:/app/appsettings.json
       - ./logs:/app/logs
       - ./data-protection-keys:/app/DataProtection-Keys
+      # Uncomment to enable file-based attachment storage:
+      # - ./attachments:/app/attachments
     depends_on:
       - postgres
 

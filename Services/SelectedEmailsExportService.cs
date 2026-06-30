@@ -1,5 +1,6 @@
 using MailArchiver.Data;
 using MailArchiver.Models;
+using MailArchiver.Services.Storage;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using System.Collections.Concurrent;
@@ -21,18 +22,21 @@ namespace MailArchiver.Services
         private CancellationTokenSource? _currentJobCancellation;
         private readonly string _exportsPath;
         private readonly TimeZoneOptions _timeZoneOptions;
+        private readonly AttachmentStorageFactory _storageFactory;
 
         public SelectedEmailsExportService(
             IServiceProvider serviceProvider, 
             ILogger<SelectedEmailsExportService> logger, 
             IWebHostEnvironment environment, 
             IOptions<BatchOperationOptions> batchOptions,
-            IOptions<TimeZoneOptions> timeZoneOptions)
+            IOptions<TimeZoneOptions> timeZoneOptions,
+            AttachmentStorageFactory storageFactory)
         {
             _serviceProvider = serviceProvider;
             _logger = logger;
             _batchOptions = batchOptions.Value;
             _timeZoneOptions = timeZoneOptions.Value;
+            _storageFactory = storageFactory;
             _exportsPath = Path.Combine(environment.ContentRootPath, "exports");
 
             // Create exports directory if it doesn't exist
@@ -820,16 +824,17 @@ namespace MailArchiver.Services
                 // Add inline attachments first so they can be referenced in the HTML body
                 foreach (var attachment in inlineAttachments)
                 {
+                    var content = await attachment.GetContentAsync(_storageFactory);
                     try
                     {
                         var contentType = ContentType.Parse(attachment.ContentType);
-                        var mimePart = bodyBuilder.LinkedResources.Add(attachment.FileName, attachment.Content, contentType);
+                        var mimePart = bodyBuilder.LinkedResources.Add(attachment.FileName, content, contentType);
                         mimePart.ContentId = attachment.ContentId;
                     }
                     catch
                     {
                         // Fallback for invalid content types
-                        var mimePart = bodyBuilder.LinkedResources.Add(attachment.FileName, attachment.Content);
+                        var mimePart = bodyBuilder.LinkedResources.Add(attachment.FileName, content);
                         mimePart.ContentId = attachment.ContentId;
                     }
                 }
@@ -837,15 +842,16 @@ namespace MailArchiver.Services
                 // Add regular attachments
                 foreach (var attachment in regularAttachments)
                 {
+                    var content = await attachment.GetContentAsync(_storageFactory);
                     try
                     {
                         var contentType = ContentType.Parse(attachment.ContentType);
-                        bodyBuilder.Attachments.Add(attachment.FileName, attachment.Content, contentType);
+                        bodyBuilder.Attachments.Add(attachment.FileName, content, contentType);
                     }
                     catch
                     {
                         // Fallback for invalid content types
-                        bodyBuilder.Attachments.Add(attachment.FileName, attachment.Content);
+                        bodyBuilder.Attachments.Add(attachment.FileName, content);
                     }
                 }
             }
