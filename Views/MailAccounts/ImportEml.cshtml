@@ -99,6 +99,10 @@
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
     <script>
+        const i18n = {
+            startingImport: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["StartingImport"].Value)),
+            uploadInProgress: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["UploadInProgress"].Value))
+        };
         $(document).ready(function () {
             // File input change handler
             $('#emlFileInput').on('change', function() {
@@ -158,13 +162,13 @@
             // Form submission handler with progress indication
             $('#emlImportForm').on('submit', function(e) {
                 const submitBtn = $('#submitBtn');
-                submitBtn.html('<i class="bi bi-hourglass-split me-2"></i>@Localizer["StartingImport"]');
+                submitBtn.html('<i class="bi bi-hourglass-split me-2"></i>' + i18n.startingImport);
                 submitBtn.prop('disabled', true);
                 
                 // Show processing message
                 const processingAlert = $('<div class="alert alert-info mt-3">' +
                     '<i class="bi bi-clock-history me-2"></i>' +
-                    '@Localizer["UploadInProgress"]' +
+                    i18n.uploadInProgress +
                     '</div>');
                 $(this).after(processingAlert);
             });

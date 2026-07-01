@@ -211,6 +211,7 @@
 
 @section Scripts {
     <script>
+        const exportCompletedMsg = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["ExportCompleted"].Value));
         document.addEventListener('DOMContentLoaded', function() {
             // Auto-refresh if the job is still running
             @if (Model.Status == MailArchiver.Models.AccountExportJobStatus.Queued || Model.Status == MailArchiver.Models.AccountExportJobStatus.Running)
@@ -226,7 +227,7 @@
                 <text>
                 // Show success notification
                 if (typeof window.showNotification === 'function') {
-                    window.showNotification('@Localizer["ExportCompleted"]', 'success');
+                    window.showNotification(exportCompletedMsg, 'success');
                 }
                 </text>
             }

@@ -211,6 +211,18 @@
 
 @section Scripts {
     <script>
+        const i18n = {
+            selectAccount: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["SelectAccount"].Value)),
+            pleaseSelectAccount: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["PleaseSelectAccount"].Value)),
+            credentialsCopied: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["CredentialsCopied"].Value)),
+            errorCopyingCredentials: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["ErrorCopyingCredentials"].Value)),
+            noMailboxesFound: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["NoMailboxesFound"].Value)),
+            disabledLowercase: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["DisabledLowercase"].Value)),
+            alreadyExistsLowercase: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["AlreadyExistsLowercase"].Value)),
+            loadingMailboxes: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["LoadingMailboxes"].Value)),
+            mailboxesCouldNotBeLoaded: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["MailboxesCouldNotBeLoaded"].Value)),
+            mailboxesFound: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["MailboxesFound"].Value))
+        };
         document.addEventListener('DOMContentLoaded', function() {
             const createForm = document.getElementById('createMailAccountForm');
             const providerDisplaySelect = document.getElementById('ProviderDisplay');
@@ -358,7 +370,11 @@
                             existingAccounts = data.accounts;
                             
                             // Clear and populate select
-                            existingAccountSelect.innerHTML = '<option value="">@Localizer["SelectAccount"]</option>';
+                            existingAccountSelect.innerHTML = '';
+                            const placeholderOpt = document.createElement('option');
+                            placeholderOpt.value = '';
+                            placeholderOpt.textContent = i18n.selectAccount;
+                            existingAccountSelect.appendChild(placeholderOpt);
                             data.accounts.forEach(account => {
                                 const option = document.createElement('option');
                                 option.value = account.id;
@@ -389,15 +405,10 @@
                     });
             }
             
-            function htmlDecode(input) {
-                const doc = new DOMParser().parseFromString(input, "text/html");
-                return doc.documentElement.textContent;
-            }
-
             function copyCredentials() {
                 const selectedAccountId = existingAccountSelect.value;
                 if (!selectedAccountId) {
-                    alert(htmlDecode('@Localizer["PleaseSelectAccount"]'));
+                    alert(i18n.pleaseSelectAccount);
                     return;
                 }
                 
@@ -428,19 +439,19 @@
                             // Show success message
                             const successMsg = document.createElement('div');
                             successMsg.className = 'alert alert-success alert-dismissible fade show mt-2';
-                            successMsg.innerHTML = '<button type="button" class="btn-close" data-bs-dismiss="alert"></button>@Localizer["CredentialsCopied"]';
+                            successMsg.innerHTML = '<button type="button" class="btn-close" data-bs-dismiss="alert"></button>' + i18n.credentialsCopied;
                             microsoft365Settings.insertBefore(successMsg, microsoft365Settings.firstChild.nextSibling);
                             
                             setTimeout(() => {
                                 successMsg.remove();
                             }, 3000);
                         } else {
-                            alert(htmlDecode('@Localizer["ErrorCopyingCredentials"]: ' + (data.message || 'Unknown error')));
+                            alert(i18n.errorCopyingCredentials + ': ' + (data.message || 'Unknown error'));
                         }
                     })
                     .catch(error => {
                         console.error('Error copying credentials:', error);
-                        alert(htmlDecode('@Localizer["ErrorCopyingCredentials"]'));
+                        alert(i18n.errorCopyingCredentials);
                     });
             }
 
@@ -448,7 +459,11 @@
                 tenantMailboxList.innerHTML = '';
 
                 if (!mailboxes || mailboxes.length === 0) {
-                    tenantMailboxList.innerHTML = '<div class="text-muted">@Localizer["NoMailboxesFound"]</div>';
+                    tenantMailboxList.innerHTML = '';
+                    const emptyMsg = document.createElement('div');
+                    emptyMsg.className = 'text-muted';
+                    emptyMsg.textContent = i18n.noMailboxesFound;
+                    tenantMailboxList.appendChild(emptyMsg);
                     tenantMailboxSelection.style.display = 'block';
                     return;
                 }
@@ -477,14 +492,14 @@
                     if (mailbox.isDisabled) {
                         const disabledBadge = document.createElement('span');
                         disabledBadge.className = 'badge bg-warning text-dark ms-2';
-                        disabledBadge.textContent = '@Localizer["DisabledLowercase"]';
+                        disabledBadge.textContent = i18n.disabledLowercase;
                         label.appendChild(disabledBadge);
                     }
 
                     if (mailbox.alreadyExists) {
                         const existingBadge = document.createElement('span');
                         existingBadge.className = 'badge bg-secondary ms-2';
-                        existingBadge.textContent = '@Localizer["AlreadyExistsLowercase"]';
+                        existingBadge.textContent = i18n.alreadyExistsLowercase;
                         label.appendChild(existingBadge);
                     }
 
@@ -506,7 +521,7 @@
                 formData.append('skipDisabledMailboxes', skipDisabledMailboxesInput.checked);
 
                 tenantMailboxStatus.style.display = 'block';
-                tenantMailboxStatus.textContent = '@Localizer["LoadingMailboxes"]';
+                tenantMailboxStatus.textContent = i18n.loadingMailboxes;
                 tenantMailboxStatus.className = 'mt-2 small text-center text-muted';
                 loadTenantMailboxesBtn.disabled = true;
 
@@ -517,18 +532,18 @@
                     .then(response => response.json())
                     .then(data => {
                         if (!data.success) {
-                            tenantMailboxStatus.textContent = data.message || '@Localizer["MailboxesCouldNotBeLoaded"]';
+                            tenantMailboxStatus.textContent = data.message || i18n.mailboxesCouldNotBeLoaded;
                             tenantMailboxStatus.className = 'mt-2 small text-center text-danger';
                             return;
                         }
 
                         renderTenantMailboxes(data.mailboxes);
-                        tenantMailboxStatus.textContent = '@Localizer["MailboxesFound"]'.replace('{0}', (data.mailboxes || []).length);
+                        tenantMailboxStatus.textContent = i18n.mailboxesFound.replace('{0}', (data.mailboxes || []).length);
                         tenantMailboxStatus.className = 'mt-2 small text-center text-muted';
                     })
                     .catch(error => {
                         console.error('Error loading tenant mailboxes:', error);
-                        tenantMailboxStatus.textContent = '@Localizer["MailboxesCouldNotBeLoaded"]';
+                        tenantMailboxStatus.textContent = i18n.mailboxesCouldNotBeLoaded;
                         tenantMailboxStatus.className = 'mt-2 small text-center text-danger';
                     })
                     .finally(() => {

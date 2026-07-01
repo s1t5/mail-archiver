@@ -328,10 +328,10 @@
 
     // Localized strings for JavaScript
     const localizedStrings = {
-        previewNotAvailable: '@Localizer["PreviewNotAvailable"]',
-        fileTypeCannotBePreviewed: '@Localizer["FileTypeCannotBePreviewed"]',
-        showPlainText: '@Localizer["ShowPlainText"]',
-        showHtml: '@Localizer["ShowHtml"]'
+        previewNotAvailable: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["PreviewNotAvailable"].Value)),
+        fileTypeCannotBePreviewed: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["FileTypeCannotBePreviewed"].Value)),
+        showPlainText: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["ShowPlainText"].Value)),
+        showHtml: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["ShowHtml"].Value))
     };
 
     // Track current view state (true = HTML, false = plain text)

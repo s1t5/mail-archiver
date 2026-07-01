@@ -99,36 +99,44 @@
         $(document).ready(function () {
             var preselectedFolder = @Json.Serialize(Model.TargetFolder ?? "");
             var isInitialLoad = true;
+            const i18n = {
+                loadingFolders: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["LoadingFolders"].Value)),
+                selectFolder: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["SelectFolder"].Value)),
+                errorLoadingFolders: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["ErrorLoadingFolders"].Value)),
+                selectAccountFirst: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["SelectAccountFirst"].Value))
+            };
             $('#accountSelect').change(function () {
                 var selectPreselected = isInitialLoad;
                 isInitialLoad = false;
                 var accountId = $(this).val();
                 if (accountId) {
-                    $('#folderSelect').html('<option>@Localizer["LoadingFolders"]</option>');
+                    $('#folderSelect').html($('<option>').text(i18n.loadingFolders));
                     $.ajax({
                         url: '@Url.Action("GetFolders", "Emails")',
                         data: { accountId: accountId },
                         type: 'GET',
                         dataType: 'json',
                         success: function (data) {
-                            var options = '<option value="">-- @Localizer["SelectFolder"] --</option>';
+                            var $select = $('#folderSelect').empty();
+                            $select.append($('<option>').val('').text('-- ' + i18n.selectFolder + ' --'));
                             var inboxFound = false;
                             $.each(data, function (index, folderName) {
-                                options += '<option value="' + folderName + '">' + folderName + '</option>';
+                                $select.append($('<option>').val(folderName).text(folderName));
                                 if (folderName.toUpperCase() === 'INBOX') { inboxFound = true; }
                             });
-                            $('#folderSelect').html(options);
                             var target = (selectPreselected && preselectedFolder) ? preselectedFolder : null;
                             var matched = target ? $("#folderSelect option").filter(function () { return this.value.toUpperCase() === target.toUpperCase(); }).first() : $();
                             if (matched.length) { matched.prop('selected', true); }
                             else if (inboxFound) { $("#folderSelect option").filter(function () { return this.value.toUpperCase() === 'INBOX'; }).prop('selected', true); }
                         },
                         error: function () {
-                            $('#folderSelect').html('<option value="">@Localizer["ErrorLoadingFolders"]</option><option value="INBOX">INBOX</option>');
+                            $('#folderSelect').empty()
+                                .append($('<option>').val('').text(i18n.errorLoadingFolders))
+                                .append($('<option>').val('INBOX').text('INBOX'));
                         }
                     });
                 } else {
-                    $('#folderSelect').html('<option value="">@Localizer["SelectAccountFirst"]</option>');
+                    $('#folderSelect').html($('<option>').val('').text(i18n.selectAccountFirst));
                 }
             });
             if ($('#accountSelect').val()) { $('#accountSelect').trigger('change'); }

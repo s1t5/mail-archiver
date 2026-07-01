@@ -89,12 +89,16 @@
         $(document).ready(function () {
             var preselectedFolder = @Json.Serialize(Model.TargetFolder ?? "");
             var isInitialLoad = true;
+            const i18n = {
+                loadingFolders: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["LoadingFolders"].Value)),
+                errorLoadingFolders: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["ErrorLoadingFolders"].Value))
+            };
             $('#accountSelect').change(function () {
                 var selectPreselected = isInitialLoad;
                 isInitialLoad = false;
                 var accountId = $(this).val();
                 if (accountId) {
-                    $('#folderSelect').html('<option>@Localizer["LoadingFolders"]</option>');
+                    $('#folderSelect').html($('<option>').text(i18n.loadingFolders));
                     $.ajax({
                         url: '@Url.Action("GetFolders", "Emails")',
                         data: { accountId: accountId },
@@ -114,7 +118,7 @@
                             else if (inboxFound) { $("#folderSelect option").filter(function () { return this.value.toUpperCase() === 'INBOX'; }).prop('selected', true); }
                         },
                         error: function () {
-                            $('#folderSelect').html('<option value="">@Localizer["ErrorLoadingFolders"]</option><option value="INBOX">INBOX</option>');
+                            $('#folderSelect').html($('<option>').val('').text(i18n.errorLoadingFolders)).append('<option value="INBOX">INBOX</option>');
                         }
                     });
                 } else {

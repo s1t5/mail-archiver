@@ -292,6 +292,8 @@
 {
     @section Scripts {
         <script>
+            const statusTitle = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["EmlImportStatusTitle"].Value));
+            const fileName = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.FileName));
             // Auto-refresh page every 5 seconds for running jobs
             setTimeout(function() {
                 location.reload();
@@ -301,7 +303,7 @@
             let countdown = 5;
             const countdownInterval = setInterval(function() {
                 countdown--;
-                document.title = `(${countdown}s) ${'@Localizer["EmlImportStatusTitle"]'} - @Model.FileName`;
+                document.title = `(${countdown}s) ${statusTitle} - ${fileName}`;
                 if (countdown <= 0) {
                     clearInterval(countdownInterval);
                 }

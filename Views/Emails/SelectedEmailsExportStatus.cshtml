@@ -191,6 +191,8 @@
             let refreshTimer;
             let countdownTimer;
             let countdown = 5;
+            const statusTitle = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["SelectedEmailsExportStatusTitle"].Value));
+            const jobIdShort = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.JobId.Substring(0, 8)));
             
             function startRefresh() {
                 refreshTimer = setTimeout(function() { 
@@ -201,7 +203,7 @@
                 
                 countdownTimer = setInterval(function() {
                     countdown--;
-                    document.title = `(${countdown}s) ${'@Localizer["SelectedEmailsExportStatusTitle"]'} - @Model.JobId.Substring(0, 8)`;
+                    document.title = `(${countdown}s) ${statusTitle} - ${jobIdShort}`;
                     if (countdown <= 0) { 
                         clearInterval(countdownTimer); 
                         countdown = 5; // Reset for next cycle
@@ -216,7 +218,7 @@
                 if (countdownTimer) {
                     clearInterval(countdownTimer);
                 }
-                document.title = '@Localizer["SelectedEmailsExportStatusTitle"]';
+                document.title = statusTitle;
             }
             
             // Start the refresh cycle

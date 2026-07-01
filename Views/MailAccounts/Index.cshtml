@@ -153,8 +153,8 @@
         document.addEventListener('DOMContentLoaded', function() {
             var pageSize = 50;
             var currentPage = 1;
-            var prevText = '@Localizer["Previous"]';
-            var nextText = '@Localizer["Next"]';
+            var prevText = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["Previous"].Value));
+            var nextText = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["Next"].Value));
             var pageInfo = document.getElementById('accountPageInfo');
             var pageOfTemplate = pageInfo ? pageInfo.getAttribute('data-template') : '';
             var noMatchHint = document.getElementById('noAccountMatchHint');
