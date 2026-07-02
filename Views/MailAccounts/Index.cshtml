@@ -63,6 +63,7 @@
                             <th>@Localizer["Provider"]</th>
                             <th>@Localizer["Sync"]</th>
                             <th>@Localizer["LastSync"]</th>
+                            <th>@Localizer["Storage"]</th>
                             <th>@Localizer["AutoDelete"]</th>
                             <th class="text-center">@Localizer["Actions"]</th>
                         </tr>
@@ -113,6 +114,7 @@
                                         <span class="text-muted">@Localizer["NotSynced"]</span>
                                     }
 </td>
+                                <td class="small text-nowrap">@item.StorageUsed</td>
                                 <td>
                                     @if (item.DeleteAfterDays.HasValue)
                                     {
@@ -342,6 +344,10 @@
                             <span class="text-muted">@Localizer["NotSynced"]</span>
                         }
 </p>
+                    <p class="card-text small mb-3">
+                        <strong>@Localizer["Storage"]:</strong>
+                        <span class="text-nowrap">@item.StorageUsed</span>
+                    </p>
                     <p class="card-text small mb-3">
                         <strong>Auto Delete:</strong>
                         @if (item.DeleteAfterDays.HasValue)

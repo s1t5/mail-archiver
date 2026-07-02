@@ -1012,6 +1012,7 @@ namespace MailArchiver.Services.Core
             model.EmailsPerAccount = await _context.MailAccounts
                 .Select(a => new AccountStatistics
                 {
+                    AccountId = a.Id,
                     AccountName = a.Name,
                     EmailAddress = a.EmailAddress,
                     EmailCount = a.ArchivedEmails.Count,

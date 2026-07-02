@@ -96,6 +96,12 @@ services:
       - AttachmentDeduplication__OrphanCleanupIntervalHours=12
       - AttachmentDeduplication__CommandTimeoutSeconds=300
 
+      # Account Storage Settings (Optional - per-account storage display)
+      - AccountStorage__Enabled=true
+      - AccountStorage__DailyExecutionTime=02:30
+      - AccountStorage__BackfillDelayMs=5000
+      - AccountStorage__RefreshBatchDelayMs=1000
+
       # ReleaseNotes Settings (Version Update Splash Screen)
       - ReleaseNotes__Enabled=true
 
@@ -291,6 +297,16 @@ Attachment deduplication stores every unique attachment payload only once (conte
 - `AttachmentDeduplication__StartupDelaySeconds`: Delay (in seconds) after application start before the background migration begins, giving the schema migration time to complete. Default is `20`.
 - `AttachmentDeduplication__OrphanCleanupIntervalHours`: Interval (in hours) of the always-on garbage collection that removes attachment payloads no longer referenced by any email. Default is `12`. This runs independently of `DatabaseMaintenance__Enabled`.
 - `AttachmentDeduplication__CommandTimeoutSeconds`: Database command timeout (in seconds) for the migration batch operations (INSERT with SHA-256 hashing and UPDATE). Default is `300` (5 minutes). Increase this value for very large databases or attachments, or lower it if you want faster failure detection. If a batch still times out, the service automatically retries with half the batch size.
+
+### 💾 Account Storage Settings
+The per-account storage display shows the database storage usage (mail body + attachments) for each account in the Dashboard "Account Overview" table and the MailAccounts "Show All" table. An autark background service (`AccountStorageRefreshService`) computes the values via PostgreSQL `pg_column_size`/`octet_length` functions and caches them in the `AccountStorageCache` table. This service runs independently of `DatabaseMaintenance__Enabled`.
+
+- `AccountStorage__Enabled`: Enable or disable the storage refresh service (true/false). Default is `true`. When enabled, the service performs a resumable backfill of pending accounts on startup (crash-safe via `AccountStorageBackfillState`) and a daily full refresh thereafter. When disabled, storage values are only updated when emails are synced, imported, or deleted, but the displayed values may become stale over time.
+- `AccountStorage__DailyExecutionTime`: Time of day (24-hour format `HH:mm`) for the daily full refresh of all accounts. Default is `02:30`. Choose a time during low system activity.
+- `AccountStorage__BackfillDelayMs`: Delay (in milliseconds) between accounts during the initial backfill on startup. Default is `5000`. Lower values speed up the backfill but increase database load; raise this value for very large archives to avoid overloading the database.
+- `AccountStorage__RefreshBatchDelayMs`: Delay (in milliseconds) between accounts during the daily full refresh. Default is `1000`. Lower values speed up the refresh but increase database load; raise this value for very large archives.
+
+> 💡 **Note**: Storage values are refreshed immediately after each mail sync, import, or retention deletion, so the displayed values stay current even without the daily refresh. The daily refresh is a safety net that catches edge cases (e.g., direct database changes).
 
 
 ### 📝 Logging Settings

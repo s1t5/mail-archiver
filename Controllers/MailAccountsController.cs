@@ -34,6 +34,7 @@ namespace MailArchiver.Controllers
     private readonly IExportService _exportService;
     private readonly IAccessLogService _accessLogService;
     private readonly IMailAccountDeletionService _mailAccountDeletionService;
+    private readonly IAccountStorageService _accountStorageService;
 
     public MailAccountsController(
         MailArchiverDbContext context,
@@ -51,7 +52,8 @@ namespace MailArchiver.Controllers
         IServiceScopeFactory serviceScopeFactory,
         IExportService exportService,
         IAccessLogService accessLogService,
-        IMailAccountDeletionService mailAccountDeletionService)
+        IMailAccountDeletionService mailAccountDeletionService,
+        IAccountStorageService accountStorageService)
     {
         _context = context;
         _emailCoreService = emailCoreService;
@@ -69,6 +71,7 @@ namespace MailArchiver.Controllers
         _exportService = exportService;
         _accessLogService = accessLogService;
         _mailAccountDeletionService = mailAccountDeletionService;
+        _accountStorageService = accountStorageService;
     }
 
         private async Task<bool> HasAccessToAccountAsync(int accountId)
@@ -155,6 +158,20 @@ namespace MailArchiver.Controllers
                 .ToListAsync();
 
             _logger.LogInformation("Returning {Count} accounts for user {Username}", accounts.Count, currentUsername);
+
+            // Speicherverbrauch pro Account befuellen (aus Cache)
+            if (accounts.Count > 0)
+            {
+                var accountIds = accounts.Select(a => a.Id).ToList();
+                var storageMap = await _accountStorageService.GetStorageForAccountsAsync(accountIds);
+                foreach (var account in accounts)
+                {
+                    account.StorageUsed = storageMap.TryGetValue(account.Id, out var storage)
+                        ? storage
+                        : AccountStorageService.FormatFileSize(0);
+                }
+            }
+
             return View(accounts);
         }
 

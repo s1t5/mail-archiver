@@ -136,6 +136,7 @@
                                     <th>@Localizer["Name"]</th>
                                     <th class="d-none d-lg-table-cell">@Localizer["EmailAddress"]</th>
                                     <th>@Localizer["Count"]</th>
+                                    <th>@Localizer["Storage"]</th>
                                     <th>@Localizer["LastSync"]</th>
                                 </tr>
                             </thead>
@@ -146,6 +147,7 @@
                                         <td>@account.AccountName</td>
                                         <td class="d-none d-lg-table-cell small">@account.EmailAddress</td>
                                         <td>@account.EmailCount.ToString("N0")</td>
+                                        <td class="small text-nowrap">@account.StorageUsed</td>
                                         <td>
                                             @if (DateTime.Now.Subtract(account.LastSyncTime).TotalHours < 24)
                                             {
@@ -169,7 +171,7 @@
                                 @if (!Model.EmailsPerAccount.Any())
                                 {
                                     <tr>
-                                        <td colspan="4" class="text-center py-3 text-muted">
+                                        <td colspan="5" class="text-center py-3 text-muted">
                                             <i class="bi bi-info-circle me-2"></i>@Localizer["NoEmailAccountsFound"]
                                         </td>
                                     </tr>
@@ -187,6 +189,7 @@
                                         <p class="mb-1 small text-muted">@account.EmailAddress</p>
                                         <p class="mb-0 small">
                                             <strong>@account.EmailCount.ToString("N0")</strong> @Localizer["Emails"]
+                                            <span class="text-muted">·</span> <span class="text-nowrap">@account.StorageUsed</span>
                                         </p>
                                     </div>
                                     <div class="text-end">
