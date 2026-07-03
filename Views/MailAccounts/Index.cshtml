@@ -55,7 +55,7 @@
     <div class="card d-none d-lg-block card-dropdown-overflow">
         <div class="card-body">
             <div class="table-responsive table-responsive-dropdown">
-                <table class="table table-striped table-hover">
+                <table class="table table-striped table-hover table-sm mb-0">
                     <thead class="table-dark">
                         <tr>
                             <th>@Localizer["Name"]</th>
@@ -71,7 +71,7 @@
                     <tbody>
                         @foreach (var item in Model)
                         {
-                            <tr class="account-row @(!item.IsEnabled ? "table-secondary" : "")" data-search="@($"{item.Name} {item.EmailAddress} {item.Username}")">
+                            <tr class="account-row" data-search="@($"{item.Name} {item.EmailAddress} {item.Username}")">
                                 <td>@item.Name</td>
                                 <td>@item.EmailAddress</td>
                                 <td>

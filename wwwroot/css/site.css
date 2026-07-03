@@ -1548,3 +1548,11 @@ body.resizing-folder-tree {
 .flex-min-0 {
   min-width: 0;
 }
+
+/* Subtle disabled-row styling (doesn't break table-striped/hover like table-secondary does) */
+.row-disabled {
+  opacity: 0.55;
+}
+.row-disabled:hover {
+  opacity: 0.75;
+}

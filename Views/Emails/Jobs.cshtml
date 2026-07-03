@@ -18,11 +18,11 @@
         if (syncJobs != null && syncJobs.Any())
         {
             <div class="card mb-4">
-                <div class="card-header"><h5 class="mb-0"><i class="bi bi-arrow-clockwise me-2"></i>@Localizer["SynchronizationJobs"] <span class="badge bg-secondary">@Localizer["Last20"]</span></h5></div>
+                <div class="card-header"><span class="h6 mb-0"><i class="bi bi-arrow-clockwise me-2"></i>@Localizer["SynchronizationJobs"] <span class="badge bg-secondary">@Localizer["Last20"]</span></span></div>
                 <div class="card-body">
                     <div class="table-responsive d-none d-lg-block">
-                        <table class="table table-striped">
-                            <thead>
+                        <table class="table table-striped table-hover table-sm mb-0">
+                            <thead class="table-dark">
                                 <tr>
                                     <th>@Localizer["Account"]</th>
                                     <th>@Localizer["Status"]</th>
@@ -156,12 +156,12 @@
         {
             <div class="card mb-4">
                 <div class="card-header">
-                    <h5 class="mb-0"><i class="bi bi-upload me-2"></i>@Localizer["EMLImportJobs"]</h5>
+                    <span class="h6 mb-0"><i class="bi bi-upload me-2"></i>@Localizer["EMLImportJobs"]</span>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive d-none d-lg-block">
-                        <table class="table table-striped">
-                            <thead>
+                        <table class="table table-striped table-hover table-sm mb-0">
+                            <thead class="table-dark">
                                 <tr>
                                     <th>@Localizer["JobID"]</th>
                                     <th>@Localizer["FileName"]</th>
@@ -345,12 +345,12 @@
         {
             <div class="card mb-4">
                 <div class="card-header">
-                    <h5 class="mb-0"><i class="bi bi-upload me-2"></i>@Localizer["MBoxImportJobs"]</h5>
+                    <span class="h6 mb-0"><i class="bi bi-upload me-2"></i>@Localizer["MBoxImportJobs"]</span>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive d-none d-lg-block">
-                        <table class="table table-striped">
-                            <thead>
+                        <table class="table table-striped table-hover table-sm mb-0">
+                            <thead class="table-dark">
                                 <tr>
                                     <th>@Localizer["JobID"]</th>
                                     <th>@Localizer["FileName"]</th>
@@ -541,11 +541,11 @@
         if (selectedEmailsExportJobs != null && selectedEmailsExportJobs.Any())
         {
             <div class="card mb-4">
-                <div class="card-header"><h5 class="mb-0"><i class="bi bi-download me-2"></i>@Localizer["SelectedEmailsExportJobs"]</h5></div>
+                <div class="card-header"><span class="h6 mb-0"><i class="bi bi-download me-2"></i>@Localizer["SelectedEmailsExportJobs"]</span></div>
                 <div class="card-body">
                     <div class="table-responsive d-none d-lg-block">
-                        <table class="table table-striped">
-                            <thead>
+                        <table class="table table-striped table-hover table-sm mb-0">
+                            <thead class="table-dark">
                                 <tr>
                                     <th>@Localizer["JobID"]</th>
                                     <th>@Localizer["Status"]</th>
@@ -678,11 +678,11 @@
         if (exportJobs != null && exportJobs.Any())
         {
             <div class="card mb-4">
-                <div class="card-header"><h5 class="mb-0"><i class="bi bi-download me-2"></i>@Localizer["AccountExportJobs"]</h5></div>
+                <div class="card-header"><span class="h6 mb-0"><i class="bi bi-download me-2"></i>@Localizer["AccountExportJobs"]</span></div>
                 <div class="card-body">
                     <div class="table-responsive d-none d-lg-block">
-                        <table class="table table-striped">
-                            <thead>
+                        <table class="table table-striped table-hover table-sm mb-0">
+                            <thead class="table-dark">
                                 <tr>
                                     <th>@Localizer["Account"]</th>
                                     <th>@Localizer["Status"]</th>
@@ -814,11 +814,11 @@
         if (batchJobs != null && batchJobs.Any())
         {
             <div class="card">
-                <div class="card-header"><h5 class="mb-0"><i class="bi bi-envelope-arrow-up me-2"></i>@Localizer["BatchRestoreJobs"]</h5></div>
+                <div class="card-header"><span class="h6 mb-0"><i class="bi bi-envelope-arrow-up me-2"></i>@Localizer["BatchRestoreJobs"]</span></div>
                 <div class="card-body">
                     <div class="table-responsive d-none d-lg-block">
-                        <table class="table table-striped">
-                            <thead>
+                        <table class="table table-striped table-hover table-sm mb-0">
+                            <thead class="table-dark">
                                 <tr>
                                     <th>@Localizer["JobID"]</th>
                                     <th>@Localizer["Status"]</th>
@@ -902,7 +902,19 @@
     @{ var hasSyncJobs = ViewBag.SyncJobs != null && (ViewBag.SyncJobs as List<MailArchiver.Models.SyncJob>)?.Any() == true; var hasBatchJobs = ViewBag.BatchJobs != null && (ViewBag.BatchJobs as List<MailArchiver.Models.BatchRestoreJob>)?.Any() == true; var hasMBoxJobs = ViewBag.MBoxJobs != null && (ViewBag.MBoxJobs as List<MailArchiver.Models.MBoxImportJob>)?.Any() == true; }
     @if (!hasSyncJobs && !hasBatchJobs && !hasMBoxJobs)
     {
-        <div class="text-center py-5"><div class="mb-3"><i class="bi bi-clock-history display-1 text-muted"></i></div><h5 class="text-muted">@Localizer["NoBackgroundJobs"]</h5><p class="text-muted">@Localizer["NoActiveBackgroundJobs"]</p><div class="d-grid gap-2 d-md-flex justify-content-center"><a asp-controller="MailAccounts" asp-action="ImportMBox" class="btn btn-outline-success"><i class="bi bi-upload"></i> @Localizer["ImportMBoxFiles"]</a><a asp-controller="MailAccounts" asp-action="Index" class="btn btn-outline-primary"><i class="bi bi-person-gear"></i> @Localizer["ManageAccounts"]</a></div></div>
+        <div class="text-center dashboard-empty-state text-muted">
+            <i class="bi bi-clock-history empty-icon"></i>
+            <div class="empty-text">@Localizer["NoBackgroundJobs"]</div>
+            <p class="mt-2">@Localizer["NoActiveBackgroundJobs"]</p>
+            <div class="d-grid gap-2 d-md-flex justify-content-center mt-3">
+                <a asp-controller="MailAccounts" asp-action="ImportMBox" class="btn btn-outline-success btn-sm">
+                    <i class="bi bi-upload me-1"></i>@Localizer["ImportMBoxFiles"]
+                </a>
+                <a asp-controller="MailAccounts" asp-action="Index" class="btn btn-outline-primary btn-sm">
+                    <i class="bi bi-person-gear me-1"></i>@Localizer["ManageAccounts"]
+                </a>
+            </div>
+        </div>
     }
 </div>
 @section Scripts {
