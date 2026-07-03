@@ -29,7 +29,7 @@
                     <select asp-for="Provider" class="form-select">
                         <option value="@ProviderType.IMAP">IMAP</option>
                         <option value="@ProviderType.M365">Microsoft 365 (Exchange Online)</option>
-                        <option value="@ProviderType.MSA">Microsoft Personal Account (Outlook.com)</option>
+                        <option value="@ProviderType.MSA">MS Personal</option>
                         <option value="@ProviderType.IMPORT">Import Only</option>
                     </select>
                     <span asp-validation-for="Provider" class="text-danger"></span>
@@ -73,39 +73,53 @@
                 </div>
                 
                 <div id="msaSettings" style="display: none;">
-                    <h4 class="mt-4">Microsoft Personal Account Settings</h4>
-                    <details class="mb-3" open>
-                        <summary style="cursor:pointer;" class="text-muted">
-                            <i class="bi bi-info-circle"></i> Azure App Registration einrichten (einmalig, ca. 2 Minuten)
-                        </summary>
-                        <div class="mt-2 border rounded p-3 bg-light">
-                            <ol class="mb-2 ps-3">
-                                <li class="mb-2">
-                                    <a href="https://portal.azure.com/#view/Microsoft_AAD_RegisteredApps/CreateApplicationBlade" target="_blank" class="btn btn-sm btn-primary">
-                                        <i class="bi bi-box-arrow-up-right"></i> App Registration erstellen
-                                    </a>
-                                    &nbsp;<span class="text-muted small">(mit deinem Microsoft-Konto anmelden)</span>
-                                </li>
-                                <li class="mb-2">Name frei wählen (z.B. <em>mail-archiver</em>)</li>
-                                <li class="mb-2">Unter <strong>Supported account types</strong> auswählen: <em>Personal Microsoft accounts only</em> <span class="text-danger fw-bold">(wichtig!)</span></li>
-                                <li class="mb-2">Redirect-URI leer lassen → auf <strong>Register</strong> klicken</li>
-                                <li class="mb-2">Die angezeigte <strong>Application (client) ID</strong> unten eintragen</li>
-                                <li class="mb-2">In der App links auf <strong>Authentication</strong> klicken → Tab <strong>Einstellungen</strong> wählen → <em>Öffentliche Clientflows zulassen</em> (Allow public client flows) aktivieren → <strong>Speichern</strong></li>
-                            </ol>
-                            <p class="small text-muted mb-0">Kein Secret, keine Redirect-URI erforderlich. Nach dem Speichern auf <strong>Authorize</strong> klicken.</p>
+                    <h4 class="mt-4">Microsoft Personal Account (Outlook.com / M365 Family)</h4>
+
+                    @if (ViewBag.MsaHasDefaultClientId == true)
+                    {
+                        <div class="alert alert-success mb-3">
+                            <i class="bi bi-check-circle-fill"></i>
+                            <strong>Keine App-Registrierung nötig.</strong>
+                            Mail-Archiver nutzt eine vorkonfigurierte App-Registrierung.
+                            E-Mail-Adresse eintragen, speichern und anschließend auf
+                            <strong>Autorisieren</strong> klicken.
                         </div>
-                    </details>
-                    <div class="mb-3">
-                        <label asp-for="MsaClientId" class="form-label">@Localizer["ClientId"]</label>
-                        <input asp-for="MsaClientId" class="form-control" placeholder="Azure App (client) ID" />
-                        <span asp-validation-for="MsaClientId" class="text-danger"></span>
-                    </div>
-                    <div class="mb-3">
-                        <label asp-for="MsaClientSecret" class="form-label">@Localizer["ClientSecret"] <span class="text-muted fw-normal">(optional)</span></label>
-                        <input asp-for="MsaClientSecret" class="form-control" type="password" placeholder="Not required when using PKCE Public Client" />
-                        <div class="form-text">Only needed for confidential client apps. Leave blank when using the CLI script above.</div>
-                        <span asp-validation-for="MsaClientSecret" class="text-danger"></span>
-                    </div>
+                    }
+                    else
+                    {
+                        <details class="mb-3" open>
+                            <summary style="cursor:pointer;" class="text-muted">
+                                <i class="bi bi-info-circle"></i> Azure App Registration einrichten (einmalig, ca. 2 Minuten)
+                            </summary>
+                            <div class="mt-2 border rounded p-3 bg-light">
+                                <ol class="mb-2 ps-3">
+                                    <li class="mb-2">
+                                        <a href="https://portal.azure.com/#view/Microsoft_AAD_RegisteredApps/CreateApplicationBlade" target="_blank" class="btn btn-sm btn-primary">
+                                            <i class="bi bi-box-arrow-up-right"></i> App Registration erstellen
+                                        </a>
+                                        &nbsp;<span class="text-muted small">(mit deinem Microsoft-Konto anmelden)</span>
+                                    </li>
+                                    <li class="mb-2">Name frei wählen (z.B. <em>mail-archiver</em>)</li>
+                                    <li class="mb-2">Unter <strong>Supported account types</strong> auswählen: <em>Accounts in any organizational directory and personal Microsoft accounts</em></li>
+                                    <li class="mb-2">Redirect-URI leer lassen → auf <strong>Register</strong> klicken</li>
+                                    <li class="mb-2">Die angezeigte <strong>Application (client) ID</strong> unten eintragen</li>
+                                    <li class="mb-2">In der App links auf <strong>Authentication</strong> klicken → <em>Öffentliche Clientflows zulassen</em> (Allow public client flows) aktivieren → <strong>Speichern</strong></li>
+                                </ol>
+                                <p class="small text-muted mb-0">Kein Secret, keine Redirect-URI erforderlich. Nach dem Speichern auf <strong>Autorisieren</strong> klicken.</p>
+                            </div>
+                        </details>
+                        <div class="mb-3">
+                            <label asp-for="MsaClientId" class="form-label">@Localizer["ClientId"]</label>
+                            <input asp-for="MsaClientId" class="form-control" placeholder="Azure App (client) ID" />
+                            <span asp-validation-for="MsaClientId" class="text-danger"></span>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="MsaClientSecret" class="form-label">@Localizer["ClientSecret"] <span class="text-muted fw-normal">(optional)</span></label>
+                            <input asp-for="MsaClientSecret" class="form-control" type="password" placeholder="Not required for public client apps" />
+                            <div class="form-text">Only needed for confidential client apps. Leave blank when using a public client.</div>
+                            <span asp-validation-for="MsaClientSecret" class="text-danger"></span>
+                        </div>
+                    }
                 </div>
 
                 <div id="microsoft365Settings" style="display: none;">
@@ -206,7 +220,10 @@
                 } else if (providerValue === '@ProviderType.M365') {
                     microsoft365Settings.style.display = 'block';
                     emailDeletionSettings.style.display = 'block';
-                    if (!skipSuggestionCheck && !hasSuggestions) {
+                    if (hasSuggestions) {
+                        // Preserve the existing suggestion box instead of re-querying.
+                        existingAccountSuggestion.style.display = 'block';
+                    } else if (!skipSuggestionCheck) {
                         checkForExistingAccounts();
                     }
                 } else if (providerValue === '@ProviderType.MSA') {
@@ -319,9 +336,10 @@
                                 toggleSettings(); // This will show M365 settings
                             }
                             
-                            // Fill in the credentials
+                            // Fill in the credentials. The client secret is intentionally NOT
+                            // returned by the server — the user must re-enter it (security: the
+                            // secret never travels to the browser via this endpoint).
                             clientIdInput.value = data.clientId || '';
-                            clientSecretInput.value = data.clientSecret || '';
                             tenantIdInput.value = data.tenantId || '';
                             
                             // Hide suggestion box after copying

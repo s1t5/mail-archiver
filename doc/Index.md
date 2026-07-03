@@ -33,5 +33,6 @@ Mail Archiver is a comprehensive application designed to archive emails from var
 - [Azure App Registration and Retention Policy for M365](AZURE_APP_REGISTRATION_M365.md)
 - [Gmail Best Practices](GmailBestPractices.md)
 - [Mailbox Migration](MailboxMigration.md)
+- [Personal Microsoft Account (Outlook.com / M365 Family) Setup](MSA_Outlook_Setup.md)
 - [Rate Limit Handling](RateLimitHandling.md)
 - [Yahoo Mail Export Limitations and IMAP Configuration](YahooMailExportLimitations.md)

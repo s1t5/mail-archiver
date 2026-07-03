@@ -299,3 +299,6 @@ update_resource_files.ps1
 /exports
 /obj
 /.clinerules
+nextrelease.md
+.gitignore
+AGENTS.md

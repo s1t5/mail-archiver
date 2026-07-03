@@ -26,7 +26,7 @@
                     <select asp-for="Provider" class="form-select">
                         <option value="@ProviderType.IMAP">IMAP</option>
                         <option value="@ProviderType.M365">Microsoft 365 (Exchange Online)</option>
-                        <option value="@ProviderType.MSA">Microsoft Personal Account (Outlook.com)</option>
+                        <option value="@ProviderType.MSA">MS Personal</option>
                         <option value="@ProviderType.IMPORT">Import Only</option>
                     </select>
                     <span asp-validation-for="Provider" class="text-danger"></span>
@@ -65,7 +65,7 @@
                 </div>
                 
                 <div id="msaSettings" style="display: @(Model.Provider == ProviderType.MSA ? "block" : "none");">
-                    <h4 class="mt-4">Microsoft Personal Account Settings</h4>
+                    <h4 class="mt-4">Microsoft Personal Account (Outlook.com / M365 Family)</h4>
 
                     @if (Model.MsaIsAuthorized)
                     {
@@ -87,42 +87,70 @@
                         <div class="alert alert-warning">
                             <i class="bi bi-exclamation-triangle me-2"></i>
                             <strong>Noch nicht autorisiert.</strong>
-                            Client-ID eintragen, speichern, dann <strong>Authorize with Microsoft</strong> klicken.
+                            @if (ViewBag.MsaHasDefaultClientId == true)
+                            {
+                                <text>Speichern, dann </text><strong>Autorisieren</strong><text> klicken.</text>
+                            }
+                            else
+                            {
+                                <text>Client-ID eintragen, speichern, dann </text><strong>Autorisieren</strong><text> klicken.</text>
+                            }
                         </div>
                     }
 
-                    <details class="mb-3">
-                        <summary style="cursor:pointer;" class="text-muted">
-                            <i class="bi bi-info-circle"></i> Azure App Registration einrichten (einmalig, ca. 2 Minuten)
-                        </summary>
-                        <div class="mt-2 border rounded p-3 bg-light">
-                            <ol class="mb-2 ps-3">
-                                <li class="mb-2">
-                                    <a href="https://portal.azure.com/#view/Microsoft_AAD_RegisteredApps/CreateApplicationBlade" target="_blank" class="btn btn-sm btn-primary">
-                                        <i class="bi bi-box-arrow-up-right"></i> App Registration erstellen
-                                    </a>
-                                    &nbsp;<span class="text-muted small">(mit deinem Microsoft-Konto anmelden)</span>
-                                </li>
-                                <li class="mb-2">Name frei wählen (z.B. <em>mail-archiver</em>)</li>
-                                <li class="mb-2">Unter <strong>Supported account types</strong> auswählen: <em>Personal Microsoft accounts only</em> <span class="text-danger fw-bold">(wichtig!)</span></li>
-                                <li class="mb-2">Redirect-URI leer lassen → auf <strong>Register</strong> klicken</li>
-                                <li class="mb-2">Die angezeigte <strong>Application (client) ID</strong> unten eintragen</li>
-                                <li class="mb-2">In der App links auf <strong>Authentication</strong> klicken → Tab <strong>Einstellungen</strong> wählen → <em>Öffentliche Clientflows zulassen</em> (Allow public client flows) aktivieren → <strong>Speichern</strong></li>
-                            </ol>
-                            <p class="small text-muted mb-0">Kein Secret, keine Redirect-URI erforderlich.</p>
+                    @if (ViewBag.MsaHasDefaultClientId == true)
+                    {
+                        <div class="alert alert-info mb-3">
+                            <i class="bi bi-info-circle-fill"></i>
+                            Mail-Archiver nutzt eine vorkonfigurierte App-Registrierung —
+                            eine eigene App-Registrierung ist nicht erforderlich.
+                            Nur ausfüllen, um eine eigene Client-ID zu verwenden.
                         </div>
-                    </details>
+                    }
+                    else
+                    {
+                        <details class="mb-3">
+                            <summary style="cursor:pointer;" class="text-muted">
+                                <i class="bi bi-info-circle"></i> Azure App Registration einrichten (einmalig, ca. 2 Minuten)
+                            </summary>
+                            <div class="mt-2 border rounded p-3 bg-light">
+                                <ol class="mb-2 ps-3">
+                                    <li class="mb-2">
+                                        <a href="https://portal.azure.com/#view/Microsoft_AAD_RegisteredApps/CreateApplicationBlade" target="_blank" class="btn btn-sm btn-primary">
+                                            <i class="bi bi-box-arrow-up-right"></i> App Registration erstellen
+                                        </a>
+                                        &nbsp;<span class="text-muted small">(mit deinem Microsoft-Konto anmelden)</span>
+                                    </li>
+                                    <li class="mb-2">Name frei wählen (z.B. <em>mail-archiver</em>)</li>
+                                    <li class="mb-2">Unter <strong>Supported account types</strong> auswählen: <em>Accounts in any organizational directory and personal Microsoft accounts</em></li>
+                                    <li class="mb-2">Redirect-URI leer lassen → auf <strong>Register</strong> klicken</li>
+                                    <li class="mb-2">Die angezeigte <strong>Application (client) ID</strong> unten eintragen</li>
+                                    <li class="mb-2">In der App links auf <strong>Authentication</strong> klicken → <em>Öffentliche Clientflows zulassen</em> (Allow public client flows) aktivieren → <strong>Speichern</strong></li>
+                                </ol>
+                                <p class="small text-muted mb-0">Kein Secret, keine Redirect-URI erforderlich.</p>
+                            </div>
+                        </details>
+                    }
 
                     <div class="mb-3">
                         <label asp-for="MsaClientId" class="form-label">@Localizer["ClientId"]</label>
                         <input asp-for="MsaClientId" class="form-control" placeholder="Azure App (client) ID" />
-                        <div class="form-text">Leave blank to keep existing value.</div>
+                        <div class="form-text">
+                            @if (ViewBag.MsaHasDefaultClientId == true)
+                            {
+                                <text>Optional — leer lassen, um die Standard-App-Registrierung zu nutzen.</text>
+                            }
+                            else
+                            {
+                                <text>Leave blank to keep existing value.</text>
+                            }
+                        </div>
                         <span asp-validation-for="MsaClientId" class="text-danger"></span>
                     </div>
                     <div class="mb-3">
                         <label asp-for="MsaClientSecret" class="form-label">@Localizer["ClientSecret"] <span class="text-muted fw-normal">(optional)</span></label>
                         <input asp-for="MsaClientSecret" class="form-control" type="password" placeholder="Nicht erforderlich beim Device Code Flow" />
-                        <div class="form-text">Nur für Confidential Client Apps. Leer lassen wenn das Script oben verwendet wurde.</div>
+                        <div class="form-text">Nur für Confidential Client Apps. Leer lassen beim Public Client.</div>
                         <span asp-validation-for="MsaClientSecret" class="text-danger"></span>
                     </div>
 
@@ -132,10 +160,6 @@
                             <a asp-action="AuthorizeMsaDevice" asp-route-id="@Model.Id" class="btn @(Model.MsaIsAuthorized ? "btn-outline-primary" : "btn-primary")">
                                 <i class="bi bi-microsoft"></i> @(Model.MsaIsAuthorized ? "Re-authorize with Microsoft" : "Authorize with Microsoft")
                             </a>
-                            @if (!Model.MsaIsAuthorized)
-                            {
-                                <div class="form-text mt-1">Client-ID zuerst speichern, dann Authorize klicken.</div>
-                            }
                         </div>
                     }
                 </div>

@@ -53,10 +53,10 @@ namespace MailArchiver.Models.ViewModels
         [ConditionalRequired(nameof(Provider), ProviderType.M365, ErrorMessage = "Tenant ID is required for M365 accounts")]
         public string TenantId { get; set; }
 
-        // MSA (personal Microsoft account) OAuth2 fields
+        // MSA (personal Microsoft account) OAuth2 fields.
+        // ClientId is optional when a shared default ClientId is configured in MsaOAuth:DefaultClientId.
         [Display(Name = "Client ID (Azure App)")]
-        [ConditionalRequired(nameof(Provider), ProviderType.MSA, ErrorMessage = "Client ID is required for MSA accounts")]
-        public string MsaClientId { get; set; }
+        public string? MsaClientId { get; set; }
 
         [Display(Name = "Client Secret (Azure App)")]
         public string? MsaClientSecret { get; set; }

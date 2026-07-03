@@ -35,7 +35,8 @@
 <script>
 (function () {
     const accountId = @Model.AccountId;
-    const intervalMs = @(Model.PollIntervalSeconds * 1000);
+    // Mutable: the server may return a larger interval on RFC 8628 "slow_down" responses.
+    let currentIntervalMs = @(Model.PollIntervalSeconds * 1000);
     const statusBox = document.getElementById('statusBox');
     const statusText = document.getElementById('statusText');
 
@@ -60,14 +61,19 @@
                 setStatus('danger', `<i class="bi bi-x-circle-fill me-2"></i><strong>Fehler:</strong> ${safeMsg.innerHTML} &nbsp;<a href="/MailAccounts/AuthorizeMsaDevice/${accountId}" class="btn btn-sm btn-outline-danger ms-2">Erneut versuchen</a>`);
                 return;
             }
-            // pending — poll again
-            setTimeout(poll, intervalMs);
+            // pending — adapt the interval if the server returned one (slow_down backoff),
+            // then keep polling. Transient network errors also fall through to here.
+            if (typeof data.interval === 'number' && data.interval > 0) {
+                currentIntervalMs = data.interval * 1000;
+            }
+            setTimeout(poll, currentIntervalMs);
         } catch (e) {
-            setTimeout(poll, intervalMs);
+            // Transient fetch failure (network/DNS/...) — keep polling with the current interval.
+            setTimeout(poll, currentIntervalMs);
         }
     }
 
-    setTimeout(poll, intervalMs);
+    setTimeout(poll, currentIntervalMs);
 })();
 </script>
 }
