@@ -2190,9 +2190,13 @@ var model = new MailAccountViewModel
                 return NotFound();
 
             var account = await _context.MailAccounts.FindAsync(id);
-            if (account == null || account.Provider != ProviderType.MSA)
+            if (account == null)
                 return NotFound();
 
+            // Note: we deliberately do NOT check account.Provider here. The user may have
+            // switched the provider to MSA in the Edit form but not yet saved. The device-code
+            // flow only needs a ClientId (per-account or default); the DB provider value is
+            // irrelevant at this point and will be updated when the Edit form is saved.
             if (string.IsNullOrEmpty(account.ClientId) && !_msaOptions.HasDefaultClientId)
             {
                 TempData["ErrorMessage"] = _localizer["MsaClientIdNotConfigured"].Value;
