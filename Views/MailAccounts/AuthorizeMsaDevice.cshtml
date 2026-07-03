@@ -35,7 +35,7 @@
         <span id="statusText">@Localizer["MsaWaitingForAuthorization"]</span>
     </div>
 
-    <a asp-action="Edit" asp-route-id="@Model.AccountId" class="btn btn-outline-secondary">@Localizer["Cancel"]</a>
+    <a asp-action="CancelMsaAuthorization" asp-route-id="@Model.AccountId" class="btn btn-outline-secondary">@Localizer["Cancel"]</a>
 </div>
 
 @section Scripts {

@@ -2659,4 +2659,7 @@
   <data name="MsaAccountNotFound" xml:space="preserve">
     <value>Fiók nem található.</value>
   </data>
+  <data name="MsaAuthorizationCancelled" xml:space="preserve">
+    <value>Fióklétrehozás megszakítva.</value>
+  </data>
 </root>

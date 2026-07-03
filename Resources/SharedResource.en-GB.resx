@@ -264,4 +264,7 @@
   <data name="MsaAccountNotFound" xml:space="preserve">
     <value>Account not found.</value>
   </data>
+  <data name="MsaAuthorizationCancelled" xml:space="preserve">
+    <value>Account creation cancelled.</value>
+  </data>
 </root>

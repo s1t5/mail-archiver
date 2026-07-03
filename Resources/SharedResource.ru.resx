@@ -2667,4 +2667,7 @@
   <data name="MsaAccountNotFound" xml:space="preserve">
     <value>Учётная запись не найдена.</value>
   </data>
+  <data name="MsaAuthorizationCancelled" xml:space="preserve">
+    <value>Создание учётной записи отменено.</value>
+  </data>
 </root>

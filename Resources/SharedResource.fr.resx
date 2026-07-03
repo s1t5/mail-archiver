@@ -2667,4 +2667,7 @@
   <data name="MsaAccountNotFound" xml:space="preserve">
     <value>Compte introuvable.</value>
   </data>
+  <data name="MsaAuthorizationCancelled" xml:space="preserve">
+    <value>Création du compte annulée.</value>
+  </data>
 </root>

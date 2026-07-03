@@ -2713,4 +2713,7 @@
   <data name="MsaAccountNotFound" xml:space="preserve">
     <value>Nie znaleziono konta.</value>
   </data>
+  <data name="MsaAuthorizationCancelled" xml:space="preserve">
+    <value>Tworzenie konta anulowane.</value>
+  </data>
 </root>

@@ -2667,4 +2667,7 @@
   <data name="MsaAccountNotFound" xml:space="preserve">
     <value>Račun ni najden.</value>
   </data>
+  <data name="MsaAuthorizationCancelled" xml:space="preserve">
+    <value>Ustvarjanje računa preklicano.</value>
+  </data>
 </root>

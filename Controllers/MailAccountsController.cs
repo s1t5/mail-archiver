@@ -2009,6 +2009,44 @@ var model = new MailAccountViewModel
             }
         }
 
+        // GET: MailAccounts/CancelMsaAuthorization/5 — called by the Cancel button on the
+        // device-code authorization page. If the account was never authorized (no refresh token),
+        // it is deleted entirely so the user can start over cleanly instead of leaving an
+        // orphaned unauthorised account. If it was already authorized, behaves like a normal
+        // cancel (returns to the Edit page).
+        [HttpGet]
+        public async Task<IActionResult> CancelMsaAuthorization(int id)
+        {
+            if (!await HasAccessToAccountAsync(id))
+                return NotFound();
+
+            var account = await _context.MailAccounts.FindAsync(id);
+            if (account == null)
+                return RedirectToAction(nameof(Index));
+
+            // Clean up any pending device code session state.
+            HttpContext.Session.Remove($"MsaDeviceCode_{id}");
+            HttpContext.Session.Remove($"MsaInterval_{id}");
+
+            if (account.Provider == ProviderType.MSA && string.IsNullOrEmpty(account.OAuthRefreshToken))
+            {
+                // Never authorized — delete the account entirely.
+                // Remove the user assignment first (if any), then the account.
+                var userMailAccounts = _context.UserMailAccounts.Where(uma => uma.MailAccountId == id);
+                _context.UserMailAccounts.RemoveRange(userMailAccounts);
+                _context.MailAccounts.Remove(account);
+                await _context.SaveChangesAsync();
+
+                _logger.LogInformation("Deleted unauthorised MSA account {AccountId} ({Name}) after cancellation",
+                    id, account.Name);
+                TempData["InfoMessage"] = _localizer["MsaAuthorizationCancelled"].Value;
+                return RedirectToAction(nameof(Index));
+            }
+
+            // Already authorized — treat as a normal cancel and return to the edit page.
+            return RedirectToAction(nameof(Edit), new { id });
+        }
+
         // Helper method to extract domain from email address
         private string ExtractDomain(string emailAddress)
         {
