@@ -2932,4 +2932,10 @@
   <data name="OidcPasswordManagedExternally" xml:space="preserve">
     <value>To jest użytkownik OIDC. Zarządzanie hasłem jest obsługiwane przez dostawcę OIDC.</value>
   </data>
+  <data name="BackgroundJobsActiveCount" xml:space="preserve">
+    <value>{0} zadań w tle jest obecnie uruchomionych.</value>
+  </data>
+  <data name="AutoRefreshInfo" xml:space="preserve">
+    <value>Automatyczne odświeżanie za {0}s</value>
+  </data>
 </root>

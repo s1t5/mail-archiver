@@ -2878,4 +2878,10 @@
   <data name="OidcPasswordManagedExternally" xml:space="preserve">
     <value>Ez egy OIDC felhasználó. A jelszókezelést az OIDC szolgáltató végzi.</value>
   </data>
+  <data name="BackgroundJobsActiveCount" xml:space="preserve">
+    <value>{0} háttérfeladat fut jelenleg.</value>
+  </data>
+  <data name="AutoRefreshInfo" xml:space="preserve">
+    <value>Automatikus frissítés {0}s múlva</value>
+  </data>
 </root>

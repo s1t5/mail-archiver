@@ -2886,4 +2886,10 @@
   <data name="OidcPasswordManagedExternally" xml:space="preserve">
     <value>Это пользователь OIDC. Управление паролем осуществляется провайдером OIDC.</value>
   </data>
+  <data name="BackgroundJobsActiveCount" xml:space="preserve">
+    <value>{0} фоновых задач(а) выполняется.</value>
+  </data>
+  <data name="AutoRefreshInfo" xml:space="preserve">
+    <value>Автообновление через {0}s</value>
+  </data>
 </root>

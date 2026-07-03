@@ -2886,4 +2886,10 @@
   <data name="OidcPasswordManagedExternally" xml:space="preserve">
     <value>Questo è un utente OIDC. La gestione della password è gestita dal provider OIDC.</value>
   </data>
+  <data name="BackgroundJobsActiveCount" xml:space="preserve">
+    <value>{0} attività in background in esecuzione.</value>
+  </data>
+  <data name="AutoRefreshInfo" xml:space="preserve">
+    <value>Aggiornamento automatico tra {0}s</value>
+  </data>
 </root>

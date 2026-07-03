@@ -2886,4 +2886,10 @@
   <data name="OidcPasswordManagedExternally" xml:space="preserve">
     <value>To je uporabnik OIDC. Upravljanje gesel obravnava ponudnik OIDC.</value>
   </data>
+  <data name="BackgroundJobsActiveCount" xml:space="preserve">
+    <value>{0} opravil v ozadju se izvaja.</value>
+  </data>
+  <data name="AutoRefreshInfo" xml:space="preserve">
+    <value>Samodejna osvežitev čez {0}s</value>
+  </data>
 </root>
