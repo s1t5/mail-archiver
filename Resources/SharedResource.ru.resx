@@ -2874,4 +2874,7 @@
   <data name="MsaBadge" xml:space="preserve">
     <value>MSA (личный)</value>
   </data>
+  <data name="MsaAuthAfterSaveInfo" xml:space="preserve">
+    <value>После сохранения вы будете перенаправлены в Microsoft для авторизации доступа к вашему почтовому ящику.</value>
+  </data>
 </root>

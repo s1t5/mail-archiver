@@ -2920,4 +2920,7 @@
   <data name="MsaBadge" xml:space="preserve">
     <value>MSA (osobiste)</value>
   </data>
+  <data name="MsaAuthAfterSaveInfo" xml:space="preserve">
+    <value>Po zapisaniu nastąpi przekierowanie do firmy Microsoft w celu autoryzacji dostępu do skrzynki pocztowej.</value>
+  </data>
 </root>

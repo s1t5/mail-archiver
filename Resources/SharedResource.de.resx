@@ -2875,4 +2875,7 @@
   <data name="MsaBadge" xml:space="preserve">
     <value>MSA (persönlich)</value>
   </data>
+  <data name="MsaAuthAfterSaveInfo" xml:space="preserve">
+    <value>Nach dem Speichern werden Sie automatisch zu Microsoft weitergeleitet, um den Zugriff auf Ihr Postfach zu autorisieren.</value>
+  </data>
 </root>

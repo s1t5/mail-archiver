@@ -133,6 +133,8 @@ namespace MailArchiver.Services
             };
             var response = await client.PostAsync($"{Authority}/token", new FormUrlEncodedContent(body));
             var json = await response.Content.ReadAsStringAsync();
+            _logger.LogInformation("MSA poll: Microsoft token endpoint responded {StatusCode}: {Body}",
+                response.StatusCode, json);
             using var doc = JsonDocument.Parse(json);
             var root = doc.RootElement;
 

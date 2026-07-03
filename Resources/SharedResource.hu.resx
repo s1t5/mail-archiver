@@ -2866,4 +2866,7 @@
   <data name="MsaBadge" xml:space="preserve">
     <value>MSA (személyes)</value>
   </data>
+  <data name="MsaAuthAfterSaveInfo" xml:space="preserve">
+    <value>Mentés után a rendszer átirányítja a Microsofthoz a postafiók hozzáférésének engedélyezéséhez.</value>
+  </data>
 </root>

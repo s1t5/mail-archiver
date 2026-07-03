@@ -32,9 +32,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
     [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
     
-    // Auto-Dismiss für Alerts nach 5 Sekunden (außer persistent Alerts)
+    // Auto-Dismiss für dismissible Alerts nach 5 Sekunden (außer persistent Alerts)
     setTimeout(() => {
-        const alerts = document.querySelectorAll('.alert:not(.alert-persistent)');
+        const alerts = document.querySelectorAll('.alert.alert-dismissible:not(.alert-persistent)');
         alerts.forEach(alert => {
             const bsAlert = new bootstrap.Alert(alert);
             bsAlert.close();

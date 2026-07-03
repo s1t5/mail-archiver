@@ -2861,4 +2861,7 @@
   <data name="MsaBadge" xml:space="preserve">
     <value>MSA (personal)</value>
   </data>
+  <data name="MsaAuthAfterSaveInfo" xml:space="preserve">
+    <value>After saving, you will be redirected to Microsoft to authorize access to your mailbox.</value>
+  </data>
 </root>

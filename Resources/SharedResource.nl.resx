@@ -2874,4 +2874,7 @@
   <data name="MsaBadge" xml:space="preserve">
     <value>MSA (persoonlijk)</value>
   </data>
+  <data name="MsaAuthAfterSaveInfo" xml:space="preserve">
+    <value>Na het opslaan wordt u doorverwezen naar Microsoft om toegang tot uw postvak te autoriseren.</value>
+  </data>
 </root>

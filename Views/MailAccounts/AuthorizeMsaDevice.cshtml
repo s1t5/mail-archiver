@@ -46,15 +46,11 @@
     let currentIntervalMs = @(Model.PollIntervalSeconds * 1000);
     const statusBox = document.getElementById('statusBox');
 
-    // Localized strings emitted as JSON-safe literals for JS
-    const successMsg = @JsonSerializer.Serialize(successMsg);
-    const errorPrefix = @JsonSerializer.Serialize(errorPrefix);
-    const retryLabel = @JsonSerializer.Serialize(retryLabel);
-    const waitingMsg = @JsonSerializer.Serialize(Localizer["MsaWaitingForAuthorization"].Value);
-
-    // Track auto-restart attempts to avoid infinite reload loops on persistent errors.
-    const restartKey = `msaRestartCount_${accountId}`;
-    const MAX_RESTARTS = 3;
+    // Localized strings emitted as JSON-safe literals for JS (Html.Raw prevents Razor HTML-encoding)
+    const successMsg = @Html.Raw(JsonSerializer.Serialize(successMsg));
+    const errorPrefix = @Html.Raw(JsonSerializer.Serialize(errorPrefix));
+    const retryLabel = @Html.Raw(JsonSerializer.Serialize(retryLabel));
+    const waitingMsg = @Html.Raw(JsonSerializer.Serialize(Localizer["MsaWaitingForAuthorization"].Value));
 
     function showWaiting() {
         statusBox.className = 'alert alert-info d-flex align-items-center gap-3';
@@ -77,18 +73,9 @@
                 return;
             }
             if (data.status === 'error') {
-                // On error (session expired, terminal OAuth error, etc.), auto-restart
-                // the device code flow so the waiting message persists. The user stays
-                // on the same page and gets a fresh code. Stop after MAX_RESTARTS to
-                // avoid infinite loops on persistent failures.
-                let count = parseInt(sessionStorage.getItem(restartKey) || '0', 10);
-                if (count < MAX_RESTARTS) {
-                    sessionStorage.setItem(restartKey, String(count + 1));
-                    showWaiting();
-                    setTimeout(() => { window.location.reload(); }, 1500);
-                    return;
-                }
-                // Too many restarts — show a static error with a manual retry button.
+                // Show the error with a manual retry button. Do NOT auto-reload —
+                // reloading creates a new device code and discards the one the user
+                // may have already authorized on the Microsoft page.
                 const safeMsg = document.createElement('span');
                 safeMsg.textContent = data.message;
                 setStatus('danger', `<i class="bi bi-x-circle-fill me-2"></i><strong>${errorPrefix}</strong> ${safeMsg.innerHTML} &nbsp;<a href="/MailAccounts/AuthorizeMsaDevice/${accountId}" class="btn btn-sm btn-outline-danger ms-2">${retryLabel}</a>`);
@@ -96,7 +83,6 @@
             }
             // pending — keep the waiting message visible and continue polling.
             showWaiting();
-            sessionStorage.removeItem(restartKey); // reset restart counter on successful pending
             if (typeof data.interval === 'number' && data.interval > 0) {
                 currentIntervalMs = data.interval * 1000;
             }

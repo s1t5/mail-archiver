@@ -2874,4 +2874,7 @@
   <data name="MsaBadge" xml:space="preserve">
     <value>MSA (osebni)</value>
   </data>
+  <data name="MsaAuthAfterSaveInfo" xml:space="preserve">
+    <value>Po shranjevanju boste preusmerjeni na Microsoft za avtorizacijo dostopa do vašega nabiralnika.</value>
+  </data>
 </root>
