@@ -2884,4 +2884,7 @@
   <data name="AutoRefreshInfo" xml:space="preserve">
     <value>Automatikus frissítés {0}s múlva</value>
   </data>
+  <data name="WelcomeBack" xml:space="preserve">
+    <value>Üdvözöljük újra, {0}</value>
+  </data>
 </root>

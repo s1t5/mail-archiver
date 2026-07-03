@@ -2892,4 +2892,7 @@
   <data name="AutoRefreshInfo" xml:space="preserve">
     <value>Samodejna osvežitev čez {0}s</value>
   </data>
+  <data name="WelcomeBack" xml:space="preserve">
+    <value>Dobrodošli nazaj, {0}</value>
+  </data>
 </root>

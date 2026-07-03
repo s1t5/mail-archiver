@@ -1297,3 +1297,254 @@ body.resizing-folder-tree {
 .msa-info-banner .bi {
   color: #0c5460;
 }
+
+/* ======================================================= */
+/*    Dashboard Visual Polish                               */
+/* ======================================================= */
+
+/* Hero Header */
+.dashboard-hero {
+  padding-bottom: 1rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.dashboard-hero .hero-subtitle {
+  color: var(--text-muted, #6c757d);
+  font-size: 0.9rem;
+  margin-top: 0.25rem;
+}
+
+/* Modern Stat Cards */
+.stat-card-modern {
+  position: relative;
+  overflow: hidden;
+  border-radius: 10px;
+  border: none;
+  border-top: 3px solid rgba(255, 255, 255, 0.25);
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+              box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.stat-card-modern .card-body {
+  position: relative;
+  z-index: 2;
+  padding: 1.25rem;
+}
+
+.stat-card-modern .stat-icon {
+  position: absolute;
+  bottom: -20px;
+  right: -10px;
+  font-size: 6rem;
+  opacity: 0.12;
+  z-index: 1;
+  transform: rotate(-12deg);
+  pointer-events: none;
+}
+
+.stat-card-modern .stat-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.25rem;
+  opacity: 0.85;
+}
+
+.stat-card-modern .stat-value {
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin-bottom: 0;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+}
+
+.stat-card-modern:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+}
+
+/* Gradient backgrounds per color */
+.stat-card-modern.bg-primary {
+  background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%) !important;
+}
+.stat-card-modern.bg-success {
+  background: linear-gradient(135deg, #198754 0%, #14744a 100%) !important;
+}
+.stat-card-modern.bg-info {
+  background: linear-gradient(135deg, #0dcaf0 0%, #0bb8d6 100%) !important;
+}
+.stat-card-modern.bg-warning {
+  background: linear-gradient(135deg, #ffc107 0%, #f0b400 100%) !important;
+}
+
+/* Chart body subtle tint */
+.dashboard-chart-body {
+  background: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.02) 100%);
+}
+
+/* Recent Email Items */
+.recent-email-item {
+  transition: background-color 0.2s ease, border-left-color 0.2s ease;
+  border-left: 3px solid transparent;
+}
+
+.recent-email-item:hover {
+  background-color: rgba(0, 0, 0, 0.03);
+  border-left-color: var(--primary-color, #3498db);
+}
+
+.recent-email-item .avatar-initial {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: white;
+  flex-shrink: 0;
+  flex-grow: 0;
+}
+
+.avatar-color-0 { background-color: #3498db; }
+.avatar-color-1 { background-color: #e74c3c; }
+.avatar-color-2 { background-color: #2ecc71; }
+.avatar-color-3 { background-color: #f39c12; }
+.avatar-color-4 { background-color: #9b59b6; }
+.avatar-color-5 { background-color: #1abc9c; }
+.avatar-color-6 { background-color: #e67e22; }
+.avatar-color-7 { background-color: #34495e; }
+
+.recent-email-item .direction-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 0.4rem;
+  flex-shrink: 0;
+}
+
+.direction-dot.incoming { background-color: #2ecc71; }
+.direction-dot.outgoing { background-color: #3498db; }
+
+.recent-email-item .relative-date {
+  font-size: 0.75rem;
+  color: var(--text-muted, #6c757d);
+  margin-top: 0.15rem;
+}
+
+/* Action Cards (Quick Actions) */
+.action-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem 0.75rem;
+  border-radius: 10px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  background: var(--card-bg, #fff);
+  text-decoration: none;
+  color: inherit;
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+              box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+              border-color 0.25s ease;
+  height: 100%;
+  text-align: center;
+}
+
+.action-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+  border-color: var(--primary-color, #3498db);
+  text-decoration: none;
+  color: inherit;
+}
+
+.action-card .action-icon-circle {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.5rem;
+}
+
+.action-card .action-icon-circle i {
+  font-size: 1.35rem;
+}
+
+.action-card .action-label {
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.action-card.action-primary .action-icon-circle { background-color: rgba(13, 110, 253, 0.1); color: #0d6efd; }
+.action-card.action-success .action-icon-circle { background-color: rgba(25, 135, 84, 0.1); color: #198754; }
+.action-card.action-info .action-icon-circle { background-color: rgba(13, 202, 240, 0.1); color: #0dcaf0; }
+.action-card.action-warning .action-icon-circle { background-color: rgba(255, 193, 7, 0.1); color: #ffc107; }
+
+/* Empty state refinement */
+.dashboard-empty-state {
+  padding: 2.5rem 1rem;
+}
+
+.dashboard-empty-state .empty-icon {
+  font-size: 3rem;
+  opacity: 0.25;
+  display: block;
+  margin-bottom: 0.75rem;
+}
+
+.dashboard-empty-state .empty-text {
+  font-size: 1.05rem;
+  color: var(--text-muted, #6c757d);
+}
+
+/* Animations */
+@keyframes countUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes staggerFadeIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.stat-card-modern .stat-value {
+  animation: countUp 0.6s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+.action-card {
+  animation: staggerFadeIn 0.5s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+.action-card:nth-child(1) { animation-delay: 0.05s; }
+.action-card:nth-child(2) { animation-delay: 0.1s; }
+.action-card:nth-child(3) { animation-delay: 0.15s; }
+.action-card:nth-child(4) { animation-delay: 0.2s; }
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .stat-card-modern,
+  .action-card,
+  .recent-email-item,
+  .stat-card-modern .stat-value {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .stat-card-modern:hover,
+  .action-card:hover {
+    transform: none !important;
+  }
+}
+
+/* Flexbox min-width utility (Bootstrap 5.1 doesn't include min-w-0) */
+.flex-min-0 {
+  min-width: 0;
+}

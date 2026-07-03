@@ -2891,4 +2891,7 @@
   <data name="AutoRefreshInfo" xml:space="preserve">
     <value>Actualización automática en {0}s</value>
   </data>
+  <data name="WelcomeBack" xml:space="preserve">
+    <value>Bienvenido de nuevo, {0}</value>
+  </data>
 </root>

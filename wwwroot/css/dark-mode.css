@@ -727,3 +727,73 @@
   border-bottom: 1px solid var(--border-color);
   color: var(--text-color);
 }
+
+/* ======================================================= */
+/*    Dashboard Visual Polish — Dark Mode                   */
+/* ======================================================= */
+
+[data-theme="dark"] .dashboard-hero {
+  border-bottom-color: var(--border-color);
+}
+
+[data-theme="dark"] .dashboard-hero .hero-subtitle {
+  color: var(--text-muted);
+}
+
+[data-theme="dark"] .stat-card-modern.bg-primary {
+  background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%) !important;
+}
+
+[data-theme="dark"] .stat-card-modern.bg-success {
+  background: linear-gradient(135deg, #198754 0%, #12573f 100%) !important;
+}
+
+[data-theme="dark"] .stat-card-modern.bg-info {
+  background: linear-gradient(135deg, #0dcaf0 0%, #0a9ab5 100%) !important;
+}
+
+[data-theme="dark"] .stat-card-modern.bg-warning {
+  background: linear-gradient(135deg, #ffc107 0%, #cc9a00 100%) !important;
+}
+
+[data-theme="dark"] .stat-card-modern .stat-icon {
+  opacity: 0.08;
+}
+
+[data-theme="dark"] .dashboard-chart-body {
+  background: linear-gradient(180deg, transparent 0%, rgba(255, 255, 255, 0.02) 100%);
+}
+
+[data-theme="dark"] .recent-email-item:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+  border-left-color: var(--primary-color);
+}
+
+[data-theme="dark"] .recent-email-item .relative-date {
+  color: var(--text-muted);
+}
+
+[data-theme="dark"] .action-card {
+  background: var(--card-bg);
+  border-color: var(--border-color);
+  color: var(--text-color);
+}
+
+[data-theme="dark"] .action-card:hover {
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+  border-color: var(--primary-color);
+  color: var(--text-color);
+}
+
+[data-theme="dark"] .action-card.action-primary .action-icon-circle { background-color: rgba(13, 110, 253, 0.15); color: #4dabf7; }
+[data-theme="dark"] .action-card.action-success .action-icon-circle { background-color: rgba(25, 135, 84, 0.15); color: #40c781; }
+[data-theme="dark"] .action-card.action-info .action-icon-circle { background-color: rgba(13, 202, 240, 0.15); color: #3fd0f5; }
+[data-theme="dark"] .action-card.action-warning .action-icon-circle { background-color: rgba(255, 193, 7, 0.15); color: #ffd43b; }
+
+[data-theme="dark"] .dashboard-empty-state .empty-text {
+  color: var(--text-muted);
+}
+
+[data-theme="dark"] .dashboard-empty-state .empty-icon {
+  opacity: 0.15;
+}
