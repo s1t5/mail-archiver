@@ -2557,7 +2557,7 @@
     <value>Réessayer</value>
   </data>
   <data name="MsaProviderLabel" xml:space="preserve">
-    <value>MS Personnel</value>
+    <value>Microsoft Personnel</value>
   </data>
   <data name="MsaSettingsHeading" xml:space="preserve">
     <value>Compte personnel Microsoft (Outlook.com / M365 Family)</value>

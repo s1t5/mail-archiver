@@ -75,15 +75,7 @@
                 <div id="msaSettings" style="display: none;">
                     <h4 class="mt-4">@Localizer["MsaSettingsHeading"]</h4>
 
-                    @if (ViewBag.MsaHasDefaultClientId == true)
-                    {
-                        <div class="alert alert-success mb-3">
-                            <i class="bi bi-check-circle-fill"></i>
-                            <strong>@Localizer["MsaNoAppRegistrationNeeded"]</strong>
-                            @Html.Raw(string.Format(Localizer["MsaDefaultClientInfoCreate"].Value, $"<strong>{Localizer["MsaAuthorize"]}</strong>"))
-                        </div>
-                    }
-                    else
+                    @if (ViewBag.MsaHasDefaultClientId != true)
                     {
                         <details class="mb-3" open>
                             <summary style="cursor:pointer;" class="text-muted">

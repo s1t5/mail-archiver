@@ -2557,7 +2557,7 @@
     <value>Повторить</value>
   </data>
   <data name="MsaProviderLabel" xml:space="preserve">
-    <value>MS Личный</value>
+    <value>Microsoft Личный</value>
   </data>
   <data name="MsaSettingsHeading" xml:space="preserve">
     <value>Личная учётная запись Microsoft (Outlook.com / M365 Family)</value>

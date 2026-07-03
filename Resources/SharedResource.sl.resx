@@ -2557,7 +2557,7 @@
     <value>Poskusi znova</value>
   </data>
   <data name="MsaProviderLabel" xml:space="preserve">
-    <value>MS Osebni</value>
+    <value>Microsoft Osebni</value>
   </data>
   <data name="MsaSettingsHeading" xml:space="preserve">
     <value>Osebni Microsoftov račun (Outlook.com / M365 Family)</value>

@@ -98,14 +98,7 @@
                         </div>
                     }
 
-                    @if (ViewBag.MsaHasDefaultClientId == true)
-                    {
-                        <div class="alert alert-info mb-3">
-                            <i class="bi bi-info-circle-fill"></i>
-                            @Localizer["MsaDefaultClientInfoEdit"]
-                        </div>
-                    }
-                    else
+                    @if (ViewBag.MsaHasDefaultClientId != true)
                     {
                         <details class="mb-3">
                             <summary style="cursor:pointer;" class="text-muted">
@@ -128,29 +121,20 @@
                                 <p class="small text-muted mb-0">@Localizer["MsaNoSecretNeededShort"]</p>
                             </div>
                         </details>
-                    }
 
-                    <div class="mb-3">
-                        <label asp-for="MsaClientId" class="form-label">@Localizer["ClientId"]</label>
-                        <input asp-for="MsaClientId" class="form-control" placeholder="@Localizer["MsaClientIdPlaceholder"]" />
-                        <div class="form-text">
-                            @if (ViewBag.MsaHasDefaultClientId == true)
-                            {
-                                @Localizer["MsaClientIdOptionalHint"]
-                            }
-                            else
-                            {
-                                @Localizer["MsaClientIdKeepExisting"]
-                            }
+                        <div class="mb-3">
+                            <label asp-for="MsaClientId" class="form-label">@Localizer["ClientId"]</label>
+                            <input asp-for="MsaClientId" class="form-control" placeholder="@Localizer["MsaClientIdPlaceholder"]" />
+                            <div class="form-text">@Localizer["MsaClientIdKeepExisting"]</div>
+                            <span asp-validation-for="MsaClientId" class="text-danger"></span>
                         </div>
-                        <span asp-validation-for="MsaClientId" class="text-danger"></span>
-                    </div>
-                    <div class="mb-3">
-                        <label asp-for="MsaClientSecret" class="form-label">@Localizer["ClientSecret"] <span class="text-muted fw-normal">@Localizer["MsaClientSecretOptional"]</span></label>
-                        <input asp-for="MsaClientSecret" class="form-control" type="password" placeholder="@Localizer["MsaClientSecretPlaceholderEdit"]" />
-                        <div class="form-text">@Localizer["MsaClientSecretHint"]</div>
-                        <span asp-validation-for="MsaClientSecret" class="text-danger"></span>
-                    </div>
+                        <div class="mb-3">
+                            <label asp-for="MsaClientSecret" class="form-label">@Localizer["ClientSecret"] <span class="text-muted fw-normal">@Localizer["MsaClientSecretOptional"]</span></label>
+                            <input asp-for="MsaClientSecret" class="form-control" type="password" placeholder="@Localizer["MsaClientSecretPlaceholderEdit"]" />
+                            <div class="form-text">@Localizer["MsaClientSecretHint"]</div>
+                            <span asp-validation-for="MsaClientSecret" class="text-danger"></span>
+                        </div>
+                    }
 
                     @if (Model.Id != 0)
                     {

@@ -2549,7 +2549,7 @@
     <value>Újrapróbálkozás</value>
   </data>
   <data name="MsaProviderLabel" xml:space="preserve">
-    <value>MS Személyes</value>
+    <value>Microsoft Személyes</value>
   </data>
   <data name="MsaSettingsHeading" xml:space="preserve">
     <value>Személyes Microsoft-fiók (Outlook.com / M365 Family)</value>

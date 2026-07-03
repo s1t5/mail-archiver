@@ -2557,7 +2557,7 @@
     <value>Riprova</value>
   </data>
   <data name="MsaProviderLabel" xml:space="preserve">
-    <value>MS Personale</value>
+    <value>Microsoft Personale</value>
   </data>
   <data name="MsaSettingsHeading" xml:space="preserve">
     <value>Account personale Microsoft (Outlook.com / M365 Family)</value>

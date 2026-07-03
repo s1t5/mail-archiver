@@ -2556,7 +2556,7 @@
     <value>Reintentar</value>
   </data>
   <data name="MsaProviderLabel" xml:space="preserve">
-    <value>MS Personal</value>
+    <value>Microsoft Personal</value>
   </data>
   <data name="MsaSettingsHeading" xml:space="preserve">
     <value>Cuenta personal de Microsoft (Outlook.com / M365 Family)</value>

@@ -2603,7 +2603,7 @@
     <value>Spróbuj ponownie</value>
   </data>
   <data name="MsaProviderLabel" xml:space="preserve">
-    <value>MS Osobiste</value>
+    <value>Microsoft Osobiste</value>
   </data>
   <data name="MsaSettingsHeading" xml:space="preserve">
     <value>Osobiste konto Microsoft (Outlook.com / M365 Family)</value>
