@@ -185,6 +185,7 @@
 
 @section Scripts {
     <script>
+        const deletionCompletedMsg = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["DeletionCompletedSuccessfully"].Value));
         document.addEventListener('DOMContentLoaded', function() {
             // Auto-refresh if the job is still running
             @if (Model.Status == MailArchiver.Models.MailAccountDeletionJobStatus.Queued || Model.Status == MailArchiver.Models.MailAccountDeletionJobStatus.Running)
@@ -200,7 +201,7 @@
                 <text>
                 // Show success notification
                 if (typeof window.showNotification === 'function') {
-                    window.showNotification('@Localizer["DeletionCompletedSuccessfully"]', 'success');
+                    window.showNotification(deletionCompletedMsg, 'success');
                 }
                 </text>
             }

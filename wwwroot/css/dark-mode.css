@@ -87,6 +87,27 @@
   color: var(--text-color);
 }
 
+/* Dark Mode für Input Group Addons (z.B. Suchfeld-Lupe) */
+[data-theme="dark"] .input-group-text {
+  background-color: var(--form-control-bg);
+  border: 1px solid var(--form-control-border);
+  color: var(--text-color);
+}
+
+[data-theme="dark"] .input-group-text .bi {
+  color: var(--text-color);
+}
+
+/* Dark Mode für Form-Select Dropdown-Pfeil */
+[data-theme="dark"] .form-select {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23e2e8f0' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
+}
+
+[data-theme="dark"] .form-select:disabled {
+  background-color: var(--table-hover-bg);
+  color: var(--text-muted);
+}
+
 [data-theme="dark"] .form-label {
   color: var(--text-color);
 }
@@ -327,6 +348,12 @@
 [data-theme="dark"] .card-header.bg-light {
   background-color: rgba(255, 255, 255, 0.05) !important;
   border-bottom: 1px solid var(--border-color);
+}
+
+/* Dark Mode für nested card (Mandantschafts-Postfächer) */
+[data-theme="dark"] .card.border-light.bg-light {
+  background-color: var(--card-bg) !important;
+  border-color: var(--border-color) !important;
 }
 
 /* Zusätzliche Dark Mode Regeln für Tabellen */

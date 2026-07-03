@@ -1,5 +1,6 @@
 using MailArchiver.Data;
 using MailArchiver.Models;
+using MailArchiver.Services;
 using MailArchiver.Services.Providers.Eml;
 using MailArchiver.Services.Shared;
 using MailArchiver.Utilities;
@@ -221,6 +222,18 @@ namespace MailArchiver.Services.Providers
                     job.Completed = DateTime.UtcNow;
                     _logger.LogInformation("Completed job {JobId}. Success: {Success}, Failed: {Failed}, SkippedDuplicates: {Skipped}",
                         job.JobId, job.SuccessCount, job.FailedCount, job.SkippedAlreadyExistsCount);
+
+                    // Sofort-Refresh des Speichercaches fuer den betroffenen Account
+                    try
+                    {
+                        using var storageScope = _serviceProvider.CreateScope();
+                        var storageService = storageScope.ServiceProvider.GetRequiredService<IAccountStorageService>();
+                        await storageService.RefreshAccountStorageAsync(job.TargetAccountId);
+                    }
+                    catch (Exception storageEx)
+                    {
+                        _logger.LogDebug(storageEx, "Storage cache refresh after EML import failed (non-fatal) for account {AccountId}", job.TargetAccountId);
+                    }
                 }
 
                 if (!job.KeepSourceFile) TryDeleteFile(job.FilePath);

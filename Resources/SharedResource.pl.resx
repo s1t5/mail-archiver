@@ -2379,6 +2379,18 @@
   <data name="SignInWithOAuth" xml:space="preserve">
     <value>Logowanie za pomocą OAuth</value>
   </data>
+  <data name="SignInWithOAuthProvider" xml:space="preserve">
+    <value>Logowanie za pomocą {0}</value>
+  </data>
+  <data name="RedirectingToProvider" xml:space="preserve">
+    <value>Przekierowywanie do {0}...</value>
+  </data>
+  <data name="PleaseWaitRedirectingToProvider" xml:space="preserve">
+    <value>Proszę czekać, trwa przekierowywanie do {0}...</value>
+  </data>
+  <data name="Loading" xml:space="preserve">
+    <value>Ładowanie...</value>
+  </data>
   <data name="OidcUserCannotHavePassword" xml:space="preserve">
     <value>Użytkownicy OIDC nie mogą posiadać hasła. Uwierzytelniają się oni za pośrednictwem dostawcy OIDC.</value>
   </data>
@@ -2715,5 +2727,161 @@
   </data>
   <data name="MsaAuthorizationCancelled" xml:space="preserve">
     <value>Tworzenie konta anulowane.</value>
+  </data>
+  <data name="UseTenantImport" xml:space="preserve">
+    <value>Użyj importu dzierżawy</value>
+  </data>
+  <data name="UseTenantImportHelp" xml:space="preserve">
+    <value>Ładuje skrzynki pocztowe dzierżawy i tworzy konta według schematu nazewnictwa: wprowadzona nazwa - &lt;skrzynka@przyklad.com&gt;.</value>
+  </data>
+  <data name="SkipDisabledMailboxes" xml:space="preserve">
+    <value>Pomiń wyłączone skrzynki pocztowe</value>
+  </data>
+  <data name="ImportAllListedMailboxes" xml:space="preserve">
+    <value>Importuj wszystkie wymienione skrzynki pocztowe</value>
+  </data>
+  <data name="ImportAllListedMailboxesHelp" xml:space="preserve">
+    <value>Gdy wyłączone, importowane są tylko poniżej wybrane skrzynki pocztowe.</value>
+  </data>
+  <data name="LoadMailboxes" xml:space="preserve">
+    <value>Ładuj skrzynki pocztowe</value>
+  </data>
+  <data name="TenantMailboxes" xml:space="preserve">
+    <value>Skrzynki pocztowe dzierżawy</value>
+  </data>
+  <data name="ClearSelection" xml:space="preserve">
+    <value>Wyczyść zaznaczenie</value>
+  </data>
+  <data name="NoMailboxesFound" xml:space="preserve">
+    <value>Nie znaleziono skrzynek pocztowych.</value>
+  </data>
+  <data name="DisabledLowercase" xml:space="preserve">
+    <value>wyłączone</value>
+  </data>
+  <data name="AlreadyExistsLowercase" xml:space="preserve">
+    <value>już istnieje</value>
+  </data>
+  <data name="LoadingMailboxes" xml:space="preserve">
+    <value>Ładowanie skrzynek pocztowych...</value>
+  </data>
+  <data name="MailboxesCouldNotBeLoaded" xml:space="preserve">
+    <value>Nie można załadować skrzynek pocztowych.</value>
+  </data>
+  <data name="MailboxesFound" xml:space="preserve">
+    <value>Znaleziono {0} skrzynkę(i) pocztowe.</value>
+  </data>
+  <data name="M365MailboxDefaultName" xml:space="preserve">
+    <value>Skrzynka pocztowa M365</value>
+  </data>
+  <data name="NoEnabledM365UsersFound" xml:space="preserve">
+    <value>W tej dzierżawie nie znaleziono włączonych użytkowników M365 z adresem e-mail lub nazwą główną użytkownika.</value>
+  </data>
+  <data name="SelectAtLeastOneMailboxOrImportAll" xml:space="preserve">
+    <value>Wybierz przynajmniej jedną skrzynkę pocztową lub włącz importowanie wszystkich wymienionych skrzynek pocztowych.</value>
+  </data>
+  <data name="AllSelectedM365TenantMailboxesAlreadyExist" xml:space="preserve">
+    <value>Wszystkie {0} wybrane skrzynki pocztowe dzierżawy M365 już istnieją.</value>
+  </data>
+  <data name="ImportedM365TenantAccounts" xml:space="preserve">
+    <value>Zaimportowano {0} kont e-mail dzierżawy M365. Pominięto {1} istniejących kont.</value>
+  </data>
+  <data name="M365TenantCredentialsRequired" xml:space="preserve">
+    <value>ID klienta, tajny klucz klienta i ID dzierżawy są wymagane do wyświetlania skrzynek pocztowych dzierżawy.</value>
+  </data>
+  <data name="M365TenantMailboxesCouldNotBeListed" xml:space="preserve">
+    <value>Nie można wyświetlić skrzynek pocztowych dzierżawy. Sprawdź dane logowania M365 i uprawnienia.</value>
+  </data>
+  <data name="M365TenantAccountsCouldNotBeImported" xml:space="preserve">
+    <value>Nie można zaimportować kont dzierżawy M365. Sprawdź dane logowania i uprawnienia.</value>
+  </data>
+  <data name="NameRequired" xml:space="preserve">
+    <value>Nazwa jest wymagana</value>
+  </data>
+  <data name="EmailAddressRequired" xml:space="preserve">
+    <value>Adres e-mail jest wymagany</value>
+  </data>
+  <data name="ProviderM365Single" xml:space="preserve">
+    <value>Microsoft 365 (pojedyncza skrzynka)</value>
+  </data>
+  <data name="ProviderM365Tenant" xml:space="preserve">
+    <value>Microsoft 365 (dzierżawa)</value>
+  </data>
+  <data name="LoadMailboxesHelp" xml:space="preserve">
+    <value>Ładuj listę skrzynek pocztowych dzierżawy, aby wybrać, które konta mają być importowane.</value>
+  </data>
+  <data name="InvalidImportFileType" xml:space="preserve">
+    <value>Nieprawidłowy typ pliku. Dozwolone rozszerzenia: .mbox, .eml, .zip</value>
+  </data>
+  <data name="ClientSecretWillBeCopiedOnSave" xml:space="preserve">
+    <value>Tajny klucz klienta zostanie skopiowany z wybranego istniejącego konta podczas zapisywania.</value>
+  </data>
+  <data name="ClientSecretRequired" xml:space="preserve">
+    <value>Tajny klucz klienta jest wymagany dla kont M365</value>
+  </data>
+  <data name="TenantManagement" xml:space="preserve">
+    <value>Zarządzanie dzierżawą</value>
+  </data>
+  <data name="TenantManagementTitle" xml:space="preserve">
+    <value>Zarządzanie dzierżawą</value>
+  </data>
+  <data name="TenantManagementHelp" xml:space="preserve">
+    <value>Dodaj brakujące skrzynki pocztowe z tej dzierżawy. Nowe konta używają poświadczeń konta źródłowego.</value>
+  </data>
+  <data name="AddSelectedMailboxes" xml:space="preserve">
+    <value>Dodaj wybrane skrzynki pocztowe</value>
+  </data>
+  <data name="MailboxesAdded" xml:space="preserve">
+    <value>{0} skrzynek pocztowych dodanych.</value>
+  </data>
+  <data name="NoNewMailboxesToAdd" xml:space="preserve">
+    <value>Brak nowych skrzynek pocztowych do dodania.</value>
+  </data>
+  <data name="SelectAtLeastOneMailboxForManagement" xml:space="preserve">
+    <value>Wybierz co najmniej jedną skrzynkę pocztową do dodania.</value>
+  </data>
+  <data name="MoreActions" xml:space="preserve">
+    <value>Więcej akcji</value>
+  </data>
+  <data name="AccountNameTooLong" xml:space="preserve">
+    <value>Nazwa konta musi mieć co najwyżej 200 znaków.</value>
+  </data>
+  <data name="SelectAtMostMailboxes" xml:space="preserve">
+    <value>Wybierz jednorazowo co najwyżej {0} skrzynek pocztowych.</value>
+  </data>
+  <data name="SearchMailboxes" xml:space="preserve">
+    <value>Szukaj skrzynek pocztowych...</value>
+  </data>
+  <data name="NoMailboxesMatch" xml:space="preserve">
+    <value>Żadna skrzynka pocztowa nie pasuje do wyszukiwania.</value>
+  </data>
+  <data name="SearchAccounts" xml:space="preserve">
+    <value>Szukaj kont...</value>
+  </data>
+  <data name="NoAccountsMatch" xml:space="preserve">
+    <value>Żadne konto nie pasuje do wyszukiwania.</value>
+  </data>
+  <data name="SearchUsers" xml:space="preserve">
+    <value>Szukaj użytkowników...</value>
+  </data>
+  <data name="NoUsersMatch" xml:space="preserve">
+    <value>Żaden użytkownik nie pasuje do wyszukiwania.</value>
+  </data>
+  <data name="AccountsFound" xml:space="preserve">
+    <value>Znaleziono {0} kont</value>
+  </data>
+  <data name="UsersFound" xml:space="preserve">
+    <value>Znaleziono {0} użytkowników</value>
+  </data>
+  <data name="RenameExistingAccounts" xml:space="preserve">
+    <value>Zmień nazwy istniejących kont</value>
+  </data>
+  <data name="RenameExistingAccountsHelp" xml:space="preserve">
+    <value>Po zapisaniu zastosuj schemat nazewnictwa do wszystkich kont M365 korzystających z tej samej rejestracji aplikacji.</value>
+  </data>
+  <data name="AccountsRenamed" xml:space="preserve">
+    <value>Zmieniono nazwę {0} kont(a).</value>
+  </data>
+  <data name="MailboxesAddedAndAccountsRenamed" xml:space="preserve">
+    <value>Dodano {0} skrzynkę(i) pocztową(ich) i zmieniono nazwę {1} kont(a).</value>
   </data>
 </root>

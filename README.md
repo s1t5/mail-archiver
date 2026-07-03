@@ -10,7 +10,6 @@
   <a href="#"><img src="https://img.shields.io/badge/.NET-512BD4?style=for-the-badge&logo=dotnet&logoColor=white" alt=".NET"></a>
   <a href="#"><img src="https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white" alt="PostgreSQL"></a>
   <a href="#"><img src="https://img.shields.io/badge/Bootstrap-563D7C?style=for-the-badge&logo=bootstrap&logoColor=white" alt="Bootstrap"></a>
-  <a href="https://github.com/s1t5/mail-archiver"><img src="https://img.shields.io/github/stars/s1t5/mail-archiver?style=for-the-badge&logo=github" alt="GitHub Stars"></a>
   <a href="https://www.buymeacoffee.com/s1t5" target="_blank"><img src="https://img.shields.io/badge/Buy%20Me%20a%20Coffee-s1t5-FFDD00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=black" alt="Buy Me a Coffee"></a>
   <a href="https://ko-fi.com/s1t5dev" target="_blank"><img src="https://img.shields.io/badge/Ko--Fi-s1t5dev-FF5E5B?style=for-the-badge&logo=ko-fi&logoColor=white" alt="Ko-fi"></a>
 </div>
@@ -18,35 +17,43 @@
 ## ✨ Key Features
 
 ### 📌 Core Features
-- Automated archiving of incoming and outgoing emails from multiple accounts
-- Storage of email content and attachments with scheduled synchronization
-- Mobile and desktop optimized, multilingual responsive UI with dark mode
-- OpenID Connect (OIDC) for integration of external authentication services ([OIDC Implementation Guide](doc/OIDC_Implementation.md))
+- Automated archiving from multiple accounts with scheduled sync
+- Multilingual responsive UI with dark mode
+- OpenID Connect (OIDC) authentication ([OIDC Guide](doc/OIDC_Implementation.md))
 
 ### 🔍 Search & Access
-- Advanced search across all archived emails with filtering options
-- Preview emails with attachment list
-- Export entire mail accounts as mbox files or zipped EML archives
-- Export selected individual emails or email batches
+- Advanced search with filters
+- Email preview with attachments
+- Export accounts or selected emails as mbox / zipped EML
 
 ### 👥 User Management
 - Multi-user support with account-specific permissions
-- Dashboard with statistics, storage monitoring, and sender analysis
-- Comprehensive access logging with detailed activity tracking of user activities (Access, Export, Deletion, Restore and many more) - see [Access Logging Guide](doc/Logs.md) for details
+- Dashboard with statistics and storage monitoring
+- Detailed access logging ([Access Logging Guide](doc/Logs.md))
 
 ### 🧩 Email Provider Support
 - **IMAP**: Traditional IMAP accounts with full synchronization capabilities
 - **M365**: Microsoft 365 mail accounts via Microsoft Graph API ([Setup Guide](doc/AZURE_APP_REGISTRATION_M365.md))
 - **IMPORT**: Import-only accounts for migrating existing email archives
 
+### 🏢 M365 Tenant Import
+
+- Bulk-import all Microsoft 365 mailboxes of a tenant from one form
+- Import all mailboxes or select specific ones; skips existing and disabled accounts
+- See the [M365 Tenant Import Guide](doc/M365TenantImport.md) for details
+
 ### 📥 Import & Restore Functions
-- MBox Import and EML Import (ZIP files with folder structure support)
-- Restore selected emails or entire mailboxes to destination mailboxes
+- MBox and EML (ZIP) import with folder structure support
+- Restore emails or entire mailboxes
+- **📤 Mailbox Migrations**: Copy emails between mailboxes while preserving folder structure ([Migration Guide](doc/MailboxMigration.md))
 
 ### 🗑️ Retention Policies
-- Configure automatic deletion of archived emails from mailserver after specified days ([Retention Policies Documentation](doc/RetentionPolicies.md))
-- Set retention period per email account (e.g., 30, 90, or 365 days)
-- **Local Archive Retention**: Configure separate retention period for local archive
+- Automatic deletion from mailserver after a configurable period ([Retention Policies](doc/RetentionPolicies.md))
+- Per-account retention (e.g., 30, 90, or 365 days)
+- Separate retention for the local archive
+
+### 📋 Access Log
+- The application logs various types of user activities such as Login, Opening, Searches, Exports and many more. ([Logging](doc/Logs.md))
 
 ## 📚 Documentation
 

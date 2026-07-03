@@ -2351,6 +2351,20 @@
   <data name="SignInWithOAuth" xml:space="preserve">
     <value>Login with OAuth</value>
   </data>
+  <data name="SignInWithOAuthProvider" xml:space="preserve">
+    <value>Login with {0}</value>
+  </data>
+  <data name="RedirectingToProvider" xml:space="preserve">
+    <value>Redirecting to {0}...</value>
+    <comment>{0} - OAuth provider display name</comment>
+  </data>
+  <data name="PleaseWaitRedirectingToProvider" xml:space="preserve">
+    <value>Please wait while we redirect you to {0}...</value>
+    <comment>{0} - OAuth provider display name</comment>
+  </data>
+  <data name="Loading" xml:space="preserve">
+    <value>Loading...</value>
+  </data>
   <data name="OidcUserCannotHavePassword" xml:space="preserve">
     <value>OIDC users cannot have a password. They authenticate through the OIDC provider.</value>
   </data>
@@ -2654,5 +2668,161 @@
   </data>
   <data name="MsaAuthorizationCancelled" xml:space="preserve">
     <value>Account creation cancelled.</value>
+  </data>
+  <data name="UseTenantImport" xml:space="preserve">
+    <value>Use tenant import</value>
+  </data>
+  <data name="UseTenantImportHelp" xml:space="preserve">
+    <value>Loads the tenant mailboxes and creates accounts with the naming scheme: entered name - &lt;mailbox@example.com&gt;.</value>
+  </data>
+  <data name="SkipDisabledMailboxes" xml:space="preserve">
+    <value>Skip disabled mailboxes</value>
+  </data>
+  <data name="ImportAllListedMailboxes" xml:space="preserve">
+    <value>Import all listed mailboxes</value>
+  </data>
+  <data name="ImportAllListedMailboxesHelp" xml:space="preserve">
+    <value>When disabled, only the mailboxes selected below are imported.</value>
+  </data>
+  <data name="LoadMailboxes" xml:space="preserve">
+    <value>Load mailboxes</value>
+  </data>
+  <data name="TenantMailboxes" xml:space="preserve">
+    <value>Tenant mailboxes</value>
+  </data>
+  <data name="ClearSelection" xml:space="preserve">
+    <value>Clear selection</value>
+  </data>
+  <data name="NoMailboxesFound" xml:space="preserve">
+    <value>No mailboxes found.</value>
+  </data>
+  <data name="DisabledLowercase" xml:space="preserve">
+    <value>disabled</value>
+  </data>
+  <data name="AlreadyExistsLowercase" xml:space="preserve">
+    <value>already exists</value>
+  </data>
+  <data name="LoadingMailboxes" xml:space="preserve">
+    <value>Loading mailboxes...</value>
+  </data>
+  <data name="MailboxesCouldNotBeLoaded" xml:space="preserve">
+    <value>Mailboxes could not be loaded.</value>
+  </data>
+  <data name="MailboxesFound" xml:space="preserve">
+    <value>{0} mailbox(es) found.</value>
+  </data>
+  <data name="M365MailboxDefaultName" xml:space="preserve">
+    <value>M365 Mailbox</value>
+  </data>
+  <data name="NoEnabledM365UsersFound" xml:space="preserve">
+    <value>No enabled M365 users with an email address or user principal name were found in this tenant.</value>
+  </data>
+  <data name="SelectAtLeastOneMailboxOrImportAll" xml:space="preserve">
+    <value>Select at least one mailbox or enable importing all listed mailboxes.</value>
+  </data>
+  <data name="AllSelectedM365TenantMailboxesAlreadyExist" xml:space="preserve">
+    <value>All {0} selected M365 tenant mailboxes already exist.</value>
+  </data>
+  <data name="ImportedM365TenantAccounts" xml:space="preserve">
+    <value>Imported {0} M365 tenant mail accounts. Skipped {1} existing accounts.</value>
+  </data>
+  <data name="M365TenantCredentialsRequired" xml:space="preserve">
+    <value>Client ID, client secret and tenant ID are required to list tenant mailboxes.</value>
+  </data>
+  <data name="M365TenantMailboxesCouldNotBeListed" xml:space="preserve">
+    <value>Tenant mailboxes could not be listed. Please check the M365 credentials and permissions.</value>
+  </data>
+  <data name="M365TenantAccountsCouldNotBeImported" xml:space="preserve">
+    <value>The M365 tenant accounts could not be imported. Please check the credentials and permissions.</value>
+  </data>
+  <data name="NameRequired" xml:space="preserve">
+    <value>Name is required</value>
+  </data>
+  <data name="EmailAddressRequired" xml:space="preserve">
+    <value>Email address is required</value>
+  </data>
+  <data name="ProviderM365Single" xml:space="preserve">
+    <value>Microsoft 365 (single mailbox)</value>
+  </data>
+  <data name="ProviderM365Tenant" xml:space="preserve">
+    <value>Microsoft 365 (tenant)</value>
+  </data>
+  <data name="LoadMailboxesHelp" xml:space="preserve">
+    <value>Load the list of tenant mailboxes to choose which accounts to import.</value>
+  </data>
+  <data name="InvalidImportFileType" xml:space="preserve">
+    <value>Invalid file type. Allowed extensions: .mbox, .eml, .zip</value>
+  </data>
+  <data name="ClientSecretWillBeCopiedOnSave" xml:space="preserve">
+    <value>Client secret will be copied from the selected existing account on save.</value>
+  </data>
+  <data name="ClientSecretRequired" xml:space="preserve">
+    <value>Client Secret is required for M365 accounts</value>
+  </data>
+  <data name="TenantManagement" xml:space="preserve">
+    <value>Tenant Management</value>
+  </data>
+  <data name="TenantManagementTitle" xml:space="preserve">
+    <value>Tenant Management</value>
+  </data>
+  <data name="TenantManagementHelp" xml:space="preserve">
+    <value>Add missing mailboxes from this tenant. New accounts use the credentials of the source account.</value>
+  </data>
+  <data name="AddSelectedMailboxes" xml:space="preserve">
+    <value>Add selected mailboxes</value>
+  </data>
+  <data name="MailboxesAdded" xml:space="preserve">
+    <value>{0} mailbox(es) added.</value>
+  </data>
+  <data name="NoNewMailboxesToAdd" xml:space="preserve">
+    <value>No new mailboxes to add.</value>
+  </data>
+  <data name="SelectAtLeastOneMailboxForManagement" xml:space="preserve">
+    <value>Select at least one mailbox to add.</value>
+  </data>
+  <data name="MoreActions" xml:space="preserve">
+    <value>More actions</value>
+  </data>
+  <data name="AccountNameTooLong" xml:space="preserve">
+    <value>Account name must be at most 200 characters.</value>
+  </data>
+  <data name="SelectAtMostMailboxes" xml:space="preserve">
+    <value>Select at most {0} mailboxes at once.</value>
+  </data>
+  <data name="SearchMailboxes" xml:space="preserve">
+    <value>Search mailboxes...</value>
+  </data>
+  <data name="NoMailboxesMatch" xml:space="preserve">
+    <value>No mailboxes match your search.</value>
+  </data>
+  <data name="SearchAccounts" xml:space="preserve">
+    <value>Search accounts...</value>
+  </data>
+  <data name="NoAccountsMatch" xml:space="preserve">
+    <value>No accounts match your search.</value>
+  </data>
+  <data name="SearchUsers" xml:space="preserve">
+    <value>Search users...</value>
+  </data>
+  <data name="NoUsersMatch" xml:space="preserve">
+    <value>No users match your search.</value>
+  </data>
+  <data name="AccountsFound" xml:space="preserve">
+    <value>{0} accounts found</value>
+  </data>
+  <data name="UsersFound" xml:space="preserve">
+    <value>{0} users found</value>
+  </data>
+  <data name="RenameExistingAccounts" xml:space="preserve">
+    <value>Rename existing accounts</value>
+  </data>
+  <data name="RenameExistingAccountsHelp" xml:space="preserve">
+    <value>Apply the naming scheme to all M365 accounts using the same app registration after saving.</value>
+  </data>
+  <data name="AccountsRenamed" xml:space="preserve">
+    <value>{0} account(s) renamed.</value>
+  </data>
+  <data name="MailboxesAddedAndAccountsRenamed" xml:space="preserve">
+    <value>Added {0} mailbox(es) and renamed {1} account(s).</value>
   </data>
 </root>

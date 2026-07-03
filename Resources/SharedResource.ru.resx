@@ -2335,6 +2335,18 @@
   <data name="SignInWithOAuth" xml:space="preserve">
     <value>Войти с OAuth</value>
   </data>
+  <data name="SignInWithOAuthProvider" xml:space="preserve">
+    <value>Войти с {0}</value>
+  </data>
+  <data name="RedirectingToProvider" xml:space="preserve">
+    <value>Перенаправление на {0}...</value>
+  </data>
+  <data name="PleaseWaitRedirectingToProvider" xml:space="preserve">
+    <value>Пожалуйста, подождите, пока мы перенаправим вас на {0}...</value>
+  </data>
+  <data name="Loading" xml:space="preserve">
+    <value>Загрузка...</value>
+  </data>
   <data name="CurrentSyncTime" xml:space="preserve">
     <value>Текущее время синхронизации</value>
   </data>
@@ -2669,5 +2681,161 @@
   </data>
   <data name="MsaAuthorizationCancelled" xml:space="preserve">
     <value>Создание учётной записи отменено.</value>
+  </data>
+  <data name="UseTenantImport" xml:space="preserve">
+    <value>Использовать импорт арендатора</value>
+  </data>
+  <data name="UseTenantImportHelp" xml:space="preserve">
+    <value>Загружает почтовые ящики арендатора и создает учетные записи по схеме именования: введенное имя - &lt;box@example.com&gt;.</value>
+  </data>
+  <data name="SkipDisabledMailboxes" xml:space="preserve">
+    <value>Пропустить отключенные почтовые ящики</value>
+  </data>
+  <data name="ImportAllListedMailboxes" xml:space="preserve">
+    <value>Импортировать все перечисленные почтовые ящики</value>
+  </data>
+  <data name="ImportAllListedMailboxesHelp" xml:space="preserve">
+    <value>Если отключено, импортируются только почтовые ящики, выбранные ниже.</value>
+  </data>
+  <data name="LoadMailboxes" xml:space="preserve">
+    <value>Загрузить почтовые ящики</value>
+  </data>
+  <data name="TenantMailboxes" xml:space="preserve">
+    <value>Почтовые ящики арендатора</value>
+  </data>
+  <data name="ClearSelection" xml:space="preserve">
+    <value>Очистить выбор</value>
+  </data>
+  <data name="NoMailboxesFound" xml:space="preserve">
+    <value>Почтовые ящики не найдены.</value>
+  </data>
+  <data name="DisabledLowercase" xml:space="preserve">
+    <value>отключено</value>
+  </data>
+  <data name="AlreadyExistsLowercase" xml:space="preserve">
+    <value>уже существует</value>
+  </data>
+  <data name="LoadingMailboxes" xml:space="preserve">
+    <value>Загрузка почтовых ящиков...</value>
+  </data>
+  <data name="MailboxesCouldNotBeLoaded" xml:space="preserve">
+    <value>Не удалось загрузить почтовые ящики.</value>
+  </data>
+  <data name="MailboxesFound" xml:space="preserve">
+    <value>Найдено {0} почтовый(ых) ящик(ов).</value>
+  </data>
+  <data name="M365MailboxDefaultName" xml:space="preserve">
+    <value>Почтовый ящик M365</value>
+  </data>
+  <data name="NoEnabledM365UsersFound" xml:space="preserve">
+    <value>В этом арендаторе не найдено включенных пользователей M365 с адресом электронной почты или главным именем пользователя.</value>
+  </data>
+  <data name="SelectAtLeastOneMailboxOrImportAll" xml:space="preserve">
+    <value>Выберите хотя бы один почтовый ящик или включите импорт всех перечисленных почтовых ящиков.</value>
+  </data>
+  <data name="AllSelectedM365TenantMailboxesAlreadyExist" xml:space="preserve">
+    <value>Все {0} выбранных почтовых ящиков арендатора M365 уже существуют.</value>
+  </data>
+  <data name="ImportedM365TenantAccounts" xml:space="preserve">
+    <value>Импортировано {0} учетных записей электронной почты арендатора M365. Пропущено {1} существующих учетных записей.</value>
+  </data>
+  <data name="M365TenantCredentialsRequired" xml:space="preserve">
+    <value>Идентификатор клиента, секрет клиента и идентификатор арендатора требуются для перечисления почтовых ящиков арендатора.</value>
+  </data>
+  <data name="M365TenantMailboxesCouldNotBeListed" xml:space="preserve">
+    <value>Не удалось перечислить почтовые ящики арендатора. Проверьте учетные данные M365 и разрешения.</value>
+  </data>
+  <data name="M365TenantAccountsCouldNotBeImported" xml:space="preserve">
+    <value>Не удалось импортировать учетные записи арендатора M365. Проверьте учетные данные и разрешения.</value>
+  </data>
+  <data name="NameRequired" xml:space="preserve">
+    <value>Имя обязательно</value>
+  </data>
+  <data name="EmailAddressRequired" xml:space="preserve">
+    <value>Адрес электронной почты обязателен</value>
+  </data>
+  <data name="ProviderM365Single" xml:space="preserve">
+    <value>Microsoft 365 (один почтовый ящик)</value>
+  </data>
+  <data name="ProviderM365Tenant" xml:space="preserve">
+    <value>Microsoft 365 (арендатор)</value>
+  </data>
+  <data name="LoadMailboxesHelp" xml:space="preserve">
+    <value>Загрузите список почтовых ящиков арендатора, чтобы выбрать, какие учетные записи импортировать.</value>
+  </data>
+  <data name="InvalidImportFileType" xml:space="preserve">
+    <value>Недопустимый тип файла. Разрешённые расширения: .mbox, .eml, .zip</value>
+  </data>
+  <data name="ClientSecretWillBeCopiedOnSave" xml:space="preserve">
+    <value>Секрет клиента будет скопирован из выбранной существующей учётной записи при сохранении.</value>
+  </data>
+  <data name="ClientSecretRequired" xml:space="preserve">
+    <value>Секрет клиента обязателен для учётных записей M365</value>
+  </data>
+  <data name="TenantManagement" xml:space="preserve">
+    <value>Управление арендатором</value>
+  </data>
+  <data name="TenantManagementTitle" xml:space="preserve">
+    <value>Управление арендатором</value>
+  </data>
+  <data name="TenantManagementHelp" xml:space="preserve">
+    <value>Добавьте недостающие почтовые ящики этого арендатора. Новые учётные записи используют учётные данные исходной учётной записи.</value>
+  </data>
+  <data name="AddSelectedMailboxes" xml:space="preserve">
+    <value>Добавить выбранные почтовые ящики</value>
+  </data>
+  <data name="MailboxesAdded" xml:space="preserve">
+    <value>{0} почтовых ящиков добавлено.</value>
+  </data>
+  <data name="NoNewMailboxesToAdd" xml:space="preserve">
+    <value>Нет новых почтовых ящиков для добавления.</value>
+  </data>
+  <data name="SelectAtLeastOneMailboxForManagement" xml:space="preserve">
+    <value>Выберите хотя бы один почтовый ящик для добавления.</value>
+  </data>
+  <data name="MoreActions" xml:space="preserve">
+    <value>Дополнительные действия</value>
+  </data>
+  <data name="AccountNameTooLong" xml:space="preserve">
+    <value>Имя учётной записи должно содержать не более 200 символов.</value>
+  </data>
+  <data name="SelectAtMostMailboxes" xml:space="preserve">
+    <value>Выбирайте не более {0} почтовых ящиков за раз.</value>
+  </data>
+  <data name="SearchMailboxes" xml:space="preserve">
+    <value>Поиск почтовых ящиков...</value>
+  </data>
+  <data name="NoMailboxesMatch" xml:space="preserve">
+    <value>Ни один почтовый ящик не соответствует вашему запросу.</value>
+  </data>
+  <data name="SearchAccounts" xml:space="preserve">
+    <value>Поиск учётных записей...</value>
+  </data>
+  <data name="NoAccountsMatch" xml:space="preserve">
+    <value>Ни одна учётная запись не соответствует вашему поиску.</value>
+  </data>
+  <data name="SearchUsers" xml:space="preserve">
+    <value>Поиск пользователей...</value>
+  </data>
+  <data name="NoUsersMatch" xml:space="preserve">
+    <value>Ни один пользователь не соответствует вашему поиску.</value>
+  </data>
+  <data name="AccountsFound" xml:space="preserve">
+    <value>Найдено {0} учётных записей</value>
+  </data>
+  <data name="UsersFound" xml:space="preserve">
+    <value>Найдено {0} пользователей</value>
+  </data>
+  <data name="RenameExistingAccounts" xml:space="preserve">
+    <value>Переименовать существующие учётные записи</value>
+  </data>
+  <data name="RenameExistingAccountsHelp" xml:space="preserve">
+    <value>После сохранения применить схему именования ко всем учётным записям M365, использующим ту же регистрацию приложения.</value>
+  </data>
+  <data name="AccountsRenamed" xml:space="preserve">
+    <value>Переименовано учётных записей: {0}.</value>
+  </data>
+  <data name="MailboxesAddedAndAccountsRenamed" xml:space="preserve">
+    <value>Добавлено почтовых ящиков: {0}, переименовано учётных записей: {1}.</value>
   </data>
 </root>

@@ -2,6 +2,9 @@
 @model MailArchiver.Models.ViewModels.MailAccountViewModel
 @{
     ViewData["Title"] = @Localizer["EditEmailAccount"];
+    var imapSettingsDisplay = Model.Provider == ProviderType.IMAP ? "block" : "none";
+    var microsoft365SettingsDisplay = Model.Provider == ProviderType.M365 ? "block" : "none";
+    var emailDeletionSettingsDisplay = Model.Provider == ProviderType.IMPORT ? "none" : "block";
 }
 <div class="container">
     <h1>@Localizer["EditEmailAccount"]</h1>
@@ -32,7 +35,7 @@
                     <span asp-validation-for="Provider" class="text-danger"></span>
                 </div>
                 
-                <div id="imapSettings">
+                <div id="imapSettings" style="display: @imapSettingsDisplay;">
                     <h4 class="mt-4">@Localizer["IMAPSettings"]</h4>
                     <div class="row">
                         <div class="col-md-8 mb-3">
@@ -146,7 +149,7 @@
                     }
                 </div>
 
-                <div id="microsoft365Settings" style="display: none;">
+                <div id="microsoft365Settings" style="display: @microsoft365SettingsDisplay;">
                     <h4 class="mt-4">@Localizer["Microsoft365Settings"]</h4>
                     
                     <div id="bulkUpdateSuggestion" class="m365-suggestion-box m365-warning" style="display: none;">
@@ -184,7 +187,7 @@
                     </div>
                 </div>
                 
-                <div id="emailDeletionSettings" style="display: none;">
+                <div id="emailDeletionSettings" style="display: @emailDeletionSettingsDisplay;">
                     <div class="mb-3 form-check">
                         <input asp-for="IsEnabled" class="form-check-input" />
                         <label asp-for="IsEnabled" class="form-check-label">@Localizer["AccountEnabled"]</label>
@@ -257,6 +260,11 @@
 </div>
 @section Scripts {
     <script>
+        const i18n = {
+            errorSavingChanges: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["ErrorSavingChanges"].Value)),
+            save: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["Save"].Value)),
+            noFoldersFound: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["NoFoldersFound"].Value))
+        };
         document.addEventListener('DOMContentLoaded', function() {
             const providerSelect = document.getElementById('Provider');
             const imapSettings = document.getElementById('imapSettings');
@@ -284,24 +292,28 @@
             let affectedAccounts = [];
             let bulkUpdateRequested = false;
             
+            function setSectionEnabled(section, enabled) {
+                section.querySelectorAll('input, select, textarea, button').forEach(element => {
+                    element.disabled = !enabled;
+                });
+            }
+
             function toggleSettings() {
                 const providerValue = providerSelect.value;
-                imapSettings.style.display = 'none';
-                microsoft365Settings.style.display = 'none';
-                msaSettings.style.display = 'none';
-                emailDeletionSettings.style.display = 'none';
+                const isImport = providerValue === '@ProviderType.IMPORT';
+                const isM365 = providerValue === '@ProviderType.M365';
+                const isMsa = providerValue === '@ProviderType.MSA';
+                const isImap = !isImport && !isM365 && !isMsa;
 
-                if (providerValue === '@ProviderType.IMPORT') {
-                    // nothing
-                } else if (providerValue === '@ProviderType.M365') {
-                    microsoft365Settings.style.display = 'block';
-                    emailDeletionSettings.style.display = 'block';
-                } else if (providerValue === '@ProviderType.MSA') {
-                    msaSettings.style.display = 'block';
-                    emailDeletionSettings.style.display = 'block';
-                } else {
-                    imapSettings.style.display = 'block';
-                    emailDeletionSettings.style.display = 'block';
+                imapSettings.style.display = isImap ? 'block' : 'none';
+                microsoft365Settings.style.display = isM365 ? 'block' : 'none';
+                if (msaSettings) msaSettings.style.display = isMsa ? 'block' : 'none';
+                emailDeletionSettings.style.display = isImport ? 'none' : 'block';
+                setSectionEnabled(imapSettings, isImap);
+                setSectionEnabled(microsoft365Settings, isM365);
+
+                if (!isM365) {
+                    bulkUpdateSuggestion.style.display = 'none';
                 }
             }
             
@@ -471,11 +483,11 @@
                         })
                         .catch(error => {
                             console.error('Error during save/bulk update:', error);
-                            alert('@Localizer["ErrorSavingChanges"]: ' + error.message);
+                            alert(i18n.errorSavingChanges + ': ' + error.message);
                             // Re-enable submit button
                             if (submitBtn) {
                                 submitBtn.disabled = false;
-                                submitBtn.innerHTML = '@Localizer["Save"]';
+                                submitBtn.innerHTML = i18n.save;
                             }
                         });
                         
@@ -520,7 +532,7 @@
                             } else {
                                 // No folders found
                                 foldersLoading.style.display = 'none';
-                                foldersError.textContent = '@Localizer["NoFoldersFound"]';
+                                foldersError.textContent = i18n.noFoldersFound;
                                 foldersError.style.display = 'block';
                                 loadFoldersBtn.style.display = 'inline-block';
                             }

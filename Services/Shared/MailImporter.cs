@@ -113,6 +113,8 @@ namespace MailArchiver.Services.Shared
                         body = "[Body too large - saved as attachment]";
                 }
 
+                body = MailContentHelper.SanitizeLongTokens(body);
+
                 var rawHeaders = ExtractRawHeaders(message);
                 if (!string.IsNullOrEmpty(rawHeaders))
                     rawHeaders = MailContentHelper.CleanText(rawHeaders);

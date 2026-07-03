@@ -44,7 +44,7 @@
 @section Scripts {
     <script>
         // Pass localized strings to JavaScript
-        const backupCodesFileHeader = '@Localizer["BackupCodesFileHeader"]';
-        const backupCodesFileFooter = '@Localizer["BackupCodesFileFooter"]';
+        const backupCodesFileHeader = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["BackupCodesFileHeader"].Value));
+        const backupCodesFileFooter = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["BackupCodesFileFooter"].Value));
     </script>
 }

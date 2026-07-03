@@ -339,6 +339,16 @@ body {
   -webkit-overflow-scrolling: touch;
 }
 
+/* Desktop: Dropdowns in der Account-Tabelle dürfen überlauben (nicht clippen) */
+@media (min-width: 992px) {
+  .card-dropdown-overflow {
+    overflow: visible;
+  }
+  .table-responsive-dropdown {
+    overflow: visible;
+  }
+}
+
 /* Pagination */
 .pagination {
   margin-bottom: 0;

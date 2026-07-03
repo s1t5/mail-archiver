@@ -87,6 +87,10 @@
                                     <label class="form-check-label small" for="toggleSelectionMode">@Localizer["SelectionMode"]</label>
                                     <input type="hidden" id="userTimezone" name="UserTimezone" value="" />
                                     <input type="hidden" id="pageSizeHidden" name="PageSize" value="@Model.PageSize" />
+                                    <input type="hidden" name="SelectedFolder" value="@Model.SelectedFolder" />
+                                    <input type="hidden" name="SortBy" value="@Model.SortBy" />
+                                    <input type="hidden" name="SortOrder" value="@Model.SortOrder" />
+                                    <input type="hidden" name="PageNumber" value="@Model.PageNumber" />
                                 </div>
                             </div>
                         </div>
@@ -521,6 +525,19 @@
             timezoneInput.value = Intl.DateTimeFormat().resolvedOptions().timeZone;
         }
 
+        // Aktuelle Formulareingaben (ggf. ungespeichert) in URL uebernehmen,
+        // damit Suchbegriff/Datum/Direction beim Account- oder Ordnerwechsel erhalten bleiben.
+        function mergeFormValuesIntoUrl(url, form) {
+            const formData = new FormData(form);
+            for (const [key, value] of formData.entries()) {
+                if (value !== '') {
+                    url.searchParams.set(key, value);
+                } else {
+                    url.searchParams.delete(key);
+                }
+            }
+        }
+
         // Auto-submit form when page size changes
         const pageSizeSelect = document.getElementById('pageSizeSelect');
         const pageSizeHidden = document.getElementById('pageSizeHidden');
@@ -539,6 +556,7 @@
                 const accountId = this.value;
                 // Reload page with new account selection to update folder tree
                 const url = new URL(window.location.href);
+                mergeFormValuesIntoUrl(url, searchForm);
                 if (accountId && accountId !== '') {
                     url.searchParams.set('SelectedAccountId', accountId);
                 } else {
@@ -632,6 +650,7 @@
                     const folder = this.dataset.folder;
                     if (folder) {
                         const url = new URL(window.location.href);
+                        mergeFormValuesIntoUrl(url, searchForm);
                         url.searchParams.set('SelectedFolder', folder);
                         url.searchParams.set('PageNumber', '1');
                         window.location.href = url.toString();
@@ -723,6 +742,21 @@
         const maxAsyncEmails = @ViewBag.MaxAsyncEmails;
         const maxSelectableEmails = @(ViewBag.MaxSelectableEmails ?? 250);
         const STORAGE_KEY = 'emailSelection';
+
+        // Localized strings emitted as JS string literals to avoid HTML-encoding of
+        // special characters (e.g. apostrophes in "Tâche d'arrière-plan") inside <script>.
+        const i18n = {
+            maxSelectionsReached: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["MaxSelectionsReached"].Value)),
+            selectedOf: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["SelectedOf"].Value)),
+            directProcessingMode: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["DirectProcessingMode"].Value)),
+            backgroundJobMode: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["BackgroundJobMode"].Value)),
+            tooManySelected: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["TooManySelected"].Value)),
+            copySelected: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["CopySelected"].Value)),
+            pleaseSelectAtLeastOne: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["PleaseSelectAtLeastOne"].Value)),
+            tooManyEmailsSelected: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["TooManyEmailsSelected"].Value)),
+            continueWithOperation: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["ContinueWithOperation"].Value)),
+            deleteSelectedEmailsConfirm: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["DeleteSelectedEmailsConfirm"].Value))
+        };
         
         const toggleSelectionMode = document.getElementById('toggleSelectionMode');
         const searchForm = document.getElementById('searchForm');
@@ -749,7 +783,7 @@
             const stored = getStoredSelections();
             const updated = [...new Set([...stored, ...emailIds])];
             if (updated.length > maxSelectableEmails) {
-                alert('@Localizer["MaxSelectionsReached"]'.replace('{0}', maxSelectableEmails));
+                alert(i18n.maxSelectionsReached.replace('{0}', maxSelectableEmails));
                 return false;
             }
             saveStoredSelections(updated);
@@ -771,10 +805,10 @@
             
             if (selectionCounter) {
                 if (totalSelected >= maxSelectableEmails) {
-                    selectionCounter.innerHTML = '@Localizer["MaxSelectionsReached"]'.replace('{0}', maxSelectableEmails);
+                    selectionCounter.innerHTML = i18n.maxSelectionsReached.replace('{0}', maxSelectableEmails);
                     selectionCounter.className = 'badge bg-warning';
                 } else {
-                    selectionCounter.innerHTML = '@Localizer["SelectedOf"]'.replace('{0}', totalSelected).replace('{1}', maxSelectableEmails);
+                    selectionCounter.innerHTML = i18n.selectedOf.replace('{0}', totalSelected).replace('{1}', maxSelectableEmails);
                     selectionCounter.className = 'badge bg-primary';
                 }
             }
@@ -782,13 +816,13 @@
             if (operationMode && totalSelected > 0) {
                 operationMode.style.display = 'inline';
                 if (totalSelected <= asyncThreshold) {
-                    operationMode.textContent = '@Localizer["DirectProcessingMode"]';
+                    operationMode.textContent = i18n.directProcessingMode;
                     operationMode.className = 'badge bg-success';
                 } else if (totalSelected <= maxAsyncEmails) {
-                    operationMode.textContent = '@Localizer["BackgroundJobMode"]';
+                    operationMode.textContent = i18n.backgroundJobMode;
                     operationMode.className = 'badge bg-primary';
                 } else {
-                    operationMode.textContent = '@Localizer["TooManySelected"]';
+                    operationMode.textContent = i18n.tooManySelected;
                     operationMode.className = 'badge bg-danger';
                 }
             } else if (operationMode) {
@@ -800,11 +834,11 @@
                 if (batchRestoreBtn && totalSelected > 0) {
                     if (totalSelected > maxAsyncEmails) {
                         batchRestoreBtn.disabled = true;
-                        batchRestoreBtn.innerHTML = '<i class="bi bi-exclamation-triangle"></i> <span class="d-inline">@Localizer["TooManySelected"]</span>';
+                        batchRestoreBtn.innerHTML = '<i class="bi bi-exclamation-triangle"></i> <span class="d-inline">' + i18n.tooManySelected + '</span>';
                         batchRestoreBtn.className = 'btn btn-sm btn-danger me-2';
                     } else {
                         batchRestoreBtn.disabled = false;
-                        batchRestoreBtn.innerHTML = '<i class="bi bi-envelope-arrow-up"></i> <span class="d-inline">@Localizer["CopySelected"]</span>';
+                        batchRestoreBtn.innerHTML = '<i class="bi bi-envelope-arrow-up"></i> <span class="d-inline">' + i18n.copySelected + '</span>';
                         batchRestoreBtn.className = 'btn btn-sm btn-success me-2';
                     }
                 }
@@ -888,7 +922,7 @@
                 const totalSelected = getTotalSelectedCount();
                 const storedSelections = getStoredSelections();
                 if (totalSelected === 0) {
-                    document.getElementById('confirmMessage').innerHTML = '@Localizer["PleaseSelectAtLeastOne"]';
+                    document.getElementById('confirmMessage').textContent = i18n.pleaseSelectAtLeastOne;
                     var confirmModal = new bootstrap.Modal(document.getElementById('batchRestoreConfirmModal'));
                     document.getElementById('confirmBatchRestoreBtn').style.display = 'none';
                     confirmModal.show();
@@ -896,7 +930,7 @@
                     return;
                 }
                 if (totalSelected > maxAsyncEmails) {
-                    document.getElementById('confirmMessage').innerHTML = '@Localizer["TooManyEmailsSelected"]'.replace('{0}', totalSelected.toLocaleString()).replace('{1}', maxAsyncEmails.toLocaleString());
+                    document.getElementById('confirmMessage').innerHTML = i18n.tooManyEmailsSelected.replace('{0}', totalSelected.toLocaleString()).replace('{1}', maxAsyncEmails.toLocaleString());
                     var confirmModal = new bootstrap.Modal(document.getElementById('batchRestoreConfirmModal'));
                     document.getElementById('confirmBatchRestoreBtn').style.display = 'none';
                     confirmModal.show();
@@ -906,7 +940,7 @@
                 // Set modal title for batch restore
                 document.getElementById('batchRestoreConfirmModalLabel').textContent = document.getElementById('batchRestoreConfirmModalTitleText').textContent;
                 if (totalSelected > asyncThreshold) {
-                    document.getElementById('confirmMessage').innerHTML = '@Localizer["ContinueWithOperation"]'.replace('{0}', totalSelected.toLocaleString());
+                    document.getElementById('confirmMessage').innerHTML = i18n.continueWithOperation.replace('{0}', totalSelected.toLocaleString());
                     var confirmModal = new bootstrap.Modal(document.getElementById('batchRestoreConfirmModal'));
                     document.getElementById('confirmBatchRestoreBtn').style.display = 'inline-block';
                     document.getElementById('confirmBatchRestoreBtn').onclick = function() {
@@ -943,7 +977,7 @@
         if (exportSelectedBtn) {
             exportSelectedBtn.addEventListener('click', function() {
                 if (getTotalSelectedCount() === 0) {
-                    document.getElementById('confirmMessage').innerHTML = '@Localizer["PleaseSelectAtLeastOne"]';
+                    document.getElementById('confirmMessage').textContent = i18n.pleaseSelectAtLeastOne;
                     var confirmModal = new bootstrap.Modal(document.getElementById('batchRestoreConfirmModal'));
                     document.getElementById('confirmBatchRestoreBtn').style.display = 'none';
                     confirmModal.show();
@@ -981,7 +1015,7 @@
         if (deleteSelectedBtn) {
             deleteSelectedBtn.addEventListener('click', function() {
                 if (getTotalSelectedCount() === 0) {
-                    document.getElementById('confirmMessage').innerHTML = '@Localizer["PleaseSelectAtLeastOne"]';
+                    document.getElementById('confirmMessage').textContent = i18n.pleaseSelectAtLeastOne;
                     var confirmModal = new bootstrap.Modal(document.getElementById('batchRestoreConfirmModal'));
                     document.getElementById('confirmBatchRestoreBtn').style.display = 'none';
                     confirmModal.show();
@@ -990,7 +1024,7 @@
                 }
                 // Set modal title for batch delete
                 document.getElementById('batchRestoreConfirmModalLabel').textContent = document.getElementById('batchDeleteConfirmModalTitleText').textContent;
-                document.getElementById('confirmMessage').innerHTML = '@Localizer["DeleteSelectedEmailsConfirm"]'.replace('{0}', getTotalSelectedCount().toLocaleString());
+                document.getElementById('confirmMessage').innerHTML = i18n.deleteSelectedEmailsConfirm.replace('{0}', getTotalSelectedCount().toLocaleString());
                 var confirmModal = new bootstrap.Modal(document.getElementById('batchRestoreConfirmModal'));
                 document.getElementById('confirmBatchRestoreBtn').style.display = 'inline-block';
                 document.getElementById('confirmBatchRestoreBtn').onclick = function() {

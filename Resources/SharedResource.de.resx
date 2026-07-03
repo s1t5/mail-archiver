@@ -2387,6 +2387,18 @@
   <data name="SignInWithOAuth" xml:space="preserve">
     <value>Anmelden mit OAuth</value>
   </data>
+  <data name="SignInWithOAuthProvider" xml:space="preserve">
+    <value>Anmelden mit {0}</value>
+  </data>
+  <data name="RedirectingToProvider" xml:space="preserve">
+    <value>Weiterleitung zu {0}...</value>
+  </data>
+  <data name="PleaseWaitRedirectingToProvider" xml:space="preserve">
+    <value>Bitte warten Sie, während wir Sie zu {0} weiterleiten...</value>
+  </data>
+  <data name="Loading" xml:space="preserve">
+    <value>Wird geladen...</value>
+  </data>
   <data name="AccountDeleted" xml:space="preserve">
     <value>Account '{0}' wurde erfolgreich gelöscht, einschließlich aller archivierten E-Mails und Anhänge.</value>
   </data>
@@ -2670,5 +2682,161 @@
   </data>
   <data name="MsaAuthorizationCancelled" xml:space="preserve">
     <value>Account-Erstellung abgebrochen.</value>
+  </data>
+  <data name="UseTenantImport" xml:space="preserve">
+    <value>Mandantenimport verwenden</value>
+  </data>
+  <data name="UseTenantImportHelp" xml:space="preserve">
+    <value>Lädt die Postfächer des Mandanten und erstellt Konten nach dem Namensschema: eingegebener Name - &lt;postfach@beispiel.com&gt;.</value>
+  </data>
+  <data name="SkipDisabledMailboxes" xml:space="preserve">
+    <value>Deaktivierte Postfächer überspringen</value>
+  </data>
+  <data name="ImportAllListedMailboxes" xml:space="preserve">
+    <value>Alle aufgelisteten Postfächer importieren</value>
+  </data>
+  <data name="ImportAllListedMailboxesHelp" xml:space="preserve">
+    <value>Wenn deaktiviert, werden nur die unten ausgewählten Postfächer importiert.</value>
+  </data>
+  <data name="LoadMailboxes" xml:space="preserve">
+    <value>Postfächer laden</value>
+  </data>
+  <data name="TenantMailboxes" xml:space="preserve">
+    <value>Mandantschafts-Postfächer</value>
+  </data>
+  <data name="ClearSelection" xml:space="preserve">
+    <value>Auswahl aufheben</value>
+  </data>
+  <data name="NoMailboxesFound" xml:space="preserve">
+    <value>Keine Postfächer gefunden.</value>
+  </data>
+  <data name="DisabledLowercase" xml:space="preserve">
+    <value>deaktiviert</value>
+  </data>
+  <data name="AlreadyExistsLowercase" xml:space="preserve">
+    <value>existiert bereits</value>
+  </data>
+  <data name="LoadingMailboxes" xml:space="preserve">
+    <value>Postfächer werden geladen...</value>
+  </data>
+  <data name="MailboxesCouldNotBeLoaded" xml:space="preserve">
+    <value>Postfächer konnten nicht geladen werden.</value>
+  </data>
+  <data name="MailboxesFound" xml:space="preserve">
+    <value>{0} Postfach(fächer) gefunden.</value>
+  </data>
+  <data name="M365MailboxDefaultName" xml:space="preserve">
+    <value>M365-Postfach</value>
+  </data>
+  <data name="NoEnabledM365UsersFound" xml:space="preserve">
+    <value>In diesem Mandanten wurden keine aktivierten M365-Benutzer mit einer E-Mail-Adresse oder einem Benutzervorname gefunden.</value>
+  </data>
+  <data name="SelectAtLeastOneMailboxOrImportAll" xml:space="preserve">
+    <value>Wählen Sie mindestens ein Postfach aus oder aktivieren Sie den Import aller aufgelisteten Postfächer.</value>
+  </data>
+  <data name="AllSelectedM365TenantMailboxesAlreadyExist" xml:space="preserve">
+    <value>Alle {0} ausgewählten M365-Mandantschafts-Postfächer existieren bereits.</value>
+  </data>
+  <data name="ImportedM365TenantAccounts" xml:space="preserve">
+    <value>{0} M365-Mandantschafts-E-Mail-Konten importiert. {1} vorhandene Konten übersprungen.</value>
+  </data>
+  <data name="M365TenantCredentialsRequired" xml:space="preserve">
+    <value>Client-ID, Client-Geheimnis und Mandanten-ID sind erforderlich, um Mandantschafts-Postfächer aufzulisten.</value>
+  </data>
+  <data name="M365TenantMailboxesCouldNotBeListed" xml:space="preserve">
+    <value>Mandantschafts-Postfächer konnten nicht aufgelistet werden. Bitte überprüfen Sie die M365-Anmeldedaten und Berechtigungen.</value>
+  </data>
+  <data name="M365TenantAccountsCouldNotBeImported" xml:space="preserve">
+    <value>Die M365-Mandantschaftskonten konnten nicht importiert werden. Bitte überprüfen Sie die Anmeldedaten und Berechtigungen.</value>
+  </data>
+  <data name="NameRequired" xml:space="preserve">
+    <value>Name ist erforderlich</value>
+  </data>
+  <data name="EmailAddressRequired" xml:space="preserve">
+    <value>E-Mail-Adresse ist erforderlich</value>
+  </data>
+  <data name="ProviderM365Single" xml:space="preserve">
+    <value>Microsoft 365 (einzelnes Postfach)</value>
+  </data>
+  <data name="ProviderM365Tenant" xml:space="preserve">
+    <value>Microsoft 365 (Mandant)</value>
+  </data>
+  <data name="LoadMailboxesHelp" xml:space="preserve">
+    <value>Laden Sie die Liste der Mandantschafts-Postfächer, um auszuwählen, welche Konten importiert werden sollen.</value>
+  </data>
+  <data name="InvalidImportFileType" xml:space="preserve">
+    <value>Ungültiger Dateityp. Erlaubte Endungen: .mbox, .eml, .zip</value>
+  </data>
+  <data name="ClientSecretWillBeCopiedOnSave" xml:space="preserve">
+    <value>Das Client Secret wird beim Speichern vom ausgewählten bestehenden Konto übernommen.</value>
+  </data>
+  <data name="ClientSecretRequired" xml:space="preserve">
+    <value>Client Secret ist für M365-Konten erforderlich</value>
+  </data>
+  <data name="TenantManagement" xml:space="preserve">
+    <value>Mandantenverwaltung</value>
+  </data>
+  <data name="TenantManagementTitle" xml:space="preserve">
+    <value>Mandantenverwaltung</value>
+  </data>
+  <data name="TenantManagementHelp" xml:space="preserve">
+    <value>Fügt fehlende Postfächer dieses Mandanten hinzu. Neue Konten verwenden die Anmeldedaten des Quellkontos.</value>
+  </data>
+  <data name="AddSelectedMailboxes" xml:space="preserve">
+    <value>Ausgewählte Postfächer hinzufügen</value>
+  </data>
+  <data name="MailboxesAdded" xml:space="preserve">
+    <value>{0} Postfach(fächer) hinzugefügt.</value>
+  </data>
+  <data name="NoNewMailboxesToAdd" xml:space="preserve">
+    <value>Keine neuen Postfächer hinzuzufügen.</value>
+  </data>
+  <data name="SelectAtLeastOneMailboxForManagement" xml:space="preserve">
+    <value>Wählen Sie mindestens ein Postfach zum Hinzufügen aus.</value>
+  </data>
+  <data name="MoreActions" xml:space="preserve">
+    <value>Weitere Aktionen</value>
+  </data>
+  <data name="AccountNameTooLong" xml:space="preserve">
+    <value>Der Kontoname darf höchstens 200 Zeichen lang sein.</value>
+  </data>
+  <data name="SelectAtMostMailboxes" xml:space="preserve">
+    <value>Wählen Sie höchstens {0} Postfächer gleichzeitig aus.</value>
+  </data>
+  <data name="SearchMailboxes" xml:space="preserve">
+    <value>Postfächer suchen...</value>
+  </data>
+  <data name="NoMailboxesMatch" xml:space="preserve">
+    <value>Keine Postfächer entsprechen Ihrer Suche.</value>
+  </data>
+  <data name="SearchAccounts" xml:space="preserve">
+    <value>Accounts suchen...</value>
+  </data>
+  <data name="NoAccountsMatch" xml:space="preserve">
+    <value>Keine Accounts entsprechen Ihrer Suche.</value>
+  </data>
+  <data name="SearchUsers" xml:space="preserve">
+    <value>Benutzer suchen...</value>
+  </data>
+  <data name="NoUsersMatch" xml:space="preserve">
+    <value>Keine Benutzer entsprechen Ihrer Suche.</value>
+  </data>
+  <data name="AccountsFound" xml:space="preserve">
+    <value>{0} Accounts gefunden</value>
+  </data>
+  <data name="UsersFound" xml:space="preserve">
+    <value>{0} Benutzer gefunden</value>
+  </data>
+  <data name="RenameExistingAccounts" xml:space="preserve">
+    <value>Bestehende Konten umbenennen</value>
+  </data>
+  <data name="RenameExistingAccountsHelp" xml:space="preserve">
+    <value>Wendet das Namensschema nach dem Speichern auf alle M365-Konten an, die dieselbe App-Registrierung verwenden.</value>
+  </data>
+  <data name="AccountsRenamed" xml:space="preserve">
+    <value>{0} Konto(en) umbenannt.</value>
+  </data>
+  <data name="MailboxesAddedAndAccountsRenamed" xml:space="preserve">
+    <value>{0} Postfach(fächer) hinzugefügt und {1} Konto(en) umbenannt.</value>
   </data>
 </root>

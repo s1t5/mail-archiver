@@ -907,11 +907,12 @@
 </div>
 @section Scripts {
     <script>
+        const lastUpdateLabel = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["LastUpdate"].Value));
         setTimeout(function(){ location.reload(); }, 5000);
         document.addEventListener('DOMContentLoaded', function(){
             const refreshInfo=document.createElement('small');
             refreshInfo.className='text-muted float-end';
-            refreshInfo.innerHTML='@Localizer["LastUpdate"] ' + new Date().toLocaleTimeString();
+            refreshInfo.textContent = lastUpdateLabel + ' ' + new Date().toLocaleTimeString();
             const firstCardHeader=document.querySelector('.card .card-header');
             if(firstCardHeader){ firstCardHeader.appendChild(refreshInfo);} });
     </script>

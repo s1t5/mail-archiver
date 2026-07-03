@@ -147,6 +147,17 @@ namespace MailArchiver.Services
 
                             // NOTE: Checkpoint clearing is handled by SyncMailAccountAsync itself.
                             _logger.LogInformation("Mail sync completed for account: {AccountName}", account.Name);
+
+                            // Sofort-Refresh des Speichercaches fuer diesen Account
+                            try
+                            {
+                                var storageService = accountServices.GetRequiredService<IAccountStorageService>();
+                                await storageService.RefreshAccountStorageAsync(account.Id);
+                            }
+                            catch (Exception storageEx)
+                            {
+                                _logger.LogDebug(storageEx, "Storage cache refresh after sync failed (non-fatal) for account {AccountId}", account.Id);
+                            }
                         }
                         catch (OperationCanceledException)
                         {

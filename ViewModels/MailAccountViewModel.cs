@@ -76,6 +76,9 @@ namespace MailArchiver.Models.ViewModels
         // For UI display of available folders
         public List<string> AvailableFolders { get; set; } = new List<string>();
 
+        // Speicherverbrauch des Accounts (formatiert aus AccountStorageCache)
+        public string StorageUsed { get; set; }
+
         // Flag to determine if it's a new or existing account
         public bool IsNewAccount => Id == 0;
     }

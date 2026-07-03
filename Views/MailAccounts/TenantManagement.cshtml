@@ -1,0 +1,221 @@
+@inject Microsoft.Extensions.Localization.IStringLocalizer<MailArchiver.SharedResource> Localizer
+@model MailArchiver.Models.ViewModels.TenantManagementViewModel
+@{
+    ViewData["Title"] = @Localizer["TenantManagementTitle"];
+    var newCount = Model.Mailboxes.Count(m => !m.AlreadyExists);
+    var existsCount = Model.Mailboxes.Count - newCount;
+}
+
+<div class="container">
+    <h1>@Localizer["TenantManagementTitle"]</h1>
+
+    <div class="card mb-3">
+        <div class="card-body">
+            <div class="d-flex flex-wrap justify-content-between align-items-center">
+                <div>
+                    <h5 class="mb-1">
+                        <i class="bi bi-building text-primary"></i>
+                        @Model.SourceAccountName
+                    </h5>
+                    <p class="mb-0 text-muted small">
+                        <span class="badge bg-success me-1">Microsoft 365</span>
+                        @Model.SourceEmailAddress
+                    </p>
+                </div>
+                <div class="mt-2 mt-md-0">
+                    <a asp-action="Index" class="btn btn-outline-secondary btn-sm">
+                        <i class="bi bi-arrow-left"></i> @Localizer["BackToList"]
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+    {
+        <div class="alert alert-danger">
+            <i class="bi bi-exclamation-triangle"></i> @Model.ErrorMessage
+        </div>
+    }
+
+    @if (!Model.Mailboxes.Any() && string.IsNullOrEmpty(Model.ErrorMessage))
+    {
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle"></i> @Localizer["NoMailboxesFound"]
+        </div>
+    }
+
+    @if (Model.Mailboxes.Any())
+    {
+        <div class="mb-2 text-muted small">
+            <span class="badge bg-primary">@Localizer["MailboxesFound"].ToString().Replace("{0}", newCount.ToString())</span>
+            @if (existsCount > 0)
+            {
+                <span class="badge bg-secondary ms-1">@existsCount @Localizer["AlreadyExistsLowercase"]</span>
+            }
+        </div>
+
+        <form asp-action="AddTenantMailboxes" id="tenantManagementForm">
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+            <input type="hidden" asp-for="SourceAccountId" />
+
+            <div class="card mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">@Localizer["AddSelectedMailboxes"]</h5>
+                    <p class="card-text small text-muted">@Localizer["TenantManagementHelp"]</p>
+
+                    <div class="row">
+                        <div class="col-md-12 mb-3">
+                            <label asp-for="Name" class="form-label">@Localizer["AccountName"]</label>
+                            <input asp-for="Name" class="form-control" />
+                            <span asp-validation-for="Name" class="text-danger"></span>
+                            <div class="form-text">@Localizer["UseTenantImportHelp"]</div>
+                        </div>
+                        <div class="col-md-12 mb-3">
+                            <div class="form-check">
+                                <input asp-for="RenameExistingAccounts" class="form-check-input" type="checkbox" />
+                                <label asp-for="RenameExistingAccounts" class="form-check-label">@Localizer["RenameExistingAccounts"]</label>
+                                <div class="form-text">@Localizer["RenameExistingAccountsHelp"]</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h6 class="mt-3 mb-2">@Localizer["TenantMailboxes"]</h6>
+
+                    <div class="mb-2">
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text"><i class="bi bi-search" aria-hidden="true"></i></span>
+                            <input type="search" id="mailboxSearch" class="form-control"
+                                   placeholder="@Localizer["SearchMailboxes"]" aria-label="@Localizer["SearchMailboxes"]" autocomplete="off" />
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div class="btn-group btn-group-sm">
+                            <button type="button" id="selectAllBtn" class="btn btn-outline-secondary">@Localizer["SelectAll"]</button>
+                            <button type="button" id="clearSelectionBtn" class="btn btn-outline-secondary">@Localizer["ClearSelection"]</button>
+                        </div>
+                    </div>
+
+                    <div class="border rounded p-3 mb-3" style="max-height: 420px; overflow-y: auto;">
+                        <div id="tenantMailboxList">
+                            @for (var i = 0; i < Model.Mailboxes.Count; i++)
+                            {
+                                var mailbox = Model.Mailboxes[i];
+                                <div class="form-check mb-2 tenant-mailbox-row"
+                                     data-display-name="@mailbox.DisplayName" data-email="@mailbox.EmailAddress">
+                                    <input type="checkbox"
+                                           class="form-check-input tenant-mailbox-checkbox"
+                                           name="SelectedMailboxes"
+                                           value="@mailbox.EmailAddress"
+                                           disabled="@mailbox.AlreadyExists"
+                                           data-existing="@(mailbox.AlreadyExists ? "true" : "false")" />
+                                    <label class="form-check-label">
+                                        @mailbox.DisplayName &lt;@mailbox.EmailAddress&gt;
+                                        @if (mailbox.IsDisabled)
+                                        {
+                                            <span class="badge bg-warning text-dark ms-1">@Localizer["DisabledLowercase"]</span>
+                                        }
+                                        @if (mailbox.AlreadyExists)
+                                        {
+                                            <span class="badge bg-secondary ms-1">@Localizer["AlreadyExistsLowercase"]</span>
+                                        }
+                                    </label>
+                                </div>
+                            }
+                        </div>
+                        <div id="noMailboxMatchHint" class="text-muted small py-2" style="display: none;">
+                            @Localizer["NoMailboxesMatch"]
+                        </div>
+                        <span asp-validation-for="SelectedMailboxes" class="text-danger"></span>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="DeleteAfterDays" class="form-label">@Localizer["DeleteAfterDays"]</label>
+                            <input asp-for="DeleteAfterDays" class="form-control" type="number" min="1" placeholder="@Localizer["LeaveEmptyToDisableAutomaticDeletion"]" />
+                            <div class="form-text">@Localizer["AutoDeleteText"]</div>
+                            <span asp-validation-for="DeleteAfterDays" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="LocalRetentionDays" class="form-label">@Localizer["LocalRetentionDays"]</label>
+                            <input asp-for="LocalRetentionDays" class="form-control" type="number" min="1" placeholder="@Localizer["LeaveEmptyToDisableAutomaticDeletion"]" />
+                            <div class="form-text">@Localizer["LocalRetentionInfo"]</div>
+                            <span asp-validation-for="LocalRetentionDays" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-plus-circle"></i> @Localizer["AddSelectedMailboxes"]
+                        </button>
+                        <a asp-action="Index" class="btn btn-outline-secondary">@Localizer["BackToList"]</a>
+                    </div>
+                </div>
+            </div>
+        </form>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var sourceAccountId = @Model.SourceAccountId;
+
+            var mailboxRows = Array.from(document.querySelectorAll('.tenant-mailbox-row'));
+            var noMatchHint = document.getElementById('noMailboxMatchHint');
+            var searchInput = document.getElementById('mailboxSearch');
+            var selectAllBtn = document.getElementById('selectAllBtn');
+            var clearSelectionBtn = document.getElementById('clearSelectionBtn');
+
+            function getVisibleSelectableCheckboxes() {
+                return mailboxRows
+                    .filter(function(row) { return row.style.display !== 'none'; })
+                    .map(function(row) { return row.querySelector('.tenant-mailbox-checkbox'); })
+                    .filter(function(cb) { return cb && !cb.disabled; });
+            }
+
+            var pendingFrame = null;
+            function runFilter() {
+                pendingFrame = null;
+                var term = (searchInput.value || '').trim().toLowerCase();
+                var anyVisible = false;
+                mailboxRows.forEach(function(row) {
+                    if (!term) {
+                        row.style.display = '';
+                        anyVisible = true;
+                        return;
+                    }
+                    var name = (row.getAttribute('data-display-name') || '').toLowerCase();
+                    var email = (row.getAttribute('data-email') || '').toLowerCase();
+                    if (name.indexOf(term) !== -1 || email.indexOf(term) !== -1) {
+                        row.style.display = '';
+                        anyVisible = true;
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+                noMatchHint.style.display = anyVisible ? 'none' : '';
+            }
+
+            if (searchInput) {
+                searchInput.addEventListener('input', function() {
+                    if (pendingFrame) { cancelAnimationFrame(pendingFrame); }
+                    pendingFrame = requestAnimationFrame(runFilter);
+                });
+            }
+
+            if (selectAllBtn) {
+                selectAllBtn.addEventListener('click', function() {
+                    getVisibleSelectableCheckboxes().forEach(function(cb) { cb.checked = true; });
+                });
+            }
+            if (clearSelectionBtn) {
+                clearSelectionBtn.addEventListener('click', function() {
+                    getVisibleSelectableCheckboxes().forEach(function(cb) { cb.checked = false; });
+                });
+            }
+        });
+    </script>
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

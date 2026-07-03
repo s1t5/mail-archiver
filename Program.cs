@@ -113,6 +113,10 @@ builder.Services.Configure<BatchRestoreOptions>(
 builder.Services.Configure<BatchOperationOptions>(
     builder.Configuration.GetSection(BatchOperationOptions.BatchOperation));
 
+// Add Tenant Management Options
+builder.Services.Configure<TenantManagementOptions>(
+    builder.Configuration.GetSection(TenantManagementOptions.TenantManagement));
+
 // Add Mail Sync Options
 builder.Services.Configure<MailSyncOptions>(
     builder.Configuration.GetSection(MailSyncOptions.MailSync));
@@ -372,6 +376,11 @@ builder.Services.AddHostedService<DatabaseMaintenanceService>(provider => provid
 
 // Register the resumable attachment deduplication background migration (existing data)
 builder.Services.AddHostedService<AttachmentDeduplicationBackgroundService>();
+
+// Register AccountStorageService (scoped) and the autark refresh background service
+// (backfill on startup + daily full refresh, independent of DatabaseMaintenance:Enabled)
+builder.Services.AddScoped<IAccountStorageService, AccountStorageService>();
+builder.Services.AddHostedService<AccountStorageRefreshService>();
 
 // Register AccessLogService
 builder.Services.AddScoped<IAccessLogService, AccessLogService>();

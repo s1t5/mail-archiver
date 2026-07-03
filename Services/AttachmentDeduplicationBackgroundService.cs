@@ -56,6 +56,8 @@ namespace MailArchiver.Services
             var startupDelaySeconds = _configuration.GetValue<int>("AttachmentDeduplication:StartupDelaySeconds", 20);
             var cleanupIntervalHours = _configuration.GetValue<int>("AttachmentDeduplication:OrphanCleanupIntervalHours", 12);
             if (cleanupIntervalHours < 1) cleanupIntervalHours = 12;
+            var commandTimeoutSeconds = _configuration.GetValue<int>("AttachmentDeduplication:CommandTimeoutSeconds", 300);
+            if (commandTimeoutSeconds < 1) commandTimeoutSeconds = 300;
 
 
             // Give the schema migration (and the rest of the app startup) time to finish.
@@ -71,7 +73,7 @@ namespace MailArchiver.Services
             // 1) One-time (resumable) migration of existing inline payloads.
             try
             {
-                await RunMigrationAsync(connectionString, batchSize, delayMs, stoppingToken);
+                await RunMigrationAsync(connectionString, batchSize, delayMs, commandTimeoutSeconds, stoppingToken);
             }
             catch (OperationCanceledException)
             {
@@ -165,7 +167,7 @@ namespace MailArchiver.Services
         }
 
 
-        private async Task RunMigrationAsync(string connectionString, int batchSize, int delayMs, CancellationToken token)
+        private async Task RunMigrationAsync(string connectionString, int batchSize, int delayMs, int commandTimeoutSeconds, CancellationToken token)
         {
             await using var connection = new NpgsqlConnection(connectionString);
             await connection.OpenAsync(token);
@@ -204,30 +206,47 @@ namespace MailArchiver.Services
             }
 
 
-            _logger.LogInformation("Attachment Deduplication migration starting at cursor Id > {Cursor} (batch size {BatchSize})",
-                cursor, batchSize);
+            _logger.LogInformation("Attachment Deduplication migration starting at cursor Id > {Cursor} (batch size {BatchSize}, command timeout {Timeout}s)",
+                cursor, batchSize, commandTimeoutSeconds);
 
             long totalProcessed = 0;
             var startTime = DateTime.UtcNow;
+            var currentBatchSize = batchSize;
 
             while (!token.IsCancellationRequested)
             {
-                var (newCursor, processed) = await ProcessBatchAsync(connection, cursor, batchSize, token);
-
-                if (processed == 0)
-                    break;
-
-                cursor = newCursor;
-                totalProcessed += processed;
-
-                if (totalProcessed % (batchSize * 25L) < batchSize)
+                try
                 {
-                    _logger.LogInformation("Attachment Deduplication migration progress: {Total} attachments processed (cursor {Cursor})",
-                        totalProcessed, cursor);
-                }
+                    var (newCursor, processed) = await ProcessBatchAsync(connection, cursor, currentBatchSize, commandTimeoutSeconds, token);
 
-                if (delayMs > 0)
-                    await Task.Delay(delayMs, token);
+                    if (processed == 0)
+                        break;
+
+                    cursor = newCursor;
+                    totalProcessed += processed;
+                    currentBatchSize = batchSize; // reset to original on success
+
+                    if (totalProcessed % (batchSize * 25L) < batchSize)
+                    {
+                        _logger.LogInformation("Attachment Deduplication migration progress: {Total} attachments processed (cursor {Cursor})",
+                            totalProcessed, cursor);
+                    }
+
+                    if (delayMs > 0)
+                        await Task.Delay(delayMs, token);
+                }
+                catch (Exception ex) when (IsTimeoutException(ex))
+                {
+                    var nextBatchSize = Math.Max(1, currentBatchSize / 2);
+                    if (nextBatchSize >= currentBatchSize)
+                    {
+                        _logger.LogError(ex, "Attachment Deduplication batch timed out with minimum batch size 1 at cursor {Cursor}. Cannot proceed.", cursor);
+                        throw;
+                    }
+                    _logger.LogWarning("Attachment Deduplication batch timed out at cursor {Cursor} with batch size {BatchSize}. Retrying with batch size {NewBatchSize}.",
+                        cursor, currentBatchSize, nextBatchSize);
+                    currentBatchSize = nextBatchSize;
+                }
             }
 
             if (!token.IsCancellationRequested)
@@ -338,7 +357,7 @@ namespace MailArchiver.Services
         /// Returns the new cursor and the number of attachments migrated in this batch.
         /// </summary>
         private async Task<(long cursor, int processed)> ProcessBatchAsync(
-            NpgsqlConnection connection, long cursor, int batchSize, CancellationToken token)
+            NpgsqlConnection connection, long cursor, int batchSize, int commandTimeoutSeconds, CancellationToken token)
         {
             await using var tx = await connection.BeginTransactionAsync(token);
 
@@ -353,6 +372,7 @@ namespace MailArchiver.Services
             await using (var insCmd = connection.CreateCommand())
             {
                 insCmd.Transaction = tx;
+                insCmd.CommandTimeout = commandTimeoutSeconds;
                 insCmd.CommandText = @"
                     WITH batch AS (
                         SELECT ""Id"", ""Content""
@@ -385,6 +405,7 @@ namespace MailArchiver.Services
             await using (var updCmd = connection.CreateCommand())
             {
                 updCmd.Transaction = tx;
+                updCmd.CommandTimeout = commandTimeoutSeconds;
                 updCmd.CommandText = @"
                     WITH batch AS (
                         SELECT ""Id"", ""Content""
@@ -514,6 +535,20 @@ namespace MailArchiver.Services
                     ""UpdatedAt"" = now()
                 WHERE ""Id"" = 1;";
             await command.ExecuteNonQueryAsync(token);
+        }
+
+        private static bool IsTimeoutException(Exception ex)
+        {
+            if (ex is OperationCanceledException)
+                return false;
+
+            if (ex is TimeoutException)
+                return true;
+
+            if (ex.InnerException != null)
+                return IsTimeoutException(ex.InnerException);
+
+            return false;
         }
     }
 }

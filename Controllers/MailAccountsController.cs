@@ -4,6 +4,7 @@ using MailArchiver.Models.ViewModels;
 using MailArchiver.ViewModels;
 using MailArchiver.Services;
 using MailArchiver.Services.Providers;
+using MailArchiver.Utilities;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -23,6 +24,7 @@ namespace MailArchiver.Controllers
     private readonly IGraphEmailService _graphEmailService;
     private readonly ILogger<MailAccountsController> _logger;
     private readonly BatchRestoreOptions _batchOptions;
+    private readonly TenantManagementOptions _tenantManagementOptions;
     private readonly ISyncJobService _syncJobService;
     private readonly IMBoxImportService _mboxImportService;
     private readonly IEmlImportService _emlImportService;
@@ -34,6 +36,7 @@ namespace MailArchiver.Controllers
     private readonly IMailAccountDeletionService _mailAccountDeletionService;
     private readonly IMsaOAuthService _msaOAuthService;
     private readonly MsaOAuthOptions _msaOptions;
+    private readonly IAccountStorageService _accountStorageService;
 
     public MailAccountsController(
         MailArchiverDbContext context,
@@ -42,6 +45,7 @@ namespace MailArchiver.Controllers
         IGraphEmailService graphEmailService,
         ILogger<MailAccountsController> logger,
         IOptions<BatchRestoreOptions> batchOptions,
+        IOptions<TenantManagementOptions> tenantManagementOptions,
         ISyncJobService syncJobService,
         IMBoxImportService mboxImportService,
         IEmlImportService emlImportService,
@@ -52,7 +56,8 @@ namespace MailArchiver.Controllers
         IAccessLogService accessLogService,
         IMailAccountDeletionService mailAccountDeletionService,
         IMsaOAuthService msaOAuthService,
-        IOptions<MsaOAuthOptions> msaOptions)
+        IOptions<MsaOAuthOptions> msaOptions,
+        IAccountStorageService accountStorageService)
     {
         _context = context;
         _emailCoreService = emailCoreService;
@@ -60,6 +65,7 @@ namespace MailArchiver.Controllers
         _graphEmailService = graphEmailService;
         _logger = logger;
         _batchOptions = batchOptions.Value;
+        _tenantManagementOptions = tenantManagementOptions.Value;
         _syncJobService = syncJobService;
         _mboxImportService = mboxImportService;
         _emlImportService = emlImportService;
@@ -71,6 +77,7 @@ namespace MailArchiver.Controllers
         _mailAccountDeletionService = mailAccountDeletionService;
         _msaOAuthService = msaOAuthService;
         _msaOptions = msaOptions.Value;
+        _accountStorageService = accountStorageService;
     }
 
         private async Task<bool> HasAccessToAccountAsync(int accountId)
@@ -138,6 +145,8 @@ namespace MailArchiver.Controllers
             }
 
             var accounts = await mailAccountsQuery
+                .OrderBy(a => a.Name)
+                .ThenBy(a => a.Id)
                 .Select(a => new MailAccountViewModel
                 {
                     Id = a.Id,
@@ -155,6 +164,20 @@ namespace MailArchiver.Controllers
                 .ToListAsync();
 
             _logger.LogInformation("Returning {Count} accounts for user {Username}", accounts.Count, currentUsername);
+
+            // Speicherverbrauch pro Account befuellen (aus Cache)
+            if (accounts.Count > 0)
+            {
+                var accountIds = accounts.Select(a => a.Id).ToList();
+                var storageMap = await _accountStorageService.GetStorageForAccountsAsync(accountIds);
+                foreach (var account in accounts)
+                {
+                    account.StorageUsed = storageMap.TryGetValue(account.Id, out var storage)
+                        ? storage
+                        : AccountStorageService.FormatFileSize(0);
+                }
+            }
+
             return View(accounts);
         }
 
@@ -203,7 +226,10 @@ var model = new MailAccountViewModel
             {
                 ImapPort = 993, // Standard values
                 UseSSL = true,
-                Provider = ProviderType.IMAP
+                Provider = ProviderType.IMAP,
+                ImportEntireTenant = true,
+                ImportAllTenantMailboxes = true,
+                SkipDisabledMailboxes = true
             };
             return View(model);
         }
@@ -226,6 +252,11 @@ var model = new MailAccountViewModel
 
             if (ModelState.IsValid)
             {
+                if (model.Provider == ProviderType.M365 && model.ImportEntireTenant)
+                {
+                    return await CreateM365TenantAccountsAsync(model);
+                }
+
                 var account = new MailAccount
                 {
                     Name = model.Name,
@@ -270,6 +301,38 @@ var model = new MailAccountViewModel
                     ModelState.AddModelError("LocalRetentionDays", 
                         _localizer["LocalRetentionMustBeGreaterOrEqual"].Value);
                     return View(model);
+                }
+
+                // SECURITY: If the user chose to copy credentials from an existing M365 account,
+                // copy the client secret server-side so it never travels to the browser.
+                if (model.Provider == ProviderType.M365 &&
+                    model.CopyCredentialsFromAccountId.HasValue &&
+                    string.IsNullOrWhiteSpace(model.ClientSecret))
+                {
+                    var sourceAccountId = model.CopyCredentialsFromAccountId.Value;
+                    if (await HasAccessToAccountAsync(sourceAccountId))
+                    {
+                        var sourceAccount = await _context.MailAccounts.FindAsync(sourceAccountId);
+                        if (sourceAccount != null && sourceAccount.Provider == ProviderType.M365)
+                        {
+                            account.ClientSecret = sourceAccount.ClientSecret;
+                            _logger.LogInformation(
+                                "Copying M365 client secret from account {SourceAccountId} to new account {NewAccountEmail}",
+                                sourceAccountId, account.EmailAddress);
+                        }
+                        else
+                        {
+                            _logger.LogWarning(
+                                "Cannot copy M365 credentials: source account {SourceAccountId} not found or not M365",
+                                sourceAccountId);
+                        }
+                    }
+                    else
+                    {
+                        _logger.LogWarning(
+                            "User attempted to copy M365 credentials from account {SourceAccountId} without access",
+                            sourceAccountId);
+                    }
                 }
 
                 try
@@ -344,6 +407,214 @@ var model = new MailAccountViewModel
 
             // Wenn ModelState ungültig ist, zurück zur Ansicht mit Fehlern
             return View(model);
+        }
+
+        private async Task<IActionResult> CreateM365TenantAccountsAsync(CreateMailAccountViewModel model)
+        {
+            if (model.LocalRetentionDays.HasValue && !model.DeleteAfterDays.HasValue)
+            {
+                ModelState.AddModelError("LocalRetentionDays",
+                    _localizer["LocalRetentionRequiresServerRetention"].Value);
+                return View("Create", model);
+            }
+
+            if (model.LocalRetentionDays.HasValue && model.DeleteAfterDays.HasValue &&
+                model.LocalRetentionDays.Value < model.DeleteAfterDays.Value)
+            {
+                ModelState.AddModelError("LocalRetentionDays",
+                    _localizer["LocalRetentionMustBeGreaterOrEqual"].Value);
+                return View("Create", model);
+            }
+
+            try
+            {
+                _logger.LogInformation("Importing all M365 tenant mailboxes for tenant {TenantId}", model.TenantId);
+
+                var tenantUsers = await _graphEmailService.GetTenantMailboxUsersAsync(
+                    model.ClientId,
+                    model.ClientSecret,
+                    model.TenantId,
+                    includeDisabled: !model.SkipDisabledMailboxes);
+
+                var tenantMailboxes = tenantUsers
+                    .Select(user => new
+                    {
+                        Name = string.IsNullOrWhiteSpace(user.DisplayName)
+                            ? user.UserPrincipalName ?? user.Mail ?? model.Name ?? _localizer["M365MailboxDefaultName"].Value
+                            : user.DisplayName,
+                        EmailAddress = string.IsNullOrWhiteSpace(user.Mail)
+                            ? user.UserPrincipalName
+                            : user.Mail
+                    })
+                    .Where(user => !string.IsNullOrWhiteSpace(user.EmailAddress))
+                    .GroupBy(user => user.EmailAddress!.Trim().ToLowerInvariant())
+                    .Select(group => group.First())
+                    .ToList();
+
+                if (tenantMailboxes.Count == 0)
+                {
+                    ModelState.AddModelError("", _localizer["NoEnabledM365UsersFound"].Value);
+                    return View("Create", model);
+                }
+
+                var mailboxAddresses = tenantMailboxes
+                    .Select(mailbox => mailbox.EmailAddress!.Trim().ToLowerInvariant())
+                    .ToList();
+
+                var existingAddresses = await _context.MailAccounts
+                    .Where(account => account.Provider == ProviderType.M365 && mailboxAddresses.Contains(account.EmailAddress.ToLower()))
+                    .Select(account => account.EmailAddress.ToLower())
+                    .ToListAsync();
+
+                var selectedAddressSet = model.ImportAllTenantMailboxes
+                    ? null
+                    : model.SelectedM365Mailboxes
+                        .Select(address => address.Trim().ToLowerInvariant())
+                        .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+                var selectedMailboxCount = selectedAddressSet?.Count ?? tenantMailboxes.Count;
+                var accountNamePrefix = model.Name!.Trim();
+                var existingAddressSet = existingAddresses.ToHashSet(StringComparer.OrdinalIgnoreCase);
+                var accountsToCreate = tenantMailboxes
+                    .Where(mailbox => selectedAddressSet == null || selectedAddressSet.Contains(mailbox.EmailAddress!.Trim().ToLowerInvariant()))
+                    .Where(mailbox => !existingAddressSet.Contains(mailbox.EmailAddress!))
+                    .Select(mailbox => new MailAccount
+                    {
+                        Name = $"{accountNamePrefix} - <{mailbox.EmailAddress}>",
+                        EmailAddress = mailbox.EmailAddress!,
+                        UseSSL = model.UseSSL,
+                        IsEnabled = model.IsEnabled,
+                        Provider = ProviderType.M365,
+                        ClientId = model.ClientId,
+                        ClientSecret = model.ClientSecret,
+                        TenantId = model.TenantId,
+                        ExcludedFolders = string.Empty,
+                        DeleteAfterDays = model.DeleteAfterDays,
+                        LocalRetentionDays = model.LocalRetentionDays,
+                        LastSync = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+                    })
+                    .ToList();
+
+                if (accountsToCreate.Count == 0)
+                {
+                    TempData["SuccessMessage"] = _localizer["AllSelectedM365TenantMailboxesAlreadyExist", selectedMailboxCount].Value;
+                    return RedirectToAction(nameof(Index));
+                }
+
+                _context.MailAccounts.AddRange(accountsToCreate);
+                await _context.SaveChangesAsync();
+
+                var authService = HttpContext.RequestServices.GetService<MailArchiver.Services.IAuthenticationService>();
+                var currentUsername = authService.GetCurrentUserDisplayName(HttpContext);
+                var currentUser = await _context.Users
+                    .FirstOrDefaultAsync(user => user.Username.ToLower() == currentUsername.ToLower());
+
+                if (currentUser != null && !currentUser.IsAdmin && currentUser.IsSelfManager)
+                {
+                    _context.UserMailAccounts.AddRange(accountsToCreate.Select(account => new UserMailAccount
+                    {
+                        UserId = currentUser.Id,
+                        MailAccountId = account.Id
+                    }));
+                    await _context.SaveChangesAsync();
+
+                    _logger.LogInformation("Auto-assigned {Count} M365 tenant accounts to SelfManager user {Username}",
+                        accountsToCreate.Count, currentUser.Username);
+                }
+
+                if (!string.IsNullOrEmpty(currentUsername))
+                {
+                    await _accessLogService.LogAccessAsync(currentUsername, AccessLogType.Account,
+                        searchParameters: $"Imported {accountsToCreate.Count} M365 tenant mail accounts for tenant {model.TenantId}");
+                }
+
+                TempData["SuccessMessage"] = _localizer["ImportedM365TenantAccounts", accountsToCreate.Count, selectedMailboxCount - accountsToCreate.Count].Value;
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error importing M365 tenant accounts: {Message}", ex.Message);
+                ModelState.AddModelError("", _localizer["M365TenantAccountsCouldNotBeImported"].Value);
+                return View("Create", model);
+            }
+        }
+
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ListM365TenantMailboxes(
+            [FromForm] string clientId,
+            [FromForm] string clientSecret,
+            [FromForm] string tenantId,
+            [FromForm] bool skipDisabledMailboxes = true)
+        {
+            if (string.IsNullOrWhiteSpace(clientId) ||
+                string.IsNullOrWhiteSpace(clientSecret) ||
+                string.IsNullOrWhiteSpace(tenantId))
+            {
+                return Json(new
+                {
+                    success = false,
+                    message = _localizer["M365TenantCredentialsRequired"].Value
+                });
+            }
+
+            try
+            {
+                var tenantUsers = await _graphEmailService.GetTenantMailboxUsersAsync(
+                    clientId,
+                    clientSecret,
+                    tenantId,
+                    includeDisabled: !skipDisabledMailboxes);
+
+                var tenantMailboxes = tenantUsers
+                    .Select(user => new
+                    {
+                        DisplayName = string.IsNullOrWhiteSpace(user.DisplayName)
+                            ? user.UserPrincipalName ?? user.Mail ?? _localizer["M365MailboxDefaultName"].Value
+                            : user.DisplayName,
+                        EmailAddress = string.IsNullOrWhiteSpace(user.Mail)
+                            ? user.UserPrincipalName
+                            : user.Mail,
+                        IsDisabled = user.AccountEnabled == false
+                    })
+                    .Where(user => !string.IsNullOrWhiteSpace(user.EmailAddress))
+                    .GroupBy(user => user.EmailAddress!.Trim().ToLowerInvariant())
+                    .Select(group => group.First())
+                    .OrderBy(user => user.EmailAddress)
+                    .ToList();
+
+                var mailboxAddresses = tenantMailboxes
+                    .Select(mailbox => mailbox.EmailAddress!.Trim().ToLowerInvariant())
+                    .ToList();
+
+                var existingAddresses = await _context.MailAccounts
+                    .Where(account => account.Provider == ProviderType.M365 && mailboxAddresses.Contains(account.EmailAddress.ToLower()))
+                    .Select(account => account.EmailAddress.ToLower())
+                    .ToListAsync();
+                var existingAddressSet = existingAddresses.ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+                return Json(new
+                {
+                    success = true,
+                    mailboxes = tenantMailboxes.Select(mailbox => new
+                    {
+                        displayName = mailbox.DisplayName,
+                        emailAddress = mailbox.EmailAddress,
+                        isDisabled = mailbox.IsDisabled,
+                        alreadyExists = existingAddressSet.Contains(mailbox.EmailAddress!)
+                    })
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error listing M365 tenant mailboxes: {Message}", ex.Message);
+                return Json(new
+                {
+                    success = false,
+                    message = _localizer["M365TenantMailboxesCouldNotBeListed"].Value
+                });
+            }
         }
 
         // GET: MailAccounts/Edit/5
@@ -1099,7 +1370,8 @@ var model = new MailAccountViewModel
                 return RedirectToAction("StartAsyncBatchRestoreFromAccount", "Emails", new
                 {
                     accountId = id,
-                    returnUrl = Url.Action("Details", new { id })
+                    returnUrl = Url.Action("Details", new { id }),
+                    preserveFolders = true
                 });
             }
             else
@@ -1110,6 +1382,7 @@ var model = new MailAccountViewModel
                 {
                     HttpContext.Session.SetString("BatchRestoreIds", string.Join(",", emailIds));
                     HttpContext.Session.SetString("BatchRestoreReturnUrl", Url.Action("Details", new { id }));
+                    HttpContext.Session.SetString("BatchRestorePreserveFolders", "true");
                     return RedirectToAction("BatchRestore", "Emails");
                 }
                 catch (Exception ex)
@@ -1120,7 +1393,8 @@ var model = new MailAccountViewModel
                     return RedirectToAction("StartAsyncBatchRestoreFromAccount", "Emails", new
                     {
                         accountId = id,
-                        returnUrl = Url.Action("Details", new { id })
+                        returnUrl = Url.Action("Details", new { id }),
+                        preserveFolders = true
                     });
                 }
             }
@@ -1212,6 +1486,13 @@ var model = new MailAccountViewModel
             if (model.MBoxFile.Length > model.MaxFileSize)
             {
                 ModelState.AddModelError("MBoxFile", _localizer["MBoxFileTooLarge", model.MaxFileSizeFormatted].Value);
+                return View(model);
+            }
+
+            // Validate file extension
+            if (!FileUploadHelper.IsAllowedImportExtension(model.MBoxFile.FileName))
+            {
+                ModelState.AddModelError("MBoxFile", _localizer["InvalidImportFileType"].Value);
                 return View(model);
             }
 
@@ -1502,6 +1783,13 @@ var model = new MailAccountViewModel
             if (model.EmlFile.Length > model.MaxFileSize)
             {
                 ModelState.AddModelError("EmlFile", _localizer["EmlFileTooLarge", model.MaxFileSizeFormatted].Value);
+                return View(model);
+            }
+
+            // Validate file extension
+            if (!FileUploadHelper.IsAllowedImportExtension(model.EmlFile.FileName))
+            {
+                ModelState.AddModelError("EmlFile", _localizer["InvalidImportFileType"].Value);
                 return View(model);
             }
 
@@ -2254,6 +2542,349 @@ var model = new MailAccountViewModel
             {
                 _logger.LogError(ex, "Error updating M365 credentials for domain");
                 return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        // Shared helper: lists tenant mailboxes and marks already-imported ones.
+        private async Task<List<TenantMailboxViewModel>> GetTenantMailboxesWithExistingAsync(
+            string clientId, string clientSecret, string tenantId, bool includeDisabled)
+        {
+            var tenantUsers = await _graphEmailService.GetTenantMailboxUsersAsync(
+                clientId, clientSecret, tenantId, includeDisabled: includeDisabled);
+
+            var tenantMailboxes = tenantUsers
+                .Select(user => new
+                {
+                    DisplayName = string.IsNullOrWhiteSpace(user.DisplayName)
+                        ? user.UserPrincipalName ?? user.Mail ?? _localizer["M365MailboxDefaultName"].Value
+                        : user.DisplayName,
+                    EmailAddress = string.IsNullOrWhiteSpace(user.Mail)
+                        ? user.UserPrincipalName
+                        : user.Mail,
+                    IsDisabled = user.AccountEnabled == false
+                })
+                .Where(user => !string.IsNullOrWhiteSpace(user.EmailAddress))
+                .GroupBy(user => user.EmailAddress!.Trim().ToLowerInvariant())
+                .Select(group => group.First())
+                .ToList();
+
+            var mailboxAddresses = tenantMailboxes
+                .Select(mailbox => mailbox.EmailAddress!.Trim().ToLowerInvariant())
+                .ToList();
+
+            var existingAddresses = await _context.MailAccounts
+                .Where(account => account.Provider == ProviderType.M365 &&
+                                  account.EmailAddress != null &&
+                                  mailboxAddresses.Contains(account.EmailAddress.ToLower()))
+                .Select(account => account.EmailAddress.ToLower())
+                .ToListAsync();
+            var existingAddressSet = existingAddresses.ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+            return tenantMailboxes
+                .Select(mailbox => new TenantMailboxViewModel
+                {
+                    DisplayName = mailbox.DisplayName,
+                    EmailAddress = mailbox.EmailAddress!,
+                    IsDisabled = mailbox.IsDisabled,
+                    AlreadyExists = existingAddressSet.Contains(mailbox.EmailAddress!)
+                })
+                .OrderBy(m => m.AlreadyExists)
+                .ThenBy(m => m.EmailAddress, StringComparer.OrdinalIgnoreCase)
+                .ToList();
+        }
+
+        // GET: MailAccounts/TenantManagement/5
+        public async Task<IActionResult> TenantManagement(int id)
+        {
+            var authService = HttpContext.RequestServices.GetService<MailArchiver.Services.IAuthenticationService>();
+            if (authService == null || !authService.IsCurrentUserAdmin(HttpContext))
+            {
+                return Forbid();
+            }
+
+            if (!await HasAccessToAccountAsync(id))
+            {
+                return NotFound();
+            }
+
+            var sourceAccount = await _context.MailAccounts
+                .Where(a => a.Id == id && a.Provider == ProviderType.M365)
+                .FirstOrDefaultAsync();
+
+            if (sourceAccount == null)
+            {
+                return NotFound();
+            }
+
+            if (string.IsNullOrWhiteSpace(sourceAccount.ClientId) ||
+                string.IsNullOrWhiteSpace(sourceAccount.ClientSecret) ||
+                string.IsNullOrWhiteSpace(sourceAccount.TenantId))
+            {
+                _logger.LogWarning("Source account {AccountId} has incomplete M365 credentials", id);
+                var missingModel = new TenantManagementViewModel
+                {
+                    SourceAccountId = sourceAccount.Id,
+                    SourceAccountName = sourceAccount.Name,
+                    SourceEmailAddress = sourceAccount.EmailAddress,
+                    ErrorMessage = _localizer["M365TenantCredentialsRequired"].Value
+                };
+                return View(missingModel);
+            }
+
+            var sourceName = sourceAccount.Name ?? string.Empty;
+            var separatorIndex = sourceName.IndexOf(" - <");
+            var defaultPrefix = separatorIndex >= 0
+                ? sourceName.Substring(0, separatorIndex).Trim()
+                : sourceName.Trim();
+
+            var model = new TenantManagementViewModel
+            {
+                SourceAccountId = sourceAccount.Id,
+                SourceAccountName = sourceAccount.Name,
+                SourceEmailAddress = sourceAccount.EmailAddress,
+                Name = defaultPrefix
+            };
+
+            try
+            {
+                model.Mailboxes = await GetTenantMailboxesWithExistingAsync(
+                    sourceAccount.ClientId!,
+                    sourceAccount.ClientSecret!,
+                    sourceAccount.TenantId!,
+                    includeDisabled: false);
+
+                _logger.LogInformation("Loaded {Count} tenant mailboxes for account {AccountId}",
+                    model.Mailboxes.Count, id);
+
+                var currentUsername = authService.GetCurrentUserDisplayName(HttpContext);
+                if (!string.IsNullOrEmpty(currentUsername))
+                {
+                    await _accessLogService.LogAccessAsync(currentUsername, AccessLogType.Account,
+                        searchParameters: $"Listed {model.Mailboxes.Count} M365 tenant mailboxes for source account {sourceAccount.EmailAddress}");
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading tenant mailboxes for account {AccountId}", id);
+                model.ErrorMessage = _localizer["M365TenantMailboxesCouldNotBeListed"].Value;
+            }
+
+            return View(model);
+        }
+
+        // POST: MailAccounts/AddTenantMailboxes
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddTenantMailboxes(TenantManagementViewModel model)
+        {
+            var authService = HttpContext.RequestServices.GetService<MailArchiver.Services.IAuthenticationService>();
+            if (authService == null || !authService.IsCurrentUserAdmin(HttpContext))
+            {
+                return Forbid();
+            }
+
+            if (!await HasAccessToAccountAsync(model.SourceAccountId))
+            {
+                return NotFound();
+            }
+
+            var sourceAccount = await _context.MailAccounts
+                .Where(a => a.Id == model.SourceAccountId && a.Provider == ProviderType.M365)
+                .FirstOrDefaultAsync();
+
+            if (sourceAccount == null)
+            {
+                return NotFound();
+            }
+
+            if (string.IsNullOrWhiteSpace(sourceAccount.ClientId) ||
+                string.IsNullOrWhiteSpace(sourceAccount.ClientSecret) ||
+                string.IsNullOrWhiteSpace(sourceAccount.TenantId))
+            {
+                ModelState.AddModelError("", _localizer["M365TenantCredentialsRequired"].Value);
+                await PopulateMailboxesForPostErrorAsync(model, sourceAccount);
+                return View("TenantManagement", model);
+            }
+
+            var maxSelected = _tenantManagementOptions.MaxSelectedMailboxes;
+            if (maxSelected > 0 && model.SelectedMailboxes != null && model.SelectedMailboxes.Count > maxSelected)
+            {
+                ModelState.AddModelError("SelectedMailboxes",
+                    _localizer["SelectAtMostMailboxes", maxSelected].Value);
+            }
+
+            if (!ModelState.IsValid)
+            {
+                await PopulateMailboxesForPostErrorAsync(model, sourceAccount);
+                return View("TenantManagement", model);
+            }
+
+            try
+            {
+                // Re-fetch the tenant list to validate the selected addresses against it.
+                var tenantMailboxes = await GetTenantMailboxesWithExistingAsync(
+                    sourceAccount.ClientId!,
+                    sourceAccount.ClientSecret!,
+                    sourceAccount.TenantId!,
+                    includeDisabled: false);
+
+                var tenantAddressSet = tenantMailboxes
+                    .Select(m => m.EmailAddress.Trim().ToLowerInvariant())
+                    .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+                var selectedNormalized = model.SelectedMailboxes
+                    .Where(a => !string.IsNullOrWhiteSpace(a))
+                    .Select(a => a.Trim().ToLowerInvariant())
+                    .Distinct(StringComparer.OrdinalIgnoreCase)
+                    .ToList();
+
+                // Only accept addresses that are actually part of the tenant and not already imported.
+                var toAdd = tenantMailboxes
+                    .Where(m => selectedNormalized.Contains(m.EmailAddress.Trim().ToLowerInvariant()) && !m.AlreadyExists)
+                    .ToList();
+
+                if (toAdd.Count == 0 && !model.RenameExistingAccounts)
+                {
+                    TempData["ErrorMessage"] = _localizer["NoNewMailboxesToAdd"].Value;
+                    return RedirectToAction(nameof(TenantManagement), new { id = model.SourceAccountId });
+                }
+
+                var accountNamePrefix = model.Name!.Trim();
+                var addedCount = 0;
+                var renamedCount = 0;
+
+                if (toAdd.Count > 0)
+                {
+                    var accountsToCreate = toAdd.Select(mailbox => new MailAccount
+                    {
+                        Name = $"{accountNamePrefix} - <{mailbox.EmailAddress}>",
+                        EmailAddress = mailbox.EmailAddress,
+                        UseSSL = sourceAccount.UseSSL,
+                        IsEnabled = true,
+                        Provider = ProviderType.M365,
+                        ClientId = sourceAccount.ClientId,
+                        ClientSecret = sourceAccount.ClientSecret,
+                        TenantId = sourceAccount.TenantId,
+                        ExcludedFolders = string.Empty,
+                        DeleteAfterDays = model.DeleteAfterDays,
+                        LocalRetentionDays = model.LocalRetentionDays,
+                        LastSync = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+                    }).ToList();
+
+                    _context.MailAccounts.AddRange(accountsToCreate);
+                    await _context.SaveChangesAsync();
+                    addedCount = accountsToCreate.Count;
+
+                    // SelfManager auto-assignment (consistent with Create flow)
+                    var currentUsernameForAssignment = authService.GetCurrentUserDisplayName(HttpContext);
+                    var currentUser = await _context.Users
+                        .FirstOrDefaultAsync(user => user.Username.ToLower() == currentUsernameForAssignment.ToLower());
+                    if (currentUser != null && !currentUser.IsAdmin && currentUser.IsSelfManager)
+                    {
+                        _context.UserMailAccounts.AddRange(accountsToCreate.Select(account => new UserMailAccount
+                        {
+                            UserId = currentUser.Id,
+                            MailAccountId = account.Id
+                        }));
+                        await _context.SaveChangesAsync();
+
+                        _logger.LogInformation("Auto-assigned {Count} tenant accounts to SelfManager user {Username}",
+                            accountsToCreate.Count, currentUser.Username);
+                    }
+                }
+
+                if (model.RenameExistingAccounts)
+                {
+                    var accountsToRename = await _context.MailAccounts
+                        .Where(a => a.Provider == ProviderType.M365
+                                 && a.ClientId == sourceAccount.ClientId
+                                 && a.TenantId == sourceAccount.TenantId
+                                 && a.EmailAddress != null)
+                        .ToListAsync();
+
+                    foreach (var account in accountsToRename)
+                    {
+                        account.Name = $"{accountNamePrefix} - <{account.EmailAddress}>";
+                    }
+                    await _context.SaveChangesAsync();
+                    renamedCount = accountsToRename.Count;
+
+                    _logger.LogInformation("Renamed {Count} M365 accounts to schema '{Prefix} - <email>' for app registration {ClientId}",
+                        renamedCount, accountNamePrefix, sourceAccount.ClientId);
+                }
+
+                var currentUsername = authService.GetCurrentUserDisplayName(HttpContext);
+
+                if (!string.IsNullOrEmpty(currentUsername))
+                {
+                    var logParts = new List<string>();
+                    if (addedCount > 0)
+                    {
+                        logParts.Add($"Added {addedCount} M365 tenant mailboxes via Tenant Management from source account {sourceAccount.EmailAddress}");
+                    }
+                    if (renamedCount > 0)
+                    {
+                        logParts.Add($"Renamed {renamedCount} M365 accounts to schema '{accountNamePrefix} - <email>' for app registration {sourceAccount.ClientId}");
+                    }
+                    await _accessLogService.LogAccessAsync(currentUsername, AccessLogType.Account,
+                        searchParameters: string.Join("; ", logParts));
+                }
+
+                if (addedCount > 0 && renamedCount > 0)
+                {
+                    TempData["SuccessMessage"] = _localizer["MailboxesAddedAndAccountsRenamed", addedCount, renamedCount].Value;
+                }
+                else if (addedCount > 0)
+                {
+                    TempData["SuccessMessage"] = _localizer["MailboxesAdded", addedCount].Value;
+                }
+                else if (renamedCount > 0)
+                {
+                    TempData["SuccessMessage"] = _localizer["AccountsRenamed", renamedCount].Value;
+                }
+
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error adding tenant mailboxes from source account {AccountId}", model.SourceAccountId);
+                ModelState.AddModelError("", _localizer["M365TenantAccountsCouldNotBeImported"].Value);
+                await PopulateMailboxesForPostErrorAsync(model, sourceAccount);
+                return View("TenantManagement", model);
+            }
+        }
+
+        // Rebuilds the mailbox list for the view when a POST validation fails.
+        private async Task PopulateMailboxesForPostErrorAsync(TenantManagementViewModel model, MailAccount sourceAccount)
+        {
+            model.SourceAccountName = sourceAccount.Name;
+            model.SourceEmailAddress = sourceAccount.EmailAddress;
+            try
+            {
+                model.Mailboxes = await GetTenantMailboxesWithExistingAsync(
+                    sourceAccount.ClientId!,
+                    sourceAccount.ClientSecret!,
+                    sourceAccount.TenantId!,
+                    includeDisabled: false);
+
+                // Preserve the user's selection state on the rendered checkboxes.
+                var selectedSet = (model.SelectedMailboxes ?? new List<string>())
+                    .Where(a => !string.IsNullOrWhiteSpace(a))
+                    .Select(a => a.Trim().ToLowerInvariant())
+                    .ToHashSet(StringComparer.OrdinalIgnoreCase);
+                foreach (var mailbox in model.Mailboxes)
+                {
+                    if (selectedSet.Contains(mailbox.EmailAddress.Trim().ToLowerInvariant()) && !mailbox.AlreadyExists)
+                    {
+                        // Marking via a transient flag is not available; the view relies on SelectedMailboxes.
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error reloading tenant mailboxes after POST validation failure");
+                model.Mailboxes = new List<TenantMailboxViewModel>();
+                model.ErrorMessage = _localizer["M365TenantMailboxesCouldNotBeListed"].Value;
             }
         }
     }
