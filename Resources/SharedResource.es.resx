@@ -2876,4 +2876,13 @@
   <data name="MsaAuthAfterSaveInfo" xml:space="preserve">
     <value>Después de guardar, se le redirigirá a Microsoft para autorizar el acceso a su buzón.</value>
   </data>
+  <data name="UserAccountSection" xml:space="preserve">
+    <value>Detalles de la cuenta</value>
+  </data>
+  <data name="UserSecuritySection" xml:space="preserve">
+    <value>Seguridad</value>
+  </data>
+  <data name="OidcPasswordManagedExternally" xml:space="preserve">
+    <value>Este es un usuario OIDC. La gestión de contraseñas la realiza el proveedor OIDC.</value>
+  </data>
 </root>

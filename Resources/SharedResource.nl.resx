@@ -2877,4 +2877,13 @@
   <data name="MsaAuthAfterSaveInfo" xml:space="preserve">
     <value>Na het opslaan wordt u doorverwezen naar Microsoft om toegang tot uw postvak te autoriseren.</value>
   </data>
+  <data name="UserAccountSection" xml:space="preserve">
+    <value>Accountgegevens</value>
+  </data>
+  <data name="UserSecuritySection" xml:space="preserve">
+    <value>Beveiliging</value>
+  </data>
+  <data name="OidcPasswordManagedExternally" xml:space="preserve">
+    <value>Dit is een OIDC-gebruiker. Wachtwoordbeheer wordt afgehandeld door de OIDC-provider.</value>
+  </data>
 </root>

@@ -2877,4 +2877,13 @@
   <data name="MsaAuthAfterSaveInfo" xml:space="preserve">
     <value>Dopo il salvataggio, verrai reindirizzato a Microsoft per autorizzare l'accesso alla tua casella di posta.</value>
   </data>
+  <data name="UserAccountSection" xml:space="preserve">
+    <value>Dettagli account</value>
+  </data>
+  <data name="UserSecuritySection" xml:space="preserve">
+    <value>Sicurezza</value>
+  </data>
+  <data name="OidcPasswordManagedExternally" xml:space="preserve">
+    <value>Questo è un utente OIDC. La gestione della password è gestita dal provider OIDC.</value>
+  </data>
 </root>

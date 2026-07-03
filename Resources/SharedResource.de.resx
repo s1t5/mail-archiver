@@ -2878,4 +2878,13 @@
   <data name="MsaAuthAfterSaveInfo" xml:space="preserve">
     <value>Nach dem Speichern werden Sie automatisch zu Microsoft weitergeleitet, um den Zugriff auf Ihr Postfach zu autorisieren.</value>
   </data>
+  <data name="UserAccountSection" xml:space="preserve">
+    <value>Kontodetails</value>
+  </data>
+  <data name="UserSecuritySection" xml:space="preserve">
+    <value>Sicherheit</value>
+  </data>
+  <data name="OidcPasswordManagedExternally" xml:space="preserve">
+    <value>Dies ist ein OIDC-Benutzer. Die Passwortverwaltung erfolgt über den OIDC-Anbieter.</value>
+  </data>
 </root>

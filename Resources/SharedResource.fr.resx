@@ -2877,4 +2877,13 @@
   <data name="MsaAuthAfterSaveInfo" xml:space="preserve">
     <value>Après l'enregistrement, vous serez redirigé vers Microsoft pour autoriser l'accès à votre boîte aux lettres.</value>
   </data>
+  <data name="UserAccountSection" xml:space="preserve">
+    <value>Détails du compte</value>
+  </data>
+  <data name="UserSecuritySection" xml:space="preserve">
+    <value>Sécurité</value>
+  </data>
+  <data name="OidcPasswordManagedExternally" xml:space="preserve">
+    <value>Cet utilisateur est OIDC. La gestion du mot de passe est gérée par le fournisseur OIDC.</value>
+  </data>
 </root>

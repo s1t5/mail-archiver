@@ -2877,4 +2877,13 @@
   <data name="MsaAuthAfterSaveInfo" xml:space="preserve">
     <value>После сохранения вы будете перенаправлены в Microsoft для авторизации доступа к вашему почтовому ящику.</value>
   </data>
+  <data name="UserAccountSection" xml:space="preserve">
+    <value>Данные учётной записи</value>
+  </data>
+  <data name="UserSecuritySection" xml:space="preserve">
+    <value>Безопасность</value>
+  </data>
+  <data name="OidcPasswordManagedExternally" xml:space="preserve">
+    <value>Это пользователь OIDC. Управление паролем осуществляется провайдером OIDC.</value>
+  </data>
 </root>

@@ -306,4 +306,13 @@
   <data name="MsaAuthAfterSaveInfo" xml:space="preserve">
     <value>After saving, you will be redirected to Microsoft to authorise access to your mailbox.</value>
   </data>
+  <data name="UserAccountSection" xml:space="preserve">
+    <value>Account details</value>
+  </data>
+  <data name="UserSecuritySection" xml:space="preserve">
+    <value>Security</value>
+  </data>
+  <data name="OidcPasswordManagedExternally" xml:space="preserve">
+    <value>This is an OIDC user. Password management is handled by the OIDC provider.</value>
+  </data>
 </root>

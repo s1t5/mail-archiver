@@ -2877,4 +2877,13 @@
   <data name="MsaAuthAfterSaveInfo" xml:space="preserve">
     <value>Po shranjevanju boste preusmerjeni na Microsoft za avtorizacijo dostopa do vašega nabiralnika.</value>
   </data>
+  <data name="UserAccountSection" xml:space="preserve">
+    <value>Podrobnosti računa</value>
+  </data>
+  <data name="UserSecuritySection" xml:space="preserve">
+    <value>Varnost</value>
+  </data>
+  <data name="OidcPasswordManagedExternally" xml:space="preserve">
+    <value>To je uporabnik OIDC. Upravljanje gesel obravnava ponudnik OIDC.</value>
+  </data>
 </root>

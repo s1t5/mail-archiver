@@ -2869,4 +2869,13 @@
   <data name="MsaAuthAfterSaveInfo" xml:space="preserve">
     <value>Mentés után a rendszer átirányítja a Microsofthoz a postafiók hozzáférésének engedélyezéséhez.</value>
   </data>
+  <data name="UserAccountSection" xml:space="preserve">
+    <value>Fiók adatai</value>
+  </data>
+  <data name="UserSecuritySection" xml:space="preserve">
+    <value>Biztonság</value>
+  </data>
+  <data name="OidcPasswordManagedExternally" xml:space="preserve">
+    <value>Ez egy OIDC felhasználó. A jelszókezelést az OIDC szolgáltató végzi.</value>
+  </data>
 </root>

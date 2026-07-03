@@ -1,75 +1,98 @@
 ﻿@inject Microsoft.Extensions.Localization.IStringLocalizer<MailArchiver.SharedResource> Localizer
 @model MailArchiver.Models.ViewModels.EditUserViewModel
 @{ ViewData["Title"] = Localizer["EditUserTitle"]; }
-<div class="container-fluid">
+<div class="container">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h1>@Localizer["EditUserTitle"]</h1>
-        <a asp-action="Index" class="btn btn-secondary"><i class="bi bi-arrow-left"></i> @Localizer["BackToList"]</a>
+        <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> @Localizer["BackToList"]</a>
     </div>
-    <div class="card"><div class="card-body">
-        <form asp-action="Edit" method="post">
-            <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
-            <input type="hidden" asp-for="Id" />
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="mb-3">
-                            <label asp-for="Username" class="form-label">@Localizer["Username"]</label>
-                            @if (ViewBag.IsOidcUser != null && (bool)ViewBag.IsOidcUser)
-                            {
-                                <input asp-for="Username" class="form-control" readonly />
-                                <small class="form-text text-muted">
-                                    <i class="bi bi-lock"></i> OIDC user - username cannot be changed
-                                </small>
-                            }
-                            else
-                            {
-                                <input asp-for="Username" class="form-control" />
-                            }
-                            <span asp-validation-for="Username" class="text-danger"></span>
+    <div class="card">
+        <div class="card-body">
+            <form asp-action="Edit" method="post" id="editUserForm">
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+                <input type="hidden" asp-for="Id" />
+
+                <div class="form-section">
+                    <div class="form-section-header">
+                        <i class="bi bi-person-badge me-1"></i> @Localizer["UserAccountSection"]
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label asp-for="Username" class="form-label">@Localizer["Username"]</label>
+                                @if (ViewBag.IsOidcUser != null && (bool)ViewBag.IsOidcUser)
+                                {
+                                    <input asp-for="Username" class="form-control" readonly />
+                                    <small class="form-text text-muted">
+                                        <i class="bi bi-lock"></i> @Localizer["OidcUserCannotChangeUsername"]
+                                    </small>
+                                }
+                                else
+                                {
+                                    <input asp-for="Username" class="form-control" />
+                                }
+                                <span asp-validation-for="Username" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label asp-for="Email" class="form-label">@Localizer["Email"]</label>
+                                <input asp-for="Email" class="form-control" />
+                                <span asp-validation-for="Email" class="text-danger"></span>
+                            </div>
                         </div>
                     </div>
-                    <div class="col-md-6">
-                        <div class="mb-3">
-                            <label asp-for="Email" class="form-label">@Localizer["Email"]</label>
-                            <input asp-for="Email" class="form-control" />
-                            <span asp-validation-for="Email" class="text-danger"></span>
+                </div>
+
+                <div class="form-section">
+                    <div class="form-section-header">
+                        <i class="bi bi-person-gear me-1"></i> @Localizer["Admin"]
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3 form-check">
+                                <input asp-for="IsAdmin" class="form-check-input" />
+                                <label class="form-check-label">@Localizer["Admin"]</label>
+                                <div class="form-text">@Localizer["AdminRoleDescription"]</div>
+                                <span asp-validation-for="IsAdmin" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3 form-check">
+                                <input asp-for="IsSelfManager" class="form-check-input" />
+                                <label class="form-check-label">@Localizer["SelfManager"]</label>
+                                <div class="form-text">@Localizer["SelfManagerRoleDescription"]</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3 form-check">
+                                <input asp-for="IsActive" class="form-check-input" />
+                                <label class="form-check-label">@Localizer["Active"]</label>
+                            </div>
                         </div>
                     </div>
                 </div>
-            <div class="row">
-                <div class="col-md-4">
-                    <div class="mb-3 form-check">
-                        <input asp-for="IsAdmin" class="form-check-input" />
-                        <label class="form-check-label">@Localizer["Admin"]</label>
-                        <div class="form-text">@Localizer["AdminRoleDescription"]</div>
-                        <span asp-validation-for="IsAdmin" class="text-danger"></span>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="mb-3 form-check">
-                        <input asp-for="IsSelfManager" class="form-check-input" />
-                        <label class="form-check-label">@Localizer["SelfManager"]</label>
-                        <div class="form-text">@Localizer["SelfManagerRoleDescription"]</div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="mb-3 form-check">
-                        <input asp-for="IsActive" class="form-check-input" />
-                        <label class="form-check-label">@Localizer["Active"]</label>
-                    </div>
-                </div>
-            </div>
-            @if (ViewBag.IsOidcUser != null && !(bool)ViewBag.IsOidcUser)
-            {
-                <div class="row">
-                    <div class="col-md-12">
+
+                @if (ViewBag.IsOidcUser != null && !(bool)ViewBag.IsOidcUser)
+                {
+                    <div class="form-section">
+                        <div class="form-section-header">
+                            <i class="bi bi-shield-lock me-1"></i> @Localizer["UserSecuritySection"]
+                        </div>
+
                         <div class="mb-3">
                             <label for="newPassword" class="form-label">@Localizer["NewPassword"]</label>
-                            <input type="password" name="newPassword" id="newPassword" class="form-control" placeholder="@Localizer["LeaveBlankToKeepPassword"]" />
+                            <div class="input-group">
+                                <input type="password" name="newPassword" id="newPassword" class="form-control" placeholder="@Localizer["LeaveBlankToKeepPassword"]" />
+                                <button type="button" class="btn btn-outline-secondary password-toggle" data-target="newPassword" aria-label="@Localizer["ShowPassword"]">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
                             <small class="form-text text-muted">@Localizer["LeaveBlankToKeepPassword"]</small>
                             <span class="text-danger" id="newPassword-error"></span>
-                            
-                            <!-- Password Requirements (shown only when typing) -->
+
                             <div class="mt-2" id="passwordRequirementsContainer" style="display: none;">
                                 <small class="text-muted">@Localizer["PasswordRequirements"]:</small>
                                 <ul class="small text-muted mt-1" id="passwordRequirements">
@@ -82,63 +105,70 @@
                             </div>
                         </div>
                     </div>
+                }
+                else
+                {
+                    <div class="msa-info-banner d-flex align-items-center mb-3">
+                        <i class="bi bi-info-circle-fill me-2"></i>
+                        <span>@Localizer["OidcPasswordManagedExternally"]</span>
+                    </div>
+                }
+
+                <div class="mt-4 d-flex justify-content-between">
+                    <a asp-action="Index" class="btn btn-outline-secondary">@Localizer["Cancel"]</a>
+                    <button type="submit" class="btn btn-primary" id="saveBtn">
+                        <i class="bi bi-save"></i> @Localizer["SaveChanges"]
+                    </button>
                 </div>
-            }
-            else
-            {
-                <div class="alert alert-info">
-                    <i class="bi bi-info-circle"></i> This is an OIDC user. Password management is handled by the OIDC provider.
-                </div>
-            }
-            <div class="d-flex justify-content-between"><a asp-action="Index" class="btn btn-secondary">@Localizer["Cancel"]</a><button type="submit" class="btn btn-primary"><i class="bi bi-save"></i> @Localizer["SaveChanges"]</button></div>
-        </form>
-        @* 2FA is only available for non-OIDC users *@
+            </form>
+
             @if (ViewBag.IsOidcUser != null && !(bool)ViewBag.IsOidcUser && ViewBag.IsTwoFactorEnabled != null && (bool)ViewBag.IsTwoFactorEnabled)
             {
-            <div class="mt-4">
-                <h5>@Localizer["TwoFactorAuthentication"]</h5>
-                <p>@Localizer["TwoFactorEnabled"]</p>
-                <form asp-action="ResetTwoFactor" method="post" class="d-inline">
-                    <input type="hidden" name="id" value="@Model.Id" />
-                    <button type="submit" class="btn btn-warning" onclick="return confirm('@Localizer["ConfirmResetTwoFactor"]')">
-                        <i class="bi bi-shield-x"></i> @Localizer["ResetTwoFactor"]
-                    </button>
-                </form>
-            </div>
-        }
-    </div></div>
+                <div class="form-section mt-4">
+                    <div class="form-section-header">
+                        <i class="bi bi-shield-check me-1"></i> @Localizer["TwoFactorAuthentication"]
+                    </div>
+                    <p>@Localizer["TwoFactorEnabled"]</p>
+                    <form asp-action="ResetTwoFactor" method="post" class="d-inline">
+                        <input type="hidden" name="id" value="@Model.Id" />
+                        <button type="submit" class="btn btn-warning" onclick="return confirm('@Localizer["ConfirmResetTwoFactor"]')">
+                            <i class="bi bi-shield-x"></i> @Localizer["ResetTwoFactor"]
+                        </button>
+                    </form>
+                </div>
+            }
+        </div>
+    </div>
 </div>
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
     <script>
+        const i18n = {
+            saving: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["Saving"].Value)),
+            showPassword: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["ShowPassword"].Value)),
+            hidePassword: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["HidePassword"].Value)),
+            unsavedWarning: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["UnsavedChangesWarning"].Value))
+        };
         $(document).ready(function() {
-            // Password validation UI updates
+            let isDirty = false;
+            let isSubmitting = false;
+
             $('#newPassword').on('input', function() {
                 var password = $(this).val();
-                
-                // Show/hide requirements container
+
                 if (password.length > 0) {
                     $('#passwordRequirementsContainer').show();
-                    
-                    // Check length
+
                     updateRequirement('edit-req-length', password.length >= 10);
-                    
-                    // Check uppercase
                     updateRequirement('edit-req-uppercase', /[A-Z]/.test(password));
-                    
-                    // Check lowercase
                     updateRequirement('edit-req-lowercase', /[a-z]/.test(password));
-                    
-                    // Check number
                     updateRequirement('edit-req-number', /[0-9]/.test(password));
-                    
-                    // Check special character
                     updateRequirement('edit-req-special', /[^A-Za-z0-9]/.test(password));
                 } else {
                     $('#passwordRequirementsContainer').hide();
                 }
             });
-            
+
             function updateRequirement(elementId, isValid) {
                 var element = $('#' + elementId);
                 if (isValid) {
@@ -149,6 +179,45 @@
                     element.find('i').removeClass('bi-check-circle').addClass('bi-x-circle');
                 }
             }
+
+            // Password toggle
+            document.querySelectorAll('.password-toggle').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const target = document.getElementById(this.dataset.target);
+                    if (!target) return;
+                    const icon = this.querySelector('i');
+                    if (target.type === 'password') {
+                        target.type = 'text';
+                        icon.className = 'bi bi-eye-slash';
+                        this.setAttribute('aria-label', i18n.hidePassword);
+                    } else {
+                        target.type = 'password';
+                        icon.className = 'bi bi-eye';
+                        this.setAttribute('aria-label', i18n.showPassword);
+                    }
+                });
+            });
+
+            // Dirty state tracking
+            const editForm = document.getElementById('editUserForm');
+            editForm.addEventListener('input', () => isDirty = true);
+            editForm.addEventListener('change', () => isDirty = true);
+
+            window.addEventListener('beforeunload', function(e) {
+                if (isDirty && !isSubmitting) {
+                    e.preventDefault();
+                    e.returnValue = i18n.unsavedWarning;
+                    return i18n.unsavedWarning;
+                }
+            });
+
+            // Save button loading state
+            const saveBtn = document.getElementById('saveBtn');
+            editForm.addEventListener('submit', function() {
+                isSubmitting = true;
+                saveBtn.disabled = true;
+                saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status"></span> ' + i18n.saving;
+            });
         });
     </script>
     <style>
