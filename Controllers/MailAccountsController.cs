@@ -2302,10 +2302,8 @@ var model = new MailAccountViewModel
         }
 
         // GET: MailAccounts/CancelMsaAuthorization/5 — called by the Cancel button on the
-        // device-code authorization page. If the account was never authorized (no refresh token),
-        // it is deleted entirely so the user can start over cleanly instead of leaving an
-        // orphaned unauthorised account. If it was already authorized, behaves like a normal
-        // cancel (returns to the Edit page).
+        // device-code authorization page. Cleans up pending session state and returns to
+        // the Edit page. The account is never deleted here.
         [HttpGet]
         public async Task<IActionResult> CancelMsaAuthorization(int id)
         {
@@ -2320,33 +2318,6 @@ var model = new MailAccountViewModel
             HttpContext.Session.Remove($"MsaDeviceCode_{id}");
             HttpContext.Session.Remove($"MsaInterval_{id}");
 
-            if (account.Provider == ProviderType.MSA && string.IsNullOrEmpty(account.OAuthRefreshToken))
-            {
-                // Never authorized — delete the account entirely.
-                // Log the deletion in the access log so the initial "Created" entry
-                // is not the last word on this account.
-                var authService = HttpContext.RequestServices.GetService<MailArchiver.Services.IAuthenticationService>();
-                var currentUsername = authService?.GetCurrentUserDisplayName(HttpContext);
-                if (!string.IsNullOrEmpty(currentUsername))
-                {
-                    await _accessLogService.LogAccessAsync(currentUsername, AccessLogType.Account,
-                        searchParameters: $"Deleted unauthorised MSA account after cancellation: {account.Name}",
-                        mailAccountId: account.Id);
-                }
-
-                // Remove the user assignment first (if any), then the account.
-                var userMailAccounts = _context.UserMailAccounts.Where(uma => uma.MailAccountId == id);
-                _context.UserMailAccounts.RemoveRange(userMailAccounts);
-                _context.MailAccounts.Remove(account);
-                await _context.SaveChangesAsync();
-
-                _logger.LogInformation("Deleted unauthorised MSA account {AccountId} ({Name}) after cancellation",
-                    id, account.Name);
-                TempData["InfoMessage"] = _localizer["MsaAuthorizationCancelled"].Value;
-                return RedirectToAction(nameof(Index));
-            }
-
-            // Already authorized — treat as a normal cancel and return to the edit page.
             return RedirectToAction(nameof(Edit), new { id });
         }
 
