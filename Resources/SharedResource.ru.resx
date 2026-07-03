@@ -2838,4 +2838,40 @@
   <data name="MailboxesAddedAndAccountsRenamed" xml:space="preserve">
     <value>Добавлено почтовых ящиков: {0}, переименовано учётных записей: {1}.</value>
   </data>
+  <data name="ShowPassword" xml:space="preserve">
+    <value>Показать пароль</value>
+  </data>
+  <data name="HidePassword" xml:space="preserve">
+    <value>Скрыть пароль</value>
+  </data>
+  <data name="AdvancedSettings" xml:space="preserve">
+    <value>Дополнительные настройки</value>
+  </data>
+  <data name="UnsavedChangesWarning" xml:space="preserve">
+    <value>У вас есть несохранённые изменения. Вы уверены, что хотите покинуть эту страницу?</value>
+  </data>
+  <data name="Saving" xml:space="preserve">
+    <value>Сохранение...</value>
+  </data>
+  <data name="CopyFolderToExcluded" xml:space="preserve">
+    <value>Нажмите на папку, чтобы добавить её в список исключений или удалить из него</value>
+  </data>
+  <data name="StorageUsed" xml:space="preserve">
+    <value>Используемый объём</value>
+  </data>
+  <data name="ConnectionDetails" xml:space="preserve">
+    <value>Сведения о подключении</value>
+  </data>
+  <data name="PrimaryActions" xml:space="preserve">
+    <value>Действия</value>
+  </data>
+  <data name="FilterMailboxes" xml:space="preserve">
+    <value>Фильтрация ящиков...</value>
+  </data>
+  <data name="NoMailboxesMatchFilter" xml:space="preserve">
+    <value>Ни один ящик не соответствует фильтру.</value>
+  </data>
+  <data name="MsaBadge" xml:space="preserve">
+    <value>MSA (личный)</value>
+  </data>
 </root>

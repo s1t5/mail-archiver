@@ -2838,4 +2838,40 @@
   <data name="MailboxesAddedAndAccountsRenamed" xml:space="preserve">
     <value>Dodano {0} poštnih nabiralnikov in preimenovanih {1} računov.</value>
   </data>
+  <data name="ShowPassword" xml:space="preserve">
+    <value>Pokaži geslo</value>
+  </data>
+  <data name="HidePassword" xml:space="preserve">
+    <value>Skrij geslo</value>
+  </data>
+  <data name="AdvancedSettings" xml:space="preserve">
+    <value>Napredne nastavitve</value>
+  </data>
+  <data name="UnsavedChangesWarning" xml:space="preserve">
+    <value>Imate neshranjene spremembe. Ali ste prepričani, da želite zapustiti to stran?</value>
+  </data>
+  <data name="Saving" xml:space="preserve">
+    <value>Shranjevanje...</value>
+  </data>
+  <data name="CopyFolderToExcluded" xml:space="preserve">
+    <value>Kliknite mapo, da jo dodate ali odstranite s seznama izključitev</value>
+  </data>
+  <data name="StorageUsed" xml:space="preserve">
+    <value>Porabljen prostor</value>
+  </data>
+  <data name="ConnectionDetails" xml:space="preserve">
+    <value>Podrobnosti povezave</value>
+  </data>
+  <data name="PrimaryActions" xml:space="preserve">
+    <value>Dejanja</value>
+  </data>
+  <data name="FilterMailboxes" xml:space="preserve">
+    <value>Filtriraj nabiralnike...</value>
+  </data>
+  <data name="NoMailboxesMatchFilter" xml:space="preserve">
+    <value>Nobeni nabiralniki ne ustrezajo vašemu filtru.</value>
+  </data>
+  <data name="MsaBadge" xml:space="preserve">
+    <value>MSA (osebni)</value>
+  </data>
 </root>

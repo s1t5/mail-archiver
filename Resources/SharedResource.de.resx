@@ -2839,4 +2839,40 @@
   <data name="MailboxesAddedAndAccountsRenamed" xml:space="preserve">
     <value>{0} Postfach(fächer) hinzugefügt und {1} Konto(en) umbenannt.</value>
   </data>
+  <data name="ShowPassword" xml:space="preserve">
+    <value>Passwort anzeigen</value>
+  </data>
+  <data name="HidePassword" xml:space="preserve">
+    <value>Passwort verbergen</value>
+  </data>
+  <data name="AdvancedSettings" xml:space="preserve">
+    <value>Erweiterte Einstellungen</value>
+  </data>
+  <data name="UnsavedChangesWarning" xml:space="preserve">
+    <value>Sie haben ungespeicherte Änderungen. Möchten Sie diese Seite wirklich verlassen?</value>
+  </data>
+  <data name="Saving" xml:space="preserve">
+    <value>Speichern...</value>
+  </data>
+  <data name="CopyFolderToExcluded" xml:space="preserve">
+    <value>Auf einen Ordner klicken, um ihn zur Ausschlussliste hinzuzufügen oder zu entfernen</value>
+  </data>
+  <data name="StorageUsed" xml:space="preserve">
+    <value>Belegter Speicher</value>
+  </data>
+  <data name="ConnectionDetails" xml:space="preserve">
+    <value>Verbindungsdetails</value>
+  </data>
+  <data name="PrimaryActions" xml:space="preserve">
+    <value>Aktionen</value>
+  </data>
+  <data name="FilterMailboxes" xml:space="preserve">
+    <value>Postfächer filtern...</value>
+  </data>
+  <data name="NoMailboxesMatchFilter" xml:space="preserve">
+    <value>Keine Postfächer entsprechen Ihrem Filter.</value>
+  </data>
+  <data name="MsaBadge" xml:space="preserve">
+    <value>MSA (persönlich)</value>
+  </data>
 </root>

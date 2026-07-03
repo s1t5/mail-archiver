@@ -2838,4 +2838,40 @@
   <data name="MailboxesAddedAndAccountsRenamed" xml:space="preserve">
     <value>Aggiunte {0} caselle di posta e rinominati {1} account.</value>
   </data>
+  <data name="ShowPassword" xml:space="preserve">
+    <value>Mostra password</value>
+  </data>
+  <data name="HidePassword" xml:space="preserve">
+    <value>Nascondi password</value>
+  </data>
+  <data name="AdvancedSettings" xml:space="preserve">
+    <value>Impostazioni avanzate</value>
+  </data>
+  <data name="UnsavedChangesWarning" xml:space="preserve">
+    <value>Hai modifiche non salvate. Sei sicuro di voler lasciare questa pagina?</value>
+  </data>
+  <data name="Saving" xml:space="preserve">
+    <value>Salvataggio...</value>
+  </data>
+  <data name="CopyFolderToExcluded" xml:space="preserve">
+    <value>Fai clic su una cartella per aggiungerla o rimuoverla dalla lista di esclusione</value>
+  </data>
+  <data name="StorageUsed" xml:space="preserve">
+    <value>Spazio utilizzato</value>
+  </data>
+  <data name="ConnectionDetails" xml:space="preserve">
+    <value>Dettagli connessione</value>
+  </data>
+  <data name="PrimaryActions" xml:space="preserve">
+    <value>Azioni</value>
+  </data>
+  <data name="FilterMailboxes" xml:space="preserve">
+    <value>Filtra caselle di posta...</value>
+  </data>
+  <data name="NoMailboxesMatchFilter" xml:space="preserve">
+    <value>Nessuna casella di posta corrisponde al filtro.</value>
+  </data>
+  <data name="MsaBadge" xml:space="preserve">
+    <value>MSA (personale)</value>
+  </data>
 </root>

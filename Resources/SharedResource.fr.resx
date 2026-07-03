@@ -2838,4 +2838,40 @@
   <data name="MailboxesAddedAndAccountsRenamed" xml:space="preserve">
     <value>{0} boîte(s) aux lettres ajoutée(s) et {1} compte(s) renommé(s).</value>
   </data>
+  <data name="ShowPassword" xml:space="preserve">
+    <value>Afficher le mot de passe</value>
+  </data>
+  <data name="HidePassword" xml:space="preserve">
+    <value>Masquer le mot de passe</value>
+  </data>
+  <data name="AdvancedSettings" xml:space="preserve">
+    <value>Paramètres avancés</value>
+  </data>
+  <data name="UnsavedChangesWarning" xml:space="preserve">
+    <value>Vous avez des modifications non enregistrées. Êtes-vous sûr de vouloir quitter cette page ?</value>
+  </data>
+  <data name="Saving" xml:space="preserve">
+    <value>Enregistrement...</value>
+  </data>
+  <data name="CopyFolderToExcluded" xml:space="preserve">
+    <value>Cliquez sur un dossier pour l'ajouter ou le retirer de la liste d'exclusion</value>
+  </data>
+  <data name="StorageUsed" xml:space="preserve">
+    <value>Stockage utilisé</value>
+  </data>
+  <data name="ConnectionDetails" xml:space="preserve">
+    <value>Détails de connexion</value>
+  </data>
+  <data name="PrimaryActions" xml:space="preserve">
+    <value>Actions</value>
+  </data>
+  <data name="FilterMailboxes" xml:space="preserve">
+    <value>Filtrer les boîtes aux lettres...</value>
+  </data>
+  <data name="NoMailboxesMatchFilter" xml:space="preserve">
+    <value>Aucune boîte aux lettres ne correspond à votre filtre.</value>
+  </data>
+  <data name="MsaBadge" xml:space="preserve">
+    <value>MSA (personnel)</value>
+  </data>
 </root>

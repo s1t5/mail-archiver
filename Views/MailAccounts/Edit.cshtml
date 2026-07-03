@@ -10,248 +10,299 @@
     <h1>@Localizer["EditEmailAccount"]</h1>
     <div class="card">
         <div class="card-body">
-            <form asp-action="Edit">
+            <form asp-action="Edit" id="editMailAccountForm">
                 <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
                 <input type="hidden" asp-for="Id" />
-                <div class="mb-3">
-                    <label asp-for="Name" class="form-label">@Localizer["AccountName"]</label>
-                    <input asp-for="Name" class="form-control" />
-                    <span asp-validation-for="Name" class="text-danger"></span>
+
+                <div class="form-section">
+                    <div class="form-section-header">
+                        <i class="bi bi-card-heading me-1"></i> @Localizer["AccountName"]
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="Name" class="form-label">@Localizer["AccountName"]</label>
+                        <input asp-for="Name" class="form-control" />
+                        <span asp-validation-for="Name" class="text-danger"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="EmailAddress" class="form-label">@Localizer["EmailAddress"]</label>
+                        <input asp-for="EmailAddress" class="form-control" type="email" />
+                        <span asp-validation-for="EmailAddress" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Provider" class="form-label">@Localizer["Provider"]</label>
+                        <select asp-for="Provider" class="form-select">
+                            <option value="@ProviderType.IMAP">IMAP</option>
+                            <option value="@ProviderType.M365">Microsoft 365 (Exchange Online)</option>
+                            <option value="@ProviderType.MSA">@Localizer["MsaProviderLabel"]</option>
+                            <option value="@ProviderType.IMPORT">Import Only</option>
+                        </select>
+                        <span asp-validation-for="Provider" class="text-danger"></span>
+                    </div>
                 </div>
-                <div class="mb-3">
-                    <label asp-for="EmailAddress" class="form-label">@Localizer["EmailAddress"]</label>
-                    <input asp-for="EmailAddress" class="form-control" type="email" />
-                    <span asp-validation-for="EmailAddress" class="text-danger"></span>
-                </div>
-                
-                <div class="mb-3">
-                    <label asp-for="Provider" class="form-label">@Localizer["Provider"]</label>
-                    <select asp-for="Provider" class="form-select">
-                        <option value="@ProviderType.IMAP">IMAP</option>
-                        <option value="@ProviderType.M365">Microsoft 365 (Exchange Online)</option>
-                        <option value="@ProviderType.MSA">@Localizer["MsaProviderLabel"]</option>
-                        <option value="@ProviderType.IMPORT">Import Only</option>
-                    </select>
-                    <span asp-validation-for="Provider" class="text-danger"></span>
-                </div>
-                
+
                 <div id="imapSettings" style="display: @imapSettingsDisplay;">
-                    <h4 class="mt-4">@Localizer["IMAPSettings"]</h4>
-                    <div class="row">
-                        <div class="col-md-8 mb-3">
-                            <label asp-for="ImapServer" class="form-label">@Localizer["IMAPServer"]</label>
-                            <input asp-for="ImapServer" class="form-control" />
-                            <span asp-validation-for="ImapServer" class="text-danger"></span>
+                    <div class="form-section">
+                        <div class="form-section-header">
+                            <i class="bi bi-envelope me-1"></i> @Localizer["IMAPSettings"]
                         </div>
-                        <div class="col-md-4 mb-3">
-                            <label asp-for="ImapPort" class="form-label">@Localizer["IMAPPort"]</label>
-                            <input asp-for="ImapPort" class="form-control" />
-                            <span asp-validation-for="ImapPort" class="text-danger"></span>
+                        <div class="row">
+                            <div class="col-md-8 mb-3">
+                                <label asp-for="ImapServer" class="form-label">@Localizer["IMAPServer"]</label>
+                                <input asp-for="ImapServer" class="form-control" />
+                                <span asp-validation-for="ImapServer" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label asp-for="ImapPort" class="form-label">@Localizer["IMAPPort"]</label>
+                                <input asp-for="ImapPort" class="form-control" />
+                                <span asp-validation-for="ImapPort" class="text-danger"></span>
+                            </div>
                         </div>
-                    </div>
-                    <h4 class="mt-4">@Localizer["Authentication"]</h4>
-                    <div class="mb-3">
-                        <label asp-for="Username" class="form-label">@Localizer["Username"]</label>
-                        <input asp-for="Username" class="form-control" />
-                        <span asp-validation-for="Username" class="text-danger"></span>
-                    </div>
-                    <div class="mb-3">
-                        <label asp-for="Password" class="form-label">@Localizer["Password"]</label>
-                        <input asp-for="Password" class="form-control" type="password" placeholder="@Localizer["LeaveEmptyToKeepCurrent"]" />
-                        <div class="form-text">@Localizer["LeaveEmptyToKeepCurrent"]</div>
-                        <span asp-validation-for="Password" class="text-danger"></span>
-                    </div>
-                    <div class="mb-3 form-check">
-                        <input asp-for="UseSSL" class="form-check-input" />
-                        <label asp-for="UseSSL" class="form-check-label">@Localizer["UseSSL"]</label>
+                        <h4 class="mt-4">@Localizer["Authentication"]</h4>
+                        <div class="mb-3">
+                            <label asp-for="Username" class="form-label">@Localizer["Username"]</label>
+                            <input asp-for="Username" class="form-control" />
+                            <span asp-validation-for="Username" class="text-danger"></span>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="Password" class="form-label">@Localizer["Password"]</label>
+                            <div class="input-group">
+                                <input asp-for="Password" class="form-control" type="password" id="PasswordInput" placeholder="@Localizer["LeaveEmptyToKeepCurrent"]" />
+                                <button type="button" class="btn btn-outline-secondary password-toggle" data-target="PasswordInput" aria-label="@Localizer["ShowPassword"]">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                            <div class="form-text">@Localizer["LeaveEmptyToKeepCurrent"]</div>
+                            <span asp-validation-for="Password" class="text-danger"></span>
+                        </div>
+                        <div class="mb-3 form-check">
+                            <input asp-for="UseSSL" class="form-check-input" />
+                            <label asp-for="UseSSL" class="form-check-label">@Localizer["UseSSL"]</label>
+                        </div>
                     </div>
                 </div>
-                
+
                 <div id="msaSettings" style="display: @(Model.Provider == ProviderType.MSA ? "block" : "none");">
-                    <h4 class="mt-4">@Localizer["MsaSettingsHeading"]</h4>
-
-                    @if (Model.MsaIsAuthorized)
-                    {
-                        <div class="alert alert-success d-flex align-items-center justify-content-between">
-                            <span>
-                                <i class="bi bi-check-circle-fill me-2"></i>
-                                @Localizer["MsaAuthorized"]
-                            </span>
-                            @if (Model.Id != 0)
-                            {
-                                <a asp-action="AuthorizeMsaDevice" asp-route-id="@Model.Id" class="btn btn-sm btn-outline-success ms-2">
-                                    <i class="bi bi-arrow-clockwise"></i> @Localizer["MsaReAuthorize"]
-                                </a>
-                            }
+                    <div class="form-section">
+                        <div class="form-section-header">
+                            <i class="bi bi-microsoft me-1"></i> @Localizer["MsaSettingsHeading"]
                         </div>
-                    }
-                    else
-                    {
-                        <div class="alert alert-warning">
-                            <i class="bi bi-exclamation-triangle me-2"></i>
-                            <strong>@Localizer["MsaNotYetAuthorized"]</strong>
-                            @if (ViewBag.MsaHasDefaultClientId == true)
-                            {
-                                @Html.Raw(string.Format(Localizer["MsaSaveThenAuthorize"].Value, $"<strong>{Localizer["MsaAuthorize"]}</strong>"))
-                            }
-                            else
-                            {
-                                @Html.Raw(string.Format(Localizer["MsaEnterClientIdThenAuthorize"].Value, $"<strong>{Localizer["MsaAuthorize"]}</strong>"))
-                            }
-                        </div>
-                    }
 
-                    @if (ViewBag.MsaHasDefaultClientId != true)
-                    {
-                        <details class="mb-3">
-                            <summary style="cursor:pointer;" class="text-muted">
-                                <i class="bi bi-info-circle"></i> @Localizer["MsaAppRegistrationSetup"]
-                            </summary>
-                            <div class="mt-2 border rounded p-3 bg-light">
-                                <ol class="mb-2 ps-3">
-                                    <li class="mb-2">
-                                        <a href="https://portal.azure.com/#view/Microsoft_AAD_RegisteredApps/CreateApplicationBlade" target="_blank" class="btn btn-sm btn-primary">
-                                            <i class="bi bi-box-arrow-up-right"></i> @Localizer["MsaCreateAppRegistration"]
-                                        </a>
-                                        &nbsp;<span class="text-muted small">@Localizer["MsaSignInWithMicrosoftAccount"]</span>
-                                    </li>
-                                    <li class="mb-2">@Localizer["MsaAppRegStepName"]</li>
-                                    <li class="mb-2">@Localizer["MsaAppRegStepAccountTypes"]</li>
-                                    <li class="mb-2">@Localizer["MsaAppRegStepRedirect"]</li>
-                                    <li class="mb-2">@Localizer["MsaAppRegStepClientId"]</li>
-                                    <li class="mb-2">@Localizer["MsaAppRegStepAuth"]</li>
-                                </ol>
-                                <p class="small text-muted mb-0">@Localizer["MsaNoSecretNeededShort"]</p>
+                        @if (Model.MsaIsAuthorized)
+                        {
+                            <div class="alert alert-success d-flex align-items-center justify-content-between">
+                                <span>
+                                    <i class="bi bi-check-circle-fill me-2"></i>
+                                    @Localizer["MsaAuthorized"]
+                                </span>
+                                @if (Model.Id != 0)
+                                {
+                                    <a asp-action="AuthorizeMsaDevice" asp-route-id="@Model.Id" class="btn btn-sm btn-outline-success ms-2">
+                                        <i class="bi bi-arrow-clockwise"></i> @Localizer["MsaReAuthorize"]
+                                    </a>
+                                }
                             </div>
-                        </details>
+                        }
+                        else
+                        {
+                            <div class="alert alert-warning">
+                                <i class="bi bi-exclamation-triangle me-2"></i>
+                                <strong>@Localizer["MsaNotYetAuthorized"]</strong>
+                                @if (ViewBag.MsaHasDefaultClientId == true)
+                                {
+                                    @Html.Raw(string.Format(Localizer["MsaSaveThenAuthorize"].Value, $"<strong>{Localizer["MsaAuthorize"]}</strong>"))
+                                }
+                                else
+                                {
+                                    @Html.Raw(string.Format(Localizer["MsaEnterClientIdThenAuthorize"].Value, $"<strong>{Localizer["MsaAuthorize"]}</strong>"))
+                                }
+                            </div>
+                        }
 
-                        <div class="mb-3">
-                            <label asp-for="MsaClientId" class="form-label">@Localizer["ClientId"]</label>
-                            <input asp-for="MsaClientId" class="form-control" placeholder="@Localizer["MsaClientIdPlaceholder"]" />
-                            <div class="form-text">@Localizer["MsaClientIdKeepExisting"]</div>
-                            <span asp-validation-for="MsaClientId" class="text-danger"></span>
-                        </div>
-                        <div class="mb-3">
-                            <label asp-for="MsaClientSecret" class="form-label">@Localizer["ClientSecret"] <span class="text-muted fw-normal">@Localizer["MsaClientSecretOptional"]</span></label>
-                            <input asp-for="MsaClientSecret" class="form-control" type="password" placeholder="@Localizer["MsaClientSecretPlaceholderEdit"]" />
-                            <div class="form-text">@Localizer["MsaClientSecretHint"]</div>
-                            <span asp-validation-for="MsaClientSecret" class="text-danger"></span>
-                        </div>
-                    }
+                        @if (ViewBag.MsaHasDefaultClientId != true)
+                        {
+                            <details class="mb-3">
+                                <summary style="cursor:pointer;" class="text-muted">
+                                    <i class="bi bi-info-circle"></i> @Localizer["MsaAppRegistrationSetup"]
+                                </summary>
+                                <div class="mt-2 border rounded p-3 bg-light">
+                                    <ol class="mb-2 ps-3">
+                                        <li class="mb-2">
+                                            <a href="https://portal.azure.com/#view/Microsoft_AAD_RegisteredApps/CreateApplicationBlade" target="_blank" class="btn btn-sm btn-primary">
+                                                <i class="bi bi-box-arrow-up-right"></i> @Localizer["MsaCreateAppRegistration"]
+                                            </a>
+                                            &nbsp;<span class="text-muted small">@Localizer["MsaSignInWithMicrosoftAccount"]</span>
+                                        </li>
+                                        <li class="mb-2">@Localizer["MsaAppRegStepName"]</li>
+                                        <li class="mb-2">@Localizer["MsaAppRegStepAccountTypes"]</li>
+                                        <li class="mb-2">@Localizer["MsaAppRegStepRedirect"]</li>
+                                        <li class="mb-2">@Localizer["MsaAppRegStepClientId"]</li>
+                                        <li class="mb-2">@Localizer["MsaAppRegStepAuth"]</li>
+                                    </ol>
+                                    <p class="small text-muted mb-0">@Localizer["MsaNoSecretNeededShort"]</p>
+                                </div>
+                            </details>
 
-                    @if (Model.Id != 0)
-                    {
-                        <div class="mb-3">
-                            <a asp-action="AuthorizeMsaDevice" asp-route-id="@Model.Id" class="btn @(Model.MsaIsAuthorized ? "btn-outline-primary" : "btn-primary")">
-                                <i class="bi bi-microsoft"></i> @(Model.MsaIsAuthorized ? Localizer["MsaReAuthorizeWithMicrosoft"].Value : Localizer["MsaAuthorizeWithMicrosoft"].Value)
-                            </a>
-                        </div>
-                    }
+                            <div class="mb-3">
+                                <label asp-for="MsaClientId" class="form-label">@Localizer["ClientId"]</label>
+                                <input asp-for="MsaClientId" class="form-control" placeholder="@Localizer["MsaClientIdPlaceholder"]" />
+                                <div class="form-text">@Localizer["MsaClientIdKeepExisting"]</div>
+                                <span asp-validation-for="MsaClientId" class="text-danger"></span>
+                            </div>
+                            <div class="mb-3">
+                                <label asp-for="MsaClientSecret" class="form-label">@Localizer["ClientSecret"] <span class="text-muted fw-normal">@Localizer["MsaClientSecretOptional"]</span></label>
+                                <div class="input-group">
+                                    <input asp-for="MsaClientSecret" class="form-control" type="password" id="MsaClientSecretInput" placeholder="@Localizer["MsaClientSecretPlaceholderEdit"]" />
+                                    <button type="button" class="btn btn-outline-secondary password-toggle" data-target="MsaClientSecretInput" aria-label="@Localizer["ShowPassword"]">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                </div>
+                                <div class="form-text">@Localizer["MsaClientSecretHint"]</div>
+                                <span asp-validation-for="MsaClientSecret" class="text-danger"></span>
+                            </div>
+                        }
+
+                        @if (Model.Id != 0)
+                        {
+                            <div class="mb-3">
+                                <a asp-action="AuthorizeMsaDevice" asp-route-id="@Model.Id" class="btn @(Model.MsaIsAuthorized ? "btn-outline-primary" : "btn-primary")">
+                                    <i class="bi bi-microsoft"></i> @(Model.MsaIsAuthorized ? Localizer["MsaReAuthorizeWithMicrosoft"].Value : Localizer["MsaAuthorizeWithMicrosoft"].Value)
+                                </a>
+                            </div>
+                        }
+                    </div>
                 </div>
 
                 <div id="microsoft365Settings" style="display: @microsoft365SettingsDisplay;">
-                    <h4 class="mt-4">@Localizer["Microsoft365Settings"]</h4>
-                    
-                    <div id="bulkUpdateSuggestion" class="m365-suggestion-box m365-warning" style="display: none;">
-                        <h6 class="alert-heading"><i class="bi bi-exclamation-triangle"></i> @Localizer["CredentialChangeDetected"]</h6>
-                        <p>@Localizer["ApplyToAllDomainAccountsPrompt"]</p>
-                        <div id="affectedAccountsList" class="mb-2">
-                            <small>@Localizer["AffectedAccounts"]:</small>
-                            <ul id="affectedAccountsUl" class="mb-0"></ul>
+                    <div class="form-section">
+                        <div class="form-section-header">
+                            <i class="bi bi-cloud me-1"></i> @Localizer["Microsoft365Settings"]
                         </div>
-                        <div class="form-check">
-                            <input type="checkbox" class="form-check-input" id="applyToAllDomainAccounts" name="ApplyToAllDomainAccounts" value="true">
-                            <label class="form-check-label" for="applyToAllDomainAccounts">
-                                @Localizer["ApplyToAllAccounts"]
-                            </label>
+
+                        <div id="bulkUpdateSuggestion" class="m365-suggestion-box m365-warning" style="display: none;">
+                            <h6 class="alert-heading"><i class="bi bi-exclamation-triangle"></i> @Localizer["CredentialChangeDetected"]</h6>
+                            <p>@Localizer["ApplyToAllDomainAccountsPrompt"]</p>
+                            <div id="affectedAccountsList" class="mb-2">
+                                <small>@Localizer["AffectedAccounts"]:</small>
+                                <ul id="affectedAccountsUl" class="mb-0"></ul>
+                            </div>
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input" id="applyToAllDomainAccounts" name="ApplyToAllDomainAccounts" value="true">
+                                <label class="form-check-label" for="applyToAllDomainAccounts">
+                                    @Localizer["ApplyToAllAccounts"]
+                                </label>
+                            </div>
                         </div>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label asp-for="ClientId" class="form-label">@Localizer["ClientId"]</label>
-                        <input asp-for="ClientId" class="form-control" id="ClientIdInput" />
-                        <span asp-validation-for="ClientId" class="text-danger"></span>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label asp-for="ClientSecret" class="form-label">@Localizer["ClientSecret"]</label>
-                        <input asp-for="ClientSecret" class="form-control" type="password" id="ClientSecretInput" placeholder="@Localizer["LeaveEmptyToKeepCurrent"]" />
-                        <div class="form-text">@Localizer["LeaveEmptyToKeepCurrent"]</div>
-                        <span asp-validation-for="ClientSecret" class="text-danger"></span>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label asp-for="TenantId" class="form-label">@Localizer["TenantId"]</label>
-                        <input asp-for="TenantId" class="form-control" id="TenantIdInput" />
-                        <span asp-validation-for="TenantId" class="text-danger"></span>
+
+                        <div class="mb-3">
+                            <label asp-for="ClientId" class="form-label">@Localizer["ClientId"]</label>
+                            <input asp-for="ClientId" class="form-control" id="ClientIdInput" />
+                            <span asp-validation-for="ClientId" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="ClientSecret" class="form-label">@Localizer["ClientSecret"]</label>
+                            <div class="input-group">
+                                <input asp-for="ClientSecret" class="form-control" type="password" id="ClientSecretInput" placeholder="@Localizer["LeaveEmptyToKeepCurrent"]" />
+                                <button type="button" class="btn btn-outline-secondary password-toggle" data-target="ClientSecretInput" aria-label="@Localizer["ShowPassword"]">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                            <div class="form-text">@Localizer["LeaveEmptyToKeepCurrent"]</div>
+                            <span asp-validation-for="ClientSecret" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="TenantId" class="form-label">@Localizer["TenantId"]</label>
+                            <input asp-for="TenantId" class="form-control" id="TenantIdInput" />
+                            <span asp-validation-for="TenantId" class="text-danger"></span>
+                        </div>
                     </div>
                 </div>
-                
+
                 <div id="emailDeletionSettings" style="display: @emailDeletionSettingsDisplay;">
-                    <div class="mb-3 form-check">
-                        <input asp-for="IsEnabled" class="form-check-input" />
-                        <label asp-for="IsEnabled" class="form-check-label">@Localizer["AccountEnabled"]</label>
-                        <div class="form-text">@Localizer["DisabledAccountsNotSynced"]</div>
-                    </div>
-                    
-                    <h4 class="mt-4">@Localizer["FolderExclusion"]</h4>
-                    <div class="mb-3">
-                        <label asp-for="ExcludedFolders" class="form-label">@Localizer["ExcludedFolders"]</label>
-                        <textarea asp-for="ExcludedFolders" class="form-control" rows="3" placeholder="@Localizer["EnterFolderNames"]"></textarea>
-                        <div class="form-text">@Localizer["EnterFolderNamesText"]</div>
-                        <span asp-validation-for="ExcludedFolders" class="text-danger"></span>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label class="form-label">@Localizer["AvailableFolders"]</label>
-                        <button type="button" class="btn btn-sm btn-outline-primary" id="loadFoldersBtn">
-                            <i class="bi bi-folder"></i> @Localizer["LoadAvailableFolders"]
-                        </button>
-                        <div id="foldersContainer" style="display: none;" class="mt-2">
-                            <div class="card">
-                                <div class="card-body">
-                                    <div id="foldersContent" class="d-flex flex-wrap gap-2">
-                                        <!-- Folders will be loaded here -->
+                    <div class="form-section">
+                        <div class="form-section-header">
+                            <i class="bi bi-sliders me-1"></i> @Localizer["AccountEnabled"]
+                        </div>
+                        <div class="mb-3 form-check">
+                            <input asp-for="IsEnabled" class="form-check-input" />
+                            <label asp-for="IsEnabled" class="form-check-label">@Localizer["AccountEnabled"]</label>
+                            <div class="form-text">@Localizer["DisabledAccountsNotSynced"]</div>
+                        </div>
+
+                        <h4 class="mt-4">@Localizer["FolderExclusion"]</h4>
+                        <div class="mb-3">
+                            <label asp-for="ExcludedFolders" class="form-label">@Localizer["ExcludedFolders"]</label>
+                            <textarea asp-for="ExcludedFolders" class="form-control" rows="3" placeholder="@Localizer["EnterFolderNames"]" id="ExcludedFoldersInput"></textarea>
+                            <div class="form-text">@Localizer["EnterFolderNamesText"]</div>
+                            <span asp-validation-for="ExcludedFolders" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">@Localizer["AvailableFolders"]</label>
+                            <button type="button" class="btn btn-sm btn-outline-primary" id="loadFoldersBtn">
+                                <i class="bi bi-folder"></i> @Localizer["LoadAvailableFolders"]
+                            </button>
+                            <div id="foldersContainer" style="display: none;" class="mt-2">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <div class="form-text mb-2"><i class="bi bi-info-circle me-1"></i>@Localizer["CopyFolderToExcluded"]</div>
+                                        <div id="foldersContent" class="d-flex flex-wrap gap-2">
+                                        </div>
                                     </div>
                                 </div>
+                                <div class="form-text">@Localizer["FoldersOnServer"]</div>
                             </div>
-                            <div class="form-text">@Localizer["FoldersOnServer"]</div>
-                        </div>
-                        <div id="foldersLoading" style="display: none;" class="mt-2">
-                            <div class="spinner-border spinner-border-sm" role="status">
-                                <span class="visually-hidden">Loading...</span>
+                            <div id="foldersLoading" style="display: none;" class="mt-2">
+                                <div class="spinner-border spinner-border-sm" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                                @Localizer["LoadingFolders"]
                             </div>
-                            @Localizer["LoadingFolders"]
+                            <div id="foldersError" style="display: none;" class="mt-2 alert alert-warning">
+                                @Localizer["CouldNotLoadFolders"]
+                            </div>
                         </div>
-                        <div id="foldersError" style="display: none;" class="mt-2 alert alert-warning">
-                            @Localizer["CouldNotLoadFolders"]
-                        </div>
-                    </div>
-                    
-                    @if (Model.LastSync.HasValue)
-                    {
-                        <div class="mb-3">
-                            <label asp-for="LastSync" class="form-label">@Localizer["LastSync"]</label>
-                            <input value="@Model.LastSync.Value.ToString(System.Globalization.CultureInfo.CurrentUICulture.DateTimeFormat.ShortDatePattern + " " + System.Globalization.CultureInfo.CurrentUICulture.DateTimeFormat.ShortTimePattern)" class="form-control" readonly />
-                        </div>
-                    }
-                    
-                    <h4 class="mt-4">@Localizer["EmailDeletion"]</h4>
-                    <div class="mb-3">
-                        <label asp-for="DeleteAfterDays" class="form-label">@Localizer["DeleteAfterDays"]</label>
-                        <input asp-for="DeleteAfterDays" class="form-control" type="number" min="1" placeholder="@Localizer["LeaveEmptyToDisableAutomaticDeletion"]" />
-                        <div class="form-text">@Localizer["AutoDeleteText"]</div>
-                        <span asp-validation-for="DeleteAfterDays" class="text-danger"></span>
-                    </div>
-                    <div class="mb-3">
-                        <label asp-for="LocalRetentionDays" class="form-label">@Localizer["LocalRetentionDays"]</label>
-                        <input asp-for="LocalRetentionDays" class="form-control" type="number" min="1" placeholder="@Localizer["LeaveEmptyToDisableAutomaticDeletion"]" />
-                        <div class="form-text">@Localizer["LocalRetentionInfo"]</div>
-                        <span asp-validation-for="LocalRetentionDays" class="text-danger"></span>
+
+                        @if (Model.LastSync.HasValue)
+                        {
+                            <div class="mb-3">
+                                <label asp-for="LastSync" class="form-label">@Localizer["LastSync"]</label>
+                                <div class="form-control-plaintext">
+                                    <span class="utc-timestamp" data-utc-time="@Model.LastSync.Value.ToString("yyyy-MM-ddTHH:mm:ss")">
+                                        @Model.LastSync.Value.ToString("g")
+                                    </span>
+                                </div>
+                            </div>
+                        }
+
+                        <details class="form-advanced mt-3">
+                            <summary class="form-advanced-summary">
+                                <i class="bi bi-trash3 me-1"></i> @Localizer["EmailDeletion"]
+                            </summary>
+                            <div class="form-advanced-body">
+                                <div class="mb-3">
+                                    <label asp-for="DeleteAfterDays" class="form-label">@Localizer["DeleteAfterDays"]</label>
+                                    <input asp-for="DeleteAfterDays" class="form-control" type="number" min="1" placeholder="@Localizer["LeaveEmptyToDisableAutomaticDeletion"]" />
+                                    <div class="form-text">@Localizer["AutoDeleteText"]</div>
+                                    <span asp-validation-for="DeleteAfterDays" class="text-danger"></span>
+                                </div>
+                                <div class="mb-3">
+                                    <label asp-for="LocalRetentionDays" class="form-label">@Localizer["LocalRetentionDays"]</label>
+                                    <input asp-for="LocalRetentionDays" class="form-control" type="number" min="1" placeholder="@Localizer["LeaveEmptyToDisableAutomaticDeletion"]" />
+                                    <div class="form-text">@Localizer["LocalRetentionInfo"]</div>
+                                    <span asp-validation-for="LocalRetentionDays" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </details>
                     </div>
                 </div>
-                <div class="mt-4">
-                    <button type="submit" class="btn btn-primary">@Localizer["Save"]</button>
+
+                <div class="mt-4 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary" id="saveBtn">
+                        <i class="bi bi-check-circle"></i> @Localizer["Save"]
+                    </button>
                     <a asp-action="Index" class="btn btn-outline-secondary">@Localizer["BackToList"]</a>
                 </div>
             </form>
@@ -263,7 +314,11 @@
         const i18n = {
             errorSavingChanges: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["ErrorSavingChanges"].Value)),
             save: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["Save"].Value)),
-            noFoldersFound: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["NoFoldersFound"].Value))
+            noFoldersFound: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["NoFoldersFound"].Value)),
+            saving: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["Saving"].Value)),
+            unsavedWarning: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["UnsavedChangesWarning"].Value)),
+            showPassword: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["ShowPassword"].Value)),
+            hidePassword: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["HidePassword"].Value))
         };
         document.addEventListener('DOMContentLoaded', function() {
             const providerSelect = document.getElementById('Provider');
@@ -282,20 +337,24 @@
             const bulkUpdateSuggestion = document.getElementById('bulkUpdateSuggestion');
             const affectedAccountsUl = document.getElementById('affectedAccountsUl');
             const applyToAllCheckbox = document.getElementById('applyToAllDomainAccounts');
-            const editForm = document.querySelector('form');
-            
-            console.log('Edit form found:', editForm);
-            console.log('Apply checkbox found:', applyToAllCheckbox);
-            
+            const editForm = document.getElementById('editMailAccountForm');
+            const saveBtn = document.getElementById('saveBtn');
+            const excludedFoldersInput = document.getElementById('ExcludedFoldersInput');
+
             let originalClientId = '@Model.ClientId';
             let originalTenantId = '@Model.TenantId';
             let affectedAccounts = [];
-            let bulkUpdateRequested = false;
-            
+            let isDirty = false;
+            let isSubmitting = false;
+
             function setSectionEnabled(section, enabled) {
                 section.querySelectorAll('input, select, textarea, button').forEach(element => {
                     element.disabled = !enabled;
                 });
+            }
+
+            function markDirty() {
+                isDirty = true;
             }
 
             function toggleSettings() {
@@ -316,49 +375,45 @@
                     bulkUpdateSuggestion.style.display = 'none';
                 }
             }
-            
+
             function checkCredentialChanges() {
                 const providerValue = providerSelect.value;
                 if (providerValue !== '@ProviderType.M365') {
                     bulkUpdateSuggestion.style.display = 'none';
                     return;
                 }
-                
+
                 const currentClientId = clientIdInput.value.trim();
                 const currentClientSecret = clientSecretInput.value.trim();
                 const currentTenantId = tenantIdInput.value.trim();
-                
-                // Check if any credential has changed
-                const credentialsChanged = 
+
+                const credentialsChanged =
                     (currentClientId && currentClientId !== originalClientId) ||
                     currentClientSecret ||
                     (currentTenantId && currentTenantId !== originalTenantId);
-                
+
                 if (credentialsChanged) {
                     checkForDomainAccounts();
                 } else {
                     bulkUpdateSuggestion.style.display = 'none';
                 }
             }
-            
+
             function checkForDomainAccounts() {
                 const emailAddress = '@Model.EmailAddress';
-                
-                fetch('@Url.Action("CheckM365AccountsForDomain", "MailAccounts")?emailAddress=' + 
+
+                fetch('@Url.Action("CheckM365AccountsForDomain", "MailAccounts")?emailAddress=' +
                       encodeURIComponent(emailAddress) + '&excludeAccountId=@Model.Id')
                     .then(response => response.json())
                     .then(data => {
                         if (data.exists && data.accounts && data.accounts.length > 0) {
                             affectedAccounts = data.accounts;
-                            
-                            // Clear and populate affected accounts list
                             affectedAccountsUl.innerHTML = '';
                             data.accounts.forEach(account => {
                                 const li = document.createElement('li');
                                 li.textContent = account.name + ' (' + account.emailAddress + ')';
                                 affectedAccountsUl.appendChild(li);
                             });
-                            
                             bulkUpdateSuggestion.style.display = 'block';
                         } else {
                             bulkUpdateSuggestion.style.display = 'none';
@@ -369,168 +424,193 @@
                         bulkUpdateSuggestion.style.display = 'none';
                     });
             }
-            
+
             function performBulkUpdate() {
                 if (!applyToAllCheckbox.checked || affectedAccounts.length === 0) {
-                    console.log('Bulk update skipped - checkbox not checked or no affected accounts');
                     return Promise.resolve();
                 }
-                
-                console.log('Starting bulk update for', affectedAccounts.length, 'accounts');
-                console.log('Affected accounts:', affectedAccounts);
-                
+
                 const formData = new FormData();
                 formData.append('accountId', '@Model.Id');
                 formData.append('clientId', clientIdInput.value.trim());
                 formData.append('clientSecret', clientSecretInput.value.trim());
                 formData.append('tenantId', tenantIdInput.value.trim());
                 formData.append('__RequestVerificationToken', document.querySelector('input[name="__RequestVerificationToken"]').value);
-                
-                console.log('Bulk update data:', {
-                    accountId: '@Model.Id',
-                    clientId: clientIdInput.value.trim(),
-                    clientSecret: clientSecretInput.value.trim() ? '***' : '(empty)',
-                    tenantId: tenantIdInput.value.trim()
-                });
-                
+
                 return fetch('@Url.Action("UpdateM365CredentialsForDomain", "MailAccounts")', {
                     method: 'POST',
                     body: formData
                 })
-                .then(response => {
-                    console.log('Bulk update response status:', response.status);
-                    return response.json();
-                })
+                .then(response => response.json())
                 .then(data => {
-                    console.log('Bulk update response data:', data);
                     if (data.success) {
-                        console.log('Bulk update successful! Updated', data.updatedCount, 'accounts');
-                        console.log('Updated accounts:', data.accountNames);
                         return data;
                     } else {
-                        console.error('Bulk update failed:', data.message);
                         throw new Error(data.message || 'Bulk update failed');
                     }
-                })
-                .catch(error => {
-                    console.error('Bulk update error:', error);
-                    throw error;
                 });
             }
-            
-            // Initial check
-            toggleSettings();
-            
-            // Add event listeners
-            providerSelect.addEventListener('change', toggleSettings);
-            
-            // Monitor credential changes
-            if (clientIdInput) {
-                clientIdInput.addEventListener('blur', checkCredentialChanges);
+
+            function showInlineError(message) {
+                let alertDiv = editForm.querySelector('.submit-error-alert');
+                if (!alertDiv) {
+                    alertDiv = document.createElement('div');
+                    alertDiv.className = 'alert alert-danger alert-dismissible fade show submit-error-alert';
+                    alertDiv.innerHTML = '<button type="button" class="btn-close" data-bs-dismiss="alert"></button>';
+                    editForm.insertBefore(alertDiv, editForm.firstChild);
+                }
+                alertDiv.innerHTML = '<button type="button" class="btn-close" data-bs-dismiss="alert"></button>' + message;
             }
-            if (clientSecretInput) {
-                clientSecretInput.addEventListener('blur', checkCredentialChanges);
-            }
-            if (tenantIdInput) {
-                tenantIdInput.addEventListener('blur', checkCredentialChanges);
-            }
-            
-            // Intercept form submission
-            if (editForm) {
-                editForm.addEventListener('submit', function(e) {
-                    console.log('Form submit triggered!');
-                    const providerValue = providerSelect.value;
-                    console.log('Provider value:', providerValue);
-                    console.log('Checkbox element:', applyToAllCheckbox);
-                    console.log('Checkbox checked:', applyToAllCheckbox ? applyToAllCheckbox.checked : 'checkbox not found');
-                    console.log('Affected accounts length:', affectedAccounts.length);
-                    console.log('Affected accounts:', affectedAccounts);
-                    
-                    // Check if bulk update is requested
-                    if (providerValue === '@ProviderType.M365' && applyToAllCheckbox && applyToAllCheckbox.checked && affectedAccounts.length > 0) {
-                        console.log('Bulk update condition MET! Intercepting form submission...');
-                        e.preventDefault();
-                        e.stopPropagation();
-                        
-                        // Disable submit button to prevent double submission
-                        const submitBtn = editForm.querySelector('button[type="submit"]');
-                        if (submitBtn) {
-                            submitBtn.disabled = true;
-                            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status"></span> Saving...';
-                        }
-                        
-                        // First save the current account
-                        const formData = new FormData(editForm);
-                        
-                        fetch(editForm.action, {
-                            method: 'POST',
-                            body: formData
-                        })
-                        .then(response => {
-                            if (!response.ok) {
-                                throw new Error('Form submission failed');
-                            }
-                            return response.text(); // Get response as text first
-                        })
-                        .then(text => {
-                            // Now perform bulk update
-                            return performBulkUpdate();
-                        })
-                        .then(bulkResult => {
-                            console.log('Bulk update completed successfully');
-                            // Redirect to index with success message
-                            window.location.href = '@Url.Action("Index", "MailAccounts")';
-                        })
-                        .catch(error => {
-                            console.error('Error during save/bulk update:', error);
-                            alert(i18n.errorSavingChanges + ': ' + error.message);
-                            // Re-enable submit button
-                            if (submitBtn) {
-                                submitBtn.disabled = false;
-                                submitBtn.innerHTML = i18n.save;
-                            }
-                        });
-                        
-                        return false;
+
+            // Dirty state tracking
+            editForm.addEventListener('input', markDirty);
+            editForm.addEventListener('change', markDirty);
+
+            window.addEventListener('beforeunload', function(e) {
+                if (isDirty && !isSubmitting) {
+                    e.preventDefault();
+                    e.returnValue = i18n.unsavedWarning;
+                    return i18n.unsavedWarning;
+                }
+            });
+
+            // Password toggle
+            document.querySelectorAll('.password-toggle').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const target = document.getElementById(this.dataset.target);
+                    if (!target) return;
+                    const icon = this.querySelector('i');
+                    if (target.type === 'password') {
+                        target.type = 'text';
+                        icon.className = 'bi bi-eye-slash';
+                        this.setAttribute('aria-label', i18n.hidePassword);
+                    } else {
+                        target.type = 'password';
+                        icon.className = 'bi bi-eye';
+                        this.setAttribute('aria-label', i18n.showPassword);
                     }
                 });
-            }
-            
+            });
+
+            // Initial check
+            toggleSettings();
+
+            // Add event listeners
+            providerSelect.addEventListener('change', toggleSettings);
+
+            // Monitor credential changes
+            if (clientIdInput) clientIdInput.addEventListener('blur', checkCredentialChanges);
+            if (clientSecretInput) clientSecretInput.addEventListener('blur', checkCredentialChanges);
+            if (tenantIdInput) tenantIdInput.addEventListener('blur', checkCredentialChanges);
+
+            // Intercept form submission
+            editForm.addEventListener('submit', function(e) {
+                const providerValue = providerSelect.value;
+
+                if (providerValue === '@ProviderType.M365' && applyToAllCheckbox && applyToAllCheckbox.checked && affectedAccounts.length > 0) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    isSubmitting = true;
+
+                    if (saveBtn) {
+                        saveBtn.disabled = true;
+                        saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status"></span> ' + i18n.saving;
+                    }
+
+                    const formData = new FormData(editForm);
+
+                    fetch(editForm.action, {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => {
+                        if (!response.ok) throw new Error('Form submission failed');
+                        return response.text();
+                    })
+                    .then(() => performBulkUpdate())
+                    .then(() => {
+                        isDirty = false;
+                        window.location.href = '@Url.Action("Index", "MailAccounts")';
+                    })
+                    .catch(error => {
+                        isSubmitting = false;
+                        showInlineError(i18n.errorSavingChanges + ': ' + error.message);
+                        if (saveBtn) {
+                            saveBtn.disabled = false;
+                            saveBtn.innerHTML = '<i class="bi bi-check-circle"></i> ' + i18n.save;
+                        }
+                    });
+
+                    return false;
+                } else {
+                    isSubmitting = true;
+                    if (saveBtn) {
+                        saveBtn.disabled = true;
+                        saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status"></span> ' + i18n.saving;
+                    }
+                }
+            });
+
             // Load folders on demand
             if (loadFoldersBtn) {
                 loadFoldersBtn.addEventListener('click', function() {
-                    // Hide button and error, show loading
                     loadFoldersBtn.style.display = 'none';
                     foldersError.style.display = 'none';
                     foldersLoading.style.display = 'block';
                     foldersContainer.style.display = 'none';
-                    
-                    // Make AJAX request
+
                     fetch('@Url.Action("GetFolders", "MailAccounts")?accountId=@Model.Id')
                         .then(response => {
-                            if (!response.ok) {
-                                throw new Error('Network response was not ok');
-                            }
+                            if (!response.ok) throw new Error('Network response was not ok');
                             return response.json();
                         })
                         .then(folders => {
-                            // Clear previous content
                             foldersContent.innerHTML = '';
-                            
-                            // Add folders as badges
+
                             if (folders && folders.length > 0) {
+                                const excludedList = excludedFoldersInput.value
+                                    .split(';').map(s => s.trim()).filter(s => s.length > 0);
+
                                 folders.forEach(folder => {
                                     const badge = document.createElement('span');
-                                    badge.className = 'badge bg-light text-dark';
+                                    const isExcluded = excludedList.includes(folder);
+                                    badge.className = 'badge folder-badge-clickable ' + (isExcluded ? 'bg-secondary text-white' : 'bg-light text-dark');
                                     badge.textContent = folder;
+                                    badge.setAttribute('role', 'button');
+                                    badge.setAttribute('tabindex', '0');
+                                    badge.title = '@Localizer["CopyFolderToExcluded"]';
+
+                                    const toggleFolderInExcluded = () => {
+                                        const current = excludedFoldersInput.value.trim();
+                                        let lines = current.split(';').map(s => s.trim()).filter(s => s.length > 0);
+                                        const idx = lines.indexOf(folder);
+                                        if (idx === -1) {
+                                            lines.push(folder);
+                                            badge.classList.add('bg-secondary', 'text-white');
+                                            badge.classList.remove('bg-light', 'text-dark');
+                                        } else {
+                                            lines.splice(idx, 1);
+                                            badge.classList.remove('bg-secondary', 'text-white');
+                                            badge.classList.add('bg-light', 'text-dark');
+                                        }
+                                        excludedFoldersInput.value = lines.join(';');
+                                        markDirty();
+                                    };
+
+                                    badge.addEventListener('click', toggleFolderInExcluded);
+                                    badge.addEventListener('keydown', function(ev) {
+                                        if (ev.key === 'Enter' || ev.key === ' ') {
+                                            ev.preventDefault();
+                                            toggleFolderInExcluded();
+                                        }
+                                    });
+
                                     foldersContent.appendChild(badge);
                                 });
-                                
-                                // Show container
+
                                 foldersLoading.style.display = 'none';
                                 foldersContainer.style.display = 'block';
                             } else {
-                                // No folders found
                                 foldersLoading.style.display = 'none';
                                 foldersError.textContent = i18n.noFoldersFound;
                                 foldersError.style.display = 'block';

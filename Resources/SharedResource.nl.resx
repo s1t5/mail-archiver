@@ -2838,4 +2838,40 @@
   <data name="MailboxesAddedAndAccountsRenamed" xml:space="preserve">
     <value>{0} postvak(ken) toegevoegd en {1} account(s) hernoemd.</value>
   </data>
+  <data name="ShowPassword" xml:space="preserve">
+    <value>Wachtwoord tonen</value>
+  </data>
+  <data name="HidePassword" xml:space="preserve">
+    <value>Wachtwoord verbergen</value>
+  </data>
+  <data name="AdvancedSettings" xml:space="preserve">
+    <value>Geavanceerde instellingen</value>
+  </data>
+  <data name="UnsavedChangesWarning" xml:space="preserve">
+    <value>U heeft niet-opgeslagen wijzigingen. Weet u zeker dat u deze pagina wilt verlaten?</value>
+  </data>
+  <data name="Saving" xml:space="preserve">
+    <value>Opslaan...</value>
+  </data>
+  <data name="CopyFolderToExcluded" xml:space="preserve">
+    <value>Klik op een map om deze toe te voegen of te verwijderen uit de uitsluitingslijst</value>
+  </data>
+  <data name="StorageUsed" xml:space="preserve">
+    <value>Gebruikte opslag</value>
+  </data>
+  <data name="ConnectionDetails" xml:space="preserve">
+    <value>Verbindingsgegevens</value>
+  </data>
+  <data name="PrimaryActions" xml:space="preserve">
+    <value>Acties</value>
+  </data>
+  <data name="FilterMailboxes" xml:space="preserve">
+    <value>Postvakken filteren...</value>
+  </data>
+  <data name="NoMailboxesMatchFilter" xml:space="preserve">
+    <value>Geen postvakken komen overeen met uw filter.</value>
+  </data>
+  <data name="MsaBadge" xml:space="preserve">
+    <value>MSA (persoonlijk)</value>
+  </data>
 </root>

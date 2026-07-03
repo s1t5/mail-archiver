@@ -2825,4 +2825,40 @@
   <data name="MailboxesAddedAndAccountsRenamed" xml:space="preserve">
     <value>Added {0} mailbox(es) and renamed {1} account(s).</value>
   </data>
+  <data name="ShowPassword" xml:space="preserve">
+    <value>Show password</value>
+  </data>
+  <data name="HidePassword" xml:space="preserve">
+    <value>Hide password</value>
+  </data>
+  <data name="AdvancedSettings" xml:space="preserve">
+    <value>Advanced settings</value>
+  </data>
+  <data name="UnsavedChangesWarning" xml:space="preserve">
+    <value>You have unsaved changes. Are you sure you want to leave this page?</value>
+  </data>
+  <data name="Saving" xml:space="preserve">
+    <value>Saving...</value>
+  </data>
+  <data name="CopyFolderToExcluded" xml:space="preserve">
+    <value>Click a folder to add or remove it from the exclusion list</value>
+  </data>
+  <data name="StorageUsed" xml:space="preserve">
+    <value>Storage used</value>
+  </data>
+  <data name="ConnectionDetails" xml:space="preserve">
+    <value>Connection details</value>
+  </data>
+  <data name="PrimaryActions" xml:space="preserve">
+    <value>Actions</value>
+  </data>
+  <data name="FilterMailboxes" xml:space="preserve">
+    <value>Filter mailboxes...</value>
+  </data>
+  <data name="NoMailboxesMatchFilter" xml:space="preserve">
+    <value>No mailboxes match your filter.</value>
+  </data>
+  <data name="MsaBadge" xml:space="preserve">
+    <value>MSA (personal)</value>
+  </data>
 </root>

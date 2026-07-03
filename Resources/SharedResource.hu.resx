@@ -2830,4 +2830,40 @@
   <data name="MailboxesAddedAndAccountsRenamed" xml:space="preserve">
     <value>{0} postafiók hozzáadva és {1} fiók átnevezve.</value>
   </data>
+  <data name="ShowPassword" xml:space="preserve">
+    <value>Jelszó megjelenítése</value>
+  </data>
+  <data name="HidePassword" xml:space="preserve">
+    <value>Jelszó elrejtése</value>
+  </data>
+  <data name="AdvancedSettings" xml:space="preserve">
+    <value>Speciális beállítások</value>
+  </data>
+  <data name="UnsavedChangesWarning" xml:space="preserve">
+    <value>Mentetlen változtatásai vannak. Biztosan el akarja hagyni ezt az oldalt?</value>
+  </data>
+  <data name="Saving" xml:space="preserve">
+    <value>Mentés...</value>
+  </data>
+  <data name="CopyFolderToExcluded" xml:space="preserve">
+    <value>Kattintson egy mappára a kizárási listához adásához vagy eltávolításához</value>
+  </data>
+  <data name="StorageUsed" xml:space="preserve">
+    <value>Felhasznált tárhely</value>
+  </data>
+  <data name="ConnectionDetails" xml:space="preserve">
+    <value>Kapcsolat adatai</value>
+  </data>
+  <data name="PrimaryActions" xml:space="preserve">
+    <value>Műveletek</value>
+  </data>
+  <data name="FilterMailboxes" xml:space="preserve">
+    <value>Postafiókok szűrése...</value>
+  </data>
+  <data name="NoMailboxesMatchFilter" xml:space="preserve">
+    <value>Egyetlen postafiók sem felel meg a szűrőnek.</value>
+  </data>
+  <data name="MsaBadge" xml:space="preserve">
+    <value>MSA (személyes)</value>
+  </data>
 </root>

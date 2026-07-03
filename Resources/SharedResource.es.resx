@@ -2837,4 +2837,40 @@
   <data name="MailboxesAddedAndAccountsRenamed" xml:space="preserve">
     <value>Añadido(s) {0} buzón(es) y renombrada(s) {1} cuenta(s).</value>
   </data>
+  <data name="ShowPassword" xml:space="preserve">
+    <value>Mostrar contraseña</value>
+  </data>
+  <data name="HidePassword" xml:space="preserve">
+    <value>Ocultar contraseña</value>
+  </data>
+  <data name="AdvancedSettings" xml:space="preserve">
+    <value>Ajustes avanzados</value>
+  </data>
+  <data name="UnsavedChangesWarning" xml:space="preserve">
+    <value>Tiene cambios sin guardar. ¿Seguro que desea salir de esta página?</value>
+  </data>
+  <data name="Saving" xml:space="preserve">
+    <value>Guardando...</value>
+  </data>
+  <data name="CopyFolderToExcluded" xml:space="preserve">
+    <value>Haga clic en una carpeta para añadirla o quitarla de la lista de exclusión</value>
+  </data>
+  <data name="StorageUsed" xml:space="preserve">
+    <value>Almacenamiento usado</value>
+  </data>
+  <data name="ConnectionDetails" xml:space="preserve">
+    <value>Detalles de conexión</value>
+  </data>
+  <data name="PrimaryActions" xml:space="preserve">
+    <value>Acciones</value>
+  </data>
+  <data name="FilterMailboxes" xml:space="preserve">
+    <value>Filtrar buzones...</value>
+  </data>
+  <data name="NoMailboxesMatchFilter" xml:space="preserve">
+    <value>Ningún buzón coincide con su filtro.</value>
+  </data>
+  <data name="MsaBadge" xml:space="preserve">
+    <value>MSA (personal)</value>
+  </data>
 </root>

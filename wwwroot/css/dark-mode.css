@@ -633,3 +633,75 @@
   background: rgba(52,152,219,0.1);
   border-left-color: var(--primary-color);
 }
+
+/* ======================================================= */
+/*    Mail Account Create / Edit / Details UX               */
+/* ======================================================= */
+
+[data-theme="dark"] .account-status-header {
+  border-left-color: var(--primary-color);
+}
+
+[data-theme="dark"] .form-section {
+  background-color: var(--card-bg);
+  border-color: var(--border-color);
+}
+
+[data-theme="dark"] .form-section-header {
+  color: var(--text-color);
+  border-bottom-color: var(--border-color);
+}
+
+[data-theme="dark"] .form-advanced {
+  background-color: var(--card-bg);
+  border-color: var(--border-color);
+}
+
+[data-theme="dark"] .form-advanced > summary {
+  color: var(--text-color);
+}
+
+[data-theme="dark"] .form-advanced-body {
+  border-top-color: var(--border-color);
+}
+
+[data-theme="dark"] .password-toggle {
+  background-color: var(--form-control-bg);
+  border-color: var(--form-control-border);
+  color: var(--text-color);
+}
+
+[data-theme="dark"] .password-toggle:hover {
+  background-color: var(--table-hover-bg);
+}
+
+[data-theme="dark"] .password-toggle .bi {
+  color: var(--text-color);
+}
+
+[data-theme="dark"] .folder-badge-clickable:hover {
+  background-color: var(--primary-color) !important;
+  color: white !important;
+}
+
+[data-theme="dark"] .danger-zone {
+  background-color: var(--alert-danger-bg) !important;
+  border-color: var(--danger-color) !important;
+  color: var(--text-color);
+}
+
+[data-theme="dark"] .form-sm {
+  background-color: var(--form-control-bg);
+  border-color: var(--form-control-border);
+  color: var(--text-color);
+}
+
+[data-theme="dark"] .form-sm::placeholder {
+  color: var(--text-muted);
+}
+
+[data-theme="dark"] .card-header {
+  background-color: rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-color);
+}
