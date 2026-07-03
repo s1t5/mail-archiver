@@ -118,4 +118,150 @@
     <data name="EMLFormatDescription" xml:space="preserve">
     <value>Creates individual .eml files organised in folders.</value>
   </data>
+
+  <!-- MSA (personal Microsoft account) OAuth2 device code flow -->
+  <data name="MsaAuthorizeTitle" xml:space="preserve">
+    <value>Authorise Microsoft Account</value>
+  </data>
+  <data name="MsaAccountLabel" xml:space="preserve">
+    <value>Account:</value>
+  </data>
+  <data name="MsaStep1OpenBrowser" xml:space="preserve">
+    <value>1. Open in a browser (or smartphone etc.):</value>
+  </data>
+  <data name="MsaStep2EnterCode" xml:space="preserve">
+    <value>2. Enter this code:</value>
+  </data>
+  <data name="MsaCopyCode" xml:space="preserve">
+    <value>Copy</value>
+  </data>
+  <data name="MsaCopyCodeTooltip" xml:space="preserve">
+    <value>Copy code</value>
+  </data>
+  <data name="MsaCodeValidFor" xml:space="preserve">
+    <value>Code valid for {0} minutes.</value>
+  </data>
+  <data name="MsaWaitingForAuthorization" xml:space="preserve">
+    <value>Waiting for authorisation …</value>
+  </data>
+  <data name="MsaAuthorizationSuccessful" xml:space="preserve">
+    <value>Authorisation successful! Redirecting …</value>
+  </data>
+  <data name="MsaErrorPrefix" xml:space="preserve">
+    <value>Error:</value>
+  </data>
+  <data name="MsaRetry" xml:space="preserve">
+    <value>Try again</value>
+  </data>
+  <data name="MsaProviderLabel" xml:space="preserve">
+    <value>MS Personal</value>
+  </data>
+  <data name="MsaSettingsHeading" xml:space="preserve">
+    <value>Microsoft Personal Account (Outlook.com / M365 Family)</value>
+  </data>
+  <data name="MsaNoAppRegistrationNeeded" xml:space="preserve">
+    <value>No app registration required.</value>
+  </data>
+  <data name="MsaDefaultClientInfoCreate" xml:space="preserve">
+    <value>Mail-Archiver uses a pre-configured app registration. Enter email address, save, then click {0}.</value>
+  </data>
+  <data name="MsaAuthorize" xml:space="preserve">
+    <value>Authorise</value>
+  </data>
+  <data name="MsaAppRegistrationSetup" xml:space="preserve">
+    <value>Set up Azure App Registration (one-time, ~2 minutes)</value>
+  </data>
+  <data name="MsaCreateAppRegistration" xml:space="preserve">
+    <value>Create App Registration</value>
+  </data>
+  <data name="MsaSignInWithMicrosoftAccount" xml:space="preserve">
+    <value>(sign in with your Microsoft account)</value>
+  </data>
+  <data name="MsaAppRegStepName" xml:space="preserve">
+    <value>Choose any name (e.g. mail-archiver)</value>
+  </data>
+  <data name="MsaAppRegStepAccountTypes" xml:space="preserve">
+    <value>Under Supported account types select: Accounts in any organizational directory and personal Microsoft accounts</value>
+  </data>
+  <data name="MsaAppRegStepRedirect" xml:space="preserve">
+    <value>Leave Redirect URI blank → click Register</value>
+  </data>
+  <data name="MsaAppRegStepClientId" xml:space="preserve">
+    <value>Enter the displayed Application (client) ID below</value>
+  </data>
+  <data name="MsaAppRegStepAuth" xml:space="preserve">
+    <value>Click Authentication in the app → enable Allow public client flows → Save</value>
+  </data>
+  <data name="MsaNoSecretNeededCreate" xml:space="preserve">
+    <value>No secret, no redirect URI required. After saving, click Authorise.</value>
+  </data>
+  <data name="MsaClientIdPlaceholder" xml:space="preserve">
+    <value>Azure App (client) ID</value>
+  </data>
+  <data name="MsaClientSecretOptional" xml:space="preserve">
+    <value>(optional)</value>
+  </data>
+  <data name="MsaClientSecretPlaceholder" xml:space="preserve">
+    <value>Not required for public client apps</value>
+  </data>
+  <data name="MsaClientSecretHint" xml:space="preserve">
+    <value>Only needed for confidential client apps. Leave blank when using a public client.</value>
+  </data>
+  <data name="MsaAuthorized" xml:space="preserve">
+    <value>Authorised. Microsoft account connected, token is renewed automatically.</value>
+  </data>
+  <data name="MsaReAuthorize" xml:space="preserve">
+    <value>Re-authorise</value>
+  </data>
+  <data name="MsaNotYetAuthorized" xml:space="preserve">
+    <value>Not yet authorised.</value>
+  </data>
+  <data name="MsaSaveThenAuthorize" xml:space="preserve">
+    <value>Save, then click {0}.</value>
+  </data>
+  <data name="MsaEnterClientIdThenAuthorize" xml:space="preserve">
+    <value>Enter Client ID, save, then click {0}.</value>
+  </data>
+  <data name="MsaDefaultClientInfoEdit" xml:space="preserve">
+    <value>Mail-Archiver uses a pre-configured app registration — own app registration is not required. Fill in only to use a custom Client ID.</value>
+  </data>
+  <data name="MsaNoSecretNeededShort" xml:space="preserve">
+    <value>No secret, no redirect URI required.</value>
+  </data>
+  <data name="MsaClientIdOptionalHint" xml:space="preserve">
+    <value>Optional — leave blank to use the default app registration.</value>
+  </data>
+  <data name="MsaClientIdKeepExisting" xml:space="preserve">
+    <value>Leave blank to keep existing value.</value>
+  </data>
+  <data name="MsaClientSecretPlaceholderEdit" xml:space="preserve">
+    <value>Not required for Device Code Flow</value>
+  </data>
+  <data name="MsaAuthorizeWithMicrosoft" xml:space="preserve">
+    <value>Authorise with Microsoft</value>
+  </data>
+  <data name="MsaReAuthorizeWithMicrosoft" xml:space="preserve">
+    <value>Re-authorise with Microsoft</value>
+  </data>
+  <data name="MsaClientIdRequired" xml:space="preserve">
+    <value>A Client ID is required for MS Personal accounts when no default Client ID is configured.</value>
+  </data>
+  <data name="MsaNotAuthorizedSync" xml:space="preserve">
+    <value>This Microsoft account is not yet authorised. Please click &quot;Authorise with Microsoft&quot; on the account's edit page first.</value>
+  </data>
+  <data name="MsaClientIdNotConfigured" xml:space="preserve">
+    <value>Client ID is not configured. Please edit the account first.</value>
+  </data>
+  <data name="MsaAuthorizationFailed" xml:space="preserve">
+    <value>Failed to start authorisation: {0}</value>
+  </data>
+  <data name="MsaAccessDenied" xml:space="preserve">
+    <value>Access denied.</value>
+  </data>
+  <data name="MsaSessionExpired" xml:space="preserve">
+    <value>Session expired. Please start authorisation again.</value>
+  </data>
+  <data name="MsaAccountNotFound" xml:space="preserve">
+    <value>Account not found.</value>
+  </data>
 </root>

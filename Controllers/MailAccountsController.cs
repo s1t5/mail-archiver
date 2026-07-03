@@ -219,7 +219,7 @@ var model = new MailAccountViewModel
                 && string.IsNullOrWhiteSpace(model.MsaClientId))
             {
                 ModelState.AddModelError("MsaClientId",
-                    "A Client ID is required for MSA accounts when no default Client ID is configured.");
+                    _localizer["MsaClientIdRequired"].Value);
             }
 
             ViewBag.MsaHasDefaultClientId = _msaOptions.HasDefaultClientId;
@@ -463,7 +463,7 @@ var model = new MailAccountViewModel
                 && string.IsNullOrWhiteSpace(model.ClientId))
             {
                 ModelState.AddModelError("MsaClientId",
-                    "A Client ID is required for MSA accounts when no default Client ID is configured.");
+                    _localizer["MsaClientIdRequired"].Value);
             }
 
             if (ModelState.IsValid)
@@ -917,7 +917,7 @@ var model = new MailAccountViewModel
             // deep in the IMAP connection factory with a cryptic exception.
             if (account.Provider == ProviderType.MSA && string.IsNullOrEmpty(account.OAuthRefreshToken))
             {
-                TempData["ErrorMessage"] = "This Microsoft account is not yet authorized. Please click \"Authorize with Microsoft\" on the account's edit page first.";
+                TempData["ErrorMessage"] = _localizer["MsaNotAuthorizedSync"].Value;
                 return RedirectToAction(nameof(Edit), new { id });
             }
 
@@ -1907,7 +1907,7 @@ var model = new MailAccountViewModel
 
             if (string.IsNullOrEmpty(account.ClientId) && !_msaOptions.HasDefaultClientId)
             {
-                TempData["ErrorMessage"] = "Client ID is not configured. Please edit the account first.";
+                TempData["ErrorMessage"] = _localizer["MsaClientIdNotConfigured"].Value;
                 return RedirectToAction(nameof(Edit), new { id });
             }
 
@@ -1932,7 +1932,7 @@ var model = new MailAccountViewModel
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to start MSA device code flow for account {AccountId}", id);
-                TempData["ErrorMessage"] = $"Failed to start authorization: {ex.Message}";
+                TempData["ErrorMessage"] = string.Format(_localizer["MsaAuthorizationFailed"].Value, ex.Message);
                 return RedirectToAction(nameof(Edit), new { id });
             }
         }
@@ -1942,15 +1942,15 @@ var model = new MailAccountViewModel
         public async Task<IActionResult> PollMsaDeviceCode(int id)
         {
             if (!await HasAccessToAccountAsync(id))
-                return Json(new { status = "error", message = "Access denied." });
+                return Json(new { status = "error", message = _localizer["MsaAccessDenied"].Value });
 
             var deviceCode = HttpContext.Session.GetString($"MsaDeviceCode_{id}");
             if (string.IsNullOrEmpty(deviceCode))
-                return Json(new { status = "error", message = "Session expired. Please start authorization again." });
+                return Json(new { status = "error", message = _localizer["MsaSessionExpired"].Value });
 
             var account = await _context.MailAccounts.FindAsync(id);
             if (account == null)
-                return Json(new { status = "error", message = "Account not found." });
+                return Json(new { status = "error", message = _localizer["MsaAccountNotFound"].Value });
 
             var currentInterval = HttpContext.Session.GetInt32($"MsaInterval_{id}") ?? 5;
 

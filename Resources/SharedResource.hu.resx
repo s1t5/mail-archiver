@@ -2513,4 +2513,150 @@
   <data name="GotIt" xml:space="preserve">
     <value>Értettem!</value>
   </data>
+
+  <!-- MSA (personal Microsoft account) OAuth2 device code flow -->
+  <data name="MsaAuthorizeTitle" xml:space="preserve">
+    <value>Microsoft-fiók engedélyezése</value>
+  </data>
+  <data name="MsaAccountLabel" xml:space="preserve">
+    <value>Fiók:</value>
+  </data>
+  <data name="MsaStep1OpenBrowser" xml:space="preserve">
+    <value>1. Nyisson meg egy böngészőben (vagy okostelefonon stb.):</value>
+  </data>
+  <data name="MsaStep2EnterCode" xml:space="preserve">
+    <value>2. Írja be ezt a kódot:</value>
+  </data>
+  <data name="MsaCopyCode" xml:space="preserve">
+    <value>Másolás</value>
+  </data>
+  <data name="MsaCopyCodeTooltip" xml:space="preserve">
+    <value>Kód másolása</value>
+  </data>
+  <data name="MsaCodeValidFor" xml:space="preserve">
+    <value>A kód {0} percig érvényes.</value>
+  </data>
+  <data name="MsaWaitingForAuthorization" xml:space="preserve">
+    <value>Engedélyezésre várakozás …</value>
+  </data>
+  <data name="MsaAuthorizationSuccessful" xml:space="preserve">
+    <value>Engedélyezés sikeres! Átirányítás …</value>
+  </data>
+  <data name="MsaErrorPrefix" xml:space="preserve">
+    <value>Hiba:</value>
+  </data>
+  <data name="MsaRetry" xml:space="preserve">
+    <value>Újrapróbálkozás</value>
+  </data>
+  <data name="MsaProviderLabel" xml:space="preserve">
+    <value>MS Személyes</value>
+  </data>
+  <data name="MsaSettingsHeading" xml:space="preserve">
+    <value>Személyes Microsoft-fiók (Outlook.com / M365 Family)</value>
+  </data>
+  <data name="MsaNoAppRegistrationNeeded" xml:space="preserve">
+    <value>Nincs szükség alkalmazás-regisztrációra.</value>
+  </data>
+  <data name="MsaDefaultClientInfoCreate" xml:space="preserve">
+    <value>A Mail-Archiver előre konfigurált alkalmazás-regisztrációt használ. Adja meg az e-mail címet, mentse, majd kattintson a(z) {0} gombra.</value>
+  </data>
+  <data name="MsaAuthorize" xml:space="preserve">
+    <value>Engedélyezés</value>
+  </data>
+  <data name="MsaAppRegistrationSetup" xml:space="preserve">
+    <value>Azure-alkalmazásregisztráció beállítása (egyszer, ~2 perc)</value>
+  </data>
+  <data name="MsaCreateAppRegistration" xml:space="preserve">
+    <value>Alkalmazás-regisztráció létrehozása</value>
+  </data>
+  <data name="MsaSignInWithMicrosoftAccount" xml:space="preserve">
+    <value>(jelentkezzen be Microsoft-fiókjával)</value>
+  </data>
+  <data name="MsaAppRegStepName" xml:space="preserve">
+    <value>Válasszon tetszőleges nevet (pl. mail-archiver)</value>
+  </data>
+  <data name="MsaAppRegStepAccountTypes" xml:space="preserve">
+    <value>A Támogatott fióktípusoknál válassza: Fiókok bármely szervezeti címtárban és személyes Microsoft-fiókok</value>
+  </data>
+  <data name="MsaAppRegStepRedirect" xml:space="preserve">
+    <value>Hagyja az Átirányítási URI-t üresen → kattintson a Regisztrálás gombra</value>
+  </data>
+  <data name="MsaAppRegStepClientId" xml:space="preserve">
+    <value>Adja meg lent a megjelenített Alkalmazás (ügyfél) azonosítót</value>
+  </data>
+  <data name="MsaAppRegStepAuth" xml:space="preserve">
+    <value>Kattintson a Hitelesítésre az alkalmazásban → engedélyezze a Nyilvános ügyfélflow-ok engedélyezése lehetőséget → Mentés</value>
+  </data>
+  <data name="MsaNoSecretNeededCreate" xml:space="preserve">
+    <value>Nincs szükség titkos kódra és átirányítási URI-ra. Mentés után kattintson az Engedélyezés gombra.</value>
+  </data>
+  <data name="MsaClientIdPlaceholder" xml:space="preserve">
+    <value>Azure Alkalmazás (ügyfél) azonosító</value>
+  </data>
+  <data name="MsaClientSecretOptional" xml:space="preserve">
+    <value>(opcionális)</value>
+  </data>
+  <data name="MsaClientSecretPlaceholder" xml:space="preserve">
+    <value>Nem szükséges nyilvános ügyfélalkalmazásokhoz</value>
+  </data>
+  <data name="MsaClientSecretHint" xml:space="preserve">
+    <value>Csak bizalmas ügyfélalkalmazásokhoz szükséges. Hagyja üresen nyilvános ügyfél használatakor.</value>
+  </data>
+  <data name="MsaAuthorized" xml:space="preserve">
+    <value>Engedélyezve. Microsoft-fiók csatlakoztatva, a token automatikusan megújul.</value>
+  </data>
+  <data name="MsaReAuthorize" xml:space="preserve">
+    <value>Újra engedélyezés</value>
+  </data>
+  <data name="MsaNotYetAuthorized" xml:space="preserve">
+    <value>Még nincs engedélyezve.</value>
+  </data>
+  <data name="MsaSaveThenAuthorize" xml:space="preserve">
+    <value>Mentse, majd kattintson a(z) {0} gombra.</value>
+  </data>
+  <data name="MsaEnterClientIdThenAuthorize" xml:space="preserve">
+    <value>Adja meg az ügyfél-azonosítót, mentse, majd kattintson a(z) {0} gombra.</value>
+  </data>
+  <data name="MsaDefaultClientInfoEdit" xml:space="preserve">
+    <value>A Mail-Archiver előre konfigurált alkalmazás-regisztrációt használ — saját regisztráció nem szükséges. Csak egyéni ügyfél-azonosító használatához töltse ki.</value>
+  </data>
+  <data name="MsaNoSecretNeededShort" xml:space="preserve">
+    <value>Nincs szükség titkos kódra és átirányítási URI-ra.</value>
+  </data>
+  <data name="MsaClientIdOptionalHint" xml:space="preserve">
+    <value>Opcionális — hagyja üresen az alapértelmezett alkalmazás-regisztráció használatához.</value>
+  </data>
+  <data name="MsaClientIdKeepExisting" xml:space="preserve">
+    <value>Hagyja üresen a meglévő érték megtartásához.</value>
+  </data>
+  <data name="MsaClientSecretPlaceholderEdit" xml:space="preserve">
+    <value>Nem szükséges a Device Code Flow-hoz</value>
+  </data>
+  <data name="MsaAuthorizeWithMicrosoft" xml:space="preserve">
+    <value>Engedélyezés Microsoft-fiókkal</value>
+  </data>
+  <data name="MsaReAuthorizeWithMicrosoft" xml:space="preserve">
+    <value>Újra engedélyezés Microsoft-fiókkal</value>
+  </data>
+  <data name="MsaClientIdRequired" xml:space="preserve">
+    <value>Ügyfél-azonosító szükséges az MS Személyes fiókokhoz, ha nincs alapértelmezett ügyfél-azonosító konfigurálva.</value>
+  </data>
+  <data name="MsaNotAuthorizedSync" xml:space="preserve">
+    <value>Ez a Microsoft-fiók még nincs engedélyezve. Kattintson először az &quot;Engedélyezés Microsoft-fiókkal&quot; gombra a fiók szerkesztő oldalán.</value>
+  </data>
+  <data name="MsaClientIdNotConfigured" xml:space="preserve">
+    <value>Az ügyfél-azonosító nincs konfigurálva. Először szerkessze a fiókot.</value>
+  </data>
+  <data name="MsaAuthorizationFailed" xml:space="preserve">
+    <value>Az engedélyezés elindítása sikertelen: {0}</value>
+  </data>
+  <data name="MsaAccessDenied" xml:space="preserve">
+    <value>Hozzáférés megtagadva.</value>
+  </data>
+  <data name="MsaSessionExpired" xml:space="preserve">
+    <value>Munkamenet lejárt. Indítsa újra az engedélyezést.</value>
+  </data>
+  <data name="MsaAccountNotFound" xml:space="preserve">
+    <value>Fiók nem található.</value>
+  </data>
 </root>

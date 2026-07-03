@@ -2521,4 +2521,150 @@
   <data name="GotIt" xml:space="preserve">
     <value>Compris !</value>
   </data>
+
+  <!-- MSA (personal Microsoft account) OAuth2 device code flow -->
+  <data name="MsaAuthorizeTitle" xml:space="preserve">
+    <value>Autoriser le compte Microsoft</value>
+  </data>
+  <data name="MsaAccountLabel" xml:space="preserve">
+    <value>Compte :</value>
+  </data>
+  <data name="MsaStep1OpenBrowser" xml:space="preserve">
+    <value>1. Ouvrez dans un navigateur (ou smartphone, etc.) :</value>
+  </data>
+  <data name="MsaStep2EnterCode" xml:space="preserve">
+    <value>2. Saisissez ce code :</value>
+  </data>
+  <data name="MsaCopyCode" xml:space="preserve">
+    <value>Copier</value>
+  </data>
+  <data name="MsaCopyCodeTooltip" xml:space="preserve">
+    <value>Copier le code</value>
+  </data>
+  <data name="MsaCodeValidFor" xml:space="preserve">
+    <value>Code valable {0} minutes.</value>
+  </data>
+  <data name="MsaWaitingForAuthorization" xml:space="preserve">
+    <value>En attente d'autorisation …</value>
+  </data>
+  <data name="MsaAuthorizationSuccessful" xml:space="preserve">
+    <value>Autorisation réussie ! Redirection …</value>
+  </data>
+  <data name="MsaErrorPrefix" xml:space="preserve">
+    <value>Erreur :</value>
+  </data>
+  <data name="MsaRetry" xml:space="preserve">
+    <value>Réessayer</value>
+  </data>
+  <data name="MsaProviderLabel" xml:space="preserve">
+    <value>MS Personnel</value>
+  </data>
+  <data name="MsaSettingsHeading" xml:space="preserve">
+    <value>Compte personnel Microsoft (Outlook.com / M365 Family)</value>
+  </data>
+  <data name="MsaNoAppRegistrationNeeded" xml:space="preserve">
+    <value>Aucune inscription d'application requise.</value>
+  </data>
+  <data name="MsaDefaultClientInfoCreate" xml:space="preserve">
+    <value>Mail-Archiver utilise une inscription d'application préconfigurée. Saisissez l'adresse e-mail, enregistrez, puis cliquez sur {0}.</value>
+  </data>
+  <data name="MsaAuthorize" xml:space="preserve">
+    <value>Autoriser</value>
+  </data>
+  <data name="MsaAppRegistrationSetup" xml:space="preserve">
+    <value>Configurer l'inscription d'application Azure (une fois, ~2 minutes)</value>
+  </data>
+  <data name="MsaCreateAppRegistration" xml:space="preserve">
+    <value>Créer une inscription d'application</value>
+  </data>
+  <data name="MsaSignInWithMicrosoftAccount" xml:space="preserve">
+    <value>(connectez-vous avec votre compte Microsoft)</value>
+  </data>
+  <data name="MsaAppRegStepName" xml:space="preserve">
+    <value>Choisissez un nom quelconque (p. ex. mail-archiver)</value>
+  </data>
+  <data name="MsaAppRegStepAccountTypes" xml:space="preserve">
+    <value>Sous Types de comptes pris en charge sélectionner : Comptes dans n'importe quel annuaire organisationnel et comptes Microsoft personnelles</value>
+  </data>
+  <data name="MsaAppRegStepRedirect" xml:space="preserve">
+    <value>Laisser l'URI de redirection vide → cliquer sur Inscrire</value>
+  </data>
+  <data name="MsaAppRegStepClientId" xml:space="preserve">
+    <value>Saisissez ci-dessous l'ID d'application (client) affiché</value>
+  </data>
+  <data name="MsaAppRegStepAuth" xml:space="preserve">
+    <value>Cliquer sur Authentification dans l'app → activer Autoriser les flux de client public → Enregistrer</value>
+  </data>
+  <data name="MsaNoSecretNeededCreate" xml:space="preserve">
+    <value>Aucun secret ni URI de redirection requis. Après enregistrement, cliquer sur Autoriser.</value>
+  </data>
+  <data name="MsaClientIdPlaceholder" xml:space="preserve">
+    <value>ID d'application (client) Azure</value>
+  </data>
+  <data name="MsaClientSecretOptional" xml:space="preserve">
+    <value>(facultatif)</value>
+  </data>
+  <data name="MsaClientSecretPlaceholder" xml:space="preserve">
+    <value>Non requis pour les applications client public</value>
+  </data>
+  <data name="MsaClientSecretHint" xml:space="preserve">
+    <value>Nécessaire uniquement pour les applications client confidentielles. Laisser vide lors de l'utilisation d'un client public.</value>
+  </data>
+  <data name="MsaAuthorized" xml:space="preserve">
+    <value>Autorisé. Compte Microsoft connecté, le jeton est renouvelé automatiquement.</value>
+  </data>
+  <data name="MsaReAuthorize" xml:space="preserve">
+    <value>Réautoriser</value>
+  </data>
+  <data name="MsaNotYetAuthorized" xml:space="preserve">
+    <value>Pas encore autorisé.</value>
+  </data>
+  <data name="MsaSaveThenAuthorize" xml:space="preserve">
+    <value>Enregistrez, puis cliquez sur {0}.</value>
+  </data>
+  <data name="MsaEnterClientIdThenAuthorize" xml:space="preserve">
+    <value>Saisissez l'ID client, enregistrez, puis cliquez sur {0}.</value>
+  </data>
+  <data name="MsaDefaultClientInfoEdit" xml:space="preserve">
+    <value>Mail-Archiver utilise une inscription d'application préconfigurée — aucune inscription propre requise. Remplir uniquement pour utiliser un ID client personnalisé.</value>
+  </data>
+  <data name="MsaNoSecretNeededShort" xml:space="preserve">
+    <value>Aucun secret ni URI de redirection requis.</value>
+  </data>
+  <data name="MsaClientIdOptionalHint" xml:space="preserve">
+    <value>Facultatif — laisser vide pour utiliser l'inscription d'application par défaut.</value>
+  </data>
+  <data name="MsaClientIdKeepExisting" xml:space="preserve">
+    <value>Laisser vide pour conserver la valeur existante.</value>
+  </data>
+  <data name="MsaClientSecretPlaceholderEdit" xml:space="preserve">
+    <value>Non requis pour le flux de code d'appareil</value>
+  </data>
+  <data name="MsaAuthorizeWithMicrosoft" xml:space="preserve">
+    <value>Autoriser avec Microsoft</value>
+  </data>
+  <data name="MsaReAuthorizeWithMicrosoft" xml:space="preserve">
+    <value>Réautoriser avec Microsoft</value>
+  </data>
+  <data name="MsaClientIdRequired" xml:space="preserve">
+    <value>Un ID client est requis pour les comptes MS Personnel lorsqu'aucun ID client par défaut n'est configuré.</value>
+  </data>
+  <data name="MsaNotAuthorizedSync" xml:space="preserve">
+    <value>Ce compte Microsoft n'est pas encore autorisé. Veuillez d'abord cliquer sur « Autoriser avec Microsoft » sur la page de modification du compte.</value>
+  </data>
+  <data name="MsaClientIdNotConfigured" xml:space="preserve">
+    <value>L'ID client n'est pas configuré. Veuillez d'abord modifier le compte.</value>
+  </data>
+  <data name="MsaAuthorizationFailed" xml:space="preserve">
+    <value>Échec du démarrage de l'autorisation : {0}</value>
+  </data>
+  <data name="MsaAccessDenied" xml:space="preserve">
+    <value>Accès refusé.</value>
+  </data>
+  <data name="MsaSessionExpired" xml:space="preserve">
+    <value>Session expirée. Veuillez relancer l'autorisation.</value>
+  </data>
+  <data name="MsaAccountNotFound" xml:space="preserve">
+    <value>Compte introuvable.</value>
+  </data>
 </root>
