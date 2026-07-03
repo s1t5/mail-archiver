@@ -58,8 +58,8 @@ namespace MailArchiver.Migrations
                 END $$;
             ");
 
-            migrationBuilder.Sql(@"COMMENT ON TABLE mail_archiver.""AccountStorageCache"" IS 'Cache: Speicherverbrauch pro Account (Mail-Body + Anhaenge). Wird durch Background-Service und nach Sync/Import befuellt.';");
-            migrationBuilder.Sql(@"COMMENT ON COLUMN mail_archiver.""AccountStorageCache"".""MailBytes"" IS 'Speicherverbrauch der Mail-Body-Spalten in Bytes (pg_column_size).';");
+            migrationBuilder.Sql(@"COMMENT ON TABLE mail_archiver.""AccountStorageCache"" IS 'Cache: Speicherverbrauch pro Account (alle Mail-Felder + Anhaenge). Wird durch Background-Service und nach Sync/Import befuellt.';");
+            migrationBuilder.Sql(@"COMMENT ON COLUMN mail_archiver.""AccountStorageCache"".""MailBytes"" IS 'Speicherverbrauch aller Felder einer Mail in Bytes (pg_column_size der gesamten Zeile).';");
             migrationBuilder.Sql(@"COMMENT ON COLUMN mail_archiver.""AccountStorageCache"".""AttachmentBytes"" IS 'Logische Summe der Anhangsgroessen in Bytes (Sum EmailAttachment.Size).';");
             migrationBuilder.Sql(@"COMMENT ON COLUMN mail_archiver.""AccountStorageCache"".""TotalBytes"" IS 'Gesamtgroesse in Bytes (MailBytes + AttachmentBytes).';");
             migrationBuilder.Sql(@"COMMENT ON COLUMN mail_archiver.""AccountStorageCache"".""UpdatedAt"" IS 'Zeitpunkt der letzten Aktualisierung.';");

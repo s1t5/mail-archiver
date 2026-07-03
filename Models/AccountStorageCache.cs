@@ -1,14 +1,14 @@
 namespace MailArchiver.Models
 {
     /// <summary>
-    /// Cache-Tabelle: Speicherverbrauch pro Account (Mail-Body + Anhaenge).
+    /// Cache-Tabelle: Speicherverbrauch pro Account (alle Mail-Felder + Anhaenge).
     /// Wird durch AccountStorageRefreshService und nach Sync/Import befuellt.
     /// </summary>
     public class AccountStorageCache
     {
         public int MailAccountId { get; set; }
 
-        /// <summary>Speicherverbrauch der Mail-Body-Spalten in Bytes (pg_column_size).</summary>
+        /// <summary>Speicherverbrauch aller Felder einer Mail in Bytes (pg_column_size der gesamten Zeile).</summary>
         public long MailBytes { get; set; }
 
         /// <summary>Logische Summe der Anhangsgroessen in Bytes (Sum EmailAttachment.Size).</summary>

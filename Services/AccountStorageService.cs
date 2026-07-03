@@ -118,44 +118,13 @@ namespace MailArchiver.Services
             using var connection = new NpgsqlConnection(connectionString);
             await connection.OpenAsync();
 
-            var sql = @"
-                SELECT
-                    COALESCE(SUM(pg_column_size(e.""Body"")), 0)
-                  + COALESCE(SUM(pg_column_size(e.""HtmlBody"")), 0)
-                  + COALESCE(SUM(pg_column_size(e.""BodyUntruncatedText"")), 0)
-                  + COALESCE(SUM(pg_column_size(e.""BodyUntruncatedHtml"")), 0)
-                  + COALESCE(SUM(pg_column_size(e.""RawHeaders"")), 0)
-                  + COALESCE(SUM(octet_length(e.""OriginalBodyText"")), 0)
-                  + COALESCE(SUM(octet_length(e.""OriginalBodyHtml"")), 0) AS MailBytes,
-                  COALESCE(att.total, 0) AS AttachmentBytes
-                FROM mail_archiver.""ArchivedEmails"" e
-                LEFT JOIN (
-                    SELECT e2.""MailAccountId"", SUM(a.""Size"") AS total
-                    FROM mail_archiver.""EmailAttachments"" a
-                    JOIN mail_archiver.""ArchivedEmails"" e2 ON a.""ArchivedEmailId"" = e2.""Id""
-                    WHERE e2.""MailAccountId"" = @accountId
-                    GROUP BY e2.""MailAccountId""
-                ) att ON true
-                WHERE e.""MailAccountId"" = @accountId
-                GROUP BY e.""MailAccountId"";
-
-                -- Falls der Account keine Emails hat, liefert obige Query keine Zeile.
-                -- Der nachfolgende SELECT garantieret einen 0/0-Fallback.
-            ";
-
-            // Hinweis: da die GROUP BY-Query bei 0 Emails keine Zeile liefert,
-            // nutzen wir COALESCE ueber einen Scalar-Fallback.
+            // Hinweis: pg_column_size(e) liefert die Groesse der gesamten Zeile
+            // (Summe aller Spalten inkl. Kompression/TOAST). Die COALESCE-Subqueries
+            // garantieren einen 0-Fallback fuer Accounts ohne Emails bzw. ohne Anhaenge.
             var fallbackSql = @"
                 SELECT
                     COALESCE((
-                        SELECT
-                            COALESCE(SUM(pg_column_size(e.""Body"")), 0)
-                          + COALESCE(SUM(pg_column_size(e.""HtmlBody"")), 0)
-                          + COALESCE(SUM(pg_column_size(e.""BodyUntruncatedText"")), 0)
-                          + COALESCE(SUM(pg_column_size(e.""BodyUntruncatedHtml"")), 0)
-                          + COALESCE(SUM(pg_column_size(e.""RawHeaders"")), 0)
-                          + COALESCE(SUM(octet_length(e.""OriginalBodyText"")), 0)
-                          + COALESCE(SUM(octet_length(e.""OriginalBodyHtml"")), 0)
+                        SELECT SUM(pg_column_size(e))
                         FROM mail_archiver.""ArchivedEmails"" e
                         WHERE e.""MailAccountId"" = @accountId
                     ), 0) AS MailBytes,
