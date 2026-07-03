@@ -28,7 +28,8 @@
                     <label asp-for="Provider" class="form-label">@Localizer["Provider"]</label>
                     <select asp-for="Provider" class="form-select">
                         <option value="@ProviderType.IMAP">IMAP</option>
-                        <option value="@ProviderType.M365">Microsoft 365</option>
+                        <option value="@ProviderType.M365">Microsoft 365 (Exchange Online)</option>
+                        <option value="@ProviderType.MSA">@Localizer["MsaProviderLabel"]</option>
                         <option value="@ProviderType.IMPORT">Import Only</option>
                     </select>
                     <span asp-validation-for="Provider" class="text-danger"></span>
@@ -66,6 +67,88 @@
                     </div>
                 </div>
                 
+                <div id="msaSettings" style="display: @(Model.Provider == ProviderType.MSA ? "block" : "none");">
+                    <h4 class="mt-4">@Localizer["MsaSettingsHeading"]</h4>
+
+                    @if (Model.MsaIsAuthorized)
+                    {
+                        <div class="alert alert-success d-flex align-items-center justify-content-between">
+                            <span>
+                                <i class="bi bi-check-circle-fill me-2"></i>
+                                @Localizer["MsaAuthorized"]
+                            </span>
+                            @if (Model.Id != 0)
+                            {
+                                <a asp-action="AuthorizeMsaDevice" asp-route-id="@Model.Id" class="btn btn-sm btn-outline-success ms-2">
+                                    <i class="bi bi-arrow-clockwise"></i> @Localizer["MsaReAuthorize"]
+                                </a>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-warning">
+                            <i class="bi bi-exclamation-triangle me-2"></i>
+                            <strong>@Localizer["MsaNotYetAuthorized"]</strong>
+                            @if (ViewBag.MsaHasDefaultClientId == true)
+                            {
+                                @Html.Raw(string.Format(Localizer["MsaSaveThenAuthorize"].Value, $"<strong>{Localizer["MsaAuthorize"]}</strong>"))
+                            }
+                            else
+                            {
+                                @Html.Raw(string.Format(Localizer["MsaEnterClientIdThenAuthorize"].Value, $"<strong>{Localizer["MsaAuthorize"]}</strong>"))
+                            }
+                        </div>
+                    }
+
+                    @if (ViewBag.MsaHasDefaultClientId != true)
+                    {
+                        <details class="mb-3">
+                            <summary style="cursor:pointer;" class="text-muted">
+                                <i class="bi bi-info-circle"></i> @Localizer["MsaAppRegistrationSetup"]
+                            </summary>
+                            <div class="mt-2 border rounded p-3 bg-light">
+                                <ol class="mb-2 ps-3">
+                                    <li class="mb-2">
+                                        <a href="https://portal.azure.com/#view/Microsoft_AAD_RegisteredApps/CreateApplicationBlade" target="_blank" class="btn btn-sm btn-primary">
+                                            <i class="bi bi-box-arrow-up-right"></i> @Localizer["MsaCreateAppRegistration"]
+                                        </a>
+                                        &nbsp;<span class="text-muted small">@Localizer["MsaSignInWithMicrosoftAccount"]</span>
+                                    </li>
+                                    <li class="mb-2">@Localizer["MsaAppRegStepName"]</li>
+                                    <li class="mb-2">@Localizer["MsaAppRegStepAccountTypes"]</li>
+                                    <li class="mb-2">@Localizer["MsaAppRegStepRedirect"]</li>
+                                    <li class="mb-2">@Localizer["MsaAppRegStepClientId"]</li>
+                                    <li class="mb-2">@Localizer["MsaAppRegStepAuth"]</li>
+                                </ol>
+                                <p class="small text-muted mb-0">@Localizer["MsaNoSecretNeededShort"]</p>
+                            </div>
+                        </details>
+
+                        <div class="mb-3">
+                            <label asp-for="MsaClientId" class="form-label">@Localizer["ClientId"]</label>
+                            <input asp-for="MsaClientId" class="form-control" placeholder="@Localizer["MsaClientIdPlaceholder"]" />
+                            <div class="form-text">@Localizer["MsaClientIdKeepExisting"]</div>
+                            <span asp-validation-for="MsaClientId" class="text-danger"></span>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="MsaClientSecret" class="form-label">@Localizer["ClientSecret"] <span class="text-muted fw-normal">@Localizer["MsaClientSecretOptional"]</span></label>
+                            <input asp-for="MsaClientSecret" class="form-control" type="password" placeholder="@Localizer["MsaClientSecretPlaceholderEdit"]" />
+                            <div class="form-text">@Localizer["MsaClientSecretHint"]</div>
+                            <span asp-validation-for="MsaClientSecret" class="text-danger"></span>
+                        </div>
+                    }
+
+                    @if (Model.Id != 0)
+                    {
+                        <div class="mb-3">
+                            <a asp-action="AuthorizeMsaDevice" asp-route-id="@Model.Id" class="btn @(Model.MsaIsAuthorized ? "btn-outline-primary" : "btn-primary")">
+                                <i class="bi bi-microsoft"></i> @(Model.MsaIsAuthorized ? Localizer["MsaReAuthorizeWithMicrosoft"].Value : Localizer["MsaAuthorizeWithMicrosoft"].Value)
+                            </a>
+                        </div>
+                    }
+                </div>
+
                 <div id="microsoft365Settings" style="display: @microsoft365SettingsDisplay;">
                     <h4 class="mt-4">@Localizer["Microsoft365Settings"]</h4>
                     
@@ -186,6 +269,7 @@
             const providerSelect = document.getElementById('Provider');
             const imapSettings = document.getElementById('imapSettings');
             const microsoft365Settings = document.getElementById('microsoft365Settings');
+            const msaSettings = document.getElementById('msaSettings');
             const emailDeletionSettings = document.getElementById('emailDeletionSettings');
             const loadFoldersBtn = document.getElementById('loadFoldersBtn');
             const foldersContainer = document.getElementById('foldersContainer');
@@ -218,10 +302,12 @@
                 const providerValue = providerSelect.value;
                 const isImport = providerValue === '@ProviderType.IMPORT';
                 const isM365 = providerValue === '@ProviderType.M365';
-                const isImap = !isImport && !isM365;
+                const isMsa = providerValue === '@ProviderType.MSA';
+                const isImap = !isImport && !isM365 && !isMsa;
 
                 imapSettings.style.display = isImap ? 'block' : 'none';
                 microsoft365Settings.style.display = isM365 ? 'block' : 'none';
+                if (msaSettings) msaSettings.style.display = isMsa ? 'block' : 'none';
                 emailDeletionSettings.style.display = isImport ? 'none' : 'block';
                 setSectionEnabled(imapSettings, isImap);
                 setSectionEnabled(microsoft365Settings, isM365);

@@ -2533,6 +2533,155 @@
   <data name="GotIt" xml:space="preserve">
     <value>Begrepen!</value>
   </data>
+
+  <!-- MSA (personal Microsoft account) OAuth2 device code flow -->
+  <data name="MsaAuthorizeTitle" xml:space="preserve">
+    <value>Microsoft-account autoriseren</value>
+  </data>
+  <data name="MsaAccountLabel" xml:space="preserve">
+    <value>Account:</value>
+  </data>
+  <data name="MsaStep1OpenBrowser" xml:space="preserve">
+    <value>1. Open in een browser (of smartphone, enz.):</value>
+  </data>
+  <data name="MsaStep2EnterCode" xml:space="preserve">
+    <value>2. Voer deze code in:</value>
+  </data>
+  <data name="MsaCopyCode" xml:space="preserve">
+    <value>Kopiëren</value>
+  </data>
+  <data name="MsaCopyCodeTooltip" xml:space="preserve">
+    <value>Code kopiëren</value>
+  </data>
+  <data name="MsaCodeValidFor" xml:space="preserve">
+    <value>Code {0} minuten geldig.</value>
+  </data>
+  <data name="MsaWaitingForAuthorization" xml:space="preserve">
+    <value>Wachten op autorisatie …</value>
+  </data>
+  <data name="MsaAuthorizationSuccessful" xml:space="preserve">
+    <value>Autorisatie geslaagd! Doorsturen …</value>
+  </data>
+  <data name="MsaErrorPrefix" xml:space="preserve">
+    <value>Fout:</value>
+  </data>
+  <data name="MsaRetry" xml:space="preserve">
+    <value>Opnieuw proberen</value>
+  </data>
+  <data name="MsaProviderLabel" xml:space="preserve">
+    <value>Microsoft Persoonlijk</value>
+  </data>
+  <data name="MsaSettingsHeading" xml:space="preserve">
+    <value>Persoonlijk Microsoft-account (Outlook.com / M365 Family)</value>
+  </data>
+  <data name="MsaNoAppRegistrationNeeded" xml:space="preserve">
+    <value>Geen app-registratie vereist.</value>
+  </data>
+  <data name="MsaDefaultClientInfoCreate" xml:space="preserve">
+    <value>Mail-AArchiver gebruikt een vooraf geconfigureerde app-registratie. Voer het e-mailadres in, sla op en klik vervolgens op {0}.</value>
+  </data>
+  <data name="MsaAuthorize" xml:space="preserve">
+    <value>Autoriseren</value>
+  </data>
+  <data name="MsaAppRegistrationSetup" xml:space="preserve">
+    <value>Azure-app-registratie instellen (eenmalig, ~2 minuten)</value>
+  </data>
+  <data name="MsaCreateAppRegistration" xml:space="preserve">
+    <value>App-registratie aanmaken</value>
+  </data>
+  <data name="MsaSignInWithMicrosoftAccount" xml:space="preserve">
+    <value>(meld je aan met je Microsoft-account)</value>
+  </data>
+  <data name="MsaAppRegStepName" xml:space="preserve">
+    <value>Kies een willekeurige naam (bijv. mail-archiver)</value>
+  </data>
+  <data name="MsaAppRegStepAccountTypes" xml:space="preserve">
+    <value>Selecteer bij Ondersteunde accounttypen: Accounts in any organizational directory and personal Microsoft accounts</value>
+  </data>
+  <data name="MsaAppRegStepRedirect" xml:space="preserve">
+    <value>Laat Redirect-URI leeg → klik op Registreren</value>
+  </data>
+  <data name="MsaAppRegStepClientId" xml:space="preserve">
+    <value>Voer hieronder het getoonde Application (client) ID in</value>
+  </data>
+  <data name="MsaAppRegStepAuth" xml:space="preserve">
+    <value>Klik op Authentication in de app → schakel Allow public client flows in → Opslaan</value>
+  </data>
+  <data name="MsaNoSecretNeededCreate" xml:space="preserve">
+    <value>Geen secret, geen redirect-URI vereist. Klik na het opslaan op Autoriseren.</value>
+  </data>
+  <data name="MsaClientIdPlaceholder" xml:space="preserve">
+    <value>Azure App (client) ID</value>
+  </data>
+  <data name="MsaClientSecretOptional" xml:space="preserve">
+    <value>(optioneel)</value>
+  </data>
+  <data name="MsaClientSecretPlaceholder" xml:space="preserve">
+    <value>Niet vereist voor public-client-apps</value>
+  </data>
+  <data name="MsaClientSecretHint" xml:space="preserve">
+    <value>Alleen nodig voor vertrouwelijke client-apps. Leeg laten bij gebruik van een public client.</value>
+  </data>
+  <data name="MsaAuthorized" xml:space="preserve">
+    <value>Geautoriseerd. Microsoft-account verbonden, token wordt automatisch vernieuwd.</value>
+  </data>
+  <data name="MsaReAuthorize" xml:space="preserve">
+    <value>Opnieuw autoriseren</value>
+  </data>
+  <data name="MsaNotYetAuthorized" xml:space="preserve">
+    <value>Nog niet geautoriseerd.</value>
+  </data>
+  <data name="MsaSaveThenAuthorize" xml:space="preserve">
+    <value>Opslaan, klik vervolgens op {0}.</value>
+  </data>
+  <data name="MsaEnterClientIdThenAuthorize" xml:space="preserve">
+    <value>Voer Client ID in, sla op, klik vervolgens op {0}.</value>
+  </data>
+  <data name="MsaDefaultClientInfoEdit" xml:space="preserve">
+    <value>Mail-Archiver gebruikt een vooraf geconfigureerde app-registratie — eigen registratie is niet vereist. Vul alleen in om een aangepaste Client ID te gebruiken.</value>
+  </data>
+  <data name="MsaNoSecretNeededShort" xml:space="preserve">
+    <value>Geen secret, geen redirect-URI vereist.</value>
+  </data>
+  <data name="MsaClientIdOptionalHint" xml:space="preserve">
+    <value>Optioneel — leeg laten om de standaard app-registratie te gebruiken.</value>
+  </data>
+  <data name="MsaClientIdKeepExisting" xml:space="preserve">
+    <value>Leeg laten om bestaande waarde te behouden.</value>
+  </data>
+  <data name="MsaClientSecretPlaceholderEdit" xml:space="preserve">
+    <value>Niet vereist voor Device Code Flow</value>
+  </data>
+  <data name="MsaAuthorizeWithMicrosoft" xml:space="preserve">
+    <value>Autoriseren met Microsoft</value>
+  </data>
+  <data name="MsaReAuthorizeWithMicrosoft" xml:space="preserve">
+    <value>Opnieuw autoriseren met Microsoft</value>
+  </data>
+  <data name="MsaClientIdRequired" xml:space="preserve">
+    <value>Een Client ID is vereist voor MS Persoonlijk-accounts wanneer geen standaard Client ID is geconfigureerd.</value>
+  </data>
+  <data name="MsaNotAuthorizedSync" xml:space="preserve">
+    <value>Dit Microsoft-account is nog niet geautoriseerd. Klik eerst op &quot;Autoriseren met Microsoft&quot; op de bewerkpagina van het account.</value>
+  </data>
+  <data name="MsaClientIdNotConfigured" xml:space="preserve">
+    <value>Client ID is niet geconfigureerd. Bewerk eerst het account.</value>
+  </data>
+  <data name="MsaAuthorizationFailed" xml:space="preserve">
+    <value>Starten van autorisatie mislukt: {0}</value>
+  </data>
+  <data name="MsaAccessDenied" xml:space="preserve">
+    <value>Toegang geweigerd.</value>
+  </data>
+  <data name="MsaSessionExpired" xml:space="preserve">
+    <value>Sessie verlopen. Start de autorisatie opnieuw.</value>
+  </data>
+  <data name="MsaAccountNotFound" xml:space="preserve">
+    <value>Account niet gevonden.</value>
+  </data>
+  <data name="MsaAuthorizationCancelled" xml:space="preserve">
+    <value>Accountaanmaak geannuleerd.</value>
+  </data>
   <data name="UseTenantImport" xml:space="preserve">
     <value>Tenantimporteren gebruiken</value>
   </data>

@@ -2533,6 +2533,155 @@
   <data name="GotIt" xml:space="preserve">
     <value>Понятно!</value>
   </data>
+
+  <!-- MSA (personal Microsoft account) OAuth2 device code flow -->
+  <data name="MsaAuthorizeTitle" xml:space="preserve">
+    <value>Авторизовать учётную запись Microsoft</value>
+  </data>
+  <data name="MsaAccountLabel" xml:space="preserve">
+    <value>Учётная запись:</value>
+  </data>
+  <data name="MsaStep1OpenBrowser" xml:space="preserve">
+    <value>1. Откройте в браузере (или смартфоне и т.д.):</value>
+  </data>
+  <data name="MsaStep2EnterCode" xml:space="preserve">
+    <value>2. Введите этот код:</value>
+  </data>
+  <data name="MsaCopyCode" xml:space="preserve">
+    <value>Копировать</value>
+  </data>
+  <data name="MsaCopyCodeTooltip" xml:space="preserve">
+    <value>Копировать код</value>
+  </data>
+  <data name="MsaCodeValidFor" xml:space="preserve">
+    <value>Код действует {0} мин.</value>
+  </data>
+  <data name="MsaWaitingForAuthorization" xml:space="preserve">
+    <value>Ожидание авторизации …</value>
+  </data>
+  <data name="MsaAuthorizationSuccessful" xml:space="preserve">
+    <value>Авторизация успешна! Перенаправление …</value>
+  </data>
+  <data name="MsaErrorPrefix" xml:space="preserve">
+    <value>Ошибка:</value>
+  </data>
+  <data name="MsaRetry" xml:space="preserve">
+    <value>Повторить</value>
+  </data>
+  <data name="MsaProviderLabel" xml:space="preserve">
+    <value>Microsoft Личный</value>
+  </data>
+  <data name="MsaSettingsHeading" xml:space="preserve">
+    <value>Личная учётная запись Microsoft (Outlook.com / M365 Family)</value>
+  </data>
+  <data name="MsaNoAppRegistrationNeeded" xml:space="preserve">
+    <value>Регистрация приложения не требуется.</value>
+  </data>
+  <data name="MsaDefaultClientInfoCreate" xml:space="preserve">
+    <value>Mail-Archiver использует предварительную регистрацию приложения. Введите адрес эл. почты, сохраните, затем нажмите {0}.</value>
+  </data>
+  <data name="MsaAuthorize" xml:space="preserve">
+    <value>Авторизовать</value>
+  </data>
+  <data name="MsaAppRegistrationSetup" xml:space="preserve">
+    <value>Настройте регистрацию приложения Azure (один раз, ~2 минуты)</value>
+  </data>
+  <data name="MsaCreateAppRegistration" xml:space="preserve">
+    <value>Создать регистрацию приложения</value>
+  </data>
+  <data name="MsaSignInWithMicrosoftAccount" xml:space="preserve">
+    <value>(войдите с учётной записью Microsoft)</value>
+  </data>
+  <data name="MsaAppRegStepName" xml:space="preserve">
+    <value>Выберите любое имя (напр. mail-archiver)</value>
+  </data>
+  <data name="MsaAppRegStepAccountTypes" xml:space="preserve">
+    <value>В разделе Поддерживаемые типы учётных записей выберите: Учетные записи в любом каталоге организации и личные учетные записи Microsoft</value>
+  </data>
+  <data name="MsaAppRegStepRedirect" xml:space="preserve">
+    <value>Оставьте URI перенаправления пустым → нажмите Зарегистрировать</value>
+  </data>
+  <data name="MsaAppRegStepClientId" xml:space="preserve">
+    <value>Введите показанный идентификатор приложения (клиента) ниже</value>
+  </data>
+  <data name="MsaAppRegStepAuth" xml:space="preserve">
+    <value>Нажмите Проверка подлинности в приложении → включите Разрешить потоки общедоступных клиентов → Сохранить</value>
+  </data>
+  <data name="MsaNoSecretNeededCreate" xml:space="preserve">
+    <value>Секрет и URI перенаправления не требуются. После сохранения нажмите Авторизовать.</value>
+  </data>
+  <data name="MsaClientIdPlaceholder" xml:space="preserve">
+    <value>Идентификатор приложения (клиента) Azure</value>
+  </data>
+  <data name="MsaClientSecretOptional" xml:space="preserve">
+    <value>(необязательно)</value>
+  </data>
+  <data name="MsaClientSecretPlaceholder" xml:space="preserve">
+    <value>Не требуется для приложений общедоступного клиента</value>
+  </data>
+  <data name="MsaClientSecretHint" xml:space="preserve">
+    <value>Только для конфиденциальных клиентских приложений. Оставьте пустым при использовании общедоступного клиента.</value>
+  </data>
+  <data name="MsaAuthorized" xml:space="preserve">
+    <value>Авторизовано. Учётная запись Microsoft подключена, маркер обновляется автоматически.</value>
+  </data>
+  <data name="MsaReAuthorize" xml:space="preserve">
+    <value>Повторная авторизация</value>
+  </data>
+  <data name="MsaNotYetAuthorized" xml:space="preserve">
+    <value>Ещё не авторизовано.</value>
+  </data>
+  <data name="MsaSaveThenAuthorize" xml:space="preserve">
+    <value>Сохраните, затем нажмите {0}.</value>
+  </data>
+  <data name="MsaEnterClientIdThenAuthorize" xml:space="preserve">
+    <value>Введите ID клиента, сохраните, затем нажмите {0}.</value>
+  </data>
+  <data name="MsaDefaultClientInfoEdit" xml:space="preserve">
+    <value>Mail-Archiver использует предварительную регистрацию приложения — собственная регистрация не требуется. Заполняйте только для использования пользовательского ID клиента.</value>
+  </data>
+  <data name="MsaNoSecretNeededShort" xml:space="preserve">
+    <value>Секрет и URI перенаправления не требуются.</value>
+  </data>
+  <data name="MsaClientIdOptionalHint" xml:space="preserve">
+    <value>Необязательно — оставьте пустым для использования регистрации приложения по умолчанию.</value>
+  </data>
+  <data name="MsaClientIdKeepExisting" xml:space="preserve">
+    <value>Оставьте пустым, чтобы сохранить существующее значение.</value>
+  </data>
+  <data name="MsaClientSecretPlaceholderEdit" xml:space="preserve">
+    <value>Не требуется для Device Code Flow</value>
+  </data>
+  <data name="MsaAuthorizeWithMicrosoft" xml:space="preserve">
+    <value>Авторизовать через Microsoft</value>
+  </data>
+  <data name="MsaReAuthorizeWithMicrosoft" xml:space="preserve">
+    <value>Повторная авторизация через Microsoft</value>
+  </data>
+  <data name="MsaClientIdRequired" xml:space="preserve">
+    <value>Идентификатор клиента требуется для учётных записей MS Личный, если не настроен идентификатор клиента по умолчанию.</value>
+  </data>
+  <data name="MsaNotAuthorizedSync" xml:space="preserve">
+    <value>Эта учётная запись Microsoft ещё не авторизована. Сначала нажмите «Авторизовать через Microsoft» на странице редактирования учётной записи.</value>
+  </data>
+  <data name="MsaClientIdNotConfigured" xml:space="preserve">
+    <value>Идентификатор клиента не настроен. Сначала отредактируйте учётную запись.</value>
+  </data>
+  <data name="MsaAuthorizationFailed" xml:space="preserve">
+    <value>Не удалось запустить авторизацию: {0}</value>
+  </data>
+  <data name="MsaAccessDenied" xml:space="preserve">
+    <value>Доступ запрещён.</value>
+  </data>
+  <data name="MsaSessionExpired" xml:space="preserve">
+    <value>Сессия истекла. Перезапустите авторизацию.</value>
+  </data>
+  <data name="MsaAccountNotFound" xml:space="preserve">
+    <value>Учётная запись не найдена.</value>
+  </data>
+  <data name="MsaAuthorizationCancelled" xml:space="preserve">
+    <value>Создание учётной записи отменено.</value>
+  </data>
   <data name="UseTenantImport" xml:space="preserve">
     <value>Использовать импорт арендатора</value>
   </data>

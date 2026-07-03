@@ -154,6 +154,11 @@ builder.Services.AddScoped<MailArchiver.Utilities.DateTimeHelper>();
 
 // Add HTTP Client factory (used by VersionUpdateService for GitHub API calls)
 builder.Services.AddHttpClient("GitHubReleases");
+builder.Services.AddHttpClient("MsaOAuth");
+
+// Register MSA OAuth options and service for personal Microsoft accounts
+builder.Services.Configure<MsaOAuthOptions>(builder.Configuration.GetSection(MsaOAuthOptions.SectionName));
+builder.Services.AddScoped<MailArchiver.Services.IMsaOAuthService, MailArchiver.Services.MsaOAuthService>();
 
 // Add Session support
 builder.Services.AddDistributedMemoryCache();

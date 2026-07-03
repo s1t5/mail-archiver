@@ -27,10 +27,15 @@ public class MailAccount
     // Provider field for account type
     public ProviderType Provider { get; set; } = ProviderType.IMAP;
     
-    // Microsoft 365 OAuth2 fields
+    // Microsoft 365 OAuth2 fields (M365 and MSA)
     public string? ClientId { get; set; }
     public string? ClientSecret { get; set; }
     public string? TenantId { get; set; }
+
+    // MSA OAuth2 token storage (personal Microsoft accounts)
+    public string? OAuthRefreshToken { get; set; }
+    public string? OAuthAccessToken { get; set; }
+    public DateTime? OAuthTokenExpiry { get; set; }
     
     [NotMapped]
     public List<string> ExcludedFoldersList

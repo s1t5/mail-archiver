@@ -1,0 +1,114 @@
+@model MailArchiver.ViewModels.MsaDeviceCodeViewModel
+@inject Microsoft.Extensions.Localization.IStringLocalizer<MailArchiver.SharedResource> Localizer
+@using Microsoft.AspNetCore.Mvc.Localization
+@using System.Text.Json
+@{
+    ViewData["Title"] = Localizer["MsaAuthorizeTitle"];
+    var copyLabel = Localizer["MsaCopyCode"].Value;
+    var successMsg = Localizer["MsaAuthorizationSuccessful"].Value;
+    var errorPrefix = Localizer["MsaErrorPrefix"].Value;
+    var retryLabel = Localizer["MsaRetry"].Value;
+}
+
+<div class="container" style="max-width:600px;">
+    <h2 class="mb-4">@Localizer["MsaAuthorizeTitle"]</h2>
+    <p class="text-muted">@Localizer["MsaAccountLabel"] <strong>@Model.AccountName</strong></p>
+
+    <div class="card border-primary mb-4">
+        <div class="card-body text-center py-4">
+            <p class="mb-1">@Localizer["MsaStep1OpenBrowser"]</p>
+            <a href="@Model.VerificationUri" target="_blank" class="h5 d-block mb-3">@Model.VerificationUri</a>
+
+            <p class="mb-2">@Localizer["MsaStep2EnterCode"]</p>
+            <div class="d-flex align-items-center justify-content-center gap-3 mb-2">
+                <span id="userCode" class="display-5 font-monospace fw-bold letter-spacing-wide">@Model.UserCode</span>
+                <button type="button" class="btn btn-outline-secondary btn-sm"
+                        onclick="navigator.clipboard.writeText('@Model.UserCode').then(()=>{this.textContent='✓';setTimeout(()=>{this.textContent='@copyLabel'},2000)})"
+                        title="@Localizer["MsaCopyCodeTooltip"]">@Localizer["MsaCopyCode"]</button>
+            </div>
+            <p class="text-muted small">@string.Format(Localizer["MsaCodeValidFor"].Value, Model.ExpiresIn / 60)</p>
+        </div>
+    </div>
+
+    <div id="statusBox" class="alert alert-info d-flex align-items-center gap-3">
+        <div class="spinner-border spinner-border-sm flex-shrink-0" role="status" aria-hidden="true"></div>
+        <span id="statusText">@Localizer["MsaWaitingForAuthorization"]</span>
+    </div>
+
+    <a asp-action="CancelMsaAuthorization" asp-route-id="@Model.AccountId" class="btn btn-outline-secondary">@Localizer["Cancel"]</a>
+</div>
+
+@section Scripts {
+<script>
+(function () {
+    const accountId = @Model.AccountId;
+    // Mutable: the server may return a larger interval on RFC 8628 "slow_down" responses.
+    let currentIntervalMs = @(Model.PollIntervalSeconds * 1000);
+    const statusBox = document.getElementById('statusBox');
+
+    // Localized strings emitted as JSON-safe literals for JS
+    const successMsg = @JsonSerializer.Serialize(successMsg);
+    const errorPrefix = @JsonSerializer.Serialize(errorPrefix);
+    const retryLabel = @JsonSerializer.Serialize(retryLabel);
+    const waitingMsg = @JsonSerializer.Serialize(Localizer["MsaWaitingForAuthorization"].Value);
+
+    // Track auto-restart attempts to avoid infinite reload loops on persistent errors.
+    const restartKey = `msaRestartCount_${accountId}`;
+    const MAX_RESTARTS = 3;
+
+    function showWaiting() {
+        statusBox.className = 'alert alert-info d-flex align-items-center gap-3';
+        statusBox.innerHTML = `<div class="spinner-border spinner-border-sm flex-shrink-0" role="status" aria-hidden="true"></div><span>${waitingMsg}</span>`;
+    }
+
+    function setStatus(type, message) {
+        statusBox.className = `alert alert-${type} d-flex align-items-center gap-3`;
+        statusBox.innerHTML = message;
+    }
+
+    async function poll() {
+        try {
+            const r = await fetch(`/MailAccounts/PollMsaDeviceCode?id=${accountId}`, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+            const data = await r.json();
+
+            if (data.status === 'success') {
+                setStatus('success', `<i class="bi bi-check-circle-fill me-2"></i><strong>${successMsg}</strong>`);
+                setTimeout(() => { window.location = `/MailAccounts/Edit/${accountId}`; }, 1500);
+                return;
+            }
+            if (data.status === 'error') {
+                // On error (session expired, terminal OAuth error, etc.), auto-restart
+                // the device code flow so the waiting message persists. The user stays
+                // on the same page and gets a fresh code. Stop after MAX_RESTARTS to
+                // avoid infinite loops on persistent failures.
+                let count = parseInt(sessionStorage.getItem(restartKey) || '0', 10);
+                if (count < MAX_RESTARTS) {
+                    sessionStorage.setItem(restartKey, String(count + 1));
+                    showWaiting();
+                    setTimeout(() => { window.location.reload(); }, 1500);
+                    return;
+                }
+                // Too many restarts — show a static error with a manual retry button.
+                const safeMsg = document.createElement('span');
+                safeMsg.textContent = data.message;
+                setStatus('danger', `<i class="bi bi-x-circle-fill me-2"></i><strong>${errorPrefix}</strong> ${safeMsg.innerHTML} &nbsp;<a href="/MailAccounts/AuthorizeMsaDevice/${accountId}" class="btn btn-sm btn-outline-danger ms-2">${retryLabel}</a>`);
+                return;
+            }
+            // pending — keep the waiting message visible and continue polling.
+            showWaiting();
+            sessionStorage.removeItem(restartKey); // reset restart counter on successful pending
+            if (typeof data.interval === 'number' && data.interval > 0) {
+                currentIntervalMs = data.interval * 1000;
+            }
+            setTimeout(poll, currentIntervalMs);
+        } catch (e) {
+            // Transient fetch failure (network/DNS/...) — keep polling with the current interval.
+            showWaiting();
+            setTimeout(poll, currentIntervalMs);
+        }
+    }
+
+    setTimeout(poll, currentIntervalMs);
+})();
+</script>
+}

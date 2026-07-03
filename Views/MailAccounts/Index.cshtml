@@ -83,6 +83,9 @@
                                         case ProviderType.M365:
                                             <span class="badge bg-success">Microsoft 365</span>
                                             break;
+                                        case ProviderType.MSA:
+                                            <span class="badge bg-info">@Localizer["MsaProviderLabel"]</span>
+                                            break;
                                         case ProviderType.IMPORT:
                                             <span class="badge bg-secondary">Import Only</span>
                                             break;
@@ -325,6 +328,9 @@
                                 break;
                             case ProviderType.M365:
                                 <span class="badge bg-success">Microsoft 365</span>
+                                break;
+                            case ProviderType.MSA:
+                                <span class="badge bg-info">@Localizer["MsaProviderLabel"]</span>
                                 break;
                             case ProviderType.IMPORT:
                                 <span class="badge bg-secondary">Import Only</span>

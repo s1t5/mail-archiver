@@ -2533,6 +2533,155 @@
   <data name="GotIt" xml:space="preserve">
     <value>Razumem!</value>
   </data>
+
+  <!-- MSA (personal Microsoft account) OAuth2 device code flow -->
+  <data name="MsaAuthorizeTitle" xml:space="preserve">
+    <value>Pooblasti Microsoftov račun</value>
+  </data>
+  <data name="MsaAccountLabel" xml:space="preserve">
+    <value>Račun:</value>
+  </data>
+  <data name="MsaStep1OpenBrowser" xml:space="preserve">
+    <value>1. Odpri v brskalniku (ali telefonu itd.):</value>
+  </data>
+  <data name="MsaStep2EnterCode" xml:space="preserve">
+    <value>2. Vnesi to kodo:</value>
+  </data>
+  <data name="MsaCopyCode" xml:space="preserve">
+    <value>Kopiraj</value>
+  </data>
+  <data name="MsaCopyCodeTooltip" xml:space="preserve">
+    <value>Kopiraj kodo</value>
+  </data>
+  <data name="MsaCodeValidFor" xml:space="preserve">
+    <value>Koda veljavna {0} minut.</value>
+  </data>
+  <data name="MsaWaitingForAuthorization" xml:space="preserve">
+    <value>Čakanje na pooblastitev …</value>
+  </data>
+  <data name="MsaAuthorizationSuccessful" xml:space="preserve">
+    <value>Pooblastitev uspešna! Preusmerjanje …</value>
+  </data>
+  <data name="MsaErrorPrefix" xml:space="preserve">
+    <value>Napaka:</value>
+  </data>
+  <data name="MsaRetry" xml:space="preserve">
+    <value>Poskusi znova</value>
+  </data>
+  <data name="MsaProviderLabel" xml:space="preserve">
+    <value>Microsoft Osebni</value>
+  </data>
+  <data name="MsaSettingsHeading" xml:space="preserve">
+    <value>Osebni Microsoftov račun (Outlook.com / M365 Family)</value>
+  </data>
+  <data name="MsaNoAppRegistrationNeeded" xml:space="preserve">
+    <value>Registracija aplikacije ni potrebna.</value>
+  </data>
+  <data name="MsaDefaultClientInfoCreate" xml:space="preserve">
+    <value>Mail-Archiver uporablja vnaprej konfigurirano registracijo aplikacije. Vnesite e-poštni naslov, shranite in nato kliknite {0}.</value>
+  </data>
+  <data name="MsaAuthorize" xml:space="preserve">
+    <value>Pooblasti</value>
+  </data>
+  <data name="MsaAppRegistrationSetup" xml:space="preserve">
+    <value>Nastavi registracijo aplikacije Azure (enkrat, ~2 minuti)</value>
+  </data>
+  <data name="MsaCreateAppRegistration" xml:space="preserve">
+    <value>Ustvari registracijo aplikacije</value>
+  </data>
+  <data name="MsaSignInWithMicrosoftAccount" xml:space="preserve">
+    <value>(prijavi se z Microsoftovim računom)</value>
+  </data>
+  <data name="MsaAppRegStepName" xml:space="preserve">
+    <value>Izberi poljubno ime (npr. mail-archiver)</value>
+  </data>
+  <data name="MsaAppRegStepAccountTypes" xml:space="preserve">
+    <value>V Podprte vrste računov izberi: Računi v kateremkoli organizacijskem imeniku in osebni Microsoftovi računi</value>
+  </data>
+  <data name="MsaAppRegStepRedirect" xml:space="preserve">
+    <value>Pusti URI preusmeritve prazen → klikni Registriraj</value>
+  </data>
+  <data name="MsaAppRegStepClientId" xml:space="preserve">
+    <value>Spodaj vnesi prikazani ID aplikacije (odjemalca)</value>
+  </data>
+  <data name="MsaAppRegStepAuth" xml:space="preserve">
+    <value>Klikni Preverjanje pristnosti v aplikaciji → omogoči Dovoli javne tokove odjemalcev → Shrani</value>
+  </data>
+  <data name="MsaNoSecretNeededCreate" xml:space="preserve">
+    <value>Ni potreben skrivnost ali URI preusmeritve. Po shranjevanju kliknite Pooblasti.</value>
+  </data>
+  <data name="MsaClientIdPlaceholder" xml:space="preserve">
+    <value>ID aplikacije (odjemalca) Azure</value>
+  </data>
+  <data name="MsaClientSecretOptional" xml:space="preserve">
+    <value>(neobvezno)</value>
+  </data>
+  <data name="MsaClientSecretPlaceholder" xml:space="preserve">
+    <value>Ni potrebno za aplikacije javnega odjemalca</value>
+  </data>
+  <data name="MsaClientSecretHint" xml:space="preserve">
+    <value>Potrebno samo za aplikacije zaupnega odjemalca. Pustite prazno pri uporabi javnega odjemalca.</value>
+  </data>
+  <data name="MsaAuthorized" xml:space="preserve">
+    <value>Pooblaščeno. Microsoftov račun povezan, žeton se samodejno obnavlja.</value>
+  </data>
+  <data name="MsaReAuthorize" xml:space="preserve">
+    <value>Ponovno pooblasti</value>
+  </data>
+  <data name="MsaNotYetAuthorized" xml:space="preserve">
+    <value>Še ni pooblaščeno.</value>
+  </data>
+  <data name="MsaSaveThenAuthorize" xml:space="preserve">
+    <value>Shrani, nato klikni {0}.</value>
+  </data>
+  <data name="MsaEnterClientIdThenAuthorize" xml:space="preserve">
+    <value>Vnesi ID odjemalca, shrani, nato klikni {0}.</value>
+  </data>
+  <data name="MsaDefaultClientInfoEdit" xml:space="preserve">
+    <value>Mail-Archiver uporablja vnaprej konfigurirano registracijo aplikacije — lastna registracija ni potrebna. Izpolnite samo za uporabo ID-ja odjemalca po meri.</value>
+  </data>
+  <data name="MsaNoSecretNeededShort" xml:space="preserve">
+    <value>Ni potreben skrivnost ali URI preusmeritve.</value>
+  </data>
+  <data name="MsaClientIdOptionalHint" xml:space="preserve">
+    <value>Neobvezno — pustite prazno za uporabo privzete registracije aplikacije.</value>
+  </data>
+  <data name="MsaClientIdKeepExisting" xml:space="preserve">
+    <value>Pustite prazno za ohranitev obstoječe vrednosti.</value>
+  </data>
+  <data name="MsaClientSecretPlaceholderEdit" xml:space="preserve">
+    <value>Ni potrebno za tok kode naprave</value>
+  </data>
+  <data name="MsaAuthorizeWithMicrosoft" xml:space="preserve">
+    <value>Pooblasti z Microsoftom</value>
+  </data>
+  <data name="MsaReAuthorizeWithMicrosoft" xml:space="preserve">
+    <value>Ponovno pooblasti z Microsoftom</value>
+  </data>
+  <data name="MsaClientIdRequired" xml:space="preserve">
+    <value>ID odjemalca je obvezen za račune MS Osebni, ko privzeti ID odjemalca ni konfiguriran.</value>
+  </data>
+  <data name="MsaNotAuthorizedSync" xml:space="preserve">
+    <value>Ta Microsoftov račun še ni pooblaščen. Najprej kliknite &quot;Pooblasti z Microsoftom&quot; na strani za urejanje računa.</value>
+  </data>
+  <data name="MsaClientIdNotConfigured" xml:space="preserve">
+    <value>ID odjemalca ni konfiguriran. Najprej uredite račun.</value>
+  </data>
+  <data name="MsaAuthorizationFailed" xml:space="preserve">
+    <value>Začenjanje pooblastitve ni uspelo: {0}</value>
+  </data>
+  <data name="MsaAccessDenied" xml:space="preserve">
+    <value>Dostop zavrnjen.</value>
+  </data>
+  <data name="MsaSessionExpired" xml:space="preserve">
+    <value>Seja je potekla. Znova začnite pooblastitev.</value>
+  </data>
+  <data name="MsaAccountNotFound" xml:space="preserve">
+    <value>Račun ni najden.</value>
+  </data>
+  <data name="MsaAuthorizationCancelled" xml:space="preserve">
+    <value>Ustvarjanje računa preklicano.</value>
+  </data>
   <data name="UseTenantImport" xml:space="preserve">
     <value>Uporabi uvoz najemnika</value>
   </data>

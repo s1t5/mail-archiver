@@ -67,6 +67,15 @@ namespace MailArchiver.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<string>("OAuthAccessToken")
+                        .HasColumnType("text");
+
+                    b.Property<string>("OAuthRefreshToken")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("OAuthTokenExpiry")
+                        .HasColumnType("timestamp without time zone");
+
                     b.Property<string>("Password")
                         .HasColumnType("text");
 

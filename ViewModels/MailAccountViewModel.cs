@@ -54,14 +54,25 @@ namespace MailArchiver.Models.ViewModels
         [Display(Name = "Client ID")]
         [ConditionalRequired(nameof(Provider), ProviderType.M365, ErrorMessage = "Client ID is required for M365 accounts")]
         public string? ClientId { get; set; }
-        
+
         [Display(Name = "Client Secret")]
         public string? ClientSecret { get; set; }
-        
+
         [Display(Name = "Tenant ID")]
         [ConditionalRequired(nameof(Provider), ProviderType.M365, ErrorMessage = "Tenant ID is required for M365 accounts")]
         public string? TenantId { get; set; }
-        
+
+        // MSA (personal Microsoft account) OAuth2 fields — no required validation; blank = keep existing
+        [Display(Name = "Client ID (Azure App)")]
+        public string? MsaClientId { get; set; }
+
+        [Display(Name = "Client Secret (Azure App)")]
+        public string? MsaClientSecret { get; set; }
+
+        // Read-only: indicates whether MSA account is already authorized
+        public bool MsaIsAuthorized { get; set; }
+        public DateTime? MsaTokenExpiry { get; set; }
+
         // For UI display of available folders
         public List<string> AvailableFolders { get; set; } = new List<string>();
 
