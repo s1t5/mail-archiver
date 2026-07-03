@@ -2031,6 +2031,17 @@ var model = new MailAccountViewModel
             if (account.Provider == ProviderType.MSA && string.IsNullOrEmpty(account.OAuthRefreshToken))
             {
                 // Never authorized — delete the account entirely.
+                // Log the deletion in the access log so the initial "Created" entry
+                // is not the last word on this account.
+                var authService = HttpContext.RequestServices.GetService<MailArchiver.Services.IAuthenticationService>();
+                var currentUsername = authService?.GetCurrentUserDisplayName(HttpContext);
+                if (!string.IsNullOrEmpty(currentUsername))
+                {
+                    await _accessLogService.LogAccessAsync(currentUsername, AccessLogType.Account,
+                        searchParameters: $"Deleted unauthorised MSA account after cancellation: {account.Name}",
+                        mailAccountId: account.Id);
+                }
+
                 // Remove the user assignment first (if any), then the account.
                 var userMailAccounts = _context.UserMailAccounts.Where(uma => uma.MailAccountId == id);
                 _context.UserMailAccounts.RemoveRange(userMailAccounts);
