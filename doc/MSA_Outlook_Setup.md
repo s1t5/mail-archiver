@@ -83,9 +83,7 @@ Use this option if you do not want to use the shared default Client ID (e.g., fo
 
 ### 📧 Configure Mail Archiver
 
-You can also use your custom Client ID:
-
-**Override the global default (affects all MSA accounts)**
+Override the global default (affects all MSA accounts)
 
 Set the Client ID in your environment variable:
 
