@@ -22,8 +22,9 @@
             <p class="mb-2">@Localizer["MsaStep2EnterCode"]</p>
             <div class="d-flex align-items-center justify-content-center gap-3 mb-2">
                 <span id="userCode" class="display-5 font-monospace fw-bold letter-spacing-wide">@Model.UserCode</span>
-                <button type="button" class="btn btn-outline-secondary btn-sm"
-                        onclick="navigator.clipboard.writeText('@Model.UserCode').then(()=>{this.textContent='✓';setTimeout(()=>{this.textContent='@copyLabel'},2000)})"
+                <button type="button" id="copyCodeBtn" class="btn btn-outline-secondary btn-sm"
+                        data-code="@Model.UserCode"
+                        data-label="@copyLabel"
                         title="@Localizer["MsaCopyCodeTooltip"]">@Localizer["MsaCopyCode"]</button>
             </div>
             <p class="text-muted small">@string.Format(Localizer["MsaCodeValidFor"].Value, Model.ExpiresIn / 60)</p>
@@ -40,6 +41,43 @@
 
 @section Scripts {
 <script>
+(function () {
+    // Copy button with clipboard API + legacy fallback.
+    // navigator.clipboard requires a secure context (HTTPS or localhost);
+    // when accessed over plain HTTP via an IP the promise rejects silently,
+    // so we fall back to a hidden textarea + execCommand('copy').
+    const copyBtn = document.getElementById('copyCodeBtn');
+    if (copyBtn) {
+        copyBtn.addEventListener('click', async function () {
+            const code = this.dataset.code;
+            const label = this.dataset.label;
+            const original = this.textContent;
+            let ok = false;
+            try {
+                if (navigator.clipboard && window.isSecureContext) {
+                    await navigator.clipboard.writeText(code);
+                    ok = true;
+                }
+            } catch (_) { ok = false; }
+            if (!ok) {
+                try {
+                    const ta = document.createElement('textarea');
+                    ta.value = code;
+                    ta.setAttribute('readonly', '');
+                    ta.style.position = 'fixed';
+                    ta.style.left = '-9999px';
+                    document.body.appendChild(ta);
+                    ta.select();
+                    ok = document.execCommand('copy');
+                    document.body.removeChild(ta);
+                } catch (_) { ok = false; }
+            }
+            this.textContent = ok ? '\u2713' : '\u2717';
+            setTimeout(() => { this.textContent = ok ? label : original; }, 2000);
+        });
+    }
+})();
+
 (function () {
     const accountId = @Model.AccountId;
     // Mutable: the server may return a larger interval on RFC 8628 "slow_down" responses.
