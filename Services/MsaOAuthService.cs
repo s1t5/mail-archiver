@@ -51,7 +51,7 @@ namespace MailArchiver.Services
 
     public class MsaOAuthService : IMsaOAuthService
     {
-        private static readonly string[] Scopes = ["https://outlook.office.com/IMAP.AccessAsUser.All", "offline_access", "openid"];
+        private static readonly string[] Scopes = ["https://outlook.office.com/IMAP.AccessAsUser.All", "offline_access"];
 
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly ILogger<MsaOAuthService> _logger;
@@ -133,8 +133,6 @@ namespace MailArchiver.Services
             };
             var response = await client.PostAsync($"{Authority}/token", new FormUrlEncodedContent(body));
             var json = await response.Content.ReadAsStringAsync();
-            _logger.LogInformation("MSA poll: Microsoft token endpoint responded {StatusCode}: {Body}",
-                response.StatusCode, json);
             using var doc = JsonDocument.Parse(json);
             var root = doc.RootElement;
 

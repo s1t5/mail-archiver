@@ -2233,36 +2233,22 @@ var model = new MailAccountViewModel
         [HttpGet]
         public async Task<IActionResult> PollMsaDeviceCode(int id)
         {
-            _logger.LogInformation("MSA poll request received for account {AccountId}", id);
-
             if (!await HasAccessToAccountAsync(id))
-            {
-                _logger.LogWarning("MSA poll: access denied for account {AccountId}", id);
                 return Json(new { status = "error", message = _localizer["MsaAccessDenied"].Value });
-            }
 
             var deviceCode = HttpContext.Session.GetString($"MsaDeviceCode_{id}");
             if (string.IsNullOrEmpty(deviceCode))
-            {
-                _logger.LogWarning("MSA poll: no device code in session for account {AccountId}", id);
                 return Json(new { status = "error", message = _localizer["MsaSessionExpired"].Value });
-            }
 
             var account = await _context.MailAccounts.FindAsync(id);
             if (account == null)
-            {
-                _logger.LogWarning("MSA poll: account {AccountId} not found in DB", id);
                 return Json(new { status = "error", message = _localizer["MsaAccountNotFound"].Value });
-            }
 
             var currentInterval = HttpContext.Session.GetInt32($"MsaInterval_{id}") ?? 5;
-            _logger.LogInformation("MSA poll for account {AccountId}: clientId={ClientId}, interval={Interval}s",
-                id, account.ClientId ?? "(default)", currentInterval);
 
             try
             {
                 var poll = await _msaOAuthService.PollDeviceCodeAsync(account.ClientId, deviceCode, currentInterval);
-                _logger.LogInformation("MSA poll result for account {AccountId}: status={Status}", id, poll.Status);
 
                 if (poll.Status == MsaPollStatus.Pending)
                 {
