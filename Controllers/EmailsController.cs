@@ -13,6 +13,7 @@ using System.IO.Compression;
 using System.Text.RegularExpressions;
 using System.Web;
 using Microsoft.Extensions.Localization;
+using Ganss.Xss;
 
 namespace MailArchiver.Controllers
 {
@@ -2536,7 +2537,67 @@ namespace MailArchiver.Controllers
             }
 
             // Set proper content type with UTF-8 encoding to ensure correct character display
+            // SECURITY: strict CSP blocks any residual script execution even if the sanitizer
+            // is ever bypassed. Inline styles are allowed for email rendering fidelity.
+            Response.Headers["Content-Security-Policy"] = "default-src 'none'; img-src 'self' data: cid:; style-src 'unsafe-inline'; font-src 'self' data:;";
+            Response.Headers["X-Content-Type-Options"] = "nosniff";
             return Content(html, "text/html; charset=utf-8");
+        }
+
+        // Allowlist-based HTML sanitizer (replaces the previous regex approach which was
+        // trivially bypassable and led to stored XSS via archived email HTML bodies).
+        private static readonly HtmlSanitizer _htmlSanitizer = BuildSanitizer();
+
+        private static HtmlSanitizer BuildSanitizer()
+        {
+            var sanitizer = new HtmlSanitizer();
+
+            // Allow safe inline styling (kept for email rendering fidelity)
+            sanitizer.AllowedAttributes.Add("style");
+            sanitizer.AllowedAttributes.Add("align");
+            sanitizer.AllowedAttributes.Add("valign");
+            sanitizer.AllowedAttributes.Add("width");
+            sanitizer.AllowedAttributes.Add("height");
+            sanitizer.AllowedAttributes.Add("color");
+            sanitizer.AllowedAttributes.Add("face");
+            sanitizer.AllowedAttributes.Add("size");
+            sanitizer.AllowedAttributes.Add("target");
+            sanitizer.AllowedAttributes.Add("cellpadding");
+            sanitizer.AllowedAttributes.Add("cellspacing");
+            sanitizer.AllowedAttributes.Add("border");
+            sanitizer.AllowedAttributes.Add("colspan");
+            sanitizer.AllowedAttributes.Add("rowspan");
+            sanitizer.AllowedAttributes.Add("bgcolor");
+            sanitizer.AllowedAttributes.Add("background");
+            sanitizer.AllowedAttributes.Add("alt");
+            sanitizer.AllowedAttributes.Add("title");
+
+            // Allow cid: inline-image references and data:image/... URIs
+            sanitizer.AllowedSchemes.Add("cid");
+            // data: is allowed by default only for images; keep default behavior
+
+            // Allow <style> tags in addition to style attributes (email styling)
+            sanitizer.AllowedTags.Add("style");
+            sanitizer.AllowedTags.Add("font");
+            sanitizer.AllowedTags.Add("center");
+            sanitizer.AllowedTags.Add("hr");
+            sanitizer.AllowedTags.Add("u");
+
+            // Keep <base target="_blank"> capability: allow the base tag
+            sanitizer.AllowedTags.Add("base");
+            sanitizer.AllowedAttributes.Add("href"); // already allowed but explicit
+
+            // Never allow scripts, event handlers, javascript:/vbscript: URIs.
+            // HtmlSanitizer removes <script>, on* attributes, and dangerous URI schemes by default.
+
+            // Remove <form> to prevent javascript: action / cross-site POSTs from email body
+            sanitizer.AllowedTags.Remove("form");
+            sanitizer.AllowedTags.Remove("iframe");
+            sanitizer.AllowedTags.Remove("object");
+            sanitizer.AllowedTags.Remove("embed");
+            sanitizer.AllowedTags.Remove("base"); // we add our own <base> after sanitizing
+
+            return sanitizer;
         }
 
         // Hilfsmethode zur Bereinigung von HTML für die sichere Darstellung
@@ -2545,51 +2606,44 @@ namespace MailArchiver.Controllers
             if (string.IsNullOrEmpty(html))
                 return string.Empty;
 
-            // Entfernen von potenziellen JavaScript-Elementen
-            html = Regex.Replace(html, @"<script.*?</script>", "", RegexOptions.Singleline | RegexOptions.IgnoreCase);
-
-            // Entfernen von event handlers - behalte aber style-Attribute
-            html = Regex.Replace(html, @"(on\w+)=([""']).*?\2", "", RegexOptions.IgnoreCase);
-
-            // Entfernen von javascript: URLs
-            html = Regex.Replace(html, @"href=([""'])javascript:.*?\1", "href=\"#\"", RegexOptions.IgnoreCase);
+            // Allowlist-based sanitization (removes scripts, on* handlers, javascript: URIs,
+            // <iframe>, <object>, <embed>, <form>, etc.) — robust against bypass vectors that
+            // defeated the previous regex approach.
+            html = _htmlSanitizer.Sanitize(html);
 
             // Block external resources if configured
             if (blockExternalResources)
             {
                 // Block external images (except data: URIs and cid: references for inline images)
-                html = Regex.Replace(html, 
-                    @"<img\s+([^>]*\s+)?src\s*=\s*([""'])(?!data:|cid:)https?://[^""']+\2", 
-                    "<img $1src=$2$2", 
+                html = Regex.Replace(html,
+                    @"<img\s+([^>]*\s+)?src\s*=\s*([""'])(?!data:|cid:)https?://[^""']+\2",
+                    "<img $1src=$2$2",
                     RegexOptions.IgnoreCase);
-                
+
                 // Block external stylesheets
-                html = Regex.Replace(html, 
-                    @"<link\s+([^>]*\s+)?href\s*=\s*([""'])https?://[^""']+\2[^>]*>", 
-                    "", 
+                html = Regex.Replace(html,
+                    @"<link\s+([^>]*\s+)?href\s*=\s*([""'])https?://[^""']+\2[^>]*>",
+                    "",
                     RegexOptions.IgnoreCase);
-                
+
                 // Block external CSS imports in style tags
-                html = Regex.Replace(html, 
-                    @"@import\s+url\s*\(\s*[""']?https?://[^)]+\)?", 
-                    "", 
+                html = Regex.Replace(html,
+                    @"@import\s+url\s*\(\s*[""']?https?://[^)]+\)?",
+                    "",
                     RegexOptions.IgnoreCase);
-                
+
                 // Block external fonts
-                html = Regex.Replace(html, 
-                    @"@font-face\s*\{[^}]*url\s*\(\s*[""']?https?://[^)]+\)[^}]*\}", 
-                    "", 
+                html = Regex.Replace(html,
+                    @"@font-face\s*\{[^}]*url\s*\(\s*[""']?https?://[^)]+\)[^}]*\}",
+                    "",
                     RegexOptions.IgnoreCase);
-                
+
                 // Block external background images in inline styles (but keep data: URIs)
-                html = Regex.Replace(html, 
-                    @"(style\s*=\s*[""'][^""']*)(background(?:-image)?\s*:\s*url\s*\(\s*[""']?)(?!data:)https?://[^)]+\)", 
-                    "$1none)", 
+                html = Regex.Replace(html,
+                    @"(style\s*=\s*[""'][^""']*)(background(?:-image)?\s*:\s*url\s*\(\s*[""']?)(?!data:)https?://[^)]+\)",
+                    "$1none)",
                     RegexOptions.IgnoreCase);
             }
-
-            // WICHTIG: Style-Tags und inline-style Attribute NICHT entfernen
-            // Dadurch bleibt das originale Styling der E-Mail erhalten
 
             // Einfügen einer Base-URL für Bilder, die relativen Pfade verwenden
             if (!html.Contains("<base "))
@@ -2660,6 +2714,7 @@ namespace MailArchiver.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [SelfManagerRequired]
+        [EmailAccessRequired]
         public async Task<IActionResult> Delete(int id, string returnUrl = null)
         {
             _logger.LogInformation("Admin user requesting to delete email ID: {EmailId}", id);
@@ -2725,6 +2780,49 @@ namespace MailArchiver.Controllers
             }
             
             _logger.LogInformation("Admin user requesting to delete {Count} emails", ids.Count);
+
+            // SECURITY: filter the requested ids to those the current user is authorized to
+            // access (account membership). Admins retain full access. Prevents IDOR where a
+            // SelfManager could delete emails from accounts they are not assigned to.
+            if (!(_authService?.IsCurrentUserAdmin(HttpContext) ?? false))
+            {
+                var userService = HttpContext.RequestServices.GetService<IUserService>();
+                var username = _authService?.GetCurrentUserDisplayName(HttpContext);
+                if (userService != null && !string.IsNullOrEmpty(username))
+                {
+                    var user = await userService.GetUserByUsernameAsync(username);
+                    if (user != null)
+                    {
+                        var userAccounts = await userService.GetUserMailAccountsAsync(user.Id);
+                        var allowedAccountIds = userAccounts.Select(a => a.Id).ToList();
+                        if (allowedAccountIds.Any())
+                        {
+                            ids = await _context.ArchivedEmails
+                                .Where(e => ids.Contains(e.Id) && allowedAccountIds.Contains(e.MailAccountId))
+                                .Select(e => e.Id)
+                                .ToListAsync();
+                        }
+                        else
+                        {
+                            ids = new List<int>();
+                        }
+                    }
+                    else
+                    {
+                        ids = new List<int>();
+                    }
+                }
+                else
+                {
+                    ids = new List<int>();
+                }
+
+                if (!ids.Any())
+                {
+                    TempData["ErrorMessage"] = "You do not have access to any of the selected emails.";
+                    return Redirect(returnUrl ?? Url.Action("Index"));
+                }
+            }
             
             // Check if we should use async deletion for large selections (threshold: 100 emails)
             const int asyncThreshold = 100;

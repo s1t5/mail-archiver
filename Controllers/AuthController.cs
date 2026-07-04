@@ -121,12 +121,16 @@ namespace MailArchiver.Controllers
                     // Check if 2FA is enabled for the user
                     var user = await _userService.GetUserByUsernameAsync(model.Username);
                     if (user != null && user.IsTwoFactorEnabled)
-       {
-                        // Store username in session for 2FA verification
-                        HttpContext.Session.SetString("TwoFactorUsername", model.Username);
-                        HttpContext.Session.SetString("TwoFactorRememberMe", model.RememberMe.ToString());
-                        return RedirectToAction("Verify", "TwoFactor");
-                    }
+        {
+                        // SECURITY: regenerate the session before storing the 2FA identity to
+                        // prevent session fixation (an attacker who planted a session cookie
+                        // pre-login must not inherit the post-2FA authenticated session).
+                        HttpContext.Session.Clear();
+                         // Store username in session for 2FA verification
+                         HttpContext.Session.SetString("TwoFactorUsername", model.Username);
+                         HttpContext.Session.SetString("TwoFactorRememberMe", model.RememberMe.ToString());
+                         return RedirectToAction("Verify", "TwoFactor");
+                     }
 
                     await _authenticationHandler.HandleUserAuthenticated(
                         CookieAuthenticationDefaults.AuthenticationScheme

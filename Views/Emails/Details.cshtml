@@ -232,7 +232,7 @@
                 {
                     <div id="html-view-container" class="email-content-container" style="min-height: 800px; display: @(Model.DefaultToPlainText && Model.HasPlainTextBody ? "none" : "block");">
                         <iframe id="email-content-frame" src="@Url.Action("RawContent", new { id = Model.Email.Id })"
-                            class="w-100 border rounded email-iframe" sandbox="allow-popups allow-downloads allow-forms allow-modals allow-orientation-lock allow-pointer-lock allow-presentation allow-scripts allow-top-navigation-by-user-activation" style="min-height: 800px; height: 800px; max-height: 1200px;"></iframe>
+                            class="w-100 border rounded email-iframe" sandbox="allow-popups allow-downloads allow-scripts" style="min-height: 800px; height: 800px; max-height: 1200px;"></iframe>
                     </div>
                 }
 
