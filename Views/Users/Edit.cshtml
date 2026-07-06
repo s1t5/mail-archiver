@@ -214,6 +214,9 @@
             // Save button loading state
             const saveBtn = document.getElementById('saveBtn');
             editForm.addEventListener('submit', function() {
+                if (typeof $ !== 'undefined' && !$(this).valid()) {
+                    return;
+                }
                 isSubmitting = true;
                 saveBtn.disabled = true;
                 saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status"></span> ' + i18n.saving;

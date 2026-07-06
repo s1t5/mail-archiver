@@ -507,6 +507,11 @@
             editForm.addEventListener('submit', function(e) {
                 const providerValue = providerSelect.value;
 
+                // Don't disable button if client-side validation fails
+                if (typeof $ !== 'undefined' && !$(editForm).valid()) {
+                    return;
+                }
+
                 if (providerValue === '@ProviderType.M365' && applyToAllCheckbox && applyToAllCheckbox.checked && affectedAccounts.length > 0) {
                     e.preventDefault();
                     e.stopPropagation();

@@ -165,6 +165,9 @@
             const createForm = document.getElementById('createUserForm');
             const saveBtn = document.getElementById('saveBtn');
             createForm.addEventListener('submit', function() {
+                if (typeof $ !== 'undefined' && !$(this).valid()) {
+                    return;
+                }
                 saveBtn.disabled = true;
                 saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status"></span> ' + i18n.saving;
             });

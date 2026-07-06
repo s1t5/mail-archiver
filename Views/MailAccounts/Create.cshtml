@@ -683,6 +683,9 @@
 
             // Save button loading state
             createForm.addEventListener('submit', function() {
+                if (typeof $ !== 'undefined' && !$(this).valid()) {
+                    return;
+                }
                 if (saveBtn) {
                     saveBtn.disabled = true;
                     saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status"></span> ' + i18n.saving;
