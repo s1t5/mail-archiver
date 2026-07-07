@@ -3034,4 +3034,10 @@
   <data name="CsvImportAdminOnly" xml:space="preserve">
     <value>L'import CSV en masse est réservé aux administrateurs.</value>
   </data>
+  <data name="ImportEmailsHeader" xml:space="preserve">
+    <value>Importer des e-mails</value>
+  </data>
+  <data name="ImportAccountsHeader" xml:space="preserve">
+    <value>Importer des comptes</value>
+  </data>
 </root>

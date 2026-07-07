@@ -6,12 +6,12 @@
 
 <div class="container">
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h1>@Localizer["SelectedEmailsExportStatusTitle"]</h1>
-        <div>
-            <a asp-action="Index" class="btn btn-outline-secondary">
+        <h1 class="h3 mb-0">@Localizer["SelectedEmailsExportStatusTitle"]</h1>
+        <div class="d-flex gap-2">
+            <a asp-action="Index" class="btn btn-outline-secondary btn-sm">
                 <i class="bi bi-arrow-left"></i> @Localizer["BackToArchive"]
             </a>
-            <a asp-action="Jobs" class="btn btn-outline-info">
+            <a asp-action="Jobs" class="btn btn-outline-info btn-sm">
                 <i class="bi bi-list"></i> @Localizer["AllJobs"]
             </a>
         </div>
@@ -19,7 +19,7 @@
 
     <div class="card">
         <div class="card-header bg-light">
-            <h5 class="mb-0">@Localizer["JobInformation"]</h5>
+            <span class="h6 mb-0"><i class="bi bi-info-circle me-1"></i>@Localizer["JobInformation"]</span>
         </div>
         <div class="card-body">
             <dl class="row">

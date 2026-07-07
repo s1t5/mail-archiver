@@ -23,11 +23,13 @@
                     <span class="d-none d-sm-inline">@Localizer["Import"]</span>
                 </button>
                 <ul class="dropdown-menu" aria-labelledby="importDropdown">
+                    <li><h6 class="dropdown-header">@Localizer["ImportEmailsHeader"]</h6></li>
                     <li><a class="dropdown-item" asp-action="ImportMBox"><i class="bi bi-file-earmark-text me-2"></i>@Localizer["ImportMBox"]</a></li>
                     <li><a class="dropdown-item" asp-action="ImportEml"><i class="bi bi-file-earmark-zip me-2"></i>@Localizer["ImportEml"]</a></li>
                     @if (isAdmin)
                     {
                         <li><hr class="dropdown-divider"></li>
+                        <li><h6 class="dropdown-header">@Localizer["ImportAccountsHeader"]</h6></li>
                         <li><a class="dropdown-item" asp-action="ImportCsv"><i class="bi bi-file-earmark-spreadsheet me-2"></i>@Localizer["ImportCsvBulk"]</a></li>
                     }
                 </ul>

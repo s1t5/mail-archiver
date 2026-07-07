@@ -5,91 +5,105 @@
 }
 
 <div class="container">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1>@Localizer["CsvImportTitle"]</h1>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="h3 mb-0">@Localizer["CsvImportTitle"]</h1>
         <a asp-action="Index" class="btn btn-outline-secondary">
             <i class="bi bi-arrow-left"></i> @Localizer["BackToAccounts"]
         </a>
     </div>
 
-    <div class="alert alert-info mb-4">
-        <i class="bi bi-info-circle-fill me-2"></i>
-        <strong>@Localizer["CsvImportInformation"]</strong>
-        <ul class="mb-0 mt-2">
-            <li>@Localizer["CsvImportFormatHelp"]</li>
-            <li>@Localizer["CsvImportCommonServerHelp"]</li>
-            <li>@Localizer["CsvImportNoConnectionTest"]</li>
-            <li>@Localizer["CsvImportAdminOnlyNote"]</li>
-        </ul>
-        <div class="mt-2">
-            <a asp-action="DownloadExampleCsv" class="btn btn-sm btn-outline-info">
-                <i class="bi bi-download"></i> @Localizer["DownloadExampleCsv"]
-            </a>
+    <div class="msa-info-banner mb-3">
+        <div class="d-flex align-items-start">
+            <i class="bi bi-info-circle-fill me-2 mt-1"></i>
+            <div>
+                <strong>@Localizer["CsvImportInformation"]</strong>
+                <ul class="mb-2 mt-1">
+                    <li>@Localizer["CsvImportFormatHelp"]</li>
+                    <li>@Localizer["CsvImportCommonServerHelp"]</li>
+                    <li>@Localizer["CsvImportNoConnectionTest"]</li>
+                    <li>@Localizer["CsvImportAdminOnlyNote"]</li>
+                </ul>
+                <a asp-action="DownloadExampleCsv" class="btn btn-sm btn-outline-info">
+                    <i class="bi bi-download me-1"></i> @Localizer["DownloadExampleCsv"]
+                </a>
+            </div>
         </div>
     </div>
 
     <div class="card">
         <div class="card-header bg-light">
-            <h5 class="mb-0">@Localizer["CsvImportSettingsTitle"]</h5>
+            <span class="h6 mb-0"><i class="bi bi-file-earmark-spreadsheet me-1"></i>@Localizer["CsvImportSettingsTitle"]</span>
         </div>
         <div class="card-body">
             <form asp-action="ImportCsv" method="post" enctype="multipart/form-data" id="csvImportForm">
                 @Html.AntiForgeryToken()
                 <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
 
-                <div class="mb-4">
-                    <label asp-for="CsvFile" class="form-label">@Localizer["CsvFile"]</label>
-                    <input asp-for="CsvFile" type="file" class="form-control" accept=".csv,text/csv" id="csvFileInput">
-                    <div class="form-text">@Localizer["CsvFileHelp"]</div>
-                    <span asp-validation-for="CsvFile" class="text-danger"></span>
+                <div class="form-section">
+                    <div class="form-section-header">
+                        <i class="bi bi-file-earmark-arrow-up me-1"></i> @Localizer["CsvFile"]
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="CsvFile" class="form-label">@Localizer["CsvFile"]</label>
+                        <input asp-for="CsvFile" type="file" class="form-control" accept=".csv,text/csv" id="csvFileInput">
+                        <div class="form-text">@Localizer["CsvFileHelp"]</div>
+                        <span asp-validation-for="CsvFile" class="text-danger"></span>
+                    </div>
                 </div>
 
-                <h6 class="mt-4 mb-3"><i class="bi bi-server me-1"></i> @Localizer["CommonServerSettings"]</h6>
-                <div class="alert alert-light border">
-                    <small class="text-muted">@Localizer["CommonServerSettingsHelp"]</small>
-                </div>
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label asp-for="ImapServer" class="form-label">@Localizer["ImapServerLabel"]</label>
-                        <input asp-for="ImapServer" class="form-control" placeholder="mail.example.com" />
-                        <span asp-validation-for="ImapServer" class="text-danger"></span>
+                <div class="form-section">
+                    <div class="form-section-header">
+                        <i class="bi bi-server me-1"></i> @Localizer["CommonServerSettings"]
                     </div>
-                    <div class="col-md-3 mb-3">
-                        <label asp-for="ImapPort" class="form-label">@Localizer["ImapPortLabel"]</label>
-                        <input asp-for="ImapPort" class="form-control" type="number" min="1" max="65535" />
-                        <span asp-validation-for="ImapPort" class="text-danger"></span>
+
+                    <div class="alert alert-light border mb-3">
+                        <small class="text-muted">@Localizer["CommonServerSettingsHelp"]</small>
                     </div>
-                    <div class="col-md-3 mb-3 d-flex align-items-center">
-                        <div class="form-check form-switch mt-3">
-                            <input asp-for="UseSSL" class="form-check-input" type="checkbox" role="switch">
-                            <label asp-for="UseSSL" class="form-check-label">@Localizer["UseSslLabel"]</label>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="ImapServer" class="form-label">@Localizer["ImapServerLabel"]</label>
+                            <input asp-for="ImapServer" class="form-control" placeholder="mail.example.com" />
+                            <span asp-validation-for="ImapServer" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label asp-for="ImapPort" class="form-label">@Localizer["ImapPortLabel"]</label>
+                            <input asp-for="ImapPort" class="form-control" type="number" min="1" max="65535" />
+                            <span asp-validation-for="ImapPort" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-3 mb-3 d-flex align-items-center">
+                            <div class="form-check form-switch">
+                                <input asp-for="UseSSL" class="form-check-input" type="checkbox" role="switch">
+                                <label asp-for="UseSSL" class="form-check-label">@Localizer["UseSslLabel"]</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="NamePrefix" class="form-label">@Localizer["NamePrefix"]</label>
+                            <input asp-for="NamePrefix" class="form-control" placeholder="IMAP" />
+                            <div class="form-text">@Localizer["NamePrefixHelp"]</div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="form-check form-switch">
+                                <input asp-for="SkipExisting" class="form-check-input" type="checkbox" role="switch">
+                                <label asp-for="SkipExisting" class="form-check-label">@Localizer["SkipExisting"]</label>
+                                <div class="form-text">@Localizer["SkipExistingHelp"]</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="form-check form-switch">
+                            <input asp-for="IsEnabled" class="form-check-input" type="checkbox" role="switch">
+                            <label asp-for="IsEnabled" class="form-check-label">@Localizer["AccountEnabledLabel"]</label>
                         </div>
                     </div>
                 </div>
 
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label asp-for="NamePrefix" class="form-label">@Localizer["NamePrefix"]</label>
-                        <input asp-for="NamePrefix" class="form-control" placeholder="IMAP" />
-                        <div class="form-text">@Localizer["NamePrefixHelp"]</div>
-                    </div>
-                    <div class="col-md-6 mb-3 d-flex align-items-center">
-                        <div class="form-check form-switch mt-3">
-                            <input asp-for="SkipExisting" class="form-check-input" type="checkbox" role="switch">
-                            <label asp-for="SkipExisting" class="form-check-label">@Localizer["SkipExisting"]</label>
-                            <div class="form-text">@Localizer["SkipExistingHelp"]</div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="mb-3">
-                    <div class="form-check form-switch">
-                        <input asp-for="IsEnabled" class="form-check-input" type="checkbox" role="switch">
-                        <label asp-for="IsEnabled" class="form-check-label">@Localizer["AccountEnabledLabel"]</label>
-                    </div>
-                </div>
-
-                <details class="mb-3">
+                <details class="form-advanced mb-3">
                     <summary class="form-advanced-summary">
                         <i class="bi bi-trash3 me-1"></i> @Localizer["EmailDeletion"]
                     </summary>
@@ -122,4 +136,24 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script>
+        const i18n = {
+            saving: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["Saving"].Value)),
+            submit: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["CsvImportSubmit"].Value))
+        };
+        document.addEventListener('DOMContentLoaded', function() {
+            const csvForm = document.getElementById('csvImportForm');
+            const saveBtn = document.getElementById('saveBtn');
+
+            csvForm.addEventListener('submit', function() {
+                if (typeof $ !== 'undefined' && !$(this).valid()) {
+                    return;
+                }
+                if (saveBtn) {
+                    saveBtn.disabled = true;
+                    saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status"></span> ' + i18n.saving;
+                }
+            });
+        });
+    </script>
 }

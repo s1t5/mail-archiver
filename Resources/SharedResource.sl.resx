@@ -3034,4 +3034,10 @@
   <data name="CsvImportAdminOnly" xml:space="preserve">
     <value>CSV uvoz v velikem obsegu je na voljo samo skrbnikom.</value>
   </data>
+  <data name="ImportEmailsHeader" xml:space="preserve">
+    <value>Uvozi e-pošto</value>
+  </data>
+  <data name="ImportAccountsHeader" xml:space="preserve">
+    <value>Uvozi račune</value>
+  </data>
 </root>

@@ -3026,4 +3026,10 @@
   <data name="CsvImportAdminOnly" xml:space="preserve">
     <value>A CSV tömeges importálás csak rendszergazdáknak érhető el.</value>
   </data>
+  <data name="ImportEmailsHeader" xml:space="preserve">
+    <value>E-mailek importálása</value>
+  </data>
+  <data name="ImportAccountsHeader" xml:space="preserve">
+    <value>Fiókok importálása</value>
+  </data>
 </root>

@@ -3021,4 +3021,10 @@
   <data name="CsvImportAdminOnly" xml:space="preserve">
     <value>CSV bulk import is available to administrators only.</value>
   </data>
+  <data name="ImportEmailsHeader" xml:space="preserve">
+    <value>Import emails</value>
+  </data>
+  <data name="ImportAccountsHeader" xml:space="preserve">
+    <value>Import accounts</value>
+  </data>
 </root>

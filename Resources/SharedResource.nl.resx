@@ -3034,4 +3034,10 @@
   <data name="CsvImportAdminOnly" xml:space="preserve">
     <value>CSV bulk import is alleen beschikbaar voor beheerders.</value>
   </data>
+  <data name="ImportEmailsHeader" xml:space="preserve">
+    <value>E-mails importeren</value>
+  </data>
+  <data name="ImportAccountsHeader" xml:space="preserve">
+    <value>Accounts importeren</value>
+  </data>
 </root>
