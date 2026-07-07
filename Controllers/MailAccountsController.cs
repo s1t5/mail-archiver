@@ -771,7 +771,11 @@ namespace MailArchiver.Controllers
                     account.ImapPort = model.Provider == ProviderType.IMAP ? model.ImapPort
                                        : model.Provider == ProviderType.MSA ? 993
                                        : null;
-                    account.Username = model.Provider == ProviderType.IMAP ? model.Username : null;
+                    // For MSA the Username holds the authorized identity captured from the
+                    // OAuth id_token — it must survive edits and is never user-editable.
+                    account.Username = model.Provider == ProviderType.IMAP ? model.Username
+                                       : model.Provider == ProviderType.MSA ? account.Username
+                                       : null;
                     account.IsEnabled = model.IsEnabled;
                     account.Provider = model.Provider;
 
@@ -2284,6 +2288,21 @@ namespace MailArchiver.Controllers
                 account.OAuthAccessToken = poll.Token!.AccessToken;
                 account.OAuthRefreshToken = poll.Token.RefreshToken;
                 account.OAuthTokenExpiry = poll.Token.Expiry;
+
+                // Store the primary login name of the account that was actually authorized.
+                // Outlook rejects XOAUTH2 when the SASL username is a secondary alias or does
+                // not match the authorized account, so the id_token identity takes precedence
+                // over the user-entered email address.
+                if (!string.IsNullOrEmpty(poll.Token.AuthorizedUsername))
+                {
+                    if (!string.Equals(poll.Token.AuthorizedUsername, account.EmailAddress, StringComparison.OrdinalIgnoreCase))
+                    {
+                        _logger.LogWarning(
+                            "MSA account {AccountName}: authorized identity '{AuthorizedUsername}' differs from entered email address '{EmailAddress}'. Using authorized identity for IMAP authentication.",
+                            account.Name, poll.Token.AuthorizedUsername, account.EmailAddress);
+                    }
+                    account.Username = poll.Token.AuthorizedUsername;
+                }
                 await _context.SaveChangesAsync();
 
                 var authService = HttpContext.RequestServices.GetService<MailArchiver.Services.IAuthenticationService>();

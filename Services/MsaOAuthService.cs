@@ -29,6 +29,13 @@ namespace MailArchiver.Services
         public string AccessToken { get; set; } = string.Empty;
         public string RefreshToken { get; set; } = string.Empty;
         public DateTime Expiry { get; set; }
+        /// <summary>
+        /// The primary login name (preferred_username/email claim) of the account that was
+        /// actually authorized, extracted from the id_token. Null when no id_token was returned.
+        /// This is the username Outlook expects in the XOAUTH2 SASL blob — it may differ from
+        /// the email address the user entered (e.g. secondary aliases).
+        /// </summary>
+        public string? AuthorizedUsername { get; set; }
     }
 
     public enum MsaPollStatus { Pending, SlowDown, Success }
@@ -51,7 +58,10 @@ namespace MailArchiver.Services
 
     public class MsaOAuthService : IMsaOAuthService
     {
-        private static readonly string[] Scopes = ["https://outlook.office.com/IMAP.AccessAsUser.All", "offline_access"];
+        // openid/profile/email are requested so the token response contains an id_token from
+        // which the actually-authorized account's primary login name can be extracted. Outlook
+        // rejects XOAUTH2 when the SASL username is a secondary alias of the mailbox.
+        private static readonly string[] Scopes = ["https://outlook.office.com/IMAP.AccessAsUser.All", "offline_access", "openid", "profile", "email"];
 
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly ILogger<MsaOAuthService> _logger;
@@ -167,6 +177,7 @@ namespace MailArchiver.Services
                     AccessToken = accessToken,
                     RefreshToken = refreshToken,
                     Expiry = DateTime.UtcNow.AddSeconds(expiresIn - 60),
+                    AuthorizedUsername = ExtractAuthorizedUsername(root),
                 },
             };
         }
@@ -208,7 +219,61 @@ namespace MailArchiver.Services
                 AccessToken = accessToken,
                 RefreshToken = refreshToken,
                 Expiry = DateTime.UtcNow.AddSeconds(expiresIn - 60),
+                AuthorizedUsername = ExtractAuthorizedUsername(root),
             };
+        }
+
+        // Extracts the authorized account's primary login name from the id_token in a token
+        // response. Best-effort: returns null when no id_token is present or parsing fails.
+        // The id_token payload is decoded without signature validation — it was received
+        // directly from Microsoft's token endpoint over TLS and is only used as a hint for
+        // the IMAP XOAUTH2 username, not for authentication/authorization decisions.
+        private string? ExtractAuthorizedUsername(JsonElement tokenResponse)
+        {
+            try
+            {
+                if (!tokenResponse.TryGetProperty("id_token", out var idTokenElement))
+                    return null;
+
+                var idToken = idTokenElement.GetString();
+                if (string.IsNullOrEmpty(idToken))
+                    return null;
+
+                var parts = idToken.Split('.');
+                if (parts.Length < 2)
+                    return null;
+
+                // Base64Url decode the JWT payload
+                var payload = parts[1].Replace('-', '+').Replace('_', '/');
+                switch (payload.Length % 4)
+                {
+                    case 2: payload += "=="; break;
+                    case 3: payload += "="; break;
+                }
+                var payloadJson = System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(payload));
+
+                using var payloadDoc = JsonDocument.Parse(payloadJson);
+                var claims = payloadDoc.RootElement;
+
+                if (claims.TryGetProperty("preferred_username", out var pu))
+                {
+                    var value = pu.GetString();
+                    if (!string.IsNullOrWhiteSpace(value) && value.Contains('@'))
+                        return value;
+                }
+                if (claims.TryGetProperty("email", out var em))
+                {
+                    var value = em.GetString();
+                    if (!string.IsNullOrWhiteSpace(value) && value.Contains('@'))
+                        return value;
+                }
+                return null;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogDebug(ex, "Failed to extract authorized username from MSA id_token");
+                return null;
+            }
         }
 
     }

@@ -149,31 +149,64 @@ namespace MailArchiver.Services.Providers.Imap
 
             if (needsRefresh)
             {
-                _logger.LogInformation("Refreshing MSA access token for account {AccountName}", account.Name);
-                var refreshed = await _msaOAuthService.RefreshAccessTokenAsync(
-                    account.OAuthRefreshToken, account.ClientId, account.ClientSecret);
-
-                // Update in-memory fields so this sync run uses the new token
-                account.OAuthAccessToken = refreshed.AccessToken;
-                account.OAuthTokenExpiry = refreshed.Expiry;
-                if (!string.IsNullOrEmpty(refreshed.RefreshToken))
-                    account.OAuthRefreshToken = refreshed.RefreshToken;
-
-                // Persist via a freshly-loaded tracked entity (account may be AsNoTracking)
-                var tracked = await _dbContext.MailAccounts.FindAsync(account.Id);
-                if (tracked != null)
-                {
-                    tracked.OAuthAccessToken = refreshed.AccessToken;
-                    tracked.OAuthTokenExpiry = refreshed.Expiry;
-                    if (!string.IsNullOrEmpty(refreshed.RefreshToken))
-                        tracked.OAuthRefreshToken = refreshed.RefreshToken;
-                    await _dbContext.SaveChangesAsync();
-                }
+                await RefreshMsaTokenAsync(account);
             }
 
             var emailAddress = account.Username ?? account.EmailAddress;
-            _logger.LogDebug("Authenticating MSA account {AccountName} via XOAUTH2", account.Name);
-            await client.AuthenticateAsync(new SaslMechanismOAuth2(emailAddress, account.OAuthAccessToken!));
+            _logger.LogDebug("Authenticating MSA account {AccountName} via XOAUTH2 as {Username}", account.Name, emailAddress);
+            try
+            {
+                await client.AuthenticateAsync(new SaslMechanismOAuth2(emailAddress, account.OAuthAccessToken!));
+            }
+            catch (AuthenticationException ex) when (!needsRefresh)
+            {
+                // The stored access token looked valid (expiry in the future) but the server
+                // rejected it — it may have been revoked (password change, session invalidation).
+                // Force a refresh and retry once before giving up.
+                _logger.LogWarning("XOAUTH2 authentication failed for MSA account {AccountName} with a non-expired token ({Message}). Forcing token refresh and retrying once.",
+                    account.Name, ex.Message);
+                await RefreshMsaTokenAsync(account);
+
+                emailAddress = account.Username ?? account.EmailAddress;
+                await client.AuthenticateAsync(new SaslMechanismOAuth2(emailAddress, account.OAuthAccessToken!));
+                _logger.LogInformation("XOAUTH2 retry after forced token refresh succeeded for MSA account {AccountName}", account.Name);
+            }
+        }
+
+        private async Task RefreshMsaTokenAsync(MailAccount account)
+        {
+            _logger.LogInformation("Refreshing MSA access token for account {AccountName}", account.Name);
+            var refreshed = await _msaOAuthService.RefreshAccessTokenAsync(
+                account.OAuthRefreshToken!, account.ClientId, account.ClientSecret);
+
+            // Update in-memory fields so this sync run uses the new token
+            account.OAuthAccessToken = refreshed.AccessToken;
+            account.OAuthTokenExpiry = refreshed.Expiry;
+            if (!string.IsNullOrEmpty(refreshed.RefreshToken))
+                account.OAuthRefreshToken = refreshed.RefreshToken;
+
+            // Self-heal the XOAUTH2 username: Outlook requires the primary login name of the
+            // authorized account, which may differ from the user-entered email address (aliases).
+            if (!string.IsNullOrEmpty(refreshed.AuthorizedUsername)
+                && !string.Equals(refreshed.AuthorizedUsername, account.Username, StringComparison.OrdinalIgnoreCase))
+            {
+                _logger.LogInformation("Updating MSA account {AccountName} username from '{Old}' to authorized identity '{New}'",
+                    account.Name, account.Username ?? account.EmailAddress, refreshed.AuthorizedUsername);
+                account.Username = refreshed.AuthorizedUsername;
+            }
+
+            // Persist via a freshly-loaded tracked entity (account may be AsNoTracking)
+            var tracked = await _dbContext.MailAccounts.FindAsync(account.Id);
+            if (tracked != null)
+            {
+                tracked.OAuthAccessToken = refreshed.AccessToken;
+                tracked.OAuthTokenExpiry = refreshed.Expiry;
+                if (!string.IsNullOrEmpty(refreshed.RefreshToken))
+                    tracked.OAuthRefreshToken = refreshed.RefreshToken;
+                if (!string.IsNullOrEmpty(refreshed.AuthorizedUsername))
+                    tracked.Username = refreshed.AuthorizedUsername;
+                await _dbContext.SaveChangesAsync();
+            }
         }
 
         /// <summary>
