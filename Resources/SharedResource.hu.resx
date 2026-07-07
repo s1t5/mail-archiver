@@ -2887,4 +2887,143 @@
   <data name="WelcomeBack" xml:space="preserve">
     <value>Üdvözöljük újra, {0}</value>
   </data>
+  <!-- CSV Bulk IMAP Import -->
+  <data name="ImportCsvBulk" xml:space="preserve">
+    <value>CSV tömeges importálás</value>
+  </data>
+  <data name="CsvImportTitle" xml:space="preserve">
+    <value>IMAP postafiókok importálása CSV-ből</value>
+  </data>
+  <data name="CsvImportInformation" xml:space="preserve">
+    <value>Több IMAP postafiók egyidejű importálása CSV-fájlon keresztül.</value>
+  </data>
+  <data name="CsvImportFormatHelp" xml:space="preserve">
+    <value>Oszlopok: email (kötelező), password (kötelező), name (opcionális), username (opcionális), imap_server (opcionális), imap_port (opcionális), use_ssl (opcionális)</value>
+  </data>
+  <data name="CsvImportCommonServerHelp" xml:space="preserve">
+    <value>A közös szerverbeállítások minden olyan sorra vonatkoznak, amelyek nem tartalmaznak imap_server oszlopot.</value>
+  </data>
+  <data name="CsvImportNoConnectionTest" xml:space="preserve">
+    <value>Nem történik IMAP kapcsolatvizsgálat — a hibák csak az első szinkronizáláskor jelennek meg.</value>
+  </data>
+  <data name="CsvImportAdminOnlyNote" xml:space="preserve">
+    <value>Ez a funkció csak rendszergazdáknak érhető el.</value>
+  </data>
+  <data name="DownloadExampleCsv" xml:space="preserve">
+    <value>Minta CSV letöltése</value>
+  </data>
+  <data name="CsvImportSettingsTitle" xml:space="preserve">
+    <value>Feltöltés és beállítások</value>
+  </data>
+  <data name="CsvFile" xml:space="preserve">
+    <value>CSV-fájl</value>
+  </data>
+  <data name="CsvFileHelp" xml:space="preserve">
+    <value>UTF-8 kódolású CSV-fájl fejlécsorral. Kötelező oszlopok: email, password.</value>
+  </data>
+  <data name="CommonServerSettings" xml:space="preserve">
+    <value>Közös szerverbeállítások</value>
+  </data>
+  <data name="CommonServerSettingsHelp" xml:space="preserve">
+    <value>Akkor használjuk, ha a CSV-sor nem tartalmaz imap_server értéket.</value>
+  </data>
+  <data name="ImapServerLabel" xml:space="preserve">
+    <value>IMAP szerver</value>
+  </data>
+  <data name="ImapPortLabel" xml:space="preserve">
+    <value>IMAP port</value>
+  </data>
+  <data name="UseSslLabel" xml:space="preserve">
+    <value>SSL használata</value>
+  </data>
+  <data name="NamePrefix" xml:space="preserve">
+    <value>Név előtag</value>
+  </data>
+  <data name="NamePrefixHelp" xml:space="preserve">
+    <value>Alapértelmezett név: "{prefix} - &lt;{email}&gt;"</value>
+  </data>
+  <data name="SkipExisting" xml:space="preserve">
+    <value>Meglévő postafiókok kihagyása</value>
+  </data>
+  <data name="SkipExistingHelp" xml:space="preserve">
+    <value>A duplikátumok ki vannak hagyva, nem hibaként jelölve.</value>
+  </data>
+  <data name="AccountEnabledLabel" xml:space="preserve">
+    <value>Fiók engedélyezve</value>
+  </data>
+  <data name="CsvImportSubmit" xml:space="preserve">
+    <value>Importálás</value>
+  </data>
+  <data name="CsvImportResult" xml:space="preserve">
+    <value>Importálás eredménye</value>
+  </data>
+  <data name="CsvImportAgain" xml:space="preserve">
+    <value>További CSV importálása</value>
+  </data>
+  <data name="CsvImportResultSummary" xml:space="preserve">
+    <value>{0} létrehozva, {1} kihagyva, {2} hibás</value>
+  </data>
+  <data name="CsvImportCreated" xml:space="preserve">
+    <value>Létrehozva</value>
+  </data>
+  <data name="CsvImportSkipped" xml:space="preserve">
+    <value>Kihagyva</value>
+  </data>
+  <data name="CsvImportFailed" xml:space="preserve">
+    <value>Hibás</value>
+  </data>
+  <data name="CsvImportEmail" xml:space="preserve">
+    <value>E-mail</value>
+  </data>
+  <data name="CsvImportNameCol" xml:space="preserve">
+    <value>Név</value>
+  </data>
+  <data name="CsvImportReason" xml:space="preserve">
+    <value>Ok</value>
+  </data>
+  <data name="CsvImportRowNumber" xml:space="preserve">
+    <value>Sor</value>
+  </data>
+  <data name="CsvImportNoFile" xml:space="preserve">
+    <value>Válasszon egy CSV-fájlt.</value>
+  </data>
+  <data name="CsvImportFileTooLarge" xml:space="preserve">
+    <value>A fájl túl nagy: {0} MB, maximum {1} MB.</value>
+  </data>
+  <data name="CsvImportNoValidRows" xml:space="preserve">
+    <value>Nem található érvényes postafiók a CSV-fájlban.</value>
+  </data>
+  <data name="CsvImportTooManyRows" xml:space="preserve">
+    <value>A CSV-fájl {0} sort tartalmaz, maximum {1}.</value>
+  </data>
+  <data name="CsvImportMissingServer" xml:space="preserve">
+    <value>Nincs IMAP szerver megadva (sem a sorban, sem az űrlapon).</value>
+  </data>
+  <data name="CsvImportInvalidPort" xml:space="preserve">
+    <value>Érvénytelen port "{1}"</value>
+  </data>
+  <data name="CsvImportInvalidUseSsl" xml:space="preserve">
+    <value>Érvénytelen use_ssl érték "{1}"</value>
+  </data>
+  <data name="CsvImportMissingEmail" xml:space="preserve">
+    <value>Hiányzik az e-mail cím.</value>
+  </data>
+  <data name="CsvImportMissingPassword" xml:space="preserve">
+    <value>Hiányzik a jelszó.</value>
+  </data>
+  <data name="CsvImportMalformedLine" xml:space="preserve">
+    <value>Hibás CSV-sor — nem elemezhető.</value>
+  </data>
+  <data name="CsvImportDuplicateInFile" xml:space="preserve">
+    <value>Duplikátum a CSV-fájlban</value>
+  </data>
+  <data name="CsvImportAlreadyExists" xml:space="preserve">
+    <value>A postafiók már létezik</value>
+  </data>
+  <data name="CsvImportCouldNotBeProcessed" xml:space="preserve">
+    <value>A CSV-importálás nem dolgozható fel</value>
+  </data>
+  <data name="CsvImportAdminOnly" xml:space="preserve">
+    <value>A CSV tömeges importálás csak rendszergazdáknak érhető el.</value>
+  </data>
 </root>

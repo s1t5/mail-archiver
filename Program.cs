@@ -156,6 +156,9 @@ builder.Services.AddScoped<MailArchiver.Utilities.DateTimeHelper>();
 builder.Services.AddHttpClient("GitHubReleases");
 builder.Services.AddHttpClient("MsaOAuth");
 
+// Register CSV import options for bulk IMAP account import
+builder.Services.Configure<CsvImportOptions>(builder.Configuration.GetSection(CsvImportOptions.CsvImport));
+
 // Register MSA OAuth options and service for personal Microsoft accounts
 builder.Services.Configure<MsaOAuthOptions>(builder.Configuration.GetSection(MsaOAuthOptions.SectionName));
 builder.Services.AddScoped<MailArchiver.Services.IMsaOAuthService, MailArchiver.Services.MsaOAuthService>();

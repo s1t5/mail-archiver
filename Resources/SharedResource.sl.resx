@@ -2895,4 +2895,143 @@
   <data name="WelcomeBack" xml:space="preserve">
     <value>Dobrodošli nazaj, {0}</value>
   </data>
+  <!-- CSV Bulk IMAP Import -->
+  <data name="ImportCsvBulk" xml:space="preserve">
+    <value>CSV uvoz v velikem obsegu</value>
+  </data>
+  <data name="CsvImportTitle" xml:space="preserve">
+    <value>Uvoz IMAP poštnih predalov iz CSV</value>
+  </data>
+  <data name="CsvImportInformation" xml:space="preserve">
+    <value>Hkratni uvoz več IMAP poštnih predalov prek datoteke CSV.</value>
+  </data>
+  <data name="CsvImportFormatHelp" xml:space="preserve">
+    <value>Stolpci: email (obvezno), password (obvezno), name (neobvezno), username (neobvezno), imap_server (neobvezno), imap_port (neobvezno), use_ssl (neobvezno)</value>
+  </data>
+  <data name="CsvImportCommonServerHelp" xml:space="preserve">
+    <value>Skupne nastavitve strežnika veljajo za vse vrstice brez stolpca imap_server.</value>
+  </data>
+  <data name="CsvImportNoConnectionTest" xml:space="preserve">
+    <value>Preizkus povezave IMAP se ne izvede — napake se pojavijo šele pri prvi sinhronizaciji.</value>
+  </data>
+  <data name="CsvImportAdminOnlyNote" xml:space="preserve">
+    <value>Ta funkcija je na voljo samo skrbnikom.</value>
+  </data>
+  <data name="DownloadExampleCsv" xml:space="preserve">
+    <value>Prenesi vzorčni CSV</value>
+  </data>
+  <data name="CsvImportSettingsTitle" xml:space="preserve">
+    <value>Nalaganje in nastavitve</value>
+  </data>
+  <data name="CsvFile" xml:space="preserve">
+    <value>Datoteka CSV</value>
+  </data>
+  <data name="CsvFileHelp" xml:space="preserve">
+    <value>Datoteka CSV v kodiranju UTF-8 z vrstico glave. Obvezni stolpci: email, password.</value>
+  </data>
+  <data name="CommonServerSettings" xml:space="preserve">
+    <value>Skupne nastavitve strežnika</value>
+  </data>
+  <data name="CommonServerSettingsHelp" xml:space="preserve">
+    <value>Uporablja se, ko vrstica CSV nima vrednosti imap_server.</value>
+  </data>
+  <data name="ImapServerLabel" xml:space="preserve">
+    <value>Strežnik IMAP</value>
+  </data>
+  <data name="ImapPortLabel" xml:space="preserve">
+    <value>Vrata IMAP</value>
+  </data>
+  <data name="UseSslLabel" xml:space="preserve">
+    <value>Uporabi SSL</value>
+  </data>
+  <data name="NamePrefix" xml:space="preserve">
+    <value>Predpona imena</value>
+  </data>
+  <data name="NamePrefixHelp" xml:space="preserve">
+    <value>Privzeto ime: "{prefix} - &lt;{email}&gt;"</value>
+  </data>
+  <data name="SkipExisting" xml:space="preserve">
+    <value>Preskoči obstoječe poštne predale</value>
+  </data>
+  <data name="SkipExistingHelp" xml:space="preserve">
+    <value>Duplikati so preskočeni, ne označeni kot napake.</value>
+  </data>
+  <data name="AccountEnabledLabel" xml:space="preserve">
+    <value>Račun omogočen</value>
+  </data>
+  <data name="CsvImportSubmit" xml:space="preserve">
+    <value>Uvozi</value>
+  </data>
+  <data name="CsvImportResult" xml:space="preserve">
+    <value>Rezultat uvoza</value>
+  </data>
+  <data name="CsvImportAgain" xml:space="preserve">
+    <value>Uvozi še en CSV</value>
+  </data>
+  <data name="CsvImportResultSummary" xml:space="preserve">
+    <value>{0} ustvarjenih, {1} preskočenih, {2} neuspešnih</value>
+  </data>
+  <data name="CsvImportCreated" xml:space="preserve">
+    <value>Ustvarjeno</value>
+  </data>
+  <data name="CsvImportSkipped" xml:space="preserve">
+    <value>Preskočeno</value>
+  </data>
+  <data name="CsvImportFailed" xml:space="preserve">
+    <value>Neuspešno</value>
+  </data>
+  <data name="CsvImportEmail" xml:space="preserve">
+    <value>E-pošta</value>
+  </data>
+  <data name="CsvImportNameCol" xml:space="preserve">
+    <value>Ime</value>
+  </data>
+  <data name="CsvImportReason" xml:space="preserve">
+    <value>Razlog</value>
+  </data>
+  <data name="CsvImportRowNumber" xml:space="preserve">
+    <value>Vrstica</value>
+  </data>
+  <data name="CsvImportNoFile" xml:space="preserve">
+    <value>Izberite datoteko CSV.</value>
+  </data>
+  <data name="CsvImportFileTooLarge" xml:space="preserve">
+    <value>Datoteka je prevelika: {0} MB, maksimum je {1} MB.</value>
+  </data>
+  <data name="CsvImportNoValidRows" xml:space="preserve">
+    <value>V datoteki CSV ni veljavnih poštnih predalov.</value>
+  </data>
+  <data name="CsvImportTooManyRows" xml:space="preserve">
+    <value>Datoteka CSV vsebuje {0} vrstic, maksimum je {1}.</value>
+  </data>
+  <data name="CsvImportMissingServer" xml:space="preserve">
+    <value>Ni naveden strežnik IMAP (ne v vrstici ne v obrazcu).</value>
+  </data>
+  <data name="CsvImportInvalidPort" xml:space="preserve">
+    <value>Neveljaven port "{1}"</value>
+  </data>
+  <data name="CsvImportInvalidUseSsl" xml:space="preserve">
+    <value>Neveljavna vrednost use_ssl "{1}"</value>
+  </data>
+  <data name="CsvImportMissingEmail" xml:space="preserve">
+    <value>Manjka e-poštni naslov.</value>
+  </data>
+  <data name="CsvImportMissingPassword" xml:space="preserve">
+    <value>Manjka geslo.</value>
+  </data>
+  <data name="CsvImportMalformedLine" xml:space="preserve">
+    <value>Nepravilno oblikovana vrstica CSV — ni mogoče razčleniti.</value>
+  </data>
+  <data name="CsvImportDuplicateInFile" xml:space="preserve">
+    <value>Duplikat v datoteki CSV</value>
+  </data>
+  <data name="CsvImportAlreadyExists" xml:space="preserve">
+    <value>Poštni predal že obstaja</value>
+  </data>
+  <data name="CsvImportCouldNotBeProcessed" xml:space="preserve">
+    <value>Uvoza CSV ni mogoče obdelati</value>
+  </data>
+  <data name="CsvImportAdminOnly" xml:space="preserve">
+    <value>CSV uvoz v velikem obsegu je na voljo samo skrbnikom.</value>
+  </data>
 </root>

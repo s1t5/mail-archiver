@@ -37,6 +37,7 @@ namespace MailArchiver.Controllers
     private readonly IMsaOAuthService _msaOAuthService;
     private readonly MsaOAuthOptions _msaOptions;
     private readonly IAccountStorageService _accountStorageService;
+    private readonly CsvImportOptions _csvImportOptions;
 
     public MailAccountsController(
         MailArchiverDbContext context,
@@ -57,7 +58,8 @@ namespace MailArchiver.Controllers
         IMailAccountDeletionService mailAccountDeletionService,
         IMsaOAuthService msaOAuthService,
         IOptions<MsaOAuthOptions> msaOptions,
-        IAccountStorageService accountStorageService)
+        IAccountStorageService accountStorageService,
+        IOptions<CsvImportOptions> csvImportOptions)
     {
         _context = context;
         _emailCoreService = emailCoreService;
@@ -78,6 +80,7 @@ namespace MailArchiver.Controllers
         _msaOAuthService = msaOAuthService;
         _msaOptions = msaOptions.Value;
         _accountStorageService = accountStorageService;
+        _csvImportOptions = csvImportOptions.Value;
     }
 
         private async Task<bool> HasAccessToAccountAsync(int accountId)
@@ -199,7 +202,12 @@ namespace MailArchiver.Controllers
             // E-Mail-Anzahl abrufen
             var emailCount = await _emailCoreService.GetEmailCountByAccountAsync(id);
 
-var model = new MailAccountViewModel
+            var storageMap = await _accountStorageService.GetStorageForAccountsAsync(new List<int> { id });
+            var storageUsed = storageMap.TryGetValue(id, out var storage)
+                ? storage
+                : AccountStorageService.FormatFileSize(0);
+
+            var model = new MailAccountViewModel
             {
                 Id = account.Id,
                 Name = account.Name,
@@ -212,6 +220,14 @@ var model = new MailAccountViewModel
                 IsEnabled = account.IsEnabled,
                 DeleteAfterDays = account.DeleteAfterDays,
                 Provider = account.Provider,
+                ClientId = account.ClientId,
+                TenantId = account.TenantId,
+                ExcludedFolders = account.ExcludedFolders,
+                LocalRetentionDays = account.LocalRetentionDays,
+                StorageUsed = storageUsed,
+                MsaClientId = account.Provider == ProviderType.MSA ? account.ClientId : null,
+                MsaIsAuthorized = account.Provider == ProviderType.MSA && !string.IsNullOrEmpty(account.OAuthRefreshToken),
+                MsaTokenExpiry = account.OAuthTokenExpiry,
             };
 
             ViewBag.EmailCount = emailCount;
@@ -2861,6 +2877,449 @@ var model = new MailAccountViewModel
                 model.Mailboxes = new List<TenantMailboxViewModel>();
                 model.ErrorMessage = _localizer["M365TenantMailboxesCouldNotBeListed"].Value;
             }
+        }
+
+        // GET: MailAccounts/ImportCsv
+        [HttpGet]
+        public IActionResult ImportCsv()
+        {
+            var authService = HttpContext.RequestServices.GetService<MailArchiver.Services.IAuthenticationService>();
+            if (!authService.IsCurrentUserAdmin(HttpContext))
+            {
+                _logger.LogWarning("Non-admin user attempted to access CSV bulk import page");
+                TempData["ErrorMessage"] = _localizer["CsvImportAdminOnly"].Value;
+                return RedirectToAction(nameof(Index));
+            }
+
+            var model = new BulkImportImapViewModel
+            {
+                ImapPort = 993,
+                UseSSL = true,
+                IsEnabled = true,
+                SkipExisting = true
+            };
+            return View(model);
+        }
+
+        // POST: MailAccounts/ImportCsv
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ImportCsv(BulkImportImapViewModel model)
+        {
+            var authService = HttpContext.RequestServices.GetService<MailArchiver.Services.IAuthenticationService>();
+            if (!authService.IsCurrentUserAdmin(HttpContext))
+            {
+                _logger.LogWarning("Non-admin user attempted CSV bulk import");
+                TempData["ErrorMessage"] = _localizer["CsvImportAdminOnly"].Value;
+                return RedirectToAction(nameof(Index));
+            }
+
+            if (model.CsvFile == null || model.CsvFile.Length == 0)
+            {
+                ModelState.AddModelError("CsvFile", _localizer["CsvImportNoFile"].Value);
+            }
+
+            if (model.CsvFile != null && model.CsvFile.Length > _csvImportOptions.MaxFileSizeBytes)
+            {
+                ModelState.AddModelError("CsvFile",
+                    _localizer["CsvImportFileTooLarge",
+                        Math.Round(model.CsvFile.Length / 1_000_000.0, 1),
+                        Math.Round(_csvImportOptions.MaxFileSizeBytes / 1_000_000.0, 1)].Value);
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            var result = new CsvImportResultViewModel();
+
+            try
+            {
+                var rows = new List<CsvParsedRow>();
+                var failedRows = new List<CsvImportFailedRow>();
+
+                using (var stream = model.CsvFile.OpenReadStream())
+                using (var reader = new StreamReader(stream, detectEncodingFromByteOrderMarks: true))
+                {
+                    int lineNumber = 0;
+                    string[]? headers = null;
+                    var headerIndex = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+
+                    using (var parser = new Microsoft.VisualBasic.FileIO.TextFieldParser(reader))
+                    {
+                        parser.SetDelimiters(",");
+                        parser.HasFieldsEnclosedInQuotes = true;
+
+                        while (!parser.EndOfData)
+                        {
+                            lineNumber++;
+                            string[]? fields;
+
+                            try
+                            {
+                                fields = parser.ReadFields();
+                            }
+                            catch (Microsoft.VisualBasic.FileIO.MalformedLineException ex)
+                            {
+                                failedRows.Add(new CsvImportFailedRow
+                                {
+                                    LineNumber = lineNumber,
+                                    Email = string.Empty,
+                                    Reason = _localizer["CsvImportMalformedLine"].Value
+                                });
+                                _logger.LogWarning(ex, "Malformed CSV line {LineNumber}", lineNumber);
+                                continue;
+                            }
+
+                            if (fields == null) continue;
+
+                            if (lineNumber == 1)
+                            {
+                                var trimmed = fields.Select(f => f?.Trim() ?? string.Empty).ToArray();
+                                if (trimmed.Any(h => h.Length > 0))
+                                {
+                                    headers = trimmed;
+                                    for (int i = 0; i < headers.Length; i++)
+                                    {
+                                        headerIndex[headers[i]] = i;
+                                    }
+                                    continue;
+                                }
+                            }
+
+                            var row = ParseCsvRow(fields, headerIndex, model, lineNumber, failedRows, _localizer);
+                            if (row != null)
+                            {
+                                rows.Add(row);
+                            }
+                        }
+                    }
+                }
+
+                result.FailedRows.AddRange(failedRows);
+                result.FailedCount = failedRows.Count;
+
+                if (rows.Count == 0)
+                {
+                    result.FailedRows.Insert(0, new CsvImportFailedRow
+                    {
+                        LineNumber = 0,
+                        Email = string.Empty,
+                        Reason = _localizer["CsvImportNoValidRows"].Value
+                    });
+                    result.FailedCount = result.FailedRows.Count;
+                    return View("CsvImportResult", result);
+                }
+
+                if (rows.Count > _csvImportOptions.MaxRows)
+                {
+                    result.FailedRows.Insert(0, new CsvImportFailedRow
+                    {
+                        LineNumber = 0,
+                        Email = string.Empty,
+                        Reason = _localizer["CsvImportTooManyRows", rows.Count, _csvImportOptions.MaxRows].Value
+                    });
+                    result.FailedCount = result.FailedRows.Count;
+                    return View("CsvImportResult", result);
+                }
+
+                var dedupedRows = rows
+                    .GroupBy(r => r.Email!.Trim().ToLowerInvariant())
+                    .Select(g => g.First())
+                    .ToList();
+
+                var dedupSkipped = rows.Count - dedupedRows.Count;
+                if (dedupSkipped > 0)
+                {
+                    var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                    foreach (var row in rows)
+                    {
+                        var key = row.Email!.Trim().ToLowerInvariant();
+                        if (!seen.Add(key))
+                        {
+                            result.SkippedRows.Add(new CsvImportSkippedRow
+                            {
+                                Email = row.Email,
+                                Reason = _localizer["CsvImportDuplicateInFile"].Value
+                            });
+                        }
+                    }
+                }
+
+                var incomingEmails = dedupedRows
+                    .Select(r => r.Email!.Trim().ToLowerInvariant())
+                    .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+                var existingEmails = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                const int chunkSize = 500;
+                var emailList = incomingEmails.ToList();
+                for (int i = 0; i < emailList.Count; i += chunkSize)
+                {
+                    var chunk = emailList.Skip(i).Take(chunkSize).ToList();
+                    var matches = await _context.MailAccounts
+                        .Where(a => a.Provider == ProviderType.IMAP && chunk.Contains(a.EmailAddress.ToLower()))
+                        .Select(a => a.EmailAddress.ToLower())
+                        .ToListAsync();
+                    foreach (var m in matches)
+                    {
+                        existingEmails.Add(m);
+                    }
+                }
+
+                var accountsToCreate = new List<MailAccount>();
+                var prefix = string.IsNullOrWhiteSpace(model.NamePrefix) ? "IMAP" : model.NamePrefix!.Trim();
+
+                foreach (var row in dedupedRows)
+                {
+                    var emailLower = row.Email!.Trim().ToLowerInvariant();
+                    if (existingEmails.Contains(emailLower))
+                    {
+                        if (model.SkipExisting)
+                        {
+                            result.SkippedRows.Add(new CsvImportSkippedRow
+                            {
+                                Email = row.Email,
+                                Reason = _localizer["CsvImportAlreadyExists"].Value
+                            });
+                        }
+                        else
+                        {
+                            result.FailedRows.Add(new CsvImportFailedRow
+                            {
+                                LineNumber = row.LineNumber,
+                                Email = row.Email,
+                                Reason = _localizer["CsvImportAlreadyExists"].Value
+                            });
+                            result.FailedCount++;
+                        }
+                        continue;
+                    }
+
+                    var server = row.ImapServer ?? model.ImapServer;
+                    if (string.IsNullOrWhiteSpace(server))
+                    {
+                        result.FailedRows.Add(new CsvImportFailedRow
+                        {
+                            LineNumber = row.LineNumber,
+                            Email = row.Email,
+                            Reason = _localizer["CsvImportMissingServer", row.LineNumber].Value
+                        });
+                        result.FailedCount++;
+                        continue;
+                    }
+
+                    var name = string.IsNullOrWhiteSpace(row.Name)
+                        ? $"{prefix} - <{row.Email}>"
+                        : row.Name!.Trim();
+
+                    var account = new MailAccount
+                    {
+                        Name = name,
+                        EmailAddress = row.Email!.Trim(),
+                        ImapServer = server,
+                        ImapPort = row.ImapPort ?? model.ImapPort,
+                        Username = string.IsNullOrWhiteSpace(row.Username) ? row.Email!.Trim() : row.Username!.Trim(),
+                        Password = row.Password,
+                        UseSSL = row.UseSSL ?? model.UseSSL,
+                        IsEnabled = model.IsEnabled,
+                        Provider = ProviderType.IMAP,
+                        ExcludedFolders = string.Empty,
+                        DeleteAfterDays = model.DeleteAfterDays,
+                        LocalRetentionDays = model.LocalRetentionDays,
+                        LastSync = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+                    };
+
+                    accountsToCreate.Add(account);
+                    result.CreatedRows.Add(new CsvImportCreatedRow
+                    {
+                        Email = account.EmailAddress,
+                        Name = account.Name
+                    });
+                }
+
+                if (accountsToCreate.Count == 0)
+                {
+                    result.CreatedCount = 0;
+                    result.SkippedCount = result.SkippedRows.Count;
+                    _logger.LogInformation("CSV bulk import produced no new accounts (all skipped or failed)");
+                    return View("CsvImportResult", result);
+                }
+
+                _context.MailAccounts.AddRange(accountsToCreate);
+                await _context.SaveChangesAsync();
+
+                result.CreatedCount = accountsToCreate.Count;
+                result.SkippedCount = result.SkippedRows.Count;
+
+                var currentUsername = authService.GetCurrentUserDisplayName(HttpContext);
+                if (!string.IsNullOrEmpty(currentUsername))
+                {
+                    await _accessLogService.LogAccessAsync(currentUsername, AccessLogType.Account,
+                        searchParameters: $"CSV bulk import: {result.CreatedCount} IMAP accounts created, {result.SkippedCount} skipped, {result.FailedCount} failed");
+                }
+
+                _logger.LogInformation("CSV bulk import completed: {Created} created, {Skipped} skipped, {Failed} failed",
+                    result.CreatedCount, result.SkippedCount, result.FailedCount);
+
+                return View("CsvImportResult", result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error processing CSV bulk import");
+                ModelState.AddModelError("", $"{_localizer["CsvImportCouldNotBeProcessed"]}: {ex.Message}");
+                return View(model);
+            }
+        }
+
+        // GET: MailAccounts/DownloadExampleCsv
+        [HttpGet]
+        public IActionResult DownloadExampleCsv()
+        {
+            var authService = HttpContext.RequestServices.GetService<MailArchiver.Services.IAuthenticationService>();
+            if (!authService.IsCurrentUserAdmin(HttpContext))
+            {
+                return RedirectToAction(nameof(Index));
+            }
+
+            var csv = "email,password,name,username,imap_server,imap_port,use_ssl\r\n"
+                + "alice@firma.de,pass1,Alice Müller,,,993,\r\n"
+                + "bob@firma.de,pass2,,bob@firma.de,,,,\r\n"
+                + "charlie@extern.de,pass3,,charlie,mail.extern.de,143,false\r\n";
+            var bytes = System.Text.Encoding.UTF8.GetBytes(csv);
+            return File(bytes, "text/csv", "imap-import-example.csv");
+        }
+
+        private static CsvParsedRow? ParseCsvRow(string[] fields, Dictionary<string, int> headerIndex,
+            BulkImportImapViewModel model, int lineNumber, List<CsvImportFailedRow> failedRows,
+            IStringLocalizer<SharedResource> localizer)
+        {
+            string email = string.Empty;
+            string password = string.Empty;
+            string? name = null;
+            string? username = null;
+            string? imapServer = null;
+            int? imapPort = null;
+            bool? useSsl = null;
+
+            if (headerIndex.Count > 0)
+            {
+                email = GetFieldValue(fields, headerIndex, "email");
+                password = GetFieldValueRaw(fields, headerIndex, "password");
+                name = GetFieldValueOrNull(fields, headerIndex, "name");
+                username = GetFieldValueOrNull(fields, headerIndex, "username");
+                imapServer = GetFieldValueOrNull(fields, headerIndex, "imap_server");
+                var portStr = GetFieldValueOrNull(fields, headerIndex, "imap_port");
+                if (!string.IsNullOrWhiteSpace(portStr))
+                {
+                    if (int.TryParse(portStr.Trim(), out var port) && port >= 1 && port <= 65535)
+                    {
+                        imapPort = port;
+                    }
+                    else
+                    {
+                        failedRows.Add(new CsvImportFailedRow
+                        {
+                            LineNumber = lineNumber,
+                            Email = email,
+                            Reason = localizer["CsvImportInvalidPort", lineNumber, portStr].Value
+                        });
+                        return null;
+                    }
+                }
+                var sslStr = GetFieldValueOrNull(fields, headerIndex, "use_ssl");
+                if (!string.IsNullOrWhiteSpace(sslStr))
+                {
+                    if (bool.TryParse(sslStr.Trim(), out var ssl))
+                    {
+                        useSsl = ssl;
+                    }
+                    else
+                    {
+                        failedRows.Add(new CsvImportFailedRow
+                        {
+                            LineNumber = lineNumber,
+                            Email = email,
+                            Reason = localizer["CsvImportInvalidUseSsl", lineNumber, sslStr].Value
+                        });
+                        return null;
+                    }
+                }
+            }
+            else if (fields.Length >= 2)
+            {
+                email = fields[0]?.Trim() ?? string.Empty;
+                password = fields[1] ?? string.Empty;
+                if (fields.Length >= 3) name = fields[2];
+                if (fields.Length >= 4) username = fields[3];
+                if (fields.Length >= 5) imapServer = fields[4];
+                if (fields.Length >= 6 && int.TryParse(fields[5]?.Trim(), out var port) && port >= 1 && port <= 65535)
+                    imapPort = port;
+                if (fields.Length >= 7 && bool.TryParse(fields[6]?.Trim(), out var ssl))
+                    useSsl = ssl;
+            }
+
+            if (string.IsNullOrWhiteSpace(email))
+            {
+                failedRows.Add(new CsvImportFailedRow
+                {
+                    LineNumber = lineNumber,
+                    Email = string.Empty,
+                    Reason = localizer["CsvImportMissingEmail", lineNumber].Value
+                });
+                return null;
+            }
+
+            if (string.IsNullOrWhiteSpace(password))
+            {
+                failedRows.Add(new CsvImportFailedRow
+                {
+                    LineNumber = lineNumber,
+                    Email = email,
+                    Reason = localizer["CsvImportMissingPassword", lineNumber].Value
+                });
+                return null;
+            }
+
+            return new CsvParsedRow
+            {
+                LineNumber = lineNumber,
+                Email = email,
+                Password = password,
+                Name = name,
+                Username = username,
+                ImapServer = imapServer,
+                ImapPort = imapPort,
+                UseSSL = useSsl
+            };
+        }
+
+        private static string GetFieldValue(string[] fields, Dictionary<string, int> headerIndex, string name)
+        {
+            if (headerIndex.TryGetValue(name, out var idx) && idx < fields.Length)
+            {
+                return fields[idx]?.Trim() ?? string.Empty;
+            }
+            return string.Empty;
+        }
+
+        private static string GetFieldValueRaw(string[] fields, Dictionary<string, int> headerIndex, string name)
+        {
+            if (headerIndex.TryGetValue(name, out var idx) && idx < fields.Length)
+            {
+                return fields[idx] ?? string.Empty;
+            }
+            return string.Empty;
+        }
+
+        private static string? GetFieldValueOrNull(string[] fields, Dictionary<string, int> headerIndex, string name)
+        {
+            if (headerIndex.TryGetValue(name, out var idx) && idx < fields.Length)
+            {
+                var val = fields[idx];
+                return string.IsNullOrWhiteSpace(val) ? null : val.Trim();
+            }
+            return null;
         }
     }
 }

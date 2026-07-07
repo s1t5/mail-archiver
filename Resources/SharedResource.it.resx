@@ -2895,4 +2895,143 @@
   <data name="WelcomeBack" xml:space="preserve">
     <value>Bentornato, {0}</value>
   </data>
+  <!-- CSV Bulk IMAP Import -->
+  <data name="ImportCsvBulk" xml:space="preserve">
+    <value>Importazione CSV massiva</value>
+  </data>
+  <data name="CsvImportTitle" xml:space="preserve">
+    <value>Importa caselle IMAP da CSV</value>
+  </data>
+  <data name="CsvImportInformation" xml:space="preserve">
+    <value>Importa più caselle IMAP contemporaneamente tramite un file CSV.</value>
+  </data>
+  <data name="CsvImportFormatHelp" xml:space="preserve">
+    <value>Colonne: email (obbligatorio), password (obbligatorio), name (opzionale), username (opzionale), imap_server (opzionale), imap_port (opzionale), use_ssl (opzionale)</value>
+  </data>
+  <data name="CsvImportCommonServerHelp" xml:space="preserve">
+    <value>Le impostazioni comuni del server si applicano a tutte le righe senza colonna imap_server.</value>
+  </data>
+  <data name="CsvImportNoConnectionTest" xml:space="preserve">
+    <value>Non viene eseguito alcun test di connessione IMAP — gli errori appariranno solo alla prima sincronizzazione.</value>
+  </data>
+  <data name="CsvImportAdminOnlyNote" xml:space="preserve">
+    <value>Questa funzione è disponibile solo per gli amministratori.</value>
+  </data>
+  <data name="DownloadExampleCsv" xml:space="preserve">
+    <value>Scarica CSV di esempio</value>
+  </data>
+  <data name="CsvImportSettingsTitle" xml:space="preserve">
+    <value>Caricamento e impostazioni</value>
+  </data>
+  <data name="CsvFile" xml:space="preserve">
+    <value>File CSV</value>
+  </data>
+  <data name="CsvFileHelp" xml:space="preserve">
+    <value>File CSV con codifica UTF-8 e riga di intestazione. Colonne obbligatorie: email, password.</value>
+  </data>
+  <data name="CommonServerSettings" xml:space="preserve">
+    <value>Impostazioni comuni del server</value>
+  </data>
+  <data name="CommonServerSettingsHelp" xml:space="preserve">
+    <value>Utilizzati quando la riga CSV non ha un valore imap_server.</value>
+  </data>
+  <data name="ImapServerLabel" xml:space="preserve">
+    <value>Server IMAP</value>
+  </data>
+  <data name="ImapPortLabel" xml:space="preserve">
+    <value>Porta IMAP</value>
+  </data>
+  <data name="UseSslLabel" xml:space="preserve">
+    <value>Usa SSL</value>
+  </data>
+  <data name="NamePrefix" xml:space="preserve">
+    <value>Prefisso nome</value>
+  </data>
+  <data name="NamePrefixHelp" xml:space="preserve">
+    <value>Nome predefinito: "{prefix} - &lt;{email}&gt;"</value>
+  </data>
+  <data name="SkipExisting" xml:space="preserve">
+    <value>Salta caselle esistenti</value>
+  </data>
+  <data name="SkipExistingHelp" xml:space="preserve">
+    <value>I duplicati vengono saltati, non contrassegnati come errori.</value>
+  </data>
+  <data name="AccountEnabledLabel" xml:space="preserve">
+    <value>Account abilitato</value>
+  </data>
+  <data name="CsvImportSubmit" xml:space="preserve">
+    <value>Importa</value>
+  </data>
+  <data name="CsvImportResult" xml:space="preserve">
+    <value>Risultato dell'importazione</value>
+  </data>
+  <data name="CsvImportAgain" xml:space="preserve">
+    <value>Importa un altro CSV</value>
+  </data>
+  <data name="CsvImportResultSummary" xml:space="preserve">
+    <value>{0} creati, {1} saltati, {2} falliti</value>
+  </data>
+  <data name="CsvImportCreated" xml:space="preserve">
+    <value>Creati</value>
+  </data>
+  <data name="CsvImportSkipped" xml:space="preserve">
+    <value>Saltati</value>
+  </data>
+  <data name="CsvImportFailed" xml:space="preserve">
+    <value>Falliti</value>
+  </data>
+  <data name="CsvImportEmail" xml:space="preserve">
+    <value>Email</value>
+  </data>
+  <data name="CsvImportNameCol" xml:space="preserve">
+    <value>Nome</value>
+  </data>
+  <data name="CsvImportReason" xml:space="preserve">
+    <value>Motivo</value>
+  </data>
+  <data name="CsvImportRowNumber" xml:space="preserve">
+    <value>Riga</value>
+  </data>
+  <data name="CsvImportNoFile" xml:space="preserve">
+    <value>Seleziona un file CSV.</value>
+  </data>
+  <data name="CsvImportFileTooLarge" xml:space="preserve">
+    <value>File troppo grande: {0} MB, il massimo è {1} MB.</value>
+  </data>
+  <data name="CsvImportNoValidRows" xml:space="preserve">
+    <value>Nessuna casella valida trovata nel file CSV.</value>
+  </data>
+  <data name="CsvImportTooManyRows" xml:space="preserve">
+    <value>Il file CSV contiene {0} righe, il massimo è {1}.</value>
+  </data>
+  <data name="CsvImportMissingServer" xml:space="preserve">
+    <value>Nessun server IMAP fornito (né nella riga né nel modulo).</value>
+  </data>
+  <data name="CsvImportInvalidPort" xml:space="preserve">
+    <value>Porta non valida "{1}"</value>
+  </data>
+  <data name="CsvImportInvalidUseSsl" xml:space="preserve">
+    <value>Valore use_ssl non valido "{1}"</value>
+  </data>
+  <data name="CsvImportMissingEmail" xml:space="preserve">
+    <value>Indirizzo email mancante.</value>
+  </data>
+  <data name="CsvImportMissingPassword" xml:space="preserve">
+    <value>Password mancante.</value>
+  </data>
+  <data name="CsvImportMalformedLine" xml:space="preserve">
+    <value>Riga CSV malformata — impossibile da analizzare.</value>
+  </data>
+  <data name="CsvImportDuplicateInFile" xml:space="preserve">
+    <value>Duplicato nel file CSV</value>
+  </data>
+  <data name="CsvImportAlreadyExists" xml:space="preserve">
+    <value>La casella esiste già</value>
+  </data>
+  <data name="CsvImportCouldNotBeProcessed" xml:space="preserve">
+    <value>L'importazione CSV non può essere elaborata</value>
+  </data>
+  <data name="CsvImportAdminOnly" xml:space="preserve">
+    <value>L'importazione CSV massiva è disponibile solo per gli amministratori.</value>
+  </data>
 </root>

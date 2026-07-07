@@ -2895,4 +2895,143 @@
   <data name="WelcomeBack" xml:space="preserve">
     <value>Welkom terug, {0}</value>
   </data>
+  <!-- CSV Bulk IMAP Import -->
+  <data name="ImportCsvBulk" xml:space="preserve">
+    <value>CSV bulk import</value>
+  </data>
+  <data name="CsvImportTitle" xml:space="preserve">
+    <value>IMAP-postvakken importeren vanuit CSV</value>
+  </data>
+  <data name="CsvImportInformation" xml:space="preserve">
+    <value>Importeer meerdere IMAP-postvakken tegelijk via een CSV-bestand.</value>
+  </data>
+  <data name="CsvImportFormatHelp" xml:space="preserve">
+    <value>Kolommen: email (verplicht), password (verplicht), name (optioneel), username (optioneel), imap_server (optioneel), imap_port (optioneel), use_ssl (optioneel)</value>
+  </data>
+  <data name="CsvImportCommonServerHelp" xml:space="preserve">
+    <value>Algemene serverinstellingen gelden voor alle rijen zonder een imap_server-kolom.</value>
+  </data>
+  <data name="CsvImportNoConnectionTest" xml:space="preserve">
+    <value>Er wordt geen IMAP-verbindingstest uitgevoerd — fouten verschijnen pas bij de eerste synchronisatie.</value>
+  </data>
+  <data name="CsvImportAdminOnlyNote" xml:space="preserve">
+    <value>Deze functie is alleen beschikbaar voor beheerders.</value>
+  </data>
+  <data name="DownloadExampleCsv" xml:space="preserve">
+    <value>Voorbeeld-CSV downloaden</value>
+  </data>
+  <data name="CsvImportSettingsTitle" xml:space="preserve">
+    <value>Upload en instellingen</value>
+  </data>
+  <data name="CsvFile" xml:space="preserve">
+    <value>CSV-bestand</value>
+  </data>
+  <data name="CsvFileHelp" xml:space="preserve">
+    <value>UTF-8 gecodeerd CSV-bestand met koptekstrij. Verplichte kolommen: email, password.</value>
+  </data>
+  <data name="CommonServerSettings" xml:space="preserve">
+    <value>Algemene serverinstellingen</value>
+  </data>
+  <data name="CommonServerSettingsHelp" xml:space="preserve">
+    <value>Wordt gebruikt wanneer de CSV-rij geen imap_server-waarde heeft.</value>
+  </data>
+  <data name="ImapServerLabel" xml:space="preserve">
+    <value>IMAP-server</value>
+  </data>
+  <data name="ImapPortLabel" xml:space="preserve">
+    <value>IMAP-poort</value>
+  </data>
+  <data name="UseSslLabel" xml:space="preserve">
+    <value>SSL gebruiken</value>
+  </data>
+  <data name="NamePrefix" xml:space="preserve">
+    <value>Naamvoorvoegsel</value>
+  </data>
+  <data name="NamePrefixHelp" xml:space="preserve">
+    <value>Standaardnaam: "{prefix} - &lt;{email}&gt;"</value>
+  </data>
+  <data name="SkipExisting" xml:space="preserve">
+    <value>Bestaande postvakken overslaan</value>
+  </data>
+  <data name="SkipExistingHelp" xml:space="preserve">
+    <value>Duplicaten worden overgeslagen, niet gemarkeerd als fouten.</value>
+  </data>
+  <data name="AccountEnabledLabel" xml:space="preserve">
+    <value>Account ingeschakeld</value>
+  </data>
+  <data name="CsvImportSubmit" xml:space="preserve">
+    <value>Importeren</value>
+  </data>
+  <data name="CsvImportResult" xml:space="preserve">
+    <value>Importresultaat</value>
+  </data>
+  <data name="CsvImportAgain" xml:space="preserve">
+    <value>Nog een CSV importeren</value>
+  </data>
+  <data name="CsvImportResultSummary" xml:space="preserve">
+    <value>{0} aangemaakt, {1} overgeslagen, {2} mislukt</value>
+  </data>
+  <data name="CsvImportCreated" xml:space="preserve">
+    <value>Aangemaakt</value>
+  </data>
+  <data name="CsvImportSkipped" xml:space="preserve">
+    <value>Overgeslagen</value>
+  </data>
+  <data name="CsvImportFailed" xml:space="preserve">
+    <value>Mislukt</value>
+  </data>
+  <data name="CsvImportEmail" xml:space="preserve">
+    <value>E-mail</value>
+  </data>
+  <data name="CsvImportNameCol" xml:space="preserve">
+    <value>Naam</value>
+  </data>
+  <data name="CsvImportReason" xml:space="preserve">
+    <value>Reden</value>
+  </data>
+  <data name="CsvImportRowNumber" xml:space="preserve">
+    <value>Regel</value>
+  </data>
+  <data name="CsvImportNoFile" xml:space="preserve">
+    <value>Selecteer een CSV-bestand.</value>
+  </data>
+  <data name="CsvImportFileTooLarge" xml:space="preserve">
+    <value>Bestand te groot: {0} MB, maximum is {1} MB.</value>
+  </data>
+  <data name="CsvImportNoValidRows" xml:space="preserve">
+    <value>Geen geldige postvakken gevonden in het CSV-bestand.</value>
+  </data>
+  <data name="CsvImportTooManyRows" xml:space="preserve">
+    <value>Het CSV-bestand bevat {0} rijen, maximum is {1}.</value>
+  </data>
+  <data name="CsvImportMissingServer" xml:space="preserve">
+    <value>Geen IMAP-server opgegeven (noch in de rij noch in het formulier).</value>
+  </data>
+  <data name="CsvImportInvalidPort" xml:space="preserve">
+    <value>Ongeldige poort "{1}"</value>
+  </data>
+  <data name="CsvImportInvalidUseSsl" xml:space="preserve">
+    <value>Ongeldige use_ssl-waarde "{1}"</value>
+  </data>
+  <data name="CsvImportMissingEmail" xml:space="preserve">
+    <value>E-mailadres ontbreekt.</value>
+  </data>
+  <data name="CsvImportMissingPassword" xml:space="preserve">
+    <value>Wachtwoord ontbreekt.</value>
+  </data>
+  <data name="CsvImportMalformedLine" xml:space="preserve">
+    <value>Onjuist gevormde CSV-regel — kon niet worden geparseerd.</value>
+  </data>
+  <data name="CsvImportDuplicateInFile" xml:space="preserve">
+    <value>Duplicaat in CSV-bestand</value>
+  </data>
+  <data name="CsvImportAlreadyExists" xml:space="preserve">
+    <value>Postvak bestaat al</value>
+  </data>
+  <data name="CsvImportCouldNotBeProcessed" xml:space="preserve">
+    <value>CSV-import kon niet worden verwerkt</value>
+  </data>
+  <data name="CsvImportAdminOnly" xml:space="preserve">
+    <value>CSV bulk import is alleen beschikbaar voor beheerders.</value>
+  </data>
 </root>

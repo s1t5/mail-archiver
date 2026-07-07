@@ -2895,4 +2895,143 @@
   <data name="WelcomeBack" xml:space="preserve">
     <value>С возвращением, {0}</value>
   </data>
+  <!-- CSV Bulk IMAP Import -->
+  <data name="ImportCsvBulk" xml:space="preserve">
+    <value>Массовый импорт CSV</value>
+  </data>
+  <data name="CsvImportTitle" xml:space="preserve">
+    <value>Импорт почтовых ящиков IMAP из CSV</value>
+  </data>
+  <data name="CsvImportInformation" xml:space="preserve">
+    <value>Импортируйте несколько почтовых ящиков IMAP одновременно через CSV-файл.</value>
+  </data>
+  <data name="CsvImportFormatHelp" xml:space="preserve">
+    <value>Столбцы: email (обязательно), password (обязательно), name (необязательно), username (необязательно), imap_server (необязательно), imap_port (необязательно), use_ssl (необязательно)</value>
+  </data>
+  <data name="CsvImportCommonServerHelp" xml:space="preserve">
+    <value>Общие настройки сервера применяются ко всем строкам без столбца imap_server.</value>
+  </data>
+  <data name="CsvImportNoConnectionTest" xml:space="preserve">
+    <value>Тест подключения IMAP не выполняется — ошибки появятся только при первой синхронизации.</value>
+  </data>
+  <data name="CsvImportAdminOnlyNote" xml:space="preserve">
+    <value>Эта функция доступна только администраторам.</value>
+  </data>
+  <data name="DownloadExampleCsv" xml:space="preserve">
+    <value>Скачать пример CSV</value>
+  </data>
+  <data name="CsvImportSettingsTitle" xml:space="preserve">
+    <value>Загрузка и настройки</value>
+  </data>
+  <data name="CsvFile" xml:space="preserve">
+    <value>CSV-файл</value>
+  </data>
+  <data name="CsvFileHelp" xml:space="preserve">
+    <value>CSV-файл в кодировке UTF-8 со строкой заголовка. Обязательные столбцы: email, password.</value>
+  </data>
+  <data name="CommonServerSettings" xml:space="preserve">
+    <value>Общие настройки сервера</value>
+  </data>
+  <data name="CommonServerSettingsHelp" xml:space="preserve">
+    <value>Используются, когда в строке CSV нет значения imap_server.</value>
+  </data>
+  <data name="ImapServerLabel" xml:space="preserve">
+    <value>Сервер IMAP</value>
+  </data>
+  <data name="ImapPortLabel" xml:space="preserve">
+    <value>Порт IMAP</value>
+  </data>
+  <data name="UseSslLabel" xml:space="preserve">
+    <value>Использовать SSL</value>
+  </data>
+  <data name="NamePrefix" xml:space="preserve">
+    <value>Префикс имени</value>
+  </data>
+  <data name="NamePrefixHelp" xml:space="preserve">
+    <value>Имя по умолчанию: "{prefix} - &lt;{email}&gt;"</value>
+  </data>
+  <data name="SkipExisting" xml:space="preserve">
+    <value>Пропустить существующие ящики</value>
+  </data>
+  <data name="SkipExistingHelp" xml:space="preserve">
+    <value>Дубликаты пропускаются, не помечаются как ошибки.</value>
+  </data>
+  <data name="AccountEnabledLabel" xml:space="preserve">
+    <value>Аккаунт включён</value>
+  </data>
+  <data name="CsvImportSubmit" xml:space="preserve">
+    <value>Импортировать</value>
+  </data>
+  <data name="CsvImportResult" xml:space="preserve">
+    <value>Результат импорта</value>
+  </data>
+  <data name="CsvImportAgain" xml:space="preserve">
+    <value>Импортировать ещё CSV</value>
+  </data>
+  <data name="CsvImportResultSummary" xml:space="preserve">
+    <value>{0} создано, {1} пропущено, {2} с ошибками</value>
+  </data>
+  <data name="CsvImportCreated" xml:space="preserve">
+    <value>Создано</value>
+  </data>
+  <data name="CsvImportSkipped" xml:space="preserve">
+    <value>Пропущено</value>
+  </data>
+  <data name="CsvImportFailed" xml:space="preserve">
+    <value>С ошибками</value>
+  </data>
+  <data name="CsvImportEmail" xml:space="preserve">
+    <value>Эл. почта</value>
+  </data>
+  <data name="CsvImportNameCol" xml:space="preserve">
+    <value>Имя</value>
+  </data>
+  <data name="CsvImportReason" xml:space="preserve">
+    <value>Причина</value>
+  </data>
+  <data name="CsvImportRowNumber" xml:space="preserve">
+    <value>Строка</value>
+  </data>
+  <data name="CsvImportNoFile" xml:space="preserve">
+    <value>Пожалуйста, выберите CSV-файл.</value>
+  </data>
+  <data name="CsvImportFileTooLarge" xml:space="preserve">
+    <value>Файл слишком большой: {0} МБ, максимум {1} МБ.</value>
+  </data>
+  <data name="CsvImportNoValidRows" xml:space="preserve">
+    <value>В CSV-файле не найдено допустимых почтовых ящиков.</value>
+  </data>
+  <data name="CsvImportTooManyRows" xml:space="preserve">
+    <value>CSV-файл содержит {0} строк, максимум {1}.</value>
+  </data>
+  <data name="CsvImportMissingServer" xml:space="preserve">
+    <value>Не указан сервер IMAP (ни в строке, ни в форме).</value>
+  </data>
+  <data name="CsvImportInvalidPort" xml:space="preserve">
+    <value>Недопустимый порт "{1}"</value>
+  </data>
+  <data name="CsvImportInvalidUseSsl" xml:space="preserve">
+    <value>Недопустимое значение use_ssl "{1}"</value>
+  </data>
+  <data name="CsvImportMissingEmail" xml:space="preserve">
+    <value>Отсутствует адрес электронной почты.</value>
+  </data>
+  <data name="CsvImportMissingPassword" xml:space="preserve">
+    <value>Отсутствует пароль.</value>
+  </data>
+  <data name="CsvImportMalformedLine" xml:space="preserve">
+    <value>Некорректная строка CSV — не удалось разобрать.</value>
+  </data>
+  <data name="CsvImportDuplicateInFile" xml:space="preserve">
+    <value>Дубликат в CSV-файле</value>
+  </data>
+  <data name="CsvImportAlreadyExists" xml:space="preserve">
+    <value>Ящик уже существует</value>
+  </data>
+  <data name="CsvImportCouldNotBeProcessed" xml:space="preserve">
+    <value>Не удалось обработать импорт CSV</value>
+  </data>
+  <data name="CsvImportAdminOnly" xml:space="preserve">
+    <value>Массовый импорт CSV доступен только администраторам.</value>
+  </data>
 </root>

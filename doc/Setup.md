@@ -81,6 +81,10 @@ services:
       # Local Import Settings (for CLI imports from mounted volumes)
       - LocalImport__AllowedPaths__0=/data/import
 
+      # CSV Import Settings (for bulk IMAP account import)
+      - CsvImport__MaxRows=5000
+      - CsvImport__MaxFileSizeBytes=10000000
+
       # TimeZone Settings
       - TimeZone__DisplayTimeZoneId=Etc/UCT
 
@@ -277,6 +281,11 @@ docker compose restart
   - This security measure prevents arbitrary file system access from CLI commands.
   - Multiple paths can be configured for different import sources.
   - See [CLI Local Import Guide](CLI-Local-Import.md) for detailed usage instructions.
+
+### 📄 CSV Import Settings
+- `CsvImport__MaxRows`: Maximum number of CSV rows (mailboxes) processed in a single bulk import. Default is `5000`. Increase this value for very large deployments; lower it to limit the impact of a single import run on database load.
+- `CsvImport__MaxFileSizeBytes`: Maximum allowed size (in bytes) of the uploaded CSV file. Default is `10000000` (10 MB). Adjust this value to match your upload limits if needed.
+- See [Account Import Guide](Account%20Import.md) for detailed usage instructions on bulk IMAP account import via CSV.
 
 ### 🕐 TimeZone Settings
 - `TimeZone__DisplayTimeZoneId`: The time zone used for displaying email timestamps in the UI. Uses IANA time zone identifiers (e.g., "Europe/Berlin", "Asia/Tokyo"). Default is "Etc/UCT" for backward compatibility. When importing emails timestamps will be converted to this time zone for display purposes.
