@@ -339,14 +339,24 @@ body {
   -webkit-overflow-scrolling: touch;
 }
 
-/* Desktop: Dropdowns in der Account-Tabelle dürfen überlauben (nicht clippen) */
+/* Desktop: Dropdowns in der Account-Tabelle dürfen überlappen (nicht clippen),
+   aber die Tabelle muss bei schmalen Viewports scrollbar bleiben. */
 @media (min-width: 992px) {
   .card-dropdown-overflow {
     overflow: visible;
   }
-  .table-responsive-dropdown {
-    overflow: visible;
-  }
+}
+
+.table-responsive-dropdown {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  max-width: 100%;
+}
+
+/* Verhindert, dass breite Tabellen den Container aus der Seite schieben */
+.card-dropdown-overflow,
+.table-responsive-dropdown {
+  min-width: 0;
 }
 
 /* Pagination */
