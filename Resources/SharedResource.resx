@@ -1445,6 +1445,12 @@
   <data name="RateLimited" xml:space="preserve">
     <value>Rate Limited</value>
   </data>
+  <data name="SyncProgressTooltip" xml:space="preserve">
+    <value>Progress is measured by completed folders. A large folder (e.g. INBOX) keeps the bar at 0% until it finishes.</value>
+  </data>
+  <data name="SyncStatusTooltip" xml:space="preserve">
+    <value>Status codes:&lt;br&gt;Running = sync in progress&lt;br&gt;Completed = finished successfully&lt;br&gt;Failed = ended with errors&lt;br&gt;Cancelled = stopped by user&lt;br&gt;Rate Limited = paused due to bandwidth quota</value>
+  </data>
   <data name="SyncJobRateLimited" xml:space="preserve">
     <value>Sync paused due to bandwidth limit. Will resume automatically.</value>
   </data>

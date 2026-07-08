@@ -2506,6 +2506,12 @@
   <data name="RateLimited" xml:space="preserve">
     <value>Limite de débit atteint</value>
   </data>
+  <data name="SyncProgressTooltip" xml:space="preserve">
+    <value>La progression est mesurée par dossiers terminés. Un grand dossier (ex. INBOX) maintient la barre à 0% jusqu'à ce qu'il se termine.</value>
+  </data>
+  <data name="SyncStatusTooltip" xml:space="preserve">
+    <value>Codes d'état :&lt;br&gt;Running = synchronisation en cours&lt;br&gt;Completed = terminé avec succès&lt;br&gt;Failed = terminé avec des erreurs&lt;br&gt;Cancelled = arrêté par l'utilisateur&lt;br&gt;Rate Limited = suspendu en raison du quota de bande passante</value>
+  </data>
   <data name="SyncJobRateLimited" xml:space="preserve">
     <value>Synchronisation suspendue en raison de la limite de bande passante. Reprendra automatiquement.</value>
   </data> 

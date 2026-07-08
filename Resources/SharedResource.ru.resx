@@ -2506,6 +2506,12 @@
   <data name="RateLimited" xml:space="preserve">
     <value>Лимит скорости достигнут</value>
   </data>
+  <data name="SyncProgressTooltip" xml:space="preserve">
+    <value>Прогресс измеряется по завершённым папкам. Большая папка (напр. INBOX) удерживает полосу на 0%, пока не завершится.</value>
+  </data>
+  <data name="SyncStatusTooltip" xml:space="preserve">
+    <value>Коды статуса:&lt;br&gt;Running = синхронизация выполняется&lt;br&gt;Completed = завершено успешно&lt;br&gt;Failed = завершено с ошибками&lt;br&gt;Cancelled = остановлено пользователем&lt;br&gt;Rate Limited = приостановлено из-за квоты трафика</value>
+  </data>
   <data name="SyncJobRateLimited" xml:space="preserve">
     <value>Синхронизация приостановлена из-за ограничения пропускной способности. Будет автоматически продолжена.</value>
   </data>

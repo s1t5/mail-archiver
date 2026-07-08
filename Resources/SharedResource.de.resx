@@ -1481,6 +1481,12 @@
   <data name="RateLimited" xml:space="preserve">
     <value>Rate-Limit erreicht</value>
   </data>
+  <data name="SyncProgressTooltip" xml:space="preserve">
+    <value>Der Fortschritt wird anhand abgeschlossener Ordner gemessen. Ein großer Ordner (z.&#160;B. INBOX) hält den Balken bei 0%, bis er fertig ist.</value>
+  </data>
+  <data name="SyncStatusTooltip" xml:space="preserve">
+    <value>Statuscodes:&lt;br&gt;Running = Synchronisation läuft&lt;br&gt;Completed = erfolgreich abgeschlossen&lt;br&gt;Failed = mit Fehlern beendet&lt;br&gt;Cancelled = vom Benutzer gestoppt&lt;br&gt;Rate Limited = wegen Bandbreiten-Limit pausiert</value>
+  </data>
   <data name="SyncJobRateLimited" xml:space="preserve">
     <value>Sync pausiert wegen Bandbreiten-Limit. Wird automatisch fortgesetzt.</value>
   </data>

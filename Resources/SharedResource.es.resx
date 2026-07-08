@@ -2505,6 +2505,12 @@
   <data name="RateLimited" xml:space="preserve">
     <value>Límite de tasa alcanzado</value>
   </data>
+  <data name="SyncProgressTooltip" xml:space="preserve">
+    <value>El progreso se mide por carpetas completadas. Una carpeta grande (p.&#160;ej. INBOX) mantiene la barra en 0% hasta que termina.</value>
+  </data>
+  <data name="SyncStatusTooltip" xml:space="preserve">
+    <value>Códigos de estado:&lt;br&gt;Running = sincronización en curso&lt;br&gt;Completed = finalizado con éxito&lt;br&gt;Failed = terminó con errores&lt;br&gt;Cancelled = detenido por el usuario&lt;br&gt;Rate Limited = pausado por cuota de ancho de banda</value>
+  </data>
   <data name="SyncJobRateLimited" xml:space="preserve">
     <value>Sincronización pausada por límite de ancho de banda. Reanudará automáticamente.</value>
   </data>

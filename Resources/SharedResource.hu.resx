@@ -2498,6 +2498,12 @@
   <data name="RateLimited" xml:space="preserve">
     <value>Sávszélső határ</value>
   </data>
+  <data name="SyncProgressTooltip" xml:space="preserve">
+    <value>A haladás a befejezett mappák alapján mérve. Egy nagy mappa (pl. INBOX) 0%-on tartja a sávot, amíg be nem fejeződik.</value>
+  </data>
+  <data name="SyncStatusTooltip" xml:space="preserve">
+    <value>Állapotkódok:&lt;br&gt;Running = szinkronizálás folyamatban&lt;br&gt;Completed = sikeresen befejeződött&lt;br&gt;Failed = hibával befejeződött&lt;br&gt;Cancelled = a felhasználó leállította&lt;br&gt;Rate Limited = sávszélességi kvóta miatt szünetel</value>
+  </data>
   <data name="SyncJobRateLimited" xml:space="preserve">
     <value>Szinkronizáció felfüggesztve a sávszélességi korláton miatt. Automatikusan folytatódik.</value>
   </data>

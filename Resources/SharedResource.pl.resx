@@ -2552,6 +2552,12 @@
   <data name="RateLimited" xml:space="preserve">
     <value>Limit prędkości osiągnięty</value>
   </data>
+  <data name="SyncProgressTooltip" xml:space="preserve">
+    <value>Postęp jest mierzony według ukończonych folderów. Duży folder (np. INBOX) utrzymuje pasek na 0%, dopóki się nie zakończy.</value>
+  </data>
+  <data name="SyncStatusTooltip" xml:space="preserve">
+    <value>Kody stanu:&lt;br&gt;Running = synchronizacja w toku&lt;br&gt;Completed = zakończono pomyślnie&lt;br&gt;Failed = zakończono z błędami&lt;br&gt;Cancelled = zatrzymane przez użytkownika&lt;br&gt;Rate Limited = wstrzymane z powodu limitu przepustowości</value>
+  </data>
   <data name="SyncJobRateLimited" xml:space="preserve">
     <value>Synchronizacja wstrzymana z powodu limitu przepustowości. Będzie kontynuowana automatycznie.</value>
   </data>

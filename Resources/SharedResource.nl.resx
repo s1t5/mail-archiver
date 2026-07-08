@@ -2506,6 +2506,12 @@
   <data name="RateLimited" xml:space="preserve">
     <value>Bandbreedtebeperking bereikt</value>
   </data>
+  <data name="SyncProgressTooltip" xml:space="preserve">
+    <value>Voortgang wordt gemeten aan voltooide mappen. Een grote map (bijv. INBOX) houdt de balk op 0% tot deze klaar is.</value>
+  </data>
+  <data name="SyncStatusTooltip" xml:space="preserve">
+    <value>Statuscodes:&lt;br&gt;Running = synchronisatie loopt&lt;br&gt;Completed = succesvol voltooid&lt;br&gt;Failed = beëindigd met fouten&lt;br&gt;Cancelled = gestopt door gebruiker&lt;br&gt;Rate Limited = gepauzeerd wegens bandbreedtequotum</value>
+  </data>
   <data name="SyncJobRateLimited" xml:space="preserve">
     <value>Synchronisatie gepauzeerd door bandbreedtebeperking. Wordt automatisch hervat.</value>
   </data>
