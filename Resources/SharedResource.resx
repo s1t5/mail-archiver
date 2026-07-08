@@ -511,6 +511,27 @@
   <data name="EmailDeletion" xml:space="preserve">
     <value>Email Deletion</value>
   </data>
+  <data name="SyncScheduling" xml:space="preserve">
+    <value>Sync Scheduling</value>
+  </data>
+  <data name="SyncIntervalMinutes" xml:space="preserve">
+    <value>Sync Interval (minutes)</value>
+  </data>
+  <data name="SyncIntervalMinutesPlaceholder" xml:space="preserve">
+    <value>Default from settings</value>
+  </data>
+  <data name="SyncIntervalMinutesInfo" xml:space="preserve">
+    <value>Overrides the global sync interval for this account. Leave empty to use the default from appsettings.json.</value>
+  </data>
+  <data name="FullSyncIntervalHours" xml:space="preserve">
+    <value>Full Sync Interval (hours)</value>
+  </data>
+  <data name="FullSyncIntervalHoursPlaceholder" xml:space="preserve">
+    <value>No automatic full sync</value>
+  </data>
+  <data name="FullSyncIntervalHoursInfo" xml:space="preserve">
+    <value>Performs a full resync on this schedule. Leave empty to disable automatic full sync (manual resync remains available).</value>
+  </data>
   <data name="DeleteEmailAccountTitle" xml:space="preserve">
     <value>Delete Email Account</value>
   </data>

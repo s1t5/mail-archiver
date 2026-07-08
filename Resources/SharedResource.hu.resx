@@ -516,6 +516,27 @@
   <data name="EmailDeletion" xml:space="preserve">
     <value>E-mail Törlés</value>
   </data>
+  <data name="SyncScheduling" xml:space="preserve">
+    <value>Szinkronizálás ütemezése</value>
+  </data>
+  <data name="SyncIntervalMinutes" xml:space="preserve">
+    <value>Szinkronizálási időköz (perc)</value>
+  </data>
+  <data name="SyncIntervalMinutesPlaceholder" xml:space="preserve">
+    <value>Alapértelmezett a beállításokból</value>
+  </data>
+  <data name="SyncIntervalMinutesInfo" xml:space="preserve">
+    <value>Felülírja a globális szinkronizálási időközt ehhez a fiókhoz. Hagyja üresen az appsettings.json alapértelmezett értékének használatához.</value>
+  </data>
+  <data name="FullSyncIntervalHours" xml:space="preserve">
+    <value>Teljes szinkronizálás időköze (óra)</value>
+  </data>
+  <data name="FullSyncIntervalHoursPlaceholder" xml:space="preserve">
+    <value>Nincs automatikus teljes szinkronizálás</value>
+  </data>
+  <data name="FullSyncIntervalHoursInfo" xml:space="preserve">
+    <value>Ezen az ütemterven teljes újraszinkronizálást hajt végre. Hagyja üresen az automatikus teljes szinkronizálás kikapcsolásához (a manuális újraszinkronizálás továbbra is elérhető).</value>
+  </data>
   <!-- Delete Account Dialog -->
   <data name="DeleteEmailAccountTitle" xml:space="preserve">
     <value>E-mail Fiók Törlése</value>

@@ -295,6 +295,27 @@
                     </details>
                 </div>
 
+                @* Advanced: Sync Scheduling (collapsible) *@
+                <details class="form-advanced mt-3">
+                    <summary class="form-advanced-summary">
+                        <i class="bi bi-clock-history me-1"></i> @Localizer["SyncScheduling"]
+                    </summary>
+                    <div class="form-advanced-body">
+                        <div class="mb-3">
+                            <label asp-for="SyncIntervalMinutes" class="form-label">@Localizer["SyncIntervalMinutes"]</label>
+                            <input asp-for="SyncIntervalMinutes" class="form-control" type="number" min="1" placeholder="@Localizer["SyncIntervalMinutesPlaceholder"]" />
+                            <div class="form-text">@Localizer["SyncIntervalMinutesInfo"]</div>
+                            <span asp-validation-for="SyncIntervalMinutes" class="text-danger"></span>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="FullSyncIntervalHours" class="form-label">@Localizer["FullSyncIntervalHours"]</label>
+                            <input asp-for="FullSyncIntervalHours" class="form-control" type="number" min="1" placeholder="@Localizer["FullSyncIntervalHoursPlaceholder"]" />
+                            <div class="form-text">@Localizer["FullSyncIntervalHoursInfo"]</div>
+                            <span asp-validation-for="FullSyncIntervalHours" class="text-danger"></span>
+                        </div>
+                    </div>
+                </details>
+
                 <div class="mt-4 d-flex gap-2">
                     <button type="submit" class="btn btn-primary" id="saveBtn">
                         <i class="bi bi-check-circle"></i> @Localizer["Save"]

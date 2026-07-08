@@ -48,6 +48,9 @@ namespace MailArchiver.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<int?>("FullSyncIntervalHours")
+                        .HasColumnType("integer");
+
                     b.Property<int?>("ImapPort")
                         .HasColumnType("integer");
 
@@ -58,6 +61,9 @@ namespace MailArchiver.Migrations
                         .HasColumnType("boolean");
 
                     b.Property<DateTime>("LastSync")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<DateTime?>("LastFullSync")
                         .HasColumnType("timestamp without time zone");
 
                     b.Property<int?>("LocalRetentionDays")
@@ -82,6 +88,9 @@ namespace MailArchiver.Migrations
                     b.Property<string>("Provider")
                         .HasMaxLength(10)
                         .HasColumnType("text");
+
+                    b.Property<int?>("SyncIntervalMinutes")
+                        .HasColumnType("integer");
 
                     b.Property<string>("TenantId")
                         .HasColumnType("text");

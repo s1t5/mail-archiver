@@ -514,6 +514,27 @@
   <data name="EmailDeletion" xml:space="preserve">
     <value>E-mail verwijdering</value>
   </data>
+  <data name="SyncScheduling" xml:space="preserve">
+    <value>Synchronisatieplanning</value>
+  </data>
+  <data name="SyncIntervalMinutes" xml:space="preserve">
+    <value>Sync-interval (minuten)</value>
+  </data>
+  <data name="SyncIntervalMinutesPlaceholder" xml:space="preserve">
+    <value>Standaard uit instellingen</value>
+  </data>
+  <data name="SyncIntervalMinutesInfo" xml:space="preserve">
+    <value>Overschrijft het globale sync-interval voor deze account. Leeg laten om de standaardwaarde uit appsettings.json te gebruiken.</value>
+  </data>
+  <data name="FullSyncIntervalHours" xml:space="preserve">
+    <value>Volledige sync-interval (uren)</value>
+  </data>
+  <data name="FullSyncIntervalHoursPlaceholder" xml:space="preserve">
+    <value>Geen automatische volledige sync</value>
+  </data>
+  <data name="FullSyncIntervalHoursInfo" xml:space="preserve">
+    <value>Voert op dit schema een volledige resync uit. Leeg laten om automatische volledige sync uit te schakelen (handmatige resync blijft beschikbaar).</value>
+  </data>
   <data name="DeleteEmailAccountTitle" xml:space="preserve">
     <value>E-mailaccount verwijderen</value>
   </data>

@@ -514,6 +514,27 @@
   <data name="EmailDeletion" xml:space="preserve">
     <value>Izbris e-pošte</value>
   </data>
+  <data name="SyncScheduling" xml:space="preserve">
+    <value>Razporejanje sinhronizacije</value>
+  </data>
+  <data name="SyncIntervalMinutes" xml:space="preserve">
+    <value>Interval sinhronizacije (minute)</value>
+  </data>
+  <data name="SyncIntervalMinutesPlaceholder" xml:space="preserve">
+    <value>Privzeto iz nastavitev</value>
+  </data>
+  <data name="SyncIntervalMinutesInfo" xml:space="preserve">
+    <value>Prepiše globalni interval sinhronizacije za ta račun. Pustite prazno za uporabo privzete vrednosti iz appsettings.json.</value>
+  </data>
+  <data name="FullSyncIntervalHours" xml:space="preserve">
+    <value>Interval polne sinhronizacije (ure)</value>
+  </data>
+  <data name="FullSyncIntervalHoursPlaceholder" xml:space="preserve">
+    <value>Brez samodejne polne sinhronizacije</value>
+  </data>
+  <data name="FullSyncIntervalHoursInfo" xml:space="preserve">
+    <value>Po tem razporedu izvede polno ponovno sinhronizacijo. Pustite prazno za izklop samodejne polne sinhronizacije (ročna ponovna sinhronizacija ostaja na voljo).</value>
+  </data>
   <data name="DeleteEmailAccountTitle" xml:space="preserve">
     <value>Izbriši e-poštni račun</value>
   </data>

@@ -47,6 +47,14 @@ namespace MailArchiver.Models.ViewModels
         [Display(Name = "Local Retention Days")]
         [Range(1, int.MaxValue, ErrorMessage = "Local retention days must be at least 1")]
         public int? LocalRetentionDays { get; set; }
+
+        [Display(Name = "Sync Interval Minutes")]
+        [Range(1, int.MaxValue, ErrorMessage = "Sync interval minutes must be at least 1")]
+        public int? SyncIntervalMinutes { get; set; }
+
+        [Display(Name = "Full Sync Interval Hours")]
+        [Range(1, int.MaxValue, ErrorMessage = "Full sync interval hours must be at least 1")]
+        public int? FullSyncIntervalHours { get; set; }
         
         [Display(Name = "Provider")]
         public ProviderType Provider { get; set; } = ProviderType.IMAP;

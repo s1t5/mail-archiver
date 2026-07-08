@@ -36,6 +36,11 @@ public class MailAccount
     public string? OAuthRefreshToken { get; set; }
     public string? OAuthAccessToken { get; set; }
     public DateTime? OAuthTokenExpiry { get; set; }
+
+    // Per-account sync scheduling
+    public int? SyncIntervalMinutes { get; set; }
+    public int? FullSyncIntervalHours { get; set; }
+    public DateTime? LastFullSync { get; set; }
     
     [NotMapped]
     public List<string> ExcludedFoldersList

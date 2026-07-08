@@ -300,6 +300,8 @@ namespace MailArchiver.Controllers
                     ExcludedFolders = string.Empty,
                     DeleteAfterDays = model.DeleteAfterDays,
                     LocalRetentionDays = model.LocalRetentionDays,
+                    SyncIntervalMinutes = model.SyncIntervalMinutes,
+                    FullSyncIntervalHours = model.FullSyncIntervalHours,
                     LastSync = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)
                 };
 
@@ -507,6 +509,8 @@ namespace MailArchiver.Controllers
                         ExcludedFolders = string.Empty,
                         DeleteAfterDays = model.DeleteAfterDays,
                         LocalRetentionDays = model.LocalRetentionDays,
+                        SyncIntervalMinutes = model.SyncIntervalMinutes,
+                        FullSyncIntervalHours = model.FullSyncIntervalHours,
                         LastSync = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)
                     })
                     .ToList();
@@ -661,6 +665,8 @@ namespace MailArchiver.Controllers
                 ExcludedFolders = account.ExcludedFolders,
                 DeleteAfterDays = account.DeleteAfterDays,
                 LocalRetentionDays = account.LocalRetentionDays,
+                SyncIntervalMinutes = account.SyncIntervalMinutes,
+                FullSyncIntervalHours = account.FullSyncIntervalHours,
                 Provider = account.Provider,
                 ClientId = account.ClientId,
                 ClientSecret = account.ClientSecret,
@@ -853,6 +859,8 @@ namespace MailArchiver.Controllers
                     account.ExcludedFolders = model.ExcludedFolders ?? string.Empty;
                     account.DeleteAfterDays = model.DeleteAfterDays;
                     account.LocalRetentionDays = model.LocalRetentionDays;
+                    account.SyncIntervalMinutes = model.SyncIntervalMinutes;
+                    account.FullSyncIntervalHours = model.FullSyncIntervalHours;
 
                     // Validate local retention policy
                     if (account.LocalRetentionDays.HasValue && !account.DeleteAfterDays.HasValue)

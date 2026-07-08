@@ -514,6 +514,27 @@
   <data name="EmailDeletion" xml:space="preserve">
     <value>Удаление писем</value>
   </data>
+  <data name="SyncScheduling" xml:space="preserve">
+    <value>Расписание синхронизации</value>
+  </data>
+  <data name="SyncIntervalMinutes" xml:space="preserve">
+    <value>Интервал синхронизации (минуты)</value>
+  </data>
+  <data name="SyncIntervalMinutesPlaceholder" xml:space="preserve">
+    <value>По умолчанию из настроек</value>
+  </data>
+  <data name="SyncIntervalMinutesInfo" xml:space="preserve">
+    <value>Переопределяет глобальный интервал синхронизации для этого аккаунта. Оставьте пустым, чтобы использовать значение по умолчанию из appsettings.json.</value>
+  </data>
+  <data name="FullSyncIntervalHours" xml:space="preserve">
+    <value>Интервал полной синхронизации (часы)</value>
+  </data>
+  <data name="FullSyncIntervalHoursPlaceholder" xml:space="preserve">
+    <value>Без автоматической полной синхронизации</value>
+  </data>
+  <data name="FullSyncIntervalHoursInfo" xml:space="preserve">
+    <value>Выполняет полную повторную синхронизацию по этому расписанию. Оставьте пустым, чтобы отключить автоматическую полную синхронизацию (ручная ресинхронизация остаётся доступной).</value>
+  </data>
   <data name="DeleteEmailAccountTitle" xml:space="preserve">
     <value>Удалить почтовый аккаунт</value>
   </data>

@@ -514,6 +514,27 @@
   <data name="EmailDeletion" xml:space="preserve">
     <value>Suppression d'emails</value>
   </data>
+  <data name="SyncScheduling" xml:space="preserve">
+    <value>Planification de la synchronisation</value>
+  </data>
+  <data name="SyncIntervalMinutes" xml:space="preserve">
+    <value>Intervalle de sync (minutes)</value>
+  </data>
+  <data name="SyncIntervalMinutesPlaceholder" xml:space="preserve">
+    <value>Paramètres par défaut</value>
+  </data>
+  <data name="SyncIntervalMinutesInfo" xml:space="preserve">
+    <value>Remplace l'intervalle de synchronisation global pour ce compte. Laisser vide pour utiliser la valeur par défaut de appsettings.json.</value>
+  </data>
+  <data name="FullSyncIntervalHours" xml:space="preserve">
+    <value>Intervalle de sync complète (heures)</value>
+  </data>
+  <data name="FullSyncIntervalHoursPlaceholder" xml:space="preserve">
+    <value>Pas de sync complète auto</value>
+  </data>
+  <data name="FullSyncIntervalHoursInfo" xml:space="preserve">
+    <value>Effectue une resynchronisation complète selon ce calendrier. Laisser vide pour désactiver la sync complète automatique (la resync manuelle reste disponible).</value>
+  </data>
   <data name="DeleteEmailAccountTitle" xml:space="preserve">
     <value>Supprimer le compte email</value>
   </data>
