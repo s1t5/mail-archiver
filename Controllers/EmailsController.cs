@@ -2539,7 +2539,17 @@ namespace MailArchiver.Controllers
             // Set proper content type with UTF-8 encoding to ensure correct character display
             // SECURITY: strict CSP blocks any residual script execution even if the sanitizer
             // is ever bypassed. Inline styles are allowed for email rendering fidelity.
-            Response.Headers["Content-Security-Policy"] = "default-src 'none'; img-src 'self' data: cid:; style-src 'unsafe-inline'; font-src 'self' data:;";
+            // When BlockExternalResources is true (privacy mode), only inline/data:/cid: content
+            // is allowed. When false (default), external images, styles and fonts are also
+            // permitted, matching what SanitizeHtml preserves in that mode.
+            if (_viewOptions.BlockExternalResources)
+            {
+                Response.Headers["Content-Security-Policy"] = "default-src 'none'; img-src 'self' data: cid:; style-src 'unsafe-inline'; font-src 'self' data:;";
+            }
+            else
+            {
+                Response.Headers["Content-Security-Policy"] = "default-src 'none'; img-src 'self' data: cid: http: https:; style-src 'unsafe-inline' http: https:; font-src 'self' data: http: https:;";
+            }
             Response.Headers["X-Content-Type-Options"] = "nosniff";
             return Content(html, "text/html; charset=utf-8");
         }
