@@ -24,6 +24,7 @@ Mail Archiver is a comprehensive application designed to archive emails from var
 - [Docker Compose Logs Guide](DockerComposeLogs.md)
 - [Emergency Account Recovery](EmergencyAccountRecovery.md)
 - [Mail Search Guide](Search.md)
+- [Mail Synchronization (Quick vs. Full Sync)](Synchronization.md)
 - [OpenID Connect (OIDC) Authentication](OIDC_Implementation.md)
 - [Retention Policies](RetentionPolicies.md)
 - [Reverse Proxy Configuration](ReverseProxy.md)
