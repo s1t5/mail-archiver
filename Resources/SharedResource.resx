@@ -527,10 +527,10 @@
     <value>Full Sync Interval (hours)</value>
   </data>
   <data name="FullSyncIntervalHoursPlaceholder" xml:space="preserve">
-    <value>No automatic full sync</value>
+    <value>No account-specific full sync</value>
   </data>
   <data name="FullSyncIntervalHoursInfo" xml:space="preserve">
-    <value>Performs a full resync on this schedule. Leave empty to disable automatic full sync (manual resync remains available).</value>
+    <value>Performs a full resync on this schedule. Leave empty to use the global default from appsettings.json (if set) or to disable automatic full sync. The manual resync button remains available regardless.</value>
   </data>
   <data name="DeleteEmailAccountTitle" xml:space="preserve">
     <value>Delete Email Account</value>

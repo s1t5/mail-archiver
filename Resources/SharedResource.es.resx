@@ -533,10 +533,10 @@
     <value>Intervalo de sync completa (horas)</value>
   </data>
   <data name="FullSyncIntervalHoursPlaceholder" xml:space="preserve">
-    <value>Sin sync completa automática</value>
+    <value>Sin sync completa por cuenta</value>
   </data>
   <data name="FullSyncIntervalHoursInfo" xml:space="preserve">
-    <value>Realiza una resincronización completa según esta programación. Dejar vacío para desactivar la sync completa automática (la resincronización manual sigue disponible).</value>
+    <value>Realiza una resincronización completa según esta programación. Dejar vacío para usar el valor global predeterminado de appsettings.json (si está definido) o desactivar la sync completa automática. La resincronización manual sigue disponible en cualquier caso.</value>
   </data>
   <data name="DeleteEmailAccountTitle" xml:space="preserve">
     <value>Eliminar Cuenta de Correo</value>

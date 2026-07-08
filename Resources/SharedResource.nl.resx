@@ -530,10 +530,10 @@
     <value>Volledige sync-interval (uren)</value>
   </data>
   <data name="FullSyncIntervalHoursPlaceholder" xml:space="preserve">
-    <value>Geen automatische volledige sync</value>
+    <value>Geen accountspecifieke volledige sync</value>
   </data>
   <data name="FullSyncIntervalHoursInfo" xml:space="preserve">
-    <value>Voert op dit schema een volledige resync uit. Leeg laten om automatische volledige sync uit te schakelen (handmatige resync blijft beschikbaar).</value>
+    <value>Voert op dit schema een volledige resync uit. Leeg laten om de algemene standaard uit appsettings.json te gebruiken (indien ingesteld) of automatische volledige sync uit te schakelen. Handmatige resync blijft altijd beschikbaar.</value>
   </data>
   <data name="DeleteEmailAccountTitle" xml:space="preserve">
     <value>E-mailaccount verwijderen</value>

@@ -40,6 +40,10 @@ services:
       - MailSync__CommandTimeoutSeconds=300
       - MailSync__AlwaysForceFullSync=false
       - MailSync__IgnoreSelfSignedCert=false
+      # Optional: global default for automatic full resyncs, in hours.
+      # Leave unset (default) to disable automatic full syncs globally;
+      # per-account FullSyncIntervalHours overrides this when set.
+      # - MailSync__FullSyncIntervalHours=24
 
       # BatchRestore Settings
       - BatchRestore__AsyncThreshold=50
@@ -212,7 +216,8 @@ docker compose restart
   - `None`: Cookies are sent with all requests. Requires HTTPS and the `Secure` attribute. Only use this if you have specific cross-site requirements and understand the security implications.
   
 ### 📨 MailSync Settings
-- `MailSync__IntervalMinutes`: The interval in minutes between email synchronization.
+- `MailSync__IntervalMinutes`: The interval in minutes between email synchronization. This is the global default; each account can override it individually from the Create/Edit page (leave empty to use this default).
+- `MailSync__FullSyncIntervalHours`: Optional global default for automatic full resyncs, in hours. When unset (the default), no automatic full sync runs unless a per-account `FullSyncIntervalHours` value is set on the Create/Edit page. Per-account values override this global default.
 - `MailSync__TimeoutMinutes`: The timeout for the sync operation in minutes.
 - `MailSync__ConnectionTimeoutSeconds`: The connection timeout for IMAP connections in seconds.
 - `MailSync__CommandTimeoutSeconds`: The command timeout for IMAP commands in seconds.

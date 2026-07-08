@@ -532,10 +532,10 @@
     <value>Teljes szinkronizálás időköze (óra)</value>
   </data>
   <data name="FullSyncIntervalHoursPlaceholder" xml:space="preserve">
-    <value>Nincs automatikus teljes szinkronizálás</value>
+    <value>Nincs fiókspecifikus teljes szinkronizálás</value>
   </data>
   <data name="FullSyncIntervalHoursInfo" xml:space="preserve">
-    <value>Ezen az ütemterven teljes újraszinkronizálást hajt végre. Hagyja üresen az automatikus teljes szinkronizálás kikapcsolásához (a manuális újraszinkronizálás továbbra is elérhető).</value>
+    <value>Ezen az ütemterven teljes újraszinkronizálást hajt végre. Hagyja üresen az appsettings.json globális alapértelmezett értékének használatához (ha be van állítva) vagy az automatikus teljes szinkronizálás kikapcsolásához. A manuális újraszinkronizálás minden esetben elérhető marad.</value>
   </data>
   <!-- Delete Account Dialog -->
   <data name="DeleteEmailAccountTitle" xml:space="preserve">

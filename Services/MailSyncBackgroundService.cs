@@ -37,6 +37,10 @@ namespace MailArchiver.Services
             // Global default interval (minutes) from appsettings. Per-account value
             // overrides this when set; null falls back to this default.
             var defaultSyncIntervalMinutes = _configuration.GetValue<int>("MailSync:IntervalMinutes", 15);
+            // Global default full-sync interval (hours) from appsettings. Nullable on
+            // purpose: null (the default) means "no automatic full sync" for accounts
+            // that do not set their own FullSyncIntervalHours. Per-account value wins.
+            var defaultFullSyncIntervalHours = _configuration.GetValue<int?>("MailSync:FullSyncIntervalHours");
             var syncTimeoutMinutes = _configuration.GetValue<int>("MailSync:TimeoutMinutes", 60);
             var alwaysForceFullSync = _configuration.GetValue<bool>("MailSync:AlwaysForceFullSync", false);
 
@@ -119,29 +123,35 @@ namespace MailArchiver.Services
                         // after the sync completes below).
                         nextRunUtc[account.Id] = nowUtc.AddMinutes(effectiveSyncInterval);
 
-                        // Auto full-sync scheduling (only when FullSyncIntervalHours is set per
-                        // account; global default is intentionally absent — null disables auto FS).
+                        // Auto full-sync scheduling. The effective full-sync interval is the
+                        // per-account value if set, otherwise the global default from appsettings.
+                        // When both are null (the default) no automatic full sync runs — only the
+                        // manual resync button and AlwaysForceFullSync remain.
                         var performFullSync = false;
-                        if (!alwaysForceFullSync && account.FullSyncIntervalHours.HasValue)
+                        if (!alwaysForceFullSync)
                         {
-                            var fullIntervalHours = account.FullSyncIntervalHours.Value;
-                            if (fullIntervalHours < 1) fullIntervalHours = 1;
+                            int? effectiveFullSyncIntervalHours = account.FullSyncIntervalHours ?? defaultFullSyncIntervalHours;
+                            if (effectiveFullSyncIntervalHours.HasValue)
+                            {
+                                var fullIntervalHours = effectiveFullSyncIntervalHours.Value;
+                                if (fullIntervalHours < 1) fullIntervalHours = 1;
 
-                            // Seed lastFullSyncUtc from the DB column the first time we see
-                            // this account.
-                            if (!lastFullSyncUtc.ContainsKey(account.Id))
-                                lastFullSyncUtc[account.Id] = account.LastFullSync ?? EpochUtc;
+                                // Seed lastFullSyncUtc from the DB column the first time we see
+                                // this account.
+                                if (!lastFullSyncUtc.ContainsKey(account.Id))
+                                    lastFullSyncUtc[account.Id] = account.LastFullSync ?? EpochUtc;
 
-                            var nextFullRun = lastFullSyncUtc[account.Id].AddHours(fullIntervalHours);
-                            if (nowUtc >= nextFullRun)
-                                performFullSync = true;
+                                var nextFullRun = lastFullSyncUtc[account.Id].AddHours(fullIntervalHours);
+                                if (nowUtc >= nextFullRun)
+                                    performFullSync = true;
+                            }
                         }
 
                         if (performFullSync)
                         {
                             _logger.LogInformation(
-                                "Scheduling automatic full sync for account {AccountName} (FullSyncIntervalHours={Hours})",
-                                account.Name, account.FullSyncIntervalHours);
+                                "Scheduling automatic full sync for account {AccountName} (effective FullSyncIntervalHours={Hours})",
+                                account.Name, (account.FullSyncIntervalHours ?? defaultFullSyncIntervalHours).Value);
                         }
 
                         try

@@ -5,6 +5,7 @@ namespace MailArchiver.Models
         public const string MailSync = "MailSync";
         
         public int IntervalMinutes { get; set; } = 5;
+        public int? FullSyncIntervalHours { get; set; }
         public int TimeoutMinutes { get; set; } = 60;
         public int ConnectionTimeoutSeconds { get; set; } = 180;
         public int CommandTimeoutSeconds { get; set; } = 300;

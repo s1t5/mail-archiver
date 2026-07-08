@@ -530,10 +530,10 @@
     <value>Interval polne sinhronizacije (ure)</value>
   </data>
   <data name="FullSyncIntervalHoursPlaceholder" xml:space="preserve">
-    <value>Brez samodejne polne sinhronizacije</value>
+    <value>Brez polne sinhronizacije po računu</value>
   </data>
   <data name="FullSyncIntervalHoursInfo" xml:space="preserve">
-    <value>Po tem razporedu izvede polno ponovno sinhronizacijo. Pustite prazno za izklop samodejne polne sinhronizacije (ročna ponovna sinhronizacija ostaja na voljo).</value>
+    <value>Po tem razporedu izvede polno ponovno sinhronizacijo. Pustite prazno za uporabo globalne privzete vrednosti iz appsettings.json (če je nastavljena) ali izklop samodejne polne sinhronizacije. Ročna ponovna sinhronizacija ostaja vedno na voljo.</value>
   </data>
   <data name="DeleteEmailAccountTitle" xml:space="preserve">
     <value>Izbriši e-poštni račun</value>
