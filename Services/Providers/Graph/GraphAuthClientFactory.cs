@@ -1,6 +1,9 @@
 using Azure.Identity;
 using MailArchiver.Models;
 using Microsoft.Graph;
+using System.Collections.Concurrent;
+using System.Security.Cryptography;
+using System.Text;
 using GraphUser = Microsoft.Graph.Models.User;
 
 namespace MailArchiver.Services.Providers.Graph
@@ -8,14 +11,35 @@ namespace MailArchiver.Services.Providers.Graph
     /// <summary>
     /// Factory that creates authenticated GraphServiceClient instances for M365 accounts.
     /// Uses client credentials flow with Azure.Identity for automatic token acquisition and refresh.
+    /// Clients are cached per credential set (tenantId + clientId + secret hash) because
+    /// GraphServiceClient owns an internal HttpClient that would otherwise leak handlers/sockets
+    /// when a new client is created for every sync run. GraphServiceClient and
+    /// ClientSecretCredential are thread-safe and intended to be reused.
     /// </summary>
     public class GraphAuthClientFactory
     {
         private readonly ILogger<GraphAuthClientFactory> _logger;
 
+        // MEMORY FIX: Cache GraphServiceClient instances per credential set. Creating a new
+        // GraphServiceClient per operation leaks the internally-owned HttpClient/handler chain
+        // (never disposed) and re-acquires OAuth tokens on every sync (each ClientSecretCredential
+        // has its own MSAL token cache). Credential changes produce a new cache key automatically.
+        private readonly ConcurrentDictionary<string, GraphServiceClient> _clientCache = new();
+
         public GraphAuthClientFactory(ILogger<GraphAuthClientFactory> logger)
         {
             _logger = logger;
+        }
+
+        /// <summary>
+        /// Builds a cache key from tenant credentials. The client secret is hashed so it is
+        /// never kept in plain text as a dictionary key.
+        /// </summary>
+        private static string BuildCacheKey(string clientId, string clientSecret, string tenantId)
+        {
+            var secretHash = Convert.ToHexString(
+                SHA256.HashData(Encoding.UTF8.GetBytes(clientSecret)));
+            return $"{tenantId}|{clientId}|{secretHash}";
         }
 
         /// <summary>
@@ -39,7 +63,7 @@ namespace MailArchiver.Services.Providers.Graph
         }
 
         /// <summary>
-        /// Creates a GraphServiceClient directly from tenant credentials.
+        /// Creates (or returns a cached) GraphServiceClient directly from tenant credentials.
         /// </summary>
         public GraphServiceClient CreateGraphClient(string clientId, string clientSecret, string tenantId)
         {
@@ -53,14 +77,19 @@ namespace MailArchiver.Services.Providers.Graph
                 throw new InvalidOperationException("TenantId is required for application-permission OAuth (client credentials flow).");
             }
 
-            var credential = new ClientSecretCredential(
-                tenantId: tenantId,
-                clientId: clientId,
-                clientSecret: clientSecret);
+            return _clientCache.GetOrAdd(BuildCacheKey(clientId, clientSecret, tenantId), _ =>
+            {
+                var credential = new ClientSecretCredential(
+                    tenantId: tenantId,
+                    clientId: clientId,
+                    clientSecret: clientSecret);
 
-            return new GraphServiceClient(
-                credential,
-                new[] { "https://graph.microsoft.com/.default" });
+                _logger.LogDebug("Creating new cached GraphServiceClient for tenant {TenantId}", tenantId);
+
+                return new GraphServiceClient(
+                    credential,
+                    new[] { "https://graph.microsoft.com/.default" });
+            });
         }
 
         /// <summary>
@@ -141,8 +170,8 @@ namespace MailArchiver.Services.Providers.Graph
         }
 
         /// <summary>
-        /// Creates a GraphServiceClient for the specified M365 account using client credentials flow
-        /// with automatic token refresh via Azure.Identity.
+        /// Creates (or returns a cached) GraphServiceClient for the specified M365 account using
+        /// client credentials flow with automatic token refresh via Azure.Identity.
         /// </summary>
         /// <param name="account">The M365 mail account</param>
         /// <returns>Configured GraphServiceClient</returns>
@@ -151,16 +180,9 @@ namespace MailArchiver.Services.Providers.Graph
             ValidateAccountCredentials(account);
 
             // Azure.Identity handles token acquisition + refresh automatically.
-            var credential = new ClientSecretCredential(
-                tenantId: account.TenantId,
-                clientId: account.ClientId,
-                clientSecret: account.ClientSecret);
+            var graphServiceClient = CreateGraphClient(account.ClientId!, account.ClientSecret!, account.TenantId!);
 
-            var graphServiceClient = new GraphServiceClient(
-                credential,
-                new[] { "https://graph.microsoft.com/.default" });
-
-            _logger.LogDebug("Created GraphServiceClient for account '{AccountName}' (tenant: {TenantId})",
+            _logger.LogDebug("Resolved GraphServiceClient for account '{AccountName}' (tenant: {TenantId})",
                 account.Name, account.TenantId);
 
             return graphServiceClient;

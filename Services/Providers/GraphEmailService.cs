@@ -78,7 +78,9 @@ namespace MailArchiver.Services.Providers
 
         async Task<bool> IProviderEmailService.RestoreEmailToFolderAsync(int emailId, int targetAccountId, string folderName, bool preserveFolderStructure)
         {
+            // MEMORY FIX: Restore only reads the entity – no tracking needed.
             var email = await _context.ArchivedEmails
+                .AsNoTracking()
                 .Include(e => e.Attachments)
                     .ThenInclude(a => a.AttachmentContent)
                 .FirstOrDefaultAsync(e => e.Id == emailId);

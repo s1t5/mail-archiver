@@ -231,7 +231,11 @@ namespace MailArchiver.Services.Providers.Graph
 
                 try
                 {
+                    // MEMORY FIX: Restore only reads the entity – load without tracking so the
+                    // change tracker does not accumulate emails and attachment byte arrays
+                    // across the entire batch.
                     var email = await _context.ArchivedEmails
+                        .AsNoTracking()
                         .Include(e => e.Attachments)
                             .ThenInclude(a => a.AttachmentContent)
                         .FirstOrDefaultAsync(e => e.Id == emailId, cancellationToken);

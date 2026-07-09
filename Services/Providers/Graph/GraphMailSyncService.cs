@@ -143,7 +143,7 @@ namespace MailArchiver.Services.Providers.Graph
                 var deletedEmails = 0;
                 if (account.DeleteAfterDays.HasValue && account.DeleteAfterDays.Value > 0)
                 {
-                    deletedEmails = await DeleteOldEmailsAsync(account);
+                    deletedEmails = await DeleteOldEmailsAsync(graphClient, account);
                 }
 
                 if (failedEmails == 0)
@@ -339,11 +339,13 @@ namespace MailArchiver.Services.Providers.Graph
                     await ProcessMessagePageAsync(graphClient, account, folder, currentPageMessages, lastSync,
                         folderNameForStorage, isOutgoing, jobId, result, pageNumber);
 
-                    // MEMORY FIX: Trigger a non-blocking Gen 0 GC after each page to release
-                    // the processed Message objects (with potentially large Body content).
+                    // MEMORY FIX: Trigger a non-blocking background Gen 2 GC after each page.
+                    // Large message bodies (>85 KB strings) and attachment byte arrays live on
+                    // the Large Object Heap, which Gen 0 collections never reclaim - without a
+                    // Gen 2 collection the LOH garbage accumulates over the whole account sync.
                     try
                     {
-                        GC.Collect(0, GCCollectionMode.Optimized, blocking: false);
+                        GC.Collect(2, GCCollectionMode.Optimized, blocking: false);
                     }
                     catch (Exception gcEx)
                     {
@@ -497,21 +499,6 @@ namespace MailArchiver.Services.Providers.Graph
         }
 
         /// <summary>
-        /// Filters messages by lastModifiedDateTime client-side if server-side filtering wasn't possible.
-        /// </summary>
-        private static List<Message>? FilterMessagesByDate(MessageCollectionResponse? response, DateTime lastSync)
-        {
-            if (response?.Value == null)
-                return null;
-
-            var filtered = response.Value
-                .Where(m => m.LastModifiedDateTime >= lastSync)
-                .ToList();
-
-            return filtered;
-        }
-
-        /// <summary>
         /// Processes a page of messages: enriches with full details, archives each message, and manages memory.
         /// </summary>
         private async Task ProcessMessagePageAsync(
@@ -551,6 +538,35 @@ namespace MailArchiver.Services.Providers.Graph
                 {
                     var message = messages[i];
 
+                    // MEMORY/BANDWIDTH FIX: Check for duplicates BEFORE enriching the message.
+                    // Every incremental sync re-fetches a 12h overlap window, so most messages
+                    // are already archived - fetching their full body per message just to have
+                    // the archiver discard them wastes requests and LOH allocations.
+                    // The fuzzy From/To/Subject/Date fallback needs From + ToRecipients, so the
+                    // early check only runs when those fields are present (standard page query);
+                    // otherwise the archiver performs the check after enrichment as before.
+                    bool duplicateCheckDone = false;
+                    if (message.From != null && message.ToRecipients != null)
+                    {
+                        var messageId = GraphMailArchiver.ResolveMessageId(message);
+                        var isDuplicate = await _archiver.IsDuplicateAsync(account.Id, messageId, message, folderNameForStorage);
+                        if (isDuplicate)
+                        {
+                            processedInBatch++;
+
+                            // Release the body content of the duplicate immediately.
+                            messages[i].Body = null;
+                            messages[i].BodyPreview = null;
+
+                            if (processedInBatch % 10 == 0)
+                            {
+                                _context.ChangeTracker.Clear();
+                            }
+                            continue;
+                        }
+                        duplicateCheckDone = true;
+                    }
+
                     // Enrich with full details if needed
                     if (message.Body?.Content == null || message.ToRecipients == null || message.CcRecipients == null)
                     {
@@ -571,7 +587,8 @@ namespace MailArchiver.Services.Providers.Graph
                         }
                     }
 
-                    var isNew = await _archiver.ArchiveGraphEmailAsync(graphClient, account, fullMessage, isOutgoing, folderNameForStorage);
+                    var isNew = await _archiver.ArchiveGraphEmailAsync(graphClient, account, fullMessage, isOutgoing, folderNameForStorage,
+                        skipDuplicateCheck: duplicateCheckDone);
                     if (isNew)
                         result.NewEmails++;
 
@@ -590,14 +607,14 @@ namespace MailArchiver.Services.Providers.Graph
                     messages[i].BodyPreview = null;
 
                     // MEMORY FIX: For large pages (50+ messages), periodically trigger a
-                    // non-blocking Gen 0 GC to release short-lived objects like enriched
-                    // Message details and intermediate strings.
+                    // non-blocking background Gen 2 GC so LOH-resident objects (large bodies,
+                    // attachment byte arrays) from already-processed messages are reclaimed.
                     if (processedInBatch % 50 == 0 && messages.Count >= 50)
                     {
                         try
                         {
-                            GC.Collect(0, GCCollectionMode.Optimized, blocking: false);
-                            _logger.LogDebug("Gen-0 GC after {Count} messages in page {PageNumber}",
+                            GC.Collect(2, GCCollectionMode.Optimized, blocking: false);
+                            _logger.LogDebug("Background Gen-2 GC after {Count} messages in page {PageNumber}",
                                 processedInBatch, pageNumber);
                         }
                         catch (Exception gcEx)
@@ -638,8 +655,9 @@ namespace MailArchiver.Services.Providers.Graph
 
         /// <summary>
         /// Deletes old emails from the M365 mailbox based on the account's retention policy.
+        /// Reuses the Graph client from the sync run to avoid creating additional clients.
         /// </summary>
-        private async Task<int> DeleteOldEmailsAsync(MailAccount account)
+        private async Task<int> DeleteOldEmailsAsync(GraphServiceClient graphClient, MailAccount account)
         {
             if (!account.DeleteAfterDays.HasValue || account.DeleteAfterDays.Value <= 0)
                 return 0;
@@ -652,7 +670,6 @@ namespace MailArchiver.Services.Providers.Graph
 
             try
             {
-                var graphClient = _authFactory.CreateGraphClient(account);
                 var folders = await _folderService.GetAllMailFoldersAsync(graphClient, account.EmailAddress);
 
                 _logger.LogInformation("Found {Count} folders for M365 account: {AccountName}", folders.Count, account.Name);
@@ -701,29 +718,38 @@ namespace MailArchiver.Services.Providers.Graph
                                 {
                                     var messageId = message.InternetMessageId ?? message.Id;
 
-                                    var archivedEmail = await _context.ArchivedEmails
+                                    // MEMORY FIX: Existence check only – use AsNoTracking with an Id
+                                    // projection so the change tracker does not accumulate full
+                                    // ArchivedEmail entities over the whole deletion run.
+                                    var archivedEmailId = await _context.ArchivedEmails
+                                        .AsNoTracking()
                                         .Where(e => e.MailAccountId == account.Id)
                                         .Where(e => e.MessageId == messageId)
+                                        .Select(e => (int?)e.Id)
                                         .FirstOrDefaultAsync();
 
-                                    if (archivedEmail == null && !string.IsNullOrEmpty(messageId) && !messageId.StartsWith("<"))
+                                    if (archivedEmailId == null && !string.IsNullOrEmpty(messageId) && !messageId.StartsWith("<"))
                                     {
                                         var messageIdWithBrackets = $"<{messageId}>";
-                                        archivedEmail = await _context.ArchivedEmails
+                                        archivedEmailId = await _context.ArchivedEmails
+                                            .AsNoTracking()
                                             .Where(e => e.MailAccountId == account.Id)
                                             .Where(e => e.MessageId == messageIdWithBrackets)
+                                            .Select(e => (int?)e.Id)
                                             .FirstOrDefaultAsync();
                                     }
-                                    else if (archivedEmail == null && !string.IsNullOrEmpty(messageId) && messageId.StartsWith("<") && messageId.EndsWith(">"))
+                                    else if (archivedEmailId == null && !string.IsNullOrEmpty(messageId) && messageId.StartsWith("<") && messageId.EndsWith(">"))
                                     {
                                         var messageIdWithoutBrackets = messageId.Substring(1, messageId.Length - 2);
-                                        archivedEmail = await _context.ArchivedEmails
+                                        archivedEmailId = await _context.ArchivedEmails
+                                            .AsNoTracking()
                                             .Where(e => e.MailAccountId == account.Id)
                                             .Where(e => e.MessageId == messageIdWithoutBrackets)
+                                            .Select(e => (int?)e.Id)
                                             .FirstOrDefaultAsync();
                                     }
 
-                                    if (archivedEmail != null)
+                                    if (archivedEmailId != null)
                                     {
                                         messageIdsToDelete.Add(message.Id!);
                                             _logger.LogDebug("Marking email with Message-ID {MessageId} for deletion from folder {FolderName}",

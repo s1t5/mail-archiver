@@ -48,13 +48,17 @@ namespace MailArchiver.Services
         }
 
         /// <summary>
-        /// Gets the current memory usage as a formatted string
+        /// Gets the current memory usage as a formatted string. Reports both the OS working set
+        /// (which grows monotonically and rarely shrinks, even when the managed heap is free)
+        /// and the managed heap size, so real leaks can be distinguished from uncollected garbage
+        /// or GC-retained memory.
         /// </summary>
         /// <returns>Formatted string with current memory usage</returns>
         public static string GetMemoryUsageFormatted()
         {
-            long currentMemory = GetCurrentMemoryUsage();
-            return FormatMemorySize(currentMemory);
+            long workingSet = GetCurrentMemoryUsage();
+            long managedHeap = GC.GetTotalMemory(forceFullCollection: false);
+            return $"Working Set: {FormatMemorySize(workingSet)}, Managed: {FormatMemorySize(managedHeap)}";
         }
 
         /// <summary>
