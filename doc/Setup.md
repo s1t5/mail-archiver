@@ -40,10 +40,9 @@ services:
       - MailSync__CommandTimeoutSeconds=300
       - MailSync__AlwaysForceFullSync=false
       - MailSync__IgnoreSelfSignedCert=false
-      # Optional: global default for automatic full resyncs, in hours.
-      # Leave unset (default) to disable automatic full syncs globally;
-      # per-account FullSyncIntervalHours overrides this when set.
-      # - MailSync__FullSyncIntervalHours=24
+      - MailSync__MaxConcurrentSyncs=1
+      - MailSync__InterAccountDelaySeconds=0
+      - MailSync__FullSyncIntervalHours=24
 
       # BatchRestore Settings
       - BatchRestore__AsyncThreshold=50
@@ -223,6 +222,8 @@ docker compose restart
 - `MailSync__CommandTimeoutSeconds`: The command timeout for IMAP commands in seconds.
 - `MailSync__AlwaysForceFullSync`: Whether to always force a full sync (true/false).
 - `MailSync__IgnoreSelfSignedCert`: Whether to ignore self-signed certificates (true/false).
+- `MailSync__MaxConcurrentSyncs`: Maximum number of account syncs that may run in parallel within one poll cycle. Default `1` (sequential, backwards-compatible). Increase to sync multiple accounts concurrently — keep in mind provider rate limits and local resource usage.
+- `MailSync__InterAccountDelaySeconds`: Optional stagger delay in seconds applied at the end of each account sync task. Default `0` (no delay). Useful to avoid burst-starts when `MaxConcurrentSyncs > 1`.
 
 ### 📤 BatchRestore Settings
 - `BatchRestore__AsyncThreshold`: The number of emails that triggers async processing.

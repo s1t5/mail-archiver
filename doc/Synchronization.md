@@ -4,7 +4,7 @@
 
 ## 📋 Overview
 
-Mail Archiver synchronizes every enabled mailbox automatically in the background through the `MailSyncBackgroundService`. The service runs a short polling loop (every 60 s), processes each account whose individual next-run timestamp is due one after another, and reschedules each account according to its own sync interval. Intervals can be configured globally via `appsettings.json` and overridden per account from the Create/Edit page.
+Mail Archiver synchronizes every enabled mailbox automatically in the background through the `MailSyncBackgroundService`. The service runs a short polling loop (every 60 s), determines which accounts are due, and syncs them — up to `MailSync:MaxConcurrentSyncs` accounts in parallel within one cycle — before rescheduling each account according to its own sync interval. Intervals can be configured globally via `appsettings.json` and overridden per account from the Create/Edit page.
 
 There are two distinct synchronization modes:
 
@@ -108,6 +108,8 @@ The sync behavior is controlled by the `MailSync` section of `appsettings.json` 
 | `MailSync:CommandTimeoutSeconds` | `600` | IMAP command timeout. |
 | `MailSync:AlwaysForceFullSync` | `false` | When `true`, every cycle is a Full Sync for all accounts. **Diagnostics only – keep off in production.** |
 | `MailSync:IgnoreSelfSignedCert` | `false` | Accept self-signed TLS certificates for IMAP connections. |
+| `MailSync:MaxConcurrentSyncs` | `1` | Maximum number of account syncs that may run in parallel within one poll cycle. `1` reproduces the previous sequential behaviour; increase to parallelize — mind provider rate limits and local resource usage. |
+| `MailSync:InterAccountDelaySeconds` | `0` | Optional stagger delay in seconds applied at the end of each account sync task. Useful to avoid burst-starts when `MaxConcurrentSyncs > 1`. `0` disables it. |
 
 > 💡 Both the normal sync interval and the full-sync interval can be overridden per account on the **Create/Edit Mail Account** page. Leave the per-account fields empty to fall back to the global defaults above. To remove an account from the scheduler entirely, disable it (toggle *Enabled* off on the Account Details page).
 
