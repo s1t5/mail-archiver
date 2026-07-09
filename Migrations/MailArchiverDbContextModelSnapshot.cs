@@ -118,6 +118,9 @@ namespace MailArchiver.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<string>("BccDisplayNames")
+                        .HasColumnType("text");
+
                     b.Property<string>("Body")
                         .IsRequired()
                         .HasColumnType("text");
@@ -132,6 +135,9 @@ namespace MailArchiver.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<string>("CcDisplayNames")
+                        .HasColumnType("text");
+
                     b.Property<string>("ContentHash")
                         .HasColumnType("varchar(64)");
 
@@ -141,6 +147,9 @@ namespace MailArchiver.Migrations
 
                     b.Property<string>("From")
                         .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("FromDisplayName")
                         .HasColumnType("text");
 
                     b.Property<bool>("HasAttachments")
@@ -188,6 +197,9 @@ namespace MailArchiver.Migrations
 
                     b.Property<string>("To")
                         .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("ToDisplayNames")
                         .HasColumnType("text");
 
                     b.HasKey("Id");

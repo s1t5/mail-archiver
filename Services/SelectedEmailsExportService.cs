@@ -1,5 +1,6 @@
 using MailArchiver.Data;
 using MailArchiver.Models;
+using MailArchiver.Services.Shared;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using System.Collections.Concurrent;
@@ -694,7 +695,9 @@ namespace MailArchiver.Services
             {
                 try
                 {
-                    message.From.AddRange(InternetAddressList.Parse(email.From));
+                    var fromList = InternetAddressList.Parse(email.From);
+                    MailContentHelper.ApplyDisplayNames(fromList, email.FromDisplayName);
+                    message.From.AddRange(fromList);
                 }
                 catch
                 {
@@ -706,7 +709,9 @@ namespace MailArchiver.Services
             {
                 try
                 {
-                    message.To.AddRange(InternetAddressList.Parse(email.To));
+                    var toList = InternetAddressList.Parse(email.To);
+                    MailContentHelper.ApplyDisplayNames(toList, email.ToDisplayNames);
+                    message.To.AddRange(toList);
                 }
                 catch
                 {
@@ -718,7 +723,9 @@ namespace MailArchiver.Services
             {
                 try
                 {
-                    message.Cc.AddRange(InternetAddressList.Parse(email.Cc));
+                    var ccList = InternetAddressList.Parse(email.Cc);
+                    MailContentHelper.ApplyDisplayNames(ccList, email.CcDisplayNames);
+                    message.Cc.AddRange(ccList);
                 }
                 catch
                 {
@@ -730,7 +737,9 @@ namespace MailArchiver.Services
             {
                 try
                 {
-                    message.Bcc.AddRange(InternetAddressList.Parse(email.Bcc));
+                    var bccList = InternetAddressList.Parse(email.Bcc);
+                    MailContentHelper.ApplyDisplayNames(bccList, email.BccDisplayNames);
+                    message.Bcc.AddRange(bccList);
                 }
                 catch
                 {

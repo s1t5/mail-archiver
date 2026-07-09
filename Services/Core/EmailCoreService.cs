@@ -9,7 +9,6 @@ using Microsoft.Extensions.Options;
 using MimeKit;
 using System.Globalization;
 using System.Text;
-using System.Text.Json;
 using System.Text.RegularExpressions;
 
 namespace MailArchiver.Services.Core
@@ -691,99 +690,11 @@ namespace MailArchiver.Services.Core
                     throw new InvalidOperationException($"Email with ID {parameters.EmailId.Value} not found");
                 }
 
-                switch (parameters.Format)
-                {
-                    case ExportFormat.Csv:
-                        await ExportSingleEmailAsCsv(email, ms);
-                        break;
-                    case ExportFormat.Json:
-                        await ExportSingleEmailAsJson(email, ms);
-                        break;
-                    case ExportFormat.Eml:
-                        await ExportSingleEmailAsEml(email, ms);
-                        break;
-                }
-            }
-            else
-            {
-                var searchTerm = parameters.SearchTerm ?? string.Empty;
-                var (emails, _) = await SearchEmailsAsync(
-                    searchTerm,
-                    parameters.FromDate,
-                    parameters.ToDate,
-                    parameters.SelectedAccountId,
-                    null,
-                    parameters.IsOutgoing,
-                    0,
-                    10000,
-                    allowedAccountIds);
-
-                switch (parameters.Format)
-                {
-                    case ExportFormat.Csv:
-                        await ExportMultipleEmailsAsCsv(emails, ms);
-                        break;
-                    case ExportFormat.Json:
-                        await ExportMultipleEmailsAsJson(emails, ms);
-                        break;
-                }
+                await ExportSingleEmailAsEml(email, ms);
             }
 
             ms.Position = 0;
             return ms.ToArray();
-        }
-
-        private async Task ExportSingleEmailAsCsv(ArchivedEmail email, MemoryStream ms)
-        {
-            using var writer = new StreamWriter(ms, Encoding.UTF8, leaveOpen: true);
-            writer.WriteLine("Subject;From;To;Date;Account;Direction;Message Text");
-
-            var subject = email.Subject.Replace("\"", "\"\"").Replace(";", ",");
-            var from = email.From.Replace("\"", "\"\"").Replace(";", ",");
-            var to = email.To.Replace("\"", "\"\"").Replace(";", ",");
-            var sentDate = email.SentDate.ToString("yyyy-MM-dd HH:mm:ss");
-            var account = email.MailAccount?.Name.Replace("\"", "\"\"").Replace(";", ",") ?? "Unknown";
-            var direction = email.IsOutgoing ? "Outgoing" : "Incoming";
-            var body = email.Body?.Replace("\r", " ").Replace("\n", " ")
-                .Replace("\"", "\"\"").Replace(";", ",") ?? "";
-
-            writer.WriteLine($"\"{subject}\";\"{from}\";\"{to}\";\"{sentDate}\";\"{account}\";\"{direction}\";\"{body}\"");
-            await writer.FlushAsync();
-        }
-
-        private async Task ExportSingleEmailAsJson(ArchivedEmail email, MemoryStream ms)
-        {
-            var exportData = new
-            {
-                Id = email.Id,
-                Subject = email.Subject,
-                From = email.From,
-                To = email.To,
-                Cc = email.Cc,
-                Bcc = email.Bcc,
-                SentDate = email.SentDate,
-                ReceivedDate = email.ReceivedDate,
-                AccountName = email.MailAccount?.Name,
-                FolderName = email.FolderName,
-                IsOutgoing = email.IsOutgoing,
-                HasAttachments = email.HasAttachments,
-                MessageId = email.MessageId,
-                Body = email.Body,
-                HtmlBody = email.HtmlBody,
-                Attachments = email.Attachments?.Select(a => new
-                {
-                    FileName = a.FileName,
-                    ContentType = a.ContentType,
-                    Size = a.Size
-                }).ToList()
-            };
-
-            var options = new JsonSerializerOptions
-            {
-                WriteIndented = true,
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-            };
-            await JsonSerializer.SerializeAsync(ms, exportData, options);
         }
 
         private async Task ExportSingleEmailAsEml(ArchivedEmail email, MemoryStream ms)
@@ -794,11 +705,16 @@ namespace MailArchiver.Services.Core
             try { message.From.Add(InternetAddress.Parse(email.From)); }
             catch { message.From.Add(new MailboxAddress("Sender", "sender@example.com")); }
 
+            // Apply stored display name to the From address if available
+            MailContentHelper.ApplyDisplayNames(message.From, email.FromDisplayName);
+
             foreach (var to in email.To.Split(',', StringSplitOptions.RemoveEmptyEntries))
             {
                 try { message.To.Add(InternetAddress.Parse(to.Trim())); }
                 catch { continue; }
             }
+
+            MailContentHelper.ApplyDisplayNames(message.To, email.ToDisplayNames);
 
             if (!string.IsNullOrEmpty(email.Cc))
             {
@@ -807,6 +723,8 @@ namespace MailArchiver.Services.Core
                     try { message.Cc.Add(InternetAddress.Parse(cc.Trim())); }
                     catch { continue; }
                 }
+
+                MailContentHelper.ApplyDisplayNames(message.Cc, email.CcDisplayNames);
             }
 
             if (!string.IsNullOrEmpty(email.Bcc))
@@ -816,6 +734,8 @@ namespace MailArchiver.Services.Core
                     try { message.Bcc.Add(InternetAddress.Parse(bcc.Trim())); }
                     catch { continue; }
                 }
+
+                MailContentHelper.ApplyDisplayNames(message.Bcc, email.BccDisplayNames);
             }
 
             // Import raw headers if available (for forensic/compliance purposes)
@@ -955,43 +875,6 @@ namespace MailArchiver.Services.Core
             message.MessageId = email.MessageId;
 
             await Task.Run(() => message.WriteTo(ms));
-        }
-
-        private async Task ExportMultipleEmailsAsCsv(List<ArchivedEmail> emails, MemoryStream ms)
-        {
-            using var writer = new StreamWriter(ms, Encoding.UTF8, leaveOpen: true);
-            writer.WriteLine("Subject;From;To;Date;Account;Direction;Message Text");
-
-            foreach (var email in emails)
-            {
-                var subject = email.Subject.Replace("\"", "\"\"").Replace(";", ",");
-                var from = email.From.Replace("\"", "\"\"").Replace(";", ",");
-                var to = email.To.Replace("\"", "\"\"").Replace(";", ",");
-                var sentDate = email.SentDate.ToString("yyyy-MM-dd HH:mm:ss");
-                var account = email.MailAccount?.Name.Replace("\"", "\"\"").Replace(";", ",") ?? "Unknown";
-                var direction = email.IsOutgoing ? "Outgoing" : "Incoming";
-                var body = email.Body?.Replace("\r", " ").Replace("\n", " ")
-                    .Replace("\"", "\"\"").Replace(";", ",") ?? "";
-                writer.WriteLine($"\"{subject}\";\"{from}\";\"{to}\";\"{sentDate}\";\"{account}\";\"{direction}\";\"{body}\"");
-            }
-            await writer.FlushAsync();
-        }
-
-        private async Task ExportMultipleEmailsAsJson(List<ArchivedEmail> emails, MemoryStream ms)
-        {
-            var exportData = emails.Select(e => new
-            {
-                Subject = e.Subject,
-                From = e.From,
-                To = e.To,
-                SentDate = e.SentDate,
-                AccountName = e.MailAccount?.Name,
-                IsOutgoing = e.IsOutgoing,
-                Body = e.Body
-            }).ToList();
-
-            var options = new JsonSerializerOptions { WriteIndented = true };
-            await JsonSerializer.SerializeAsync(ms, exportData, options);
         }
 
         #endregion
@@ -1166,6 +1049,18 @@ namespace MailArchiver.Services.Core
                 var bccAddresses = message.Bcc?.Select(m => m as MailboxAddress).Where(m => m != null).Select(m => m.Address) ?? new List<string>();
                 var bcc = MailContentHelper.CleanText(string.Join(", ", bccAddresses));
 
+                // Extract display names (MailboxAddress.Name) for faithful restore/export
+                var fromDisplayName = MailContentHelper.CleanText(fromAddress?.Name);
+                var toDisplayNames = MailContentHelper.CleanText(string.Join(", ",
+                    message.To?.Select(m => (m as MailboxAddress)?.Name)
+                            .Where(n => !string.IsNullOrEmpty(n)) ?? Enumerable.Empty<string>()));
+                var ccDisplayNames = MailContentHelper.CleanText(string.Join(", ",
+                    message.Cc?.Select(m => (m as MailboxAddress)?.Name)
+                            .Where(n => !string.IsNullOrEmpty(n)) ?? Enumerable.Empty<string>()));
+                var bccDisplayNames = MailContentHelper.CleanText(string.Join(", ",
+                    message.Bcc?.Select(m => (m as MailboxAddress)?.Name)
+                            .Where(n => !string.IsNullOrEmpty(n)) ?? Enumerable.Empty<string>()));
+
                 // Extract text and HTML body preserving original encoding
                 var body = string.Empty;
                 var htmlBody = string.Empty;
@@ -1241,7 +1136,12 @@ namespace MailArchiver.Services.Core
                 to = MailContentHelper.TruncateFieldForTsvector(to, 50_000); // ~50KB for to (can be many recipients)
                 cc = MailContentHelper.TruncateFieldForTsvector(cc, 50_000); // ~50KB for cc
                 bcc = MailContentHelper.TruncateFieldForTsvector(bcc, 50_000); // ~50KB for bcc
-                                                             // Body already truncated above to 500KB
+                                                             // Body already truncated above
+
+                fromDisplayName = MailContentHelper.TruncateFieldForTsvector(fromDisplayName, 50_000);
+                toDisplayNames = MailContentHelper.TruncateFieldForTsvector(toDisplayNames, 50_000);
+                ccDisplayNames = MailContentHelper.TruncateFieldForTsvector(ccDisplayNames, 50_000);
+                bccDisplayNames = MailContentHelper.TruncateFieldForTsvector(bccDisplayNames, 50_000);
 
                 // Final safety check: ensure total size for tsvector doesn't exceed limit
                 var totalTsvectorSize = Encoding.UTF8.GetByteCount(subject) +
@@ -1300,6 +1200,10 @@ namespace MailArchiver.Services.Core
                     To = to,
                     Cc = cc,
                     Bcc = bcc,
+                    FromDisplayName = string.IsNullOrEmpty(fromDisplayName) ? null : fromDisplayName,
+                    ToDisplayNames = string.IsNullOrEmpty(toDisplayNames) ? null : toDisplayNames,
+                    CcDisplayNames = string.IsNullOrEmpty(ccDisplayNames) ? null : ccDisplayNames,
+                    BccDisplayNames = string.IsNullOrEmpty(bccDisplayNames) ? null : bccDisplayNames,
                     SentDate = convertedSentDate,
                     ReceivedDate = DateTime.UtcNow,
                     IsOutgoing = (isOutgoingEmail || isOutgoingFolder) && !isDraftsFolder,

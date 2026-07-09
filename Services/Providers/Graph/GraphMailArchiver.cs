@@ -206,6 +206,18 @@ namespace MailArchiver.Services.Providers.Graph
             var cc = MailContentHelper.CleanText(string.Join(", ", message.CcRecipients?.Select(r => r.EmailAddress?.Address) ?? new List<string>()));
             var bcc = MailContentHelper.CleanText(string.Join(", ", message.BccRecipients?.Select(r => r.EmailAddress?.Address) ?? new List<string>()));
 
+            // Extract display names for faithful restore/export
+            var fromDisplayName = MailContentHelper.CleanText(message.From?.EmailAddress?.Name ?? string.Empty);
+            var toDisplayNames = MailContentHelper.CleanText(string.Join(", ",
+                message.ToRecipients?.Select(r => r.EmailAddress?.Name)
+                        .Where(n => !string.IsNullOrEmpty(n)) ?? Enumerable.Empty<string>()));
+            var ccDisplayNames = MailContentHelper.CleanText(string.Join(", ",
+                message.CcRecipients?.Select(r => r.EmailAddress?.Name)
+                        .Where(n => !string.IsNullOrEmpty(n)) ?? Enumerable.Empty<string>()));
+            var bccDisplayNames = MailContentHelper.CleanText(string.Join(", ",
+                message.BccRecipients?.Select(r => r.EmailAddress?.Name)
+                        .Where(n => !string.IsNullOrEmpty(n)) ?? Enumerable.Empty<string>()));
+
             var (body, htmlBody) = ExtractBody(message);
             var originalTextBody = message.Body?.ContentType == BodyType.Text ? message.Body?.Content : (message.BodyPreview ?? "");
             var originalHtmlBody = message.Body?.ContentType == BodyType.Html ? message.Body?.Content : null;
@@ -222,6 +234,11 @@ namespace MailArchiver.Services.Providers.Graph
             to = MailContentHelper.TruncateFieldForTsvector(to, 50_000);
             cc = MailContentHelper.TruncateFieldForTsvector(cc, 50_000);
             bcc = MailContentHelper.TruncateFieldForTsvector(bcc, 50_000);
+
+            fromDisplayName = MailContentHelper.TruncateFieldForTsvector(fromDisplayName, 50_000);
+            toDisplayNames = MailContentHelper.TruncateFieldForTsvector(toDisplayNames, 50_000);
+            ccDisplayNames = MailContentHelper.TruncateFieldForTsvector(ccDisplayNames, 50_000);
+            bccDisplayNames = MailContentHelper.TruncateFieldForTsvector(bccDisplayNames, 50_000);
 
             // Final safety check: ensure total tsvector size doesn't exceed limit
             var totalTsvectorSize = Encoding.UTF8.GetByteCount(subject) +
@@ -267,6 +284,10 @@ namespace MailArchiver.Services.Providers.Graph
                 To = to,
                 Cc = cc,
                 Bcc = bcc,
+                FromDisplayName = string.IsNullOrEmpty(fromDisplayName) ? null : fromDisplayName,
+                ToDisplayNames = string.IsNullOrEmpty(toDisplayNames) ? null : toDisplayNames,
+                CcDisplayNames = string.IsNullOrEmpty(ccDisplayNames) ? null : ccDisplayNames,
+                BccDisplayNames = string.IsNullOrEmpty(bccDisplayNames) ? null : bccDisplayNames,
                 SentDate = convertedSentDate,
                 ReceivedDate = DateTime.UtcNow,
                 IsOutgoing = isOutgoingEmail || isOutgoing,

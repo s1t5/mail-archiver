@@ -51,6 +51,26 @@ namespace MailArchiver.Data
                 .HasColumnType("text");
 
             modelBuilder.Entity<ArchivedEmail>()
+                .Property(e => e.FromDisplayName)
+                .HasColumnType("text")
+                .IsRequired(false);
+
+            modelBuilder.Entity<ArchivedEmail>()
+                .Property(e => e.ToDisplayNames)
+                .HasColumnType("text")
+                .IsRequired(false);
+
+            modelBuilder.Entity<ArchivedEmail>()
+                .Property(e => e.CcDisplayNames)
+                .HasColumnType("text")
+                .IsRequired(false);
+
+            modelBuilder.Entity<ArchivedEmail>()
+                .Property(e => e.BccDisplayNames)
+                .HasColumnType("text")
+                .IsRequired(false);
+
+            modelBuilder.Entity<ArchivedEmail>()
                 .Property(e => e.Body)
                 .HasColumnType("text");
 

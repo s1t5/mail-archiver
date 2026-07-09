@@ -1,5 +1,6 @@
 using System.Text;
 using System.Text.RegularExpressions;
+using MimeKit;
 
 namespace MailArchiver.Services.Shared
 {
@@ -432,6 +433,30 @@ namespace MailArchiver.Services.Shared
             }
 
             return resultHtml;
+        }
+
+        /// <summary>
+        /// Applies display names from a comma-separated string to a parsed InternetAddressList.
+        /// If the number of parsed names does not match the number of addresses, no names are
+        /// applied (safe fallback to preserve the bare addresses without false assignments).
+        /// </summary>
+        public static void ApplyDisplayNames(InternetAddressList? addresses, string? displayNamesCsv)
+        {
+            if (string.IsNullOrEmpty(displayNamesCsv) || addresses == null || addresses.Count == 0)
+                return;
+
+            var names = displayNamesCsv.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                                       .Select(s => s.Trim())
+                                       .ToArray();
+
+            if (names.Length != addresses.Count)
+                return;
+
+            for (int i = 0; i < addresses.Count; i++)
+            {
+                if (addresses[i] is MailboxAddress mb && !string.IsNullOrEmpty(names[i]))
+                    mb.Name = names[i];
+            }
         }
 
         /// <summary>
