@@ -374,6 +374,10 @@ builder.Services.AddSingleton<EmailDeletionService>();
 builder.Services.AddSingleton<IEmailDeletionService>(provider => provider.GetRequiredService<EmailDeletionService>());
 builder.Services.AddHostedService<EmailDeletionService>(provider => provider.GetRequiredService<EmailDeletionService>());
 
+// Register DeletionPolicyApplicationService as singleton and hosted service - MUST be the same instance
+builder.Services.AddSingleton<DeletionPolicyApplicationService>();
+builder.Services.AddHostedService<DeletionPolicyApplicationService>(provider => provider.GetRequiredService<DeletionPolicyApplicationService>());
+
 builder.Services.AddHostedService<MailSyncBackgroundService>();
 
 // Register DatabaseMaintenanceService as singleton and hosted service - MUST be the same instance
@@ -659,10 +663,12 @@ using (var scope = app.Services.CreateScope())
 }
 
 /// <summary>
-/// Applies the deletion policy on startup: sets IsLocked on all archived emails
-/// according to the configuration and adjusts the column default so that newly
-/// imported emails follow the same policy. Logs the resulting state to the
-/// AccessLogs table (visible on the Logs page) for auditability.
+/// Applies the deletion policy on startup: adjusts the column default so that
+/// newly imported emails follow the configured policy, and logs the resulting
+/// state to the AccessLogs table (visible on the Logs page) for auditability.
+/// The potentially expensive row-by-row UPDATE of existing archived emails is
+/// performed asynchronously by DeletionPolicyApplicationService so that the
+/// startup is not blocked on large archives.
 /// </summary>
 static async Task ApplyDeletionPolicyAsync(MailArchiverDbContext context, DeletionPolicyOptions policy, ILogger<Program> logger)
 {
@@ -673,24 +679,17 @@ static async Task ApplyDeletionPolicyAsync(MailArchiverDbContext context, Deleti
 
     try
     {
-        // Update only rows whose IsLocked value differs from the configured policy.
-        // The WHERE clause keeps the UPDATE cheap (no-op) when the table already
-        // matches the desired state, avoiding a costly full-table rewrite on startup.
-        await context.Database.ExecuteSqlRawAsync(
-            $@"UPDATE mail_archiver.""ArchivedEmails"" SET ""IsLocked"" = {lockLiteral}
-              WHERE ""IsLocked"" IS DISTINCT FROM {lockLiteral};");
-
         // Adjust the column default so that newly imported emails follow the same policy.
         // DDL statements cannot use Npgsql parameters, so the boolean is inlined.
         await context.Database.ExecuteSqlRawAsync(
             $@"ALTER TABLE mail_archiver.""ArchivedEmails"" ALTER COLUMN ""IsLocked"" SET DEFAULT {lockLiteral};");
 
-        logger.LogInformation("Deletion policy applied: DeletionAllowed={DeletionAllowed}, all archived emails IsLocked={IsLocked}",
+        logger.LogInformation("Deletion policy default applied: DeletionAllowed={DeletionAllowed}, column default IsLocked={IsLocked}. Existing rows will be updated by the background service.",
             deletionAllowed, lockValue);
     }
     catch (Exception ex)
     {
-        logger.LogError(ex, "Failed to apply deletion policy to database");
+        logger.LogError(ex, "Failed to apply deletion policy column default");
     }
 
     // Log the policy state to the AccessLogs table for auditability on the Logs page
