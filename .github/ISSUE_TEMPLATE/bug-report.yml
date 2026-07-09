@@ -41,6 +41,7 @@ body:
       label: Application Version
       description: Which version are you using?
       options:
+        - "2607.2"
         - "2607.1"
         - "2606.5"
         - "2606.4"
