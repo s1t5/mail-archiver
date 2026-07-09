@@ -88,6 +88,9 @@ services:
       - CsvImport__MaxRows=5000
       - CsvImport__MaxFileSizeBytes=10000000
 
+      # Deletion Policy Settings (Optional - controls whether email deletion is allowed)
+      - DeletionPolicy__DeletionAllowed=true
+
       # TimeZone Settings
       - TimeZone__DisplayTimeZoneId=Etc/UCT
 
@@ -292,6 +295,15 @@ docker compose restart
 - `CsvImport__MaxRows`: Maximum number of CSV rows (mailboxes) processed in a single bulk import. Default is `5000`. Increase this value for very large deployments; lower it to limit the impact of a single import run on database load.
 - `CsvImport__MaxFileSizeBytes`: Maximum allowed size (in bytes) of the uploaded CSV file. Default is `10000000` (10 MB). Adjust this value to match your upload limits if needed.
 - See [Account Import Guide](Account%20Import.md) for detailed usage instructions on bulk IMAP account import via CSV.
+
+### 🔒 Deletion Policy Settings
+- `DeletionPolicy__DeletionAllowed`: Controls whether manual deletion of archived emails is allowed (true/false). Default is `true`. When set to `false`:
+  - All archived emails are locked (`IsLocked = true`) on startup via the database compliance trigger, preventing any modification or deletion at the database level.
+  - Manual deletion (single and bulk) is blocked on the application level with an error message.
+  - The column default is adjusted so that newly imported emails are also locked.
+  - The current policy state is logged to the AccessLogs table on every startup (visible on the Logs page as "Deletion Policy" entries) for auditability.
+  - Local retention deletion is exempt: emails that fall under a configured retention period are still deleted (they are unlocked immediately before deletion within the retention process).
+- **Immutability protection:** When `IsLocked = true`, the database compliance trigger (`prevent_locked_email_changes`) blocks ANY modification to the email row — all columns are protected, not just a fixed field list. The only exempt columns are `IsLocked` itself (so that unlocking for retention deletion and startup policy application remains possible) and `FolderName` (so that IMAP sync can update the folder when an email is moved server-side). The protection is column-agnostic (JSONB-based comparison) and automatically covers future schema additions.
 
 ### 🕐 TimeZone Settings
 - `TimeZone__DisplayTimeZoneId`: The time zone used for displaying email timestamps in the UI. Uses IANA time zone identifiers (e.g., "Europe/Berlin", "Asia/Tokyo"). Default is "Etc/UCT" for backward compatibility. When importing emails timestamps will be converted to this time zone for display purposes.

@@ -149,6 +149,10 @@ builder.Services.Configure<BandwidthTrackingOptions>(
 builder.Services.Configure<ReleaseNotesOptions>(
     builder.Configuration.GetSection(ReleaseNotesOptions.ReleaseNotes));
 
+// Add Deletion Policy Options
+builder.Services.Configure<DeletionPolicyOptions>(
+    builder.Configuration.GetSection(DeletionPolicyOptions.DeletionPolicy));
+
 // Add DateTimeHelper
 builder.Services.AddScoped<MailArchiver.Utilities.DateTimeHelper>();
 
@@ -642,11 +646,72 @@ using (var scope = app.Services.CreateScope())
 
         var initLogger = services.GetRequiredService<ILogger<Program>>();
         initLogger.LogInformation("Datenbank wurde initialisiert");
+
+        // Apply deletion policy: lock/unlock all archived emails based on configuration
+        var deletionPolicy = services.GetRequiredService<IOptions<DeletionPolicyOptions>>().Value;
+        await ApplyDeletionPolicyAsync(context, deletionPolicy, initLogger);
     }
     catch (Exception ex)
     {
         var logger = services.GetRequiredService<ILogger<Program>>();
         logger.LogError(ex, "Ein Fehler ist bei der Datenbankinitialisierung aufgetreten");
+    }
+}
+
+/// <summary>
+/// Applies the deletion policy on startup: sets IsLocked on all archived emails
+/// according to the configuration and adjusts the column default so that newly
+/// imported emails follow the same policy. Logs the resulting state to the
+/// AccessLogs table (visible on the Logs page) for auditability.
+/// </summary>
+static async Task ApplyDeletionPolicyAsync(MailArchiverDbContext context, DeletionPolicyOptions policy, ILogger<Program> logger)
+{
+    var deletionAllowed = policy.DeletionAllowed;
+    var lockValue = !deletionAllowed;
+    // Inline boolean literal (Npgsql does not support parameters in DDL statements)
+    var lockLiteral = lockValue ? "TRUE" : "FALSE";
+
+    try
+    {
+        // Update only rows whose IsLocked value differs from the configured policy.
+        // The WHERE clause keeps the UPDATE cheap (no-op) when the table already
+        // matches the desired state, avoiding a costly full-table rewrite on startup.
+        await context.Database.ExecuteSqlRawAsync(
+            $@"UPDATE mail_archiver.""ArchivedEmails"" SET ""IsLocked"" = {lockLiteral}
+              WHERE ""IsLocked"" IS DISTINCT FROM {lockLiteral};");
+
+        // Adjust the column default so that newly imported emails follow the same policy.
+        // DDL statements cannot use Npgsql parameters, so the boolean is inlined.
+        await context.Database.ExecuteSqlRawAsync(
+            $@"ALTER TABLE mail_archiver.""ArchivedEmails"" ALTER COLUMN ""IsLocked"" SET DEFAULT {lockLiteral};");
+
+        logger.LogInformation("Deletion policy applied: DeletionAllowed={DeletionAllowed}, all archived emails IsLocked={IsLocked}",
+            deletionAllowed, lockValue);
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "Failed to apply deletion policy to database");
+    }
+
+    // Log the policy state to the AccessLogs table for auditability on the Logs page
+    try
+    {
+        var logEntry = new AccessLog
+        {
+            Username = "SYSTEM",
+            Type = AccessLogType.DeletionPolicy,
+            Timestamp = DateTime.UtcNow,
+            SearchParameters = deletionAllowed
+                ? "Email deletion is enabled by configuration (DeletionPolicy:DeletionAllowed=true). Archived emails are unlocked."
+                : "Email deletion is disabled by configuration (DeletionPolicy:DeletionAllowed=false). Archived emails are locked (compliance)."
+        };
+
+        context.AccessLogs.Add(logEntry);
+        await context.SaveChangesAsync();
+    }
+    catch (Exception ex)
+    {
+        logger.LogWarning(ex, "Failed to log deletion policy state to AccessLogs");
     }
 }
 

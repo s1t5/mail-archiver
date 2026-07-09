@@ -187,9 +187,6 @@
   <data name="NoEmailsFoundText" xml:space="preserve">
     <value>Ni sporočil za navedena iskalna merila.</value>
   </data>
-  <data name="ExportSearchResults" xml:space="preserve">
-    <value>Izvoz rezultatov iskanja</value>
-  </data>
   <data name="ExportFormat" xml:space="preserve">
     <value>Oblika izvoza</value>
   </data>
@@ -2538,6 +2535,12 @@
   </data>
   <data name="SyncCancel" xml:space="preserve">
     <value>Sinhronizacija preklicana</value>
+  </data>
+  <data name="DeletionPolicy" xml:space="preserve">
+    <value>Pravilnik o brisanju</value>
+  </data>
+  <data name="DeletionDisabledMessage" xml:space="preserve">
+    <value>Brisanje e-pošte je onemogočeno v konfiguraciji.</value>
   </data>
   <data name="ConfirmBatchDelete" xml:space="preserve">
     <value>Potrdi množično brisanje</value>

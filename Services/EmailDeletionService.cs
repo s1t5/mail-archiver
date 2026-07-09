@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -35,6 +36,23 @@ namespace MailArchiver.Services
         {
             if (job == null)
                 throw new ArgumentNullException(nameof(job));
+
+            // Check deletion policy
+            using (var scope = _serviceScopeFactory.CreateScope())
+            {
+                var deletionPolicy = scope.ServiceProvider.GetRequiredService<IOptions<DeletionPolicyOptions>>().Value;
+                if (!deletionPolicy.DeletionAllowed)
+                {
+                    _logger.LogWarning("Email deletion job rejected: deletion is disabled by policy (DeletionPolicy:DeletionAllowed=false)");
+                    job.JobId = Guid.NewGuid().ToString();
+                    job.Status = EmailDeletionJobStatus.Failed;
+                    job.Created = DateTime.UtcNow;
+                    job.Completed = DateTime.UtcNow;
+                    job.ErrorMessage = "Email deletion is disabled by configuration (DeletionPolicy:DeletionAllowed=false).";
+                    _jobs.TryAdd(job.JobId, job);
+                    return job.JobId;
+                }
+            }
 
             job.JobId = Guid.NewGuid().ToString();
             job.Status = EmailDeletionJobStatus.Queued;

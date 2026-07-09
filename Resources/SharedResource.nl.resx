@@ -187,9 +187,6 @@
   <data name="NoEmailsFoundText" xml:space="preserve">
     <value>Er zijn geen e-mails gevonden voor de opgegeven zoekcriteria.</value>
   </data>
-  <data name="ExportSearchResults" xml:space="preserve">
-    <value>Zoekresultaten exporteren</value>
-  </data>
   <data name="ExportFormat" xml:space="preserve">
     <value>Exportformaat</value>
   </data>
@@ -2538,6 +2535,12 @@
   </data>
   <data name="SyncCancel" xml:space="preserve">
     <value>Synchronisatie geannuleerd</value>
+  </data>
+  <data name="DeletionPolicy" xml:space="preserve">
+    <value>Verwijderingsbeleid</value>
+  </data>
+  <data name="DeletionDisabledMessage" xml:space="preserve">
+    <value>Het verwijderen van e-mails is uitgeschakeld via configuratie.</value>
   </data>
   <data name="ConfirmBatchDelete" xml:space="preserve">
     <value>Batchgewijs verwijderen bevestigen</value>

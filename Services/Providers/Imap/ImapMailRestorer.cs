@@ -762,6 +762,24 @@ namespace MailArchiver.Services.Providers.Imap
                     }
                 }
 
+                // Set Bcc addresses
+                if (!string.IsNullOrEmpty(email.Bcc))
+                {
+                    try
+                    {
+                        var bccAddresses = InternetAddressList.Parse(email.Bcc);
+                        MailContentHelper.ApplyDisplayNames(bccAddresses, email.BccDisplayNames);
+                        foreach (var address in bccAddresses)
+                        {
+                            message.Bcc.Add(address);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Error parsing Bcc addresses: {Bcc}, ignoring", email.Bcc);
+                    }
+                }
+
                 // Use original body if available (preserves null bytes), otherwise use untruncated or regular body
                 var htmlBodyToRestore = email.OriginalBodyHtml != null
                     ? System.Text.Encoding.UTF8.GetString(email.OriginalBodyHtml)

@@ -189,9 +189,6 @@
   <data name="NoEmailsFoundText" xml:space="preserve">
     <value>A megadott keresési feltételeknek nem felel meg egyetlen e-mail sem.</value>
   </data>
-  <data name="ExportSearchResults" xml:space="preserve">
-    <value>Keresési Eredmények Exportálása</value>
-  </data>
   <data name="ExportFormat" xml:space="preserve">
     <value>Exportálási Formátum</value>
   </data>
@@ -2530,6 +2527,12 @@
   </data>
   <data name="SyncCancel" xml:space="preserve">
     <value>Szinkronizálás megszakítva</value>
+  </data>
+  <data name="DeletionPolicy" xml:space="preserve">
+    <value>Törlési házirend</value>
+  </data>
+  <data name="DeletionDisabledMessage" xml:space="preserve">
+    <value>Az e-mailek törlése a konfiguráció által letiltva.</value>
   </data>
   <data name="ConfirmBatchDelete" xml:space="preserve">
     <value>Kötegyes törlés megerősítése</value>

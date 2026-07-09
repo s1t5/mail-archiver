@@ -37,6 +37,7 @@ namespace MailArchiver.Controllers
         private readonly MailArchiver.Services.IAuthenticationService _authService;
         private readonly IEmailDeletionService? _emailDeletionService;
         private readonly ViewOptions _viewOptions;
+        private readonly DeletionPolicyOptions _deletionPolicy;
 
         public EmailsController(
             MailArchiverDbContext context,
@@ -47,6 +48,7 @@ namespace MailArchiver.Controllers
             IOptions<BatchRestoreOptions> batchOptions,
             IOptions<SelectionOptions> selectionOptions,
             IOptions<ViewOptions> viewOptions,
+            IOptions<DeletionPolicyOptions> deletionPolicy,
             IBatchRestoreService? batchRestoreService = null,
             ISyncJobService? syncJobService = null,
             IStringLocalizer<SharedResource> localizer = null,
@@ -68,6 +70,7 @@ namespace MailArchiver.Controllers
             _batchOptions = batchOptions.Value;
             _selectionOptions = selectionOptions.Value;
             _viewOptions = viewOptions.Value;
+            _deletionPolicy = deletionPolicy.Value;
             _localizer = localizer;
             _exportService = exportService;
             _selectedEmailsExportService = selectedEmailsExportService;
@@ -2598,7 +2601,14 @@ namespace MailArchiver.Controllers
         public async Task<IActionResult> Delete(int id, string returnUrl = null)
         {
             _logger.LogInformation("Admin user requesting to delete email ID: {EmailId}", id);
-            
+
+            if (!_deletionPolicy.DeletionAllowed)
+            {
+                _logger.LogWarning("Email deletion blocked by policy (DeletionPolicy:DeletionAllowed=false). Email ID: {EmailId}", id);
+                TempData["ErrorMessage"] = _localizer?["DeletionDisabledMessage"] ?? "Email deletion is disabled by configuration.";
+                return Redirect(returnUrl ?? Url.Action("Index"));
+            }
+
             var email = await _context.ArchivedEmails
                 .Include(e => e.MailAccount)
                 .FirstOrDefaultAsync(e => e.Id == id);
@@ -2658,7 +2668,14 @@ namespace MailArchiver.Controllers
                 TempData["ErrorMessage"] = "No emails selected for deletion.";
                 return Redirect(returnUrl ?? Url.Action("Index"));
             }
-            
+
+            if (!_deletionPolicy.DeletionAllowed)
+            {
+                _logger.LogWarning("Bulk email deletion blocked by policy (DeletionPolicy:DeletionAllowed=false). Requested count: {Count}", ids.Count);
+                TempData["ErrorMessage"] = _localizer?["DeletionDisabledMessage"] ?? "Email deletion is disabled by configuration.";
+                return Redirect(returnUrl ?? Url.Action("Index"));
+            }
+
             _logger.LogInformation("Admin user requesting to delete {Count} emails", ids.Count);
 
             // SECURITY: filter the requested ids to those the current user is authorized to

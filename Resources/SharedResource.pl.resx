@@ -240,9 +240,6 @@
   <data name="NoEmailsFoundText" xml:space="preserve">
     <value>Nie znaleziono żadnych wiadomości e-mail spełniających podane kryteria wyszukiwania.</value>
   </data>
-  <data name="ExportSearchResults" xml:space="preserve">
-    <value>Eksportuj Wyniki Wyszukiwania</value>
-  </data>
   <data name="ExportFormat" xml:space="preserve">
     <value>Format Eksportu</value>
   </data>
@@ -2584,6 +2581,12 @@
   </data>
   <data name="SyncCancel" xml:space="preserve">
     <value>Synchronizacja przerwana</value>
+  </data>
+  <data name="DeletionPolicy" xml:space="preserve">
+    <value>Polityka usuwania</value>
+  </data>
+  <data name="DeletionDisabledMessage" xml:space="preserve">
+    <value>Usuwanie e-maili jest wyłączone w konfiguracji.</value>
   </data>
   <data name="ConfirmBatchDelete" xml:space="preserve">
     <value>Potwierdź masowe usuwanie</value>

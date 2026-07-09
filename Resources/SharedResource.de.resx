@@ -184,9 +184,6 @@
   <data name="NoEmailsFoundText" xml:space="preserve">
     <value>Keine E-Mails mit den gegebenen Suchparametern gefunden</value>
   </data>
-  <data name="ExportSearchResults" xml:space="preserve">
-    <value>Ergebnisse exportieren</value>
-  </data>
   <data name="ExportFormat" xml:space="preserve">
     <value>Export Format</value>
   </data>
@@ -2542,6 +2539,12 @@
   </data>
   <data name="SyncCancel" xml:space="preserve">
     <value>Sync abgebrochen</value>
+  </data>
+  <data name="DeletionPolicy" xml:space="preserve">
+    <value>Löschrichtlinie</value>
+  </data>
+  <data name="DeletionDisabledMessage" xml:space="preserve">
+    <value>Das Löschen von E-Mails ist durch die Konfiguration deaktiviert.</value>
   </data>
   <data name="FailedEmailSingular" xml:space="preserve">
     <value>Die E-Mail konnte nicht verarbeitet werden</value>

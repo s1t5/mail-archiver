@@ -1835,6 +1835,21 @@ namespace MailArchiver.Services.Core
                 _logger.LogInformation("Found {Count} emails to delete from local archive for account {AccountName}",
                     emailsToDelete.Count, account.Name);
 
+                // Unlock emails that fall under the retention policy so the database
+                // compliance trigger (prevent_locked_email_deletion) allows the deletion.
+                // Retention is exempt from the global DeletionPolicy lock.
+                try
+                {
+                    await _context.Database.ExecuteSqlInterpolatedAsync(
+                        $"UPDATE mail_archiver.\"ArchivedEmails\" SET \"IsLocked\" = false WHERE \"MailAccountId\" = {account.Id} AND \"SentDate\" < {cutoffDate}");
+                    _logger.LogDebug("Unlocked {Count} retention-expired emails for account {AccountName} prior to deletion",
+                        emailsToDelete.Count, account.Name);
+                }
+                catch (Exception unlockEx)
+                {
+                    _logger.LogError(unlockEx, "Failed to unlock retention-expired emails for account {AccountName}", account.Name);
+                }
+
                 // Delete in batches to avoid memory issues
                 var batchSize = _batchOptions.BatchSize;
                 var deletedCount = 0;

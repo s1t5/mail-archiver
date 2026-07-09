@@ -181,9 +181,6 @@
   <data name="NoEmailsFoundText" xml:space="preserve">
     <value>No emails were found for the specified search criteria.</value>
   </data>
-  <data name="ExportSearchResults" xml:space="preserve">
-    <value>Export Search Results</value>
-  </data>
   <data name="ExportFormat" xml:space="preserve">
     <value>Export Format</value>
   </data>
@@ -2290,6 +2287,12 @@
   </data>
   <data name="SyncCancel" xml:space="preserve">
     <value>Sync Cancelled</value>
+  </data>
+  <data name="DeletionPolicy" xml:space="preserve">
+    <value>Deletion Policy</value>
+  </data>
+  <data name="DeletionDisabledMessage" xml:space="preserve">
+    <value>Email deletion is disabled by configuration.</value>
   </data>
   <data name="ComplianceStatus" xml:space="preserve">
     <value>Compliance Status</value>
