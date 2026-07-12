@@ -7,6 +7,10 @@
     var isAdmin = AuthService.IsCurrentUserAdmin(Context);
     var isSelfManager = AuthService.IsCurrentUserSelfManager(Context);
     var canExport = isAdmin || isSelfManager;
+    ViewBag.IsAdmin = isAdmin;
+    ViewBag.CanExport = canExport;
+    var pageSize = 50;
+    var totalPages = (int)Math.Ceiling(Model.Count() / (double)pageSize);
 }
 
 <div class="container-fluid">
@@ -19,8 +23,15 @@
                     <span class="d-none d-sm-inline">@Localizer["Import"]</span>
                 </button>
                 <ul class="dropdown-menu" aria-labelledby="importDropdown">
+                    <li><h6 class="dropdown-header">@Localizer["ImportEmailsHeader"]</h6></li>
                     <li><a class="dropdown-item" asp-action="ImportMBox"><i class="bi bi-file-earmark-text me-2"></i>@Localizer["ImportMBox"]</a></li>
                     <li><a class="dropdown-item" asp-action="ImportEml"><i class="bi bi-file-earmark-zip me-2"></i>@Localizer["ImportEml"]</a></li>
+                    @if (isAdmin)
+                    {
+                        <li><hr class="dropdown-divider"></li>
+                        <li><h6 class="dropdown-header">@Localizer["ImportAccountsHeader"]</h6></li>
+                        <li><a class="dropdown-item" asp-action="ImportCsv"><i class="bi bi-file-earmark-spreadsheet me-2"></i>@Localizer["ImportCsvBulk"]</a></li>
+                    }
                 </ul>
             </div>
             <a asp-action="Create" class="btn btn-primary btn-sm">
@@ -30,17 +41,36 @@
         </div>
     </div>
 
-    <div class="card d-none d-lg-block">
+    <div class="card mb-3">
+        <div class="card-header bg-light">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-2">
+                <div class="d-flex align-items-center gap-2 flex-grow-1">
+                    <div class="input-group input-group-sm" style="max-width: 300px;">
+                        <span class="input-group-text"><i class="bi bi-search" aria-hidden="true"></i></span>
+                        <input type="search" id="accountSearch" class="form-control"
+                               placeholder="@Localizer["SearchAccounts"]" aria-label="@Localizer["SearchAccounts"]" autocomplete="off" />
+                    </div>
+                    <span class="small text-nowrap"><strong id="accountTotal">@Model.Count()</strong> @Localizer["AccountsFound", ""]</span>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <span class="small" id="accountPageInfo" data-template="@Localizer["PageOf", "{PAGE}", "{TOTAL}"]">@Localizer["PageOf", 1, totalPages]</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card d-none d-lg-block card-dropdown-overflow">
         <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-striped table-hover">
+            <div class="table-responsive table-responsive-dropdown">
+                <table class="table table-striped table-hover table-sm mb-0">
                     <thead class="table-dark">
                         <tr>
                             <th>@Localizer["Name"]</th>
                             <th>@Localizer["EmailAddress"]</th>
                             <th>@Localizer["Provider"]</th>
-                            <th>@Localizer["Status"]</th>
+                            <th>@Localizer["Sync"]</th>
                             <th>@Localizer["LastSync"]</th>
+                            <th>@Localizer["Storage"]</th>
                             <th>@Localizer["AutoDelete"]</th>
                             <th class="text-center">@Localizer["Actions"]</th>
                         </tr>
@@ -48,7 +78,7 @@
                     <tbody>
                         @foreach (var item in Model)
                         {
-                            <tr class="@(!item.IsEnabled ? "table-secondary" : "")">
+                            <tr class="account-row" data-search="@($"{item.Name} {item.EmailAddress} {item.Username}")">
                                 <td>@item.Name</td>
                                 <td>@item.EmailAddress</td>
                                 <td>
@@ -60,20 +90,26 @@
                                         case ProviderType.M365:
                                             <span class="badge bg-success">Microsoft 365</span>
                                             break;
+                                        case ProviderType.MSA:
+                                            <span class="badge bg-info">@Localizer["MsaProviderLabel"]</span>
+                                            break;
                                         case ProviderType.IMPORT:
                                             <span class="badge bg-secondary">Import Only</span>
                                             break;
                                     }
                                 </td>
                                 <td>
-                                    @if (item.IsEnabled)
-                                    {
-                                        <span class="badge bg-success">@Localizer["Enabled"]</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="badge bg-secondary">@Localizer["Disabled"]</span>
-                                    }
+                                    <form asp-action="ToggleEnabled" asp-route-id="@item.Id" method="post" class="d-inline-flex align-items-center">
+                                        @Html.AntiForgeryToken()
+                                        <div class="form-check form-switch mb-0">
+                                            <input class="form-check-input" type="checkbox" role="switch"
+                                                   id="enableSwitch_@item.Id"
+                                                   checked="@item.IsEnabled"
+                                                   onchange="this.form.submit()"
+                                                   aria-label="@Localizer["AccountEnabled"]" />
+                                            <label class="visually-hidden" for="enableSwitch_@item.Id">@Localizer["AccountEnabled"]</label>
+                                        </div>
+                                    </form>
                                 </td>
                                 <td>
                                     @if (item.LastSync.HasValue)
@@ -88,6 +124,7 @@
                                         <span class="text-muted">@Localizer["NotSynced"]</span>
                                     }
 </td>
+                                <td class="small text-nowrap">@item.StorageUsed</td>
                                 <td>
                                     @if (item.DeleteAfterDays.HasValue)
                                     {
@@ -99,64 +136,7 @@
                                     }
                                 </td>
                                 <td>
-                                    <div class="d-flex justify-content-center align-items-center gap-1">
-                                        <a asp-action="Details" asp-route-id="@item.Id"
-                                            class="btn btn-info btn-sm d-flex align-items-center">
-                                            <i class="bi bi-eye"></i>
-                                            <span class="ms-1">@Localizer["Details"]</span>
-                                        </a>
-
-                                        <a asp-action="Edit" asp-route-id="@item.Id"
-                                            class="btn btn-warning btn-sm d-flex align-items-center">
-                                            <i class="bi bi-pencil"></i>
-                                            <span class="ms-1">@Localizer["Edit"]</span>
-                                        </a>
-
-                                        @if (canExport)
-                                        {
-                                            <a asp-action="Export" asp-route-id="@item.Id"
-                                                class="btn btn-info btn-sm d-flex align-items-center">
-                                                <i class="bi bi-download"></i>
-                                                <span class="ms-1">@Localizer["Export"]</span>
-                                            </a>
-                                        }
-
-                                        <form asp-action="ToggleEnabled" asp-route-id="@item.Id" method="post"
-                                            class="d-inline">
-                                            @Html.AntiForgeryToken()
-                                            <button type="submit"
-                                                class="btn @(item.IsEnabled ? "btn-outline-secondary" : "btn-outline-success") btn-sm d-flex align-items-center">
-                                                <i class="bi bi-@(item.IsEnabled ? "pause" : "play")"></i>
-                                                <span class="ms-1">@(item.IsEnabled ? @Localizer["Disable"] : @Localizer["Enable"])</span>
-                                            </button>
-                                        </form>
-
-                                        @if (item.Provider != ProviderType.IMPORT)
-                                        {
-                                            <form asp-action="Sync" asp-route-id="@item.Id" method="post" class="d-inline">
-                                                @Html.AntiForgeryToken()
-                                                @if (item.IsEnabled)
-                                                {
-                                                    <button type="submit" class="btn btn-success btn-sm d-flex align-items-center">
-                                                        <i class="bi bi-arrow-clockwise"></i>
-                                                        <span class="ms-1">@Localizer["Sync"]</span>
-                                                    </button>
-                                                }
-                                                else
-                                                {
-                                                    <button type="submit" class="btn btn-success btn-sm d-flex align-items-center" title="@Localizer["ManualSyncTooltip"]">
-                                                        <i class="bi bi-arrow-clockwise"></i>
-                                                        <span class="ms-1">@Localizer["Sync"]</span>
-                                                    </button>
-                                                }
-                                            </form>
-                                        }
-
-<button type="button" class="btn btn-danger btn-sm d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#deleteAccountModal-@item.Id">
-                                            <i class="bi bi-trash"></i>
-                                            <span class="ms-1">@Localizer["Delete"]</span>
-                                        </button>
-                                    </div>
+                                    @{ await Html.RenderPartialAsync("_AccountActionsMenu", item); }
                                 </td>
                             </tr>
                         }
@@ -180,7 +160,123 @@
             }
         });
     </script>
-    
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var pageSize = 50;
+            var currentPage = 1;
+            var prevText = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["Previous"].Value));
+            var nextText = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["Next"].Value));
+            var pageInfo = document.getElementById('accountPageInfo');
+            var pageOfTemplate = pageInfo ? pageInfo.getAttribute('data-template') : '';
+            var noMatchHint = document.getElementById('noAccountMatchHint');
+            var searchInput = document.getElementById('accountSearch');
+
+            var desktopRows = Array.from(document.querySelectorAll('.account-row'));
+            var mobileRows = Array.from(document.querySelectorAll('.account-card'));
+            var allRows = desktopRows.map(function(dr, i) {
+                return { desktop: dr, mobile: mobileRows[i], search: (dr.getAttribute('data-search') || '').toLowerCase() };
+            });
+            var filteredRows = allRows;
+
+            function totalPages() { return Math.max(1, Math.ceil(filteredRows.length / pageSize)); }
+
+            function renderPage() {
+                var start = (currentPage - 1) * pageSize;
+                var end = start + pageSize;
+                allRows.forEach(function(row) {
+                    row.desktop.style.display = 'none';
+                    row.mobile.style.display = 'none';
+                });
+                filteredRows.forEach(function(row, idx) {
+                    if (idx >= start && idx < end) {
+                        row.desktop.style.display = '';
+                        row.mobile.style.display = '';
+                    }
+                });
+            }
+
+            function renderPagination() {
+                var ul = document.getElementById('accountPagination');
+                var card = document.getElementById('accountPaginationCard');
+                var pages = totalPages();
+                if (pages <= 1) {
+                    card.style.display = 'none';
+                    ul.innerHTML = '';
+                    return;
+                }
+                card.style.display = '';
+                var html = '';
+                if (currentPage > 1) {
+                    html += '<li class="page-item"><a class="page-link" href="#" data-page="' + (currentPage - 1) + '">' + prevText + '</a></li>';
+                }
+                var startPage = Math.max(1, currentPage - 1);
+                var endPage = Math.min(pages, currentPage + 1);
+                for (var i = startPage; i <= endPage; i++) {
+                    html += '<li class="page-item ' + (i === currentPage ? 'active' : '') + '"><a class="page-link" href="#" data-page="' + i + '">' + i + '</a></li>';
+                }
+                if (currentPage < pages) {
+                    html += '<li class="page-item"><a class="page-link" href="#" data-page="' + (currentPage + 1) + '">' + nextText + '</a></li>';
+                }
+                ul.innerHTML = html;
+            }
+
+            function updateSummary() {
+                var totalEl = document.getElementById('accountTotal');
+                if (totalEl) { totalEl.textContent = filteredRows.length; }
+                if (pageInfo && pageOfTemplate) {
+                    pageInfo.textContent = pageOfTemplate.replace('{PAGE}', currentPage).replace('{TOTAL}', totalPages());
+                }
+            }
+
+            function updateNoMatchHint() {
+                if (noMatchHint) {
+                    noMatchHint.style.display = (filteredRows.length === 0 && allRows.length > 0) ? '' : 'none';
+                }
+            }
+
+            function applyFilter() {
+                var term = (searchInput.value || '').trim().toLowerCase();
+                if (!term) {
+                    filteredRows = allRows;
+                } else {
+                    filteredRows = allRows.filter(function(row) {
+                        return row.search.indexOf(term) !== -1;
+                    });
+                }
+                currentPage = 1;
+                renderPage();
+                renderPagination();
+                updateSummary();
+                updateNoMatchHint();
+            }
+
+            var pendingFrame = null;
+            if (searchInput) {
+                searchInput.addEventListener('input', function() {
+                    if (pendingFrame) { cancelAnimationFrame(pendingFrame); }
+                    pendingFrame = requestAnimationFrame(applyFilter);
+                });
+            }
+
+            var paginationUl = document.getElementById('accountPagination');
+            if (paginationUl) {
+                paginationUl.addEventListener('click', function(e) {
+                    var link = e.target.closest('.page-link');
+                    if (!link) { return; }
+                    e.preventDefault();
+                    var page = parseInt(link.getAttribute('data-page'), 10);
+                    if (isNaN(page) || page < 1 || page > totalPages()) { return; }
+                    currentPage = page;
+                    renderPage();
+                    renderPagination();
+                    updateSummary();
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                });
+            }
+        });
+    </script>
+
     @foreach (var item in Model)
     {
         var deleteAccountModal = new ModalViewModel
@@ -213,18 +309,21 @@
     <div class="d-lg-none">
         @foreach (var item in Model)
         {
-            <div class="card mb-3 @(!item.IsEnabled ? "border-secondary" : "")">
+            <div class="card mb-3 account-card @(!item.IsEnabled ? "border-secondary" : "")" data-search="@($"{item.Name} {item.EmailAddress} {item.Username}")">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-start mb-2">
                         <h6 class="card-title mb-0">@item.Name</h6>
-                        @if (item.IsEnabled)
-                        {
-                            <span class="badge bg-success">@Localizer["Enabled"]</span>
-                        }
-                        else
-                        {
-                            <span class="badge bg-secondary">@Localizer["Disabled"]</span>
-                        }
+                        <form asp-action="ToggleEnabled" asp-route-id="@item.Id" method="post" class="d-inline-flex align-items-center">
+                            @Html.AntiForgeryToken()
+                            <div class="form-check form-switch mb-0">
+                                <input class="form-check-input" type="checkbox" role="switch"
+                                       id="enableSwitchMobile_@item.Id"
+                                       checked="@item.IsEnabled"
+                                       onchange="this.form.submit()"
+                                       aria-label="@Localizer["AccountEnabled"]" />
+                                <label class="visually-hidden" for="enableSwitchMobile_@item.Id">@Localizer["AccountEnabled"]</label>
+                            </div>
+                        </form>
                     </div>
                     <p class="card-text small text-muted mb-2">@item.EmailAddress</p>
                     <p class="card-text small mb-2">
@@ -236,6 +335,9 @@
                                 break;
                             case ProviderType.M365:
                                 <span class="badge bg-success">Microsoft 365</span>
+                                break;
+                            case ProviderType.MSA:
+                                <span class="badge bg-info">@Localizer["MsaProviderLabel"]</span>
                                 break;
                             case ProviderType.IMPORT:
                                 <span class="badge bg-secondary">Import Only</span>
@@ -256,6 +358,10 @@
                         }
 </p>
                     <p class="card-text small mb-3">
+                        <strong>@Localizer["Storage"]:</strong>
+                        <span class="text-nowrap">@item.StorageUsed</span>
+                    </p>
+                    <p class="card-text small mb-3">
                         <strong>Auto Delete:</strong>
                         @if (item.DeleteAfterDays.HasValue)
                         {
@@ -267,67 +373,7 @@
                         }
                     </p>
                     @* Mobile/Tablet Button Layout *@
-                    <div class="d-grid gap-2">
-                        <div class="row g-2">
-                            <div class="col-4">
-                                <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-outline-info btn-sm w-100">
-                                    <i class="bi bi-eye"></i> @Localizer["Details"]
-                                </a>
-                            </div>
-                            <div class="col-4">
-                                <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-outline-warning btn-sm w-100">
-                                    <i class="bi bi-pencil"></i> @Localizer["Edit"]
-                                </a>
-                            </div>
-                            @if (canExport)
-                            {
-                                <div class="col-4">
-                                    <a asp-action="Export" asp-route-id="@item.Id" class="btn btn-outline-info btn-sm w-100">
-                                        <i class="bi bi-download"></i> @Localizer["Export"]
-                                    </a>
-                                </div>
-                            }
-                        </div>
-                        <div class="row g-2">
-                            <div class="col">
-                                <form asp-action="ToggleEnabled" asp-route-id="@item.Id" method="post" class="w-100">
-                                    @Html.AntiForgeryToken()
-                                    <button type="submit"
-                                        class="btn @(item.IsEnabled ? "btn-outline-secondary" : "btn-outline-success") btn-sm w-100">
-                                        <i class="bi bi-@(item.IsEnabled ? "pause" : "play")"></i>
-                                        @(item.IsEnabled? @Localizer["Disable"] : @Localizer["Enable"])
-                                    </button>
-                                </form>
-                            </div>
-                            @if (item.Provider != ProviderType.IMPORT)
-                            {
-                                <div class="col">
-                                    <form asp-action="Sync" asp-route-id="@item.Id" method="post" class="w-100">
-                                        @Html.AntiForgeryToken()
-                                        @if (item.IsEnabled)
-                                        {
-                                            <button type="submit" class="btn btn-success btn-sm w-100">
-                                                <i class="bi bi-arrow-clockwise"></i> Sync
-                                            </button>
-                                        }
-                                        else
-                                        {
-                                            <button type="submit" class="btn btn-success btn-sm w-100" title="@Localizer["ManualSyncTooltip"]">
-                                                <i class="bi bi-arrow-clockwise"></i> Sync
-                                            </button>
-                                        }
-                                    </form>
-                                </div>
-                            }
-                        </div>
-                        <div class="row">
-                            <div class="col-12">
-<button type="button" class="btn btn-outline-danger btn-sm w-100" data-bs-toggle="modal" data-bs-target="#deleteAccountModal-@item.Id">
-                                            <i class="bi bi-trash"></i> @Localizer["Delete"]
-                                        </button>
-                            </div>
-                        </div>
-                    </div>
+                    @{ await Html.RenderPartialAsync("_AccountActionsMenu", item); }
                 </div>
             </div>
         }
@@ -404,4 +450,17 @@
             </div>
         </div>
     }
+
+    <div id="noAccountMatchHint" class="text-center py-4" style="display: none;">
+        <i class="bi bi-search text-muted display-6 d-block mb-2"></i>
+        <span class="text-muted">@Localizer["NoAccountsMatch"]</span>
+    </div>
+
+    <div class="card mb-3" id="accountPaginationCard" style="display: none;">
+        <div class="card-footer">
+            <nav>
+                <ul class="pagination pagination-sm justify-content-center mb-0" id="accountPagination"></ul>
+            </nav>
+        </div>
+    </div>
 </div>

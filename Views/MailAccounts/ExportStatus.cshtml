@@ -5,14 +5,21 @@
     ViewData["Title"] = @Localizer["ExportStatus"];
 }
 
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header">
-                    <h3 class="card-title">@Localizer["ExportStatus"]: @Model.MailAccountName</h3>
-                </div>
-                <div class="card-body">
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="h3 mb-0">@Localizer["ExportStatus"]: @Model.MailAccountName</h1>
+        <div class="d-flex gap-2">
+            <a asp-controller="Emails" asp-action="Jobs" class="btn btn-outline-info btn-sm">
+                <i class="bi bi-list"></i> @Localizer["AllJobs"]
+            </a>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header bg-light">
+            <span class="h6 mb-0"><i class="bi bi-info-circle me-1"></i>@Localizer["ExportStatus"]</span>
+        </div>
+        <div class="card-body">
                     <div class="row mb-4">
                         <div class="col-md-6">
                             <dl class="row">
@@ -202,15 +209,14 @@
                                 <i class="bi bi-arrow-clockwise"></i> @Localizer["Refresh"]
                             </button>
                         </div>
-                    </div>
                 </div>
-            </div>
         </div>
     </div>
 </div>
 
 @section Scripts {
     <script>
+        const exportCompletedMsg = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["ExportCompleted"].Value));
         document.addEventListener('DOMContentLoaded', function() {
             // Auto-refresh if the job is still running
             @if (Model.Status == MailArchiver.Models.AccountExportJobStatus.Queued || Model.Status == MailArchiver.Models.AccountExportJobStatus.Running)
@@ -226,7 +232,7 @@
                 <text>
                 // Show success notification
                 if (typeof window.showNotification === 'function') {
-                    window.showNotification('@Localizer["ExportCompleted"]', 'success');
+                    window.showNotification(exportCompletedMsg, 'success');
                 }
                 </text>
             }

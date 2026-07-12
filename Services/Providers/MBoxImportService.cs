@@ -1,5 +1,6 @@
 using MailArchiver.Data;
 using MailArchiver.Models;
+using MailArchiver.Services;
 using MailArchiver.Services.Providers.Eml;
 using MailArchiver.Services.Providers.MBox;
 using MailArchiver.Services.Shared;
@@ -282,6 +283,18 @@ private readonly IServiceProvider _serviceProvider;
                     job.Completed = DateTime.UtcNow;
                     _logger.LogInformation("Completed MBox job {JobId}. Success: {Success}, Failed: {Failed}, Malformed: {Malformed}",
                         job.JobId, job.SuccessCount, job.FailedCount, job.SkippedMalformedCount);
+
+                    // Sofort-Refresh des Speichercaches fuer den betroffenen Account
+                    try
+                    {
+                        using var storageScope = _serviceProvider.CreateScope();
+                        var storageService = storageScope.ServiceProvider.GetRequiredService<IAccountStorageService>();
+                        await storageService.RefreshAccountStorageAsync(job.TargetAccountId);
+                    }
+                    catch (Exception storageEx)
+                    {
+                        _logger.LogDebug(storageEx, "Storage cache refresh after MBox import failed (non-fatal) for account {AccountId}", job.TargetAccountId);
+                    }
                 }
 
                 if (!job.KeepSourceFile) TryDeleteFile(job.FilePath);

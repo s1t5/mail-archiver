@@ -98,10 +98,12 @@ environment:
   - OAuth__Authority=https://sts.windows.net/{TENANT-ID}/
   - OAuth__ClientId=YOUR-CLIENT-ID
   - OAuth__ClientSecret=YOUR-CLIENT-SECRET
+  - OAuth__DisplayName=PocketID SSO
   - OAuth__ClientScopes__0=openid
   - OAuth__ClientScopes__1=profile
   - OAuth__ClientScopes__2=email
   - OAuth__DisablePasswordLogin=false
+  - OAuth__AutoApproveUsers=false
 ```
 
 ### Configuration Parameters Explained
@@ -110,6 +112,7 @@ environment:
 - **OAuth__Authority**: The OpenID Connect authority URL of your identity provider
 - **OAuth__ClientId**: The client ID assigned by your identity provider
 - **OAuth__ClientSecret**: The client secret assigned by your identity provider
+- **OAuth__DisplayName**: Optional display name for the OIDC login button (for example, `PocketID SSO` renders as `Login with PocketID SSO`)
 - **OAuth__ClientScopes**: Array of scopes requested from the identity provider
 - **OAuth__DisablePasswordLogin**: Set to `true` to disable traditional username/password login and enforce OAuth-only authentication (see Passwordless Login Configuration for more details)
 - **OAuth__AutoApproveUsers**: Set to `true` to automatically approve new OIDC users without requiring admin approval (default: `false`). See [Auto-Approve OIDC Users](#auto-approve-oidc-users) for details
@@ -134,20 +137,28 @@ This section provides step-by-step instructions for configuring Microsoft Entra 
      https://your-mail-archiver-domain/oidc-signin-completed
      ```
      Replace `your-mail-archiver-domain` with your actual domain (e.g., `mailarchiver.example.com`)
-
 6. Click **Register**
 
 ### 🔐 Configure Authentication
 
-1. After registration, note down the following values from the **Overview** page:
+1. After registration, note down the following values from the **Overview** page of the app registration:
    - **Application (client) ID** - You'll need this as `OAuth__ClientId`
-   - **Directory (tenant) ID** - You'll need this in the Authority URL
-
-2. In the left menu, select **Authentication**
-3. Click **Settings**
-4. Under **Implicit grant and hybrid flows**, ensure **ID tokens** is checked
-5. Under **Supported account types**, verify your selection matches your requirements
-6. Under **Redirect URIs**, ensure your callback URL is listed correctly
+   - **Directory (tenant) ID** - You'll need this to construct the Authority URL
+2. Construct the **Authority URL** from the **Directory (tenant) ID** you just copied. For Microsoft Entra ID, the Authority is built as:
+   ```
+   https://sts.windows.net/<TENANT-ID>/
+   ```
+   Replace `<TENANT-ID>` (also referred to as Mandanten-ID) with the value shown next to the Application (client) ID on the Overview page of the app registration. For example, if your Directory (tenant) ID is `11111111-2222-3333-4444-555555555555`, your Authority becomes:
+   ```
+   https://sts.windows.net/11111111-2222-3333-4444-555555555555/
+   ```
+   Use this value as `OAuth__Authority` in your configuration. Make sure to include the trailing slash.
+   > ℹ️ **Note**: Both `https://sts.windows.net/<TENANT-ID>/` and `https://login.microsoftonline.com/<TENANT-ID>/v2.0` are valid Entra ID authority endpoints. The `sts.windows.net` form uses the v1.0 endpoint and is recommended for this guide.
+3. In the left menu, select **Authentication**
+4. Click **Settings**
+5. Under **Implicit grant and hybrid flows**, ensure **ID tokens** is checked
+6. Under **Supported account types**, verify your selection matches your requirements
+7. Under **Redirect URIs**, ensure your callback URL is listed correctly
 
 ### 🎯 Configure API Permissions
 
@@ -220,8 +231,8 @@ identity_providers:
 
 1. Restart your Mail Archiver application after configuring OIDC settings
 2. Navigate to your Mail Archiver login page
-3. You should see a new "Login with OAuth" button alongside the regular login form
-4. Click the "Login with OAuth" button to initiate the OIDC flow
+3. You should see a new OAuth login button alongside the regular login form. With `OAuth__DisplayName=PocketID SSO`, the button reads `Login with PocketID SSO`.
+4. Click the OAuth login button to initiate the OIDC flow
 5. You should be redirected to your identity provider's login page
 6. After successful authentication, you should be redirected back to Mail Archiver
 
@@ -340,9 +351,10 @@ This option is recommended for environments where:
 {
   "OAuth": {
     "Enabled": true,
-    "Authority": "https://login.microsoftonline.com/YOUR_TENANT_ID/v2.0",
+    "Authority": "https://sts.windows.net/YOUR_TENANT_ID/",
     "ClientId": "your-client-id",
     "ClientSecret": "your-secret",
+    "DisplayName": "PocketID SSO",
     "ClientScopes": ["openid", "profile", "email"],
     "DisablePasswordLogin": true,
     "AutoRedirect": true,
@@ -387,7 +399,7 @@ Set `DisablePasswordLogin` to `true` to hide username/password fields:
 }
 ```
 
-**Result**: Login page displays only the "Login with OAuth" button.
+**Result**: Login page displays only the OAuth login button. If `DisplayName` is configured, the button uses that value (for example, `Login with PocketID SSO`).
 
 ### Auto-Redirect to OAuth Provider
 
@@ -418,9 +430,10 @@ Enable `AutoRedirect` to automatically redirect users to your OAuth provider:
 {
   "OAuth": {
     "Enabled": true,
-    "Authority": "https://login.microsoftonline.com/YOUR_TENANT_ID/v2.0",
+    "Authority": "https://sts.windows.net/YOUR_TENANT_ID/",
     "ClientId": "your-client-id",
     "ClientSecret": "your-secret",
+    "DisplayName": "PocketID SSO",
     "ClientScopes": ["openid", "profile", "email"],
     "DisablePasswordLogin": true,
     "AutoRedirect": true,

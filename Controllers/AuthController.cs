@@ -55,14 +55,11 @@ namespace MailArchiver.Controllers
                 return RedirectToLocal(returnUrl);
             }
 
+            ConfigureOAuthViewData(returnUrl);
+
             var oAuthEnabled = _oAuthOptions.Value?.Enabled ?? false;
             var disablePasswordLogin = _oAuthOptions.Value?.DisablePasswordLogin ?? false;
             var autoRedirect = _oAuthOptions.Value?.AutoRedirect ?? false;
-
-            ViewBag.OAuthEnabled = oAuthEnabled;
-            ViewBag.DisablePasswordLogin = disablePasswordLogin;
-            ViewBag.AutoRedirect = autoRedirect;
-            ViewData["ReturnUrl"] = returnUrl;
 
             // Auto-redirect to OAuth if enabled and password login is disabled
             // SECURITY: Do not auto-redirect if there's an error message (e.g., from failed OIDC auth)
@@ -71,7 +68,7 @@ namespace MailArchiver.Controllers
             if (oAuthEnabled && disablePasswordLogin && autoRedirect && !hasError)
             {
                 _logger.LogInformation("Auto-redirecting to OAuth provider (password login disabled, auto-redirect enabled)");
-                return View("AutoRedirect", new OAuthLoginViewModel { ReturnUrl = returnUrl });
+                return View("AutoRedirect", new OAuthLoginViewModel { ReturnUrl = returnUrl, DisplayName = ViewBag.OAuthDisplayName });
             }
 
             // Pass OIDC error message to the view if present
@@ -81,6 +78,33 @@ namespace MailArchiver.Controllers
             }
 
             return View(new LoginViewModel());
+        }
+
+        private void ConfigureOAuthViewData(string? returnUrl)
+        {
+            var options = _oAuthOptions.Value;
+            var enabled = options?.Enabled ?? false;
+
+            ViewBag.OAuthEnabled = enabled;
+            ViewBag.DisablePasswordLogin = options?.DisablePasswordLogin ?? false;
+            ViewBag.AutoRedirect = options?.AutoRedirect ?? false;
+            ViewData["ReturnUrl"] = returnUrl;
+
+            if (!enabled)
+            {
+                ViewBag.OAuthDisplayName = "OAuth";
+                ViewBag.OAuthSignInLabel = null;
+                return;
+            }
+
+            var displayName = string.IsNullOrWhiteSpace(options?.DisplayName)
+                ? null
+                : options.DisplayName.Trim();
+
+            ViewBag.OAuthDisplayName = displayName ?? "OAuth";
+            ViewBag.OAuthSignInLabel = string.IsNullOrWhiteSpace(displayName)
+                ? _localizer["SignInWithOAuth"].Value
+                : _localizer["SignInWithOAuthProvider", displayName].Value;
         }
 
         [HttpPost]
@@ -97,12 +121,16 @@ namespace MailArchiver.Controllers
                     // Check if 2FA is enabled for the user
                     var user = await _userService.GetUserByUsernameAsync(model.Username);
                     if (user != null && user.IsTwoFactorEnabled)
-       {
-                        // Store username in session for 2FA verification
-                        HttpContext.Session.SetString("TwoFactorUsername", model.Username);
-                        HttpContext.Session.SetString("TwoFactorRememberMe", model.RememberMe.ToString());
-                        return RedirectToAction("Verify", "TwoFactor");
-                    }
+        {
+                        // SECURITY: regenerate the session before storing the 2FA identity to
+                        // prevent session fixation (an attacker who planted a session cookie
+                        // pre-login must not inherit the post-2FA authenticated session).
+                        HttpContext.Session.Clear();
+                         // Store username in session for 2FA verification
+                         HttpContext.Session.SetString("TwoFactorUsername", model.Username);
+                         HttpContext.Session.SetString("TwoFactorRememberMe", model.RememberMe.ToString());
+                         return RedirectToAction("Verify", "TwoFactor");
+                     }
 
                     await _authenticationHandler.HandleUserAuthenticated(
                         CookieAuthenticationDefaults.AuthenticationScheme
@@ -134,14 +162,13 @@ namespace MailArchiver.Controllers
                 else
                 {
                     ModelState.AddModelError("", _localizer["InvalidUserPassword"]);
-                    ViewBag.OAuthEnabled = _oAuthOptions.Value?.Enabled ?? false;
                     _logger.LogWarning("Failed login attempt for username: {Username} from IP: {IP}", 
                         model.Username, HttpContext.Connection.RemoteIpAddress);
                 }
             }
 
-            // Ensure OAuthEnabled is set when returning view on validation errors
-            ViewBag.OAuthEnabled = _oAuthOptions.Value?.Enabled ?? false;
+            // Ensure OAuth view data is set when returning view on validation errors
+            ConfigureOAuthViewData(returnUrl);
             return View(model);
         }
 

@@ -1,5 +1,6 @@
 using MailArchiver.Data;
 using MailArchiver.Models;
+using MailArchiver.Services.Shared;
 using MailArchiver.Utilities;
 using MailKit;
 using MailKit.Net.Imap;
@@ -704,6 +705,7 @@ namespace MailArchiver.Services.Providers.Imap
                 try
                 {
                     var fromAddresses = InternetAddressList.Parse(email.From);
+                    MailContentHelper.ApplyDisplayNames(fromAddresses, email.FromDisplayName);
                     foreach (var address in fromAddresses)
                     {
                         message.From.Add(address);
@@ -725,6 +727,7 @@ namespace MailArchiver.Services.Providers.Imap
                     try
                     {
                         var toAddresses = InternetAddressList.Parse(email.To);
+                        MailContentHelper.ApplyDisplayNames(toAddresses, email.ToDisplayNames);
                         foreach (var address in toAddresses)
                         {
                             message.To.Add(address);
@@ -747,6 +750,7 @@ namespace MailArchiver.Services.Providers.Imap
                     try
                     {
                         var ccAddresses = InternetAddressList.Parse(email.Cc);
+                        MailContentHelper.ApplyDisplayNames(ccAddresses, email.CcDisplayNames);
                         foreach (var address in ccAddresses)
                         {
                             message.Cc.Add(address);
@@ -755,6 +759,24 @@ namespace MailArchiver.Services.Providers.Imap
                     catch (Exception ex)
                     {
                         _logger.LogWarning(ex, "Error parsing Cc addresses: {Cc}, ignoring", email.Cc);
+                    }
+                }
+
+                // Set Bcc addresses
+                if (!string.IsNullOrEmpty(email.Bcc))
+                {
+                    try
+                    {
+                        var bccAddresses = InternetAddressList.Parse(email.Bcc);
+                        MailContentHelper.ApplyDisplayNames(bccAddresses, email.BccDisplayNames);
+                        foreach (var address in bccAddresses)
+                        {
+                            message.Bcc.Add(address);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Error parsing Bcc addresses: {Bcc}, ignoring", email.Bcc);
                     }
                 }
 

@@ -4,6 +4,7 @@ using MailArchiver.Models.ViewModels;
 using MailArchiver.ViewModels;
 using MailArchiver.Services;
 using MailArchiver.Services.Providers;
+using MailArchiver.Utilities;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -23,6 +24,7 @@ namespace MailArchiver.Controllers
     private readonly IGraphEmailService _graphEmailService;
     private readonly ILogger<MailAccountsController> _logger;
     private readonly BatchRestoreOptions _batchOptions;
+    private readonly TenantManagementOptions _tenantManagementOptions;
     private readonly ISyncJobService _syncJobService;
     private readonly IMBoxImportService _mboxImportService;
     private readonly IEmlImportService _emlImportService;
@@ -32,6 +34,10 @@ namespace MailArchiver.Controllers
     private readonly IExportService _exportService;
     private readonly IAccessLogService _accessLogService;
     private readonly IMailAccountDeletionService _mailAccountDeletionService;
+    private readonly IMsaOAuthService _msaOAuthService;
+    private readonly MsaOAuthOptions _msaOptions;
+    private readonly IAccountStorageService _accountStorageService;
+    private readonly CsvImportOptions _csvImportOptions;
 
     public MailAccountsController(
         MailArchiverDbContext context,
@@ -40,6 +46,7 @@ namespace MailArchiver.Controllers
         IGraphEmailService graphEmailService,
         ILogger<MailAccountsController> logger,
         IOptions<BatchRestoreOptions> batchOptions,
+        IOptions<TenantManagementOptions> tenantManagementOptions,
         ISyncJobService syncJobService,
         IMBoxImportService mboxImportService,
         IEmlImportService emlImportService,
@@ -48,7 +55,11 @@ namespace MailArchiver.Controllers
         IServiceScopeFactory serviceScopeFactory,
         IExportService exportService,
         IAccessLogService accessLogService,
-        IMailAccountDeletionService mailAccountDeletionService)
+        IMailAccountDeletionService mailAccountDeletionService,
+        IMsaOAuthService msaOAuthService,
+        IOptions<MsaOAuthOptions> msaOptions,
+        IAccountStorageService accountStorageService,
+        IOptions<CsvImportOptions> csvImportOptions)
     {
         _context = context;
         _emailCoreService = emailCoreService;
@@ -56,6 +67,7 @@ namespace MailArchiver.Controllers
         _graphEmailService = graphEmailService;
         _logger = logger;
         _batchOptions = batchOptions.Value;
+        _tenantManagementOptions = tenantManagementOptions.Value;
         _syncJobService = syncJobService;
         _mboxImportService = mboxImportService;
         _emlImportService = emlImportService;
@@ -65,6 +77,10 @@ namespace MailArchiver.Controllers
         _exportService = exportService;
         _accessLogService = accessLogService;
         _mailAccountDeletionService = mailAccountDeletionService;
+        _msaOAuthService = msaOAuthService;
+        _msaOptions = msaOptions.Value;
+        _accountStorageService = accountStorageService;
+        _csvImportOptions = csvImportOptions.Value;
     }
 
         private async Task<bool> HasAccessToAccountAsync(int accountId)
@@ -132,6 +148,8 @@ namespace MailArchiver.Controllers
             }
 
             var accounts = await mailAccountsQuery
+                .OrderBy(a => a.Name)
+                .ThenBy(a => a.Id)
                 .Select(a => new MailAccountViewModel
                 {
                     Id = a.Id,
@@ -149,6 +167,20 @@ namespace MailArchiver.Controllers
                 .ToListAsync();
 
             _logger.LogInformation("Returning {Count} accounts for user {Username}", accounts.Count, currentUsername);
+
+            // Speicherverbrauch pro Account befuellen (aus Cache)
+            if (accounts.Count > 0)
+            {
+                var accountIds = accounts.Select(a => a.Id).ToList();
+                var storageMap = await _accountStorageService.GetStorageForAccountsAsync(accountIds);
+                foreach (var account in accounts)
+                {
+                    account.StorageUsed = storageMap.TryGetValue(account.Id, out var storage)
+                        ? storage
+                        : AccountStorageService.FormatFileSize(0);
+                }
+            }
+
             return View(accounts);
         }
 
@@ -170,7 +202,12 @@ namespace MailArchiver.Controllers
             // E-Mail-Anzahl abrufen
             var emailCount = await _emailCoreService.GetEmailCountByAccountAsync(id);
 
-var model = new MailAccountViewModel
+            var storageMap = await _accountStorageService.GetStorageForAccountsAsync(new List<int> { id });
+            var storageUsed = storageMap.TryGetValue(id, out var storage)
+                ? storage
+                : AccountStorageService.FormatFileSize(0);
+
+            var model = new MailAccountViewModel
             {
                 Id = account.Id,
                 Name = account.Name,
@@ -183,6 +220,14 @@ var model = new MailAccountViewModel
                 IsEnabled = account.IsEnabled,
                 DeleteAfterDays = account.DeleteAfterDays,
                 Provider = account.Provider,
+                ClientId = account.ClientId,
+                TenantId = account.TenantId,
+                ExcludedFolders = account.ExcludedFolders,
+                LocalRetentionDays = account.LocalRetentionDays,
+                StorageUsed = storageUsed,
+                MsaClientId = account.Provider == ProviderType.MSA ? account.ClientId : null,
+                MsaIsAuthorized = account.Provider == ProviderType.MSA && !string.IsNullOrEmpty(account.OAuthRefreshToken),
+                MsaTokenExpiry = account.OAuthTokenExpiry,
             };
 
             ViewBag.EmailCount = emailCount;
@@ -192,11 +237,15 @@ var model = new MailAccountViewModel
         // GET: MailAccounts/Create
         public IActionResult Create()
         {
+            ViewBag.MsaHasDefaultClientId = _msaOptions.HasDefaultClientId;
             var model = new CreateMailAccountViewModel
             {
                 ImapPort = 993, // Standard values
                 UseSSL = true,
-                Provider = ProviderType.IMAP
+                Provider = ProviderType.IMAP,
+                ImportEntireTenant = true,
+                ImportAllTenantMailboxes = true,
+                SkipDisabledMailboxes = true
             };
             return View(model);
         }
@@ -206,25 +255,53 @@ var model = new MailAccountViewModel
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(CreateMailAccountViewModel model)
         {
+            // When a default MSA ClientId is configured, per-account ClientId is optional.
+            // When it is NOT configured, the per-account ClientId is required (validated below).
+            if (model.Provider == ProviderType.MSA && !_msaOptions.HasDefaultClientId
+                && string.IsNullOrWhiteSpace(model.MsaClientId))
+            {
+                ModelState.AddModelError("MsaClientId",
+                    _localizer["MsaClientIdRequired"].Value);
+            }
+
+            ViewBag.MsaHasDefaultClientId = _msaOptions.HasDefaultClientId;
+
             if (ModelState.IsValid)
             {
+                if (model.Provider == ProviderType.M365 && model.ImportEntireTenant)
+                {
+                    return await CreateM365TenantAccountsAsync(model);
+                }
+
                 var account = new MailAccount
                 {
                     Name = model.Name,
                     EmailAddress = model.EmailAddress,
-                    ImapServer = model.Provider == ProviderType.IMPORT || model.Provider != ProviderType.IMAP ? null : model.ImapServer,
-                    ImapPort = model.Provider == ProviderType.IMPORT || model.Provider != ProviderType.IMAP ? null : model.ImapPort,
-                    Username = model.Provider == ProviderType.IMPORT || model.Provider != ProviderType.IMAP ? null : model.Username,
-                    Password = model.Provider == ProviderType.IMPORT || model.Provider != ProviderType.IMAP ? null : model.Password,
-                    UseSSL = model.UseSSL,
+                    ImapServer = model.Provider == ProviderType.IMAP ? model.ImapServer
+                                 : model.Provider == ProviderType.MSA ? "outlook.office365.com"
+                                 : null,
+                    ImapPort = model.Provider == ProviderType.IMAP ? model.ImapPort
+                               : model.Provider == ProviderType.MSA ? 993
+                               : null,
+                    Username = model.Provider == ProviderType.IMAP ? model.Username : null,
+                    Password = model.Provider == ProviderType.IMAP ? model.Password : null,
+                    UseSSL = model.Provider == ProviderType.IMAP ? model.UseSSL : true,
                     IsEnabled = model.IsEnabled,
                     Provider = model.Provider,
-                    ClientId = model.Provider == ProviderType.M365 ? model.ClientId : null,
-                    ClientSecret = model.Provider == ProviderType.M365 ? model.ClientSecret : null,
+                    // For MSA: store the per-account ClientId only when one was entered.
+                    // When empty, the MsaOAuthService resolves the configured default at runtime.
+                    ClientId = model.Provider == ProviderType.M365 ? model.ClientId
+                               : model.Provider == ProviderType.MSA ? model.MsaClientId
+                               : null,
+                    ClientSecret = model.Provider == ProviderType.M365 ? model.ClientSecret
+                                   : model.Provider == ProviderType.MSA ? model.MsaClientSecret
+                                   : null,
                     TenantId = model.Provider == ProviderType.M365 ? model.TenantId : null,
                     ExcludedFolders = string.Empty,
                     DeleteAfterDays = model.DeleteAfterDays,
                     LocalRetentionDays = model.LocalRetentionDays,
+                    SyncIntervalMinutes = model.SyncIntervalMinutes,
+                    FullSyncIntervalHours = model.FullSyncIntervalHours,
                     LastSync = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)
                 };
 
@@ -244,12 +321,44 @@ var model = new MailAccountViewModel
                     return View(model);
                 }
 
+                // SECURITY: If the user chose to copy credentials from an existing M365 account,
+                // copy the client secret server-side so it never travels to the browser.
+                if (model.Provider == ProviderType.M365 &&
+                    model.CopyCredentialsFromAccountId.HasValue &&
+                    string.IsNullOrWhiteSpace(model.ClientSecret))
+                {
+                    var sourceAccountId = model.CopyCredentialsFromAccountId.Value;
+                    if (await HasAccessToAccountAsync(sourceAccountId))
+                    {
+                        var sourceAccount = await _context.MailAccounts.FindAsync(sourceAccountId);
+                        if (sourceAccount != null && sourceAccount.Provider == ProviderType.M365)
+                        {
+                            account.ClientSecret = sourceAccount.ClientSecret;
+                            _logger.LogInformation(
+                                "Copying M365 client secret from account {SourceAccountId} to new account {NewAccountEmail}",
+                                sourceAccountId, account.EmailAddress);
+                        }
+                        else
+                        {
+                            _logger.LogWarning(
+                                "Cannot copy M365 credentials: source account {SourceAccountId} not found or not M365",
+                                sourceAccountId);
+                        }
+                    }
+                    else
+                    {
+                        _logger.LogWarning(
+                            "User attempted to copy M365 credentials from account {SourceAccountId} without access",
+                            sourceAccountId);
+                    }
+                }
+
                 try
                 {
                     _logger.LogInformation("Creating new account: {Name}, Provider: {Provider}",
                         model.Name, model.Provider);
 
-                    // Test connection before saving (only for non-import-only accounts)
+                    // Test connection before saving (only for IMAP; M365 and MSA use OAuth and can't be tested this way)
                     if (account.Provider == ProviderType.IMAP)
                     {
                         _logger.LogInformation("Testing connection for account: {Name}, Server: {Server}:{Port}",
@@ -296,6 +405,14 @@ var model = new MailAccountViewModel
                     }
                     
                     TempData["SuccessMessage"] = _localizer["EmailAccountCreateSuccess"].Value;
+
+                    // For MSA accounts, redirect directly to the device-code authorization page
+                    // so the user can authenticate immediately — no Edit round-trip needed.
+                    if (account.Provider == ProviderType.MSA)
+                    {
+                        return RedirectToAction(nameof(AuthorizeMsaDevice), new { id = account.Id });
+                    }
+
                     return RedirectToAction(nameof(Index));
                 }
                 catch (Exception ex)
@@ -308,6 +425,216 @@ var model = new MailAccountViewModel
 
             // Wenn ModelState ungültig ist, zurück zur Ansicht mit Fehlern
             return View(model);
+        }
+
+        private async Task<IActionResult> CreateM365TenantAccountsAsync(CreateMailAccountViewModel model)
+        {
+            if (model.LocalRetentionDays.HasValue && !model.DeleteAfterDays.HasValue)
+            {
+                ModelState.AddModelError("LocalRetentionDays",
+                    _localizer["LocalRetentionRequiresServerRetention"].Value);
+                return View("Create", model);
+            }
+
+            if (model.LocalRetentionDays.HasValue && model.DeleteAfterDays.HasValue &&
+                model.LocalRetentionDays.Value < model.DeleteAfterDays.Value)
+            {
+                ModelState.AddModelError("LocalRetentionDays",
+                    _localizer["LocalRetentionMustBeGreaterOrEqual"].Value);
+                return View("Create", model);
+            }
+
+            try
+            {
+                _logger.LogInformation("Importing all M365 tenant mailboxes for tenant {TenantId}", model.TenantId);
+
+                var tenantUsers = await _graphEmailService.GetTenantMailboxUsersAsync(
+                    model.ClientId,
+                    model.ClientSecret,
+                    model.TenantId,
+                    includeDisabled: !model.SkipDisabledMailboxes);
+
+                var tenantMailboxes = tenantUsers
+                    .Select(user => new
+                    {
+                        Name = string.IsNullOrWhiteSpace(user.DisplayName)
+                            ? user.UserPrincipalName ?? user.Mail ?? model.Name ?? _localizer["M365MailboxDefaultName"].Value
+                            : user.DisplayName,
+                        EmailAddress = string.IsNullOrWhiteSpace(user.Mail)
+                            ? user.UserPrincipalName
+                            : user.Mail
+                    })
+                    .Where(user => !string.IsNullOrWhiteSpace(user.EmailAddress))
+                    .GroupBy(user => user.EmailAddress!.Trim().ToLowerInvariant())
+                    .Select(group => group.First())
+                    .ToList();
+
+                if (tenantMailboxes.Count == 0)
+                {
+                    ModelState.AddModelError("", _localizer["NoEnabledM365UsersFound"].Value);
+                    return View("Create", model);
+                }
+
+                var mailboxAddresses = tenantMailboxes
+                    .Select(mailbox => mailbox.EmailAddress!.Trim().ToLowerInvariant())
+                    .ToList();
+
+                var existingAddresses = await _context.MailAccounts
+                    .Where(account => account.Provider == ProviderType.M365 && mailboxAddresses.Contains(account.EmailAddress.ToLower()))
+                    .Select(account => account.EmailAddress.ToLower())
+                    .ToListAsync();
+
+                var selectedAddressSet = model.ImportAllTenantMailboxes
+                    ? null
+                    : model.SelectedM365Mailboxes
+                        .Select(address => address.Trim().ToLowerInvariant())
+                        .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+                var selectedMailboxCount = selectedAddressSet?.Count ?? tenantMailboxes.Count;
+                var accountNamePrefix = model.Name!.Trim();
+                var existingAddressSet = existingAddresses.ToHashSet(StringComparer.OrdinalIgnoreCase);
+                var accountsToCreate = tenantMailboxes
+                    .Where(mailbox => selectedAddressSet == null || selectedAddressSet.Contains(mailbox.EmailAddress!.Trim().ToLowerInvariant()))
+                    .Where(mailbox => !existingAddressSet.Contains(mailbox.EmailAddress!))
+                    .Select(mailbox => new MailAccount
+                    {
+                        Name = $"{accountNamePrefix} - <{mailbox.EmailAddress}>",
+                        EmailAddress = mailbox.EmailAddress!,
+                        UseSSL = model.UseSSL,
+                        IsEnabled = model.IsEnabled,
+                        Provider = ProviderType.M365,
+                        ClientId = model.ClientId,
+                        ClientSecret = model.ClientSecret,
+                        TenantId = model.TenantId,
+                        ExcludedFolders = string.Empty,
+                        DeleteAfterDays = model.DeleteAfterDays,
+                        LocalRetentionDays = model.LocalRetentionDays,
+                        SyncIntervalMinutes = model.SyncIntervalMinutes,
+                        FullSyncIntervalHours = model.FullSyncIntervalHours,
+                        LastSync = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+                    })
+                    .ToList();
+
+                if (accountsToCreate.Count == 0)
+                {
+                    TempData["SuccessMessage"] = _localizer["AllSelectedM365TenantMailboxesAlreadyExist", selectedMailboxCount].Value;
+                    return RedirectToAction(nameof(Index));
+                }
+
+                _context.MailAccounts.AddRange(accountsToCreate);
+                await _context.SaveChangesAsync();
+
+                var authService = HttpContext.RequestServices.GetService<MailArchiver.Services.IAuthenticationService>();
+                var currentUsername = authService.GetCurrentUserDisplayName(HttpContext);
+                var currentUser = await _context.Users
+                    .FirstOrDefaultAsync(user => user.Username.ToLower() == currentUsername.ToLower());
+
+                if (currentUser != null && !currentUser.IsAdmin && currentUser.IsSelfManager)
+                {
+                    _context.UserMailAccounts.AddRange(accountsToCreate.Select(account => new UserMailAccount
+                    {
+                        UserId = currentUser.Id,
+                        MailAccountId = account.Id
+                    }));
+                    await _context.SaveChangesAsync();
+
+                    _logger.LogInformation("Auto-assigned {Count} M365 tenant accounts to SelfManager user {Username}",
+                        accountsToCreate.Count, currentUser.Username);
+                }
+
+                if (!string.IsNullOrEmpty(currentUsername))
+                {
+                    await _accessLogService.LogAccessAsync(currentUsername, AccessLogType.Account,
+                        searchParameters: $"Imported {accountsToCreate.Count} M365 tenant mail accounts for tenant {model.TenantId}");
+                }
+
+                TempData["SuccessMessage"] = _localizer["ImportedM365TenantAccounts", accountsToCreate.Count, selectedMailboxCount - accountsToCreate.Count].Value;
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error importing M365 tenant accounts: {Message}", ex.Message);
+                ModelState.AddModelError("", _localizer["M365TenantAccountsCouldNotBeImported"].Value);
+                return View("Create", model);
+            }
+        }
+
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ListM365TenantMailboxes(
+            [FromForm] string clientId,
+            [FromForm] string clientSecret,
+            [FromForm] string tenantId,
+            [FromForm] bool skipDisabledMailboxes = true)
+        {
+            if (string.IsNullOrWhiteSpace(clientId) ||
+                string.IsNullOrWhiteSpace(clientSecret) ||
+                string.IsNullOrWhiteSpace(tenantId))
+            {
+                return Json(new
+                {
+                    success = false,
+                    message = _localizer["M365TenantCredentialsRequired"].Value
+                });
+            }
+
+            try
+            {
+                var tenantUsers = await _graphEmailService.GetTenantMailboxUsersAsync(
+                    clientId,
+                    clientSecret,
+                    tenantId,
+                    includeDisabled: !skipDisabledMailboxes);
+
+                var tenantMailboxes = tenantUsers
+                    .Select(user => new
+                    {
+                        DisplayName = string.IsNullOrWhiteSpace(user.DisplayName)
+                            ? user.UserPrincipalName ?? user.Mail ?? _localizer["M365MailboxDefaultName"].Value
+                            : user.DisplayName,
+                        EmailAddress = string.IsNullOrWhiteSpace(user.Mail)
+                            ? user.UserPrincipalName
+                            : user.Mail,
+                        IsDisabled = user.AccountEnabled == false
+                    })
+                    .Where(user => !string.IsNullOrWhiteSpace(user.EmailAddress))
+                    .GroupBy(user => user.EmailAddress!.Trim().ToLowerInvariant())
+                    .Select(group => group.First())
+                    .OrderBy(user => user.EmailAddress)
+                    .ToList();
+
+                var mailboxAddresses = tenantMailboxes
+                    .Select(mailbox => mailbox.EmailAddress!.Trim().ToLowerInvariant())
+                    .ToList();
+
+                var existingAddresses = await _context.MailAccounts
+                    .Where(account => account.Provider == ProviderType.M365 && mailboxAddresses.Contains(account.EmailAddress.ToLower()))
+                    .Select(account => account.EmailAddress.ToLower())
+                    .ToListAsync();
+                var existingAddressSet = existingAddresses.ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+                return Json(new
+                {
+                    success = true,
+                    mailboxes = tenantMailboxes.Select(mailbox => new
+                    {
+                        displayName = mailbox.DisplayName,
+                        emailAddress = mailbox.EmailAddress,
+                        isDisabled = mailbox.IsDisabled,
+                        alreadyExists = existingAddressSet.Contains(mailbox.EmailAddress!)
+                    })
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error listing M365 tenant mailboxes: {Message}", ex.Message);
+                return Json(new
+                {
+                    success = false,
+                    message = _localizer["M365TenantMailboxesCouldNotBeListed"].Value
+                });
+            }
         }
 
         // GET: MailAccounts/Edit/5
@@ -338,14 +665,20 @@ var model = new MailAccountViewModel
                 ExcludedFolders = account.ExcludedFolders,
                 DeleteAfterDays = account.DeleteAfterDays,
                 LocalRetentionDays = account.LocalRetentionDays,
+                SyncIntervalMinutes = account.SyncIntervalMinutes,
+                FullSyncIntervalHours = account.FullSyncIntervalHours,
                 Provider = account.Provider,
                 ClientId = account.ClientId,
                 ClientSecret = account.ClientSecret,
-                TenantId = account.TenantId
+                TenantId = account.TenantId,
+                MsaClientId = account.Provider == ProviderType.MSA ? account.ClientId : null,
+                MsaIsAuthorized = account.Provider == ProviderType.MSA && !string.IsNullOrEmpty(account.OAuthRefreshToken),
+                MsaTokenExpiry = account.OAuthTokenExpiry,
             };
 
             // Set ViewBag properties
             ViewBag.Provider = account.Provider;
+            ViewBag.MsaHasDefaultClientId = _msaOptions.HasDefaultClientId;
             
             // Note: Folders are now loaded on-demand via AJAX to improve page load performance
             // The GetFolders endpoint handles folder loading when the user clicks the "Load Folders" button
@@ -415,6 +748,17 @@ var model = new MailAccountViewModel
                 ModelState.Remove("Password");
             }
 
+            ViewBag.MsaHasDefaultClientId = _msaOptions.HasDefaultClientId;
+
+            // For MSA without a configured default ClientId, a per-account ClientId is required.
+            if (model.Provider == ProviderType.MSA && !_msaOptions.HasDefaultClientId
+                && string.IsNullOrWhiteSpace(model.MsaClientId)
+                && string.IsNullOrWhiteSpace(model.ClientId))
+            {
+                ModelState.AddModelError("MsaClientId",
+                    _localizer["MsaClientIdRequired"].Value);
+            }
+
             if (ModelState.IsValid)
             {
                 try
@@ -427,30 +771,83 @@ var model = new MailAccountViewModel
 
                     account.Name = model.Name;
                     account.EmailAddress = model.EmailAddress;
-                    account.ImapServer = model.Provider == ProviderType.IMPORT || model.Provider != ProviderType.IMAP ? null : model.ImapServer;
-                    account.ImapPort = model.Provider == ProviderType.IMPORT || model.Provider != ProviderType.IMAP ? null : model.ImapPort;
-                    account.Username = model.Provider == ProviderType.IMPORT || model.Provider != ProviderType.IMAP ? null : model.Username;
+                    account.ImapServer = model.Provider == ProviderType.IMAP ? model.ImapServer
+                                         : model.Provider == ProviderType.MSA ? "outlook.office365.com"
+                                         : null;
+                    account.ImapPort = model.Provider == ProviderType.IMAP ? model.ImapPort
+                                       : model.Provider == ProviderType.MSA ? 993
+                                       : null;
+                    // For MSA the Username holds the authorized identity captured from the
+                    // OAuth id_token — it must survive edits and is never user-editable.
+                    account.Username = model.Provider == ProviderType.IMAP ? model.Username
+                                       : model.Provider == ProviderType.MSA ? account.Username
+                                       : null;
                     account.IsEnabled = model.IsEnabled;
                     account.Provider = model.Provider;
-                    account.ClientId = model.Provider == ProviderType.M365 ? model.ClientId : null;
-                    
-                    // Only update ClientSecret if provided for M365 accounts
-                    if (model.Provider == ProviderType.M365 && !string.IsNullOrEmpty(model.ClientSecret))
+
+                    if (model.Provider == ProviderType.M365)
                     {
-                        account.ClientSecret = model.ClientSecret;
+                        account.ClientId = model.ClientId;
+                        account.TenantId = model.TenantId;
+                        if (!string.IsNullOrEmpty(model.ClientSecret))
+                            account.ClientSecret = model.ClientSecret;
+                        // Switching away from MSA: invalidate cached MSA OAuth tokens
+                        account.OAuthAccessToken = null;
+                        account.OAuthRefreshToken = null;
+                        account.OAuthTokenExpiry = null;
                     }
-                    else if (model.Provider == ProviderType.M365)
+                    else if (model.Provider == ProviderType.MSA)
                     {
-                        // If no new ClientSecret provided for M365, keep the existing one
-                        // Do not overwrite with null
+                        var clientSecretChanged = !string.IsNullOrEmpty(model.MsaClientSecret);
+
+                        if (!string.IsNullOrEmpty(model.MsaClientId))
+                        {
+                            // User entered an override ClientId. Clear tokens only if it changed.
+                            var clientIdChanged = model.MsaClientId != account.ClientId;
+                            account.ClientId = model.MsaClientId;
+                            if (clientIdChanged)
+                            {
+                                // New app registration — all tokens are invalid
+                                account.OAuthAccessToken = null;
+                                account.OAuthTokenExpiry = null;
+                                account.OAuthRefreshToken = null;
+                            }
+                            else if (clientSecretChanged)
+                            {
+                                // New secret — only cached access token needs refresh
+                                account.OAuthAccessToken = null;
+                                account.OAuthTokenExpiry = null;
+                            }
+                        }
+                        else if (_msaOptions.HasDefaultClientId)
+                        {
+                            // No override entered → fall back to the shared default ClientId.
+                            // Clearing a previous override is itself a credential change.
+                            var clientIdChanged = account.ClientId != null;
+                            account.ClientId = null;
+                            if (clientIdChanged)
+                            {
+                                account.OAuthAccessToken = null;
+                                account.OAuthTokenExpiry = null;
+                                account.OAuthRefreshToken = null;
+                            }
+                        }
+                        // else: no override entered and no default configured → keep existing account.ClientId.
+
+                        if (clientSecretChanged)
+                            account.ClientSecret = model.MsaClientSecret;
+                        account.TenantId = null;
                     }
                     else
                     {
-                        // For non-M365 accounts, set to null
+                        account.ClientId = null;
                         account.ClientSecret = null;
+                        account.TenantId = null;
+                        // Switching away from MSA: invalidate cached MSA OAuth tokens
+                        account.OAuthAccessToken = null;
+                        account.OAuthRefreshToken = null;
+                        account.OAuthTokenExpiry = null;
                     }
-                    
-                    account.TenantId = model.Provider == ProviderType.M365 ? model.TenantId : null;
 
                     // Only update password if provided
                     if (!string.IsNullOrEmpty(model.Password))
@@ -458,10 +855,12 @@ var model = new MailAccountViewModel
                         account.Password = model.Password;
                     }
 
-                    account.UseSSL = model.UseSSL;
+                    account.UseSSL = model.Provider == ProviderType.MSA ? true : model.UseSSL;
                     account.ExcludedFolders = model.ExcludedFolders ?? string.Empty;
                     account.DeleteAfterDays = model.DeleteAfterDays;
                     account.LocalRetentionDays = model.LocalRetentionDays;
+                    account.SyncIntervalMinutes = model.SyncIntervalMinutes;
+                    account.FullSyncIntervalHours = model.FullSyncIntervalHours;
 
                     // Validate local retention policy
                     if (account.LocalRetentionDays.HasValue && !account.DeleteAfterDays.HasValue)
@@ -812,6 +1211,15 @@ var model = new MailAccountViewModel
                 return RedirectToAction(nameof(Details), new { id });
             }
 
+            // MSA accounts require OAuth authorization before they can sync.
+            // Block the sync early with a helpful redirect instead of letting it fail
+            // deep in the IMAP connection factory with a cryptic exception.
+            if (account.Provider == ProviderType.MSA && string.IsNullOrEmpty(account.OAuthRefreshToken))
+            {
+                TempData["ErrorMessage"] = _localizer["MsaNotAuthorizedSync"].Value;
+                return RedirectToAction(nameof(Edit), new { id });
+            }
+
             try
             {
                 // Use the sync job service to start a sync with validation
@@ -826,19 +1234,14 @@ var model = new MailAccountViewModel
                         {
                             try
                             {
-                                // Create a new service scope for the background task to avoid disposed context issues
                                 using var scope = _serviceScopeFactory.CreateScope();
                                 var graphEmailService = scope.ServiceProvider.GetRequiredService<IGraphEmailService>();
                                 var dbContext = scope.ServiceProvider.GetRequiredService<MailArchiverDbContext>();
-                                
-                                // Get a fresh untracked copy of the account from the new context to avoid tracking conflicts
                                 var freshAccount = await dbContext.MailAccounts
                                     .AsNoTracking()
                                     .FirstOrDefaultAsync(a => a.Id == account.Id);
                                 if (freshAccount != null)
-                                {
                                     await graphEmailService.SyncMailAccountAsync(freshAccount, jobId);
-                                }
                             }
                             catch (Exception ex)
                             {
@@ -849,28 +1252,22 @@ var model = new MailAccountViewModel
                     }
                     else
                     {
-                        // For IMAP accounts, use EmailService
+                        // For IMAP and MSA accounts, use ImapEmailService
                         _ = Task.Run(async () =>
                         {
                             try
                             {
-                                // Create a new service scope for the background task to avoid disposed context issues
                                 using var scope = _serviceScopeFactory.CreateScope();
                                 var imapService = scope.ServiceProvider.GetRequiredService<MailArchiver.Services.Providers.ImapEmailService>();
                                 var dbContext = scope.ServiceProvider.GetRequiredService<MailArchiverDbContext>();
-                                
-                                // Get a fresh untracked copy of the account from the new context to avoid tracking conflicts
                                 var freshAccount = await dbContext.MailAccounts
-                                    .AsNoTracking()
                                     .FirstOrDefaultAsync(a => a.Id == account.Id);
                                 if (freshAccount != null)
-                                {
                                     await imapService.SyncMailAccountAsync(freshAccount, jobId);
-                                }
                             }
                             catch (Exception ex)
                             {
-                                _logger.LogError(ex, "Error during IMAP sync for account {AccountName}: {Message}", account.Name, ex.Message);
+                                _logger.LogError(ex, "Error during IMAP/MSA sync for account {AccountName}: {Message}", account.Name, ex.Message);
                                 _syncJobService.CompleteJob(jobId, false, ex.Message);
                             }
                         });
@@ -1001,7 +1398,8 @@ var model = new MailAccountViewModel
                 return RedirectToAction("StartAsyncBatchRestoreFromAccount", "Emails", new
                 {
                     accountId = id,
-                    returnUrl = Url.Action("Details", new { id })
+                    returnUrl = Url.Action("Details", new { id }),
+                    preserveFolders = true
                 });
             }
             else
@@ -1012,6 +1410,7 @@ var model = new MailAccountViewModel
                 {
                     HttpContext.Session.SetString("BatchRestoreIds", string.Join(",", emailIds));
                     HttpContext.Session.SetString("BatchRestoreReturnUrl", Url.Action("Details", new { id }));
+                    HttpContext.Session.SetString("BatchRestorePreserveFolders", "true");
                     return RedirectToAction("BatchRestore", "Emails");
                 }
                 catch (Exception ex)
@@ -1022,7 +1421,8 @@ var model = new MailAccountViewModel
                     return RedirectToAction("StartAsyncBatchRestoreFromAccount", "Emails", new
                     {
                         accountId = id,
-                        returnUrl = Url.Action("Details", new { id })
+                        returnUrl = Url.Action("Details", new { id }),
+                        preserveFolders = true
                     });
                 }
             }
@@ -1114,6 +1514,13 @@ var model = new MailAccountViewModel
             if (model.MBoxFile.Length > model.MaxFileSize)
             {
                 ModelState.AddModelError("MBoxFile", _localizer["MBoxFileTooLarge", model.MaxFileSizeFormatted].Value);
+                return View(model);
+            }
+
+            // Validate file extension
+            if (!FileUploadHelper.IsAllowedImportExtension(model.MBoxFile.FileName))
+            {
+                ModelState.AddModelError("MBoxFile", _localizer["InvalidImportFileType"].Value);
                 return View(model);
             }
 
@@ -1404,6 +1811,13 @@ var model = new MailAccountViewModel
             if (model.EmlFile.Length > model.MaxFileSize)
             {
                 ModelState.AddModelError("EmlFile", _localizer["EmlFileTooLarge", model.MaxFileSizeFormatted].Value);
+                return View(model);
+            }
+
+            // Validate file extension
+            if (!FileUploadHelper.IsAllowedImportExtension(model.EmlFile.FileName))
+            {
+                ModelState.AddModelError("EmlFile", _localizer["InvalidImportFileType"].Value);
                 return View(model);
             }
 
@@ -1796,6 +2210,160 @@ var model = new MailAccountViewModel
             }
         }
 
+        // GET: MailAccounts/AuthorizeMsaDevice/5 — start Device Code Flow (no public URL required)
+        [HttpGet]
+        public async Task<IActionResult> AuthorizeMsaDevice(int id)
+        {
+            if (!await HasAccessToAccountAsync(id))
+                return NotFound();
+
+            var account = await _context.MailAccounts.FindAsync(id);
+            if (account == null)
+                return NotFound();
+
+            // Note: we deliberately do NOT check account.Provider here. The user may have
+            // switched the provider to MSA in the Edit form but not yet saved. The device-code
+            // flow only needs a ClientId (per-account or default); the DB provider value is
+            // irrelevant at this point and will be updated when the Edit form is saved.
+            if (string.IsNullOrEmpty(account.ClientId) && !_msaOptions.HasDefaultClientId)
+            {
+                TempData["ErrorMessage"] = _localizer["MsaClientIdNotConfigured"].Value;
+                return RedirectToAction(nameof(Edit), new { id });
+            }
+
+            try
+            {
+                // The service resolves the per-account ClientId, falling back to the configured default.
+                var result = await _msaOAuthService.StartDeviceCodeAsync(account.ClientId);
+                HttpContext.Session.SetString($"MsaDeviceCode_{id}", result.DeviceCode);
+                // Persist the initial polling interval so the poll endpoint can adapt it on slow_down.
+                HttpContext.Session.SetInt32($"MsaInterval_{id}", result.Interval);
+
+                return View(new MsaDeviceCodeViewModel
+                {
+                    AccountId = id,
+                    AccountName = account.Name,
+                    UserCode = result.UserCode,
+                    VerificationUri = result.VerificationUri,
+                    ExpiresIn = result.ExpiresIn,
+                    PollIntervalSeconds = result.Interval,
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to start MSA device code flow for account {AccountId}", id);
+                TempData["ErrorMessage"] = string.Format(_localizer["MsaAuthorizationFailed"].Value, ex.Message);
+                return RedirectToAction(nameof(Edit), new { id });
+            }
+        }
+
+        // GET: MailAccounts/PollMsaDeviceCode?id=5 — called by browser JS every N seconds
+        [HttpGet]
+        public async Task<IActionResult> PollMsaDeviceCode(int id)
+        {
+            if (!await HasAccessToAccountAsync(id))
+                return Json(new { status = "error", message = _localizer["MsaAccessDenied"].Value });
+
+            var deviceCode = HttpContext.Session.GetString($"MsaDeviceCode_{id}");
+            if (string.IsNullOrEmpty(deviceCode))
+                return Json(new { status = "error", message = _localizer["MsaSessionExpired"].Value });
+
+            var account = await _context.MailAccounts.FindAsync(id);
+            if (account == null)
+                return Json(new { status = "error", message = _localizer["MsaAccountNotFound"].Value });
+
+            var currentInterval = HttpContext.Session.GetInt32($"MsaInterval_{id}") ?? 5;
+
+            try
+            {
+                var poll = await _msaOAuthService.PollDeviceCodeAsync(account.ClientId, deviceCode, currentInterval);
+
+                if (poll.Status == MsaPollStatus.Pending)
+                {
+                    return Json(new { status = "pending", interval = poll.IntervalSeconds });
+                }
+                if (poll.Status == MsaPollStatus.SlowDown)
+                {
+                    // RFC 8628 §3.5: increase the polling interval and keep polling.
+                    HttpContext.Session.SetInt32($"MsaInterval_{id}", poll.IntervalSeconds);
+                    return Json(new { status = "pending", interval = poll.IntervalSeconds });
+                }
+
+                // Success — save tokens
+                HttpContext.Session.Remove($"MsaDeviceCode_{id}");
+                HttpContext.Session.Remove($"MsaInterval_{id}");
+
+                account.OAuthAccessToken = poll.Token!.AccessToken;
+                account.OAuthRefreshToken = poll.Token.RefreshToken;
+                account.OAuthTokenExpiry = poll.Token.Expiry;
+
+                // Store the primary login name of the account that was actually authorized.
+                // Outlook rejects XOAUTH2 when the SASL username is a secondary alias or does
+                // not match the authorized account, so the id_token identity takes precedence
+                // over the user-entered email address.
+                if (!string.IsNullOrEmpty(poll.Token.AuthorizedUsername))
+                {
+                    if (!string.Equals(poll.Token.AuthorizedUsername, account.EmailAddress, StringComparison.OrdinalIgnoreCase))
+                    {
+                        _logger.LogWarning(
+                            "MSA account {AccountName}: authorized identity '{AuthorizedUsername}' differs from entered email address '{EmailAddress}'. Using authorized identity for IMAP authentication.",
+                            account.Name, poll.Token.AuthorizedUsername, account.EmailAddress);
+                    }
+                    account.Username = poll.Token.AuthorizedUsername;
+                }
+                await _context.SaveChangesAsync();
+
+                var authService = HttpContext.RequestServices.GetService<MailArchiver.Services.IAuthenticationService>();
+                var currentUsername = authService?.GetCurrentUserDisplayName(HttpContext);
+                if (!string.IsNullOrEmpty(currentUsername))
+                {
+                    await _accessLogService.LogAccessAsync(currentUsername, AccessLogType.Account,
+                        searchParameters: $"Authorized MSA account via device code: {account.Name}",
+                        mailAccountId: account.Id);
+                }
+
+                return Json(new { status = "success" });
+            }
+            catch (MsaDeviceCodeTerminalException ex)
+            {
+                // Terminal OAuth errors (expired_token, access_denied, invalid_grant, ...):
+                // the flow cannot continue — clear the session so the user must restart.
+                _logger.LogWarning("MSA device code terminal error for account {AccountId}: {Code} — {Message}",
+                    id, ex.ErrorCode, ex.Message);
+                HttpContext.Session.Remove($"MsaDeviceCode_{id}");
+                HttpContext.Session.Remove($"MsaInterval_{id}");
+                return Json(new { status = "error", message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                // Transient failure (network blip, DNS, TLS, 5xx, non-JSON error page, ...):
+                // keep the device code in session and report pending so the browser keeps polling.
+                // The device code is still valid server-side; only the polling request failed.
+                _logger.LogWarning(ex, "MSA device code transient poll error for account {AccountId}; will retry", id);
+                return Json(new { status = "pending", interval = currentInterval });
+            }
+        }
+
+        // GET: MailAccounts/CancelMsaAuthorization/5 — called by the Cancel button on the
+        // device-code authorization page. Cleans up pending session state and returns to
+        // the Edit page. The account is never deleted here.
+        [HttpGet]
+        public async Task<IActionResult> CancelMsaAuthorization(int id)
+        {
+            if (!await HasAccessToAccountAsync(id))
+                return NotFound();
+
+            var account = await _context.MailAccounts.FindAsync(id);
+            if (account == null)
+                return RedirectToAction(nameof(Index));
+
+            // Clean up any pending device code session state.
+            HttpContext.Session.Remove($"MsaDeviceCode_{id}");
+            HttpContext.Session.Remove($"MsaInterval_{id}");
+
+            return RedirectToAction(nameof(Edit), new { id });
+        }
+
         // Helper method to extract domain from email address
         private string ExtractDomain(string emailAddress)
         {
@@ -1897,7 +2465,6 @@ var model = new MailAccountViewModel
                 {
                     success = true,
                     clientId = account.ClientId,
-                    clientSecret = account.ClientSecret,
                     tenantId = account.TenantId
                 });
             }
@@ -1994,6 +2561,792 @@ var model = new MailAccountViewModel
                 _logger.LogError(ex, "Error updating M365 credentials for domain");
                 return Json(new { success = false, message = ex.Message });
             }
+        }
+
+        // Shared helper: lists tenant mailboxes and marks already-imported ones.
+        private async Task<List<TenantMailboxViewModel>> GetTenantMailboxesWithExistingAsync(
+            string clientId, string clientSecret, string tenantId, bool includeDisabled)
+        {
+            var tenantUsers = await _graphEmailService.GetTenantMailboxUsersAsync(
+                clientId, clientSecret, tenantId, includeDisabled: includeDisabled);
+
+            var tenantMailboxes = tenantUsers
+                .Select(user => new
+                {
+                    DisplayName = string.IsNullOrWhiteSpace(user.DisplayName)
+                        ? user.UserPrincipalName ?? user.Mail ?? _localizer["M365MailboxDefaultName"].Value
+                        : user.DisplayName,
+                    EmailAddress = string.IsNullOrWhiteSpace(user.Mail)
+                        ? user.UserPrincipalName
+                        : user.Mail,
+                    IsDisabled = user.AccountEnabled == false
+                })
+                .Where(user => !string.IsNullOrWhiteSpace(user.EmailAddress))
+                .GroupBy(user => user.EmailAddress!.Trim().ToLowerInvariant())
+                .Select(group => group.First())
+                .ToList();
+
+            var mailboxAddresses = tenantMailboxes
+                .Select(mailbox => mailbox.EmailAddress!.Trim().ToLowerInvariant())
+                .ToList();
+
+            var existingAddresses = await _context.MailAccounts
+                .Where(account => account.Provider == ProviderType.M365 &&
+                                  account.EmailAddress != null &&
+                                  mailboxAddresses.Contains(account.EmailAddress.ToLower()))
+                .Select(account => account.EmailAddress.ToLower())
+                .ToListAsync();
+            var existingAddressSet = existingAddresses.ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+            return tenantMailboxes
+                .Select(mailbox => new TenantMailboxViewModel
+                {
+                    DisplayName = mailbox.DisplayName,
+                    EmailAddress = mailbox.EmailAddress!,
+                    IsDisabled = mailbox.IsDisabled,
+                    AlreadyExists = existingAddressSet.Contains(mailbox.EmailAddress!)
+                })
+                .OrderBy(m => m.AlreadyExists)
+                .ThenBy(m => m.EmailAddress, StringComparer.OrdinalIgnoreCase)
+                .ToList();
+        }
+
+        // GET: MailAccounts/TenantManagement/5
+        public async Task<IActionResult> TenantManagement(int id)
+        {
+            var authService = HttpContext.RequestServices.GetService<MailArchiver.Services.IAuthenticationService>();
+            if (authService == null || !authService.IsCurrentUserAdmin(HttpContext))
+            {
+                return Forbid();
+            }
+
+            if (!await HasAccessToAccountAsync(id))
+            {
+                return NotFound();
+            }
+
+            var sourceAccount = await _context.MailAccounts
+                .Where(a => a.Id == id && a.Provider == ProviderType.M365)
+                .FirstOrDefaultAsync();
+
+            if (sourceAccount == null)
+            {
+                return NotFound();
+            }
+
+            if (string.IsNullOrWhiteSpace(sourceAccount.ClientId) ||
+                string.IsNullOrWhiteSpace(sourceAccount.ClientSecret) ||
+                string.IsNullOrWhiteSpace(sourceAccount.TenantId))
+            {
+                _logger.LogWarning("Source account {AccountId} has incomplete M365 credentials", id);
+                var missingModel = new TenantManagementViewModel
+                {
+                    SourceAccountId = sourceAccount.Id,
+                    SourceAccountName = sourceAccount.Name,
+                    SourceEmailAddress = sourceAccount.EmailAddress,
+                    ErrorMessage = _localizer["M365TenantCredentialsRequired"].Value
+                };
+                return View(missingModel);
+            }
+
+            var sourceName = sourceAccount.Name ?? string.Empty;
+            var separatorIndex = sourceName.IndexOf(" - <");
+            var defaultPrefix = separatorIndex >= 0
+                ? sourceName.Substring(0, separatorIndex).Trim()
+                : sourceName.Trim();
+
+            var model = new TenantManagementViewModel
+            {
+                SourceAccountId = sourceAccount.Id,
+                SourceAccountName = sourceAccount.Name,
+                SourceEmailAddress = sourceAccount.EmailAddress,
+                Name = defaultPrefix
+            };
+
+            try
+            {
+                model.Mailboxes = await GetTenantMailboxesWithExistingAsync(
+                    sourceAccount.ClientId!,
+                    sourceAccount.ClientSecret!,
+                    sourceAccount.TenantId!,
+                    includeDisabled: false);
+
+                _logger.LogInformation("Loaded {Count} tenant mailboxes for account {AccountId}",
+                    model.Mailboxes.Count, id);
+
+                var currentUsername = authService.GetCurrentUserDisplayName(HttpContext);
+                if (!string.IsNullOrEmpty(currentUsername))
+                {
+                    await _accessLogService.LogAccessAsync(currentUsername, AccessLogType.Account,
+                        searchParameters: $"Listed {model.Mailboxes.Count} M365 tenant mailboxes for source account {sourceAccount.EmailAddress}");
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading tenant mailboxes for account {AccountId}", id);
+                model.ErrorMessage = _localizer["M365TenantMailboxesCouldNotBeListed"].Value;
+            }
+
+            return View(model);
+        }
+
+        // POST: MailAccounts/AddTenantMailboxes
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddTenantMailboxes(TenantManagementViewModel model)
+        {
+            var authService = HttpContext.RequestServices.GetService<MailArchiver.Services.IAuthenticationService>();
+            if (authService == null || !authService.IsCurrentUserAdmin(HttpContext))
+            {
+                return Forbid();
+            }
+
+            if (!await HasAccessToAccountAsync(model.SourceAccountId))
+            {
+                return NotFound();
+            }
+
+            var sourceAccount = await _context.MailAccounts
+                .Where(a => a.Id == model.SourceAccountId && a.Provider == ProviderType.M365)
+                .FirstOrDefaultAsync();
+
+            if (sourceAccount == null)
+            {
+                return NotFound();
+            }
+
+            if (string.IsNullOrWhiteSpace(sourceAccount.ClientId) ||
+                string.IsNullOrWhiteSpace(sourceAccount.ClientSecret) ||
+                string.IsNullOrWhiteSpace(sourceAccount.TenantId))
+            {
+                ModelState.AddModelError("", _localizer["M365TenantCredentialsRequired"].Value);
+                await PopulateMailboxesForPostErrorAsync(model, sourceAccount);
+                return View("TenantManagement", model);
+            }
+
+            var maxSelected = _tenantManagementOptions.MaxSelectedMailboxes;
+            if (maxSelected > 0 && model.SelectedMailboxes != null && model.SelectedMailboxes.Count > maxSelected)
+            {
+                ModelState.AddModelError("SelectedMailboxes",
+                    _localizer["SelectAtMostMailboxes", maxSelected].Value);
+            }
+
+            if (!ModelState.IsValid)
+            {
+                await PopulateMailboxesForPostErrorAsync(model, sourceAccount);
+                return View("TenantManagement", model);
+            }
+
+            try
+            {
+                // Re-fetch the tenant list to validate the selected addresses against it.
+                var tenantMailboxes = await GetTenantMailboxesWithExistingAsync(
+                    sourceAccount.ClientId!,
+                    sourceAccount.ClientSecret!,
+                    sourceAccount.TenantId!,
+                    includeDisabled: false);
+
+                var tenantAddressSet = tenantMailboxes
+                    .Select(m => m.EmailAddress.Trim().ToLowerInvariant())
+                    .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+                var selectedNormalized = model.SelectedMailboxes
+                    .Where(a => !string.IsNullOrWhiteSpace(a))
+                    .Select(a => a.Trim().ToLowerInvariant())
+                    .Distinct(StringComparer.OrdinalIgnoreCase)
+                    .ToList();
+
+                // Only accept addresses that are actually part of the tenant and not already imported.
+                var toAdd = tenantMailboxes
+                    .Where(m => selectedNormalized.Contains(m.EmailAddress.Trim().ToLowerInvariant()) && !m.AlreadyExists)
+                    .ToList();
+
+                if (toAdd.Count == 0 && !model.RenameExistingAccounts)
+                {
+                    TempData["ErrorMessage"] = _localizer["NoNewMailboxesToAdd"].Value;
+                    return RedirectToAction(nameof(TenantManagement), new { id = model.SourceAccountId });
+                }
+
+                var accountNamePrefix = model.Name!.Trim();
+                var addedCount = 0;
+                var renamedCount = 0;
+
+                if (toAdd.Count > 0)
+                {
+                    var accountsToCreate = toAdd.Select(mailbox => new MailAccount
+                    {
+                        Name = $"{accountNamePrefix} - <{mailbox.EmailAddress}>",
+                        EmailAddress = mailbox.EmailAddress,
+                        UseSSL = sourceAccount.UseSSL,
+                        IsEnabled = true,
+                        Provider = ProviderType.M365,
+                        ClientId = sourceAccount.ClientId,
+                        ClientSecret = sourceAccount.ClientSecret,
+                        TenantId = sourceAccount.TenantId,
+                        ExcludedFolders = string.Empty,
+                        DeleteAfterDays = model.DeleteAfterDays,
+                        LocalRetentionDays = model.LocalRetentionDays,
+                        LastSync = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+                    }).ToList();
+
+                    _context.MailAccounts.AddRange(accountsToCreate);
+                    await _context.SaveChangesAsync();
+                    addedCount = accountsToCreate.Count;
+
+                    // SelfManager auto-assignment (consistent with Create flow)
+                    var currentUsernameForAssignment = authService.GetCurrentUserDisplayName(HttpContext);
+                    var currentUser = await _context.Users
+                        .FirstOrDefaultAsync(user => user.Username.ToLower() == currentUsernameForAssignment.ToLower());
+                    if (currentUser != null && !currentUser.IsAdmin && currentUser.IsSelfManager)
+                    {
+                        _context.UserMailAccounts.AddRange(accountsToCreate.Select(account => new UserMailAccount
+                        {
+                            UserId = currentUser.Id,
+                            MailAccountId = account.Id
+                        }));
+                        await _context.SaveChangesAsync();
+
+                        _logger.LogInformation("Auto-assigned {Count} tenant accounts to SelfManager user {Username}",
+                            accountsToCreate.Count, currentUser.Username);
+                    }
+                }
+
+                if (model.RenameExistingAccounts)
+                {
+                    var accountsToRename = await _context.MailAccounts
+                        .Where(a => a.Provider == ProviderType.M365
+                                 && a.ClientId == sourceAccount.ClientId
+                                 && a.TenantId == sourceAccount.TenantId
+                                 && a.EmailAddress != null)
+                        .ToListAsync();
+
+                    foreach (var account in accountsToRename)
+                    {
+                        account.Name = $"{accountNamePrefix} - <{account.EmailAddress}>";
+                    }
+                    await _context.SaveChangesAsync();
+                    renamedCount = accountsToRename.Count;
+
+                    _logger.LogInformation("Renamed {Count} M365 accounts to schema '{Prefix} - <email>' for app registration {ClientId}",
+                        renamedCount, accountNamePrefix, sourceAccount.ClientId);
+                }
+
+                var currentUsername = authService.GetCurrentUserDisplayName(HttpContext);
+
+                if (!string.IsNullOrEmpty(currentUsername))
+                {
+                    var logParts = new List<string>();
+                    if (addedCount > 0)
+                    {
+                        logParts.Add($"Added {addedCount} M365 tenant mailboxes via Tenant Management from source account {sourceAccount.EmailAddress}");
+                    }
+                    if (renamedCount > 0)
+                    {
+                        logParts.Add($"Renamed {renamedCount} M365 accounts to schema '{accountNamePrefix} - <email>' for app registration {sourceAccount.ClientId}");
+                    }
+                    await _accessLogService.LogAccessAsync(currentUsername, AccessLogType.Account,
+                        searchParameters: string.Join("; ", logParts));
+                }
+
+                if (addedCount > 0 && renamedCount > 0)
+                {
+                    TempData["SuccessMessage"] = _localizer["MailboxesAddedAndAccountsRenamed", addedCount, renamedCount].Value;
+                }
+                else if (addedCount > 0)
+                {
+                    TempData["SuccessMessage"] = _localizer["MailboxesAdded", addedCount].Value;
+                }
+                else if (renamedCount > 0)
+                {
+                    TempData["SuccessMessage"] = _localizer["AccountsRenamed", renamedCount].Value;
+                }
+
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error adding tenant mailboxes from source account {AccountId}", model.SourceAccountId);
+                ModelState.AddModelError("", _localizer["M365TenantAccountsCouldNotBeImported"].Value);
+                await PopulateMailboxesForPostErrorAsync(model, sourceAccount);
+                return View("TenantManagement", model);
+            }
+        }
+
+        // Rebuilds the mailbox list for the view when a POST validation fails.
+        private async Task PopulateMailboxesForPostErrorAsync(TenantManagementViewModel model, MailAccount sourceAccount)
+        {
+            model.SourceAccountName = sourceAccount.Name;
+            model.SourceEmailAddress = sourceAccount.EmailAddress;
+            try
+            {
+                model.Mailboxes = await GetTenantMailboxesWithExistingAsync(
+                    sourceAccount.ClientId!,
+                    sourceAccount.ClientSecret!,
+                    sourceAccount.TenantId!,
+                    includeDisabled: false);
+
+                // Preserve the user's selection state on the rendered checkboxes.
+                var selectedSet = (model.SelectedMailboxes ?? new List<string>())
+                    .Where(a => !string.IsNullOrWhiteSpace(a))
+                    .Select(a => a.Trim().ToLowerInvariant())
+                    .ToHashSet(StringComparer.OrdinalIgnoreCase);
+                foreach (var mailbox in model.Mailboxes)
+                {
+                    if (selectedSet.Contains(mailbox.EmailAddress.Trim().ToLowerInvariant()) && !mailbox.AlreadyExists)
+                    {
+                        // Marking via a transient flag is not available; the view relies on SelectedMailboxes.
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error reloading tenant mailboxes after POST validation failure");
+                model.Mailboxes = new List<TenantMailboxViewModel>();
+                model.ErrorMessage = _localizer["M365TenantMailboxesCouldNotBeListed"].Value;
+            }
+        }
+
+        // GET: MailAccounts/ImportCsv
+        [HttpGet]
+        public IActionResult ImportCsv()
+        {
+            var authService = HttpContext.RequestServices.GetService<MailArchiver.Services.IAuthenticationService>();
+            if (!authService.IsCurrentUserAdmin(HttpContext))
+            {
+                _logger.LogWarning("Non-admin user attempted to access CSV bulk import page");
+                TempData["ErrorMessage"] = _localizer["CsvImportAdminOnly"].Value;
+                return RedirectToAction(nameof(Index));
+            }
+
+            var model = new BulkImportImapViewModel
+            {
+                ImapPort = 993,
+                UseSSL = true,
+                IsEnabled = true,
+                SkipExisting = true
+            };
+            return View(model);
+        }
+
+        // POST: MailAccounts/ImportCsv
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ImportCsv(BulkImportImapViewModel model)
+        {
+            var authService = HttpContext.RequestServices.GetService<MailArchiver.Services.IAuthenticationService>();
+            if (!authService.IsCurrentUserAdmin(HttpContext))
+            {
+                _logger.LogWarning("Non-admin user attempted CSV bulk import");
+                TempData["ErrorMessage"] = _localizer["CsvImportAdminOnly"].Value;
+                return RedirectToAction(nameof(Index));
+            }
+
+            if (model.CsvFile == null || model.CsvFile.Length == 0)
+            {
+                ModelState.AddModelError("CsvFile", _localizer["CsvImportNoFile"].Value);
+            }
+
+            if (model.CsvFile != null && model.CsvFile.Length > _csvImportOptions.MaxFileSizeBytes)
+            {
+                ModelState.AddModelError("CsvFile",
+                    _localizer["CsvImportFileTooLarge",
+                        Math.Round(model.CsvFile.Length / 1_000_000.0, 1),
+                        Math.Round(_csvImportOptions.MaxFileSizeBytes / 1_000_000.0, 1)].Value);
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            var result = new CsvImportResultViewModel();
+
+            try
+            {
+                var rows = new List<CsvParsedRow>();
+                var failedRows = new List<CsvImportFailedRow>();
+
+                using (var stream = model.CsvFile.OpenReadStream())
+                using (var reader = new StreamReader(stream, detectEncodingFromByteOrderMarks: true))
+                {
+                    int lineNumber = 0;
+                    string[]? headers = null;
+                    var headerIndex = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+
+                    using (var parser = new Microsoft.VisualBasic.FileIO.TextFieldParser(reader))
+                    {
+                        parser.SetDelimiters(",");
+                        parser.HasFieldsEnclosedInQuotes = true;
+
+                        while (!parser.EndOfData)
+                        {
+                            lineNumber++;
+                            string[]? fields;
+
+                            try
+                            {
+                                fields = parser.ReadFields();
+                            }
+                            catch (Microsoft.VisualBasic.FileIO.MalformedLineException ex)
+                            {
+                                failedRows.Add(new CsvImportFailedRow
+                                {
+                                    LineNumber = lineNumber,
+                                    Email = string.Empty,
+                                    Reason = _localizer["CsvImportMalformedLine"].Value
+                                });
+                                _logger.LogWarning(ex, "Malformed CSV line {LineNumber}", lineNumber);
+                                continue;
+                            }
+
+                            if (fields == null) continue;
+
+                            if (lineNumber == 1)
+                            {
+                                var trimmed = fields.Select(f => f?.Trim() ?? string.Empty).ToArray();
+                                if (trimmed.Any(h => h.Length > 0))
+                                {
+                                    headers = trimmed;
+                                    for (int i = 0; i < headers.Length; i++)
+                                    {
+                                        headerIndex[headers[i]] = i;
+                                    }
+                                    continue;
+                                }
+                            }
+
+                            var row = ParseCsvRow(fields, headerIndex, model, lineNumber, failedRows, _localizer);
+                            if (row != null)
+                            {
+                                rows.Add(row);
+                            }
+                        }
+                    }
+                }
+
+                result.FailedRows.AddRange(failedRows);
+                result.FailedCount = failedRows.Count;
+
+                if (rows.Count == 0)
+                {
+                    result.FailedRows.Insert(0, new CsvImportFailedRow
+                    {
+                        LineNumber = 0,
+                        Email = string.Empty,
+                        Reason = _localizer["CsvImportNoValidRows"].Value
+                    });
+                    result.FailedCount = result.FailedRows.Count;
+                    return View("CsvImportResult", result);
+                }
+
+                if (rows.Count > _csvImportOptions.MaxRows)
+                {
+                    result.FailedRows.Insert(0, new CsvImportFailedRow
+                    {
+                        LineNumber = 0,
+                        Email = string.Empty,
+                        Reason = _localizer["CsvImportTooManyRows", rows.Count, _csvImportOptions.MaxRows].Value
+                    });
+                    result.FailedCount = result.FailedRows.Count;
+                    return View("CsvImportResult", result);
+                }
+
+                var dedupedRows = rows
+                    .GroupBy(r => r.Email!.Trim().ToLowerInvariant())
+                    .Select(g => g.First())
+                    .ToList();
+
+                var dedupSkipped = rows.Count - dedupedRows.Count;
+                if (dedupSkipped > 0)
+                {
+                    var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                    foreach (var row in rows)
+                    {
+                        var key = row.Email!.Trim().ToLowerInvariant();
+                        if (!seen.Add(key))
+                        {
+                            result.SkippedRows.Add(new CsvImportSkippedRow
+                            {
+                                Email = row.Email,
+                                Reason = _localizer["CsvImportDuplicateInFile"].Value
+                            });
+                        }
+                    }
+                }
+
+                var incomingEmails = dedupedRows
+                    .Select(r => r.Email!.Trim().ToLowerInvariant())
+                    .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+                var existingEmails = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                const int chunkSize = 500;
+                var emailList = incomingEmails.ToList();
+                for (int i = 0; i < emailList.Count; i += chunkSize)
+                {
+                    var chunk = emailList.Skip(i).Take(chunkSize).ToList();
+                    var matches = await _context.MailAccounts
+                        .Where(a => a.Provider == ProviderType.IMAP && chunk.Contains(a.EmailAddress.ToLower()))
+                        .Select(a => a.EmailAddress.ToLower())
+                        .ToListAsync();
+                    foreach (var m in matches)
+                    {
+                        existingEmails.Add(m);
+                    }
+                }
+
+                var accountsToCreate = new List<MailAccount>();
+                var prefix = string.IsNullOrWhiteSpace(model.NamePrefix) ? "IMAP" : model.NamePrefix!.Trim();
+
+                foreach (var row in dedupedRows)
+                {
+                    var emailLower = row.Email!.Trim().ToLowerInvariant();
+                    if (existingEmails.Contains(emailLower))
+                    {
+                        if (model.SkipExisting)
+                        {
+                            result.SkippedRows.Add(new CsvImportSkippedRow
+                            {
+                                Email = row.Email,
+                                Reason = _localizer["CsvImportAlreadyExists"].Value
+                            });
+                        }
+                        else
+                        {
+                            result.FailedRows.Add(new CsvImportFailedRow
+                            {
+                                LineNumber = row.LineNumber,
+                                Email = row.Email,
+                                Reason = _localizer["CsvImportAlreadyExists"].Value
+                            });
+                            result.FailedCount++;
+                        }
+                        continue;
+                    }
+
+                    var server = row.ImapServer ?? model.ImapServer;
+                    if (string.IsNullOrWhiteSpace(server))
+                    {
+                        result.FailedRows.Add(new CsvImportFailedRow
+                        {
+                            LineNumber = row.LineNumber,
+                            Email = row.Email,
+                            Reason = _localizer["CsvImportMissingServer", row.LineNumber].Value
+                        });
+                        result.FailedCount++;
+                        continue;
+                    }
+
+                    var name = string.IsNullOrWhiteSpace(row.Name)
+                        ? $"{prefix} - <{row.Email}>"
+                        : row.Name!.Trim();
+
+                    var account = new MailAccount
+                    {
+                        Name = name,
+                        EmailAddress = row.Email!.Trim(),
+                        ImapServer = server,
+                        ImapPort = row.ImapPort ?? model.ImapPort,
+                        Username = string.IsNullOrWhiteSpace(row.Username) ? row.Email!.Trim() : row.Username!.Trim(),
+                        Password = row.Password,
+                        UseSSL = row.UseSSL ?? model.UseSSL,
+                        IsEnabled = model.IsEnabled,
+                        Provider = ProviderType.IMAP,
+                        ExcludedFolders = string.Empty,
+                        DeleteAfterDays = model.DeleteAfterDays,
+                        LocalRetentionDays = model.LocalRetentionDays,
+                        LastSync = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+                    };
+
+                    accountsToCreate.Add(account);
+                    result.CreatedRows.Add(new CsvImportCreatedRow
+                    {
+                        Email = account.EmailAddress,
+                        Name = account.Name
+                    });
+                }
+
+                if (accountsToCreate.Count == 0)
+                {
+                    result.CreatedCount = 0;
+                    result.SkippedCount = result.SkippedRows.Count;
+                    _logger.LogInformation("CSV bulk import produced no new accounts (all skipped or failed)");
+                    return View("CsvImportResult", result);
+                }
+
+                _context.MailAccounts.AddRange(accountsToCreate);
+                await _context.SaveChangesAsync();
+
+                result.CreatedCount = accountsToCreate.Count;
+                result.SkippedCount = result.SkippedRows.Count;
+
+                var currentUsername = authService.GetCurrentUserDisplayName(HttpContext);
+                if (!string.IsNullOrEmpty(currentUsername))
+                {
+                    await _accessLogService.LogAccessAsync(currentUsername, AccessLogType.Account,
+                        searchParameters: $"CSV bulk import: {result.CreatedCount} IMAP accounts created, {result.SkippedCount} skipped, {result.FailedCount} failed");
+                }
+
+                _logger.LogInformation("CSV bulk import completed: {Created} created, {Skipped} skipped, {Failed} failed",
+                    result.CreatedCount, result.SkippedCount, result.FailedCount);
+
+                return View("CsvImportResult", result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error processing CSV bulk import");
+                ModelState.AddModelError("", $"{_localizer["CsvImportCouldNotBeProcessed"]}: {ex.Message}");
+                return View(model);
+            }
+        }
+
+        // GET: MailAccounts/DownloadExampleCsv
+        [HttpGet]
+        public IActionResult DownloadExampleCsv()
+        {
+            var authService = HttpContext.RequestServices.GetService<MailArchiver.Services.IAuthenticationService>();
+            if (!authService.IsCurrentUserAdmin(HttpContext))
+            {
+                return RedirectToAction(nameof(Index));
+            }
+
+            var csv = "email,password,name,username,imap_server,imap_port,use_ssl\r\n"
+                + "alice@firma.de,pass1,Alice Müller,,,993,\r\n"
+                + "bob@firma.de,pass2,,bob@firma.de,,,,\r\n"
+                + "charlie@extern.de,pass3,,charlie,mail.extern.de,143,false\r\n";
+            var bytes = System.Text.Encoding.UTF8.GetBytes(csv);
+            return File(bytes, "text/csv", "imap-import-example.csv");
+        }
+
+        private static CsvParsedRow? ParseCsvRow(string[] fields, Dictionary<string, int> headerIndex,
+            BulkImportImapViewModel model, int lineNumber, List<CsvImportFailedRow> failedRows,
+            IStringLocalizer<SharedResource> localizer)
+        {
+            string email = string.Empty;
+            string password = string.Empty;
+            string? name = null;
+            string? username = null;
+            string? imapServer = null;
+            int? imapPort = null;
+            bool? useSsl = null;
+
+            if (headerIndex.Count > 0)
+            {
+                email = GetFieldValue(fields, headerIndex, "email");
+                password = GetFieldValueRaw(fields, headerIndex, "password");
+                name = GetFieldValueOrNull(fields, headerIndex, "name");
+                username = GetFieldValueOrNull(fields, headerIndex, "username");
+                imapServer = GetFieldValueOrNull(fields, headerIndex, "imap_server");
+                var portStr = GetFieldValueOrNull(fields, headerIndex, "imap_port");
+                if (!string.IsNullOrWhiteSpace(portStr))
+                {
+                    if (int.TryParse(portStr.Trim(), out var port) && port >= 1 && port <= 65535)
+                    {
+                        imapPort = port;
+                    }
+                    else
+                    {
+                        failedRows.Add(new CsvImportFailedRow
+                        {
+                            LineNumber = lineNumber,
+                            Email = email,
+                            Reason = localizer["CsvImportInvalidPort", lineNumber, portStr].Value
+                        });
+                        return null;
+                    }
+                }
+                var sslStr = GetFieldValueOrNull(fields, headerIndex, "use_ssl");
+                if (!string.IsNullOrWhiteSpace(sslStr))
+                {
+                    if (bool.TryParse(sslStr.Trim(), out var ssl))
+                    {
+                        useSsl = ssl;
+                    }
+                    else
+                    {
+                        failedRows.Add(new CsvImportFailedRow
+                        {
+                            LineNumber = lineNumber,
+                            Email = email,
+                            Reason = localizer["CsvImportInvalidUseSsl", lineNumber, sslStr].Value
+                        });
+                        return null;
+                    }
+                }
+            }
+            else if (fields.Length >= 2)
+            {
+                email = fields[0]?.Trim() ?? string.Empty;
+                password = fields[1] ?? string.Empty;
+                if (fields.Length >= 3) name = fields[2];
+                if (fields.Length >= 4) username = fields[3];
+                if (fields.Length >= 5) imapServer = fields[4];
+                if (fields.Length >= 6 && int.TryParse(fields[5]?.Trim(), out var port) && port >= 1 && port <= 65535)
+                    imapPort = port;
+                if (fields.Length >= 7 && bool.TryParse(fields[6]?.Trim(), out var ssl))
+                    useSsl = ssl;
+            }
+
+            if (string.IsNullOrWhiteSpace(email))
+            {
+                failedRows.Add(new CsvImportFailedRow
+                {
+                    LineNumber = lineNumber,
+                    Email = string.Empty,
+                    Reason = localizer["CsvImportMissingEmail", lineNumber].Value
+                });
+                return null;
+            }
+
+            if (string.IsNullOrWhiteSpace(password))
+            {
+                failedRows.Add(new CsvImportFailedRow
+                {
+                    LineNumber = lineNumber,
+                    Email = email,
+                    Reason = localizer["CsvImportMissingPassword", lineNumber].Value
+                });
+                return null;
+            }
+
+            return new CsvParsedRow
+            {
+                LineNumber = lineNumber,
+                Email = email,
+                Password = password,
+                Name = name,
+                Username = username,
+                ImapServer = imapServer,
+                ImapPort = imapPort,
+                UseSSL = useSsl
+            };
+        }
+
+        private static string GetFieldValue(string[] fields, Dictionary<string, int> headerIndex, string name)
+        {
+            if (headerIndex.TryGetValue(name, out var idx) && idx < fields.Length)
+            {
+                return fields[idx]?.Trim() ?? string.Empty;
+            }
+            return string.Empty;
+        }
+
+        private static string GetFieldValueRaw(string[] fields, Dictionary<string, int> headerIndex, string name)
+        {
+            if (headerIndex.TryGetValue(name, out var idx) && idx < fields.Length)
+            {
+                return fields[idx] ?? string.Empty;
+            }
+            return string.Empty;
+        }
+
+        private static string? GetFieldValueOrNull(string[] fields, Dictionary<string, int> headerIndex, string name)
+        {
+            if (headerIndex.TryGetValue(name, out var idx) && idx < fields.Length)
+            {
+                var val = fields[idx];
+                return string.IsNullOrWhiteSpace(val) ? null : val.Trim();
+            }
+            return null;
         }
     }
 }

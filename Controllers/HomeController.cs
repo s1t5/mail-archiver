@@ -19,6 +19,7 @@ namespace MailArchiver.Controllers
         private readonly IBatchRestoreService? _batchRestoreService;
         private readonly MailArchiver.Services.IAuthenticationService _authenticationService;
         private readonly IVersionUpdateService _versionUpdateService;
+        private readonly IAccountStorageService _accountStorageService;
 
         public HomeController(
             MailArchiver.Services.Core.EmailCoreService emailCoreService, 
@@ -26,6 +27,7 @@ namespace MailArchiver.Controllers
             MailArchiverDbContext context,
             MailArchiver.Services.IAuthenticationService authenticationService,
             IVersionUpdateService versionUpdateService,
+            IAccountStorageService accountStorageService,
             ILogger<HomeController> logger, 
             IBatchRestoreService? batchRestoreService = null)
         {
@@ -34,6 +36,7 @@ namespace MailArchiver.Controllers
             _context = context;
             _authenticationService = authenticationService;
             _versionUpdateService = versionUpdateService;
+            _accountStorageService = accountStorageService;
             _logger = logger;
             _batchRestoreService = batchRestoreService;
         }
@@ -64,6 +67,19 @@ namespace MailArchiver.Controllers
             {
                 // Fallback to default dashboard
                 model = await _emailCoreService.GetDashboardStatisticsAsync();
+            }
+
+            // Speicherverbrauch pro Account befuellen (aus Cache)
+            if (model.EmailsPerAccount != null && model.EmailsPerAccount.Count > 0)
+            {
+                var accountIds = model.EmailsPerAccount.Select(a => a.AccountId).ToList();
+                var storageMap = await _accountStorageService.GetStorageForAccountsAsync(accountIds);
+                foreach (var stat in model.EmailsPerAccount)
+                {
+                    stat.StorageUsed = storageMap.TryGetValue(stat.AccountId, out var storage)
+                        ? storage
+                        : AccountStorageService.FormatFileSize(0);
+                }
             }
 
             // Aktive Jobs für Dashboard anzeigen
@@ -155,6 +171,7 @@ namespace MailArchiver.Controllers
                 .Where(a => accountIds.Contains(a.Id))
                 .Select(a => new AccountStatistics
                 {
+                    AccountId = a.Id,
                     AccountName = a.Name,
                     EmailAddress = a.EmailAddress,
                     EmailCount = a.ArchivedEmails.Count(e => accountIds.Contains(e.MailAccountId)),

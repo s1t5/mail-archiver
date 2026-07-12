@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -35,6 +36,23 @@ namespace MailArchiver.Services
         {
             if (job == null)
                 throw new ArgumentNullException(nameof(job));
+
+            // Check deletion policy
+            using (var scope = _serviceScopeFactory.CreateScope())
+            {
+                var deletionPolicy = scope.ServiceProvider.GetRequiredService<IOptions<DeletionPolicyOptions>>().Value;
+                if (!deletionPolicy.DeletionAllowed)
+                {
+                    _logger.LogWarning("Email deletion job rejected: deletion is disabled by policy (DeletionPolicy:DeletionAllowed=false)");
+                    job.JobId = Guid.NewGuid().ToString();
+                    job.Status = EmailDeletionJobStatus.Failed;
+                    job.Created = DateTime.UtcNow;
+                    job.Completed = DateTime.UtcNow;
+                    job.ErrorMessage = "Email deletion is disabled by configuration (DeletionPolicy:DeletionAllowed=false).";
+                    _jobs.TryAdd(job.JobId, job);
+                    return job.JobId;
+                }
+            }
 
             job.JobId = Guid.NewGuid().ToString();
             job.Status = EmailDeletionJobStatus.Queued;
@@ -193,6 +211,7 @@ namespace MailArchiver.Services
                 // Phase 3: Delete emails in batches
                 job.CurrentPhase = "Deleting emails";
                 var remainingEmails = job.EmailIds.Count;
+                var affectedAccountIds = new HashSet<int>();
                 
                 while (remainingEmails > 0)
                 {
@@ -235,6 +254,9 @@ namespace MailArchiver.Services
                     context.ArchivedEmails.RemoveRange(emailsToDelete);
                     await context.SaveChangesAsync(combinedToken);
 
+                    foreach (var email in emailsToDelete)
+                        affectedAccountIds.Add(email.MailAccountId);
+
                     job.DeletedEmails += emailsToDelete.Count;
                     remainingEmails -= emailsToDelete.Count;
 
@@ -250,6 +272,28 @@ namespace MailArchiver.Services
                 _logger.LogInformation(
                     "Email deletion job {JobId} completed successfully. Deleted {EmailCount} emails and {AttachmentCount} attachments",
                     job.JobId, job.DeletedEmails, job.DeletedAttachments);
+
+                // Sofort-Refresh des Speichercaches fuer betroffene Accounts
+                if (affectedAccountIds.Count > 0)
+                {
+                    try
+                    {
+                        using var storageScope = _serviceScopeFactory.CreateScope();
+                        var storageService = storageScope.ServiceProvider.GetRequiredService<IAccountStorageService>();
+                        foreach (var accountId in affectedAccountIds)
+                        {
+                            try { await storageService.RefreshAccountStorageAsync(accountId); }
+                            catch (Exception acctEx)
+                            {
+                                _logger.LogDebug(acctEx, "Storage cache refresh for account {AccountId} after deletion failed (non-fatal)", accountId);
+                            }
+                        }
+                    }
+                    catch (Exception storageEx)
+                    {
+                        _logger.LogDebug(storageEx, "Storage cache refresh after deletion failed (non-fatal)");
+                    }
+                }
             }
             catch (OperationCanceledException)
             {

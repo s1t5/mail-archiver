@@ -136,12 +136,12 @@ namespace MailArchiver.Services.Providers.Graph
                         EmailAddress = new Microsoft.Graph.Models.EmailAddress
                         {
                             Address = email.From ?? "unknown@unknown.com",
-                            Name = email.From ?? "Unknown Sender"
+                            Name = !string.IsNullOrEmpty(email.FromDisplayName) ? email.FromDisplayName : (email.From ?? "Unknown Sender")
                         }
                     },
-                    ToRecipients = ParseEmailAddresses(email.To),
-                    CcRecipients = ParseEmailAddresses(email.Cc),
-                    BccRecipients = ParseEmailAddresses(email.Bcc),
+                    ToRecipients = ParseEmailAddressesWithDisplayNames(email.To, email.ToDisplayNames),
+                    CcRecipients = ParseEmailAddressesWithDisplayNames(email.Cc, email.CcDisplayNames),
+                    BccRecipients = ParseEmailAddressesWithDisplayNames(email.Bcc, email.BccDisplayNames),
                     SentDateTime = email.SentDate,
                     ReceivedDateTime = email.SentDate,
                     InternetMessageId = email.MessageId,
@@ -231,7 +231,11 @@ namespace MailArchiver.Services.Providers.Graph
 
                 try
                 {
+                    // MEMORY FIX: Restore only reads the entity – load without tracking so the
+                    // change tracker does not accumulate emails and attachment byte arrays
+                    // across the entire batch.
                     var email = await _context.ArchivedEmails
+                        .AsNoTracking()
                         .Include(e => e.Attachments)
                             .ThenInclude(a => a.AttachmentContent)
                         .FirstOrDefaultAsync(e => e.Id == emailId, cancellationToken);
@@ -347,9 +351,32 @@ namespace MailArchiver.Services.Providers.Graph
         }
 
         /// <summary>
-        /// Normalizes a DateTime value to a UTC ISO-8601 string for MAPI extended properties.
-        /// Converts from the configured display timezone back to UTC.
+        /// Parses a comma-separated string of email addresses into a list of Graph Recipients,
+        /// applying the stored display names when the count matches the number of addresses.
+        /// Falls back to ParseEmailAddresses behavior when display names are missing or mismatched.
         /// </summary>
+        private static List<Recipient> ParseEmailAddressesWithDisplayNames(string? emailAddresses, string? displayNamesCsv)
+        {
+            var recipients = ParseEmailAddresses(emailAddresses);
+
+            if (string.IsNullOrEmpty(displayNamesCsv) || recipients.Count == 0)
+                return recipients;
+
+            var names = displayNamesCsv.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                                       .Select(s => s.Trim())
+                                       .ToArray();
+
+            if (names.Length != recipients.Count)
+                return recipients;
+
+            for (int i = 0; i < recipients.Count; i++)
+            {
+                if (!string.IsNullOrEmpty(names[i]))
+                    recipients[i].EmailAddress.Name = names[i];
+            }
+
+            return recipients;
+        }
         private string NormalizeToUtcIso8601(DateTime value)
         {
             var utc = _dateTimeHelper.ConvertFromDisplayTimeZoneToUtc(value);

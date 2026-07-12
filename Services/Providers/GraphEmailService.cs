@@ -3,6 +3,7 @@ using MailArchiver.Models;
 using MailArchiver.Services.Core;
 using MailArchiver.Services.Providers.Graph;
 using Microsoft.EntityFrameworkCore;
+using GraphUser = Microsoft.Graph.Models.User;
 
 namespace MailArchiver.Services.Providers
 {
@@ -46,6 +47,9 @@ namespace MailArchiver.Services.Providers
         public Task<bool> TestConnectionAsync(MailAccount account)
             => _syncService.TestConnectionAsync(account);
 
+        public Task<List<GraphUser>> GetTenantMailboxUsersAsync(string clientId, string clientSecret, string tenantId, bool includeDisabled = false)
+            => _authFactory.GetTenantMailboxUsersAsync(clientId, clientSecret, tenantId, includeDisabled);
+
         public async Task<List<string>> GetMailFoldersAsync(MailAccount account)
             => await _folderService.GetMailFoldersAsync(account);
 
@@ -74,7 +78,9 @@ namespace MailArchiver.Services.Providers
 
         async Task<bool> IProviderEmailService.RestoreEmailToFolderAsync(int emailId, int targetAccountId, string folderName, bool preserveFolderStructure)
         {
+            // MEMORY FIX: Restore only reads the entity – no tracking needed.
             var email = await _context.ArchivedEmails
+                .AsNoTracking()
                 .Include(e => e.Attachments)
                     .ThenInclude(a => a.AttachmentContent)
                 .FirstOrDefaultAsync(e => e.Id == emailId);

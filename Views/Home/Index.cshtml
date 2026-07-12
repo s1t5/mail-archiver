@@ -3,11 +3,20 @@
 @inject Microsoft.Extensions.Localization.IStringLocalizer<MailArchiver.SharedResource> Localizer
 @model MailArchiver.Models.ViewModels.DashboardViewModel
 @{
-    ViewData["Title"] = Localizer["Dashboard"]; }
+    ViewData["Title"] = Localizer["Dashboard"];
+    var canManageAccounts = AuthService.IsCurrentUserAdmin(Context) || AuthService.IsCurrentUserSelfManager(Context);
+    var currentUsername = AuthService.GetCurrentUserDisplayName(Context);
+}
 
 <div class="container-fluid">
-    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4 gap-2">
-        <h1 class="h3 mb-0">@Localizer["Dashboard"]</h1>
+    <div class="dashboard-hero d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4 gap-2">
+        <div>
+            <h1 class="h3 mb-0">@Localizer["Dashboard"]</h1>
+            @if (!string.IsNullOrEmpty(currentUsername))
+            {
+                <div class="hero-subtitle">@string.Format(Localizer["WelcomeBack"].Value, currentUsername)</div>
+            }
+        </div>
         <div>
             <a asp-controller="Emails" asp-action="Index" class="btn btn-primary btn-sm">
                 <i class="bi bi-search"></i> <span class="d-none d-sm-inline">@Localizer["Search"]</span> @Localizer["Archive"]
@@ -19,13 +28,13 @@
     {
         <div class="row mb-4">
             <div class="col-12">
-                <div class="alert alert-info alert-dismissible fade show">
+                <div class="alert alert-info alert-dismissible fade show alert-persistent">
                     <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-2">
                         <div>
                             <i class="bi bi-clock-history me-2"></i>
-                            <strong>@Localizer["BackgroundJobsActive"]</strong> @ViewBag.ActiveJobsCount job(s) are currently running.
+                            <strong>@Localizer["BackgroundJobsActive"]</strong> @string.Format(Localizer["BackgroundJobsActiveCount"].Value, ViewBag.ActiveJobsCount)
                         </div>
-                        <div>
+                        <div class="d-flex align-items-center gap-2">
                             <a asp-controller="Emails" asp-action="Jobs" class="btn btn-outline-primary btn-sm">
                                 <i class="bi bi-eye me-1"></i> @Localizer["ViewJobs"]
                             </a>
@@ -39,54 +48,38 @@
 
     <div class="row mb-4">
         <div class="col-6 col-md-3 mb-3">
-            <div class="card bg-primary text-white h-100">
-                <div class="card-body p-3">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="card-title mb-1">@Localizer["Emails"]</h6>
-                            <h5 class="mb-0">@Model.TotalEmails.ToString("N0")</h5>
-                        </div>
-                        <i class="bi bi-envelope fs-1 opacity-75"></i>
-                    </div>
+            <div class="card stat-card-modern bg-primary text-white h-100">
+                <div class="card-body">
+                    <i class="bi bi-envelope stat-icon"></i>
+                    <div class="stat-label">@Localizer["Emails"]</div>
+                    <div class="stat-value" data-count-target="@Model.TotalEmails">@Model.TotalEmails.ToString("N0")</div>
                 </div>
             </div>
         </div>
         <div class="col-6 col-md-3 mb-3">
-            <div class="card bg-success text-white h-100">
-                <div class="card-body p-3">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="card-title mb-1">@Localizer["Accounts"]</h6>
-                            <h5 class="mb-0">@Model.TotalAccounts.ToString("N0")</h5>
-                        </div>
-                        <i class="bi bi-person fs-1 opacity-75"></i>
-                    </div>
+            <div class="card stat-card-modern bg-success text-white h-100">
+                <div class="card-body">
+                    <i class="bi bi-person-lines-fill stat-icon"></i>
+                    <div class="stat-label">@Localizer["Accounts"]</div>
+                    <div class="stat-value" data-count-target="@Model.TotalAccounts">@Model.TotalAccounts.ToString("N0")</div>
                 </div>
             </div>
         </div>
         <div class="col-6 col-md-3 mb-3">
-            <div class="card bg-info text-white h-100">
-                <div class="card-body p-3">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="card-title mb-1">@Localizer["AttachmentsCount"]</h6>
-                            <h5 class="mb-0">@Model.TotalAttachments.ToString("N0")</h5>
-                        </div>
-                        <i class="bi bi-paperclip fs-1 opacity-75"></i>
-                    </div>
+            <div class="card stat-card-modern bg-info text-white h-100">
+                <div class="card-body">
+                    <i class="bi bi-paperclip stat-icon"></i>
+                    <div class="stat-label">@Localizer["AttachmentsCount"]</div>
+                    <div class="stat-value" data-count-target="@Model.TotalAttachments">@Model.TotalAttachments.ToString("N0")</div>
                 </div>
             </div>
         </div>
         <div class="col-6 col-md-3 mb-3">
-            <div class="card bg-warning text-dark h-100">
-                <div class="card-body p-3">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="card-title mb-1">@Localizer["Storage"]</h6>
-                            <h5 class="mb-0">@Model.TotalStorageUsed</h5>
-                        </div>
-                        <i class="bi bi-hdd fs-1 opacity-75"></i>
-                    </div>
+            <div class="card stat-card-modern bg-warning text-dark h-100">
+                <div class="card-body">
+                    <i class="bi bi-hdd stat-icon"></i>
+                    <div class="stat-label">@Localizer["Storage"]</div>
+                    <div class="stat-value">@Model.TotalStorageUsed</div>
                 </div>
             </div>
         </div>
@@ -96,10 +89,10 @@
         <div class="col-12 col-lg-8 mb-4">
             <div class="card h-100">
                 <div class="card-header d-flex justify-content-between align-items-center">
-                    <span class="h6 mb-0">@Localizer["EmailsPerMonth"]</span>
+                    <span class="h6 mb-0"><i class="bi bi-bar-chart me-1"></i>@Localizer["EmailsPerMonth"]</span>
                     <span class="badge bg-primary">@Localizer["Last12Months"]</span>
                 </div>
-                <div class="card-body">
+                <div class="card-body dashboard-chart-body">
                     <div class="chart-container">
                         <canvas id="monthlyChart"></canvas>
                     </div>
@@ -109,10 +102,10 @@
         <div class="col-12 col-lg-4 mb-4">
             <div class="card h-100">
                 <div class="card-header d-flex justify-content-between align-items-center">
-                    <span class="h6 mb-0">@Localizer["TopSenders"]</span>
+                    <span class="h6 mb-0"><i class="bi bi-pie-chart me-1"></i>@Localizer["TopSenders"]</span>
                     <span class="badge bg-primary">@Localizer["Incoming"]</span>
                 </div>
-                <div class="card-body">
+                <div class="card-body dashboard-chart-body">
                     <div class="chart-container">
                         <canvas id="topSendersChart"></canvas>
                     </div>
@@ -125,7 +118,7 @@
         <div class="col-12 col-lg-6 mb-4">
             <div class="card h-100">
                 <div class="card-header d-flex justify-content-between align-items-center">
-                    <span class="h6 mb-0">@Localizer["AccountOverview"]</span>
+                    <span class="h6 mb-0"><i class="bi bi-list-ul me-1"></i>@Localizer["AccountOverview"]</span>
                     <a asp-controller="MailAccounts" asp-action="Index" class="btn btn-sm btn-outline-primary">@Localizer["ShowAll"]</a>
                 </div>
                 <div class="card-body p-0">
@@ -136,6 +129,7 @@
                                     <th>@Localizer["Name"]</th>
                                     <th class="d-none d-lg-table-cell">@Localizer["EmailAddress"]</th>
                                     <th>@Localizer["Count"]</th>
+                                    <th>@Localizer["Storage"]</th>
                                     <th>@Localizer["LastSync"]</th>
                                 </tr>
                             </thead>
@@ -143,9 +137,19 @@
                                 @foreach (var account in Model.EmailsPerAccount)
                                 {
                                     <tr>
-                                        <td>@account.AccountName</td>
-                                        <td class="d-none d-lg-table-cell small">@account.EmailAddress</td>
+                                        <td>
+                                            @if (canManageAccounts)
+                                            {
+                                                <a asp-controller="MailAccounts" asp-action="Details" asp-route-id="@account.AccountId" class="text-decoration-none">@account.AccountName</a>
+                                            }
+                                            else
+                                            {
+                                                @account.AccountName
+                                            }
+                                        </td>
+                                        <td class="d-none d-lg-table-cell small text-truncate" style="max-width: 200px;">@account.EmailAddress</td>
                                         <td>@account.EmailCount.ToString("N0")</td>
+                                        <td class="small text-nowrap">@account.StorageUsed</td>
                                         <td>
                                             @if (DateTime.Now.Subtract(account.LastSyncTime).TotalHours < 24)
                                             {
@@ -169,8 +173,17 @@
                                 @if (!Model.EmailsPerAccount.Any())
                                 {
                                     <tr>
-                                        <td colspan="4" class="text-center py-3 text-muted">
-                                            <i class="bi bi-info-circle me-2"></i>@Localizer["NoEmailAccountsFound"]
+                                        <td colspan="5" class="text-center dashboard-empty-state text-muted">
+                                            <i class="bi bi-inbox empty-icon"></i>
+                                            <div class="empty-text">@Localizer["NoEmailAccountsFound"]</div>
+                                            @if (canManageAccounts)
+                                            {
+                                                <div class="mt-3">
+                                                    <a asp-controller="MailAccounts" asp-action="Create" class="btn btn-sm btn-outline-primary">
+                                                        <i class="bi bi-plus-circle"></i> @Localizer["AddAccount"]
+                                                    </a>
+                                                </div>
+                                            }
                                         </td>
                                     </tr>
                                 }
@@ -183,10 +196,20 @@
                             <div class="border-bottom px-3 py-2">
                                 <div class="d-flex justify-content-between align-items-start">
                                     <div class="flex-grow-1">
-                                        <h6 class="mb-1">@account.AccountName</h6>
-                                        <p class="mb-1 small text-muted">@account.EmailAddress</p>
+                                        <h6 class="mb-1">
+                                            @if (canManageAccounts)
+                                            {
+                                                <a asp-controller="MailAccounts" asp-action="Details" asp-route-id="@account.AccountId" class="text-decoration-none">@account.AccountName</a>
+                                            }
+                                            else
+                                            {
+                                                @account.AccountName
+                                            }
+                                        </h6>
+                                        <p class="mb-1 small text-muted text-truncate">@account.EmailAddress</p>
                                         <p class="mb-0 small">
                                             <strong>@account.EmailCount.ToString("N0")</strong> @Localizer["Emails"]
+                                            <span class="text-muted">·</span> <span class="text-nowrap">@account.StorageUsed</span>
                                         </p>
                                     </div>
                                     <div class="text-end">
@@ -212,8 +235,15 @@
                         }
                         @if (!Model.EmailsPerAccount.Any())
                         {
-                            <div class="text-center py-4 text-muted">
-                                <i class="bi bi-info-circle me-2"></i>@Localizer["NoEmailAccountsFound"]
+                            <div class="text-center dashboard-empty-state text-muted">
+                                <i class="bi bi-inbox empty-icon"></i>
+                                <div class="empty-text">@Localizer["NoEmailAccountsFound"]</div>
+                                @if (canManageAccounts)
+                                {
+                                    <a asp-controller="MailAccounts" asp-action="Create" class="btn btn-sm btn-outline-primary mt-3">
+                                        <i class="bi bi-plus-circle"></i> @Localizer["AddAccount"]
+                                    </a>
+                                }
                             </div>
                         }
                     </div>
@@ -223,40 +253,44 @@
         <div class="col-12 col-lg-6 mb-4">
             <div class="card h-100">
                 <div class="card-header d-flex justify-content-between align-items-center">
-                    <span class="h6 mb-0">@Localizer["RecentEmails"]</span>
+                    <span class="h6 mb-0"><i class="bi bi-clock-history me-1"></i>@Localizer["RecentEmails"]</span>
                     <a asp-controller="Emails" asp-action="Index" class="btn btn-sm btn-outline-primary">@Localizer["ShowAll"]</a>
                 </div>
                 <div class="card-body p-0">
                     <div class="list-group list-group-flush">
                         @foreach (var email in Model.RecentEmails)
                         {
-                            <a href="@Url.Action("Details", "Emails", new { id = email.Id })" class="list-group-item list-group-item-action">
+                            <a href="@Url.Action("Details", "Emails", new { id = email.Id })" class="list-group-item list-group-item-action recent-email-item">
                                 <div class="d-flex w-100 justify-content-between align-items-start">
-                                    <div class="flex-grow-1 me-2">
-                                        <h6 class="mb-1 text-truncate">
-                                            @if(email.IsOutgoing)
-                                            {
-                                                <i class="bi bi-arrow-up-right text-primary"></i>
-                                            }
-                                            else
-                                            {
-                                                <i class="bi bi-arrow-down-left text-success"></i>
-                                            }
-                                            @email.Subject
-                                        </h6>
-                                        <p class="mb-1 small text-truncate">@email.From</p>
-                                        <small class="text-muted">
-                                            <i class="bi bi-person me-1"></i>@email.MailAccount.Name
-                                        </small>
+                                    <div class="d-flex align-items-start flex-grow-1 flex-min-0 me-2">
+                                        <div class="avatar-initial me-2" data-sender="@email.From"></div>
+                                        <div class="flex-grow-1 flex-min-0">
+                                            <h6 class="mb-1 text-truncate">
+                                                <span class="direction-dot @(email.IsOutgoing ? "outgoing" : "incoming")"></span>
+                                                @email.Subject
+                                            </h6>
+                                            <p class="mb-1 small text-truncate text-muted">@email.From</p>
+                                            <small class="text-muted">
+                                                <i class="bi bi-person me-1"></i>@email.MailAccount.Name
+                                            </small>
+                                        </div>
                                     </div>
-                                    <small class="text-muted text-nowrap">@email.SentDate.ToString("g")</small>
+                                    <div class="text-end text-nowrap">
+                                        <small class="text-muted">
+                                            <span class="utc-timestamp" data-utc-time="@email.SentDate.ToString("yyyy-MM-ddTHH:mm:ss")">
+                                                @email.SentDate.ToString("g")
+                                            </span>
+                                        </small>
+                                        <div class="relative-date" data-utc-time="@email.SentDate.ToString("yyyy-MM-ddTHH:mm:ss")"></div>
+                                    </div>
                                 </div>
                             </a>
                         }
                         @if (!Model.RecentEmails.Any())
                         {
-                            <div class="list-group-item text-center py-4 text-muted">
-                                <i class="bi bi-inbox me-2"></i>@Localizer["NoEmailsArchivedYet"]
+                            <div class="list-group-item text-center dashboard-empty-state text-muted">
+                                <i class="bi bi-inbox empty-icon"></i>
+                                <div class="empty-text">@Localizer["NoEmailsArchivedYet"]</div>
                             </div>
                         }
                     </div>
@@ -269,34 +303,45 @@
         <div class="col-12">
             <div class="card">
                 <div class="card-header">
-                    <h6 class="mb-0">@Localizer["QuickActions"]</h6>
+                    <h6 class="mb-0"><i class="bi bi-lightning me-1"></i>@Localizer["QuickActions"]</h6>
                 </div>
                 <div class="card-body">
-                    <div class="row g-2">
+                    <div class="row g-3">
                         <div class="col-6 col-md-3">
-                            <a asp-controller="Emails" asp-action="Index" class="btn btn-outline-primary w-100">
-                                <i class="bi bi-search d-block mb-1"></i>
-                                <small>@Localizer["SearchArchive"]</small>
+                            <a asp-controller="Emails" asp-action="Index" class="action-card action-primary">
+                                <div class="action-icon-circle">
+                                    <i class="bi bi-search"></i>
+                                </div>
+                                <div class="action-label">@Localizer["SearchArchive"]</div>
                             </a>
                         </div>
-                        <div class="col-6 col-md-3">
-                            <a asp-controller="MailAccounts" asp-action="Create" class="btn btn-outline-success w-100">
-                                <i class="bi bi-plus-circle d-block mb-1"></i>
-                                <small>@Localizer["AddAccount"]</small>
-                            </a>
-                        </div>
-                        <div class="col-6 col-md-3">
-                            <a asp-controller="MailAccounts" asp-action="Index" class="btn btn-outline-info w-100">
-                                <i class="bi bi-person-gear d-block mb-1"></i>
-                                <small>@Localizer["ManageAccounts"]</small>
-                            </a>
-                        </div>
+                        @if (canManageAccounts)
+                        {
+                            <div class="col-6 col-md-3">
+                                <a asp-controller="MailAccounts" asp-action="Create" class="action-card action-success">
+                                    <div class="action-icon-circle">
+                                        <i class="bi bi-plus-circle"></i>
+                                    </div>
+                                    <div class="action-label">@Localizer["AddAccount"]</div>
+                                </a>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <a asp-controller="MailAccounts" asp-action="Index" class="action-card action-info">
+                                    <div class="action-icon-circle">
+                                        <i class="bi bi-person-gear"></i>
+                                    </div>
+                                    <div class="action-label">@Localizer["ManageAccounts"]</div>
+                                </a>
+                            </div>
+                        }
                         @if (AuthService.IsCurrentUserAdmin(Context))
                         {
                             <div class="col-6 col-md-3">
-                                <a asp-controller="Emails" asp-action="Jobs" class="btn btn-outline-warning w-100 position-relative">
-                                    <i class="bi bi-clock-history d-block mb-1"></i>
-                                    <small>@Localizer["BackgroundJobs"]</small>
+                                <a asp-controller="Emails" asp-action="Jobs" class="action-card action-warning position-relative">
+                                    <div class="action-icon-circle">
+                                        <i class="bi bi-clock-history"></i>
+                                    </div>
+                                    <div class="action-label">@Localizer["BackgroundJobs"]</div>
                                     @if (ViewBag.ActiveJobsCount != null && ViewBag.ActiveJobsCount > 0)
                                     {
                                         <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
@@ -318,21 +363,119 @@
      <script src="~/lib/chart.js/chart.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Chart colors
+            const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+            // --- Count-up animation for stat cards ---
+            function animateCount(el, target, duration) {
+                const start = 0;
+                const startTime = performance.now();
+                function update(now) {
+                    const elapsed = now - startTime;
+                    const progress = Math.min(elapsed / duration, 1);
+                    const eased = 1 - Math.pow(1 - progress, 3);
+                    const current = Math.floor(start + (target - start) * eased);
+                    el.textContent = current.toLocaleString();
+                    if (progress < 1) requestAnimationFrame(update);
+                    else el.textContent = target.toLocaleString();
+                }
+                requestAnimationFrame(update);
+            }
+
+            if (!prefersReducedMotion) {
+                document.querySelectorAll('.stat-value[data-count-target]').forEach(el => {
+                    const target = parseInt(el.dataset.countTarget, 10);
+                    if (target > 0) el.textContent = '0';
+                });
+
+                const observer = new IntersectionObserver((entries, obs) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            const el = entry.target;
+                            const target = parseInt(el.dataset.countTarget, 10);
+                            if (target > 0) animateCount(el, target, 1200);
+                            obs.unobserve(el);
+                        }
+                    });
+                }, { threshold: 0.3 });
+
+                document.querySelectorAll('.stat-value[data-count-target]').forEach(el => {
+                    const target = parseInt(el.dataset.countTarget, 10);
+                    if (target > 0) observer.observe(el);
+                });
+            }
+
+            // --- Avatar initials for recent emails ---
+            function getInitial(name) {
+                if (!name) return '?';
+                const cleanName = name.replace(/^.*<(.+)>$/, '$1').trim();
+                return cleanName.charAt(0).toUpperCase();
+            }
+
+            function getColorIndex(name) {
+                let hash = 0;
+                for (let i = 0; i < name.length; i++) {
+                    hash = name.charCodeAt(i) + ((hash << 5) - hash);
+                }
+                return Math.abs(hash) % 8;
+            }
+
+            document.querySelectorAll('.avatar-initial[data-sender]').forEach(el => {
+                const sender = el.dataset.sender || '';
+                el.textContent = getInitial(sender);
+                el.classList.add('avatar-color-' + getColorIndex(sender));
+            });
+
+            // --- Relative date formatting ---
+            function formatRelativeTime(utcString) {
+                if (!utcString) return '';
+                const date = new Date(utcString + (utcString.endsWith('Z') ? '' : 'Z'));
+                if (isNaN(date.getTime())) return '';
+                const now = new Date();
+                const diffMs = now - date;
+                const diffMin = Math.floor(diffMs / 60000);
+                const diffHr = Math.floor(diffMin / 60);
+                const diffDay = Math.floor(diffHr / 24);
+
+                const lang = document.documentElement.lang || 'en';
+
+                if (diffMin < 1) return '';
+                if (diffMin < 60) {
+                    const templates = { 'de': 'vor {0} Min.', 'en': '{0} min ago', 'fr': 'il y a {0} min', 'es': 'hace {0} min', 'it': '{0} min fa', 'nl': '{0} min geleden', 'pl': '{0} min temu', 'ru': '{0} мин назад', 'hu': '{0} perce', 'sl': 'pred {0} min' };
+                    const tpl = templates[lang] || templates['en'];
+                    return tpl.replace('{0}', diffMin);
+                }
+                if (diffHr < 24) {
+                    const templates = { 'de': 'vor {0} Std.', 'en': '{0}h ago', 'fr': 'il y a {0}h', 'es': 'hace {0}h', 'it': '{0}h fa', 'nl': '{0}u geleden', 'pl': '{0} godz. temu', 'ru': '{0} ч назад', 'hu': '{0} órája', 'sl': 'pred {0} h' };
+                    const tpl = templates[lang] || templates['en'];
+                    return tpl.replace('{0}', diffHr);
+                }
+                if (diffDay < 30) {
+                    const templates = { 'de': 'vor {0} Tag(en)', 'en': '{0}d ago', 'fr': 'il y a {0}j', 'es': 'hace {0}d', 'it': '{0}g fa', 'nl': '{0}d geleden', 'pl': '{0} dni temu', 'ru': '{0} д назад', 'hu': '{0} napja', 'sl': 'pred {0} dni' };
+                    const tpl = templates[lang] || templates['en'];
+                    return tpl.replace('{0}', diffDay);
+                }
+                return '';
+            }
+
+            document.querySelectorAll('.relative-date[data-utc-time]').forEach(el => {
+                el.textContent = formatRelativeTime(el.dataset.utcTime);
+            });
+
+            // --- Charts ---
             const chartColors = {
                 blue: 'rgba(13, 110, 253, 0.8)',
                 blueBorder: 'rgba(13, 110, 253, 1)',
                 colors: [
-                    'rgba(220, 53, 69, 0.8)',   // Red
-                    'rgba(13, 110, 253, 0.8)',  // Blue
-                    'rgba(255, 193, 7, 0.8)',   // Yellow
-                    'rgba(25, 135, 84, 0.8)',   // Green
-                    'rgba(102, 16, 242, 0.8)',  // Purple
-                    'rgba(253, 126, 20, 0.8)',  // Orange
-                    'rgba(111, 66, 193, 0.8)',  // Indigo
-                    'rgba(214, 51, 132, 0.8)',  // Pink
-                    'rgba(32, 201, 151, 0.8)',  // Teal
-                    'rgba(111, 66, 193, 0.8)'   // Cyan
+                    'rgba(220, 53, 69, 0.8)',
+                    'rgba(13, 110, 253, 0.8)',
+                    'rgba(255, 193, 7, 0.8)',
+                    'rgba(25, 135, 84, 0.8)',
+                    'rgba(102, 16, 242, 0.8)',
+                    'rgba(253, 126, 20, 0.8)',
+                    'rgba(111, 66, 193, 0.8)',
+                    'rgba(214, 51, 132, 0.8)',
+                    'rgba(32, 201, 151, 0.8)',
+                    'rgba(111, 66, 193, 0.8)'
                 ],
                 colorsBorder: [
                     'rgba(220, 53, 69, 1)',
@@ -348,10 +491,9 @@
                 ]
             };
 
-            // Monthly Emails Chart
             const monthlyChartCanvas = document.getElementById('monthlyChart');
             if (monthlyChartCanvas) {
-                const monthlyChart = new Chart(monthlyChartCanvas.getContext('2d'), {
+                new Chart(monthlyChartCanvas.getContext('2d'), {
                     type: 'bar',
                     data: {
                         labels: [@Html.Raw(string.Join(",", Model.EmailsByMonth.Select(m => $"'{m.Period}'")))],
@@ -367,39 +509,35 @@
                     options: {
                         responsive: true,
                         maintainAspectRatio: false,
+                        animation: prefersReducedMotion ? false : { duration: 800, easing: 'easeOutCubic' },
                         plugins: {
-                            legend: {
-                                display: false
-                            }
+                            legend: { display: false }
                         },
                         scales: {
                             x: {
                                 ticks: {
                                     maxRotation: 45,
                                     minRotation: 0,
-                                    font: {
-                                        size: window.innerWidth < 768 ? 10 : 12
-                                    }
-                                }
+                                    font: { size: window.innerWidth < 768 ? 10 : 12 }
+                                },
+                                grid: { display: false }
                             },
                             y: {
                                 beginAtZero: true,
                                 ticks: {
                                     precision: 0,
-                                    font: {
-                                        size: window.innerWidth < 768 ? 10 : 12
-                                    }
-                                }
+                                    font: { size: window.innerWidth < 768 ? 10 : 12 }
+                                },
+                                grid: { color: 'rgba(0, 0, 0, 0.05)' }
                             }
                         }
                     }
                 });
             }
 
-            // Top Senders Chart
             const topSendersChartCanvas = document.getElementById('topSendersChart');
             if (topSendersChartCanvas) {
-                const topSendersChart = new Chart(topSendersChartCanvas.getContext('2d'), {
+                new Chart(topSendersChartCanvas.getContext('2d'), {
                     type: 'doughnut',
                     data: {
                         labels: [@Html.Raw(string.Join(",", Model.TopSenders.Select(s => $"'{(s.EmailAddress.Length > 25 ? s.EmailAddress.Substring(0, 25) + "..." : s.EmailAddress)}'")))],
@@ -414,14 +552,13 @@
                     options: {
                         responsive: true,
                         maintainAspectRatio: false,
+                        animation: prefersReducedMotion ? false : { duration: 800, easing: 'easeOutCubic' },
                         plugins: {
                             legend: {
                                 position: 'bottom',
                                 labels: {
                                     boxWidth: 12,
-                                    font: {
-                                        size: window.innerWidth < 768 ? 9 : 11
-                                    },
+                                    font: { size: window.innerWidth < 768 ? 9 : 11 },
                                     padding: window.innerWidth < 768 ? 10 : 15
                                 }
                             },
@@ -441,13 +578,16 @@
                 });
             }
 
-            // Auto-refresh dashboard if there are active jobs
             @if (ViewBag.ActiveJobsCount != null && ViewBag.ActiveJobsCount > 0)
             {
-                @:// Refresh page every 30 seconds if there are active jobs
-                @:setTimeout(function() {
-                @:    location.reload();
-                @:}, 30000);
+                @:let refreshSeconds = 30;
+                @:const refreshInterval = setInterval(function() {
+                @:    refreshSeconds--;
+                @:    if (refreshSeconds <= 0) {
+                @:        clearInterval(refreshInterval);
+                @:        location.reload();
+                @:    }
+                @:}, 1000);
             }
         });
     </script>

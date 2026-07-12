@@ -38,30 +38,28 @@ namespace MailArchiver.Services.Providers.Graph
         /// <param name="message">The Graph message to archive.</param>
         /// <param name="isOutgoing">Whether the folder indicates outgoing mail.</param>
         /// <param name="folderName">The folder path for storage.</param>
+        /// <param name="skipDuplicateCheck">Set to true when the caller has already performed the duplicate check.</param>
         /// <returns>True if a new email was archived, false if it already existed.</returns>
         public async Task<bool> ArchiveGraphEmailAsync(
             GraphServiceClient graphClient,
             MailAccount account,
             Message message,
             bool isOutgoing,
-            string folderName)
+            string folderName,
+            bool skipDuplicateCheck = false)
         {
-            var messageId = message.InternetMessageId ?? message.Id;
-
-            // Generate a deterministic MessageId when Graph doesn't provide one.
-            if (string.IsNullOrEmpty(messageId))
-            {
-                messageId = GenerateMessageId(message);
-                _logger.LogDebug("Generated MessageId for M365 email without MessageId: {MessageId}", messageId);
-            }
+            var messageId = ResolveMessageId(message);
 
             _logger.LogDebug("Processing message {MessageId} for account {AccountName}, Subject: {Subject}",
                 messageId, account.Name, message.Subject ?? "No Subject");
 
-            // Duplicate check
-            var isDuplicate = await IsDuplicateAsync(account.Id, messageId, message, folderName);
-            if (isDuplicate)
-                return false;
+            // Duplicate check (unless the caller already checked before enriching the message)
+            if (!skipDuplicateCheck)
+            {
+                var isDuplicate = await IsDuplicateAsync(account.Id, messageId, message, folderName);
+                if (isDuplicate)
+                    return false;
+            }
 
             // Build and persist the archived email
             try
@@ -93,6 +91,23 @@ namespace MailArchiver.Services.Providers.Graph
         }
 
         /// <summary>
+        /// Resolves the MessageId for a Graph message: InternetMessageId, falling back to the
+        /// Graph message Id, falling back to a deterministic generated id.
+        /// </summary>
+        public static string ResolveMessageId(Message message)
+        {
+            var messageId = message.InternetMessageId ?? message.Id;
+
+            // Generate a deterministic MessageId when Graph doesn't provide one.
+            if (string.IsNullOrEmpty(messageId))
+            {
+                messageId = GenerateMessageId(message);
+            }
+
+            return messageId;
+        }
+
+        /// <summary>
         /// Generates a deterministic MessageId using SHA-256 over From|To|Subject|Ticks.
         /// </summary>
         public static string GenerateMessageId(Message message)
@@ -114,8 +129,10 @@ namespace MailArchiver.Services.Providers.Graph
         /// <summary>
         /// Checks whether an email with the given criteria already exists in the archive.
         /// Returns true if a duplicate was found (and optionally updates the folder name).
+        /// Note: the fuzzy From/To/Subject/Date fallback requires From and ToRecipients to be
+        /// populated on the message; the MessageId comparison works regardless.
         /// </summary>
-        private async Task<bool> IsDuplicateAsync(int accountId, string messageId, Message message, string folderName)
+        public async Task<bool> IsDuplicateAsync(int accountId, string messageId, Message message, string folderName)
         {
             try
             {
@@ -189,6 +206,18 @@ namespace MailArchiver.Services.Providers.Graph
             var cc = MailContentHelper.CleanText(string.Join(", ", message.CcRecipients?.Select(r => r.EmailAddress?.Address) ?? new List<string>()));
             var bcc = MailContentHelper.CleanText(string.Join(", ", message.BccRecipients?.Select(r => r.EmailAddress?.Address) ?? new List<string>()));
 
+            // Extract display names for faithful restore/export
+            var fromDisplayName = MailContentHelper.CleanText(message.From?.EmailAddress?.Name ?? string.Empty);
+            var toDisplayNames = MailContentHelper.CleanText(string.Join(", ",
+                message.ToRecipients?.Select(r => r.EmailAddress?.Name)
+                        .Where(n => !string.IsNullOrEmpty(n)) ?? Enumerable.Empty<string>()));
+            var ccDisplayNames = MailContentHelper.CleanText(string.Join(", ",
+                message.CcRecipients?.Select(r => r.EmailAddress?.Name)
+                        .Where(n => !string.IsNullOrEmpty(n)) ?? Enumerable.Empty<string>()));
+            var bccDisplayNames = MailContentHelper.CleanText(string.Join(", ",
+                message.BccRecipients?.Select(r => r.EmailAddress?.Name)
+                        .Where(n => !string.IsNullOrEmpty(n)) ?? Enumerable.Empty<string>()));
+
             var (body, htmlBody) = ExtractBody(message);
             var originalTextBody = message.Body?.ContentType == BodyType.Text ? message.Body?.Content : (message.BodyPreview ?? "");
             var originalHtmlBody = message.Body?.ContentType == BodyType.Html ? message.Body?.Content : null;
@@ -205,6 +234,11 @@ namespace MailArchiver.Services.Providers.Graph
             to = MailContentHelper.TruncateFieldForTsvector(to, 50_000);
             cc = MailContentHelper.TruncateFieldForTsvector(cc, 50_000);
             bcc = MailContentHelper.TruncateFieldForTsvector(bcc, 50_000);
+
+            fromDisplayName = MailContentHelper.TruncateFieldForTsvector(fromDisplayName, 50_000);
+            toDisplayNames = MailContentHelper.TruncateFieldForTsvector(toDisplayNames, 50_000);
+            ccDisplayNames = MailContentHelper.TruncateFieldForTsvector(ccDisplayNames, 50_000);
+            bccDisplayNames = MailContentHelper.TruncateFieldForTsvector(bccDisplayNames, 50_000);
 
             // Final safety check: ensure total tsvector size doesn't exceed limit
             var totalTsvectorSize = Encoding.UTF8.GetByteCount(subject) +
@@ -234,6 +268,8 @@ namespace MailArchiver.Services.Providers.Graph
                 }
             }
 
+            body = MailContentHelper.SanitizeLongTokens(body);
+
             // Determine if the email is outgoing
             bool isOutgoingEmail = !string.IsNullOrEmpty(from) &&
                                   !string.IsNullOrEmpty(account.EmailAddress) &&
@@ -248,6 +284,10 @@ namespace MailArchiver.Services.Providers.Graph
                 To = to,
                 Cc = cc,
                 Bcc = bcc,
+                FromDisplayName = string.IsNullOrEmpty(fromDisplayName) ? null : fromDisplayName,
+                ToDisplayNames = string.IsNullOrEmpty(toDisplayNames) ? null : toDisplayNames,
+                CcDisplayNames = string.IsNullOrEmpty(ccDisplayNames) ? null : ccDisplayNames,
+                BccDisplayNames = string.IsNullOrEmpty(bccDisplayNames) ? null : bccDisplayNames,
                 SentDate = convertedSentDate,
                 ReceivedDate = DateTime.UtcNow,
                 IsOutgoing = isOutgoingEmail || isOutgoing,

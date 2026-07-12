@@ -5,13 +5,13 @@
 }
 
 <div class="container">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1>@Localizer["EmlImportStatusTitle"]</h1>
-        <div>
-            <a asp-action="Index" class="btn btn-outline-secondary">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="h3 mb-0">@Localizer["EmlImportStatusTitle"]</h1>
+        <div class="d-flex gap-2">
+            <a asp-action="Index" class="btn btn-outline-secondary btn-sm">
                 <i class="bi bi-arrow-left"></i> @Localizer["BackToAccounts"]
             </a>
-            <a asp-controller="Emails" asp-action="Jobs" class="btn btn-outline-info">
+            <a asp-controller="Emails" asp-action="Jobs" class="btn btn-outline-info btn-sm">
                 <i class="bi bi-list"></i> @Localizer["AllJobs"]
             </a>
         </div>
@@ -19,7 +19,7 @@
 
     <div class="card">
         <div class="card-header bg-light">
-            <h5 class="mb-0">@Localizer["ImportJobInformation"]</h5>
+            <span class="h6 mb-0"><i class="bi bi-info-circle me-1"></i>@Localizer["ImportJobInformation"]</span>
         </div>
         <div class="card-body">
             <dl class="row">
@@ -292,6 +292,8 @@
 {
     @section Scripts {
         <script>
+            const statusTitle = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["EmlImportStatusTitle"].Value));
+            const fileName = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.FileName));
             // Auto-refresh page every 5 seconds for running jobs
             setTimeout(function() {
                 location.reload();
@@ -301,7 +303,7 @@
             let countdown = 5;
             const countdownInterval = setInterval(function() {
                 countdown--;
-                document.title = `(${countdown}s) ${'@Localizer["EmlImportStatusTitle"]'} - @Model.FileName`;
+                document.title = `(${countdown}s) ${statusTitle} - ${fileName}`;
                 if (countdown <= 0) {
                     clearInterval(countdownInterval);
                 }

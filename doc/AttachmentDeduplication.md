@@ -93,6 +93,7 @@ the [Setup Guide](Setup.md#-attachment-deduplication-settings).
 | `AttachmentDeduplication__DelayBetweenBatchesMs` | `0` | Optional pause (ms) between migration batches to throttle DB load on busy systems. |
 | `AttachmentDeduplication__StartupDelaySeconds` | `20` | Delay (s) after app start before the migration begins (lets the schema migration finish first). |
 | `AttachmentDeduplication__OrphanCleanupIntervalHours` | `12` | Interval (h) of the always-on orphan garbage collection. |
+| `AttachmentDeduplication__CommandTimeoutSeconds` | `300` | Database command timeout (in seconds) for the migration batch operations. Default is 5 minutes. If a batch still times out, the service automatically retries with half the batch size. |
 
 Example (`docker-compose.yml`):
 
@@ -102,6 +103,7 @@ environment:
   - AttachmentDeduplication__DelayBetweenBatchesMs=0
   - AttachmentDeduplication__StartupDelaySeconds=20
   - AttachmentDeduplication__OrphanCleanupIntervalHours=12
+  - AttachmentDeduplication__CommandTimeoutSeconds=300
 ```
 
 ## ❓ FAQ
@@ -119,6 +121,15 @@ next start; no data is lost or duplicated.
 The per-attachment hashing overhead is negligible. The one-time migration of
 existing data runs in the background and can be throttled with
 `DelayBetweenBatchesMs` if needed.
+
+**The migration keeps timing out and restarting at the same cursor. What can I do?**
+This can happen on very large databases (hundreds of thousands of emails) where a single batch of 200 attachments with SHA-256 hashing exceeds the default command timeout. The service now automatically retries with half the batch size when a timeout occurs. If you still see timeouts, you can manually lower the batch size and/or increase the command timeout:
+
+```yaml
+environment:
+  - AttachmentDeduplication__BatchSize=10
+  - AttachmentDeduplication__CommandTimeoutSeconds=600
+```
 
 **How much space will I save?**
 That depends entirely on how many duplicate attachments your archive contains.

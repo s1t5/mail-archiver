@@ -5,28 +5,32 @@
 }
 
 <div class="container">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1>@Localizer["ImportMBoxFileTitle"]</h1>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="h3 mb-0">@Localizer["ImportMBoxFileTitle"]</h1>
         <a asp-action="Index" class="btn btn-outline-secondary">
             <i class="bi bi-arrow-left"></i> @Localizer["BackToAccounts"]
         </a>
     </div>
 
-    <div class="alert alert-info mb-4">
-        <i class="bi bi-info-circle-fill me-2"></i>
-        <strong>@Localizer["MBoxImportInformation"]</strong>
-        <ul class="mb-0 mt-2">
-            <li>@Localizer["SupportedFormatsStandard"]</li>
-            <li>@string.Format(Localizer["MaximumFileSize"], Model.MaxFileSizeFormatted)</li>
-            <li>@Localizer["LargeFilesBackground"]</li>
-            <li>@Localizer["DuplicateEmailsSkipped"]</li>
-            <li>@Localizer["AllEmailsImported"]</li>
-        </ul>
+    <div class="msa-info-banner mb-3">
+        <div class="d-flex align-items-start">
+            <i class="bi bi-info-circle-fill me-2 mt-1"></i>
+            <div>
+                <strong>@Localizer["MBoxImportInformation"]</strong>
+                <ul class="mb-0 mt-1">
+                    <li>@Localizer["SupportedFormatsStandard"]</li>
+                    <li>@string.Format(Localizer["MaximumFileSize"], Model.MaxFileSizeFormatted)</li>
+                    <li>@Localizer["LargeFilesBackground"]</li>
+                    <li>@Localizer["DuplicateEmailsSkipped"]</li>
+                    <li>@Localizer["AllEmailsImported"]</li>
+                </ul>
+            </div>
+        </div>
     </div>
 
     <div class="card">
         <div class="card-header bg-light">
-            <h5 class="mb-0">@Localizer["UploadAndImportSettings"]</h5>
+            <span class="h6 mb-0"><i class="bi bi-file-earmark-text me-1"></i>@Localizer["UploadAndImportSettings"]</span>
         </div>
         <div class="card-body">
             <form asp-action="ImportMBox" method="post" enctype="multipart/form-data" id="mboxImportForm">

@@ -13,34 +13,35 @@
 }
 
 <div class="container-fluid">
-    <h1 class="h3 mb-4 text-gray-800">@Localizer["AccessLog"]</h1>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="h3 mb-0">@Localizer["AccessLog"]</h1>
+    </div>
 
-    <div class="card shadow mb-4">
-        <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-            <h6 class="m-0 font-weight-bold text-primary">@Localizer["AccessLogEntries"]</h6>
+    <div class="card mb-3">
+        <div class="card-header bg-light">
+            <span class="h6 mb-0"><i class="bi bi-funnel me-1"></i>@Localizer["Filter"]</span>
         </div>
         <div class="card-body">
-            <!-- Filter Form -->
-            <form method="get" class="mb-4">
-                <div class="row">
+            <form method="get" class="mb-0">
+                <div class="row g-2 mb-3">
                     <div class="col-md-2">
-                        <div class="form-group">
-                            <label for="fromDate">@Localizer["FromDate"]</label>
-                            <input type="date" class="form-control" id="fromDate" name="fromDate" value="@(fromDate?.ToString("yyyy-MM-dd"))" />
+                        <div class="mb-0">
+                            <label for="fromDate" class="form-label">@Localizer["FromDate"]</label>
+                            <input type="date" class="form-control form-control-sm" id="fromDate" name="fromDate" value="@(fromDate?.ToString("yyyy-MM-dd"))" />
                         </div>
                     </div>
                     <div class="col-md-2">
-                        <div class="form-group">
-                            <label for="toDate">@Localizer["ToDate"]</label>
-                            <input type="date" class="form-control" id="toDate" name="toDate" value="@(toDate?.ToString("yyyy-MM-dd"))" />
+                        <div class="mb-0">
+                            <label for="toDate" class="form-label">@Localizer["ToDate"]</label>
+                            <input type="date" class="form-control form-control-sm" id="toDate" name="toDate" value="@(toDate?.ToString("yyyy-MM-dd"))" />
                         </div>
                     </div>
                     @if (isAdmin)
                     {
                         <div class="col-md-2">
-                            <div class="form-group">
-                                <label for="username">@Localizer["Username"]</label>
-                                <select class="form-control" id="username" name="username">
+                            <div class="mb-0">
+                                <label for="username" class="form-label">@Localizer["Username"]</label>
+                                <select class="form-select form-select-sm" id="username" name="username">
                                     <option value="">@Localizer["All"]</option>
                                     @foreach (var user in ViewBag.AllUsers as List<string> ?? new List<string>())
                                     {
@@ -51,9 +52,9 @@
                         </div>
                     }
                     <div class="col-md-2">
-                        <div class="form-group">
-                            <label for="type">@Localizer["Type"]</label>
-                            <select class="form-control" id="type" name="type">
+                        <div class="mb-0">
+                            <label for="type" class="form-label">@Localizer["Type"]</label>
+                            <select class="form-select form-select-sm" id="type" name="type">
                                 <option value="">@Localizer["All"]</option>
                                 @foreach (var type in Enum.GetValues(typeof(AccessLogType)).Cast<AccessLogType>())
                                 {
@@ -62,16 +63,20 @@
                             </select>
                         </div>
                     </div>
-                    <div class="col-md-4 d-flex align-items-end">
-                        <div class="form-group w-100">
-                            <button type="submit" class="btn btn-primary form-control">@Localizer["Filter"]</button>
-                        </div>
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary btn-sm w-100">
+                            <i class="bi bi-search me-1"></i>@Localizer["Filter"]
+                        </button>
                     </div>
                 </div>
             </form>
+        </div>
+    </div>
 
-            <div class="table-responsive d-none d-lg-block">
-                <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+    <div class="card d-none d-lg-block">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped table-hover table-sm mb-0">
                     <thead class="table-dark">
                         <tr>
                             <th style="width: 15%;">@Localizer["Timestamp"]</th>
@@ -103,6 +108,7 @@
                                             AccessLogType.Account => "bg-dark",
                                             AccessLogType.Deletion => "bg-danger",
                                             AccessLogType.SyncCancel => "bg-warning",
+                                            AccessLogType.DeletionPolicy => "bg-info bg-opacity-50 text-dark",
                                             _ => "bg-secondary"
                                         };
                                     }
@@ -111,7 +117,6 @@
                                 <td>
                                     @if (log.EmailId.HasValue)
                                     {
-                                        @* For email entries, show "sender - subject" pattern *@
                                         @if (!string.IsNullOrEmpty(log.EmailSubject))
                                         {
                                             <a asp-controller="Emails" asp-action="Details" asp-route-id="@log.EmailId" target="_blank">
@@ -139,75 +144,12 @@
                     </tbody>
                 </table>
             </div>
-            
-            @* Mobile/Tablet Cards *@
-            <div class="d-lg-none">
-                @foreach (var log in Model)
-                {
-                    <div class="card mb-3">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-start mb-2">
-                                <h6 class="card-title mb-0">
-                                    <span class="utc-timestamp" data-utc-time="@log.Timestamp.ToString("yyyy-MM-ddTHH:mm:ss")">
-                                        @log.Timestamp.ToString("g")
-                                    </span>
-                                </h6>
-                                @{
-                                    var badgeClass = log.Type switch
-                                    {
-                                        AccessLogType.Login => "bg-success",
-                                        AccessLogType.Logout => "bg-secondary",
-                                        AccessLogType.Search => "bg-primary",
-                                        AccessLogType.Open => "bg-info",
-                                        AccessLogType.Download => "bg-warning",
-                                        AccessLogType.Restore => "bg-danger",
-                                        AccessLogType.Account => "bg-dark",
-                                        AccessLogType.Deletion => "bg-danger",
-                                        AccessLogType.SyncCancel => "bg-warning",
-                                        _ => "bg-secondary"
-                                    };
-                                }
-                                <span class="badge @badgeClass">@Localizer[log.Type.ToString()]</span>
-                            </div>
-                            <p class="card-text small text-muted mb-1">@Localizer["Username"]: @log.Username</p>
-                            <div class="card-text small">
-                                <strong>@Localizer["Info"]:</strong>
-                                @if (log.EmailId.HasValue)
-                                {
-                                    <div class="mt-1">
-                                        @if (!string.IsNullOrEmpty(log.EmailSubject))
-                                        {
-                                            <a asp-controller="Emails" asp-action="Details" asp-route-id="@log.EmailId" target="_blank">
-                                                @(log.EmailFrom ?? "") - @(log.EmailSubject)
-                                            </a>
-                                        }
-                                        else
-                                        {
-                                            <a asp-controller="Emails" asp-action="Details" asp-route-id="@log.EmailId" target="_blank">
-                                                @(log.EmailFrom ?? "") - @Localizer["Email"] #@log.EmailId
-                                            </a>
-                                        }
-                                    </div>
-                                }
-                                else if (!string.IsNullOrEmpty(log.SearchParameters))
-                                {
-                                    <div class="mt-1">@log.SearchParameters</div>
-                                }
-                                else
-                                {
-                                    <div class="mt-1 text-muted">@Localizer["NoInfo"]</div>
-                                }
-                            </div>
-                        </div>
-                    </div>
-                }
-            </div>
-
-            <!-- Pagination -->
-            @if (totalPages > 1)
-            {
+        </div>
+        @if (totalPages > 1)
+        {
+            <div class="card-footer">
                 <nav aria-label="Page navigation">
-                    <ul class="pagination pagination-sm justify-content-center">
+                    <ul class="pagination pagination-sm justify-content-center mb-0">
                         @if (currentPage > 1)
                         {
                             <li class="page-item">
@@ -230,13 +172,84 @@
                         }
                     </ul>
                 </nav>
-            }
-            else if (Model.Count == 0)
-            {
-                <div class="text-center">
-                    <p class="text-muted">@Localizer["NoAccessLogEntries"]</p>
+            </div>
+        }
+        else if (Model.Count == 0)
+        {
+            <div class="card-footer text-center dashboard-empty-state text-muted">
+                <i class="bi bi-clipboard empty-icon"></i>
+                <div class="empty-text">@Localizer["NoAccessLogEntries"]</div>
+            </div>
+        }
+    </div>
+
+    <div class="d-lg-none">
+        @foreach (var log in Model)
+        {
+            <div class="card mb-3">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <h6 class="card-title mb-0">
+                            <span class="utc-timestamp" data-utc-time="@log.Timestamp.ToString("yyyy-MM-ddTHH:mm:ss")">
+                                @log.Timestamp.ToString("g")
+                            </span>
+                        </h6>
+                        @{
+                            var badgeClass = log.Type switch
+                            {
+                                AccessLogType.Login => "bg-success",
+                                AccessLogType.Logout => "bg-secondary",
+                                AccessLogType.Search => "bg-primary",
+                                AccessLogType.Open => "bg-info",
+                                AccessLogType.Download => "bg-warning",
+                                AccessLogType.Restore => "bg-danger",
+                                AccessLogType.Account => "bg-dark",
+                                AccessLogType.Deletion => "bg-danger",
+                                AccessLogType.SyncCancel => "bg-warning",
+                                AccessLogType.DeletionPolicy => "bg-info bg-opacity-50 text-dark",
+                                _ => "bg-secondary"
+                            };
+                        }
+                        <span class="badge @badgeClass">@Localizer[log.Type.ToString()]</span>
+                    </div>
+                    <p class="card-text small text-muted mb-1">@Localizer["Username"]: @log.Username</p>
+                    <div class="card-text small">
+                        <strong>@Localizer["Info"]:</strong>
+                        @if (log.EmailId.HasValue)
+                        {
+                            <div class="mt-1">
+                                @if (!string.IsNullOrEmpty(log.EmailSubject))
+                                {
+                                    <a asp-controller="Emails" asp-action="Details" asp-route-id="@log.EmailId" target="_blank">
+                                        @(log.EmailFrom ?? "") - @(log.EmailSubject)
+                                    </a>
+                                }
+                                else
+                                {
+                                    <a asp-controller="Emails" asp-action="Details" asp-route-id="@log.EmailId" target="_blank">
+                                        @(log.EmailFrom ?? "") - @Localizer["Email"] #@log.EmailId
+                                    </a>
+                                }
+                            </div>
+                        }
+                        else if (!string.IsNullOrEmpty(log.SearchParameters))
+                        {
+                            <div class="mt-1">@log.SearchParameters</div>
+                        }
+                        else
+                        {
+                            <div class="mt-1 text-muted">@Localizer["NoInfo"]</div>
+                        }
+                    </div>
                 </div>
-            }
-        </div>
+            </div>
+        }
+        @if (!Model.Any())
+        {
+            <div class="text-center dashboard-empty-state text-muted">
+                <i class="bi bi-clipboard empty-icon"></i>
+                <div class="empty-text">@Localizer["NoAccessLogEntries"]</div>
+            </div>
+        }
     </div>
 </div>
