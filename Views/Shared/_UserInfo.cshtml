@@ -1,7 +1,9 @@
 ﻿@using MailArchiver.Services
+@using MailArchiver.Models
 @inject MailArchiver.Services.IAuthenticationService AuthService
 @inject IUserService UserService
 @inject Microsoft.Extensions.Localization.IStringLocalizer<MailArchiver.SharedResource> Localizer
+@inject Microsoft.Extensions.Options.IOptions<ApiOptions> ApiOptions
 @{ var currentCulture = System.Globalization.CultureInfo.CurrentUICulture.Name; }
 
 
@@ -43,11 +45,14 @@
                 <i class="bi bi-key me-2"></i>@Localizer["ChangePassword"]
             </a>
         </li>
-        <li>
-            <a asp-controller="ApiKeys" asp-action="Index" class="dropdown-item @(ViewContext.RouteData.Values["Controller"].ToString() == "ApiKeys" ? "active" : "")">
-                <i class="bi bi-key-fill me-2"></i>@Localizer["ApiKeys"]
-            </a>
-        </li>
+        @if (ApiOptions.Value.Enabled)
+        {
+            <li>
+                <a asp-controller="ApiKeys" asp-action="Index" class="dropdown-item @(ViewContext.RouteData.Values["Controller"].ToString() == "ApiKeys" ? "active" : "")">
+                    <i class="bi bi-key-fill me-2"></i>@Localizer["ApiKeys"]
+                </a>
+            </li>
+        }
         <li><hr class="dropdown-divider"></li>
 <li class="px-3 py-2">
             <form method="post" action="/Localization/SetLanguage">
