@@ -68,10 +68,6 @@ exports/
 docker-volumes/
 .docker/data/
 
-# Tests (not needed for production image)
-MailArchiver.Tests/
-tests/
-
 # Documentation & meta files (not needed in image)
 doc/
 Screenshots/

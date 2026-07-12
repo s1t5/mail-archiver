@@ -20,21 +20,14 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.Graph" Version="6.2.0" />
-    <PackageReference Include="Microsoft.Identity.Client" Version="4.85.1" />
+    <PackageReference Include="Microsoft.Identity.Client" Version="4.86.0" />
     <PackageReference Include="MimeKit" Version="4.17.0" />
-    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.2" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.3" />
     <PackageReference Include="Otp.NET" Version="1.4.1" />
     <PackageReference Include="QRCoder" Version="1.8.0" />
     <PackageReference Include="Azure.Identity" Version="1.21.0" />
     <PackageReference Include="HtmlSanitizer" Version="9.0.892" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.9" />
-    <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="9.1.16" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <!-- Exclude the separate test project from the web app's default compile glob -->
-    <Compile Remove="tests\**" />
-    <None Remove="tests\**" />
-    <EmbeddedResource Remove="tests\**" />
+    <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="10.2.3" />
   </ItemGroup>
 </Project>
