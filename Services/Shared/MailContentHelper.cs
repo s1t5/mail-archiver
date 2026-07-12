@@ -1,5 +1,6 @@
 using System.Text;
 using System.Text.RegularExpressions;
+using MimeKit;
 
 namespace MailArchiver.Services.Shared
 {
@@ -155,6 +156,64 @@ namespace MailArchiver.Services.Shared
             }
 
             return truncatedContent + textTruncationNotice;
+        }
+
+        /// <summary>
+        /// Splits whitespace-delimited tokens longer than <paramref name="maxTokenLength"/> by inserting
+        /// a space every <paramref name="maxTokenLength"/> characters. Prevents PostgreSQL tsvector
+        /// "word is too long to be indexed" warnings and avoids per-row re-tokenization cost for
+        /// inline Base64/Hex/minified blobs. Prose is never affected (ordinary words are far shorter).
+        /// Returns null when <paramref name="text"/> is null, and empty string for empty input.
+        /// </summary>
+        public static string? SanitizeLongTokens(string? text, int maxTokenLength = 2047)
+        {
+            if (text is null) return null;
+            if (text.Length == 0) return string.Empty;
+            if (maxTokenLength <= 0) return text;
+
+            int longestToken = 0;
+            int i = 0;
+            while (i < text.Length)
+            {
+                int start = i;
+                while (i < text.Length && !char.IsWhiteSpace(text[i])) i++;
+                int len = i - start;
+                if (len > longestToken) longestToken = len;
+                while (i < text.Length && char.IsWhiteSpace(text[i])) i++;
+            }
+
+            if (longestToken <= maxTokenLength) return text;
+
+            var sb = new StringBuilder(text.Length + 32);
+            i = 0;
+            while (i < text.Length)
+            {
+                int start = i;
+                while (i < text.Length && !char.IsWhiteSpace(text[i])) i++;
+                int len = i - start;
+                if (len <= maxTokenLength)
+                {
+                    sb.Append(text, start, len);
+                }
+                else
+                {
+                    int written = 0;
+                    while (written < len)
+                    {
+                        int chunk = Math.Min(maxTokenLength, len - written);
+                        sb.Append(text, start + written, chunk);
+                        written += chunk;
+                        if (written < len) sb.Append(' ');
+                    }
+                }
+                while (i < text.Length && char.IsWhiteSpace(text[i]))
+                {
+                    sb.Append(text[i]);
+                    i++;
+                }
+            }
+
+            return sb.ToString();
         }
 
         private const string HtmlTruncationNotice = @"
@@ -374,6 +433,30 @@ namespace MailArchiver.Services.Shared
             }
 
             return resultHtml;
+        }
+
+        /// <summary>
+        /// Applies display names from a comma-separated string to a parsed InternetAddressList.
+        /// If the number of parsed names does not match the number of addresses, no names are
+        /// applied (safe fallback to preserve the bare addresses without false assignments).
+        /// </summary>
+        public static void ApplyDisplayNames(InternetAddressList? addresses, string? displayNamesCsv)
+        {
+            if (string.IsNullOrEmpty(displayNamesCsv) || addresses == null || addresses.Count == 0)
+                return;
+
+            var names = displayNamesCsv.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                                       .Select(s => s.Trim())
+                                       .ToArray();
+
+            if (names.Length != addresses.Count)
+                return;
+
+            for (int i = 0; i < addresses.Count; i++)
+            {
+                if (addresses[i] is MailboxAddress mb && !string.IsNullOrEmpty(names[i]))
+                    mb.Name = names[i];
+            }
         }
 
         /// <summary>

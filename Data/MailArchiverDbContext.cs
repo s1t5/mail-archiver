@@ -14,6 +14,8 @@ namespace MailArchiver.Data
         public DbSet<AccessLog> AccessLogs { get; set; }
         public DbSet<BandwidthUsage> BandwidthUsages { get; set; }
         public DbSet<SyncCheckpoint> SyncCheckpoints { get; set; }
+        public DbSet<AccountStorageCache> AccountStorageCaches { get; set; }
+        public DbSet<AccountStorageBackfillState> AccountStorageBackfillStates { get; set; }
         public DbSet<ApiKey> ApiKeys { get; set; }
 
         public MailArchiverDbContext(DbContextOptions<MailArchiverDbContext> options)
@@ -48,6 +50,26 @@ namespace MailArchiver.Data
             modelBuilder.Entity<ArchivedEmail>()
                 .Property(e => e.Bcc)
                 .HasColumnType("text");
+
+            modelBuilder.Entity<ArchivedEmail>()
+                .Property(e => e.FromDisplayName)
+                .HasColumnType("text")
+                .IsRequired(false);
+
+            modelBuilder.Entity<ArchivedEmail>()
+                .Property(e => e.ToDisplayNames)
+                .HasColumnType("text")
+                .IsRequired(false);
+
+            modelBuilder.Entity<ArchivedEmail>()
+                .Property(e => e.CcDisplayNames)
+                .HasColumnType("text")
+                .IsRequired(false);
+
+            modelBuilder.Entity<ArchivedEmail>()
+                .Property(e => e.BccDisplayNames)
+                .HasColumnType("text")
+                .IsRequired(false);
 
             modelBuilder.Entity<ArchivedEmail>()
                 .Property(e => e.Body)
@@ -334,6 +356,61 @@ namespace MailArchiver.Data
                 .WithMany()
                 .HasForeignKey(s => s.MailAccountId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            // AccountStorageCache entity configuration
+            modelBuilder.Entity<AccountStorageCache>()
+                .HasKey(c => c.MailAccountId);
+
+            modelBuilder.Entity<AccountStorageCache>()
+                .Property(c => c.MailBytes)
+                .HasColumnType("bigint")
+                .HasDefaultValue(0);
+
+            modelBuilder.Entity<AccountStorageCache>()
+                .Property(c => c.AttachmentBytes)
+                .HasColumnType("bigint")
+                .HasDefaultValue(0);
+
+            modelBuilder.Entity<AccountStorageCache>()
+                .Property(c => c.TotalBytes)
+                .HasColumnType("bigint")
+                .HasDefaultValue(0);
+
+            modelBuilder.Entity<AccountStorageCache>()
+                .Property(c => c.UpdatedAt)
+                .HasColumnType("timestamp with time zone");
+
+            modelBuilder.Entity<AccountStorageCache>()
+                .HasOne(c => c.MailAccount)
+                .WithOne()
+                .HasForeignKey<AccountStorageCache>(c => c.MailAccountId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<AccountStorageCache>()
+                .ToTable("AccountStorageCache", "mail_archiver");
+
+            // AccountStorageBackfillState entity configuration
+            modelBuilder.Entity<AccountStorageBackfillState>()
+                .HasKey(s => s.MailAccountId);
+
+            modelBuilder.Entity<AccountStorageBackfillState>()
+                .Property(s => s.Status)
+                .HasColumnType("varchar(10)")
+                .HasDefaultValue("Pending");
+
+            modelBuilder.Entity<AccountStorageBackfillState>()
+                .Property(s => s.CompletedAt)
+                .HasColumnType("timestamp with time zone")
+                .IsRequired(false);
+
+            modelBuilder.Entity<AccountStorageBackfillState>()
+                .HasOne(s => s.MailAccount)
+                .WithOne()
+                .HasForeignKey<AccountStorageBackfillState>(s => s.MailAccountId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<AccountStorageBackfillState>()
+                .ToTable("AccountStorageBackfillState", "mail_archiver");
 
             // ApiKey entity configuration (read-only REST API authentication)
             modelBuilder.Entity<ApiKey>()

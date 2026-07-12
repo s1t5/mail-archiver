@@ -113,6 +113,10 @@ builder.Services.Configure<BatchRestoreOptions>(
 builder.Services.Configure<BatchOperationOptions>(
     builder.Configuration.GetSection(BatchOperationOptions.BatchOperation));
 
+// Add Tenant Management Options
+builder.Services.Configure<TenantManagementOptions>(
+    builder.Configuration.GetSection(TenantManagementOptions.TenantManagement));
+
 // Add Mail Sync Options
 builder.Services.Configure<MailSyncOptions>(
     builder.Configuration.GetSection(MailSyncOptions.MailSync));
@@ -145,6 +149,10 @@ builder.Services.Configure<BandwidthTrackingOptions>(
 builder.Services.Configure<ReleaseNotesOptions>(
     builder.Configuration.GetSection(ReleaseNotesOptions.ReleaseNotes));
 
+// Add Deletion Policy Options
+builder.Services.Configure<DeletionPolicyOptions>(
+    builder.Configuration.GetSection(DeletionPolicyOptions.DeletionPolicy));
+
 // ===== Read-only REST API (v1) — kept in one contiguous block to minimize
 // upstream merge churn. Disabled by default via Api:Enabled. =====
 builder.Services.Configure<MailArchiver.Models.ApiOptions>(
@@ -167,6 +175,14 @@ builder.Services.AddScoped<MailArchiver.Utilities.DateTimeHelper>();
 
 // Add HTTP Client factory (used by VersionUpdateService for GitHub API calls)
 builder.Services.AddHttpClient("GitHubReleases");
+builder.Services.AddHttpClient("MsaOAuth");
+
+// Register CSV import options for bulk IMAP account import
+builder.Services.Configure<CsvImportOptions>(builder.Configuration.GetSection(CsvImportOptions.CsvImport));
+
+// Register MSA OAuth options and service for personal Microsoft accounts
+builder.Services.Configure<MsaOAuthOptions>(builder.Configuration.GetSection(MsaOAuthOptions.SectionName));
+builder.Services.AddScoped<MailArchiver.Services.IMsaOAuthService, MailArchiver.Services.MsaOAuthService>();
 
 // Add Session support
 builder.Services.AddDistributedMemoryCache();
@@ -250,7 +266,7 @@ builder.Services.AddRateLimiter(options =>
                 QueueLimit = 0
             });
     });
-    
+
     // Read-only REST API rate limiting: fixed window per API key (prefix),
     // falling back to client IP. Budget from Api:RateLimitPerMinute (default 120).
     var apiOptionsForRateLimit = builder.Configuration.GetSection(MailArchiver.Models.ApiOptions.Api)
@@ -405,6 +421,10 @@ builder.Services.AddSingleton<EmailDeletionService>();
 builder.Services.AddSingleton<IEmailDeletionService>(provider => provider.GetRequiredService<EmailDeletionService>());
 builder.Services.AddHostedService<EmailDeletionService>(provider => provider.GetRequiredService<EmailDeletionService>());
 
+// Register DeletionPolicyApplicationService as singleton and hosted service - MUST be the same instance
+builder.Services.AddSingleton<DeletionPolicyApplicationService>();
+builder.Services.AddHostedService<DeletionPolicyApplicationService>(provider => provider.GetRequiredService<DeletionPolicyApplicationService>());
+
 builder.Services.AddHostedService<MailSyncBackgroundService>();
 
 // Register DatabaseMaintenanceService as singleton and hosted service - MUST be the same instance
@@ -414,6 +434,11 @@ builder.Services.AddHostedService<DatabaseMaintenanceService>(provider => provid
 
 // Register the resumable attachment deduplication background migration (existing data)
 builder.Services.AddHostedService<AttachmentDeduplicationBackgroundService>();
+
+// Register AccountStorageService (scoped) and the autark refresh background service
+// (backfill on startup + daily full refresh, independent of DatabaseMaintenance:Enabled)
+builder.Services.AddScoped<IAccountStorageService, AccountStorageService>();
+builder.Services.AddHostedService<AccountStorageRefreshService>();
 
 // Register AccessLogService
 builder.Services.AddScoped<IAccessLogService, AccessLogService>();
@@ -672,11 +697,67 @@ using (var scope = app.Services.CreateScope())
 
         var initLogger = services.GetRequiredService<ILogger<Program>>();
         initLogger.LogInformation("Datenbank wurde initialisiert");
+
+        // Apply deletion policy: lock/unlock all archived emails based on configuration
+        var deletionPolicy = services.GetRequiredService<IOptions<DeletionPolicyOptions>>().Value;
+        await ApplyDeletionPolicyAsync(context, deletionPolicy, initLogger);
     }
     catch (Exception ex)
     {
         var logger = services.GetRequiredService<ILogger<Program>>();
         logger.LogError(ex, "Ein Fehler ist bei der Datenbankinitialisierung aufgetreten");
+    }
+}
+
+/// <summary>
+/// Applies the deletion policy on startup: adjusts the column default so that
+/// newly imported emails follow the configured policy, and logs the resulting
+/// state to the AccessLogs table (visible on the Logs page) for auditability.
+/// The potentially expensive row-by-row UPDATE of existing archived emails is
+/// performed asynchronously by DeletionPolicyApplicationService so that the
+/// startup is not blocked on large archives.
+/// </summary>
+static async Task ApplyDeletionPolicyAsync(MailArchiverDbContext context, DeletionPolicyOptions policy, ILogger<Program> logger)
+{
+    var deletionAllowed = policy.DeletionAllowed;
+    var lockValue = !deletionAllowed;
+    // Inline boolean literal (Npgsql does not support parameters in DDL statements)
+    var lockLiteral = lockValue ? "TRUE" : "FALSE";
+
+    try
+    {
+        // Adjust the column default so that newly imported emails follow the same policy.
+        // DDL statements cannot use Npgsql parameters, so the boolean is inlined.
+        await context.Database.ExecuteSqlRawAsync(
+            $@"ALTER TABLE mail_archiver.""ArchivedEmails"" ALTER COLUMN ""IsLocked"" SET DEFAULT {lockLiteral};");
+
+        logger.LogInformation("Deletion policy default applied: DeletionAllowed={DeletionAllowed}, column default IsLocked={IsLocked}. Existing rows will be updated by the background service.",
+            deletionAllowed, lockValue);
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "Failed to apply deletion policy column default");
+    }
+
+    // Log the policy state to the AccessLogs table for auditability on the Logs page
+    try
+    {
+        var logEntry = new AccessLog
+        {
+            Username = "SYSTEM",
+            Type = AccessLogType.DeletionPolicy,
+            Timestamp = DateTime.UtcNow,
+            SearchParameters = deletionAllowed
+                ? "Email deletion is enabled by configuration (DeletionPolicy:DeletionAllowed=true). Archived emails are unlocked."
+                : "Email deletion is disabled by configuration (DeletionPolicy:DeletionAllowed=false). Archived emails are locked (compliance)."
+        };
+
+        context.AccessLogs.Add(logEntry);
+        await context.SaveChangesAsync();
+    }
+    catch (Exception ex)
+    {
+        logger.LogWarning(ex, "Failed to log deletion policy state to AccessLogs");
     }
 }
 
@@ -755,8 +836,3 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.Run();
-
-// Exposed so the integration test project's WebApplicationFactory<Program> can
-// reference the application's composition root (required with top-level
-// statements). Kept at the end of the file to minimize upstream merge churn.
-public partial class Program { }

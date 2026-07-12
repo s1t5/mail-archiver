@@ -1,0 +1,75 @@
+@using MailArchiver.Models.ViewModels
+@inject Microsoft.Extensions.Localization.IStringLocalizer<MailArchiver.SharedResource> Localizer
+@model MailAccountViewModel
+@{
+    var isAdmin = (bool)ViewBag.IsAdmin;
+    var canExport = (bool)ViewBag.CanExport;
+    var kebabId = "actionsKebab_" + Model.Id;
+}
+
+<div class="d-flex justify-content-center align-items-center gap-1">
+    <a asp-action="Details" asp-route-id="@Model.Id"
+       class="btn btn-info btn-sm d-flex align-items-center justify-content-center"
+       aria-label="@Localizer["Details"]" title="@Localizer["Details"]">
+        <i class="bi bi-eye" aria-hidden="true"></i>
+        <span class="ms-1 d-lg-none">@Localizer["Details"]</span>
+    </a>
+
+    <a asp-action="Edit" asp-route-id="@Model.Id"
+       class="btn btn-warning btn-sm d-flex align-items-center justify-content-center"
+       aria-label="@Localizer["Edit"]" title="@Localizer["Edit"]">
+        <i class="bi bi-pencil" aria-hidden="true"></i>
+        <span class="ms-1 d-lg-none">@Localizer["Edit"]</span>
+    </a>
+
+    @if (Model.Provider != ProviderType.IMPORT)
+    {
+        <form asp-action="Sync" asp-route-id="@Model.Id" method="post" class="d-inline">
+            @Html.AntiForgeryToken()
+            <button type="submit"
+                    class="btn btn-success btn-sm d-flex align-items-center justify-content-center"
+                    aria-label="@Localizer["Sync"]"
+                    title="@(Model.IsEnabled ? @Localizer["Sync"] : @Localizer["ManualSyncTooltip"])">
+                <i class="bi bi-arrow-clockwise" aria-hidden="true"></i>
+                <span class="ms-1 d-lg-none">@Localizer["Sync"]</span>
+            </button>
+        </form>
+    }
+
+    <div class="dropdown">
+        <button type="button" class="btn btn-outline-secondary btn-sm d-flex align-items-center"
+                id="@kebabId" data-bs-toggle="dropdown" aria-expanded="false"
+                data-bs-boundary="viewport"
+                aria-label="@Localizer["MoreActions"]" title="@Localizer["MoreActions"]">
+            <i class="bi bi-three-dots-vertical" aria-hidden="true"></i>
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="@kebabId">
+            @if (canExport)
+            {
+                <li>
+                    <a class="dropdown-item" asp-action="Export" asp-route-id="@Model.Id">
+                        <i class="bi bi-download me-2" aria-hidden="true"></i>@Localizer["Export"]
+                    </a>
+                </li>
+            }
+
+            @if (isAdmin && Model.Provider == ProviderType.M365)
+            {
+                <li>
+                    <a class="dropdown-item" asp-action="TenantManagement" asp-route-id="@Model.Id">
+                        <i class="bi bi-building me-2" aria-hidden="true"></i>@Localizer["TenantManagement"]
+                    </a>
+                </li>
+            }
+
+            <li><hr class="dropdown-divider"></li>
+
+            <li>
+                <button type="button" class="dropdown-item text-danger"
+                        data-bs-toggle="modal" data-bs-target="#deleteAccountModal-@Model.Id">
+                    <i class="bi bi-trash me-2" aria-hidden="true"></i>@Localizer["Delete"]
+                </button>
+            </li>
+        </ul>
+    </div>
+</div>

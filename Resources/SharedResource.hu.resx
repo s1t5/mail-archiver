@@ -189,9 +189,6 @@
   <data name="NoEmailsFoundText" xml:space="preserve">
     <value>A megadott keresési feltételeknek nem felel meg egyetlen e-mail sem.</value>
   </data>
-  <data name="ExportSearchResults" xml:space="preserve">
-    <value>Keresési Eredmények Exportálása</value>
-  </data>
   <data name="ExportFormat" xml:space="preserve">
     <value>Exportálási Formátum</value>
   </data>
@@ -515,6 +512,27 @@
   </data>
   <data name="EmailDeletion" xml:space="preserve">
     <value>E-mail Törlés</value>
+  </data>
+  <data name="SyncScheduling" xml:space="preserve">
+    <value>Szinkronizálás ütemezése</value>
+  </data>
+  <data name="SyncIntervalMinutes" xml:space="preserve">
+    <value>Szinkronizálási időköz (perc)</value>
+  </data>
+  <data name="SyncIntervalMinutesPlaceholder" xml:space="preserve">
+    <value>Alapértelmezett a beállításokból</value>
+  </data>
+  <data name="SyncIntervalMinutesInfo" xml:space="preserve">
+    <value>Felülírja a globális szinkronizálási időközt ehhez a fiókhoz. Hagyja üresen az appsettings.json alapértelmezett értékének használatához.</value>
+  </data>
+  <data name="FullSyncIntervalHours" xml:space="preserve">
+    <value>Teljes szinkronizálás időköze (óra)</value>
+  </data>
+  <data name="FullSyncIntervalHoursPlaceholder" xml:space="preserve">
+    <value>Nincs fiókspecifikus teljes szinkronizálás</value>
+  </data>
+  <data name="FullSyncIntervalHoursInfo" xml:space="preserve">
+    <value>Ezen az ütemterven teljes újraszinkronizálást hajt végre. Hagyja üresen az appsettings.json globális alapértelmezett értékének használatához (ha be van állítva) vagy az automatikus teljes szinkronizálás kikapcsolásához. A manuális újraszinkronizálás minden esetben elérhető marad.</value>
   </data>
   <!-- Delete Account Dialog -->
   <data name="DeleteEmailAccountTitle" xml:space="preserve">
@@ -2327,6 +2345,18 @@
   <data name="SignInWithOAuth" xml:space="preserve">
     <value>Bejelentkezés OAuth segítségével</value>
   </data>
+  <data name="SignInWithOAuthProvider" xml:space="preserve">
+    <value>Bejelentkezés ezzel: {0}</value>
+  </data>
+  <data name="RedirectingToProvider" xml:space="preserve">
+    <value>Átirányítás a következőre: {0}...</value>
+  </data>
+  <data name="PleaseWaitRedirectingToProvider" xml:space="preserve">
+    <value>Kérjük, várjon, amíg átirányítjuk a következőre: {0}...</value>
+  </data>
+  <data name="Loading" xml:space="preserve">
+    <value>Betöltés...</value>
+  </data>
   <data name="CurrentSyncTime" xml:space="preserve">
     <value>Jelenlegi szinkronidő</value>
   </data>
@@ -2465,6 +2495,12 @@
   <data name="RateLimited" xml:space="preserve">
     <value>Sávszélső határ</value>
   </data>
+  <data name="SyncProgressTooltip" xml:space="preserve">
+    <value>A haladás a befejezett mappák alapján mérve. Egy nagy mappa (pl. INBOX) 0%-on tartja a sávot, amíg be nem fejeződik.</value>
+  </data>
+  <data name="SyncStatusTooltip" xml:space="preserve">
+    <value>Állapotkódok:&lt;br&gt;Running = szinkronizálás folyamatban&lt;br&gt;Completed = sikeresen befejeződött&lt;br&gt;Failed = hibával befejeződött&lt;br&gt;Cancelled = a felhasználó leállította&lt;br&gt;Rate Limited = sávszélességi kvóta miatt szünetel</value>
+  </data>
   <data name="SyncJobRateLimited" xml:space="preserve">
     <value>Szinkronizáció felfüggesztve a sávszélességi korláton miatt. Automatikusan folytatódik.</value>
   </data>
@@ -2492,6 +2528,12 @@
   <data name="SyncCancel" xml:space="preserve">
     <value>Szinkronizálás megszakítva</value>
   </data>
+  <data name="DeletionPolicy" xml:space="preserve">
+    <value>Törlési házirend</value>
+  </data>
+  <data name="DeletionDisabledMessage" xml:space="preserve">
+    <value>Az e-mailek törlése a konfiguráció által letiltva.</value>
+  </data>
   <data name="ConfirmBatchDelete" xml:space="preserve">
     <value>Kötegyes törlés megerősítése</value>
   </data>
@@ -2513,6 +2555,514 @@
   <data name="GotIt" xml:space="preserve">
     <value>Értettem!</value>
   </data>
+
+  <!-- MSA (personal Microsoft account) OAuth2 device code flow -->
+  <data name="MsaAuthorizeTitle" xml:space="preserve">
+    <value>Microsoft-fiók engedélyezése</value>
+  </data>
+  <data name="MsaAccountLabel" xml:space="preserve">
+    <value>Fiók:</value>
+  </data>
+  <data name="MsaStep1OpenBrowser" xml:space="preserve">
+    <value>1. Nyisson meg egy böngészőben (vagy okostelefonon stb.):</value>
+  </data>
+  <data name="MsaStep2EnterCode" xml:space="preserve">
+    <value>2. Írja be ezt a kódot:</value>
+  </data>
+  <data name="MsaCopyCode" xml:space="preserve">
+    <value>Másolás</value>
+  </data>
+  <data name="MsaCopyCodeTooltip" xml:space="preserve">
+    <value>Kód másolása</value>
+  </data>
+  <data name="MsaCodeValidFor" xml:space="preserve">
+    <value>A kód {0} percig érvényes.</value>
+  </data>
+  <data name="MsaWaitingForAuthorization" xml:space="preserve">
+    <value>Engedélyezésre várakozás …</value>
+  </data>
+  <data name="MsaAuthorizationSuccessful" xml:space="preserve">
+    <value>Engedélyezés sikeres! Átirányítás …</value>
+  </data>
+  <data name="MsaErrorPrefix" xml:space="preserve">
+    <value>Hiba:</value>
+  </data>
+  <data name="MsaRetry" xml:space="preserve">
+    <value>Újrapróbálkozás</value>
+  </data>
+  <data name="MsaProviderLabel" xml:space="preserve">
+    <value>Microsoft Személyes</value>
+  </data>
+  <data name="MsaSettingsHeading" xml:space="preserve">
+    <value>Személyes Microsoft-fiók (Outlook.com / M365 Family)</value>
+  </data>
+  <data name="MsaNoAppRegistrationNeeded" xml:space="preserve">
+    <value>Nincs szükség alkalmazás-regisztrációra.</value>
+  </data>
+  <data name="MsaDefaultClientInfoCreate" xml:space="preserve">
+    <value>A Mail-Archiver előre konfigurált alkalmazás-regisztrációt használ. Adja meg az e-mail címet, mentse, majd kattintson a(z) {0} gombra.</value>
+  </data>
+  <data name="MsaAuthorize" xml:space="preserve">
+    <value>Engedélyezés</value>
+  </data>
+  <data name="MsaAppRegistrationSetup" xml:space="preserve">
+    <value>Azure-alkalmazásregisztráció beállítása (egyszer, ~2 perc)</value>
+  </data>
+  <data name="MsaCreateAppRegistration" xml:space="preserve">
+    <value>Alkalmazás-regisztráció létrehozása</value>
+  </data>
+  <data name="MsaSignInWithMicrosoftAccount" xml:space="preserve">
+    <value>(jelentkezzen be Microsoft-fiókjával)</value>
+  </data>
+  <data name="MsaAppRegStepName" xml:space="preserve">
+    <value>Válasszon tetszőleges nevet (pl. mail-archiver)</value>
+  </data>
+  <data name="MsaAppRegStepAccountTypes" xml:space="preserve">
+    <value>A Támogatott fióktípusoknál válassza: Fiókok bármely szervezeti címtárban és személyes Microsoft-fiókok</value>
+  </data>
+  <data name="MsaAppRegStepRedirect" xml:space="preserve">
+    <value>Hagyja az Átirányítási URI-t üresen → kattintson a Regisztrálás gombra</value>
+  </data>
+  <data name="MsaAppRegStepClientId" xml:space="preserve">
+    <value>Adja meg lent a megjelenített Alkalmazás (ügyfél) azonosítót</value>
+  </data>
+  <data name="MsaAppRegStepAuth" xml:space="preserve">
+    <value>Kattintson a Hitelesítésre az alkalmazásban → engedélyezze a Nyilvános ügyfélflow-ok engedélyezése lehetőséget → Mentés</value>
+  </data>
+  <data name="MsaNoSecretNeededCreate" xml:space="preserve">
+    <value>Nincs szükség titkos kódra és átirányítási URI-ra. Mentés után kattintson az Engedélyezés gombra.</value>
+  </data>
+  <data name="MsaClientIdPlaceholder" xml:space="preserve">
+    <value>Azure Alkalmazás (ügyfél) azonosító</value>
+  </data>
+  <data name="MsaClientSecretOptional" xml:space="preserve">
+    <value>(opcionális)</value>
+  </data>
+  <data name="MsaClientSecretPlaceholder" xml:space="preserve">
+    <value>Nem szükséges nyilvános ügyfélalkalmazásokhoz</value>
+  </data>
+  <data name="MsaClientSecretHint" xml:space="preserve">
+    <value>Csak bizalmas ügyfélalkalmazásokhoz szükséges. Hagyja üresen nyilvános ügyfél használatakor.</value>
+  </data>
+  <data name="MsaAuthorized" xml:space="preserve">
+    <value>Engedélyezve. Microsoft-fiók csatlakoztatva, a token automatikusan megújul.</value>
+  </data>
+  <data name="MsaReAuthorize" xml:space="preserve">
+    <value>Újra engedélyezés</value>
+  </data>
+  <data name="MsaNotYetAuthorized" xml:space="preserve">
+    <value>Még nincs engedélyezve.</value>
+  </data>
+  <data name="MsaSaveThenAuthorize" xml:space="preserve">
+    <value>Mentse, majd kattintson a(z) {0} gombra.</value>
+  </data>
+  <data name="MsaEnterClientIdThenAuthorize" xml:space="preserve">
+    <value>Adja meg az ügyfél-azonosítót, mentse, majd kattintson a(z) {0} gombra.</value>
+  </data>
+  <data name="MsaDefaultClientInfoEdit" xml:space="preserve">
+    <value>A Mail-Archiver előre konfigurált alkalmazás-regisztrációt használ — saját regisztráció nem szükséges. Csak egyéni ügyfél-azonosító használatához töltse ki.</value>
+  </data>
+  <data name="MsaNoSecretNeededShort" xml:space="preserve">
+    <value>Nincs szükség titkos kódra és átirányítási URI-ra.</value>
+  </data>
+  <data name="MsaClientIdOptionalHint" xml:space="preserve">
+    <value>Opcionális — hagyja üresen az alapértelmezett alkalmazás-regisztráció használatához.</value>
+  </data>
+  <data name="MsaClientIdKeepExisting" xml:space="preserve">
+    <value>Hagyja üresen a meglévő érték megtartásához.</value>
+  </data>
+  <data name="MsaClientSecretPlaceholderEdit" xml:space="preserve">
+    <value>Nem szükséges a Device Code Flow-hoz</value>
+  </data>
+  <data name="MsaAuthorizeWithMicrosoft" xml:space="preserve">
+    <value>Engedélyezés Microsoft-fiókkal</value>
+  </data>
+  <data name="MsaReAuthorizeWithMicrosoft" xml:space="preserve">
+    <value>Újra engedélyezés Microsoft-fiókkal</value>
+  </data>
+  <data name="MsaClientIdRequired" xml:space="preserve">
+    <value>Ügyfél-azonosító szükséges az MS Személyes fiókokhoz, ha nincs alapértelmezett ügyfél-azonosító konfigurálva.</value>
+  </data>
+  <data name="MsaNotAuthorizedSync" xml:space="preserve">
+    <value>Ez a Microsoft-fiók még nincs engedélyezve. Kattintson először az &quot;Engedélyezés Microsoft-fiókkal&quot; gombra a fiók szerkesztő oldalán.</value>
+  </data>
+  <data name="MsaClientIdNotConfigured" xml:space="preserve">
+    <value>Az ügyfél-azonosító nincs konfigurálva. Először szerkessze a fiókot.</value>
+  </data>
+  <data name="MsaAuthorizationFailed" xml:space="preserve">
+    <value>Az engedélyezés elindítása sikertelen: {0}</value>
+  </data>
+  <data name="MsaAccessDenied" xml:space="preserve">
+    <value>Hozzáférés megtagadva.</value>
+  </data>
+  <data name="MsaSessionExpired" xml:space="preserve">
+    <value>Munkamenet lejárt. Indítsa újra az engedélyezést.</value>
+  </data>
+  <data name="MsaAccountNotFound" xml:space="preserve">
+    <value>Fiók nem található.</value>
+  </data>
+  <data name="MsaAuthorizationCancelled" xml:space="preserve">
+    <value>Fióklétrehozás megszakítva.</value>
+  </data>
+  <data name="UseTenantImport" xml:space="preserve">
+    <value>Bérlőimport használata</value>
+  </data>
+  <data name="UseTenantImportHelp" xml:space="preserve">
+    <value>Betölti a bérlő postafiókjait, és létrehozza a fiókokat a következő elnevezési sémával: megadott név - &lt;postafiók@pelda.com&gt;.</value>
+  </data>
+  <data name="SkipDisabledMailboxes" xml:space="preserve">
+    <value>letiltott postafiók kihagyása</value>
+  </data>
+  <data name="ImportAllListedMailboxes" xml:space="preserve">
+    <value>Összes felsorolt postafiók importálása</value>
+  </data>
+  <data name="ImportAllListedMailboxesHelp" xml:space="preserve">
+    <value>letiltva csak a lent kiválasztott postafiókok kerülnek importálásra.</value>
+  </data>
+  <data name="LoadMailboxes" xml:space="preserve">
+    <value>Postafiókok betöltése</value>
+  </data>
+  <data name="TenantMailboxes" xml:space="preserve">
+    <value>Bérlő postafiók</value>
+  </data>
+  <data name="ClearSelection" xml:space="preserve">
+    <value>Kijelölés törlése</value>
+  </data>
+  <data name="NoMailboxesFound" xml:space="preserve">
+    <value>Nem találhatók postafiókok.</value>
+  </data>
+  <data name="DisabledLowercase" xml:space="preserve">
+    <value>letiltva</value>
+  </data>
+  <data name="AlreadyExistsLowercase" xml:space="preserve">
+    <value>már létezik</value>
+  </data>
+  <data name="LoadingMailboxes" xml:space="preserve">
+    <value>Postafiókok betöltése...</value>
+  </data>
+  <data name="MailboxesCouldNotBeLoaded" xml:space="preserve">
+    <value>A postafiókok nem tölthetők be.</value>
+  </data>
+  <data name="MailboxesFound" xml:space="preserve">
+    <value>{0} postafiók(ok) található.</value>
+  </data>
+  <data name="M365MailboxDefaultName" xml:space="preserve">
+    <value>M365 Postafiók</value>
+  </data>
+  <data name="NoEnabledM365UsersFound" xml:space="preserve">
+    <value>Ebben a bérlőben nem találhatók e-mail címmel vagy felhasználói főnévvel rendelkező, engedélyezett M365 felhasználók.</value>
+  </data>
+  <data name="SelectAtLeastOneMailboxOrImportAll" xml:space="preserve">
+    <value>Válasszon ki legalább egy postafiókot, vagy engedélyezze az összes felsorolt postafiók importálását.</value>
+  </data>
+  <data name="AllSelectedM365TenantMailboxesAlreadyExist" xml:space="preserve">
+    <value>A kiválasztott {0} M365 bérlő postafiók már létezik.</value>
+  </data>
+  <data name="ImportedM365TenantAccounts" xml:space="preserve">
+    <value>{0} M365 bérlő e-mail fiók importálva. {1} meglévő fiók kihagyva.</value>
+  </data>
+  <data name="M365TenantCredentialsRequired" xml:space="preserve">
+    <value>A bérlő postafiókok felsorolásához szükséges az ügyfélazonosító, az ügyféltitok és a bérlőazonosító.</value>
+  </data>
+  <data name="M365TenantMailboxesCouldNotBeListed" xml:space="preserve">
+    <value>A bérlő postafiók nem listázható. Ellenőrizze az M365 hitelesítő adatokat és jogosultságokat.</value>
+  </data>
+  <data name="M365TenantAccountsCouldNotBeImported" xml:space="preserve">
+    <value>Az M365 bérlőfiókok nem importálhatók. Ellenőrizze a hitelesítő adatokat és jogosultságokat.</value>
+  </data>
+  <data name="NameRequired" xml:space="preserve">
+    <value>A név megadása kötelező</value>
+  </data>
+  <data name="EmailAddressRequired" xml:space="preserve">
+    <value>E-mail cím megadása kötelező</value>
+  </data>
+  <data name="ProviderM365Single" xml:space="preserve">
+    <value>Microsoft 365 (egyetlen postafiók)</value>
+  </data>
+  <data name="ProviderM365Tenant" xml:space="preserve">
+    <value>Microsoft 365 (bérlő)</value>
+  </data>
+  <data name="LoadMailboxesHelp" xml:space="preserve">
+    <value>Töltse be a bérlő postafiókok listáját, hogy kiválaszthassa, mely fiókokat szeretné importálni.</value>
+  </data>
+  <data name="InvalidImportFileType" xml:space="preserve">
+    <value>Érvénytelen fájltípus. Engedélyezett kiterjesztések: .mbox, .eml, .zip</value>
+  </data>
+  <data name="ClientSecretWillBeCopiedOnSave" xml:space="preserve">
+    <value>Az ügyféltitok a mentéskor át lesz másolva a kiválasztott meglévő fiókból.</value>
+  </data>
+  <data name="ClientSecretRequired" xml:space="preserve">
+    <value>Az ügyféltitok kötelező M365 fiókokhoz</value>
+  </data>
+  <data name="TenantManagement" xml:space="preserve">
+    <value>Bérlőkezelés</value>
+  </data>
+  <data name="TenantManagementTitle" xml:space="preserve">
+    <value>Bérlőkezelés</value>
+  </data>
+  <data name="TenantManagementHelp" xml:space="preserve">
+    <value>Adja hozzá a hiányzó postafiókokat ebből a bérlőből. Az új fiókok a forrásfiók hitelesítő adatait használják.</value>
+  </data>
+  <data name="AddSelectedMailboxes" xml:space="preserve">
+    <value>Kiválasztott postafiókok hozzáadása</value>
+  </data>
+  <data name="MailboxesAdded" xml:space="preserve">
+    <value>{0} postafiók hozzáadva.</value>
+  </data>
+  <data name="NoNewMailboxesToAdd" xml:space="preserve">
+    <value>Nincs új postafiók hozzáadandó.</value>
+  </data>
+  <data name="SelectAtLeastOneMailboxForManagement" xml:space="preserve">
+    <value>Válasszon ki legalább egy hozzáadandó postafiókot.</value>
+  </data>
+  <data name="MoreActions" xml:space="preserve">
+    <value>További műveletek</value>
+  </data>
+  <data name="AccountNameTooLong" xml:space="preserve">
+    <value>A fiók neve legfeljebb 200 karakter hosszú lehet.</value>
+  </data>
+  <data name="SelectAtMostMailboxes" xml:space="preserve">
+    <value>Egyszerre legfeljebb {0} postafiókot választhat ki.</value>
+  </data>
+  <data name="SearchMailboxes" xml:space="preserve">
+    <value>Postafiókok keresése...</value>
+  </data>
+  <data name="NoMailboxesMatch" xml:space="preserve">
+    <value>Egyetlen postafiók sem felel meg a keresésnek.</value>
+  </data>
+  <data name="SearchAccounts" xml:space="preserve">
+    <value>Fiókok keresése...</value>
+  </data>
+  <data name="NoAccountsMatch" xml:space="preserve">
+    <value>Egyetlen fiók sem felel meg a keresésnek.</value>
+  </data>
+  <data name="SearchUsers" xml:space="preserve">
+    <value>Felhasználók keresése...</value>
+  </data>
+  <data name="NoUsersMatch" xml:space="preserve">
+    <value>Egyetlen felhasználó sem felel meg a keresésnek.</value>
+  </data>
+  <data name="AccountsFound" xml:space="preserve">
+    <value>{0} fiók található</value>
+  </data>
+  <data name="UsersFound" xml:space="preserve">
+    <value>{0} felhasználó található</value>
+  </data>
+  <data name="RenameExistingAccounts" xml:space="preserve">
+    <value>Meglévő fiókok átnevezése</value>
+  </data>
+  <data name="RenameExistingAccountsHelp" xml:space="preserve">
+    <value>Mentés után alkalmazza az elnevezési sémát az összes olyan M365-fiókra, amely ugyanazt az alkalmazásregisztrációt használja.</value>
+  </data>
+  <data name="AccountsRenamed" xml:space="preserve">
+    <value>{0} fiók átnevezve.</value>
+  </data>
+  <data name="MailboxesAddedAndAccountsRenamed" xml:space="preserve">
+    <value>{0} postafiók hozzáadva és {1} fiók átnevezve.</value>
+  </data>
+  <data name="ShowPassword" xml:space="preserve">
+    <value>Jelszó megjelenítése</value>
+  </data>
+  <data name="HidePassword" xml:space="preserve">
+    <value>Jelszó elrejtése</value>
+  </data>
+  <data name="AdvancedSettings" xml:space="preserve">
+    <value>Speciális beállítások</value>
+  </data>
+  <data name="UnsavedChangesWarning" xml:space="preserve">
+    <value>Mentetlen változtatásai vannak. Biztosan el akarja hagyni ezt az oldalt?</value>
+  </data>
+  <data name="Saving" xml:space="preserve">
+    <value>Mentés...</value>
+  </data>
+  <data name="CopyFolderToExcluded" xml:space="preserve">
+    <value>Kattintson egy mappára a kizárási listához adásához vagy eltávolításához</value>
+  </data>
+  <data name="StorageUsed" xml:space="preserve">
+    <value>Felhasznált tárhely</value>
+  </data>
+  <data name="ConnectionDetails" xml:space="preserve">
+    <value>Kapcsolat adatai</value>
+  </data>
+  <data name="PrimaryActions" xml:space="preserve">
+    <value>Műveletek</value>
+  </data>
+  <data name="FilterMailboxes" xml:space="preserve">
+    <value>Postafiókok szűrése...</value>
+  </data>
+  <data name="NoMailboxesMatchFilter" xml:space="preserve">
+    <value>Egyetlen postafiók sem felel meg a szűrőnek.</value>
+  </data>
+  <data name="MsaBadge" xml:space="preserve">
+    <value>MSA (személyes)</value>
+  </data>
+  <data name="MsaAuthAfterSaveInfo" xml:space="preserve">
+    <value>Mentés után a rendszer átirányítja a Microsofthoz a postafiók hozzáférésének engedélyezéséhez.</value>
+  </data>
+  <data name="UserAccountSection" xml:space="preserve">
+    <value>Fiók adatai</value>
+  </data>
+  <data name="UserSecuritySection" xml:space="preserve">
+    <value>Biztonság</value>
+  </data>
+  <data name="OidcPasswordManagedExternally" xml:space="preserve">
+    <value>Ez egy OIDC felhasználó. A jelszókezelést az OIDC szolgáltató végzi.</value>
+  </data>
+  <data name="BackgroundJobsActiveCount" xml:space="preserve">
+    <value>{0} háttérfeladat fut jelenleg.</value>
+  </data>
+  <data name="AutoRefreshInfo" xml:space="preserve">
+    <value>Automatikus frissítés {0}s múlva</value>
+  </data>
+  <data name="WelcomeBack" xml:space="preserve">
+    <value>Üdvözöljük újra, {0}</value>
+  </data>
+  <!-- CSV Bulk IMAP Import -->
+  <data name="ImportCsvBulk" xml:space="preserve">
+    <value>CSV tömeges importálás</value>
+  </data>
+  <data name="CsvImportTitle" xml:space="preserve">
+    <value>IMAP postafiókok importálása CSV-ből</value>
+  </data>
+  <data name="CsvImportInformation" xml:space="preserve">
+    <value>Több IMAP postafiók egyidejű importálása CSV-fájlon keresztül.</value>
+  </data>
+  <data name="CsvImportFormatHelp" xml:space="preserve">
+    <value>Oszlopok: email (kötelező), password (kötelező), name (opcionális), username (opcionális), imap_server (opcionális), imap_port (opcionális), use_ssl (opcionális)</value>
+  </data>
+  <data name="CsvImportCommonServerHelp" xml:space="preserve">
+    <value>A közös szerverbeállítások minden olyan sorra vonatkoznak, amelyek nem tartalmaznak imap_server oszlopot.</value>
+  </data>
+  <data name="CsvImportNoConnectionTest" xml:space="preserve">
+    <value>Nem történik IMAP kapcsolatvizsgálat — a hibák csak az első szinkronizáláskor jelennek meg.</value>
+  </data>
+  <data name="CsvImportAdminOnlyNote" xml:space="preserve">
+    <value>Ez a funkció csak rendszergazdáknak érhető el.</value>
+  </data>
+  <data name="DownloadExampleCsv" xml:space="preserve">
+    <value>Minta CSV letöltése</value>
+  </data>
+  <data name="CsvImportSettingsTitle" xml:space="preserve">
+    <value>Feltöltés és beállítások</value>
+  </data>
+  <data name="CsvFile" xml:space="preserve">
+    <value>CSV-fájl</value>
+  </data>
+  <data name="CsvFileHelp" xml:space="preserve">
+    <value>UTF-8 kódolású CSV-fájl fejlécsorral. Kötelező oszlopok: email, password.</value>
+  </data>
+  <data name="CommonServerSettings" xml:space="preserve">
+    <value>Közös szerverbeállítások</value>
+  </data>
+  <data name="CommonServerSettingsHelp" xml:space="preserve">
+    <value>Akkor használjuk, ha a CSV-sor nem tartalmaz imap_server értéket.</value>
+  </data>
+  <data name="ImapServerLabel" xml:space="preserve">
+    <value>IMAP szerver</value>
+  </data>
+  <data name="ImapPortLabel" xml:space="preserve">
+    <value>IMAP port</value>
+  </data>
+  <data name="UseSslLabel" xml:space="preserve">
+    <value>SSL használata</value>
+  </data>
+  <data name="NamePrefix" xml:space="preserve">
+    <value>Név előtag</value>
+  </data>
+  <data name="NamePrefixHelp" xml:space="preserve">
+    <value>Alapértelmezett név: "{prefix} - &lt;{email}&gt;"</value>
+  </data>
+  <data name="SkipExisting" xml:space="preserve">
+    <value>Meglévő postafiókok kihagyása</value>
+  </data>
+  <data name="SkipExistingHelp" xml:space="preserve">
+    <value>A duplikátumok ki vannak hagyva, nem hibaként jelölve.</value>
+  </data>
+  <data name="AccountEnabledLabel" xml:space="preserve">
+    <value>Fiók engedélyezve</value>
+  </data>
+  <data name="CsvImportSubmit" xml:space="preserve">
+    <value>Importálás</value>
+  </data>
+  <data name="CsvImportResult" xml:space="preserve">
+    <value>Importálás eredménye</value>
+  </data>
+  <data name="CsvImportAgain" xml:space="preserve">
+    <value>További CSV importálása</value>
+  </data>
+  <data name="CsvImportResultSummary" xml:space="preserve">
+    <value>{0} létrehozva, {1} kihagyva, {2} hibás</value>
+  </data>
+  <data name="CsvImportCreated" xml:space="preserve">
+    <value>Létrehozva</value>
+  </data>
+  <data name="CsvImportSkipped" xml:space="preserve">
+    <value>Kihagyva</value>
+  </data>
+  <data name="CsvImportFailed" xml:space="preserve">
+    <value>Hibás</value>
+  </data>
+  <data name="CsvImportEmail" xml:space="preserve">
+    <value>E-mail</value>
+  </data>
+  <data name="CsvImportNameCol" xml:space="preserve">
+    <value>Név</value>
+  </data>
+  <data name="CsvImportReason" xml:space="preserve">
+    <value>Ok</value>
+  </data>
+  <data name="CsvImportRowNumber" xml:space="preserve">
+    <value>Sor</value>
+  </data>
+  <data name="CsvImportNoFile" xml:space="preserve">
+    <value>Válasszon egy CSV-fájlt.</value>
+  </data>
+  <data name="CsvImportFileTooLarge" xml:space="preserve">
+    <value>A fájl túl nagy: {0} MB, maximum {1} MB.</value>
+  </data>
+  <data name="CsvImportNoValidRows" xml:space="preserve">
+    <value>Nem található érvényes postafiók a CSV-fájlban.</value>
+  </data>
+  <data name="CsvImportTooManyRows" xml:space="preserve">
+    <value>A CSV-fájl {0} sort tartalmaz, maximum {1}.</value>
+  </data>
+  <data name="CsvImportMissingServer" xml:space="preserve">
+    <value>Nincs IMAP szerver megadva (sem a sorban, sem az űrlapon).</value>
+  </data>
+  <data name="CsvImportInvalidPort" xml:space="preserve">
+    <value>Érvénytelen port "{1}"</value>
+  </data>
+  <data name="CsvImportInvalidUseSsl" xml:space="preserve">
+    <value>Érvénytelen use_ssl érték "{1}"</value>
+  </data>
+  <data name="CsvImportMissingEmail" xml:space="preserve">
+    <value>Hiányzik az e-mail cím.</value>
+  </data>
+  <data name="CsvImportMissingPassword" xml:space="preserve">
+    <value>Hiányzik a jelszó.</value>
+  </data>
+  <data name="CsvImportMalformedLine" xml:space="preserve">
+    <value>Hibás CSV-sor — nem elemezhető.</value>
+  </data>
+  <data name="CsvImportDuplicateInFile" xml:space="preserve">
+    <value>Duplikátum a CSV-fájlban</value>
+  </data>
+  <data name="CsvImportAlreadyExists" xml:space="preserve">
+    <value>A postafiók már létezik</value>
+  </data>
+  <data name="CsvImportCouldNotBeProcessed" xml:space="preserve">
+    <value>A CSV-importálás nem dolgozható fel</value>
+  </data>
+  <data name="CsvImportAdminOnly" xml:space="preserve">
+    <value>A CSV tömeges importálás csak rendszergazdáknak érhető el.</value>
+  </data>
+  <data name="ImportEmailsHeader" xml:space="preserve">
+    <value>E-mailek importálása</value>
+  </data>
+  <data name="ImportAccountsHeader" xml:space="preserve">
+    <value>Fiókok importálása</value>
+  </data>
+  <!-- API Keys (read-only REST API) -->
   <data name="ApiKeys" xml:space="preserve">
     <value>API-kulcsok</value>
   </data>

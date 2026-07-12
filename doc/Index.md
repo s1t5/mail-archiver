@@ -14,16 +14,18 @@ Mail Archiver is a comprehensive application designed to archive emails from var
 - [Backup and Restore Guide](BackupRestore.md)
 - [Database Maintenance Guide](DatabaseMaintenance.md)
 - [Installation, Setup and Parameters](Setup.md)
+- [REST API Guide](API.md)
 - [PostgreSQL Major Version Upgrade Guide](PostgreSQLUpgrade.md)
 
 ### ⚙️ Configuration & Usage
 - [Access Logging](Logs.md)
-- [REST API (v1)](API.md)
+- [Account Import](Account%20Import.md)
 - [Attachment Deduplication](AttachmentDeduplication.md)
 - [CLI Local Import Guide](CLI-Local-Import.md)
 - [Docker Compose Logs Guide](DockerComposeLogs.md)
 - [Emergency Account Recovery](EmergencyAccountRecovery.md)
 - [Mail Search Guide](Search.md)
+- [Mail Synchronization (Quick vs. Full Sync)](Synchronization.md)
 - [OpenID Connect (OIDC) Authentication](OIDC_Implementation.md)
 - [Retention Policies](RetentionPolicies.md)
 - [Reverse Proxy Configuration](ReverseProxy.md)
@@ -32,7 +34,9 @@ Mail Archiver is a comprehensive application designed to archive emails from var
 
 ### ☁️ Provider Specific Guides
 - [Azure App Registration and Retention Policy for M365](AZURE_APP_REGISTRATION_M365.md)
+- [Microsoft 365 Tenant Mailbox Import](M365TenantImport.md)
 - [Gmail Best Practices](GmailBestPractices.md)
 - [Mailbox Migration](MailboxMigration.md)
+- [Personal Microsoft Account (Outlook.com / M365 Family) Setup](MSA_Outlook_Setup.md)
 - [Rate Limit Handling](RateLimitHandling.md)
 - [Yahoo Mail Export Limitations and IMAP Configuration](YahooMailExportLimitations.md)

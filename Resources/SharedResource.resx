@@ -181,9 +181,6 @@
   <data name="NoEmailsFoundText" xml:space="preserve">
     <value>No emails were found for the specified search criteria.</value>
   </data>
-  <data name="ExportSearchResults" xml:space="preserve">
-    <value>Export Search Results</value>
-  </data>
   <data name="ExportFormat" xml:space="preserve">
     <value>Export Format</value>
   </data>
@@ -510,6 +507,27 @@
   </data>
   <data name="EmailDeletion" xml:space="preserve">
     <value>Email Deletion</value>
+  </data>
+  <data name="SyncScheduling" xml:space="preserve">
+    <value>Sync Scheduling</value>
+  </data>
+  <data name="SyncIntervalMinutes" xml:space="preserve">
+    <value>Sync Interval (minutes)</value>
+  </data>
+  <data name="SyncIntervalMinutesPlaceholder" xml:space="preserve">
+    <value>Default from settings</value>
+  </data>
+  <data name="SyncIntervalMinutesInfo" xml:space="preserve">
+    <value>Overrides the global sync interval for this account. Leave empty to use the default from appsettings.json.</value>
+  </data>
+  <data name="FullSyncIntervalHours" xml:space="preserve">
+    <value>Full Sync Interval (hours)</value>
+  </data>
+  <data name="FullSyncIntervalHoursPlaceholder" xml:space="preserve">
+    <value>No account-specific full sync</value>
+  </data>
+  <data name="FullSyncIntervalHoursInfo" xml:space="preserve">
+    <value>Performs a full resync on this schedule. Leave empty to use the global default from appsettings.json (if set) or to disable automatic full sync. The manual resync button remains available regardless.</value>
   </data>
   <data name="DeleteEmailAccountTitle" xml:space="preserve">
     <value>Delete Email Account</value>
@@ -1424,6 +1442,12 @@
   <data name="RateLimited" xml:space="preserve">
     <value>Rate Limited</value>
   </data>
+  <data name="SyncProgressTooltip" xml:space="preserve">
+    <value>Progress is measured by completed folders. A large folder (e.g. INBOX) keeps the bar at 0% until it finishes.</value>
+  </data>
+  <data name="SyncStatusTooltip" xml:space="preserve">
+    <value>Status codes:&lt;br&gt;Running = sync in progress&lt;br&gt;Completed = finished successfully&lt;br&gt;Failed = ended with errors&lt;br&gt;Cancelled = stopped by user&lt;br&gt;Rate Limited = paused due to bandwidth quota</value>
+  </data>
   <data name="SyncJobRateLimited" xml:space="preserve">
     <value>Sync paused due to bandwidth limit. Will resume automatically.</value>
   </data>
@@ -2264,6 +2288,12 @@
   <data name="SyncCancel" xml:space="preserve">
     <value>Sync Cancelled</value>
   </data>
+  <data name="DeletionPolicy" xml:space="preserve">
+    <value>Deletion Policy</value>
+  </data>
+  <data name="DeletionDisabledMessage" xml:space="preserve">
+    <value>Email deletion is disabled by configuration.</value>
+  </data>
   <data name="ComplianceStatus" xml:space="preserve">
     <value>Compliance Status</value>
   </data>
@@ -2350,6 +2380,20 @@
   </data>
   <data name="SignInWithOAuth" xml:space="preserve">
     <value>Login with OAuth</value>
+  </data>
+  <data name="SignInWithOAuthProvider" xml:space="preserve">
+    <value>Login with {0}</value>
+  </data>
+  <data name="RedirectingToProvider" xml:space="preserve">
+    <value>Redirecting to {0}...</value>
+    <comment>{0} - OAuth provider display name</comment>
+  </data>
+  <data name="PleaseWaitRedirectingToProvider" xml:space="preserve">
+    <value>Please wait while we redirect you to {0}...</value>
+    <comment>{0} - OAuth provider display name</comment>
+  </data>
+  <data name="Loading" xml:space="preserve">
+    <value>Loading...</value>
   </data>
   <data name="OidcUserCannotHavePassword" xml:space="preserve">
     <value>OIDC users cannot have a password. They authenticate through the OIDC provider.</value>
@@ -2506,6 +2550,514 @@
   <data name="GotIt" xml:space="preserve">
     <value>Got it!</value>
   </data>
+
+  <!-- MSA (personal Microsoft account) OAuth2 device code flow -->
+  <data name="MsaAuthorizeTitle" xml:space="preserve">
+    <value>Authorize Microsoft Account</value>
+  </data>
+  <data name="MsaAccountLabel" xml:space="preserve">
+    <value>Account:</value>
+  </data>
+  <data name="MsaStep1OpenBrowser" xml:space="preserve">
+    <value>1. Open in a browser (or smartphone etc.):</value>
+  </data>
+  <data name="MsaStep2EnterCode" xml:space="preserve">
+    <value>2. Enter this code:</value>
+  </data>
+  <data name="MsaCopyCode" xml:space="preserve">
+    <value>Copy</value>
+  </data>
+  <data name="MsaCopyCodeTooltip" xml:space="preserve">
+    <value>Copy code</value>
+  </data>
+  <data name="MsaCodeValidFor" xml:space="preserve">
+    <value>Code valid for {0} minutes.</value>
+  </data>
+  <data name="MsaWaitingForAuthorization" xml:space="preserve">
+    <value>Waiting for authorization …</value>
+  </data>
+  <data name="MsaAuthorizationSuccessful" xml:space="preserve">
+    <value>Authorization successful! Redirecting …</value>
+  </data>
+  <data name="MsaErrorPrefix" xml:space="preserve">
+    <value>Error:</value>
+  </data>
+  <data name="MsaRetry" xml:space="preserve">
+    <value>Try again</value>
+  </data>
+  <data name="MsaProviderLabel" xml:space="preserve">
+    <value>Microsoft Personal</value>
+  </data>
+  <data name="MsaSettingsHeading" xml:space="preserve">
+    <value>Microsoft Personal Account (Outlook.com / M365 Family)</value>
+  </data>
+  <data name="MsaNoAppRegistrationNeeded" xml:space="preserve">
+    <value>No app registration required.</value>
+  </data>
+  <data name="MsaDefaultClientInfoCreate" xml:space="preserve">
+    <value>Mail-Archiver uses a pre-configured app registration. Enter email address, save, then click {0}.</value>
+  </data>
+  <data name="MsaAuthorize" xml:space="preserve">
+    <value>Authorize</value>
+  </data>
+  <data name="MsaAppRegistrationSetup" xml:space="preserve">
+    <value>Set up Azure App Registration (one-time, ~2 minutes)</value>
+  </data>
+  <data name="MsaCreateAppRegistration" xml:space="preserve">
+    <value>Create App Registration</value>
+  </data>
+  <data name="MsaSignInWithMicrosoftAccount" xml:space="preserve">
+    <value>(sign in with your Microsoft account)</value>
+  </data>
+  <data name="MsaAppRegStepName" xml:space="preserve">
+    <value>Choose any name (e.g. mail-archiver)</value>
+  </data>
+  <data name="MsaAppRegStepAccountTypes" xml:space="preserve">
+    <value>Under Supported account types select: Accounts in any organizational directory and personal Microsoft accounts</value>
+  </data>
+  <data name="MsaAppRegStepRedirect" xml:space="preserve">
+    <value>Leave Redirect URI blank → click Register</value>
+  </data>
+  <data name="MsaAppRegStepClientId" xml:space="preserve">
+    <value>Enter the displayed Application (client) ID below</value>
+  </data>
+  <data name="MsaAppRegStepAuth" xml:space="preserve">
+    <value>Click Authentication in the app → enable Allow public client flows → Save</value>
+  </data>
+  <data name="MsaNoSecretNeededCreate" xml:space="preserve">
+    <value>No secret, no redirect URI required. After saving, click Authorize.</value>
+  </data>
+  <data name="MsaClientIdPlaceholder" xml:space="preserve">
+    <value>Azure App (client) ID</value>
+  </data>
+  <data name="MsaClientSecretOptional" xml:space="preserve">
+    <value>(optional)</value>
+  </data>
+  <data name="MsaClientSecretPlaceholder" xml:space="preserve">
+    <value>Not required for public client apps</value>
+  </data>
+  <data name="MsaClientSecretHint" xml:space="preserve">
+    <value>Only needed for confidential client apps. Leave blank when using a public client.</value>
+  </data>
+  <data name="MsaAuthorized" xml:space="preserve">
+    <value>Authorized. Microsoft account connected, token is renewed automatically.</value>
+  </data>
+  <data name="MsaReAuthorize" xml:space="preserve">
+    <value>Re-authorize</value>
+  </data>
+  <data name="MsaNotYetAuthorized" xml:space="preserve">
+    <value>Not yet authorized.</value>
+  </data>
+  <data name="MsaSaveThenAuthorize" xml:space="preserve">
+    <value>Save, then click {0}.</value>
+  </data>
+  <data name="MsaEnterClientIdThenAuthorize" xml:space="preserve">
+    <value>Enter Client ID, save, then click {0}.</value>
+  </data>
+  <data name="MsaDefaultClientInfoEdit" xml:space="preserve">
+    <value>Mail-Archiver uses a pre-configured app registration — own app registration is not required. Fill in only to use a custom Client ID.</value>
+  </data>
+  <data name="MsaNoSecretNeededShort" xml:space="preserve">
+    <value>No secret, no redirect URI required.</value>
+  </data>
+  <data name="MsaClientIdOptionalHint" xml:space="preserve">
+    <value>Optional — leave blank to use the default app registration.</value>
+  </data>
+  <data name="MsaClientIdKeepExisting" xml:space="preserve">
+    <value>Leave blank to keep existing value.</value>
+  </data>
+  <data name="MsaClientSecretPlaceholderEdit" xml:space="preserve">
+    <value>Not required for Device Code Flow</value>
+  </data>
+  <data name="MsaAuthorizeWithMicrosoft" xml:space="preserve">
+    <value>Authorize with Microsoft</value>
+  </data>
+  <data name="MsaReAuthorizeWithMicrosoft" xml:space="preserve">
+    <value>Re-authorize with Microsoft</value>
+  </data>
+  <data name="MsaClientIdRequired" xml:space="preserve">
+    <value>A Client ID is required for MS Personal accounts when no default Client ID is configured.</value>
+  </data>
+  <data name="MsaNotAuthorizedSync" xml:space="preserve">
+    <value>This Microsoft account is not yet authorized. Please click &quot;Authorize with Microsoft&quot; on the account's edit page first.</value>
+  </data>
+  <data name="MsaClientIdNotConfigured" xml:space="preserve">
+    <value>Client ID is not configured. Please edit the account first.</value>
+  </data>
+  <data name="MsaAuthorizationFailed" xml:space="preserve">
+    <value>Failed to start authorization: {0}</value>
+  </data>
+  <data name="MsaAccessDenied" xml:space="preserve">
+    <value>Access denied.</value>
+  </data>
+  <data name="MsaSessionExpired" xml:space="preserve">
+    <value>Session expired. Please start authorization again.</value>
+  </data>
+  <data name="MsaAccountNotFound" xml:space="preserve">
+    <value>Account not found.</value>
+  </data>
+  <data name="MsaAuthorizationCancelled" xml:space="preserve">
+    <value>Account creation cancelled.</value>
+  </data>
+  <data name="UseTenantImport" xml:space="preserve">
+    <value>Use tenant import</value>
+  </data>
+  <data name="UseTenantImportHelp" xml:space="preserve">
+    <value>Loads the tenant mailboxes and creates accounts with the naming scheme: entered name - &lt;mailbox@example.com&gt;.</value>
+  </data>
+  <data name="SkipDisabledMailboxes" xml:space="preserve">
+    <value>Skip disabled mailboxes</value>
+  </data>
+  <data name="ImportAllListedMailboxes" xml:space="preserve">
+    <value>Import all listed mailboxes</value>
+  </data>
+  <data name="ImportAllListedMailboxesHelp" xml:space="preserve">
+    <value>When disabled, only the mailboxes selected below are imported.</value>
+  </data>
+  <data name="LoadMailboxes" xml:space="preserve">
+    <value>Load mailboxes</value>
+  </data>
+  <data name="TenantMailboxes" xml:space="preserve">
+    <value>Tenant mailboxes</value>
+  </data>
+  <data name="ClearSelection" xml:space="preserve">
+    <value>Clear selection</value>
+  </data>
+  <data name="NoMailboxesFound" xml:space="preserve">
+    <value>No mailboxes found.</value>
+  </data>
+  <data name="DisabledLowercase" xml:space="preserve">
+    <value>disabled</value>
+  </data>
+  <data name="AlreadyExistsLowercase" xml:space="preserve">
+    <value>already exists</value>
+  </data>
+  <data name="LoadingMailboxes" xml:space="preserve">
+    <value>Loading mailboxes...</value>
+  </data>
+  <data name="MailboxesCouldNotBeLoaded" xml:space="preserve">
+    <value>Mailboxes could not be loaded.</value>
+  </data>
+  <data name="MailboxesFound" xml:space="preserve">
+    <value>{0} mailbox(es) found.</value>
+  </data>
+  <data name="M365MailboxDefaultName" xml:space="preserve">
+    <value>M365 Mailbox</value>
+  </data>
+  <data name="NoEnabledM365UsersFound" xml:space="preserve">
+    <value>No enabled M365 users with an email address or user principal name were found in this tenant.</value>
+  </data>
+  <data name="SelectAtLeastOneMailboxOrImportAll" xml:space="preserve">
+    <value>Select at least one mailbox or enable importing all listed mailboxes.</value>
+  </data>
+  <data name="AllSelectedM365TenantMailboxesAlreadyExist" xml:space="preserve">
+    <value>All {0} selected M365 tenant mailboxes already exist.</value>
+  </data>
+  <data name="ImportedM365TenantAccounts" xml:space="preserve">
+    <value>Imported {0} M365 tenant mail accounts. Skipped {1} existing accounts.</value>
+  </data>
+  <data name="M365TenantCredentialsRequired" xml:space="preserve">
+    <value>Client ID, client secret and tenant ID are required to list tenant mailboxes.</value>
+  </data>
+  <data name="M365TenantMailboxesCouldNotBeListed" xml:space="preserve">
+    <value>Tenant mailboxes could not be listed. Please check the M365 credentials and permissions.</value>
+  </data>
+  <data name="M365TenantAccountsCouldNotBeImported" xml:space="preserve">
+    <value>The M365 tenant accounts could not be imported. Please check the credentials and permissions.</value>
+  </data>
+  <data name="NameRequired" xml:space="preserve">
+    <value>Name is required</value>
+  </data>
+  <data name="EmailAddressRequired" xml:space="preserve">
+    <value>Email address is required</value>
+  </data>
+  <data name="ProviderM365Single" xml:space="preserve">
+    <value>Microsoft 365 (single mailbox)</value>
+  </data>
+  <data name="ProviderM365Tenant" xml:space="preserve">
+    <value>Microsoft 365 (tenant)</value>
+  </data>
+  <data name="LoadMailboxesHelp" xml:space="preserve">
+    <value>Load the list of tenant mailboxes to choose which accounts to import.</value>
+  </data>
+  <data name="InvalidImportFileType" xml:space="preserve">
+    <value>Invalid file type. Allowed extensions: .mbox, .eml, .zip</value>
+  </data>
+  <data name="ClientSecretWillBeCopiedOnSave" xml:space="preserve">
+    <value>Client secret will be copied from the selected existing account on save.</value>
+  </data>
+  <data name="ClientSecretRequired" xml:space="preserve">
+    <value>Client Secret is required for M365 accounts</value>
+  </data>
+  <data name="TenantManagement" xml:space="preserve">
+    <value>Tenant Management</value>
+  </data>
+  <data name="TenantManagementTitle" xml:space="preserve">
+    <value>Tenant Management</value>
+  </data>
+  <data name="TenantManagementHelp" xml:space="preserve">
+    <value>Add missing mailboxes from this tenant. New accounts use the credentials of the source account.</value>
+  </data>
+  <data name="AddSelectedMailboxes" xml:space="preserve">
+    <value>Add selected mailboxes</value>
+  </data>
+  <data name="MailboxesAdded" xml:space="preserve">
+    <value>{0} mailbox(es) added.</value>
+  </data>
+  <data name="NoNewMailboxesToAdd" xml:space="preserve">
+    <value>No new mailboxes to add.</value>
+  </data>
+  <data name="SelectAtLeastOneMailboxForManagement" xml:space="preserve">
+    <value>Select at least one mailbox to add.</value>
+  </data>
+  <data name="MoreActions" xml:space="preserve">
+    <value>More actions</value>
+  </data>
+  <data name="AccountNameTooLong" xml:space="preserve">
+    <value>Account name must be at most 200 characters.</value>
+  </data>
+  <data name="SelectAtMostMailboxes" xml:space="preserve">
+    <value>Select at most {0} mailboxes at once.</value>
+  </data>
+  <data name="SearchMailboxes" xml:space="preserve">
+    <value>Search mailboxes...</value>
+  </data>
+  <data name="NoMailboxesMatch" xml:space="preserve">
+    <value>No mailboxes match your search.</value>
+  </data>
+  <data name="SearchAccounts" xml:space="preserve">
+    <value>Search accounts...</value>
+  </data>
+  <data name="NoAccountsMatch" xml:space="preserve">
+    <value>No accounts match your search.</value>
+  </data>
+  <data name="SearchUsers" xml:space="preserve">
+    <value>Search users...</value>
+  </data>
+  <data name="NoUsersMatch" xml:space="preserve">
+    <value>No users match your search.</value>
+  </data>
+  <data name="AccountsFound" xml:space="preserve">
+    <value>{0} accounts found</value>
+  </data>
+  <data name="UsersFound" xml:space="preserve">
+    <value>{0} users found</value>
+  </data>
+  <data name="RenameExistingAccounts" xml:space="preserve">
+    <value>Rename existing accounts</value>
+  </data>
+  <data name="RenameExistingAccountsHelp" xml:space="preserve">
+    <value>Apply the naming scheme to all M365 accounts using the same app registration after saving.</value>
+  </data>
+  <data name="AccountsRenamed" xml:space="preserve">
+    <value>{0} account(s) renamed.</value>
+  </data>
+  <data name="MailboxesAddedAndAccountsRenamed" xml:space="preserve">
+    <value>Added {0} mailbox(es) and renamed {1} account(s).</value>
+  </data>
+  <data name="ShowPassword" xml:space="preserve">
+    <value>Show password</value>
+  </data>
+  <data name="HidePassword" xml:space="preserve">
+    <value>Hide password</value>
+  </data>
+  <data name="AdvancedSettings" xml:space="preserve">
+    <value>Advanced settings</value>
+  </data>
+  <data name="UnsavedChangesWarning" xml:space="preserve">
+    <value>You have unsaved changes. Are you sure you want to leave this page?</value>
+  </data>
+  <data name="Saving" xml:space="preserve">
+    <value>Saving...</value>
+  </data>
+  <data name="CopyFolderToExcluded" xml:space="preserve">
+    <value>Click a folder to add or remove it from the exclusion list</value>
+  </data>
+  <data name="StorageUsed" xml:space="preserve">
+    <value>Storage used</value>
+  </data>
+  <data name="ConnectionDetails" xml:space="preserve">
+    <value>Connection details</value>
+  </data>
+  <data name="PrimaryActions" xml:space="preserve">
+    <value>Actions</value>
+  </data>
+  <data name="FilterMailboxes" xml:space="preserve">
+    <value>Filter mailboxes...</value>
+  </data>
+  <data name="NoMailboxesMatchFilter" xml:space="preserve">
+    <value>No mailboxes match your filter.</value>
+  </data>
+  <data name="MsaBadge" xml:space="preserve">
+    <value>MSA (personal)</value>
+  </data>
+  <data name="MsaAuthAfterSaveInfo" xml:space="preserve">
+    <value>After saving, you will be redirected to Microsoft to authorize access to your mailbox.</value>
+  </data>
+  <data name="UserAccountSection" xml:space="preserve">
+    <value>Account details</value>
+  </data>
+  <data name="UserSecuritySection" xml:space="preserve">
+    <value>Security</value>
+  </data>
+  <data name="OidcPasswordManagedExternally" xml:space="preserve">
+    <value>This is an OIDC user. Password management is handled by the OIDC provider.</value>
+  </data>
+  <data name="BackgroundJobsActiveCount" xml:space="preserve">
+    <value>{0} background job(s) are currently running.</value>
+  </data>
+  <data name="AutoRefreshInfo" xml:space="preserve">
+    <value>Auto-refresh in {0}s</value>
+  </data>
+  <data name="WelcomeBack" xml:space="preserve">
+    <value>Welcome back, {0}</value>
+  </data>
+  <!-- CSV Bulk IMAP Import -->
+  <data name="ImportCsvBulk" xml:space="preserve">
+    <value>CSV Bulk Import</value>
+  </data>
+  <data name="CsvImportTitle" xml:space="preserve">
+    <value>Import IMAP mailboxes from CSV</value>
+  </data>
+  <data name="CsvImportInformation" xml:space="preserve">
+    <value>Import multiple IMAP mailboxes at once via a CSV file.</value>
+  </data>
+  <data name="CsvImportFormatHelp" xml:space="preserve">
+    <value>Columns: email (required), password (required), name (optional), username (optional), imap_server (optional), imap_port (optional), use_ssl (optional)</value>
+  </data>
+  <data name="CsvImportCommonServerHelp" xml:space="preserve">
+    <value>Common server settings apply to all rows without an imap_server column.</value>
+  </data>
+  <data name="CsvImportNoConnectionTest" xml:space="preserve">
+    <value>No IMAP connection test is performed — errors will only appear on first sync.</value>
+  </data>
+  <data name="CsvImportAdminOnlyNote" xml:space="preserve">
+    <value>This feature is available to administrators only.</value>
+  </data>
+  <data name="DownloadExampleCsv" xml:space="preserve">
+    <value>Download example CSV</value>
+  </data>
+  <data name="CsvImportSettingsTitle" xml:space="preserve">
+    <value>Upload and settings</value>
+  </data>
+  <data name="CsvFile" xml:space="preserve">
+    <value>CSV file</value>
+  </data>
+  <data name="CsvFileHelp" xml:space="preserve">
+    <value>UTF-8 encoded CSV file with header row. Required columns: email, password.</value>
+  </data>
+  <data name="CommonServerSettings" xml:space="preserve">
+    <value>Common server settings</value>
+  </data>
+  <data name="CommonServerSettingsHelp" xml:space="preserve">
+    <value>Used when the CSV row has no imap_server value.</value>
+  </data>
+  <data name="ImapServerLabel" xml:space="preserve">
+    <value>IMAP server</value>
+  </data>
+  <data name="ImapPortLabel" xml:space="preserve">
+    <value>IMAP port</value>
+  </data>
+  <data name="UseSslLabel" xml:space="preserve">
+    <value>Use SSL</value>
+  </data>
+  <data name="NamePrefix" xml:space="preserve">
+    <value>Name prefix</value>
+  </data>
+  <data name="NamePrefixHelp" xml:space="preserve">
+    <value>Default name: "{prefix} - &lt;{email}&gt;"</value>
+  </data>
+  <data name="SkipExisting" xml:space="preserve">
+    <value>Skip existing mailboxes</value>
+  </data>
+  <data name="SkipExistingHelp" xml:space="preserve">
+    <value>Duplicates are skipped, not marked as errors.</value>
+  </data>
+  <data name="AccountEnabledLabel" xml:space="preserve">
+    <value>Account enabled</value>
+  </data>
+  <data name="CsvImportSubmit" xml:space="preserve">
+    <value>Import</value>
+  </data>
+  <data name="CsvImportResult" xml:space="preserve">
+    <value>Import result</value>
+  </data>
+  <data name="CsvImportAgain" xml:space="preserve">
+    <value>Import another CSV</value>
+  </data>
+  <data name="CsvImportResultSummary" xml:space="preserve">
+    <value>{0} created, {1} skipped, {2} failed</value>
+  </data>
+  <data name="CsvImportCreated" xml:space="preserve">
+    <value>Created</value>
+  </data>
+  <data name="CsvImportSkipped" xml:space="preserve">
+    <value>Skipped</value>
+  </data>
+  <data name="CsvImportFailed" xml:space="preserve">
+    <value>Failed</value>
+  </data>
+  <data name="CsvImportEmail" xml:space="preserve">
+    <value>Email</value>
+  </data>
+  <data name="CsvImportNameCol" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="CsvImportReason" xml:space="preserve">
+    <value>Reason</value>
+  </data>
+  <data name="CsvImportRowNumber" xml:space="preserve">
+    <value>Line</value>
+  </data>
+  <data name="CsvImportNoFile" xml:space="preserve">
+    <value>Please select a CSV file.</value>
+  </data>
+  <data name="CsvImportFileTooLarge" xml:space="preserve">
+    <value>File too large: {0} MB, maximum is {1} MB.</value>
+  </data>
+  <data name="CsvImportNoValidRows" xml:space="preserve">
+    <value>No valid mailboxes found in the CSV file.</value>
+  </data>
+  <data name="CsvImportTooManyRows" xml:space="preserve">
+    <value>CSV file contains {0} rows, maximum is {1}.</value>
+  </data>
+  <data name="CsvImportMissingServer" xml:space="preserve">
+    <value>No IMAP server provided (neither in the row nor in the form).</value>
+  </data>
+  <data name="CsvImportInvalidPort" xml:space="preserve">
+    <value>Invalid port "{1}"</value>
+  </data>
+  <data name="CsvImportInvalidUseSsl" xml:space="preserve">
+    <value>Invalid use_ssl value "{1}"</value>
+  </data>
+  <data name="CsvImportMissingEmail" xml:space="preserve">
+    <value>Email address missing.</value>
+  </data>
+  <data name="CsvImportMissingPassword" xml:space="preserve">
+    <value>Password missing.</value>
+  </data>
+  <data name="CsvImportMalformedLine" xml:space="preserve">
+    <value>Malformed CSV line — could not be parsed.</value>
+  </data>
+  <data name="CsvImportDuplicateInFile" xml:space="preserve">
+    <value>Duplicate in CSV file</value>
+  </data>
+  <data name="CsvImportAlreadyExists" xml:space="preserve">
+    <value>Mailbox already exists</value>
+  </data>
+  <data name="CsvImportCouldNotBeProcessed" xml:space="preserve">
+    <value>CSV import could not be processed</value>
+  </data>
+  <data name="CsvImportAdminOnly" xml:space="preserve">
+    <value>CSV bulk import is available to administrators only.</value>
+  </data>
+  <data name="ImportEmailsHeader" xml:space="preserve">
+    <value>Import emails</value>
+  </data>
+  <data name="ImportAccountsHeader" xml:space="preserve">
+    <value>Import accounts</value>
+  </data>
+  <!-- API Keys (read-only REST API) -->
   <data name="ApiKeys" xml:space="preserve">
     <value>API Keys</value>
   </data>

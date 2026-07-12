@@ -187,9 +187,6 @@
   <data name="NoEmailsFoundText" xml:space="preserve">
     <value>Не найдено писем по указанным критериям поиска.</value>
   </data>
-  <data name="ExportSearchResults" xml:space="preserve">
-    <value>Экспортировать результаты поиска</value>
-  </data>
   <data name="ExportFormat" xml:space="preserve">
     <value>Формат экспорта</value>
   </data>
@@ -513,6 +510,27 @@
   </data>
   <data name="EmailDeletion" xml:space="preserve">
     <value>Удаление писем</value>
+  </data>
+  <data name="SyncScheduling" xml:space="preserve">
+    <value>Расписание синхронизации</value>
+  </data>
+  <data name="SyncIntervalMinutes" xml:space="preserve">
+    <value>Интервал синхронизации (минуты)</value>
+  </data>
+  <data name="SyncIntervalMinutesPlaceholder" xml:space="preserve">
+    <value>По умолчанию из настроек</value>
+  </data>
+  <data name="SyncIntervalMinutesInfo" xml:space="preserve">
+    <value>Переопределяет глобальный интервал синхронизации для этого аккаунта. Оставьте пустым, чтобы использовать значение по умолчанию из appsettings.json.</value>
+  </data>
+  <data name="FullSyncIntervalHours" xml:space="preserve">
+    <value>Интервал полной синхронизации (часы)</value>
+  </data>
+  <data name="FullSyncIntervalHoursPlaceholder" xml:space="preserve">
+    <value>Без полной синхронизации для аккаунта</value>
+  </data>
+  <data name="FullSyncIntervalHoursInfo" xml:space="preserve">
+    <value>Выполняет полную повторную синхронизацию по этому расписанию. Оставьте пустым, чтобы использовать глобальное значение по умолчанию из appsettings.json (если задано) или отключить автоматическую полную синхронизацию. Ручная ресинхронизация остаётся доступной в любом случае.</value>
   </data>
   <data name="DeleteEmailAccountTitle" xml:space="preserve">
     <value>Удалить почтовый аккаунт</value>
@@ -2335,6 +2353,18 @@
   <data name="SignInWithOAuth" xml:space="preserve">
     <value>Войти с OAuth</value>
   </data>
+  <data name="SignInWithOAuthProvider" xml:space="preserve">
+    <value>Войти с {0}</value>
+  </data>
+  <data name="RedirectingToProvider" xml:space="preserve">
+    <value>Перенаправление на {0}...</value>
+  </data>
+  <data name="PleaseWaitRedirectingToProvider" xml:space="preserve">
+    <value>Пожалуйста, подождите, пока мы перенаправим вас на {0}...</value>
+  </data>
+  <data name="Loading" xml:space="preserve">
+    <value>Загрузка...</value>
+  </data>
   <data name="CurrentSyncTime" xml:space="preserve">
     <value>Текущее время синхронизации</value>
   </data>
@@ -2473,6 +2503,12 @@
   <data name="RateLimited" xml:space="preserve">
     <value>Лимит скорости достигнут</value>
   </data>
+  <data name="SyncProgressTooltip" xml:space="preserve">
+    <value>Прогресс измеряется по завершённым папкам. Большая папка (напр. INBOX) удерживает полосу на 0%, пока не завершится.</value>
+  </data>
+  <data name="SyncStatusTooltip" xml:space="preserve">
+    <value>Коды статуса:&lt;br&gt;Running = синхронизация выполняется&lt;br&gt;Completed = завершено успешно&lt;br&gt;Failed = завершено с ошибками&lt;br&gt;Cancelled = остановлено пользователем&lt;br&gt;Rate Limited = приостановлено из-за квоты трафика</value>
+  </data>
   <data name="SyncJobRateLimited" xml:space="preserve">
     <value>Синхронизация приостановлена из-за ограничения пропускной способности. Будет автоматически продолжена.</value>
   </data>
@@ -2500,6 +2536,12 @@
   <data name="SyncCancel" xml:space="preserve">
     <value>Синхронизация отменена</value>
   </data>
+  <data name="DeletionPolicy" xml:space="preserve">
+    <value>Политика удаления</value>
+  </data>
+  <data name="DeletionDisabledMessage" xml:space="preserve">
+    <value>Удаление писем отключено в конфигурации.</value>
+  </data>
   <data name="ConfirmBatchDelete" xml:space="preserve">
     <value>Подтвердить пакетное удаление</value>
   </data>
@@ -2521,6 +2563,514 @@
   <data name="GotIt" xml:space="preserve">
     <value>Понятно!</value>
   </data>
+
+  <!-- MSA (personal Microsoft account) OAuth2 device code flow -->
+  <data name="MsaAuthorizeTitle" xml:space="preserve">
+    <value>Авторизовать учётную запись Microsoft</value>
+  </data>
+  <data name="MsaAccountLabel" xml:space="preserve">
+    <value>Учётная запись:</value>
+  </data>
+  <data name="MsaStep1OpenBrowser" xml:space="preserve">
+    <value>1. Откройте в браузере (или смартфоне и т.д.):</value>
+  </data>
+  <data name="MsaStep2EnterCode" xml:space="preserve">
+    <value>2. Введите этот код:</value>
+  </data>
+  <data name="MsaCopyCode" xml:space="preserve">
+    <value>Копировать</value>
+  </data>
+  <data name="MsaCopyCodeTooltip" xml:space="preserve">
+    <value>Копировать код</value>
+  </data>
+  <data name="MsaCodeValidFor" xml:space="preserve">
+    <value>Код действует {0} мин.</value>
+  </data>
+  <data name="MsaWaitingForAuthorization" xml:space="preserve">
+    <value>Ожидание авторизации …</value>
+  </data>
+  <data name="MsaAuthorizationSuccessful" xml:space="preserve">
+    <value>Авторизация успешна! Перенаправление …</value>
+  </data>
+  <data name="MsaErrorPrefix" xml:space="preserve">
+    <value>Ошибка:</value>
+  </data>
+  <data name="MsaRetry" xml:space="preserve">
+    <value>Повторить</value>
+  </data>
+  <data name="MsaProviderLabel" xml:space="preserve">
+    <value>Microsoft Личный</value>
+  </data>
+  <data name="MsaSettingsHeading" xml:space="preserve">
+    <value>Личная учётная запись Microsoft (Outlook.com / M365 Family)</value>
+  </data>
+  <data name="MsaNoAppRegistrationNeeded" xml:space="preserve">
+    <value>Регистрация приложения не требуется.</value>
+  </data>
+  <data name="MsaDefaultClientInfoCreate" xml:space="preserve">
+    <value>Mail-Archiver использует предварительную регистрацию приложения. Введите адрес эл. почты, сохраните, затем нажмите {0}.</value>
+  </data>
+  <data name="MsaAuthorize" xml:space="preserve">
+    <value>Авторизовать</value>
+  </data>
+  <data name="MsaAppRegistrationSetup" xml:space="preserve">
+    <value>Настройте регистрацию приложения Azure (один раз, ~2 минуты)</value>
+  </data>
+  <data name="MsaCreateAppRegistration" xml:space="preserve">
+    <value>Создать регистрацию приложения</value>
+  </data>
+  <data name="MsaSignInWithMicrosoftAccount" xml:space="preserve">
+    <value>(войдите с учётной записью Microsoft)</value>
+  </data>
+  <data name="MsaAppRegStepName" xml:space="preserve">
+    <value>Выберите любое имя (напр. mail-archiver)</value>
+  </data>
+  <data name="MsaAppRegStepAccountTypes" xml:space="preserve">
+    <value>В разделе Поддерживаемые типы учётных записей выберите: Учетные записи в любом каталоге организации и личные учетные записи Microsoft</value>
+  </data>
+  <data name="MsaAppRegStepRedirect" xml:space="preserve">
+    <value>Оставьте URI перенаправления пустым → нажмите Зарегистрировать</value>
+  </data>
+  <data name="MsaAppRegStepClientId" xml:space="preserve">
+    <value>Введите показанный идентификатор приложения (клиента) ниже</value>
+  </data>
+  <data name="MsaAppRegStepAuth" xml:space="preserve">
+    <value>Нажмите Проверка подлинности в приложении → включите Разрешить потоки общедоступных клиентов → Сохранить</value>
+  </data>
+  <data name="MsaNoSecretNeededCreate" xml:space="preserve">
+    <value>Секрет и URI перенаправления не требуются. После сохранения нажмите Авторизовать.</value>
+  </data>
+  <data name="MsaClientIdPlaceholder" xml:space="preserve">
+    <value>Идентификатор приложения (клиента) Azure</value>
+  </data>
+  <data name="MsaClientSecretOptional" xml:space="preserve">
+    <value>(необязательно)</value>
+  </data>
+  <data name="MsaClientSecretPlaceholder" xml:space="preserve">
+    <value>Не требуется для приложений общедоступного клиента</value>
+  </data>
+  <data name="MsaClientSecretHint" xml:space="preserve">
+    <value>Только для конфиденциальных клиентских приложений. Оставьте пустым при использовании общедоступного клиента.</value>
+  </data>
+  <data name="MsaAuthorized" xml:space="preserve">
+    <value>Авторизовано. Учётная запись Microsoft подключена, маркер обновляется автоматически.</value>
+  </data>
+  <data name="MsaReAuthorize" xml:space="preserve">
+    <value>Повторная авторизация</value>
+  </data>
+  <data name="MsaNotYetAuthorized" xml:space="preserve">
+    <value>Ещё не авторизовано.</value>
+  </data>
+  <data name="MsaSaveThenAuthorize" xml:space="preserve">
+    <value>Сохраните, затем нажмите {0}.</value>
+  </data>
+  <data name="MsaEnterClientIdThenAuthorize" xml:space="preserve">
+    <value>Введите ID клиента, сохраните, затем нажмите {0}.</value>
+  </data>
+  <data name="MsaDefaultClientInfoEdit" xml:space="preserve">
+    <value>Mail-Archiver использует предварительную регистрацию приложения — собственная регистрация не требуется. Заполняйте только для использования пользовательского ID клиента.</value>
+  </data>
+  <data name="MsaNoSecretNeededShort" xml:space="preserve">
+    <value>Секрет и URI перенаправления не требуются.</value>
+  </data>
+  <data name="MsaClientIdOptionalHint" xml:space="preserve">
+    <value>Необязательно — оставьте пустым для использования регистрации приложения по умолчанию.</value>
+  </data>
+  <data name="MsaClientIdKeepExisting" xml:space="preserve">
+    <value>Оставьте пустым, чтобы сохранить существующее значение.</value>
+  </data>
+  <data name="MsaClientSecretPlaceholderEdit" xml:space="preserve">
+    <value>Не требуется для Device Code Flow</value>
+  </data>
+  <data name="MsaAuthorizeWithMicrosoft" xml:space="preserve">
+    <value>Авторизовать через Microsoft</value>
+  </data>
+  <data name="MsaReAuthorizeWithMicrosoft" xml:space="preserve">
+    <value>Повторная авторизация через Microsoft</value>
+  </data>
+  <data name="MsaClientIdRequired" xml:space="preserve">
+    <value>Идентификатор клиента требуется для учётных записей MS Личный, если не настроен идентификатор клиента по умолчанию.</value>
+  </data>
+  <data name="MsaNotAuthorizedSync" xml:space="preserve">
+    <value>Эта учётная запись Microsoft ещё не авторизована. Сначала нажмите «Авторизовать через Microsoft» на странице редактирования учётной записи.</value>
+  </data>
+  <data name="MsaClientIdNotConfigured" xml:space="preserve">
+    <value>Идентификатор клиента не настроен. Сначала отредактируйте учётную запись.</value>
+  </data>
+  <data name="MsaAuthorizationFailed" xml:space="preserve">
+    <value>Не удалось запустить авторизацию: {0}</value>
+  </data>
+  <data name="MsaAccessDenied" xml:space="preserve">
+    <value>Доступ запрещён.</value>
+  </data>
+  <data name="MsaSessionExpired" xml:space="preserve">
+    <value>Сессия истекла. Перезапустите авторизацию.</value>
+  </data>
+  <data name="MsaAccountNotFound" xml:space="preserve">
+    <value>Учётная запись не найдена.</value>
+  </data>
+  <data name="MsaAuthorizationCancelled" xml:space="preserve">
+    <value>Создание учётной записи отменено.</value>
+  </data>
+  <data name="UseTenantImport" xml:space="preserve">
+    <value>Использовать импорт арендатора</value>
+  </data>
+  <data name="UseTenantImportHelp" xml:space="preserve">
+    <value>Загружает почтовые ящики арендатора и создает учетные записи по схеме именования: введенное имя - &lt;box@example.com&gt;.</value>
+  </data>
+  <data name="SkipDisabledMailboxes" xml:space="preserve">
+    <value>Пропустить отключенные почтовые ящики</value>
+  </data>
+  <data name="ImportAllListedMailboxes" xml:space="preserve">
+    <value>Импортировать все перечисленные почтовые ящики</value>
+  </data>
+  <data name="ImportAllListedMailboxesHelp" xml:space="preserve">
+    <value>Если отключено, импортируются только почтовые ящики, выбранные ниже.</value>
+  </data>
+  <data name="LoadMailboxes" xml:space="preserve">
+    <value>Загрузить почтовые ящики</value>
+  </data>
+  <data name="TenantMailboxes" xml:space="preserve">
+    <value>Почтовые ящики арендатора</value>
+  </data>
+  <data name="ClearSelection" xml:space="preserve">
+    <value>Очистить выбор</value>
+  </data>
+  <data name="NoMailboxesFound" xml:space="preserve">
+    <value>Почтовые ящики не найдены.</value>
+  </data>
+  <data name="DisabledLowercase" xml:space="preserve">
+    <value>отключено</value>
+  </data>
+  <data name="AlreadyExistsLowercase" xml:space="preserve">
+    <value>уже существует</value>
+  </data>
+  <data name="LoadingMailboxes" xml:space="preserve">
+    <value>Загрузка почтовых ящиков...</value>
+  </data>
+  <data name="MailboxesCouldNotBeLoaded" xml:space="preserve">
+    <value>Не удалось загрузить почтовые ящики.</value>
+  </data>
+  <data name="MailboxesFound" xml:space="preserve">
+    <value>Найдено {0} почтовый(ых) ящик(ов).</value>
+  </data>
+  <data name="M365MailboxDefaultName" xml:space="preserve">
+    <value>Почтовый ящик M365</value>
+  </data>
+  <data name="NoEnabledM365UsersFound" xml:space="preserve">
+    <value>В этом арендаторе не найдено включенных пользователей M365 с адресом электронной почты или главным именем пользователя.</value>
+  </data>
+  <data name="SelectAtLeastOneMailboxOrImportAll" xml:space="preserve">
+    <value>Выберите хотя бы один почтовый ящик или включите импорт всех перечисленных почтовых ящиков.</value>
+  </data>
+  <data name="AllSelectedM365TenantMailboxesAlreadyExist" xml:space="preserve">
+    <value>Все {0} выбранных почтовых ящиков арендатора M365 уже существуют.</value>
+  </data>
+  <data name="ImportedM365TenantAccounts" xml:space="preserve">
+    <value>Импортировано {0} учетных записей электронной почты арендатора M365. Пропущено {1} существующих учетных записей.</value>
+  </data>
+  <data name="M365TenantCredentialsRequired" xml:space="preserve">
+    <value>Идентификатор клиента, секрет клиента и идентификатор арендатора требуются для перечисления почтовых ящиков арендатора.</value>
+  </data>
+  <data name="M365TenantMailboxesCouldNotBeListed" xml:space="preserve">
+    <value>Не удалось перечислить почтовые ящики арендатора. Проверьте учетные данные M365 и разрешения.</value>
+  </data>
+  <data name="M365TenantAccountsCouldNotBeImported" xml:space="preserve">
+    <value>Не удалось импортировать учетные записи арендатора M365. Проверьте учетные данные и разрешения.</value>
+  </data>
+  <data name="NameRequired" xml:space="preserve">
+    <value>Имя обязательно</value>
+  </data>
+  <data name="EmailAddressRequired" xml:space="preserve">
+    <value>Адрес электронной почты обязателен</value>
+  </data>
+  <data name="ProviderM365Single" xml:space="preserve">
+    <value>Microsoft 365 (один почтовый ящик)</value>
+  </data>
+  <data name="ProviderM365Tenant" xml:space="preserve">
+    <value>Microsoft 365 (арендатор)</value>
+  </data>
+  <data name="LoadMailboxesHelp" xml:space="preserve">
+    <value>Загрузите список почтовых ящиков арендатора, чтобы выбрать, какие учетные записи импортировать.</value>
+  </data>
+  <data name="InvalidImportFileType" xml:space="preserve">
+    <value>Недопустимый тип файла. Разрешённые расширения: .mbox, .eml, .zip</value>
+  </data>
+  <data name="ClientSecretWillBeCopiedOnSave" xml:space="preserve">
+    <value>Секрет клиента будет скопирован из выбранной существующей учётной записи при сохранении.</value>
+  </data>
+  <data name="ClientSecretRequired" xml:space="preserve">
+    <value>Секрет клиента обязателен для учётных записей M365</value>
+  </data>
+  <data name="TenantManagement" xml:space="preserve">
+    <value>Управление арендатором</value>
+  </data>
+  <data name="TenantManagementTitle" xml:space="preserve">
+    <value>Управление арендатором</value>
+  </data>
+  <data name="TenantManagementHelp" xml:space="preserve">
+    <value>Добавьте недостающие почтовые ящики этого арендатора. Новые учётные записи используют учётные данные исходной учётной записи.</value>
+  </data>
+  <data name="AddSelectedMailboxes" xml:space="preserve">
+    <value>Добавить выбранные почтовые ящики</value>
+  </data>
+  <data name="MailboxesAdded" xml:space="preserve">
+    <value>{0} почтовых ящиков добавлено.</value>
+  </data>
+  <data name="NoNewMailboxesToAdd" xml:space="preserve">
+    <value>Нет новых почтовых ящиков для добавления.</value>
+  </data>
+  <data name="SelectAtLeastOneMailboxForManagement" xml:space="preserve">
+    <value>Выберите хотя бы один почтовый ящик для добавления.</value>
+  </data>
+  <data name="MoreActions" xml:space="preserve">
+    <value>Дополнительные действия</value>
+  </data>
+  <data name="AccountNameTooLong" xml:space="preserve">
+    <value>Имя учётной записи должно содержать не более 200 символов.</value>
+  </data>
+  <data name="SelectAtMostMailboxes" xml:space="preserve">
+    <value>Выбирайте не более {0} почтовых ящиков за раз.</value>
+  </data>
+  <data name="SearchMailboxes" xml:space="preserve">
+    <value>Поиск почтовых ящиков...</value>
+  </data>
+  <data name="NoMailboxesMatch" xml:space="preserve">
+    <value>Ни один почтовый ящик не соответствует вашему запросу.</value>
+  </data>
+  <data name="SearchAccounts" xml:space="preserve">
+    <value>Поиск учётных записей...</value>
+  </data>
+  <data name="NoAccountsMatch" xml:space="preserve">
+    <value>Ни одна учётная запись не соответствует вашему поиску.</value>
+  </data>
+  <data name="SearchUsers" xml:space="preserve">
+    <value>Поиск пользователей...</value>
+  </data>
+  <data name="NoUsersMatch" xml:space="preserve">
+    <value>Ни один пользователь не соответствует вашему поиску.</value>
+  </data>
+  <data name="AccountsFound" xml:space="preserve">
+    <value>Найдено {0} учётных записей</value>
+  </data>
+  <data name="UsersFound" xml:space="preserve">
+    <value>Найдено {0} пользователей</value>
+  </data>
+  <data name="RenameExistingAccounts" xml:space="preserve">
+    <value>Переименовать существующие учётные записи</value>
+  </data>
+  <data name="RenameExistingAccountsHelp" xml:space="preserve">
+    <value>После сохранения применить схему именования ко всем учётным записям M365, использующим ту же регистрацию приложения.</value>
+  </data>
+  <data name="AccountsRenamed" xml:space="preserve">
+    <value>Переименовано учётных записей: {0}.</value>
+  </data>
+  <data name="MailboxesAddedAndAccountsRenamed" xml:space="preserve">
+    <value>Добавлено почтовых ящиков: {0}, переименовано учётных записей: {1}.</value>
+  </data>
+  <data name="ShowPassword" xml:space="preserve">
+    <value>Показать пароль</value>
+  </data>
+  <data name="HidePassword" xml:space="preserve">
+    <value>Скрыть пароль</value>
+  </data>
+  <data name="AdvancedSettings" xml:space="preserve">
+    <value>Дополнительные настройки</value>
+  </data>
+  <data name="UnsavedChangesWarning" xml:space="preserve">
+    <value>У вас есть несохранённые изменения. Вы уверены, что хотите покинуть эту страницу?</value>
+  </data>
+  <data name="Saving" xml:space="preserve">
+    <value>Сохранение...</value>
+  </data>
+  <data name="CopyFolderToExcluded" xml:space="preserve">
+    <value>Нажмите на папку, чтобы добавить её в список исключений или удалить из него</value>
+  </data>
+  <data name="StorageUsed" xml:space="preserve">
+    <value>Используемый объём</value>
+  </data>
+  <data name="ConnectionDetails" xml:space="preserve">
+    <value>Сведения о подключении</value>
+  </data>
+  <data name="PrimaryActions" xml:space="preserve">
+    <value>Действия</value>
+  </data>
+  <data name="FilterMailboxes" xml:space="preserve">
+    <value>Фильтрация ящиков...</value>
+  </data>
+  <data name="NoMailboxesMatchFilter" xml:space="preserve">
+    <value>Ни один ящик не соответствует фильтру.</value>
+  </data>
+  <data name="MsaBadge" xml:space="preserve">
+    <value>MSA (личный)</value>
+  </data>
+  <data name="MsaAuthAfterSaveInfo" xml:space="preserve">
+    <value>После сохранения вы будете перенаправлены в Microsoft для авторизации доступа к вашему почтовому ящику.</value>
+  </data>
+  <data name="UserAccountSection" xml:space="preserve">
+    <value>Данные учётной записи</value>
+  </data>
+  <data name="UserSecuritySection" xml:space="preserve">
+    <value>Безопасность</value>
+  </data>
+  <data name="OidcPasswordManagedExternally" xml:space="preserve">
+    <value>Это пользователь OIDC. Управление паролем осуществляется провайдером OIDC.</value>
+  </data>
+  <data name="BackgroundJobsActiveCount" xml:space="preserve">
+    <value>{0} фоновых задач(а) выполняется.</value>
+  </data>
+  <data name="AutoRefreshInfo" xml:space="preserve">
+    <value>Автообновление через {0}s</value>
+  </data>
+  <data name="WelcomeBack" xml:space="preserve">
+    <value>С возвращением, {0}</value>
+  </data>
+  <!-- CSV Bulk IMAP Import -->
+  <data name="ImportCsvBulk" xml:space="preserve">
+    <value>Массовый импорт CSV</value>
+  </data>
+  <data name="CsvImportTitle" xml:space="preserve">
+    <value>Импорт почтовых ящиков IMAP из CSV</value>
+  </data>
+  <data name="CsvImportInformation" xml:space="preserve">
+    <value>Импортируйте несколько почтовых ящиков IMAP одновременно через CSV-файл.</value>
+  </data>
+  <data name="CsvImportFormatHelp" xml:space="preserve">
+    <value>Столбцы: email (обязательно), password (обязательно), name (необязательно), username (необязательно), imap_server (необязательно), imap_port (необязательно), use_ssl (необязательно)</value>
+  </data>
+  <data name="CsvImportCommonServerHelp" xml:space="preserve">
+    <value>Общие настройки сервера применяются ко всем строкам без столбца imap_server.</value>
+  </data>
+  <data name="CsvImportNoConnectionTest" xml:space="preserve">
+    <value>Тест подключения IMAP не выполняется — ошибки появятся только при первой синхронизации.</value>
+  </data>
+  <data name="CsvImportAdminOnlyNote" xml:space="preserve">
+    <value>Эта функция доступна только администраторам.</value>
+  </data>
+  <data name="DownloadExampleCsv" xml:space="preserve">
+    <value>Скачать пример CSV</value>
+  </data>
+  <data name="CsvImportSettingsTitle" xml:space="preserve">
+    <value>Загрузка и настройки</value>
+  </data>
+  <data name="CsvFile" xml:space="preserve">
+    <value>CSV-файл</value>
+  </data>
+  <data name="CsvFileHelp" xml:space="preserve">
+    <value>CSV-файл в кодировке UTF-8 со строкой заголовка. Обязательные столбцы: email, password.</value>
+  </data>
+  <data name="CommonServerSettings" xml:space="preserve">
+    <value>Общие настройки сервера</value>
+  </data>
+  <data name="CommonServerSettingsHelp" xml:space="preserve">
+    <value>Используются, когда в строке CSV нет значения imap_server.</value>
+  </data>
+  <data name="ImapServerLabel" xml:space="preserve">
+    <value>Сервер IMAP</value>
+  </data>
+  <data name="ImapPortLabel" xml:space="preserve">
+    <value>Порт IMAP</value>
+  </data>
+  <data name="UseSslLabel" xml:space="preserve">
+    <value>Использовать SSL</value>
+  </data>
+  <data name="NamePrefix" xml:space="preserve">
+    <value>Префикс имени</value>
+  </data>
+  <data name="NamePrefixHelp" xml:space="preserve">
+    <value>Имя по умолчанию: "{prefix} - &lt;{email}&gt;"</value>
+  </data>
+  <data name="SkipExisting" xml:space="preserve">
+    <value>Пропустить существующие ящики</value>
+  </data>
+  <data name="SkipExistingHelp" xml:space="preserve">
+    <value>Дубликаты пропускаются, не помечаются как ошибки.</value>
+  </data>
+  <data name="AccountEnabledLabel" xml:space="preserve">
+    <value>Аккаунт включён</value>
+  </data>
+  <data name="CsvImportSubmit" xml:space="preserve">
+    <value>Импортировать</value>
+  </data>
+  <data name="CsvImportResult" xml:space="preserve">
+    <value>Результат импорта</value>
+  </data>
+  <data name="CsvImportAgain" xml:space="preserve">
+    <value>Импортировать ещё CSV</value>
+  </data>
+  <data name="CsvImportResultSummary" xml:space="preserve">
+    <value>{0} создано, {1} пропущено, {2} с ошибками</value>
+  </data>
+  <data name="CsvImportCreated" xml:space="preserve">
+    <value>Создано</value>
+  </data>
+  <data name="CsvImportSkipped" xml:space="preserve">
+    <value>Пропущено</value>
+  </data>
+  <data name="CsvImportFailed" xml:space="preserve">
+    <value>С ошибками</value>
+  </data>
+  <data name="CsvImportEmail" xml:space="preserve">
+    <value>Эл. почта</value>
+  </data>
+  <data name="CsvImportNameCol" xml:space="preserve">
+    <value>Имя</value>
+  </data>
+  <data name="CsvImportReason" xml:space="preserve">
+    <value>Причина</value>
+  </data>
+  <data name="CsvImportRowNumber" xml:space="preserve">
+    <value>Строка</value>
+  </data>
+  <data name="CsvImportNoFile" xml:space="preserve">
+    <value>Пожалуйста, выберите CSV-файл.</value>
+  </data>
+  <data name="CsvImportFileTooLarge" xml:space="preserve">
+    <value>Файл слишком большой: {0} МБ, максимум {1} МБ.</value>
+  </data>
+  <data name="CsvImportNoValidRows" xml:space="preserve">
+    <value>В CSV-файле не найдено допустимых почтовых ящиков.</value>
+  </data>
+  <data name="CsvImportTooManyRows" xml:space="preserve">
+    <value>CSV-файл содержит {0} строк, максимум {1}.</value>
+  </data>
+  <data name="CsvImportMissingServer" xml:space="preserve">
+    <value>Не указан сервер IMAP (ни в строке, ни в форме).</value>
+  </data>
+  <data name="CsvImportInvalidPort" xml:space="preserve">
+    <value>Недопустимый порт "{1}"</value>
+  </data>
+  <data name="CsvImportInvalidUseSsl" xml:space="preserve">
+    <value>Недопустимое значение use_ssl "{1}"</value>
+  </data>
+  <data name="CsvImportMissingEmail" xml:space="preserve">
+    <value>Отсутствует адрес электронной почты.</value>
+  </data>
+  <data name="CsvImportMissingPassword" xml:space="preserve">
+    <value>Отсутствует пароль.</value>
+  </data>
+  <data name="CsvImportMalformedLine" xml:space="preserve">
+    <value>Некорректная строка CSV — не удалось разобрать.</value>
+  </data>
+  <data name="CsvImportDuplicateInFile" xml:space="preserve">
+    <value>Дубликат в CSV-файле</value>
+  </data>
+  <data name="CsvImportAlreadyExists" xml:space="preserve">
+    <value>Ящик уже существует</value>
+  </data>
+  <data name="CsvImportCouldNotBeProcessed" xml:space="preserve">
+    <value>Не удалось обработать импорт CSV</value>
+  </data>
+  <data name="CsvImportAdminOnly" xml:space="preserve">
+    <value>Массовый импорт CSV доступен только администраторам.</value>
+  </data>
+  <data name="ImportEmailsHeader" xml:space="preserve">
+    <value>Импорт писем</value>
+  </data>
+  <data name="ImportAccountsHeader" xml:space="preserve">
+    <value>Импорт учётных записей</value>
+  </data>
+  <!-- API Keys (read-only REST API) -->
   <data name="ApiKeys" xml:space="preserve">
     <value>Ключи API</value>
   </data>

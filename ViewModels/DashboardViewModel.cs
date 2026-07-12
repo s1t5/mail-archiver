@@ -14,11 +14,13 @@ namespace MailArchiver.Models.ViewModels
 
     public class AccountStatistics
     {
+        public int AccountId { get; set; }
         public string AccountName { get; set; }
         public string EmailAddress { get; set; }
         public int EmailCount { get; set; }
         public DateTime LastSyncTime { get; set; }
         public bool IsEnabled { get; set; }
+        public string StorageUsed { get; set; }
     }
 
     public class EmailCountByPeriod

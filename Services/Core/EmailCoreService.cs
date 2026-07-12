@@ -9,7 +9,6 @@ using Microsoft.Extensions.Options;
 using MimeKit;
 using System.Globalization;
 using System.Text;
-using System.Text.Json;
 using System.Text.RegularExpressions;
 
 namespace MailArchiver.Services.Core
@@ -110,7 +109,34 @@ namespace MailArchiver.Services.Core
 
                 foreach (var phrase in phrases)
                 {
-                    searchConditions.Add($@"(
+                    var phraseTsQuery = BuildPhraseTsQuery(phrase);
+                    if (!string.IsNullOrEmpty(phraseTsQuery))
+                    {
+                        searchConditions.Add($@"(
+                        to_tsvector('simple', 
+                            COALESCE(""Subject"", '') || ' ' || 
+                            COALESCE(""Body"", '') || ' ' || 
+                            COALESCE(""From"", '') || ' ' || 
+                            COALESCE(""To"", '') || ' ' || 
+                            COALESCE(""Cc"", '') || ' ' || 
+                            COALESCE(""Bcc"", '')) 
+                        @@ to_tsquery('simple', @param{paramCounter})
+                        AND (
+                        POSITION(LOWER(@param{paramCounter + 1}) IN LOWER(COALESCE(""Subject"", ''))) > 0 OR
+                        POSITION(LOWER(@param{paramCounter + 1}) IN LOWER(COALESCE(""Body"", ''))) > 0 OR
+                        POSITION(LOWER(@param{paramCounter + 1}) IN LOWER(COALESCE(""From"", ''))) > 0 OR
+                        POSITION(LOWER(@param{paramCounter + 1}) IN LOWER(COALESCE(""To"", ''))) > 0 OR
+                        POSITION(LOWER(@param{paramCounter + 1}) IN LOWER(COALESCE(""Cc"", ''))) > 0 OR
+                        POSITION(LOWER(@param{paramCounter + 1}) IN LOWER(COALESCE(""Bcc"", ''))) > 0
+                    ))");
+                        parameters.Add(new Npgsql.NpgsqlParameter($"@param{paramCounter}", phraseTsQuery));
+                        paramCounter++;
+                        parameters.Add(new Npgsql.NpgsqlParameter($"@param{paramCounter}", phrase));
+                        paramCounter++;
+                    }
+                    else
+                    {
+                        searchConditions.Add($@"(
                         POSITION(LOWER(@param{paramCounter}) IN LOWER(COALESCE(""Subject"", ''))) > 0 OR
                         POSITION(LOWER(@param{paramCounter}) IN LOWER(COALESCE(""Body"", ''))) > 0 OR
                         POSITION(LOWER(@param{paramCounter}) IN LOWER(COALESCE(""From"", ''))) > 0 OR
@@ -118,8 +144,9 @@ namespace MailArchiver.Services.Core
                         POSITION(LOWER(@param{paramCounter}) IN LOWER(COALESCE(""Cc"", ''))) > 0 OR
                         POSITION(LOWER(@param{paramCounter}) IN LOWER(COALESCE(""Bcc"", ''))) > 0
                     )");
-                    parameters.Add(new Npgsql.NpgsqlParameter($"@param{paramCounter}", phrase));
-                    paramCounter++;
+                        parameters.Add(new Npgsql.NpgsqlParameter($"@param{paramCounter}", phrase));
+                        paramCounter++;
+                    }
                 }
 
                 foreach (var fieldSearch in fieldSearches)
@@ -167,10 +194,6 @@ namespace MailArchiver.Services.Core
             // Account filtering
             if (accountId.HasValue)
             {
-                // A non-null allowed list means the caller is restricted; an empty
-                // list grants access to nothing, so an explicitly requested account
-                // that is not contained must be denied (no .Any() short-circuit, or
-                // a zero-grant user could read any account via ?accountId=).
                 if (allowedAccountIds != null && !allowedAccountIds.Contains(accountId.Value))
                 {
                     _logger.LogWarning("User attempted to access account {AccountId} which is not in their allowed accounts list", accountId.Value);
@@ -238,19 +261,50 @@ namespace MailArchiver.Services.Core
             var totalCount = await ExecuteScalarQueryAsync<int>(countSql, CloneParameters(parameters));
 
             // Build ORDER BY clause
-            var orderByClause = GetOrderByClause(sortBy, sortOrder);
+            var (orderByClause, sortColumn, isTimestampSort) = GetOrderByClause(sortBy, sortOrder);
 
-            // Data query
-            var dataSql = $@"
-                SELECT e.""Id"", e.""MailAccountId"", e.""MessageId"", e.""Subject"", e.""Body"", e.""HtmlBody"",
-                       e.""From"", e.""To"", e.""Cc"", e.""Bcc"", e.""SentDate"", e.""ReceivedDate"",
-                       e.""IsOutgoing"", e.""HasAttachments"", e.""FolderName"", e.""IsLocked"",
-                       ma.""Id"" as ""AccountId"", ma.""Name"" as ""AccountName"", ma.""EmailAddress"" as ""AccountEmail""
-                FROM mail_archiver.""ArchivedEmails"" e
-                INNER JOIN mail_archiver.""MailAccounts"" ma ON e.""MailAccountId"" = ma.""Id""
-                {whereClause}
-                {orderByClause}
-                LIMIT {take} OFFSET {skip}";
+            // For timestamp sorts (SentDate/ReceivedDate), use a MATERIALIZED CTE to force the planner
+            // to use the GIN full-text index for the FTS predicate instead of doing a backward SentDate
+            // index scan with per-row re-tokenization of the body. The CTE selects only (Id, SortColumn)
+            // so no body detoasting happens during matching; the body is only detoasted for the final page.
+            // For text sorts, keep the flat form (no backward-index-scan antipattern there).
+            string dataSql;
+            if (isTimestampSort)
+            {
+                dataSql = $@"
+                    WITH ""matched"" AS MATERIALIZED (
+                        SELECT e.""Id"", e.""{sortColumn}""
+                        FROM mail_archiver.""ArchivedEmails"" e
+                        {whereClause}
+                    ),
+                    ""page"" AS (
+                        SELECT m.""Id"", m.""{sortColumn}""
+                        FROM ""matched"" m
+                        ORDER BY m.""{sortColumn}"" {(sortOrder?.ToLower() == "asc" ? "ASC" : "DESC")}
+                        LIMIT {take} OFFSET {skip}
+                    )
+                    SELECT e.""Id"", e.""MailAccountId"", e.""MessageId"", e.""Subject"", e.""Body"", e.""HtmlBody"",
+                           e.""From"", e.""To"", e.""Cc"", e.""Bcc"", e.""SentDate"", e.""ReceivedDate"",
+                           e.""IsOutgoing"", e.""HasAttachments"", e.""FolderName"", e.""IsLocked"",
+                           ma.""Id"" as ""AccountId"", ma.""Name"" as ""AccountName"", ma.""EmailAddress"" as ""AccountEmail""
+                    FROM ""page"" p
+                    INNER JOIN mail_archiver.""ArchivedEmails"" e ON e.""Id"" = p.""Id""
+                    INNER JOIN mail_archiver.""MailAccounts"" ma ON e.""MailAccountId"" = ma.""Id""
+                    ORDER BY p.""{sortColumn}"" {(sortOrder?.ToLower() == "asc" ? "ASC" : "DESC")}";
+            }
+            else
+            {
+                dataSql = $@"
+                    SELECT e.""Id"", e.""MailAccountId"", e.""MessageId"", e.""Subject"", e.""Body"", e.""HtmlBody"",
+                           e.""From"", e.""To"", e.""Cc"", e.""Bcc"", e.""SentDate"", e.""ReceivedDate"",
+                           e.""IsOutgoing"", e.""HasAttachments"", e.""FolderName"", e.""IsLocked"",
+                           ma.""Id"" as ""AccountId"", ma.""Name"" as ""AccountName"", ma.""EmailAddress"" as ""AccountEmail""
+                    FROM mail_archiver.""ArchivedEmails"" e
+                    INNER JOIN mail_archiver.""MailAccounts"" ma ON e.""MailAccountId"" = ma.""Id""
+                    {whereClause}
+                    {orderByClause}
+                    LIMIT {take} OFFSET {skip}";
+            }
 
             var emails = await ExecuteDataQueryAsync(dataSql, CloneParameters(parameters));
 
@@ -409,20 +463,49 @@ namespace MailArchiver.Services.Core
             };
         }
 
-        private string GetOrderByClause(string sortBy, string sortOrder)
+        /// <summary>
+        /// Builds a GIN-indexable tsquery for an exact phrase or single term, using prefix
+        /// matching (:*) and adjacency (<->) between words. Returns null when the input
+        /// contains no usable tokens (only punctuation), in which case the caller should
+        /// fall back to POSITION-only matching.
+        /// Used as a selective pre-filter before the authoritative POSITION substring check,
+        /// so the GIN index narrows the candidate set and the body is not detoasted during
+        /// matching for the common case.
+        /// </summary>
+        private string BuildPhraseTsQuery(string phrase)
         {
-            var columnName = sortBy?.ToLower() switch
+            if (string.IsNullOrWhiteSpace(phrase))
+                return null;
+
+            var words = phrase.Split((char[])null, StringSplitOptions.RemoveEmptyEntries);
+            var escapedTerms = new List<string>(words.Length);
+            foreach (var word in words)
             {
-                "subject" => "Subject",
-                "from" => "From",
-                "to" => "To",
-                "sentdate" => "SentDate",
-                "receiveddate" => "ReceivedDate",
-                _ => "SentDate"
+                var sanitized = Regex.Replace(word, @"[&|!():\*]", "", RegexOptions.None);
+                if (!string.IsNullOrEmpty(sanitized))
+                    escapedTerms.Add(sanitized.Replace("'", "''") + ":*");
+            }
+
+            if (escapedTerms.Count == 0)
+                return null;
+
+            return string.Join(" <-> ", escapedTerms);
+        }
+
+        private (string OrderByClause, string SortColumn, bool IsTimestampSort) GetOrderByClause(string sortBy, string sortOrder)
+        {
+            var (columnName, isTimestampSort) = (sortBy?.ToLower()) switch
+            {
+                "subject" => ("Subject", false),
+                "from" => ("From", false),
+                "to" => ("To", false),
+                "sentdate" => ("SentDate", true),
+                "receiveddate" => ("ReceivedDate", true),
+                _ => ("SentDate", true)
             };
 
             var direction = sortOrder?.ToLower() == "asc" ? "ASC" : "DESC";
-            return $@"ORDER BY e.""{columnName}"" {direction}";
+            return ($@"ORDER BY e.""{columnName}"" {direction}", columnName, isTimestampSort);
         }
 
         private List<Npgsql.NpgsqlParameter> CloneParameters(List<Npgsql.NpgsqlParameter> parameters)
@@ -458,8 +541,6 @@ namespace MailArchiver.Services.Core
 
             if (accountId.HasValue)
             {
-                // Empty allowed list = restricted to nothing; deny any explicitly
-                // requested account that is not contained (mirrors the optimized path).
                 if (allowedAccountIds != null && !allowedAccountIds.Contains(accountId.Value))
                     return (new List<ArchivedEmail>(), 0);
                 baseQuery = baseQuery.Where(e => e.MailAccountId == accountId.Value);
@@ -609,99 +690,11 @@ namespace MailArchiver.Services.Core
                     throw new InvalidOperationException($"Email with ID {parameters.EmailId.Value} not found");
                 }
 
-                switch (parameters.Format)
-                {
-                    case ExportFormat.Csv:
-                        await ExportSingleEmailAsCsv(email, ms);
-                        break;
-                    case ExportFormat.Json:
-                        await ExportSingleEmailAsJson(email, ms);
-                        break;
-                    case ExportFormat.Eml:
-                        await ExportSingleEmailAsEml(email, ms);
-                        break;
-                }
-            }
-            else
-            {
-                var searchTerm = parameters.SearchTerm ?? string.Empty;
-                var (emails, _) = await SearchEmailsAsync(
-                    searchTerm,
-                    parameters.FromDate,
-                    parameters.ToDate,
-                    parameters.SelectedAccountId,
-                    null,
-                    parameters.IsOutgoing,
-                    0,
-                    10000,
-                    allowedAccountIds);
-
-                switch (parameters.Format)
-                {
-                    case ExportFormat.Csv:
-                        await ExportMultipleEmailsAsCsv(emails, ms);
-                        break;
-                    case ExportFormat.Json:
-                        await ExportMultipleEmailsAsJson(emails, ms);
-                        break;
-                }
+                await ExportSingleEmailAsEml(email, ms);
             }
 
             ms.Position = 0;
             return ms.ToArray();
-        }
-
-        private async Task ExportSingleEmailAsCsv(ArchivedEmail email, MemoryStream ms)
-        {
-            using var writer = new StreamWriter(ms, Encoding.UTF8, leaveOpen: true);
-            writer.WriteLine("Subject;From;To;Date;Account;Direction;Message Text");
-
-            var subject = email.Subject.Replace("\"", "\"\"").Replace(";", ",");
-            var from = email.From.Replace("\"", "\"\"").Replace(";", ",");
-            var to = email.To.Replace("\"", "\"\"").Replace(";", ",");
-            var sentDate = email.SentDate.ToString("yyyy-MM-dd HH:mm:ss");
-            var account = email.MailAccount?.Name.Replace("\"", "\"\"").Replace(";", ",") ?? "Unknown";
-            var direction = email.IsOutgoing ? "Outgoing" : "Incoming";
-            var body = email.Body?.Replace("\r", " ").Replace("\n", " ")
-                .Replace("\"", "\"\"").Replace(";", ",") ?? "";
-
-            writer.WriteLine($"\"{subject}\";\"{from}\";\"{to}\";\"{sentDate}\";\"{account}\";\"{direction}\";\"{body}\"");
-            await writer.FlushAsync();
-        }
-
-        private async Task ExportSingleEmailAsJson(ArchivedEmail email, MemoryStream ms)
-        {
-            var exportData = new
-            {
-                Id = email.Id,
-                Subject = email.Subject,
-                From = email.From,
-                To = email.To,
-                Cc = email.Cc,
-                Bcc = email.Bcc,
-                SentDate = email.SentDate,
-                ReceivedDate = email.ReceivedDate,
-                AccountName = email.MailAccount?.Name,
-                FolderName = email.FolderName,
-                IsOutgoing = email.IsOutgoing,
-                HasAttachments = email.HasAttachments,
-                MessageId = email.MessageId,
-                Body = email.Body,
-                HtmlBody = email.HtmlBody,
-                Attachments = email.Attachments?.Select(a => new
-                {
-                    FileName = a.FileName,
-                    ContentType = a.ContentType,
-                    Size = a.Size
-                }).ToList()
-            };
-
-            var options = new JsonSerializerOptions
-            {
-                WriteIndented = true,
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-            };
-            await JsonSerializer.SerializeAsync(ms, exportData, options);
         }
 
         private async Task ExportSingleEmailAsEml(ArchivedEmail email, MemoryStream ms)
@@ -712,11 +705,16 @@ namespace MailArchiver.Services.Core
             try { message.From.Add(InternetAddress.Parse(email.From)); }
             catch { message.From.Add(new MailboxAddress("Sender", "sender@example.com")); }
 
+            // Apply stored display name to the From address if available
+            MailContentHelper.ApplyDisplayNames(message.From, email.FromDisplayName);
+
             foreach (var to in email.To.Split(',', StringSplitOptions.RemoveEmptyEntries))
             {
                 try { message.To.Add(InternetAddress.Parse(to.Trim())); }
                 catch { continue; }
             }
+
+            MailContentHelper.ApplyDisplayNames(message.To, email.ToDisplayNames);
 
             if (!string.IsNullOrEmpty(email.Cc))
             {
@@ -725,6 +723,8 @@ namespace MailArchiver.Services.Core
                     try { message.Cc.Add(InternetAddress.Parse(cc.Trim())); }
                     catch { continue; }
                 }
+
+                MailContentHelper.ApplyDisplayNames(message.Cc, email.CcDisplayNames);
             }
 
             if (!string.IsNullOrEmpty(email.Bcc))
@@ -734,6 +734,8 @@ namespace MailArchiver.Services.Core
                     try { message.Bcc.Add(InternetAddress.Parse(bcc.Trim())); }
                     catch { continue; }
                 }
+
+                MailContentHelper.ApplyDisplayNames(message.Bcc, email.BccDisplayNames);
             }
 
             // Import raw headers if available (for forensic/compliance purposes)
@@ -875,43 +877,6 @@ namespace MailArchiver.Services.Core
             await Task.Run(() => message.WriteTo(ms));
         }
 
-        private async Task ExportMultipleEmailsAsCsv(List<ArchivedEmail> emails, MemoryStream ms)
-        {
-            using var writer = new StreamWriter(ms, Encoding.UTF8, leaveOpen: true);
-            writer.WriteLine("Subject;From;To;Date;Account;Direction;Message Text");
-
-            foreach (var email in emails)
-            {
-                var subject = email.Subject.Replace("\"", "\"\"").Replace(";", ",");
-                var from = email.From.Replace("\"", "\"\"").Replace(";", ",");
-                var to = email.To.Replace("\"", "\"\"").Replace(";", ",");
-                var sentDate = email.SentDate.ToString("yyyy-MM-dd HH:mm:ss");
-                var account = email.MailAccount?.Name.Replace("\"", "\"\"").Replace(";", ",") ?? "Unknown";
-                var direction = email.IsOutgoing ? "Outgoing" : "Incoming";
-                var body = email.Body?.Replace("\r", " ").Replace("\n", " ")
-                    .Replace("\"", "\"\"").Replace(";", ",") ?? "";
-                writer.WriteLine($"\"{subject}\";\"{from}\";\"{to}\";\"{sentDate}\";\"{account}\";\"{direction}\";\"{body}\"");
-            }
-            await writer.FlushAsync();
-        }
-
-        private async Task ExportMultipleEmailsAsJson(List<ArchivedEmail> emails, MemoryStream ms)
-        {
-            var exportData = emails.Select(e => new
-            {
-                Subject = e.Subject,
-                From = e.From,
-                To = e.To,
-                SentDate = e.SentDate,
-                AccountName = e.MailAccount?.Name,
-                IsOutgoing = e.IsOutgoing,
-                Body = e.Body
-            }).ToList();
-
-            var options = new JsonSerializerOptions { WriteIndented = true };
-            await JsonSerializer.SerializeAsync(ms, exportData, options);
-        }
-
         #endregion
 
         #region Dashboard Methods
@@ -930,6 +895,7 @@ namespace MailArchiver.Services.Core
             model.EmailsPerAccount = await _context.MailAccounts
                 .Select(a => new AccountStatistics
                 {
+                    AccountId = a.Id,
                     AccountName = a.Name,
                     EmailAddress = a.EmailAddress,
                     EmailCount = a.ArchivedEmails.Count,
@@ -1083,6 +1049,18 @@ namespace MailArchiver.Services.Core
                 var bccAddresses = message.Bcc?.Select(m => m as MailboxAddress).Where(m => m != null).Select(m => m.Address) ?? new List<string>();
                 var bcc = MailContentHelper.CleanText(string.Join(", ", bccAddresses));
 
+                // Extract display names (MailboxAddress.Name) for faithful restore/export
+                var fromDisplayName = MailContentHelper.CleanText(fromAddress?.Name);
+                var toDisplayNames = MailContentHelper.CleanText(string.Join(", ",
+                    message.To?.Select(m => (m as MailboxAddress)?.Name)
+                            .Where(n => !string.IsNullOrEmpty(n)) ?? Enumerable.Empty<string>()));
+                var ccDisplayNames = MailContentHelper.CleanText(string.Join(", ",
+                    message.Cc?.Select(m => (m as MailboxAddress)?.Name)
+                            .Where(n => !string.IsNullOrEmpty(n)) ?? Enumerable.Empty<string>()));
+                var bccDisplayNames = MailContentHelper.CleanText(string.Join(", ",
+                    message.Bcc?.Select(m => (m as MailboxAddress)?.Name)
+                            .Where(n => !string.IsNullOrEmpty(n)) ?? Enumerable.Empty<string>()));
+
                 // Extract text and HTML body preserving original encoding
                 var body = string.Empty;
                 var htmlBody = string.Empty;
@@ -1158,7 +1136,12 @@ namespace MailArchiver.Services.Core
                 to = MailContentHelper.TruncateFieldForTsvector(to, 50_000); // ~50KB for to (can be many recipients)
                 cc = MailContentHelper.TruncateFieldForTsvector(cc, 50_000); // ~50KB for cc
                 bcc = MailContentHelper.TruncateFieldForTsvector(bcc, 50_000); // ~50KB for bcc
-                                                             // Body already truncated above to 500KB
+                                                             // Body already truncated above
+
+                fromDisplayName = MailContentHelper.TruncateFieldForTsvector(fromDisplayName, 50_000);
+                toDisplayNames = MailContentHelper.TruncateFieldForTsvector(toDisplayNames, 50_000);
+                ccDisplayNames = MailContentHelper.TruncateFieldForTsvector(ccDisplayNames, 50_000);
+                bccDisplayNames = MailContentHelper.TruncateFieldForTsvector(bccDisplayNames, 50_000);
 
                 // Final safety check: ensure total size for tsvector doesn't exceed limit
                 var totalTsvectorSize = Encoding.UTF8.GetByteCount(subject) +
@@ -1191,6 +1174,8 @@ namespace MailArchiver.Services.Core
                     }
                 }
 
+                body = MailContentHelper.SanitizeLongTokens(body);
+
                 // Sammle ALLE Anhänge einschließlich inline Images
                 var allAttachments = new List<MimePart>();
                 CollectAllAttachments(message.Body, allAttachments);
@@ -1215,6 +1200,10 @@ namespace MailArchiver.Services.Core
                     To = to,
                     Cc = cc,
                     Bcc = bcc,
+                    FromDisplayName = string.IsNullOrEmpty(fromDisplayName) ? null : fromDisplayName,
+                    ToDisplayNames = string.IsNullOrEmpty(toDisplayNames) ? null : toDisplayNames,
+                    CcDisplayNames = string.IsNullOrEmpty(ccDisplayNames) ? null : ccDisplayNames,
+                    BccDisplayNames = string.IsNullOrEmpty(bccDisplayNames) ? null : bccDisplayNames,
                     SentDate = convertedSentDate,
                     ReceivedDate = DateTime.UtcNow,
                     IsOutgoing = (isOutgoingEmail || isOutgoingFolder) && !isDraftsFolder,
@@ -1845,6 +1834,21 @@ namespace MailArchiver.Services.Core
 
                 _logger.LogInformation("Found {Count} emails to delete from local archive for account {AccountName}",
                     emailsToDelete.Count, account.Name);
+
+                // Unlock emails that fall under the retention policy so the database
+                // compliance trigger (prevent_locked_email_deletion) allows the deletion.
+                // Retention is exempt from the global DeletionPolicy lock.
+                try
+                {
+                    await _context.Database.ExecuteSqlInterpolatedAsync(
+                        $"UPDATE mail_archiver.\"ArchivedEmails\" SET \"IsLocked\" = false WHERE \"MailAccountId\" = {account.Id} AND \"SentDate\" < {cutoffDate}");
+                    _logger.LogDebug("Unlocked {Count} retention-expired emails for account {AccountName} prior to deletion",
+                        emailsToDelete.Count, account.Name);
+                }
+                catch (Exception unlockEx)
+                {
+                    _logger.LogError(unlockEx, "Failed to unlock retention-expired emails for account {AccountName}", account.Name);
+                }
 
                 // Delete in batches to avoid memory issues
                 var batchSize = _batchOptions.BatchSize;

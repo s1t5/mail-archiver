@@ -14,6 +14,14 @@ namespace MailArchiver.Models
         public string To { get; set; }
         public string Cc { get; set; }
         public string Bcc { get; set; }
+
+        // Original display names from the email headers (e.g. "Max Mustermann")
+        // Stored as comma-separated list parallel to From/To/Cc/Bcc address fields.
+        // null when no display names were present. Used for faithful restore/export only.
+        public string? FromDisplayName { get; set; }
+        public string? ToDisplayNames { get; set; }
+        public string? CcDisplayNames { get; set; }
+        public string? BccDisplayNames { get; set; }
         public DateTime SentDate { get; set; } = DateTime.UtcNow;
         public DateTime ReceivedDate { get; set; } = DateTime.UtcNow;
         public bool IsOutgoing { get; set; }

@@ -187,9 +187,6 @@
   <data name="NoEmailsFoundText" xml:space="preserve">
     <value>Ni sporočil za navedena iskalna merila.</value>
   </data>
-  <data name="ExportSearchResults" xml:space="preserve">
-    <value>Izvoz rezultatov iskanja</value>
-  </data>
   <data name="ExportFormat" xml:space="preserve">
     <value>Oblika izvoza</value>
   </data>
@@ -513,6 +510,27 @@
   </data>
   <data name="EmailDeletion" xml:space="preserve">
     <value>Izbris e-pošte</value>
+  </data>
+  <data name="SyncScheduling" xml:space="preserve">
+    <value>Razporejanje sinhronizacije</value>
+  </data>
+  <data name="SyncIntervalMinutes" xml:space="preserve">
+    <value>Interval sinhronizacije (minute)</value>
+  </data>
+  <data name="SyncIntervalMinutesPlaceholder" xml:space="preserve">
+    <value>Privzeto iz nastavitev</value>
+  </data>
+  <data name="SyncIntervalMinutesInfo" xml:space="preserve">
+    <value>Prepiše globalni interval sinhronizacije za ta račun. Pustite prazno za uporabo privzete vrednosti iz appsettings.json.</value>
+  </data>
+  <data name="FullSyncIntervalHours" xml:space="preserve">
+    <value>Interval polne sinhronizacije (ure)</value>
+  </data>
+  <data name="FullSyncIntervalHoursPlaceholder" xml:space="preserve">
+    <value>Brez polne sinhronizacije po računu</value>
+  </data>
+  <data name="FullSyncIntervalHoursInfo" xml:space="preserve">
+    <value>Po tem razporedu izvede polno ponovno sinhronizacijo. Pustite prazno za uporabo globalne privzete vrednosti iz appsettings.json (če je nastavljena) ali izklop samodejne polne sinhronizacije. Ročna ponovna sinhronizacija ostaja vedno na voljo.</value>
   </data>
   <data name="DeleteEmailAccountTitle" xml:space="preserve">
     <value>Izbriši e-poštni račun</value>
@@ -2335,6 +2353,18 @@
   <data name="SignInWithOAuth" xml:space="preserve">
     <value>Prijava z OAuth</value>
   </data>
+  <data name="SignInWithOAuthProvider" xml:space="preserve">
+    <value>Prijava z {0}</value>
+  </data>
+  <data name="RedirectingToProvider" xml:space="preserve">
+    <value>Preusmerjanje na {0}...</value>
+  </data>
+  <data name="PleaseWaitRedirectingToProvider" xml:space="preserve">
+    <value>Prosimo počakajte, medtem ko vas preusmerimo na {0}...</value>
+  </data>
+  <data name="Loading" xml:space="preserve">
+    <value>Nalaganje...</value>
+  </data>
   <data name="CurrentSyncTime" xml:space="preserve">
     <value>Trenutni čas sinhronizacije</value>
   </data>
@@ -2473,6 +2503,12 @@
   <data name="RateLimited" xml:space="preserve">
     <value>Doseženo omejitve hitrosti</value>
   </data>
+  <data name="SyncProgressTooltip" xml:space="preserve">
+    <value>Napredek se meri po končanih mapah. Velika mapa (npr. INBOX) drži vrstico na 0%, dokler se ne konča.</value>
+  </data>
+  <data name="SyncStatusTooltip" xml:space="preserve">
+    <value>Statusne kode:&lt;br&gt;Running = sinhronizacija poteka&lt;br&gt;Completed = uspešno končano&lt;br&gt;Failed = končano z napakami&lt;br&gt;Cancelled = ustavil uporabnik&lt;br&gt;Rate Limited = pavzirano zaradi kvote pasovne širine</value>
+  </data>
   <data name="SyncJobRateLimited" xml:space="preserve">
     <value>Sinkronizacija ustavljena zaradi omejitve pasovne širine. Bodo jo avtomatsko nadaljevali.</value>
   </data>
@@ -2500,6 +2536,12 @@
   <data name="SyncCancel" xml:space="preserve">
     <value>Sinhronizacija preklicana</value>
   </data>
+  <data name="DeletionPolicy" xml:space="preserve">
+    <value>Pravilnik o brisanju</value>
+  </data>
+  <data name="DeletionDisabledMessage" xml:space="preserve">
+    <value>Brisanje e-pošte je onemogočeno v konfiguraciji.</value>
+  </data>
   <data name="ConfirmBatchDelete" xml:space="preserve">
     <value>Potrdi množično brisanje</value>
   </data>
@@ -2521,6 +2563,514 @@
   <data name="GotIt" xml:space="preserve">
     <value>Razumem!</value>
   </data>
+
+  <!-- MSA (personal Microsoft account) OAuth2 device code flow -->
+  <data name="MsaAuthorizeTitle" xml:space="preserve">
+    <value>Pooblasti Microsoftov račun</value>
+  </data>
+  <data name="MsaAccountLabel" xml:space="preserve">
+    <value>Račun:</value>
+  </data>
+  <data name="MsaStep1OpenBrowser" xml:space="preserve">
+    <value>1. Odpri v brskalniku (ali telefonu itd.):</value>
+  </data>
+  <data name="MsaStep2EnterCode" xml:space="preserve">
+    <value>2. Vnesi to kodo:</value>
+  </data>
+  <data name="MsaCopyCode" xml:space="preserve">
+    <value>Kopiraj</value>
+  </data>
+  <data name="MsaCopyCodeTooltip" xml:space="preserve">
+    <value>Kopiraj kodo</value>
+  </data>
+  <data name="MsaCodeValidFor" xml:space="preserve">
+    <value>Koda veljavna {0} minut.</value>
+  </data>
+  <data name="MsaWaitingForAuthorization" xml:space="preserve">
+    <value>Čakanje na pooblastitev …</value>
+  </data>
+  <data name="MsaAuthorizationSuccessful" xml:space="preserve">
+    <value>Pooblastitev uspešna! Preusmerjanje …</value>
+  </data>
+  <data name="MsaErrorPrefix" xml:space="preserve">
+    <value>Napaka:</value>
+  </data>
+  <data name="MsaRetry" xml:space="preserve">
+    <value>Poskusi znova</value>
+  </data>
+  <data name="MsaProviderLabel" xml:space="preserve">
+    <value>Microsoft Osebni</value>
+  </data>
+  <data name="MsaSettingsHeading" xml:space="preserve">
+    <value>Osebni Microsoftov račun (Outlook.com / M365 Family)</value>
+  </data>
+  <data name="MsaNoAppRegistrationNeeded" xml:space="preserve">
+    <value>Registracija aplikacije ni potrebna.</value>
+  </data>
+  <data name="MsaDefaultClientInfoCreate" xml:space="preserve">
+    <value>Mail-Archiver uporablja vnaprej konfigurirano registracijo aplikacije. Vnesite e-poštni naslov, shranite in nato kliknite {0}.</value>
+  </data>
+  <data name="MsaAuthorize" xml:space="preserve">
+    <value>Pooblasti</value>
+  </data>
+  <data name="MsaAppRegistrationSetup" xml:space="preserve">
+    <value>Nastavi registracijo aplikacije Azure (enkrat, ~2 minuti)</value>
+  </data>
+  <data name="MsaCreateAppRegistration" xml:space="preserve">
+    <value>Ustvari registracijo aplikacije</value>
+  </data>
+  <data name="MsaSignInWithMicrosoftAccount" xml:space="preserve">
+    <value>(prijavi se z Microsoftovim računom)</value>
+  </data>
+  <data name="MsaAppRegStepName" xml:space="preserve">
+    <value>Izberi poljubno ime (npr. mail-archiver)</value>
+  </data>
+  <data name="MsaAppRegStepAccountTypes" xml:space="preserve">
+    <value>V Podprte vrste računov izberi: Računi v kateremkoli organizacijskem imeniku in osebni Microsoftovi računi</value>
+  </data>
+  <data name="MsaAppRegStepRedirect" xml:space="preserve">
+    <value>Pusti URI preusmeritve prazen → klikni Registriraj</value>
+  </data>
+  <data name="MsaAppRegStepClientId" xml:space="preserve">
+    <value>Spodaj vnesi prikazani ID aplikacije (odjemalca)</value>
+  </data>
+  <data name="MsaAppRegStepAuth" xml:space="preserve">
+    <value>Klikni Preverjanje pristnosti v aplikaciji → omogoči Dovoli javne tokove odjemalcev → Shrani</value>
+  </data>
+  <data name="MsaNoSecretNeededCreate" xml:space="preserve">
+    <value>Ni potreben skrivnost ali URI preusmeritve. Po shranjevanju kliknite Pooblasti.</value>
+  </data>
+  <data name="MsaClientIdPlaceholder" xml:space="preserve">
+    <value>ID aplikacije (odjemalca) Azure</value>
+  </data>
+  <data name="MsaClientSecretOptional" xml:space="preserve">
+    <value>(neobvezno)</value>
+  </data>
+  <data name="MsaClientSecretPlaceholder" xml:space="preserve">
+    <value>Ni potrebno za aplikacije javnega odjemalca</value>
+  </data>
+  <data name="MsaClientSecretHint" xml:space="preserve">
+    <value>Potrebno samo za aplikacije zaupnega odjemalca. Pustite prazno pri uporabi javnega odjemalca.</value>
+  </data>
+  <data name="MsaAuthorized" xml:space="preserve">
+    <value>Pooblaščeno. Microsoftov račun povezan, žeton se samodejno obnavlja.</value>
+  </data>
+  <data name="MsaReAuthorize" xml:space="preserve">
+    <value>Ponovno pooblasti</value>
+  </data>
+  <data name="MsaNotYetAuthorized" xml:space="preserve">
+    <value>Še ni pooblaščeno.</value>
+  </data>
+  <data name="MsaSaveThenAuthorize" xml:space="preserve">
+    <value>Shrani, nato klikni {0}.</value>
+  </data>
+  <data name="MsaEnterClientIdThenAuthorize" xml:space="preserve">
+    <value>Vnesi ID odjemalca, shrani, nato klikni {0}.</value>
+  </data>
+  <data name="MsaDefaultClientInfoEdit" xml:space="preserve">
+    <value>Mail-Archiver uporablja vnaprej konfigurirano registracijo aplikacije — lastna registracija ni potrebna. Izpolnite samo za uporabo ID-ja odjemalca po meri.</value>
+  </data>
+  <data name="MsaNoSecretNeededShort" xml:space="preserve">
+    <value>Ni potreben skrivnost ali URI preusmeritve.</value>
+  </data>
+  <data name="MsaClientIdOptionalHint" xml:space="preserve">
+    <value>Neobvezno — pustite prazno za uporabo privzete registracije aplikacije.</value>
+  </data>
+  <data name="MsaClientIdKeepExisting" xml:space="preserve">
+    <value>Pustite prazno za ohranitev obstoječe vrednosti.</value>
+  </data>
+  <data name="MsaClientSecretPlaceholderEdit" xml:space="preserve">
+    <value>Ni potrebno za tok kode naprave</value>
+  </data>
+  <data name="MsaAuthorizeWithMicrosoft" xml:space="preserve">
+    <value>Pooblasti z Microsoftom</value>
+  </data>
+  <data name="MsaReAuthorizeWithMicrosoft" xml:space="preserve">
+    <value>Ponovno pooblasti z Microsoftom</value>
+  </data>
+  <data name="MsaClientIdRequired" xml:space="preserve">
+    <value>ID odjemalca je obvezen za račune MS Osebni, ko privzeti ID odjemalca ni konfiguriran.</value>
+  </data>
+  <data name="MsaNotAuthorizedSync" xml:space="preserve">
+    <value>Ta Microsoftov račun še ni pooblaščen. Najprej kliknite &quot;Pooblasti z Microsoftom&quot; na strani za urejanje računa.</value>
+  </data>
+  <data name="MsaClientIdNotConfigured" xml:space="preserve">
+    <value>ID odjemalca ni konfiguriran. Najprej uredite račun.</value>
+  </data>
+  <data name="MsaAuthorizationFailed" xml:space="preserve">
+    <value>Začenjanje pooblastitve ni uspelo: {0}</value>
+  </data>
+  <data name="MsaAccessDenied" xml:space="preserve">
+    <value>Dostop zavrnjen.</value>
+  </data>
+  <data name="MsaSessionExpired" xml:space="preserve">
+    <value>Seja je potekla. Znova začnite pooblastitev.</value>
+  </data>
+  <data name="MsaAccountNotFound" xml:space="preserve">
+    <value>Račun ni najden.</value>
+  </data>
+  <data name="MsaAuthorizationCancelled" xml:space="preserve">
+    <value>Ustvarjanje računa preklicano.</value>
+  </data>
+  <data name="UseTenantImport" xml:space="preserve">
+    <value>Uporabi uvoz najemnika</value>
+  </data>
+  <data name="UseTenantImportHelp" xml:space="preserve">
+    <value>Naloži poštne nabiralnike najemnika in ustvari račune po shemi imenovanja: vneseno ime - &lt;nabiralnik@primer.com&gt;.</value>
+  </data>
+  <data name="SkipDisabledMailboxes" xml:space="preserve">
+    <value>Preskoči onemogočene poštne nabiralnike</value>
+  </data>
+  <data name="ImportAllListedMailboxes" xml:space="preserve">
+    <value>Uvozi vse naštete poštne nabiralnike</value>
+  </data>
+  <data name="ImportAllListedMailboxesHelp" xml:space="preserve">
+    <value>Če je onemogočeno, se uvozijo samo spodaj izbrani poštne nabiralnike.</value>
+  </data>
+  <data name="LoadMailboxes" xml:space="preserve">
+    <value>Naloži poštne nabiralnike</value>
+  </data>
+  <data name="TenantMailboxes" xml:space="preserve">
+    <value>Poštne nabiralnike najemnika</value>
+  </data>
+  <data name="ClearSelection" xml:space="preserve">
+    <value>Počisti izbiro</value>
+  </data>
+  <data name="NoMailboxesFound" xml:space="preserve">
+    <value>Poštne nabiralnike niso bile najdene.</value>
+  </data>
+  <data name="DisabledLowercase" xml:space="preserve">
+    <value>onemogočeno</value>
+  </data>
+  <data name="AlreadyExistsLowercase" xml:space="preserve">
+    <value>že obstaja</value>
+  </data>
+  <data name="LoadingMailboxes" xml:space="preserve">
+    <value>Nalaganje poštne nabiralnike...</value>
+  </data>
+  <data name="MailboxesCouldNotBeLoaded" xml:space="preserve">
+    <value>Poštne nabiralnike ni bilo mogoče naložiti.</value>
+  </data>
+  <data name="MailboxesFound" xml:space="preserve">
+    <value>Najdenih je bilo {0} pošten nabiralnik(a).</value>
+  </data>
+  <data name="M365MailboxDefaultName" xml:space="preserve">
+    <value>Poštni nabiralnik M365</value>
+  </data>
+  <data name="NoEnabledM365UsersFound" xml:space="preserve">
+    <value>V tem najemniku ni bilo najdenih omogočenih uporabnikov M365 z e-poštnim naslovom ali glavnim imenom uporabnika.</value>
+  </data>
+  <data name="SelectAtLeastOneMailboxOrImportAll" xml:space="preserve">
+    <value>Izberite vsaj en poštne nabiralnik ali omogočite uvoz vseh naštetih poštne nabiralnike.</value>
+  </data>
+  <data name="AllSelectedM365TenantMailboxesAlreadyExist" xml:space="preserve">
+    <value>Vsi izbrani {0} poštne nabiralnike najemnika M365 že obstajajo.</value>
+  </data>
+  <data name="ImportedM365TenantAccounts" xml:space="preserve">
+    <value>Uvoženih je bilo {0} računov e-pošte najemnika M365. Preskočenih je bilo {1} obstoječih računov.</value>
+  </data>
+  <data name="M365TenantCredentialsRequired" xml:space="preserve">
+    <value>Za našteti poštne nabiralnike najemnika so potrebni ID stranke, skrivnost stranke in ID najemnika.</value>
+  </data>
+  <data name="M365TenantMailboxesCouldNotBeListed" xml:space="preserve">
+    <value>Poštne nabiralnike najemnika ni bilo mogoče našteti. Preverite poverilnice M365 in dovoljenja.</value>
+  </data>
+  <data name="M365TenantAccountsCouldNotBeImported" xml:space="preserve">
+    <value>Računov najemnika M365 ni bilo mogoče uvoziti. Preverite poverilnice in dovoljenja.</value>
+  </data>
+  <data name="NameRequired" xml:space="preserve">
+    <value>Ime je obvezno</value>
+  </data>
+  <data name="EmailAddressRequired" xml:space="preserve">
+    <value>E-poštni naslov je obvezen</value>
+  </data>
+  <data name="ProviderM365Single" xml:space="preserve">
+    <value>Microsoft 365 (posamični nabiralnik)</value>
+  </data>
+  <data name="ProviderM365Tenant" xml:space="preserve">
+    <value>Microsoft 365 (najemnik)</value>
+  </data>
+  <data name="LoadMailboxesHelp" xml:space="preserve">
+    <value>Naložite seznam poštne nabiralnike najemnika, da izberete, katere račune želite uvoziti.</value>
+  </data>
+  <data name="InvalidImportFileType" xml:space="preserve">
+    <value>Neveljavna vrsta datoteke. Dovoljene priponice: .mbox, .eml, .zip</value>
+  </data>
+  <data name="ClientSecretWillBeCopiedOnSave" xml:space="preserve">
+    <value>Skrivnost stranke bo ob shranjevanju prenesena iz izbranega obstoječega računa.</value>
+  </data>
+  <data name="ClientSecretRequired" xml:space="preserve">
+    <value>Skrivnost stranke je obvezna za račune M365</value>
+  </data>
+  <data name="TenantManagement" xml:space="preserve">
+    <value>Upravljanje najemnika</value>
+  </data>
+  <data name="TenantManagementTitle" xml:space="preserve">
+    <value>Upravljanje najemnika</value>
+  </data>
+  <data name="TenantManagementHelp" xml:space="preserve">
+    <value>Dodajte manjkajoče poštne nabiralnike iz tega najemnika. Novi računi uporabljajo poverilnice izvornega računa.</value>
+  </data>
+  <data name="AddSelectedMailboxes" xml:space="preserve">
+    <value>Dodaj izbrane poštne nabiralnike</value>
+  </data>
+  <data name="MailboxesAdded" xml:space="preserve">
+    <value>{0} poštnih nabiralnikov dodanih.</value>
+  </data>
+  <data name="NoNewMailboxesToAdd" xml:space="preserve">
+    <value>Ni novih poštnih nabiralnikov za dodajanje.</value>
+  </data>
+  <data name="SelectAtLeastOneMailboxForManagement" xml:space="preserve">
+    <value>Izberite vsaj en poštni nabiralnik za dodajanje.</value>
+  </data>
+  <data name="MoreActions" xml:space="preserve">
+    <value>Več dejanj</value>
+  </data>
+  <data name="AccountNameTooLong" xml:space="preserve">
+    <value>Ime računa je lahko dolgo največ 200 znakov.</value>
+  </data>
+  <data name="SelectAtMostMailboxes" xml:space="preserve">
+    <value>Izberite največ {0} poštnih nabiralnikov naenkrat.</value>
+  </data>
+  <data name="SearchMailboxes" xml:space="preserve">
+    <value>Iskanje poštnih nabiralnikov...</value>
+  </data>
+  <data name="NoMailboxesMatch" xml:space="preserve">
+    <value>Noben poštni nabiralnik ne ustreza vašemu iskanju.</value>
+  </data>
+  <data name="SearchAccounts" xml:space="preserve">
+    <value>Iskanje računov...</value>
+  </data>
+  <data name="NoAccountsMatch" xml:space="preserve">
+    <value>Noben račun ne ustreza vašemu iskanju.</value>
+  </data>
+  <data name="SearchUsers" xml:space="preserve">
+    <value>Iskanje uporabnikov...</value>
+  </data>
+  <data name="NoUsersMatch" xml:space="preserve">
+    <value>Noben uporabnik ne ustreza vašemu iskanju.</value>
+  </data>
+  <data name="AccountsFound" xml:space="preserve">
+    <value>Najdenih {0} računov</value>
+  </data>
+  <data name="UsersFound" xml:space="preserve">
+    <value>Najdenih {0} uporabnikov</value>
+  </data>
+  <data name="RenameExistingAccounts" xml:space="preserve">
+    <value>Preimenuj obstoječe račune</value>
+  </data>
+  <data name="RenameExistingAccountsHelp" xml:space="preserve">
+    <value>Po shranjevanju uporabi imenovno shemo na vse račune M365, ki uporabljajo isto registracijo aplikacije.</value>
+  </data>
+  <data name="AccountsRenamed" xml:space="preserve">
+    <value>{0} računov preimenovanih.</value>
+  </data>
+  <data name="MailboxesAddedAndAccountsRenamed" xml:space="preserve">
+    <value>Dodano {0} poštnih nabiralnikov in preimenovanih {1} računov.</value>
+  </data>
+  <data name="ShowPassword" xml:space="preserve">
+    <value>Pokaži geslo</value>
+  </data>
+  <data name="HidePassword" xml:space="preserve">
+    <value>Skrij geslo</value>
+  </data>
+  <data name="AdvancedSettings" xml:space="preserve">
+    <value>Napredne nastavitve</value>
+  </data>
+  <data name="UnsavedChangesWarning" xml:space="preserve">
+    <value>Imate neshranjene spremembe. Ali ste prepričani, da želite zapustiti to stran?</value>
+  </data>
+  <data name="Saving" xml:space="preserve">
+    <value>Shranjevanje...</value>
+  </data>
+  <data name="CopyFolderToExcluded" xml:space="preserve">
+    <value>Kliknite mapo, da jo dodate ali odstranite s seznama izključitev</value>
+  </data>
+  <data name="StorageUsed" xml:space="preserve">
+    <value>Porabljen prostor</value>
+  </data>
+  <data name="ConnectionDetails" xml:space="preserve">
+    <value>Podrobnosti povezave</value>
+  </data>
+  <data name="PrimaryActions" xml:space="preserve">
+    <value>Dejanja</value>
+  </data>
+  <data name="FilterMailboxes" xml:space="preserve">
+    <value>Filtriraj nabiralnike...</value>
+  </data>
+  <data name="NoMailboxesMatchFilter" xml:space="preserve">
+    <value>Nobeni nabiralniki ne ustrezajo vašemu filtru.</value>
+  </data>
+  <data name="MsaBadge" xml:space="preserve">
+    <value>MSA (osebni)</value>
+  </data>
+  <data name="MsaAuthAfterSaveInfo" xml:space="preserve">
+    <value>Po shranjevanju boste preusmerjeni na Microsoft za avtorizacijo dostopa do vašega nabiralnika.</value>
+  </data>
+  <data name="UserAccountSection" xml:space="preserve">
+    <value>Podrobnosti računa</value>
+  </data>
+  <data name="UserSecuritySection" xml:space="preserve">
+    <value>Varnost</value>
+  </data>
+  <data name="OidcPasswordManagedExternally" xml:space="preserve">
+    <value>To je uporabnik OIDC. Upravljanje gesel obravnava ponudnik OIDC.</value>
+  </data>
+  <data name="BackgroundJobsActiveCount" xml:space="preserve">
+    <value>{0} opravil v ozadju se izvaja.</value>
+  </data>
+  <data name="AutoRefreshInfo" xml:space="preserve">
+    <value>Samodejna osvežitev čez {0}s</value>
+  </data>
+  <data name="WelcomeBack" xml:space="preserve">
+    <value>Dobrodošli nazaj, {0}</value>
+  </data>
+  <!-- CSV Bulk IMAP Import -->
+  <data name="ImportCsvBulk" xml:space="preserve">
+    <value>CSV uvoz v velikem obsegu</value>
+  </data>
+  <data name="CsvImportTitle" xml:space="preserve">
+    <value>Uvoz IMAP poštnih predalov iz CSV</value>
+  </data>
+  <data name="CsvImportInformation" xml:space="preserve">
+    <value>Hkratni uvoz več IMAP poštnih predalov prek datoteke CSV.</value>
+  </data>
+  <data name="CsvImportFormatHelp" xml:space="preserve">
+    <value>Stolpci: email (obvezno), password (obvezno), name (neobvezno), username (neobvezno), imap_server (neobvezno), imap_port (neobvezno), use_ssl (neobvezno)</value>
+  </data>
+  <data name="CsvImportCommonServerHelp" xml:space="preserve">
+    <value>Skupne nastavitve strežnika veljajo za vse vrstice brez stolpca imap_server.</value>
+  </data>
+  <data name="CsvImportNoConnectionTest" xml:space="preserve">
+    <value>Preizkus povezave IMAP se ne izvede — napake se pojavijo šele pri prvi sinhronizaciji.</value>
+  </data>
+  <data name="CsvImportAdminOnlyNote" xml:space="preserve">
+    <value>Ta funkcija je na voljo samo skrbnikom.</value>
+  </data>
+  <data name="DownloadExampleCsv" xml:space="preserve">
+    <value>Prenesi vzorčni CSV</value>
+  </data>
+  <data name="CsvImportSettingsTitle" xml:space="preserve">
+    <value>Nalaganje in nastavitve</value>
+  </data>
+  <data name="CsvFile" xml:space="preserve">
+    <value>Datoteka CSV</value>
+  </data>
+  <data name="CsvFileHelp" xml:space="preserve">
+    <value>Datoteka CSV v kodiranju UTF-8 z vrstico glave. Obvezni stolpci: email, password.</value>
+  </data>
+  <data name="CommonServerSettings" xml:space="preserve">
+    <value>Skupne nastavitve strežnika</value>
+  </data>
+  <data name="CommonServerSettingsHelp" xml:space="preserve">
+    <value>Uporablja se, ko vrstica CSV nima vrednosti imap_server.</value>
+  </data>
+  <data name="ImapServerLabel" xml:space="preserve">
+    <value>Strežnik IMAP</value>
+  </data>
+  <data name="ImapPortLabel" xml:space="preserve">
+    <value>Vrata IMAP</value>
+  </data>
+  <data name="UseSslLabel" xml:space="preserve">
+    <value>Uporabi SSL</value>
+  </data>
+  <data name="NamePrefix" xml:space="preserve">
+    <value>Predpona imena</value>
+  </data>
+  <data name="NamePrefixHelp" xml:space="preserve">
+    <value>Privzeto ime: "{prefix} - &lt;{email}&gt;"</value>
+  </data>
+  <data name="SkipExisting" xml:space="preserve">
+    <value>Preskoči obstoječe poštne predale</value>
+  </data>
+  <data name="SkipExistingHelp" xml:space="preserve">
+    <value>Duplikati so preskočeni, ne označeni kot napake.</value>
+  </data>
+  <data name="AccountEnabledLabel" xml:space="preserve">
+    <value>Račun omogočen</value>
+  </data>
+  <data name="CsvImportSubmit" xml:space="preserve">
+    <value>Uvozi</value>
+  </data>
+  <data name="CsvImportResult" xml:space="preserve">
+    <value>Rezultat uvoza</value>
+  </data>
+  <data name="CsvImportAgain" xml:space="preserve">
+    <value>Uvozi še en CSV</value>
+  </data>
+  <data name="CsvImportResultSummary" xml:space="preserve">
+    <value>{0} ustvarjenih, {1} preskočenih, {2} neuspešnih</value>
+  </data>
+  <data name="CsvImportCreated" xml:space="preserve">
+    <value>Ustvarjeno</value>
+  </data>
+  <data name="CsvImportSkipped" xml:space="preserve">
+    <value>Preskočeno</value>
+  </data>
+  <data name="CsvImportFailed" xml:space="preserve">
+    <value>Neuspešno</value>
+  </data>
+  <data name="CsvImportEmail" xml:space="preserve">
+    <value>E-pošta</value>
+  </data>
+  <data name="CsvImportNameCol" xml:space="preserve">
+    <value>Ime</value>
+  </data>
+  <data name="CsvImportReason" xml:space="preserve">
+    <value>Razlog</value>
+  </data>
+  <data name="CsvImportRowNumber" xml:space="preserve">
+    <value>Vrstica</value>
+  </data>
+  <data name="CsvImportNoFile" xml:space="preserve">
+    <value>Izberite datoteko CSV.</value>
+  </data>
+  <data name="CsvImportFileTooLarge" xml:space="preserve">
+    <value>Datoteka je prevelika: {0} MB, maksimum je {1} MB.</value>
+  </data>
+  <data name="CsvImportNoValidRows" xml:space="preserve">
+    <value>V datoteki CSV ni veljavnih poštnih predalov.</value>
+  </data>
+  <data name="CsvImportTooManyRows" xml:space="preserve">
+    <value>Datoteka CSV vsebuje {0} vrstic, maksimum je {1}.</value>
+  </data>
+  <data name="CsvImportMissingServer" xml:space="preserve">
+    <value>Ni naveden strežnik IMAP (ne v vrstici ne v obrazcu).</value>
+  </data>
+  <data name="CsvImportInvalidPort" xml:space="preserve">
+    <value>Neveljaven port "{1}"</value>
+  </data>
+  <data name="CsvImportInvalidUseSsl" xml:space="preserve">
+    <value>Neveljavna vrednost use_ssl "{1}"</value>
+  </data>
+  <data name="CsvImportMissingEmail" xml:space="preserve">
+    <value>Manjka e-poštni naslov.</value>
+  </data>
+  <data name="CsvImportMissingPassword" xml:space="preserve">
+    <value>Manjka geslo.</value>
+  </data>
+  <data name="CsvImportMalformedLine" xml:space="preserve">
+    <value>Nepravilno oblikovana vrstica CSV — ni mogoče razčleniti.</value>
+  </data>
+  <data name="CsvImportDuplicateInFile" xml:space="preserve">
+    <value>Duplikat v datoteki CSV</value>
+  </data>
+  <data name="CsvImportAlreadyExists" xml:space="preserve">
+    <value>Poštni predal že obstaja</value>
+  </data>
+  <data name="CsvImportCouldNotBeProcessed" xml:space="preserve">
+    <value>Uvoza CSV ni mogoče obdelati</value>
+  </data>
+  <data name="CsvImportAdminOnly" xml:space="preserve">
+    <value>CSV uvoz v velikem obsegu je na voljo samo skrbnikom.</value>
+  </data>
+  <data name="ImportEmailsHeader" xml:space="preserve">
+    <value>Uvozi e-pošto</value>
+  </data>
+  <data name="ImportAccountsHeader" xml:space="preserve">
+    <value>Uvozi račune</value>
+  </data>
+  <!-- API Keys (read-only REST API) -->
   <data name="ApiKeys" xml:space="preserve">
     <value>Ključi API</value>
   </data>
