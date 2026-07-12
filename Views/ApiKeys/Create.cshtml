@@ -1,0 +1,51 @@
+@model MailArchiver.Models.ViewModels.CreateApiKeyViewModel
+@inject Microsoft.Extensions.Localization.IStringLocalizer<MailArchiver.SharedResource> Localizer
+@{
+    ViewData["Title"] = Localizer["CreateApiKey"];
+}
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1>@Localizer["CreateApiKey"]</h1>
+        <a asp-action="Index" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> @Localizer["BackToList"]
+        </a>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <form asp-action="Create" method="post">
+                @Html.AntiForgeryToken()
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label asp-for="Name" class="form-label">@Localizer["ApiKeyName"]</label>
+                            <input asp-for="Name" class="form-control" required />
+                            <span asp-validation-for="Name" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label asp-for="ExpiresAt" class="form-label">@Localizer["ApiKeyExpiration"]</label>
+                            <input asp-for="ExpiresAt" type="date" asp-format="{0:yyyy-MM-dd}" class="form-control" />
+                            <span asp-validation-for="ExpiresAt" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between">
+                    <a asp-action="Index" class="btn btn-secondary">@Localizer["Cancel"]</a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-save"></i> @Localizer["CreateApiKey"]
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

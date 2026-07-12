@@ -335,6 +335,55 @@ namespace MailArchiver.Migrations
                     b.ToTable("AttachmentContents", "mail_archiver");
                 });
 
+            modelBuilder.Entity("MailArchiver.Models.ApiKey", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<DateTime?>("ExpiresAt")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<string>("KeyHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
+
+                    b.Property<string>("KeyPrefix")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)");
+
+                    b.Property<DateTime?>("LastUsedAt")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("RevokedAt")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("KeyHash")
+                        .IsUnique()
+                        .HasDatabaseName("IX_ApiKeys_KeyHash");
+
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("IX_ApiKeys_UserId");
+
+                    b.ToTable("ApiKeys", "mail_archiver");
+                });
 
             modelBuilder.Entity("MailArchiver.Models.User", b =>
                 {
@@ -480,6 +529,17 @@ namespace MailArchiver.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("MailArchiver.Models.ApiKey", b =>
+                {
+                    b.HasOne("MailArchiver.Models.User", "User")
+                        .WithMany("ApiKeys")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("MailAccount", b =>
                 {
                     b.Navigation("ArchivedEmails");
@@ -499,6 +559,8 @@ namespace MailArchiver.Migrations
 
             modelBuilder.Entity("MailArchiver.Models.User", b =>
                 {
+                    b.Navigation("ApiKeys");
+
                     b.Navigation("UserMailAccounts");
                 });
 

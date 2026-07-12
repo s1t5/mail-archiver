@@ -194,7 +194,7 @@ namespace MailArchiver.Services.Core
             // Account filtering
             if (accountId.HasValue)
             {
-                if (allowedAccountIds != null && allowedAccountIds.Any() && !allowedAccountIds.Contains(accountId.Value))
+                if (allowedAccountIds != null && !allowedAccountIds.Contains(accountId.Value))
                 {
                     _logger.LogWarning("User attempted to access account {AccountId} which is not in their allowed accounts list", accountId.Value);
                     return (new List<ArchivedEmail>(), 0);
@@ -541,7 +541,7 @@ namespace MailArchiver.Services.Core
 
             if (accountId.HasValue)
             {
-                if (allowedAccountIds != null && allowedAccountIds.Any() && !allowedAccountIds.Contains(accountId.Value))
+                if (allowedAccountIds != null && !allowedAccountIds.Contains(accountId.Value))
                     return (new List<ArchivedEmail>(), 0);
                 baseQuery = baseQuery.Where(e => e.MailAccountId == accountId.Value);
             }
@@ -1948,7 +1948,7 @@ namespace MailArchiver.Services.Core
                 if (accountId.HasValue)
                 {
                     // Check access permission
-                    if (allowedAccountIds != null && allowedAccountIds.Any() && !allowedAccountIds.Contains(accountId.Value))
+                    if (allowedAccountIds != null && !allowedAccountIds.Contains(accountId.Value))
                     {
                         _logger.LogWarning("User attempted to access folder tree for account {AccountId} which is not in their allowed accounts list", accountId.Value);
                         return new List<FolderTreeNode>();

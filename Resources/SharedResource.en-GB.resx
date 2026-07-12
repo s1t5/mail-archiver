@@ -469,4 +469,74 @@
   <data name="ImportAccountsHeader" xml:space="preserve">
     <value>Import accounts</value>
   </data>
+  <!-- API Keys (read-only REST API) -->
+  <data name="ApiKeys" xml:space="preserve">
+    <value>API Keys</value>
+  </data>
+  <data name="ApiKeysDescription" xml:space="preserve">
+    <value>Manage API keys for programmatic, read-only access to your archived mail.</value>
+  </data>
+  <data name="CreateApiKey" xml:space="preserve">
+    <value>Create API Key</value>
+  </data>
+  <data name="ApiKeyName" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="ApiKeyExpiration" xml:space="preserve">
+    <value>Expiration (optional)</value>
+  </data>
+  <data name="ApiKeyCreatedOnce" xml:space="preserve">
+    <value>Copy this key now. For security it is shown only once and cannot be retrieved later.</value>
+  </data>
+  <data name="ApiKeyValue" xml:space="preserve">
+    <value>API Key</value>
+  </data>
+  <data name="ApiKeyPrefix" xml:space="preserve">
+    <value>Prefix</value>
+  </data>
+  <data name="ApiKeyCreatedColumn" xml:space="preserve">
+    <value>Created</value>
+  </data>
+  <data name="ApiKeyLastUsed" xml:space="preserve">
+    <value>Last used</value>
+  </data>
+  <data name="ApiKeyExpires" xml:space="preserve">
+    <value>Expires</value>
+  </data>
+  <data name="ApiKeyStatus" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="ApiKeyActive" xml:space="preserve">
+    <value>Active</value>
+  </data>
+  <data name="ApiKeyRevoked" xml:space="preserve">
+    <value>Revoked</value>
+  </data>
+  <data name="ApiKeyExpired" xml:space="preserve">
+    <value>Expired</value>
+  </data>
+  <data name="ApiKeyRevoke" xml:space="preserve">
+    <value>Revoke</value>
+  </data>
+  <data name="ApiKeyRevokeConfirm" xml:space="preserve">
+    <value>Revoke this API key? Applications using it will stop working immediately.</value>
+  </data>
+  <data name="ApiKeyOwner" xml:space="preserve">
+    <value>Owner</value>
+  </data>
+  <data name="NoApiKeys" xml:space="preserve">
+    <value>No API keys yet.</value>
+  </data>
+  <data name="ApiKeyCreatedSuccess" xml:space="preserve">
+    <value>API key created.</value>
+  </data>
+  <data name="ApiKeyRevokedSuccess" xml:space="preserve">
+    <value>API key revoked.</value>
+  </data>
+  <data name="ApiKeyRevokeFailed" xml:space="preserve">
+    <value>Could not revoke the API key.</value>
+  </data>
+  <data name="Copy" xml:space="preserve">
+    <value>Copy</value>
+  </data>
 </root>

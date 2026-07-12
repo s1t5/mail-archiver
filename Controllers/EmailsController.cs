@@ -563,7 +563,7 @@ namespace MailArchiver.Controllers
             }
 
             // Check if user has access to this email's account
-            if (allowedAccountIds != null && allowedAccountIds.Any() && !allowedAccountIds.Contains(email.MailAccountId))
+            if (allowedAccountIds != null && !allowedAccountIds.Contains(email.MailAccountId))
             {
                 TempData["ErrorMessage"] = "You do not have access to this email.";
                 return RedirectToAction("Index");
@@ -796,7 +796,7 @@ namespace MailArchiver.Controllers
             }
 
             // Check if user is allowed to access the target account
-            if (allowedAccountIds != null && allowedAccountIds.Any() && !allowedAccountIds.Contains(model.TargetAccountId))
+            if (allowedAccountIds != null && !allowedAccountIds.Contains(model.TargetAccountId))
             {
                 _logger.LogWarning("User {Username} attempted to restore email to account {AccountId} which they don't have access to", 
                     authService?.GetCurrentUserDisplayName(HttpContext), model.TargetAccountId);
@@ -1269,7 +1269,7 @@ namespace MailArchiver.Controllers
             }
 
             // Check if user is allowed to access the target account
-            if (allowedAccountIds != null && allowedAccountIds.Any() && !allowedAccountIds.Contains(model.TargetAccountId))
+            if (allowedAccountIds != null && !allowedAccountIds.Contains(model.TargetAccountId))
             {
                 _logger.LogWarning("User {Username} attempted to restore emails to account {AccountId} which they don't have access to", 
                     authService?.GetCurrentUserDisplayName(HttpContext), model.TargetAccountId);
@@ -1759,7 +1759,7 @@ namespace MailArchiver.Controllers
             }
 
             // Check if user is allowed to access the target account
-            if (allowedAccountIds != null && allowedAccountIds.Any() && !allowedAccountIds.Contains(model.TargetAccountId))
+            if (allowedAccountIds != null && !allowedAccountIds.Contains(model.TargetAccountId))
             {
                 _logger.LogWarning("User {Username} attempted to restore emails to account {AccountId} which they don't have access to", 
                     authService?.GetCurrentUserDisplayName(HttpContext), model.TargetAccountId);
@@ -2920,7 +2920,7 @@ namespace MailArchiver.Controllers
                 }
 
                 // Filter the email IDs based on user's allowed accounts
-                if (allowedAccountIds != null && allowedAccountIds.Any())
+                if (allowedAccountIds != null)
                 {
                     var allowedEmailIds = await _context.ArchivedEmails
                         .Where(e => ids.Contains(e.Id) && allowedAccountIds.Contains(e.MailAccountId))

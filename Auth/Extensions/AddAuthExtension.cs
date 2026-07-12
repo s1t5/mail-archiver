@@ -48,6 +48,12 @@ namespace MailArchiver.Auth.Extensions
                 options.SlidingExpiration = true;
             });
 
+            // Read-only REST API: bearer API-key scheme (validated by the /api/
+            // branch of AuthenticationMiddleware). Cookies are never accepted on /api.
+            authBuilder.AddScheme<Microsoft.AspNetCore.Authentication.AuthenticationSchemeOptions,
+                MailArchiver.Auth.Handlers.ApiKeyAuthenticationHandler>(
+                MailArchiver.Auth.Handlers.ApiKeyAuthenticationHandler.SchemeName, null);
+
             // conditional OAuth setup
             var oauthOptions = builder.Configuration.GetSection(OAuthOptions.OAuth).Get<OAuthOptions>();
             if (oauthOptions?.Enabled ?? false)

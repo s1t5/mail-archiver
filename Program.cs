@@ -153,6 +153,23 @@ builder.Services.Configure<ReleaseNotesOptions>(
 builder.Services.Configure<DeletionPolicyOptions>(
     builder.Configuration.GetSection(DeletionPolicyOptions.DeletionPolicy));
 
+// ===== Read-only REST API (v1) — kept in one contiguous block to minimize
+// upstream merge churn. Disabled by default via Api:Enabled. =====
+builder.Services.Configure<MailArchiver.Models.ApiOptions>(
+    builder.Configuration.GetSection(MailArchiver.Models.ApiOptions.Api));
+builder.Services.AddScoped<MailArchiver.Services.IApiKeyService, MailArchiver.Services.ApiKeyService>();
+// RFC 7807 problem+json for API errors (used by the /api exception handler and
+// the auth middleware's 401 responses).
+builder.Services.AddProblemDetails();
+// OpenAPI document "v1" scoped to the /api/v1 endpoints, with the bearer scheme.
+builder.Services.AddOpenApi("v1", openApiOptions =>
+{
+    openApiOptions.ShouldInclude = description =>
+        description.RelativePath?.StartsWith("api/v1", StringComparison.OrdinalIgnoreCase) ?? false;
+    openApiOptions.AddDocumentTransformer<MailArchiver.Models.Api.OpenApi.BearerSecuritySchemeTransformer>();
+});
+// ===== End read-only REST API block =====
+
 // Add DateTimeHelper
 builder.Services.AddScoped<MailArchiver.Utilities.DateTimeHelper>();
 
@@ -249,7 +266,37 @@ builder.Services.AddRateLimiter(options =>
                 QueueLimit = 0
             });
     });
-    
+
+    // Read-only REST API rate limiting: fixed window per API key (prefix),
+    // falling back to client IP. Budget from Api:RateLimitPerMinute (default 120).
+    var apiOptionsForRateLimit = builder.Configuration.GetSection(MailArchiver.Models.ApiOptions.Api)
+        .Get<MailArchiver.Models.ApiOptions>() ?? new MailArchiver.Models.ApiOptions();
+    options.AddPolicy("Api", httpContext =>
+    {
+        string partitionKey;
+        string? authHeader = httpContext.Request.Headers.Authorization;
+        if (!string.IsNullOrEmpty(authHeader) && authHeader.StartsWith("Bearer ", StringComparison.Ordinal))
+        {
+            var token = authHeader.Substring("Bearer ".Length).Trim();
+            // Partition by the non-secret key prefix, never the full key.
+            partitionKey = "apikey-" + (token.Length >= 11 ? token.Substring(0, 11) : token);
+        }
+        else
+        {
+            partitionKey = "apiip-" + (httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown");
+        }
+
+        return RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey,
+            _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = apiOptionsForRateLimit.RateLimitPerMinute,
+                Window = TimeSpan.FromMinutes(1),
+                QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                QueueLimit = 0
+            });
+    });
+
     // Rejection response
     options.OnRejected = async (context, token) =>
     {
@@ -725,6 +772,32 @@ else
     app.UseHsts();
 }
 
+// API errors must be problem+json, never the /Home/Error HTML page (and never a
+// login redirect). This /api-scoped handler is registered AFTER the global one
+// so it sits *inside* it: for /api paths it catches exceptions first and emits
+// JSON; non-/api paths skip this branch and fall through to /Home/Error.
+app.UseWhen(
+    context => context.Request.Path.StartsWithSegments("/api"),
+    apiBranch => apiBranch.UseExceptionHandler(new ExceptionHandlerOptions
+    {
+        ExceptionHandler = static async context =>
+        {
+            var problemDetailsService = context.RequestServices
+                .GetRequiredService<Microsoft.AspNetCore.Http.IProblemDetailsService>();
+            context.Response.ContentType = "application/problem+json";
+            await problemDetailsService.WriteAsync(new Microsoft.AspNetCore.Http.ProblemDetailsContext
+            {
+                HttpContext = context,
+                ProblemDetails =
+                {
+                    Status = context.Response.StatusCode,
+                    Title = "An unexpected error occurred.",
+                    Instance = context.Request.Path
+                }
+            });
+        }
+    }));
+
 // Use Forwarded Headers middleware for reverse proxy support
 app.UseForwardedHeaders();
 
@@ -742,6 +815,21 @@ app.UseRateLimiter();
 
 // Add our custom authentication middleware
 app.UseAuth();
+
+// OpenAPI document + Swagger UI for the read-only REST API. Mapped only when the
+// API and its UI are enabled. Both paths sit OUTSIDE /api/, so the cookie
+// middleware above gates them — a logged-in browser session is required, and
+// they are unreachable with an API key.
+var apiUiOptions = app.Services.GetRequiredService<IOptions<MailArchiver.Models.ApiOptions>>().Value;
+if (apiUiOptions.Enabled && apiUiOptions.EnableSwaggerUi)
+{
+    app.MapOpenApi("/apidocs/spec/{documentName}.json");
+    app.UseSwaggerUI(swaggerOptions =>
+    {
+        swaggerOptions.SwaggerEndpoint("/apidocs/spec/v1.json", "Mail Archiver API v1");
+        swaggerOptions.RoutePrefix = "apidocs";
+    });
+}
 
 app.MapControllerRoute(
     name: "default",

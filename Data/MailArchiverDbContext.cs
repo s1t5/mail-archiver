@@ -16,6 +16,7 @@ namespace MailArchiver.Data
         public DbSet<SyncCheckpoint> SyncCheckpoints { get; set; }
         public DbSet<AccountStorageCache> AccountStorageCaches { get; set; }
         public DbSet<AccountStorageBackfillState> AccountStorageBackfillStates { get; set; }
+        public DbSet<ApiKey> ApiKeys { get; set; }
 
         public MailArchiverDbContext(DbContextOptions<MailArchiverDbContext> options)
             : base(options)
@@ -410,6 +411,36 @@ namespace MailArchiver.Data
 
             modelBuilder.Entity<AccountStorageBackfillState>()
                 .ToTable("AccountStorageBackfillState", "mail_archiver");
+
+            // ApiKey entity configuration (read-only REST API authentication)
+            modelBuilder.Entity<ApiKey>()
+                .Property(k => k.Name)
+                .HasColumnType("text");
+
+            modelBuilder.Entity<ApiKey>()
+                .Property(k => k.KeyPrefix)
+                .HasMaxLength(16);
+
+            modelBuilder.Entity<ApiKey>()
+                .Property(k => k.KeyHash)
+                .HasColumnType("varchar(64)")
+                .IsRequired();
+
+            // SHA-256 hash is unique and the sole lookup key (O(1) auth).
+            modelBuilder.Entity<ApiKey>()
+                .HasIndex(k => k.KeyHash)
+                .IsUnique()
+                .HasDatabaseName("IX_ApiKeys_KeyHash");
+
+            modelBuilder.Entity<ApiKey>()
+                .HasIndex(k => k.UserId)
+                .HasDatabaseName("IX_ApiKeys_UserId");
+
+            modelBuilder.Entity<ApiKey>()
+                .HasOne(k => k.User)
+                .WithMany(u => u.ApiKeys)
+                .HasForeignKey(k => k.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

@@ -27,5 +27,14 @@
     <PackageReference Include="QRCoder" Version="1.8.0" />
     <PackageReference Include="Azure.Identity" Version="1.21.0" />
     <PackageReference Include="HtmlSanitizer" Version="9.0.892" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.9" />
+    <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="9.1.16" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Exclude the separate test project from the web app's default compile glob -->
+    <Compile Remove="tests\**" />
+    <None Remove="tests\**" />
+    <EmbeddedResource Remove="tests\**" />
   </ItemGroup>
 </Project>

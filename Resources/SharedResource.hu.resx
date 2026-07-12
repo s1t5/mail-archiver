@@ -3062,4 +3062,74 @@
   <data name="ImportAccountsHeader" xml:space="preserve">
     <value>Fiókok importálása</value>
   </data>
+  <!-- API Keys (read-only REST API) -->
+  <data name="ApiKeys" xml:space="preserve">
+    <value>API-kulcsok</value>
+  </data>
+  <data name="ApiKeysDescription" xml:space="preserve">
+    <value>API-kulcsok kezelése az archivált levelek programozott, csak olvasható eléréséhez.</value>
+  </data>
+  <data name="CreateApiKey" xml:space="preserve">
+    <value>API-kulcs létrehozása</value>
+  </data>
+  <data name="ApiKeyName" xml:space="preserve">
+    <value>Név</value>
+  </data>
+  <data name="ApiKeyExpiration" xml:space="preserve">
+    <value>Lejárat (opcionális)</value>
+  </data>
+  <data name="ApiKeyCreatedOnce" xml:space="preserve">
+    <value>Másolja ki ezt a kulcsot most. Biztonsági okokból csak egyszer jelenik meg, és később nem kérhető le.</value>
+  </data>
+  <data name="ApiKeyValue" xml:space="preserve">
+    <value>API-kulcs</value>
+  </data>
+  <data name="ApiKeyPrefix" xml:space="preserve">
+    <value>Előtag</value>
+  </data>
+  <data name="ApiKeyCreatedColumn" xml:space="preserve">
+    <value>Létrehozva</value>
+  </data>
+  <data name="ApiKeyLastUsed" xml:space="preserve">
+    <value>Utoljára használva</value>
+  </data>
+  <data name="ApiKeyExpires" xml:space="preserve">
+    <value>Lejár</value>
+  </data>
+  <data name="ApiKeyStatus" xml:space="preserve">
+    <value>Állapot</value>
+  </data>
+  <data name="ApiKeyActive" xml:space="preserve">
+    <value>Aktív</value>
+  </data>
+  <data name="ApiKeyRevoked" xml:space="preserve">
+    <value>Visszavonva</value>
+  </data>
+  <data name="ApiKeyExpired" xml:space="preserve">
+    <value>Lejárt</value>
+  </data>
+  <data name="ApiKeyRevoke" xml:space="preserve">
+    <value>Visszavonás</value>
+  </data>
+  <data name="ApiKeyRevokeConfirm" xml:space="preserve">
+    <value>Visszavonja ezt az API-kulcsot? Az ezt használó alkalmazások azonnal leállnak.</value>
+  </data>
+  <data name="ApiKeyOwner" xml:space="preserve">
+    <value>Tulajdonos</value>
+  </data>
+  <data name="NoApiKeys" xml:space="preserve">
+    <value>Még nincsenek API-kulcsok.</value>
+  </data>
+  <data name="ApiKeyCreatedSuccess" xml:space="preserve">
+    <value>API-kulcs létrehozva.</value>
+  </data>
+  <data name="ApiKeyRevokedSuccess" xml:space="preserve">
+    <value>API-kulcs visszavonva.</value>
+  </data>
+  <data name="ApiKeyRevokeFailed" xml:space="preserve">
+    <value>Nem sikerült visszavonni az API-kulcsot.</value>
+  </data>
+  <data name="Copy" xml:space="preserve">
+    <value>Másolás</value>
+  </data>
 </root>

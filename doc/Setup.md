@@ -33,6 +33,14 @@ services:
       - Authentication__CookieName=MailArchiverAuth
       - Authentication__CookieSameSite=Lax
 
+      # REST API Settings (read-only, disabled by default)
+      - Api__Enabled=false
+      - Api__AllowAttachmentDownloads=true
+      - Api__EnableSwaggerUi=true
+      - Api__DefaultPageSize=20
+      - Api__MaxPageSize=100
+      - Api__RateLimitPerMinute=120
+
       # MailSync Settings
       - MailSync__IntervalMinutes=15
       - MailSync__TimeoutMinutes=60
@@ -216,7 +224,16 @@ docker compose restart
   - `Strict` (default): Maximum security. Cookies are only sent with same-site requests. This may cause issues when navigating to the application from external links (e.g., clicking a link from another website), as the existing session won't be recognized.
   - `Lax`: Recommended when using a reverse proxy. Cookies are sent with top-level navigations and same-site requests, allowing users to follow external links to the application while maintaining CSRF protection for POST requests.
   - `None`: Cookies are sent with all requests. Requires HTTPS and the `Secure` attribute. Only use this if you have specific cross-site requirements and understand the security implications.
-  
+
+### 🔌 REST API Settings
+The optional read-only REST API is **disabled by default**. See the [REST API guide](API.md) for the full reference.
+- `Api__Enabled`: Master switch for the read-only REST API (default `false`). When `false`, all `/api/*` routes return `404`.
+- `Api__AllowAttachmentDownloads`: Allow downloading attachment bytes through the API (default `true`). When `false`, the attachment endpoint returns `403`.
+- `Api__EnableSwaggerUi`: Expose Swagger UI at `/apidocs` and the OpenAPI document at `/apidocs/spec/v1.json` (default `true`). Both require a logged-in browser session.
+- `Api__DefaultPageSize`: Default page size for list endpoints when not specified (default `20`).
+- `Api__MaxPageSize`: Maximum allowed page size; larger requests are clamped (default `100`).
+- `Api__RateLimitPerMinute`: Fixed-window request budget per API key per minute (default `120`).
+
 ### 📨 MailSync Settings
 - `MailSync__IntervalMinutes`: The interval in minutes between email synchronization. This is the global default; each account can override it individually from the Create/Edit page (leave empty to use this default).
 - `MailSync__FullSyncIntervalHours`: Optional global default for automatic full resyncs, in hours. When unset (the default), no automatic full sync runs unless a per-account `FullSyncIntervalHours` value is set on the Create/Edit page. Per-account values override this global default.
