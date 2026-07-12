@@ -57,6 +57,26 @@ equivalent environment variables, e.g. `Api__Enabled=true`):
 }
 ```
 
+
+### Key lifecycle
+
+1. **Create** — a user creates a key with a descriptive `Name` and an optional
+   expiry. The response shows the plaintext key once.
+2. **Use** — send the key as a bearer token. Each accepted request refreshes the
+   key's `LastUsedAt` (writes are throttled to at most once every ~5 minutes to
+   avoid a write on every call).
+3. **Expire** — if `ExpiresAt` is set and in the past, the key is rejected.
+4. **Revoke** — the owning user or an administrator revokes the key
+   (`RevokedAt` is set); it is immediately and permanently rejected.
+
+A key is **active** when it is not revoked, not expired, **and** its owning user
+is still active. A key inactive for any of these reasons is rejected with `401`.
+
+### Permission model
+
+An API key inherits the exact permissions of the user who owns it. The
+authenticated principal carries the same claims a normal web login issues, so
+all existing authoriz
 | Setting | Default | Description |
 | --- | --- | --- |
 | `Enabled` | `false` | Master switch. When `false`, all `/api/*` routes return `404` and the OpenAPI document / Swagger UI are not mapped. |
@@ -102,28 +122,6 @@ Storage:
 
 The full key is shown to the user **exactly once**, at creation time. It cannot
 be retrieved afterwards; a lost key must be revoked and replaced.
-
-#### Why SHA-256 and not PBKDF2/bcrypt?
-
-This is a deliberate deviation from the password-hashing scheme used for user
-login passwords, and the reasoning is documented here so it is not mistaken for
-an oversight:
-
-- Password hashes use PBKDF2 because human-chosen passwords have **low
-  entropy** and need key-stretching to resist brute force. An API key carries a
-  full **256 bits of cryptographic entropy** — it is computationally infeasible
-  to brute-force regardless of hash speed, so stretching adds no security.
-- Stretching would actively hurt: PBKDF2 at a realistic work factor costs on the
-  order of ~100 ms of CPU **per request**, adding latency and creating a trivial
-  CPU-exhaustion (DoS) vector on a public endpoint.
-- Per-row salts (required by PBKDF2) make the stored value non-deterministic,
-  which defeats an indexed `WHERE "KeyHash" = @hash` lookup — you would have to
-  load and verify every candidate row.
-
-SHA-256 gives a deterministic, indexable digest enabling an O(1) lookup, which
-matches industry practice for high-entropy tokens (GitHub, Stripe). Submitted
-keys are compared using `CryptographicOperations.FixedTimeEquals` to avoid
-timing side channels.
 
 ### Key lifecycle
 
