@@ -1,0 +1,113 @@
+# Build artifacts
+**/bin/
+**/obj/
+**/out/
+build/
+bld/
+[Bb]in/
+[Oo]bj/
+[Oo]ut/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+*.dll
+*.pdb
+*.exe
+
+# NuGet
+**/packages/*
+*.nupkg
+.nuget/
+
+# Publish output
+publish/
+*.publish.xml
+*.pubxml
+*.publishproj
+
+# IDE / Editor
+.vs/
+.vscode/
+.idea/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.userprefs
+.editorconfig
+_ReSharper*/
+*.[Rr]e[Ss]harper
+*.DotSettings.user
+.mfractor/
+.localhistory/
+
+# Version control
+.git/
+.gitignore
+.gitattributes
+
+# Local config & secrets (do not leak into image)
+appsettings.Development.json
+*.Development.json
+*.Local.json
+appsettings.Local.json
+.env
+.env.*
+*.key
+secrets.json
+credentials.json
+.localsettings.json
+
+# DataProtection keys
+DataProtection-Keys/
+
+# Runtime data / volumes
+uploads/
+exports/
+docker-volumes/
+.docker/data/
+
+# Tests (not needed for production image)
+MailArchiver.Tests/
+tests/
+
+# Documentation & meta files (not needed in image)
+doc/
+Screenshots/
+*.md
+!README.md
+AGENTS.md
+CONTRIBUTING.md
+SECURITY.md
+LICENSE
+nextrelease.md
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+Diagnostics/
+
+# OS junk
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Temp & cache
+[Tt]emp/
+.tmp/
+*.Cache
+*.cache
+.sass-cache/
+node_modules/
+
+# CI / GitHub
+.github/
+
+# ResX tooling
+ResXManager.config.xml
+update_resource_files.ps1
