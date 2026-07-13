@@ -428,12 +428,13 @@ namespace MailArchiver.Services.Providers.Graph
                 {
                     requestConfiguration.QueryParameters.Filter = filter;
                     requestConfiguration.QueryParameters.Select = new string[]
-                    {
-                        "id", "internetMessageId", "subject", "from", "toRecipients", "ccRecipients", "bccRecipients",
-                        "sentDateTime", "receivedDateTime", "hasAttachments", "body", "bodyPreview", "lastModifiedDateTime"
-                    };
-                    requestConfiguration.QueryParameters.Top = _batchOptions.BatchSize;
-                });
+                {
+                    "id", "internetMessageId", "subject", "from", "toRecipients", "ccRecipients", "bccRecipients",
+                    "sentDateTime", "receivedDateTime", "hasAttachments", "body", "bodyPreview", "lastModifiedDateTime",
+                    "internetMessageHeaders"
+                };
+                requestConfiguration.QueryParameters.Top = _batchOptions.BatchSize;
+            });
 
                 _logger.LogInformation("Graph API response for folder {FolderName}: {MessageCount} messages returned (filter attempt), has nextLink: {HasNextLink}",
                     folder.DisplayName, response?.Value?.Count ?? 0, !string.IsNullOrEmpty(response?.OdataNextLink));
@@ -459,7 +460,8 @@ namespace MailArchiver.Services.Providers.Graph
                         requestConfiguration.QueryParameters.Filter = filter;
                         requestConfiguration.QueryParameters.Select = new string[]
                         {
-                            "id", "internetMessageId", "subject", "from", "sentDateTime", "receivedDateTime", "lastModifiedDateTime"
+                            "id", "internetMessageId", "subject", "from", "sentDateTime", "receivedDateTime", "lastModifiedDateTime",
+                            "internetMessageHeaders"
                         };
                         requestConfiguration.QueryParameters.Top = _batchOptions.BatchSize;
                     });
@@ -479,7 +481,8 @@ namespace MailArchiver.Services.Providers.Graph
                     {
                         requestConfiguration.QueryParameters.Select = new string[]
                         {
-                            "id", "internetMessageId", "subject", "from", "sentDateTime", "receivedDateTime", "lastModifiedDateTime"
+                            "id", "internetMessageId", "subject", "from", "sentDateTime", "receivedDateTime", "lastModifiedDateTime",
+                            "internetMessageHeaders"
                         };
                         requestConfiguration.QueryParameters.Top = _batchOptions.BatchSize;
                     });
@@ -577,7 +580,8 @@ namespace MailArchiver.Services.Providers.Graph
                                 requestConfiguration.QueryParameters.Select = new string[]
                                 {
                                     "id", "internetMessageId", "subject", "from", "toRecipients", "ccRecipients", "bccRecipients",
-                                    "sentDateTime", "receivedDateTime", "hasAttachments", "body", "bodyPreview", "lastModifiedDateTime"
+                                    "sentDateTime", "receivedDateTime", "hasAttachments", "body", "bodyPreview", "lastModifiedDateTime",
+                                    "internetMessageHeaders"
                                 };
                             });
                         }

@@ -303,7 +303,8 @@ namespace MailArchiver.Services.Providers.Graph
                     ? Encoding.UTF8.GetBytes(originalHtmlBody!)
                     : null,
                 FolderName = cleanFolderName,
-                Attachments = new List<EmailAttachment>()
+                Attachments = new List<EmailAttachment>(),
+                RawHeaders = ExtractGraphRawHeaders(message)
             };
 
             // Load attachments before hash calculation
@@ -374,6 +375,56 @@ namespace MailArchiver.Services.Providers.Graph
             }
 
             return (body, htmlBody);
+        }
+
+        /// <summary>
+        /// Extracts raw internet headers from a Graph message in the same "Name: Value\r\n"
+        /// line-per-header format used by the IMAP path (EmailCoreService.ExtractRawHeaders),
+        /// so downstream consumers see an identical shape regardless of provider.
+        /// Graph returns these only when "internetMessageHeaders" is explicitly $select-ed.
+        /// </summary>
+        private string? ExtractGraphRawHeaders(Message message)
+        {
+            try
+            {
+                if (message.InternetMessageHeaders == null || message.InternetMessageHeaders.Count == 0)
+                {
+                    return null;
+                }
+
+                var headersBuilder = new StringBuilder();
+                foreach (var header in message.InternetMessageHeaders)
+                {
+                    if (header == null || string.IsNullOrEmpty(header.Name))
+                    {
+                        continue;
+                    }
+                    headersBuilder.AppendLine($"{header.Name}: {header.Value}");
+                }
+
+                var rawHeaders = headersBuilder.ToString();
+                if (string.IsNullOrEmpty(rawHeaders))
+                {
+                    return null;
+                }
+
+                const int maxHeaderSize = 100_000;
+                if (rawHeaders.Length > maxHeaderSize)
+                {
+                    _logger.LogWarning("Graph raw headers exceed {MaxSize} bytes, truncating", maxHeaderSize);
+                    rawHeaders = rawHeaders.Substring(0, maxHeaderSize) + "\r\n[... Headers truncated due to size ...]";
+                }
+
+                _logger.LogDebug("Extracted {Count} raw headers ({Size} bytes) from Graph email",
+                    message.InternetMessageHeaders.Count, rawHeaders.Length);
+
+                return rawHeaders;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to extract raw headers from Graph email: {Message}", ex.Message);
+                return null;
+            }
         }
 
         /// <summary>
