@@ -77,8 +77,9 @@
                     <div class="col-12">
                         <div class="d-flex flex-column flex-md-row justify-content-between gap-2">
                             <div class="d-flex flex-wrap gap-2">
-                                <button type="submit" class="btn btn-primary btn-sm">
-                                    <i class="bi bi-search"></i> @Localizer["Search"]
+                                <button type="submit" class="btn btn-primary btn-sm" id="searchSubmitBtn">
+                                    <i class="bi bi-search" id="searchSubmitIcon"></i>
+                                    <span id="searchSubmitText">@Localizer["Search"]</span>
                                 </button>
                                 <a asp-action="Index" class="btn btn-outline-secondary btn-sm">@Localizer["Reset"]</a>
                                 <div class="form-check d-flex align-items-center ms-2">
@@ -755,11 +756,15 @@
             pleaseSelectAtLeastOne: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["PleaseSelectAtLeastOne"].Value)),
             tooManyEmailsSelected: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["TooManyEmailsSelected"].Value)),
             continueWithOperation: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["ContinueWithOperation"].Value)),
-            deleteSelectedEmailsConfirm: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["DeleteSelectedEmailsConfirm"].Value))
+            deleteSelectedEmailsConfirm: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["DeleteSelectedEmailsConfirm"].Value)),
+            loading: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["Loading"].Value))
         };
         
         const toggleSelectionMode = document.getElementById('toggleSelectionMode');
         const searchForm = document.getElementById('searchForm');
+        const searchSubmitBtn = document.getElementById('searchSubmitBtn');
+        const searchSubmitIcon = document.getElementById('searchSubmitIcon');
+        const searchSubmitText = document.getElementById('searchSubmitText');
         const selectAllCheckbox = document.getElementById('selectAllCheckbox');
         const selectAllBtn = document.getElementById('selectAllBtn');
         const deselectAllBtn = document.getElementById('deselectAllBtn');
@@ -767,6 +772,22 @@
         const selectionActions = document.getElementById('selectionActions');
         const batchRestoreBtn = document.getElementById('batchRestoreBtn');
         const operationMode = document.getElementById('operationMode');
+
+        // Show a spinner on the search submit button while the search request is in flight.
+        // The form is a normal GET navigation, so the new page load replaces this one; the
+        // spinner only needs to cover the time until the browser starts rendering the response.
+        if (searchForm && searchSubmitBtn) {
+            searchForm.addEventListener('submit', function () {
+                if (searchSubmitIcon) searchSubmitIcon.style.display = 'none';
+                if (searchSubmitText) searchSubmitText.textContent = i18n.loading;
+                const spinner = document.createElement('span');
+                spinner.className = 'spinner-border spinner-border-sm me-1';
+                spinner.setAttribute('role', 'status');
+                spinner.setAttribute('aria-hidden', 'true');
+                searchSubmitBtn.prepend(spinner);
+                searchSubmitBtn.disabled = true;
+            });
+        }
 
         function getStoredSelections() {
             try {
