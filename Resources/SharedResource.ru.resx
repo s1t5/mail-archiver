@@ -3176,4 +3176,58 @@
   <data name="FailuresAcknowledged" xml:space="preserve">
     <value>Ошибки подтверждены</value>
   </data>
+  <data name="AdvAddCondition" xml:space="preserve">
+    <value>Добавить условие</value>
+  </data>
+  <data name="AdvRemoveCondition" xml:space="preserve">
+    <value>Удалить условие</value>
+  </data>
+  <data name="AdvAttachTitle" xml:space="preserve">
+    <value>Вложение</value>
+  </data>
+  <data name="AdvAttachAny" xml:space="preserve">
+    <value>Любой</value>
+  </data>
+  <data name="AdvAttachYes" xml:space="preserve">
+    <value>Да</value>
+  </data>
+  <data name="AdvAttachNo" xml:space="preserve">
+    <value>Нет</value>
+  </data>
+  <data name="AdvScopeAll" xml:space="preserve">
+    <value>Все поля</value>
+  </data>
+  <data name="AdvScopeBody" xml:space="preserve">
+    <value>Текст</value>
+  </data>
+  <data name="AdvConnAnd" xml:space="preserve">
+    <value>И</value>
+  </data>
+  <data name="AdvConnOr" xml:space="preserve">
+    <value>ИЛИ</value>
+  </data>
+  <data name="AdvBuilderCaseHint" xml:space="preserve">
+    <value>Поиск не учитывает регистр.</value>
+  </data>
+  <data name="AdvBuilderQuoteHint" xml:space="preserve">
+    <value>Точная фраза: в кавычках, напр. "открытый счёт" - также для исключения: -"открытый счёт".</value>
+  </data>
+  <data name="AdvBuilderSubject" xml:space="preserve">
+    <value>Тема</value>
+  </data>
+  <data name="AdvBuilderFrom" xml:space="preserve">
+    <value>От</value>
+  </data>
+  <data name="AdvBuilderTo" xml:space="preserve">
+    <value>Кому</value>
+  </data>
+  <data name="AdvancedSearchInfo0" xml:space="preserve">
+    <value>• Слова ищутся по основе (префиксу): "счёт" находит также "счета"</value>
+  </data>
+  <data name="AdvancedSearchInfo4" xml:space="preserve">
+    <value>• Исключение терминов минусом, альтернативы через OR: счёт -напоминание, машина OR велосипед</value>
+  </data>
+  <data name="AdvancedSearchInfo5" xml:space="preserve">
+    <value>• Поиск по части слова со звёздочками: *счёт* находит также "счета"</value>
+  </data>
 </root>

@@ -8,6 +8,18 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="MailArchiver.Tests" />
+  </ItemGroup>
+
+  <!-- Test project lives in a subfolder; keep its sources out of the web build -->
+  <ItemGroup>
+    <Compile Remove="MailArchiver.Tests/**/*.cs" />
+    <Content Remove="MailArchiver.Tests/**/*" />
+    <EmbeddedResource Remove="MailArchiver.Tests/**/*" />
+    <None Remove="MailArchiver.Tests/**/*" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="MailKit" Version="4.17.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="10.0.9" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.9" />

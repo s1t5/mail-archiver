@@ -5,6 +5,7 @@ using MailArchiver.Services.Shared;
 using MailArchiver.Utilities;
 using MailArchiver.ViewModels;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using MimeKit;
 using System.Globalization;
@@ -24,16 +25,26 @@ namespace MailArchiver.Services.Core
         private readonly DateTimeHelper _dateTimeHelper;
         private readonly BatchOperationOptions _batchOptions;
 
+        // Command timeout (seconds) for the raw ADO.NET search queries. Honours the configured
+        // Npgsql:CommandTimeout (the same key the EF context uses) but enforces a floor so long
+        // full-text searches are not aborted by the Npgsql default of 30s.
+        private readonly int _searchCommandTimeoutSeconds;
+
         public EmailCoreService(
             MailArchiverDbContext context,
             ILogger<EmailCoreService> logger,
             DateTimeHelper dateTimeHelper,
-            IOptions<BatchOperationOptions> batchOptions)
+            IOptions<BatchOperationOptions> batchOptions,
+            IConfiguration configuration)
         {
             _context = context;
             _logger = logger;
             _dateTimeHelper = dateTimeHelper;
             _batchOptions = batchOptions.Value;
+            var configuredTimeout = configuration.GetValue<int>("Npgsql:CommandTimeout", 60);
+            // 0 = Npgsql's "no timeout"; honour it. Otherwise enforce a floor so the raw search
+            // commands are not aborted by the 30s default.
+            _searchCommandTimeoutSeconds = configuredTimeout == 0 ? 0 : Math.Max(configuredTimeout, 120);
         }
 
         #region Search Methods
@@ -68,7 +79,7 @@ namespace MailArchiver.Services.Core
             }
         }
 
-        private async Task<(List<ArchivedEmail> Emails, int TotalCount)> SearchEmailsOptimizedAsync(
+        internal async Task<(List<ArchivedEmail> Emails, int TotalCount)> SearchEmailsOptimizedAsync(
             string searchTerm,
             DateTime? fromDate,
             DateTime? toDate,
@@ -86,102 +97,87 @@ namespace MailArchiver.Services.Core
             var parameters = new List<Npgsql.NpgsqlParameter>();
             var paramCounter = 0;
 
-            // Full-text search condition
+            // Full-text search condition: AND of OR-groups of typed clauses.
             if (!string.IsNullOrWhiteSpace(searchTerm))
             {
-                var (tsQuery, phrases, fieldSearches, fieldPhrases) = ParseSearchTermForTsQuery(searchTerm);
+                var groups = ParseSearchClauses(searchTerm);
                 var searchConditions = new List<string>();
 
-                if (!string.IsNullOrEmpty(tsQuery))
+                if (groups.Count > 0 && groups.All(g => g.All(c => c.Kind == ClauseKind.Word)))
                 {
-                    searchConditions.Add($@"
-                        to_tsvector('simple', 
-                            COALESCE(""Subject"", '') || ' ' || 
-                            COALESCE(""Body"", '') || ' ' || 
-                            COALESCE(""From"", '') || ' ' || 
-                            COALESCE(""To"", '') || ' ' || 
-                            COALESCE(""Cc"", '') || ' ' || 
-                            COALESCE(""Bcc"", '')) 
-                        @@ to_tsquery('simple', @param{paramCounter})");
-                    parameters.Add(new Npgsql.NpgsqlParameter($"@param{paramCounter}", tsQuery));
-                    paramCounter++;
-                }
-
-                foreach (var phrase in phrases)
-                {
-                    var phraseTsQuery = BuildPhraseTsQuery(phrase);
-                    if (!string.IsNullOrEmpty(phraseTsQuery))
+                    if (groups.All(g => g.All(c => c.Negated)))
                     {
-                        searchConditions.Add($@"(
-                        to_tsvector('simple', 
-                            COALESCE(""Subject"", '') || ' ' || 
-                            COALESCE(""Body"", '') || ' ' || 
-                            COALESCE(""From"", '') || ' ' || 
-                            COALESCE(""To"", '') || ' ' || 
-                            COALESCE(""Cc"", '') || ' ' || 
-                            COALESCE(""Bcc"", '')) 
-                        @@ to_tsquery('simple', @param{paramCounter})
-                        AND (
-                        POSITION(LOWER(@param{paramCounter + 1}) IN LOWER(COALESCE(""Subject"", ''))) > 0 OR
-                        POSITION(LOWER(@param{paramCounter + 1}) IN LOWER(COALESCE(""Body"", ''))) > 0 OR
-                        POSITION(LOWER(@param{paramCounter + 1}) IN LOWER(COALESCE(""From"", ''))) > 0 OR
-                        POSITION(LOWER(@param{paramCounter + 1}) IN LOWER(COALESCE(""To"", ''))) > 0 OR
-                        POSITION(LOWER(@param{paramCounter + 1}) IN LOWER(COALESCE(""Cc"", ''))) > 0 OR
-                        POSITION(LOWER(@param{paramCounter + 1}) IN LOWER(COALESCE(""Bcc"", ''))) > 0
-                    ))");
-                        parameters.Add(new Npgsql.NpgsqlParameter($"@param{paramCounter}", phraseTsQuery));
-                        paramCounter++;
-                        parameters.Add(new Npgsql.NpgsqlParameter($"@param{paramCounter}", phrase));
+                        // Pure-negation ("exclude only"): a flat NOT(tsv @@ q) seq-scans and re-tokenizes
+                        // every row's body (~minutes on large archives). Rewrite via De Morgan to an
+                        // index-accelerated positive set and filter by anti-membership on the primary key.
+                        searchConditions.Add($@"e.""Id"" NOT IN (SELECT ""Id"" FROM mail_archiver.""ArchivedEmails"" WHERE {FtsExpr} @@ to_tsquery('simple', @param{paramCounter}))");
+                        parameters.Add(new Npgsql.NpgsqlParameter($"@param{paramCounter}", BuildNegationComplementTsQuery(groups)));
                         paramCounter++;
                     }
                     else
                     {
-                        searchConditions.Add($@"(
-                        POSITION(LOWER(@param{paramCounter}) IN LOWER(COALESCE(""Subject"", ''))) > 0 OR
-                        POSITION(LOWER(@param{paramCounter}) IN LOWER(COALESCE(""Body"", ''))) > 0 OR
-                        POSITION(LOWER(@param{paramCounter}) IN LOWER(COALESCE(""From"", ''))) > 0 OR
-                        POSITION(LOWER(@param{paramCounter}) IN LOWER(COALESCE(""To"", ''))) > 0 OR
-                        POSITION(LOWER(@param{paramCounter}) IN LOWER(COALESCE(""Cc"", ''))) > 0 OR
-                        POSITION(LOWER(@param{paramCounter}) IN LOWER(COALESCE(""Bcc"", ''))) > 0
-                    )");
-                        parameters.Add(new Npgsql.NpgsqlParameter($"@param{paramCounter}", phrase));
+                        // Fast path: a pure-word query -> one combined tsquery (single GIN scan).
+                        searchConditions.Add($"{FtsExpr} @@ to_tsquery('simple', @param{paramCounter})");
+                        parameters.Add(new Npgsql.NpgsqlParameter($"@param{paramCounter}", BuildWordTsQuery(groups)));
                         paramCounter++;
                     }
                 }
-
-                foreach (var fieldSearch in fieldSearches)
+                else
                 {
-                    var field = fieldSearch.Key;
-                    var terms = fieldSearch.Value;
-                    var columnName = GetColumnNameForField(field);
-
-                    if (!string.IsNullOrEmpty(columnName))
+                    // Mixed query: each OR-group becomes (clause OR clause ...); groups are ANDed.
+                    foreach (var group in groups)
                     {
-                        foreach (var term in terms)
+                        var conds = new List<string>();
+                        foreach (var clause in group)
                         {
-                            searchConditions.Add($@"
-                                POSITION(LOWER(@param{paramCounter}) IN LOWER(COALESCE(""{columnName}"", ''))) > 0");
-                            parameters.Add(new Npgsql.NpgsqlParameter($"@param{paramCounter}", term));
-                            paramCounter++;
+                            string cond;
+                            if (clause.Kind == ClauseKind.Word)
+                            {
+                                cond = $"{FtsExpr} @@ to_tsquery('simple', @param{paramCounter})";
+                                parameters.Add(new Npgsql.NpgsqlParameter($"@param{paramCounter}", WordAtom(clause)));
+                                paramCounter++;
+                            }
+                            else if (clause.Kind == ClauseKind.Substring)
+                            {
+                                cond = $"{LowerConcatExpr} LIKE '%' || lower(@param{paramCounter}) || '%' ESCAPE '\\'";
+                                parameters.Add(new Npgsql.NpgsqlParameter($"@param{paramCounter}", EscapeLike(clause.Text)));
+                                paramCounter++;
+                                if (clause.Negated) cond = $"NOT ({cond})";
+                            }
+                            else if (clause.Kind == ClauseKind.Field)
+                            {
+                                cond = $"POSITION(LOWER(@param{paramCounter}) IN LOWER(COALESCE(\"{clause.Column}\", ''))) > 0";
+                                parameters.Add(new Npgsql.NpgsqlParameter($"@param{paramCounter}", clause.Text));
+                                paramCounter++;
+                                if (clause.Negated) cond = $"NOT ({cond})";
+                            }
+                            else if (clause.Kind == ClauseKind.Attachment)
+                            {
+                                cond = clause.Negated ? "\"HasAttachments\" = FALSE" : "\"HasAttachments\" = TRUE";
+                            }
+                            else // Phrase: GIN @@ prefilter narrows rows, POSITION confirms the exact phrase.
+                            {
+                                var phraseTs = BuildPhraseTsQuery(clause.Text);
+                                if (!string.IsNullOrEmpty(phraseTs))
+                                {
+                                    cond = $@"({FtsExpr} @@ to_tsquery('simple', @param{paramCounter}) AND (POSITION(LOWER(@param{paramCounter + 1}) IN LOWER(COALESCE(""Subject"", ''))) > 0 OR POSITION(LOWER(@param{paramCounter + 1}) IN LOWER(COALESCE(""Body"", ''))) > 0 OR POSITION(LOWER(@param{paramCounter + 1}) IN LOWER(COALESCE(""From"", ''))) > 0 OR POSITION(LOWER(@param{paramCounter + 1}) IN LOWER(COALESCE(""To"", ''))) > 0 OR POSITION(LOWER(@param{paramCounter + 1}) IN LOWER(COALESCE(""Cc"", ''))) > 0 OR POSITION(LOWER(@param{paramCounter + 1}) IN LOWER(COALESCE(""Bcc"", ''))) > 0))";
+                                    parameters.Add(new Npgsql.NpgsqlParameter($"@param{paramCounter}", phraseTs));
+                                    paramCounter++;
+                                    parameters.Add(new Npgsql.NpgsqlParameter($"@param{paramCounter}", clause.Text));
+                                    paramCounter++;
+                                }
+                                else
+                                {
+                                    cond = $@"(POSITION(LOWER(@param{paramCounter}) IN LOWER(COALESCE(""Subject"", ''))) > 0 OR POSITION(LOWER(@param{paramCounter}) IN LOWER(COALESCE(""Body"", ''))) > 0 OR POSITION(LOWER(@param{paramCounter}) IN LOWER(COALESCE(""From"", ''))) > 0 OR POSITION(LOWER(@param{paramCounter}) IN LOWER(COALESCE(""To"", ''))) > 0 OR POSITION(LOWER(@param{paramCounter}) IN LOWER(COALESCE(""Cc"", ''))) > 0 OR POSITION(LOWER(@param{paramCounter}) IN LOWER(COALESCE(""Bcc"", ''))) > 0)";
+                                    parameters.Add(new Npgsql.NpgsqlParameter($"@param{paramCounter}", clause.Text));
+                                    paramCounter++;
+                                }
+                                if (clause.Negated) cond = $"NOT ({cond})";
+                            }
+                            conds.Add(cond);
                         }
-                    }
-                }
-
-                foreach (var fieldPhrase in fieldPhrases)
-                {
-                    var field = fieldPhrase.Key;
-                    var currentFieldPhrases = fieldPhrase.Value;
-                    var columnName = GetColumnNameForField(field);
-
-                    if (!string.IsNullOrEmpty(columnName))
-                    {
-                        foreach (var phrase in currentFieldPhrases)
-                        {
-                            searchConditions.Add($@"
-                                POSITION(LOWER(@param{paramCounter}) IN LOWER(COALESCE(""{columnName}"", ''))) > 0");
-                            parameters.Add(new Npgsql.NpgsqlParameter($"@param{paramCounter}", phrase));
-                            paramCounter++;
-                        }
+                        if (conds.Count > 0)
+                            searchConditions.Add(conds.Count == 1 ? conds[0] : "(" + string.Join(" OR ", conds) + ")");
                     }
                 }
 
@@ -255,7 +251,7 @@ namespace MailArchiver.Services.Core
             // Count query
             var countSql = $@"
                 SELECT COUNT(*)
-                FROM mail_archiver.""ArchivedEmails""
+                FROM mail_archiver.""ArchivedEmails"" e
                 {whereClause}";
 
             var totalCount = await ExecuteScalarQueryAsync<int>(countSql, CloneParameters(parameters));
@@ -317,6 +313,7 @@ namespace MailArchiver.Services.Core
             await connection.OpenAsync();
 
             using var command = new Npgsql.NpgsqlCommand(sql, connection);
+            command.CommandTimeout = _searchCommandTimeoutSeconds;
             foreach (var parameter in parameters)
             {
                 command.Parameters.Add(parameter);
@@ -334,6 +331,7 @@ namespace MailArchiver.Services.Core
             await connection.OpenAsync();
 
             using var command = new Npgsql.NpgsqlCommand(sql, connection);
+            command.CommandTimeout = _searchCommandTimeoutSeconds;
             foreach (var parameter in parameters)
             {
                 command.Parameters.Add(parameter);
@@ -373,123 +371,340 @@ namespace MailArchiver.Services.Core
             return emails;
         }
 
-        private (string tsQuery, List<string> phrases, Dictionary<string, List<string>> fieldSearches, Dictionary<string, List<string>> fieldPhrases) ParseSearchTermForTsQuery(string searchTerm)
+        // Fallback helpers: build a composable "any searched field ILIKE %term%" predicate so the
+        // EF fallback can preserve OR-groups (OR within a group, AND across groups).
+        // Escapes LIKE/ILIKE metacharacters so *term* / field terms match them literally (ESCAPE '\').
+        private static string EscapeLike(string s) => s.Replace("\\", "\\\\").Replace("%", "\\%").Replace("_", "\\_");
+
+        private static System.Linq.Expressions.Expression<Func<ArchivedEmail, bool>> FieldContainsPredicate(string term)
         {
-            if (string.IsNullOrWhiteSpace(searchTerm))
-                return (null, new List<string>(), new Dictionary<string, List<string>>(), new Dictionary<string, List<string>>());
-
-            var phrases = new List<string>();
-            var individualWords = new List<string>();
-            var fieldSearches = new Dictionary<string, List<string>>();
-            var fieldPhrases = new Dictionary<string, List<string>>();
-            var validFields = new HashSet<string> { "subject", "body", "from", "to" };
-
-            var regex = new Regex(@"""([^""]*)""|(\w+):(""([^""]*)""|(\S+))|(\S+)", RegexOptions.None);
-            var matches = regex.Matches(searchTerm);
-
-            foreach (Match match in matches)
-            {
-                if (match.Groups[1].Success)
-                {
-                    var phrase = match.Groups[1].Value.Trim();
-                    if (!string.IsNullOrEmpty(phrase))
-                        phrases.Add(phrase);
-                }
-                else if (match.Groups[2].Success)
-                {
-                    var field = match.Groups[2].Value.ToLower().Trim();
-                    if (validFields.Contains(field))
-                    {
-                        if (match.Groups[4].Success)
-                        {
-                            var fieldPhrase = match.Groups[4].Value.Trim();
-                            if (!string.IsNullOrEmpty(fieldPhrase))
-                            {
-                                if (!fieldPhrases.ContainsKey(field))
-                                    fieldPhrases[field] = new List<string>();
-                                fieldPhrases[field].Add(fieldPhrase);
-                            }
-                        }
-                        else if (match.Groups[5].Success)
-                        {
-                            var fieldTerm = match.Groups[5].Value.Trim();
-                            if (!string.IsNullOrEmpty(fieldTerm))
-                            {
-                                var sanitized = Regex.Replace(fieldTerm, @"[&|!():\*]", "", RegexOptions.None);
-                                if (!string.IsNullOrEmpty(sanitized))
-                                {
-                                    if (!fieldSearches.ContainsKey(field))
-                                        fieldSearches[field] = new List<string>();
-                                    fieldSearches[field].Add(sanitized);
-                                }
-                            }
-                        }
-                    }
-                }
-                else if (match.Groups[6].Success)
-                {
-                    var word = match.Groups[6].Value.Trim();
-                    if (!string.IsNullOrEmpty(word))
-                    {
-                        var sanitized = Regex.Replace(word, @"[&|!():\*]", "", RegexOptions.None);
-                        if (!string.IsNullOrEmpty(sanitized))
-                            individualWords.Add(sanitized);
-                    }
-                }
-            }
-
-            string tsQuery = null;
-            if (individualWords.Any())
-            {
-                // Use prefix matching (:*) for each term to enable partial word matching
-                // This allows "isenb" to match "isenboeck", "isenböck", etc.
-                // The GIN index supports prefix matching efficiently
-                var escapedTerms = individualWords.Select(t => t.Replace("'", "''") + ":*");
-                tsQuery = string.Join(" & ", escapedTerms);
-            }
-
-            return (tsQuery, phrases, fieldSearches, fieldPhrases);
+            var pattern = "%" + EscapeLike(term) + "%";
+            return e => EF.Functions.ILike(e.Subject, pattern, "\\") || EF.Functions.ILike(e.From, pattern, "\\") ||
+                        EF.Functions.ILike(e.To, pattern, "\\") || EF.Functions.ILike(e.Body, pattern, "\\") ||
+                        EF.Functions.ILike(e.Cc, pattern, "\\") || EF.Functions.ILike(e.Bcc, pattern, "\\");
         }
 
-        private string GetColumnNameForField(string fieldName)
+        private static System.Linq.Expressions.Expression<Func<T, bool>> OrElsePredicate<T>(
+            System.Linq.Expressions.Expression<Func<T, bool>> a,
+            System.Linq.Expressions.Expression<Func<T, bool>> b)
         {
-            return fieldName.ToLower() switch
+            var p = System.Linq.Expressions.Expression.Parameter(typeof(T), "e");
+            var body = System.Linq.Expressions.Expression.OrElse(
+                new ParameterRebinder(a.Parameters[0], p).Visit(a.Body),
+                new ParameterRebinder(b.Parameters[0], p).Visit(b.Body));
+            return System.Linq.Expressions.Expression.Lambda<Func<T, bool>>(body, p);
+        }
+
+        private static System.Linq.Expressions.Expression<Func<ArchivedEmail, bool>> FieldColumnPredicate(string column, string term)
+        {
+            var pattern = "%" + EscapeLike(term) + "%";
+            return column switch
             {
-                "subject" => "Subject",
-                "body" => "Body",
-                "from" => "From",
-                "to" => "To",
-                _ => null
+                "Subject" => e => EF.Functions.ILike(e.Subject, pattern, "\\"),
+                "Body" => e => EF.Functions.ILike(e.Body, pattern, "\\"),
+                "From" => e => EF.Functions.ILike(e.From, pattern, "\\"),
+                "To" => e => EF.Functions.ILike(e.To, pattern, "\\"),
+                _ => e => EF.Functions.ILike(e.Subject, pattern, "\\")
             };
         }
 
-        /// <summary>
-        /// Builds a GIN-indexable tsquery for an exact phrase or single term, using prefix
-        /// matching (:*) and adjacency (<->) between words. Returns null when the input
-        /// contains no usable tokens (only punctuation), in which case the caller should
-        /// fall back to POSITION-only matching.
-        /// Used as a selective pre-filter before the authoritative POSITION substring check,
-        /// so the GIN index narrows the candidate set and the body is not detoasted during
-        /// matching for the common case.
-        /// </summary>
-        private string BuildPhraseTsQuery(string phrase)
+        private static bool IsAttachmentKeyword(string v)
+        {
+            if (string.IsNullOrWhiteSpace(v)) return false;
+            switch (v.Trim().ToLowerInvariant())
+            {
+                case "attachment":
+                case "attachments":
+                case "anhang":
+                case "anhänge":
+                case "anhaenge":
+                case "file":
+                case "files":
+                case "yes":
+                case "true":
+                case "1":
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
+        private static System.Linq.Expressions.Expression<Func<ArchivedEmail, bool>> ClausePredicate(SearchClause c)
+        {
+            if (c.Kind == ClauseKind.Attachment)
+            {
+                System.Linq.Expressions.Expression<Func<ArchivedEmail, bool>> a = e => e.HasAttachments;
+                return c.Negated ? NotPredicate(a) : a;
+            }
+            var p = c.Kind == ClauseKind.Field ? FieldColumnPredicate(c.Column, c.Text) : FieldContainsPredicate(c.Text);
+            return c.Negated ? NotPredicate(p) : p;
+        }
+
+        private static System.Linq.Expressions.Expression<Func<T, bool>> NotPredicate<T>(
+            System.Linq.Expressions.Expression<Func<T, bool>> a)
+            => System.Linq.Expressions.Expression.Lambda<Func<T, bool>>(
+                System.Linq.Expressions.Expression.Not(a.Body), a.Parameters);
+
+        private sealed class ParameterRebinder : System.Linq.Expressions.ExpressionVisitor
+        {
+            private readonly System.Linq.Expressions.ParameterExpression _from;
+            private readonly System.Linq.Expressions.ParameterExpression _to;
+            public ParameterRebinder(System.Linq.Expressions.ParameterExpression from, System.Linq.Expressions.ParameterExpression to)
+            {
+                _from = from;
+                _to = to;
+            }
+            protected override System.Linq.Expressions.Expression VisitParameter(System.Linq.Expressions.ParameterExpression node)
+                => node == _from ? _to : base.VisitParameter(node);
+        }
+
+        // ===== Unified search-clause model =====
+        // A query is an AND of OR-groups; every operand type (word / phrase / field / substring,
+        // each optionally negated) is a typed clause that can be a member of an OR-group, so
+        // "from:a OR from:b", "*x* OR *y*" and mixed "invoice OR from:acme" all combine correctly.
+        internal enum ClauseKind { Word, Phrase, Field, Substring, Attachment }
+
+        internal readonly struct SearchClause
+        {
+            public ClauseKind Kind { get; init; }
+            public string Text { get; init; }
+            public string Column { get; init; } // set for Field clauses
+            public bool Negated { get; init; }
+        }
+
+        private const int MaxClauseGroups = 256;
+        private const string FtsExpr = @"to_tsvector('simple', COALESCE(""Subject"", '') || ' ' || COALESCE(""Body"", '') || ' ' || COALESCE(""From"", '') || ' ' || COALESCE(""To"", '') || ' ' || COALESCE(""Cc"", '') || ' ' || COALESCE(""Bcc"", ''))";
+        private const string LowerConcatExpr = @"lower(COALESCE(""Subject"", '') || ' ' || COALESCE(""Body"", '') || ' ' || COALESCE(""From"", '') || ' ' || COALESCE(""To"", '') || ' ' || COALESCE(""Cc"", '') || ' ' || COALESCE(""Bcc"", ''))";
+
+        // Parses the search term into AND-of-OR-groups of typed clauses. OR binds its adjacent
+        // neighbours (Google-style); -term / !term negates a word/substring; "phrase"; field syntax
+        // subject:/body:/from:/to: ; *term* substring (pg_trgm). Fields and phrases are positive-only.
+        internal static List<List<SearchClause>> ParseSearchClauses(string searchTerm)
+        {
+            if (string.IsNullOrWhiteSpace(searchTerm))
+                return new List<List<SearchClause>>();
+
+            var validFields = new HashSet<string> { "subject", "body", "from", "to" };
+
+            // Query = AND of OR-runs. Each item (word / phrase / field:value / field:(group)) yields a
+            // CNF fragment (List<List<SearchClause>>). Items combine left-to-right by implicit AND; OR
+            // merges neighbours. field:(...) groups parse recursively and re-map every clause onto that
+            // field; OR between groups is resolved by CNF distribution, bounded by MaxClauseGroups.
+            var regex = new Regex(
+                @"(?<gneg>[-!]?)(?<gfield>\w+):\((?<ginner>[^)]*)\)" +
+                @"|(?<pneg>[-!]?)""(?<phrase>[^""]*)""" +
+                @"|(?<fneg>[-!]?)(?<field>\w+):(""(?<fq>[^""]*)""|(?<fu>\S+))" +
+                @"|(?<tok>\S+)",
+                RegexOptions.None);
+
+            List<List<SearchClause>> result = null; // accumulated AND of completed OR-runs
+            List<List<SearchClause>> run = null;     // current OR-run
+            bool pendingOr = false;
+
+            foreach (Match match in regex.Matches(searchTerm))
+            {
+                if (match.Groups["tok"].Success)
+                {
+                    var tv = match.Groups["tok"].Value.Trim();
+                    if (tv.Equals("OR", StringComparison.OrdinalIgnoreCase) ||
+                        tv.Equals("ODER", StringComparison.OrdinalIgnoreCase) || tv == "|")
+                    {
+                        if (run != null) pendingOr = true;
+                        continue;
+                    }
+                }
+
+                var frag = ParseItemToCnf(match, validFields);
+                if (frag == null || frag.Count == 0)
+                {
+                    pendingOr = false; // a dropped item cannot serve as an OR operand
+                    continue;
+                }
+
+                if (pendingOr && run != null)
+                {
+                    run = OrCnf(run, frag);
+                    pendingOr = false;
+                }
+                else
+                {
+                    if (run != null)
+                        result = result == null ? run : AndCnf(result, run);
+                    run = frag;
+                }
+            }
+            if (run != null)
+                result = result == null ? run : AndCnf(result, run);
+
+            return result ?? new List<List<SearchClause>>();
+        }
+
+        // Parses one regex match into a CNF fragment (null = nothing to add).
+        private static List<List<SearchClause>> ParseItemToCnf(Match match, HashSet<string> validFields)
+        {
+            if (match.Groups["gfield"].Success)
+            {
+                var field = match.Groups["gfield"].Value.ToLower().Trim();
+                var column = GetColumnForField(field);
+                if (!validFields.Contains(field) || column == null)
+                    return null;
+                var inner = ParseSearchClauses(match.Groups["ginner"].Value);
+                RemapGroupToField(inner, column);
+                if (match.Groups["gneg"].Value.Length > 0)
+                    inner = NegateCnf(inner);
+                return inner.Count > 0 ? inner : null;
+            }
+            if (match.Groups["phrase"].Success)
+            {
+                var phrase = match.Groups["phrase"].Value.Trim();
+                if (phrase.Length == 0) return null;
+                return One(new SearchClause { Kind = ClauseKind.Phrase, Text = phrase, Negated = match.Groups["pneg"].Value.Length > 0 });
+            }
+            if (match.Groups["field"].Success)
+            {
+                var field = match.Groups["field"].Value.ToLower().Trim();
+                var negated = match.Groups["fneg"].Value.Length > 0;
+                var rawFieldVal = match.Groups["fq"].Success ? match.Groups["fq"].Value : match.Groups["fu"].Value;
+                if (field == "has")
+                {
+                    if (IsAttachmentKeyword(rawFieldVal))
+                        return One(new SearchClause { Kind = ClauseKind.Attachment, Negated = negated });
+                    return null;
+                }
+                var column = GetColumnForField(field);
+                if (validFields.Contains(field) && column != null)
+                {
+                    var term = Regex.Replace(rawFieldVal.Trim(), @"[&|!():\*]", "", RegexOptions.None);
+                    if (term.Length > 0)
+                        return One(new SearchClause { Kind = ClauseKind.Field, Text = term, Column = column, Negated = negated });
+                }
+                return null;
+            }
+            if (match.Groups["tok"].Success)
+            {
+                var token = match.Groups["tok"].Value.Trim();
+                if (token.Length == 0) return null;
+                bool negated = false;
+                if ((token.StartsWith("-") || token.StartsWith("!")) && token.Length > 1)
+                {
+                    negated = true;
+                    token = token.Substring(1);
+                }
+                if (token.Length > 2 && token.StartsWith("*") && token.EndsWith("*"))
+                {
+                    var inner = token.Substring(1, token.Length - 2); // LIKE metacharacters escaped at build time
+                    if (inner.Length > 0)
+                        return One(new SearchClause { Kind = ClauseKind.Substring, Text = inner, Negated = negated });
+                    return null;
+                }
+                var sanitized = Regex.Replace(token, @"[&|!():\*<>'""]", "", RegexOptions.None);
+                if (sanitized.Length > 0)
+                    return One(new SearchClause { Kind = ClauseKind.Word, Text = sanitized, Negated = negated });
+                return null;
+            }
+            return null;
+        }
+
+        private static List<List<SearchClause>> One(SearchClause c)
+            => new List<List<SearchClause>> { new List<SearchClause> { c } };
+
+        // Re-map every clause of a parsed group onto one field (POSITION-substring semantics).
+        private static void RemapGroupToField(List<List<SearchClause>> cnf, string column)
+        {
+            for (int g = 0; g < cnf.Count; g++)
+                for (int i = 0; i < cnf[g].Count; i++)
+                {
+                    var c = cnf[g][i];
+                    cnf[g][i] = c.Kind == ClauseKind.Attachment
+                        ? c
+                        : new SearchClause { Kind = ClauseKind.Field, Text = c.Text, Column = column, Negated = c.Negated };
+                }
+        }
+
+        // AND of two CNFs = concatenation of their groups (bounded).
+        private static List<List<SearchClause>> AndCnf(List<List<SearchClause>> a, List<List<SearchClause>> b)
+        {
+            var r = new List<List<SearchClause>>(a);
+            r.AddRange(b);
+            if (r.Count > MaxClauseGroups) r = r.GetRange(0, MaxClauseGroups);
+            return r;
+        }
+
+        // OR of two CNFs = distribute: each pair of groups merges its clause lists (bounded).
+        private static List<List<SearchClause>> OrCnf(List<List<SearchClause>> a, List<List<SearchClause>> b)
+        {
+            var r = new List<List<SearchClause>>();
+            foreach (var ga in a)
+                foreach (var gb in b)
+                {
+                    var merged = new List<SearchClause>(ga);
+                    merged.AddRange(gb);
+                    r.Add(merged);
+                    if (r.Count >= MaxClauseGroups) return r;
+                }
+            return r;
+        }
+
+        // De Morgan: NOT(AND_i OR_j c) = OR_i (AND_j !c), re-distributed back to CNF.
+        private static List<List<SearchClause>> NegateCnf(List<List<SearchClause>> cnf)
+        {
+            List<List<SearchClause>> acc = null;
+            foreach (var group in cnf)
+            {
+                var negGroup = new List<List<SearchClause>>();
+                foreach (var c in group)
+                    negGroup.Add(new List<SearchClause> { new SearchClause { Kind = c.Kind, Text = c.Text, Column = c.Column, Negated = !c.Negated } });
+                acc = acc == null ? negGroup : OrCnf(acc, negGroup);
+            }
+            return acc ?? new List<List<SearchClause>>();
+        }
+
+        // Builds a GIN-indexable phrase tsquery ("w1 <-> w2 ...", prefix-matched) so exact-phrase
+        // searches can use the full-text index as a prefilter before the POSITION recheck.
+        private static string BuildPhraseTsQuery(string phrase)
         {
             if (string.IsNullOrWhiteSpace(phrase))
                 return null;
-
-            var words = phrase.Split((char[])null, StringSplitOptions.RemoveEmptyEntries);
-            var escapedTerms = new List<string>(words.Length);
-            foreach (var word in words)
+            var terms = new List<string>();
+            foreach (var word in phrase.Split((char[])null, StringSplitOptions.RemoveEmptyEntries))
             {
                 var sanitized = Regex.Replace(word, @"[&|!():\*]", "", RegexOptions.None);
                 if (!string.IsNullOrEmpty(sanitized))
-                    escapedTerms.Add(sanitized.Replace("'", "''") + ":*");
+                    terms.Add(sanitized.Replace("'", "''") + ":*");
             }
+            return terms.Count == 0 ? null : string.Join(" <-> ", terms);
+        }
 
-            if (escapedTerms.Count == 0)
-                return null;
+        private static string GetColumnForField(string field) => field switch
+        {
+            "subject" => "Subject",
+            "body" => "Body",
+            "from" => "From",
+            "to" => "To",
+            _ => null
+        };
 
-            return string.Join(" <-> ", escapedTerms);
+        internal static string WordAtom(SearchClause c)
+        {
+            var t = c.Text.Replace("'", "''");
+            return (c.Negated ? "!" : "") + t + ":*";
+        }
+
+        // Efficient single combined tsquery for a pure-word query (AND of groups, OR within a group).
+        internal static string BuildWordTsQuery(List<List<SearchClause>> groups)
+            => string.Join(" & ", groups.Select(g =>
+                g.Count == 1 ? WordAtom(g[0]) : "(" + string.Join(" | ", g.Select(WordAtom)) + ")"));
+
+        // De Morgan dual of a pure-negation word query: NOT(a & (b|c)) == a | (b & c). Turns an
+        // "exclude only" search into an index-usable positive set for an anti-membership filter.
+        internal static string BuildNegationComplementTsQuery(List<List<SearchClause>> groups)
+            => string.Join(" | ", groups.Select(g =>
+                g.Count == 1 ? PosAtom(g[0]) : "(" + string.Join(" & ", g.Select(PosAtom)) + ")"));
+
+        private static string PosAtom(SearchClause c)
+        {
+            var t = c.Text.Replace("'", "''");
+            return t + ":*";
         }
 
         private (string OrderByClause, string SortColumn, bool IsTimestampSort) GetOrderByClause(string sortBy, string sortOrder)
@@ -561,91 +776,18 @@ namespace MailArchiver.Services.Core
             IQueryable<ArchivedEmail> searchQuery = baseQuery;
             if (!string.IsNullOrEmpty(searchTerm))
             {
-                var (tsQuery, phrases, fieldSearches, fieldPhrases) = ParseSearchTermForTsQuery(searchTerm);
-
-                if (!string.IsNullOrEmpty(tsQuery))
+                var groups = ParseSearchClauses(searchTerm);
+                foreach (var group in groups)
                 {
-                    // Split terms and strip the ':*' suffix (used for prefix matching in PostgreSQL full-text search)
-                    // The fallback ILike search already supports partial matching via %wildcard%
-                    var words = tsQuery.Split('&', StringSplitOptions.RemoveEmptyEntries)
-                                      .Select(w => w.Trim().Replace("''", "'").Replace(":*", ""))
-                                      .ToList();
-
-                    foreach (var word in words)
+                    // OR within the group (any clause type), AND across groups; negated -> NOT.
+                    System.Linq.Expressions.Expression<Func<ArchivedEmail, bool>> groupPredicate = null;
+                    foreach (var clause in group)
                     {
-                        var escapedWord = word.Replace("'", "''");
-                        searchQuery = searchQuery.Where(e =>
-                            EF.Functions.ILike(e.Subject, $"%{escapedWord}%") ||
-                            EF.Functions.ILike(e.From, $"%{escapedWord}%") ||
-                            EF.Functions.ILike(e.To, $"%{escapedWord}%") ||
-                            EF.Functions.ILike(e.Body, $"%{escapedWord}%") ||
-                            EF.Functions.ILike(e.Cc, $"%{escapedWord}%") ||
-                            EF.Functions.ILike(e.Bcc, $"%{escapedWord}%")
-                        );
+                        var clausePredicate = ClausePredicate(clause);
+                        groupPredicate = groupPredicate == null ? clausePredicate : OrElsePredicate(groupPredicate, clausePredicate);
                     }
-                }
-
-                foreach (var phrase in phrases)
-                {
-                    searchQuery = searchQuery.Where(e =>
-                        (e.Subject != null && e.Subject.ToLower().Contains(phrase.ToLower())) ||
-                        (e.From != null && e.From.ToLower().Contains(phrase.ToLower())) ||
-                        (e.To != null && e.To.ToLower().Contains(phrase.ToLower())) ||
-                        (e.Body != null && e.Body.ToLower().Contains(phrase.ToLower())) ||
-                        (e.Cc != null && e.Cc.ToLower().Contains(phrase.ToLower())) ||
-                        (e.Bcc != null && e.Bcc.ToLower().Contains(phrase.ToLower()))
-                    );
-                }
-
-                foreach (var fieldSearch in fieldSearches)
-                {
-                    var field = fieldSearch.Key;
-                    var terms = fieldSearch.Value;
-
-                    foreach (var term in terms)
-                    {
-                        var escapedTerm = term.Replace("'", "''");
-                        switch (field.ToLower())
-                        {
-                            case "subject":
-                                searchQuery = searchQuery.Where(e => e.Subject != null && EF.Functions.ILike(e.Subject, $"%{escapedTerm}%"));
-                                break;
-                            case "body":
-                                searchQuery = searchQuery.Where(e => e.Body != null && EF.Functions.ILike(e.Body, $"%{escapedTerm}%"));
-                                break;
-                            case "from":
-                                searchQuery = searchQuery.Where(e => e.From != null && EF.Functions.ILike(e.From, $"%{escapedTerm}%"));
-                                break;
-                            case "to":
-                                searchQuery = searchQuery.Where(e => e.To != null && EF.Functions.ILike(e.To, $"%{escapedTerm}%"));
-                                break;
-                        }
-                    }
-                }
-
-                foreach (var fieldPhrase in fieldPhrases)
-                {
-                    var field = fieldPhrase.Key;
-                    var fieldPhrasesList = fieldPhrase.Value;
-
-                    foreach (var phrase in fieldPhrasesList)
-                    {
-                        switch (field.ToLower())
-                        {
-                            case "subject":
-                                searchQuery = searchQuery.Where(e => e.Subject != null && e.Subject.ToLower().Contains(phrase.ToLower()));
-                                break;
-                            case "body":
-                                searchQuery = searchQuery.Where(e => e.Body != null && e.Body.ToLower().Contains(phrase.ToLower()));
-                                break;
-                            case "from":
-                                searchQuery = searchQuery.Where(e => e.From != null && e.From.ToLower().Contains(phrase.ToLower()));
-                                break;
-                            case "to":
-                                searchQuery = searchQuery.Where(e => e.To != null && e.To.ToLower().Contains(phrase.ToLower()));
-                                break;
-                        }
-                    }
+                    if (groupPredicate != null)
+                        searchQuery = searchQuery.Where(groupPredicate);
                 }
             }
 

@@ -3177,4 +3177,94 @@
   <data name="FailuresAcknowledged" xml:space="preserve">
     <value>Fehler bestätigt</value>
   </data>
+  <data name="AdvBuilderReadonlyHint" xml:space="preserve">
+    <value>Bitte Erw. Suche nutzen!</value>
+  </data>
+  <data name="AdvancedSearchInfo0" xml:space="preserve">
+    <value>• Wörter suchen als Wortstamm (Präfix): „rechnung“ findet auch „Rechnungen“</value>
+  </data>
+  <data name="AdvancedSearchInfo4" xml:space="preserve">
+    <value>• Begriffe ausschließen mit Minus, Alternativen mit OR: rechnung -mahnung, auto OR fahrrad</value>
+  </data>
+  <data name="AdvancedSearchInfo5" xml:space="preserve">
+    <value>• Teilwort-Suche mit Sternchen: *rechn* findet auch „Abrechnung“</value>
+  </data>
+  <data name="AdvBuilderTitle" xml:space="preserve">
+    <value>Such-Baukasten</value>
+  </data>
+  <data name="AdvBuilderAll" xml:space="preserve">
+    <value>Alle diese Wörter</value>
+  </data>
+  <data name="AdvBuilderAny" xml:space="preserve">
+    <value>Irgendeines dieser Wörter</value>
+  </data>
+  <data name="AdvBuilderNone" xml:space="preserve">
+    <value>Keines dieser Wörter</value>
+  </data>
+  <data name="AdvBuilderPhrase" xml:space="preserve">
+    <value>Genauer Ausdruck</value>
+  </data>
+  <data name="AdvBuilderSubstring" xml:space="preserve">
+    <value>Teilwort (Substring)</value>
+  </data>
+  <data name="AdvBuilderSubject" xml:space="preserve">
+    <value>Betreff</value>
+  </data>
+  <data name="AdvBuilderFrom" xml:space="preserve">
+    <value>Von</value>
+  </data>
+  <data name="AdvBuilderTo" xml:space="preserve">
+    <value>An</value>
+  </data>
+  <data name="AdvBuilderBody" xml:space="preserve">
+    <value>Im Text</value>
+  </data>
+  <data name="AdvBuilderApply" xml:space="preserve">
+    <value>In Suchfeld übernehmen</value>
+  </data>
+  <data name="AdvBuilderPreview" xml:space="preserve">
+    <value>Vorschau</value>
+  </data>
+  <data name="AdvAttachTitle" xml:space="preserve">
+    <value>Anhang</value>
+  </data>
+  <data name="AdvAttachAny" xml:space="preserve">
+    <value>Egal</value>
+  </data>
+  <data name="AdvAttachYes" xml:space="preserve">
+    <value>Ja</value>
+  </data>
+  <data name="AdvAttachNo" xml:space="preserve">
+    <value>Nein</value>
+  </data>
+  <data name="AdvBuilderQuoteHint" xml:space="preserve">
+    <value>Genauer Ausdruck: in Anführungszeichen setzen, z. B. "offene rechnung" - auch zum Ausschließen: -"offene rechnung".</value>
+  </data>
+  <data name="AdvScopeLabel" xml:space="preserve">
+    <value>Suchen in</value>
+  </data>
+  <data name="AdvScopeAll" xml:space="preserve">
+    <value>Alle Felder</value>
+  </data>
+  <data name="AdvScopeBody" xml:space="preserve">
+    <value>Text</value>
+  </data>
+  <data name="AdvBuilderGroupHint" xml:space="preserve">
+    <value>Ganze Kombination auf ein Feld: „Suchen in" oben – oder direkt feld:(…), z. B. subject:(rechnung -storno).</value>
+  </data>
+  <data name="AdvAddCondition" xml:space="preserve">
+    <value>Weitere Bedingung</value>
+  </data>
+  <data name="AdvRemoveCondition" xml:space="preserve">
+    <value>Bedingung entfernen</value>
+  </data>
+  <data name="AdvBuilderCaseHint" xml:space="preserve">
+    <value>Groß-/Kleinschreibung wird nicht beachtet.</value>
+  </data>
+  <data name="AdvConnAnd" xml:space="preserve">
+    <value>UND</value>
+  </data>
+  <data name="AdvConnOr" xml:space="preserve">
+    <value>ODER</value>
+  </data>
 </root>

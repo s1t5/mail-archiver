@@ -3163,4 +3163,94 @@
   <data name="FailuresAcknowledged" xml:space="preserve">
     <value>Failures acknowledged</value>
   </data>
+  <data name="AdvBuilderReadonlyHint" xml:space="preserve">
+    <value>Please use advanced search!</value>
+  </data>
+  <data name="AdvancedSearchInfo0" xml:space="preserve">
+    <value>• Words are matched as a stem (prefix): &quot;invoice&quot; also finds &quot;invoices&quot;</value>
+  </data>
+  <data name="AdvancedSearchInfo4" xml:space="preserve">
+    <value>• Exclude terms with a minus and match alternatives with OR: invoice -reminder, car OR bike</value>
+  </data>
+  <data name="AdvancedSearchInfo5" xml:space="preserve">
+    <value>• Partial-word (substring) search with asterisks: *voice* also matches &quot;invoices&quot;</value>
+  </data>
+  <data name="AdvBuilderTitle" xml:space="preserve">
+    <value>Search builder</value>
+  </data>
+  <data name="AdvBuilderAll" xml:space="preserve">
+    <value>All of these words</value>
+  </data>
+  <data name="AdvBuilderAny" xml:space="preserve">
+    <value>Any of these words</value>
+  </data>
+  <data name="AdvBuilderNone" xml:space="preserve">
+    <value>None of these words</value>
+  </data>
+  <data name="AdvBuilderPhrase" xml:space="preserve">
+    <value>Exact phrase</value>
+  </data>
+  <data name="AdvBuilderSubstring" xml:space="preserve">
+    <value>Partial word (substring)</value>
+  </data>
+  <data name="AdvBuilderSubject" xml:space="preserve">
+    <value>Subject</value>
+  </data>
+  <data name="AdvBuilderFrom" xml:space="preserve">
+    <value>From</value>
+  </data>
+  <data name="AdvBuilderTo" xml:space="preserve">
+    <value>To</value>
+  </data>
+  <data name="AdvBuilderBody" xml:space="preserve">
+    <value>Body text</value>
+  </data>
+  <data name="AdvBuilderApply" xml:space="preserve">
+    <value>Insert into search box</value>
+  </data>
+  <data name="AdvBuilderPreview" xml:space="preserve">
+    <value>Preview</value>
+  </data>
+  <data name="AdvAttachTitle" xml:space="preserve">
+    <value>Attachment</value>
+  </data>
+  <data name="AdvAttachAny" xml:space="preserve">
+    <value>Any</value>
+  </data>
+  <data name="AdvAttachYes" xml:space="preserve">
+    <value>Yes</value>
+  </data>
+  <data name="AdvAttachNo" xml:space="preserve">
+    <value>No</value>
+  </data>
+  <data name="AdvBuilderQuoteHint" xml:space="preserve">
+    <value>Exact phrase: put it in quotes, e.g. "open invoice" - also to exclude: -"open invoice".</value>
+  </data>
+  <data name="AdvScopeLabel" xml:space="preserve">
+    <value>Search in</value>
+  </data>
+  <data name="AdvScopeAll" xml:space="preserve">
+    <value>All fields</value>
+  </data>
+  <data name="AdvScopeBody" xml:space="preserve">
+    <value>Body</value>
+  </data>
+  <data name="AdvBuilderGroupHint" xml:space="preserve">
+    <value>Whole combination on one field: "Search in" above – or directly field:(…), e.g. subject:(rechnung -storno).</value>
+  </data>
+  <data name="AdvAddCondition" xml:space="preserve">
+    <value>Add condition</value>
+  </data>
+  <data name="AdvRemoveCondition" xml:space="preserve">
+    <value>Remove condition</value>
+  </data>
+  <data name="AdvBuilderCaseHint" xml:space="preserve">
+    <value>Search is case-insensitive.</value>
+  </data>
+  <data name="AdvConnAnd" xml:space="preserve">
+    <value>AND</value>
+  </data>
+  <data name="AdvConnOr" xml:space="preserve">
+    <value>OR</value>
+  </data>
 </root>

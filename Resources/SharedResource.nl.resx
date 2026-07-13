@@ -3176,4 +3176,58 @@
   <data name="FailuresAcknowledged" xml:space="preserve">
     <value>Fouten erkend</value>
   </data>
+  <data name="AdvAddCondition" xml:space="preserve">
+    <value>Voorwaarde toevoegen</value>
+  </data>
+  <data name="AdvRemoveCondition" xml:space="preserve">
+    <value>Voorwaarde verwijderen</value>
+  </data>
+  <data name="AdvAttachTitle" xml:space="preserve">
+    <value>Bijlage</value>
+  </data>
+  <data name="AdvAttachAny" xml:space="preserve">
+    <value>Maakt niet uit</value>
+  </data>
+  <data name="AdvAttachYes" xml:space="preserve">
+    <value>Ja</value>
+  </data>
+  <data name="AdvAttachNo" xml:space="preserve">
+    <value>Nee</value>
+  </data>
+  <data name="AdvScopeAll" xml:space="preserve">
+    <value>Alle velden</value>
+  </data>
+  <data name="AdvScopeBody" xml:space="preserve">
+    <value>Tekst</value>
+  </data>
+  <data name="AdvConnAnd" xml:space="preserve">
+    <value>EN</value>
+  </data>
+  <data name="AdvConnOr" xml:space="preserve">
+    <value>OF</value>
+  </data>
+  <data name="AdvBuilderCaseHint" xml:space="preserve">
+    <value>Zoeken is niet hoofdlettergevoelig.</value>
+  </data>
+  <data name="AdvBuilderQuoteHint" xml:space="preserve">
+    <value>Exacte zin: tussen aanhalingstekens, bijv. "openstaande factuur" - ook om uit te sluiten: -"openstaande factuur".</value>
+  </data>
+  <data name="AdvBuilderSubject" xml:space="preserve">
+    <value>Onderwerp</value>
+  </data>
+  <data name="AdvBuilderFrom" xml:space="preserve">
+    <value>Van</value>
+  </data>
+  <data name="AdvBuilderTo" xml:space="preserve">
+    <value>Aan</value>
+  </data>
+  <data name="AdvancedSearchInfo0" xml:space="preserve">
+    <value>• Woorden worden als woordstam (prefix) gezocht: "factuur" vindt ook "facturen"</value>
+  </data>
+  <data name="AdvancedSearchInfo4" xml:space="preserve">
+    <value>• Termen uitsluiten met een min en alternatieven met OR: factuur -herinnering, auto OR fiets</value>
+  </data>
+  <data name="AdvancedSearchInfo5" xml:space="preserve">
+    <value>• Zoeken op deel van een woord met sterretjes: *factu* vindt ook "facturen"</value>
+  </data>
 </root>

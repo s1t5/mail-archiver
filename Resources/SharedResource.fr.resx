@@ -3176,4 +3176,58 @@
   <data name="FailuresAcknowledged" xml:space="preserve">
     <value>Échecs reconnus</value>
   </data>
+  <data name="AdvAddCondition" xml:space="preserve">
+    <value>Ajouter une condition</value>
+  </data>
+  <data name="AdvRemoveCondition" xml:space="preserve">
+    <value>Supprimer la condition</value>
+  </data>
+  <data name="AdvAttachTitle" xml:space="preserve">
+    <value>Pièce jointe</value>
+  </data>
+  <data name="AdvAttachAny" xml:space="preserve">
+    <value>Peu importe</value>
+  </data>
+  <data name="AdvAttachYes" xml:space="preserve">
+    <value>Oui</value>
+  </data>
+  <data name="AdvAttachNo" xml:space="preserve">
+    <value>Non</value>
+  </data>
+  <data name="AdvScopeAll" xml:space="preserve">
+    <value>Tous les champs</value>
+  </data>
+  <data name="AdvScopeBody" xml:space="preserve">
+    <value>Corps</value>
+  </data>
+  <data name="AdvConnAnd" xml:space="preserve">
+    <value>ET</value>
+  </data>
+  <data name="AdvConnOr" xml:space="preserve">
+    <value>OU</value>
+  </data>
+  <data name="AdvBuilderCaseHint" xml:space="preserve">
+    <value>La recherche ne tient pas compte de la casse.</value>
+  </data>
+  <data name="AdvBuilderQuoteHint" xml:space="preserve">
+    <value>Expression exacte : entre guillemets, p. ex. "facture ouverte" - aussi pour exclure : -"facture ouverte".</value>
+  </data>
+  <data name="AdvBuilderSubject" xml:space="preserve">
+    <value>Objet</value>
+  </data>
+  <data name="AdvBuilderFrom" xml:space="preserve">
+    <value>De</value>
+  </data>
+  <data name="AdvBuilderTo" xml:space="preserve">
+    <value>À</value>
+  </data>
+  <data name="AdvancedSearchInfo0" xml:space="preserve">
+    <value>• Les mots sont recherchés par racine (préfixe) : "facture" trouve aussi "factures"</value>
+  </data>
+  <data name="AdvancedSearchInfo4" xml:space="preserve">
+    <value>• Exclure des termes avec un moins et des alternatives avec OR : facture -rappel, voiture OR vélo</value>
+  </data>
+  <data name="AdvancedSearchInfo5" xml:space="preserve">
+    <value>• Recherche par sous-chaîne avec des astérisques : *factur* trouve aussi "factures"</value>
+  </data>
 </root>

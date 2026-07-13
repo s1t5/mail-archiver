@@ -46,15 +46,12 @@
             <form asp-action="Index" method="get" id="searchForm">
                 <div class="row">
                     <div class="col-12 col-md-6 col-lg-3 mb-3">
-                        <label asp-for="SearchTerm" class="form-label">@Localizer["SearchTerm"]</label>
-                        <input asp-for="SearchTerm" class="form-control form-control-sm" placeholder="@Localizer["SubjectSender"]" />
-                        <div class="form-text small text-muted">
-                            <i class="bi bi-info-circle me-1"></i>
-                            <strong>@Localizer["AdvancedSearch"]</strong><br>
-                            @Localizer["AdvancedSearchInfo1"]<br>
-                            @Localizer["AdvancedSearchInfo2"]<br>
-                            @Localizer["AdvancedSearchInfo3"]
-                        </div>
+                        <label asp-for="SelectedAccountId" class="form-label">@Localizer["Account"]</label>
+                        <select asp-for="SelectedAccountId" asp-items="Model.AccountOptions" class="form-select form-select-sm" id="accountSelect"></select>
+                    </div>
+                    <div class="col-12 col-md-6 col-lg-2 mb-3">
+                        <label asp-for="IsOutgoing" class="form-label">@Localizer["Direction"]</label>
+                        <select asp-for="IsOutgoing" asp-items="Model.DirectionOptions" class="form-select form-select-sm"></select>
                     </div>
                     <div class="col-6 col-md-3 col-lg-2 mb-3">
                         <label asp-for="FromDate" class="form-label">@Localizer["FromDate"]</label>
@@ -64,13 +61,47 @@
                         <label asp-for="ToDate" class="form-label">@Localizer["ToDate"]</label>
                         <input asp-for="ToDate" class="form-control form-control-sm" type="date" />
                     </div>
-                    <div class="col-12 col-md-6 col-lg-3 mb-3">
-                        <label asp-for="SelectedAccountId" class="form-label">@Localizer["Account"]</label>
-                        <select asp-for="SelectedAccountId" asp-items="Model.AccountOptions" class="form-select form-select-sm" id="accountSelect"></select>
+                    <div class="col-6 col-md-3 col-lg-2 mb-3">
+                        <label for="adv_attach" class="form-label">@Localizer["AdvAttachTitle"]</label>
+                        <select id="adv_attach" class="form-select form-select-sm">
+                            <option value="">@Localizer["AdvAttachAny"]</option>
+                            <option value="yes">@Localizer["AdvAttachYes"]</option>
+                            <option value="no">@Localizer["AdvAttachNo"]</option>
+                        </select>
                     </div>
-                    <div class="col-12 col-md-6 col-lg-2 mb-3">
-                        <label asp-for="IsOutgoing" class="form-label">@Localizer["Direction"]</label>
-                        <select asp-for="IsOutgoing" asp-items="Model.DirectionOptions" class="form-select form-select-sm"></select>
+                </div>
+                <div class="row">
+                    <div class="col-12 mb-3">
+                        <label asp-for="SearchTerm" class="form-label">@Localizer["SearchTerm"]</label>
+                        <input asp-for="SearchTerm" class="form-control form-control-sm" placeholder="@Localizer["SubjectSender"]" />
+                        <div class="form-text small text-muted">
+                            <a class="text-decoration-none" data-bs-toggle="collapse" href="#advSearchHelp" role="button" aria-expanded="false" aria-controls="advSearchHelp">
+                                <i class="bi bi-info-circle me-1"></i><strong>@Localizer["AdvancedSearch"]</strong> <i class="bi bi-chevron-down"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-12">
+                                                    <div class="collapse mt-1" id="advSearchHelp">
+                                <div class="card card-body p-2">
+                                    <div id="adv_rows"></div>
+                                    <div>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary" id="adv_add_row"><i class="bi bi-plus-lg me-1"></i>@Localizer["AdvAddCondition"]</button>
+                                    </div>
+                                    <hr class="my-2">
+                                    <div class="small text-muted">
+                                        @Localizer["AdvancedSearchInfo0"]<br>
+                                        @Localizer["AdvancedSearchInfo1"]<br>
+                                        @Localizer["AdvancedSearchInfo2"]<br>
+                                        @Localizer["AdvancedSearchInfo3"]<br>
+                                        @Localizer["AdvancedSearchInfo4"]<br>
+                                        @Localizer["AdvancedSearchInfo5"]<br>
+                                        @Localizer["AdvBuilderQuoteHint"]<br>
+                                        @Localizer["AdvBuilderCaseHint"]
+                                    </div>
+                                </div>
+                            </div>
                     </div>
                 </div>
                 <div class="row">
@@ -1071,6 +1102,167 @@
         {
             <text>initializeSelectionHandlers();</text>
         }
+
+        // Advanced-Suche: Zeilen-Builder. Jede Zeile = optionaler UND/ODER-Konnektor (ausser der ersten)
+        // + Feld (Alle/Betreff/Von/An/Text) + Begriffe. Komponiert als feld:(...)-Gruppen, per Leerzeichen
+        // (UND) bzw. " OR " (ODER) verknuepft. Bidirektional mit dem Suchfeld. Anhang bleibt orthogonal.
+        (function () {
+            var box = document.getElementById('SearchTerm');
+            var attachSel = document.getElementById('adv_attach');
+            var advRows = document.getElementById('adv_rows');
+            var addBtn = document.getElementById('adv_add_row');
+            var VALIDFIELDS = { subject: 1, from: 1, to: 1, body: 1 };
+            var FIELD_OPTS = [
+                { v: '', t: '@Localizer["AdvScopeAll"]' },
+                { v: 'subject', t: '@Localizer["AdvBuilderSubject"]' },
+                { v: 'from', t: '@Localizer["AdvBuilderFrom"]' },
+                { v: 'to', t: '@Localizer["AdvBuilderTo"]' },
+                { v: 'body', t: '@Localizer["AdvScopeBody"]' }
+            ];
+            var CONN_OPTS = [
+                { v: 'and', t: '@Localizer["AdvConnAnd"]' },
+                { v: 'or', t: '@Localizer["AdvConnOr"]' }
+            ];
+            var ROW_PLACEHOLDER = 'rechnung -storno "offene posten"';
+            var REMOVE_TITLE = '@Localizer["AdvRemoveCondition"]';
+
+            function attachToken() { return attachSel && attachSel.value === 'yes' ? 'has:attachment' : (attachSel && attachSel.value === 'no' ? '-has:attachment' : ''); }
+            function stripAttach(q) { return q.replace(/(^|\s)-?has:\S+/gi, ' ').replace(/\s{2,}/g, ' ').trim(); }
+            function withAttach(base) { var t = attachToken(); return (base + (t ? ' ' + t : '')).trim(); }
+            function mkSelect(cls, opts, val) {
+                var sel = document.createElement('select');
+                sel.className = 'form-select form-select-sm ' + cls + ' flex-grow-0 w-auto';
+                opts.forEach(function (o) {
+                    var op = document.createElement('option');
+                    op.value = o.v; op.textContent = o.t;
+                    if (o.v === val) op.selected = true;
+                    sel.appendChild(op);
+                });
+                return sel;
+            }
+            function createRow(conn, field, terms) {
+                var row = document.createElement('div');
+                row.className = 'adv-row input-group input-group-sm mb-1';
+                row.appendChild(mkSelect('adv-row-conn', CONN_OPTS, conn || 'and'));
+                row.appendChild(mkSelect('adv-row-field', FIELD_OPTS, field || ''));
+                var inp = document.createElement('input');
+                inp.type = 'text'; inp.className = 'form-control form-control-sm adv-row-terms';
+                inp.autocomplete = 'off'; inp.placeholder = ROW_PLACEHOLDER; inp.value = terms || '';
+                row.appendChild(inp);
+                var rm = document.createElement('button');
+                rm.type = 'button'; rm.className = 'btn btn-outline-secondary adv-row-remove';
+                rm.title = REMOVE_TITLE; rm.innerHTML = '<i class="bi bi-x-lg"></i>';
+                row.appendChild(rm);
+                return row;
+            }
+            // Konnektor der ersten Zeile ausblenden (Platz reservieren -> Felder bleiben ausgerichtet).
+            function syncConnectors() {
+                if (!advRows) return;
+                var rows = advRows.querySelectorAll('.adv-row');
+                for (var i = 0; i < rows.length; i++) {
+                    var c = rows[i].querySelector('.adv-row-conn');
+                    if (c) c.style.visibility = i === 0 ? 'hidden' : 'visible';
+                }
+            }
+            function renderRows(list) {
+                if (!advRows) return;
+                advRows.innerHTML = '';
+                if (!list || !list.length) list = [{ conn: 'and', field: '', terms: '' }];
+                list.forEach(function (r) { advRows.appendChild(createRow(r.conn, r.field, r.terms)); });
+                syncConnectors();
+            }
+            function readRows() {
+                if (!advRows) return [];
+                return Array.prototype.map.call(advRows.querySelectorAll('.adv-row'), function (row) {
+                    return {
+                        conn: row.querySelector('.adv-row-conn').value,
+                        field: row.querySelector('.adv-row-field').value,
+                        terms: row.querySelector('.adv-row-terms').value.trim()
+                    };
+                });
+            }
+            // Zeilen -> Query: feld:(...) je Zeile, per Leerzeichen (UND) bzw. " OR " (ODER) verknuepft.
+            function build() {
+                var q = '';
+                readRows().forEach(function (r) {
+                    var t = r.terms.replace(/[()]/g, '').trim();
+                    if (!t) return;
+                    var piece = r.field ? r.field + ':(' + t + ')' : t;
+                    if (!q) q = piece;
+                    else q += (r.conn === 'or' ? ' OR ' : ' ') + piece;
+                });
+                return q;
+            }
+            function boxFromBuilder() { if (box) box.value = withAttach(build()); }
+            function isOr(t) { return t === '|' || /^(or|oder)$/i.test(t); }
+            function isGroup(t) { return /^\w+:\(/.test(t); }
+            // Query -> Zeilen: feld:(...)-Gruppen und Top-Level-ODER werden Zeilen(-Konnektoren);
+            // ODER zwischen zwei nackten Begriffen bleibt innerhalb einer "Alle Felder"-Zeile.
+            function parseIntoRows(query) {
+                var q = stripAttach(query).trim();
+                var tokens = q.match(/\w+:\([^)]*\)|[-!]?\w+:"[^"]*"|[-!]?\w+:\S+|[-!]?"[^"]*"|\S+/g) || [];
+                var rows = [], cur = null, pendingConn = 'and';
+                function flush() { if (cur) { rows.push({ conn: cur.conn, field: cur.field, terms: cur.terms.join(' ') }); cur = null; } }
+                for (var k = 0; k < tokens.length; k++) {
+                    var t = tokens[k];
+                    if (isOr(t)) {
+                        var next = tokens[k + 1];
+                        if (cur && cur.field === '' && next && !isOr(next) && !isGroup(next)) { cur.terms.push('OR'); }
+                        else { flush(); pendingConn = 'or'; }
+                        continue;
+                    }
+                    var gm = t.match(/^(\w+):\(([\s\S]*)\)$/);
+                    if (gm && VALIDFIELDS[gm[1].toLowerCase()]) {
+                        flush();
+                        rows.push({ conn: pendingConn, field: gm[1].toLowerCase(), terms: gm[2].trim() });
+                        pendingConn = 'and';
+                        continue;
+                    }
+                    if (cur && cur.field === '') { cur.terms.push(t); }
+                    else { flush(); cur = { conn: pendingConn, field: '', terms: [t] }; pendingConn = 'and'; }
+                }
+                flush();
+                renderRows(rows);
+            }
+            function attachFromBox() {
+                if (!attachSel || !box) return;
+                var q = box.value;
+                attachSel.value = /(^|\s)-has:\S+/i.test(q) ? 'no' : (/(^|\s)has:\S+/i.test(q) ? 'yes' : '');
+            }
+
+            if (advRows) {
+                advRows.addEventListener('change', function (e) {
+                    if (e.target.classList.contains('adv-row-field') || e.target.classList.contains('adv-row-terms') || e.target.classList.contains('adv-row-conn')) boxFromBuilder();
+                });
+                advRows.addEventListener('keydown', function (e) {
+                    if (e.key === 'Enter' && e.target.classList.contains('adv-row-terms')) boxFromBuilder();
+                });
+                advRows.addEventListener('click', function (e) {
+                    var b = e.target.closest('.adv-row-remove');
+                    if (b) { var row = b.closest('.adv-row'); if (row) row.remove(); if (!advRows.querySelector('.adv-row')) renderRows([]); syncConnectors(); boxFromBuilder(); }
+                });
+            }
+            if (addBtn) addBtn.addEventListener('click', function () {
+                var r = createRow('and', '', ''); advRows.appendChild(r); syncConnectors();
+                var inp = r.querySelector('.adv-row-terms'); if (inp) inp.focus();
+            });
+            if (attachSel) attachSel.addEventListener('change', function () {
+                if (box) box.value = withAttach(stripAttach(box.value));
+            });
+            function builderFromBox() { if (box) { parseIntoRows(box.value.trim()); attachFromBox(); } }
+            if (box) {
+                box.addEventListener('change', builderFromBox);
+                box.addEventListener('keydown', function (e) { if (e.key === 'Enter') builderFromBox(); });
+            }
+            var advCollapse = document.getElementById('advSearchHelp');
+            if (advCollapse) advCollapse.addEventListener('show.bs.collapse', builderFromBox);
+            var advForm = document.getElementById('searchForm');
+            if (advForm) advForm.addEventListener('submit', function () {
+                if (box && !box.value.trim()) { var c = withAttach(build()); if (c) box.value = c; }
+            });
+            if (box && box.value.trim()) parseIntoRows(box.value.trim()); else renderRows([]);
+            attachFromBox();
+        })();
     });
 </script>
 }
