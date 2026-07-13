@@ -19,12 +19,13 @@ namespace MailArchiver.Models
         public string DefaultClientId { get; set; } = string.Empty;
 
         /// <summary>
-        /// OAuth2 authority endpoint. Defaults to the multi-tenant /common endpoint
-        /// so both personal (outlook.com/live.com) and organizational accounts work.
-        /// Use https://login.microsoftonline.com/consumers/oauth2/v2.0 to restrict
-        /// to personal accounts only.
+        /// OAuth2 authority endpoint. Defaults to the /consumers endpoint, matching the
+        /// documented "Personal Microsoft accounts only" app registration this feature
+        /// targets — the multi-tenant /common endpoint is rejected with AADSTS9002331 for
+        /// such apps. Set https://login.microsoftonline.com/common/oauth2/v2.0 for a
+        /// multi-tenant registration that must also serve organizational accounts.
         /// </summary>
-        public string Authority { get; set; } = "https://login.microsoftonline.com/common/oauth2/v2.0";
+        public string Authority { get; set; } = "https://login.microsoftonline.com/consumers/oauth2/v2.0";
 
         /// <summary>
         /// True when a shared default ClientId is configured and per-account ClientIds are optional.

@@ -78,7 +78,7 @@ namespace MailArchiver.Services
         }
 
         private string Authority => string.IsNullOrWhiteSpace(_options.Authority)
-            ? "https://login.microsoftonline.com/common/oauth2/v2.0"
+            ? "https://login.microsoftonline.com/consumers/oauth2/v2.0"
             : _options.Authority;
 
         public string? GetDefaultClientId()
