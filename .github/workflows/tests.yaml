@@ -1,0 +1,45 @@
+name: tests
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: mailuser
+          POSTGRES_PASSWORD: masterkey
+          POSTGRES_DB: mailarchiver_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U mailuser -d mailarchiver_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      # Enables the DB-backed robustness tests (parser tsquery validity).
+      MAILARCHIVER_TEST_DB: "Host=localhost;Port=5432;Database=mailarchiver_test;Username=mailuser;Password=masterkey"
+      # End-to-end tests create/drop the mail_archiver schema -> point ONLY at a disposable DB.
+      MAILARCHIVER_TEST_DB_RW: "Host=localhost;Port=5432;Database=mailarchiver_test;Username=mailuser;Password=masterkey"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+          dotnet-quality: 'preview'
+
+      - name: Restore
+        run: dotnet restore MailArchiver.Tests/MailArchiver.Tests.csproj
+
+      - name: Build & Test
+        run: dotnet test MailArchiver.Tests/MailArchiver.Tests.csproj -c Release --verbosity normal
