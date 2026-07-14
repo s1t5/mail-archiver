@@ -265,6 +265,9 @@
   <data name="Storage" xml:space="preserve">
     <value>Stockage</value>
   </data>
+  <data name="DatabaseStorage" xml:space="preserve">
+    <value>Taille de la base de données</value>
+  </data>
   <data name="EmailsPerMonth" xml:space="preserve">
     <value>Emails par mois</value>
   </data>

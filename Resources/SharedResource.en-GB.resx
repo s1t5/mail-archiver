@@ -285,6 +285,9 @@
   <data name="CopyFolderToExcluded" xml:space="preserve">
     <value>Click a folder to add or remove it from the exclusion list</value>
   </data>
+  <data name="DatabaseStorage" xml:space="preserve">
+    <value>Database size</value>
+  </data>
   <data name="StorageUsed" xml:space="preserve">
     <value>Storage used</value>
   </data>

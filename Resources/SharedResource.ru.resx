@@ -265,6 +265,9 @@
   <data name="Storage" xml:space="preserve">
     <value>Хранилище</value>
   </data>
+  <data name="DatabaseStorage" xml:space="preserve">
+    <value>Размер базы данных</value>
+  </data>
   <data name="EmailsPerMonth" xml:space="preserve">
     <value>Писем в месяц</value>
   </data>

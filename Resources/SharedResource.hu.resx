@@ -267,6 +267,9 @@
   <data name="Storage" xml:space="preserve">
     <value>Tárhely</value>
   </data>
+  <data name="DatabaseStorage" xml:space="preserve">
+    <value>Adatbázis mérete</value>
+  </data>
   <data name="EmailsPerMonth" xml:space="preserve">
     <value>E-mailek Havonta</value>
   </data>
