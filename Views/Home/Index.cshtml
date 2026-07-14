@@ -491,9 +491,53 @@
                 ]
             };
 
+            // --- Chart Dark Mode Theme ---
+            function getChartTheme() {
+                const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+                return {
+                    textColor: isDark ? '#e2e8f0' : '#495057',
+                    gridColor: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.05)',
+                    tooltipBg: isDark ? '#2d3748' : '#ffffff',
+                    tooltipTitleColor: isDark ? '#e2e8f0' : '#1a1a1a',
+                    tooltipBodyColor: isDark ? '#e2e8f0' : '#495057',
+                    tooltipBorderColor: isDark ? '#4a5568' : 'rgba(0, 0, 0, 0.1)'
+                };
+            }
+
+            function applyChartTheme(chart) {
+                if (!chart) return;
+                const t = getChartTheme();
+                if (chart.options.scales) {
+                    if (chart.options.scales.x && chart.options.scales.x.ticks) {
+                        chart.options.scales.x.ticks.color = t.textColor;
+                    }
+                    if (chart.options.scales.y && chart.options.scales.y.ticks) {
+                        chart.options.scales.y.ticks.color = t.textColor;
+                    }
+                    if (chart.options.scales.y && chart.options.scales.y.grid) {
+                        chart.options.scales.y.grid.color = t.gridColor;
+                    }
+                }
+                if (chart.options.plugins && chart.options.plugins.legend && chart.options.plugins.legend.labels) {
+                    chart.options.plugins.legend.labels.color = t.textColor;
+                }
+                if (chart.options.plugins && chart.options.plugins.tooltip) {
+                    const tt = chart.options.plugins.tooltip;
+                    tt.backgroundColor = t.tooltipBg;
+                    tt.titleColor = t.tooltipTitleColor;
+                    tt.bodyColor = t.tooltipBodyColor;
+                    tt.borderColor = t.tooltipBorderColor;
+                }
+                chart.update('none');
+            }
+
+            const chartTheme = getChartTheme();
+            let monthlyChartInstance = null;
+            let topSendersChartInstance = null;
+
             const monthlyChartCanvas = document.getElementById('monthlyChart');
             if (monthlyChartCanvas) {
-                new Chart(monthlyChartCanvas.getContext('2d'), {
+                monthlyChartInstance = new Chart(monthlyChartCanvas.getContext('2d'), {
                     type: 'bar',
                     data: {
                         labels: [@Html.Raw(string.Join(",", Model.EmailsByMonth.Select(m => $"'{m.Period}'")))],
@@ -511,13 +555,20 @@
                         maintainAspectRatio: false,
                         animation: prefersReducedMotion ? false : { duration: 800, easing: 'easeOutCubic' },
                         plugins: {
-                            legend: { display: false }
+                            legend: { display: false },
+                            tooltip: {
+                                backgroundColor: chartTheme.tooltipBg,
+                                titleColor: chartTheme.tooltipTitleColor,
+                                bodyColor: chartTheme.tooltipBodyColor,
+                                borderColor: chartTheme.tooltipBorderColor
+                            }
                         },
                         scales: {
                             x: {
                                 ticks: {
                                     maxRotation: 45,
                                     minRotation: 0,
+                                    color: chartTheme.textColor,
                                     font: { size: window.innerWidth < 768 ? 10 : 12 }
                                 },
                                 grid: { display: false }
@@ -526,9 +577,10 @@
                                 beginAtZero: true,
                                 ticks: {
                                     precision: 0,
+                                    color: chartTheme.textColor,
                                     font: { size: window.innerWidth < 768 ? 10 : 12 }
                                 },
-                                grid: { color: 'rgba(0, 0, 0, 0.05)' }
+                                grid: { color: chartTheme.gridColor }
                             }
                         }
                     }
@@ -537,7 +589,7 @@
 
             const topSendersChartCanvas = document.getElementById('topSendersChart');
             if (topSendersChartCanvas) {
-                new Chart(topSendersChartCanvas.getContext('2d'), {
+                topSendersChartInstance = new Chart(topSendersChartCanvas.getContext('2d'), {
                     type: 'doughnut',
                     data: {
                         labels: [@Html.Raw(string.Join(",", Model.TopSenders.Select(s => $"'{(s.EmailAddress.Length > 25 ? s.EmailAddress.Substring(0, 25) + "..." : s.EmailAddress)}'")))],
@@ -558,11 +610,16 @@
                                 position: 'bottom',
                                 labels: {
                                     boxWidth: 12,
+                                    color: chartTheme.textColor,
                                     font: { size: window.innerWidth < 768 ? 9 : 11 },
                                     padding: window.innerWidth < 768 ? 10 : 15
                                 }
                             },
                             tooltip: {
+                                backgroundColor: chartTheme.tooltipBg,
+                                titleColor: chartTheme.tooltipTitleColor,
+                                bodyColor: chartTheme.tooltipBodyColor,
+                                borderColor: chartTheme.tooltipBorderColor,
                                 callbacks: {
                                     label: function(context) {
                                         let label = context.label || '';
@@ -575,6 +632,17 @@
                             }
                         }
                     }
+                });
+            }
+
+            // Live-Update der Charts beim Theme-Wechsel
+            const themeToggleBtn = document.getElementById('theme-toggle');
+            if (themeToggleBtn) {
+                themeToggleBtn.addEventListener('click', function() {
+                    setTimeout(function() {
+                        applyChartTheme(monthlyChartInstance);
+                        applyChartTheme(topSendersChartInstance);
+                    }, 0);
                 });
             }
 
