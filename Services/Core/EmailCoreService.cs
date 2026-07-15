@@ -2001,69 +2001,7 @@ namespace MailArchiver.Services.Core
                         folderData.Count - validFolderData.Count, accountId);
                 }
 
-                // Build the folder tree based on actual parent-child relationships.
-                // Only create hierarchy when a parent folder actually exists in the data.
-                // This prevents folder names containing '/'
-                // from being incorrectly split into phantom sub-hierarchies.
-                var folderNameSet = new HashSet<string>(
-                    validFolderData.Select(f => f.FolderName),
-                    StringComparer.OrdinalIgnoreCase);
-
-                // Create all nodes
-                var allNodes = new Dictionary<string, FolderTreeNode>(StringComparer.OrdinalIgnoreCase);
-                foreach (var folder in validFolderData)
-                {
-                    allNodes[folder.FolderName] = new FolderTreeNode
-                    {
-                        Name = folder.FolderName,
-                        FullPath = folder.FolderName,
-                        TotalCount = folder.Count,
-                        UnreadCount = 0,
-                        Children = new List<FolderTreeNode>()
-                    };
-                }
-
-                // Build parent-child relationships.
-                // Process shortest names first so parents are set up before their children.
-                var rootNodes = new List<FolderTreeNode>();
-
-                foreach (var folder in validFolderData.OrderBy(f => f.FolderName.Length).ThenBy(f => f.FolderName))
-                {
-                    var node = allNodes[folder.FolderName];
-                    string? parentPath = null;
-
-                    // Find the nearest existing parent by scanning for hierarchy separators from right to left.
-                    // Common IMAP separators: '/' (most servers), '.', '\\' (rare)
-                    for (int i = folder.FolderName.Length - 1; i >= 0; i--)
-                    {
-                        if (folder.FolderName[i] == '/' || folder.FolderName[i] == '\\' || folder.FolderName[i] == '.')
-                        {
-                            var candidate = folder.FolderName.Substring(0, i);
-                            if (folderNameSet.Contains(candidate))
-                            {
-                                parentPath = candidate;
-                                break;
-                            }
-                        }
-                    }
-
-                    if (parentPath != null && allNodes.TryGetValue(parentPath, out var parentNode))
-                    {
-                        // Child folder — display name is the suffix after the parent path
-                        node.Name = folder.FolderName.Substring(parentPath.Length + 1);
-                        node.Level = parentNode.Level + 1;
-                        parentNode.Children.Add(node);
-                    }
-                    else
-                    {
-                        // Root folder — display name stays as the full folder name
-                        node.Level = 0;
-                        rootNodes.Add(node);
-                    }
-                }
-
-                // Sort folders alphabetically, but keep INBOX-like folders at top
-                return SortFolderTree(rootNodes);
+                return BuildFolderTree(validFolderData.Select(f => (f.FolderName, f.Count)).ToList());
             }
             catch (Exception ex)
             {
@@ -2072,10 +2010,81 @@ namespace MailArchiver.Services.Core
             }
         }
 
+        // Builds the folder tree from (folderName, count) pairs. Extracted from GetFolderTreeAsync so
+        // it can be unit-tested. Folder names that differ only in case are treated as one folder
+        // (IMAP INBOX is case-insensitive): their counts are merged and the node is emitted once.
+        internal static List<FolderTreeNode> BuildFolderTree(List<(string Name, int Count)> folders)
+        {
+            // Only create hierarchy when a parent folder actually exists in the data. This prevents
+            // folder names containing '/' (or '.') from being split into phantom sub-hierarchies.
+            var folderNameSet = new HashSet<string>(
+                folders.Select(f => f.Name),
+                StringComparer.OrdinalIgnoreCase);
+
+            // Create nodes. If two folders differ only in case (e.g. "INBOX" and "Inbox" from two
+            // accounts) merge their counts into a single node, so the same node is not emitted twice.
+            var allNodes = new Dictionary<string, FolderTreeNode>(StringComparer.OrdinalIgnoreCase);
+            foreach (var folder in folders)
+            {
+                if (allNodes.TryGetValue(folder.Name, out var existing))
+                {
+                    existing.TotalCount += folder.Count;
+                    continue;
+                }
+                allNodes[folder.Name] = new FolderTreeNode
+                {
+                    Name = folder.Name,
+                    FullPath = folder.Name,
+                    TotalCount = folder.Count,
+                    UnreadCount = 0,
+                    Children = new List<FolderTreeNode>()
+                };
+            }
+
+            // Build parent-child relationships. Iterate the DISTINCT nodes (not the raw folder list),
+            // so each node is placed exactly once; process shortest paths first so parents exist first.
+            var rootNodes = new List<FolderTreeNode>();
+            foreach (var node in allNodes.Values.OrderBy(n => n.FullPath.Length).ThenBy(n => n.FullPath, StringComparer.Ordinal))
+            {
+                string? parentPath = null;
+
+                // Find the nearest existing parent by scanning for hierarchy separators from right to left.
+                // Common IMAP separators: '/' (most servers), '.', '\\' (rare)
+                for (int i = node.FullPath.Length - 1; i >= 0; i--)
+                {
+                    if (node.FullPath[i] == '/' || node.FullPath[i] == '\\' || node.FullPath[i] == '.')
+                    {
+                        var candidate = node.FullPath.Substring(0, i);
+                        if (folderNameSet.Contains(candidate))
+                        {
+                            parentPath = candidate;
+                            break;
+                        }
+                    }
+                }
+
+                if (parentPath != null && allNodes.TryGetValue(parentPath, out var parentNode) && !ReferenceEquals(parentNode, node))
+                {
+                    // Child folder — display name is the suffix after the parent path
+                    node.Name = node.FullPath.Substring(parentPath.Length + 1);
+                    node.Level = parentNode.Level + 1;
+                    parentNode.Children.Add(node);
+                }
+                else
+                {
+                    // Root folder — display name stays as the full folder name
+                    node.Level = 0;
+                    rootNodes.Add(node);
+                }
+            }
+
+            return SortFolderTree(rootNodes);
+        }
+
         /// <summary>
         /// Sorts the folder tree with INBOX at the top, then special folders, then alphabetically
         /// </summary>
-        private List<FolderTreeNode> SortFolderTree(List<FolderTreeNode> nodes)
+        private static List<FolderTreeNode> SortFolderTree(List<FolderTreeNode> nodes)
         {
             if (nodes == null || !nodes.Any())
                 return nodes;
