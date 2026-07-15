@@ -312,6 +312,36 @@ namespace MailArchiver.Services.Providers.Graph
 
             archivedEmail.HasAttachments = archivedEmail.Attachments != null && archivedEmail.Attachments.Count > 0;
 
+            // Outlook/M365 meeting invitations: Graph exposes the iCalendar payload as a
+            // FileAttachment with ContentType "text/calendar" (or a .ics file name) but does
+            // not populate the message body with the event details. When the body is empty,
+            // synthesise a readable summary from the .ics attachment so the archived email is
+            // not displayed without any content.
+            if (string.IsNullOrEmpty(archivedEmail.Body) && archivedEmail.Attachments != null)
+            {
+                var icsAttachment = archivedEmail.Attachments.FirstOrDefault(a =>
+                    (a.ContentType != null && a.ContentType.StartsWith("text/calendar", StringComparison.OrdinalIgnoreCase))
+                    || (a.FileName != null && a.FileName.EndsWith(".ics", StringComparison.OrdinalIgnoreCase)));
+
+                if (icsAttachment?.Content != null)
+                {
+                    try
+                    {
+                        var icsContent = Encoding.UTF8.GetString(icsAttachment.Content);
+                        var summary = CalendarContentHelper.ParseICalSummary(icsContent);
+                        if (!string.IsNullOrEmpty(summary))
+                        {
+                            archivedEmail.Body = summary;
+                            archivedEmail.OriginalBodyText = Encoding.UTF8.GetBytes(summary);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Failed to parse iCalendar attachment for Graph message {MessageId}", messageId);
+                    }
+                }
+            }
+
             return archivedEmail;
         }
 

@@ -1282,6 +1282,34 @@ namespace MailArchiver.Services.Core
                     }
                 }
 
+                // Rescue floating text/calendar parts (Outlook/M365 meeting invitations).
+                // These parts are neither regular attachments nor inline content and would
+                // otherwise be silently dropped, leaving the archived email body empty.
+                var calendarExtraction = CalendarContentHelper.TryExtractCalendar(message);
+                if (calendarExtraction != null)
+                {
+                    if (string.IsNullOrEmpty(body))
+                    {
+                        body = CalendarContentHelper.ParseICalSummary(calendarExtraction.Content);
+                        originalTextBody = body;
+                        archivedEmail.Body = body;
+                        archivedEmail.OriginalBodyText = Encoding.UTF8.GetBytes(body);
+                    }
+
+                    var icsBytes = Encoding.UTF8.GetBytes(calendarExtraction.Content);
+                    var icsAttachment = new EmailAttachment
+                    {
+                        FileName = MailContentHelper.CleanText(calendarExtraction.FileName),
+                        ContentType = MailContentHelper.CleanText(calendarExtraction.MimeType),
+                        ContentId = null,
+                        Content = icsBytes,
+                        Size = icsBytes.Length
+                    };
+                    emailAttachments.Add(icsAttachment);
+                    archivedEmail.Attachments.Add(icsAttachment);
+                    archivedEmail.HasAttachments = true;
+                }
+
                 try
                 {
                     _context.ArchivedEmails.Add(archivedEmail);

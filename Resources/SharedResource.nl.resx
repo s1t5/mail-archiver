@@ -3143,4 +3143,25 @@
   <data name="Copy" xml:space="preserve">
     <value>Kopiëren</value>
   </data>
+  <data name="MeetingInvitation" xml:space="preserve">
+    <value>Uitnodiging voor vergadering</value>
+  </data>
+  <data name="MeetingStart" xml:space="preserve">
+    <value>Start</value>
+  </data>
+  <data name="MeetingEnd" xml:space="preserve">
+    <value>Einde</value>
+  </data>
+  <data name="MeetingLocation" xml:space="preserve">
+    <value>Locatie</value>
+  </data>
+  <data name="MeetingOrganizer" xml:space="preserve">
+    <value>Organisator</value>
+  </data>
+  <data name="MeetingAttendees" xml:space="preserve">
+    <value>Deelnemers</value>
+  </data>
+  <data name="MeetingDescription" xml:space="preserve">
+    <value>Beschrijving</value>
+  </data>
 </root>

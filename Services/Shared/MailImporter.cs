@@ -172,6 +172,30 @@ namespace MailArchiver.Services.Shared
                     }
                 }
 
+                // Rescue floating text/calendar parts (Outlook/M365 meeting invitations).
+                var calendarExtraction = CalendarContentHelper.TryExtractCalendar(message);
+                if (calendarExtraction != null)
+                {
+                    if (string.IsNullOrEmpty(body))
+                    {
+                        body = CalendarContentHelper.ParseICalSummary(calendarExtraction.Content);
+                        originalTextBody = body;
+                        archivedEmail.Body = body;
+                        archivedEmail.OriginalBodyText = Encoding.UTF8.GetBytes(body);
+                    }
+
+                    var icsBytes = Encoding.UTF8.GetBytes(calendarExtraction.Content);
+                    archivedEmail.Attachments.Add(new EmailAttachment
+                    {
+                        FileName = MailContentHelper.CleanText(calendarExtraction.FileName),
+                        ContentType = MailContentHelper.CleanText(calendarExtraction.MimeType),
+                        ContentId = null,
+                        Content = icsBytes,
+                        Size = icsBytes.Length
+                    });
+                    archivedEmail.HasAttachments = true;
+                }
+
                 context.ArchivedEmails.Add(archivedEmail);
                 await context.SaveChangesAsync();
                 return ImportResult.CreateSuccess();

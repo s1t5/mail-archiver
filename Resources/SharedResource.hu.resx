@@ -3135,4 +3135,25 @@
   <data name="Copy" xml:space="preserve">
     <value>Másolás</value>
   </data>
+  <data name="MeetingInvitation" xml:space="preserve">
+    <value>Értekezlet-meghívás</value>
+  </data>
+  <data name="MeetingStart" xml:space="preserve">
+    <value>Kezdés</value>
+  </data>
+  <data name="MeetingEnd" xml:space="preserve">
+    <value>Befejezés</value>
+  </data>
+  <data name="MeetingLocation" xml:space="preserve">
+    <value>Helyszín</value>
+  </data>
+  <data name="MeetingOrganizer" xml:space="preserve">
+    <value>Szervező</value>
+  </data>
+  <data name="MeetingAttendees" xml:space="preserve">
+    <value>Résztvevők</value>
+  </data>
+  <data name="MeetingDescription" xml:space="preserve">
+    <value>Leírás</value>
+  </data>
 </root>
