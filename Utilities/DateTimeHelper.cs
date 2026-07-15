@@ -57,6 +57,27 @@ namespace MailArchiver.Utilities
         }
 
         /// <summary>
+        /// Builds a <see cref="DateTimeOffset"/> for a <see cref="DateTime"/> value that is
+        /// stored in the configured display timezone (e.g. <c>ArchivedEmail.SentDate</c> after
+        /// it round-tripped through PostgreSQL <c>timestamp without time zone</c>, which strips
+        /// the <see cref="DateTimeKind"/>). The returned offset is the display timezone's UTC
+        /// offset for the given instant, so that downstream consumers (e.g. MimeKit's
+        /// <c>MimeMessage.Date</c>) emit a correct <c>Date:</c> header with the proper offset.
+        /// </summary>
+        /// <param name="dateTime">
+        /// A <see cref="DateTime"/> interpreted as local time in the configured display timezone.
+        /// </param>
+        /// <returns>
+        /// A <see cref="DateTimeOffset"/> whose wall-clock time matches <paramref name="dateTime"/>
+        /// and whose offset reflects the configured display timezone.
+        /// </returns>
+        public DateTimeOffset ToDisplayTimeZoneOffset(DateTime dateTime)
+        {
+            var unspecified = DateTime.SpecifyKind(dateTime, DateTimeKind.Unspecified);
+            return new DateTimeOffset(unspecified, _displayTimeZone.GetUtcOffset(unspecified));
+        }
+
+        /// <summary>
         /// Inverse of <see cref="ConvertToDisplayTimeZone(DateTime)"/>.
         /// Interprets a DateTime stored in the configured display timezone (or with
         /// <see cref="DateTimeKind.Unspecified"/> because it has round-tripped through

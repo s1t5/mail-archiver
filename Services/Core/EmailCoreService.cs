@@ -871,7 +871,7 @@ namespace MailArchiver.Services.Core
                 message.Body = body;
             }
 
-            message.Date = email.SentDate;
+            message.Date = _dateTimeHelper.ToDisplayTimeZoneOffset(email.SentDate);
             message.MessageId = email.MessageId;
 
             await Task.Run(() => message.WriteTo(ms));

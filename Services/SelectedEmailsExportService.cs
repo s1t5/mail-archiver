@@ -1,6 +1,7 @@
 using MailArchiver.Data;
 using MailArchiver.Models;
 using MailArchiver.Services.Shared;
+using MailArchiver.Utilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using System.Collections.Concurrent;
@@ -21,19 +22,16 @@ namespace MailArchiver.Services
         private readonly Timer _cleanupTimer;
         private CancellationTokenSource? _currentJobCancellation;
         private readonly string _exportsPath;
-        private readonly TimeZoneOptions _timeZoneOptions;
 
         public SelectedEmailsExportService(
             IServiceProvider serviceProvider, 
             ILogger<SelectedEmailsExportService> logger, 
             IWebHostEnvironment environment, 
-            IOptions<BatchOperationOptions> batchOptions,
-            IOptions<TimeZoneOptions> timeZoneOptions)
+            IOptions<BatchOperationOptions> batchOptions)
         {
             _serviceProvider = serviceProvider;
             _logger = logger;
             _batchOptions = batchOptions.Value;
-            _timeZoneOptions = timeZoneOptions.Value;
             _exportsPath = Path.Combine(environment.ContentRootPath, "exports");
 
             // Create exports directory if it doesn't exist
@@ -249,6 +247,7 @@ namespace MailArchiver.Services
 
                 using var scope = _serviceProvider.CreateScope();
                 var context = scope.ServiceProvider.GetRequiredService<MailArchiverDbContext>();
+                var dateTimeHelper = scope.ServiceProvider.GetRequiredService<DateTimeHelper>();
 
                 // Generate output file path
                 var fileName = $"export_selected_{job.JobId}_{DateTime.UtcNow:yyyyMMddHHmmss}.zip";
@@ -261,11 +260,11 @@ namespace MailArchiver.Services
                 // Perform export based on format
                 if (job.Format == AccountExportFormat.EML)
                 {
-                    await ExportToEmlFormat(job, context, processedIds, cancellationToken);
+                    await ExportToEmlFormat(job, context, dateTimeHelper, processedIds, cancellationToken);
                 }
                 else if (job.Format == AccountExportFormat.MBox)
                 {
-                    await ExportToMBoxFormat(job, context, processedIds, cancellationToken);
+                    await ExportToMBoxFormat(job, context, dateTimeHelper, processedIds, cancellationToken);
                 }
 
                 if (job.Status != SelectedEmailsExportJobStatus.Cancelled)
@@ -317,7 +316,7 @@ namespace MailArchiver.Services
             }
         }
 
-        private async Task ExportToEmlFormat(SelectedEmailsExportJob job, MailArchiverDbContext context, HashSet<int> processedIds, CancellationToken cancellationToken)
+        private async Task ExportToEmlFormat(SelectedEmailsExportJob job, MailArchiverDbContext context, DateTimeHelper dateTimeHelper, HashSet<int> processedIds, CancellationToken cancellationToken)
         {
             using var zipStream = new FileStream(job.OutputFilePath, FileMode.Create, FileAccess.Write);
             using var archive = new ZipArchive(zipStream, ZipArchiveMode.Create);
@@ -332,15 +331,15 @@ namespace MailArchiver.Services
             // Process emails for each folder
             foreach (var folderName in folderNames)
             {
-                await ProcessEmailsForEmlExportByFolder(job, context, archive, folderName, processedIds, cancellationToken);
+                await ProcessEmailsForEmlExportByFolder(job, context, archive, folderName, dateTimeHelper, processedIds, cancellationToken);
             }
 
             // Reconciliation: recover any selected emails that were silently skipped during the main pass
             // so the export is complete and any discrepancies are visible to the user.
-            await RecoverMissingEmlEmails(job, context, archive, processedIds, cancellationToken);
+            await RecoverMissingEmlEmails(job, context, archive, dateTimeHelper, processedIds, cancellationToken);
         }
 
-        private async Task ProcessEmailsForEmlExportByFolder(SelectedEmailsExportJob job, MailArchiverDbContext context, ZipArchive archive, string folderName, HashSet<int> processedIds, CancellationToken cancellationToken)
+        private async Task ProcessEmailsForEmlExportByFolder(SelectedEmailsExportJob job, MailArchiverDbContext context, ZipArchive archive, string folderName, DateTimeHelper dateTimeHelper, HashSet<int> processedIds, CancellationToken cancellationToken)
         {
             var emails = context.ArchivedEmails
                 .Where(e => job.EmailIds.Contains(e.Id) && e.FolderName == folderName)
@@ -358,7 +357,7 @@ namespace MailArchiver.Services
                     job.CurrentEmailSubject = email.Subject;
 
                     // Create MIME message from archived email
-                    var mimeMessage = await CreateMimeMessageFromArchived(email);
+                    var mimeMessage = await CreateMimeMessageFromArchived(email, dateTimeHelper);
 
                     // Generate safe filename with In/Out indicator
                     var safeSubject = SanitizeFileName(email.Subject);
@@ -404,7 +403,7 @@ namespace MailArchiver.Services
             }
         }
 
-        private async Task ExportToMBoxFormat(SelectedEmailsExportJob job, MailArchiverDbContext context, HashSet<int> processedIds, CancellationToken cancellationToken)
+        private async Task ExportToMBoxFormat(SelectedEmailsExportJob job, MailArchiverDbContext context, DateTimeHelper dateTimeHelper, HashSet<int> processedIds, CancellationToken cancellationToken)
         {
             using var zipStream = new FileStream(job.OutputFilePath, FileMode.Create, FileAccess.Write);
             using var archive = new ZipArchive(zipStream, ZipArchiveMode.Create);
@@ -421,15 +420,15 @@ namespace MailArchiver.Services
             {
                 var mboxEntry = archive.CreateEntry($"{SanitizeFileName(folderName)}.mbox");
                 using var mboxStream = mboxEntry.Open();
-                await ProcessEmailsForMBoxExportByFolder(job, context, mboxStream, folderName, processedIds, cancellationToken);
+                await ProcessEmailsForMBoxExportByFolder(job, context, mboxStream, folderName, dateTimeHelper, processedIds, cancellationToken);
             }
 
             // Reconciliation: recover any selected emails that were silently skipped during the main pass
             // so the export is complete and any discrepancies are visible to the user.
-            await RecoverMissingMBoxEmails(job, context, archive, processedIds, cancellationToken);
+            await RecoverMissingMBoxEmails(job, context, archive, dateTimeHelper, processedIds, cancellationToken);
         }
 
-        private async Task ProcessEmailsForMBoxExportByFolder(SelectedEmailsExportJob job, MailArchiverDbContext context, Stream mboxStream, string folderName, HashSet<int> processedIds, CancellationToken cancellationToken)
+        private async Task ProcessEmailsForMBoxExportByFolder(SelectedEmailsExportJob job, MailArchiverDbContext context, Stream mboxStream, string folderName, DateTimeHelper dateTimeHelper, HashSet<int> processedIds, CancellationToken cancellationToken)
         {
             // Use UTF-8 without BOM - mbox files must start with "From " at byte offset 0
             // A BOM (0xEF 0xBB 0xBF) before "From " causes mbox parsers to reject the file
@@ -457,7 +456,7 @@ namespace MailArchiver.Services
                     await writer.WriteLineAsync(fromLine);
 
                     // Create MIME message and write to mbox
-                    var mimeMessage = await CreateMimeMessageFromArchived(email);
+                    var mimeMessage = await CreateMimeMessageFromArchived(email, dateTimeHelper);
                     
                     using var messageStream = new MemoryStream();
                     await mimeMessage.WriteToAsync(messageStream, cancellationToken);
@@ -512,7 +511,7 @@ namespace MailArchiver.Services
             await writer.FlushAsync();
         }
 
-        private async Task RecoverMissingEmlEmails(SelectedEmailsExportJob job, MailArchiverDbContext context, ZipArchive archive, HashSet<int> processedIds, CancellationToken cancellationToken)
+        private async Task RecoverMissingEmlEmails(SelectedEmailsExportJob job, MailArchiverDbContext context, ZipArchive archive, DateTimeHelper dateTimeHelper, HashSet<int> processedIds, CancellationToken cancellationToken)
         {
             var failedIds = new HashSet<int>(job.FailedEmails.Select(f => f.EmailId));
 
@@ -554,7 +553,7 @@ namespace MailArchiver.Services
 
                 try
                 {
-                    var mimeMessage = await CreateMimeMessageFromArchived(email);
+                    var mimeMessage = await CreateMimeMessageFromArchived(email, dateTimeHelper);
 
                     var safeSubject = SanitizeFileName(email.Subject);
                     var inOutIndicator = email.IsOutgoing ? "Out" : "In";
@@ -587,7 +586,7 @@ namespace MailArchiver.Services
             }
         }
 
-        private async Task RecoverMissingMBoxEmails(SelectedEmailsExportJob job, MailArchiverDbContext context, ZipArchive archive, HashSet<int> processedIds, CancellationToken cancellationToken)
+        private async Task RecoverMissingMBoxEmails(SelectedEmailsExportJob job, MailArchiverDbContext context, ZipArchive archive, DateTimeHelper dateTimeHelper, HashSet<int> processedIds, CancellationToken cancellationToken)
         {
             var failedIds = new HashSet<int>(job.FailedEmails.Select(f => f.EmailId));
 
@@ -635,7 +634,7 @@ namespace MailArchiver.Services
                     var fromLine = CreateMBoxFromLine(email);
                     await writer.WriteLineAsync(fromLine);
 
-                    var mimeMessage = await CreateMimeMessageFromArchived(email);
+                    var mimeMessage = await CreateMimeMessageFromArchived(email, dateTimeHelper);
 
                     using var messageStream = new MemoryStream();
                     await mimeMessage.WriteToAsync(messageStream, cancellationToken);
@@ -677,18 +676,17 @@ namespace MailArchiver.Services
             await writer.FlushAsync();
         }
 
-        private async Task<MimeMessage> CreateMimeMessageFromArchived(ArchivedEmail email)
+        private async Task<MimeMessage> CreateMimeMessageFromArchived(ArchivedEmail email, DateTimeHelper dateTimeHelper)
         {
             var message = new MimeMessage();
 
             // Set headers
             message.MessageId = email.MessageId;
             message.Subject = email.Subject;
-            
+
             // The SentDate in the database is already in the configured display timezone (converted during sync)
             // We need to specify this timezone when creating the DateTimeOffset to preserve the correct time
-            var displayTimeZone = TimeZoneInfo.FindSystemTimeZoneById(_timeZoneOptions.DisplayTimeZoneId);
-            message.Date = new DateTimeOffset(email.SentDate, displayTimeZone.GetUtcOffset(email.SentDate));
+            message.Date = dateTimeHelper.ToDisplayTimeZoneOffset(email.SentDate);
 
             // Parse addresses
             if (!string.IsNullOrEmpty(email.From))
