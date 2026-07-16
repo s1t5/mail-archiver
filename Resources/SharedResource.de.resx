@@ -3165,4 +3165,16 @@
   <data name="MeetingDescription" xml:space="preserve">
     <value>Beschreibung</value>
   </data>
+  <data name="AcknowledgeFailures" xml:space="preserve">
+    <value>Fehler bestätigen</value>
+  </data>
+  <data name="AcknowledgeFailuresConfirm" xml:space="preserve">
+    <value>Dadurch wird der Synchronisationszeitstempel auf den Abschlusszeitpunkt dieses Jobs gesetzt, sodass die nächste Synchronisation ein normaler inkrementeller Sync wird. Die fehlgeschlagenen E-Mails werden nicht erneut versucht. Fortfahren?</value>
+  </data>
+  <data name="AcknowledgeFailuresSuccess" xml:space="preserve">
+    <value>Synchronisationszeitstempel wurde aktualisiert. Die nächste Synchronisation wird inkrementell sein.</value>
+  </data>
+  <data name="FailuresAcknowledged" xml:space="preserve">
+    <value>Fehler bestätigt</value>
+  </data>
 </root>

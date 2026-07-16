@@ -3163,4 +3163,16 @@
   <data name="MeetingDescription" xml:space="preserve">
     <value>Descripción</value>
   </data>
+  <data name="AcknowledgeFailures" xml:space="preserve">
+    <value>Reconocer fallos</value>
+  </data>
+  <data name="AcknowledgeFailuresConfirm" xml:space="preserve">
+    <value>Esto avanzará la marca de tiempo de sincronización al momento de finalización de este trabajo, por lo que la próxima sincronización será incremental normal. Los correos fallidos no se reintentarán. ¿Continuar?</value>
+  </data>
+  <data name="AcknowledgeFailuresSuccess" xml:space="preserve">
+    <value>La marca de tiempo de sincronización se ha avanzado. La próxima sincronización será incremental.</value>
+  </data>
+  <data name="FailuresAcknowledged" xml:space="preserve">
+    <value>Fallos reconocidos</value>
+  </data>
 </root>

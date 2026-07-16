@@ -3164,4 +3164,16 @@
   <data name="MeetingDescription" xml:space="preserve">
     <value>Beschrijving</value>
   </data>
+  <data name="AcknowledgeFailures" xml:space="preserve">
+    <value>Fouten erkennen</value>
+  </data>
+  <data name="AcknowledgeFailuresConfirm" xml:space="preserve">
+    <value>Dit zal de synchronisatietijdstempel vooruitschuiven naar de voltooiingstijd van deze taak, zodat de volgende synchronisatie een normale incrementele synchronisatie zal zijn. De mislukte e-mails worden niet opnieuw geprobeerd. Doorgaan?</value>
+  </data>
+  <data name="AcknowledgeFailuresSuccess" xml:space="preserve">
+    <value>De synchronisatietijdstempel is vooruitgeschoven. De volgende synchronisatie zal incrementeel zijn.</value>
+  </data>
+  <data name="FailuresAcknowledged" xml:space="preserve">
+    <value>Fouten erkend</value>
+  </data>
 </root>

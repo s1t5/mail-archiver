@@ -3156,4 +3156,16 @@
   <data name="MeetingDescription" xml:space="preserve">
     <value>Leírás</value>
   </data>
+  <data name="AcknowledgeFailures" xml:space="preserve">
+    <value>Hibák elismerése</value>
+  </data>
+  <data name="AcknowledgeFailuresConfirm" xml:space="preserve">
+    <value>Ez előreviszi a szinkronizálási időbélyeget a feladat befejezési idejére, így a következő szinkronizálás normál növekményes szinkronizálás lesz. A sikertelen e-mailek nem lesznek újrapróbálva. Folytatja?</value>
+  </data>
+  <data name="AcknowledgeFailuresSuccess" xml:space="preserve">
+    <value>A szinkronizálási időbélyeg előre lett állítva. A következő szinkronizálás növekményes lesz.</value>
+  </data>
+  <data name="FailuresAcknowledged" xml:space="preserve">
+    <value>Hibák elismerve</value>
+  </data>
 </root>

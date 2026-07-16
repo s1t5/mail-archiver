@@ -3210,4 +3210,16 @@
   <data name="MeetingDescription" xml:space="preserve">
     <value>Opis</value>
   </data>
+  <data name="AcknowledgeFailures" xml:space="preserve">
+    <value>Uznaj błędy</value>
+  </data>
+  <data name="AcknowledgeFailuresConfirm" xml:space="preserve">
+    <value>To przesunie znacznik czasu synchronizacji do czasu ukończenia tego zadania, więc następna synchronizacja będzie normalną synchronizacją przyrostową. Nieudane wiadomości e-mail nie zostaną ponowione. Kontynuować?</value>
+  </data>
+  <data name="AcknowledgeFailuresSuccess" xml:space="preserve">
+    <value>Znacznik czasu synchronizacji został przesunięty. Następna synchronizacja będzie przyrostowa.</value>
+  </data>
+  <data name="FailuresAcknowledged" xml:space="preserve">
+    <value>Błędy uznane</value>
+  </data>
 </root>

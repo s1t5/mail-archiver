@@ -563,4 +563,16 @@
   <data name="MeetingDescription" xml:space="preserve">
     <value>Description</value>
   </data>
+  <data name="AcknowledgeFailures" xml:space="preserve">
+    <value>Acknowledge Failures</value>
+  </data>
+  <data name="AcknowledgeFailuresConfirm" xml:space="preserve">
+    <value>This will advance the sync timestamp to the completion time of this job, so the next sync will be a normal incremental sync. The failed emails will not be retried. Continue?</value>
+  </data>
+  <data name="AcknowledgeFailuresSuccess" xml:space="preserve">
+    <value>Sync timestamp has been advanced. The next sync will be incremental.</value>
+  </data>
+  <data name="FailuresAcknowledged" xml:space="preserve">
+    <value>Failures acknowledged</value>
+  </data>
 </root>

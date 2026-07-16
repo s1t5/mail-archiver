@@ -85,6 +85,16 @@
                                                     @Localizer["CancelJob"]
                                                 </button>
                                             }
+                                            else if (job.Status == MailArchiver.Models.SyncJobStatus.Completed && job.FailedEmails > 0 && !job.FailuresAcknowledged)
+                                            {
+                                                <button type="button" class="btn btn-outline-success btn-sm" data-bs-toggle="modal" data-bs-target="#acknowledgeFailuresModal-@job.JobId">
+                                                    <i class="bi bi-check2-all"></i> @Localizer["AcknowledgeFailures"]
+                                                </button>
+                                            }
+                                            else if (job.Status == MailArchiver.Models.SyncJobStatus.Completed && job.FailuresAcknowledged)
+                                            {
+                                                <span class="badge bg-success"><i class="bi bi-check2-all"></i> @Localizer["FailuresAcknowledged"]</span>
+                                            }
                                         </td>
                                     </tr>
                                 }
@@ -101,6 +111,8 @@
                                     <div class="mb-2"><small><strong>@Localizer["Started"]:</strong> <span class="utc-timestamp" data-utc-time="@job.Started.ToString("yyyy-MM-ddTHH:mm:ss")">@job.Started.ToString("g")</span> | <strong>@Localizer["Duration"]:</strong> @if (job.Completed.HasValue){ var duration = job.Completed.Value - job.Started; @duration.ToString(@"hh\:mm\:ss")} else { var duration = DateTime.UtcNow - job.Started; @duration.ToString(@"hh\:mm\:ss")}</small></div>
                                     @if (job.ProcessedEmails > 0 || job.DeletedEmails > 0 || job.NewEmails > 0 || job.FailedEmails > 0){<div class="mb-0"><small><span class="text-success">@Localizer["New"]: @job.NewEmails.ToString("N0")</span> | <span class="text-primary">@Localizer["ProcessedSuffix"]: @job.ProcessedEmails.ToString("N0")</span>@if (job.DeletedEmails > 0){<span> | <span class="text-warning">@Localizer["Deleted"]: @job.DeletedEmails.ToString("N0")</span></span> }@if (job.FailedEmails > 0){<span> | <span class="text-danger">@Localizer["Failed"]: @job.FailedEmails.ToString("N0")</span></span>}</small></div>}
                                     @if (job.Status == MailArchiver.Models.SyncJobStatus.Running){<div class="mt-2"><form asp-action="CancelSyncJob" method="post" style="display: inline;" onsubmit="return confirm('@Localizer["CancelJobConfirm"]');"><input type="hidden" name="jobId" value="@job.JobId" /><button type="submit" class="btn btn-outline-warning btn-sm">@Localizer["CancelJob"]</button></form></div>}
+                                    else if (job.Status == MailArchiver.Models.SyncJobStatus.Completed && job.FailedEmails > 0 && !job.FailuresAcknowledged){<div class="mt-2"><button type="button" class="btn btn-outline-success btn-sm" data-bs-toggle="modal" data-bs-target="#acknowledgeFailuresModal-@job.JobId"><i class="bi bi-check2-all"></i> @Localizer["AcknowledgeFailures"]</button></div>}
+                                    else if (job.Status == MailArchiver.Models.SyncJobStatus.Completed && job.FailuresAcknowledged){<div class="mt-2"><span class="badge bg-success"><i class="bi bi-check2-all"></i> @Localizer["FailuresAcknowledged"]</span></div>}
                                 </div>
                             </div>
                         }
@@ -137,6 +149,32 @@
                                         <input type="hidden" name="jobId" value="@job.JobId" />
                                         <button type="submit" class="btn btn-warning">
                                             @Localizer["CancelJob"]
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+                @if (job.Status == MailArchiver.Models.SyncJobStatus.Completed && job.FailedEmails > 0 && !job.FailuresAcknowledged)
+                {
+                    <!-- Bootstrap Modal for Acknowledge Failures Confirmation -->
+                    <div class="modal fade" id="acknowledgeFailuresModal-@job.JobId" tabindex="-1" aria-labelledby="acknowledgeFailuresModalLabel-@job.JobId" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="acknowledgeFailuresModalLabel-@job.JobId">@Localizer["AcknowledgeFailures"]</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    @Localizer["AcknowledgeFailuresConfirm"]
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">@Localizer["Close"]</button>
+                                    <form asp-action="AcknowledgeSyncFailures" method="post" style="display: inline;">
+                                        <input type="hidden" name="jobId" value="@job.JobId" />
+                                        <button type="submit" class="btn btn-success">
+                                            <i class="bi bi-check2-all"></i> @Localizer["AcknowledgeFailures"]
                                         </button>
                                     </form>
                                 </div>

@@ -1936,6 +1936,40 @@ namespace MailArchiver.Controllers
             return Redirect(returnUrl ?? Url.Action("Jobs"));
         }
 
+        // POST: Emails/AcknowledgeSyncFailures
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AcknowledgeSyncFailures(string jobId, string returnUrl = null)
+        {
+            if (_syncJobService == null)
+            {
+                TempData["ErrorMessage"] = "Sync job service is not available.";
+                return Redirect(returnUrl ?? Url.Action("Jobs"));
+            }
+
+            var job = _syncJobService.GetJob(jobId);
+            var success = _syncJobService.AcknowledgeJobFailures(jobId);
+
+            if (success)
+            {
+                TempData["SuccessMessage"] = _localizer["AcknowledgeFailuresSuccess"].Value;
+
+                var currentUsername = _authService.GetCurrentUserDisplayName(HttpContext);
+                if (!string.IsNullOrEmpty(currentUsername) && _accessLogService != null && job != null)
+                {
+                    await _accessLogService.LogAccessAsync(currentUsername, AccessLogType.SyncAcknowledgeFailures,
+                        searchParameters: $"Acknowledged {job.FailedEmails} failed emails for account: {job.AccountName}",
+                        mailAccountId: job.MailAccountId);
+                }
+            }
+            else
+            {
+                TempData["ErrorMessage"] = "Could not acknowledge the sync failures. The job may no longer be available or has no failed emails.";
+            }
+
+            return Redirect(returnUrl ?? Url.Action("Jobs"));
+        }
+
         // Helper method to get all batch jobs from the service
         private List<BatchRestoreJob> GetAllBatchJobsFromService()
         {

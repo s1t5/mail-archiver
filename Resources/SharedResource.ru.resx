@@ -3164,4 +3164,16 @@
   <data name="MeetingDescription" xml:space="preserve">
     <value>Описание</value>
   </data>
+  <data name="AcknowledgeFailures" xml:space="preserve">
+    <value>Подтвердить ошибки</value>
+  </data>
+  <data name="AcknowledgeFailuresConfirm" xml:space="preserve">
+    <value>Это переведёт метку времени синхронизации на время завершения этого задания, поэтому следующая синхронизация будет обычной инкрементной. Неудачные письма не будут повторены. Продолжить?</value>
+  </data>
+  <data name="AcknowledgeFailuresSuccess" xml:space="preserve">
+    <value>Метка времени синхронизации была перемещена вперёд. Следующая синхронизация будет инкрементной.</value>
+  </data>
+  <data name="FailuresAcknowledged" xml:space="preserve">
+    <value>Ошибки подтверждены</value>
+  </data>
 </root>

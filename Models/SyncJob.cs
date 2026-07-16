@@ -17,6 +17,7 @@ namespace MailArchiver.Models
         public string? CurrentFolder { get; set; }
         public string? ErrorMessage { get; set; }
         public DateTime? LastSync { get; set; }
+        public bool FailuresAcknowledged { get; set; }
         public CancellationTokenSource? CancellationTokenSource { get; set; }
     }
 

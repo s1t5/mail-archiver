@@ -14,6 +14,7 @@ namespace MailArchiver.Services
         void CompleteJobRateLimited(string jobId, string? errorMessage = null);
         bool CancelJob(string jobId);
         bool CancelJobsForAccount(int accountId);
+        bool AcknowledgeJobFailures(string jobId);
         void CleanupOldJobs();
     }
 }

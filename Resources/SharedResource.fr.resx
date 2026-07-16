@@ -3164,4 +3164,16 @@
   <data name="MeetingDescription" xml:space="preserve">
     <value>Description</value>
   </data>
+  <data name="AcknowledgeFailures" xml:space="preserve">
+    <value>Reconnaître les échecs</value>
+  </data>
+  <data name="AcknowledgeFailuresConfirm" xml:space="preserve">
+    <value>Cela avancera l'horodatage de synchronisation à l'heure d'achèvement de ce travail, donc la prochaine synchronisation sera une synchronisation incrémentale normale. Les e-mails échoués ne seront pas réessayés. Continuer ?</value>
+  </data>
+  <data name="AcknowledgeFailuresSuccess" xml:space="preserve">
+    <value>L'horodatage de synchronisation a été avancé. La prochaine synchronisation sera incrémentale.</value>
+  </data>
+  <data name="FailuresAcknowledged" xml:space="preserve">
+    <value>Échecs reconnus</value>
+  </data>
 </root>

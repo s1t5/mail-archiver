@@ -201,6 +201,59 @@ namespace MailArchiver.Services
             return anyCancelled;
         }
 
+        public bool AcknowledgeJobFailures(string jobId)
+        {
+            if (!_jobs.TryGetValue(jobId, out var job))
+            {
+                _logger.LogWarning("Cannot acknowledge failures for job {JobId} because it doesn't exist", jobId);
+                return false;
+            }
+
+            if (job.Status != SyncJobStatus.Completed)
+            {
+                _logger.LogWarning("Cannot acknowledge failures for job {JobId} because it is not completed (status: {Status})", jobId, job.Status);
+                return false;
+            }
+
+            if (job.FailedEmails <= 0)
+            {
+                _logger.LogWarning("Cannot acknowledge failures for job {JobId} because it has no failed emails", jobId);
+                return false;
+            }
+
+            if (!job.Completed.HasValue)
+            {
+                _logger.LogWarning("Cannot acknowledge failures for job {JobId} because it has no completion timestamp", jobId);
+                return false;
+            }
+
+            if (job.FailuresAcknowledged)
+            {
+                _logger.LogWarning("Failures for job {JobId} have already been acknowledged", jobId);
+                return false;
+            }
+
+            using var scope = _serviceProvider.CreateScope();
+            var dbContext = scope.ServiceProvider.GetRequiredService<MailArchiverDbContext>();
+
+            var account = dbContext.MailAccounts.Find(job.MailAccountId);
+            if (account == null)
+            {
+                _logger.LogWarning("Cannot acknowledge failures for job {JobId} because account {AccountId} no longer exists", jobId, job.MailAccountId);
+                return false;
+            }
+
+            account.LastSync = job.Completed.Value;
+            dbContext.SaveChanges();
+
+            job.FailuresAcknowledged = true;
+
+            _logger.LogInformation("Acknowledged {FailedCount} failed emails for job {JobId} on account {AccountName}. LastSync advanced to {LastSync}.",
+                job.FailedEmails, jobId, job.AccountName, job.Completed.Value);
+
+            return true;
+        }
+
         public void CleanupOldJobs()
         {
             var cutoffTime = DateTime.UtcNow.AddHours(-24);

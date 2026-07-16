@@ -3164,4 +3164,16 @@
   <data name="MeetingDescription" xml:space="preserve">
     <value>Opis</value>
   </data>
+  <data name="AcknowledgeFailures" xml:space="preserve">
+    <value>Potrdi napake</value>
+  </data>
+  <data name="AcknowledgeFailuresConfirm" xml:space="preserve">
+    <value>To bo premaknilo časovni žig sinhronizacije na čas zaključka te naloge, tako da bo naslednja sinhronizacija običajna inkrementalna. Neuspešna e-poštna sporočila ne bodo znova poskusena. Nadaljuj?</value>
+  </data>
+  <data name="AcknowledgeFailuresSuccess" xml:space="preserve">
+    <value>Časovni žig sinhronizacije je bil premaknjena. Naslednja sinhronizacija bo inkrementalna.</value>
+  </data>
+  <data name="FailuresAcknowledged" xml:space="preserve">
+    <value>Napake potrjene</value>
+  </data>
 </root>

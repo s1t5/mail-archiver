@@ -3164,4 +3164,16 @@
   <data name="MeetingDescription" xml:space="preserve">
     <value>Descrizione</value>
   </data>
+  <data name="AcknowledgeFailures" xml:space="preserve">
+    <value>Riconosci errori</value>
+  </data>
+  <data name="AcknowledgeFailuresConfirm" xml:space="preserve">
+    <value>Questo farà avanzare il timestamp di sincronizzazione all'ora di completamento di questo processo, quindi la prossima sincronizzazione sarà una sincronizzazione incrementale normale. Le email fallite non verranno ritentate. Continuare?</value>
+  </data>
+  <data name="AcknowledgeFailuresSuccess" xml:space="preserve">
+    <value>Il timestamp di sincronizzazione è stato avanzato. La prossima sincronizzazione sarà incrementale.</value>
+  </data>
+  <data name="FailuresAcknowledged" xml:space="preserve">
+    <value>Errori riconosciuti</value>
+  </data>
 </root>
