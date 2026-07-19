@@ -3175,4 +3175,58 @@
   <data name="FailuresAcknowledged" xml:space="preserve">
     <value>Fallos reconocidos</value>
   </data>
+  <data name="AdvAddCondition" xml:space="preserve">
+    <value>Añadir condición</value>
+  </data>
+  <data name="AdvRemoveCondition" xml:space="preserve">
+    <value>Quitar condición</value>
+  </data>
+  <data name="AdvAttachTitle" xml:space="preserve">
+    <value>Adjunto</value>
+  </data>
+  <data name="AdvAttachAny" xml:space="preserve">
+    <value>Cualquiera</value>
+  </data>
+  <data name="AdvAttachYes" xml:space="preserve">
+    <value>Sí</value>
+  </data>
+  <data name="AdvAttachNo" xml:space="preserve">
+    <value>No</value>
+  </data>
+  <data name="AdvScopeAll" xml:space="preserve">
+    <value>Todos los campos</value>
+  </data>
+  <data name="AdvScopeBody" xml:space="preserve">
+    <value>Cuerpo</value>
+  </data>
+  <data name="AdvConnAnd" xml:space="preserve">
+    <value>Y</value>
+  </data>
+  <data name="AdvConnOr" xml:space="preserve">
+    <value>O</value>
+  </data>
+  <data name="AdvBuilderCaseHint" xml:space="preserve">
+    <value>La búsqueda no distingue mayúsculas de minúsculas.</value>
+  </data>
+  <data name="AdvBuilderQuoteHint" xml:space="preserve">
+    <value>Frase exacta: entre comillas, p. ej. "factura abierta" - también para excluir: -"factura abierta".</value>
+  </data>
+  <data name="AdvBuilderSubject" xml:space="preserve">
+    <value>Asunto</value>
+  </data>
+  <data name="AdvBuilderFrom" xml:space="preserve">
+    <value>De</value>
+  </data>
+  <data name="AdvBuilderTo" xml:space="preserve">
+    <value>Para</value>
+  </data>
+  <data name="AdvancedSearchInfo0" xml:space="preserve">
+    <value>• Las palabras se buscan por raíz (prefijo): "factura" también encuentra "facturas"</value>
+  </data>
+  <data name="AdvancedSearchInfo4" xml:space="preserve">
+    <value>• Excluir términos con un menos y alternativas con OR: factura -recordatorio, coche OR bici</value>
+  </data>
+  <data name="AdvancedSearchInfo5" xml:space="preserve">
+    <value>• Búsqueda por subcadena con asteriscos: *factur* también encuentra "facturas"</value>
+  </data>
 </root>

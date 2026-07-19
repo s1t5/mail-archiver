@@ -3176,4 +3176,58 @@
   <data name="FailuresAcknowledged" xml:space="preserve">
     <value>Errori riconosciuti</value>
   </data>
+  <data name="AdvAddCondition" xml:space="preserve">
+    <value>Aggiungi condizione</value>
+  </data>
+  <data name="AdvRemoveCondition" xml:space="preserve">
+    <value>Rimuovi condizione</value>
+  </data>
+  <data name="AdvAttachTitle" xml:space="preserve">
+    <value>Allegato</value>
+  </data>
+  <data name="AdvAttachAny" xml:space="preserve">
+    <value>Qualsiasi</value>
+  </data>
+  <data name="AdvAttachYes" xml:space="preserve">
+    <value>Sì</value>
+  </data>
+  <data name="AdvAttachNo" xml:space="preserve">
+    <value>No</value>
+  </data>
+  <data name="AdvScopeAll" xml:space="preserve">
+    <value>Tutti i campi</value>
+  </data>
+  <data name="AdvScopeBody" xml:space="preserve">
+    <value>Corpo</value>
+  </data>
+  <data name="AdvConnAnd" xml:space="preserve">
+    <value>E</value>
+  </data>
+  <data name="AdvConnOr" xml:space="preserve">
+    <value>O</value>
+  </data>
+  <data name="AdvBuilderCaseHint" xml:space="preserve">
+    <value>La ricerca non distingue maiuscole e minuscole.</value>
+  </data>
+  <data name="AdvBuilderQuoteHint" xml:space="preserve">
+    <value>Frase esatta: tra virgolette, es. "fattura aperta" - anche per escludere: -"fattura aperta".</value>
+  </data>
+  <data name="AdvBuilderSubject" xml:space="preserve">
+    <value>Oggetto</value>
+  </data>
+  <data name="AdvBuilderFrom" xml:space="preserve">
+    <value>Da</value>
+  </data>
+  <data name="AdvBuilderTo" xml:space="preserve">
+    <value>A</value>
+  </data>
+  <data name="AdvancedSearchInfo0" xml:space="preserve">
+    <value>• Le parole vengono cercate per radice (prefisso): "fattura" trova anche "fatture"</value>
+  </data>
+  <data name="AdvancedSearchInfo4" xml:space="preserve">
+    <value>• Escludi termini con un meno e alternative con OR: fattura -sollecito, auto OR bici</value>
+  </data>
+  <data name="AdvancedSearchInfo5" xml:space="preserve">
+    <value>• Ricerca per sottostringa con asterischi: *fattur* trova anche "fatture"</value>
+  </data>
 </root>

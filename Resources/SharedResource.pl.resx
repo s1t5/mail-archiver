@@ -3222,4 +3222,58 @@
   <data name="FailuresAcknowledged" xml:space="preserve">
     <value>Błędy uznane</value>
   </data>
+  <data name="AdvAddCondition" xml:space="preserve">
+    <value>Dodaj warunek</value>
+  </data>
+  <data name="AdvRemoveCondition" xml:space="preserve">
+    <value>Usuń warunek</value>
+  </data>
+  <data name="AdvAttachTitle" xml:space="preserve">
+    <value>Załącznik</value>
+  </data>
+  <data name="AdvAttachAny" xml:space="preserve">
+    <value>Dowolny</value>
+  </data>
+  <data name="AdvAttachYes" xml:space="preserve">
+    <value>Tak</value>
+  </data>
+  <data name="AdvAttachNo" xml:space="preserve">
+    <value>Nie</value>
+  </data>
+  <data name="AdvScopeAll" xml:space="preserve">
+    <value>Wszystkie pola</value>
+  </data>
+  <data name="AdvScopeBody" xml:space="preserve">
+    <value>Treść</value>
+  </data>
+  <data name="AdvConnAnd" xml:space="preserve">
+    <value>I</value>
+  </data>
+  <data name="AdvConnOr" xml:space="preserve">
+    <value>LUB</value>
+  </data>
+  <data name="AdvBuilderCaseHint" xml:space="preserve">
+    <value>Wyszukiwanie nie rozróżnia wielkości liter.</value>
+  </data>
+  <data name="AdvBuilderQuoteHint" xml:space="preserve">
+    <value>Dokładna fraza: w cudzysłowie, np. "otwarta faktura" - także do wykluczenia: -"otwarta faktura".</value>
+  </data>
+  <data name="AdvBuilderSubject" xml:space="preserve">
+    <value>Temat</value>
+  </data>
+  <data name="AdvBuilderFrom" xml:space="preserve">
+    <value>Od</value>
+  </data>
+  <data name="AdvBuilderTo" xml:space="preserve">
+    <value>Do</value>
+  </data>
+  <data name="AdvancedSearchInfo0" xml:space="preserve">
+    <value>• Słowa są dopasowywane jako rdzeń (przedrostek): "faktura" znajdzie też "faktury"</value>
+  </data>
+  <data name="AdvancedSearchInfo4" xml:space="preserve">
+    <value>• Wyklucz terminy minusem, alternatywy przez OR: faktura -przypomnienie, samochód OR rower</value>
+  </data>
+  <data name="AdvancedSearchInfo5" xml:space="preserve">
+    <value>• Wyszukiwanie części słowa gwiazdkami: *faktur* znajdzie też "faktury"</value>
+  </data>
 </root>

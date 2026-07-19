@@ -3168,4 +3168,58 @@
   <data name="FailuresAcknowledged" xml:space="preserve">
     <value>Hibák elismerve</value>
   </data>
+  <data name="AdvAddCondition" xml:space="preserve">
+    <value>Feltétel hozzáadása</value>
+  </data>
+  <data name="AdvRemoveCondition" xml:space="preserve">
+    <value>Feltétel eltávolítása</value>
+  </data>
+  <data name="AdvAttachTitle" xml:space="preserve">
+    <value>Melléklet</value>
+  </data>
+  <data name="AdvAttachAny" xml:space="preserve">
+    <value>Mindegy</value>
+  </data>
+  <data name="AdvAttachYes" xml:space="preserve">
+    <value>Igen</value>
+  </data>
+  <data name="AdvAttachNo" xml:space="preserve">
+    <value>Nem</value>
+  </data>
+  <data name="AdvScopeAll" xml:space="preserve">
+    <value>Összes mező</value>
+  </data>
+  <data name="AdvScopeBody" xml:space="preserve">
+    <value>Törzs</value>
+  </data>
+  <data name="AdvConnAnd" xml:space="preserve">
+    <value>ÉS</value>
+  </data>
+  <data name="AdvConnOr" xml:space="preserve">
+    <value>VAGY</value>
+  </data>
+  <data name="AdvBuilderCaseHint" xml:space="preserve">
+    <value>A keresés nem érzékeny a kis- és nagybetűkre.</value>
+  </data>
+  <data name="AdvBuilderQuoteHint" xml:space="preserve">
+    <value>Pontos kifejezés: idézőjelben, pl. "nyitott számla" - kizáráshoz is: -"nyitott számla".</value>
+  </data>
+  <data name="AdvBuilderSubject" xml:space="preserve">
+    <value>Tárgy</value>
+  </data>
+  <data name="AdvBuilderFrom" xml:space="preserve">
+    <value>Feladó</value>
+  </data>
+  <data name="AdvBuilderTo" xml:space="preserve">
+    <value>Címzett</value>
+  </data>
+  <data name="AdvancedSearchInfo0" xml:space="preserve">
+    <value>• A szavak szótő (előtag) szerint keresnek: "számla" a "számlák" szót is megtalálja</value>
+  </data>
+  <data name="AdvancedSearchInfo4" xml:space="preserve">
+    <value>• Kizárás mínusszal, alternatívák OR-ral: számla -emlékeztető, autó OR bicikli</value>
+  </data>
+  <data name="AdvancedSearchInfo5" xml:space="preserve">
+    <value>• Részszavas keresés csillaggal: *száml* a "számlák" szót is megtalálja</value>
+  </data>
 </root>

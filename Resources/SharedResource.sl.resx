@@ -3176,4 +3176,58 @@
   <data name="FailuresAcknowledged" xml:space="preserve">
     <value>Napake potrjene</value>
   </data>
+  <data name="AdvAddCondition" xml:space="preserve">
+    <value>Dodaj pogoj</value>
+  </data>
+  <data name="AdvRemoveCondition" xml:space="preserve">
+    <value>Odstrani pogoj</value>
+  </data>
+  <data name="AdvAttachTitle" xml:space="preserve">
+    <value>Priponka</value>
+  </data>
+  <data name="AdvAttachAny" xml:space="preserve">
+    <value>Poljubno</value>
+  </data>
+  <data name="AdvAttachYes" xml:space="preserve">
+    <value>Da</value>
+  </data>
+  <data name="AdvAttachNo" xml:space="preserve">
+    <value>Ne</value>
+  </data>
+  <data name="AdvScopeAll" xml:space="preserve">
+    <value>Vsa polja</value>
+  </data>
+  <data name="AdvScopeBody" xml:space="preserve">
+    <value>Telo</value>
+  </data>
+  <data name="AdvConnAnd" xml:space="preserve">
+    <value>IN</value>
+  </data>
+  <data name="AdvConnOr" xml:space="preserve">
+    <value>ALI</value>
+  </data>
+  <data name="AdvBuilderCaseHint" xml:space="preserve">
+    <value>Iskanje ne razlikuje med velikimi in malimi črkami.</value>
+  </data>
+  <data name="AdvBuilderQuoteHint" xml:space="preserve">
+    <value>Točna fraza: v narekovajih, npr. "odprti račun" - tudi za izključitev: -"odprti račun".</value>
+  </data>
+  <data name="AdvBuilderSubject" xml:space="preserve">
+    <value>Zadeva</value>
+  </data>
+  <data name="AdvBuilderFrom" xml:space="preserve">
+    <value>Od</value>
+  </data>
+  <data name="AdvBuilderTo" xml:space="preserve">
+    <value>Za</value>
+  </data>
+  <data name="AdvancedSearchInfo0" xml:space="preserve">
+    <value>• Besede se iščejo po korenu (predponi): "račun" najde tudi "računi"</value>
+  </data>
+  <data name="AdvancedSearchInfo4" xml:space="preserve">
+    <value>• Izključi izraze z minusom, alternative z OR: račun -opomin, avto OR kolo</value>
+  </data>
+  <data name="AdvancedSearchInfo5" xml:space="preserve">
+    <value>• Iskanje dela besede z zvezdicami: *raču* najde tudi "računi"</value>
+  </data>
 </root>
