@@ -305,3 +305,4 @@ nextrelease.md
 .gitignore
 AGENTS.md
 MailArchiver.sln
+tests/MailArchiver.Tests/appsettings.Test.json

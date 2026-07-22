@@ -38,6 +38,61 @@ namespace MailArchiver.Services.Shared
         }
 
         /// <summary>
+        /// Normalizes a Message-ID header value to its canonical form: the bare
+        /// <c>local-part@domain</c> token without any surrounding angle brackets,
+        /// whitespace, or stray bracket characters. Repeatedly strips leading
+        /// <c>&lt;</c> and trailing <c>&gt;</c> (plus whitespace) until no outer
+        /// bracket characters remain, so that malformed values such as
+        /// <c>&lt;id@host&gt;&gt;</c>, <c>id@host&gt;</c>, <c>&lt;id@host</c>,
+        /// <c>&lt;&lt;id@host&gt;&gt;</c>, and <c>"  id@host  "</c> all reduce to
+        /// <c>id@host</c>. Returns <see cref="string.Empty"/> for null/empty/whitespace-only input.
+        /// Does NOT validate the inner token — it is returned verbatim so that
+        /// genuinely unknown identifiers still produce a stable, comparable key.
+        /// </summary>
+        /// <param name="raw">The raw Message-ID header value as read from IMAP/Graph.</param>
+        /// <returns>The normalized, bracket-free identifier; never null.</returns>
+        public static string NormalizeMessageId(string? raw)
+        {
+            if (string.IsNullOrWhiteSpace(raw))
+                return string.Empty;
+
+            var value = raw.Trim();
+
+            // Iteratively strip a leading '<' and/or a trailing '>', trimming
+            // whitespace after each step. This handles arbitrary combinations
+            // such as "<<id>>", "id>>", "<id", "<id> ", etc., in a single pass
+            // per bracket character.
+            bool changed;
+            do
+            {
+                changed = false;
+
+                if (value.Length > 0 && value[0] == '<')
+                {
+                    value = value.Substring(1);
+                    changed = true;
+                }
+
+                if (value.Length > 0 && value[^1] == '>')
+                {
+                    value = value.Substring(0, value.Length - 1);
+                    changed = true;
+                }
+
+                if (changed)
+                {
+                    var trimmed = value.Trim();
+                    if (trimmed.Length != value.Length)
+                    {
+                        value = trimmed;
+                    }
+                }
+            } while (changed);
+
+            return value;
+        }
+
+        /// <summary>
         /// Determines whether the supplied "text" content is actually HTML markup rather than genuine plain text.
         /// This happens when an email was archived without a real text/plain part: the archiving fallback stores
         /// the raw HTML in the Body field. Emitting such content as a text/plain MIME part would be incorrect.

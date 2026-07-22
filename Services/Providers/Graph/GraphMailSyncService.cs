@@ -1,5 +1,6 @@
 using MailArchiver.Data;
 using MailArchiver.Models;
+using MailArchiver.Services.Shared;
 using MailArchiver.Utilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -748,7 +749,8 @@ namespace MailArchiver.Services.Providers.Graph
                                             message.Id, folder.DisplayName, account.Id);
                                     }
 
-                                    var messageId = message.InternetMessageId ?? message.Id;
+                                    var rawMessageId = message.InternetMessageId ?? message.Id;
+                                    var normalizedMessageId = MailContentHelper.NormalizeMessageId(rawMessageId);
 
                                     // MEMORY FIX: Existence check only – use AsNoTracking with an Id
                                     // projection so the change tracker does not accumulate full
@@ -756,41 +758,20 @@ namespace MailArchiver.Services.Providers.Graph
                                     var archivedEmailId = await _context.ArchivedEmails
                                         .AsNoTracking()
                                         .Where(e => e.MailAccountId == account.Id)
-                                        .Where(e => e.MessageId == messageId)
+                                        .Where(e => e.MessageId == normalizedMessageId)
                                         .Select(e => (int?)e.Id)
                                         .FirstOrDefaultAsync();
-
-                                    if (archivedEmailId == null && !string.IsNullOrEmpty(messageId) && !messageId.StartsWith("<"))
-                                    {
-                                        var messageIdWithBrackets = $"<{messageId}>";
-                                        archivedEmailId = await _context.ArchivedEmails
-                                            .AsNoTracking()
-                                            .Where(e => e.MailAccountId == account.Id)
-                                            .Where(e => e.MessageId == messageIdWithBrackets)
-                                            .Select(e => (int?)e.Id)
-                                            .FirstOrDefaultAsync();
-                                    }
-                                    else if (archivedEmailId == null && !string.IsNullOrEmpty(messageId) && messageId.StartsWith("<") && messageId.EndsWith(">"))
-                                    {
-                                        var messageIdWithoutBrackets = messageId.Substring(1, messageId.Length - 2);
-                                        archivedEmailId = await _context.ArchivedEmails
-                                            .AsNoTracking()
-                                            .Where(e => e.MailAccountId == account.Id)
-                                            .Where(e => e.MessageId == messageIdWithoutBrackets)
-                                            .Select(e => (int?)e.Id)
-                                            .FirstOrDefaultAsync();
-                                    }
 
                                     if (archivedEmailId != null)
                                     {
                                         messageIdsToDelete.Add(message.Id!);
-                                            _logger.LogDebug("Marking email with Message-ID {MessageId} for deletion from folder {FolderName}",
-                                                messageId, folder.DisplayName);
+                                        _logger.LogDebug("Marking email with Message-ID {MessageId} (raw: {RawMessageId}) for deletion from folder {FolderName}",
+                                            normalizedMessageId, rawMessageId, folder.DisplayName);
                                     }
                                     else
                                     {
-                                        _logger.LogDebug("Skipping deletion of email with Message-ID {MessageId} from folder {FolderName} (not archived).",
-                                            messageId, folder.DisplayName);
+                                        _logger.LogDebug("Skipping deletion of email with Message-ID {MessageId} (raw: {RawMessageId}) from folder {FolderName} (not archived).",
+                                            normalizedMessageId, rawMessageId, folder.DisplayName);
                                     }
                                 }
 

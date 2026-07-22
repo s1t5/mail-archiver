@@ -1,0 +1,2 @@
+# Test-spezifische Konfigurations-Overrides (gitignored).
+# Wird von TestDbFixture geladen, sofern vorhanden; fällt sonst auf appsettings.Development.json zurück.

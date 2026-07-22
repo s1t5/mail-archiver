@@ -2,6 +2,7 @@ using MailArchiver.Data;
 using MailArchiver.Models;
 using MailArchiver.Services.Core;
 using MailArchiver.Services.Providers.Eml;
+using MailArchiver.Services.Shared;
 using MailArchiver.Utilities;
 using MailKit;
 using MailKit.Net.Imap;
@@ -1057,57 +1058,43 @@ namespace MailArchiver.Services.Providers.Imap
                                         summary.UniqueId, folder.FullName, account.Id);
                                 }
 
-                                var messageId = summary.Headers["Message-ID"];
+                                var rawMessageId = summary.Envelope?.MessageId;
+                                if (string.IsNullOrEmpty(rawMessageId))
+                                    rawMessageId = summary.Headers["Message-ID"];
 
-                                _logger.LogDebug("Raw Message-ID from IMAP: {RawMessageId}", messageId ?? "NULL");
+                                _logger.LogDebug("Raw Message-ID from IMAP: {RawMessageId}", rawMessageId ?? "NULL");
 
-                                if (string.IsNullOrEmpty(messageId))
+                                string normalizedMessageId;
+                                if (string.IsNullOrEmpty(rawMessageId))
                                 {
                                     var from = summary.Envelope?.From?.ToString() ?? string.Empty;
                                     var to = summary.Envelope?.To?.ToString() ?? string.Empty;
                                     var subject = summary.Envelope?.Subject ?? string.Empty;
                                     var dateTicks = summary.InternalDate?.Ticks ?? 0;
 
-                                    messageId = $"{from}-{to}-{subject}-{dateTicks}";
-                                    _logger.LogDebug("Constructed Message-ID: {ConstructedMessageId}", messageId);
+                                    normalizedMessageId = $"{from}-{to}-{subject}-{dateTicks}";
+                                    _logger.LogDebug("Constructed Message-ID (no header): {ConstructedMessageId}", normalizedMessageId);
+                                }
+                                else
+                                {
+                                    normalizedMessageId = MailContentHelper.NormalizeMessageId(rawMessageId);
+                                    _logger.LogDebug("Message-ID: raw={RawMessageId}, normalized={NormalizedMessageId}",
+                                        rawMessageId, normalizedMessageId);
                                 }
 
                                 var isArchived = await _context.ArchivedEmails
-                                    .AnyAsync(e => e.MessageId == messageId && e.MailAccountId == account.Id);
-
-                                if (!isArchived && !string.IsNullOrEmpty(messageId) && !messageId.StartsWith("<"))
-                                {
-                                    var messageIdWithBrackets = $"<{messageId}>";
-                                    isArchived = await _context.ArchivedEmails
-                                        .AnyAsync(e => e.MessageId == messageIdWithBrackets && e.MailAccountId == account.Id);
-
-                                    if (isArchived)
-                                    {
-                                        _logger.LogDebug("Found email with Message-ID {MessageId} when checking with angle brackets", messageIdWithBrackets);
-                                    }
-                                }
-                                else if (!isArchived && !string.IsNullOrEmpty(messageId) && messageId.StartsWith("<") && messageId.EndsWith(">"))
-                                {
-                                    var messageIdWithoutBrackets = messageId.Substring(1, messageId.Length - 2);
-                                    isArchived = await _context.ArchivedEmails
-                                        .AnyAsync(e => e.MessageId == messageIdWithoutBrackets && e.MailAccountId == account.Id);
-
-                                    if (isArchived)
-                                    {
-                                        _logger.LogDebug("Found email with Message-ID {MessageId} when checking without angle brackets", messageIdWithoutBrackets);
-                                    }
-                                }
+                                    .AnyAsync(e => e.MessageId == normalizedMessageId && e.MailAccountId == account.Id);
 
                                 if (isArchived)
                                 {
                                     uidsToDelete.Add(summary.UniqueId);
                                     _logger.LogDebug("Marking email with Message-ID {MessageId} for deletion from folder {FolderName}",
-                                        messageId, folder.FullName);
+                                        normalizedMessageId, folder.FullName);
                                 }
                                 else
                                 {
-                                    _logger.LogInformation("Skipping deletion of email with Message-ID {MessageId} from folder {FolderName} (not archived). Account ID: {AccountId}",
-                                        messageId, folder.FullName, account.Id);
+                                    _logger.LogInformation("Skipping deletion of email with Message-ID {MessageId} (raw: {RawMessageId}) from folder {FolderName} (not archived). Account ID: {AccountId}",
+                                        normalizedMessageId, rawMessageId ?? "NULL", folder.FullName, account.Id);
                                 }
                             }
 
