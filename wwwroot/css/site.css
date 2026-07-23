@@ -439,6 +439,90 @@ body {
   height: 70vh;
 }
 
+/* Calendar attachment preview card */
+.calendar-preview-card {
+  text-align: left;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 0.5rem;
+}
+
+.calendar-preview-icon {
+  width: 3.5rem;
+  height: 3.5rem;
+  background-color: rgba(13, 110, 253, 0.12);
+  color: #0d6efd;
+  font-size: 1.5rem;
+}
+
+.calendar-preview-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.calendar-preview-meta-icon {
+  width: 1.5rem;
+  color: #0d6efd;
+  flex-shrink: 0;
+  margin-right: 0.75rem;
+}
+
+.calendar-preview-people,
+.calendar-preview-description {
+  margin-top: 1.25rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid rgba(108, 117, 125, 0.25);
+}
+
+.calendar-preview-section-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #6c757d;
+  margin-bottom: 0.75rem;
+}
+
+.calendar-preview-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.375rem 0.75rem;
+  background-color: rgba(108, 117, 125, 0.12);
+  border: 1px solid rgba(108, 117, 125, 0.25);
+  border-radius: 999px;
+  font-size: 0.95rem;
+  max-width: 100%;
+}
+
+.calendar-preview-chip .badge {
+  font-size: 0.7rem;
+}
+
+.calendar-preview-description-text {
+  white-space: pre-wrap;
+  line-height: 1.5;
+}
+
+[data-theme="dark"] .calendar-preview-icon {
+  background-color: rgba(13, 110, 253, 0.2);
+  color: #6ea8fe;
+}
+
+[data-theme="dark"] .calendar-preview-meta-icon {
+  color: #6ea8fe;
+}
+
+[data-theme="dark"] .calendar-preview-chip {
+  background-color: rgba(173, 181, 189, 0.12);
+  border-color: rgba(173, 181, 189, 0.25);
+}
+
+[data-theme="dark"] .calendar-preview-section-label {
+  color: #adb5bd;
+}
+
 /* Anpassung für mobile Geräte */
 @media (max-width: 768px) {
   .body-content {

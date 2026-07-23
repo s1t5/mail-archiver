@@ -18,6 +18,21 @@ namespace MailArchiver.Services.Shared
     public static class CalendarContentHelper
     {
         /// <summary>
+        /// Structured representation of the first VEVENT of an iCalendar payload,
+        /// used for rich preview rendering.
+        /// </summary>
+        public sealed class CalendarEvent
+        {
+            public string? Summary { get; set; }
+            public string? Location { get; set; }
+            public string? Description { get; set; }
+            public string? Organizer { get; set; }
+            public string? DtStart { get; set; }
+            public string? DtEnd { get; set; }
+            public List<string> Attendees { get; set; } = new();
+        }
+
+        /// <summary>
         /// Result of a calendar extraction attempt.
         /// </summary>
         public sealed class CalendarExtraction
@@ -214,6 +229,76 @@ namespace MailArchiver.Services.Shared
             }
 
             return sb.ToString().TrimEnd();
+        }
+
+        /// <summary>
+        /// Parses an iCalendar payload and returns the structured fields of the
+        /// first VEVENT block (raw DTSTART/DTEND values, formatted via the same
+        /// rules as <see cref="ParseICalSummary"/> when rendered). Use this for
+        /// rich preview rendering; use <see cref="ParseICalSummary"/> for the
+        /// plain-text body summary.
+        /// </summary>
+        public static CalendarEvent? ParseICalEvent(string icsContent)
+        {
+            if (string.IsNullOrWhiteSpace(icsContent)) return null;
+
+            var unfolded = UnfoldLines(icsContent);
+            var lines = unfolded.Split('\n');
+
+            var evt = new CalendarEvent();
+            var inEvent = false;
+
+            foreach (var rawLine in lines)
+            {
+                var line = rawLine.TrimEnd('\r');
+
+                if (line.Equals("BEGIN:VEVENT", StringComparison.OrdinalIgnoreCase))
+                {
+                    inEvent = true;
+                    evt = new CalendarEvent();
+                    continue;
+                }
+                if (line.Equals("END:VEVENT", StringComparison.OrdinalIgnoreCase))
+                {
+                    break; // first VEVENT only
+                }
+                if (!inEvent) continue;
+
+                var colonIdx = FindValueColon(line);
+                if (colonIdx < 0) continue;
+
+                var nameSegment = line.Substring(0, colonIdx);
+                var value = line.Substring(colonIdx + 1);
+                var nameParts = nameSegment.Split(';', 2, StringSplitOptions.RemoveEmptyEntries);
+                var name = nameParts[0].ToUpperInvariant();
+
+                switch (name)
+                {
+                    case "SUMMARY":
+                        evt.Summary = Unescape(value);
+                        break;
+                    case "LOCATION":
+                        evt.Location = Unescape(value);
+                        break;
+                    case "DESCRIPTION":
+                        evt.Description = Unescape(value);
+                        break;
+                    case "ORGANIZER":
+                        evt.Organizer = FormatAddress(value);
+                        break;
+                    case "ATTENDEE":
+                        evt.Attendees.Add(FormatAddress(value));
+                        break;
+                    case "DTSTART":
+                        evt.DtStart = FormatDateTime(value);
+                        break;
+                    case "DTEND":
+                        evt.DtEnd = FormatDateTime(value);
+                        break;
+                }
+            }
+
+            return evt;
         }
 
         /// <summary>

@@ -167,7 +167,8 @@
                                     data-filename="@attachment.FileName"
                                     data-content-type="@attachment.ContentType"
                                     data-download-url="@Url.Action("Attachment", new { emailId = Model.Email.Id, attachmentId = attachment.Id })"
-                                    data-preview-url="@Url.Action("AttachmentPreview", new { emailId = Model.Email.Id, attachmentId = attachment.Id })">
+                                    data-preview-url="@Url.Action("AttachmentPreview", new { emailId = Model.Email.Id, attachmentId = attachment.Id })"
+                                    data-calendar-preview-url="@Url.Action("AttachmentCalendarPreview", new { emailId = Model.Email.Id, attachmentId = attachment.Id })">
                                     <span class="text-truncate me-2">
                                         <i class="bi bi-paperclip me-1"></i>@attachment.FileName
                                     </span>
@@ -187,7 +188,8 @@
                                         data-filename="@attachment.FileName"
                                         data-content-type="@attachment.ContentType"
                                         data-download-url="@Url.Action("Attachment", new { emailId = Model.Email.Id, attachmentId = attachment.Id })"
-                                        data-preview-url="@Url.Action("AttachmentPreview", new { emailId = Model.Email.Id, attachmentId = attachment.Id })">
+                                        data-preview-url="@Url.Action("AttachmentPreview", new { emailId = Model.Email.Id, attachmentId = attachment.Id })"
+                                        data-calendar-preview-url="@Url.Action("AttachmentCalendarPreview", new { emailId = Model.Email.Id, attachmentId = attachment.Id })">
                                         <span><i class="bi bi-paperclip me-2"></i>@attachment.FileName</span>
                                         <span class="badge bg-primary rounded-pill">@FormatFileSize(attachment.Size)</span>
                                     </button>
@@ -442,6 +444,7 @@
                 const contentType = this.getAttribute('data-content-type');
                 const downloadUrl = this.getAttribute('data-download-url');
                 const previewUrl = this.getAttribute('data-preview-url');
+                const calendarPreviewUrl = this.getAttribute('data-calendar-preview-url');
 
                 // Set file name in modal header
                 previewFileName.textContent = fileName;
@@ -457,7 +460,21 @@
                 previewModal.show();
 
                 // Determine how to display based on content type
-                if (contentType.startsWith('image/')) {
+                const isCalendar = contentType.startsWith('text/calendar')
+                    || contentType === 'application/ics'
+                    || fileName.toLowerCase().endsWith('.ics');
+
+                if (isCalendar && calendarPreviewUrl) {
+                    // Render formatted calendar/meeting card
+                    fetch(calendarPreviewUrl)
+                        .then(response => response.text())
+                        .then(html => {
+                            previewContent.innerHTML = `<div class="h-100 overflow-auto" style="max-height: 70vh;">${html}</div>`;
+                        })
+                        .catch(error => {
+                            previewContent.innerHTML = `<div class="alert alert-danger m-3">Error loading calendar: ${error.message}</div>`;
+                        });
+                } else if (contentType.startsWith('image/')) {
                     // Display image directly
                     previewContent.innerHTML = `<img src="${previewUrl}" class="img-fluid" alt="${fileName}" style="max-height: 70vh;">`;
                 } else if (contentType === 'application/pdf') {

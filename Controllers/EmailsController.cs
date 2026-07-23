@@ -484,6 +484,169 @@ namespace MailArchiver.Controllers
             return File(attachment.Content, attachment.ContentType);
         }
 
+        // GET: Emails/AttachmentCalendarPreview/5/1
+        [EmailAccessRequired]
+        public async Task<IActionResult> AttachmentCalendarPreview(int emailId, int attachmentId)
+        {
+            var attachment = await _context.EmailAttachments
+                .Include(a => a.ArchivedEmail)
+                .Include(a => a.AttachmentContent)
+                .FirstOrDefaultAsync(a => a.Id == attachmentId && a.ArchivedEmailId == emailId);
+
+            if (attachment == null)
+            {
+                _logger.LogWarning("Attachment with ID {AttachmentId} for email {EmailId} not found", attachmentId, emailId);
+                return View("Details404");
+            }
+
+            var ct = (attachment.ContentType ?? string.Empty).ToLowerInvariant();
+            var isIcs = ct.StartsWith("text/calendar", StringComparison.OrdinalIgnoreCase)
+                        || ct.StartsWith("application/ics", StringComparison.OrdinalIgnoreCase)
+                        || (attachment.FileName?.EndsWith(".ics", StringComparison.OrdinalIgnoreCase) ?? false);
+            if (!isIcs)
+            {
+                return NotFound();
+            }
+
+            string icsContent;
+            try
+            {
+                icsContent = System.Text.Encoding.UTF8.GetString(attachment.Content);
+            }
+            catch
+            {
+                return Content("<div class=\"alert alert-warning m-3\">Unable to decode calendar content.</div>", "text/html");
+            }
+
+            var evt = MailArchiver.Services.Shared.CalendarContentHelper.ParseICalEvent(icsContent);
+            if (evt == null)
+            {
+                return Content("<div class=\"alert alert-warning m-3\">" + EscapeHtml(_localizer["FileTypeCannotBePreviewed"].Value) + "</div>", "text/html");
+            }
+
+            var labels = new Dictionary<string, string>
+            {
+                { "MeetingInvitation", _localizer["MeetingInvitation"].Value },
+                { "MeetingStart", _localizer["MeetingStart"].Value },
+                { "MeetingEnd", _localizer["MeetingEnd"].Value },
+                { "MeetingLocation", _localizer["MeetingLocation"].Value },
+                { "MeetingOrganizer", _localizer["MeetingOrganizer"].Value },
+                { "MeetingAttendees", _localizer["MeetingAttendees"].Value },
+                { "MeetingDescription", _localizer["MeetingDescription"].Value }
+            };
+
+            var html = RenderCalendarCard(evt, labels);
+            return Content(html, "text/html");
+        }
+
+        private static string RenderCalendarCard(
+            MailArchiver.Services.Shared.CalendarContentHelper.CalendarEvent evt,
+            IReadOnlyDictionary<string, string> labels)
+        {
+            string L(string key, string fallback) =>
+                labels.TryGetValue(key, out var v) && !string.IsNullOrEmpty(v) ? v : fallback;
+
+            var sb = new System.Text.StringBuilder();
+            sb.Append("<div class=\"calendar-preview-card\">");
+
+            // Header: icon + title + badge, all left-aligned
+            sb.Append("<div class=\"d-flex align-items-start mb-4\">");
+            sb.Append("<div class=\"calendar-preview-icon rounded-3 me-3 d-flex align-items-center justify-content-center flex-shrink-0\">");
+            sb.Append("<i class=\"bi bi-calendar-event\"></i>");
+            sb.Append("</div>");
+            sb.Append("<div class=\"flex-grow-1 min-width-0\">");
+            sb.Append("<span class=\"badge bg-primary mb-1\">").Append(EscapeHtml(L("MeetingInvitation", "Meeting Invitation"))).Append("</span>");
+            if (!string.IsNullOrEmpty(evt.Summary))
+            {
+                sb.Append("<h4 class=\"mb-0 text-break\">").Append(EscapeHtml(evt.Summary)).Append("</h4>");
+            }
+            sb.Append("</div>");
+            sb.Append("</div>");
+
+            // Metadata: time and location
+            if (!string.IsNullOrEmpty(evt.DtStart) || !string.IsNullOrEmpty(evt.DtEnd) || !string.IsNullOrEmpty(evt.Location))
+            {
+                sb.Append("<div class=\"calendar-preview-meta\">");
+
+                if (!string.IsNullOrEmpty(evt.DtStart) || !string.IsNullOrEmpty(evt.DtEnd))
+                {
+                    sb.Append("<div class=\"d-flex align-items-start\">");
+                    sb.Append("<div class=\"calendar-preview-meta-icon\"><i class=\"bi bi-clock\"></i></div>");
+                    sb.Append("<div>");
+                    if (!string.IsNullOrEmpty(evt.DtStart))
+                    {
+                        sb.Append("<span>").Append(EscapeHtml(evt.DtStart)).Append("</span>");
+                    }
+                    if (!string.IsNullOrEmpty(evt.DtStart) && !string.IsNullOrEmpty(evt.DtEnd))
+                    {
+                        sb.Append("<span class=\"text-muted mx-1\">–</span>");
+                    }
+                    if (!string.IsNullOrEmpty(evt.DtEnd))
+                    {
+                        sb.Append("<span>").Append(EscapeHtml(evt.DtEnd)).Append("</span>");
+                    }
+                    sb.Append("</div>");
+                    sb.Append("</div>");
+                }
+
+                if (!string.IsNullOrEmpty(evt.Location))
+                {
+                    sb.Append("<div class=\"d-flex align-items-start\">");
+                    sb.Append("<div class=\"calendar-preview-meta-icon\"><i class=\"bi bi-geo-alt\"></i></div>");
+                    sb.Append("<div class=\"text-break\">").Append(EscapeHtml(evt.Location)).Append("</div>");
+                    sb.Append("</div>");
+                }
+
+                sb.Append("</div>");
+            }
+
+            // People: organizer first, then attendees as compact chips
+            if (!string.IsNullOrEmpty(evt.Organizer) || evt.Attendees.Count > 0)
+            {
+                sb.Append("<div class=\"calendar-preview-people\">");
+                sb.Append("<div class=\"calendar-preview-section-label\">").Append(EscapeHtml(L("MeetingAttendees", "Attendees"))).Append("</div>");
+                sb.Append("<div class=\"d-flex flex-wrap gap-2\">");
+
+                if (!string.IsNullOrEmpty(evt.Organizer))
+                {
+                    sb.Append("<div class=\"calendar-preview-chip\">");
+                    sb.Append("<i class=\"bi bi-person-badge me-1\"></i>");
+                    sb.Append("<span class=\"text-break\">").Append(EscapeHtml(evt.Organizer)).Append("</span>");
+                    sb.Append("<span class=\"badge bg-secondary ms-1\">").Append(EscapeHtml(L("MeetingOrganizer", "Organizer"))).Append("</span>");
+                    sb.Append("</div>");
+                }
+
+                foreach (var attendee in evt.Attendees)
+                {
+                    sb.Append("<div class=\"calendar-preview-chip\">");
+                    sb.Append("<i class=\"bi bi-person me-1\"></i>");
+                    sb.Append("<span class=\"text-break\">").Append(EscapeHtml(attendee)).Append("</span>");
+                    sb.Append("</div>");
+                }
+
+                sb.Append("</div>");
+                sb.Append("</div>");
+            }
+
+            // Description
+            if (!string.IsNullOrEmpty(evt.Description))
+            {
+                sb.Append("<div class=\"calendar-preview-description\">");
+                sb.Append("<div class=\"calendar-preview-section-label\">").Append(EscapeHtml(L("MeetingDescription", "Description"))).Append("</div>");
+                sb.Append("<div class=\"calendar-preview-description-text\">").Append(EscapeHtml(evt.Description)).Append("</div>");
+                sb.Append("</div>");
+            }
+
+            sb.Append("</div>");
+            return sb.ToString();
+        }
+
+        private static string EscapeHtml(string? text)
+        {
+            if (string.IsNullOrEmpty(text)) return string.Empty;
+            return System.Web.HttpUtility.HtmlEncode(text);
+        }
+
         // GET: Emails/DownloadAllAttachments/5
         [EmailAccessRequired]
         public async Task<IActionResult> DownloadAllAttachments(int id)
