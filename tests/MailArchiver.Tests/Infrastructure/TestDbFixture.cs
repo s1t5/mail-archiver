@@ -27,6 +27,10 @@ public class TestDbFixture : IAsyncLifetime
 
     public async Task InitializeAsync()
     {
+        // Mirror Program.cs: enable the legacy timestamp behavior so Unspecified DateTimes
+        // can be written to timestamptz columns (matching the production app behavior).
+        AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+
         _configuration = BuildConfiguration();
         ConnectionString = ResolveConnectionString();
 
