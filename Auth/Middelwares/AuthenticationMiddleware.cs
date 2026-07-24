@@ -20,14 +20,26 @@ namespace MailArchiver.Auth.Middlewares
         }
 
         public async Task InvokeAsync(HttpContext context, MailArchiver.Services.IAuthenticationService authService,
-            IOptions<ApiOptions> apiOptions)
+            IOptions<ApiOptions> apiOptions, IOptions<McpOptions> mcpOptions)
         {
             var path = context.Request.Path.Value?.ToLower() ?? string.Empty;
 
             // Read-only REST API branch: API keys only, never a login redirect.
             if (path.StartsWith("/api/"))
             {
-                await HandleApiRequestAsync(context, apiOptions.Value);
+                await HandleKeyedRequestAsync(context, apiOptions.Value.Enabled);
+                return;
+            }
+
+            // MCP (Model Context Protocol) branch: same API keys as the REST API.
+            // Gated independently by Mcp:Enabled, so the MCP server can be turned on
+            // without enabling the REST API and vice-versa. The trailing slash is
+            // significant (matching the /api/ check above) so that only the /mcp
+            // path segment is matched — unrelated future routes like /mcpadmin must
+            // NOT fall into this branch.
+            if (path.StartsWith("/mcp/") || path == "/mcp")
+            {
+                await HandleKeyedRequestAsync(context, mcpOptions.Value.Enabled);
                 return;
             }
 
@@ -54,10 +66,10 @@ namespace MailArchiver.Auth.Middlewares
             await _next(context);
         }
 
-        private async Task HandleApiRequestAsync(HttpContext context, ApiOptions apiOptions)
+        private async Task HandleKeyedRequestAsync(HttpContext context, bool enabled)
         {
-            // API disabled => behave as if the routes do not exist (do not leak existence).
-            if (!apiOptions.Enabled)
+            // Disabled => behave as if the routes do not exist (do not leak existence).
+            if (!enabled)
             {
                 context.Response.StatusCode = StatusCodes.Status404NotFound;
                 return;

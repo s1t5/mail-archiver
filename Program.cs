@@ -170,6 +170,23 @@ builder.Services.AddOpenApi("v1", openApiOptions =>
 });
 // ===== End read-only REST API block =====
 
+// ===== MCP (Model Context Protocol) server — mirrors the REST API for AI agent
+// access. Disabled by default via Mcp:Enabled. Uses the same API keys (/mcp is
+// gated by ApiKeyAuthenticationHandler via AuthenticationMiddleware). =====
+builder.Services.Configure<MailArchiver.Models.McpOptions>(
+    builder.Configuration.GetSection(MailArchiver.Models.McpOptions.Mcp));
+builder.Services.AddHttpContextAccessor();
+var mcpEnabled = builder.Configuration.GetSection(MailArchiver.Models.McpOptions.Mcp)
+    .Get<MailArchiver.Models.McpOptions>()?.Enabled ?? false;
+if (mcpEnabled)
+{
+    builder.Services.AddMcpServer()
+        .WithHttpTransport(options => options.Stateless = true)
+        .WithTools<MailArchiver.Mcp.Tools.AccountsMcpTool>()
+        .WithTools<MailArchiver.Mcp.Tools.EmailsMcpTool>();
+}
+// ===== End MCP server block =====
+
 // Add DateTimeHelper
 builder.Services.AddScoped<MailArchiver.Utilities.DateTimeHelper>();
 
@@ -291,6 +308,38 @@ builder.Services.AddRateLimiter(options =>
             _ => new FixedWindowRateLimiterOptions
             {
                 PermitLimit = apiOptionsForRateLimit.RateLimitPerMinute,
+                Window = TimeSpan.FromMinutes(1),
+                QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                QueueLimit = 0
+            });
+    });
+
+    // MCP server rate limiting: same scheme as the REST API policy above — fixed
+    // window per API key (non-secret prefix) or client IP fallback. Budget from
+    // Mcp:RateLimitPerMinute (default 120). Applied to the /mcp endpoint via
+    // RequireRateLimiting("Mcp") at the MapMcp call below — MCP tools are not
+    // MVC controllers and so cannot use [EnableRateLimiting] attributes.
+    var mcpOptionsForRateLimit = builder.Configuration.GetSection(MailArchiver.Models.McpOptions.Mcp)
+        .Get<MailArchiver.Models.McpOptions>() ?? new MailArchiver.Models.McpOptions();
+    options.AddPolicy("Mcp", httpContext =>
+    {
+        string partitionKey;
+        string? authHeader = httpContext.Request.Headers.Authorization;
+        if (!string.IsNullOrEmpty(authHeader) && authHeader.StartsWith("Bearer ", StringComparison.Ordinal))
+        {
+            var token = authHeader.Substring("Bearer ".Length).Trim();
+            partitionKey = "mcpkey-" + (token.Length >= 11 ? token.Substring(0, 11) : token);
+        }
+        else
+        {
+            partitionKey = "mcpip-" + (httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown");
+        }
+
+        return RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey,
+            _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = mcpOptionsForRateLimit.RateLimitPerMinute,
                 Window = TimeSpan.FromMinutes(1),
                 QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
                 QueueLimit = 0
@@ -798,6 +847,30 @@ app.UseWhen(
         }
     }));
 
+// MCP endpoint errors must also be JSON, never the /Home/Error HTML page.
+// Same pattern as the /api handler above.
+app.UseWhen(
+    context => context.Request.Path.StartsWithSegments("/mcp"),
+    mcpBranch => mcpBranch.UseExceptionHandler(new ExceptionHandlerOptions
+    {
+        ExceptionHandler = static async context =>
+        {
+            var problemDetailsService = context.RequestServices
+                .GetRequiredService<Microsoft.AspNetCore.Http.IProblemDetailsService>();
+            context.Response.ContentType = "application/problem+json";
+            await problemDetailsService.WriteAsync(new Microsoft.AspNetCore.Http.ProblemDetailsContext
+            {
+                HttpContext = context,
+                ProblemDetails =
+                {
+                    Status = context.Response.StatusCode,
+                    Title = "An unexpected error occurred.",
+                    Instance = context.Request.Path
+                }
+            });
+        }
+    }));
+
 // Use Forwarded Headers middleware for reverse proxy support
 app.UseForwardedHeaders();
 
@@ -834,5 +907,18 @@ if (apiUiOptions.Enabled && apiUiOptions.EnableSwaggerUi)
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
+
+// MCP (Model Context Protocol) Streamable HTTP endpoint. Mapped only when the
+// MCP server is enabled, so disabled deployments expose nothing at /mcp.
+// The "Mcp" rate-limit policy (registered above) is enforced on the endpoint
+// directly via RequireRateLimiting, because MCP tools are not MVC controllers
+// and therefore cannot receive [EnableRateLimiting] attributes — without this
+// the /mcp endpoint would be effectively unthrottled and exposed to
+// brute-force / DoS when published to the internet.
+var mcpOptions = app.Services.GetRequiredService<IOptions<MailArchiver.Models.McpOptions>>().Value;
+if (mcpOptions.Enabled)
+{
+    app.MapMcp("/mcp").RequireRateLimiting("Mcp");
+}
 
 app.Run();

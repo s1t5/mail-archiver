@@ -41,6 +41,14 @@ services:
       - Api__MaxPageSize=100
       - Api__RateLimitPerMinute=120
 
+      # MCP Server Settings (Model Context Protocol for AI agents, read-only, disabled by default)
+      - Mcp__Enabled=false
+      - Mcp__AllowAttachmentDownloads=true
+      - Mcp__DefaultPageSize=20
+      - Mcp__MaxResults=100
+      - Mcp__MaxAttachmentBytes=10000000
+      - Mcp__RateLimitPerMinute=120
+
       # MailSync Settings
       - MailSync__IntervalMinutes=15
       - MailSync__TimeoutMinutes=60
@@ -233,6 +241,15 @@ The optional read-only REST API is **disabled by default**. See the [REST API gu
 - `Api__DefaultPageSize`: Default page size for list endpoints when not specified (default `20`).
 - `Api__MaxPageSize`: Maximum allowed page size; larger requests are clamped (default `100`).
 - `Api__RateLimitPerMinute`: Fixed-window request budget per API key per minute (default `120`).
+
+### 🤖 MCP Server Settings
+The optional MCP (Model Context Protocol) server exposes the same read-only mail access as the REST API to AI agents over the Streamable HTTP transport. It is **disabled by default**. See the [MCP guide](MCP.md) for the full reference. MCP reuses the exact same API keys as the REST API (`ma_...` bearer tokens) and the same per-user account-access scoping.
+- `Mcp__Enabled`: Master switch for the MCP server (default `false`). When `false`, the `/mcp` endpoint returns `404`.
+- `Mcp__AllowAttachmentDownloads`: Allow the `get_attachment` tool to return attachment bytes (default `true`). When `false`, the tool returns an error.
+- `Mcp__DefaultPageSize`: Default page size used by `search_emails` when the caller omits `pageSize` (default `20`).
+- `Mcp__MaxResults`: Upper bound for the page size of `search_emails`; larger values are clamped (default `100`).
+- `Mcp__MaxAttachmentBytes`: Maximum attachment size (in bytes) the `get_attachment` tool will return inline as base64; larger attachments are refused (default `10000000` ≈ 10 MB).
+- `Mcp__RateLimitPerMinute`: Fixed-window request budget per API key per minute (default `120`).
 
 ### 📨 MailSync Settings
 - `MailSync__IntervalMinutes`: The interval in minutes between email synchronization. This is the global default; each account can override it individually from the Create/Edit page (leave empty to use this default).
