@@ -27,6 +27,7 @@ Mail Archiver is a comprehensive application designed to archive emails from var
 - [Mail Search Guide](Search.md)
 - [Mail Synchronization (Quick vs. Full Sync)](Synchronization.md)
 - [OpenID Connect (OIDC) Authentication](OIDC_Implementation.md)
+- [Per-Account Storage Display](AccountStorage.md)
 - [Retention Policies](RetentionPolicies.md)
 - [Reverse Proxy Configuration](ReverseProxy.md)
 - [User Management and Mailbox Permissions](UserManagement.md)
