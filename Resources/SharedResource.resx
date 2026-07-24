@@ -2294,6 +2294,9 @@
   <data name="DeletionPolicy" xml:space="preserve">
     <value>Deletion Policy</value>
   </data>
+  <data name="SyncAcknowledgeFailures" xml:space="preserve">
+    <value>Sync Failures Acknowledged</value>
+  </data>
   <data name="Retention" xml:space="preserve">
     <value>Retention</value>
   </data>

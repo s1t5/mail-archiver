@@ -2542,6 +2542,9 @@
   <data name="DeletionPolicy" xml:space="preserve">
     <value>Pravilo o brisanju</value>
   </data>
+  <data name="SyncAcknowledgeFailures" xml:space="preserve">
+    <value>Napake sinhronizacije potrjene</value>
+  </data>
   <data name="Retention" xml:space="preserve">
     <value>Hramba</value>
   </data>

@@ -2542,6 +2542,9 @@
   <data name="DeletionPolicy" xml:space="preserve">
     <value>Verwijderingsbeleid</value>
   </data>
+  <data name="SyncAcknowledgeFailures" xml:space="preserve">
+    <value>Sync-fouten bevestigd</value>
+  </data>
   <data name="Retention" xml:space="preserve">
     <value>Bewaring</value>
   </data>

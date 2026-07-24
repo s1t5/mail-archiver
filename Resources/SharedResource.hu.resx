@@ -2534,6 +2534,9 @@
   <data name="DeletionPolicy" xml:space="preserve">
     <value>Törlési szabályzat</value>
   </data>
+  <data name="SyncAcknowledgeFailures" xml:space="preserve">
+    <value>Szinkronizációs hibák visszaigazolva</value>
+  </data>
   <data name="Retention" xml:space="preserve">
     <value>Megőrzés</value>
   </data>

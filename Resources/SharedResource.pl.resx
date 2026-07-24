@@ -2588,6 +2588,9 @@
   <data name="DeletionPolicy" xml:space="preserve">
     <value>Polityka usuwania</value>
   </data>
+  <data name="SyncAcknowledgeFailures" xml:space="preserve">
+    <value>Błędy synchronizacji potwierdzone</value>
+  </data>
   <data name="Retention" xml:space="preserve">
     <value>Retencja</value>
   </data>
