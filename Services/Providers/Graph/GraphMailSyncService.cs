@@ -838,6 +838,28 @@ namespace MailArchiver.Services.Providers.Graph
             _logger.LogInformation("Completed deletion process for M365 account {AccountName}. Deleted {Count} emails",
                 account.Name, deletedCount);
 
+            if (deletedCount > 0)
+            {
+                try
+                {
+                    var accessLog = new AccessLog
+                    {
+                        Username = "System",
+                        Type = AccessLogType.Retention,
+                        Timestamp = DateTime.UtcNow,
+                        SearchParameters = $"Retention (M365): Deleted {deletedCount} emails older than {account.DeleteAfterDays} days from mailbox",
+                        MailAccountId = account.Id
+                    };
+
+                    _context.AccessLogs.Add(accessLog);
+                    await _context.SaveChangesAsync();
+                }
+                catch (Exception logEx)
+                {
+                    _logger.LogWarning(logEx, "Failed to log retention deletion summary for account {AccountName} to AccessLogs", account.Name);
+                }
+            }
+
             return deletedCount;
         }
 

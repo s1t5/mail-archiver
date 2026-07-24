@@ -2540,7 +2540,10 @@
     <value>Sinhronizacija preklicana</value>
   </data>
   <data name="DeletionPolicy" xml:space="preserve">
-    <value>Pravilnik o brisanju</value>
+    <value>Pravilo o brisanju</value>
+  </data>
+  <data name="Retention" xml:space="preserve">
+    <value>Hramba</value>
   </data>
   <data name="DeletionDisabledMessage" xml:space="preserve">
     <value>Brisanje e-pošte je onemogočeno v konfiguraciji.</value>

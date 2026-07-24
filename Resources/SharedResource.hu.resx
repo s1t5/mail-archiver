@@ -2532,7 +2532,10 @@
     <value>Szinkronizálás megszakítva</value>
   </data>
   <data name="DeletionPolicy" xml:space="preserve">
-    <value>Törlési házirend</value>
+    <value>Törlési szabályzat</value>
+  </data>
+  <data name="Retention" xml:space="preserve">
+    <value>Megőrzés</value>
   </data>
   <data name="DeletionDisabledMessage" xml:space="preserve">
     <value>Az e-mailek törlése a konfiguráció által letiltva.</value>

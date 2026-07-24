@@ -2546,6 +2546,9 @@
   <data name="DeletionPolicy" xml:space="preserve">
     <value>Löschrichtlinie</value>
   </data>
+  <data name="Retention" xml:space="preserve">
+    <value>Aufbewahrung</value>
+  </data>
   <data name="DeletionDisabledMessage" xml:space="preserve">
     <value>Das Löschen von E-Mails ist durch die Konfiguration deaktiviert.</value>
   </data>

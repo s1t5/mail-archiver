@@ -2542,6 +2542,9 @@
   <data name="DeletionPolicy" xml:space="preserve">
     <value>Verwijderingsbeleid</value>
   </data>
+  <data name="Retention" xml:space="preserve">
+    <value>Bewaring</value>
+  </data>
   <data name="DeletionDisabledMessage" xml:space="preserve">
     <value>Het verwijderen van e-mails is uitgeschakeld via configuratie.</value>
   </data>

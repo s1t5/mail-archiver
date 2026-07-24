@@ -2542,6 +2542,9 @@
   <data name="DeletionPolicy" xml:space="preserve">
     <value>Политика удаления</value>
   </data>
+  <data name="Retention" xml:space="preserve">
+    <value>Хранение</value>
+  </data>
   <data name="DeletionDisabledMessage" xml:space="preserve">
     <value>Удаление писем отключено в конфигурации.</value>
   </data>

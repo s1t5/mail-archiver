@@ -2294,6 +2294,9 @@
   <data name="DeletionPolicy" xml:space="preserve">
     <value>Deletion Policy</value>
   </data>
+  <data name="Retention" xml:space="preserve">
+    <value>Retention</value>
+  </data>
   <data name="DeletionDisabledMessage" xml:space="preserve">
     <value>Email deletion is disabled by configuration.</value>
   </data>

@@ -1930,9 +1930,9 @@ namespace MailArchiver.Services.Core
                         var accessLog = new AccessLog
                         {
                             Username = "System",
-                            Type = AccessLogType.Deletion,
+                            Type = AccessLogType.Retention,
                             Timestamp = DateTime.UtcNow,
-                            SearchParameters = $"Local retention: Deleted {deletedCount} emails older than {account.LocalRetentionDays} days from local archive",
+                            SearchParameters = $"Retention (Local): Deleted {deletedCount} emails older than {account.LocalRetentionDays} days from local archive",
                             MailAccountId = account.Id
                         };
 
