@@ -8,7 +8,8 @@ namespace MailArchiver.Mcp;
 /// that <see cref="MailArchiver.Controllers.Api.ApiControllerBase.GetAllowedAccountIdsAsync"/>
 /// uses for the REST API, so MCP tools honour the exact same per-user permissions:
 /// admins see all accounts, restricted users see only their assigned accounts,
-/// and users without any assignment see nothing.
+/// and users without any assignment see nothing. Both surfaces delegate to the
+/// shared <see cref="IAccountAccessResolver"/> — single source of truth.
 /// </summary>
 public abstract class McpToolBase
 {
@@ -34,27 +35,11 @@ public abstract class McpToolBase
 
     /// <summary>
     /// Returns null for admins (all accounts), a list of allowed account IDs for
-    /// restricted users, or an empty list when the user has no access. Mirrors
-    /// ApiControllerBase.GetAllowedAccountIdsAsync exactly.
+    /// restricted users, or an empty list when the user has no access. Delegates
+    /// to <see cref="IAccountAccessResolver"/> — the same instance the REST API
+    /// uses — so MCP and REST permissions cannot drift apart.
     /// </summary>
     protected async Task<List<int>?> GetAllowedAccountIdsAsync()
-    {
-        var authService = HttpContext.RequestServices.GetService<IAuthenticationService>();
-        var userService = HttpContext.RequestServices.GetService<IUserService>();
-
-        if (authService == null || userService == null || authService.IsCurrentUserAdmin(HttpContext))
-        {
-            return null;
-        }
-
-        var username = authService.GetCurrentUserDisplayName(HttpContext);
-        var user = await userService.GetUserByUsernameAsync(username);
-        if (user == null)
-        {
-            return new List<int>();
-        }
-
-        var userAccounts = await userService.GetUserMailAccountsAsync(user.Id);
-        return userAccounts.Select(a => a.Id).ToList();
-    }
+        => await HttpContext.RequestServices.GetRequiredService<IAccountAccessResolver>()
+            .GetAllowedAccountIdsAsync(HttpContext);
 }

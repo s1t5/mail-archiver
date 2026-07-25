@@ -57,6 +57,14 @@ namespace MailArchiver.Services.Core
             if (take > 1000) take = 1000;
             if (skip < 0) skip = 0;
 
+            // Central canonicalization of sort parameters: any unknown/invalid
+            // value falls back to the defaults. This is the single source of
+            // truth — callers no longer need to pre-validate, and the raw
+            // values are never interpolated into SQL (defense-in-depth against
+            // SQL injection via sortBy/sortOrder).
+            sortBy = CanonicalizeSortBy(sortBy);
+            sortOrder = CanonicalizeSortOrder(sortOrder);
+
             try
             {
                 return await SearchEmailsOptimizedAsync(searchTerm, fromDate, toDate, accountId, folderName, isOutgoing, skip, take, allowedAccountIds, sortBy, sortOrder);
@@ -263,6 +271,15 @@ namespace MailArchiver.Services.Core
             // Build ORDER BY clause
             var (orderByClause, sortColumn, isTimestampSort) = GetOrderByClause(sortBy, sortOrder);
 
+            // Parametrize LIMIT/OFFSET rather than interpolating integers, so
+            // the data query inherits the same SQL-injection defense as the
+            // filter parameters above even if a future caller skips clamping.
+            var limitParam = new Npgsql.NpgsqlParameter($"@param{paramCounter}", take);
+            var offsetParam = new Npgsql.NpgsqlParameter($"@param{paramCounter + 1}", skip);
+            var limitPlaceholder = $"@param{paramCounter}";
+            var offsetPlaceholder = $"@param{paramCounter + 1}";
+            paramCounter += 2;
+
             // For timestamp sorts (SentDate/ReceivedDate), use a MATERIALIZED CTE to force the planner
             // to use the GIN full-text index for the FTS predicate instead of doing a backward SentDate
             // index scan with per-row re-tokenization of the body. The CTE selects only (Id, SortColumn)
@@ -281,7 +298,7 @@ namespace MailArchiver.Services.Core
                         SELECT m.""Id"", m.""{sortColumn}""
                         FROM ""matched"" m
                         ORDER BY m.""{sortColumn}"" {(sortOrder?.ToLower() == "asc" ? "ASC" : "DESC")}
-                        LIMIT {take} OFFSET {skip}
+                        LIMIT {limitPlaceholder} OFFSET {offsetPlaceholder}
                     )
                     SELECT e.""Id"", e.""MailAccountId"", e.""MessageId"", e.""Subject"", e.""Body"", e.""HtmlBody"",
                            e.""From"", e.""To"", e.""Cc"", e.""Bcc"", e.""SentDate"", e.""ReceivedDate"",
@@ -303,8 +320,11 @@ namespace MailArchiver.Services.Core
                     INNER JOIN mail_archiver.""MailAccounts"" ma ON e.""MailAccountId"" = ma.""Id""
                     {whereClause}
                     {orderByClause}
-                    LIMIT {take} OFFSET {skip}";
+                    LIMIT {limitPlaceholder} OFFSET {offsetPlaceholder}";
             }
+
+            parameters.Add(limitParam);
+            parameters.Add(offsetParam);
 
             var emails = await ExecuteDataQueryAsync(dataSql, CloneParameters(parameters));
 
@@ -494,19 +514,42 @@ namespace MailArchiver.Services.Core
 
         private (string OrderByClause, string SortColumn, bool IsTimestampSort) GetOrderByClause(string sortBy, string sortOrder)
         {
-            var (columnName, isTimestampSort) = (sortBy?.ToLower()) switch
+            // sortBy is already canonicalized by SearchEmailsAsync; the switch
+            // below is a defensive whitelist — unknown values never reach SQL.
+            var (columnName, isTimestampSort) = sortBy switch
             {
-                "subject" => ("Subject", false),
-                "from" => ("From", false),
-                "to" => ("To", false),
-                "sentdate" => ("SentDate", true),
-                "receiveddate" => ("ReceivedDate", true),
+                "Subject" => ("Subject", false),
+                "From" => ("From", false),
+                "To" => ("To", false),
+                "SentDate" => ("SentDate", true),
+                "ReceivedDate" => ("ReceivedDate", true),
                 _ => ("SentDate", true)
             };
 
-            var direction = sortOrder?.ToLower() == "asc" ? "ASC" : "DESC";
+            var direction = sortOrder == "asc" ? "ASC" : "DESC";
             return ($@"ORDER BY e.""{columnName}"" {direction}", columnName, isTimestampSort);
         }
+
+        /// <summary>
+        /// Canonicalizes the sortBy parameter. Any unknown/invalid value
+        /// (including null/empty) falls back to "SentDate". This is the
+        /// single source of truth — callers no longer need to pre-validate.
+        /// </summary>
+        private static string CanonicalizeSortBy(string? sortBy) => sortBy?.Trim().ToLowerInvariant() switch
+        {
+            "receiveddate" => "ReceivedDate",
+            "subject" => "Subject",
+            "from" => "From",
+            "to" => "To",
+            _ => "SentDate" // null, "", "sentdate", unknown -> default
+        };
+
+        /// <summary>
+        /// Canonicalizes the sortOrder parameter. Anything other than "asc"
+        /// (case-insensitive) falls back to "desc".
+        /// </summary>
+        private static string CanonicalizeSortOrder(string? sortOrder) =>
+            sortOrder?.Trim().ToLowerInvariant() == "asc" ? "asc" : "desc";
 
         private List<Npgsql.NpgsqlParameter> CloneParameters(List<Npgsql.NpgsqlParameter> parameters)
         {

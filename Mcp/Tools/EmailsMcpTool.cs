@@ -58,29 +58,16 @@ public class EmailsMcpTool : McpToolBase
         pageSize = Math.Clamp(pageSize, 1, _options.MaxResults);
         var skip = (page - 1) * pageSize;
 
-        var directionResult = ParseDirection(direction);
-        if (directionResult == DirectionParseResult.Invalid)
+        // Direction is the only parameter the caller still translates locally;
+        // sortBy/sortOrder are canonicalized centrally by EmailCoreService.
+        bool? isOutgoingValue = direction?.Trim().ToLowerInvariant() switch
         {
-            throw new ArgumentException($"Invalid direction '{direction}'. Use 'incoming', 'outgoing', or omit.");
-        }
-
-        if (!TryGetSortBy(sortBy, out var canonicalSortBy))
-        {
-            throw new ArgumentException($"Invalid sortBy '{sortBy}'. Use sentdate, receiveddate, subject, from, to.");
-        }
-
-        if (!TryGetSortOrder(sortOrder, out var canonicalSortOrder))
-        {
-            throw new ArgumentException($"Invalid sortOrder '{sortOrder}'. Use asc or desc.");
-        }
-
-        var allowed = await GetAllowedAccountIdsAsync();
-        bool? isOutgoingValue = directionResult switch
-        {
-            DirectionParseResult.Incoming => false,
-            DirectionParseResult.Outgoing => true,
+            "incoming" => false,
+            "outgoing" => true,
             _ => null
         };
+
+        var allowed = await GetAllowedAccountIdsAsync();
 
         var (emails, totalCount) = await _emailCoreService.SearchEmailsAsync(
             q ?? string.Empty,
@@ -92,8 +79,8 @@ public class EmailsMcpTool : McpToolBase
             skip,
             pageSize,
             allowed,
-            canonicalSortBy,
-            canonicalSortOrder);
+            sortBy,
+            sortOrder);
 
         var result = new PagedResultDto<EmailSummaryDto>
         {
@@ -107,7 +94,7 @@ public class EmailsMcpTool : McpToolBase
         await _accessLogService.LogAccessAsync(
             CurrentUsername,
             AccessLogType.Search,
-            searchParameters: BuildSearchSummary(q, from, to, accountId, folder, direction, page, pageSize, canonicalSortBy, canonicalSortOrder));
+            searchParameters: BuildSearchSummary(q, from, to, accountId, folder, direction, page, pageSize, sortBy, sortOrder));
 
         return result;
     }
@@ -179,46 +166,9 @@ public class EmailsMcpTool : McpToolBase
         };
     }
 
-    private static DirectionParseResult ParseDirection(string? direction)
-    {
-        return direction?.Trim().ToLowerInvariant() switch
-        {
-            null or "" => DirectionParseResult.Unspecified,
-            "incoming" => DirectionParseResult.Incoming,
-            "outgoing" => DirectionParseResult.Outgoing,
-            _ => DirectionParseResult.Invalid
-        };
-    }
-
-    private static bool TryGetSortBy(string? sortBy, out string canonicalSortBy)
-    {
-        canonicalSortBy = sortBy?.Trim().ToLowerInvariant() switch
-        {
-            null or "" or "sentdate" => "SentDate",
-            "receiveddate" => "ReceivedDate",
-            "subject" => "Subject",
-            "from" => "From",
-            "to" => "To",
-            _ => string.Empty
-        };
-        return canonicalSortBy.Length > 0;
-    }
-
-    private static bool TryGetSortOrder(string? sortOrder, out string canonicalSortOrder)
-    {
-        canonicalSortOrder = sortOrder?.Trim().ToLowerInvariant() switch
-        {
-            null or "" => "desc",
-            "asc" => "asc",
-            "desc" => "desc",
-            _ => string.Empty
-        };
-        return canonicalSortOrder.Length > 0;
-    }
-
     private static string BuildSearchSummary(
         string? q, DateTime? from, DateTime? to, int? accountId, string? folder, string? direction,
-        int page, int pageSize, string sortBy, string sortOrder)
+        int page, int pageSize, string? sortBy, string? sortOrder)
     {
         var parts = new List<string>();
         if (!string.IsNullOrWhiteSpace(q)) parts.Add($"q={q}");
@@ -241,13 +191,5 @@ public class EmailsMcpTool : McpToolBase
             return value ?? string.Empty;
         }
         return value[..maxLength];
-    }
-
-    private enum DirectionParseResult
-    {
-        Invalid,
-        Unspecified,
-        Incoming,
-        Outgoing
     }
 }

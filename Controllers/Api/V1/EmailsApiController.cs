@@ -53,18 +53,11 @@ public class EmailsApiController : ApiControllerBase
         pageSize = Math.Clamp(pageSize, 1, _options.MaxPageSize);
         var skip = (page - 1) * pageSize;
 
+        // Direction is still validated locally for a 400 UX; sortBy/sortOrder
+        // are canonicalized centrally by EmailCoreService (any unknown value
+        // falls back to the defaults, no 400).
         var isOutgoing = ParseDirection(direction);
         if (isOutgoing == DirectionParseResult.Invalid)
-        {
-            return BadRequest();
-        }
-
-        if (!TryGetSortBy(sortBy, out var canonicalSortBy))
-        {
-            return BadRequest();
-        }
-
-        if (!TryGetSortOrder(sortOrder, out var canonicalSortOrder))
         {
             return BadRequest();
         }
@@ -87,8 +80,8 @@ public class EmailsApiController : ApiControllerBase
             skip,
             pageSize,
             allowed,
-            canonicalSortBy,
-            canonicalSortOrder);
+            sortBy,
+            sortOrder);
 
         var result = new PagedResultDto<EmailSummaryDto>
         {
@@ -102,7 +95,7 @@ public class EmailsApiController : ApiControllerBase
         await _accessLogService.LogAccessAsync(
             CurrentUsername,
             AccessLogType.Search,
-            searchParameters: BuildSearchSummary(q, from, to, accountId, folder, direction, page, pageSize, canonicalSortBy, canonicalSortOrder));
+            searchParameters: BuildSearchSummary(q, from, to, accountId, folder, direction, page, pageSize, sortBy, sortOrder));
 
         return Ok(result);
     }
@@ -165,34 +158,6 @@ public class EmailsApiController : ApiControllerBase
         };
     }
 
-    private static bool TryGetSortBy(string? sortBy, out string canonicalSortBy)
-    {
-        canonicalSortBy = sortBy?.Trim().ToLowerInvariant() switch
-        {
-            null or "" or "sentdate" => "SentDate",
-            "receiveddate" => "ReceivedDate",
-            "subject" => "Subject",
-            "from" => "From",
-            "to" => "To",
-            _ => string.Empty
-        };
-
-        return canonicalSortBy.Length > 0;
-    }
-
-    private static bool TryGetSortOrder(string? sortOrder, out string canonicalSortOrder)
-    {
-        canonicalSortOrder = sortOrder?.Trim().ToLowerInvariant() switch
-        {
-            null or "" => "desc",
-            "asc" => "asc",
-            "desc" => "desc",
-            _ => string.Empty
-        };
-
-        return canonicalSortOrder.Length > 0;
-    }
-
     private static string BuildSearchSummary(
         string? q,
         DateTime? from,
@@ -202,8 +167,8 @@ public class EmailsApiController : ApiControllerBase
         string? direction,
         int page,
         int pageSize,
-        string sortBy,
-        string sortOrder)
+        string? sortBy,
+        string? sortOrder)
     {
         var parts = new List<string>();
 
