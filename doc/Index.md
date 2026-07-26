@@ -15,6 +15,7 @@ Mail Archiver is a comprehensive application designed to archive emails from var
 - [Database Maintenance Guide](DatabaseMaintenance.md)
 - [Installation, Setup and Parameters](Setup.md)
 - [REST API Guide](API.md)
+- [MCP Server Guide](MCP.md)
 - [PostgreSQL Major Version Upgrade Guide](PostgreSQLUpgrade.md)
 
 ### ⚙️ Configuration & Usage

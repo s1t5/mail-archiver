@@ -25,7 +25,10 @@
 - Advanced search with filters
 - Email preview with attachments
 - Export accounts or selected emails as mbox / zipped EML
-- Read-only REST API (v1) for programmatic access to the archive via scoped per-user API keys — lets scripts and AI agents read archived mail without ever exposing mailbox credentials ([REST API Guide](doc/API.md))
+
+### 🔌 Programmatic & AI Agent Access
+- **Read-only REST API (v1)** for programmatic access to the archive via scoped per-user API keys — lets scripts read archived mail without ever exposing mailbox credentials ([REST API Guide](doc/API.md))
+- **MCP Server (Model Context Protocol)** — optional Streamable HTTP endpoint at `/mcp` that exposes the same read-only archive to AI agents as discoverable tools (`search_emails`, `get_email`, `list_accounts`, `list_folders`, `get_attachment`) ([MCP Guide](doc/MCP.md))
 
 ### 👥 User Management
 - Multi-user support with account-specific permissions
