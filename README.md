@@ -14,6 +14,8 @@
   <a href="https://ko-fi.com/s1t5dev" target="_blank"><img src="https://img.shields.io/badge/Ko--Fi-s1t5dev-FF5E5B?style=for-the-badge&logo=ko-fi&logoColor=white" alt="Ko-fi"></a>
 </div>
 
+![Mail-Archiver Dashboard](https://github.com/s1t5/mail-archiver/blob/main/Screenshots/dashboard.jpg?raw=true)
+
 ## ✨ Key Features
 
 ### 📌 Core Features
@@ -65,20 +67,7 @@
 ### 📋 Access Log
 - The application logs various types of user activities such as Login, Opening, Searches, Exports and many more. ([Logging](doc/Logs.md))
 
-## 📚 Documentation
-
 For detailed documentation on installation, configuration, and usage, please refer to the [Documentation Index](doc/Index.md). Please note that the documentation is still fresh and is continuously being expanded.
-
-## 🖼️ Screenshots
-
-### Dashboard
-![Mail-Archiver Dashboard](https://github.com/s1t5/mail-archiver/blob/main/Screenshots/dashboard.jpg?raw=true)
-
-### Archive
-![Mail-Archiver Archive](https://github.com/s1t5/mail-archiver/blob/main/Screenshots/archive.jpg?raw=true)
-
-### Email Details
-![Mail-Archiver Mail](https://github.com/s1t5/mail-archiver/blob/main/Screenshots/details.jpg?raw=true)
 
 ## 🚀 Quick Start
 
@@ -171,22 +160,10 @@ docker compose restart
 
 ## 🔐 Security Notes
 - Use strong passwords and change default credentials
-- Consider implementing HTTPS with a reverse proxy in production
-- Regular backups of the PostgreSQL database recommended (see [Backup & Restore Guide](doc/BackupRestore.md) for detailed instructions)
+- Set up HTTPS via a reverse proxy in production (the app itself does not provide HTTPS)
+- Regular backups of the PostgreSQL database recommended (see [Backup & Restore Guide](doc/BackupRestore.md))
 
-## ⚙️ Advanced Setup
-For a complete list of all configuration options, please refer to the [Setup Guide](doc/Setup.md).
-
-
-## 📋 Technical Details
-
-### Architecture
-- ASP.NET Core 10 MVC application
-- PostgreSQL database for email storage
-- MailKit library for IMAP communication
-- Microsoft Graph API for M365 email access
-- Background service for email synchronization
-- Bootstrap 5 and Chart.js for frontend
+For all configuration options, see the [Setup Guide](doc/Setup.md).
 
 ## 🤝 Contributing
 
