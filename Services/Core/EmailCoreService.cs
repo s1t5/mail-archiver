@@ -153,7 +153,11 @@ namespace MailArchiver.Services.Core
                             }
                             else if (clause.Kind == ClauseKind.Attachment)
                             {
-                                cond = clause.Negated ? "\"HasAttachments\" = FALSE" : "\"HasAttachments\" = TRUE";
+                                // has:attachment matches only REAL file attachments: EmailAttachments
+                                // rows with no ContentId. Inline images (cid: ContentId, stored as
+                                // inline_<cid> filenames) carry a ContentId and must NOT count.
+                                var attachExists = @"EXISTS (SELECT 1 FROM mail_archiver.""EmailAttachments"" a WHERE a.""ArchivedEmailId"" = e.""Id"" AND (a.""ContentId"" IS NULL OR a.""ContentId"" = ''))";
+                                cond = clause.Negated ? $"NOT {attachExists}" : attachExists;
                             }
                             else // Phrase: GIN @@ prefilter narrows rows, POSITION confirms the exact phrase.
                             {
@@ -433,7 +437,10 @@ namespace MailArchiver.Services.Core
         {
             if (c.Kind == ClauseKind.Attachment)
             {
-                System.Linq.Expressions.Expression<Func<ArchivedEmail, bool>> a = e => e.HasAttachments;
+                // Real file attachments only: an EmailAttachment with no ContentId. Inline images
+                // (cid: ContentId) are excluded so a signature logo does not mark a mail as "has attachment".
+                System.Linq.Expressions.Expression<Func<ArchivedEmail, bool>> a =
+                    e => e.Attachments.Any(x => string.IsNullOrEmpty(x.ContentId));
                 return c.Negated ? NotPredicate(a) : a;
             }
             var p = c.Kind == ClauseKind.Field ? FieldColumnPredicate(c.Column, c.Text) : FieldContainsPredicate(c.Text);
