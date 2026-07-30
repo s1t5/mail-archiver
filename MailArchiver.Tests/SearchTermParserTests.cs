@@ -285,4 +285,37 @@ public class SearchTermParserTests
     [InlineData("OR OR OR")]
     public void Adversarial_never_throws(string input)
         => Assert.Null(Record.Exception(() => Parse(input)));
+
+    // ---- literal preservation (Codex P2 fixes) ----
+    [Fact]
+    public void Field_quoted_value_keeps_syntax_chars()
+    {
+        var c = Assert.Single(Assert.Single(Parse("subject:\"R&D\"")));
+        Assert.Equal(EmailCoreService.ClauseKind.Field, c.Kind);
+        Assert.Equal("Subject", c.Column);
+        Assert.Equal("R&D", c.Text);
+    }
+
+    [Fact]
+    public void Field_quoted_value_keeps_apostrophe_and_parens()
+    {
+        var c = Assert.Single(Assert.Single(Parse("subject:\"Meeting (Q&A)\"")));
+        Assert.Equal("Meeting (Q&A)", c.Text);
+    }
+
+    [Fact]
+    public void Word_keeps_apostrophe_literal()
+    {
+        var c = Assert.Single(Assert.Single(Parse("O'Reilly")));
+        Assert.Equal(EmailCoreService.ClauseKind.Word, c.Kind);
+        Assert.Equal("O'Reilly", c.Text);
+    }
+
+    // O'Reilly is split on the apostrophe (as the simple parser lexes the document: o, reilly);
+    // exact-match all parts but the last (prefix), parenthesised so OR/negation compose.
+    [Fact]
+    public void Word_apostrophe_splits_into_lexemes() => Assert.Equal("(O & Reilly:*)", Ts("O'Reilly"));
+
+    [Fact]
+    public void Word_ampersand_splits_into_lexemes() => Assert.Equal("(R & D:*)", Ts("R&D"));
 }
