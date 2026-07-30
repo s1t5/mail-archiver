@@ -39,7 +39,17 @@ INSERT INTO mail_archiver.""ArchivedEmails"" VALUES
  (2,2,'m2','Newsletter Angebote','auto und fahrrad im angebot','','news@shop.de','me@x.de','','','2025-03-01','2025-03-01',false,false,'INBOX',false),
  (3,1,'m3','Zahlungserinnerung','offene rechnung mahnung bitte zahlen','','billing@x.de','me@x.de','','','2025-02-01','2025-02-01',false,false,'INBOX',false),
  (4,2,'m4','Quartalsabrechnung','die abrechnung liegt bei','','buchhaltung@x.de','me@x.de','','','2025-04-01','2025-04-01',false,false,'INBOX',false),
- (5,1,'m5','Fahrrad Tour','wir fahren mit dem fahrrad','','club@x.de','me@x.de','','','2025-05-01','2025-05-01',false,false,'INBOX',false);";
+ (5,1,'m5','Fahrrad Tour','wir fahren mit dem fahrrad','','club@x.de','me@x.de','','','2025-05-01','2025-05-01',false,false,'INBOX',false);
+CREATE TABLE mail_archiver.""EmailAttachments""(
+  ""Id"" int PRIMARY KEY, ""ArchivedEmailId"" int, ""FileName"" text,
+  ""ContentType"" text, ""ContentId"" text, ""Size"" bigint);
+-- Mail 1 & 4 have a REAL file attachment (ContentId NULL); note HasAttachments=false on mail 1,
+-- proving has:attachment no longer depends on the flag. Mail 5 has ONLY an inline signature image
+-- (cid ContentId) -> must NOT count as 'has attachment'.
+INSERT INTO mail_archiver.""EmailAttachments"" VALUES
+ (1,1,'rechnung.pdf','application/pdf',NULL,1234),
+ (2,4,'abrechnung.pdf','application/pdf',NULL,2345),
+ (3,5,'inline_logo','image/png','logo@signatur',345);";
 
     private async Task Exec(string sql)
     {
@@ -104,4 +114,19 @@ public class SearchEndToEndTests : IClassFixture<SearchDbFixture>
 
     [Fact] public async Task Phrase_matches_exact()
     { if (!_fx.Enabled) return; Assert.Equal(new HashSet<int>{1}, await Ids("\"WD Red\"")); }
+
+    // has:attachment must match only REAL file attachments (EmailAttachments with ContentId IS NULL),
+    // independent of the ArchivedEmails.HasAttachments flag.
+    [Fact] public async Task Has_attachment_matches_only_real_files()
+    { if (!_fx.Enabled) return; Assert.Equal(new HashSet<int>{1,4}, await Ids("has:attachment")); }
+
+    // A mail whose only attachment is an inline signature image (cid ContentId) must NOT match.
+    [Fact] public async Task Has_attachment_ignores_inline_images()
+    { if (!_fx.Enabled) return; Assert.DoesNotContain(5, await Ids("has:attachment")); }
+
+    [Fact] public async Task Negated_has_attachment_returns_complement()
+    { if (!_fx.Enabled) return; Assert.Equal(new HashSet<int>{2,3,5}, await Ids("-has:attachment")); }
+
+    [Fact] public async Task Word_and_has_attachment_intersect()
+    { if (!_fx.Enabled) return; Assert.Equal(new HashSet<int>{1}, await Ids("rechnung has:attachment")); }
 }
