@@ -581,7 +581,9 @@ namespace MailArchiver.Services.Core
                 var column = GetColumnForField(field);
                 if (validFields.Contains(field) && column != null)
                 {
-                    var term = Regex.Replace(rawFieldVal.Trim(), @"[&|!():\*]", "", RegexOptions.None);
+                    // Field values match literally (parameterized POSITION / ILike), never via a
+                    // tsquery, so keep the literal contents; stripping would break subject:"R&D".
+                    var term = rawFieldVal.Trim();
                     if (term.Length > 0)
                         return One(new SearchClause { Kind = ClauseKind.Field, Text = term, Column = column, Negated = negated });
                 }
@@ -604,9 +606,13 @@ namespace MailArchiver.Services.Core
                         return One(new SearchClause { Kind = ClauseKind.Substring, Text = inner, Negated = negated });
                     return null;
                 }
-                var sanitized = Regex.Replace(token, @"[&|!():\*<>'""]", "", RegexOptions.None);
-                if (sanitized.Length > 0)
-                    return One(new SearchClause { Kind = ClauseKind.Word, Text = sanitized, Negated = negated });
+                // Keep the literal token as the clause text (used verbatim by the ILike fallback
+                // and the field POSITION match, so e.g. O'Reilly stays matchable); tsquery-hostile
+                // characters are stripped only when building the lexeme in WordAtom. Require one
+                // lexeme-usable char so the tsquery atom is never empty.
+                var lexeme = Regex.Replace(token, @"[&|!():\*<>'""]", "", RegexOptions.None);
+                if (lexeme.Length > 0)
+                    return One(new SearchClause { Kind = ClauseKind.Word, Text = token, Negated = negated });
                 return null;
             }
             return null;
@@ -693,8 +699,17 @@ namespace MailArchiver.Services.Core
 
         internal static string WordAtom(SearchClause c)
         {
-            var t = c.Text.Replace("'", "''");
-            return (c.Negated ? "!" : "") + t + ":*";
+            // c.Text is the literal token. Split it on the punctuation Postgres' 'simple' parser
+            // also treats as lexeme separators (O'Reilly -> o, reilly; R&D -> r, d) so the tsquery
+            // matches the indexed lexemes. Exact-match all parts but the last, which keeps the
+            // prefix (:*) so short-prefix and plain word searches still work; parenthesise multi-
+            // part atoms so surrounding OR / negation compose. Passed as a parameter -> no escaping.
+            var parts = Regex.Split(c.Text, @"[&|!():\*<>'""]+").Where(p => p.Length > 0).ToList();
+            if (parts.Count == 0) parts.Add(c.Text);
+            var atoms = parts.Select((p, i) => i == parts.Count - 1 ? p + ":*" : p);
+            var expr = string.Join(" & ", atoms);
+            if (parts.Count > 1) expr = "(" + expr + ")";
+            return (c.Negated ? "!" : "") + expr;
         }
 
         // Efficient single combined tsquery for a pure-word query (AND of groups, OR within a group).
