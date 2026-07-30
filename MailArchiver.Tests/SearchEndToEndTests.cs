@@ -39,7 +39,8 @@ INSERT INTO mail_archiver.""ArchivedEmails"" VALUES
  (2,2,'m2','Newsletter Angebote','auto und fahrrad im angebot','','news@shop.de','me@x.de','','','2025-03-01','2025-03-01',false,false,'INBOX',false),
  (3,1,'m3','Zahlungserinnerung','offene rechnung mahnung bitte zahlen','','billing@x.de','me@x.de','','','2025-02-01','2025-02-01',false,false,'INBOX',false),
  (4,2,'m4','Quartalsabrechnung','die abrechnung liegt bei','','buchhaltung@x.de','me@x.de','','','2025-04-01','2025-04-01',false,false,'INBOX',false),
- (5,1,'m5','Fahrrad Tour','wir fahren mit dem fahrrad','','club@x.de','me@x.de','','','2025-05-01','2025-05-01',false,false,'INBOX',false);
+ (5,1,'m5','Fahrrad Tour','wir fahren mit dem fahrrad','','club@x.de','me@x.de','','','2025-05-01','2025-05-01',false,false,'INBOX',false),
+ (6,1,'m6','R&D O''Reilly Q&A','budget planning notes','','team@x.de','me@x.de','','','2025-06-01','2025-06-01',false,false,'INBOX',false);
 CREATE TABLE mail_archiver.""EmailAttachments""(
   ""Id"" int PRIMARY KEY, ""ArchivedEmailId"" int, ""FileName"" text,
   ""ContentType"" text, ""ContentId"" text, ""Size"" bigint);
@@ -125,8 +126,20 @@ public class SearchEndToEndTests : IClassFixture<SearchDbFixture>
     { if (!_fx.Enabled) return; Assert.DoesNotContain(5, await Ids("has:attachment")); }
 
     [Fact] public async Task Negated_has_attachment_returns_complement()
-    { if (!_fx.Enabled) return; Assert.Equal(new HashSet<int>{2,3,5}, await Ids("-has:attachment")); }
+    { if (!_fx.Enabled) return; Assert.Equal(new HashSet<int>{2,3,5,6}, await Ids("-has:attachment")); }
 
     [Fact] public async Task Word_and_has_attachment_intersect()
     { if (!_fx.Enabled) return; Assert.Equal(new HashSet<int>{1}, await Ids("rechnung has:attachment")); }
+
+    // Codex P2 fix: quoted field values keep syntax chars (subject:"R&D" must match "R&D").
+    [Fact] public async Task Field_quoted_value_with_ampersand()
+    { if (!_fx.Enabled) return; Assert.Equal(new HashSet<int>{6}, await Ids("subject:\"R&D\"")); }
+
+    // Codex P2 fix: quoted field value with an apostrophe matches literally (POSITION path).
+    [Fact] public async Task Field_quoted_value_with_apostrophe()
+    { if (!_fx.Enabled) return; Assert.Equal(new HashSet<int>{6}, await Ids("subject:\"O'Reilly\"")); }
+
+    // Codex P2 fix: a plain word with an apostrophe still matches via FTS (O'Reilly -> lexeme oreilly).
+    [Fact] public async Task Word_with_apostrophe_matches()
+    { if (!_fx.Enabled) return; Assert.Equal(new HashSet<int>{6}, await Ids("O'Reilly")); }
 }
