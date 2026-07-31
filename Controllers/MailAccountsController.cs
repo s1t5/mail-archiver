@@ -182,6 +182,7 @@ namespace MailArchiver.Controllers
                     var isSyncing = _syncJobService.IsAccountSyncing(account.Id);
                     account.IsSyncing = isSyncing;
                     account.IsSyncPending = !isSyncing
+                        && account.Provider != ProviderType.IMPORT
                         && account.LastSync.HasValue
                         && account.LastSync.Value <= new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
                 }
@@ -239,6 +240,7 @@ namespace MailArchiver.Controllers
             var isSyncing = _syncJobService.IsAccountSyncing(account.Id);
             model.IsSyncing = isSyncing;
             model.IsSyncPending = !isSyncing
+                && account.Provider != ProviderType.IMPORT
                 && account.LastSync <= new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 
             ViewBag.EmailCount = emailCount;
@@ -690,6 +692,7 @@ namespace MailArchiver.Controllers
             var isSyncing = _syncJobService.IsAccountSyncing(account.Id);
             model.IsSyncing = isSyncing;
             model.IsSyncPending = !isSyncing
+                && account.Provider != ProviderType.IMPORT
                 && account.LastSync <= new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 
             // Set ViewBag properties

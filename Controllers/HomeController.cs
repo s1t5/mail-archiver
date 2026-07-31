@@ -85,7 +85,9 @@ namespace MailArchiver.Controllers
 
                     var isSyncing = _syncJobService.IsAccountSyncing(stat.AccountId);
                     stat.IsSyncing = isSyncing;
-                    stat.IsSyncPending = !isSyncing && stat.LastSyncTime <= new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+                    stat.IsSyncPending = !isSyncing
+                        && stat.Provider != ProviderType.IMPORT
+                        && stat.LastSyncTime <= new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
                 }
             }
 
@@ -183,7 +185,8 @@ namespace MailArchiver.Controllers
                     EmailAddress = a.EmailAddress,
                     EmailCount = a.ArchivedEmails.Count(e => accountIds.Contains(e.MailAccountId)),
                     LastSyncTime = a.LastSync,
-                    IsEnabled = a.IsEnabled
+                    IsEnabled = a.IsEnabled,
+                    Provider = a.Provider
                 })
                 .ToListAsync();
 

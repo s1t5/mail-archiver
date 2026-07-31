@@ -286,6 +286,15 @@
                                 </div>
                             </div>
                         }
+                        else if (Model.Provider == ProviderType.IMPORT)
+                        {
+                            <div class="mb-3">
+                                <label asp-for="LastSync" class="form-label">@Localizer["LastSync"]</label>
+                                <div class="form-control-plaintext">
+                                    <span class="badge bg-light text-dark">@Localizer["Never"]</span>
+                                </div>
+                            </div>
+                        }
                         else if (Model.LastSync.HasValue)
                         {
                             <div class="mb-3">

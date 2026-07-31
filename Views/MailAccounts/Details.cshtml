@@ -160,6 +160,10 @@
                     {
                         <span class="badge bg-secondary">@Localizer["SyncPending"]</span>
                     }
+                    else if (Model.Provider == ProviderType.IMPORT)
+                    {
+                        <span class="badge bg-light text-dark">@Localizer["Never"]</span>
+                    }
                     else if (Model.LastSync.HasValue)
                     {
                         <span class="utc-timestamp" data-utc-time="@Model.LastSync.Value.ToString("yyyy-MM-ddTHH:mm:ss")">

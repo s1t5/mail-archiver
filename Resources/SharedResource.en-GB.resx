@@ -93,6 +93,9 @@
   <data name="SyncPending" xml:space="preserve">
     <value>Synchronisation pending…</value>
   </data>
+  <data name="Never" xml:space="preserve">
+    <value>Never</value>
+  </data>
   <data name="EmailAccountEnabled" xml:space="preserve">
     <value>Account '{0}' has been enabled for synchronisation.</value>
     <comment>{0} - account name</comment>

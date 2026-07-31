@@ -943,7 +943,8 @@ namespace MailArchiver.Services.Core
                     EmailAddress = a.EmailAddress,
                     EmailCount = a.ArchivedEmails.Count,
                     LastSyncTime = a.LastSync,
-                    IsEnabled = a.IsEnabled
+                    IsEnabled = a.IsEnabled,
+                    Provider = a.Provider
                 })
                 .ToListAsync();
 

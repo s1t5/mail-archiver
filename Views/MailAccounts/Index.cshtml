@@ -123,6 +123,10 @@
                                     {
                                         <span class="badge bg-secondary">@Localizer["SyncPending"]</span>
                                     }
+                                    else if (item.Provider == ProviderType.IMPORT)
+                                    {
+                                        <span class="badge bg-light text-dark">@Localizer["Never"]</span>
+                                    }
                                     else if (item.LastSync.HasValue)
                                     {
                                         <span class="utc-timestamp"
@@ -367,6 +371,10 @@
                         else if (item.IsSyncPending)
                         {
                             <span class="badge bg-secondary">@Localizer["SyncPending"]</span>
+                        }
+                        else if (item.Provider == ProviderType.IMPORT)
+                        {
+                            <span class="badge bg-light text-dark">@Localizer["Never"]</span>
                         }
                         else if (item.LastSync.HasValue)
                         {
