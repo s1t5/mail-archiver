@@ -325,6 +325,12 @@
   <data name="NotSynced" xml:space="preserve">
     <value>Не синхронизирован</value>
   </data>
+  <data name="SyncRunning" xml:space="preserve">
+    <value>Синхронизация выполняется…</value>
+  </data>
+  <data name="SyncPending" xml:space="preserve">
+    <value>Синхронизация ожидает…</value>
+  </data>
   <data name="Days" xml:space="preserve">
     <value>дней</value>
   </data>

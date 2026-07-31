@@ -112,7 +112,18 @@
                                     </form>
                                 </td>
                                 <td>
-                                    @if (item.LastSync.HasValue)
+                                    @if (item.IsSyncing)
+                                    {
+                                        <span class="badge bg-primary">
+                                            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="width:0.7em;height:0.7em;"></span>
+                                            @Localizer["SyncRunning"]
+                                        </span>
+                                    }
+                                    else if (item.IsSyncPending)
+                                    {
+                                        <span class="badge bg-secondary">@Localizer["SyncPending"]</span>
+                                    }
+                                    else if (item.LastSync.HasValue)
                                     {
                                         <span class="utc-timestamp"
                                             data-utc-time="@item.LastSync.Value.ToString("yyyy-MM-ddTHH:mm:ss")">
@@ -123,7 +134,7 @@
                                     {
                                         <span class="text-muted">@Localizer["NotSynced"]</span>
                                     }
-</td>
+                                </td>
                                 <td class="small text-nowrap">@item.StorageUsed</td>
                                 <td>
                                     @if (item.DeleteAfterDays.HasValue)
@@ -346,7 +357,18 @@
                     </p>
                     <p class="card-text small mb-3">
                         <strong>@Localizer["LastSync"]:</strong>
-                        @if (item.LastSync.HasValue)
+                        @if (item.IsSyncing)
+                        {
+                            <span class="badge bg-primary">
+                                <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="width:0.7em;height:0.7em;"></span>
+                                @Localizer["SyncRunning"]
+                            </span>
+                        }
+                        else if (item.IsSyncPending)
+                        {
+                            <span class="badge bg-secondary">@Localizer["SyncPending"]</span>
+                        }
+                        else if (item.LastSync.HasValue)
                         {
                             <span class="utc-timestamp" data-utc-time="@item.LastSync.Value.ToString("yyyy-MM-ddTHH:mm:ss")">
                                 @item.LastSync.Value.ToString("g")
@@ -356,7 +378,7 @@
                         {
                             <span class="text-muted">@Localizer["NotSynced"]</span>
                         }
-</p>
+                    </p>
                     <p class="card-text small mb-3">
                         <strong>@Localizer["Storage"]:</strong>
                         <span class="text-nowrap">@item.StorageUsed</span>

@@ -34,6 +34,16 @@ namespace MailArchiver.Models.ViewModels
         [Display(Name = "Last sync")]
         public DateTime? LastSync { get; set; }
 
+        // True while a sync job is currently running for this account (used by the
+        // UI to show "Synchronization running…" instead of a stale 1970 epoch
+        // timestamp during a full resync).
+        public bool IsSyncing { get; set; }
+
+        // True when LastSync is at the Unix epoch but no sync job is currently
+        // running (e.g. after a crash/timeout before LastSync could be updated).
+        // The UI shows "Synchronization pending…" instead of 01.01.1970.
+        public bool IsSyncPending { get; set; }
+
         [Display(Name = "Account Enabled")]
         public bool IsEnabled { get; set; } = true;
 

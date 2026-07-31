@@ -149,7 +149,18 @@
 
                 <dt class="col-sm-3">@Localizer["LastSync"]</dt>
                 <dd class="col-sm-9">
-                    @if (Model.LastSync.HasValue)
+                    @if (Model.IsSyncing)
+                    {
+                        <span class="badge bg-primary">
+                            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="width:0.7em;height:0.7em;"></span>
+                            @Localizer["SyncRunning"]
+                        </span>
+                    }
+                    else if (Model.IsSyncPending)
+                    {
+                        <span class="badge bg-secondary">@Localizer["SyncPending"]</span>
+                    }
+                    else if (Model.LastSync.HasValue)
                     {
                         <span class="utc-timestamp" data-utc-time="@Model.LastSync.Value.ToString("yyyy-MM-ddTHH:mm:ss")">
                             @Model.LastSync.Value.ToString("g")

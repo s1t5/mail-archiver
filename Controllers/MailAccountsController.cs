@@ -178,6 +178,12 @@ namespace MailArchiver.Controllers
                     account.StorageUsed = storageMap.TryGetValue(account.Id, out var storage)
                         ? storage
                         : AccountStorageService.FormatFileSize(0);
+
+                    var isSyncing = _syncJobService.IsAccountSyncing(account.Id);
+                    account.IsSyncing = isSyncing;
+                    account.IsSyncPending = !isSyncing
+                        && account.LastSync.HasValue
+                        && account.LastSync.Value <= new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
                 }
             }
 
@@ -229,6 +235,11 @@ namespace MailArchiver.Controllers
                 MsaIsAuthorized = account.Provider == ProviderType.MSA && !string.IsNullOrEmpty(account.OAuthRefreshToken),
                 MsaTokenExpiry = account.OAuthTokenExpiry,
             };
+
+            var isSyncing = _syncJobService.IsAccountSyncing(account.Id);
+            model.IsSyncing = isSyncing;
+            model.IsSyncPending = !isSyncing
+                && account.LastSync <= new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 
             ViewBag.EmailCount = emailCount;
             return View(model);
@@ -675,6 +686,11 @@ namespace MailArchiver.Controllers
                 MsaIsAuthorized = account.Provider == ProviderType.MSA && !string.IsNullOrEmpty(account.OAuthRefreshToken),
                 MsaTokenExpiry = account.OAuthTokenExpiry,
             };
+
+            var isSyncing = _syncJobService.IsAccountSyncing(account.Id);
+            model.IsSyncing = isSyncing;
+            model.IsSyncPending = !isSyncing
+                && account.LastSync <= new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 
             // Set ViewBag properties
             ViewBag.Provider = account.Provider;

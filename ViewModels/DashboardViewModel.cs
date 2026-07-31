@@ -20,6 +20,8 @@ namespace MailArchiver.Models.ViewModels
         public int EmailCount { get; set; }
         public DateTime LastSyncTime { get; set; }
         public bool IsEnabled { get; set; }
+        public bool IsSyncing { get; set; }
+        public bool IsSyncPending { get; set; }
         public string StorageUsed { get; set; }
     }
 

@@ -151,7 +151,18 @@
                                         <td>@account.EmailCount.ToString("N0")</td>
                                         <td class="small text-nowrap">@account.StorageUsed</td>
                                         <td>
-                                            @if (DateTime.Now.Subtract(account.LastSyncTime).TotalHours < 24)
+                                            @if (account.IsSyncing)
+                                            {
+                                                <span class="badge bg-primary small">
+                                                    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="width:0.7em;height:0.7em;"></span>
+                                                    @Localizer["SyncRunning"]
+                                                </span>
+                                            }
+                                            else if (account.IsSyncPending)
+                                            {
+                                                <span class="badge bg-secondary small">@Localizer["SyncPending"]</span>
+                                            }
+                                            else if (DateTime.Now.Subtract(account.LastSyncTime).TotalHours < 24)
                                             {
                                                 <span class="badge bg-success small">
                                                     <span class="utc-timestamp" data-utc-time="@account.LastSyncTime.ToString("yyyy-MM-ddTHH:mm:ss")">
@@ -213,7 +224,18 @@
                                         </p>
                                     </div>
                                     <div class="text-end">
-                                        @if (DateTime.Now.Subtract(account.LastSyncTime).TotalHours < 24)
+                                        @if (account.IsSyncing)
+                                        {
+                                            <span class="badge bg-primary">
+                                                <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="width:0.7em;height:0.7em;"></span>
+                                                @Localizer["SyncRunning"]
+                                            </span>
+                                        }
+                                        else if (account.IsSyncPending)
+                                        {
+                                            <span class="badge bg-secondary">@Localizer["SyncPending"]</span>
+                                        }
+                                        else if (DateTime.Now.Subtract(account.LastSyncTime).TotalHours < 24)
                                         {
                                             <span class="badge bg-success">
                                                 <span class="utc-timestamp" data-utc-time="@account.LastSyncTime.ToString("yyyy-MM-ddTHH:mm:ss")">

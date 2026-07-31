@@ -236,6 +236,65 @@ public class SyncJobServiceTests
     }
 
     // ============================================================
+    // IsAccountSyncing
+    // ============================================================
+
+    [Fact]
+    public async Task IsAccountSyncing_RunningJob_ReturnsTrue()
+    {
+        var ctx = _fixture.CreateContext();
+        try
+        {
+            var acct = await SeedAccountAsync(ctx);
+            var svc = CreateService(ctx);
+            await svc.StartSyncAsync(acct.Id, acct.Name);
+
+            Assert.True(svc.IsAccountSyncing(acct.Id));
+        }
+        finally
+        {
+            await CleanupTestAccountAsync(ctx);
+            await ctx.DisposeAsync();
+        }
+    }
+
+    [Fact]
+    public async Task IsAccountSyncing_CompletedJob_ReturnsFalse()
+    {
+        var ctx = _fixture.CreateContext();
+        try
+        {
+            var acct = await SeedAccountAsync(ctx);
+            var svc = CreateService(ctx);
+            var jobId = await svc.StartSyncAsync(acct.Id, acct.Name);
+            svc.CompleteJob(jobId!, true);
+
+            Assert.False(svc.IsAccountSyncing(acct.Id));
+        }
+        finally
+        {
+            await CleanupTestAccountAsync(ctx);
+            await ctx.DisposeAsync();
+        }
+    }
+
+    [Fact]
+    public async Task IsAccountSyncing_NoJob_ReturnsFalse()
+    {
+        var ctx = _fixture.CreateContext();
+        try
+        {
+            var svc = CreateService(ctx);
+            Assert.False(svc.IsAccountSyncing(int.MaxValue - 10));
+        }
+        finally
+        {
+            await CleanupTestAccountAsync(ctx);
+            await ctx.DisposeAsync();
+        }
+    }
+
+    // ============================================================
     // UpdateJobProgress
     // ============================================================
 

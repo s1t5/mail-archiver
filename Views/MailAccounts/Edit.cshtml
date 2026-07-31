@@ -265,7 +265,28 @@
                             </div>
                         </div>
 
-                        @if (Model.LastSync.HasValue)
+                        @if (Model.IsSyncing)
+                        {
+                            <div class="mb-3">
+                                <label asp-for="LastSync" class="form-label">@Localizer["LastSync"]</label>
+                                <div class="form-control-plaintext">
+                                    <span class="badge bg-primary">
+                                        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="width:0.7em;height:0.7em;"></span>
+                                        @Localizer["SyncRunning"]
+                                    </span>
+                                </div>
+                            </div>
+                        }
+                        else if (Model.IsSyncPending)
+                        {
+                            <div class="mb-3">
+                                <label asp-for="LastSync" class="form-label">@Localizer["LastSync"]</label>
+                                <div class="form-control-plaintext">
+                                    <span class="badge bg-secondary">@Localizer["SyncPending"]</span>
+                                </div>
+                            </div>
+                        }
+                        else if (Model.LastSync.HasValue)
                         {
                             <div class="mb-3">
                                 <label asp-for="LastSync" class="form-label">@Localizer["LastSync"]</label>

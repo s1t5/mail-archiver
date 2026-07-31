@@ -99,6 +99,13 @@ namespace MailArchiver.Services
                 .ToList();
         }
 
+        public bool IsAccountSyncing(int accountId)
+        {
+            return _activeAccountJobs.TryGetValue(accountId, out var jobId)
+                && _jobs.TryGetValue(jobId, out var job)
+                && job.Status == SyncJobStatus.Running;
+        }
+
         public void UpdateJobProgress(string jobId, Action<SyncJob> updateAction)
         {
             if (_jobs.TryGetValue(jobId, out var job))

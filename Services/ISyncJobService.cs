@@ -9,6 +9,7 @@ namespace MailArchiver.Services
         SyncJob? GetJob(string jobId);
         List<SyncJob> GetActiveJobs();
         List<SyncJob> GetAllJobs();
+        bool IsAccountSyncing(int accountId);
         void UpdateJobProgress(string jobId, Action<SyncJob> updateAction);
         void CompleteJob(string jobId, bool success, string? errorMessage = null);
         void CompleteJobRateLimited(string jobId, string? errorMessage = null);

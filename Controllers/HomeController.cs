@@ -20,6 +20,7 @@ namespace MailArchiver.Controllers
         private readonly MailArchiver.Services.IAuthenticationService _authenticationService;
         private readonly IVersionUpdateService _versionUpdateService;
         private readonly IAccountStorageService _accountStorageService;
+        private readonly ISyncJobService _syncJobService;
 
         public HomeController(
             MailArchiver.Services.Core.EmailCoreService emailCoreService, 
@@ -28,6 +29,7 @@ namespace MailArchiver.Controllers
             MailArchiver.Services.IAuthenticationService authenticationService,
             IVersionUpdateService versionUpdateService,
             IAccountStorageService accountStorageService,
+            ISyncJobService syncJobService,
             ILogger<HomeController> logger, 
             IBatchRestoreService? batchRestoreService = null)
         {
@@ -37,6 +39,7 @@ namespace MailArchiver.Controllers
             _authenticationService = authenticationService;
             _versionUpdateService = versionUpdateService;
             _accountStorageService = accountStorageService;
+            _syncJobService = syncJobService;
             _logger = logger;
             _batchRestoreService = batchRestoreService;
         }
@@ -79,6 +82,10 @@ namespace MailArchiver.Controllers
                     stat.StorageUsed = storageMap.TryGetValue(stat.AccountId, out var storage)
                         ? storage
                         : AccountStorageService.FormatFileSize(0);
+
+                    var isSyncing = _syncJobService.IsAccountSyncing(stat.AccountId);
+                    stat.IsSyncing = isSyncing;
+                    stat.IsSyncPending = !isSyncing && stat.LastSyncTime <= new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
                 }
             }
 

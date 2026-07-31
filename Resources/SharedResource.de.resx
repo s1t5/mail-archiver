@@ -325,6 +325,12 @@
   <data name="NotSynced" xml:space="preserve">
     <value>nicht synchronisiert</value>
   </data>
+  <data name="SyncRunning" xml:space="preserve">
+    <value>Synchronisierung läuft…</value>
+  </data>
+  <data name="SyncPending" xml:space="preserve">
+    <value>Synchronisierung ausstehend…</value>
+  </data>
   <data name="Days" xml:space="preserve">
     <value>Tage</value>
   </data>
