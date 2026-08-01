@@ -12,23 +12,6 @@ namespace MailArchiver.Services.Shared
     public static class MailContentHelper
     {
         /// <summary>
-        /// Resolves the ContentId to persist for an attachment part. A real file attachment carries
-        /// no Content-ID. A part marked Content-Disposition: inline but lacking a Content-ID (CID-less
-        /// inline, e.g. some inline images) is NOT a real attachment; it receives a synthetic marker so
-        /// the "ContentId present => inline" invariant holds and has:attachment (which matches rows
-        /// whose ContentId IS NULL/empty) correctly excludes it.
-        /// </summary>
-        public static string? ResolveAttachmentContentId(string? rawContentId, string? contentDisposition)
-        {
-            if (!string.IsNullOrEmpty(rawContentId))
-                return CleanText(rawContentId);
-            if (contentDisposition != null &&
-                contentDisposition.Equals("inline", StringComparison.OrdinalIgnoreCase))
-                return "inline-no-cid";
-            return null;
-        }
-
-        /// <summary>
         /// Removes null characters and control characters from text, replacing them with spaces.
         /// </summary>
         public static string CleanText(string? text)

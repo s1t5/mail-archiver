@@ -171,7 +171,7 @@ namespace MailArchiver.Services.Providers.Eml
                         ArchivedEmailId = archivedEmailId,
                         FileName = MailContentHelper.CleanText(fileName),
                         ContentType = MailContentHelper.CleanText(attachment.ContentType?.MimeType ?? "application/octet-stream"),
-                        ContentId = MailContentHelper.ResolveAttachmentContentId(attachment.ContentId, attachment.ContentDisposition?.Disposition),
+                        ContentId = !string.IsNullOrEmpty(attachment.ContentId) ? MailContentHelper.CleanText(attachment.ContentId) : null,
                         Content = ms.ToArray(),
                         Size = ms.Length
                     };

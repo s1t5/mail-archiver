@@ -1443,7 +1443,7 @@ namespace MailArchiver.Services.Core
 
                             var cleanFileName = MailContentHelper.CleanText(fileName);
                             var contentType = MailContentHelper.CleanText(attachment.ContentType?.MimeType ?? "application/octet-stream");
-                            var contentId = MailContentHelper.ResolveAttachmentContentId(attachment.ContentId, attachment.ContentDisposition?.Disposition);
+                            var contentId = !string.IsNullOrEmpty(attachment.ContentId) ? attachment.ContentId.Trim() : null;
 
                             var emailAttachment = new EmailAttachment
                             {
