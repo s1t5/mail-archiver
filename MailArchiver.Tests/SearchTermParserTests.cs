@@ -318,4 +318,24 @@ public class SearchTermParserTests
 
     [Fact]
     public void Word_ampersand_splits_into_lexemes() => Assert.Equal("(R & D:*)", Ts("R&D"));
+
+    // ---- Codex P2 (#3): OR-distribution bound is sound AND non-silent ----
+    // A normal boolean query stays well under MaxClauseGroups -> not truncated.
+    [Fact]
+    public void Normal_query_is_not_truncated()
+    {
+        EmailCoreService.ParseSearchClauses("auto OR fahrrad OR bike", out var truncated);
+        Assert.False(truncated);
+    }
+
+    // A pathological OR distribution ( >256 CNF groups ) is bounded and reports truncated=true,
+    // so the caller can log instead of silently returning partial (over-approximated) results.
+    [Fact]
+    public void Over_bound_or_distribution_sets_truncated_and_bounds_groups()
+    {
+        var many = string.Join(" ", Enumerable.Range(1, 300).Select(i => "z" + i));
+        var groups = EmailCoreService.ParseSearchClauses($"subject:(festplatte) OR body:({many})", out var truncated);
+        Assert.True(truncated);
+        Assert.True(groups.Count <= 256, $"expected <=256 bounded groups, got {groups.Count}");
+    }
 }

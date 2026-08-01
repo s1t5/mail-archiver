@@ -155,4 +155,14 @@ public class SearchEndToEndTests : IClassFixture<SearchDbFixture>
     // Apostrophe phrase splits to o<->reilly and matches literally (POSITION recheck).
     [Fact] public async Task Phrase_with_apostrophe_matches()
     { if (!_fx.Enabled) return; Assert.Equal(new HashSet<int>{6}, await Ids("\"O'Reilly\"")); }
+
+    // Codex P2 fix (#3): when OR distribution exceeds the 256-group CNF bound, the bounding is a
+    // SOUND superset (drops AND-constraints only), so a mail satisfying one branch is still found.
+    // subject:(festplatte) matches mail 1; OR'ing 300 body words forces >256 groups -> bounded.
+    [Fact] public async Task Or_distribution_over_bound_preserves_recall()
+    {
+        if (!_fx.Enabled) return;
+        var many = string.Join(" ", Enumerable.Range(1, 300).Select(i => "zq" + i));
+        Assert.Contains(1, await Ids($"subject:(festplatte) OR body:({many})"));
+    }
 }
