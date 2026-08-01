@@ -348,5 +348,17 @@ public class SearchTermParserTests
         Assert.Equal("Meeting (Q&A)", c.Text);
         Assert.Equal(EmailCoreService.ClauseKind.Field, c.Kind);
     }
+
+    // ReDoS regression: a malformed field group with many quotes and no closing ')' must parse in
+    // linear time (non-overlapping regex branches), not explore exponentially many partitions (P1).
+    [Fact]
+    public void Malformed_field_group_with_many_quotes_does_not_backtrack()
+    {
+        var evil = "subject:(" + new string('"', 60);
+        var sw = System.Diagnostics.Stopwatch.StartNew();
+        var _ = Parse(evil);
+        sw.Stop();
+        Assert.True(sw.ElapsedMilliseconds < 1000, $"parse took {sw.ElapsedMilliseconds}ms");
+    }
 }
 
