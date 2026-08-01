@@ -338,4 +338,15 @@ public class SearchTermParserTests
         Assert.True(truncated);
         Assert.True(groups.Count <= 256, $"expected <=256 bounded groups, got {groups.Count}");
     }
+
+    // Regression: a quoted value inside a field group may contain ')' — the group scanner
+    // must not terminate ginner at the parenthesis inside the quotes (P2, Codex 2a1c0db).
+    [Fact]
+    public void Field_group_preserves_quoted_parentheses()
+    {
+        var c = Assert.Single(Assert.Single(Parse("subject:(\"Meeting (Q&A)\")")));
+        Assert.Equal("Meeting (Q&A)", c.Text);
+        Assert.Equal(EmailCoreService.ClauseKind.Field, c.Kind);
+    }
 }
+
