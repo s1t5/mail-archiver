@@ -13,7 +13,8 @@ namespace MailArchiver.Migrations
             // Trigram (pg_trgm) GIN index enabling fast substring search (*term*) over the
             // concatenated e-mail fields. The index expression MUST match the LIKE expression
             // built in EmailCoreService.SearchEmailsOptimizedAsync for the planner to use it.
-            // pg_trgm creation is best-effort: if the app role lacks privilege, the index is
+            // pg_trgm creation is best-effort: if it cannot be created for ANY reason (missing
+            // privilege, or the extension files are not installed on the server), the index is
             // skipped with a NOTICE and substring search still works (via a slower scan).
             migrationBuilder.Sql(@"
                 DO $$
@@ -21,8 +22,13 @@ namespace MailArchiver.Migrations
                     IF NOT EXISTS (SELECT 1 FROM pg_extension WHERE extname = 'pg_trgm') THEN
                         BEGIN
                             CREATE EXTENSION IF NOT EXISTS pg_trgm;
-                        EXCEPTION WHEN insufficient_privilege THEN
-                            RAISE NOTICE 'pg_trgm missing and could not be created (insufficient privilege). Substring-search index skipped. A superuser can run: CREATE EXTENSION pg_trgm;';
+                        EXCEPTION WHEN OTHERS THEN
+                            -- Best-effort: ANY failure to provide pg_trgm must NOT abort the
+                            -- upgrade. Besides insufficient_privilege this also covers installs
+                            -- where the extension files are absent (feature_not_supported /
+                            -- undefined_file). Substring search still works via a slower
+                            -- sequential scan; a superuser can later run: CREATE EXTENSION pg_trgm;
+                            RAISE NOTICE 'pg_trgm unavailable (%), substring-search index skipped. A superuser can run: CREATE EXTENSION pg_trgm;', SQLERRM;
                         END;
                     END IF;
 
