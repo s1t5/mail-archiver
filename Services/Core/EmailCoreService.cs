@@ -100,7 +100,9 @@ namespace MailArchiver.Services.Core
             // Full-text search condition: AND of OR-groups of typed clauses.
             if (!string.IsNullOrWhiteSpace(searchTerm))
             {
-                var groups = ParseSearchClauses(searchTerm);
+                var groups = ParseSearchClauses(searchTerm, out var searchTruncated);
+                if (searchTruncated)
+                    _logger.LogWarning("Search query too complex: boolean clause distribution exceeded {Max} groups and was bounded. Results are a sound superset (no match dropped; a few extra rows may match). Consider simplifying the query.", MaxClauseGroups);
                 var searchConditions = new List<string>();
 
                 if (groups.Count > 0 && groups.All(g => g.All(c => c.Kind == ClauseKind.Word)))
@@ -487,7 +489,15 @@ namespace MailArchiver.Services.Core
         // neighbours (Google-style); -term / !term negates a word/substring; "phrase"; field syntax
         // subject:/body:/from:/to: ; *term* substring (pg_trgm). Fields and phrases are positive-only.
         internal static List<List<SearchClause>> ParseSearchClauses(string searchTerm)
+            => ParseSearchClauses(searchTerm, out _);
+
+        // Overload exposing whether the CNF clause-group bound (MaxClauseGroups) was hit. Bounding
+        // the distribution is a SOUND over-approximation: dropping AND-groups only ever RELAXES the
+        // filter, so no true match is lost (recall preserved) — at worst a few extra rows match.
+        // Callers log a warning when this is true so the truncation is never silent.
+        internal static List<List<SearchClause>> ParseSearchClauses(string searchTerm, out bool truncated)
         {
+            truncated = false;
             if (string.IsNullOrWhiteSpace(searchTerm))
                 return new List<List<SearchClause>>();
 
@@ -521,7 +531,7 @@ namespace MailArchiver.Services.Core
                     }
                 }
 
-                var frag = ParseItemToCnf(match, validFields);
+                var frag = ParseItemToCnf(match, validFields, ref truncated);
                 if (frag == null || frag.Count == 0)
                 {
                     pendingOr = false; // a dropped item cannot serve as an OR operand
@@ -530,24 +540,24 @@ namespace MailArchiver.Services.Core
 
                 if (pendingOr && run != null)
                 {
-                    run = OrCnf(run, frag);
+                    run = OrCnf(run, frag, ref truncated);
                     pendingOr = false;
                 }
                 else
                 {
                     if (run != null)
-                        result = result == null ? run : AndCnf(result, run);
+                        result = result == null ? run : AndCnf(result, run, ref truncated);
                     run = frag;
                 }
             }
             if (run != null)
-                result = result == null ? run : AndCnf(result, run);
+                result = result == null ? run : AndCnf(result, run, ref truncated);
 
             return result ?? new List<List<SearchClause>>();
         }
 
         // Parses one regex match into a CNF fragment (null = nothing to add).
-        private static List<List<SearchClause>> ParseItemToCnf(Match match, HashSet<string> validFields)
+        private static List<List<SearchClause>> ParseItemToCnf(Match match, HashSet<string> validFields, ref bool truncated)
         {
             if (match.Groups["gfield"].Success)
             {
@@ -555,10 +565,11 @@ namespace MailArchiver.Services.Core
                 var column = GetColumnForField(field);
                 if (!validFields.Contains(field) || column == null)
                     return null;
-                var inner = ParseSearchClauses(match.Groups["ginner"].Value);
+                var inner = ParseSearchClauses(match.Groups["ginner"].Value, out var innerTruncated);
+                truncated |= innerTruncated;
                 RemapGroupToField(inner, column);
                 if (match.Groups["gneg"].Value.Length > 0)
-                    inner = NegateCnf(inner);
+                    inner = NegateCnf(inner, ref truncated);
                 return inner.Count > 0 ? inner : null;
             }
             if (match.Groups["phrase"].Success)
@@ -635,31 +646,33 @@ namespace MailArchiver.Services.Core
         }
 
         // AND of two CNFs = concatenation of their groups (bounded).
-        private static List<List<SearchClause>> AndCnf(List<List<SearchClause>> a, List<List<SearchClause>> b)
+        private static List<List<SearchClause>> AndCnf(List<List<SearchClause>> a, List<List<SearchClause>> b, ref bool truncated)
         {
             var r = new List<List<SearchClause>>(a);
             r.AddRange(b);
-            if (r.Count > MaxClauseGroups) r = r.GetRange(0, MaxClauseGroups);
+            if (r.Count > MaxClauseGroups) { r = r.GetRange(0, MaxClauseGroups); truncated = true; }
             return r;
         }
 
         // OR of two CNFs = distribute: each pair of groups merges its clause lists (bounded).
-        private static List<List<SearchClause>> OrCnf(List<List<SearchClause>> a, List<List<SearchClause>> b)
+        private static List<List<SearchClause>> OrCnf(List<List<SearchClause>> a, List<List<SearchClause>> b, ref bool truncated)
         {
             var r = new List<List<SearchClause>>();
             foreach (var ga in a)
                 foreach (var gb in b)
                 {
+                    // Bound the distribution: stop BEFORE exceeding MaxClauseGroups. Emitting fewer
+                    // AND-groups only relaxes the filter (sound superset), so recall is preserved.
+                    if (r.Count >= MaxClauseGroups) { truncated = true; return r; }
                     var merged = new List<SearchClause>(ga);
                     merged.AddRange(gb);
                     r.Add(merged);
-                    if (r.Count >= MaxClauseGroups) return r;
                 }
             return r;
         }
 
         // De Morgan: NOT(AND_i OR_j c) = OR_i (AND_j !c), re-distributed back to CNF.
-        private static List<List<SearchClause>> NegateCnf(List<List<SearchClause>> cnf)
+        private static List<List<SearchClause>> NegateCnf(List<List<SearchClause>> cnf, ref bool truncated)
         {
             List<List<SearchClause>> acc = null;
             foreach (var group in cnf)
@@ -667,7 +680,7 @@ namespace MailArchiver.Services.Core
                 var negGroup = new List<List<SearchClause>>();
                 foreach (var c in group)
                     negGroup.Add(new List<SearchClause> { new SearchClause { Kind = c.Kind, Text = c.Text, Column = c.Column, Negated = !c.Negated } });
-                acc = acc == null ? negGroup : OrCnf(acc, negGroup);
+                acc = acc == null ? negGroup : OrCnf(acc, negGroup, ref truncated);
             }
             return acc ?? new List<List<SearchClause>>();
         }
@@ -802,7 +815,9 @@ namespace MailArchiver.Services.Core
             IQueryable<ArchivedEmail> searchQuery = baseQuery;
             if (!string.IsNullOrEmpty(searchTerm))
             {
-                var groups = ParseSearchClauses(searchTerm);
+                var groups = ParseSearchClauses(searchTerm, out var searchTruncated);
+                if (searchTruncated)
+                    _logger.LogWarning("Search query too complex: boolean clause distribution exceeded {Max} groups and was bounded. Results are a sound superset (no match dropped; a few extra rows may match). Consider simplifying the query.", MaxClauseGroups);
                 foreach (var group in groups)
                 {
                     // OR within the group (any clause type), AND across groups; negated -> NOT.
