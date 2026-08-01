@@ -161,6 +161,10 @@ namespace MailArchiver.Services.Core
                                 var attachExists = @"EXISTS (SELECT 1 FROM mail_archiver.""EmailAttachments"" a WHERE a.""ArchivedEmailId"" = e.""Id"" AND (a.""ContentId"" IS NULL OR a.""ContentId"" = ''))";
                                 cond = clause.Negated ? $"NOT {attachExists}" : attachExists;
                             }
+                            else if (clause.Kind == ClauseKind.MatchAll)
+                            {
+                                cond = "TRUE";
+                            }
                             else // Phrase: GIN @@ prefilter narrows rows, POSITION confirms the exact phrase.
                             {
                                 var phraseTs = BuildPhraseTsQuery(clause.Text);
@@ -437,6 +441,8 @@ namespace MailArchiver.Services.Core
 
         private static System.Linq.Expressions.Expression<Func<ArchivedEmail, bool>> ClausePredicate(SearchClause c)
         {
+            if (c.Kind == ClauseKind.MatchAll)
+                return e => true;
             if (c.Kind == ClauseKind.Attachment)
             {
                 // Real file attachments only: an EmailAttachment with no ContentId. Inline images
@@ -471,7 +477,11 @@ namespace MailArchiver.Services.Core
         // A query is an AND of OR-groups; every operand type (word / phrase / field / substring,
         // each optionally negated) is a typed clause that can be a member of an OR-group, so
         // "from:a OR from:b", "*x* OR *y*" and mixed "invoice OR from:acme" all combine correctly.
-        internal enum ClauseKind { Word, Phrase, Field, Substring, Attachment }
+        // MatchAll = an always-true clause: OR(x, true)=true, AND(x, true)=x. Used as the sound
+        // relaxation of a negated field group whose inner conjunction was truncated (cannot be
+        // negated soundly). Never produced for pure-word/pure-negation queries, so it only reaches
+        // the general per-group SQL and LINQ builders.
+        internal enum ClauseKind { Word, Phrase, Field, Substring, Attachment, MatchAll }
 
         internal readonly struct SearchClause
         {
@@ -570,13 +580,14 @@ namespace MailArchiver.Services.Core
                 RemapGroupToField(inner, column);
                 if (match.Groups["gneg"].Value.Length > 0)
                 {
-                    // Negating a truncated conjunction would DROP true matches: NOT(w1..w256)
-                    // wrongly excludes mails that satisfy the full NOT(w1..w300). A bounded group
-                    // cannot be soundly negated, so drop the negated constraint entirely -- removing
-                    // a filter only adds rows, preserving the recall guarantee (sound superset). The
-                    // 'truncated' flag is already set, so the caller still logs the bound warning.
+                    // A bounded (truncated) conjunction cannot be soundly negated: NOT(w1..w256)
+                    // wrongly excludes mails satisfying the full NOT(w1..w300). Replace the whole
+                    // negated group with a MatchAll tautology so the enclosing algebra relaxes
+                    // correctly in BOTH positions -- AND(x, true) = x (constraint dropped) and
+                    // OR(x, true) = true (the OR branch must not be lost). 'truncated' is already
+                    // set, so the caller still logs the bound warning.
                     if (innerTruncated)
-                        return null;
+                        return One(new SearchClause { Kind = ClauseKind.MatchAll });
                     inner = NegateCnf(inner, ref truncated);
                 }
                 return inner.Count > 0 ? inner : null;

@@ -355,12 +355,24 @@ public class SearchTermParserTests
     // dropped (sound superset -> recall preserved) and report truncated=true, never emit a negated
     // partial group.
     [Fact]
-    public void Negated_truncated_field_group_is_dropped_not_negated()
+    public void Negated_truncated_field_group_becomes_matchall_tautology()
     {
         var many = string.Join(" ", Enumerable.Range(1, 300).Select(i => "z" + i));
         var groups = EmailCoreService.ParseSearchClauses($"-subject:({many})", out var truncated);
         Assert.True(truncated);
-        Assert.Empty(groups);
+        var clause = Assert.Single(Assert.Single(groups));
+        Assert.Equal(EmailCoreService.ClauseKind.MatchAll, clause.Kind);
+    }
+
+    // In OR position the un-negatable branch must relax the whole OR to a tautology (X OR true),
+    // not silently drop the branch (which would lose recall). Every resulting group carries MatchAll.
+    [Fact]
+    public void Negated_truncated_field_group_inside_or_relaxes_the_or()
+    {
+        var many = string.Join(" ", Enumerable.Range(1, 300).Select(i => "z" + i));
+        var groups = EmailCoreService.ParseSearchClauses($"invoice OR -subject:({many})", out var truncated);
+        Assert.True(truncated);
+        Assert.All(groups, g => Assert.Contains(g, c => c.Kind == EmailCoreService.ClauseKind.MatchAll));
     }
 
     // Control: a small negated field group is still negated normally (drop only on truncation).
