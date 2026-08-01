@@ -229,6 +229,17 @@ public class SearchTermParserTests
     public void Negation_complement_dual()
         => Assert.Equal("rechnung:* | wd:* | 8:*", EmailCoreService.BuildNegationComplementTsQuery(EmailCoreService.ParseSearchClauses("-rechnung -wd -8")));
 
+    // Codex P2 (#17): the pure-negation complement must split punctuated literals the SAME way as
+    // WordAtom. -O'Reilly must yield the positive complement (O & Reilly:*), never the invalid
+    // O''Reilly:* that Postgres' tsquery parser rejects (which would fall back to the slow EF scan).
+    [Fact]
+    public void Negation_complement_splits_apostrophe_literal()
+        => Assert.Equal("(O & Reilly:*)", EmailCoreService.BuildNegationComplementTsQuery(EmailCoreService.ParseSearchClauses("-O'Reilly")));
+
+    [Fact]
+    public void Negation_complement_splits_ampersand_literal()
+        => Assert.Equal("(R & D:*)", EmailCoreService.BuildNegationComplementTsQuery(EmailCoreService.ParseSearchClauses("-R&D")));
+
     [Fact]
     public void Substring_keeps_like_metacharacters()
         => Assert.Equal("INV_2026", Assert.Single(Assert.Single(Parse("*INV_2026*"))).Text);
@@ -337,6 +348,28 @@ public class SearchTermParserTests
         var groups = EmailCoreService.ParseSearchClauses($"subject:(festplatte) OR body:({many})", out var truncated);
         Assert.True(truncated);
         Assert.True(groups.Count <= 256, $"expected <=256 bounded groups, got {groups.Count}");
+    }
+
+    // Codex P2 (#17): a NEGATED field group whose inner conjunction is truncated cannot be soundly
+    // negated -- NOT(w1..w256) wrongly excludes mails satisfying the full NOT(w1..w300). It must be
+    // dropped (sound superset -> recall preserved) and report truncated=true, never emit a negated
+    // partial group.
+    [Fact]
+    public void Negated_truncated_field_group_is_dropped_not_negated()
+    {
+        var many = string.Join(" ", Enumerable.Range(1, 300).Select(i => "z" + i));
+        var groups = EmailCoreService.ParseSearchClauses($"-subject:({many})", out var truncated);
+        Assert.True(truncated);
+        Assert.Empty(groups);
+    }
+
+    // Control: a small negated field group is still negated normally (drop only on truncation).
+    [Fact]
+    public void Small_negated_field_group_is_negated_normally()
+    {
+        var groups = EmailCoreService.ParseSearchClauses("-subject:(spam werbung)", out var truncated);
+        Assert.False(truncated);
+        Assert.NotEmpty(groups);
     }
 
     // Regression: a quoted value inside a field group may contain ')' — the group scanner
