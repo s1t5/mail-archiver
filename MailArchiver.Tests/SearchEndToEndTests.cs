@@ -142,4 +142,17 @@ public class SearchEndToEndTests : IClassFixture<SearchDbFixture>
     // Codex P2 fix: a plain word with an apostrophe still matches via FTS (O'Reilly -> lexeme oreilly).
     [Fact] public async Task Word_with_apostrophe_matches()
     { if (!_fx.Enabled) return; Assert.Equal(new HashSet<int>{6}, await Ids("O'Reilly")); }
+
+    // Codex P2 fix (#1): a PUNCTUATED phrase prefilters via the split sub-lexemes (R&D -> r<->d,
+    // not RD), so the positive phrase matches mail 6 ...
+    [Fact] public async Task Phrase_with_ampersand_matches()
+    { if (!_fx.Enabled) return; Assert.Equal(new HashSet<int>{6}, await Ids("\"R&D\"")); }
+
+    // ... and the NEGATED phrase excludes exactly that mail instead of wrongly keeping it.
+    [Fact] public async Task Negated_phrase_with_ampersand_excludes_match()
+    { if (!_fx.Enabled) return; Assert.Equal(new HashSet<int>{1,2,3,4,5}, await Ids("-\"R&D\"")); }
+
+    // Apostrophe phrase splits to o<->reilly and matches literally (POSITION recheck).
+    [Fact] public async Task Phrase_with_apostrophe_matches()
+    { if (!_fx.Enabled) return; Assert.Equal(new HashSet<int>{6}, await Ids("\"O'Reilly\"")); }
 }
