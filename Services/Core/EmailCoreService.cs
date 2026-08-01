@@ -508,7 +508,7 @@ namespace MailArchiver.Services.Core
             // merges neighbours. field:(...) groups parse recursively and re-map every clause onto that
             // field; OR between groups is resolved by CNF distribution, bounded by MaxClauseGroups.
             var regex = new Regex(
-                @"(?<gneg>[-!]?)(?<gfield>\w+):\((?<ginner>[^)]*)\)" +
+                @"(?<gneg>[-!]?)(?<gfield>\w+):\((?<ginner>(?:""[^""]*""|[^)])*)\)" +
                 @"|(?<pneg>[-!]?)""(?<phrase>[^""]*)""" +
                 @"|(?<fneg>[-!]?)(?<field>\w+):(""(?<fq>[^""]*)""|(?<fu>\S+))" +
                 @"|(?<tok>\S+)",
@@ -1443,7 +1443,7 @@ namespace MailArchiver.Services.Core
 
                             var cleanFileName = MailContentHelper.CleanText(fileName);
                             var contentType = MailContentHelper.CleanText(attachment.ContentType?.MimeType ?? "application/octet-stream");
-                            var contentId = !string.IsNullOrEmpty(attachment.ContentId) ? attachment.ContentId.Trim() : null;
+                            var contentId = MailContentHelper.ResolveAttachmentContentId(attachment.ContentId, attachment.ContentDisposition?.Disposition);
 
                             var emailAttachment = new EmailAttachment
                             {
