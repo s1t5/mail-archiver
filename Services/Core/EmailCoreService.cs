@@ -673,18 +673,22 @@ namespace MailArchiver.Services.Core
         }
 
         // Builds a GIN-indexable phrase tsquery ("w1 <-> w2 ...", prefix-matched) so exact-phrase
-        // searches can use the full-text index as a prefilter before the POSITION recheck.
-        private static string BuildPhraseTsQuery(string phrase)
+        // searches can use the full-text index as a prefilter before the POSITION recheck. Each word
+        // is split on the punctuation Postgres' 'simple' parser also treats as lexeme separators
+        // (R&D -> r, d; O'Reilly -> o, reilly), mirroring WordAtom, so every sub-lexeme becomes an
+        // adjacent (<->) prefix term and the tsvector positions line up; otherwise a punctuated
+        // phrase collapsed to one atom (R&D -> RD:*) never matches the indexed r/d lexemes and the
+        // prefilter wrongly drops (positive) or keeps (negated) the row. POSITION confirms the exact
+        // phrase. Passed as a parameter -> no escaping needed.
+        internal static string BuildPhraseTsQuery(string phrase)
         {
             if (string.IsNullOrWhiteSpace(phrase))
                 return null;
             var terms = new List<string>();
             foreach (var word in phrase.Split((char[])null, StringSplitOptions.RemoveEmptyEntries))
-            {
-                var sanitized = Regex.Replace(word, @"[&|!():\*]", "", RegexOptions.None);
-                if (!string.IsNullOrEmpty(sanitized))
-                    terms.Add(sanitized.Replace("'", "''") + ":*");
-            }
+                foreach (var part in Regex.Split(word, @"[&|!():\*<>'""]+"))
+                    if (!string.IsNullOrEmpty(part))
+                        terms.Add(part + ":*");
             return terms.Count == 0 ? null : string.Join(" <-> ", terms);
         }
 
