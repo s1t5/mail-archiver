@@ -569,7 +569,16 @@ namespace MailArchiver.Services.Core
                 truncated |= innerTruncated;
                 RemapGroupToField(inner, column);
                 if (match.Groups["gneg"].Value.Length > 0)
+                {
+                    // Negating a truncated conjunction would DROP true matches: NOT(w1..w256)
+                    // wrongly excludes mails that satisfy the full NOT(w1..w300). A bounded group
+                    // cannot be soundly negated, so drop the negated constraint entirely -- removing
+                    // a filter only adds rows, preserving the recall guarantee (sound superset). The
+                    // 'truncated' flag is already set, so the caller still logs the bound warning.
+                    if (innerTruncated)
+                        return null;
                     inner = NegateCnf(inner, ref truncated);
+                }
                 return inner.Count > 0 ? inner : null;
             }
             if (match.Groups["phrase"].Success)
@@ -740,11 +749,11 @@ namespace MailArchiver.Services.Core
             => string.Join(" | ", groups.Select(g =>
                 g.Count == 1 ? PosAtom(g[0]) : "(" + string.Join(" & ", g.Select(PosAtom)) + ")"));
 
+        // Positive prefix atom for the pure-negation complement. Delegates to WordAtom (as a
+        // non-negated clause) so it uses the SAME lexeme splitting: -O'Reilly -> (o & reilly:*),
+        // never the invalid O''Reilly:*. Sharing WordAtom keeps the two paths from drifting apart.
         private static string PosAtom(SearchClause c)
-        {
-            var t = c.Text.Replace("'", "''");
-            return t + ":*";
-        }
+            => WordAtom(new SearchClause { Kind = c.Kind, Text = c.Text, Column = c.Column, Negated = false });
 
         private (string OrderByClause, string SortColumn, bool IsTimestampSort) GetOrderByClause(string sortBy, string sortOrder)
         {
