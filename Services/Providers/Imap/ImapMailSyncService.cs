@@ -751,6 +751,21 @@ namespace MailArchiver.Services.Providers.Imap
                         _logger.LogInformation("Processing batch of {Count} messages (starting at {Start}) in folder {FolderName} via IMAP",
                             batch.Count, i, folder.FullName);
 
+                        // Batch-fetch \Seen flags for the current UID batch to populate IsRead
+                        var isReadByUid = new Dictionary<UniqueId, bool>();
+                        try
+                        {
+                            var summaries = await folder.FetchAsync(batch, MessageSummaryItems.Flags | MessageSummaryItems.UniqueId);
+                            foreach (var s in summaries)
+                            {
+                                isReadByUid[s.UniqueId] = s.Flags?.HasFlag(MessageFlags.Seen) ?? false;
+                            }
+                        }
+                        catch (Exception flagsEx)
+                        {
+                            _logger.LogWarning(flagsEx, "Failed to fetch flags for batch in folder {FolderName}, defaulting IsRead to false", folder.FullName);
+                        }
+
                         foreach (var uid in batch)
                         {
                             if (jobId != null)
@@ -999,7 +1014,8 @@ namespace MailArchiver.Services.Providers.Imap
                                     }
                                 }
 
-                                var isNew = await _coreService.ArchiveEmailAsync(account, message, isOutgoing, folder.FullName);
+                                var isRead = isReadByUid.TryGetValue(uid, out var seen) && seen;
+                                var isNew = await _coreService.ArchiveEmailAsync(account, message, isOutgoing, folder.FullName, isRead);
                                 if (isNew)
                                 {
                                     result.NewEmails++;
