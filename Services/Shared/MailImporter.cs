@@ -212,11 +212,12 @@ namespace MailArchiver.Services.Shared
             var messageId = message.MessageId;
             if (!string.IsNullOrEmpty(messageId)) return messageId;
 
-            var uniqueString = $"{string.Join(",", message.From.Mailboxes.Select(m => m.Address))}|{string.Join(",", message.To.Mailboxes.Select(m => m.Address))}|{message.Subject ?? ""}|{message.Date.Ticks}";
-            using var sha256 = System.Security.Cryptography.SHA256.Create();
-            var hashBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(uniqueString));
-            var hashString = Convert.ToBase64String(hashBytes).Replace("+", "-").Replace("/", "_").Substring(0, 16);
-            return $"generated-{hashString}@mail-archiver.local";
+            // Shared deterministic fallback ID (same algorithm across IMAP, import and M365 pipelines)
+            return MailContentHelper.GenerateFallbackMessageId(
+                string.Join(",", message.From.Mailboxes.Select(m => m.Address)),
+                string.Join(",", message.To.Mailboxes.Select(m => m.Address)),
+                message.Subject,
+                message.Date.Ticks);
         }
 
         private static string GetAttachmentFileName(MimePart attachment)

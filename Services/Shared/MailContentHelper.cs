@@ -1,3 +1,4 @@
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using MimeKit;
@@ -90,6 +91,53 @@ namespace MailArchiver.Services.Shared
             } while (changed);
 
             return value;
+        }
+
+        /// <summary>
+        /// Generates a deterministic fallback Message-ID for messages that have no
+        /// Message-ID header. The ID is a SHA-256 hash over the pipe-joined components
+        /// <c>from|to|subject|dateTicks</c> (plus <paramref name="canonicalHeaders"/> when
+        /// supplied), formatted as <c>generated-{16 Base64URL chars}@mail-archiver.local</c>.
+        /// The same algorithm is used by all archiving pipelines (IMAP, EML/MBOX import,
+        /// M365/Graph) so identical messages produce identical keys everywhere.
+        /// </summary>
+        /// <param name="from">Comma-separated bare sender addresses (or null).</param>
+        /// <param name="to">Comma-separated bare recipient addresses (or null).</param>
+        /// <param name="subject">The message subject (null is treated as empty).</param>
+        /// <param name="dateTicks">The message date in ticks (0 when unknown).</param>
+        /// <param name="canonicalHeaders">
+        /// Optional canonical header block (see <see cref="BuildCanonicalHeaders"/>). The
+        /// IMAP pipeline includes it so that distinct deliveries whose From/To/Subject/Date
+        /// are all identical (very old mail without Message-ID and Subject) still produce
+        /// distinct keys via their differing Received chains. Import/Graph omit it.
+        /// </param>
+        public static string GenerateFallbackMessageId(string? from, string? to, string? subject, long dateTicks, string? canonicalHeaders = null)
+        {
+            var uniqueString = $"{from ?? string.Empty}|{to ?? string.Empty}|{subject ?? string.Empty}|{dateTicks}";
+            if (!string.IsNullOrEmpty(canonicalHeaders))
+            {
+                uniqueString += $"|{canonicalHeaders}";
+            }
+
+            var hashBytes = SHA256.HashData(Encoding.UTF8.GetBytes(uniqueString));
+            var hashString = Convert.ToBase64String(hashBytes).Replace("+", "-").Replace("/", "_").Substring(0, 16);
+            return $"generated-{hashString}@mail-archiver.local";
+        }
+
+        /// <summary>
+        /// Builds a canonical string representation of a header list: one
+        /// <c>Field: Value</c> line per header, in original order, joined by newlines.
+        /// Used as a per-delivery discriminator for the fallback Message-ID (the Received
+        /// chain differs between deliveries even when all other headers are identical).
+        /// The same canonicalization is applied by the archiving and the retention-deletion
+        /// path so both compute matching keys.
+        /// </summary>
+        public static string BuildCanonicalHeaders(IEnumerable<Header>? headers)
+        {
+            if (headers == null)
+                return string.Empty;
+
+            return string.Join("\n", headers.Select(h => $"{h.Field}: {h.Value}"));
         }
 
         /// <summary>

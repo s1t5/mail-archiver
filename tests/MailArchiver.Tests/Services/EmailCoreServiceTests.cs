@@ -1,6 +1,7 @@
 using MailArchiver.Data;
 using MailArchiver.Models;
 using MailArchiver.Services.Core;
+using MailArchiver.Services.Shared;
 using MailArchiver.Tests.Infrastructure;
 using MailArchiver.ViewModels;
 using Microsoft.EntityFrameworkCore;
@@ -792,6 +793,177 @@ public class EmailCoreServiceTests
 
             var stored = await ctx.ArchivedEmails.FirstAsync(e => e.MailAccountId == acct.Id);
             Assert.Equal("Archive", stored.FolderName);
+        }
+        finally
+        {
+            await CleanupTestAccountAsync(ctx);
+            await ctx.DisposeAsync();
+        }
+    }
+
+    // ============================================================
+    // ArchiveEmailAsync - fallback Message-ID (no Message-ID header)
+    // ============================================================
+
+    private static MimeMessage LoadRawMessage(string raw)
+        => MimeMessage.Load(new MemoryStream(System.Text.Encoding.UTF8.GetBytes(raw)));
+
+    [Fact]
+    public async Task Archive_NoMessageIdNoSubject_DistinctDeliveries_AllArchived()
+    {
+        // Regression test for the silent-skip bug: two distinct old messages with no
+        // Message-ID and no Subject header, identical From/To and identical (Received-)
+        // date. Previously both collapsed onto one synthetic dedupe key and the second
+        // was silently skipped. Their differing Received chains must now keep them distinct.
+        var ctx = _fixture.CreateContext();
+        try
+        {
+            var acct = await SeedAccountAsync(ctx);
+            var msg1 = LoadRawMessage(
+                "Received: from mx1.example.com by hub.example.com; Mon, 05 Jan 2004 10:00:00 +0100\r\n" +
+                "From: alice@x.com\r\nTo: bob@x.com\r\n\r\nfirst body");
+            var msg2 = LoadRawMessage(
+                "Received: from mx2.example.com by hub.example.com; Mon, 05 Jan 2004 10:00:00 +0100\r\n" +
+                "From: alice@x.com\r\nTo: bob@x.com\r\n\r\nsecond body");
+
+            var svc = ServiceFactory.CreateEmailCoreService(ctx);
+            Assert.True(await svc.ArchiveEmailAsync(acct, msg1, false, "INBOX"));
+            Assert.True(await svc.ArchiveEmailAsync(acct, msg2, false, "INBOX"));
+
+            var stored = await ctx.ArchivedEmails.Where(e => e.MailAccountId == acct.Id).ToListAsync();
+            Assert.Equal(2, stored.Count);
+            Assert.All(stored, e => Assert.StartsWith("generated-", e.MessageId));
+            Assert.Equal(2, stored.Select(e => e.MessageId).Distinct().Count());
+        }
+        finally
+        {
+            await CleanupTestAccountAsync(ctx);
+            await ctx.DisposeAsync();
+        }
+    }
+
+    [Fact]
+    public async Task Archive_NoMessageId_SameMessageTwice_SecondSkipped()
+    {
+        // The same server message encountered again (e.g. full resync) must still be
+        // recognized as a duplicate via the deterministic fallback ID.
+        var ctx = _fixture.CreateContext();
+        try
+        {
+            var acct = await SeedAccountAsync(ctx);
+            const string raw =
+                "From: alice@x.com\r\nTo: bob@x.com\r\n" +
+                "Date: Mon, 05 Jan 2004 10:00:00 +0100\r\n\r\nsame body";
+
+            var svc = ServiceFactory.CreateEmailCoreService(ctx);
+            Assert.True(await svc.ArchiveEmailAsync(acct, LoadRawMessage(raw), false, "INBOX"));
+            Assert.False(await svc.ArchiveEmailAsync(acct, LoadRawMessage(raw), false, "INBOX"));
+
+            Assert.Equal(1, await ctx.ArchivedEmails.CountAsync(e => e.MailAccountId == acct.Id));
+        }
+        finally
+        {
+            await CleanupTestAccountAsync(ctx);
+            await ctx.DisposeAsync();
+        }
+    }
+
+    [Fact]
+    public async Task Archive_NoMessageId_UsesDeterministicFallbackId()
+    {
+        var ctx = _fixture.CreateContext();
+        try
+        {
+            var acct = await SeedAccountAsync(ctx);
+            var msg = LoadRawMessage(
+                "From: alice@x.com\r\nTo: bob@x.com\r\n" +
+                "Date: Mon, 05 Jan 2004 10:00:00 +0100\r\n\r\nplain body");
+
+            var svc = ServiceFactory.CreateEmailCoreService(ctx);
+            Assert.True(await svc.ArchiveEmailAsync(acct, msg, false, "INBOX"));
+
+            var row = await ctx.ArchivedEmails.FirstAsync(e => e.MailAccountId == acct.Id);
+            var expectedKey = MailContentHelper.GenerateFallbackMessageId(
+                "alice@x.com", "bob@x.com", null, msg.Date.Ticks,
+                MailContentHelper.BuildCanonicalHeaders(msg.Headers));
+            Assert.Equal(expectedKey, row.MessageId);
+            Assert.Equal("(No Subject)", row.Subject);
+        }
+        finally
+        {
+            await CleanupTestAccountAsync(ctx);
+            await ctx.DisposeAsync();
+        }
+    }
+
+    [Fact]
+    public async Task Archive_LegacyFallbackKey_HealsMessageIdWithoutDuplicate()
+    {
+        // Rows archived before the deterministic generator existed carry the legacy
+        // fallback key. They must be recognized (no duplicate) and healed to the new key.
+        var ctx = _fixture.CreateContext();
+        try
+        {
+            var acct = await SeedAccountAsync(ctx);
+            var msg = LoadRawMessage(
+                "From: alice@x.com\r\nTo: bob@x.com\r\n" +
+                "Date: Mon, 05 Jan 2004 10:00:00 +0100\r\n\r\nlegacy body");
+
+            // Exact formula the old code used for messages without a Message-ID header.
+            var legacyKey = $"{msg.From}-{msg.To}-{msg.Subject}-{msg.Date.Ticks}";
+            var legacyEmail = BuildEmail(acct, "(No Subject)", "alice@x.com", "bob@x.com", messageId: legacyKey);
+            ctx.ArchivedEmails.Add(legacyEmail);
+            await ctx.SaveChangesAsync();
+
+            // Healing only applies to unlocked rows; unlock the seeded row via EF-tracked
+            // update (IsLocked changes are explicitly allowed by the compliance trigger).
+            legacyEmail.IsLocked = false;
+            await ctx.SaveChangesAsync();
+
+            var svc = ServiceFactory.CreateEmailCoreService(ctx);
+            Assert.False(await svc.ArchiveEmailAsync(acct, msg, false, "INBOX"));
+
+            var stored = await ctx.ArchivedEmails.Where(e => e.MailAccountId == acct.Id).ToListAsync();
+            var row = Assert.Single(stored);
+            var expectedKey = MailContentHelper.GenerateFallbackMessageId(
+                "alice@x.com", "bob@x.com", null, msg.Date.Ticks,
+                MailContentHelper.BuildCanonicalHeaders(msg.Headers));
+            Assert.Equal(expectedKey, row.MessageId);
+        }
+        finally
+        {
+            await CleanupTestAccountAsync(ctx);
+            await ctx.DisposeAsync();
+        }
+    }
+
+    [Fact]
+    public async Task Archive_LegacyFallbackKey_LockedRow_NotHealedButSkipped()
+    {
+        // Compliance: a locked legacy row must never be modified (the DB trigger forbids
+        // it). The duplicate is still recognized and skipped without an exception.
+        var ctx = _fixture.CreateContext();
+        try
+        {
+            var acct = await SeedAccountAsync(ctx);
+            var msg = LoadRawMessage(
+                "From: alice@x.com\r\nTo: bob@x.com\r\n" +
+                "Date: Mon, 05 Jan 2004 10:00:00 +0100\r\n\r\nlocked legacy body");
+
+            var legacyKey = $"{msg.From}-{msg.To}-{msg.Subject}-{msg.Date.Ticks}";
+            var lockedEmail = BuildEmail(acct, "(No Subject)", "alice@x.com", "bob@x.com", messageId: legacyKey);
+            ctx.ArchivedEmails.Add(lockedEmail);
+            await ctx.SaveChangesAsync();
+
+            // Ensure the row is locked regardless of the DB column default.
+            lockedEmail.IsLocked = true;
+            await ctx.SaveChangesAsync();
+
+            var svc = ServiceFactory.CreateEmailCoreService(ctx);
+            Assert.False(await svc.ArchiveEmailAsync(acct, msg, false, "INBOX"));
+
+            var row = await ctx.ArchivedEmails.SingleAsync(e => e.MailAccountId == acct.Id);
+            Assert.Equal(legacyKey, row.MessageId);
         }
         finally
         {

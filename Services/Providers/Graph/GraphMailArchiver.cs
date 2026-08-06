@@ -109,21 +109,15 @@ namespace MailArchiver.Services.Providers.Graph
 
         /// <summary>
         /// Generates a deterministic MessageId using SHA-256 over From|To|Subject|Ticks.
+        /// Delegates to the shared generator (same algorithm across IMAP, import and M365 pipelines).
         /// </summary>
         public static string GenerateMessageId(Message message)
         {
-            var from = message.From?.EmailAddress?.Address ?? "";
-            var to = string.Join(",", message.ToRecipients?.Select(r => r.EmailAddress?.Address) ?? new List<string>());
-            var subject = message.Subject ?? "";
-            var dateTicks = message.SentDateTime?.Ticks ?? 0L;
-
-            var uniqueString = $"{from}|{to}|{subject}|{dateTicks}";
-            using (var sha256 = System.Security.Cryptography.SHA256.Create())
-            {
-                var hashBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(uniqueString));
-                var hashString = Convert.ToBase64String(hashBytes).Replace("+", "-").Replace("/", "_").Substring(0, 16);
-                return $"generated-{hashString}@mail-archiver.local";
-            }
+            return MailContentHelper.GenerateFallbackMessageId(
+                message.From?.EmailAddress?.Address ?? "",
+                string.Join(",", message.ToRecipients?.Select(r => r.EmailAddress?.Address) ?? new List<string>()),
+                message.Subject,
+                message.SentDateTime?.Ticks ?? 0L);
         }
 
         /// <summary>

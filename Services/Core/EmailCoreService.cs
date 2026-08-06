@@ -1053,14 +1053,53 @@ namespace MailArchiver.Services.Core
                 }
 
                 // Check if this email is already archived
-            var messageId = message.MessageId ??
-                $"{message.From}-{message.To}-{message.Subject}-{emailDate.Ticks}";
+            string messageId;
+            string? legacyMessageId = null;
+            if (!string.IsNullOrWhiteSpace(message.MessageId))
+            {
+                messageId = message.MessageId!;
+            }
+            else
+            {
+                // No Message-ID header: derive a deterministic fallback ID (same algorithm
+                // across IMAP, import and M365 pipelines). The canonical header block is
+                // included so that distinct deliveries with identical From/To/Subject/Date
+                // (very old mail without Message-ID and Subject headers) do NOT collapse
+                // onto a single key - their Received chains differ per delivery.
+                var fallbackFrom = string.Join(",", message.From.Mailboxes.Select(m => m.Address));
+                var fallbackTo = string.Join(",", message.To.Mailboxes.Select(m => m.Address));
+                messageId = MailContentHelper.GenerateFallbackMessageId(
+                    fallbackFrom, fallbackTo, message.Subject, emailDate.Ticks,
+                    MailContentHelper.BuildCanonicalHeaders(message.Headers));
+
+                // Fallback key used before the deterministic generator existed. Still
+                // matched below so rows archived under it are recognized (and healed).
+                legacyMessageId = $"{message.From}-{message.To}-{message.Subject}-{emailDate.Ticks}";
+
+                _logger.LogWarning("Email without Message-ID header: using generated fallback ID {MessageId}. " +
+                    "From: '{From}', To: '{To}', Date: {Date}, Folder: {FolderName}, Account: {AccountName}",
+                    messageId, fallbackFrom, fallbackTo, emailDate, folderName ?? string.Empty, account.Name);
+            }
 
             var existingEmail = await _context.ArchivedEmails
-                .FirstOrDefaultAsync(e => e.MessageId == messageId && e.MailAccountId == account.Id);
+                .FirstOrDefaultAsync(e => e.MailAccountId == account.Id &&
+                    (e.MessageId == messageId || (legacyMessageId != null && e.MessageId == legacyMessageId)));
 
             if (existingEmail != null)
             {
+                var hasChanges = false;
+
+                // Self-heal rows archived under the legacy fallback key - but never touch
+                // compliance-locked rows: the DB trigger (prevent_locked_email_changes)
+                // forbids any change there besides IsLocked/FolderName.
+                if (existingEmail.MessageId != messageId && !existingEmail.IsLocked)
+                {
+                    _logger.LogInformation("Migrating legacy fallback Message-ID '{LegacyMessageId}' to '{MessageId}' for existing email: {Subject}",
+                        existingEmail.MessageId, messageId, existingEmail.Subject);
+                    existingEmail.MessageId = messageId;
+                    hasChanges = true;
+                }
+
                 // E-Mail existiert bereits, prüfen ob der Ordner geändert wurde
                 var cleanFolderName = MailContentHelper.CleanText(folderName ?? string.Empty);
                 if (existingEmail.FolderName != cleanFolderName)
@@ -1068,10 +1107,18 @@ namespace MailArchiver.Services.Core
                     // Ordner hat sich geändert, aktualisieren
                     var oldFolder = existingEmail.FolderName;
                     existingEmail.FolderName = cleanFolderName;
-                    await _context.SaveChangesAsync();
+                    hasChanges = true;
                     _logger.LogInformation("Updated folder for existing email: {Subject} from '{OldFolder}' to '{NewFolder}'",
                         existingEmail.Subject, oldFolder, cleanFolderName);
                 }
+
+                if (hasChanges)
+                {
+                    await _context.SaveChangesAsync();
+                }
+
+                _logger.LogDebug("Skipping already archived email: MessageId={MessageId}, Folder={FolderName}, Account={AccountName}",
+                    messageId, cleanFolderName, account.Name);
                 return false; // E-Mail existiert bereits
             }
 
@@ -1668,8 +1715,8 @@ namespace MailArchiver.Services.Core
             }
 
             // Fallback 3: Use a default date (Unix epoch) to indicate unknown date
-            _logger.LogWarning("Could not extract date from any header for email Subject={Subject}, using default date",
-                message.Subject);
+            _logger.LogWarning("Could not extract date from any header for email Subject={Subject}, From={From}, To={To}, using default date",
+                message.Subject, message.From, message.To);
             
             return DateTimeOffset.MinValue;
         }
