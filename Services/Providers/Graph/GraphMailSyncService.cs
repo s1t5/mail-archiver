@@ -432,7 +432,7 @@ namespace MailArchiver.Services.Providers.Graph
                 {
                     "id", "internetMessageId", "subject", "from", "toRecipients", "ccRecipients", "bccRecipients",
                     "sentDateTime", "receivedDateTime", "hasAttachments", "body", "bodyPreview", "lastModifiedDateTime",
-                    "internetMessageHeaders"
+                    "internetMessageHeaders", "isRead"
                 };
                 requestConfiguration.QueryParameters.Top = _batchOptions.BatchSize;
             });
@@ -462,7 +462,7 @@ namespace MailArchiver.Services.Providers.Graph
                         requestConfiguration.QueryParameters.Select = new string[]
                         {
                             "id", "internetMessageId", "subject", "from", "sentDateTime", "receivedDateTime", "lastModifiedDateTime",
-                            "internetMessageHeaders"
+                            "internetMessageHeaders", "isRead"
                         };
                         requestConfiguration.QueryParameters.Top = _batchOptions.BatchSize;
                     });
@@ -483,7 +483,7 @@ namespace MailArchiver.Services.Providers.Graph
                         requestConfiguration.QueryParameters.Select = new string[]
                         {
                             "id", "internetMessageId", "subject", "from", "sentDateTime", "receivedDateTime", "lastModifiedDateTime",
-                            "internetMessageHeaders"
+                            "internetMessageHeaders", "isRead"
                         };
                         requestConfiguration.QueryParameters.Top = _batchOptions.BatchSize;
                     });
@@ -582,7 +582,7 @@ namespace MailArchiver.Services.Providers.Graph
                                 {
                                     "id", "internetMessageId", "subject", "from", "toRecipients", "ccRecipients", "bccRecipients",
                                     "sentDateTime", "receivedDateTime", "hasAttachments", "body", "bodyPreview", "lastModifiedDateTime",
-                                    "internetMessageHeaders"
+                                    "internetMessageHeaders", "isRead"
                                 };
                             });
                         }

@@ -12,6 +12,7 @@ public class EmailDetailDto
     public DateTime SentDate { get; set; }
     public bool IsOutgoing { get; set; }
     public bool HasAttachments { get; set; }
+    public bool IsRead { get; set; }
     public string FolderName { get; set; } = string.Empty;
     public string Cc { get; set; } = string.Empty;
     public string Bcc { get; set; } = string.Empty;
@@ -33,6 +34,7 @@ public class EmailDetailDto
             SentDate = e.SentDate,
             IsOutgoing = e.IsOutgoing,
             HasAttachments = e.HasAttachments,
+            IsRead = e.IsRead,
             FolderName = e.FolderName,
             Cc = e.Cc,
             Bcc = e.Bcc,

@@ -286,6 +286,11 @@ namespace MailArchiver.Data
                 .Property(e => e.IsLocked)
                 .HasDefaultValue(false);
 
+            // Configure IsRead default value
+            modelBuilder.Entity<ArchivedEmail>()
+                .Property(e => e.IsRead)
+                .HasDefaultValue(false);
+
             // Original body content with null bytes preserved (stored as byte array)
             modelBuilder.Entity<ArchivedEmail>()
                 .Property(e => e.OriginalBodyText)
