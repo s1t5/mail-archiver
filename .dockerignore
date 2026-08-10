@@ -61,12 +61,15 @@ credentials.json
 
 # DataProtection keys
 DataProtection-Keys/
+data-protection-keys/
 
 # Runtime data / volumes
 uploads/
 exports/
 docker-volumes/
 .docker/data/
+postgres-data/
+logs/
 
 # Documentation & meta files (not needed in image)
 doc/
