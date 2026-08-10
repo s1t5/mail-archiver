@@ -60,8 +60,16 @@ namespace MailArchiver.Services
             job.TotalEmails = job.EmailIds.Count;
 
             _jobs.TryAdd(job.JobId, job);
-            _logger.LogInformation("Email deletion job {JobId} queued with {Count} emails", 
-                job.JobId, job.EmailIds.Count);
+            if (job.Criteria != null)
+            {
+                _logger.LogInformation("Email deletion job {JobId} queued for account {AccountId}, folder '{FolderName}'",
+                    job.JobId, job.Criteria.AccountId, job.Criteria.FolderName);
+            }
+            else
+            {
+                _logger.LogInformation("Email deletion job {JobId} queued with {Count} emails",
+                    job.JobId, job.EmailIds.Count);
+            }
 
             return job.JobId;
         }
@@ -162,8 +170,16 @@ namespace MailArchiver.Services
                 job.Started = DateTime.UtcNow;
                 job.CurrentPhase = "Starting deletion process";
 
-                _logger.LogInformation("Starting email deletion job {JobId} with {Count} emails",
-                    job.JobId, job.EmailIds.Count);
+                if (job.Criteria != null)
+                {
+                    _logger.LogInformation("Starting email deletion job {JobId} for account {AccountId}, folder '{FolderName}'",
+                        job.JobId, job.Criteria.AccountId, job.Criteria.FolderName);
+                }
+                else
+                {
+                    _logger.LogInformation("Starting email deletion job {JobId} with {Count} emails",
+                        job.JobId, job.EmailIds.Count);
+                }
 
                 using var scope = _serviceScopeFactory.CreateScope();
                 var context = scope.ServiceProvider.GetRequiredService<MailArchiverDbContext>();
@@ -172,6 +188,32 @@ namespace MailArchiver.Services
                 var combinedToken = CancellationTokenSource
                     .CreateLinkedTokenSource(stoppingToken, job.CancellationTokenSource.Token)
                     .Token;
+
+                // Phase 0: Resolve matching email IDs from the criteria (folder-wide or
+                // filtered deletion). Uses the same filter matching logic as the email list
+                // so the result matches exactly what the user saw before confirming.
+                if (job.Criteria != null)
+                {
+                    job.CurrentPhase = "Resolving matching emails";
+                    var emailCoreService = scope.ServiceProvider.GetRequiredService<MailArchiver.Services.Core.EmailCoreService>();
+                    var criteria = job.Criteria;
+
+                    combinedToken.ThrowIfCancellationRequested();
+
+                    var resolvedIds = await emailCoreService.GetMatchingEmailIdsAsync(
+                        criteria.SearchTerm,
+                        criteria.FromDate,
+                        criteria.ToDate,
+                        criteria.AccountId,
+                        criteria.FolderName,
+                        criteria.IsOutgoing);
+
+                    job.EmailIds = resolvedIds;
+                    job.TotalEmails = resolvedIds.Count;
+
+                    _logger.LogInformation("Job {JobId}: Resolved {Count} emails for account {AccountId}, folder '{FolderName}'",
+                        job.JobId, resolvedIds.Count, criteria.AccountId, criteria.FolderName);
+                }
 
                 // Phase 1: Count attachments
                 job.CurrentPhase = "Counting attachments";
