@@ -125,7 +125,7 @@
                                 <div class="progress mb-2">
                                     <div class="progress-bar progress-bar-striped progress-bar-animated" 
                                          role="progressbar" 
-                                         style="width: @progressPercent.ToString("F1")%" 
+                                         style="width: @progressPercent.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)%"
                                          aria-valuenow="@progressPercent.ToString("F1")" 
                                          aria-valuemin="0" 
                                          aria-valuemax="100">
