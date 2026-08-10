@@ -2131,6 +2131,45 @@
   <data name="DeleteSelectedEmailsConfirm" xml:space="preserve">
     <value>Вы уверены, что хотите безвозвратно удалить {0} выбранных писем? Это действие невозможно отменить и каждое удаление будет записано в журнал для целей аудита.</value>
   </data>
+  <data name="EmptyFolder" xml:space="preserve">
+    <value>Очистить папку</value>
+  </data>
+  <data name="DeleteFilteredEmails" xml:space="preserve">
+    <value>Удалить отфильтрованные письма</value>
+  </data>
+  <data name="EmptyFolderConfirmTitle" xml:space="preserve">
+    <value>Безвозвратно очистить папку</value>
+  </data>
+  <data name="DeleteFilteredConfirmTitle" xml:space="preserve">
+    <value>Безвозвратно удалить отфильтрованные письма</value>
+  </data>
+  <data name="EmptyFolderConfirmWarning" xml:space="preserve">
+    <value>Это безвозвратно удалит все {0} писем в папке "{1}". Это действие нельзя отменить, каждое удаление будет зафиксировано в журнале.</value>
+  </data>
+  <data name="DeleteFilteredConfirmWarning" xml:space="preserve">
+    <value>Это безвозвратно удалит {0} писем, соответствующих текущему фильтру в папке "{1}". Это действие нельзя отменить, каждое удаление будет зафиксировано в журнале.</value>
+  </data>
+  <data name="TypeFolderNameToConfirm" xml:space="preserve">
+    <value>Для подтверждения введите название папки ниже (его можно скопировать из поля выше):</value>
+  </data>
+  <data name="PermanentlyDeleteConfirmButton" xml:space="preserve">
+    <value>Удалить безвозвратно</value>
+  </data>
+  <data name="DeleteAllFilteredEmails" xml:space="preserve">
+    <value>Удалить отфильтрованные письма (все папки)</value>
+  </data>
+  <data name="DeleteAllFilteredConfirmTitle" xml:space="preserve">
+    <value>Безвозвратно удалить отфильтрованные письма во всех папках</value>
+  </data>
+  <data name="DeleteAllFilteredConfirmWarning" xml:space="preserve">
+    <value>Это безвозвратно удалит все {0} писем, соответствующих текущему фильтру, во всех папках этого аккаунта. Это действие нельзя отменить, каждое удаление будет зафиксировано в журнале.</value>
+  </data>
+  <data name="TypeDeleteWordToConfirm" xml:space="preserve">
+    <value>Для подтверждения введите ниже «{0}»:</value>
+  </data>
+  <data name="DeleteConfirmationWord" xml:space="preserve">
+    <value>УДАЛИТЬ</value>
+  </data>
   <data name="EmailDeleted" xml:space="preserve">
     <value>Письмо успешно удалено</value>
   </data>
