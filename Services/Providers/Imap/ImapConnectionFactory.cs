@@ -16,6 +16,13 @@ namespace MailArchiver.Services.Providers.Imap
     /// </summary>
     public class ImapConnectionFactory
     {
+        // Backoff applied between a forced MSA token refresh and the re-authentication
+        // attempt. Microsoft's IMAP endpoint throttles rapid successive logins from the
+        // same account; retrying immediately after a fresh token (HTTP 200 from the token
+        // endpoint) still fails with "Authentication failed." until the throttle window
+        // elapses. See issue: cascading reconnect/auth failure for MSA accounts.
+        private const int MsaReauthBackoffMs = 3000;
+
         private readonly ILogger<ImapConnectionFactory> _logger;
         private readonly MailSyncOptions _mailSyncOptions;
         private readonly BatchOperationOptions _batchOptions;
@@ -166,6 +173,11 @@ namespace MailArchiver.Services.Providers.Imap
                 _logger.LogWarning("XOAUTH2 authentication failed for MSA account {AccountName} with a non-expired token ({Message}). Forcing token refresh and retrying once.",
                     account.Name, ex.Message);
                 await RefreshMsaTokenAsync(account);
+
+                // Backoff: Microsoft throttles rapid successive IMAP logins from the same
+                // account. A short pause between the forced token refresh and the re-auth
+                // attempt avoids an immediate second rejection on the same connection loop.
+                await Task.Delay(MsaReauthBackoffMs);
 
                 emailAddress = account.Username ?? account.EmailAddress;
                 await client.AuthenticateAsync(new SaslMechanismOAuth2(emailAddress, account.OAuthAccessToken!));
