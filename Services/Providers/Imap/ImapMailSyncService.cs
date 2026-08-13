@@ -447,6 +447,13 @@ namespace MailArchiver.Services.Providers.Imap
         // before pausing the sync gracefully (analogous to the bandwidth-limit pause).
         private const int MaxConsecutiveTransientFetchFailures = 10;
 
+        // Threshold for consecutive reconnect/re-auth failures before pausing the folder
+        // sync gracefully. Prevents a single bad FETCH response from cascading into
+        // hundreds of failed messages when the reconnect loop keeps failing (e.g. MSA
+        // auth-throttling). Counter is reset only by a successful reconnect/re-auth
+        // (strict mode) — successful FETCHes do not reset it.
+        private const int MaxConsecutiveReconnectFailures = 3;
+
         // Backoff delays (in milliseconds) for retrying a single message FETCH after a
         // transient server response such as "NO Service temporarily unavailable".
         private static readonly int[] TransientFetchRetryDelaysMs = new[] { 5_000, 15_000, 60_000 };
@@ -490,11 +497,31 @@ namespace MailArchiver.Services.Providers.Imap
             return false;
         }
 
+        /// <summary>
+        /// Detects parser-level IMAP protocol errors (e.g. "Unexpected atom token: Server")
+        /// thrown by <c>ImapFolder.GetMessageAsync</c> when the server returns a malformed
+        /// FETCH response for a single message. Unlike connection-level failures, these do
+        /// not imply the session is broken — only the offending response could not be
+        /// parsed. The caller should skip this message without triggering a reconnect.
+        /// </summary>
+        private static bool IsImapProtocolParseError(Exception ex)
+        {
+            var current = ex;
+            while (current != null)
+            {
+                if (current is ImapProtocolException)
+                    return true;
+                current = current.InnerException;
+            }
+            return false;
+        }
+
         private async Task<SyncFolderResult> SyncFolderAsync(IMailFolder folder, MailAccount account, ImapClient client, string? jobId = null)
         {
             var result = new SyncFolderResult();
             var totalBytesDownloaded = 0L;
             var consecutiveTransientFailures = 0;
+            var circuitBreaker = new ReconnectCircuitBreaker(MaxConsecutiveReconnectFailures);
 
 
             _logger.LogInformation("Syncing folder: {FolderName} for account: {AccountName}",
@@ -696,16 +723,65 @@ namespace MailArchiver.Services.Providers.Imap
 
                             try
                             {
-                                if (!client.IsConnected)
+                                if (circuitBreaker.SkipNextReconnectGate)
+                                {
+                                    // Previous message triggered a parser-only ImapProtocolException.
+                                    // The session is likely still usable — bypass the reconnect gate
+                                    // this once and attempt the FETCH directly.
+                                    circuitBreaker.ConsumeSkipGate();
+                                }
+                                else if (!client.IsConnected)
                                 {
                                     _logger.LogWarning("Client disconnected during sync, attempting to reconnect...");
-                                    await _connectionFactory.ReconnectClientAsync(client, account);
-                                    await folder.OpenAsync(FolderAccess.ReadOnly);
+                                    try
+                                    {
+                                        await _connectionFactory.ReconnectClientAsync(client, account);
+                                        circuitBreaker.RecordSuccess();
+                                        await folder.OpenAsync(FolderAccess.ReadOnly);
+                                    }
+                                    catch (Exception rcEx)
+                                    {
+                                        if (circuitBreaker.RecordFailure())
+                                        {
+                                            _logger.LogWarning(rcEx,
+                                                "Aborting folder {FolderName} sync after {Count} consecutive reconnect failures " +
+                                                "for account {AccountName}. Will resume on next sync run. Processed: {Processed}, New: {New}",
+                                                folder.FullName, circuitBreaker.ConsecutiveFailures, account.Name,
+                                                result.ProcessedEmails, result.NewEmails);
+                                            result.WasRateLimited = true;
+                                            return result;
+                                        }
+                                        _logger.LogWarning(rcEx,
+                                            "Reconnect failed (attempt {Count}/{Max}) for account {AccountName} in folder {FolderName}",
+                                            circuitBreaker.ConsecutiveFailures, MaxConsecutiveReconnectFailures, account.Name, folder.FullName);
+                                        throw;
+                                    }
                                 }
                                 else if (!client.IsAuthenticated)
                                 {
                                     _logger.LogWarning("Client not authenticated, attempting to re-authenticate...");
-                                    await _connectionFactory.AuthenticateClientAsync(client, account);
+                                    try
+                                    {
+                                        await _connectionFactory.AuthenticateClientAsync(client, account);
+                                        circuitBreaker.RecordSuccess();
+                                    }
+                                    catch (Exception authEx)
+                                    {
+                                        if (circuitBreaker.RecordFailure())
+                                        {
+                                            _logger.LogWarning(authEx,
+                                                "Aborting folder {folderName} sync after {Count} consecutive re-auth failures " +
+                                                "for account {AccountName}. Will resume on next sync run. Processed: {Processed}, New: {New}",
+                                                folder.FullName, circuitBreaker.ConsecutiveFailures, account.Name,
+                                                result.ProcessedEmails, result.NewEmails);
+                                            result.WasRateLimited = true;
+                                            return result;
+                                        }
+                                        _logger.LogWarning(authEx,
+                                            "Re-authentication failed (attempt {Count}/{Max}) for account {AccountName} in folder {FolderName}",
+                                            circuitBreaker.ConsecutiveFailures, MaxConsecutiveReconnectFailures, account.Name, folder.FullName);
+                                        throw;
+                                    }
                                 }
                                 else if (folder.IsOpen == false)
                                 {
@@ -861,6 +937,16 @@ namespace MailArchiver.Services.Providers.Imap
                             }
                             catch (Exception ex)
                             {
+                                // If the failure was a parser-level ImapProtocolException from
+                                // GetMessageAsync (e.g. "Unexpected atom token"), the session is
+                                // likely still usable. Set the skip flag so the next UID bypasses
+                                // the reconnect gate and attempts a direct FETCH instead of looping
+                                // through a doomed reconnect cycle.
+                                if (IsImapProtocolParseError(ex))
+                                {
+                                    circuitBreaker.RecordParseError();
+                                }
+
                                 var emailSubject = "Unknown";
                                 var emailFrom = "Unknown";
                                 var emailDate = "Unknown";
