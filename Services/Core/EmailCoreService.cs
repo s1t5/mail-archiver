@@ -90,6 +90,100 @@ namespace MailArchiver.Services.Core
             string sortOrder = "desc")
         {
             var startTime = DateTime.UtcNow;
+
+            var (whereClause, parameters, noResults) = BuildSearchWhereClause(searchTerm, fromDate, toDate, accountId, folderName, isOutgoing, allowedAccountIds);
+            if (noResults)
+            {
+                return (new List<ArchivedEmail>(), 0);
+            }
+            var paramCounter = parameters.Count;
+
+            // Count query
+            var countSql = $@"
+                SELECT COUNT(*)
+                FROM mail_archiver.""ArchivedEmails""
+                {whereClause}";
+
+            var totalCount = await ExecuteScalarQueryAsync<int>(countSql, CloneParameters(parameters));
+
+            // Build ORDER BY clause
+            var (orderByClause, sortColumn, isTimestampSort) = GetOrderByClause(sortBy, sortOrder);
+
+            // Parametrize LIMIT/OFFSET rather than interpolating integers, so
+            // the data query inherits the same SQL-injection defense as the
+            // filter parameters above even if a future caller skips clamping.
+            var limitParam = new Npgsql.NpgsqlParameter($"@param{paramCounter}", take);
+            var offsetParam = new Npgsql.NpgsqlParameter($"@param{paramCounter + 1}", skip);
+            var limitPlaceholder = $"@param{paramCounter}";
+            var offsetPlaceholder = $"@param{paramCounter + 1}";
+            paramCounter += 2;
+
+            // For timestamp sorts (SentDate/ReceivedDate), use a MATERIALIZED CTE to force the planner
+            // to use the GIN full-text index for the FTS predicate instead of doing a backward SentDate
+            // index scan with per-row re-tokenization of the body. The CTE selects only (Id, SortColumn)
+            // so no body detoasting happens during matching; the body is only detoasted for the final page.
+            // For text sorts, keep the flat form (no backward-index-scan antipattern there).
+            string dataSql;
+            if (isTimestampSort)
+            {
+                dataSql = $@"
+                    WITH ""matched"" AS MATERIALIZED (
+                        SELECT e.""Id"", e.""{sortColumn}""
+                        FROM mail_archiver.""ArchivedEmails"" e
+                        {whereClause}
+                    ),
+                    ""page"" AS (
+                        SELECT m.""Id"", m.""{sortColumn}""
+                        FROM ""matched"" m
+                        ORDER BY m.""{sortColumn}"" {(sortOrder?.ToLower() == "asc" ? "ASC" : "DESC")}
+                        LIMIT {limitPlaceholder} OFFSET {offsetPlaceholder}
+                    )
+                    SELECT e.""Id"", e.""MailAccountId"", e.""MessageId"", e.""Subject"", e.""Body"", e.""HtmlBody"",
+                           e.""From"", e.""To"", e.""Cc"", e.""Bcc"", e.""SentDate"", e.""ReceivedDate"",
+                           e.""IsOutgoing"", e.""HasAttachments"", e.""FolderName"", e.""IsLocked"",
+                           ma.""Id"" as ""AccountId"", ma.""Name"" as ""AccountName"", ma.""EmailAddress"" as ""AccountEmail""
+                    FROM ""page"" p
+                    INNER JOIN mail_archiver.""ArchivedEmails"" e ON e.""Id"" = p.""Id""
+                    INNER JOIN mail_archiver.""MailAccounts"" ma ON e.""MailAccountId"" = ma.""Id""
+                    ORDER BY p.""{sortColumn}"" {(sortOrder?.ToLower() == "asc" ? "ASC" : "DESC")}";
+            }
+            else
+            {
+                dataSql = $@"
+                    SELECT e.""Id"", e.""MailAccountId"", e.""MessageId"", e.""Subject"", e.""Body"", e.""HtmlBody"",
+                           e.""From"", e.""To"", e.""Cc"", e.""Bcc"", e.""SentDate"", e.""ReceivedDate"",
+                           e.""IsOutgoing"", e.""HasAttachments"", e.""FolderName"", e.""IsLocked"",
+                           ma.""Id"" as ""AccountId"", ma.""Name"" as ""AccountName"", ma.""EmailAddress"" as ""AccountEmail""
+                    FROM mail_archiver.""ArchivedEmails"" e
+                    INNER JOIN mail_archiver.""MailAccounts"" ma ON e.""MailAccountId"" = ma.""Id""
+                    {whereClause}
+                    {orderByClause}
+                    LIMIT {limitPlaceholder} OFFSET {offsetPlaceholder}";
+            }
+
+            parameters.Add(limitParam);
+            parameters.Add(offsetParam);
+
+            var emails = await ExecuteDataQueryAsync(dataSql, CloneParameters(parameters));
+
+            return (emails, totalCount);
+        }
+
+        /// <summary>
+        /// Builds the WHERE clause and parameter list shared by the paginated search and
+        /// <see cref="GetMatchingEmailIdsAsync"/>, so both use identical matching semantics.
+        /// NoResults is true when the caller has no access to the requested scope at all
+        /// (e.g. account not in allowedAccountIds), in which case the caller should short-circuit.
+        /// </summary>
+        private (string WhereClause, List<Npgsql.NpgsqlParameter> Parameters, bool NoResults) BuildSearchWhereClause(
+            string searchTerm,
+            DateTime? fromDate,
+            DateTime? toDate,
+            int? accountId,
+            string folderName,
+            bool? isOutgoing,
+            List<int> allowedAccountIds)
+        {
             var whereConditions = new List<string>();
             var parameters = new List<Npgsql.NpgsqlParameter>();
             var paramCounter = 0;
@@ -103,13 +197,13 @@ namespace MailArchiver.Services.Core
                 if (!string.IsNullOrEmpty(tsQuery))
                 {
                     searchConditions.Add($@"
-                        to_tsvector('simple', 
-                            COALESCE(""Subject"", '') || ' ' || 
-                            COALESCE(""Body"", '') || ' ' || 
-                            COALESCE(""From"", '') || ' ' || 
-                            COALESCE(""To"", '') || ' ' || 
-                            COALESCE(""Cc"", '') || ' ' || 
-                            COALESCE(""Bcc"", '')) 
+                        to_tsvector('simple',
+                            COALESCE(""Subject"", '') || ' ' ||
+                            COALESCE(""Body"", '') || ' ' ||
+                            COALESCE(""From"", '') || ' ' ||
+                            COALESCE(""To"", '') || ' ' ||
+                            COALESCE(""Cc"", '') || ' ' ||
+                            COALESCE(""Bcc"", ''))
                         @@ to_tsquery('simple', @param{paramCounter})");
                     parameters.Add(new Npgsql.NpgsqlParameter($"@param{paramCounter}", tsQuery));
                     paramCounter++;
@@ -121,13 +215,13 @@ namespace MailArchiver.Services.Core
                     if (!string.IsNullOrEmpty(phraseTsQuery))
                     {
                         searchConditions.Add($@"(
-                        to_tsvector('simple', 
-                            COALESCE(""Subject"", '') || ' ' || 
-                            COALESCE(""Body"", '') || ' ' || 
-                            COALESCE(""From"", '') || ' ' || 
-                            COALESCE(""To"", '') || ' ' || 
-                            COALESCE(""Cc"", '') || ' ' || 
-                            COALESCE(""Bcc"", '')) 
+                        to_tsvector('simple',
+                            COALESCE(""Subject"", '') || ' ' ||
+                            COALESCE(""Body"", '') || ' ' ||
+                            COALESCE(""From"", '') || ' ' ||
+                            COALESCE(""To"", '') || ' ' ||
+                            COALESCE(""Cc"", '') || ' ' ||
+                            COALESCE(""Bcc"", ''))
                         @@ to_tsquery('simple', @param{paramCounter})
                         AND (
                         POSITION(LOWER(@param{paramCounter + 1}) IN LOWER(COALESCE(""Subject"", ''))) > 0 OR
@@ -205,7 +299,7 @@ namespace MailArchiver.Services.Core
                 if (allowedAccountIds != null && !allowedAccountIds.Contains(accountId.Value))
                 {
                     _logger.LogWarning("User attempted to access account {AccountId} which is not in their allowed accounts list", accountId.Value);
-                    return (new List<ArchivedEmail>(), 0);
+                    return (null, null, true);
                 }
 
                 whereConditions.Add($@"""MailAccountId"" = @param{paramCounter}");
@@ -223,7 +317,7 @@ namespace MailArchiver.Services.Core
                 else
                 {
                     _logger.LogWarning("User has no allowed accounts, returning empty result set");
-                    return (new List<ArchivedEmail>(), 0);
+                    return (null, null, true);
                 }
             }
 
@@ -259,76 +353,86 @@ namespace MailArchiver.Services.Core
             }
 
             var whereClause = whereConditions.Any() ? "WHERE " + string.Join(" AND ", whereConditions) : "";
+            return (whereClause, parameters, false);
+        }
 
-            // Count query
-            var countSql = $@"
+        /// <summary>
+        /// Resolves every email ID matching the given filters, without pagination.
+        /// Used for folder-wide/filtered bulk deletion, where an offset/limit page-by-page
+        /// scan over a non-unique sort column (SentDate) could skip or double-count rows
+        /// across calls. Ordered by Id (a stable, unique key) instead.
+        /// </summary>
+        public async Task<List<int>> GetMatchingEmailIdsAsync(
+            string searchTerm,
+            DateTime? fromDate,
+            DateTime? toDate,
+            int? accountId,
+            string folderName,
+            bool? isOutgoing,
+            List<int> allowedAccountIds = null)
+        {
+            var (whereClause, parameters, noResults) = BuildSearchWhereClause(searchTerm, fromDate, toDate, accountId, folderName, isOutgoing, allowedAccountIds);
+            if (noResults)
+            {
+                return new List<int>();
+            }
+
+            var sql = $@"
+                SELECT ""Id""
+                FROM mail_archiver.""ArchivedEmails""
+                {whereClause}
+                ORDER BY ""Id""";
+
+            return await ExecuteIdListQueryAsync(sql, parameters);
+        }
+
+        /// <summary>
+        /// Counts every email matching the given filters, without loading rows or IDs.
+        /// Used to preview the size of a folder-wide/filtered deletion before it runs.
+        /// </summary>
+        public async Task<int> CountMatchingEmailsAsync(
+            string searchTerm,
+            DateTime? fromDate,
+            DateTime? toDate,
+            int? accountId,
+            string folderName,
+            bool? isOutgoing,
+            List<int> allowedAccountIds = null)
+        {
+            var (whereClause, parameters, noResults) = BuildSearchWhereClause(searchTerm, fromDate, toDate, accountId, folderName, isOutgoing, allowedAccountIds);
+            if (noResults)
+            {
+                return 0;
+            }
+
+            var sql = $@"
                 SELECT COUNT(*)
                 FROM mail_archiver.""ArchivedEmails""
                 {whereClause}";
 
-            var totalCount = await ExecuteScalarQueryAsync<int>(countSql, CloneParameters(parameters));
+            return await ExecuteScalarQueryAsync<int>(sql, parameters);
+        }
 
-            // Build ORDER BY clause
-            var (orderByClause, sortColumn, isTimestampSort) = GetOrderByClause(sortBy, sortOrder);
+        private async Task<List<int>> ExecuteIdListQueryAsync(string sql, List<Npgsql.NpgsqlParameter> parameters)
+        {
+            var ids = new List<int>();
 
-            // Parametrize LIMIT/OFFSET rather than interpolating integers, so
-            // the data query inherits the same SQL-injection defense as the
-            // filter parameters above even if a future caller skips clamping.
-            var limitParam = new Npgsql.NpgsqlParameter($"@param{paramCounter}", take);
-            var offsetParam = new Npgsql.NpgsqlParameter($"@param{paramCounter + 1}", skip);
-            var limitPlaceholder = $"@param{paramCounter}";
-            var offsetPlaceholder = $"@param{paramCounter + 1}";
-            paramCounter += 2;
+            using var connection = new Npgsql.NpgsqlConnection(_context.Database.GetConnectionString());
+            await connection.OpenAsync();
 
-            // For timestamp sorts (SentDate/ReceivedDate), use a MATERIALIZED CTE to force the planner
-            // to use the GIN full-text index for the FTS predicate instead of doing a backward SentDate
-            // index scan with per-row re-tokenization of the body. The CTE selects only (Id, SortColumn)
-            // so no body detoasting happens during matching; the body is only detoasted for the final page.
-            // For text sorts, keep the flat form (no backward-index-scan antipattern there).
-            string dataSql;
-            if (isTimestampSort)
+            using var command = new Npgsql.NpgsqlCommand(sql, connection);
+            foreach (var parameter in parameters)
             {
-                dataSql = $@"
-                    WITH ""matched"" AS MATERIALIZED (
-                        SELECT e.""Id"", e.""{sortColumn}""
-                        FROM mail_archiver.""ArchivedEmails"" e
-                        {whereClause}
-                    ),
-                    ""page"" AS (
-                        SELECT m.""Id"", m.""{sortColumn}""
-                        FROM ""matched"" m
-                        ORDER BY m.""{sortColumn}"" {(sortOrder?.ToLower() == "asc" ? "ASC" : "DESC")}
-                        LIMIT {limitPlaceholder} OFFSET {offsetPlaceholder}
-                    )
-                    SELECT e.""Id"", e.""MailAccountId"", e.""MessageId"", e.""Subject"", e.""Body"", e.""HtmlBody"",
-                           e.""From"", e.""To"", e.""Cc"", e.""Bcc"", e.""SentDate"", e.""ReceivedDate"",
-                           e.""IsOutgoing"", e.""HasAttachments"", e.""FolderName"", e.""IsLocked"",
-                           ma.""Id"" as ""AccountId"", ma.""Name"" as ""AccountName"", ma.""EmailAddress"" as ""AccountEmail""
-                    FROM ""page"" p
-                    INNER JOIN mail_archiver.""ArchivedEmails"" e ON e.""Id"" = p.""Id""
-                    INNER JOIN mail_archiver.""MailAccounts"" ma ON e.""MailAccountId"" = ma.""Id""
-                    ORDER BY p.""{sortColumn}"" {(sortOrder?.ToLower() == "asc" ? "ASC" : "DESC")}";
-            }
-            else
-            {
-                dataSql = $@"
-                    SELECT e.""Id"", e.""MailAccountId"", e.""MessageId"", e.""Subject"", e.""Body"", e.""HtmlBody"",
-                           e.""From"", e.""To"", e.""Cc"", e.""Bcc"", e.""SentDate"", e.""ReceivedDate"",
-                           e.""IsOutgoing"", e.""HasAttachments"", e.""FolderName"", e.""IsLocked"",
-                           ma.""Id"" as ""AccountId"", ma.""Name"" as ""AccountName"", ma.""EmailAddress"" as ""AccountEmail""
-                    FROM mail_archiver.""ArchivedEmails"" e
-                    INNER JOIN mail_archiver.""MailAccounts"" ma ON e.""MailAccountId"" = ma.""Id""
-                    {whereClause}
-                    {orderByClause}
-                    LIMIT {limitPlaceholder} OFFSET {offsetPlaceholder}";
+                command.Parameters.Add(parameter);
             }
 
-            parameters.Add(limitParam);
-            parameters.Add(offsetParam);
+            using var reader = await command.ExecuteReaderAsync();
+            while (await reader.ReadAsync())
+            {
+                ids.Add(reader.GetInt32(0));
+            }
 
-            var emails = await ExecuteDataQueryAsync(dataSql, CloneParameters(parameters));
-
-            return (emails, totalCount);
+            return ids;
         }
 
         private async Task<T> ExecuteScalarQueryAsync<T>(string sql, List<Npgsql.NpgsqlParameter> parameters)

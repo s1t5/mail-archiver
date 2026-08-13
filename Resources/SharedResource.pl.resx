@@ -1737,6 +1737,45 @@
   <data name="DeleteSelectedEmailsConfirm" xml:space="preserve">
     <value>Czy na pewno chcesz trwale usunąć {0} wybranych wiadomości e-mail? Tego działania nie można cofnąć, a każde usunięcie będzie rejestrowane do celów audytu.</value>
   </data>
+  <data name="EmptyFolder" xml:space="preserve">
+    <value>Opróżnij folder</value>
+  </data>
+  <data name="DeleteFilteredEmails" xml:space="preserve">
+    <value>Usuń przefiltrowane e-maile</value>
+  </data>
+  <data name="EmptyFolderConfirmTitle" xml:space="preserve">
+    <value>Trwale opróżnij folder</value>
+  </data>
+  <data name="DeleteFilteredConfirmTitle" xml:space="preserve">
+    <value>Trwale usuń przefiltrowane e-maile</value>
+  </data>
+  <data name="EmptyFolderConfirmWarning" xml:space="preserve">
+    <value>Spowoduje to trwałe usunięcie wszystkich {0} e-maili w folderze "{1}". Tej czynności nie można cofnąć, a każde usunięcie zostanie zarejestrowane.</value>
+  </data>
+  <data name="DeleteFilteredConfirmWarning" xml:space="preserve">
+    <value>Spowoduje to trwałe usunięcie {0} e-maili pasujących do bieżącego filtra w folderze "{1}". Tej czynności nie można cofnąć, a każde usunięcie zostanie zarejestrowane.</value>
+  </data>
+  <data name="TypeFolderNameToConfirm" xml:space="preserve">
+    <value>Aby potwierdzić, wpisz poniżej nazwę folderu (możesz ją skopiować z pola powyżej):</value>
+  </data>
+  <data name="PermanentlyDeleteConfirmButton" xml:space="preserve">
+    <value>Usuń trwale</value>
+  </data>
+  <data name="DeleteAllFilteredEmails" xml:space="preserve">
+    <value>Usuń przefiltrowane e-maile (wszystkie foldery)</value>
+  </data>
+  <data name="DeleteAllFilteredConfirmTitle" xml:space="preserve">
+    <value>Trwale usuń przefiltrowane e-maile we wszystkich folderach</value>
+  </data>
+  <data name="DeleteAllFilteredConfirmWarning" xml:space="preserve">
+    <value>Spowoduje to trwałe usunięcie wszystkich {0} e-maili pasujących do bieżącego filtra we wszystkich folderach tego konta. Tej czynności nie można cofnąć, a każde usunięcie zostanie zarejestrowane.</value>
+  </data>
+  <data name="TypeDeleteWordToConfirm" xml:space="preserve">
+    <value>Aby potwierdzić, wpisz poniżej "{0}":</value>
+  </data>
+  <data name="DeleteConfirmationWord" xml:space="preserve">
+    <value>USUŃ</value>
+  </data>
   <data name="DeleteButton" xml:space="preserve">
     <value>Usuń</value>
   </data>

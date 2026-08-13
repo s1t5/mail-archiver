@@ -225,6 +225,19 @@ namespace MailArchiver.Controllers
             model.SearchResults = emails;
             model.TotalResults = totalCount;
 
+            // Count of emails matching the active filter across ALL folders of the selected
+            // account, used by the "Delete filtered emails (all folders)" button/modal. Only
+            // computed when actually needed. When no folder is selected, the search above
+            // already ran without a folder filter, so totalCount already IS that count.
+            var hasActiveSearchFilter = !string.IsNullOrWhiteSpace(model.SearchTerm) || model.FromDate.HasValue || model.ToDate.HasValue || model.IsOutgoing.HasValue;
+            if (model.SelectedAccountId.HasValue && hasActiveSearchFilter)
+            {
+                ViewBag.AccountWideFilteredCount = string.IsNullOrEmpty(model.SelectedFolder)
+                    ? totalCount
+                    : await _emailCoreService.CountMatchingEmailsAsync(
+                        model.SearchTerm, model.FromDate, model.ToDate, model.SelectedAccountId, null, model.IsOutgoing, allowedAccountIds);
+            }
+
                     // Log the search action
                     if (_accessLogService != null && _serviceScopeFactory != null)
                     {
@@ -3010,7 +3023,111 @@ namespace MailArchiver.Controllers
             
             return Redirect(returnUrl ?? Url.Action("Index"));
         }
-        
+
+        // POST: Emails/DeleteFolder
+        // Deletes every email in the given account/folder, ignoring any active search filter.
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [SelfManagerRequired]
+        public async Task<IActionResult> DeleteFolder(int accountId, string folderName, string returnUrl = null)
+        {
+            return await QueueFolderDeletionJob(accountId, folderName, requireFolder: true, applyFilters: false,
+                searchTerm: null, fromDate: null, toDate: null, isOutgoing: null, returnUrl);
+        }
+
+        // POST: Emails/DeleteFiltered
+        // Deletes only the emails in the given account/folder that match the supplied filters
+        // (same filters as the email list search).
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [SelfManagerRequired]
+        public async Task<IActionResult> DeleteFiltered(int accountId, string folderName, string searchTerm,
+            DateTime? fromDate, DateTime? toDate, bool? isOutgoing, string returnUrl = null)
+        {
+            return await QueueFolderDeletionJob(accountId, folderName, requireFolder: true, applyFilters: true,
+                searchTerm, fromDate, toDate, isOutgoing, returnUrl);
+        }
+
+        // POST: Emails/DeleteFilteredAllFolders
+        // Deletes every email in the given account that matches the supplied filters, across
+        // all of that account's folders (folder selection in the UI is irrelevant here).
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [SelfManagerRequired]
+        public async Task<IActionResult> DeleteFilteredAllFolders(int accountId, string searchTerm,
+            DateTime? fromDate, DateTime? toDate, bool? isOutgoing, string returnUrl = null)
+        {
+            return await QueueFolderDeletionJob(accountId, folderName: null, requireFolder: false, applyFilters: true,
+                searchTerm, fromDate, toDate, isOutgoing, returnUrl);
+        }
+
+        private async Task<IActionResult> QueueFolderDeletionJob(int accountId, string folderName, bool requireFolder, bool applyFilters,
+            string searchTerm, DateTime? fromDate, DateTime? toDate, bool? isOutgoing, string returnUrl)
+        {
+            if (requireFolder && string.IsNullOrEmpty(folderName))
+            {
+                TempData["ErrorMessage"] = "No folder selected for deletion.";
+                return Redirect(returnUrl ?? Url.Action("Index"));
+            }
+
+            if (!_deletionPolicy.DeletionAllowed)
+            {
+                _logger.LogWarning("Folder email deletion blocked by policy (DeletionPolicy:DeletionAllowed=false). Account: {AccountId}, Folder: {FolderName}", accountId, folderName);
+                TempData["ErrorMessage"] = _localizer?["DeletionDisabledMessage"] ?? "Email deletion is disabled by configuration.";
+                return Redirect(returnUrl ?? Url.Action("Index"));
+            }
+
+            if (_emailDeletionService == null)
+            {
+                TempData["ErrorMessage"] = "Email deletion service is not available.";
+                return Redirect(returnUrl ?? Url.Action("Index"));
+            }
+
+            // SECURITY: only admins or users explicitly assigned to this account may
+            // bulk-delete a whole folder (mirrors the account check DeleteSelected does
+            // per-email; here there is no email ID list to filter by, so the account
+            // itself must be checked directly).
+            if (!(_authService?.IsCurrentUserAdmin(HttpContext) ?? false))
+            {
+                var userService = HttpContext.RequestServices.GetService<IUserService>();
+                var username = _authService?.GetCurrentUserDisplayName(HttpContext);
+                var user = !string.IsNullOrEmpty(username) && userService != null
+                    ? await userService.GetUserByUsernameAsync(username)
+                    : null;
+                var hasAccess = user != null && userService != null
+                    && await userService.IsUserAuthorizedForAccountAsync(user.Id, accountId);
+
+                if (!hasAccess)
+                {
+                    TempData["ErrorMessage"] = "You do not have access to this account.";
+                    return Redirect(returnUrl ?? Url.Action("Index"));
+                }
+            }
+
+            _logger.LogInformation("User requesting to delete {Scope} emails in account {AccountId}, folder '{FolderName}'",
+                applyFilters ? "filtered" : "all", accountId, folderName ?? "(all folders)");
+
+            var currentUsername = _authService?.GetCurrentUserDisplayName(HttpContext);
+            var job = new EmailDeletionJob
+            {
+                UserId = currentUsername ?? "Anonymous",
+                Criteria = new EmailDeletionCriteria
+                {
+                    AccountId = accountId,
+                    FolderName = folderName ?? string.Empty,
+                    SearchTerm = applyFilters ? searchTerm : null,
+                    FromDate = applyFilters ? fromDate : null,
+                    ToDate = applyFilters ? toDate : null,
+                    IsOutgoing = applyFilters ? isOutgoing : null
+                }
+            };
+
+            var jobId = _emailDeletionService.QueueJob(job);
+            TempData["SuccessMessage"] = $"Email deletion job started. Job ID: {jobId}";
+
+            return RedirectToAction("EmailDeletionStatus", new { jobId });
+        }
+
         // GET: Emails/EmailDeletionStatus
         [HttpGet]
         [SelfManagerRequired]
