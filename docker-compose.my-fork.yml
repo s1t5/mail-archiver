@@ -1,0 +1,41 @@
+version: '3.8'
+
+networks:
+  postgres:
+
+services:
+  mailarchive-app:
+    # Nutzt dein eigenes Image statt build: .
+    image: mailarchiver:my-fork-latest
+    restart: always
+    ports:
+      - "5000:5000"
+    networks:
+      - postgres
+    volumes:
+      - ./appsettings.json:/app/appsettings.json
+      - ./logs:/app/logs
+      - ./data-protection-keys:/app/DataProtection-Keys
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      - ConnectionStrings__DefaultConnection=Host=postgres;Database=MailArchiver;Username=mailuser;Password=masterkey
+
+  postgres:
+    image: postgres:14-alpine
+    restart: always
+    environment:
+      POSTGRES_DB: MailArchiver
+      POSTGRES_USER: mailuser
+      POSTGRES_PASSWORD: masterkey
+    volumes:
+      - ./postgres-data:/var/lib/postgresql/data
+    networks:
+      - postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mailuser -d MailArchiver"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
