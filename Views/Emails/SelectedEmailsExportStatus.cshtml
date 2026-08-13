@@ -49,7 +49,7 @@
                     <div class="mb-3">
                         <div class="d-flex justify-content-between align-items-center mb-1">
                             <span class="small text-muted">@Localizer["ProgressLabel"]</span>
-                            <span class="small fw-bold">@progressPercent.ToString("F1")%</span>
+                            <span class="small fw-bold">@progressPercent.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)%</span>
                         </div>
                         <div class="progress" style="height: 25px;">
                             <div class="progress-bar progress-bar-striped @(Model.Status == SelectedEmailsExportJobStatus.Running ? "progress-bar-animated" : "")" 
@@ -60,7 +60,7 @@
                                  aria-valuemax="100">
                                 @if (progressPercent > 10)
                                 {
-                                    <span class="fw-bold">@progressPercent.ToString("F1")%</span>
+                                    <span class="fw-bold">@progressPercent.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)%</span>
                                 }
                             </div>
                         </div>
