@@ -107,7 +107,7 @@
                                     <span>@Localizer["FileProcessingProgress"]</span>
                                 }
                             </span>
-                            <span class="small fw-bold">@displayPercent.ToString("F1")%</span>
+                            <span class="small fw-bold">@displayPercent.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)%</span>
                         </div>
                         <div class="progress" style="height: 25px;">
                             <div class="progress-bar progress-bar-striped @(Model.Status == MailArchiver.Models.MBoxImportJobStatus.Running ? "progress-bar-animated" : "")"
@@ -118,7 +118,7 @@
                                  aria-valuemax="100">
                                 @if (displayPercent > 10)
                                 {
-                                    <span class="fw-bold">@displayPercent.ToString("F1")%</span>
+                                    <span class="fw-bold">@displayPercent.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)%</span>
                                 }
                             </div>
                         </div>

@@ -113,10 +113,10 @@
                                             <div class="progress-bar progress-bar-striped progress-bar-animated bg-danger" 
                                                  role="progressbar" 
                                                  style="width: @emailProgressPercent.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)%"
-                                                 aria-valuenow="@emailProgressPercent.ToString("F1")" 
+                                                 aria-valuenow="@emailProgressPercent.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)" 
                                                  aria-valuemin="0" 
                                                  aria-valuemax="100">
-                                                @emailProgressPercent.ToString("F1")%
+                                                @emailProgressPercent.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)%
                                             </div>
                                         </div>
                                         <small class="text-muted">@Model.DeletedEmails.ToString("N0") / @Model.TotalEmails.ToString("N0") @Localizer["Emails"]</small>
@@ -132,10 +132,10 @@
                                             <div class="progress-bar progress-bar-striped progress-bar-animated bg-warning" 
                                                  role="progressbar" 
                                                  style="width: @attachmentProgressPercent.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)%"
-                                                 aria-valuenow="@attachmentProgressPercent.ToString("F1")" 
+                                                 aria-valuenow="@attachmentProgressPercent.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)" 
                                                  aria-valuemin="0" 
                                                  aria-valuemax="100">
-                                                @attachmentProgressPercent.ToString("F1")%
+                                                @attachmentProgressPercent.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)%
                                             </div>
                                         </div>
                                         <small class="text-muted">@Model.DeletedAttachments.ToString("N0") / @Model.TotalAttachments.ToString("N0") @Localizer["Attachments"]</small>
