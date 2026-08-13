@@ -267,40 +267,45 @@ namespace MailArchiver.Services
                     if (!emailsToDelete.Any())
                         break;
 
-                    // Log each deletion if access log service is available
+                    // Update progress immediately before slow operations
+                    job.DeletedEmails += emailsToDelete.Count;
+                    remainingEmails -= emailsToDelete.Count;
+
+                    // Log deletions in parallel if access log service is available
                     if (accessLogService != null)
                     {
-                        foreach (var email in emailsToDelete)
+                        var logTasks = emailsToDelete.Select(email =>
+                            accessLogService.LogAccessAsync(
+                                job.UserId,
+                                AccessLogType.Deletion,
+                                emailId: email.Id,
+                                emailSubject: email.Subject?.Length > 255 
+                                    ? email.Subject.Substring(0, 255) 
+                                    : email.Subject,
+                                emailFrom: email.From?.Length > 255 
+                                    ? email.From.Substring(0, 255) 
+                                    : email.From,
+                                mailAccountId: email.MailAccountId
+                            )
+                        ).ToList();
+
+                        try
                         {
-                            try
-                            {
-                                await accessLogService.LogAccessAsync(
-                                    job.UserId,
-                                    AccessLogType.Deletion,
-                                    emailId: email.Id,
-                                    emailSubject: email.Subject?.Length > 255 
-                                        ? email.Subject.Substring(0, 255) 
-                                        : email.Subject,
-                                    emailFrom: email.From?.Length > 255 
-                                        ? email.From.Substring(0, 255) 
-                                        : email.From,
-                                    mailAccountId: email.MailAccountId);
-                            }
-                            catch (Exception ex)
-                            {
-                                _logger.LogWarning(ex, "Failed to log deletion of email {EmailId}", email.Id);
-                            }
+                            await Task.WhenAll(logTasks);
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogWarning(ex, "Failed to log deletion of one or more emails in batch");
                         }
                     }
 
+                    // Delete emails from database
                     context.ArchivedEmails.RemoveRange(emailsToDelete);
                     await context.SaveChangesAsync(combinedToken);
 
+                    // Track affected accounts
                     foreach (var email in emailsToDelete)
                         affectedAccountIds.Add(email.MailAccountId);
-
-                    job.DeletedEmails += emailsToDelete.Count;
-                    remainingEmails -= emailsToDelete.Count;
 
                     _logger.LogDebug("Job {JobId}: Deleted {Count} emails, {Remaining} remaining", 
                         job.JobId, emailsToDelete.Count, remainingEmails);
