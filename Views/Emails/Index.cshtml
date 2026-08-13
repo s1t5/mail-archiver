@@ -1249,11 +1249,37 @@
 
         const folderDeleteCopyBtn = document.getElementById('folderDeleteCopyBtn');
         if (folderDeleteCopyBtn) {
+            const folderDeleteCopyIcon = folderDeleteCopyBtn.querySelector('i');
+            const showCopyFeedback = function(success) {
+                if (!folderDeleteCopyIcon) return;
+                const originalIconClass = 'bi bi-clipboard';
+                folderDeleteCopyBtn.classList.remove('btn-outline-dark');
+                folderDeleteCopyBtn.classList.toggle('btn-outline-success', success);
+                folderDeleteCopyBtn.classList.toggle('btn-outline-danger', !success);
+                folderDeleteCopyIcon.className = success ? 'bi bi-clipboard-check' : 'bi bi-clipboard-x';
+                setTimeout(function() {
+                    folderDeleteCopyBtn.classList.remove('btn-outline-success', 'btn-outline-danger');
+                    folderDeleteCopyBtn.classList.add('btn-outline-dark');
+                    folderDeleteCopyIcon.className = originalIconClass;
+                }, 1500);
+            };
+
             folderDeleteCopyBtn.addEventListener('click', function() {
                 const nameDisplay = document.getElementById('folderDeleteNameDisplay');
                 nameDisplay.select();
                 nameDisplay.setSelectionRange(0, 99999);
-                navigator.clipboard.writeText(nameDisplay.value);
+
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(nameDisplay.value).then(function() {
+                        showCopyFeedback(true);
+                    }, function() {
+                        showCopyFeedback(document.execCommand('copy'));
+                    });
+                } else {
+                    // navigator.clipboard requires a secure context (HTTPS/localhost);
+                    // fall back to the legacy selection-based copy for plain HTTP deployments.
+                    showCopyFeedback(document.execCommand('copy'));
+                }
             });
         }
 
