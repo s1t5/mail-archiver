@@ -459,14 +459,19 @@ namespace MailArchiver.Services.Providers.Imap
         private static readonly int[] TransientFetchRetryDelaysMs = new[] { 5_000, 15_000, 60_000 };
 
         /// <summary>
-        /// Detects transient IMAP FETCH errors that indicate server-side throttling
-        /// (e.g. "NO Service temporarily unavailable", over-quota, rate-limit responses).
-        /// These errors are not caused by malformed messages and typically succeed when
-        /// retried after a short backoff.
+        /// Detects transient IMAP FETCH errors: server-side throttling responses
+        /// (e.g. "NO Service temporarily unavailable", over-quota, rate-limit) as well as
+        /// connection-level losses during FETCH (server unexpectedly disconnects or logs
+        /// out, e.g. observed with Yahoo while streaming certain messages). These errors
+        /// are not caused by malformed messages and typically succeed when retried after
+        /// a short backoff (the retry path reconnects/reopens as needed).
         /// </summary>
-        private static bool IsTransientImapError(Exception ex)
+        internal static bool IsTransientImapError(Exception ex)
         {
             if (ex == null) return false;
+
+            if (IsConnectionLoss(ex))
+                return true;
 
             var current = ex;
             while (current != null)
@@ -498,14 +503,51 @@ namespace MailArchiver.Services.Providers.Imap
         }
 
         /// <summary>
+        /// Detects connection-level IMAP failures: the server unexpectedly disconnected,
+        /// logged out, timed out or the TCP connection was reset/aborted. Unlike
+        /// parser-level protocol errors, the session is unusable afterwards and must be
+        /// reconnected before further commands can be issued.
+        /// </summary>
+        internal static bool IsConnectionLoss(Exception ex)
+        {
+            var current = ex;
+            while (current != null)
+            {
+                if (current is System.IO.IOException or System.Net.Sockets.SocketException)
+                    return true;
+
+                var msg = current.Message ?? string.Empty;
+                if (msg.IndexOf("unexpectedly disconnected", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                    msg.IndexOf("server logging out", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                    msg.IndexOf("has timed out", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                    msg.IndexOf("connection was aborted", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                    msg.IndexOf("forcibly closed", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                    msg.IndexOf("connection reset", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                    msg.IndexOf("broken pipe", StringComparison.OrdinalIgnoreCase) >= 0)
+                {
+                    return true;
+                }
+
+                current = current.InnerException;
+            }
+
+            return false;
+        }
+
+        /// <summary>
         /// Detects parser-level IMAP protocol errors (e.g. "Unexpected atom token: Server")
         /// thrown by <c>ImapFolder.GetMessageAsync</c> when the server returns a malformed
         /// FETCH response for a single message. Unlike connection-level failures, these do
         /// not imply the session is broken — only the offending response could not be
         /// parsed. The caller should skip this message without triggering a reconnect.
+        /// Connection losses (<see cref="IsConnectionLoss"/>) are explicitly excluded —
+        /// the session is dead afterwards and must go through the reconnect path.
         /// </summary>
-        private static bool IsImapProtocolParseError(Exception ex)
+        internal static bool IsImapProtocolParseError(Exception ex)
         {
+            if (IsConnectionLoss(ex))
+                return false;
+
             var current = ex;
             while (current != null)
             {
@@ -723,6 +765,16 @@ namespace MailArchiver.Services.Providers.Imap
 
                             try
                             {
+                                if (circuitBreaker.SkipNextReconnectGate && !client.IsConnected)
+                                {
+                                    // The gate was set by a previous failure, but the session is actually
+                                    // dead. Invalidate the gate so the normal reconnect path below runs —
+                                    // never attempt a FETCH on a disconnected client.
+                                    _logger.LogWarning("Reconnect gate set but client is disconnected in folder {FolderName}, forcing reconnect path",
+                                        folder.FullName);
+                                    circuitBreaker.ConsumeSkipGate();
+                                }
+
                                 if (circuitBreaker.SkipNextReconnectGate)
                                 {
                                     // Previous message triggered a parser-only ImapProtocolException.
@@ -808,8 +860,8 @@ namespace MailArchiver.Services.Providers.Imap
                                     {
                                         var delayMs = TransientFetchRetryDelaysMs[attempt - 1];
                                         _logger.LogWarning(
-                                            "Transient IMAP FETCH error for UID {Uid} in folder {FolderName} on attempt {Attempt}/{Max}. " +
-                                            "Server response indicates throttling. Retrying after {DelayMs}ms. Inner: {Message}",
+                                            "Transient IMAP FETCH error for UID {Uid} in folder {FolderName} on attempt {Attempt}/{Max} " +
+                                            "(throttling or connection loss). Retrying after {DelayMs}ms. Inner: {Message}",
                                             uid, folder.FullName, attempt, maxAttempts, delayMs, fetchEx.Message);
 
                                         await Task.Delay(delayMs);
