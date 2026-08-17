@@ -122,7 +122,13 @@ namespace MailArchiver.Services.Providers.Graph
                     processedHtmlBody = MailContentHelper.ProcessHtmlBodyForInlineImages(email.HtmlBody, email.Attachments);
                 }
 
-                // Create the message to restore
+                // Create the message to restore.
+                // Normalize the stored Message-ID (legacy Graph rows may carry surrounding
+                // angle brackets) and re-emit it in the bracketed RFC 2822 form that Exchange
+                // itself generates, so a restored message roundtrips to the same canonical id.
+                var restorableMessageId = MailContentHelper.NormalizeMessageId(email.MessageId);
+                var internetMessageId = string.IsNullOrEmpty(restorableMessageId) ? null : "<" + restorableMessageId + ">";
+
                 var message = new Message
                 {
                     Subject = email.Subject ?? "(No Subject)",
@@ -144,7 +150,7 @@ namespace MailArchiver.Services.Providers.Graph
                     BccRecipients = ParseEmailAddressesWithDisplayNames(email.Bcc, email.BccDisplayNames),
                     SentDateTime = email.SentDate,
                     ReceivedDateTime = email.SentDate,
-                    InternetMessageId = email.MessageId,
+                    InternetMessageId = internetMessageId,
                     IsRead = false,
                     Importance = Importance.Normal,
                     InferenceClassification = InferenceClassificationType.Focused,

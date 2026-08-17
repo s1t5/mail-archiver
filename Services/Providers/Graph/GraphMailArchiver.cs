@@ -93,10 +93,13 @@ namespace MailArchiver.Services.Providers.Graph
         /// <summary>
         /// Resolves the MessageId for a Graph message: InternetMessageId, falling back to the
         /// Graph message Id, falling back to a deterministic generated id.
+        /// The resolved value is normalized to the bracket-free canonical form so the stored
+        /// value matches what the retention lookup computes via NormalizeMessageId, regardless
+        /// of whether Graph returns the Message-ID with or without surrounding angle brackets.
         /// </summary>
         public static string ResolveMessageId(Message message)
         {
-            var messageId = message.InternetMessageId ?? message.Id;
+            var messageId = MailContentHelper.NormalizeMessageId(message.InternetMessageId ?? message.Id);
 
             // Generate a deterministic MessageId when Graph doesn't provide one.
             if (string.IsNullOrEmpty(messageId))
@@ -135,11 +138,17 @@ namespace MailArchiver.Services.Providers.Graph
                 var checkSubject = message.Subject ?? "(No Subject)";
                 var checkDate = message.SentDateTime?.DateTime ?? DateTime.UtcNow;
 
+                // Legacy rows archived before the write-side normalization may store the
+                // Message-ID with surrounding angle brackets - match both variants so
+                // existing archives are still recognized as duplicates.
+                var bracketedMessageId = "<" + messageId + ">";
+
                 var existingInfo = await _context.ArchivedEmails
                     .AsNoTracking()
                     .Where(e => e.MailAccountId == accountId)
                     .Where(e =>
                         e.MessageId == messageId ||
+                        e.MessageId == bracketedMessageId ||
                         (e.From == checkFrom &&
                          e.To == checkTo &&
                          e.Subject == checkSubject &&

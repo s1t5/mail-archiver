@@ -680,8 +680,9 @@ namespace MailArchiver.Services
         {
             var message = new MimeMessage();
 
-            // Set headers
-            message.MessageId = email.MessageId;
+            // Set headers. Normalize the stored Message-ID (legacy Graph rows may carry
+            // surrounding angle brackets) so MimeKit emits a single well-formed bracket pair.
+            message.MessageId = MailContentHelper.NormalizeMessageId(email.MessageId);
             message.Subject = email.Subject;
 
             // The SentDate in the database is already in the configured display timezone (converted during sync)

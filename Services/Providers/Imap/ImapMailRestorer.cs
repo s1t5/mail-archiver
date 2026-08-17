@@ -848,9 +848,12 @@ namespace MailArchiver.Services.Providers.Imap
                 message.Body = bodyBuilder.ToMessageBody();
                 var sentUtc = _dateTimeHelper.ConvertFromDisplayTimeZoneToUtc(email.SentDate);
                 message.Date = new DateTimeOffset(sentUtc, TimeSpan.Zero);
-                if (!string.IsNullOrEmpty(email.MessageId) && email.MessageId.Contains('@'))
+                // Normalize the stored Message-ID (legacy Graph rows may carry surrounding
+                // angle brackets) so MimeKit emits a single well-formed bracket pair.
+                var restorableMessageId = MailContentHelper.NormalizeMessageId(email.MessageId);
+                if (!string.IsNullOrEmpty(restorableMessageId) && restorableMessageId.Contains('@'))
                 {
-                    message.MessageId = email.MessageId;
+                    message.MessageId = restorableMessageId;
                 }
 
                 return message;

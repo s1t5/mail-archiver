@@ -752,13 +752,29 @@ namespace MailArchiver.Services.Providers.Graph
                                     var rawMessageId = message.InternetMessageId ?? message.Id;
                                     var normalizedMessageId = MailContentHelper.NormalizeMessageId(rawMessageId);
 
+                                    if (string.IsNullOrEmpty(normalizedMessageId))
+                                    {
+                                        // Without a resolvable Message-ID the archive state cannot be
+                                        // verified - refuse to delete rather than risk removing an
+                                        // unarchived message from the live mailbox.
+                                        _logger.LogWarning("Skipping deletion of message {GraphMessageId} in folder {FolderName}: no Message-ID could be resolved for archive verification. Account ID: {AccountId}",
+                                            message.Id, folder.DisplayName, account.Id);
+                                        continue;
+                                    }
+
                                     // MEMORY FIX: Existence check only – use AsNoTracking with an Id
                                     // projection so the change tracker does not accumulate full
                                     // ArchivedEmail entities over the whole deletion run.
+                                    //
+                                    // Legacy rows archived before the write-side normalization store
+                                    // the Message-ID with surrounding angle brackets. Match both
+                                    // variants so existing archives are recognized as archived.
+                                    var bracketedMessageId = "<" + normalizedMessageId + ">";
+
                                     var archivedEmailId = await _context.ArchivedEmails
                                         .AsNoTracking()
                                         .Where(e => e.MailAccountId == account.Id)
-                                        .Where(e => e.MessageId == normalizedMessageId)
+                                        .Where(e => e.MessageId == normalizedMessageId || e.MessageId == bracketedMessageId)
                                         .Select(e => (int?)e.Id)
                                         .FirstOrDefaultAsync();
 

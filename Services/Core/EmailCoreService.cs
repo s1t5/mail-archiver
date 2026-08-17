@@ -915,7 +915,9 @@ namespace MailArchiver.Services.Core
             }
 
             message.Date = _dateTimeHelper.ToDisplayTimeZoneOffset(email.SentDate);
-            message.MessageId = email.MessageId;
+            // Normalize the stored Message-ID (legacy Graph rows may carry surrounding
+            // angle brackets) so MimeKit emits a single well-formed bracket pair.
+            message.MessageId = MailContentHelper.NormalizeMessageId(email.MessageId);
 
             await Task.Run(() => message.WriteTo(ms));
         }
