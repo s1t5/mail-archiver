@@ -599,7 +599,18 @@ namespace MailArchiver.Services.Core
                 baseQuery = baseQuery.Where(e => e.IsOutgoing == isOutgoing.Value);
 
             if (!string.IsNullOrEmpty(folderName))
-                baseQuery = baseQuery.Where(e => e.FolderName == folderName);
+            {
+                // selecting a folder also shows the emails of all descendant folders (path-boundary
+                // prefix match). Intermediate folders rendered in the folder tree can hold no emails
+                // themselves; an exact-only match would return an empty result for such parents.
+                var slashPrefix = folderName + "/";
+                var backslashPrefix = folderName + "\\";
+                var dotPrefix = folderName + ".";
+                baseQuery = baseQuery.Where(e => e.FolderName == folderName
+                    || e.FolderName.StartsWith(slashPrefix)
+                    || e.FolderName.StartsWith(backslashPrefix)
+                    || e.FolderName.StartsWith(dotPrefix));
+            }
 
             IQueryable<ArchivedEmail> searchQuery = baseQuery;
             if (!string.IsNullOrEmpty(searchTerm))
@@ -2134,19 +2145,20 @@ namespace MailArchiver.Services.Core
         // Builds the folder tree from (folderName, count) pairs. Extracted from GetFolderTreeAsync so
         // it can be unit-tested. Folder names that differ only in case are treated as one folder
         // (IMAP INBOX is case-insensitive): their counts are merged and the node is emitted once.
+        //
+        // Intermediate (container) folders that contain no emails themselves — e.g. "travel" and
+        // "travel/2022" when only "travel/2022/France" holds mail — are created as empty parent
+        // nodes so the tree shows the full hierarchy instead of flat "path/to/folder" entries.
         internal static List<FolderTreeNode> BuildFolderTree(List<(string Name, int Count)> folders)
         {
-            // Only create hierarchy when a parent folder actually exists in the data. This prevents
-            // folder names containing '/' (or '.') from being split into phantom sub-hierarchies.
-            var folderNameSet = new HashSet<string>(
-                folders.Select(f => f.Name),
-                StringComparer.OrdinalIgnoreCase);
-
             // Create nodes. If two folders differ only in case (e.g. "INBOX" and "Inbox" from two
             // accounts) merge their counts into a single node, so the same node is not emitted twice.
             var allNodes = new Dictionary<string, FolderTreeNode>(StringComparer.OrdinalIgnoreCase);
             foreach (var folder in folders)
             {
+                if (string.IsNullOrEmpty(folder.Name))
+                    continue;
+
                 if (allNodes.TryGetValue(folder.Name, out var existing))
                 {
                     existing.TotalCount += folder.Count;
@@ -2162,6 +2174,11 @@ namespace MailArchiver.Services.Core
                 };
             }
 
+            // Create intermediate parent nodes for nested folders whose container folders hold no
+            // emails and are therefore missing from the data (otherwise the children would render
+            // as flat "a/b/c" root entries).
+            EnsureIntermediateNodes(allNodes);
+
             // Build parent-child relationships. Iterate the DISTINCT nodes (not the raw folder list),
             // so each node is placed exactly once; process shortest paths first so parents exist first.
             var rootNodes = new List<FolderTreeNode>();
@@ -2176,7 +2193,7 @@ namespace MailArchiver.Services.Core
                     if (node.FullPath[i] == '/' || node.FullPath[i] == '\\' || node.FullPath[i] == '.')
                     {
                         var candidate = node.FullPath.Substring(0, i);
-                        if (folderNameSet.Contains(candidate))
+                        if (candidate.Length > 0 && allNodes.ContainsKey(candidate))
                         {
                             parentPath = candidate;
                             break;
@@ -2200,6 +2217,66 @@ namespace MailArchiver.Services.Core
             }
 
             return SortFolderTree(rootNodes);
+        }
+
+        /// <summary>
+        /// Creates intermediate (phantom) parent nodes for folder path prefixes that are missing
+        /// from the data because the container folders hold no emails. Rules per separator:
+        /// '/' and '\\' prefixes are always created — literal slashes in folder names are not
+        /// possible on servers that use them as hierarchy separator. '.' prefixes are only created
+        /// when at least two folders in the data share that exact prefix, so that genuinely dotted
+        /// flat names (e.g. "Mr. Smith", "Project v2.5") are not split into phantom sub-hierarchies.
+        /// </summary>
+        private static void EnsureIntermediateNodes(Dictionary<string, FolderTreeNode> allNodes)
+        {
+            // Snapshot of the data paths (folders that actually contain emails). Only these can
+            // seed prefix creation; created intermediates must not cascade new prefixes themselves
+            // beyond what the data justifies.
+            var dataPaths = allNodes.Keys.ToList();
+
+            foreach (var path in dataPaths)
+            {
+                for (int i = path.Length - 1; i >= 0; i--)
+                {
+                    char c = path[i];
+                    bool hardSeparator = c == '/' || c == '\\';
+                    if (!hardSeparator && c != '.')
+                        continue;
+
+                    var prefix = path.Substring(0, i);
+                    if (prefix.Length == 0 || allNodes.ContainsKey(prefix))
+                        continue;
+
+                    // For dotted names require >=2 sibling folders sharing the prefix, otherwise a
+                    // single folder like "Mr. Smith" would get a phantom "Mr" parent.
+                    if (!hardSeparator && !HasDottedSibling(dataPaths, path, prefix))
+                        continue;
+
+                    allNodes[prefix] = new FolderTreeNode
+                    {
+                        // Name is corrected to the display suffix when the node is attached to
+                        // its parent in the relationship-building pass.
+                        Name = prefix,
+                        FullPath = prefix,
+                        TotalCount = 0,
+                        UnreadCount = 0,
+                        Children = new List<FolderTreeNode>()
+                    };
+                }
+            }
+        }
+
+        /// <summary>
+        /// Returns true when at least one OTHER folder in <paramref name="dataPaths"/> also starts
+        /// with <paramref name="prefix"/> followed by a dot, i.e. at least two folders share the
+        /// dotted prefix (case-insensitively).
+        /// </summary>
+        private static bool HasDottedSibling(List<string> dataPaths, string path, string prefix)
+        {
+            var dottedPrefix = prefix + ".";
+            return dataPaths.Any(p =>
+                !string.Equals(p, path, StringComparison.Ordinal) &&
+                p.StartsWith(dottedPrefix, StringComparison.OrdinalIgnoreCase));
         }
 
         /// <summary>

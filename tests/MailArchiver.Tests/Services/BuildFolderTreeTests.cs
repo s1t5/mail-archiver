@@ -85,21 +85,33 @@ public class BuildFolderTreeTests
     }
 
     [Fact]
-    public void ChildWithoutParentInData_BecomesRootNode()
+    public void ChildWithoutParentInData_CreatesIntermediateNodes()
     {
         // "travel/2022/France" exists but "travel" and "travel/2022" do NOT exist in the data.
         // This simulates container folders that were never stored because they contain no emails.
-        // BuildFolderTree intentionally does NOT create phantom parent nodes — the folder becomes a root.
+        // BuildFolderTree creates empty intermediate nodes so the full hierarchy is displayed.
         var tree = EmailCoreService.BuildFolderTree(new List<(string, int)>
         {
             ("travel/2022/France", 10)
         });
 
-        var node = Assert.Single(tree);
-        Assert.Equal("travel/2022/France", node.Name);
-        Assert.Equal("travel/2022/France", node.FullPath);
-        Assert.Equal(0, node.Level);
-        Assert.Empty(node.Children);
+        var travel = Assert.Single(tree);
+        Assert.Equal("travel", travel.Name);
+        Assert.Equal("travel", travel.FullPath);
+        Assert.Equal(0, travel.TotalCount);
+        Assert.Equal(0, travel.Level);
+
+        var year2022 = Assert.Single(travel.Children);
+        Assert.Equal("2022", year2022.Name);
+        Assert.Equal("travel/2022", year2022.FullPath);
+        Assert.Equal(0, year2022.TotalCount);
+        Assert.Equal(1, year2022.Level);
+
+        var france = Assert.Single(year2022.Children);
+        Assert.Equal("France", france.Name);
+        Assert.Equal("travel/2022/France", france.FullPath);
+        Assert.Equal(10, france.TotalCount);
+        Assert.Equal(2, france.Level);
     }
 
     [Fact]
@@ -160,20 +172,123 @@ public class BuildFolderTreeTests
     }
 
     [Fact]
-    public void FolderWithSlashInNameButNoParentAsFolder_StillRootNode()
+    public void FolderWithSlashInNameButNoParentAsFolder_NestsUnderCreatedParent()
     {
-        // "a/b" contains a slash but neither "a" nor "a/b" minus the last segment ("a")
-        // exists as a separate folder. It should be a root, not split into a > b.
-        // Actually "a" IS the candidate parent here. Since "a" is not in the data,
-        // "a/b" becomes a root with name "a/b".
+        // "a/b" contains a slash and "a" does not exist as a separate folder in the data.
+        // Since '/' is a hard hierarchy separator, an empty intermediate "a" node is created.
         var tree = EmailCoreService.BuildFolderTree(new List<(string, int)>
         {
             ("a/b", 1)
         });
 
+        var parent = Assert.Single(tree);
+        Assert.Equal("a", parent.Name);
+        Assert.Equal("a", parent.FullPath);
+        Assert.Equal(0, parent.Level);
+        Assert.Equal(0, parent.TotalCount);
+
+        var child = Assert.Single(parent.Children);
+        Assert.Equal("b", child.Name);
+        Assert.Equal("a/b", child.FullPath);
+        Assert.Equal(1, child.Level);
+    }
+
+    [Fact]
+    public void DottedFolder_SingleOccurrence_StaysFlat()
+    {
+        // A single dotted name must NOT be split: "Mr. Smith" is most likely a literal
+        // folder name, not a "Mr" container. Dotted prefixes require >=2 siblings.
+        var tree = EmailCoreService.BuildFolderTree(new List<(string, int)>
+        {
+            ("Mr. Smith", 3)
+        });
+
         var node = Assert.Single(tree);
-        Assert.Equal("a/b", node.Name);
-        Assert.Equal(0, node.Level);
+        Assert.Equal("Mr. Smith", node.Name);
+        Assert.Equal("Mr. Smith", node.FullPath);
+        Assert.Equal(3, node.TotalCount);
+        Assert.Empty(node.Children);
+    }
+
+    [Fact]
+    public void DottedPrefix_TwoSiblings_CreatesIntermediateNode()
+    {
+        // Two folders sharing a dotted prefix are treated as a real hierarchy
+        // (dot-separating IMAP servers like Courier/Dovecot legacy).
+        var tree = EmailCoreService.BuildFolderTree(new List<(string, int)>
+        {
+            ("Projects.A", 2),
+            ("Projects.B", 3)
+        });
+
+        var projects = Assert.Single(tree);
+        Assert.Equal("Projects", projects.Name);
+        Assert.Equal("Projects", projects.FullPath);
+        Assert.Equal(0, projects.TotalCount);
+
+        Assert.Equal(2, projects.Children.Count);
+        Assert.Contains(projects.Children, c => c.Name == "A" && c.FullPath == "Projects.A");
+        Assert.Contains(projects.Children, c => c.Name == "B" && c.FullPath == "Projects.B");
+    }
+
+    [Fact]
+    public void IntermediateNodes_AreCaseInsensitive_MergedAcrossCases()
+    {
+        // "Travel/x" and "travel/x/y" differ only in case of the shared prefix.
+        // They must collapse into one "travel" chain, not two parallel trees.
+        var tree = EmailCoreService.BuildFolderTree(new List<(string, int)>
+        {
+            ("Travel/x", 1),
+            ("travel/x/y", 2)
+        });
+
+        var root = Assert.Single(tree);
+        Assert.Equal("travel", root.FullPath.ToLowerInvariant());
+        var x = Assert.Single(root.Children);
+        Assert.Equal("x", x.Name.ToLowerInvariant());
+        Assert.Equal(1, x.TotalCount);
+
+        var y = Assert.Single(x.Children);
+        Assert.Equal("y", y.Name);
+        Assert.Equal(2, y.TotalCount);
+    }
+
+    [Fact]
+    public void MultipleChildrenUnderDifferentYears_EachYearGetsIntermediateNode()
+    {
+        var tree = EmailCoreService.BuildFolderTree(new List<(string, int)>
+        {
+            ("travel/2022/France", 10),
+            ("travel/2023/Japan", 4),
+            ("travel/2024/NYC", 7)
+        });
+
+        var travel = Assert.Single(tree);
+        Assert.Equal("travel", travel.Name);
+        Assert.Equal(0, travel.TotalCount);
+
+        Assert.Equal(3, travel.Children.Count);
+        var y2022 = travel.Children.Single(c => c.FullPath == "travel/2022");
+        Assert.Equal("2022", y2022.Name);
+        Assert.Equal(0, y2022.TotalCount);
+        Assert.Equal("France", Assert.Single(y2022.Children).Name);
+    }
+
+    [Fact]
+    public void ParentExistsInData_NotDuplicated_WhenAlsoIntermediate()
+    {
+        // "travel" exists in the data (0 emails) AND has nested children. It must appear once.
+        var tree = EmailCoreService.BuildFolderTree(new List<(string, int)>
+        {
+            ("travel", 0),
+            ("travel/2022/France", 10)
+        });
+
+        var travel = Assert.Single(tree);
+        Assert.Equal("travel", travel.FullPath);
+        var y2022 = Assert.Single(travel.Children);
+        Assert.Equal("travel/2022", y2022.FullPath);
+        Assert.Equal("France", Assert.Single(y2022.Children).Name);
     }
 
     [Fact]
