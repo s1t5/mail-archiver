@@ -37,6 +37,7 @@ deletes data.
   - [Search messages](#search-messages)
   - [Get message](#get-message)
   - [Download attachment](#download-attachment)
+  - [Stats](#stats)
 - [Data types](#data-types)
 - [Access logging](#access-logging)
 - [OpenAPI and Swagger UI](#openapi-and-swagger-ui)
@@ -354,6 +355,41 @@ Logs an access log entry of type `Download`.
 curl -H "Authorization: Bearer $KEY" -OJ \
   https://host/api/v1/emails/9876/attachments/12
 ```
+
+### Stats
+
+```
+GET /api/v1/stats
+```
+
+Returns aggregate archive statistics visible to the caller: total archived
+emails, visible mail accounts, attachments on those emails, and the total
+PostgreSQL database size in megabytes. For non-admin users the counts are
+scoped to the mail accounts assigned to them (the same scoping the web
+dashboard applies); administrators see global totals. `databaseSizeInMB` is
+always the size of the whole database and is returned as a string.
+
+```bash
+curl -H "Authorization: Bearer $KEY" https://host/api/v1/stats
+```
+
+```json
+{
+  "emails": 160132,
+  "accounts": 4,
+  "attachments": 43540,
+  "databaseSizeInMB": "5432"
+}
+```
+
+### StatsDto
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `emails` | int | Archived messages visible to the caller |
+| `accounts` | int | Mail accounts visible to the caller |
+| `attachments` | int | Attachments on those visible messages |
+| `databaseSizeInMB` | string | Whole PostgreSQL database size in MB |
 
 ## Data types
 
