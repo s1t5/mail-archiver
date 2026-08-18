@@ -140,9 +140,18 @@
             </form>
         }
         
-        <a asp-controller="Emails" asp-action="Jobs" class="btn btn-secondary">
-            <i class="bi bi-arrow-left"></i> @Localizer["BackToJobs"]
-        </a>
+        @if (User.IsInRole("Admin"))
+        {
+            <a asp-controller="Emails" asp-action="Jobs" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> @Localizer["BackToJobs"]
+            </a>
+        }
+        else
+        {
+            <a asp-controller="Emails" asp-action="Index" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> @Localizer["BackToEmails"]
+            </a>
+        }
     </div>
 </div>
 
