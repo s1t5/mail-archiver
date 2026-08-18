@@ -124,4 +124,14 @@ public class ImapErrorClassificationTests
     {
         Assert.False(ImapMailSyncService.IsImapProtocolParseError(new InvalidOperationException("No connection available")));
     }
+
+    [Fact]
+    public void IsImapProtocolParseError_esearch_qstring_syntax_error_returns_true()
+    {
+        var ex = new ImapProtocolException(
+            "Syntax error in untagged ESEARCH response. Unexpected qstring token: \"B00000006\"");
+
+        Assert.True(ImapMailSyncService.IsImapProtocolParseError(ex));
+        Assert.False(ImapMailSyncService.IsConnectionLoss(ex));
+    }
 }

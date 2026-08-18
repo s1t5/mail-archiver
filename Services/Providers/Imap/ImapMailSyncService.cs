@@ -558,6 +558,32 @@ namespace MailArchiver.Services.Providers.Imap
             return false;
         }
 
+        /// <summary>
+        /// Ensures the IMAP client is connected and authenticated, and the folder is
+        /// open, before issuing a command. Reconnects/re-authenticates and reopens the
+        /// folder as needed. Used both before the initial SEARCH and between fallback
+        /// SEARCH queries, because a parser-level <see cref="ImapProtocolException"/>
+        /// from a previous SEARCH can silently desynchronize and drop the session.
+        /// </summary>
+        private async Task EnsureConnectedAsync(IMailFolder folder, ImapClient client, MailAccount account, CancellationToken ct = default)
+        {
+            if (!client.IsConnected)
+            {
+                _logger.LogWarning("Client disconnected during sync, attempting to reconnect...");
+                await _connectionFactory.ReconnectClientAsync(client, account);
+            }
+            else if (!client.IsAuthenticated)
+            {
+                _logger.LogWarning("Client not authenticated, attempting to re-authenticate...");
+                await _connectionFactory.AuthenticateClientAsync(client, account);
+            }
+
+            if (!folder.IsOpen)
+            {
+                await folder.OpenAsync(FolderAccess.ReadOnly, ct);
+            }
+        }
+
         private async Task<SyncFolderResult> SyncFolderAsync(IMailFolder folder, MailAccount account, ImapClient client, string? jobId = null)
         {
             var result = new SyncFolderResult();
@@ -580,21 +606,7 @@ namespace MailArchiver.Services.Providers.Imap
                     return result;
                 }
 
-                if (!client.IsConnected)
-                {
-                    _logger.LogWarning("Client disconnected during sync, attempting to reconnect...");
-                    await _connectionFactory.ReconnectClientAsync(client, account);
-                }
-                else if (!client.IsAuthenticated)
-                {
-                    _logger.LogWarning("Client not authenticated, attempting to re-authenticate...");
-                    await _connectionFactory.AuthenticateClientAsync(client, account);
-                }
-
-                if (!folder.IsOpen)
-                {
-                    await folder.OpenAsync(FolderAccess.ReadOnly);
-                }
+                await EnsureConnectedAsync(folder, client, account);
 
                 bool isOutgoing = _folderService.IsOutgoingFolder(folder);
                 var lastSync = account.LastSync;
@@ -634,21 +646,7 @@ namespace MailArchiver.Services.Providers.Imap
 
                 try
                 {
-                    if (!client.IsConnected)
-                    {
-                        _logger.LogWarning("Client disconnected during sync, attempting to reconnect...");
-                        await _connectionFactory.ReconnectClientAsync(client, account);
-                    }
-                    else if (!client.IsAuthenticated)
-                    {
-                        _logger.LogWarning("Client not authenticated, attempting to re-authenticate...");
-                        await _connectionFactory.AuthenticateClientAsync(client, account);
-                    }
-
-                    if (!folder.IsOpen)
-                    {
-                        await folder.OpenAsync(FolderAccess.ReadOnly);
-                    }
+                    await EnsureConnectedAsync(folder, client, account);
 
                     IList<UniqueId> uids;
                     try
@@ -688,6 +686,7 @@ namespace MailArchiver.Services.Providers.Imap
 
                         try
                         {
+                            await EnsureConnectedAsync(folder, client, account);
                             uids = await folder.SearchAsync(SearchQuery.SentSince(lastSync.Date));
                             _logger.LogDebug("SentSince search found {Count} messages in folder {FolderName}",
                                 uids.Count, folder.FullName);
@@ -711,6 +710,7 @@ namespace MailArchiver.Services.Providers.Imap
                         {
                             _logger.LogWarning(fallbackEx, "SentSince also failed for folder {FolderName}, using All query",
                                 folder.FullName);
+                            await EnsureConnectedAsync(folder, client, account);
                             uids = await folder.SearchAsync(SearchQuery.All);
                             _logger.LogInformation("All query found {Count} total messages in folder {FolderName}, will filter by date client-side",
                                 uids.Count, folder.FullName);
