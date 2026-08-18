@@ -1657,3 +1657,16 @@ body.resizing-folder-tree {
 .row-disabled:hover {
   opacity: 0.75;
 }
+
+/* Clickable email rows in the Archive view (mirrors Dashboard recent-email-item behaviour) */
+.email-row {
+  transition: background-color 0.2s ease;
+}
+
+.email-row:hover {
+  background-color: rgba(0, 0, 0, 0.03);
+}
+
+.email-card-mobile.email-row:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}

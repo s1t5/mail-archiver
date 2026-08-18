@@ -291,10 +291,11 @@
                                 <tbody>
                                     @foreach (var email in Model.SearchResults)
                                     {
-                                        <tr>
+                                        var detailsUrl = Url.Action("Details", new { id = email.Id, returnUrl = Context.Request.GetDisplayUrl() });
+                                        <tr class="email-row" data-email-url="@detailsUrl" style="cursor: pointer;">
                                             @if (Model.ShowSelectionControls)
                                             {
-                                                <td>
+                                                <td class="email-row-no-nav">
                                                     <div class="form-check">
                                                         <input class="form-check-input email-select-checkbox" type="checkbox" name="ids" value="@email.Id">
                                                     </div>
@@ -321,7 +322,7 @@
                                                     <i class="bi bi-paperclip text-warning" title="@Localizer["HasAttachments"]"></i>
                                                 }
                                             </td>
-                                            <td>
+                                            <td class="email-row-no-nav">
                                                 <a asp-action="Details" asp-route-id="@email.Id" asp-route-returnUrl="@Context.Request.GetDisplayUrl()" class="btn btn-sm btn-outline-primary">@Localizer["Details"]</a>
                                             </td>
                                         </tr>
@@ -335,10 +336,11 @@
                     <div class="d-lg-none p-3">
                         @foreach (var email in Model.SearchResults)
                         {
-                            <div class="card mb-3 email-card-mobile">
+                            var detailsUrl = Url.Action("Details", new { id = email.Id, returnUrl = Context.Request.GetDisplayUrl() });
+                            <div class="card mb-3 email-card-mobile email-row" data-email-url="@detailsUrl" style="cursor: pointer;">
                                 @if (Model.ShowSelectionControls)
                                 {
-                                    <div class="form-check">
+                                    <div class="form-check email-row-no-nav">
                                         <input class="form-check-input email-select-checkbox" type="checkbox" name="ids" value="@email.Id" id="email-mobile-@email.Id">
                                         <label class="form-check-label" for="email-mobile-@email.Id">@Localizer["SelectThisEmail"]</label>
                                     </div>
@@ -367,7 +369,7 @@
                                         <div><strong>@Localizer["Date"]:</strong> @email.SentDate.ToString("g")</div>
                                         <div><strong>@Localizer["Account"]:</strong> @email.MailAccount.Name</div>
                                     </div>
-                                    <div class="email-card-actions">
+                                    <div class="email-card-actions email-row-no-nav">
                                         <a asp-action="Details" asp-route-id="@email.Id" asp-route-returnUrl="@Context.Request.GetDisplayUrl()" class="btn btn-outline-primary btn-sm w-100">
                                             <i class="bi bi-eye"></i> @Localizer["Details"]
                                         </a>
@@ -1071,6 +1073,19 @@
         {
             <text>initializeSelectionHandlers();</text>
         }
+
+        // Make entire email row clickable to open details, mirroring the Dashboard
+        // recent-emails list. Clicks on the selection checkbox, the explicit
+        // "Details" button, or any element marked .email-row-no-nav are ignored
+        // so those controls keep working independently.
+        document.querySelectorAll('.email-row').forEach(function(row) {
+            row.addEventListener('click', function(e) {
+                if (e.target.closest('.email-row-no-nav')) return;
+                if (e.target.closest('a, button, input, label, .form-check')) return;
+                const url = this.dataset.emailUrl;
+                if (url) window.location.href = url;
+            });
+        });
     });
 </script>
 }
