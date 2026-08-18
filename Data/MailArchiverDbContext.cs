@@ -201,7 +201,7 @@ namespace MailArchiver.Data
                 
             modelBuilder.Entity<User>()
                 .Property(u => u.Username)
-                .HasMaxLength(50);
+                .HasMaxLength(320);
                 
             modelBuilder.Entity<User>()
                 .Property(u => u.Email)

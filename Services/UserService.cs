@@ -117,13 +117,48 @@ namespace MailArchiver.Services
                 _logger.LogInformation("AutoApproveUsers is enabled - OIDC user {Email} will be auto-approved", email);
             }
             
+            // Build a clean, stable local username for OIDC users.
+            // Preference: email local-part, then full sub, then oidc_<hash>.
+            // Uniqueness is enforced by the unique index on Username; on collision we
+            // append " (n)" until free, keeping total length within 320.
+            string baseUsername;
+            if (!string.IsNullOrEmpty(email))
+            {
+                baseUsername = email.Contains('@') ? email.Split('@', 2)[0] : email;
+            }
+            else if (!string.IsNullOrEmpty(userId))
+            {
+                baseUsername = userId;
+            }
+            else
+            {
+                using var sha = SHA256.Create();
+                var hashBytes = sha.ComputeHash(Encoding.UTF8.GetBytes((userId ?? string.Empty) + "|" + (email ?? string.Empty)));
+                baseUsername = "oidc_" + BitConverter.ToString(hashBytes).Replace("-", "").ToLowerInvariant().Substring(0, 12);
+            }
+
+            const int maxLen = 320;
+            if (baseUsername.Length > maxLen)
+                baseUsername = baseUsername.Substring(0, maxLen);
+
+            // Resolve collisions with existing local users (case-insensitive).
+            var candidate = baseUsername;
+            var suffix = 2;
+            while (await _context.Users.AnyAsync(u => u.Username.ToLower() == candidate.ToLower()))
+            {
+                var tail = $" ({suffix++})";
+                candidate = (baseUsername.Length + tail.Length > maxLen)
+                    ? baseUsername.Substring(0, maxLen - tail.Length) + tail
+                    : baseUsername + tail;
+            }
+
             // Create a new user
             _logger.LogInformation("Creating new OIDC user: Email={Email}, DisplayName={DisplayName}, RemoteId={RemoteId}, IsAdmin={IsAdmin}", 
                 email, displayName, userId, isAdminEmail);
             
             user = new User()
             {
-                Username = $"{displayName}_{userId.Substring(0, 8)}", // Add unique suffix to prevent username collisions
+                Username = candidate,
                 Email = email,
                 PasswordHash = null, // OIDC users don't have passwords
                 IsAdmin = isAdminEmail,

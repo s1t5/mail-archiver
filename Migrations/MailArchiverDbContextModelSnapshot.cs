@@ -437,8 +437,8 @@ namespace MailArchiver.Migrations
 
                     b.Property<string>("Username")
                         .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
+                        .HasMaxLength(320)
+                        .HasColumnType("character varying(320)");
 
                     b.HasKey("Id");
 

@@ -279,7 +279,11 @@ When a user with one of these email addresses logs in for the first time:
 1. User authenticates via OAuth provider
 2. System checks if email exists in local database
 3. If new user:
-   - Account is created with username format: `{DisplayName}_{UniqueId}`
+   - Account is created with username derived from the OIDC claims, in this preference order:
+     1. The **local part of the email** (everything before `@`), e.g. `example.mailarchiver` for `example.mailarchiver@xxxxxxxxx.onmicrosoft.com`
+     2. The full `sub` claim when no email claim is present
+     3. `oidc_<12-char-hash>` as a last-resort fallback
+     The generated value is truncated to 320 chars. If a local user with the same username already exists, `" (n)"` is appended until a unique name is found.
    - User is marked as **inactive** and **requires approval**
    - Admin must manually activate the user in Users management
 4. User receives "Account pending approval" message
