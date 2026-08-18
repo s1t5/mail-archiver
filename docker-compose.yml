@@ -11,6 +11,7 @@ services:
       - "5000:5000"
     networks:
       - postgres
+    volumes:
       # Uncomment the following line to mount a directory for local file imports
       # (also add the path to appsettings.json: LocalImport.AllowedPaths)
       # - /path/to/your/mbox/files:/data/import

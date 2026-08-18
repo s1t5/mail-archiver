@@ -14,6 +14,10 @@ uploads/*
 
 # DataProtection Keys
 DataProtection-Keys/
+data-protection-keys/
+
+# Local Postgres data volume (docker-compose)
+postgres-data/
 
 # Build-Ergebnisse
 [Dd]ebug/
