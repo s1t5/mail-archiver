@@ -666,7 +666,10 @@
                 toggle.addEventListener('click', function(e) {
                     e.stopPropagation();
                     const parent = this.closest('.folder-tree-item');
-                    const children = parent.querySelector('.folder-tree-children');
+                    // .folder-tree-children is a SIBLING of .folder-tree-item (not a descendant),
+                    // so querySelector won't find it — use nextElementSibling instead.
+                    const sibling = parent.nextElementSibling;
+                    const children = sibling && sibling.classList.contains('folder-tree-children') ? sibling : null;
                     if (children) {
                         children.style.display = children.style.display === 'none' ? '' : 'none';
                         this.classList.toggle('expanded');
