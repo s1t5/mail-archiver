@@ -70,6 +70,7 @@ Use the **Full Resync** button when:
 - You suspect the archive is missing messages (e.g. after a server migration, a provider outage, or a clock-skew incident).
 - You migrated the mailbox to a different backend and want to verify completeness.
 - You want to re-detect messages that were moved between folders on the server.
+- Folders that were previously invisible to Mail Archiver became visible again — e.g. Outlook.com folders created through third-party clients that were filtered out of the IMAP folder listing until they were renamed via the web UI (see [Personal Microsoft Account Setup → Troubleshooting](MSA_Outlook_Setup.md#-troubleshooting)). A Full Sync is needed because a Quick Sync would not backfill the older mails in those folders.
 
 Do **not** use Full Sync:
 

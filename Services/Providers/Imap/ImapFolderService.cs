@@ -29,6 +29,7 @@ namespace MailArchiver.Services.Providers.Imap
 
                 var recursiveFolders = new List<IMailFolder>();
                 var perLevelFolders = new List<IMailFolder>();
+                var lsubFolders = new List<IMailFolder>();
 
                 if (client.PersonalNamespaces != null && client.PersonalNamespaces.Count > 0)
                 {
@@ -39,7 +40,7 @@ namespace MailArchiver.Services.Providers.Imap
                     recursiveFolders = await DiscoverFoldersRecursiveAsync(client, ns, accountName);
 
                     // Strategy 2: Per-level traversal. This runs ALWAYS, not only as a fallback,
-                    // because the recursive LIST on Provider (personal/MSA) accounts can fail
+                    // because the recursive LIST on Outlook.com (personal/MSA) accounts can fail
                     // in two distinct ways when folder names contain special characters such as
                     // parentheses, spaces or commas (e.g. "NYC (work, June)"):
                     //
@@ -52,21 +53,29 @@ namespace MailArchiver.Services.Providers.Imap
                     //
                     // Per-level traversal queries each folder's children individually, so a bad
                     // folder only breaks its own (or its parent's) LIST command — sibling subtrees
-                    // and everything before/after the offending entry are still discovered. The
-                    // union of both strategies recovers from both failure modes.
+                    // and everything before/after the offending entry are still discovered.
                     perLevelFolders = await DiscoverFoldersPerLevelAsync(client, ns, accountName);
+
+                    // Strategy 3: LSUB (subscribed folders). Some servers (notably Outlook.com)
+                    // omit folders from LIST responses that they still report via LSUB — e.g.
+                    // folders whose PR_CONTAINER_CLASS was set to a non-IPF.Note value by
+                    // third-party clients using EWS. One extra command, merged into the union.
+                    lsubFolders = await DiscoverSubscribedFoldersAsync(client, ns, accountName);
                 }
                 else
                 {
                     _logger.LogWarning("No PersonalNamespaces available for account {AccountName}", accountName);
                 }
 
-                var folders = MergeFolderLists(recursiveFolders, perLevelFolders, f => f.FullName);
+                var folders = MergeFolderLists(
+                    MergeFolderLists(recursiveFolders, perLevelFolders, f => f.FullName),
+                    lsubFolders, f => f.FullName);
 
-                // Diagnostic: if the per-level traversal found folders that the recursive LIST
-                // did not return, the server most likely returned a truncated/malformed LIST
-                // response. Surface this loudly so users can see WHY folders were missing.
-                if (perLevelFolders.Count > 0 && folders.Count > recursiveFolders.Count)
+                // Diagnostic: if the per-level traversal or LSUB found folders that the recursive
+                // LIST did not return, the server most likely returned a truncated/malformed LIST
+                // response or filters folders out of LIST entirely. Surface this loudly so users
+                // can see WHY folders were missing.
+                if ((perLevelFolders.Count > 0 || lsubFolders.Count > 0) && folders.Count > recursiveFolders.Count)
                 {
                     var recovered = folders
                         .Where(f => !recursiveFolders.Any(r => r.FullName == f.FullName))
@@ -81,9 +90,11 @@ namespace MailArchiver.Services.Providers.Imap
 
                         _logger.LogWarning(
                             "The recursive IMAP LIST for account {AccountName} missed {RecoveredCount} folder(s) " +
-                            "(recursive found: {RecursiveCount}). This happens on Provider when folder names " +
-                            "contain special characters (parentheses, spaces, commas), causing truncated or " +
-                            "malformed LIST responses. Recovered via per-level traversal: {RecoveredFolders}{Suffix}",
+                            "(recursive found: {RecursiveCount}). This happens on Outlook.com when folder names " +
+                            "contain special characters (parentheses, spaces, commas) causing truncated or malformed " +
+                            "LIST responses, or when folders were created through third-party clients (EWS) with a " +
+                            "non-IPF.Note PR_CONTAINER_CLASS and are filtered out of LIST entirely. " +
+                            "Recovered via per-level traversal/LSUB: {RecoveredFolders}{Suffix}",
                             accountName, recovered.Count, recursiveFolders.Count, loggedNames, suffix);
                     }
                 }
@@ -294,6 +305,44 @@ namespace MailArchiver.Services.Providers.Imap
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Per-level folder traversal failed for {AccountName}: {Message}", accountName, ex.Message);
+            }
+
+            return folders;
+        }
+
+        /// <summary>
+        /// Strategy 3: LSUB — lists subscribed folders. Some servers (notably Outlook.com) omit
+        /// folders from LIST responses that they still report via LSUB, e.g. folders created
+        /// through third-party clients via EWS whose PR_CONTAINER_CLASS is not IPF.Note.
+        /// Returns only selectable folders; returns an empty list if the command fails.
+        /// </summary>
+        private async Task<List<IMailFolder>> DiscoverSubscribedFoldersAsync(ImapClient client, FolderNamespace ns, string accountName)
+        {
+            var folders = new List<IMailFolder>();
+
+            try
+            {
+                var subscribedFolders = await client.GetFoldersAsync(ns, StatusItems.None, subscribedOnly: true);
+                _logger.LogInformation("GetFoldersAsync(LSUB) returned {Count} subscribed folders", subscribedFolders.Count);
+
+                foreach (var folder in subscribedFolders)
+                {
+                    _logger.LogDebug("Found subscribed folder: Name={Name}, FullName={FullName}, Attributes={Attributes}",
+                        folder.Name ?? "NULL", folder.FullName ?? "NULL", folder.Attributes);
+
+                    if (IsSelectable(folder) && !folders.Any(f => f.FullName == folder.FullName))
+                    {
+                        folders.Add(folder);
+                    }
+                }
+            }
+            catch (Exception lsubEx)
+            {
+                // LSUB is best-effort: some servers do not support it or report errors. The
+                // LIST-based strategies remain the authoritative discovery sources.
+                _logger.LogWarning(lsubEx,
+                    "GetFoldersAsync(LSUB) failed for {AccountName}: {Message}. Continuing with LIST-based discovery results.",
+                    accountName, lsubEx.Message);
             }
 
             return folders;

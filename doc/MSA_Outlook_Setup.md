@@ -122,8 +122,26 @@ After revoking, Mail Archiver can no longer access the account until you re-auth
 - **Shared Client ID**: When using the default Client ID, all Mail Archiver users on all instances share the same Azure App Registration. The maintainer of Mail Archiver is responsible for keeping the registration active. If Microsoft disables the shared registration, all users would need to switch to a custom registration (Option B) until a new release ships an updated Client ID.
 
 
-
 - **Organizational Accounts**: The Microsoft Personal provider uses the `/common` authority endpoint and supports both personal and organizational (work/school) accounts. For organizational accounts requiring client-credentials access (app-only, no user sign-in), use the **M365** provider instead.
+
+---
+
+## 🔍 Troubleshooting
+
+### Folders visible on outlook.com but missing in Mail Archiver
+
+**Symptom**: Some folders exist in the mailbox (visible on outlook.com or in Outlook), but they never appear in Mail Archiver — neither in the folder list on the account settings page nor during sync. No error is logged.
+
+**Cause (server-side)**: Folders that were created by **third-party clients through EWS** — which sets up outlook.com accounts as Exchange accounts rather than IMAP — can end up with a wrong `PR_CONTAINER_CLASS` property (e.g. `IPF.Imap` instead of `IPF.Note`). Outlook.com then **filters these folders out of the IMAP `LIST` response entirely**, even though they are fully visible in the web UI. This is a Microsoft-side behavior, not a Mail Archiver bug — the same phenomenon is documented for the Microsoft Graph API, where folders with a non-`IPF.Note` container class are missing from `mailFolders` listings until the property is corrected:
+
+Mail Archiver queries the folder list from three sources (recursive `LIST`, per-level traversal of every folder's children, and `LSUB`) and merges the results. When the server does not report a folder through any of them, there is no way for any IMAP client to see it.
+
+**Workaround**: Touch the affected folders once through the outlook.com web UI so that Microsoft corrects the container class:
+
+1. Open <https://outlook.com> and locate a missing folder.
+2. Rename it (any temporary name) and rename it back — or create a new folder and move the mails over.
+3. Repeat for every affected folder.
+4. Trigger a **Full Resync** of the account from the Account Details page in Mail Archiver. A full resync is required because incremental syncs only fetch mail newer than the account's last sync date — mails in folders that were never discovered would otherwise remain unarchived.
 
 
 *This guide is current as of 2026. Microsoft regularly updates their services and UI, so some steps may differ. Refer to the [Microsoft identity platform documentation](https://learn.microsoft.com/en-us/entra/identity-platform/) for the latest details.*
