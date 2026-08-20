@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -138,6 +139,192 @@ namespace MailArchiver.Services.Shared
                 return string.Empty;
 
             return string.Join("\n", headers.Select(h => $"{h.Field}: {h.Value}"));
+        }
+
+        /// <summary>
+        /// Extracts the message date with fallback handling for missing or malformed Date
+        /// headers. Tries the Date header first, then falls back to the Received headers
+        /// (oldest hop first), then to Resent-Date, and finally returns
+        /// <see cref="DateTimeOffset.MinValue"/>. Shared by the archiving pipeline and the
+        /// retention-deletion pipeline so both compute identical dates (and therefore
+        /// identical fallback Message-IDs) for the same message.
+        /// </summary>
+        /// <param name="dateHeader">
+        /// The parsed Date header value. Pass <c>default</c> (<see cref="DateTimeOffset.MinValue"/>)
+        /// when the message has no parsable Date header.
+        /// </param>
+        /// <param name="headers">The message headers used for the Received/Resent-Date fallbacks.</param>
+        /// <returns>A DateTimeOffset representing the email's date.</returns>
+        public static DateTimeOffset ExtractEmailDate(DateTimeOffset dateHeader, HeaderList? headers)
+        {
+            if (dateHeader != default)
+                return dateHeader;
+
+            if (headers != null)
+            {
+                // Fallback 1: Try to extract date from Received headers. Iterate from the end
+                // of the list (oldest hop in the chain, i.e. when the mail was originally
+                // received) towards the front.
+                try
+                {
+                    var receivedHeaders = headers.Where(h => h.Id == HeaderId.Received).ToList();
+                    for (int i = receivedHeaders.Count - 1; i >= 0; i--)
+                    {
+                        var dateFromReceived = ExtractDateFromReceivedHeader(receivedHeaders[i].Value);
+                        if (dateFromReceived.HasValue)
+                            return dateFromReceived.Value;
+                    }
+                }
+                catch
+                {
+                    // Ignore malformed Received headers and fall through to the next fallback.
+                }
+
+                // Fallback 2: Try Resent-Date header
+                try
+                {
+                    var resentDateHeader = headers.FirstOrDefault(h => h.Id == HeaderId.ResentDate);
+                    if (resentDateHeader != null)
+                    {
+                        var resentDate = ParseDateHeaderValue(resentDateHeader.Value);
+                        if (resentDate.HasValue)
+                            return resentDate.Value;
+                    }
+                }
+                catch
+                {
+                    // Ignore malformed Resent-Date headers and fall through.
+                }
+            }
+
+            // Fallback 3: Use MinValue to indicate an unknown date
+            return DateTimeOffset.MinValue;
+        }
+
+        /// <summary>
+        /// Extracts a date from a Received header value. Received headers typically end with
+        /// a date in a format like <c>; Sat, 16 Dec 2000 08:45:05 +0100 (CET)</c>.
+        /// </summary>
+        /// <param name="receivedHeader">The Received header value.</param>
+        /// <returns>A DateTimeOffset if parsing was successful, null otherwise.</returns>
+        public static DateTimeOffset? ExtractDateFromReceivedHeader(string receivedHeader)
+        {
+            if (string.IsNullOrEmpty(receivedHeader))
+                return null;
+
+            // Find the semicolon that precedes the date
+            var lastSemicolon = receivedHeader.LastIndexOf(';');
+            if (lastSemicolon < 0 || lastSemicolon >= receivedHeader.Length - 1)
+                return null;
+
+            var datePart = receivedHeader.Substring(lastSemicolon + 1).Trim();
+
+            return ParseDateHeaderValue(datePart);
+        }
+
+        /// <summary>
+        /// Parses a date string from a header value, handling various formats gracefully.
+        /// </summary>
+        /// <param name="dateString">The date string to parse.</param>
+        /// <returns>A DateTimeOffset if parsing was successful, null otherwise.</returns>
+        public static DateTimeOffset? ParseDateHeaderValue(string dateString)
+        {
+            if (string.IsNullOrEmpty(dateString))
+                return null;
+
+            // Remove any trailing comments in parentheses like (CET) or (GMT)
+            var parenIndex = dateString.IndexOf('(');
+            if (parenIndex > 0)
+            {
+                dateString = dateString.Substring(0, parenIndex).Trim();
+            }
+
+            // Try various date formats
+            var formats = new[]
+            {
+                "ddd, d MMM yyyy H:mm:ss zzz",
+                "ddd, d MMM yyyy HH:mm:ss zzz",
+                "ddd, d MMM yyyy H:mm:ss",
+                "ddd, d MMM yyyy HH:mm:ss",
+                "d MMM yyyy H:mm:ss zzz",
+                "d MMM yyyy HH:mm:ss zzz",
+                "d MMM yyyy H:mm:ss",
+                "d MMM yyyy HH:mm:ss",
+                "ddd, d MMM yy H:mm:ss zzz",
+                "ddd, d MMM yy HH:mm:ss zzz",
+                "d MMM yy H:mm:ss zzz",
+                "d MMM yy HH:mm:ss zzz"
+            };
+
+            foreach (var format in formats)
+            {
+                if (DateTimeOffset.TryParseExact(dateString, format, CultureInfo.InvariantCulture,
+                    DateTimeStyles.AllowWhiteSpaces | DateTimeStyles.AssumeLocal, out var result))
+                {
+                    return result;
+                }
+            }
+
+            // Try the standard RFC 2822 date parsing as a fallback
+            if (DateTimeOffset.TryParse(dateString, CultureInfo.InvariantCulture,
+                DateTimeStyles.AllowWhiteSpaces | DateTimeStyles.AssumeLocal, out var parsedDate))
+            {
+                return parsedDate;
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Builds the complete set of fallback Message-ID candidate keys under which a message
+        /// without a Message-ID header may have been stored in the archive, depending on which
+        /// pipeline and which application version archived it:
+        /// <list type="number">
+        /// <item>Current IMAP archiving format: hash over from|to|subject|dateTicks plus the
+        /// canonical header block (date from the full fallback chain of <see cref="ExtractEmailDate"/>).</item>
+        /// <item>EML/MBOX import format: hash over from|to|subject|dateTicks without canonical
+        /// headers, using only the Date header (ticks 0 when missing).</item>
+        /// <item>Legacy IMAP archiving format (before the deterministic generator existed):
+        /// <c>{From}-{To}-{Subject}-{dateTicks}</c> (date from the full fallback chain).</item>
+        /// </list>
+        /// The retention-deletion path matches all candidates so messages archived by any of
+        /// these pipelines/versions are recognized as archived and can be deleted.
+        /// </summary>
+        /// <param name="from">Comma-separated bare sender addresses.</param>
+        /// <param name="to">Comma-separated bare recipient addresses.</param>
+        /// <param name="subject">The message subject (null is treated as empty).</param>
+        /// <param name="dateHeader">
+        /// The parsed Date header value; <c>default</c> (<see cref="DateTimeOffset.MinValue"/>) when missing.
+        /// </param>
+        /// <param name="headers">The message headers (for the canonical header block and date fallbacks).</param>
+        /// <param name="legacyFromText">
+        /// Formatted sender address list (<c>InternetAddressList.ToString()</c> semantics) used by the
+        /// legacy key; falls back to the bare addresses when null.
+        /// </param>
+        /// <param name="legacyToText">
+        /// Formatted recipient address list (<c>InternetAddressList.ToString()</c> semantics) used by the
+        /// legacy key; falls back to the bare addresses when null.
+        /// </param>
+        /// <returns>The distinct candidate keys.</returns>
+        public static List<string> GenerateFallbackMessageIdCandidates(
+            string? from, string? to, string? subject,
+            DateTimeOffset dateHeader,
+            HeaderList? headers,
+            string? legacyFromText, string? legacyToText)
+        {
+            var extractedTicks = ExtractEmailDate(dateHeader, headers).Ticks;
+
+            var candidates = new List<string>(3)
+            {
+                // Current IMAP archiving format (with canonical headers)
+                GenerateFallbackMessageId(from, to, subject, extractedTicks, BuildCanonicalHeaders(headers)),
+                // EML/MBOX import format (no canonical headers, Date header only - 0 ticks when missing)
+                GenerateFallbackMessageId(from, to, subject, dateHeader.Ticks),
+                // Legacy IMAP archiving format
+                $"{legacyFromText ?? from ?? string.Empty}-{legacyToText ?? to ?? string.Empty}-{subject}-{extractedTicks}"
+            };
+
+            return candidates.Distinct().ToList();
         }
 
         /// <summary>

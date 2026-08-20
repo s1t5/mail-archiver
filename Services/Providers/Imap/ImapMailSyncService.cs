@@ -1202,51 +1202,49 @@ namespace MailArchiver.Services.Providers.Imap
 
                                 _logger.LogDebug("Raw Message-ID from IMAP: {RawMessageId}", rawMessageId ?? "NULL");
 
-                                string normalizedMessageId;
-                                string? legacyMessageId = null;
+                                List<string> candidateMessageIds;
                                 if (string.IsNullOrEmpty(rawMessageId))
                                 {
-                                    // Same deterministic fallback ID as the archiving path
-                                    // (EmailCoreService.ArchiveEmailAsync) so retention deletion
-                                    // can match messages archived without a Message-ID header.
+                                    // No Message-ID header: depending on which pipeline and application
+                                    // version archived the message, it may be stored under any of the
+                                    // fallback key formats (current IMAP format with canonical headers,
+                                    // EML/MBOX import format without canonical headers, or the legacy
+                                    // string format). Compute all candidates and match against all of
+                                    // them so archived messages are reliably recognized.
                                     var from = string.Join(",", summary.Envelope?.From?.Mailboxes.Select(m => m.Address) ?? Enumerable.Empty<string>());
                                     var to = string.Join(",", summary.Envelope?.To?.Mailboxes.Select(m => m.Address) ?? Enumerable.Empty<string>());
                                     var subject = summary.Envelope?.Subject ?? string.Empty;
-                                    // Prefer the Date header (like the archiving path); InternalDate only as fallback.
-                                    var dateTicks = summary.Envelope?.Date?.Ticks ?? summary.InternalDate?.Ticks ?? 0L;
 
-                                    normalizedMessageId = MailContentHelper.GenerateFallbackMessageId(
-                                        from, to, subject, dateTicks,
-                                        MailContentHelper.BuildCanonicalHeaders(summary.Headers));
+                                    candidateMessageIds = MailContentHelper.GenerateFallbackMessageIdCandidates(
+                                        from, to, subject,
+                                        summary.Envelope?.Date ?? default,
+                                        summary.Headers,
+                                        summary.Envelope?.From?.ToString(), summary.Envelope?.To?.ToString());
 
-                                    // Approximation of the fallback key used before the deterministic
-                                    // generator existed, for rows archived under it that have not
-                                    // been healed yet.
-                                    legacyMessageId = $"{summary.Envelope?.From}-{summary.Envelope?.To}-{summary.Envelope?.Subject}-{dateTicks}";
-
-                                    _logger.LogDebug("Constructed Message-ID (no header): {ConstructedMessageId}", normalizedMessageId);
+                                    _logger.LogDebug("Constructed fallback Message-ID candidates (no header): {CandidateMessageIds}",
+                                        string.Join(", ", candidateMessageIds));
                                 }
                                 else
                                 {
-                                    normalizedMessageId = MailContentHelper.NormalizeMessageId(rawMessageId);
+                                    var normalizedMessageId = MailContentHelper.NormalizeMessageId(rawMessageId);
+                                    candidateMessageIds = new List<string>(1) { normalizedMessageId };
                                     _logger.LogDebug("Message-ID: raw={RawMessageId}, normalized={NormalizedMessageId}",
                                         rawMessageId, normalizedMessageId);
                                 }
 
                                 var isArchived = await _context.ArchivedEmails
-                                    .AnyAsync(e => e.MailAccountId == account.Id &&
-                                        (e.MessageId == normalizedMessageId || (legacyMessageId != null && e.MessageId == legacyMessageId)));
+                                    .AnyAsync(e => e.MailAccountId == account.Id && candidateMessageIds.Contains(e.MessageId));
 
                                 if (isArchived)
                                 {
                                     uidsToDelete.Add(summary.UniqueId);
                                     _logger.LogDebug("Marking email with Message-ID {MessageId} for deletion from folder {FolderName}",
-                                        normalizedMessageId, folder.FullName);
+                                        candidateMessageIds[0], folder.FullName);
                                 }
                                 else
                                 {
                                     _logger.LogInformation("Skipping deletion of email with Message-ID {MessageId} (raw: {RawMessageId}) from folder {FolderName} (not archived). Account ID: {AccountId}",
-                                        normalizedMessageId, rawMessageId ?? "NULL", folder.FullName, account.Id);
+                                        candidateMessageIds[0], rawMessageId ?? "NULL", folder.FullName, account.Id);
                                 }
                             }
 

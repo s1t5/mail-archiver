@@ -1054,7 +1054,7 @@ namespace MailArchiver.Services.Core
         public async Task<bool> ArchiveEmailAsync(MailAccount account, MimeMessage message, bool isOutgoing, string? folderName = null)
         {
             // Extract date with fallback handling for malformed Date headers
-            var emailDate = ExtractEmailDate(message);
+            var emailDate = MailContentHelper.ExtractEmailDate(message.Date, message.Headers);
 
             // Extract raw headers for forensic/compliance purposes
                 var rawHeaders = ExtractRawHeaders(message);
@@ -1068,6 +1068,7 @@ namespace MailArchiver.Services.Core
                 // Check if this email is already archived
             string messageId;
             string? legacyMessageId = null;
+            string? importedMessageId = null;
             if (!string.IsNullOrWhiteSpace(message.MessageId))
             {
                 messageId = message.MessageId!;
@@ -1089,6 +1090,12 @@ namespace MailArchiver.Services.Core
                 // matched below so rows archived under it are recognized (and healed).
                 legacyMessageId = $"{message.From}-{message.To}-{message.Subject}-{emailDate.Ticks}";
 
+                // Fallback key used by the EML/MBOX import pipeline (hash without canonical
+                // headers, Date header only). Matched below so imported rows are recognized
+                // (and healed) instead of creating duplicates on sync.
+                importedMessageId = MailContentHelper.GenerateFallbackMessageId(
+                    fallbackFrom, fallbackTo, message.Subject, message.Date.Ticks);
+
                 _logger.LogWarning("Email without Message-ID header: using generated fallback ID {MessageId}. " +
                     "From: '{From}', To: '{To}', Date: {Date}, Folder: {FolderName}, Account: {AccountName}",
                     messageId, fallbackFrom, fallbackTo, emailDate, folderName ?? string.Empty, account.Name);
@@ -1096,18 +1103,21 @@ namespace MailArchiver.Services.Core
 
             var existingEmail = await _context.ArchivedEmails
                 .FirstOrDefaultAsync(e => e.MailAccountId == account.Id &&
-                    (e.MessageId == messageId || (legacyMessageId != null && e.MessageId == legacyMessageId)));
+                    (e.MessageId == messageId ||
+                     (legacyMessageId != null && e.MessageId == legacyMessageId) ||
+                     (importedMessageId != null && e.MessageId == importedMessageId)));
 
             if (existingEmail != null)
             {
                 var hasChanges = false;
 
-                // Self-heal rows archived under the legacy fallback key - but never touch
-                // compliance-locked rows: the DB trigger (prevent_locked_email_changes)
-                // forbids any change there besides IsLocked/FolderName.
+                // Self-heal rows archived under a fallback key (legacy or import format) -
+                // but never touch compliance-locked rows: the DB trigger
+                // (prevent_locked_email_changes) forbids any change there besides
+                // IsLocked/FolderName.
                 if (existingEmail.MessageId != messageId && !existingEmail.IsLocked)
                 {
-                    _logger.LogInformation("Migrating legacy fallback Message-ID '{LegacyMessageId}' to '{MessageId}' for existing email: {Subject}",
+                    _logger.LogInformation("Migrating fallback Message-ID '{LegacyMessageId}' to '{MessageId}' for existing email: {Subject}",
                         existingEmail.MessageId, messageId, existingEmail.Subject);
                     existingEmail.MessageId = messageId;
                     hasChanges = true;
@@ -1642,172 +1652,6 @@ namespace MailArchiver.Services.Core
                 _logger.LogWarning(ex, "Failed to extract raw headers from email: {Message}", ex.Message);
                 return null;
             }
-        }
-
-        #endregion
-
-        #region Date Extraction
-
-        /// <summary>
-        /// Extracts the date from a MimeMessage with fallback handling for malformed Date headers.
-        /// Tries the Date header first, then falls back to Received headers, and finally uses a default date.
-        /// </summary>
-        /// <param name="message">The MimeMessage to extract the date from</param>
-        /// <returns>A DateTimeOffset representing the email's date</returns>
-        private DateTimeOffset ExtractEmailDate(MimeMessage message)
-        {
-            // Try to get the date from the Date header
-            try
-            {
-                if (message.Date != default)
-                {
-                    return message.Date;
-                }
-            }
-            catch (ArgumentOutOfRangeException ex)
-            {
-                _logger.LogWarning("Malformed Date header in email Subject={Subject}, attempting fallback to Received headers. Error: {Error}",
-                    message.Subject, ex.Message);
-            }
-            catch (FormatException ex)
-            {
-                _logger.LogWarning("Unparseable Date format in email Subject={Subject}, attempting fallback to Received headers. Error: {Error}",
-                    message.Subject, ex.Message);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning("Error parsing Date header in email Subject={Subject}, attempting fallback to Received headers. Error: {Error}",
-                    message.Subject, ex.Message);
-            }
-
-            // Fallback 1: Try to extract date from Received headers (newest first, which is typically at the top)
-            try
-            {
-                var receivedHeaders = message.Headers.Where(h => h.Id == HeaderId.Received).ToList();
-                
-                // Iterate through Received headers (they're typically in reverse chronological order)
-                // We want the oldest (last in the chain) which represents when the email was originally received
-                for (int i = receivedHeaders.Count - 1; i >= 0; i--)
-                {
-                    var receivedHeader = receivedHeaders[i].Value;
-                    var dateFromReceived = ExtractDateFromReceivedHeader(receivedHeader);
-                    
-                    if (dateFromReceived.HasValue)
-                    {
-                        _logger.LogInformation("Using date from Received header for email Subject={Subject}: {Date}",
-                            message.Subject, dateFromReceived.Value);
-                        return dateFromReceived.Value;
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning("Error extracting date from Received headers for email Subject={Subject}: {Error}",
-                    message.Subject, ex.Message);
-            }
-
-            // Fallback 2: Try other date-related headers
-            try
-            {
-                // Try Resent-Date header
-                var resentDateHeader = message.Headers.FirstOrDefault(h => h.Id == HeaderId.ResentDate);
-                if (resentDateHeader != null)
-                {
-                    var dateValue = ParseDateHeaderValue(resentDateHeader.Value);
-                    if (dateValue.HasValue)
-                    {
-                        _logger.LogInformation("Using date from Resent-Date header for email Subject={Subject}: {Date}",
-                            message.Subject, dateValue.Value);
-                        return dateValue.Value;
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogDebug("Error checking Resent-Date header: {Error}", ex.Message);
-            }
-
-            // Fallback 3: Use a default date (Unix epoch) to indicate unknown date
-            _logger.LogWarning("Could not extract date from any header for email Subject={Subject}, From={From}, To={To}, using default date",
-                message.Subject, message.From, message.To);
-            
-            return DateTimeOffset.MinValue;
-        }
-
-        /// <summary>
-        /// Extracts a date from a Received header value
-        /// </summary>
-        /// <param name="receivedHeader">The Received header value</param>
-        /// <returns>A DateTimeOffset if parsing was successful, null otherwise</returns>
-        private DateTimeOffset? ExtractDateFromReceivedHeader(string receivedHeader)
-        {
-            if (string.IsNullOrEmpty(receivedHeader))
-                return null;
-
-            // Received headers typically end with a date in format like:
-            // ; Sat, 16 Dec 2000 08:45:05 +0100 (CET)
-            // Find the semicolon that precedes the date
-            var lastSemicolon = receivedHeader.LastIndexOf(';');
-            if (lastSemicolon < 0 || lastSemicolon >= receivedHeader.Length - 1)
-                return null;
-
-            var datePart = receivedHeader.Substring(lastSemicolon + 1).Trim();
-
-            // Try to parse the date part
-            return ParseDateHeaderValue(datePart);
-        }
-
-        /// <summary>
-        /// Parses a date string from a header value, handling various formats gracefully
-        /// </summary>
-        /// <param name="dateString">The date string to parse</param>
-        /// <returns>A DateTimeOffset if parsing was successful, null otherwise</returns>
-        private DateTimeOffset? ParseDateHeaderValue(string dateString)
-        {
-            if (string.IsNullOrEmpty(dateString))
-                return null;
-
-            // Remove any trailing comments in parentheses like (CET) or (GMT)
-            var parenIndex = dateString.IndexOf('(');
-            if (parenIndex > 0)
-            {
-                dateString = dateString.Substring(0, parenIndex).Trim();
-            }
-
-            // Try various date formats
-            var formats = new[]
-            {
-                "ddd, d MMM yyyy H:mm:ss zzz",
-                "ddd, d MMM yyyy HH:mm:ss zzz",
-                "ddd, d MMM yyyy H:mm:ss",
-                "ddd, d MMM yyyy HH:mm:ss",
-                "d MMM yyyy H:mm:ss zzz",
-                "d MMM yyyy HH:mm:ss zzz",
-                "d MMM yyyy H:mm:ss",
-                "d MMM yyyy HH:mm:ss",
-                "ddd, d MMM yy H:mm:ss zzz",
-                "ddd, d MMM yy HH:mm:ss zzz",
-                "d MMM yy H:mm:ss zzz",
-                "d MMM yy HH:mm:ss zzz"
-            };
-
-            foreach (var format in formats)
-            {
-                if (DateTimeOffset.TryParseExact(dateString, format, CultureInfo.InvariantCulture, 
-                    DateTimeStyles.AllowWhiteSpaces | DateTimeStyles.AssumeLocal, out var result))
-                {
-                    return result;
-                }
-            }
-
-            // Try the standard RFC 2822 date parsing as a fallback
-            if (DateTimeOffset.TryParse(dateString, CultureInfo.InvariantCulture, 
-                DateTimeStyles.AllowWhiteSpaces | DateTimeStyles.AssumeLocal, out var parsedDate))
-            {
-                return parsedDate;
-            }
-
-            return null;
         }
 
         #endregion

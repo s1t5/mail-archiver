@@ -972,6 +972,85 @@ public class EmailCoreServiceTests
         }
     }
 
+    [Fact]
+    public async Task Archive_ImportedFallbackKey_HealsMessageIdWithoutDuplicate()
+    {
+        // Rows imported via EML/MBOX without a Message-ID header carry the import fallback
+        // key (hash without canonical headers, Date header only). IMAP sync must recognize
+        // them (no duplicate) and heal them to the IMAP fallback key - otherwise retention
+        // deletion can never match them (GitHub discussion #302).
+        var ctx = _fixture.CreateContext();
+        try
+        {
+            var acct = await SeedAccountAsync(ctx);
+            var msg = LoadRawMessage(
+                "From: alice@x.com\r\nTo: bob@x.com\r\n" +
+                "Date: Mon, 05 Jan 2004 10:00:00 +0100\r\n\r\nimported body");
+
+            // Exact formula the import pipeline (MailImporter) uses for messages without Message-ID.
+            var importedKey = MailContentHelper.GenerateFallbackMessageId(
+                "alice@x.com", "bob@x.com", null, msg.Date.Ticks);
+            var importedEmail = BuildEmail(acct, "(No Subject)", "alice@x.com", "bob@x.com", messageId: importedKey);
+            ctx.ArchivedEmails.Add(importedEmail);
+            await ctx.SaveChangesAsync();
+
+            // Healing only applies to unlocked rows; unlock the seeded row via EF-tracked
+            // update (IsLocked changes are explicitly allowed by the compliance trigger).
+            importedEmail.IsLocked = false;
+            await ctx.SaveChangesAsync();
+
+            var svc = ServiceFactory.CreateEmailCoreService(ctx);
+            Assert.False(await svc.ArchiveEmailAsync(acct, msg, false, "INBOX"));
+
+            var stored = await ctx.ArchivedEmails.Where(e => e.MailAccountId == acct.Id).ToListAsync();
+            var row = Assert.Single(stored);
+            var expectedKey = MailContentHelper.GenerateFallbackMessageId(
+                "alice@x.com", "bob@x.com", null, msg.Date.Ticks,
+                MailContentHelper.BuildCanonicalHeaders(msg.Headers));
+            Assert.Equal(expectedKey, row.MessageId);
+        }
+        finally
+        {
+            await CleanupTestAccountAsync(ctx);
+            await ctx.DisposeAsync();
+        }
+    }
+
+    [Fact]
+    public async Task Archive_ImportedFallbackKey_LockedRow_NotHealedButSkipped()
+    {
+        // Compliance: a locked imported row must never be modified (the DB trigger forbids
+        // it). The duplicate is still recognized and skipped without an exception.
+        var ctx = _fixture.CreateContext();
+        try
+        {
+            var acct = await SeedAccountAsync(ctx);
+            var msg = LoadRawMessage(
+                "From: alice@x.com\r\nTo: bob@x.com\r\n" +
+                "Date: Mon, 05 Jan 2004 10:00:00 +0100\r\n\r\nlocked imported body");
+
+            var importedKey = MailContentHelper.GenerateFallbackMessageId(
+                "alice@x.com", "bob@x.com", null, msg.Date.Ticks);
+            var lockedEmail = BuildEmail(acct, "(No Subject)", "alice@x.com", "bob@x.com", messageId: importedKey);
+            ctx.ArchivedEmails.Add(lockedEmail);
+            await ctx.SaveChangesAsync();
+
+            lockedEmail.IsLocked = true;
+            await ctx.SaveChangesAsync();
+
+            var svc = ServiceFactory.CreateEmailCoreService(ctx);
+            Assert.False(await svc.ArchiveEmailAsync(acct, msg, false, "INBOX"));
+
+            var row = await ctx.ArchivedEmails.SingleAsync(e => e.MailAccountId == acct.Id);
+            Assert.Equal(importedKey, row.MessageId);
+        }
+        finally
+        {
+            await CleanupTestAccountAsync(ctx);
+            await ctx.DisposeAsync();
+        }
+    }
+
     /// <summary>
     /// Removes all test rows for accounts created in the given context (emails, caches,
     /// backfill states, user-mail-account links, and the account itself).
