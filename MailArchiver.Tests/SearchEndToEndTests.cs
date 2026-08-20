@@ -165,4 +165,70 @@ public class SearchEndToEndTests : IClassFixture<SearchDbFixture>
         var many = string.Join(" ", Enumerable.Range(1, 300).Select(i => "zq" + i));
         Assert.Contains(1, await Ids($"subject:(festplatte) OR body:({many})"));
     }
+
+    // Startup-ensure fix: EnsureTrgmIndex in Program.cs must create the GIN index when pg_trgm
+    // is available but the migration skipped it (best-effort one-shot). Verifies the idempotent
+    // ensure SQL: drop the index, run the SQL, assert it reappears.
+    // Skipped when pg_trgm is not installed on the test server or no test DB is configured.
+    [Fact] public async Task TrgmIndex_startup_ensure_creates_index_when_extension_available()
+    {
+        if (!_fx.Enabled) return;
+
+        // Try to enable pg_trgm; skip if not available on the test server.
+        bool hasTrgm;
+        await using (var conn = new NpgsqlConnection(_fx.Conn))
+        {
+            await conn.OpenAsync();
+            try
+            {
+                await new NpgsqlCommand("CREATE EXTENSION IF NOT EXISTS pg_trgm", conn)
+                    .ExecuteNonQueryAsync();
+                hasTrgm = true;
+            }
+            catch { hasTrgm = false; }
+        }
+        if (!hasTrgm) return;
+
+        // Simulate migration-skipped state: drop the index if it exists.
+        await using (var conn = new NpgsqlConnection(_fx.Conn))
+        {
+            await conn.OpenAsync();
+            var dropSql = "DROP INDEX IF EXISTS mail_archiver.\"idx_archivedemails_trgm_search\"";
+            await new NpgsqlCommand(dropSql, conn).ExecuteNonQueryAsync();
+        }
+
+        // Run the startup-ensure SQL (mirrors Program.cs EnsureTrgmIndex).
+        await using (var conn = new NpgsqlConnection(_fx.Conn))
+        {
+            await conn.OpenAsync();
+            var ensureSql = @"
+                DO $$
+                BEGIN
+                    IF EXISTS (SELECT 1 FROM pg_extension WHERE extname = 'pg_trgm')
+                       AND NOT EXISTS (SELECT 1 FROM pg_indexes
+                                       WHERE schemaname = 'mail_archiver'
+                                         AND tablename  = 'ArchivedEmails'
+                                         AND indexname  = 'idx_archivedemails_trgm_search') THEN
+                        CREATE INDEX ""idx_archivedemails_trgm_search""
+                        ON mail_archiver.""ArchivedEmails""
+                        USING GIN (lower(
+                            COALESCE(""Subject"", '') || ' ' ||
+                            COALESCE(""Body"", '') || ' ' ||
+                            COALESCE(""From"", '') || ' ' ||
+                            COALESCE(""To"", '') || ' ' ||
+                            COALESCE(""Cc"", '') || ' ' ||
+                            COALESCE(""Bcc"", '')) gin_trgm_ops);
+                    END IF;
+                END $$;";
+            await new NpgsqlCommand(ensureSql, conn).ExecuteNonQueryAsync();
+
+            // Assert: the index must now exist.
+            var checkSql = @"SELECT COUNT(*)::int FROM pg_indexes
+                              WHERE schemaname = 'mail_archiver'
+                                AND indexname  = 'idx_archivedemails_trgm_search'";
+            var count = (int)(await new NpgsqlCommand(checkSql, conn).ExecuteScalarAsync() ?? 0);
+            Assert.Equal(1, count);
+        }
+    }
 }
+
