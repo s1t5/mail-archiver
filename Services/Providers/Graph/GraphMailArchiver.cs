@@ -295,6 +295,7 @@ namespace MailArchiver.Services.Providers.Graph
                 ReceivedDate = DateTime.UtcNow,
                 IsOutgoing = isOutgoingEmail || isOutgoing,
                 HasAttachments = false, // Set after attachment loading
+                IsRead = message.IsRead ?? false,
                 Body = body,
                 HtmlBody = htmlBody,
                 BodyUntruncatedText = null,

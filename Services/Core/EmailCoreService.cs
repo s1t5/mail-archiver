@@ -302,7 +302,7 @@ namespace MailArchiver.Services.Core
                     )
                     SELECT e.""Id"", e.""MailAccountId"", e.""MessageId"", e.""Subject"", e.""Body"", e.""HtmlBody"",
                            e.""From"", e.""To"", e.""Cc"", e.""Bcc"", e.""SentDate"", e.""ReceivedDate"",
-                           e.""IsOutgoing"", e.""HasAttachments"", e.""FolderName"", e.""IsLocked"",
+                           e.""IsOutgoing"", e.""HasAttachments"", e.""IsRead"", e.""FolderName"", e.""IsLocked"",
                            ma.""Id"" as ""AccountId"", ma.""Name"" as ""AccountName"", ma.""EmailAddress"" as ""AccountEmail""
                     FROM ""page"" p
                     INNER JOIN mail_archiver.""ArchivedEmails"" e ON e.""Id"" = p.""Id""
@@ -314,7 +314,7 @@ namespace MailArchiver.Services.Core
                 dataSql = $@"
                     SELECT e.""Id"", e.""MailAccountId"", e.""MessageId"", e.""Subject"", e.""Body"", e.""HtmlBody"",
                            e.""From"", e.""To"", e.""Cc"", e.""Bcc"", e.""SentDate"", e.""ReceivedDate"",
-                           e.""IsOutgoing"", e.""HasAttachments"", e.""FolderName"", e.""IsLocked"",
+                           e.""IsOutgoing"", e.""HasAttachments"", e.""IsRead"", e.""FolderName"", e.""IsLocked"",
                            ma.""Id"" as ""AccountId"", ma.""Name"" as ""AccountName"", ma.""EmailAddress"" as ""AccountEmail""
                     FROM mail_archiver.""ArchivedEmails"" e
                     INNER JOIN mail_archiver.""MailAccounts"" ma ON e.""MailAccountId"" = ma.""Id""
@@ -378,6 +378,7 @@ namespace MailArchiver.Services.Core
                     ReceivedDate = reader.GetDateTime(reader.GetOrdinal("ReceivedDate")),
                     IsOutgoing = reader.GetBoolean(reader.GetOrdinal("IsOutgoing")),
                     HasAttachments = reader.GetBoolean(reader.GetOrdinal("HasAttachments")),
+                    IsRead = reader.GetBoolean(reader.GetOrdinal("IsRead")),
                     FolderName = reader.IsDBNull(reader.GetOrdinal("FolderName")) ? "" : reader.GetString(reader.GetOrdinal("FolderName")),
                     IsLocked = reader.GetBoolean(reader.GetOrdinal("IsLocked")),
                     MailAccount = new MailAccount
@@ -1051,7 +1052,7 @@ namespace MailArchiver.Services.Core
 
         #region Archiving
 
-        public async Task<bool> ArchiveEmailAsync(MailAccount account, MimeMessage message, bool isOutgoing, string? folderName = null)
+        public async Task<bool> ArchiveEmailAsync(MailAccount account, MimeMessage message, bool isOutgoing, string? folderName = null, bool isRead = false)
         {
             // Extract date with fallback handling for malformed Date headers
             var emailDate = MailContentHelper.ExtractEmailDate(message.Date, message.Headers);
@@ -1322,6 +1323,7 @@ namespace MailArchiver.Services.Core
                     ReceivedDate = DateTime.UtcNow,
                     IsOutgoing = (isOutgoingEmail || isOutgoingFolder) && !isDraftsFolder,
                     HasAttachments = allAttachments.Any(),
+                    IsRead = isRead,
                     Body = body,
                     HtmlBody = htmlBody,
                     // LEGACY: BodyUntruncated fields are no longer populated for new emails (kept for backward compatibility)

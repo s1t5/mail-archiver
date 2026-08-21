@@ -12,6 +12,7 @@ public class EmailSummaryDto
     public DateTime SentDate { get; set; }
     public bool IsOutgoing { get; set; }
     public bool HasAttachments { get; set; }
+    public bool IsRead { get; set; }
     public string FolderName { get; set; } = string.Empty;
 
     public static EmailSummaryDto FromEntity(ArchivedEmail e)
@@ -26,6 +27,7 @@ public class EmailSummaryDto
             SentDate = e.SentDate,
             IsOutgoing = e.IsOutgoing,
             HasAttachments = e.HasAttachments,
+            IsRead = e.IsRead,
             FolderName = e.FolderName
         };
     }
