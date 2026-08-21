@@ -1106,7 +1106,7 @@
     <value>neues Passwort bestätigen</value>
   </data>
   <data name="LeaveBlankToKeepPassword" xml:space="preserve">
-    <value>leer lassen um das akltuelle Kennwort zu behalten</value>
+    <value>leer lassen um das aktuelle Kennwort zu behalten</value>
   </data>
   <data name="CreateUserTitle" xml:space="preserve">
     <value>Benutzer erstellen</value>
