@@ -87,6 +87,24 @@ namespace MailArchiver.Services.Providers
             return await _restorer.RestoreEmailToFolderAsync(emailId, targetAccountId, folderName, preserveFolderStructure);
         }
 
+        /// <summary>
+        /// Date-windowed offload into another mailbox: appends only what the target does not
+        /// already hold, honouring folder exclusions and the folder rename map.
+        /// </summary>
+        public Task<OffloadOutcome> OffloadEmailsAsync(
+            List<int> emailIds,
+            int targetAccountId,
+            string folderName,
+            bool preserveFolderStructure,
+            OffloadCriteria criteria,
+            Action<int, int, int>? progressCallback,
+            CancellationToken cancellationToken)
+        {
+            return _restorer.OffloadEmailsAsync(
+                emailIds, targetAccountId, folderName, preserveFolderStructure,
+                criteria, progressCallback, cancellationToken);
+        }
+
         public Task<(int Successful, int Failed)> RestoreMultipleEmailsWithProgressAsync(
             List<int> emailIds,
             int targetAccountId,

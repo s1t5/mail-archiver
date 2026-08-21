@@ -267,6 +267,17 @@
             </div>
 
             <div class="d-flex flex-wrap gap-2 mb-3">
+                @if (isAdmin)
+                {
+                    @* First and solid, ahead of "copy all", because it is the safer of the two: it
+                       takes a date window, honours folder exclusions and the rename map, skips
+                       what the target already holds, and can be dry run. "Copy all" is all or
+                       nothing and starts on click, so it should not be what the eye lands on
+                       first. *@
+                    <a asp-action="Offload" asp-route-id="@Model.Id" class="btn btn-success">
+                        <i class="bi bi-box-arrow-right"></i> @Localizer["OffloadTitle"]
+                    </a>
+                }
                 <form asp-action="MoveAllEmails" asp-route-id="@Model.Id" method="post" style="display: inline;">
                     @Html.AntiForgeryToken()
                     <button type="submit" class="btn btn-outline-success">

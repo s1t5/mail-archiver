@@ -59,7 +59,9 @@ namespace MailArchiver.Controllers
         IMsaOAuthService msaOAuthService,
         IOptions<MsaOAuthOptions> msaOptions,
         IAccountStorageService accountStorageService,
-        IOptions<CsvImportOptions> csvImportOptions)
+        IOptions<CsvImportOptions> csvImportOptions,
+        IOptions<OffloadOptions> offloadOptions,
+        IBatchRestoreService batchRestoreService)
     {
         _context = context;
         _emailCoreService = emailCoreService;
@@ -81,7 +83,12 @@ namespace MailArchiver.Controllers
         _msaOptions = msaOptions.Value;
         _accountStorageService = accountStorageService;
         _csvImportOptions = csvImportOptions.Value;
+        _offloadOptions = offloadOptions.Value;
+        _batchRestoreService = batchRestoreService;
     }
+
+        private readonly OffloadOptions _offloadOptions;
+        private readonly IBatchRestoreService _batchRestoreService;
 
         private async Task<bool> HasAccessToAccountAsync(int accountId)
         {
@@ -1372,6 +1379,163 @@ namespace MailArchiver.Controllers
             }
 
             return RedirectToAction(nameof(Details), new { id });
+        }
+
+        // GET: MailAccounts/Offload/5
+        [HttpGet]
+        public async Task<IActionResult> Offload(int id)
+        {
+            if (!await HasAccessToAccountAsync(id)) return NotFound();
+
+            var account = await _context.MailAccounts.FindAsync(id);
+            if (account == null) return NotFound();
+
+            var model = await BuildOffloadViewModelAsync(account);
+            return View(model);
+        }
+
+        // POST: MailAccounts/Offload/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Offload(int id, OffloadViewModel model)
+        {
+            if (!await HasAccessToAccountAsync(id)) return NotFound();
+
+            var account = await _context.MailAccounts.FindAsync(id);
+            if (account == null) return NotFound();
+
+            if (model.TargetAccountId == id)
+            {
+                ModelState.AddModelError(nameof(model.TargetAccountId), _localizer["OffloadTargetMustDiffer"].Value);
+            }
+
+            var target = await _context.MailAccounts.FindAsync(model.TargetAccountId);
+            if (target == null)
+            {
+                ModelState.AddModelError(nameof(model.TargetAccountId), _localizer["OffloadTargetNotFound"].Value);
+            }
+            else if (target.Provider != ProviderType.IMAP)
+            {
+                // The Graph restore path is untouched by this feature.
+                ModelState.AddModelError(nameof(model.TargetAccountId), _localizer["OffloadTargetMustBeImap"].Value);
+            }
+            else if (!target.IsEnabled)
+            {
+                ModelState.AddModelError(nameof(model.TargetAccountId), _localizer["OffloadTargetDisabled"].Value);
+            }
+
+            // Resolved to an absolute date here, once, so a repeat of this job selects the same
+            // mail even if it runs days later.
+            var nowDisplay = DateTime.UtcNow;
+            DateTime cutoffFrom;
+            if (model.CutoffFrom.HasValue)
+            {
+                cutoffFrom = MailArchiver.Services.Shared.OffloadCutoff.FromAbsolute(model.CutoffFrom.Value);
+            }
+            else if (model.WindowMonths > 0)
+            {
+                cutoffFrom = MailArchiver.Services.Shared.OffloadCutoff.FromRelativeMonths(nowDisplay, model.WindowMonths);
+            }
+            else
+            {
+                ModelState.AddModelError(nameof(model.CutoffFrom), _localizer["OffloadCutoffRequired"].Value);
+                cutoffFrom = default;
+            }
+
+            if (model.CutoffTo.HasValue && model.CutoffTo.Value.Date < cutoffFrom.Date)
+            {
+                ModelState.AddModelError(nameof(model.CutoffTo), _localizer["OffloadCutoffToBeforeFrom"].Value);
+            }
+
+            if (!ModelState.IsValid)
+            {
+                var redisplay = await BuildOffloadViewModelAsync(account);
+                redisplay.TargetAccountId = model.TargetAccountId;
+                redisplay.TargetFolder = model.TargetFolder;
+                redisplay.PreserveFolderStructure = model.PreserveFolderStructure;
+                redisplay.WindowMonths = model.WindowMonths;
+                redisplay.CutoffFrom = model.CutoffFrom;
+                redisplay.CutoffTo = model.CutoffTo;
+                redisplay.DryRun = model.DryRun;
+                redisplay.MarkAsSeen = model.MarkAsSeen;
+                return View(redisplay);
+            }
+
+            var upper = model.CutoffTo?.Date.AddDays(1).AddSeconds(-1);
+            var countQuery = _context.ArchivedEmails
+                .Where(e => e.MailAccountId == id && e.SentDate >= cutoffFrom);
+            if (upper.HasValue) countQuery = countQuery.Where(e => e.SentDate <= upper.Value);
+            var resolvedCount = await countQuery.CountAsync();
+
+            if (resolvedCount == 0)
+            {
+                TempData["ErrorMessage"] = _localizer["OffloadNothingInWindow"].Value;
+                return RedirectToAction(nameof(Offload), new { id });
+            }
+
+            // Kept as a sanity guard rather than the binding constraint it used to be: a date
+            // window brings even a very large mailbox well under this.
+            if (resolvedCount > _batchOptions.MaxAsyncEmails)
+            {
+                TempData["ErrorMessage"] = _localizer["TooManyEmailsInAccount", resolvedCount, _batchOptions.MaxAsyncEmails].Value;
+                return RedirectToAction(nameof(Offload), new { id });
+            }
+
+            var job = new BatchRestoreJob
+            {
+                TargetAccountId = model.TargetAccountId,
+                TargetFolder = string.IsNullOrWhiteSpace(model.TargetFolder) ? "INBOX" : model.TargetFolder.Trim(),
+                PreserveFolderStructure = model.PreserveFolderStructure,
+                UserId = User?.Identity?.Name ?? "System",
+                ReturnUrl = Url.Action(nameof(Details), new { id }) ?? "/",
+                Offload = new OffloadCriteria
+                {
+                    SourceAccountId = id,
+                    CutoffFrom = cutoffFrom,
+                    CutoffTo = model.CutoffTo,
+                    ExcludedSourceFolders = _offloadOptions.ExcludedSourceFolders,
+                    FolderRenameMap = _offloadOptions.FolderRenameMap,
+                    MarkAsSeen = model.MarkAsSeen,
+                    DryRun = model.DryRun,
+                },
+            };
+
+            var jobId = _batchRestoreService.QueueJob(job);
+
+            _logger.LogInformation(
+                "Queued offload job {JobId}: {Count} mails from account {SourceId} to {TargetId}, window {Window}, dry run {DryRun}",
+                jobId, resolvedCount, id, model.TargetAccountId, job.Offload.DescribeWindow(), model.DryRun);
+
+            TempData["SuccessMessage"] = model.DryRun
+                ? _localizer["OffloadDryRunQueued", resolvedCount].Value
+                : _localizer["OffloadQueued", resolvedCount].Value;
+
+            return RedirectToAction("BatchRestoreStatus", "Emails", new { jobId });
+        }
+
+        private async Task<OffloadViewModel> BuildOffloadViewModelAsync(MailAccount account)
+        {
+            var targets = await _context.MailAccounts
+                .Where(a => a.Id != account.Id && a.IsEnabled && a.Provider == ProviderType.IMAP)
+                .OrderBy(a => a.Name)
+                .Select(a => new OffloadViewModel.TargetAccountOption
+                {
+                    Id = a.Id,
+                    Name = a.Name,
+                    EmailAddress = a.EmailAddress,
+                })
+                .ToListAsync();
+
+            return new OffloadViewModel
+            {
+                SourceAccountId = account.Id,
+                SourceAccountName = account.Name,
+                SourceTotalEmails = await _context.ArchivedEmails.CountAsync(e => e.MailAccountId == account.Id),
+                AvailableTargets = targets,
+                ExcludedSourceFolders = _offloadOptions.ExcludedSourceFolders,
+                FolderRenameMap = _offloadOptions.FolderRenameMap,
+                MarkAsSeen = _offloadOptions.MarkAsSeen,
+            };
         }
 
         // POST: MailAccounts/MoveAllEmails/5

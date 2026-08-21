@@ -1,0 +1,181 @@
+@using MailArchiver.Models.ViewModels
+@inject Microsoft.Extensions.Localization.IStringLocalizer<MailArchiver.SharedResource> Localizer
+@model MailArchiver.Models.ViewModels.OffloadViewModel
+@{
+    ViewData["Title"] = Localizer["OffloadTitle"];
+}
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="mb-0"><i class="bi bi-box-arrow-right me-2"></i>@Localizer["OffloadTitle"]</h2>
+        <a asp-action="Details" asp-route-id="@Model.SourceAccountId" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> @Localizer["Back"]
+        </a>
+    </div>
+
+    <p class="text-muted">@Localizer["OffloadIntro"]</p>
+
+    @if (!Model.AvailableTargets.Any())
+    {
+        <div class="alert alert-warning">
+            <i class="bi bi-exclamation-triangle me-2"></i>@Localizer["OffloadNoTargets"]
+        </div>
+    }
+    else
+    {
+        <form asp-action="Offload" asp-route-id="@Model.SourceAccountId" method="post">
+            @Html.AntiForgeryToken()
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+            <div class="row">
+                <div class="col-lg-7">
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            <span class="h6 mb-0">@Localizer["OffloadSourceAndTarget"]</span>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label class="form-label">@Localizer["SourceAccount"]</label>
+                                <input type="text" class="form-control" readonly
+                                       value="@Model.SourceAccountName (@Model.SourceTotalEmails.ToString("N0") @Localizer["EmailsLabel"])" />
+                            </div>
+
+                            <div class="mb-3">
+                                <label asp-for="TargetAccountId" class="form-label">@Localizer["TargetAccount"]</label>
+                                <select asp-for="TargetAccountId" class="form-select">
+                                    <option value="">@Localizer["OffloadSelectTarget"]</option>
+                                    @foreach (var target in Model.AvailableTargets)
+                                    {
+                                        <option value="@target.Id">@target.Name (@target.EmailAddress)</option>
+                                    }
+                                </select>
+                                <span asp-validation-for="TargetAccountId" class="text-danger"></span>
+                            </div>
+
+                            <div class="mb-3">
+                                <label asp-for="TargetFolder" class="form-label">@Localizer["TargetFolder"]</label>
+                                <input asp-for="TargetFolder" class="form-control" />
+                                <div class="form-text">@Localizer["OffloadTargetFolderHelp"]</div>
+                            </div>
+
+                            <div class="form-check">
+                                <input asp-for="PreserveFolderStructure" class="form-check-input" />
+                                <label asp-for="PreserveFolderStructure" class="form-check-label">
+                                    @Localizer["PreserveFolderStructure"]
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            <span class="h6 mb-0">@Localizer["OffloadWindow"]</span>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label asp-for="WindowMonths" class="form-label">@Localizer["OffloadWindowMonths"]</label>
+                                <input asp-for="WindowMonths" type="number" min="0" max="600" class="form-control" />
+                                <div class="form-text">@Localizer["OffloadWindowMonthsHelp"]</div>
+                                <span asp-validation-for="WindowMonths" class="text-danger"></span>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label asp-for="CutoffFrom" class="form-label">@Localizer["OffloadCutoffFrom"]</label>
+                                    <input asp-for="CutoffFrom" type="date" class="form-control" />
+                                    <div class="form-text">@Localizer["OffloadCutoffFromHelp"]</div>
+                                    <span asp-validation-for="CutoffFrom" class="text-danger"></span>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label asp-for="CutoffTo" class="form-label">@Localizer["OffloadCutoffTo"]</label>
+                                    <input asp-for="CutoffTo" type="date" class="form-control" />
+                                    <div class="form-text">@Localizer["OffloadCutoffToHelp"]</div>
+                                    <span asp-validation-for="CutoffTo" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-5">
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            <span class="h6 mb-0">@Localizer["OffloadOptions"]</span>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-check mb-3">
+                                <input asp-for="DryRun" class="form-check-input" />
+                                <label asp-for="DryRun" class="form-check-label">@Localizer["OffloadDryRun"]</label>
+                                <div class="form-text">@Localizer["OffloadDryRunHelp"]</div>
+                            </div>
+
+                            <div class="form-check">
+                                <input asp-for="MarkAsSeen" class="form-check-input" />
+                                <label asp-for="MarkAsSeen" class="form-check-label">@Localizer["OffloadMarkAsSeen"]</label>
+                                <div class="form-text">@Localizer["OffloadMarkAsSeenHelp"]</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    @* Shown read-only: a run that silently dropped or renamed folders would be a
+                       nasty surprise, so whatever is configured is visible where the button is. *@
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            <span class="h6 mb-0">@Localizer["OffloadFolderHandling"]</span>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label class="form-label">@Localizer["OffloadExcludedFolders"]</label>
+                                @if (Model.ExcludedSourceFolders.Any())
+                                {
+                                    <ul class="list-unstyled mb-0">
+                                        @foreach (var folder in Model.ExcludedSourceFolders)
+                                        {
+                                            <li><code>@folder</code></li>
+                                        }
+                                    </ul>
+                                }
+                                else
+                                {
+                                    <p class="text-muted mb-0"><em>@Localizer["OffloadNoneConfigured"]</em></p>
+                                }
+                            </div>
+
+                            <div>
+                                <label class="form-label">@Localizer["OffloadRenameMap"]</label>
+                                @if (Model.FolderRenameMap.Any())
+                                {
+                                    <ul class="list-unstyled mb-0">
+                                        @foreach (var entry in Model.FolderRenameMap)
+                                        {
+                                            <li><code>@entry.Key</code> &rarr; <code>@entry.Value</code></li>
+                                        }
+                                    </ul>
+                                }
+                                else
+                                {
+                                    <p class="text-muted mb-0"><em>@Localizer["OffloadNoneConfigured"]</em></p>
+                                }
+                            </div>
+
+                            <div class="form-text mt-2">@Localizer["OffloadFolderHandlingHelp"]</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex gap-2 mb-4">
+                <button type="submit" class="btn btn-success">
+                    <i class="bi bi-box-arrow-right"></i> @Localizer["OffloadStart"]
+                </button>
+                <a asp-action="Details" asp-route-id="@Model.SourceAccountId" class="btn btn-outline-secondary">
+                    @Localizer["Cancel"]
+                </a>
+            </div>
+        </form>
+    }
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

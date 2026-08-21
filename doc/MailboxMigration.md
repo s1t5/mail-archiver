@@ -8,6 +8,8 @@ This guide explains how to migrate a mailbox from one email provider to another 
 
 The Mail Archiver application provides functionality to migrate emails from a source mailbox to a target mailbox. This is particularly useful when changing email providers while preserving your email history. The folder structure of the source mailbox is also preserved during migration.
 
+> **Migrating only recent mail?** The flow described below copies the *whole* archived mailbox, and running it twice appends everything a second time. If the new mailbox should hold only mail newer than a cutoff while the full history stays in the archive, use the [date-windowed offload](Offload.md) instead. It takes a date window, can exclude and rename folders, offers a dry run, and is safe to repeat because it skips whatever the target already holds. It is also driveable from the command line, which makes a fleet of mailboxes scriptable.
+
 ## 🚀 Migration Process
 
 Follow these steps to migrate your mailbox:
@@ -52,6 +54,7 @@ Follow these steps to migrate your mailbox:
 
 ## ⚠️ Important Notes
 
+- This flow is not repeatable: running it again appends every message a second time. The [date-windowed offload](Offload.md) is the repeatable alternative.
 - Ensure that the source account has sufficient permissions to read all emails
 - Make sure that the target account has sufficient storage space for the migrated emails
 - The migration process may take some time depending on the number of emails and the connection speed
