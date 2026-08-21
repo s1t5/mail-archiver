@@ -1,0 +1,24 @@
+From alice@source.example Sat Jan 25 00:00:00 2020
+X-Fixture-Purpose: the rename must rewrite the leading path segment only, giving Sent/2019
+From: alice@source.example
+To: bob@target.example
+Subject: Sent in a subfolder
+Date: Sat, 25 Jan 2020 00:00:00 +0000
+Message-ID: <sent-in-a-subfolder-2400-0@source.example>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+
+Fixture message.
+
+From alice@source.example Fri Dec 06 00:00:00 2019
+X-Fixture-Purpose: second row so the folder count is not 1
+From: alice@source.example
+To: bob@target.example
+Subject: Another subfolder message
+Date: Fri, 06 Dec 2019 00:00:00 +0000
+Message-ID: <another-subfolder-message-2450-0@source.example>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+
+Fixture message.
+

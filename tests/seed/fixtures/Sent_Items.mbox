@@ -1,0 +1,24 @@
+From alice@source.example Sun Aug 09 00:00:00 2026
+X-Fixture-Purpose: collides with the target's existing special-use Sent
+From: alice@source.example
+To: bob@target.example
+Subject: Sent recently
+Date: Sun, 09 Aug 2026 00:00:00 +0000
+Message-ID: <sent-recently-12-0@source.example>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+
+Fixture message.
+
+From alice@source.example Sun Feb 28 00:00:00 2021
+X-Fixture-Purpose: same folder, outside a short cutoff
+From: alice@source.example
+To: bob@target.example
+Subject: Sent long ago
+Date: Sun, 28 Feb 2021 00:00:00 +0000
+Message-ID: <sent-long-ago-2000-0@source.example>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+
+Fixture message.
+

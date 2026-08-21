@@ -1,0 +1,11 @@
+-- Runs once, on first initialisation of the postgres volume.
+--
+-- Two databases so `dotnet test` and a manually run application do not share state:
+-- the test suite leaves fixture rows behind (mail accounts, users, log entries), which
+-- the application's background sync would otherwise pick up and try to sync.
+--
+--   MailArchiver     used by dotnet test        (tests/MailArchiver.Tests/appsettings.Test.json)
+--   MailArchiverDev  used by dotnet run         (appsettings.Development.json)
+--
+-- MailArchiver itself is created by the image from POSTGRES_DB.
+CREATE DATABASE "MailArchiverDev" OWNER mailuser;

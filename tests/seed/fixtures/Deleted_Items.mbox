@@ -1,0 +1,12 @@
+From alice@source.example Thu Aug 06 00:00:00 2026
+X-Fixture-Purpose: should be excluded, and excluded before any rename
+From: alice@source.example
+To: bob@target.example
+Subject: Deleted mail
+Date: Thu, 06 Aug 2026 00:00:00 +0000
+Message-ID: <deleted-mail-15-0@source.example>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+
+Fixture message.
+

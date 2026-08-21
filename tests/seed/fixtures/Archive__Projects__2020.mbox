@@ -1,0 +1,24 @@
+From alice@source.example Fri Nov 20 00:00:00 2020
+X-Fixture-Purpose: three levels, recreated below the target root
+From: alice@source.example
+To: bob@target.example
+Subject: Deeply nested
+Date: Fri, 20 Nov 2020 00:00:00 +0000
+Message-ID: <deeply-nested-2100-0@source.example>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+
+Fixture message.
+
+From alice@source.example Sun Nov 15 00:00:00 2020
+X-Fixture-Purpose: second row in the deepest folder
+From: alice@source.example
+To: bob@target.example
+Subject: Deeply nested again
+Date: Sun, 15 Nov 2020 00:00:00 +0000
+Message-ID: <deeply-nested-again-2105-0@source.example>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+
+Fixture message.
+
