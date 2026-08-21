@@ -225,40 +225,45 @@ namespace MailArchiver.Services
                     if (!emailsToDelete.Any())
                         break;
 
-                    // Log each deletion if access log service is available
+                    // Update progress immediately before slow operations
+                    job.DeletedEmails += emailsToDelete.Count;
+                    remainingEmails -= emailsToDelete.Count;
+
+                    // Log deletions using the same DbContext instance as the email removal
+                    // below, in a single SaveChangesAsync call. The DbContext/ChangeTracker
+                    // is not thread-safe, so these entries must not be added concurrently
+                    // (e.g. via Task.WhenAll of per-email LogAccessAsync calls that each call
+                    // SaveChangesAsync) - that corrupts the tracker and throws
+                    // "cannot be tracked because another instance with the same key ... is
+                    // already being tracked".
                     if (accessLogService != null)
                     {
-                        foreach (var email in emailsToDelete)
+                        var now = DateTime.UtcNow;
+                        var logEntries = emailsToDelete.Select(email => new AccessLog
                         {
-                            try
-                            {
-                                await accessLogService.LogAccessAsync(
-                                    job.UserId,
-                                    AccessLogType.Deletion,
-                                    emailId: email.Id,
-                                    emailSubject: email.Subject?.Length > 255 
-                                        ? email.Subject.Substring(0, 255) 
-                                        : email.Subject,
-                                    emailFrom: email.From?.Length > 255 
-                                        ? email.From.Substring(0, 255) 
-                                        : email.From,
-                                    mailAccountId: email.MailAccountId);
-                            }
-                            catch (Exception ex)
-                            {
-                                _logger.LogWarning(ex, "Failed to log deletion of email {EmailId}", email.Id);
-                            }
-                        }
+                            Username = job.UserId,
+                            Type = AccessLogType.Deletion,
+                            Timestamp = now,
+                            EmailId = email.Id,
+                            EmailSubject = email.Subject?.Length > 255
+                                ? email.Subject.Substring(0, 255)
+                                : email.Subject,
+                            EmailFrom = email.From?.Length > 255
+                                ? email.From.Substring(0, 255)
+                                : email.From,
+                            MailAccountId = email.MailAccountId
+                        });
+
+                        context.AccessLogs.AddRange(logEntries);
                     }
 
+                    // Delete emails from database
                     context.ArchivedEmails.RemoveRange(emailsToDelete);
                     await context.SaveChangesAsync(combinedToken);
 
+                    // Track affected accounts
                     foreach (var email in emailsToDelete)
                         affectedAccountIds.Add(email.MailAccountId);
-
-                    job.DeletedEmails += emailsToDelete.Count;
-                    remainingEmails -= emailsToDelete.Count;
 
                     _logger.LogDebug("Job {JobId}: Deleted {Count} emails, {Remaining} remaining", 
                         job.JobId, emailsToDelete.Count, remainingEmails);
