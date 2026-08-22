@@ -1232,7 +1232,7 @@
     <value>Пароль должен содержать не менее 6 символов.</value>
   </data>
   <data name="AllAccounts" xml:space="preserve">
-    <value>Все счета</value>
+    <value>Все аккаунты</value>
   </data>
   <data name="All" xml:space="preserve">
     <value>Все</value>
