@@ -250,12 +250,30 @@ namespace MailArchiver.Services.Core
                 paramCounter++;
             }
 
-            // Folder filtering
+            // Folder filtering: selecting a folder also shows the emails of all descendant
+            // folders (path-boundary prefix match). Intermediate folders rendered in the
+            // folder tree can hold no emails themselves; an exact-only match would return
+            // an empty result for such parents. Kept in sync with SearchEmailsEFAsync.
             if (!string.IsNullOrEmpty(folderName))
             {
-                whereConditions.Add($@"""FolderName"" = @param{paramCounter}");
-                parameters.Add(new Npgsql.NpgsqlParameter($"@param{paramCounter}", folderName));
-                paramCounter++;
+                var exactParam = paramCounter;
+                var slashParam = paramCounter + 1;
+                var backslashParam = paramCounter + 2;
+                var dotParam = paramCounter + 3;
+                paramCounter += 4;
+
+                // Escape LIKE special chars (\ % _) in the literal part, then append the
+                // wildcard LAST so it isn't escaped. The separator must be escaped too:
+                // a backslash separator is itself the default LIKE escape character, so an
+                // unescaped "…\%" would read as literal '%' instead of "prefix + anything".
+                const string esc = "\\";
+                string Esc(string s) => s.Replace(esc, esc + esc).Replace("%", esc + "%").Replace("_", esc + "_");
+
+                whereConditions.Add($@"(""FolderName"" = @param{exactParam} OR ""FolderName"" LIKE @param{slashParam} ESCAPE '{esc}' OR ""FolderName"" LIKE @param{backslashParam} ESCAPE '{esc}' OR ""FolderName"" LIKE @param{dotParam} ESCAPE '{esc}')");
+                parameters.Add(new Npgsql.NpgsqlParameter($"@param{exactParam}", folderName));
+                parameters.Add(new Npgsql.NpgsqlParameter($"@param{slashParam}",     Esc(folderName + "/")  + "%"));
+                parameters.Add(new Npgsql.NpgsqlParameter($"@param{backslashParam}", Esc(folderName + "\\") + "%"));
+                parameters.Add(new Npgsql.NpgsqlParameter($"@param{dotParam}",       Esc(folderName + ".")  + "%"));
             }
 
             var whereClause = whereConditions.Any() ? "WHERE " + string.Join(" AND ", whereConditions) : "";

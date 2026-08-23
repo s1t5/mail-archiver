@@ -385,6 +385,47 @@ public class EmailCoreServiceTests
     }
 
     [Fact]
+    public async Task Search_FolderFilter_IncludesDescendantFolders()
+    {
+        var ctx = _fixture.CreateContext();
+        try
+        {
+            var acct = await SeedAccountAsync(ctx);
+            ctx.ArchivedEmails.Add(BuildEmail(acct, "root-mail",    "a@x.com", "b@x.com", folder: "travel"));
+            ctx.ArchivedEmails.Add(BuildEmail(acct, "nested-slash", "a@x.com", "b@x.com", folder: "travel/2022"));
+            ctx.ArchivedEmails.Add(BuildEmail(acct, "deep-slash",   "a@x.com", "b@x.com", folder: "travel/2022/France"));
+            ctx.ArchivedEmails.Add(BuildEmail(acct, "nested-backslash", "a@x.com", "b@x.com", folder: "archive\\2022"));
+            ctx.ArchivedEmails.Add(BuildEmail(acct, "nested-dot",   "a@x.com", "b@x.com", folder: "lists.2022"));
+            ctx.ArchivedEmails.Add(BuildEmail(acct, "lookalike",    "a@x.com", "b@x.com", folder: "travelXyz"));
+            ctx.ArchivedEmails.Add(BuildEmail(acct, "unrelated",    "a@x.com", "b@x.com", folder: "INBOX"));
+            await ctx.SaveChangesAsync();
+
+            var svc = ServiceFactory.CreateEmailCoreService(ctx);
+
+            var (emails, total) = await svc.SearchEmailsAsync(null, null, null, acct.Id, "travel", null, 0, 50);
+            Assert.Equal(3, total);
+            Assert.Contains(emails, e => e.Subject == "root-mail");
+            Assert.Contains(emails, e => e.Subject == "nested-slash");
+            Assert.Contains(emails, e => e.Subject == "deep-slash");
+            Assert.DoesNotContain(emails, e => e.Subject == "lookalike");
+            Assert.DoesNotContain(emails, e => e.Subject == "unrelated");
+
+            var (emailsBs, totalBs) = await svc.SearchEmailsAsync(null, null, null, acct.Id, "archive", null, 0, 50);
+            Assert.Equal(1, totalBs);
+            Assert.Equal("nested-backslash", emailsBs[0].Subject);
+
+            var (emailsDot, totalDot) = await svc.SearchEmailsAsync(null, null, null, acct.Id, "lists", null, 0, 50);
+            Assert.Equal(1, totalDot);
+            Assert.Equal("nested-dot", emailsDot[0].Subject);
+        }
+        finally
+        {
+            await CleanupTestAccountAsync(ctx);
+            await ctx.DisposeAsync();
+        }
+    }
+
+    [Fact]
     public async Task Search_SortBy_SubjectAsc()
     {
         var ctx = _fixture.CreateContext();
