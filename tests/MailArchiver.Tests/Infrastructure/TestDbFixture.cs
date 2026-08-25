@@ -109,13 +109,18 @@ public class TestDbFixture : IAsyncLifetime
         var baseDir = AppContext.BaseDirectory;
         var repoRoot = Path.GetFullPath(Path.Combine(baseDir, "..", "..", "..", "..", ".."));
 
+        // Order matters: later sources override earlier ones, so this list runs from
+        // lowest to highest precedence to match the order documented on the class.
+        // The repo-root files come first because appsettings.json is committed with the
+        // Docker default (Host=postgres); listing it after appsettings.Test.json would
+        // let it override every per-developer setting, which is what used to happen.
         var builder = new ConfigurationBuilder()
             .SetBasePath(baseDir)
+            .AddJsonFile(Path.Combine(repoRoot, "appsettings.json"), optional: true, reloadOnChange: false)
+            .AddJsonFile(Path.Combine(repoRoot, "appsettings.Development.json"), optional: true, reloadOnChange: false)
             .AddJsonFile("appsettings.json", optional: true, reloadOnChange: false)
             .AddJsonFile("appsettings.Development.json", optional: true, reloadOnChange: false)
             .AddJsonFile("appsettings.Test.json", optional: true, reloadOnChange: false)
-            .AddJsonFile(Path.Combine(repoRoot, "appsettings.json"), optional: true, reloadOnChange: false)
-            .AddJsonFile(Path.Combine(repoRoot, "appsettings.Development.json"), optional: true, reloadOnChange: false)
             .AddEnvironmentVariables(prefix: "MailArchiverTest__");
 
         return builder.Build();
