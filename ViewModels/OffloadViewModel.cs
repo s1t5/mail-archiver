@@ -53,6 +53,12 @@ namespace MailArchiver.Models.ViewModels
         /// <summary>Accounts that can be offloaded into, i.e. enabled IMAP accounts.</summary>
         public List<TargetAccountOption> AvailableTargets { get; set; } = new();
 
+        /// <summary>
+        /// True when the target list was narrowed to the accounts assigned to the acting user, so
+        /// an empty list can explain itself instead of claiming no target exists anywhere.
+        /// </summary>
+        public bool TargetsAreScopedToUser { get; set; }
+
         /// <summary>Configured exclusions, shown read-only so a run is never a surprise.</summary>
         public List<string> ExcludedSourceFolders { get; set; } = new();
 

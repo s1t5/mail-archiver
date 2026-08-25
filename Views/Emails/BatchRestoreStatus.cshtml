@@ -1,7 +1,16 @@
 ﻿@inject Microsoft.Extensions.Localization.IStringLocalizer<MailArchiver.SharedResource> Localizer
+@inject MailArchiver.Services.IAuthenticationService AuthService
 @model MailArchiver.Models.BatchRestoreJob
 @{
     ViewData["Title"] = Localizer["BatchRestoreStatusTitle"];
+
+    // The offload report lists the source mailbox's folder names, and this page is not scoped to
+    // the job's owner, so it is only shown to that owner and to an admin. BatchRestoreJob.UserId
+    // is written from User.Identity.Name, which is what GetCurrentUserDisplayName returns.
+    var currentUser = AuthService.GetCurrentUserDisplayName(Context);
+    var mayReadReport = AuthService.IsCurrentUserAdmin(Context)
+        || (!string.IsNullOrEmpty(currentUser)
+            && string.Equals(Model.UserId, currentUser, StringComparison.OrdinalIgnoreCase));
 }
 
 <div class="container">
@@ -163,7 +172,7 @@
                 }
             </dl>
 
-            @if (!string.IsNullOrEmpty(Model.Report))
+            @if (!string.IsNullOrEmpty(Model.Report) && mayReadReport)
             {
                 <h6 class="mt-3">@Localizer["OffloadReport"]</h6>
                 <pre class="bg-light border rounded p-3 mb-0" style="overflow-x: auto; font-size: 0.85rem;">@Model.Report</pre>

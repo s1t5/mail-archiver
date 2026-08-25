@@ -18,7 +18,9 @@
     @if (!Model.AvailableTargets.Any())
     {
         <div class="alert alert-warning">
-            <i class="bi bi-exclamation-triangle me-2"></i>@Localizer["OffloadNoTargets"]
+            <i class="bi bi-exclamation-triangle me-2"></i>@(Model.TargetsAreScopedToUser
+                ? Localizer["OffloadNoTargetsAssigned"]
+                : Localizer["OffloadNoTargets"])
         </div>
     }
     else

@@ -104,16 +104,30 @@ covers the whole target mailbox rather than one resolved folder.
 
 ## 🖥️ Running it from the interface
 
-Admin only. On an account's detail page, **Offload to Another Mailbox** opens a form with the
-target mailbox, the target root folder, whether to preserve the folder structure, the date
-window, a dry run switch, and whether to mark appended mail as read. The configured exclusions
-and rename map are shown read-only, so a run is never a surprise.
+On an account's detail page, **Offload to Another Mailbox** opens a form with the target mailbox,
+the target root folder, whether to preserve the folder structure, the date window, a dry run
+switch, and whether to mark appended mail as read. The configured exclusions and rename map are
+shown read-only, so a run is never a surprise.
 
 The job is queued and its progress and per-folder report appear on the job status page and under
-**Jobs**.
+**Jobs**. The per-folder report names source folders, so it is shown only to the user who started
+the job and to administrators.
 
 The target mailbox must be an enabled IMAP account. Microsoft 365 accounts cannot be offload
 targets; the Graph restore path is unchanged.
+
+### Who may run it
+
+Administrators can offload between any two accounts. A self-manager can offload **only between
+the accounts assigned to them**, at both ends: the source, because the account page is already
+scoped that way, and the target, because the target list is narrowed to the same set and the
+request is checked against it again when the job is started. A self-manager with a single
+assigned account therefore has no eligible target and is told so.
+
+Scoping comes from `IAccountAccessResolver`, the same resolver the REST API and the MCP server
+use, so there is one definition of who may use which mailbox. The decision itself lives in
+`OffloadTargetEligibility`, which both the target list and the request check call, so what the
+form offers and what the server accepts cannot drift apart.
 
 ## ⌨️ Running it from the command line
 

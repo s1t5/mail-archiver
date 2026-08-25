@@ -3264,6 +3264,9 @@
   <data name="OffloadNoTargets" xml:space="preserve">
     <value>Es ist kein weiteres aktives IMAP-Konto als Ziel verfügbar. Bitte zuerst eines anlegen.</value>
   </data>
+  <data name="OffloadNoTargetsAssigned" xml:space="preserve">
+    <value>Keines der Ihnen zugewiesenen Postfächer kann als Ziel verwendet werden. Bitte lassen Sie sich ein weiteres aktives IMAP-Konto zuweisen.</value>
+  </data>
   <data name="OffloadTargetRequired" xml:space="preserve">
     <value>Bitte ein Zielpostfach auswählen.</value>
   </data>

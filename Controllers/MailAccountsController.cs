@@ -4,6 +4,7 @@ using MailArchiver.Models.ViewModels;
 using MailArchiver.ViewModels;
 using MailArchiver.Services;
 using MailArchiver.Services.Providers;
+using MailArchiver.Services.Shared;
 using MailArchiver.Utilities;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -121,6 +122,15 @@ namespace MailArchiver.Controllers
             _logger.LogInformation("User has no special permissions, denying access to account {AccountId}", accountId);
             return false;
         }
+
+        /// <summary>
+        /// The acting user's account scope, taken from the resolver the REST API and the MCP
+        /// server already delegate to, so the offload form does not grow a second notion of who
+        /// may use which mailbox. Null means admin, i.e. every account; an empty list means none.
+        /// </summary>
+        private async Task<List<int>?> GetAllowedAccountIdsAsync()
+            => await HttpContext.RequestServices.GetRequiredService<IAccountAccessResolver>()
+                .GetAllowedAccountIdsAsync(HttpContext);
 
         // GET: MailAccounts
         public async Task<IActionResult> Index()
@@ -1404,24 +1414,32 @@ namespace MailArchiver.Controllers
             var account = await _context.MailAccounts.FindAsync(id);
             if (account == null) return NotFound();
 
-            if (model.TargetAccountId == id)
-            {
-                ModelState.AddModelError(nameof(model.TargetAccountId), _localizer["OffloadTargetMustDiffer"].Value);
-            }
-
+            // This is the boundary, not the dropdown. A post can name any account ID, so the
+            // target is decided here, through the same rules that filtered the list.
+            var allowedAccountIds = await GetAllowedAccountIdsAsync();
             var target = await _context.MailAccounts.FindAsync(model.TargetAccountId);
-            if (target == null)
+            var rejection = OffloadTargetEligibility.Evaluate(
+                target == null ? null : new OffloadTargetCandidate
+                {
+                    Id = target.Id,
+                    // The Graph restore path is untouched by this feature.
+                    Provider = target.Provider,
+                    IsEnabled = target.IsEnabled,
+                    IsAccessible = OffloadTargetEligibility.IsAccessible(target.Id, allowedAccountIds),
+                },
+                id);
+
+            if (rejection != OffloadTargetRejection.None)
             {
-                ModelState.AddModelError(nameof(model.TargetAccountId), _localizer["OffloadTargetNotFound"].Value);
-            }
-            else if (target.Provider != ProviderType.IMAP)
-            {
-                // The Graph restore path is untouched by this feature.
-                ModelState.AddModelError(nameof(model.TargetAccountId), _localizer["OffloadTargetMustBeImap"].Value);
-            }
-            else if (!target.IsEnabled)
-            {
-                ModelState.AddModelError(nameof(model.TargetAccountId), _localizer["OffloadTargetDisabled"].Value);
+                // Being handed a target one may not use is worth noticing, and worth noticing
+                // repeatedly; picking the source or a disabled account is an ordinary form slip.
+                _logger.Log(
+                    rejection == OffloadTargetRejection.NotAccessible ? LogLevel.Warning : LogLevel.Information,
+                    "Rejected offload target {TargetId} for source {SourceId} requested by {User}: {Reason}",
+                    model.TargetAccountId, id, User?.Identity?.Name ?? "unknown", rejection);
+                ModelState.AddModelError(
+                    nameof(model.TargetAccountId),
+                    _localizer[OffloadTargetEligibility.MessageKey(rejection)].Value);
             }
 
             // Resolved to an absolute date here, once, so a repeat of this job selects the same
@@ -1515,16 +1533,38 @@ namespace MailArchiver.Controllers
 
         private async Task<OffloadViewModel> BuildOffloadViewModelAsync(MailAccount account)
         {
-            var targets = await _context.MailAccounts
-                .Where(a => a.Id != account.Id && a.IsEnabled && a.Provider == ProviderType.IMAP)
+            // Narrowed in SQL first, so a mailbox the user may not use is never even
+            // materialised, and then decided by OffloadTargetEligibility, so what this list
+            // offers and what the post accepts cannot drift apart.
+            var allowedAccountIds = await GetAllowedAccountIdsAsync();
+            var candidateQuery = _context.MailAccounts.AsQueryable();
+            if (allowedAccountIds != null)
+            {
+                candidateQuery = candidateQuery.Where(a => allowedAccountIds.Contains(a.Id));
+            }
+
+            var candidates = await candidateQuery
                 .OrderBy(a => a.Name)
+                .Select(a => new { a.Id, a.Name, a.EmailAddress, a.Provider, a.IsEnabled })
+                .ToListAsync();
+
+            var targets = candidates
+                .Where(a => OffloadTargetEligibility.IsEligible(
+                    new OffloadTargetCandidate
+                    {
+                        Id = a.Id,
+                        Provider = a.Provider,
+                        IsEnabled = a.IsEnabled,
+                        IsAccessible = OffloadTargetEligibility.IsAccessible(a.Id, allowedAccountIds),
+                    },
+                    account.Id))
                 .Select(a => new OffloadViewModel.TargetAccountOption
                 {
                     Id = a.Id,
                     Name = a.Name,
                     EmailAddress = a.EmailAddress,
                 })
-                .ToListAsync();
+                .ToList();
 
             return new OffloadViewModel
             {
@@ -1532,6 +1572,7 @@ namespace MailArchiver.Controllers
                 SourceAccountName = account.Name,
                 SourceTotalEmails = await _context.ArchivedEmails.CountAsync(e => e.MailAccountId == account.Id),
                 AvailableTargets = targets,
+                TargetsAreScopedToUser = allowedAccountIds != null,
                 ExcludedSourceFolders = _offloadOptions.ExcludedSourceFolders,
                 FolderRenameMap = _offloadOptions.FolderRenameMap,
                 MarkAsSeen = _offloadOptions.MarkAsSeen,
