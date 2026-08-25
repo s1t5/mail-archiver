@@ -16,7 +16,11 @@ namespace MailArchiver.Services
         private readonly ConcurrentQueue<BatchRestoreJob> _jobQueue = new();
         private readonly ConcurrentDictionary<string, BatchRestoreJob> _allJobs = new();
         private readonly Timer _cleanupTimer;
-        private CancellationTokenSource? _currentJobCancellation;
+
+        // One cancellation source per job. A single shared field meant that cancelling a
+        // specific job id actually cancelled whichever job happened to be running at that
+        // moment, which is wrong even with a single worker.
+        private readonly ConcurrentDictionary<string, CancellationTokenSource> _jobCancellations = new();
 
         public BatchRestoreService(IServiceProvider serviceProvider, ILogger<BatchRestoreService> logger, IOptions<BatchOperationOptions> batchOptions)
         {
@@ -86,7 +90,14 @@ namespace MailArchiver.Services
                 else if (job.Status == BatchRestoreJobStatus.Running)
                 {
                     job.Status = BatchRestoreJobStatus.Cancelled;
-                    _currentJobCancellation?.Cancel();
+                    if (_jobCancellations.TryGetValue(jobId, out var cts))
+                    {
+                        cts.Cancel();
+                    }
+                    else
+                    {
+                        _logger.LogWarning("Job {JobId} is marked running but has no cancellation source", jobId);
+                    }
                     _logger.LogInformation("Requested cancellation of running job {JobId}", jobId);
                     return true;
                 }
@@ -152,8 +163,9 @@ namespace MailArchiver.Services
 
         private async Task ProcessJob(BatchRestoreJob job, CancellationToken stoppingToken)
         {
-            _currentJobCancellation = CancellationTokenSource.CreateLinkedTokenSource(stoppingToken);
-            var cancellationToken = _currentJobCancellation.Token;
+            var jobCancellation = CancellationTokenSource.CreateLinkedTokenSource(stoppingToken);
+            _jobCancellations[job.JobId] = jobCancellation;
+            var cancellationToken = jobCancellation.Token;
 
             try
             {
@@ -195,8 +207,8 @@ namespace MailArchiver.Services
             }
             finally
             {
-                _currentJobCancellation?.Dispose();
-                _currentJobCancellation = null;
+                _jobCancellations.TryRemove(job.JobId, out _);
+                jobCancellation.Dispose();
             }
         }
 
@@ -355,7 +367,11 @@ namespace MailArchiver.Services
         public override void Dispose()
         {
             _cleanupTimer?.Dispose();
-            _currentJobCancellation?.Dispose();
+            foreach (var cts in _jobCancellations.Values)
+            {
+                try { cts.Dispose(); } catch { /* already disposed */ }
+            }
+            _jobCancellations.Clear();
             base.Dispose();
         }
     }
