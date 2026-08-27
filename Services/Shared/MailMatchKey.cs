@@ -1,10 +1,12 @@
-// Services/Shared/OffloadMatchKey.cs
+// Services/Shared/MailMatchKey.cs
 using MailArchiver.Models;
 
 namespace MailArchiver.Services.Shared
 {
     /// <summary>
-    /// Builds the two duplicate detection keys an offload uses against a target mailbox.
+    /// Builds the two duplicate detection keys used to decide whether a message is already
+    /// present: an exact Message-ID key, and a fingerprint over sender, recipients, subject and
+    /// send time for the messages whose Message-ID cannot carry the decision.
     /// <para>
     /// Keys are 64 bit hashes rather than strings. Two string sets holding the configured
     /// maximum of 500,000 entries each would cost a few hundred megabytes once .NET string
@@ -13,16 +15,17 @@ namespace MailArchiver.Services.Shared
     /// skipped as already present.
     /// </para>
     /// <para>
-    /// The fingerprint deliberately does <b>not</b> mirror the duplicate query the import uses
-    /// in <c>MailImporter</c>. That query compares against values it never stored: it joins
-    /// addresses with "," while the row was written with ", ", and it compares a raw subject
-    /// against a column that went through <see cref="MailContentHelper.CleanText"/>. As a
-    /// result its own second criterion cannot match any message with two or more senders or
-    /// recipients. Since the database side of the key is fixed by what is already in the
-    /// column, the other side has to reproduce the <b>storage</b> format instead.
+    /// Every key is built from the <b>storage</b> format, i.e. the form a value takes once it is
+    /// in the column, never from the form it happened to arrive in. The database side of a
+    /// comparison is fixed by what was already written, so the other side has to reproduce it
+    /// exactly. Getting this wrong is not a hypothetical: the archiving pipelines used to join
+    /// addresses with "," while the row was written with ", ", and compare a raw subject against
+    /// a column that had been through <see cref="MailContentHelper.CleanText"/>, which left
+    /// their second criterion unable to match any message with two or more senders or
+    /// recipients. Both now normalize through this class.
     /// </para>
     /// </summary>
-    public static class OffloadMatchKey
+    public static class MailMatchKey
     {
         /// <summary>
         /// The window within which two timestamps count as the same message, matching the
@@ -30,10 +33,11 @@ namespace MailArchiver.Services.Shared
         /// </summary>
         public const double TimestampToleranceSeconds = 2;
 
-        // Field size limits, mirroring the ones MailImporter applies when it writes the row.
-        private const int FromMaxBytes = 10_000;
-        private const int ToMaxBytes = 50_000;
-        private const int SubjectMaxBytes = 50_000;
+        // Field size limits, mirroring the ones the archiving pipelines apply when they write
+        // the row. Public because the duplicate queries have to normalize with the same bounds.
+        public const int FromMaxBytes = 10_000;
+        public const int ToMaxBytes = 50_000;
+        public const int SubjectMaxBytes = 50_000;
 
         private const string NoSubject = "(No Subject)";
 
@@ -43,16 +47,22 @@ namespace MailArchiver.Services.Shared
         private const string FieldSeparator = "\u001F";
 
         /// <summary>
-        /// Key for the first criterion. Returns null when the stored Message-ID is missing or
-        /// carries no "@", because such a value is not emitted on append either: the restore
-        /// path drops it and MimeKit generates a fresh random Message-Id instead. A null here
-        /// is what pushes the caller on to the fingerprint.
+        /// Key for the first criterion, built from the identifier the row is actually appended
+        /// with rather than from the raw column.
+        /// <para>
+        /// Returns null only when there is no stored Message-ID at all, since nothing is emitted
+        /// on append in that case and the caller has to fall through to the fingerprint. A
+        /// stored value with no "@" no longer yields null: it used to, because the restore path
+        /// dropped such values and let a fresh random one be generated, but
+        /// <see cref="MailContentHelper.ToRestorableMessageId"/> now derives a stable identifier
+        /// from it, so it can carry the match after all.
+        /// </para>
         /// </summary>
         public static long? MessageIdKey(string? messageId)
         {
-            var normalized = MailContentHelper.NormalizeMessageId(messageId);
-            if (string.IsNullOrEmpty(normalized) || !normalized.Contains('@')) return null;
-            return Hash64(normalized.ToLowerInvariant());
+            var restorable = MailContentHelper.ToRestorableMessageId(messageId);
+            if (string.IsNullOrEmpty(restorable)) return null;
+            return Hash64(restorable.ToLowerInvariant());
         }
 
         /// <summary>

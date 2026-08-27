@@ -133,26 +133,43 @@ namespace MailArchiver.Services.Providers.Graph
         {
             try
             {
-                var checkFrom = message.From?.EmailAddress?.Address ?? "";
-                var checkTo = string.Join(",", message.ToRecipients?.Select(r => r.EmailAddress?.Address) ?? new List<string>());
-                var checkSubject = message.Subject ?? "(No Subject)";
-                var checkDate = message.SentDateTime?.DateTime ?? DateTime.UtcNow;
+                // Normalized into the format the row was written in, because the column side of
+                // the comparison is already fixed. Joining with "," where the row holds ", " or
+                // comparing an uncleaned subject silently disables this criterion for any
+                // message with two or more recipients.
+                var checkFrom = MailMatchKey.NormalizeAddresses(
+                    new[] { message.From?.EmailAddress?.Address }.Where(a => a != null)!,
+                    MailMatchKey.FromMaxBytes);
+                var checkTo = MailMatchKey.NormalizeAddresses(
+                    message.ToRecipients?.Select(r => r.EmailAddress?.Address).Where(a => a != null)!,
+                    MailMatchKey.ToMaxBytes);
+                var checkSubject = MailMatchKey.NormalizeSubject(message.Subject);
+
+                // SentDate is stored converted into the display timezone (see convertedSentDate
+                // on the write path), so the incoming value has to be converted the same way
+                // before the two-second window is applied. This mirrors that expression exactly,
+                // including which overload it calls: passing SentDateTime?.DateTime instead would
+                // hand over a DateTime of Kind Unspecified, which ConvertToDisplayTimeZone
+                // returns untouched, quietly reintroducing the mismatch this is fixing.
+                var checkDate = message.SentDateTime.HasValue
+                    ? _dateTimeHelper.ConvertToDisplayTimeZone(message.SentDateTime.Value)
+                    : _dateTimeHelper.ConvertToDisplayTimeZone(DateTime.UtcNow);
+                var toleranceSeconds = MailMatchKey.TimestampToleranceSeconds;
 
                 // Legacy rows archived before the write-side normalization may store the
-                // Message-ID with surrounding angle brackets - match both variants so
+                // Message-ID with surrounding angle brackets - match every variant so
                 // existing archives are still recognized as duplicates.
-                var bracketedMessageId = "<" + messageId + ">";
+                var messageIdCandidates = MailContentHelper.MessageIdMatchCandidates(messageId).ToList();
 
                 var existingInfo = await _context.ArchivedEmails
                     .AsNoTracking()
                     .Where(e => e.MailAccountId == accountId)
                     .Where(e =>
-                        e.MessageId == messageId ||
-                        e.MessageId == bracketedMessageId ||
+                        messageIdCandidates.Contains(e.MessageId) ||
                         (e.From == checkFrom &&
                          e.To == checkTo &&
                          e.Subject == checkSubject &&
-                         Math.Abs((e.SentDate - checkDate).TotalSeconds) < 2)
+                         Math.Abs((e.SentDate - checkDate).TotalSeconds) < toleranceSeconds)
                     )
                     .Select(e => new { e.Id, e.FolderName, e.Subject })
                     .FirstOrDefaultAsync();

@@ -186,14 +186,14 @@ namespace MailArchiver.Services.Providers.Imap
 
                 IndexedMessages++;
 
-                var messageIdKey = OffloadMatchKey.MessageIdKey(envelope.MessageId);
+                var messageIdKey = MailMatchKey.MessageIdKey(envelope.MessageId);
                 if (messageIdKey.HasValue)
                 {
                     _messageIdKeys.Add(messageIdKey.Value);
                 }
 
                 AddFingerprint(
-                    OffloadMatchKey.FingerprintKeyFromAddresses(
+                    MailMatchKey.FingerprintKeyFromAddresses(
                         envelope.From?.Mailboxes.Select(m => m.Address),
                         envelope.To?.Mailboxes.Select(m => m.Address),
                         envelope.Subject),
@@ -235,18 +235,18 @@ namespace MailArchiver.Services.Providers.Imap
         /// </summary>
         public OffloadMatchKind Match(ArchivedEmail email)
         {
-            var messageIdKey = OffloadMatchKey.MessageIdKey(email.MessageId);
+            var messageIdKey = MailMatchKey.MessageIdKey(email.MessageId);
             if (messageIdKey.HasValue && _messageIdKeys.Contains(messageIdKey.Value))
             {
                 return OffloadMatchKind.MessageId;
             }
 
-            var fingerprint = OffloadMatchKey.FingerprintKeyFromStored(email);
+            var fingerprint = MailMatchKey.FingerprintKeyFromStored(email);
             if (_fingerprints.TryGetValue(fingerprint, out var timestamps))
             {
                 foreach (var candidate in timestamps)
                 {
-                    if (OffloadMatchKey.WithinTolerance(candidate, email.SentDate))
+                    if (MailMatchKey.WithinTolerance(candidate, email.SentDate))
                     {
                         return OffloadMatchKind.Fingerprint;
                     }
@@ -263,13 +263,13 @@ namespace MailArchiver.Services.Providers.Imap
         /// </summary>
         public void Add(ArchivedEmail email)
         {
-            var messageIdKey = OffloadMatchKey.MessageIdKey(email.MessageId);
+            var messageIdKey = MailMatchKey.MessageIdKey(email.MessageId);
             if (messageIdKey.HasValue)
             {
                 _messageIdKeys.Add(messageIdKey.Value);
             }
 
-            AddFingerprint(OffloadMatchKey.FingerprintKeyFromStored(email), email.SentDate);
+            AddFingerprint(MailMatchKey.FingerprintKeyFromStored(email), email.SentDate);
             IndexedMessages++;
         }
 
@@ -281,9 +281,9 @@ namespace MailArchiver.Services.Providers.Imap
         /// </summary>
         internal void AddRaw(string? messageId, string? from, string? to, string? subject, DateTime sentDate)
         {
-            var key = OffloadMatchKey.MessageIdKey(messageId);
+            var key = MailMatchKey.MessageIdKey(messageId);
             if (key.HasValue) _messageIdKeys.Add(key.Value);
-            AddFingerprint(OffloadMatchKey.FingerprintKeyFromStored(from, to, subject), sentDate);
+            AddFingerprint(MailMatchKey.FingerprintKeyFromStored(from, to, subject), sentDate);
             IndexedMessages++;
         }
     }

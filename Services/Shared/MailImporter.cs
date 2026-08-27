@@ -32,16 +32,34 @@ namespace MailArchiver.Services.Shared
 
                 var messageId = GenerateMessageId(message, jobId);
 
-                var checkFrom = string.Join(",", message.From.Mailboxes.Select(m => m.Address));
-                var checkTo = string.Join(",", message.To.Mailboxes.Select(m => m.Address));
-                var checkSubject = message.Subject ?? "(No Subject)";
+                // The fingerprint has to be expressed in the format the row was written in,
+                // not in the format the message arrived in, because the column side of the
+                // comparison is already fixed. Building it any other way silently disables the
+                // criterion: joining with "," where the row holds ", " never matches a message
+                // with two or more senders or recipients, and an uncleaned subject never
+                // matches a column that went through CleanText.
+                var checkFrom = MailMatchKey.NormalizeAddresses(
+                    message.From.Mailboxes.Select(m => m.Address), MailMatchKey.FromMaxBytes);
+                var checkTo = MailMatchKey.NormalizeAddresses(
+                    message.To.Mailboxes.Select(m => m.Address), MailMatchKey.ToMaxBytes);
+                var checkSubject = MailMatchKey.NormalizeSubject(message.Subject);
+
+                // SentDate is stored converted into the display timezone, so the incoming date
+                // has to be converted the same way before the two-second window is applied.
+                // Comparing the raw value disabled the criterion outright anywhere the display
+                // timezone was not UTC.
+                var checkSentDate = scope.ServiceProvider.GetRequiredService<DateTimeHelper>()
+                    .ConvertToDisplayTimeZone(message.Date);
+                var toleranceSeconds = MailMatchKey.TimestampToleranceSeconds;
+
+                var messageIdCandidates = MailContentHelper.MessageIdMatchCandidates(messageId).ToList();
 
                 var existing = await context.ArchivedEmails
                     .Where(e => e.MailAccountId == account.Id)
                     .Where(e =>
-                        e.MessageId == messageId ||
+                        messageIdCandidates.Contains(e.MessageId) ||
                         (e.From == checkFrom && e.To == checkTo && e.Subject == checkSubject &&
-                         Math.Abs((e.SentDate - message.Date.DateTime).TotalSeconds) < 2))
+                         Math.Abs((e.SentDate - checkSentDate).TotalSeconds) < toleranceSeconds))
                     .FirstOrDefaultAsync();
 
                 if (existing != null)
