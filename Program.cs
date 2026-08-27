@@ -669,7 +669,7 @@ if (cliArgs.Any(a => a == "--import-mbox" || a == "--import-eml"))
                 if (!string.IsNullOrEmpty(result.ErrorMessage))
                     Console.WriteLine($"Errors: {result.ErrorMessage}");
                 
-                Environment.Exit(result.Status == MBoxImportJobStatus.Completed ? 0 : 1);
+                Environment.Exit(MBoxImportExitCode.For(result.Status, result.FailedCount, result.SkippedMalformedCount));
             }
             else
             {
@@ -1135,3 +1135,35 @@ if (mcpOptions.Enabled)
 }
 
 app.Run();
+
+/// <summary>
+/// Decides the process exit code for an <c>--import-mbox</c> run.
+/// <para>
+/// A repeated import used to exit non-zero although nothing had gone wrong. The job status
+/// alone cannot carry that distinction: <see cref="MBoxImportJobStatus.CompletedWithErrors"/>
+/// is set when anything at all was not imported cleanly, and skipped duplicates count towards
+/// that. Re-importing the same mbox therefore looked like a failure to any script driving the
+/// CLI, even though skipping what is already archived is the correct and expected outcome.
+/// </para>
+/// <para>
+/// So the status is no longer the whole answer, but it cannot be dropped either. Deriving the
+/// exit code purely from the counters would report success for a cancelled or crashed import,
+/// because those paths abandon the run without setting <c>FailedCount</c> or
+/// <c>SkippedMalformedCount</c>. Both halves are needed: the run has to have reached a
+/// completed status, <em>and</em> nothing may have failed or been malformed.
+/// </para>
+/// <para>
+/// Duplicates are deliberately absent from the failure conditions — they are the case this
+/// fixes. The status the UI shows is unchanged; only the exit code is derived differently.
+/// </para>
+/// </summary>
+internal static class MBoxImportExitCode
+{
+    public static int For(MBoxImportJobStatus status, int failedCount, int skippedMalformedCount)
+    {
+        var reachedCompletion = status == MBoxImportJobStatus.Completed
+                             || status == MBoxImportJobStatus.CompletedWithErrors;
+
+        return reachedCompletion && failedCount == 0 && skippedMalformedCount == 0 ? 0 : 1;
+    }
+}
