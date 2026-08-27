@@ -40,6 +40,19 @@ internal static class ServiceFactory
             NullLogger<AccountStorageService>.Instance,
             new ConfigurationBuilder().Build());
 
+    public static MailArchiver.Services.Providers.Imap.ImapMailRestorer CreateImapMailRestorer(
+        MailArchiverDbContext ctx,
+        BatchOperationOptions? batchOptions = null,
+        OffloadOptions? offloadOptions = null) =>
+        new(ctx,
+            NullLogger<MailArchiver.Services.Providers.Imap.ImapMailRestorer>.Instance,
+            // OffloadEmailsAsync fails before opening a connection for an unreachable target,
+            // so the connection factory is never exercised by these tests.
+            connectionFactory: null!,
+            new DateTimeHelper(Options.Create(new TimeZoneOptions { DisplayTimeZoneId = "Europe/Berlin" })),
+            Options.Create(batchOptions ?? new BatchOperationOptions()),
+            Options.Create(offloadOptions ?? new OffloadOptions()));
+
     /// <summary>
     /// Builds a <see cref="ServiceProvider"/> that resolves the shared
     /// <see cref="MailArchiverDbContext"/> from every scope, so services that call

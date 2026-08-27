@@ -80,7 +80,7 @@ namespace MailArchiver.Models
                 ? $"Would append:          {Appended}"
                 : $"Appended:              {Appended}");
             sb.AppendLine($"Already present:       {SkippedAlreadyPresent}");
-            sb.AppendLine($"  of those by finger.: {MatchedByFingerprint}");
+            sb.AppendLine($"  of those by fingerprint: {MatchedByFingerprint}");
             sb.AppendLine($"Excluded folder:       {SkippedExcludedFolder}");
             sb.AppendLine($"Failed:                {Failed}");
 

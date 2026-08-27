@@ -769,84 +769,95 @@ namespace MailArchiver.Services.Providers.Imap
                         }
                     }
 
-                    foreach (var emailId in group.Value)
+                    // Load the emails of this group in batches instead of one at a time.
+                    // Both the duplicate check and the append reuse the same entity, so each
+                    // batch is a single round-trip rather than two queries per message.
+                    for (var i = 0; i < group.Value.Count; i += _batchOptions.BatchSize)
                     {
-                        cancellationToken.ThrowIfCancellationRequested();
+                        var batchIds = group.Value.Skip(i).Take(_batchOptions.BatchSize).ToList();
+                        var emails = await _context.ArchivedEmails
+                            .Include(e => e.Attachments)
+                                .ThenInclude(a => a.AttachmentContent)
+                            .Where(e => batchIds.Contains(e.Id))
+                            .ToDictionaryAsync(e => e.Id, cancellationToken);
 
-                        var email = await _context.ArchivedEmails
-                            .FirstOrDefaultAsync(e => e.Id == emailId, cancellationToken);
-                        if (email == null)
+                        foreach (var emailId in batchIds)
                         {
-                            outcome.Failed++;
-                            folderOutcome.Failed++;
-                            processed++;
-                            continue;
-                        }
+                            cancellationToken.ThrowIfCancellationRequested();
 
-                        var match = index.Match(email);
-                        if (match != OffloadMatchKind.None)
-                        {
-                            outcome.SkippedAlreadyPresent++;
-                            folderOutcome.SkippedAlreadyPresent++;
-                            if (match == OffloadMatchKind.Fingerprint)
-                            {
-                                outcome.MatchedByFingerprint++;
-                                folderOutcome.MatchedByFingerprint++;
-                            }
-                            processed++;
-                            progressCallback?.Invoke(processed, outcome.Appended, outcome.Failed);
-                            continue;
-                        }
-
-                        if (criteria.DryRun)
-                        {
-                            // Everything above still ran, so the reported counts are real. Only
-                            // the append is skipped. The index is still updated, so two copies
-                            // inside the same window are not both reported as appendable.
-                            outcome.Appended++;
-                            folderOutcome.Appended++;
-                            index.Add(email);
-                            processed++;
-                            progressCallback?.Invoke(processed, outcome.Appended, outcome.Failed);
-                            continue;
-                        }
-
-                        try
-                        {
-                            var ok = await RestoreEmailWithSharedConnectionAsync(
-                                emailId, client, folder!, targetAccount.Name, criteria.MarkAsSeen);
-                            if (ok)
-                            {
-                                outcome.Appended++;
-                                folderOutcome.Appended++;
-                                // Recorded immediately, so a duplicate inside this same run is
-                                // caught too and not only one against an earlier run.
-                                index.Add(email);
-                            }
-                            else
+                            if (!emails.TryGetValue(emailId, out var email))
                             {
                                 outcome.Failed++;
                                 folderOutcome.Failed++;
+                                processed++;
+                                continue;
                             }
-                        }
-                        catch (OperationCanceledException)
-                        {
-                            throw;
-                        }
-                        catch (Exception ex)
-                        {
-                            outcome.Failed++;
-                            folderOutcome.Failed++;
-                            _logger.LogError(ex, "Error appending email {EmailId} to '{Folder}': {Message}",
-                                emailId, targetPath, ex.Message);
-                        }
 
-                        processed++;
-                        progressCallback?.Invoke(processed, outcome.Appended, outcome.Failed);
+                            var match = index.Match(email);
+                            if (match != OffloadMatchKind.None)
+                            {
+                                outcome.SkippedAlreadyPresent++;
+                                folderOutcome.SkippedAlreadyPresent++;
+                                if (match == OffloadMatchKind.Fingerprint)
+                                {
+                                    outcome.MatchedByFingerprint++;
+                                    folderOutcome.MatchedByFingerprint++;
+                                }
+                                processed++;
+                                progressCallback?.Invoke(processed, outcome.Appended, outcome.Failed);
+                                continue;
+                            }
 
-                        if (!criteria.DryRun && _batchOptions.PauseBetweenEmailsMs > 0)
-                        {
-                            await Task.Delay(_batchOptions.PauseBetweenEmailsMs, cancellationToken);
+                            if (criteria.DryRun)
+                            {
+                                // Everything above still ran, so the reported counts are real. Only
+                                // the append is skipped. The index is still updated, so two copies
+                                // inside the same window are not both reported as appendable.
+                                outcome.Appended++;
+                                folderOutcome.Appended++;
+                                index.Add(email);
+                                processed++;
+                                progressCallback?.Invoke(processed, outcome.Appended, outcome.Failed);
+                                continue;
+                            }
+
+                            try
+                            {
+                                var ok = await RestoreEmailWithSharedConnectionAsync(
+                                    email, client, folder!, targetAccount.Name, criteria.MarkAsSeen);
+                                if (ok)
+                                {
+                                    outcome.Appended++;
+                                    folderOutcome.Appended++;
+                                    // Recorded immediately, so a duplicate inside this same run is
+                                    // caught too and not only one against an earlier run.
+                                    index.Add(email);
+                                }
+                                else
+                                {
+                                    outcome.Failed++;
+                                    folderOutcome.Failed++;
+                                }
+                            }
+                            catch (OperationCanceledException)
+                            {
+                                throw;
+                            }
+                            catch (Exception ex)
+                            {
+                                outcome.Failed++;
+                                folderOutcome.Failed++;
+                                _logger.LogError(ex, "Error appending email {EmailId} to '{Folder}': {Message}",
+                                    emailId, targetPath, ex.Message);
+                            }
+
+                            processed++;
+                            progressCallback?.Invoke(processed, outcome.Appended, outcome.Failed);
+
+                            if (!criteria.DryRun && _batchOptions.PauseBetweenEmailsMs > 0)
+                            {
+                                await Task.Delay(_batchOptions.PauseBetweenEmailsMs, cancellationToken);
+                            }
                         }
                     }
 
@@ -982,6 +993,24 @@ namespace MailArchiver.Services.Providers.Imap
                     return false;
                 }
 
+                return await RestoreEmailWithSharedConnectionAsync(email, client, targetFolder, accountName, markAsSeen);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error restoring email {EmailId} with shared connection: {Message}", emailId, ex.Message);
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Restores a single email using an existing IMAP connection and an already-loaded
+        /// entity. Used by the offload path, which batch-loads its entities and therefore
+        /// cannot afford a second per-message query for the append.
+        /// </summary>
+        private async Task<bool> RestoreEmailWithSharedConnectionAsync(ArchivedEmail email, ImapClient client, IMailFolder targetFolder, string accountName, bool? markAsSeen)
+        {
+            try
+            {
                 var message = await CreateMimeMessageFromArchivedEmailAsync(email, accountName);
                 if (message == null)
                 {
@@ -991,13 +1020,13 @@ namespace MailArchiver.Services.Providers.Imap
                 var internalDate = ResolveInternalDate(email);
                 await targetFolder.AppendAsync(message, AppendFlags(markAsSeen), internalDate);
                 _logger.LogDebug("Email {EmailId} successfully appended to folder {FolderName} with INTERNALDATE {InternalDate}",
-                    emailId, targetFolder.FullName, internalDate);
+                    email.Id, targetFolder.FullName, internalDate);
 
                 return true;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error restoring email {EmailId} with shared connection: {Message}", emailId, ex.Message);
+                _logger.LogError(ex, "Error restoring email {EmailId} with shared connection: {Message}", email.Id, ex.Message);
                 return false;
             }
         }
@@ -1157,8 +1186,10 @@ namespace MailArchiver.Services.Providers.Imap
                 }
 
                 message.Body = bodyBuilder.ToMessageBody();
-                var sentUtc = _dateTimeHelper.ConvertFromDisplayTimeZoneToUtc(email.SentDate);
-                message.Date = new DateTimeOffset(sentUtc, TimeSpan.Zero);
+                // Emit the Date: header with the display timezone's offset rather than a UTC
+                // offset, so the written header matches the wall-clock time the user sees.
+                // Both represent the same instant; only the rendered offset differs.
+                message.Date = _dateTimeHelper.ToDisplayTimeZoneOffset(email.SentDate);
                 // Normalize the stored Message-ID (legacy Graph rows may carry surrounding
                 // angle brackets) so MimeKit emits a single well-formed bracket pair.
                 var restorableMessageId = MailContentHelper.NormalizeMessageId(email.MessageId);
