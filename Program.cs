@@ -114,6 +114,9 @@ builder.Services.Configure<BatchOperationOptions>(
     builder.Configuration.GetSection(BatchOperationOptions.BatchOperation));
 
 // Add Tenant Management Options
+builder.Services.Configure<OffloadOptions>(
+    builder.Configuration.GetSection(OffloadOptions.Offload));
+
 builder.Services.Configure<TenantManagementOptions>(
     builder.Configuration.GetSection(TenantManagementOptions.TenantManagement));
 
@@ -692,6 +695,213 @@ if (cliArgs.Any(a => a == "--import-mbox" || a == "--import-eml"))
         cliLogger.LogError(ex, "CLI command failed");
         Console.WriteLine($"ERROR: {ex.Message}");
         Environment.Exit(1);
+    }
+}
+
+// Handle CLI command: date-windowed offload into another mailbox
+if (cliArgs.Any(a => a == "--offload"))
+{
+    using var offloadScope = app.Services.CreateScope();
+    var offloadServices = offloadScope.ServiceProvider;
+    var offloadLogger = offloadServices.GetRequiredService<ILogger<Program>>();
+
+    // Exit codes: 0 everything appended or already present, 1 a failure occurred,
+    // 2 the invocation itself was wrong. Distinguishing 2 from 1 matters when driving many
+    // mailboxes from a script.
+    const int ExitOk = 0, ExitFailed = 1, ExitBadArgs = 2;
+
+    string? Arg(string name)
+    {
+        var i = Array.IndexOf(cliArgs, name);
+        return i >= 0 && i + 1 < cliArgs.Length ? cliArgs[i + 1] : null;
+    }
+    bool Flag(string name) => cliArgs.Contains(name);
+
+    try
+    {
+        var sourceRaw = Arg("--source-account-id");
+        var targetRaw = Arg("--target-account-id");
+        var sinceRaw = Arg("--since");
+        var untilRaw = Arg("--until");
+        var targetFolder = Arg("--target-folder") ?? "INBOX";
+        var preserveFolders = Flag("--preserve-folders");
+        var dryRun = Flag("--dry-run");
+        var noMarkSeen = Flag("--no-mark-seen");
+
+        void Usage(string message)
+        {
+            Console.WriteLine($"ERROR: {message}");
+            Console.WriteLine();
+            Console.WriteLine("Usage:");
+            Console.WriteLine("  --offload --source-account-id N --target-account-id M --since YYYY-MM-DD");
+            Console.WriteLine("            [--until YYYY-MM-DD] [--target-folder INBOX]");
+            Console.WriteLine("            [--preserve-folders] [--dry-run] [--no-mark-seen]");
+            Console.WriteLine();
+            Console.WriteLine("Appends archived mail newer than --since into the target mailbox, skipping");
+            Console.WriteLine("anything already present there. Repeating a run is safe.");
+            Console.WriteLine();
+            Console.WriteLine("Folder exclusions and the folder rename map come from the Offload section of");
+            Console.WriteLine("appsettings.json; both are empty by default.");
+        }
+
+        if (!int.TryParse(sourceRaw, out var sourceAccountId))
+        {
+            Usage("--source-account-id <id> is required");
+            Environment.Exit(ExitBadArgs);
+        }
+        if (!int.TryParse(targetRaw, out var targetAccountId))
+        {
+            Usage("--target-account-id <id> is required");
+            Environment.Exit(ExitBadArgs);
+        }
+        if (sourceAccountId == targetAccountId)
+        {
+            Usage("source and target account must differ");
+            Environment.Exit(ExitBadArgs);
+        }
+        if (!DateTime.TryParse(sinceRaw, System.Globalization.CultureInfo.InvariantCulture,
+                System.Globalization.DateTimeStyles.None, out var since))
+        {
+            Usage("--since <YYYY-MM-DD> is required");
+            Environment.Exit(ExitBadArgs);
+        }
+
+        DateTime? until = null;
+        if (!string.IsNullOrEmpty(untilRaw))
+        {
+            if (!DateTime.TryParse(untilRaw, System.Globalization.CultureInfo.InvariantCulture,
+                    System.Globalization.DateTimeStyles.None, out var untilParsed))
+            {
+                Usage("--until must be YYYY-MM-DD");
+                Environment.Exit(ExitBadArgs);
+            }
+            until = untilParsed;
+            if (until.Value.Date < since.Date)
+            {
+                Usage("--until must not be earlier than --since");
+                Environment.Exit(ExitBadArgs);
+            }
+        }
+
+        var offloadDb = offloadServices.GetRequiredService<MailArchiverDbContext>();
+        var sourceAccount = await offloadDb.MailAccounts.FindAsync(sourceAccountId);
+        var targetAccount = await offloadDb.MailAccounts.FindAsync(targetAccountId);
+
+        if (sourceAccount == null)
+        {
+            Console.WriteLine($"ERROR: source account {sourceAccountId} not found");
+            Environment.Exit(ExitBadArgs);
+        }
+        if (targetAccount == null)
+        {
+            Console.WriteLine($"ERROR: target account {targetAccountId} not found");
+            Environment.Exit(ExitBadArgs);
+        }
+        if (targetAccount!.Provider != ProviderType.IMAP)
+        {
+            Console.WriteLine($"ERROR: target account '{targetAccount.Name}' is a {targetAccount.Provider} account; " +
+                              "offload targets must be IMAP");
+            Environment.Exit(ExitBadArgs);
+        }
+        // Same rule the queued job path and the UI apply, so all three agree.
+        if (!targetAccount.IsEnabled)
+        {
+            Console.WriteLine($"ERROR: target account '{targetAccount.Name}' is disabled");
+            Environment.Exit(ExitBadArgs);
+        }
+
+        var offloadOptions = offloadServices.GetRequiredService<IOptions<OffloadOptions>>().Value;
+        var batchRestoreOptions = offloadServices.GetRequiredService<IOptions<BatchRestoreOptions>>().Value;
+
+        var criteria = new OffloadCriteria
+        {
+            SourceAccountId = sourceAccountId,
+            // Resolved to an absolute date here, once, so that a repeated run selects the same mail.
+            CutoffFrom = MailArchiver.Services.Shared.OffloadCutoff.FromAbsolute(since),
+            CutoffTo = until,
+            ExcludedSourceFolders = offloadOptions.ExcludedSourceFolders,
+            FolderRenameMap = offloadOptions.FolderRenameMap,
+            MarkAsSeen = !noMarkSeen && offloadOptions.MarkAsSeen,
+            DryRun = dryRun,
+        };
+
+        var upperBound = until.HasValue ? until.Value.Date.AddDays(1).AddSeconds(-1) : (DateTime?)null;
+        var idsQuery = offloadDb.ArchivedEmails
+            .Where(e => e.MailAccountId == sourceAccountId && e.SentDate >= criteria.CutoffFrom);
+        if (upperBound.HasValue)
+            idsQuery = idsQuery.Where(e => e.SentDate <= upperBound.Value);
+
+        var emailIds = await idsQuery.OrderBy(e => e.Id).Select(e => e.Id).ToListAsync();
+
+        Console.WriteLine();
+        Console.WriteLine("=== Offload ===");
+        Console.WriteLine($"Source:         {sourceAccount!.Name} (ID {sourceAccountId})");
+        Console.WriteLine($"Target:         {targetAccount.Name} (ID {targetAccountId})");
+        Console.WriteLine($"Window:         {criteria.DescribeWindow()}");
+        Console.WriteLine($"Target folder:  {targetFolder}");
+        Console.WriteLine($"Preserve tree:  {preserveFolders}");
+        Console.WriteLine($"Mark as seen:   {criteria.MarkAsSeen}");
+        Console.WriteLine($"Excluded:       {(criteria.ExcludedSourceFolders.Count == 0 ? "(none)" : string.Join(", ", criteria.ExcludedSourceFolders))}");
+        Console.WriteLine($"Rename map:     {(criteria.FolderRenameMap.Count == 0 ? "(empty)" : string.Join(", ", criteria.FolderRenameMap.Select(kv => $"{kv.Key} -> {kv.Value}")))}");
+        Console.WriteLine($"Resolved mails: {emailIds.Count}");
+        Console.WriteLine($"Dry run:        {dryRun}");
+        Console.WriteLine();
+
+        if (emailIds.Count == 0)
+        {
+            Console.WriteLine("Nothing to do: no archived mail in that window.");
+            Environment.Exit(ExitOk);
+        }
+
+        // Kept as a sanity guard rather than a binding constraint: a date window brings a very
+        // large mailbox well under this, but an accidentally huge window should still be caught.
+        if (emailIds.Count > batchRestoreOptions.MaxAsyncEmails)
+        {
+            Console.WriteLine($"ERROR: {emailIds.Count} mails exceeds BatchRestore.MaxAsyncEmails " +
+                              $"({batchRestoreOptions.MaxAsyncEmails}). Narrow the window or raise the limit.");
+            Environment.Exit(ExitBadArgs);
+        }
+
+        var imapService = offloadServices.GetRequiredService<MailArchiver.Services.Providers.ImapEmailService>();
+
+        var lastReported = 0;
+        var outcome = await imapService.OffloadEmailsAsync(
+            emailIds, targetAccountId, targetFolder, preserveFolders, criteria,
+            (processed, appended, failed) =>
+            {
+                // One line per hundred keeps a multi-hour run readable in a log file.
+                if (processed - lastReported < 100 && processed != emailIds.Count) return;
+                lastReported = processed;
+                Console.WriteLine($"  {processed}/{emailIds.Count} processed, {appended} appended, {failed} failed");
+            },
+            CancellationToken.None);
+
+        Console.WriteLine();
+        Console.Write(outcome.Describe());
+
+        try
+        {
+            var accessLog = offloadServices.GetRequiredService<IAccessLogService>();
+            await accessLog.LogAccessAsync("CLI", AccessLogType.Restore,
+                mailAccountId: sourceAccountId,
+                searchParameters: $"offload source={sourceAccountId} target={targetAccountId} " +
+                                  $"window={criteria.DescribeWindow()} folder={targetFolder} " +
+                                  $"preserve={preserveFolders} dryRun={dryRun} " +
+                                  $"appended={outcome.Appended} alreadyPresent={outcome.SkippedAlreadyPresent} " +
+                                  $"failed={outcome.Failed}");
+        }
+        catch (Exception ex)
+        {
+            offloadLogger.LogWarning(ex, "Could not write the offload audit entry");
+        }
+
+        Environment.Exit(outcome.Failed == 0 ? ExitOk : ExitFailed);
+    }
+    catch (Exception ex)
+    {
+        offloadLogger.LogError(ex, "Offload failed");
+        Console.WriteLine($"ERROR: {ex.Message}");
+        Environment.Exit(ExitFailed);
     }
 }
 

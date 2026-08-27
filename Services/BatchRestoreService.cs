@@ -19,14 +19,23 @@ namespace MailArchiver.Services
 
         // One cancellation source per job. A single shared field meant that cancelling a
         // specific job id actually cancelled whichever job happened to be running at that
-        // moment, which is wrong even with a single worker.
+        // moment, which is wrong even with a single worker and plainly broken with several.
         private readonly ConcurrentDictionary<string, CancellationTokenSource> _jobCancellations = new();
 
-        public BatchRestoreService(IServiceProvider serviceProvider, ILogger<BatchRestoreService> logger, IOptions<BatchOperationOptions> batchOptions)
+        // At most one job per target account may run at a time. Two jobs appending into the
+        // same mailbox would each take their own duplicate index snapshot before the other
+        // started writing, and could then both append the same mail. The idempotency guarantee
+        // depends on this lock.
+        private readonly ConcurrentDictionary<int, byte> _busyTargetAccounts = new();
+
+        private readonly OffloadOptions _offloadOptions;
+
+        public BatchRestoreService(IServiceProvider serviceProvider, ILogger<BatchRestoreService> logger, IOptions<BatchOperationOptions> batchOptions, IOptions<OffloadOptions> offloadOptions)
         {
             _serviceProvider = serviceProvider;
             _logger = logger;
             _batchOptions = batchOptions.Value;
+            _offloadOptions = offloadOptions.Value;
             
             // Cleanup-Timer: Jeden Stunde alte Jobs entfernen
             _cleanupTimer = new Timer(
@@ -128,10 +137,21 @@ namespace MailArchiver.Services
         {
             _logger.LogInformation("Batch Restore Background Service started");
 
+            // MaxConcurrentJobs defaults to 1, which reproduces the strictly serial behaviour
+            // this loop always had. Raising it lets independent target mailboxes be filled in
+            // parallel; the per-target lock below keeps two jobs off the same mailbox.
+            var slots = new SemaphoreSlim(Math.Max(1, _offloadOptions.MaxConcurrentJobs));
+            var running = new List<Task>();
+
+            _logger.LogInformation("Batch restore concurrency: {Max} concurrent job(s)",
+                Math.Max(1, _offloadOptions.MaxConcurrentJobs));
+
             while (!stoppingToken.IsCancellationRequested)
             {
                 try
                 {
+                    running.RemoveAll(t => t.IsCompleted);
+
                     if (_jobQueue.TryDequeue(out var job))
                     {
                         // Prüfe ob Job bereits abgebrochen wurde
@@ -141,7 +161,32 @@ namespace MailArchiver.Services
                             continue;
                         }
 
-                        await ProcessJob(job, stoppingToken);
+                        // A job whose target mailbox is already being written to goes back on
+                        // the queue rather than running: see _busyTargetAccounts.
+                        if (!_busyTargetAccounts.TryAdd(job.TargetAccountId, 0))
+                        {
+                            _logger.LogDebug(
+                                "Target account {AccountId} is busy, requeueing job {JobId}",
+                                job.TargetAccountId, job.JobId);
+                            _jobQueue.Enqueue(job);
+                            await Task.Delay(1000, stoppingToken);
+                            continue;
+                        }
+
+                        await slots.WaitAsync(stoppingToken);
+
+                        running.Add(Task.Run(async () =>
+                        {
+                            try
+                            {
+                                await ProcessJob(job, stoppingToken);
+                            }
+                            finally
+                            {
+                                _busyTargetAccounts.TryRemove(job.TargetAccountId, out _);
+                                slots.Release();
+                            }
+                        }, stoppingToken));
                     }
                     else
                     {
@@ -159,6 +204,17 @@ namespace MailArchiver.Services
                     await Task.Delay(5000, stoppingToken); // Warte 5 Sekunden bei Fehlern
                 }
             }
+
+            // Let jobs already in flight finish rather than tearing their IMAP connections down
+            // mid-append.
+            try
+            {
+                await Task.WhenAll(running.Where(t => !t.IsCompleted));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Error while draining in-flight batch restore jobs on shutdown");
+            }
         }
 
         private async Task ProcessJob(BatchRestoreJob job, CancellationToken stoppingToken)
@@ -171,11 +227,20 @@ namespace MailArchiver.Services
             {
                 job.Status = BatchRestoreJobStatus.Running;
                 job.Started = DateTime.UtcNow;
-                
-                _logger.LogInformation("Starting batch restore job {JobId} with {Count} emails", 
-                    job.JobId, job.EmailIds.Count);
 
                 using var scope = _serviceProvider.CreateScope();
+
+                // An offload job carries criteria rather than ids and resolves its own set here.
+                // Full scans over a few hundred thousand rows take milliseconds against the
+                // SentDate index, so there is no reason to push id lists through session state.
+                if (job.IsOffload)
+                {
+                    await ResolveOffloadEmailIdsAsync(job, scope.ServiceProvider, cancellationToken);
+                }
+
+                _logger.LogInformation("Starting batch restore job {JobId} with {Count} emails",
+                    job.JobId, job.EmailIds.Count);
+
                 var imapEmailService = scope.ServiceProvider.GetRequiredService<MailArchiver.Services.Providers.ImapEmailService>();
                 var providerEmailService = scope.ServiceProvider.GetRequiredService<IProviderEmailService>();
                 var dbContext = scope.ServiceProvider.GetRequiredService<MailArchiverDbContext>();
@@ -209,6 +274,54 @@ namespace MailArchiver.Services
             {
                 _jobCancellations.TryRemove(job.JobId, out _);
                 jobCancellation.Dispose();
+            }
+        }
+
+        /// <summary>
+        /// Turns an offload job's criteria into the concrete set of archived mail it applies to,
+        /// and writes one audit entry recording what was resolved.
+        /// </summary>
+        private async Task ResolveOffloadEmailIdsAsync(
+            BatchRestoreJob job, IServiceProvider services, CancellationToken cancellationToken)
+        {
+            var criteria = job.Offload!;
+            var dbContext = services.GetRequiredService<MailArchiverDbContext>();
+
+            var query = dbContext.ArchivedEmails
+                .Where(e => e.MailAccountId == criteria.SourceAccountId)
+                .Where(e => e.SentDate >= criteria.CutoffFrom);
+
+            if (criteria.CutoffTo.HasValue)
+            {
+                // Same inclusive-to-end-of-day semantics the search filter uses.
+                var upper = criteria.CutoffTo.Value.Date.AddDays(1).AddSeconds(-1);
+                query = query.Where(e => e.SentDate <= upper);
+            }
+
+            job.EmailIds = await query.OrderBy(e => e.Id)
+                .Select(e => e.Id)
+                .ToListAsync(cancellationToken);
+
+            _logger.LogInformation(
+                "Job {JobId}: offload criteria resolved to {Count} mails from account {SourceId}, window {Window}",
+                job.JobId, job.EmailIds.Count, criteria.SourceAccountId, criteria.DescribeWindow());
+
+            try
+            {
+                var accessLog = services.GetRequiredService<IAccessLogService>();
+                await accessLog.LogAccessAsync(
+                    job.UserId,
+                    AccessLogType.Restore,
+                    mailAccountId: criteria.SourceAccountId,
+                    searchParameters: $"offload source={criteria.SourceAccountId} target={job.TargetAccountId} " +
+                                $"window={criteria.DescribeWindow()} folder={job.TargetFolder} " +
+                                $"preserve={job.PreserveFolderStructure} dryRun={criteria.DryRun} " +
+                                $"markAsSeen={criteria.MarkAsSeen} resolved={job.EmailIds.Count}");
+            }
+            catch (Exception ex)
+            {
+                // An audit entry must never be the reason a migration job fails.
+                _logger.LogWarning(ex, "Job {JobId}: could not write the offload audit entry", job.JobId);
             }
         }
 
@@ -271,6 +384,26 @@ namespace MailArchiver.Services
                                 job.JobId, processed, totalEmails, successful, failed);
                         }
                     };
+
+                    if (job.IsOffload)
+                    {
+                        var outcome = await imapEmailService.OffloadEmailsAsync(
+                            job.EmailIds, job.TargetAccountId, job.TargetFolder,
+                            job.PreserveFolderStructure, job.Offload!, progressCallback, cancellationToken);
+
+                        job.AppendedCount = outcome.Appended;
+                        job.SkippedAlreadyPresentCount = outcome.SkippedAlreadyPresent;
+                        job.MatchedByFingerprintCount = outcome.MatchedByFingerprint;
+                        job.SkippedExcludedFolderCount = outcome.SkippedExcludedFolder;
+                        job.SuccessCount = outcome.Appended;
+                        job.FailedCount = outcome.Failed;
+                        job.ProcessedCount = outcome.Considered;
+                        job.Report = outcome.Describe();
+
+                        _logger.LogInformation("Job {JobId}: offload completed. {Report}",
+                            job.JobId, job.Report.Replace(Environment.NewLine, " | "));
+                        return;
+                    }
 
                     var (successful, failed) = await imapEmailService.RestoreMultipleEmailsWithProgressAsync(
                         job.EmailIds, job.TargetAccountId, job.TargetFolder, job.PreserveFolderStructure, progressCallback, cancellationToken);

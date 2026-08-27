@@ -1,7 +1,16 @@
 ﻿@inject Microsoft.Extensions.Localization.IStringLocalizer<MailArchiver.SharedResource> Localizer
+@inject MailArchiver.Services.IAuthenticationService AuthService
 @model MailArchiver.Models.BatchRestoreJob
 @{
     ViewData["Title"] = Localizer["BatchRestoreStatusTitle"];
+
+    // The offload report lists the source mailbox's folder names, and this page is not scoped to
+    // the job's owner, so it is only shown to that owner and to an admin. BatchRestoreJob.UserId
+    // is written from User.Identity.Name, which is what GetCurrentUserDisplayName returns.
+    var currentUser = AuthService.GetCurrentUserDisplayName(Context);
+    var mayReadReport = AuthService.IsCurrentUserAdmin(Context)
+        || (!string.IsNullOrEmpty(currentUser)
+            && string.Equals(Model.UserId, currentUser, StringComparison.OrdinalIgnoreCase));
 }
 
 <div class="container">
@@ -122,6 +131,35 @@
                         </dd>
                     }
                 }
+                @if (Model.IsOffload)
+                {
+                    <dt class="col-sm-3">@Localizer["OffloadJob"]</dt>
+                    <dd class="col-sm-9">
+                        <span class="badge bg-info text-dark">@Model.Offload!.DescribeWindow()</span>
+                        @if (Model.Offload.DryRun)
+                        {
+                            <span class="badge bg-warning text-dark">@Localizer["OffloadDryRun"]</span>
+                        }
+                    </dd>
+
+                    <dt class="col-sm-3">@Localizer["OffloadAppended"]</dt>
+                    <dd class="col-sm-9">@Model.AppendedCount.ToString("N0")</dd>
+
+                    <dt class="col-sm-3">@Localizer["OffloadAlreadyPresent"]</dt>
+                    <dd class="col-sm-9">
+                        @Model.SkippedAlreadyPresentCount.ToString("N0")
+                        @if (Model.MatchedByFingerprintCount > 0)
+                        {
+                            <small class="text-muted">(@Model.MatchedByFingerprintCount.ToString("N0") @Localizer["OffloadByFingerprint"])</small>
+                        }
+                    </dd>
+
+                    @if (Model.SkippedExcludedFolderCount > 0)
+                    {
+                        <dt class="col-sm-3">@Localizer["OffloadExcluded"]</dt>
+                        <dd class="col-sm-9">@Model.SkippedExcludedFolderCount.ToString("N0")</dd>
+                    }
+                }
                 @if (!string.IsNullOrEmpty(Model.ErrorMessage))
                 {
                     <dt class="col-sm-3">@Localizer["ErrorLabel"]</dt>
@@ -133,6 +171,13 @@
                     </dd>
                 }
             </dl>
+
+            @if (!string.IsNullOrEmpty(Model.Report) && mayReadReport)
+            {
+                <h6 class="mt-3">@Localizer["OffloadReport"]</h6>
+                <pre class="bg-light border rounded p-3 mb-0" style="overflow-x: auto; font-size: 0.85rem;">@Model.Report</pre>
+            }
+
             @if (Model.Status == BatchRestoreJobStatus.Running || Model.Status == BatchRestoreJobStatus.Queued)
             {
                 <div class="mt-4 pt-3 border-top">

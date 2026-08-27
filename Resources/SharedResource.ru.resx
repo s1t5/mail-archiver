@@ -3188,4 +3188,142 @@
   <data name="FailuresAcknowledged" xml:space="preserve">
     <value>Ошибки подтверждены</value>
   </data>
+  <data name="OffloadTitle" xml:space="preserve">
+    <value>Выгрузить в другой почтовый ящик</value>
+  </data>
+  <data name="OffloadIntro" xml:space="preserve">
+    <value>Помещает архивную почту новее точки отсечения в другой почтовый ящик, пропуская то, что в нём уже есть. Более старая почта остаётся в архиве. Повторный запуск безопасен и ничего не дублирует из уже поступившего.</value>
+  </data>
+  <data name="OffloadSourceAndTarget" xml:space="preserve">
+    <value>Источник и назначение</value>
+  </data>
+  <data name="SourceAccount" xml:space="preserve">
+    <value>Учётная запись-источник</value>
+  </data>
+  <data name="OffloadSelectTarget" xml:space="preserve">
+    <value>Выберите целевой почтовый ящик…</value>
+  </data>
+  <data name="OffloadLoadingFolders" xml:space="preserve">
+    <value>Загрузка папок…</value>
+  </data>
+  <data name="OffloadSelectFolder" xml:space="preserve">
+    <value>-- Выберите целевую папку --</value>
+  </data>
+  <data name="OffloadErrorLoadingFolders" xml:space="preserve">
+    <value>Ошибка загрузки папок</value>
+  </data>
+  <data name="OffloadSelectTargetFirst" xml:space="preserve">
+    <value>Сначала выберите целевой почтовый ящик</value>
+  </data>
+  <data name="OffloadTargetFolderHelp" xml:space="preserve">
+    <value>Корневая папка в целевом почтовом ящике. При INBOX структура папок источника воссоздаётся на верхнем уровне.</value>
+  </data>
+  <data name="OffloadWindow" xml:space="preserve">
+    <value>Диапазон дат</value>
+  </data>
+  <data name="OffloadWindowMonths" xml:space="preserve">
+    <value>Последние N месяцев</value>
+  </data>
+  <data name="OffloadWindowMonthsHelp" xml:space="preserve">
+    <value>Преобразуется в фиксированную дату при запуске задания, поэтому повторный запуск выберет ту же почту. Установите 0, чтобы использовать явную дату.</value>
+  </data>
+  <data name="OffloadCutoffFrom" xml:space="preserve">
+    <value>Дата с</value>
+  </data>
+  <data name="OffloadCutoffFromHelp" xml:space="preserve">
+    <value>Переопределяет окно месяцев. Включительно, с 00:00 этого дня.</value>
+  </data>
+  <data name="OffloadCutoffTo" xml:space="preserve">
+    <value>Дата по (необязательно)</value>
+  </data>
+  <data name="OffloadCutoffToHelp" xml:space="preserve">
+    <value>Включительно, до 23:59:59 этого дня.</value>
+  </data>
+  <data name="OffloadOptions" xml:space="preserve">
+    <value>Параметры</value>
+  </data>
+  <data name="OffloadDryRun" xml:space="preserve">
+    <value>Пробный запуск</value>
+  </data>
+  <data name="OffloadDryRunHelp" xml:space="preserve">
+    <value>Просчитывает всё и сообщает по папкам, что произойдёт, но ничего не добавляет. Рекомендуется перед реальным запуском.</value>
+  </data>
+  <data name="OffloadMarkAsSeen" xml:space="preserve">
+    <value>Отметить добавленную почту как прочитанную</value>
+  </data>
+  <data name="OffloadMarkAsSeenHelp" xml:space="preserve">
+    <value>Отключение сохраняет непрочитанную почту непрочитанной в целевом ящике.</value>
+  </data>
+  <data name="OffloadFolderHandling" xml:space="preserve">
+    <value>Обработка папок</value>
+  </data>
+  <data name="OffloadExcludedFolders" xml:space="preserve">
+    <value>Исключённые папки источника</value>
+  </data>
+  <data name="OffloadRenameMap" xml:space="preserve">
+    <value>Карта переименования папок</value>
+  </data>
+  <data name="OffloadNoneConfigured" xml:space="preserve">
+    <value>не настроено</value>
+  </data>
+  <data name="OffloadFolderHandlingHelp" xml:space="preserve">
+    <value>Оба настраиваются в разделе Offload файла appsettings.json и по умолчанию пусты. Исключения применяются перед переименованием и охватывают подпапки.</value>
+  </data>
+  <data name="OffloadStart" xml:space="preserve">
+    <value>Начать выгрузку</value>
+  </data>
+  <data name="OffloadNoTargets" xml:space="preserve">
+    <value>Нет другого включённого аккаунта IMAP в качестве цели. Сначала создайте его.</value>
+  </data>
+  <data name="OffloadNoTargetsAssigned" xml:space="preserve">
+    <value>Ни один из назначенных вам ящиков нельзя использовать в качестве цели. Попросите администратора назначить вам ещё один включённый аккаунт IMAP.</value>
+  </data>
+  <data name="OffloadTargetRequired" xml:space="preserve">
+    <value>Выберите целевой почтовый ящик.</value>
+  </data>
+  <data name="OffloadTargetMustDiffer" xml:space="preserve">
+    <value>Целевой почтовый ящик должен отличаться от источника.</value>
+  </data>
+  <data name="OffloadTargetNotFound" xml:space="preserve">
+    <value>Выбранный целевой почтовый ящик больше не существует.</value>
+  </data>
+  <data name="OffloadTargetMustBeImap" xml:space="preserve">
+    <value>Целевой почтовый ящик должен быть аккаунтом IMAP.</value>
+  </data>
+  <data name="OffloadTargetDisabled" xml:space="preserve">
+    <value>Выбранный целевой почтовый ящик отключён.</value>
+  </data>
+  <data name="OffloadCutoffRequired" xml:space="preserve">
+    <value>Укажите окно месяцев или дату начала.</value>
+  </data>
+  <data name="OffloadCutoffToBeforeFrom" xml:space="preserve">
+    <value>Дата «по» не должна быть раньше даты «с».</value>
+  </data>
+  <data name="OffloadNothingInWindow" xml:space="preserve">
+    <value>В этот диапазон дат не попадает ни одной архивной почты.</value>
+  </data>
+  <data name="OffloadQueued" xml:space="preserve">
+    <value>Выгрузка поставлена в очередь для {0} писем.</value>
+  </data>
+  <data name="OffloadDryRunQueued" xml:space="preserve">
+    <value>Пробный запуск в очереди для {0} писем. Ничего не будет добавлено.</value>
+  </data>
+  <data name="OffloadAppended" xml:space="preserve">
+    <value>Добавлено</value>
+  </data>
+  <data name="OffloadAlreadyPresent" xml:space="preserve">
+    <value>Уже присутствует</value>
+  </data>
+  <data name="OffloadByFingerprint" xml:space="preserve">
+    <value>совпадение по отпечатку</value>
+  </data>
+  <data name="OffloadExcluded" xml:space="preserve">
+    <value>Исключённая папка</value>
+  </data>
+  <data name="OffloadReport" xml:space="preserve">
+    <value>Отчёт о выгрузке</value>
+  </data>
+  <data name="OffloadJob" xml:space="preserve">
+    <value>Выгрузка</value>
+  </data>
 </root>

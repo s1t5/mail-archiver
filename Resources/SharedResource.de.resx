@@ -3189,4 +3189,142 @@
   <data name="FailuresAcknowledged" xml:space="preserve">
     <value>Fehler bestätigt</value>
   </data>
+  <data name="OffloadTitle" xml:space="preserve">
+    <value>In anderes Postfach auslagern</value>
+  </data>
+  <data name="OffloadIntro" xml:space="preserve">
+    <value>Hängt archivierte Mails, die neuer als ein Stichtag sind, an ein anderes Postfach an und überspringt alles, was dort bereits liegt. Ältere Mails bleiben im Archiv. Ein erneuter Lauf ist unbedenklich und hängt nichts doppelt an.</value>
+  </data>
+  <data name="OffloadSourceAndTarget" xml:space="preserve">
+    <value>Quelle und Ziel</value>
+  </data>
+  <data name="SourceAccount" xml:space="preserve">
+    <value>Quellkonto</value>
+  </data>
+  <data name="OffloadSelectTarget" xml:space="preserve">
+    <value>Zielpostfach auswählen...</value>
+  </data>
+  <data name="OffloadLoadingFolders" xml:space="preserve">
+    <value>Ordner werden geladen…</value>
+  </data>
+  <data name="OffloadSelectFolder" xml:space="preserve">
+    <value>-- Zielordner wählen --</value>
+  </data>
+  <data name="OffloadErrorLoadingFolders" xml:space="preserve">
+    <value>Fehler beim Laden der Ordner</value>
+  </data>
+  <data name="OffloadSelectTargetFirst" xml:space="preserve">
+    <value>Ziel wählen</value>
+  </data>
+  <data name="OffloadTargetFolderHelp" xml:space="preserve">
+    <value>Wurzelordner im Zielpostfach. Bei INBOX wird die Ordnerstruktur der Quelle auf oberster Ebene nachgebildet.</value>
+  </data>
+  <data name="OffloadWindow" xml:space="preserve">
+    <value>Zeitfenster</value>
+  </data>
+  <data name="OffloadWindowMonths" xml:space="preserve">
+    <value>Letzte N Monate</value>
+  </data>
+  <data name="OffloadWindowMonthsHelp" xml:space="preserve">
+    <value>Wird beim Start des Auftrags in ein festes Datum aufgelöst, damit ein Wiederholungslauf dieselben Mails auswählt. 0 bedeutet: stattdessen das explizite Datum verwenden.</value>
+  </data>
+  <data name="OffloadCutoffFrom" xml:space="preserve">
+    <value>Von Datum</value>
+  </data>
+  <data name="OffloadCutoffFromHelp" xml:space="preserve">
+    <value>Überschreibt das Monatsfenster. Einschließlich, ab 00:00 dieses Tages.</value>
+  </data>
+  <data name="OffloadCutoffTo" xml:space="preserve">
+    <value>Bis Datum (optional)</value>
+  </data>
+  <data name="OffloadCutoffToHelp" xml:space="preserve">
+    <value>Einschließlich, bis 23:59:59 dieses Tages.</value>
+  </data>
+  <data name="OffloadOptions" xml:space="preserve">
+    <value>Optionen</value>
+  </data>
+  <data name="OffloadDryRun" xml:space="preserve">
+    <value>Testlauf</value>
+  </data>
+  <data name="OffloadDryRunHelp" xml:space="preserve">
+    <value>Löst alles auf und berichtet pro Ordner, was passieren würde, hängt aber nichts an. Vor einem echten Lauf empfohlen.</value>
+  </data>
+  <data name="OffloadMarkAsSeen" xml:space="preserve">
+    <value>Angehängte Mails als gelesen markieren</value>
+  </data>
+  <data name="OffloadMarkAsSeenHelp" xml:space="preserve">
+    <value>Ausgeschaltet bleiben ungelesene Mails im Zielpostfach ungelesen.</value>
+  </data>
+  <data name="OffloadFolderHandling" xml:space="preserve">
+    <value>Ordnerbehandlung</value>
+  </data>
+  <data name="OffloadExcludedFolders" xml:space="preserve">
+    <value>Ausgeschlossene Quellordner</value>
+  </data>
+  <data name="OffloadRenameMap" xml:space="preserve">
+    <value>Ordner-Umbenennung</value>
+  </data>
+  <data name="OffloadNoneConfigured" xml:space="preserve">
+    <value>nicht konfiguriert</value>
+  </data>
+  <data name="OffloadFolderHandlingHelp" xml:space="preserve">
+    <value>Beides wird im Abschnitt Offload der appsettings.json konfiguriert und ist standardmäßig leer. Ausschlüsse werden vor dem Umbenennen geprüft und gelten auch für Unterordner.</value>
+  </data>
+  <data name="OffloadStart" xml:space="preserve">
+    <value>Auslagerung starten</value>
+  </data>
+  <data name="OffloadNoTargets" xml:space="preserve">
+    <value>Es ist kein weiteres aktives IMAP-Konto als Ziel verfügbar. Bitte zuerst eines anlegen.</value>
+  </data>
+  <data name="OffloadNoTargetsAssigned" xml:space="preserve">
+    <value>Keines der Ihnen zugewiesenen Postfächer kann als Ziel verwendet werden. Bitte lassen Sie sich ein weiteres aktives IMAP-Konto zuweisen.</value>
+  </data>
+  <data name="OffloadTargetRequired" xml:space="preserve">
+    <value>Bitte ein Zielpostfach auswählen.</value>
+  </data>
+  <data name="OffloadTargetMustDiffer" xml:space="preserve">
+    <value>Das Zielpostfach muss sich von der Quelle unterscheiden.</value>
+  </data>
+  <data name="OffloadTargetNotFound" xml:space="preserve">
+    <value>Das gewählte Zielpostfach existiert nicht mehr.</value>
+  </data>
+  <data name="OffloadTargetMustBeImap" xml:space="preserve">
+    <value>Das Zielpostfach muss ein IMAP-Konto sein.</value>
+  </data>
+  <data name="OffloadTargetDisabled" xml:space="preserve">
+    <value>Das gewählte Zielpostfach ist deaktiviert.</value>
+  </data>
+  <data name="OffloadCutoffRequired" xml:space="preserve">
+    <value>Bitte entweder ein Monatsfenster oder ein Von-Datum angeben.</value>
+  </data>
+  <data name="OffloadCutoffToBeforeFrom" xml:space="preserve">
+    <value>Das Bis-Datum darf nicht vor dem Von-Datum liegen.</value>
+  </data>
+  <data name="OffloadNothingInWindow" xml:space="preserve">
+    <value>In diesem Zeitfenster liegen keine archivierten Mails.</value>
+  </data>
+  <data name="OffloadQueued" xml:space="preserve">
+    <value>Auslagerung für {0} Mails eingeplant.</value>
+  </data>
+  <data name="OffloadDryRunQueued" xml:space="preserve">
+    <value>Testlauf für {0} Mails eingeplant. Es wird nichts angehängt.</value>
+  </data>
+  <data name="OffloadAppended" xml:space="preserve">
+    <value>Angehängt</value>
+  </data>
+  <data name="OffloadAlreadyPresent" xml:space="preserve">
+    <value>Bereits vorhanden</value>
+  </data>
+  <data name="OffloadByFingerprint" xml:space="preserve">
+    <value>per Fingerprint erkannt</value>
+  </data>
+  <data name="OffloadExcluded" xml:space="preserve">
+    <value>Ausgeschlossener Ordner</value>
+  </data>
+  <data name="OffloadReport" xml:space="preserve">
+    <value>Auslagerungsbericht</value>
+  </data>
+  <data name="OffloadJob" xml:space="preserve">
+    <value>Auslagerung</value>
+  </data>
 </root>

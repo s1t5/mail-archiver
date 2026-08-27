@@ -3188,4 +3188,142 @@
   <data name="FailuresAcknowledged" xml:space="preserve">
     <value>Napake potrjene</value>
   </data>
+  <data name="OffloadTitle" xml:space="preserve">
+    <value>Prenesi v drugi nabiralnik</value>
+  </data>
+  <data name="OffloadIntro" xml:space="preserve">
+    <value>Doda arhivirano pošto, novejšo od datuma prereza, v drugi nabiralnik in preskoči tisto, kar ta nabiralnik že vsebuje. Starejša pošta ostane v arhivu. Ponovni zagon je varen in ne doda ničesar, kar je že prisotno.</value>
+  </data>
+  <data name="OffloadSourceAndTarget" xml:space="preserve">
+    <value>Izvor in cilj</value>
+  </data>
+  <data name="SourceAccount" xml:space="preserve">
+    <value>Izvorni račun</value>
+  </data>
+  <data name="OffloadSelectTarget" xml:space="preserve">
+    <value>Izberi ciljni nabiralnik…</value>
+  </data>
+  <data name="OffloadLoadingFolders" xml:space="preserve">
+    <value>Nalaganje map…</value>
+  </data>
+  <data name="OffloadSelectFolder" xml:space="preserve">
+    <value>-- Izberite ciljno mapo --</value>
+  </data>
+  <data name="OffloadErrorLoadingFolders" xml:space="preserve">
+    <value>Napaka pri nalaganju map</value>
+  </data>
+  <data name="OffloadSelectTargetFirst" xml:space="preserve">
+    <value>Najprej izberite ciljni nabiralnik</value>
+  </data>
+  <data name="OffloadTargetFolderHelp" xml:space="preserve">
+    <value>Korenska mapa v ciljnem nabiralniku. Z INBOX se struktura izvornih map rekonstruira na vrhnji ravni.</value>
+  </data>
+  <data name="OffloadWindow" xml:space="preserve">
+    <value>Datumsko okno</value>
+  </data>
+  <data name="OffloadWindowMonths" xml:space="preserve">
+    <value>Zadnjih N mesecev</value>
+  </data>
+  <data name="OffloadWindowMonthsHelp" xml:space="preserve">
+    <value>Ob zagonu opravila se razreši v fiksni datum, zato ponovni zagon izbere isto pošto. Nastavite na 0 za izrecni datum.</value>
+  </data>
+  <data name="OffloadCutoffFrom" xml:space="preserve">
+    <value>Od datuma</value>
+  </data>
+  <data name="OffloadCutoffFromHelp" xml:space="preserve">
+    <value>Prepiše okno mesecev. Vključno, od 00:00 tega dne.</value>
+  </data>
+  <data name="OffloadCutoffTo" xml:space="preserve">
+    <value>Do datuma (izbirno)</value>
+  </data>
+  <data name="OffloadCutoffToHelp" xml:space="preserve">
+    <value>Vključno, do 23:59:59 tega dne.</value>
+  </data>
+  <data name="OffloadOptions" xml:space="preserve">
+    <value>Možnosti</value>
+  </data>
+  <data name="OffloadDryRun" xml:space="preserve">
+    <value>Preskusni zagon</value>
+  </data>
+  <data name="OffloadDryRunHelp" xml:space="preserve">
+    <value>Razreši vse in poroča po mapah, kaj bi se zgodilo, ne doda ničesar. Priporočeno pred pravim zagonom.</value>
+  </data>
+  <data name="OffloadMarkAsSeen" xml:space="preserve">
+    <value>Označi dodano pošto kot prebrano</value>
+  </data>
+  <data name="OffloadMarkAsSeenHelp" xml:space="preserve">
+    <value>Izklop pusti neprebrano pošto v ciljnem nabiralniku neprebrano.</value>
+  </data>
+  <data name="OffloadFolderHandling" xml:space="preserve">
+    <value>Upravljanje map</value>
+  </data>
+  <data name="OffloadExcludedFolders" xml:space="preserve">
+    <value>Izključene izvorne mape</value>
+  </data>
+  <data name="OffloadRenameMap" xml:space="preserve">
+    <value>Tabela preimenovanja map</value>
+  </data>
+  <data name="OffloadNoneConfigured" xml:space="preserve">
+    <value>ni nastavljeno</value>
+  </data>
+  <data name="OffloadFolderHandlingHelp" xml:space="preserve">
+    <value>Oboje nastavite v razdelku Offload v appsettings.json in sta privzeto prazni. Izključitve se uveljavljajo pred preimenovanjem in pokrivajo podmape.</value>
+  </data>
+  <data name="OffloadStart" xml:space="preserve">
+    <value>Začni prenos</value>
+  </data>
+  <data name="OffloadNoTargets" xml:space="preserve">
+    <value>Na voljo ni drugega omogočenega računa IMAP kot cilja. Najprej ga ustvarite.</value>
+  </data>
+  <data name="OffloadNoTargetsAssigned" xml:space="preserve">
+    <value>Nobeden od vam dodeljenih nabiralnikov ni mogoče uporabiti kot cilj. Prosite skrbnika, naj vam dodeli še en omogočen račun IMAP.</value>
+  </data>
+  <data name="OffloadTargetRequired" xml:space="preserve">
+    <value>Izberite ciljni nabiralnik.</value>
+  </data>
+  <data name="OffloadTargetMustDiffer" xml:space="preserve">
+    <value>Ciljni nabiralnik mora biti različen od izvornega.</value>
+  </data>
+  <data name="OffloadTargetNotFound" xml:space="preserve">
+    <value>Izbrani ciljni nabiralnik ne obstaja več.</value>
+  </data>
+  <data name="OffloadTargetMustBeImap" xml:space="preserve">
+    <value>Ciljni nabiralnik mora biti račun IMAP.</value>
+  </data>
+  <data name="OffloadTargetDisabled" xml:space="preserve">
+    <value>Izbrani ciljni nabiralnik je onemogočen.</value>
+  </data>
+  <data name="OffloadCutoffRequired" xml:space="preserve">
+    <value>Navedite okno mesecev ali datum od.</value>
+  </data>
+  <data name="OffloadCutoffToBeforeFrom" xml:space="preserve">
+    <value>Datum „do” ne sme biti pred datumom „od”.</value>
+  </data>
+  <data name="OffloadNothingInWindow" xml:space="preserve">
+    <value>V to datumsko okno ne pade nobena arhivirana pošta.</value>
+  </data>
+  <data name="OffloadQueued" xml:space="preserve">
+    <value>Prenos v čakalni vrsti za {0} pisem.</value>
+  </data>
+  <data name="OffloadDryRunQueued" xml:space="preserve">
+    <value>Preskusni zagon v čakalni vrsti za {0} pisem. Nič ne bo dodano.</value>
+  </data>
+  <data name="OffloadAppended" xml:space="preserve">
+    <value>Dodano</value>
+  </data>
+  <data name="OffloadAlreadyPresent" xml:space="preserve">
+    <value>Že prisotno</value>
+  </data>
+  <data name="OffloadByFingerprint" xml:space="preserve">
+    <value>ujemanje po prstnem odtisu</value>
+  </data>
+  <data name="OffloadExcluded" xml:space="preserve">
+    <value>Izključena mapa</value>
+  </data>
+  <data name="OffloadReport" xml:space="preserve">
+    <value>Poročilo o prenosu</value>
+  </data>
+  <data name="OffloadJob" xml:space="preserve">
+    <value>Prenos</value>
+  </data>
 </root>

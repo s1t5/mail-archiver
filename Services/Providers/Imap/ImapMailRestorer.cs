@@ -22,20 +22,33 @@ namespace MailArchiver.Services.Providers.Imap
         private readonly ImapConnectionFactory _connectionFactory;
         private readonly DateTimeHelper _dateTimeHelper;
         private readonly BatchOperationOptions _batchOptions;
+        private readonly OffloadOptions _offloadOptions;
 
         public ImapMailRestorer(
             MailArchiverDbContext context,
             ILogger<ImapMailRestorer> logger,
             ImapConnectionFactory connectionFactory,
             DateTimeHelper dateTimeHelper,
-            IOptions<BatchOperationOptions> batchOptions)
+            IOptions<BatchOperationOptions> batchOptions,
+            IOptions<OffloadOptions> offloadOptions)
         {
             _context = context;
             _logger = logger;
             _connectionFactory = connectionFactory;
             _dateTimeHelper = dateTimeHelper;
             _batchOptions = batchOptions.Value;
+            _offloadOptions = offloadOptions.Value;
         }
+
+        /// <summary>
+        /// The IMAP INTERNALDATE to append a message with. Delegates to
+        /// <see cref="InternalDateResolver"/>, which is where the reasoning and the tests live.
+        /// </summary>
+        internal DateTimeOffset ResolveInternalDate(ArchivedEmail email)
+            => InternalDateResolver.Resolve(email, _dateTimeHelper);
+
+        private MessageFlags AppendFlags(bool? markAsSeen = null)
+            => (markAsSeen ?? _offloadOptions.MarkAsSeen) ? MessageFlags.Seen : MessageFlags.None;
 
         /// <summary>
         /// Restores a single archived email to an IMAP folder.
@@ -192,10 +205,8 @@ namespace MailArchiver.Services.Providers.Imap
                     try
                     {
                         _logger.LogInformation("Appending message to folder {FolderName}", folder.FullName);
-                        var receivedSource = email.ReceivedDate == default ? email.SentDate : email.ReceivedDate;
-                        var internalDateUtc = _dateTimeHelper.ConvertFromDisplayTimeZoneToUtc(receivedSource);
-                        var internalDate = new DateTimeOffset(internalDateUtc, TimeSpan.Zero);
-                        await folder.AppendAsync(message, MessageFlags.Seen, internalDate);
+                        var internalDate = ResolveInternalDate(email);
+                        await folder.AppendAsync(message, AppendFlags(), internalDate);
                         _logger.LogInformation("Message successfully appended to folder {FolderName} with INTERNALDATE {InternalDate}",
                             folder.FullName, internalDate);
                     }
@@ -652,9 +663,322 @@ namespace MailArchiver.Services.Providers.Imap
         }
 
         /// <summary>
+        /// Appends archived mail into a target mailbox, skipping anything the target already
+        /// holds. This is the offload path, and it differs from the plain folder-structure
+        /// restore in four ways: source folders can be excluded, folder names can be rewritten,
+        /// duplicates are detected against the whole target mailbox, and a dry run can report
+        /// what would happen without writing anything.
+        /// </summary>
+        public async Task<OffloadOutcome> OffloadEmailsAsync(
+            List<int> emailIds,
+            int targetAccountId,
+            string baseFolderName,
+            bool preserveFolderStructure,
+            OffloadCriteria criteria,
+            Action<int, int, int>? progressCallback = null,
+            CancellationToken cancellationToken = default)
+        {
+            var outcome = new OffloadOutcome { DryRun = criteria.DryRun };
+
+            var targetAccount = await _context.MailAccounts.FindAsync(new object[] { targetAccountId }, cancellationToken);
+            if (targetAccount == null)
+            {
+                _logger.LogError("Target account with ID {AccountId} not found", targetAccountId);
+                outcome.Failed = emailIds.Count;
+                return outcome;
+            }
+
+            // Only the fields the mapping and the duplicate check need, so a large window does
+            // not pull whole message bodies into memory.
+            var rows = await _context.ArchivedEmails
+                .Where(e => emailIds.Contains(e.Id))
+                .Select(e => new { e.Id, e.FolderName })
+                .ToListAsync(cancellationToken);
+
+            // Group by the target path AFTER the rename. Keying on the raw source name would
+            // open the same target folder twice when two source folders legitimately collapse
+            // onto one, for example "Sent Items" and "Sent" both becoming "Sent".
+            var groups = new Dictionary<string, List<int>>(StringComparer.OrdinalIgnoreCase);
+            foreach (var row in rows)
+            {
+                var source = row.FolderName ?? "INBOX";
+
+                if (FolderMapper.IsExcluded(source, criteria.ExcludedSourceFolders))
+                {
+                    outcome.SkippedExcludedFolder++;
+                    continue;
+                }
+
+                var renamed = FolderMapper.ApplyRenameMap(source, criteria.FolderRenameMap);
+                var targetPath = FolderMapper.ResolveTargetPath(renamed, baseFolderName, preserveFolderStructure);
+
+                if (!groups.TryGetValue(targetPath, out var list))
+                {
+                    list = new List<int>();
+                    groups[targetPath] = list;
+                }
+                list.Add(row.Id);
+            }
+
+            _logger.LogInformation(
+                "Offload to account {AccountName}: {Considered} mails in {Groups} target folders, " +
+                "{Excluded} skipped by folder exclusion, window {Window}, dry run: {DryRun}",
+                targetAccount.Name, rows.Count - outcome.SkippedExcludedFolder, groups.Count,
+                outcome.SkippedExcludedFolder, criteria.DescribeWindow(), criteria.DryRun);
+
+            ImapClient? client = null;
+            var processed = 0;
+
+            try
+            {
+                client = _connectionFactory.CreateImapClient(targetAccount.Name);
+                client.Timeout = 180000;
+                client.ServerCertificateValidationCallback = _connectionFactory.ServerCertificateValidationCallback;
+
+                await _connectionFactory.ConnectWithFallbackAsync(
+                    client, targetAccount.ImapServer, targetAccount.ImapPort ?? 993, targetAccount.UseSSL, targetAccount.Name);
+                await _connectionFactory.AuthenticateClientAsync(client, targetAccount);
+
+                // Built once per job, before the first append, and covering the whole target
+                // mailbox. This is what makes the offload repeatable.
+                var index = await TargetMailboxIndex.BuildAsync(
+                    client, _dateTimeHelper, _logger, _offloadOptions.PrefetchMaxMessages,
+                    restrictToFolder: null, cancellationToken: cancellationToken);
+                outcome.DuplicateScopeReduced = index.ScopeReduced;
+
+                foreach (var group in groups)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    var targetPath = group.Key;
+                    var folderOutcome = outcome.Folder(targetPath);
+
+                    IMailFolder? folder = null;
+                    if (!criteria.DryRun)
+                    {
+                        folder = await ResolveOrCreateFolderAsync(client, targetPath, cancellationToken);
+                        if (folder == null)
+                        {
+                            _logger.LogError("Could not resolve or create target folder '{Folder}', skipping {Count} mails",
+                                targetPath, group.Value.Count);
+                            outcome.Failed += group.Value.Count;
+                            folderOutcome.Failed += group.Value.Count;
+                            processed += group.Value.Count;
+                            progressCallback?.Invoke(processed, outcome.Appended, outcome.Failed);
+                            continue;
+                        }
+                    }
+
+                    // Load the emails of this group in batches instead of one at a time.
+                    // Both the duplicate check and the append reuse the same entity, so each
+                    // batch is a single round-trip rather than two queries per message.
+                    for (var i = 0; i < group.Value.Count; i += _batchOptions.BatchSize)
+                    {
+                        var batchIds = group.Value.Skip(i).Take(_batchOptions.BatchSize).ToList();
+                        var emails = await _context.ArchivedEmails
+                            .Include(e => e.Attachments)
+                                .ThenInclude(a => a.AttachmentContent)
+                            .Where(e => batchIds.Contains(e.Id))
+                            .ToDictionaryAsync(e => e.Id, cancellationToken);
+
+                        foreach (var emailId in batchIds)
+                        {
+                            cancellationToken.ThrowIfCancellationRequested();
+
+                            if (!emails.TryGetValue(emailId, out var email))
+                            {
+                                outcome.Failed++;
+                                folderOutcome.Failed++;
+                                processed++;
+                                continue;
+                            }
+
+                            var match = index.Match(email);
+                            if (match != OffloadMatchKind.None)
+                            {
+                                outcome.SkippedAlreadyPresent++;
+                                folderOutcome.SkippedAlreadyPresent++;
+                                if (match == OffloadMatchKind.Fingerprint)
+                                {
+                                    outcome.MatchedByFingerprint++;
+                                    folderOutcome.MatchedByFingerprint++;
+                                }
+                                processed++;
+                                progressCallback?.Invoke(processed, outcome.Appended, outcome.Failed);
+                                continue;
+                            }
+
+                            if (criteria.DryRun)
+                            {
+                                // Everything above still ran, so the reported counts are real. Only
+                                // the append is skipped. The index is still updated, so two copies
+                                // inside the same window are not both reported as appendable.
+                                outcome.Appended++;
+                                folderOutcome.Appended++;
+                                index.Add(email);
+                                processed++;
+                                progressCallback?.Invoke(processed, outcome.Appended, outcome.Failed);
+                                continue;
+                            }
+
+                            try
+                            {
+                                var ok = await RestoreEmailWithSharedConnectionAsync(
+                                    email, client, folder!, targetAccount.Name, criteria.MarkAsSeen);
+                                if (ok)
+                                {
+                                    outcome.Appended++;
+                                    folderOutcome.Appended++;
+                                    // Recorded immediately, so a duplicate inside this same run is
+                                    // caught too and not only one against an earlier run.
+                                    index.Add(email);
+                                }
+                                else
+                                {
+                                    outcome.Failed++;
+                                    folderOutcome.Failed++;
+                                }
+                            }
+                            catch (OperationCanceledException)
+                            {
+                                throw;
+                            }
+                            catch (Exception ex)
+                            {
+                                outcome.Failed++;
+                                folderOutcome.Failed++;
+                                _logger.LogError(ex, "Error appending email {EmailId} to '{Folder}': {Message}",
+                                    emailId, targetPath, ex.Message);
+                            }
+
+                            processed++;
+                            progressCallback?.Invoke(processed, outcome.Appended, outcome.Failed);
+
+                            if (!criteria.DryRun && _batchOptions.PauseBetweenEmailsMs > 0)
+                            {
+                                await Task.Delay(_batchOptions.PauseBetweenEmailsMs, cancellationToken);
+                            }
+                        }
+                    }
+
+                    if (!criteria.DryRun && _batchOptions.PauseBetweenBatchesMs > 0)
+                    {
+                        await Task.Delay(_batchOptions.PauseBetweenBatchesMs, cancellationToken);
+                    }
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                _logger.LogInformation("Offload was cancelled after {Processed} of {Total} mails", processed, rows.Count);
+                throw;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Critical error during offload: {Message}", ex.Message);
+                outcome.Failed += Math.Max(0, rows.Count - outcome.SkippedExcludedFolder - processed);
+            }
+            finally
+            {
+                if (client != null)
+                {
+                    try
+                    {
+                        if (client.IsConnected) await client.DisconnectAsync(true);
+                        client.Dispose();
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Error during IMAP client cleanup");
+                    }
+                }
+            }
+
+            _logger.LogInformation("Offload finished. {Summary}", outcome.Describe().Replace(Environment.NewLine, " | "));
+            return outcome;
+        }
+
+        /// <summary>
+        /// Finds a target folder, creating the whole path if it does not exist yet. Returns null
+        /// when neither is possible.
+        /// <para>
+        /// Paths are built with the separator the target server actually reports rather than a
+        /// hard coded one, because the resolved path uses "/" internally while servers differ:
+        /// Dovecot and mailcow use "/", others use "." or "\".
+        /// </para>
+        /// </summary>
+        private async Task<IMailFolder?> ResolveOrCreateFolderAsync(
+            ImapClient client, string path, CancellationToken cancellationToken)
+        {
+            try
+            {
+                return await client.GetFolderAsync(path, cancellationToken);
+            }
+            catch
+            {
+                // Does not exist yet, so build it segment by segment below.
+            }
+
+            try
+            {
+                var segments = path.Split(new[] { '/', '\\' }, StringSplitOptions.RemoveEmptyEntries);
+                if (segments.Length == 0) return client.Inbox;
+
+                // Top level folders are created under the personal namespace root, not under
+                // INBOX, unless the path itself starts at INBOX.
+                IMailFolder root = client.PersonalNamespaces != null && client.PersonalNamespaces.Count > 0
+                    ? client.GetFolder(client.PersonalNamespaces[0])
+                    : client.Inbox;
+
+                IMailFolder current;
+                int firstSegment;
+
+                if (string.Equals(segments[0], "INBOX", StringComparison.OrdinalIgnoreCase))
+                {
+                    current = client.Inbox;
+                    firstSegment = 1;
+                }
+                else
+                {
+                    current = root;
+                    firstSegment = 0;
+                }
+
+                for (var i = firstSegment; i < segments.Length; i++)
+                {
+                    var segment = segments[i];
+                    var separator = current.DirectorySeparator == '\0' ? '/' : current.DirectorySeparator;
+                    var candidate = string.IsNullOrEmpty(current.FullName)
+                        ? segment
+                        : $"{current.FullName}{separator}{segment}";
+
+                    try
+                    {
+                        current = await client.GetFolderAsync(candidate, cancellationToken);
+                    }
+                    catch
+                    {
+                        current = await current.CreateAsync(segment, true, cancellationToken);
+                        _logger.LogInformation("Created target folder '{Folder}'", current.FullName);
+                    }
+                }
+
+                return current;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Could not create target folder path '{Path}'", path);
+                return null;
+            }
+        }
+
+        /// <summary>
         /// Restores a single email using an existing IMAP connection.
         /// </summary>
-        public async Task<bool> RestoreEmailWithSharedConnectionAsync(int emailId, ImapClient client, IMailFolder targetFolder, string accountName)
+        /// <param name="markAsSeen">
+        /// Whether to append with the Seen flag. Null falls back to the configured default,
+        /// which is true and reproduces the behaviour this path always had.
+        /// </param>
+        public async Task<bool> RestoreEmailWithSharedConnectionAsync(int emailId, ImapClient client, IMailFolder targetFolder, string accountName, bool? markAsSeen = null)
         {
             try
             {
@@ -669,24 +993,40 @@ namespace MailArchiver.Services.Providers.Imap
                     return false;
                 }
 
+                return await RestoreEmailWithSharedConnectionAsync(email, client, targetFolder, accountName, markAsSeen);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error restoring email {EmailId} with shared connection: {Message}", emailId, ex.Message);
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Restores a single email using an existing IMAP connection and an already-loaded
+        /// entity. Used by the offload path, which batch-loads its entities and therefore
+        /// cannot afford a second per-message query for the append.
+        /// </summary>
+        private async Task<bool> RestoreEmailWithSharedConnectionAsync(ArchivedEmail email, ImapClient client, IMailFolder targetFolder, string accountName, bool? markAsSeen)
+        {
+            try
+            {
                 var message = await CreateMimeMessageFromArchivedEmailAsync(email, accountName);
                 if (message == null)
                 {
                     return false;
                 }
 
-                var receivedSource = email.ReceivedDate == default ? email.SentDate : email.ReceivedDate;
-                var internalDateUtc = _dateTimeHelper.ConvertFromDisplayTimeZoneToUtc(receivedSource);
-                var internalDate = new DateTimeOffset(internalDateUtc, TimeSpan.Zero);
-                await targetFolder.AppendAsync(message, MessageFlags.Seen, internalDate);
+                var internalDate = ResolveInternalDate(email);
+                await targetFolder.AppendAsync(message, AppendFlags(markAsSeen), internalDate);
                 _logger.LogDebug("Email {EmailId} successfully appended to folder {FolderName} with INTERNALDATE {InternalDate}",
-                    emailId, targetFolder.FullName, internalDate);
+                    email.Id, targetFolder.FullName, internalDate);
 
                 return true;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error restoring email {EmailId} with shared connection: {Message}", emailId, ex.Message);
+                _logger.LogError(ex, "Error restoring email {EmailId} with shared connection: {Message}", email.Id, ex.Message);
                 return false;
             }
         }
@@ -846,8 +1186,10 @@ namespace MailArchiver.Services.Providers.Imap
                 }
 
                 message.Body = bodyBuilder.ToMessageBody();
-                var sentUtc = _dateTimeHelper.ConvertFromDisplayTimeZoneToUtc(email.SentDate);
-                message.Date = new DateTimeOffset(sentUtc, TimeSpan.Zero);
+                // Emit the Date: header with the display timezone's offset rather than a UTC
+                // offset, so the written header matches the wall-clock time the user sees.
+                // Both represent the same instant; only the rendered offset differs.
+                message.Date = _dateTimeHelper.ToDisplayTimeZoneOffset(email.SentDate);
                 // Normalize the stored Message-ID (legacy Graph rows may carry surrounding
                 // angle brackets) so MimeKit emits a single well-formed bracket pair.
                 var restorableMessageId = MailContentHelper.NormalizeMessageId(email.MessageId);

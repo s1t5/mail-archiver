@@ -872,7 +872,19 @@
                                     <tr>
                                         <td><code>@job.JobId.Substring(0, 8)...</code></td>
                                         <td>@{ var batchStatusClass = job.Status switch { MailArchiver.Models.BatchRestoreJobStatus.Running => "primary", MailArchiver.Models.BatchRestoreJobStatus.Completed => "success", MailArchiver.Models.BatchRestoreJobStatus.Failed => "danger", MailArchiver.Models.BatchRestoreJobStatus.Cancelled => "warning", _ => "secondary" }; }<span class="badge bg-@batchStatusClass">@Localizer[job.Status.ToString()]</span></td>
-                                        <td>@job.EmailIds.Count.ToString("N0")</td>
+                                        <td>
+                                            @job.EmailIds.Count.ToString("N0")
+                                            @if (job.IsOffload)
+                                            {
+                                                <br />
+                                                <span class="badge bg-info text-dark">@Localizer["OffloadJob"]@if (job.Offload!.DryRun){<text> (@Localizer["OffloadDryRun"])</text>}</span>
+                                                <br />
+                                                <small class="text-muted">
+                                                    @Localizer["OffloadAppended"]: @job.AppendedCount.ToString("N0")
+                                                    | @Localizer["OffloadAlreadyPresent"]: @job.SkippedAlreadyPresentCount.ToString("N0")@if (job.MatchedByFingerprintCount > 0){<text> (@job.MatchedByFingerprintCount.ToString("N0") @Localizer["OffloadByFingerprint"])</text>}@if (job.SkippedExcludedFolderCount > 0){<text> | @Localizer["OffloadExcluded"]: @job.SkippedExcludedFolderCount.ToString("N0")</text>}
+                                                </small>
+                                            }
+                                        </td>
                                         <td>@{ var progressPercent = job.EmailIds.Count > 0 ? (job.ProcessedCount * 100.0 / job.EmailIds.Count) : 0; }<div class="progress" style="height: 20px;"><div class="progress-bar @(job.Status == MailArchiver.Models.BatchRestoreJobStatus.Running ? "progress-bar-striped progress-bar-animated" : "")" role="progressbar" style="width: @progressPercent.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)%">@progressPercent.ToString("F0")%</div></div></td>
                                         <td><span class="utc-timestamp" data-utc-time="@job.Created.ToString("yyyy-MM-ddTHH:mm:ss")">@job.Created.ToString("g")</span></td>
                                         <td><div class="btn-group btn-group-sm"><a asp-action="BatchRestoreStatus" asp-route-jobId="@job.JobId" class="btn btn-outline-primary btn-sm">@Localizer["Details"]</a>@if (job.Status == MailArchiver.Models.BatchRestoreJobStatus.Running || job.Status == MailArchiver.Models.BatchRestoreJobStatus.Queued){<!-- Button to trigger the modal --><button type="button" class="btn btn-outline-warning btn-sm" data-bs-toggle="modal" data-bs-target="#cancelBatchRestoreModal-@job.JobId">@Localizer["CancelJob"]</button>}</div></td>

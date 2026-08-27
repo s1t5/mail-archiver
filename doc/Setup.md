@@ -277,6 +277,16 @@ The optional MCP (Model Context Protocol) server exposes the same read-only mail
 - `BatchOperation__PauseBetweenEmailsMs`: The pause between individual emails in milliseconds.
 - `BatchOperation__PauseBetweenBatchesMs`: The pause between batches in milliseconds.
 
+### 📤 Offload Settings
+Settings for the [date-windowed offload](Offload.md). All defaults reproduce the behaviour the application had before the feature existed, so an installation that does not configure this section is unaffected.
+- `Offload__MaxConcurrentJobs`: How many restore or offload jobs may run at the same time. Default is `1`, which keeps the strictly serial processing the job queue has always used. At most one job per target mailbox runs regardless of this value.
+- `Offload__PrefetchMaxMessages`: Upper bound on how many messages are indexed from a target mailbox for duplicate detection. Default is `500000`. Above it the check narrows to a single folder and logs that the scope was reduced.
+- `Offload__ExcludedSourceFolders__0`, `__1`, ...: Source folders that are never offloaded, matched before renaming and covering subfolders. Empty by default.
+- `Offload__FolderRenameMap__<SourceFolder>`: Rewrites the leading segments of a source folder path, for example `Offload__FolderRenameMap__Sent Items=Sent`. Empty by default.
+- `Offload__MarkAsSeen`: Whether appended mail is flagged as read. Default is `true`, matching the existing restore behaviour.
+
+Both folder settings ship empty on purpose: rewriting or dropping folders without being asked would surprise anyone already using the restore path. A run with no configuration therefore migrates everything, spam folders included, and creates a second set of special folders next to the target's own.
+
 ### 📊 Bandwidth Tracking Settings
 - `BandwidthTracking__Enabled`: Enable or disable bandwidth tracking for IMAP rate limit handling (true/false). Default is `false`. When enabled, the system tracks bandwidth usage per account and can pause synchronization when provider limits are reached. See [Rate Limit Handling](RateLimitHandling.md) for detailed information.
 - `BandwidthTracking__DailyLimitMb`: Daily download limit in megabytes per account. Default is `25000` (25 GB). For providers with bandwidth limits, set this to match their rate limit (e.g., `2500` for providers with ~2500 MB daily limits). The system will pause syncing when this limit is reached.

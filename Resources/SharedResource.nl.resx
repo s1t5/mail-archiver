@@ -3188,4 +3188,142 @@
   <data name="FailuresAcknowledged" xml:space="preserve">
     <value>Fouten erkend</value>
   </data>
+  <data name="OffloadTitle" xml:space="preserve">
+    <value>Naar ander postvak overbrengen</value>
+  </data>
+  <data name="OffloadIntro" xml:space="preserve">
+    <value>Voegt gearchiveerde mail nieuwer dan een afkapdatum toe aan een ander postvak en slaat over wat dat postvak al bevat. Oudere mail blijft in het archief. Opnieuw uitvoeren is veilig en voegt niets toe wat al is aangekomen.</value>
+  </data>
+  <data name="OffloadSourceAndTarget" xml:space="preserve">
+    <value>Bron en doel</value>
+  </data>
+  <data name="SourceAccount" xml:space="preserve">
+    <value>Bronaccount</value>
+  </data>
+  <data name="OffloadSelectTarget" xml:space="preserve">
+    <value>Selecteer een doelpostvak…</value>
+  </data>
+  <data name="OffloadLoadingFolders" xml:space="preserve">
+    <value>Mappen laden…</value>
+  </data>
+  <data name="OffloadSelectFolder" xml:space="preserve">
+    <value>-- Kies een doelmap --</value>
+  </data>
+  <data name="OffloadErrorLoadingFolders" xml:space="preserve">
+    <value>Fout bij laden van mappen</value>
+  </data>
+  <data name="OffloadSelectTargetFirst" xml:space="preserve">
+    <value>Kies eerst een doelpostvak</value>
+  </data>
+  <data name="OffloadTargetFolderHelp" xml:space="preserve">
+    <value>Hoofdmap in het doelpostvak. Met INBOX wordt de bronmapstructuur op het hoogste niveau gereconstrueerd.</value>
+  </data>
+  <data name="OffloadWindow" xml:space="preserve">
+    <value>Datumvenster</value>
+  </data>
+  <data name="OffloadWindowMonths" xml:space="preserve">
+    <value>Laatste N maanden</value>
+  </data>
+  <data name="OffloadWindowMonthsHelp" xml:space="preserve">
+    <value>Wordt bij start van de taak omgezet naar een vaste datum, zodat herhaling dezelfde mail selecteert. Stel in op 0 om een expliciete datum te gebruiken.</value>
+  </data>
+  <data name="OffloadCutoffFrom" xml:space="preserve">
+    <value>Vanaf datum</value>
+  </data>
+  <data name="OffloadCutoffFromHelp" xml:space="preserve">
+    <value>Negeert het maandvenster. Inclusief, vanaf 00:00 van deze dag.</value>
+  </data>
+  <data name="OffloadCutoffTo" xml:space="preserve">
+    <value>Tot datum (optioneel)</value>
+  </data>
+  <data name="OffloadCutoffToHelp" xml:space="preserve">
+    <value>Inclusief, tot 23:59:59 van deze dag.</value>
+  </data>
+  <data name="OffloadOptions" xml:space="preserve">
+    <value>Opties</value>
+  </data>
+  <data name="OffloadDryRun" xml:space="preserve">
+    <value>Proefrun</value>
+  </data>
+  <data name="OffloadDryRunHelp" xml:space="preserve">
+    <value>Lost alles op en meldt per map wat er zou gebeuren, maar voegt niets toe. Aanbevolen voor een echte run.</value>
+  </data>
+  <data name="OffloadMarkAsSeen" xml:space="preserve">
+    <value>Toegevoegde mail markeren als gelezen</value>
+  </data>
+  <data name="OffloadMarkAsSeenHelp" xml:space="preserve">
+    <value>Schakel dit uit om ongelezen mail in het doelpostvak ongelezen te houden.</value>
+  </data>
+  <data name="OffloadFolderHandling" xml:space="preserve">
+    <value>Mapafhandeling</value>
+  </data>
+  <data name="OffloadExcludedFolders" xml:space="preserve">
+    <value>Uitgesloten bronmappen</value>
+  </data>
+  <data name="OffloadRenameMap" xml:space="preserve">
+    <value>Mapnaam wijzigingstabel</value>
+  </data>
+  <data name="OffloadNoneConfigured" xml:space="preserve">
+    <value>geen geconfigureerd</value>
+  </data>
+  <data name="OffloadFolderHandlingHelp" xml:space="preserve">
+    <value>Beide worden in de sectie Offload van appsettings.json geconfigureerd en zijn standaard leeg. Uitsluitingen worden vóór het hernoemen toegepast en dekken submappen.</value>
+  </data>
+  <data name="OffloadStart" xml:space="preserve">
+    <value>Overbrengen starten</value>
+  </data>
+  <data name="OffloadNoTargets" xml:space="preserve">
+    <value>Geen ander ingeschakeld IMAP-account beschikbaar als doel. Maak er eerst een aan.</value>
+  </data>
+  <data name="OffloadNoTargetsAssigned" xml:space="preserve">
+    <value>Geen van de aan u toegewezen postvakken kan als doel worden gebruikt. Vraag een beheerder om een ander ingeschakeld IMAP-account toe te wijzen.</value>
+  </data>
+  <data name="OffloadTargetRequired" xml:space="preserve">
+    <value>Kies een doelpostvak.</value>
+  </data>
+  <data name="OffloadTargetMustDiffer" xml:space="preserve">
+    <value>Het doelpostvak moet verschillen van de bron.</value>
+  </data>
+  <data name="OffloadTargetNotFound" xml:space="preserve">
+    <value>Het geselecteerde doelpostvak bestaat niet meer.</value>
+  </data>
+  <data name="OffloadTargetMustBeImap" xml:space="preserve">
+    <value>Het doelpostvak moet een IMAP-account zijn.</value>
+  </data>
+  <data name="OffloadTargetDisabled" xml:space="preserve">
+    <value>Het geselecteerde doelpostvak is uitgeschakeld.</value>
+  </data>
+  <data name="OffloadCutoffRequired" xml:space="preserve">
+    <value>Geef een maandvenster of een vanaf-datum op.</value>
+  </data>
+  <data name="OffloadCutoffToBeforeFrom" xml:space="preserve">
+    <value>De tot-datum mag niet vóór de vanaf-datum liggen.</value>
+  </data>
+  <data name="OffloadNothingInWindow" xml:space="preserve">
+    <value>Er valt geen gearchiveerde mail binnen dat datumvenster.</value>
+  </data>
+  <data name="OffloadQueued" xml:space="preserve">
+    <value>Overbrengen in de wachtrij voor {0} mails.</value>
+  </data>
+  <data name="OffloadDryRunQueued" xml:space="preserve">
+    <value>Proefrun in de wachtrij voor {0} mails. Er wordt niets toegevoegd.</value>
+  </data>
+  <data name="OffloadAppended" xml:space="preserve">
+    <value>Toegevoegd</value>
+  </data>
+  <data name="OffloadAlreadyPresent" xml:space="preserve">
+    <value>Reeds aanwezig</value>
+  </data>
+  <data name="OffloadByFingerprint" xml:space="preserve">
+    <value>gedetecteerd via vingerafdruk</value>
+  </data>
+  <data name="OffloadExcluded" xml:space="preserve">
+    <value>Uitgesloten map</value>
+  </data>
+  <data name="OffloadReport" xml:space="preserve">
+    <value>Overbrengingsrapport</value>
+  </data>
+  <data name="OffloadJob" xml:space="preserve">
+    <value>Overbrengen</value>
+  </data>
 </root>

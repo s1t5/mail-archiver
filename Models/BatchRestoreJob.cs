@@ -24,6 +24,26 @@ namespace MailArchiver.Models
         public int FailedCount { get; set; }
         public string? ErrorMessage { get; set; }
         public string ReturnUrl { get; set; } = "";
+
+        /// <summary>
+        /// When set, the job is a date-windowed offload and resolves its own set of mail from
+        /// these criteria instead of carrying a materialised list in <see cref="EmailIds"/>.
+        /// Null keeps the existing behaviour exactly, so the checkbox selection path is
+        /// unaffected.
+        /// </summary>
+        public OffloadCriteria? Offload { get; set; }
+
+        public bool IsOffload => Offload != null;
+
+        // Offload counters, using the vocabulary of the import job so that repeating a finished
+        // job reads as a verification pass: nothing appended, everything already present.
+        public int AppendedCount { get; set; }
+        public int SkippedAlreadyPresentCount { get; set; }
+        public int MatchedByFingerprintCount { get; set; }
+        public int SkippedExcludedFolderCount { get; set; }
+
+        /// <summary>Per-folder report, shown for a dry run where the button is.</summary>
+        public string? Report { get; set; }
     }
 
     public enum BatchRestoreJobStatus
