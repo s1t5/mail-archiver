@@ -3181,129 +3181,129 @@
     <value>Hibák elismerve</value>
   </data>
   <data name="OffloadTitle" xml:space="preserve">
-    <value>Offload to Another Mailbox</value>
+    <value>Átvitel másik postafiókba</value>
   </data>
   <data name="OffloadIntro" xml:space="preserve">
-    <value>Appends archived mail newer than a cutoff into another mailbox, skipping anything that mailbox already holds. Older mail stays in the archive. Running this again is safe and appends nothing that already arrived.</value>
+    <value>A levágási dátumnál újabb archivált leveleket fűzi egy másik postafiókba, átugorva azt, ami már ott van. A régebbi levelek az archívumban maradnak. Újrafuttatás biztonságos, és nem duplikálja a már megérkezett leveleket.</value>
   </data>
   <data name="OffloadSourceAndTarget" xml:space="preserve">
-    <value>Source and Target</value>
+    <value>Forrás és cél</value>
   </data>
   <data name="SourceAccount" xml:space="preserve">
-    <value>Source Account</value>
+    <value>Forrásfiók</value>
   </data>
   <data name="OffloadSelectTarget" xml:space="preserve">
-    <value>Select a target mailbox...</value>
+    <value>Célpostafiók kiválasztása…</value>
   </data>
   <data name="OffloadTargetFolderHelp" xml:space="preserve">
-    <value>Root folder in the target mailbox. With INBOX the source folder structure is recreated at the top level.</value>
+    <value>Gyökérmappa a célpostafiókban. INBOX esetén a forrásmappa-struktúra felső szinten újraépül.</value>
   </data>
   <data name="OffloadWindow" xml:space="preserve">
-    <value>Date Window</value>
+    <value>Időablak</value>
   </data>
   <data name="OffloadWindowMonths" xml:space="preserve">
-    <value>Last N months</value>
+    <value>Utolsó N hónap</value>
   </data>
   <data name="OffloadWindowMonthsHelp" xml:space="preserve">
-    <value>Resolved to a fixed date when the job starts, so repeating the job selects the same mail. Set to 0 to use an explicit date instead.</value>
+    <value>A feladat indításakor egy fix dátumra feloldódik, így a megismételt futtatás ugyanazokat a leveleket választja. 0 esetén explicit dátum használata.</value>
   </data>
   <data name="OffloadCutoffFrom" xml:space="preserve">
-    <value>From date</value>
+    <value>Dátumtól</value>
   </data>
   <data name="OffloadCutoffFromHelp" xml:space="preserve">
-    <value>Overrides the month window. Inclusive, from 00:00 of this day.</value>
+    <value>Felülírja a hónap-ablakot. Befoglaló, a nap 00:00 órájától.</value>
   </data>
   <data name="OffloadCutoffTo" xml:space="preserve">
-    <value>To date (optional)</value>
+    <value>Dátumig (opcionális)</value>
   </data>
   <data name="OffloadCutoffToHelp" xml:space="preserve">
-    <value>Inclusive, up to 23:59:59 of this day.</value>
+    <value>Befoglaló, a nap 23:59:59 órájáig.</value>
   </data>
   <data name="OffloadOptions" xml:space="preserve">
-    <value>Options</value>
+    <value>Beállítások</value>
   </data>
   <data name="OffloadDryRun" xml:space="preserve">
-    <value>Dry run</value>
+    <value>Tesztfuttatás</value>
   </data>
   <data name="OffloadDryRunHelp" xml:space="preserve">
-    <value>Resolves everything and reports what would happen per folder, but appends nothing. Recommended before a real run.</value>
+    <value>Mindent felold és mappánként jelenti, mi történne, de nem fűz hozzá semmit. Valódi futtatás előtt javasolt.</value>
   </data>
   <data name="OffloadMarkAsSeen" xml:space="preserve">
-    <value>Mark appended mail as read</value>
+    <value>Hozzáfűzött levelek megjelölése olvasottként</value>
   </data>
   <data name="OffloadMarkAsSeenHelp" xml:space="preserve">
-    <value>Turning this off keeps unread mail unread in the target mailbox.</value>
+    <value>Kikapcsolva a olvasatlan levelek olvasatlanok maradnak a célpostafiókban.</value>
   </data>
   <data name="OffloadFolderHandling" xml:space="preserve">
-    <value>Folder Handling</value>
+    <value>Mappakezelés</value>
   </data>
   <data name="OffloadExcludedFolders" xml:space="preserve">
-    <value>Excluded source folders</value>
+    <value>Kizárt forrásmappák</value>
   </data>
   <data name="OffloadRenameMap" xml:space="preserve">
-    <value>Folder rename map</value>
+    <value>Mappa-átnevezési térkép</value>
   </data>
   <data name="OffloadNoneConfigured" xml:space="preserve">
-    <value>none configured</value>
+    <value>nincs beállítva</value>
   </data>
   <data name="OffloadFolderHandlingHelp" xml:space="preserve">
-    <value>Both are configured in the Offload section of appsettings.json and are empty by default. Exclusions are matched before renaming and cover subfolders.</value>
+    <value>Mindkettő az appsettings.json Offload szakaszában állítható be, és alapértelmezetten üres. A kizárások az átnevezés előtt kerülnek ellenőrzésre, és az almappákra is vonatkoznak.</value>
   </data>
   <data name="OffloadStart" xml:space="preserve">
-    <value>Start Offload</value>
+    <value>Átvitel indítása</value>
   </data>
   <data name="OffloadNoTargets" xml:space="preserve">
-    <value>No other enabled IMAP account is available as a target. Create one first.</value>
+    <value>Nincs másik engedélyezett IMAP-fiók célként. Hozzon létre először egyet.</value>
   </data>
   <data name="OffloadNoTargetsAssigned" xml:space="preserve">
-    <value>None of the mailboxes assigned to you can be used as a target. Ask an administrator to assign you another enabled IMAP account.</value>
+    <value>Az Önhöz rendelt postafiókok egyike sem használható célként. Kérjen egy másik engedélyezett IMAP-fiók hozzárendelését az adminisztrátortól.</value>
   </data>
   <data name="OffloadTargetRequired" xml:space="preserve">
-    <value>Please choose a target mailbox.</value>
+    <value>Válasszon célpostafiókot.</value>
   </data>
   <data name="OffloadTargetMustDiffer" xml:space="preserve">
-    <value>The target mailbox must be different from the source.</value>
+    <value>A célpostafiók nem egyezhet a forrással.</value>
   </data>
   <data name="OffloadTargetNotFound" xml:space="preserve">
-    <value>The selected target mailbox no longer exists.</value>
+    <value>A kiválasztott célpostafiók már nem létezik.</value>
   </data>
   <data name="OffloadTargetMustBeImap" xml:space="preserve">
-    <value>The target mailbox must be an IMAP account.</value>
+    <value>A célpostafióknak IMAP-fióknak kell lennie.</value>
   </data>
   <data name="OffloadTargetDisabled" xml:space="preserve">
-    <value>The selected target mailbox is disabled.</value>
+    <value>A kiválasztott célpostafiók le van tiltva.</value>
   </data>
   <data name="OffloadCutoffRequired" xml:space="preserve">
-    <value>Please give either a month window or a from date.</value>
+    <value>Adjon meg hónap-ablakot vagy dátumtól értéket.</value>
   </data>
   <data name="OffloadCutoffToBeforeFrom" xml:space="preserve">
-    <value>The to date must not be earlier than the from date.</value>
+    <value>A dátumig nem lehet korábbi a dátumtól-nál.</value>
   </data>
   <data name="OffloadNothingInWindow" xml:space="preserve">
-    <value>No archived mail falls inside that date window.</value>
+    <value>Ebbe az időablakba nem esik archivált levél.</value>
   </data>
   <data name="OffloadQueued" xml:space="preserve">
-    <value>Offload queued for {0} mails.</value>
+    <value>Átvitel sorba állítva {0} levélhez.</value>
   </data>
   <data name="OffloadDryRunQueued" xml:space="preserve">
-    <value>Dry run queued for {0} mails. Nothing will be appended.</value>
+    <value>Tesztfuttatás sorba állítva {0} levélhez. Semmi sem lesz hozzáfűzve.</value>
   </data>
   <data name="OffloadAppended" xml:space="preserve">
-    <value>Appended</value>
+    <value>Hozzáfűzve</value>
   </data>
   <data name="OffloadAlreadyPresent" xml:space="preserve">
-    <value>Already present</value>
+    <value>Már jelenlévő</value>
   </data>
   <data name="OffloadByFingerprint" xml:space="preserve">
-    <value>matched by fingerprint</value>
+    <value>ujjlenyomat alapján illesztve</value>
   </data>
   <data name="OffloadExcluded" xml:space="preserve">
-    <value>Excluded folder</value>
+    <value>Kizárt mappa</value>
   </data>
   <data name="OffloadReport" xml:space="preserve">
-    <value>Offload Report</value>
+    <value>Átviteli jelentés</value>
   </data>
   <data name="OffloadJob" xml:space="preserve">
-    <value>Offload</value>
+    <value>Átvitel</value>
   </data>
 </root>

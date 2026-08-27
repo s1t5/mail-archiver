@@ -3189,129 +3189,129 @@
     <value>Errori riconosciuti</value>
   </data>
   <data name="OffloadTitle" xml:space="preserve">
-    <value>Offload to Another Mailbox</value>
+    <value>Scarica in un'altra casella</value>
   </data>
   <data name="OffloadIntro" xml:space="preserve">
-    <value>Appends archived mail newer than a cutoff into another mailbox, skipping anything that mailbox already holds. Older mail stays in the archive. Running this again is safe and appends nothing that already arrived.</value>
+    <value>Aggiunge la posta archiviata più recente di una data di taglio in un'altra casella, saltando ciò che quella casella contiene già. La posta più vecchia resta nell'archivio. Rieseguirlo è sicuro e non aggiunge nulla di già arrivato.</value>
   </data>
   <data name="OffloadSourceAndTarget" xml:space="preserve">
-    <value>Source and Target</value>
+    <value>Origine e destinazione</value>
   </data>
   <data name="SourceAccount" xml:space="preserve">
-    <value>Source Account</value>
+    <value>Account di origine</value>
   </data>
   <data name="OffloadSelectTarget" xml:space="preserve">
-    <value>Select a target mailbox...</value>
+    <value>Seleziona una casella di destinazione…</value>
   </data>
   <data name="OffloadTargetFolderHelp" xml:space="preserve">
-    <value>Root folder in the target mailbox. With INBOX the source folder structure is recreated at the top level.</value>
+    <value>Cartella radice nella casella di destinazione. Con INBOX la struttura delle cartelle di origine viene ricreata al livello principale.</value>
   </data>
   <data name="OffloadWindow" xml:space="preserve">
-    <value>Date Window</value>
+    <value>Finestra date</value>
   </data>
   <data name="OffloadWindowMonths" xml:space="preserve">
-    <value>Last N months</value>
+    <value>Ultimi N mesi</value>
   </data>
   <data name="OffloadWindowMonthsHelp" xml:space="preserve">
-    <value>Resolved to a fixed date when the job starts, so repeating the job selects the same mail. Set to 0 to use an explicit date instead.</value>
+    <value>Risolto in una data fissa all'avvio del job, così rieseguire il job seleziona la stessa posta. Imposta a 0 per usare una data esplicita.</value>
   </data>
   <data name="OffloadCutoffFrom" xml:space="preserve">
-    <value>From date</value>
+    <value>Data da</value>
   </data>
   <data name="OffloadCutoffFromHelp" xml:space="preserve">
-    <value>Overrides the month window. Inclusive, from 00:00 of this day.</value>
+    <value>Sostituisce la finestra dei mesi. Inclusivo, dalle 00:00 di questo giorno.</value>
   </data>
   <data name="OffloadCutoffTo" xml:space="preserve">
-    <value>To date (optional)</value>
+    <value>Data a (facoltativo)</value>
   </data>
   <data name="OffloadCutoffToHelp" xml:space="preserve">
-    <value>Inclusive, up to 23:59:59 of this day.</value>
+    <value>Inclusivo, fino alle 23:59:59 di questo giorno.</value>
   </data>
   <data name="OffloadOptions" xml:space="preserve">
-    <value>Options</value>
+    <value>Opzioni</value>
   </data>
   <data name="OffloadDryRun" xml:space="preserve">
-    <value>Dry run</value>
+    <value>Esecuzione di prova</value>
   </data>
   <data name="OffloadDryRunHelp" xml:space="preserve">
-    <value>Resolves everything and reports what would happen per folder, but appends nothing. Recommended before a real run.</value>
+    <value>Risolve tutto e segnala per cartella cosa accadrebbe, ma non aggiunge nulla. Consigliato prima di un'esecuzione reale.</value>
   </data>
   <data name="OffloadMarkAsSeen" xml:space="preserve">
-    <value>Mark appended mail as read</value>
+    <value>Segna la posta aggiunta come letta</value>
   </data>
   <data name="OffloadMarkAsSeenHelp" xml:space="preserve">
-    <value>Turning this off keeps unread mail unread in the target mailbox.</value>
+    <value>Disattivandolo la posta non letta resta non letta nella casella di destinazione.</value>
   </data>
   <data name="OffloadFolderHandling" xml:space="preserve">
-    <value>Folder Handling</value>
+    <value>Gestione cartelle</value>
   </data>
   <data name="OffloadExcludedFolders" xml:space="preserve">
-    <value>Excluded source folders</value>
+    <value>Cartelle di origine escluse</value>
   </data>
   <data name="OffloadRenameMap" xml:space="preserve">
-    <value>Folder rename map</value>
+    <value>Mappa di rinomina cartelle</value>
   </data>
   <data name="OffloadNoneConfigured" xml:space="preserve">
-    <value>none configured</value>
+    <value>nessuno configurato</value>
   </data>
   <data name="OffloadFolderHandlingHelp" xml:space="preserve">
-    <value>Both are configured in the Offload section of appsettings.json and are empty by default. Exclusions are matched before renaming and cover subfolders.</value>
+    <value>Entrambi sono configurati nella sezione Offload di appsettings.json e sono vuoti per impostazione predefinita. Le esclusioni sono applicate prima della rinomina e coprono le sottocartelle.</value>
   </data>
   <data name="OffloadStart" xml:space="preserve">
-    <value>Start Offload</value>
+    <value>Avvia scaricamento</value>
   </data>
   <data name="OffloadNoTargets" xml:space="preserve">
-    <value>No other enabled IMAP account is available as a target. Create one first.</value>
+    <value>Nessun altro account IMAP abilitato disponibile come destinazione. Crearne uno prima.</value>
   </data>
   <data name="OffloadNoTargetsAssigned" xml:space="preserve">
-    <value>None of the mailboxes assigned to you can be used as a target. Ask an administrator to assign you another enabled IMAP account.</value>
+    <value>Nessuna delle caselle assegnate a te può essere usata come destinazione. Chiedi a un amministratore di assegnarti un altro account IMAP abilitato.</value>
   </data>
   <data name="OffloadTargetRequired" xml:space="preserve">
-    <value>Please choose a target mailbox.</value>
+    <value>Scegliere una casella di destinazione.</value>
   </data>
   <data name="OffloadTargetMustDiffer" xml:space="preserve">
-    <value>The target mailbox must be different from the source.</value>
+    <value>La casella di destinazione deve essere diversa dall'origine.</value>
   </data>
   <data name="OffloadTargetNotFound" xml:space="preserve">
-    <value>The selected target mailbox no longer exists.</value>
+    <value>La casella di destinazione selezionata non esiste più.</value>
   </data>
   <data name="OffloadTargetMustBeImap" xml:space="preserve">
-    <value>The target mailbox must be an IMAP account.</value>
+    <value>La casella di destinazione deve essere un account IMAP.</value>
   </data>
   <data name="OffloadTargetDisabled" xml:space="preserve">
-    <value>The selected target mailbox is disabled.</value>
+    <value>La casella di destinazione selezionata è disabilitata.</value>
   </data>
   <data name="OffloadCutoffRequired" xml:space="preserve">
-    <value>Please give either a month window or a from date.</value>
+    <value>Fornire una finestra di mesi o una data di inizio.</value>
   </data>
   <data name="OffloadCutoffToBeforeFrom" xml:space="preserve">
-    <value>The to date must not be earlier than the from date.</value>
+    <value>La data di fine non deve essere precedente alla data di inizio.</value>
   </data>
   <data name="OffloadNothingInWindow" xml:space="preserve">
-    <value>No archived mail falls inside that date window.</value>
+    <value>Nessuna posta archiviata rientra in quella finestra di date.</value>
   </data>
   <data name="OffloadQueued" xml:space="preserve">
-    <value>Offload queued for {0} mails.</value>
+    <value>Scaricamento accodato per {0} messaggi.</value>
   </data>
   <data name="OffloadDryRunQueued" xml:space="preserve">
-    <value>Dry run queued for {0} mails. Nothing will be appended.</value>
+    <value>Esecuzione di prova accodata per {0} messaggi. Non sarà aggiunto nulla.</value>
   </data>
   <data name="OffloadAppended" xml:space="preserve">
-    <value>Appended</value>
+    <value>Aggiunti</value>
   </data>
   <data name="OffloadAlreadyPresent" xml:space="preserve">
-    <value>Already present</value>
+    <value>Già presenti</value>
   </data>
   <data name="OffloadByFingerprint" xml:space="preserve">
-    <value>matched by fingerprint</value>
+    <value>corrispondenza per impronta</value>
   </data>
   <data name="OffloadExcluded" xml:space="preserve">
-    <value>Excluded folder</value>
+    <value>Cartella esclusa</value>
   </data>
   <data name="OffloadReport" xml:space="preserve">
-    <value>Offload Report</value>
+    <value>Report scaricamento</value>
   </data>
   <data name="OffloadJob" xml:space="preserve">
-    <value>Offload</value>
+    <value>Scaricamento</value>
   </data>
 </root>

@@ -585,25 +585,25 @@
     <value>Failures acknowledged</value>
   </data>
   <data name="OffloadTitle" xml:space="preserve">
-    <value>Offload to Another Mailbox</value>
+    <value>Offload to another mailbox</value>
   </data>
   <data name="OffloadIntro" xml:space="preserve">
-    <value>Appends archived mail newer than a cutoff into another mailbox, skipping anything that mailbox already holds. Older mail stays in the archive. Running this again is safe and appends nothing that already arrived.</value>
+    <value>Appends archived mail newer than a cut-off into another mailbox, skipping anything that mailbox already holds. Older mail stays in the archive. Running this again is safe and appends nothing that has already arrived.</value>
   </data>
   <data name="OffloadSourceAndTarget" xml:space="preserve">
-    <value>Source and Target</value>
+    <value>Source and target</value>
   </data>
   <data name="SourceAccount" xml:space="preserve">
-    <value>Source Account</value>
+    <value>Source account</value>
   </data>
   <data name="OffloadSelectTarget" xml:space="preserve">
-    <value>Select a target mailbox...</value>
+    <value>Select a target mailbox…</value>
   </data>
   <data name="OffloadTargetFolderHelp" xml:space="preserve">
     <value>Root folder in the target mailbox. With INBOX the source folder structure is recreated at the top level.</value>
   </data>
   <data name="OffloadWindow" xml:space="preserve">
-    <value>Date Window</value>
+    <value>Date window</value>
   </data>
   <data name="OffloadWindowMonths" xml:space="preserve">
     <value>Last N months</value>
@@ -639,7 +639,7 @@
     <value>Turning this off keeps unread mail unread in the target mailbox.</value>
   </data>
   <data name="OffloadFolderHandling" xml:space="preserve">
-    <value>Folder Handling</value>
+    <value>Folder handling</value>
   </data>
   <data name="OffloadExcludedFolders" xml:space="preserve">
     <value>Excluded source folders</value>
@@ -654,7 +654,7 @@
     <value>Both are configured in the Offload section of appsettings.json and are empty by default. Exclusions are matched before renaming and cover subfolders.</value>
   </data>
   <data name="OffloadStart" xml:space="preserve">
-    <value>Start Offload</value>
+    <value>Start offload</value>
   </data>
   <data name="OffloadNoTargets" xml:space="preserve">
     <value>No other enabled IMAP account is available as a target. Create one first.</value>
@@ -678,7 +678,7 @@
     <value>The selected target mailbox is disabled.</value>
   </data>
   <data name="OffloadCutoffRequired" xml:space="preserve">
-    <value>Please give either a month window or a from date.</value>
+    <value>Please provide either a month window or a from date.</value>
   </data>
   <data name="OffloadCutoffToBeforeFrom" xml:space="preserve">
     <value>The to date must not be earlier than the from date.</value>
@@ -705,7 +705,7 @@
     <value>Excluded folder</value>
   </data>
   <data name="OffloadReport" xml:space="preserve">
-    <value>Offload Report</value>
+    <value>Offload report</value>
   </data>
   <data name="OffloadJob" xml:space="preserve">
     <value>Offload</value>
