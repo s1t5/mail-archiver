@@ -56,7 +56,9 @@
 
                             <div class="mb-3">
                                 <label asp-for="TargetFolder" class="form-label">@Localizer["TargetFolder"]</label>
-                                <input asp-for="TargetFolder" class="form-control" />
+                                <select asp-for="TargetFolder" class="form-select" id="folderSelect">
+                                    <option value="">@Localizer["OffloadSelectTargetFirst"]</option>
+                                </select>
                                 <div class="form-text">@Localizer["OffloadTargetFolderHelp"]</div>
                             </div>
 
@@ -180,4 +182,52 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script>
+        $(document).ready(function () {
+            var preselectedFolder = @Json.Serialize(Model.TargetFolder ?? "");
+            var isInitialLoad = true;
+            const i18n = {
+                loadingFolders: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["OffloadLoadingFolders"].Value)),
+                selectFolder: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["OffloadSelectFolder"].Value)),
+                errorLoadingFolders: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["OffloadErrorLoadingFolders"].Value)),
+                selectTargetFirst: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["OffloadSelectTargetFirst"].Value))
+            };
+            $('#TargetAccountId').change(function () {
+                var selectPreselected = isInitialLoad;
+                isInitialLoad = false;
+                var accountId = $(this).val();
+                var $select = $('#folderSelect');
+                if (accountId) {
+                    $select.html($('<option>').text(i18n.loadingFolders));
+                    $.ajax({
+                        url: '@Url.Action("GetFolders", "MailAccounts")',
+                        data: { accountId: accountId },
+                        type: 'GET',
+                        dataType: 'json',
+                        success: function (data) {
+                            $select.empty();
+                            $select.append($('<option>').val('').text(i18n.selectFolder));
+                            var inboxFound = false;
+                            $.each(data, function (index, folderName) {
+                                $select.append($('<option>').val(folderName).text(folderName));
+                                if (folderName.toUpperCase() === 'INBOX') { inboxFound = true; }
+                            });
+                            var target = (selectPreselected && preselectedFolder) ? preselectedFolder : null;
+                            var matched = target ? $("#folderSelect option").filter(function () { return this.value.toUpperCase() === target.toUpperCase(); }).first() : $();
+                            if (matched.length) { matched.prop('selected', true); }
+                            else if (inboxFound) { $("#folderSelect option").filter(function () { return this.value.toUpperCase() === 'INBOX'; }).prop('selected', true); }
+                        },
+                        error: function () {
+                            $select.empty()
+                                .append($('<option>').val('').text(i18n.errorLoadingFolders))
+                                .append($('<option>').val('INBOX').text('INBOX'));
+                        }
+                    });
+                } else {
+                    $select.empty().append($('<option>').val('').text(i18n.selectTargetFirst));
+                }
+            });
+            if ($('#TargetAccountId').val()) { $('#TargetAccountId').trigger('change'); }
+        });
+    </script>
 }

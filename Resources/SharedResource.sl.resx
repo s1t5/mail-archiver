@@ -3203,6 +3203,18 @@
   <data name="OffloadSelectTarget" xml:space="preserve">
     <value>Izberi ciljni nabiralnik…</value>
   </data>
+  <data name="OffloadLoadingFolders" xml:space="preserve">
+    <value>Nalaganje map…</value>
+  </data>
+  <data name="OffloadSelectFolder" xml:space="preserve">
+    <value>-- Izberite ciljno mapo --</value>
+  </data>
+  <data name="OffloadErrorLoadingFolders" xml:space="preserve">
+    <value>Napaka pri nalaganju map</value>
+  </data>
+  <data name="OffloadSelectTargetFirst" xml:space="preserve">
+    <value>Najprej izberite ciljni nabiralnik</value>
+  </data>
   <data name="OffloadTargetFolderHelp" xml:space="preserve">
     <value>Korenska mapa v ciljnem nabiralniku. Z INBOX se struktura izvornih map rekonstruira na vrhnji ravni.</value>
   </data>

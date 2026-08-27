@@ -3204,6 +3204,18 @@
   <data name="OffloadSelectTarget" xml:space="preserve">
     <value>Zielpostfach auswählen...</value>
   </data>
+  <data name="OffloadLoadingFolders" xml:space="preserve">
+    <value>Ordner werden geladen…</value>
+  </data>
+  <data name="OffloadSelectFolder" xml:space="preserve">
+    <value>-- Zielordner wählen --</value>
+  </data>
+  <data name="OffloadErrorLoadingFolders" xml:space="preserve">
+    <value>Fehler beim Laden der Ordner</value>
+  </data>
+  <data name="OffloadSelectTargetFirst" xml:space="preserve">
+    <value>Ziel wählen</value>
+  </data>
   <data name="OffloadTargetFolderHelp" xml:space="preserve">
     <value>Wurzelordner im Zielpostfach. Bei INBOX wird die Ordnerstruktur der Quelle auf oberster Ebene nachgebildet.</value>
   </data>

@@ -3195,6 +3195,18 @@
   <data name="OffloadSelectTarget" xml:space="preserve">
     <value>Célpostafiók kiválasztása…</value>
   </data>
+  <data name="OffloadLoadingFolders" xml:space="preserve">
+    <value>Mappák betöltése…</value>
+  </data>
+  <data name="OffloadSelectFolder" xml:space="preserve">
+    <value>-- Válasszon cél-mappát --</value>
+  </data>
+  <data name="OffloadErrorLoadingFolders" xml:space="preserve">
+    <value>Hiba a mappák betöltésekor</value>
+  </data>
+  <data name="OffloadSelectTargetFirst" xml:space="preserve">
+    <value>Először válasszon cél-postafiókot</value>
+  </data>
   <data name="OffloadTargetFolderHelp" xml:space="preserve">
     <value>Gyökérmappa a célpostafiókban. INBOX esetén a forrásmappa-struktúra felső szinten újraépül.</value>
   </data>

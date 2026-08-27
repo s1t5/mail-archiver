@@ -3203,6 +3203,18 @@
   <data name="OffloadSelectTarget" xml:space="preserve">
     <value>Sélectionner une boîte aux lettres de destination…</value>
   </data>
+  <data name="OffloadLoadingFolders" xml:space="preserve">
+    <value>Chargement des dossiers…</value>
+  </data>
+  <data name="OffloadSelectFolder" xml:space="preserve">
+    <value>-- Sélectionner un dossier de destination --</value>
+  </data>
+  <data name="OffloadErrorLoadingFolders" xml:space="preserve">
+    <value>Erreur lors du chargement des dossiers</value>
+  </data>
+  <data name="OffloadSelectTargetFirst" xml:space="preserve">
+    <value>Sélectionnez d'abord une boîte aux lettres</value>
+  </data>
   <data name="OffloadTargetFolderHelp" xml:space="preserve">
     <value>Dossier racine dans la boîte aux lettres de destination. Avec INBOX la structure des dossiers source est recréée au niveau supérieur.</value>
   </data>

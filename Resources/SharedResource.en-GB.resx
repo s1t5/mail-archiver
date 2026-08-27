@@ -599,6 +599,18 @@
   <data name="OffloadSelectTarget" xml:space="preserve">
     <value>Select a target mailbox…</value>
   </data>
+  <data name="OffloadLoadingFolders" xml:space="preserve">
+    <value>Loading folders…</value>
+  </data>
+  <data name="OffloadSelectFolder" xml:space="preserve">
+    <value>-- Select a target folder --</value>
+  </data>
+  <data name="OffloadErrorLoadingFolders" xml:space="preserve">
+    <value>Error loading folders</value>
+  </data>
+  <data name="OffloadSelectTargetFirst" xml:space="preserve">
+    <value>Select a target mailbox first</value>
+  </data>
   <data name="OffloadTargetFolderHelp" xml:space="preserve">
     <value>Root folder in the target mailbox. With INBOX the source folder structure is recreated at the top level.</value>
   </data>

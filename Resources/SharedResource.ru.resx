@@ -3203,6 +3203,18 @@
   <data name="OffloadSelectTarget" xml:space="preserve">
     <value>Выберите целевой почтовый ящик…</value>
   </data>
+  <data name="OffloadLoadingFolders" xml:space="preserve">
+    <value>Загрузка папок…</value>
+  </data>
+  <data name="OffloadSelectFolder" xml:space="preserve">
+    <value>-- Выберите целевую папку --</value>
+  </data>
+  <data name="OffloadErrorLoadingFolders" xml:space="preserve">
+    <value>Ошибка загрузки папок</value>
+  </data>
+  <data name="OffloadSelectTargetFirst" xml:space="preserve">
+    <value>Сначала выберите целевой почтовый ящик</value>
+  </data>
   <data name="OffloadTargetFolderHelp" xml:space="preserve">
     <value>Корневая папка в целевом почтовом ящике. При INBOX структура папок источника воссоздаётся на верхнем уровне.</value>
   </data>

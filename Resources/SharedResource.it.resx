@@ -3203,6 +3203,18 @@
   <data name="OffloadSelectTarget" xml:space="preserve">
     <value>Seleziona una casella di destinazione…</value>
   </data>
+  <data name="OffloadLoadingFolders" xml:space="preserve">
+    <value>Caricamento cartelle…</value>
+  </data>
+  <data name="OffloadSelectFolder" xml:space="preserve">
+    <value>-- Seleziona una cartella di destinazione --</value>
+  </data>
+  <data name="OffloadErrorLoadingFolders" xml:space="preserve">
+    <value>Errore nel caricamento delle cartelle</value>
+  </data>
+  <data name="OffloadSelectTargetFirst" xml:space="preserve">
+    <value>Selezionare prima una casella di destinazione</value>
+  </data>
   <data name="OffloadTargetFolderHelp" xml:space="preserve">
     <value>Cartella radice nella casella di destinazione. Con INBOX la struttura delle cartelle di origine viene ricreata al livello principale.</value>
   </data>

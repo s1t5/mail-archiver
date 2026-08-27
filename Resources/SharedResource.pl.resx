@@ -3249,6 +3249,18 @@
   <data name="OffloadSelectTarget" xml:space="preserve">
     <value>Wybierz skrzynkę docelową…</value>
   </data>
+  <data name="OffloadLoadingFolders" xml:space="preserve">
+    <value>Ładowanie folderów…</value>
+  </data>
+  <data name="OffloadSelectFolder" xml:space="preserve">
+    <value>-- Wybierz folder docelowy --</value>
+  </data>
+  <data name="OffloadErrorLoadingFolders" xml:space="preserve">
+    <value>Błąd ładowania folderów</value>
+  </data>
+  <data name="OffloadSelectTargetFirst" xml:space="preserve">
+    <value>Najpierw wybierz skrzynkę docelową</value>
+  </data>
   <data name="OffloadTargetFolderHelp" xml:space="preserve">
     <value>Folder główny w skrzynce docelowej. Przy INBOX struktura folderów źródłowych jest odtwarzana na najwyższym poziomie.</value>
   </data>

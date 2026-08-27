@@ -3203,6 +3203,18 @@
   <data name="OffloadSelectTarget" xml:space="preserve">
     <value>Selecteer een doelpostvak…</value>
   </data>
+  <data name="OffloadLoadingFolders" xml:space="preserve">
+    <value>Mappen laden…</value>
+  </data>
+  <data name="OffloadSelectFolder" xml:space="preserve">
+    <value>-- Kies een doelmap --</value>
+  </data>
+  <data name="OffloadErrorLoadingFolders" xml:space="preserve">
+    <value>Fout bij laden van mappen</value>
+  </data>
+  <data name="OffloadSelectTargetFirst" xml:space="preserve">
+    <value>Kies eerst een doelpostvak</value>
+  </data>
   <data name="OffloadTargetFolderHelp" xml:space="preserve">
     <value>Hoofdmap in het doelpostvak. Met INBOX wordt de bronmapstructuur op het hoogste niveau gereconstrueerd.</value>
   </data>

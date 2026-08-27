@@ -3202,6 +3202,18 @@
   <data name="OffloadSelectTarget" xml:space="preserve">
     <value>Seleccionar un buzón de destino…</value>
   </data>
+  <data name="OffloadLoadingFolders" xml:space="preserve">
+    <value>Cargando carpetas…</value>
+  </data>
+  <data name="OffloadSelectFolder" xml:space="preserve">
+    <value>-- Seleccione una carpeta de destino --</value>
+  </data>
+  <data name="OffloadErrorLoadingFolders" xml:space="preserve">
+    <value>Error al cargar las carpetas</value>
+  </data>
+  <data name="OffloadSelectTargetFirst" xml:space="preserve">
+    <value>Seleccione un buzón de destino primero</value>
+  </data>
   <data name="OffloadTargetFolderHelp" xml:space="preserve">
     <value>Carpeta raíz en el buzón de destino. Con INBOX la estructura de carpetas de origen se recrea en el nivel superior.</value>
   </data>
