@@ -290,8 +290,35 @@ namespace MailArchiver.Services.Providers
                     await entryStream.CopyToAsync(memoryStream, ct);
                     memoryStream.Position = 0;
 
-                    var parser = new MimeParser(memoryStream, MimeFormat.Entity);
-                    var message = await parser.ParseMessageAsync(ct);
+                    MimeMessage? message;
+                    try
+                    {
+                        var parser = new MimeParser(memoryStream, MimeFormat.Entity);
+                        message = await parser.ParseMessageAsync(ct);
+                    }
+                    catch (FormatException firstEx) when (firstEx.Message.Contains("Failed to parse message headers"))
+                    {
+                        // Retry: files exported from 3rd party tools sometimes
+                        // carry a leftover mbox "From " line (or a ">>From"/whitespace variant),
+                        // which the Entity parser cannot handle. Try mbox-aware recovery.
+                        _logger.LogDebug("Job {JobId}: Header parse failed for {Entry}, attempting mbox From-line recovery",
+                            job.JobId, entry.FullName);
+                        memoryStream.Position = 0;
+                        message = await mailCleaner.TryParseMessageFromCorruptedMboxAsync(memoryStream, ct);
+                        if (message == null)
+                        {
+                            _logger.LogWarning(firstEx, "Job {JobId}: Skipping unrecoverable email in {Entry}", job.JobId, entry.FullName);
+                            job.FailedCount++;
+                            job.ProcessedEmails++;
+                            continue;
+                        }
+                    }
+                    if (message == null)
+                    {
+                        job.FailedCount++;
+                        job.ProcessedEmails++;
+                        continue;
+                    }
 
                     mailCleaner.PreCleanMessage(message);
 

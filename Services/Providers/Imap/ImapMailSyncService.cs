@@ -847,12 +847,47 @@ namespace MailArchiver.Services.Providers.Imap
                                 // up immediately to the outer catch and are counted as FailedEmails.
                                 MimeKit.MimeMessage? message = null;
                                 var maxAttempts = TransientFetchRetryDelaysMs.Length + 1;
+                                var mboxRecoveryAttempted = false;
                                 for (int attempt = 1; attempt <= maxAttempts; attempt++)
                                 {
                                     try
                                     {
                                         message = await folder.GetMessageAsync(uid);
                                         // Success - reset the consecutive throttling counter
+                                        consecutiveTransientFailures = 0;
+                                        break;
+                                    }
+                                    catch (FormatException parseEx) when (!mboxRecoveryAttempted
+                                        && parseEx.Message.Contains("Failed to parse message headers"))
+                                    {
+                                        // One-shot recovery: messages originating from
+                                        // 3rd party clients can carry a leftover
+                                        // mbox "From " line the Entity parser cannot handle.
+                                        // Re-fetch the raw stream and try mbox-aware parsing.
+                                        mboxRecoveryAttempted = true;
+                                        _logger.LogDebug(
+                                            "Header parse failed for UID {Uid} in folder {FolderName}, attempting mbox From-line recovery",
+                                            uid, folder.FullName);
+                                        try
+                                        {
+                                            using var rawStream = await folder.GetStreamAsync(uid, CancellationToken.None, null);
+                                            using var buffered = new MemoryStream();
+                                            await rawStream.CopyToAsync(buffered);
+                                            buffered.Position = 0;
+                                            message = await _mailCleaner.TryParseMessageFromCorruptedMboxAsync(buffered);
+                                        }
+                                        catch (Exception recoveryEx)
+                                        {
+                                            _logger.LogWarning(recoveryEx,
+                                                "Mbox recovery fetch failed for UID {Uid} in folder {FolderName}",
+                                                uid, folder.FullName);
+                                        }
+                                        if (message == null)
+                                        {
+                                            throw new FormatException(
+                                                "Failed to parse message headers even after mbox From-line recovery.",
+                                                parseEx);
+                                        }
                                         consecutiveTransientFailures = 0;
                                         break;
                                     }
