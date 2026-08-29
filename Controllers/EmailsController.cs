@@ -3044,20 +3044,23 @@ namespace MailArchiver.Controllers
         [SelfManagerRequired]
         public IActionResult CancelEmailDeletion(string jobId, string returnUrl = null)
         {
+            var isAdmin = _authService?.IsCurrentUserAdmin(HttpContext) ?? false;
+            var fallbackUrl = isAdmin ? Url.Action("Jobs") : Url.Action("Index");
+
             if (_emailDeletionService == null)
             {
                 TempData["ErrorMessage"] = "Email deletion service is not available.";
-                return Redirect(returnUrl ?? Url.Action("Index"));
+                return Redirect(returnUrl ?? fallbackUrl);
             }
-            
+
             if (string.IsNullOrEmpty(jobId))
             {
                 TempData["ErrorMessage"] = "Invalid job ID.";
-                return Redirect(returnUrl ?? Url.Action("Index"));
+                return Redirect(returnUrl ?? fallbackUrl);
             }
-            
+
             var success = _emailDeletionService.CancelJob(jobId);
-            
+
             if (success)
             {
                 TempData["SuccessMessage"] = "Email deletion job has been cancelled.";
@@ -3066,10 +3069,10 @@ namespace MailArchiver.Controllers
             {
                 TempData["ErrorMessage"] = "Could not cancel the email deletion job.";
             }
-            
-            return Redirect(returnUrl ?? Url.Action("Jobs"));
+
+            return Redirect(returnUrl ?? fallbackUrl);
         }
-        
+
         // POST: Emails/ExportSelected
         [HttpPost]
         [ValidateAntiForgeryToken]
