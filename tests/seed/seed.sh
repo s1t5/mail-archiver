@@ -95,15 +95,19 @@ fi
 # offload path, the queued job path and the UI all refuse a disabled target mailbox.
 #
 # An enabled target would normally be synced, which would archive the mail an offload just
-# appended straight back into the archive under the target account. That is only noise for
-# testing, so the target gets a per-account sync interval of a year to keep the background
-# service away from it. Note that IsImportOnly does not help here: the column exists in the
-# schema but is not read anywhere in the code.
+# appended straight back into the archive under the target account. The target therefore gets
+# a per-account sync interval of a year. That keeps the background sync service away only
+# within one process lifetime: the scheduling state is in-memory, so every application
+# restart schedules the target once, immediately (MailSyncBackgroundService initialises
+# nextRunUtc to nowUtc for accounts it has not seen). The target's ExcludedFolders therefore
+# also list the Dovecot special-use folders, so that one restart sync has nothing to archive.
+# Note that IsImportOnly does not help here: the column exists in the schema but is not read
+# anywhere in the code.
 step "ensuring accounts"
 # Only the id goes to stdout; progress goes to stderr. psql prints the command tag
 # alongside a RETURNING value, so the id is read back with a separate SELECT instead.
 ensure_account() {
-  local name="$1" email="$2" server="$3" port="$4" user="$5" pass="$6" ssl="$7" importonly="$8" enabled="${9:-false}"
+  local name="$1" email="$2" server="$3" port="$4" user="$5" pass="$6" ssl="$7" importonly="$8" enabled="${9:-false}" excluded="${10:-}"
   local id
   id="$(psql_q "select \"Id\" from mail_archiver.\"MailAccounts\" where \"Name\"='$name';" || true)"
   if [[ -z "$id" ]]; then
@@ -111,7 +115,7 @@ ensure_account() {
             (\"Name\",\"EmailAddress\",\"ImapServer\",\"ImapPort\",\"Username\",\"Password\",
              \"UseSSL\",\"LastSync\",\"IsEnabled\",\"ExcludedFolders\",\"IsImportOnly\",\"Provider\")
           values ('$name','$email','$server',$port,'$user','$pass',
-             $ssl, now(), $enabled, '', $importonly, 'IMAP');" >/dev/null
+             $ssl, now(), $enabled, '$excluded', $importonly, 'IMAP');" >/dev/null
     # A year, so the background sync service effectively never picks this account up.
     psql_q "update mail_archiver.\"MailAccounts\" set \"SyncIntervalMinutes\"=525600
             where \"Name\"='$name';" >/dev/null
@@ -123,8 +127,11 @@ ensure_account() {
   printf '%s' "$id"
 }
 
+# ExcludedFolders is semicolon-separated (MailAccount.ExcludedFoldersList). The target
+# excludes Dovecot's special-use folders so the single sync an application restart
+# schedules finds nothing to archive.
 SOURCE_ID="$(ensure_account "$SOURCE_NAME" "$SOURCE_EMAIL" "imap.source.invalid" 993 "$SOURCE_EMAIL" "unused" false true  false)"
-TARGET_ID="$(ensure_account "$TARGET_NAME" "$TARGET_EMAIL" "localhost"           1143 "$TARGET_EMAIL" "pass"   false false true)"
+TARGET_ID="$(ensure_account "$TARGET_NAME" "$TARGET_EMAIL" "localhost"           1143 "$TARGET_EMAIL" "pass"   false false true 'INBOX;Drafts;Junk;Sent;Trash')"
 
 if [[ -z "$SOURCE_ID" || -z "$TARGET_ID" ]]; then
   echo "ERROR: could not resolve account ids (source='$SOURCE_ID' target='$TARGET_ID')" >&2

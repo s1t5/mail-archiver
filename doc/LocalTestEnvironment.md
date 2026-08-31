@@ -104,9 +104,10 @@ ASPNETCORE_ENVIRONMENT=Development ASPNETCORE_URLS=http://127.0.0.1:5000 \
   dotnet run --project MailArchiver.csproj
 ```
 
-The port is worth setting explicitly. There is no `Properties/launchSettings.json` in the
-repository, and `ASPNETCORE_URLS` is set only inside the `Dockerfile`, so a local `dotnet run`
-otherwise falls back to whatever the ASP.NET Core default happens to be.
+`Properties/launchSettings.json` already sets `ASPNETCORE_ENVIRONMENT=Development` for
+`dotnet run`, so a plain `dotnet run --project MailArchiver.csproj` works too and serves
+http://localhost:5179 (the `http` profile). `ASPNETCORE_URLS` above only picks the container
+port 5000 instead.
 
 Pending migrations are applied to `MailArchiverDev` at startup. Sign in with the credentials from `appsettings.json`
 (`Authentication:Username` and `Authentication:Password`).
@@ -152,9 +153,13 @@ tests/seed/seed.sh            # seed
 tests/seed/seed.sh --reset    # discard what was seeded before, then seed again
 ```
 
-It creates two accounts, imports the fixtures, and prints what landed. Both accounts are created
-with sync disabled, so the background sync service ignores them: the source server does not
-exist, and the Dovecot target only ever needs to be appended to. Running it twice is harmless;
+It creates two accounts, imports the fixtures, and prints what landed. Both accounts are
+created with a per-account sync interval of a year, and the source is additionally disabled,
+so the background sync service ignores it: its server does not exist, and the Dovecot target
+only ever needs to be appended to. One caveat: the scheduling state lives in memory, so every
+application restart schedules the target once, immediately. The target therefore also
+excludes the Dovecot special-use folders (`INBOX`, `Drafts`, `Junk`, `Sent`, `Trash`), so that
+one restart sync has nothing to archive back. Running the script twice is harmless;
 the second run reports every message as already present.
 
 The fixtures are checked in under `tests/seed/fixtures`, one mbox per source folder, with
@@ -170,7 +175,7 @@ Every fixture message carries an `X-Fixture-Purpose` header saying why it exists
 document themselves:
 
 ```
-X-Fixture-Purpose: ImapMailRestorer.cs:854 refuses to emit this, so MimeKit invents a
+X-Fixture-Purpose: ImapMailRestorer.cs:1196 refuses to emit this, so MimeKit invents a
   fresh random Message-Id on every append and the row duplicates each repetition
 Subject: Message-ID without an at sign
 Message-ID: <bare-token-no-at-sign>

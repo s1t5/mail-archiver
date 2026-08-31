@@ -1,7 +1,7 @@
 # Local test environment for mail-archiver.
 #
 # Brings up the two backing services that the test suite and any IMAP work need,
-# both published on loopback so tools running on the host (dotnet test, dotnet run
+# both published on loopback so tools running on the host (dotnet test, dotnet run --
 # --offload, an IMAP client) can reach them:
 #
 #   postgres  the archive database, on 5433 to avoid clashing with a local server

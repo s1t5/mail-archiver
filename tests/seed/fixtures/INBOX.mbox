@@ -58,7 +58,7 @@ Content-Type: text/plain; charset="utf-8"
 Fixture message.
 
 From alice@source.example Tue Jul 21 00:00:00 2026
-X-Fixture-Purpose: ImapMailRestorer.cs:854 refuses to emit this, so MimeKit invents a fresh random Message-Id on every append and the row duplicates each repetition
+X-Fixture-Purpose: ImapMailRestorer.cs:1196 refuses to emit this, so MimeKit invents a fresh random Message-Id on every append and the row duplicates each repetition
 From: alice@source.example
 To: bob@target.example
 Subject: Message-ID without an at sign
