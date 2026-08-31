@@ -62,7 +62,8 @@ namespace MailArchiver.Controllers
         IAccountStorageService accountStorageService,
         IOptions<CsvImportOptions> csvImportOptions,
         IOptions<OffloadOptions> offloadOptions,
-        IBatchRestoreService batchRestoreService)
+        IBatchRestoreService batchRestoreService,
+        MailArchiver.Utilities.DateTimeHelper dateTimeHelper)
     {
         _context = context;
         _emailCoreService = emailCoreService;
@@ -86,10 +87,12 @@ namespace MailArchiver.Controllers
         _csvImportOptions = csvImportOptions.Value;
         _offloadOptions = offloadOptions.Value;
         _batchRestoreService = batchRestoreService;
+        _dateTimeHelper = dateTimeHelper;
     }
 
         private readonly OffloadOptions _offloadOptions;
         private readonly IBatchRestoreService _batchRestoreService;
+        private readonly MailArchiver.Utilities.DateTimeHelper _dateTimeHelper;
 
         private async Task<bool> HasAccessToAccountAsync(int accountId)
         {
@@ -1443,8 +1446,10 @@ namespace MailArchiver.Controllers
             }
 
             // Resolved to an absolute date here, once, so a repeat of this job selects the same
-            // mail even if it runs days later.
-            var nowDisplay = DateTime.UtcNow;
+            // mail even if it runs days later. OffloadCutoff expects a moment in the configured
+            // display timezone, the same one SentDate is stored in; using UTC would shift the
+            // window by the timezone offset (M1).
+            var nowDisplay = _dateTimeHelper.ConvertToDisplayTimeZone(DateTimeOffset.UtcNow);
             DateTime cutoffFrom;
             if (model.CutoffFrom.HasValue)
             {
