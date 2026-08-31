@@ -23,7 +23,8 @@ public class ImapMailRestorerDateHeaderTests
         connectionFactory: null!,
         new DateTimeHelper(Options.Create(new TimeZoneOptions { DisplayTimeZoneId = timeZoneId })),
         Options.Create(new BatchOperationOptions()),
-        Options.Create(new OffloadOptions()));
+        Options.Create(new OffloadOptions()),
+        folderService: null!);
 
     [Fact]
     public async Task CreateMimeMessage_EmitsDateHeaderWithDisplayTimeZoneOffset()

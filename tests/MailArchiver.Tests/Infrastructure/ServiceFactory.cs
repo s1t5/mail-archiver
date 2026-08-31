@@ -44,14 +44,16 @@ internal static class ServiceFactory
         MailArchiverDbContext ctx,
         BatchOperationOptions? batchOptions = null,
         OffloadOptions? offloadOptions = null) =>
-        new(ctx,
+            new(ctx,
             NullLogger<MailArchiver.Services.Providers.Imap.ImapMailRestorer>.Instance,
             // OffloadEmailsAsync fails before opening a connection for an unreachable target,
-            // so the connection factory is never exercised by these tests.
+            // so the connection factory is never exercised by these tests. The folder service
+            // is only reached after a successful connection, so it stays null here too.
             connectionFactory: null!,
             new DateTimeHelper(Options.Create(new TimeZoneOptions { DisplayTimeZoneId = "Europe/Berlin" })),
             Options.Create(batchOptions ?? new BatchOperationOptions()),
-            Options.Create(offloadOptions ?? new OffloadOptions()));
+            Options.Create(offloadOptions ?? new OffloadOptions()),
+            folderService: null!);
 
     /// <summary>
     /// Builds a <see cref="ServiceProvider"/> that resolves the shared
