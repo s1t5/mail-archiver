@@ -472,7 +472,7 @@ public class UserServiceTests
     }
 
     [Fact]
-    public async Task IsUserAuthorizedForAccountAsync_SelfManager_GrantsAll()
+    public async Task IsUserAuthorizedForAccountAsync_SelfManager_OnlyAssignedAccounts()
     {
         await using var scope = await _fixture.CreateTransactionalContextAsync();
         var ctx = scope.Context;
@@ -481,15 +481,26 @@ public class UserServiceTests
             var user = await SeedUserAsync(ctx);
             user.IsSelfManager = true;
             await ctx.SaveChangesAsync();
-            var acct = new MailAccount
+            var assigned = new MailAccount
             {
-                Name = "sm", EmailAddress = $"{Guid.NewGuid():N}@t.local",
+                Name = "sm-assigned", EmailAddress = $"{Guid.NewGuid():N}@t.local",
                 Provider = ProviderType.IMAP, IsEnabled = true, LastSync = DateTime.UtcNow
             };
-            ctx.MailAccounts.Add(acct);
+            var foreign = new MailAccount
+            {
+                Name = "sm-foreign", EmailAddress = $"{Guid.NewGuid():N}@t.local",
+                Provider = ProviderType.IMAP, IsEnabled = true, LastSync = DateTime.UtcNow
+            };
+            ctx.MailAccounts.AddRange(assigned, foreign);
+            await ctx.SaveChangesAsync();
+            ctx.UserMailAccounts.Add(new UserMailAccount { UserId = user.Id, MailAccountId = assigned.Id });
             await ctx.SaveChangesAsync();
             var svc = ServiceFactory.CreateUserService(ctx);
-            Assert.True(await svc.IsUserAuthorizedForAccountAsync(user.Id, acct.Id));
+
+            // P1: self-managers may only use the accounts they are assigned to, exactly
+            // like IAccountAccessResolver and HasAccessToAccountAsync already enforce.
+            Assert.True(await svc.IsUserAuthorizedForAccountAsync(user.Id, assigned.Id));
+            Assert.False(await svc.IsUserAuthorizedForAccountAsync(user.Id, foreign.Id));
         }
         finally { await scope.RollbackAsync(); }
     }

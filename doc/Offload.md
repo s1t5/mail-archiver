@@ -176,7 +176,14 @@ source, target and cutoff.
   the same mail every time; a stored relative window would drift.
 - Cutoffs are interpreted in the **configured display timezone**, the same one the search screen
   shows, and the lower bound is inclusive from 00:00 of that day. An upper bound includes the
-  whole of its day.
+  whole of its day. Relative windows ("the last N months") are resolved in that display
+  timezone as well, matching how `SentDate` is stored.
+
+### Known limitation
+
+- When the duplicate index hits `Offload:PrefetchMaxMessages`, the scope is reduced and logged
+  rather than retried against a single folder. The `restrictToFolder` fallback the index builder
+  offers is currently not used by the offload path; raising the limit is the supported remedy.
 
 ## 📋 A migration, end to end
 

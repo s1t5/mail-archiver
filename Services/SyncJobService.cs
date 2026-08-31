@@ -27,7 +27,7 @@ namespace MailArchiver.Services
             );
         }
 
-        public async Task<string?> StartSyncAsync(int accountId, string accountName, DateTime? lastSync = null)
+        public async Task<string?> StartSyncAsync(int accountId, string accountName, DateTime? lastSync = null, string? userId = null)
         {
             // Validate that the account exists in the database
             // Note: We don't check IsEnabled here to allow manual sync for disabled accounts
@@ -59,7 +59,8 @@ namespace MailArchiver.Services
             {
                 MailAccountId = accountId,
                 AccountName = accountName,
-                LastSync = lastSync
+                LastSync = lastSync,
+                UserId = string.IsNullOrEmpty(userId) ? "System" : userId
             };
 
             _jobs[job.JobId] = job;
@@ -68,10 +69,10 @@ namespace MailArchiver.Services
             return job.JobId;
         }
 
-        public string StartSync(int accountId, string accountName, DateTime? lastSync = null)
+        public string StartSync(int accountId, string accountName, DateTime? lastSync = null, string? userId = null)
         {
             // Legacy method - delegates to async version
-            var result = StartSyncAsync(accountId, accountName, lastSync).GetAwaiter().GetResult();
+            var result = StartSyncAsync(accountId, accountName, lastSync, userId).GetAwaiter().GetResult();
             if (result == null)
             {
                 throw new InvalidOperationException($"Cannot start sync job for account {accountName} - account does not exist or is not enabled");

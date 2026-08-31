@@ -2,6 +2,7 @@ using MailArchiver.Controllers.Api;
 using MailArchiver.Data;
 using MailArchiver.Models;
 using MailArchiver.Models.Api;
+using MailArchiver.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
@@ -25,6 +26,7 @@ public class StatsApiController : ApiControllerBase
     public async Task<ActionResult<StatsDto>> GetStats()
     {
         var allowedAccountIds = await GetAllowedAccountIdsAsync();
+        var isAdminScope = allowedAccountIds == null;
 
         IQueryable<ArchivedEmail> emailsQuery = _context.ArchivedEmails.AsQueryable();
         IQueryable<MailAccount> accountsQuery = _context.MailAccounts.AsQueryable();
@@ -37,24 +39,26 @@ public class StatsApiController : ApiControllerBase
 
         var allowedEmailIdsQuery = emailsQuery.Select(e => e.Id);
 
-        var attachmentsCount = allowedAccountIds == null
+        var attachmentsCount = isAdminScope
             ? await _context.EmailAttachments.CountAsync()
             : await _context.EmailAttachments
                 .Where(a => allowedEmailIdsQuery.Contains(a.ArchivedEmailId))
                 .CountAsync();
 
-        var dto = new StatsDto
-        {
-            Emails = await emailsQuery.CountAsync(),
-            Accounts = await accountsQuery.CountAsync(),
-            Attachments = attachmentsCount,
-            DatabaseSizeInMB = (await GetDatabaseSizeInMBAsync()).ToString("0")
-        };
+        // The instance-wide size is admin-only; restricted keys never see it (M5).
+        var databaseSizeMb = isAdminScope
+            ? await GetDatabaseSizeInMBAsync(allowedEmailIdsQuery, isAdminScope: true)
+            : 0;
 
-        return Ok(dto);
+        return Ok(StatsComposer.Compose(
+            await emailsQuery.CountAsync(),
+            await accountsQuery.CountAsync(),
+            attachmentsCount,
+            databaseSizeMb,
+            isAdminScope));
     }
 
-    private async Task<long> GetDatabaseSizeInMBAsync()
+    private async Task<long> GetDatabaseSizeInMBAsync(IQueryable<int> allowedEmailIdsQuery, bool isAdminScope)
     {
         try
         {
@@ -71,7 +75,11 @@ public class StatsApiController : ApiControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting database size: {Message}", ex.Message);
-            return (await _context.EmailAttachments.SumAsync(a => (long)a.Size)) / (1024L * 1024L);
+            // Scoped fallback: only the attachments the caller may see (M5).
+            var scopedQuery = isAdminScope
+                ? _context.EmailAttachments
+                : _context.EmailAttachments.Where(a => allowedEmailIdsQuery.Contains(a.ArchivedEmailId));
+            return (await scopedQuery.SumAsync(a => (long)a.Size)) / (1024L * 1024L);
         }
     }
 }

@@ -11,6 +11,9 @@
     var mayReadReport = AuthService.IsCurrentUserAdmin(Context)
         || (!string.IsNullOrEmpty(currentUser)
             && string.Equals(Model.UserId, currentUser, StringComparison.OrdinalIgnoreCase));
+    // P2: cancel rights follow the same owner-or-admin rule the controller enforces.
+    var mayCancel = MailArchiver.Services.JobOwnership.MayCancel(
+        currentUser, AuthService.IsCurrentUserAdmin(Context), Model.UserId);
 }
 
 <div class="container">
@@ -180,12 +183,15 @@
 
             @if (Model.Status == BatchRestoreJobStatus.Running || Model.Status == BatchRestoreJobStatus.Queued)
             {
-                <div class="mt-4 pt-3 border-top">
-                    <!-- Button to trigger the modal -->
-                    <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#cancelJobModal">
-                        <i class="bi bi-stop-circle"></i> @Localizer["CancelJob"]
-                    </button>
-                </div>
+                @if (mayCancel)
+                {
+                    <div class="mt-4 pt-3 border-top">
+                        <!-- Button to trigger the modal -->
+                        <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#cancelJobModal">
+                            <i class="bi bi-stop-circle"></i> @Localizer["CancelJob"]
+                        </button>
+                    </div>
+                }
             }
             @if (Model.Status == BatchRestoreJobStatus.Completed)
             {

@@ -418,15 +418,10 @@ namespace MailArchiver.Services
                 return true;
             }
 
-            // Check if user is a self-manager
-            var user = await _context.Users.FindAsync(userId);
-            if (user?.IsSelfManager == true)
-            {
-                _logger.LogInformation("User {UserId} is self-manager, granting access to account {MailAccountId}", userId, mailAccountId);
-                return true;
-            }
-
-            // Check if user has direct access to the account
+            // SECURITY (P1): Self-managers, like every other non-admin user, may only use
+            // accounts they are assigned to. The previous blanket grant contradicted
+            // IAccountAccessResolver and HasAccessToAccountAsync and let a self-manager open
+            // any mailbox's emails by direct ID via [EmailAccessRequired].
             var hasDirectAccess = await _context.UserMailAccounts
                 .AnyAsync(uma => uma.UserId == userId && uma.MailAccountId == mailAccountId);
 

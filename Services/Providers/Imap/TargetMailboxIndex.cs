@@ -64,6 +64,14 @@ namespace MailArchiver.Services.Providers.Imap
         /// Reads every folder of the target account and indexes it. ENVELOPE alone feeds both
         /// criteria, so one bulk fetch per folder is enough.
         /// </summary>
+        /// <param name="folderEnumerator">
+        /// Produces the folders to index. In production the offload passes
+        /// <c>IImapFolderService.GetAllFoldersAsync</c>, whose union discovery (recursive LIST
+        /// plus per-level enumeration plus LSUB) is the same one the sync uses, because a plain
+        /// recursive LIST can silently miss folders on some servers (e.g. Outlook.com) — and a
+        /// folder missing from the duplicate index means mail gets appended twice on a repeated
+        /// offload (H1). When null, the transition path below enumerates on its own.
+        /// </param>
         /// <param name="restrictToFolder">
         /// When given, only this folder is indexed instead of the whole mailbox. Used as the
         /// fallback once the message cap has been hit.
@@ -73,6 +81,7 @@ namespace MailArchiver.Services.Providers.Imap
             DateTimeHelper dateTimeHelper,
             ILogger logger,
             int prefetchMaxMessages,
+            Func<ImapClient, Task<List<IMailFolder>>>? folderEnumerator = null,
             IMailFolder? restrictToFolder = null,
             CancellationToken cancellationToken = default)
         {
@@ -86,7 +95,10 @@ namespace MailArchiver.Services.Providers.Imap
             }
             else
             {
-                folders.AddRange(await EnumerateFoldersAsync(client, logger, cancellationToken));
+                var enumerated = folderEnumerator != null
+                    ? await folderEnumerator(client)
+                    : await EnumerateFoldersAsync(client, logger, cancellationToken);
+                folders.AddRange(enumerated);
             }
 
             foreach (var folder in folders)
@@ -135,6 +147,9 @@ namespace MailArchiver.Services.Providers.Imap
         private static async Task<List<IMailFolder>> EnumerateFoldersAsync(
             ImapClient client, ILogger logger, CancellationToken cancellationToken)
         {
+            // Transition path only: production passes IImapFolderService.GetAllFoldersAsync as
+            // the folder enumerator, because its union discovery finds folders a plain
+            // recursive LIST can hide.
             var result = new List<IMailFolder>();
 
             if (client.PersonalNamespaces == null || client.PersonalNamespaces.Count == 0)
@@ -171,11 +186,12 @@ namespace MailArchiver.Services.Providers.Imap
 
             if (folder.Count == 0) return;
 
-            // One bulk fetch per folder; ENVELOPE carries subject, from, to, date and Message-ID,
-            // which is everything both criteria need. Same shape as the bulk fetch in
-            // ImapMailSyncService.
+            // One bulk fetch per folder; ENVELOPE feeds both criteria, INTERNALDATE is the
+            // delivery-time fallback for messages whose ENVELOPE carries no Date (H2).
             var summaries = await folder.FetchAsync(
-                0, -1, MessageSummaryItems.Envelope | MessageSummaryItems.UniqueId, cancellationToken);
+                0, -1,
+                MessageSummaryItems.Envelope | MessageSummaryItems.UniqueId | MessageSummaryItems.InternalDate,
+                cancellationToken);
 
             foreach (var summary in summaries)
             {
@@ -197,7 +213,7 @@ namespace MailArchiver.Services.Providers.Imap
                         envelope.From?.Mailboxes.Select(m => m.Address),
                         envelope.To?.Mailboxes.Select(m => m.Address),
                         envelope.Subject),
-                    ToStoredTimestamp(envelope.Date));
+                    TimestampForEnvelope(envelope.Date, summary.InternalDate));
             }
         }
 
@@ -215,6 +231,15 @@ namespace MailArchiver.Services.Providers.Imap
             => envelopeDate.HasValue
                 ? _dateTimeHelper.ConvertToDisplayTimeZone(envelopeDate.Value)
                 : DateTime.MinValue;
+
+        /// <summary>
+        /// Converts an envelope timestamp into the form <c>ArchivedEmail.SentDate</c> is stored in.
+        /// A message without a Date header is archived via the Received-chain fallback, so the
+        /// index must fall back to INTERNALDATE — the server's delivery time — instead of
+        /// collapsing to DateTime.MinValue, which no stored SentDate can ever match (H2).
+        /// </summary>
+        internal DateTime TimestampForEnvelope(DateTimeOffset? envelopeDate, DateTimeOffset? internalDate)
+            => ToStoredTimestamp(envelopeDate ?? internalDate);
 
         private void AddFingerprint(long key, DateTime timestamp)
         {

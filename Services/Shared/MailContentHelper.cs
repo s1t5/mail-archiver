@@ -95,6 +95,23 @@ namespace MailArchiver.Services.Shared
         }
 
         /// <summary>
+        /// Sets <see cref="MimeMessage.MessageId"/> only when the stored value yields a usable
+        /// restorable identifier. Mirrors the guard in
+        /// <c>ImapMailRestorer.CreateMimeMessageFromArchivedEmailAsync</c> so the export paths
+        /// cannot throw on rows whose stored Message-ID reduces to empty (MailKit 4.17.0 rejects
+        /// an empty string with ArgumentException) or to a token without a domain, which the
+        /// append path drops as well so MimeKit generates a fresh id (M3).
+        /// </summary>
+        public static void ApplyRestorableMessageId(MimeMessage message, string? storedMessageId)
+        {
+            var restorable = NormalizeMessageId(storedMessageId);
+            if (!string.IsNullOrEmpty(restorable) && restorable.Contains('@'))
+            {
+                message.MessageId = restorable;
+            }
+        }
+
+        /// <summary>
         /// Generates a deterministic fallback Message-ID for messages that have no
         /// Message-ID header. The ID is a SHA-256 hash over the pipe-joined components
         /// <c>from|to|subject|dateTicks</c> (plus <paramref name="canonicalHeaders"/> when

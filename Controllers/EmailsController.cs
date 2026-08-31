@@ -2050,6 +2050,17 @@ namespace MailArchiver.Controllers
                 return Redirect(returnUrl ?? Url.Action("Index"));
             }
 
+            var job = _batchRestoreService.GetJob(jobId);
+            var actingUser = _authService?.GetCurrentUserDisplayName(HttpContext);
+            var isAdmin = _authService?.IsCurrentUserAdmin(HttpContext) ?? false;
+
+            // P2: only the job's owner (or an admin) may cancel it.
+            if (job == null || !JobOwnership.MayCancel(actingUser, isAdmin, job.UserId))
+            {
+                TempData["ErrorMessage"] = "You may only cancel your own jobs.";
+                return Redirect(returnUrl ?? Url.Action("Jobs"));
+            }
+
             var success = _batchRestoreService.CancelJob(jobId);
 
             if (success)
@@ -2076,6 +2087,16 @@ namespace MailArchiver.Controllers
             }
 
             var job = _syncJobService.GetJob(jobId);
+            var actingUser = _authService?.GetCurrentUserDisplayName(HttpContext);
+            var isAdmin = _authService?.IsCurrentUserAdmin(HttpContext) ?? false;
+
+            // P2: only the job's owner (or an admin) may cancel it.
+            if (job == null || !JobOwnership.MayCancel(actingUser, isAdmin, job.UserId))
+            {
+                TempData["ErrorMessage"] = "You may only cancel your own jobs.";
+                return Redirect(returnUrl ?? Url.Action("Jobs"));
+            }
+
             var success = _syncJobService.CancelJob(jobId);
 
             if (success)
@@ -2310,6 +2331,17 @@ namespace MailArchiver.Controllers
             {
                 TempData["ErrorMessage"] = "Invalid job ID.";
                 return Redirect(returnUrl ?? Url.Action("Index"));
+            }
+
+            var job = _selectedEmailsExportService.GetJob(jobId);
+            var actingUser = _authService?.GetCurrentUserDisplayName(HttpContext);
+            var isAdmin = _authService?.IsCurrentUserAdmin(HttpContext) ?? false;
+
+            // P2: only the job's owner (or an admin) may cancel it.
+            if (job == null || !JobOwnership.MayCancel(actingUser, isAdmin, job.UserId))
+            {
+                TempData["ErrorMessage"] = "You may only cancel your own jobs.";
+                return Redirect(returnUrl ?? Url.Action("Jobs"));
             }
 
             var success = _selectedEmailsExportService.CancelJob(jobId);
@@ -3054,6 +3086,17 @@ namespace MailArchiver.Controllers
             {
                 TempData["ErrorMessage"] = "Invalid job ID.";
                 return Redirect(returnUrl ?? Url.Action("Index"));
+            }
+
+            var job = _emailDeletionService.GetJob(jobId);
+            var actingUser = _authService?.GetCurrentUserDisplayName(HttpContext);
+            var isAdmin = _authService?.IsCurrentUserAdmin(HttpContext) ?? false;
+
+            // P2: only the job's owner (or an admin) may cancel it.
+            if (job == null || !JobOwnership.MayCancel(actingUser, isAdmin, job.UserId))
+            {
+                TempData["ErrorMessage"] = "You may only cancel your own jobs.";
+                return Redirect(returnUrl ?? Url.Action("Jobs"));
             }
             
             var success = _emailDeletionService.CancelJob(jobId);

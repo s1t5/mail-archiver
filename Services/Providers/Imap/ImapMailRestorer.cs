@@ -23,6 +23,7 @@ namespace MailArchiver.Services.Providers.Imap
         private readonly DateTimeHelper _dateTimeHelper;
         private readonly BatchOperationOptions _batchOptions;
         private readonly OffloadOptions _offloadOptions;
+        private readonly IImapFolderService _folderService;
 
         public ImapMailRestorer(
             MailArchiverDbContext context,
@@ -30,7 +31,8 @@ namespace MailArchiver.Services.Providers.Imap
             ImapConnectionFactory connectionFactory,
             DateTimeHelper dateTimeHelper,
             IOptions<BatchOperationOptions> batchOptions,
-            IOptions<OffloadOptions> offloadOptions)
+            IOptions<OffloadOptions> offloadOptions,
+            IImapFolderService folderService)
         {
             _context = context;
             _logger = logger;
@@ -38,6 +40,7 @@ namespace MailArchiver.Services.Providers.Imap
             _dateTimeHelper = dateTimeHelper;
             _batchOptions = batchOptions.Value;
             _offloadOptions = offloadOptions.Value;
+            _folderService = folderService;
         }
 
         /// <summary>
@@ -740,9 +743,12 @@ namespace MailArchiver.Services.Providers.Imap
                 await _connectionFactory.AuthenticateClientAsync(client, targetAccount);
 
                 // Built once per job, before the first append, and covering the whole target
-                // mailbox. This is what makes the offload repeatable.
+                // mailbox. This is what makes the offload repeatable. The folder list comes
+                // from the same union discovery the sync uses, so the duplicate index cannot
+                // miss folders a plain recursive LIST would hide (H1).
                 var index = await TargetMailboxIndex.BuildAsync(
                     client, _dateTimeHelper, _logger, _offloadOptions.PrefetchMaxMessages,
+                    folderEnumerator: c => _folderService.GetAllFoldersAsync(c, targetAccount.Name),
                     restrictToFolder: null, cancellationToken: cancellationToken);
                 outcome.DuplicateScopeReduced = index.ScopeReduced;
 
@@ -775,7 +781,11 @@ namespace MailArchiver.Services.Providers.Imap
                     for (var i = 0; i < group.Value.Count; i += _batchOptions.BatchSize)
                     {
                         var batchIds = group.Value.Skip(i).Take(_batchOptions.BatchSize).ToList();
+                        // Read-only load: nothing in this path is saved back, so tracking the
+                        // entities — including the attachment byte[] blobs — would hold the
+                        // whole job in the change tracker until job end (M2).
                         var emails = await _context.ArchivedEmails
+                            .AsNoTracking()
                             .Include(e => e.Attachments)
                                 .ThenInclude(a => a.AttachmentContent)
                             .Where(e => batchIds.Contains(e.Id))
