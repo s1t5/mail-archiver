@@ -1261,8 +1261,11 @@ namespace MailArchiver.Controllers
 
             try
             {
-                // Use the sync job service to start a sync with validation
-                var jobId = await _syncJobService.StartSyncAsync(id, account.Name);
+                // Use the sync job service to start a sync with validation. The acting
+                // user is carried on the job so cancel rights can be enforced (P2).
+                var authServiceForSync = HttpContext.RequestServices.GetService<MailArchiver.Services.IAuthenticationService>();
+                var jobId = await _syncJobService.StartSyncAsync(
+                    id, account.Name, userId: authServiceForSync.GetCurrentUserDisplayName(HttpContext));
                 if (!string.IsNullOrEmpty(jobId))
                 {
                     // Actually perform the sync based on provider type

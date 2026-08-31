@@ -4,8 +4,8 @@ namespace MailArchiver.Services
 {
     public interface ISyncJobService
     {
-        Task<string?> StartSyncAsync(int accountId, string accountName, DateTime? lastSync = null);
-        string StartSync(int accountId, string accountName, DateTime? lastSync = null);
+        Task<string?> StartSyncAsync(int accountId, string accountName, DateTime? lastSync = null, string? userId = null);
+        string StartSync(int accountId, string accountName, DateTime? lastSync = null, string? userId = null);
         SyncJob? GetJob(string jobId);
         List<SyncJob> GetActiveJobs();
         List<SyncJob> GetAllJobs();
