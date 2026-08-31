@@ -33,6 +33,7 @@ Mail Archiver is a comprehensive application designed to archive emails from var
 - [Reverse Proxy Configuration](ReverseProxy.md)
 - [User Management and Mailbox Permissions](UserManagement.md)
 - [Date-Windowed Offload](Offload.md)
+- [Local Test Environment](LocalTestEnvironment.md)
 - [Using Development Versions (Dev Tag)](DevTag.md)
 
 ### ☁️ Provider Specific Guides

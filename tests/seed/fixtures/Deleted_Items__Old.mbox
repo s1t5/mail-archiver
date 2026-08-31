@@ -1,0 +1,12 @@
+From alice@source.example Sun Dec 29 00:00:00 2024
+X-Fixture-Purpose: an exclusion on the parent has to cover descendants
+From: alice@source.example
+To: bob@target.example
+Subject: Old deleted mail
+Date: Sun, 29 Dec 2024 00:00:00 +0000
+Message-ID: <old-deleted-mail-600-0@source.example>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+
+Fixture message.
+
