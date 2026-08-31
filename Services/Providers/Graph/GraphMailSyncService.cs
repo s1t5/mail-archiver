@@ -769,12 +769,13 @@ namespace MailArchiver.Services.Providers.Graph
                                     // Legacy rows archived before the write-side normalization store
                                     // the Message-ID with surrounding angle brackets. Match both
                                     // variants so existing archives are recognized as archived.
-                                    var bracketedMessageId = "<" + normalizedMessageId + ">";
+                                    var messageIdCandidates = MailContentHelper
+                                        .MessageIdMatchCandidates(normalizedMessageId).ToList();
 
                                     var archivedEmailId = await _context.ArchivedEmails
                                         .AsNoTracking()
                                         .Where(e => e.MailAccountId == account.Id)
-                                        .Where(e => e.MessageId == normalizedMessageId || e.MessageId == bracketedMessageId)
+                                        .Where(e => messageIdCandidates.Contains(e.MessageId))
                                         .Select(e => (int?)e.Id)
                                         .FirstOrDefaultAsync();
 

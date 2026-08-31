@@ -1191,9 +1191,13 @@ namespace MailArchiver.Services.Providers.Imap
                 // Both represent the same instant; only the rendered offset differs.
                 message.Date = _dateTimeHelper.ToDisplayTimeZoneOffset(email.SentDate);
                 // Normalize the stored Message-ID (legacy Graph rows may carry surrounding
-                // angle brackets) so MimeKit emits a single well-formed bracket pair.
-                var restorableMessageId = MailContentHelper.NormalizeMessageId(email.MessageId);
-                if (!string.IsNullOrEmpty(restorableMessageId) && restorableMessageId.Contains('@'))
+                // angle brackets) so MimeKit emits a single well-formed bracket pair. Values
+                // that are present but unusable as a msg-id are replaced by a deterministic
+                // identifier rather than dropped: dropping one let MimeKit invent a fresh
+                // random Message-Id on every append, so repeated appends of the same row could
+                // never be recognized as duplicates and multiplied each time.
+                var restorableMessageId = MailContentHelper.ToRestorableMessageId(email.MessageId);
+                if (!string.IsNullOrEmpty(restorableMessageId))
                 {
                     message.MessageId = restorableMessageId;
                 }
