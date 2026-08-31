@@ -310,3 +310,4 @@ nextrelease.md
 AGENTS.md
 MailArchiver.sln
 tests/MailArchiver.Tests/appsettings.Test.json
+mail-archiver-review-*.md
