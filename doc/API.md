@@ -366,8 +366,11 @@ Returns aggregate archive statistics visible to the caller: total archived
 emails, visible mail accounts, attachments on those emails, and the total
 PostgreSQL database size in megabytes. For non-admin users the counts are
 scoped to the mail accounts assigned to them (the same scoping the web
-dashboard applies); administrators see global totals. `databaseSizeInMB` is
-always the size of the whole database and is returned as a string.
+dashboard applies); administrators see global totals.
+
+For non-admin API keys, `databaseSizeInMB` is an empty string: the database
+size describes the whole instance, not the key's scope. Emails, Accounts and
+Attachments are always scoped to the accounts the key may access.
 
 ```bash
 curl -H "Authorization: Bearer $KEY" https://host/api/v1/stats
@@ -389,7 +392,7 @@ curl -H "Authorization: Bearer $KEY" https://host/api/v1/stats
 | `emails` | int | Archived messages visible to the caller |
 | `accounts` | int | Mail accounts visible to the caller |
 | `attachments` | int | Attachments on those visible messages |
-| `databaseSizeInMB` | string | Whole PostgreSQL database size in MB |
+| `databaseSizeInMB` | string | Whole PostgreSQL database size in MB; empty for non-admin keys |
 
 ## Data types
 
