@@ -126,7 +126,7 @@ namespace MailArchiver.Services.Providers.Graph
                 // Normalize the stored Message-ID (legacy Graph rows may carry surrounding
                 // angle brackets) and re-emit it in the bracketed RFC 2822 form that Exchange
                 // itself generates, so a restored message roundtrips to the same canonical id.
-                var restorableMessageId = MailContentHelper.NormalizeMessageId(email.MessageId);
+                var restorableMessageId = MailContentHelper.ToRestorableMessageId(email.MessageId);
                 var internetMessageId = string.IsNullOrEmpty(restorableMessageId) ? null : "<" + restorableMessageId + ">";
 
                 var message = new Message

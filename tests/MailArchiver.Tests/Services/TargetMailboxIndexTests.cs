@@ -151,13 +151,30 @@ public class TargetMailboxIndexTests
     }
 
     [Fact]
-    public void Add_RowWithUnusableMessageId_IsStillMatchableByFingerprint()
+    public void Add_RowWithUnusableMessageId_MatchesByItsDerivedMessageId()
     {
         var index = NewIndex();
         var email = Row("<no-at-sign>", "alice@x.com", "bob@y.com", "Hi", Sent);
 
+        // Such a row used to fall through to the fingerprint, because the append dropped the
+        // unusable value and a fresh random Message-Id was generated every time. The append now
+        // derives a stable identifier from it, so the stronger criterion carries the match.
         index.Add(email);
-        Assert.Equal(OffloadMatchKind.Fingerprint, index.Match(email));
+        Assert.Equal(OffloadMatchKind.MessageId, index.Match(email));
+    }
+
+    [Fact]
+    public void RowWithUnusableMessageId_AppendedBeforeTheFix_IsStillCaughtByFingerprint()
+    {
+        // The copy already sitting on the target was appended by the old code, so it carries a
+        // random Message-ID that the derived one cannot match. The fingerprint has to catch it,
+        // otherwise the fix would re-append every such message exactly once more.
+        var index = NewIndex();
+        index.Add(Row("<random-generated@mimekit.example>", "alice@x.com", "bob@y.com", "Hi", Sent));
+
+        var sourceRow = Row("<no-at-sign>", "alice@x.com", "bob@y.com", "Hi", Sent);
+
+        Assert.Equal(OffloadMatchKind.Fingerprint, index.Match(sourceRow));
     }
 
     [Fact]

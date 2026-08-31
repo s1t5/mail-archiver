@@ -11,7 +11,7 @@ namespace MailArchiver.Tests.Services;
 /// criterion never fires, and it fails silently: only the handful of rows without a usable
 /// Message-ID depend on it, so nothing looks wrong until those rows duplicate.
 /// </summary>
-public class OffloadMatchKeyTests
+public class MailMatchKeyTests
 {
     // Reproduces what MailImporter writes into the row, so a test can build the "stored" side
     // without a database. Mirrors MailImporter lines 94-99.
@@ -50,7 +50,7 @@ public class OffloadMatchKeyTests
     /// projected out of the address lists, in order.
     /// </summary>
     private static long EnvelopeSideKey(MimeMessage message)
-        => OffloadMatchKey.FingerprintKeyFromAddresses(
+        => MailMatchKey.FingerprintKeyFromAddresses(
             message.From.Mailboxes.Select(m => m.Address),
             message.To.Mailboxes.Select(m => m.Address),
             message.Subject);
@@ -62,7 +62,7 @@ public class OffloadMatchKeyTests
     {
         var msg = Message("Hello", "alice@example.com", "bob@example.com");
         Assert.Equal(
-            OffloadMatchKey.FingerprintKeyFromStored(AsStoredRow(msg)),
+            MailMatchKey.FingerprintKeyFromStored(AsStoredRow(msg)),
             EnvelopeSideKey(msg));
     }
 
@@ -73,7 +73,7 @@ public class OffloadMatchKeyTests
         // stored column carries ", ", so its second criterion cannot match multi-recipient mail.
         var msg = Message("Hello", "alice@example.com", "bob@example.com", "carol@example.com");
         Assert.Equal(
-            OffloadMatchKey.FingerprintKeyFromStored(AsStoredRow(msg)),
+            MailMatchKey.FingerprintKeyFromStored(AsStoredRow(msg)),
             EnvelopeSideKey(msg));
     }
 
@@ -83,7 +83,7 @@ public class OffloadMatchKeyTests
         var msg = Message("Hello", "alice@example.com", "bob@example.com");
         msg.From.Add(MailboxAddress.Parse("dave@example.com"));
         Assert.Equal(
-            OffloadMatchKey.FingerprintKeyFromStored(AsStoredRow(msg)),
+            MailMatchKey.FingerprintKeyFromStored(AsStoredRow(msg)),
             EnvelopeSideKey(msg));
     }
 
@@ -94,7 +94,7 @@ public class OffloadMatchKeyTests
         // and the stored column differ. Both sides must apply the same cleaning.
         var msg = Message("Quarterly\u0001report", "alice@example.com", "bob@example.com");
         Assert.Equal(
-            OffloadMatchKey.FingerprintKeyFromStored(AsStoredRow(msg)),
+            MailMatchKey.FingerprintKeyFromStored(AsStoredRow(msg)),
             EnvelopeSideKey(msg));
     }
 
@@ -106,7 +106,7 @@ public class OffloadMatchKeyTests
         var msg = Parse("From: alice@example.com\r\nTo: bob@example.com\r\n\r\nbody\r\n");
         Assert.Null(msg.Subject);
         Assert.Equal(
-            OffloadMatchKey.FingerprintKeyFromStored(AsStoredRow(msg)),
+            MailMatchKey.FingerprintKeyFromStored(AsStoredRow(msg)),
             EnvelopeSideKey(msg));
     }
 
@@ -119,7 +119,7 @@ public class OffloadMatchKeyTests
         var msg = Parse("From: alice@example.com\r\nTo: bob@example.com\r\nSubject: \r\n\r\nbody\r\n");
         Assert.Equal(string.Empty, msg.Subject);
         Assert.Equal(
-            OffloadMatchKey.FingerprintKeyFromStored(AsStoredRow(msg)),
+            MailMatchKey.FingerprintKeyFromStored(AsStoredRow(msg)),
             EnvelopeSideKey(msg));
     }
 
@@ -156,8 +156,8 @@ public class OffloadMatchKeyTests
     {
         // Without a field separator "ab" + "c" and "a" + "bc" would hash identically.
         Assert.NotEqual(
-            OffloadMatchKey.FingerprintKeyFromStored("ab", "c", "s"),
-            OffloadMatchKey.FingerprintKeyFromStored("a", "bc", "s"));
+            MailMatchKey.FingerprintKeyFromStored("ab", "c", "s"),
+            MailMatchKey.FingerprintKeyFromStored("a", "bc", "s"));
     }
 
     // ------------------------------------------------------------------ Message-ID criterion
@@ -166,20 +166,44 @@ public class OffloadMatchKeyTests
     [InlineData(null)]
     [InlineData("")]
     [InlineData("   ")]
+    [InlineData("<>")]
+    public void MessageIdKey_MissingValues_ReturnNull(string? messageId)
+    {
+        // Nothing is emitted on append when there is no stored identifier at all, so the caller
+        // has to fall through to the fingerprint.
+        Assert.Null(MailMatchKey.MessageIdKey(messageId));
+    }
+
+    [Theory]
     [InlineData("<bare-token-no-at-sign>")]
     [InlineData("no-at-sign-either")]
-    public void MessageIdKey_UnusableValues_ReturnNull(string? messageId)
+    public void MessageIdKey_UnusableButPresentValues_StillProduceAKey(string messageId)
     {
-        // A value without "@" is not emitted on append either: the restore path drops it and
-        // MimeKit invents a fresh random Message-Id, so it cannot be matched on.
-        Assert.Null(OffloadMatchKey.MessageIdKey(messageId));
+        // These used to return null, because the restore path dropped such a value and let a
+        // fresh random Message-Id be generated, which no key could survive. The value is now
+        // mapped to a deterministic identifier on append, so it can carry the match.
+        var key = MailMatchKey.MessageIdKey(messageId);
+
+        Assert.NotNull(key);
+        Assert.Equal(key, MailMatchKey.MessageIdKey(messageId));
+    }
+
+    [Fact]
+    public void MessageIdKey_MatchesTheIdentifierTheRowIsAppendedWith()
+    {
+        // The key has to be built from what the restore path actually emits, not from the raw
+        // column, or the two sides of the comparison drift apart again.
+        const string stored = "no-at-sign-either";
+        var appended = MailContentHelper.ToRestorableMessageId(stored);
+
+        Assert.Equal(MailMatchKey.MessageIdKey(stored), MailMatchKey.MessageIdKey(appended));
     }
 
     [Fact]
     public void MessageIdKey_UsableValue_ReturnsStableKey()
     {
-        var a = OffloadMatchKey.MessageIdKey("<abc@example.com>");
-        var b = OffloadMatchKey.MessageIdKey("<abc@example.com>");
+        var a = MailMatchKey.MessageIdKey("<abc@example.com>");
+        var b = MailMatchKey.MessageIdKey("<abc@example.com>");
         Assert.NotNull(a);
         Assert.Equal(a, b);
     }
@@ -188,18 +212,18 @@ public class OffloadMatchKeyTests
     public void MessageIdKey_IgnoresBracketsAndCase()
     {
         // Legacy rows may carry surrounding angle brackets; NormalizeMessageId strips them.
-        var bare = OffloadMatchKey.MessageIdKey("abc@example.com");
-        Assert.Equal(bare, OffloadMatchKey.MessageIdKey("<abc@example.com>"));
-        Assert.Equal(bare, OffloadMatchKey.MessageIdKey("<<abc@example.com>>"));
-        Assert.Equal(bare, OffloadMatchKey.MessageIdKey("  <ABC@Example.COM>  "));
+        var bare = MailMatchKey.MessageIdKey("abc@example.com");
+        Assert.Equal(bare, MailMatchKey.MessageIdKey("<abc@example.com>"));
+        Assert.Equal(bare, MailMatchKey.MessageIdKey("<<abc@example.com>>"));
+        Assert.Equal(bare, MailMatchKey.MessageIdKey("  <ABC@Example.COM>  "));
     }
 
     [Fact]
     public void MessageIdKey_DifferentIds_ProduceDifferentKeys()
     {
         Assert.NotEqual(
-            OffloadMatchKey.MessageIdKey("<a@example.com>"),
-            OffloadMatchKey.MessageIdKey("<b@example.com>"));
+            MailMatchKey.MessageIdKey("<a@example.com>"),
+            MailMatchKey.MessageIdKey("<b@example.com>"));
     }
 
     // ------------------------------------------------------------------ timestamp tolerance
@@ -211,8 +235,8 @@ public class OffloadMatchKeyTests
         // quantising them: two copies one second apart would fall into different buckets and
         // the match would silently never fire.
         var a = new DateTime(2026, 2, 3, 10, 11, 12);
-        Assert.True(OffloadMatchKey.WithinTolerance(a, a.AddSeconds(1)));
-        Assert.True(OffloadMatchKey.WithinTolerance(a, a.AddSeconds(-1)));
+        Assert.True(MailMatchKey.WithinTolerance(a, a.AddSeconds(1)));
+        Assert.True(MailMatchKey.WithinTolerance(a, a.AddSeconds(-1)));
     }
 
     [Fact]
@@ -221,15 +245,15 @@ public class OffloadMatchKeyTests
         // 10:11:11.9 and 10:11:12.1 sit in different two second buckets but are 0.2s apart.
         var a = new DateTime(2026, 2, 3, 10, 11, 11, 900);
         var b = new DateTime(2026, 2, 3, 10, 11, 12, 100);
-        Assert.True(OffloadMatchKey.WithinTolerance(a, b));
+        Assert.True(MailMatchKey.WithinTolerance(a, b));
     }
 
     [Fact]
     public void WithinTolerance_TwoSecondsOrMoreApart_DoesNotMatch()
     {
         var a = new DateTime(2026, 2, 3, 10, 11, 12);
-        Assert.False(OffloadMatchKey.WithinTolerance(a, a.AddSeconds(2)));
-        Assert.False(OffloadMatchKey.WithinTolerance(a, a.AddSeconds(-3)));
+        Assert.False(MailMatchKey.WithinTolerance(a, a.AddSeconds(2)));
+        Assert.False(MailMatchKey.WithinTolerance(a, a.AddSeconds(-3)));
     }
 
     // ------------------------------------------------------------------ hashing
@@ -238,7 +262,7 @@ public class OffloadMatchKeyTests
     public void Hash64_IsStableAcrossCalls()
     {
         // Deliberately not string.GetHashCode(), which is randomised per process.
-        Assert.Equal(OffloadMatchKey.Hash64("a@example.com"), OffloadMatchKey.Hash64("a@example.com"));
+        Assert.Equal(MailMatchKey.Hash64("a@example.com"), MailMatchKey.Hash64("a@example.com"));
     }
 
     [Fact]
@@ -246,7 +270,7 @@ public class OffloadMatchKeyTests
     {
         // FNV-1a over the two bytes of each UTF-16 unit. Pinned so an accidental change to the
         // algorithm is caught rather than silently invalidating every stored comparison.
-        Assert.Equal(OffloadMatchKey.Hash64(""), OffloadMatchKey.Hash64(string.Empty));
-        Assert.NotEqual(0, OffloadMatchKey.Hash64("a"));
+        Assert.Equal(MailMatchKey.Hash64(""), MailMatchKey.Hash64(string.Empty));
+        Assert.NotEqual(0, MailMatchKey.Hash64("a"));
     }
 }
