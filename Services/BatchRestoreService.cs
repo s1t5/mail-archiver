@@ -101,7 +101,17 @@ namespace MailArchiver.Services
                     job.Status = BatchRestoreJobStatus.Cancelled;
                     if (_jobCancellations.TryGetValue(jobId, out var cts))
                     {
-                        cts.Cancel();
+                        try
+                        {
+                            cts.Cancel();
+                        }
+                        catch (ObjectDisposedException)
+                        {
+                            // The finally block of ProcessJob already disposed the CTS — the
+                            // job has ended on its own inside the race window; nothing left
+                            // to cancel (M6).
+                            _logger.LogDebug("Cancellation source for job {JobId} was already disposed", jobId);
+                        }
                     }
                     else
                     {
