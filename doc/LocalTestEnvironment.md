@@ -85,8 +85,8 @@ accept the Dovecot certificate on port 1993.
 dotnet test tests/MailArchiver.Tests/MailArchiver.Tests.csproj
 ```
 
-Migrations are applied automatically by `TestDbFixture` on the first run. Of the 519 tests,
-about 330 need no database at all; the rest use PostgreSQL, so they fail with
+Migrations are applied automatically by `TestDbFixture` on the first run. Most tests need
+no database at all; the rest use PostgreSQL, so they fail with
 `Name or service not known` if the stack is not running.
 
 A connection string can also be supplied through the environment, which overrides every
