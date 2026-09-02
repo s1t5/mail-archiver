@@ -111,8 +111,49 @@ The sync behavior is controlled by the `MailSync` section of `appsettings.json` 
 | `MailSync:IgnoreSelfSignedCert` | `false` | Accept self-signed TLS certificates for IMAP connections. |
 | `MailSync:MaxConcurrentSyncs` | `1` | Maximum number of account syncs that may run in parallel within one poll cycle. `1` reproduces the previous sequential behaviour; increase to parallelize — mind provider rate limits and local resource usage. |
 | `MailSync:InterAccountDelaySeconds` | `0` | Optional stagger delay in seconds applied at the end of each account sync task. Useful to avoid burst-starts when `MaxConcurrentSyncs > 1`. `0` disables it. |
+| `MailSync:GlobalExcludedFolders` | _empty_ | Folders excluded from synchronization for every account, additive to each account's own list. See [Excluded Folders](#-excluded-folders) below. |
 
 > 💡 Both the normal sync interval and the full-sync interval can be overridden per account on the **Create/Edit Mail Account** page. Leave the per-account fields empty to fall back to the global defaults above. To remove an account from the scheduler entirely, disable it (toggle *Enabled* off on the Account Details page).
+
+---
+
+## 🚫 Excluded Folders
+
+Folders can be excluded from synchronization from two places, and the two are **additive**: a folder
+is skipped when it matches **either** list. Neither can re-include what the other excluded, so
+adding an entry anywhere can only ever remove folders from the sync.
+
+| Source | Scope | Where |
+|--------|-------|-------|
+| Account exclusion list | One account | *Create/Edit Mail Account* page |
+| `MailSync:GlobalExcludedFolders` | Every account of the installation | `appsettings.json` or `MailSync__GlobalExcludedFolders__<n>` |
+
+The global list is **empty by default**, so an installation that never configures it behaves exactly
+as before. It exists for the case where many mailboxes are imported from the same server and the
+alternative is maintaining an identical exclusion list on every single account.
+
+Both lists use the same matching rules, so they cannot drift apart:
+
+1. exact match against the folder's full path (`INBOX/Drafts`);
+2. exact match against the folder's own name (`Drafts`), which catches an entry typed as the short
+   name when the server reports a prefixed path;
+3. path-suffix match, which catches separator variations — `Drafts` also matches `INBOX.Drafts` and
+   `INBOX/Drafts` — and Gmail-style names such as `[Gmail]/Drafts`.
+
+All comparisons are case-insensitive. The suffix rule anchors on the path separator, so `Kalender`
+does not take a folder named `Kalenderwoche` with it.
+
+**No folder name is ever excluded by default.** Which names are worth listing depends entirely on
+the server and its language — a mailbox tree that also carries calendar, contact, task and note
+folders is a common reason to use this, but Mail Archiver does not assume it. See
+[Setup.md](Setup.md) for a configuration example.
+
+Changing either list does not remove anything already archived. Run a
+[Full Sync](#-full-sync-resync) afterwards if you want to confirm the archive matches the current
+selection.
+
+> ℹ️ The global list currently applies to IMAP accounts. M365 (Graph) accounts keep using their
+> per-account exclusion list only.
 
 ---
 
