@@ -159,7 +159,7 @@ namespace MailArchiver.Services.Shared
                     BccDisplayNames = string.IsNullOrEmpty(bccDisplayNames) ? null : bccDisplayNames,
                     SentDate = convertedSentDate, ReceivedDate = DateTime.UtcNow,
                     IsOutgoing = DetermineIfOutgoing(message, account, targetFolder),
-                    HasAttachments = allAttachments.Any(), Body = body, HtmlBody = htmlBody,
+                    HasAttachments = allAttachments.Any(), IsRead = false, Body = body, HtmlBody = htmlBody,
                     BodyUntruncatedText = null, BodyUntruncatedHtml = null,
                     OriginalBodyText = (hasNullBytesInText || (!string.IsNullOrEmpty(originalTextBody) && originalTextBody != body))
                         ? Encoding.UTF8.GetBytes(hasNullBytesInText ? rawTextBody! : originalTextBody!) : null,
