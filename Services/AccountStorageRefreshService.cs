@@ -133,6 +133,7 @@ namespace MailArchiver.Services
             _logger.LogInformation("Starting storage backfill for {Count} accounts", pendingAccounts.Count);
 
             int processed = 0;
+            int failed = 0;
             foreach (var accountId in pendingAccounts)
             {
                 if (stoppingToken.IsCancellationRequested)
@@ -141,10 +142,12 @@ namespace MailArchiver.Services
                 try
                 {
                     _logger.LogInformation("Backfill: calculating storage for account {AccountId} ({Processed}/{Total})",
-                        accountId, processed + 1, pendingAccounts.Count);
+                        accountId, processed + failed + 1, pendingAccounts.Count);
 
-                    await storageService.RefreshAccountStorageAsync(accountId);
-                    processed++;
+                    if (await storageService.RefreshAccountStorageAsync(accountId))
+                        processed++;
+                    else
+                        failed++;
 
                     if (backfillDelayMs > 0)
                         await Task.Delay(backfillDelayMs, stoppingToken);
@@ -152,11 +155,16 @@ namespace MailArchiver.Services
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, "Error during backfill for account {AccountId}: {Message}", accountId, ex.Message);
+                    failed++;
                     // Weiter mit naechstem Account (resumable)
                 }
             }
 
-            _logger.LogInformation("Storage backfill finished. Processed {Processed} of {Total} accounts", processed, pendingAccounts.Count);
+            if (failed > 0)
+                _logger.LogWarning("Storage backfill finished. Processed {Processed} of {Total} accounts, {Failed} failed (failed accounts stay 'Pending' and are retried on next startup)",
+                    processed, pendingAccounts.Count, failed);
+            else
+                _logger.LogInformation("Storage backfill finished. Processed {Processed} of {Total} accounts", processed, pendingAccounts.Count);
         }
 
         private static DateTime CalculateNextRunTime(TimeSpan executionTime)

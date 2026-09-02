@@ -40,7 +40,7 @@ namespace MailArchiver.Services
             return result;
         }
 
-        public async Task RefreshAccountStorageAsync(int mailAccountId)
+        public async Task<bool> RefreshAccountStorageAsync(int mailAccountId)
         {
             try
             {
@@ -49,10 +49,12 @@ namespace MailArchiver.Services
 
                 await UpsertCacheAsync(mailAccountId, mailBytes, attachmentBytes, totalBytes);
                 await EnsureBackfillStateDoneAsync(mailAccountId);
+                return true;
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error refreshing storage for account {AccountId}", mailAccountId);
+                return false;
             }
         }
 
@@ -66,18 +68,27 @@ namespace MailArchiver.Services
 
             _logger.LogInformation("Starting full storage refresh for {Count} accounts", accountIds.Count);
 
+            int succeeded = 0;
+            int failed = 0;
+
             foreach (var accountId in accountIds)
             {
                 if (ct.IsCancellationRequested)
                     break;
 
-                await RefreshAccountStorageAsync(accountId);
+                if (await RefreshAccountStorageAsync(accountId))
+                    succeeded++;
+                else
+                    failed++;
 
                 if (batchDelayMs > 0)
                     await Task.Delay(batchDelayMs, ct);
             }
 
-            _logger.LogInformation("Full storage refresh completed");
+            if (failed > 0)
+                _logger.LogWarning("Full storage refresh completed ({Succeeded} succeeded, {Failed} failed)", succeeded, failed);
+            else
+                _logger.LogInformation("Full storage refresh completed ({Succeeded} succeeded, {Failed} failed)", succeeded, failed);
         }
 
         public async Task EnsureBackfillStatesAsync()
@@ -136,7 +147,14 @@ namespace MailArchiver.Services
                     ), 0) AS AttachmentBytes;
             ";
 
+            // Hinweis: Der Npgsql-Default-CommandTimeout betraegt 30 Sekunden und ist
+            // fuer grosse Archive zu knapp (pg_column_size muss jede Zeile inkl.
+            // TOAST lesen). Der Timeout ist daher konfigurierbar, analog zu
+            // AttachmentDeduplication:CommandTimeoutSeconds.
+            var commandTimeoutSeconds = _configuration.GetValue<int>("AccountStorage:CommandTimeoutSeconds", 300);
+
             using var command = new NpgsqlCommand(fallbackSql, connection);
+            command.CommandTimeout = commandTimeoutSeconds;
             command.Parameters.AddWithValue("@accountId", mailAccountId);
             using var reader = await command.ExecuteReaderAsync();
             if (await reader.ReadAsync())

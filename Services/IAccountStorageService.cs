@@ -14,8 +14,10 @@ namespace MailArchiver.Services
         /// <summary>
         /// Berechnet den Speicherverbrauch fuer einen einzelnen Account neu und
         /// aktualisiert den Cache (UPSERT). Sofort-Refresh nach Sync/Import/Deletion.
+        /// Rueckgabe: true bei Erfolg, false bei Fehler (ein fehlgeschlagener
+        /// Account bleibt im Backfill auf "Pending" und wird erneut versucht).
         /// </summary>
-        Task RefreshAccountStorageAsync(int mailAccountId);
+        Task<bool> RefreshAccountStorageAsync(int mailAccountId);
 
         /// <summary>
         /// Berechnet den Speicherverbrauch fuer alle Accounts neu (Full-Refresh).

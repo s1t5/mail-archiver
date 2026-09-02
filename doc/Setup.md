@@ -127,6 +127,7 @@ services:
       - AccountStorage__DailyExecutionTime=02:30
       - AccountStorage__BackfillDelayMs=5000
       - AccountStorage__RefreshBatchDelayMs=1000
+      - AccountStorage__CommandTimeoutSeconds=300
 
       # ReleaseNotes Settings (Version Update Splash Screen)
       - ReleaseNotes__Enabled=true
@@ -376,6 +377,7 @@ The per-account storage display shows the database storage usage (all mail field
 - `AccountStorage__DailyExecutionTime`: Time of day (24-hour format `HH:mm`) for the daily full refresh of all accounts. Default is `02:30`. Choose a time during low system activity.
 - `AccountStorage__BackfillDelayMs`: Delay (in milliseconds) between accounts during the initial backfill on startup. Default is `5000`. Lower values speed up the backfill but increase database load; raise this value for very large archives to avoid overloading the database.
 - `AccountStorage__RefreshBatchDelayMs`: Delay (in milliseconds) between accounts during the daily full refresh. Default is `1000`. Lower values speed up the refresh but increase database load; raise this value for very large archives.
+- `AccountStorage__CommandTimeoutSeconds`: Database command timeout (in seconds) for the per-account storage calculation (`pg_column_size` over all rows of an account). Default is `300` (5 minutes). The calculation reads every mail row including TOAST data, which can take well over a minute on very large archives (250k+ emails); the previous 30-second Npgsql default caused the refresh to fail silently and left the dashboard showing stale values. Raise this value if the calculation still times out on your archive.
 
 > 💡 **Note**: Storage values are refreshed immediately after each mail sync, import, or retention deletion, so the displayed values stay current even without the daily refresh. The daily refresh is a safety net that catches edge cases (e.g., direct database changes).
 

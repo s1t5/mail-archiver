@@ -148,7 +148,7 @@ public class AccountStorageServiceTests
             await ctx.SaveChangesAsync();
 
             var svc = ServiceFactory.CreateAccountStorageService(ctx);
-            await svc.RefreshAccountStorageAsync(acct.Id);
+            Assert.True(await svc.RefreshAccountStorageAsync(acct.Id));
 
             // Use a fresh context to read the committed cache row.
             await using var readCtx = _fixture.CreateContext();
@@ -171,7 +171,7 @@ public class AccountStorageServiceTests
         {
             var acct = await SeedAccountAsync(ctx);
             var svc = ServiceFactory.CreateAccountStorageService(ctx);
-            await svc.RefreshAccountStorageAsync(acct.Id);
+            Assert.True(await svc.RefreshAccountStorageAsync(acct.Id));
 
             await using var readCtx = _fixture.CreateContext();
             var cache = await readCtx.AccountStorageCaches.AsNoTracking().FirstOrDefaultAsync(c => c.MailAccountId == acct.Id);
@@ -193,7 +193,7 @@ public class AccountStorageServiceTests
         {
             var acct = await SeedAccountAsync(ctx);
             var svc = ServiceFactory.CreateAccountStorageService(ctx);
-            await svc.RefreshAccountStorageAsync(acct.Id);
+            Assert.True(await svc.RefreshAccountStorageAsync(acct.Id));
 
             await using var readCtx = _fixture.CreateContext();
             var state = await readCtx.AccountStorageBackfillStates.AsNoTracking()

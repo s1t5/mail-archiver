@@ -32,5 +32,6 @@ The feature can be tuned in `appsettings.json` or via environment variables. See
 - `AccountStorage__DailyExecutionTime`: Time for the daily full refresh (`02:30` by default).
 - `AccountStorage__BackfillDelayMs`: Pause between accounts during the startup backfill (`5000` ms by default).
 - `AccountStorage__RefreshBatchDelayMs`: Pause between accounts during the daily refresh (`1000` ms by default).
+- `AccountStorage__CommandTimeoutSeconds`: Database command timeout for the per-account storage calculation (`300` seconds by default). Increase this for very large archives where the `pg_column_size` scan takes longer.
 
 > 💡 **Tip**: You do **not** need to enable `DatabaseMaintenance__Enabled` for this feature to work. The storage refresh service runs independently.
