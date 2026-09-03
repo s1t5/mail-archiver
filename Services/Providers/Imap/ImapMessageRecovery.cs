@@ -13,11 +13,18 @@ namespace MailArchiver.Services.Providers.Imap
     /// exception is not a statement about the mailbox, it is MailKit reporting that the response it
     /// correlated to the request did not contain the message it asked for.
     ///
-    /// Why <c>GetStreamsAsync</c>: it is callback-driven. MailKit hands each stream to the callback
-    /// as it arrives and never checks afterwards whether the requested message was among them, so
-    /// it does not raise <see cref="MessageNotFoundException"/> at all — a message the server does
-    /// not return simply never reaches the callback. That makes it structurally, not accidentally,
-    /// a different path from the call that just failed.
+    /// Why <c>GetStreamsAsync</c>: both calls put the same command on the wire,
+    /// <c>UID FETCH … (BODY.PEEK[])</c>, so this is not a different request. What differs is the
+    /// correlation. <c>GetMessageAsync</c> collects the sections and then looks the message up by
+    /// exact UID, and a miss on that lookup is what raises the exception — even when the body did
+    /// arrive. <c>GetStreamsAsync</c> hands each section to the callback as it arrives, for
+    /// whatever UID the response carries, resolves a section that arrived without one by sequence
+    /// index once the UID turns up, and performs no lookup afterwards, so it cannot raise
+    /// <see cref="MessageNotFoundException"/> at all.
+    ///
+    /// So this helps precisely when the body is in the response but the exact-UID lookup misses it.
+    /// If the server genuinely returns nothing, the callback is never invoked, this returns null,
+    /// and the caller keeps the original failure.
     ///
     /// What this is not: a retry. It runs at most once per UID, issues exactly one fetch, and never
     /// reports success unless raw bytes actually arrived and parsed. Anything less stays a failure,
