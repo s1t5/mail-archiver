@@ -154,4 +154,33 @@ public class FolderExclusionMatcherTests
     {
         Assert.False(FolderExclusionMatcher.IsExcluded(null, null, null, new[] { "Kalender" }));
     }
+
+    // ---- the two Graph inconsistencies this matcher is meant to remove -----------------------
+
+    [Fact]
+    public void An_entry_written_as_a_path_matches_even_when_the_short_name_does_not()
+    {
+        // Graph's retention deletion compared the folder's own name only, so an exclusion given
+        // as a path kept a folder out of the sync but not out of the deletion. Both paths now
+        // pass the full path, so the same entry decides both.
+        Assert.True(Excluded("Inbox/Kalender", "Kalender", account: new[] { "Inbox/Kalender" }));
+        Assert.False(Excluded("Inbox/Kalender", "Kalender", account: new[] { "Posteingang/Kalender" }));
+    }
+
+    [Fact]
+    public void A_short_name_matches_a_nested_graph_folder_by_suffix()
+    {
+        // Graph previously compared exact strings only, so "Kalender" did not match a nested
+        // "Inbox/Kalender" unless it was spelled out in full. It does now, the same way it always
+        // did for IMAP. This can exclude more than before — never less.
+        Assert.True(Excluded("Inbox/Kalender", "Kalender", global: new[] { "Kalender" }));
+    }
+
+    [Fact]
+    public void An_empty_display_name_still_matches_on_the_full_path()
+    {
+        // The Graph sync path used to skip the whole check when DisplayName was empty. A folder
+        // whose path matches an exclusion entry should be excluded regardless.
+        Assert.True(Excluded("Inbox/Kalender", "", global: new[] { "Inbox/Kalender" }));
+    }
 }

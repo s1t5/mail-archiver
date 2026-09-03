@@ -95,9 +95,9 @@ namespace MailArchiver.Services.Providers.Graph
                     {
                         var fullFolderPath = folderPaths.TryGetValue(folder.Id!, out var path) ? path : folder.DisplayName;
 
-                        if (!string.IsNullOrEmpty(folder.DisplayName) &&
-                            (account.ExcludedFoldersList.Any(f => f.Equals(fullFolderPath, StringComparison.OrdinalIgnoreCase)) ||
-                             account.ExcludedFoldersList.Any(f => f.Equals(folder.DisplayName, StringComparison.OrdinalIgnoreCase))))
+                        if (FolderExclusionMatcher.IsExcluded(
+                                fullFolderPath, folder.DisplayName,
+                                account.ExcludedFoldersList, _mailSyncOptions.GlobalExcludedFolders))
                         {
                             _logger.LogInformation("Skipping excluded folder: {FolderName} (full path: {FullPath}) for account: {AccountName}",
                                 folder.DisplayName, fullFolderPath, account.Name);
@@ -743,12 +743,21 @@ namespace MailArchiver.Services.Providers.Graph
 
                 _logger.LogInformation("Found {Count} folders for M365 account: {AccountName}", folders.Count, account.Name);
 
+                // Same path dictionary the sync path builds, so deletion resolves exclusions
+                // against the full folder path too. Matching on DisplayName alone meant an entry
+                // given as a path excluded a folder from the sync but not from the deletion.
+                var folderPaths = _folderService.BuildFolderPathDictionary(folders);
+
                 foreach (var folder in folders)
                 {
-                    if (account.ExcludedFoldersList.Any(f => f.Equals(folder.DisplayName, StringComparison.OrdinalIgnoreCase)))
+                    var fullFolderPath = folderPaths.TryGetValue(folder.Id!, out var path) ? path : folder.DisplayName;
+
+                    if (FolderExclusionMatcher.IsExcluded(
+                            fullFolderPath, folder.DisplayName,
+                            account.ExcludedFoldersList, _mailSyncOptions.GlobalExcludedFolders))
                     {
-                        _logger.LogInformation("Skipping excluded folder for deletion: {FolderName} for account: {AccountName}",
-                            folder.DisplayName, account.Name);
+                        _logger.LogInformation("Skipping excluded folder for deletion: {FolderName} (full path: {FullPath}) for account: {AccountName}",
+                            folder.DisplayName, fullFolderPath, account.Name);
                         continue;
                     }
 

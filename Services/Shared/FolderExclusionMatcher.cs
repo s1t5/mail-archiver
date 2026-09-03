@@ -8,8 +8,14 @@ namespace MailArchiver.Services.Shared
     /// re-include what the other excluded, which keeps the rule easy to reason about — adding an
     /// entry anywhere can only ever remove folders from the sync, never add them back.
     ///
+    /// Both providers and both of their paths go through here — the IMAP sync, the Graph sync and
+    /// the Graph retention deletion — so an entry means the same thing everywhere. Before this,
+    /// IMAP had three matching rules while Graph compared exact strings inline, and Graph's
+    /// deletion path looked only at the folder's own name, so an entry written as a path excluded a
+    /// folder from the sync but not from the deletion.
+    ///
     /// The matching rules are the ones the per-account list has always used, kept in one place so
-    /// the two sources cannot drift apart into two different algorithms:
+    /// the sources cannot drift apart into different algorithms:
     ///
     /// <list type="number">
     /// <item>exact match against the folder's full path;</item>
