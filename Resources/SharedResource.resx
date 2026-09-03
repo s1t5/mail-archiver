@@ -1712,6 +1712,45 @@
   <data name="DeleteSelectedEmailsConfirm" xml:space="preserve">
     <value>Are you sure you want to permanently delete {0} selected email(s)? This action cannot be undone and each deletion will be logged for audit purposes.</value>
   </data>
+  <data name="EmptyFolder" xml:space="preserve">
+    <value>Empty folder</value>
+  </data>
+  <data name="DeleteFilteredEmails" xml:space="preserve">
+    <value>Delete filtered emails</value>
+  </data>
+  <data name="EmptyFolderConfirmTitle" xml:space="preserve">
+    <value>Permanently empty folder</value>
+  </data>
+  <data name="DeleteFilteredConfirmTitle" xml:space="preserve">
+    <value>Permanently delete filtered emails</value>
+  </data>
+  <data name="EmptyFolderConfirmWarning" xml:space="preserve">
+    <value>This will permanently delete all {0} email(s) in folder "{1}". This action cannot be undone and each deletion will be logged for audit purposes.</value>
+  </data>
+  <data name="DeleteFilteredConfirmWarning" xml:space="preserve">
+    <value>This will permanently delete the {0} email(s) matching the current filter in folder "{1}". This action cannot be undone and each deletion will be logged for audit purposes.</value>
+  </data>
+  <data name="TypeFolderNameToConfirm" xml:space="preserve">
+    <value>To confirm, type the folder name below (you can copy it from the field above):</value>
+  </data>
+  <data name="PermanentlyDeleteConfirmButton" xml:space="preserve">
+    <value>Permanently delete</value>
+  </data>
+  <data name="DeleteAllFilteredEmails" xml:space="preserve">
+    <value>Delete filtered emails (all folders)</value>
+  </data>
+  <data name="DeleteAllFilteredConfirmTitle" xml:space="preserve">
+    <value>Permanently delete filtered emails across all folders</value>
+  </data>
+  <data name="DeleteAllFilteredConfirmWarning" xml:space="preserve">
+    <value>This will permanently delete all {0} email(s) matching the current filter across every folder of this account. This action cannot be undone and each deletion will be logged for audit purposes.</value>
+  </data>
+  <data name="TypeDeleteWordToConfirm" xml:space="preserve">
+    <value>To confirm, type "{0}" below:</value>
+  </data>
+  <data name="DeleteConfirmationWord" xml:space="preserve">
+    <value>DELETE</value>
+  </data>
   <data name="DeleteButton" xml:space="preserve">
     <value>Delete</value>
   </data>

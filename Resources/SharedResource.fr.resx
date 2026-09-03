@@ -2131,6 +2131,45 @@
   <data name="DeleteSelectedEmailsConfirm" xml:space="preserve">
     <value>Êtes-vous sûr de vouloir supprimer définitivement {0} email(s) sélectionné(s) ? Cette action ne peut pas être annulée et chaque suppression sera enregistrée à des fins d'audit.</value>
   </data>
+  <data name="EmptyFolder" xml:space="preserve">
+    <value>Vider le dossier</value>
+  </data>
+  <data name="DeleteFilteredEmails" xml:space="preserve">
+    <value>Supprimer les e-mails filtrés</value>
+  </data>
+  <data name="EmptyFolderConfirmTitle" xml:space="preserve">
+    <value>Vider définitivement le dossier</value>
+  </data>
+  <data name="DeleteFilteredConfirmTitle" xml:space="preserve">
+    <value>Supprimer définitivement les e-mails filtrés</value>
+  </data>
+  <data name="EmptyFolderConfirmWarning" xml:space="preserve">
+    <value>Ceci supprimera définitivement les {0} e-mail(s) du dossier "{1}". Cette action est irréversible et chaque suppression sera consignée.</value>
+  </data>
+  <data name="DeleteFilteredConfirmWarning" xml:space="preserve">
+    <value>Ceci supprimera définitivement les {0} e-mail(s) correspondant au filtre actuel dans le dossier "{1}". Cette action est irréversible et chaque suppression sera consignée.</value>
+  </data>
+  <data name="TypeFolderNameToConfirm" xml:space="preserve">
+    <value>Pour confirmer, saisissez le nom du dossier ci-dessous (vous pouvez le copier depuis le champ ci-dessus) :</value>
+  </data>
+  <data name="PermanentlyDeleteConfirmButton" xml:space="preserve">
+    <value>Supprimer définitivement</value>
+  </data>
+  <data name="DeleteAllFilteredEmails" xml:space="preserve">
+    <value>Supprimer les e-mails filtrés (tous les dossiers)</value>
+  </data>
+  <data name="DeleteAllFilteredConfirmTitle" xml:space="preserve">
+    <value>Supprimer définitivement les e-mails filtrés dans tous les dossiers</value>
+  </data>
+  <data name="DeleteAllFilteredConfirmWarning" xml:space="preserve">
+    <value>Ceci supprimera définitivement les {0} e-mail(s) correspondant au filtre actuel dans tous les dossiers de ce compte. Cette action est irréversible et chaque suppression sera consignée.</value>
+  </data>
+  <data name="TypeDeleteWordToConfirm" xml:space="preserve">
+    <value>Pour confirmer, saisissez "{0}" ci-dessous :</value>
+  </data>
+  <data name="DeleteConfirmationWord" xml:space="preserve">
+    <value>SUPPRIMER</value>
+  </data>
   <data name="EmailDeleted" xml:space="preserve">
     <value>Email supprimé avec succès</value>
   </data>
