@@ -24,6 +24,18 @@ internal static class ServiceFactory
             new DateTimeHelper(Options.Create(new TimeZoneOptions { DisplayTimeZoneId = "Europe/Berlin" })),
             Options.Create(new BatchOperationOptions()));
 
+    /// <summary>
+    /// Creates an EmailCoreService with dashboard caching disabled so integration
+    /// tests always see freshly computed statistics.
+    /// </summary>
+    public static EmailCoreService CreateEmailCoreServiceNoCache(MailArchiverDbContext ctx) =>
+        new(ctx,
+            NullLogger<EmailCoreService>.Instance,
+            new DateTimeHelper(Options.Create(new TimeZoneOptions { DisplayTimeZoneId = "Europe/Berlin" })),
+            Options.Create(new BatchOperationOptions()),
+            Options.Create(new Models.DashboardOptions { CacheSeconds = 0 }),
+            memoryCache: null);
+
     public static BandwidthService CreateBandwidthService(MailArchiverDbContext ctx, BandwidthTrackingOptions? options = null) =>
         new(ctx,
             NullLogger<BandwidthService>.Instance,

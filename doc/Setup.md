@@ -89,6 +89,9 @@ services:
       - View__DefaultToPlainText=true
       - View__BlockExternalResources=false
 
+      # Dashboard Settings (statistics cache)
+      - Dashboard__CacheSeconds=60
+
       # Npgsql Settings
       - Npgsql__CommandTimeout=900
 
@@ -320,6 +323,9 @@ Both folder settings ship empty on purpose: rewriting or dropping folders withou
     - Inline attachments referenced via cid: URIs
     - Inline CSS styles and style tags
   - This setting works independently from `DefaultToPlainText` and provides an additional layer of privacy protection when viewing HTML emails.
+
+### 📊 Dashboard Settings
+- `Dashboard__CacheSeconds`: How long computed dashboard statistics (totals, per-account counts, monthly histogram, top senders, recent emails, database size) are kept in the server's in-memory cache. Default is `60` seconds. Set to `0` to disable caching and always recompute the statistics. Higher values reduce database load in large environments at the cost of more stale numbers. Sync status badges and storage values are always fetched live and are not affected by this cache.
 
 ### 🗃️ Npgsql Settings
 - `Npgsql__CommandTimeout`: The timeout for database commands in seconds.

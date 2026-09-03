@@ -5,6 +5,7 @@ using MailArchiver.Services.Shared;
 using MailArchiver.Utilities;
 using MailArchiver.ViewModels;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 using MimeKit;
 using System.Globalization;
@@ -23,17 +24,23 @@ namespace MailArchiver.Services.Core
         private readonly ILogger<EmailCoreService> _logger;
         private readonly DateTimeHelper _dateTimeHelper;
         private readonly BatchOperationOptions _batchOptions;
+        private readonly DashboardOptions _dashboardOptions;
+        private readonly IMemoryCache _memoryCache;
 
         public EmailCoreService(
             MailArchiverDbContext context,
             ILogger<EmailCoreService> logger,
             DateTimeHelper dateTimeHelper,
-            IOptions<BatchOperationOptions> batchOptions)
+            IOptions<BatchOperationOptions> batchOptions,
+            IOptions<DashboardOptions>? dashboardOptions = null,
+            IMemoryCache? memoryCache = null)
         {
             _context = context;
             _logger = logger;
             _dateTimeHelper = dateTimeHelper;
             _batchOptions = batchOptions.Value;
+            _dashboardOptions = dashboardOptions?.Value ?? new DashboardOptions();
+            _memoryCache = memoryCache ?? new MemoryCache(new Microsoft.Extensions.Caching.Memory.MemoryCacheOptions());
         }
 
         #region Search Methods
@@ -957,78 +964,165 @@ namespace MailArchiver.Services.Core
 
         public async Task<DashboardViewModel> GetDashboardStatisticsAsync()
         {
-            var model = new DashboardViewModel();
-
-            model.TotalEmails = await _context.ArchivedEmails.CountAsync();
-            model.TotalAccounts = await _context.MailAccounts.CountAsync();
-            model.TotalAttachments = await _context.EmailAttachments.CountAsync();
-
-            var totalDatabaseSizeBytes = await GetDatabaseSizeAsync();
-            model.TotalStorageUsed = FormatFileSize(totalDatabaseSizeBytes);
-
-            model.EmailsPerAccount = await _context.MailAccounts
-                .Select(a => new AccountStatistics
+            return await GetOrCreateCachedStatisticsAsync("admin", queryable =>
+                new DashboardViewModel
                 {
-                    AccountId = a.Id,
-                    AccountName = a.Name,
-                    EmailAddress = a.EmailAddress,
-                    EmailCount = a.ArchivedEmails.Count,
-                    LastSyncTime = a.LastSync,
-                    IsEnabled = a.IsEnabled,
-                    Provider = a.Provider
-                })
-                .ToListAsync();
+                    TotalEmails = queryable.ArchivedEmails.Count(),
+                    TotalAccounts = queryable.MailAccounts.Count(),
+                    TotalAttachments = queryable.EmailAttachments.Count(),
+                    EmailsPerAccount = queryable.MailAccounts
+                        .Select(a => new AccountStatistics
+                        {
+                            AccountId = a.Id,
+                            AccountName = a.Name,
+                            EmailAddress = a.EmailAddress,
+                            EmailCount = a.ArchivedEmails.Count,
+                            LastSyncTime = a.LastSync,
+                            IsEnabled = a.IsEnabled,
+                            Provider = a.Provider
+                        })
+                        .ToList(),
+                    EmailsByMonth = BuildEmailsByMonth(queryable.ArchivedEmails),
+                    TopSenders = queryable.ArchivedEmails
+                        .Where(e => !e.IsOutgoing)
+                        .GroupBy(e => e.From)
+                        .Select(g => new EmailCountByAddress
+                        {
+                            EmailAddress = g.Key,
+                            Count = g.Count()
+                        })
+                        .OrderByDescending(e => e.Count)
+                        .Take(10)
+                        .ToList(),
+                    RecentEmails = queryable.ArchivedEmails
+                        .OrderByDescending(e => e.SentDate)
+                        .Select(e => new RecentEmailDto
+                        {
+                            Id = e.Id,
+                            Subject = e.Subject,
+                            From = e.From,
+                            SentDate = e.SentDate,
+                            IsOutgoing = e.IsOutgoing,
+                            MailAccountName = e.MailAccount.Name
+                        })
+                        .Take(10)
+                        .ToList()
+                });
+        }
 
+        /// <summary>
+        /// Computes or fetches cached dashboard statistics. The factory receives the
+        /// DbContext so it can build queries; values are enumerated synchronously on
+        /// a background thread (EF does not allow parallel async evaluation inside a
+        /// single context). The result is cached for <see cref="DashboardOptions.CacheSeconds"/>.
+        /// Dynamic per-request decorations (storage, sync flags, active jobs) are applied
+        /// by the caller and are NOT cached.
+        /// </summary>
+        internal async Task<DashboardViewModel> GetOrCreateCachedStatisticsAsync(
+            string cacheKeySuffix,
+            Func<MailArchiverDbContext, DashboardViewModel> statisticsFactory)
+        {
+            var cacheSeconds = _dashboardOptions.CacheSeconds;
+            var cacheKey = $"dashboard-stats-{cacheKeySuffix}";
+
+            if (cacheSeconds > 0
+                && _memoryCache.TryGetValue(cacheKey, out DashboardViewModel? cached)
+                && cached != null)
+                return CloneStatistics(cached);
+
+            var model = await Task.Run(() => statisticsFactory(_context));
+
+            try
+            {
+                var totalDatabaseSizeBytes = await GetDatabaseSizeAsync();
+                model.TotalStorageUsed = FormatFileSize(totalDatabaseSizeBytes);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting database size: {Message}", ex.Message);
+                model.TotalStorageUsed = string.Empty;
+            }
+
+            if (cacheSeconds > 0)
+                _memoryCache.Set(cacheKey, model, TimeSpan.FromSeconds(cacheSeconds));
+
+            return CloneStatistics(model);
+        }
+
+        /// <summary>
+        /// Deep-copies the cacheable statistics so per-request mutations (StorageUsed,
+        /// IsSyncing, IsSyncPending) never leak into the shared cache entry.
+        /// </summary>
+        private static DashboardViewModel CloneStatistics(DashboardViewModel source)
+        {
+            return new DashboardViewModel
+            {
+                TotalEmails = source.TotalEmails,
+                TotalAccounts = source.TotalAccounts,
+                TotalAttachments = source.TotalAttachments,
+                TotalStorageUsed = source.TotalStorageUsed,
+                EmailsPerAccount = source.EmailsPerAccount
+                    .Select(a => new AccountStatistics
+                    {
+                        AccountId = a.AccountId,
+                        AccountName = a.AccountName,
+                        EmailAddress = a.EmailAddress,
+                        EmailCount = a.EmailCount,
+                        LastSyncTime = a.LastSyncTime,
+                        IsEnabled = a.IsEnabled,
+                        Provider = a.Provider
+                    })
+                    .ToList(),
+                EmailsByMonth = source.EmailsByMonth
+                    .Select(m => new EmailCountByPeriod { Period = m.Period, Count = m.Count })
+                    .ToList(),
+                TopSenders = source.TopSenders
+                    .Select(s => new EmailCountByAddress { EmailAddress = s.EmailAddress, Count = s.Count })
+                    .ToList(),
+                RecentEmails = source.RecentEmails
+                    .Select(e => new RecentEmailDto
+                    {
+                        Id = e.Id,
+                        Subject = e.Subject,
+                        From = e.From,
+                        SentDate = e.SentDate,
+                        IsOutgoing = e.IsOutgoing,
+                        MailAccountName = e.MailAccountName
+                    })
+                    .ToList()
+            };
+        }
+
+        /// <summary>
+        /// Builds the last-12-months histogram with a single grouped query instead of
+        /// twelve sequential COUNT roundtrips. Groups by year/month so it translates
+        /// to both PostgreSQL and the query providers used by tests.
+        /// </summary>
+        internal static List<EmailCountByPeriod> BuildEmailsByMonth(IQueryable<ArchivedEmail> emails)
+        {
             var now = DateTime.UtcNow;
             var startDate = now.AddMonths(-11).Date;
             startDate = new DateTime(startDate.Year, startDate.Month, 1);
-            var months = new List<EmailCountByPeriod>();
+            var nextMonth = startDate.AddMonths(12);
+
+            var counts = emails
+                .Where(e => e.SentDate >= startDate && e.SentDate < nextMonth)
+                .GroupBy(e => new { e.SentDate.Year, e.SentDate.Month })
+                .Select(g => new { g.Key.Year, g.Key.Month, Count = g.Count() })
+                .ToDictionary(k => (k.Year, k.Month), k => k.Count);
+
+            var months = new List<EmailCountByPeriod>(12);
             for (int i = 0; i < 12; i++)
             {
                 var currentMonth = startDate.AddMonths(i);
-                var nextMonth = currentMonth.AddMonths(1);
-
-                int count;
-                if (i == 11)
-                {
-                    count = await _context.ArchivedEmails
-                        .Where(e => e.SentDate >= currentMonth && e.SentDate <= now)
-                        .CountAsync();
-                }
-                else
-                {
-                    count = await _context.ArchivedEmails
-                        .Where(e => e.SentDate >= currentMonth && e.SentDate < nextMonth)
-                        .CountAsync();
-                }
-
+                counts.TryGetValue((currentMonth.Year, currentMonth.Month), out var count);
                 months.Add(new EmailCountByPeriod
                 {
                     Period = $"{CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(currentMonth.Month)} {currentMonth.Year}",
                     Count = count
                 });
             }
-            model.EmailsByMonth = months;
-
-            model.TopSenders = await _context.ArchivedEmails
-                .Where(e => !e.IsOutgoing)
-                .GroupBy(e => e.From)
-                .Select(g => new EmailCountByAddress
-                {
-                    EmailAddress = g.Key,
-                    Count = g.Count()
-                })
-                .OrderByDescending(e => e.Count)
-                .Take(10)
-                .ToListAsync();
-
-            model.RecentEmails = await _context.ArchivedEmails
-                .Include(e => e.MailAccount)
-                .OrderByDescending(e => e.SentDate)
-                .Take(10)
-                .ToListAsync();
-
-            return model;
+            return months;
         }
 
         private async Task<long> GetDatabaseSizeAsync()

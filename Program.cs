@@ -520,6 +520,11 @@ builder.Services.AddScoped<MailArchiver.Services.Providers.ImapEmailService>();
 builder.Services.AddScoped<MailArchiver.Services.Providers.ImportEmailService>();
 builder.Services.AddScoped<MailArchiver.Services.Factories.ProviderEmailServiceFactory>();
 
+// In-memory cache for dashboard statistics (TTL via Dashboard:CacheSeconds)
+builder.Services.AddMemoryCache();
+builder.Services.Configure<DashboardOptions>(
+    builder.Configuration.GetSection(DashboardOptions.SectionName));
+
 // Add Localization
 builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
 // Configure Form Options for large file uploads

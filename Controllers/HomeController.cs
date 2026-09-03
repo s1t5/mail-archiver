@@ -1,12 +1,9 @@
-using MailArchiver.Data;
 using MailArchiver.Models;
 using MailArchiver.Models.ViewModels;
 using MailArchiver.Services;
 using MailArchiver.Services.Shared;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using System.Diagnostics;
-using System.Globalization;
 
 namespace MailArchiver.Controllers
 {
@@ -14,9 +11,6 @@ namespace MailArchiver.Controllers
     {
         private readonly MailArchiver.Services.Core.EmailCoreService _emailCoreService;
         private readonly IUserService _userService;
-        private readonly MailArchiverDbContext _context;
-        private readonly ILogger<HomeController> _logger;
-        private readonly IBatchRestoreService? _batchRestoreService;
         private readonly MailArchiver.Services.IAuthenticationService _authenticationService;
         private readonly IVersionUpdateService _versionUpdateService;
         private readonly IAccountStorageService _accountStorageService;
@@ -25,24 +19,22 @@ namespace MailArchiver.Controllers
         public HomeController(
             MailArchiver.Services.Core.EmailCoreService emailCoreService, 
             IUserService userService,
-            MailArchiverDbContext context,
             MailArchiver.Services.IAuthenticationService authenticationService,
             IVersionUpdateService versionUpdateService,
             IAccountStorageService accountStorageService,
             ISyncJobService syncJobService,
-            ILogger<HomeController> logger, 
             IBatchRestoreService? batchRestoreService = null)
         {
             _emailCoreService = emailCoreService;
             _userService = userService;
-            _context = context;
             _authenticationService = authenticationService;
             _versionUpdateService = versionUpdateService;
             _accountStorageService = accountStorageService;
             _syncJobService = syncJobService;
-            _logger = logger;
             _batchRestoreService = batchRestoreService;
         }
+
+        private readonly IBatchRestoreService? _batchRestoreService;
 
         public async Task<IActionResult> Index()
         {
@@ -161,130 +153,66 @@ namespace MailArchiver.Controllers
 
         private async Task<DashboardViewModel> CreateCustomDashboardStatisticsAsync(List<int> accountIds)
         {
-            var model = new DashboardViewModel();
-
-            model.TotalEmails = await _context.ArchivedEmails
-                .CountAsync(e => accountIds.Contains(e.MailAccountId));
-            model.TotalAccounts = accountIds.Count;
-            model.TotalAttachments = await _context.EmailAttachments
-                .Where(a => _context.ArchivedEmails
-                    .Where(e => accountIds.Contains(e.MailAccountId))
-                    .Select(e => e.Id)
-                    .Contains(a.ArchivedEmailId))
-                .CountAsync();
-
-            var totalDatabaseSizeBytes = await GetDatabaseSizeAsync();
-            model.TotalStorageUsed = FormatFileSize(totalDatabaseSizeBytes);
-
-            model.EmailsPerAccount = await _context.MailAccounts
-                .Where(a => accountIds.Contains(a.Id))
-                .Select(a => new AccountStatistics
-                {
-                    AccountId = a.Id,
-                    AccountName = a.Name,
-                    EmailAddress = a.EmailAddress,
-                    EmailCount = a.ArchivedEmails.Count(e => accountIds.Contains(e.MailAccountId)),
-                    LastSyncTime = a.LastSync,
-                    IsEnabled = a.IsEnabled,
-                    Provider = a.Provider
-                })
-                .ToListAsync();
-
-            var now = DateTime.UtcNow;
-            var startDate = now.AddMonths(-11).Date;
-            startDate = new DateTime(startDate.Year, startDate.Month, 1); // First day of the month
-            var months = new List<EmailCountByPeriod>();
-            for (int i = 0; i < 12; i++)
+            // Cache per unique account assignment so repeated dashboard loads by the
+            // same user (or users sharing the same accounts) hit the memory cache.
+            var cacheKeySuffix = "user-" + string.Join(",", accountIds.OrderBy(id => id));
+            return await _emailCoreService.GetOrCreateCachedStatisticsAsync(cacheKeySuffix, ctx =>
             {
-                var currentMonth = startDate.AddMonths(i);
-                var nextMonth = currentMonth.AddMonths(1);
+                var model = new DashboardViewModel();
 
-                int count;
-                if (i == 11) // Current month
-                {
-                    // For the current month, count all emails up to now
-                    count = await _context.ArchivedEmails
-                        .Where(e => accountIds.Contains(e.MailAccountId) && 
-                            e.SentDate >= currentMonth && e.SentDate <= now)
-                        .CountAsync();
-                }
-                else
-                {
-                    // For past months, use the standard range
-                    count = await _context.ArchivedEmails
-                        .Where(e => accountIds.Contains(e.MailAccountId) && 
-                            e.SentDate >= currentMonth && e.SentDate < nextMonth)
-                        .CountAsync();
-                }
+                var accountEmails = ctx.ArchivedEmails
+                    .Where(e => accountIds.Contains(e.MailAccountId));
 
-                months.Add(new EmailCountByPeriod
-                {
-                    Period = $"{CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(currentMonth.Month)} {currentMonth.Year}",
-                    Count = count
-                });
-            }
-            model.EmailsByMonth = months;
+                model.TotalEmails = accountEmails.Count();
+                model.TotalAccounts = accountIds.Count;
+                model.TotalAttachments = ctx.EmailAttachments
+                    .Count(a => accountEmails.Any(e => e.Id == a.ArchivedEmailId));
 
-            model.TopSenders = await _context.ArchivedEmails
-                .Where(e => !e.IsOutgoing && accountIds.Contains(e.MailAccountId))
-                .GroupBy(e => e.From)
-                .Select(g => new EmailCountByAddress
-                {
-                    EmailAddress = g.Key,
-                    Count = g.Count()
-                })
-                .OrderByDescending(e => e.Count)
-                .Take(10)
-                .ToListAsync();
+                model.EmailsPerAccount = ctx.MailAccounts
+                    .Where(a => accountIds.Contains(a.Id))
+                    .Select(a => new AccountStatistics
+                    {
+                        AccountId = a.Id,
+                        AccountName = a.Name,
+                        EmailAddress = a.EmailAddress,
+                        EmailCount = a.ArchivedEmails.Count,
+                        LastSyncTime = a.LastSync,
+                        IsEnabled = a.IsEnabled,
+                        Provider = a.Provider
+                    })
+                    .ToList();
 
-            model.RecentEmails = await _context.ArchivedEmails
-                .Include(e => e.MailAccount)
-                .Where(e => accountIds.Contains(e.MailAccountId))
-                .OrderByDescending(e => e.SentDate)
-                .Take(10)
-                .ToListAsync();
+                model.EmailsByMonth = MailArchiver.Services.Core.EmailCoreService
+                    .BuildEmailsByMonth(accountEmails);
 
-            return model;
-        }
-        
-        /// <summary>
-        /// Gets the total size of the PostgreSQL database in bytes
-        /// </summary>
-        /// <returns>Database size in bytes</returns>
-        private async Task<long> GetDatabaseSizeAsync()
-        {
-            try
-            {
-                using var connection = new Npgsql.NpgsqlConnection(_context.Database.GetConnectionString());
-                await connection.OpenAsync();
+                model.TopSenders = accountEmails
+                    .Where(e => !e.IsOutgoing)
+                    .GroupBy(e => e.From)
+                    .Select(g => new EmailCountByAddress
+                    {
+                        EmailAddress = g.Key,
+                        Count = g.Count()
+                    })
+                    .OrderByDescending(e => e.Count)
+                    .Take(10)
+                    .ToList();
 
-                // Query to get the total size of the current database
-                var sql = "SELECT pg_database_size(current_database())";
-                
-                using var command = new Npgsql.NpgsqlCommand(sql, connection);
-                var result = await command.ExecuteScalarAsync();
-                
-                return Convert.ToInt64(result);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error getting database size: {Message}", ex.Message);
-                // Fallback to attachment size if database size query fails
-                return await _context.EmailAttachments.SumAsync(a => (long)a.Size);
-            }
-        }
+                model.RecentEmails = accountEmails
+                    .OrderByDescending(e => e.SentDate)
+                    .Select(e => new RecentEmailDto
+                    {
+                        Id = e.Id,
+                        Subject = e.Subject,
+                        From = e.From,
+                        SentDate = e.SentDate,
+                        IsOutgoing = e.IsOutgoing,
+                        MailAccountName = e.MailAccount.Name
+                    })
+                    .Take(10)
+                    .ToList();
 
-        private string FormatFileSize(long bytes)
-        {
-            string[] suffixes = { "B", "KB", "MB", "GB", "TB" };
-            int counter = 0;
-            decimal number = bytes;
-            while (Math.Round(number / 1024) >= 1)
-            {
-                number /= 1024;
-                counter++;
-            }
-            return $"{number:n1} {suffixes[counter]}";
+                return model;
+            });
         }
     }
 }
