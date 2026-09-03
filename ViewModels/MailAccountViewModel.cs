@@ -97,6 +97,9 @@ namespace MailArchiver.Models.ViewModels
         // Speicherverbrauch des Accounts (formatiert aus AccountStorageCache)
         public string? StorageUsed { get; set; }
 
+        // Anzahl archivierter E-Mails des Accounts (nur für die Anzeige in der Übersicht)
+        public int EmailCount { get; set; }
+
         // Flag to determine if it's a new or existing account
         public bool IsNewAccount => Id == 0;
     }

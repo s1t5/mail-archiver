@@ -182,7 +182,8 @@ namespace MailArchiver.Controllers
                     IsEnabled = a.IsEnabled,
                     LastSync = a.LastSync,
                     DeleteAfterDays = a.DeleteAfterDays,
-                    Provider = a.Provider
+                    Provider = a.Provider,
+                    EmailCount = a.ArchivedEmails.Count
                 })
                 .ToListAsync();
 

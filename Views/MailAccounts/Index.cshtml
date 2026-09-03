@@ -67,6 +67,7 @@
                         <tr>
                             <th>@Localizer["Name"]</th>
                             <th>@Localizer["EmailAddress"]</th>
+                            <th>@Localizer["Count"]</th>
                             <th>@Localizer["Provider"]</th>
                             <th>@Localizer["Sync"]</th>
                             <th>@Localizer["LastSync"]</th>
@@ -81,6 +82,7 @@
                             <tr class="account-row" data-search="@($"{item.Name} {item.EmailAddress} {item.Username}")">
                                 <td>@item.Name</td>
                                 <td>@item.EmailAddress</td>
+                                <td>@item.EmailCount.ToString("N0")</td>
                                 <td>
                                     @switch (item.Provider)
                                     {
@@ -358,6 +360,10 @@
                                 <span class="badge bg-secondary">Import Only</span>
                                 break;
                         }
+                    </p>
+                    <p class="card-text small mb-3">
+                        <strong>@Localizer["Emails"]:</strong>
+                        @item.EmailCount.ToString("N0")
                     </p>
                     <p class="card-text small mb-3">
                         <strong>@Localizer["LastSync"]:</strong>
