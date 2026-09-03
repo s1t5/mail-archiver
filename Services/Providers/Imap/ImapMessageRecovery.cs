@@ -39,6 +39,14 @@ namespace MailArchiver.Services.Providers.Imap
         /// <summary>
         /// Attempts to retrieve and parse the message behind <paramref name="uid"/> after the
         /// normal fetch reported it as missing.
+        ///
+        /// Held in reserve, deliberately not implemented: should a server ever answer this with
+        /// nothing at all, the next thing to try is fetching <c>BODY.PEEK[HEADER]</c> and
+        /// <c>BODY.PEEK[TEXT]</c> separately and assembling the two into one MIME document. That
+        /// costs a second round trip and introduces a "header without text" state to define, which
+        /// is why it is not the first choice — but it is a different request, where this one is the
+        /// same request read differently. Swapping it in means replacing this method only; the
+        /// parsing below is independent of how the bytes were obtained.
         /// </summary>
         /// <returns>The parsed message, or null when nothing usable came back.</returns>
         public static async Task<MimeMessage?> TryRecoverAsync(
@@ -88,10 +96,24 @@ namespace MailArchiver.Services.Providers.Imap
                 return null;
             }
 
-            if (!received || buffer.Length == 0)
+            if (!received)
             {
-                logger.LogDebug(
-                    "IMAP fallback returned no data for UID {Uid} in folder {FolderName}",
+                // The callback firing is the only signal that the server returned anything for this
+                // UID. A fetch that completes without it means the message was not delivered, and
+                // that must never pass quietly: the caller rethrows the original exception, so the
+                // message stays a failed email and an unretrieved UID cannot look archived.
+                logger.LogWarning(
+                    "IMAP fallback fetch for UID {Uid} in folder {FolderName} completed without the server " +
+                    "returning the message; it stays a failed email",
+                    uid, folder.FullName);
+                return null;
+            }
+
+            if (buffer.Length == 0)
+            {
+                logger.LogWarning(
+                    "IMAP fallback returned an empty stream for UID {Uid} in folder {FolderName}; " +
+                    "it stays a failed email",
                     uid, folder.FullName);
                 return null;
             }

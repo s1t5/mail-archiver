@@ -165,6 +165,14 @@ it preserves is the best representation the server is able to expose, plus the f
 placeholder is what arrived. Each one is logged at `Warning` level with account, folder, UID and
 subject.
 
+**When the fallback comes back empty**, the message stays a failed email exactly as before, and the
+attempt is logged at `Warning` rather than passing quietly — an unretrieved message must never be
+able to look archived. Should a server ever behave that way consistently, the documented next step is
+to fetch `BODY.PEEK[HEADER]` and `BODY.PEEK[TEXT]` separately and assemble them into one MIME
+document. That is a genuinely different request, where the current fallback is the same request read
+differently. It is deliberately not implemented: it costs a second round trip per message and adds a
+"header arrived, text did not" state to define, and no server seen so far needs it.
+
 Both counts appear in the account's completion log line:
 
 ```
