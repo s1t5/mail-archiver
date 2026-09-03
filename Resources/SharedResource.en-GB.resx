@@ -722,4 +722,61 @@
   <data name="OffloadJob" xml:space="preserve">
     <value>Offload</value>
   </data>
+
+  <data name="AuditExport" xml:space="preserve">
+    <value>Audit Data Export</value>
+  </data>
+  <data name="AuditExportHistory" xml:space="preserve">
+    <value>Export history</value>
+  </data>
+  <data name="Mailbox" xml:space="preserve">
+    <value>Mailbox</value>
+  </data>
+  <data name="AllMailboxes" xml:space="preserve">
+    <value>All mailboxes</value>
+  </data>
+  <data name="AttachmentMetadata" xml:space="preserve">
+    <value>Attachment metadata</value>
+  </data>
+  <data name="IncludeAttachmentMetadata" xml:space="preserve">
+    <value>Include attachment metadata table</value>
+  </data>
+  <data name="DataSupplierName" xml:space="preserve">
+    <value>Data supplier name</value>
+  </data>
+  <data name="DataSupplierLocation" xml:space="preserve">
+    <value>Data supplier location</value>
+  </data>
+  <data name="NoAuditExportsYet" xml:space="preserve">
+    <value>No exports yet</value>
+  </data>
+  <data name="Period" xml:space="preserve">
+    <value>Period</value>
+  </data>
+
+  <data name="Comment" xml:space="preserve">
+    <value>Comment</value>
+  </data>
+  <data name="AuditExportInvalidPeriod" xml:space="preserve">
+    <value>Invalid period: start and end date are required.</value>
+  </data>
+  <data name="AuditExportRangeTooLong" xml:space="preserve">
+    <value>The period must not exceed {0} years.</value>
+  </data>
+  <data name="AuditExportAccountNotFound" xml:space="preserve">
+    <value>The selected mailbox was not found.</value>
+  </data>
+  <data name="AuditExportFileNotFound" xml:space="preserve">
+    <value>The export file was not found or is no longer available.</value>
+  </data>
+
+  <data name="BackToLogs" xml:space="preserve">
+    <value>Back to logs</value>
+  </data>
+  <data name="ExportSettings" xml:space="preserve">
+    <value>Export settings</value>
+  </data>
+  <data name="CancelExportConfirm" xml:space="preserve">
+    <value>Cancel this export?</value>
+  </data>
 </root>

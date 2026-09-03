@@ -3326,4 +3326,61 @@
   <data name="OffloadJob" xml:space="preserve">
     <value>Overbrengen</value>
   </data>
+
+  <data name="AuditExport" xml:space="preserve">
+    <value>Auditdata-export</value>
+  </data>
+  <data name="AuditExportHistory" xml:space="preserve">
+    <value>Exportgeschiedenis</value>
+  </data>
+  <data name="Mailbox" xml:space="preserve">
+    <value>Postvak</value>
+  </data>
+  <data name="AllMailboxes" xml:space="preserve">
+    <value>Alle postvakken</value>
+  </data>
+  <data name="AttachmentMetadata" xml:space="preserve">
+    <value>Metagegevens van bijlagen</value>
+  </data>
+  <data name="IncludeAttachmentMetadata" xml:space="preserve">
+    <value>Tabel met metagegevens van bijlagen opnemen</value>
+  </data>
+  <data name="DataSupplierName" xml:space="preserve">
+    <value>Naam van de gegevensleverancier</value>
+  </data>
+  <data name="DataSupplierLocation" xml:space="preserve">
+    <value>Locatie van de gegevensleverancier</value>
+  </data>
+  <data name="NoAuditExportsYet" xml:space="preserve">
+    <value>Nog geen exports</value>
+  </data>
+  <data name="Period" xml:space="preserve">
+    <value>Periode</value>
+  </data>
+
+  <data name="Comment" xml:space="preserve">
+    <value>Opmerking</value>
+  </data>
+  <data name="AuditExportInvalidPeriod" xml:space="preserve">
+    <value>Ongeldige periode: start- en einddatum zijn vereist.</value>
+  </data>
+  <data name="AuditExportRangeTooLong" xml:space="preserve">
+    <value>De periode mag niet langer zijn dan {0} jaar.</value>
+  </data>
+  <data name="AuditExportAccountNotFound" xml:space="preserve">
+    <value>Het geselecteerde postvak is niet gevonden.</value>
+  </data>
+  <data name="AuditExportFileNotFound" xml:space="preserve">
+    <value>Het exportbestand is niet gevonden of is niet langer beschikbaar.</value>
+  </data>
+
+  <data name="BackToLogs" xml:space="preserve">
+    <value>Terug naar logboek</value>
+  </data>
+  <data name="ExportSettings" xml:space="preserve">
+    <value>Exportinstellingen</value>
+  </data>
+  <data name="CancelExportConfirm" xml:space="preserve">
+    <value>Deze export annuleren?</value>
+  </data>
 </root>

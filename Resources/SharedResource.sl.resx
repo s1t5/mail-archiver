@@ -3326,4 +3326,61 @@
   <data name="OffloadJob" xml:space="preserve">
     <value>Prenos</value>
   </data>
+
+  <data name="AuditExport" xml:space="preserve">
+    <value>Izvoz podatkov za revizijo</value>
+  </data>
+  <data name="AuditExportHistory" xml:space="preserve">
+    <value>Zgodovina izvozov</value>
+  </data>
+  <data name="Mailbox" xml:space="preserve">
+    <value>Poštni predal</value>
+  </data>
+  <data name="AllMailboxes" xml:space="preserve">
+    <value>Vsi poštni predali</value>
+  </data>
+  <data name="AttachmentMetadata" xml:space="preserve">
+    <value>Metapodatki prilog</value>
+  </data>
+  <data name="IncludeAttachmentMetadata" xml:space="preserve">
+    <value>Vključi tabelo metapodatkov prilog</value>
+  </data>
+  <data name="DataSupplierName" xml:space="preserve">
+    <value>Ime ponudnika podatkov</value>
+  </data>
+  <data name="DataSupplierLocation" xml:space="preserve">
+    <value>Kraj ponudnika podatkov</value>
+  </data>
+  <data name="NoAuditExportsYet" xml:space="preserve">
+    <value>Še ni izvozov</value>
+  </data>
+  <data name="Period" xml:space="preserve">
+    <value>Obdobje</value>
+  </data>
+
+  <data name="Comment" xml:space="preserve">
+    <value>Komentar</value>
+  </data>
+  <data name="AuditExportInvalidPeriod" xml:space="preserve">
+    <value>Neveljavno obdobje: zahtevana sta začetni in končni datum.</value>
+  </data>
+  <data name="AuditExportRangeTooLong" xml:space="preserve">
+    <value>Obdobje ne sme presegati {0} let.</value>
+  </data>
+  <data name="AuditExportAccountNotFound" xml:space="preserve">
+    <value>Izbranega poštnega predala ni bilo mogoče najti.</value>
+  </data>
+  <data name="AuditExportFileNotFound" xml:space="preserve">
+    <value>Izvozne datoteke ni bilo mogoče najti ali ni več na voljo.</value>
+  </data>
+
+  <data name="BackToLogs" xml:space="preserve">
+    <value>Nazaj na dnevnike</value>
+  </data>
+  <data name="ExportSettings" xml:space="preserve">
+    <value>Nastavitve izvoza</value>
+  </data>
+  <data name="CancelExportConfirm" xml:space="preserve">
+    <value>Prekliči ta izvoz?</value>
+  </data>
 </root>

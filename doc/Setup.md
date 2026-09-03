@@ -343,9 +343,20 @@ Both folder settings ship empty on purpose: rewriting or dropping folders withou
   - See [CLI Local Import Guide](CLI-Local-Import.md) for detailed usage instructions.
 
 ### 📄 CSV Import Settings
-- `CsvImport__MaxRows`: Maximum number of CSV rows (mailboxes) processed in a single bulk import. Default is `5000`. Increase this value for very large deployments; lower it to limit the impact of a single import run on database load.
+- `CsvImport__MaxRows`: Maximum number of CSV rows (mailboxes) processed in a single bulk import. Default is `5000`. Increase this value for large deployments; lower it to limit the impact of a single import run on database load.
 - `CsvImport__MaxFileSizeBytes`: Maximum allowed size (in bytes) of the uploaded CSV file. Default is `10000000` (10 MB). Adjust this value to match your upload limits if needed.
 - See [Account Import Guide](Account%20Import.md) for detailed usage instructions on bulk IMAP account import via CSV.
+
+### 📤 Audit Export Settings
+Settings for the audit data export page (admin only, reachable from the Logs page). The export generates a ZIP package with tabular mass data (INDEX.XML + CSV tables + DTD) from the existing archive for external audit tools. See the [Audit Data Export Guide](AuditExport.md) for usage details.
+- `AuditExport__DataSupplierName`: Default value for the "Data supplier name" form field that identifies your organization in the exported index file. Default: empty.
+- `AuditExport__DataSupplierLocation`: Default value for the "Data supplier location" form field (e.g. company seat). Default: empty.
+- `AuditExport__Comment`: Default value for the "Comment" form field, included as free text in the exported index file. Default: empty.
+- `AuditExport__OutputDirectory`: Directory where the generated ZIP files are stored. Relative paths are resolved against the app content root. Default: `exports/audit`.
+- `AuditExport__RetentionDays`: Number of days after which completed export files are deleted by the daily cleanup. Default: `30`.
+- `AuditExport__MaxRangeYears`: Maximum allowed span between the export period's start and end date. Default: `10`.
+- The form fields are pre-filled from these defaults but can be edited per export.
+- Every export writes a start entry and a result entry to the access log (type "Audit Data Export"), so the history is revision-safe without any DB schema change.
 
 ### 🔒 Deletion Policy Settings
 - `DeletionPolicy__DeletionAllowed`: Controls whether manual deletion of archived emails is allowed (true/false). Default is `true`. When set to `false`:

@@ -3372,4 +3372,61 @@
   <data name="OffloadJob" xml:space="preserve">
     <value>Przenoszenie</value>
   </data>
+
+  <data name="AuditExport" xml:space="preserve">
+    <value>Eksport danych audytowych</value>
+  </data>
+  <data name="AuditExportHistory" xml:space="preserve">
+    <value>Historia eksportów</value>
+  </data>
+  <data name="Mailbox" xml:space="preserve">
+    <value>Skrzynka pocztowa</value>
+  </data>
+  <data name="AllMailboxes" xml:space="preserve">
+    <value>Wszystkie skrzynki pocztowe</value>
+  </data>
+  <data name="AttachmentMetadata" xml:space="preserve">
+    <value>Metadane załączników</value>
+  </data>
+  <data name="IncludeAttachmentMetadata" xml:space="preserve">
+    <value>Dołącz tabelę metadanych załączników</value>
+  </data>
+  <data name="DataSupplierName" xml:space="preserve">
+    <value>Nazwa dostawcy danych</value>
+  </data>
+  <data name="DataSupplierLocation" xml:space="preserve">
+    <value>Lokalizacja dostawcy danych</value>
+  </data>
+  <data name="NoAuditExportsYet" xml:space="preserve">
+    <value>Brak eksportów</value>
+  </data>
+  <data name="Period" xml:space="preserve">
+    <value>Okres</value>
+  </data>
+
+  <data name="Comment" xml:space="preserve">
+    <value>Komentarz</value>
+  </data>
+  <data name="AuditExportInvalidPeriod" xml:space="preserve">
+    <value>Nieprawidłowy okres: wymagana jest data rozpoczęcia i zakończenia.</value>
+  </data>
+  <data name="AuditExportRangeTooLong" xml:space="preserve">
+    <value>Okres nie może przekraczać {0} lat.</value>
+  </data>
+  <data name="AuditExportAccountNotFound" xml:space="preserve">
+    <value>Nie znaleziono wybranej skrzynki pocztowej.</value>
+  </data>
+  <data name="AuditExportFileNotFound" xml:space="preserve">
+    <value>Nie znaleziono pliku eksportu lub plik nie jest już dostępny.</value>
+  </data>
+
+  <data name="BackToLogs" xml:space="preserve">
+    <value>Powrót do logów</value>
+  </data>
+  <data name="ExportSettings" xml:space="preserve">
+    <value>Ustawienia eksportu</value>
+  </data>
+  <data name="CancelExportConfirm" xml:space="preserve">
+    <value>Anulować ten eksport?</value>
+  </data>
 </root>

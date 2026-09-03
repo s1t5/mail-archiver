@@ -3325,4 +3325,61 @@
   <data name="OffloadJob" xml:space="preserve">
     <value>Volcado</value>
   </data>
+
+  <data name="AuditExport" xml:space="preserve">
+    <value>Exportación de datos de auditoría</value>
+  </data>
+  <data name="AuditExportHistory" xml:space="preserve">
+    <value>Historial de exportaciones</value>
+  </data>
+  <data name="Mailbox" xml:space="preserve">
+    <value>Buzón</value>
+  </data>
+  <data name="AllMailboxes" xml:space="preserve">
+    <value>Todos los buzones</value>
+  </data>
+  <data name="AttachmentMetadata" xml:space="preserve">
+    <value>Metadatos de adjuntos</value>
+  </data>
+  <data name="IncludeAttachmentMetadata" xml:space="preserve">
+    <value>Incluir tabla de metadatos de adjuntos</value>
+  </data>
+  <data name="DataSupplierName" xml:space="preserve">
+    <value>Nombre del proveedor de datos</value>
+  </data>
+  <data name="DataSupplierLocation" xml:space="preserve">
+    <value>Ubicación del proveedor de datos</value>
+  </data>
+  <data name="NoAuditExportsYet" xml:space="preserve">
+    <value>Aún no hay exportaciones</value>
+  </data>
+  <data name="Period" xml:space="preserve">
+    <value>Período</value>
+  </data>
+
+  <data name="Comment" xml:space="preserve">
+    <value>Comentario</value>
+  </data>
+  <data name="AuditExportInvalidPeriod" xml:space="preserve">
+    <value>Período no válido: se requieren fecha de inicio y fin.</value>
+  </data>
+  <data name="AuditExportRangeTooLong" xml:space="preserve">
+    <value>El período no debe superar los {0} años.</value>
+  </data>
+  <data name="AuditExportAccountNotFound" xml:space="preserve">
+    <value>No se encontró el buzón seleccionado.</value>
+  </data>
+  <data name="AuditExportFileNotFound" xml:space="preserve">
+    <value>El archivo de exportación no se encontró o ya no está disponible.</value>
+  </data>
+
+  <data name="BackToLogs" xml:space="preserve">
+    <value>Volver a los registros</value>
+  </data>
+  <data name="ExportSettings" xml:space="preserve">
+    <value>Ajustes de exportación</value>
+  </data>
+  <data name="CancelExportConfirm" xml:space="preserve">
+    <value>¿Cancelar esta exportación?</value>
+  </data>
 </root>

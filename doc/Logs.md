@@ -17,6 +17,7 @@ The application logs various types of user activities, including:
 5. **Email Restoration** - Logging when users restore archived emails
 6. **Account Management** - Logging of account-related actions
 7. **Deletion Operations** - Logging of deletion actions
+8. **Audit Data Export** - Logging of audit data export runs (start and result, see [Audit Data Export](AuditExport.md))
 
 ## 📝 Action Types and Descriptions
 
@@ -78,3 +79,9 @@ For mobile devices, logs are displayed in card format.
 
 - **Non-admin users**: Can only view their own logs
 - **Admin users**: Can view logs for all users and filter by user
+
+## 📤 Audit Data Export
+
+Admins can open the dedicated [Audit Data Export](AuditExport.md) page directly from the Logs page. It creates tabular mass data packages (INDEX.XML + CSV) from the archive for external audit tools. Every export run writes two access log entries of the type **Audit Data Export** (start and result), which are listed and filterable on the Logs page like all other entries.
+
+For details see the [Audit Data Export guide](AuditExport.md).

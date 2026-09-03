@@ -385,6 +385,79 @@ namespace MailArchiver.Migrations
                     b.ToTable("ApiKeys", "mail_archiver");
                 });
 
+            modelBuilder.Entity("MailArchiver.Models.AuditExportJob", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("DataSupplierComment")
+                        .HasColumnType("text");
+
+                    b.Property<string>("DataSupplierLocation")
+                        .HasColumnType("text");
+
+                    b.Property<string>("DataSupplierName")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("Completed")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<DateTime>("Created")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<string>("ErrorMessage")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("FromDate")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<bool>("IncludeAttachments")
+                        .HasColumnType("boolean");
+
+                    b.Property<int?>("MailAccountId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("MailAccountName")
+                        .HasColumnType("text");
+
+                    b.Property<long>("OutputFileSize")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("OutputFilePath")
+                        .HasColumnType("text");
+
+                    b.Property<int>("ProcessedEmails")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("Started")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<DateTime>("ToDate")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<int>("TotalEmails")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Username")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Created")
+                        .HasDatabaseName("IX_AuditExportJobs_Created");
+
+                    b.HasIndex("Status")
+                        .HasDatabaseName("IX_AuditExportJobs_Status");
+
+                    b.ToTable("AuditExportJobs", "mail_archiver");
+                });
+
             modelBuilder.Entity("MailArchiver.Models.User", b =>
                 {
                     b.Property<int>("Id")

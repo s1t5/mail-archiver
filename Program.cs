@@ -461,6 +461,14 @@ builder.Services.AddSingleton<ExportService>();
 builder.Services.AddSingleton<IExportService>(provider => provider.GetRequiredService<ExportService>());
 builder.Services.AddHostedService<ExportService>(provider => provider.GetRequiredService<ExportService>());
 
+// Audit data export (tabular mass data packages for external audit tools)
+builder.Services.Configure<AuditExportOptions>(builder.Configuration.GetSection(AuditExportOptions.SectionName));
+
+// Register AuditExportService as singleton and hosted service - MUST be the same instance
+builder.Services.AddSingleton<AuditExportService>();
+builder.Services.AddSingleton<IAuditExportService>(provider => provider.GetRequiredService<AuditExportService>());
+builder.Services.AddHostedService<AuditExportService>(provider => provider.GetRequiredService<AuditExportService>());
+
 // Register SelectedEmailsExportService as singleton and hosted service - MUST be the same instance
 builder.Services.AddSingleton<SelectedEmailsExportService>();
 builder.Services.AddSingleton<ISelectedEmailsExportService>(provider => provider.GetRequiredService<SelectedEmailsExportService>());

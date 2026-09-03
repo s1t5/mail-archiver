@@ -45,6 +45,7 @@ namespace MailArchiver.Models
         SyncCancel,
         DeletionPolicy,
         SyncAcknowledgeFailures,
-        Retention
+        Retention,
+        AuditExport
     }
 }

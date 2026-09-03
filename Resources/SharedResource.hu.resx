@@ -3318,4 +3318,61 @@
   <data name="OffloadJob" xml:space="preserve">
     <value>Átvitel</value>
   </data>
+
+  <data name="AuditExport" xml:space="preserve">
+    <value>Auditadat-export</value>
+  </data>
+  <data name="AuditExportHistory" xml:space="preserve">
+    <value>Export-előzmények</value>
+  </data>
+  <data name="Mailbox" xml:space="preserve">
+    <value>Postaláda</value>
+  </data>
+  <data name="AllMailboxes" xml:space="preserve">
+    <value>Összes postaláda</value>
+  </data>
+  <data name="AttachmentMetadata" xml:space="preserve">
+    <value>Mellékletek metaadatai</value>
+  </data>
+  <data name="IncludeAttachmentMetadata" xml:space="preserve">
+    <value>Melléklet-metaadatok táblázatának belefoglalása</value>
+  </data>
+  <data name="DataSupplierName" xml:space="preserve">
+    <value>Adatszolgáltató neve</value>
+  </data>
+  <data name="DataSupplierLocation" xml:space="preserve">
+    <value>Adatszolgáltató helye</value>
+  </data>
+  <data name="NoAuditExportsYet" xml:space="preserve">
+    <value>Még nincs export</value>
+  </data>
+  <data name="Period" xml:space="preserve">
+    <value>Időszak</value>
+  </data>
+
+  <data name="Comment" xml:space="preserve">
+    <value>Megjegyzés</value>
+  </data>
+  <data name="AuditExportInvalidPeriod" xml:space="preserve">
+    <value>Érvénytelen időszak: a kezdő- és végdátum megadása kötelező.</value>
+  </data>
+  <data name="AuditExportRangeTooLong" xml:space="preserve">
+    <value>Az időszak nem haladhatja meg a(z) {0} évet.</value>
+  </data>
+  <data name="AuditExportAccountNotFound" xml:space="preserve">
+    <value>A kiválasztott postaláda nem található.</value>
+  </data>
+  <data name="AuditExportFileNotFound" xml:space="preserve">
+    <value>Az exportfájl nem található, vagy már nem érhető el.</value>
+  </data>
+
+  <data name="BackToLogs" xml:space="preserve">
+    <value>Vissza a naplókhoz</value>
+  </data>
+  <data name="ExportSettings" xml:space="preserve">
+    <value>Exportbeállítások</value>
+  </data>
+  <data name="CancelExportConfirm" xml:space="preserve">
+    <value>Biztosan megszakítja ezt az exportot?</value>
+  </data>
 </root>

@@ -17,6 +17,7 @@ namespace MailArchiver.Data
         public DbSet<AccountStorageCache> AccountStorageCaches { get; set; }
         public DbSet<AccountStorageBackfillState> AccountStorageBackfillStates { get; set; }
         public DbSet<ApiKey> ApiKeys { get; set; }
+        public DbSet<AuditExportJob> AuditExportJobs { get; set; }
 
         public MailArchiverDbContext(DbContextOptions<MailArchiverDbContext> options)
             : base(options)
@@ -441,6 +442,58 @@ namespace MailArchiver.Data
                 .WithMany(u => u.ApiKeys)
                 .HasForeignKey(k => k.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            // AuditExportJob entity configuration (revision-safe export history)
+            modelBuilder.Entity<AuditExportJob>()
+                .Property(j => j.Id)
+                .HasColumnType("uuid");
+
+            modelBuilder.Entity<AuditExportJob>()
+                .Property(j => j.Username)
+                .HasColumnType("text");
+
+            modelBuilder.Entity<AuditExportJob>()
+                .Property(j => j.Status)
+                .HasConversion<string>()
+                .HasMaxLength(20);
+
+            modelBuilder.Entity<AuditExportJob>()
+                .Property(j => j.MailAccountName)
+                .HasColumnType("text")
+                .IsRequired(false);
+
+            modelBuilder.Entity<AuditExportJob>()
+                .Property(j => j.DataSupplierName)
+                .HasColumnType("text")
+                .IsRequired(false);
+
+            modelBuilder.Entity<AuditExportJob>()
+                .Property(j => j.DataSupplierLocation)
+                .HasColumnType("text")
+                .IsRequired(false);
+
+            modelBuilder.Entity<AuditExportJob>()
+                .Property(j => j.DataSupplierComment)
+                .HasColumnType("text")
+                .IsRequired(false);
+
+            modelBuilder.Entity<AuditExportJob>()
+                .Property(j => j.OutputFilePath)
+                .HasColumnType("text")
+                .IsRequired(false);
+
+            modelBuilder.Entity<AuditExportJob>()
+                .Property(j => j.ErrorMessage)
+                .HasColumnType("text")
+                .IsRequired(false);
+
+            modelBuilder.Entity<AuditExportJob>()
+                .HasIndex(j => j.Created)
+                .HasDatabaseName("IX_AuditExportJobs_Created");
+
+            modelBuilder.Entity<AuditExportJob>()
+                .HasIndex(j => j.Status)
+                .HasDatabaseName("IX_AuditExportJobs_Status");
         }
     }
 }

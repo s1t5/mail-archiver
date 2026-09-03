@@ -15,6 +15,12 @@
 <div class="container-fluid">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h1 class="h3 mb-0">@Localizer["AccessLog"]</h1>
+        @if (isAdmin)
+        {
+            <a asp-controller="Logs" asp-action="AuditExport" class="btn btn-outline-primary btn-sm">
+                <i class="bi bi-box-arrow-up me-1"></i>@Localizer["AuditExport"]
+            </a>
+        }
     </div>
 
     <div class="card mb-3">
@@ -73,6 +79,8 @@
         </div>
     </div>
 
+
+
     <div class="card d-none d-lg-block">
         <div class="card-body">
             <div class="table-responsive">
@@ -110,6 +118,7 @@
                                             AccessLogType.Retention => "bg-warning text-dark",
                                             AccessLogType.SyncCancel => "bg-warning",
                                             AccessLogType.DeletionPolicy => "bg-info bg-opacity-50 text-dark",
+                                            AccessLogType.AuditExport => "bg-info bg-opacity-75",
                                             _ => "bg-secondary"
                                         };
                                     }
@@ -209,6 +218,7 @@
                                 AccessLogType.Retention => "bg-warning text-dark",
                                 AccessLogType.SyncCancel => "bg-warning",
                                 AccessLogType.DeletionPolicy => "bg-info bg-opacity-50 text-dark",
+                                AccessLogType.AuditExport => "bg-info bg-opacity-75",
                                 _ => "bg-secondary"
                             };
                         }

@@ -3326,4 +3326,61 @@
   <data name="OffloadJob" xml:space="preserve">
     <value>Scaricamento</value>
   </data>
+
+  <data name="AuditExport" xml:space="preserve">
+    <value>Esportazione dati di audit</value>
+  </data>
+  <data name="AuditExportHistory" xml:space="preserve">
+    <value>Cronologia delle esportazioni</value>
+  </data>
+  <data name="Mailbox" xml:space="preserve">
+    <value>Casella di posta</value>
+  </data>
+  <data name="AllMailboxes" xml:space="preserve">
+    <value>Tutte le caselle di posta</value>
+  </data>
+  <data name="AttachmentMetadata" xml:space="preserve">
+    <value>Metadati degli allegati</value>
+  </data>
+  <data name="IncludeAttachmentMetadata" xml:space="preserve">
+    <value>Includi la tabella dei metadati degli allegati</value>
+  </data>
+  <data name="DataSupplierName" xml:space="preserve">
+    <value>Nome del fornitore dei dati</value>
+  </data>
+  <data name="DataSupplierLocation" xml:space="preserve">
+    <value>Luogo del fornitore dei dati</value>
+  </data>
+  <data name="NoAuditExportsYet" xml:space="preserve">
+    <value>Nessuna esportazione</value>
+  </data>
+  <data name="Period" xml:space="preserve">
+    <value>Periodo</value>
+  </data>
+
+  <data name="Comment" xml:space="preserve">
+    <value>Commento</value>
+  </data>
+  <data name="AuditExportInvalidPeriod" xml:space="preserve">
+    <value>Periodo non valido: sono richiesti la data di inizio e di fine.</value>
+  </data>
+  <data name="AuditExportRangeTooLong" xml:space="preserve">
+    <value>Il periodo non deve superare i {0} anni.</value>
+  </data>
+  <data name="AuditExportAccountNotFound" xml:space="preserve">
+    <value>La casella di posta selezionata non è stata trovata.</value>
+  </data>
+  <data name="AuditExportFileNotFound" xml:space="preserve">
+    <value>Il file di esportazione non è stato trovato o non è più disponibile.</value>
+  </data>
+
+  <data name="BackToLogs" xml:space="preserve">
+    <value>Torna ai log</value>
+  </data>
+  <data name="ExportSettings" xml:space="preserve">
+    <value>Impostazioni di esportazione</value>
+  </data>
+  <data name="CancelExportConfirm" xml:space="preserve">
+    <value>Annullare questa esportazione?</value>
+  </data>
 </root>

@@ -3326,4 +3326,61 @@
   <data name="OffloadJob" xml:space="preserve">
     <value>Выгрузка</value>
   </data>
+
+  <data name="AuditExport" xml:space="preserve">
+    <value>Экспорт данных аудита</value>
+  </data>
+  <data name="AuditExportHistory" xml:space="preserve">
+    <value>История экспорта</value>
+  </data>
+  <data name="Mailbox" xml:space="preserve">
+    <value>Почтовый ящик</value>
+  </data>
+  <data name="AllMailboxes" xml:space="preserve">
+    <value>Все почтовые ящики</value>
+  </data>
+  <data name="AttachmentMetadata" xml:space="preserve">
+    <value>Метаданные вложений</value>
+  </data>
+  <data name="IncludeAttachmentMetadata" xml:space="preserve">
+    <value>Включить таблицу метаданных вложений</value>
+  </data>
+  <data name="DataSupplierName" xml:space="preserve">
+    <value>Имя поставщика данных</value>
+  </data>
+  <data name="DataSupplierLocation" xml:space="preserve">
+    <value>Местонахождение поставщика данных</value>
+  </data>
+  <data name="NoAuditExportsYet" xml:space="preserve">
+    <value>Экспортов пока нет</value>
+  </data>
+  <data name="Period" xml:space="preserve">
+    <value>Период</value>
+  </data>
+
+  <data name="Comment" xml:space="preserve">
+    <value>Комментарий</value>
+  </data>
+  <data name="AuditExportInvalidPeriod" xml:space="preserve">
+    <value>Недопустимый период: требуются даты начала и окончания.</value>
+  </data>
+  <data name="AuditExportRangeTooLong" xml:space="preserve">
+    <value>Период не должен превышать {0} лет.</value>
+  </data>
+  <data name="AuditExportAccountNotFound" xml:space="preserve">
+    <value>Выбранный почтовый ящик не найден.</value>
+  </data>
+  <data name="AuditExportFileNotFound" xml:space="preserve">
+    <value>Файл экспорта не найден или больше недоступен.</value>
+  </data>
+
+  <data name="BackToLogs" xml:space="preserve">
+    <value>Вернуться к журналам</value>
+  </data>
+  <data name="ExportSettings" xml:space="preserve">
+    <value>Настройки экспорта</value>
+  </data>
+  <data name="CancelExportConfirm" xml:space="preserve">
+    <value>Отменить этот экспорт?</value>
+  </data>
 </root>
