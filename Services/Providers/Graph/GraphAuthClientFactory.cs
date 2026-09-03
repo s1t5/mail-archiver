@@ -1,6 +1,7 @@
 using Azure.Identity;
 using MailArchiver.Models;
 using Microsoft.Graph;
+using Microsoft.Graph.Authentication;
 using System.Collections.Concurrent;
 using System.Security.Cryptography;
 using System.Text;
@@ -19,6 +20,7 @@ namespace MailArchiver.Services.Providers.Graph
     public class GraphAuthClientFactory
     {
         private readonly ILogger<GraphAuthClientFactory> _logger;
+        private readonly ILoggerFactory _loggerFactory;
 
         // MEMORY FIX: Cache GraphServiceClient instances per credential set. Creating a new
         // GraphServiceClient per operation leaks the internally-owned HttpClient/handler chain
@@ -26,9 +28,10 @@ namespace MailArchiver.Services.Providers.Graph
         // has its own MSAL token cache). Credential changes produce a new cache key automatically.
         private readonly ConcurrentDictionary<string, GraphServiceClient> _clientCache = new();
 
-        public GraphAuthClientFactory(ILogger<GraphAuthClientFactory> logger)
+        public GraphAuthClientFactory(ILogger<GraphAuthClientFactory> logger, ILoggerFactory loggerFactory)
         {
             _logger = logger;
+            _loggerFactory = loggerFactory;
         }
 
         /// <summary>
@@ -86,9 +89,27 @@ namespace MailArchiver.Services.Providers.Graph
 
                 _logger.LogDebug("Creating new cached GraphServiceClient for tenant {TenantId}", tenantId);
 
-                return new GraphServiceClient(
+                // The JSON parse node factory sanitizes response payloads with invalid
+                // UTF-8 sequences (corrupted Exchange message bodies) before Kiota
+                // deserializes them - without it, a single corrupted email fails the
+                // entire message page with "The JSON value could not be converted to
+                // System.String". See SanitizingJsonParseNodeFactory for details.
+                var authProvider = new AzureIdentityAuthenticationProvider(
                     credential,
-                    new[] { "https://graph.microsoft.com/.default" });
+                    allowedHosts: null,
+                    observabilityOptions: null,
+                    isCaeEnabled: true,
+                    scopes: new[] { "https://graph.microsoft.com/.default" });
+
+                var requestAdapter = new BaseGraphRequestAdapter(
+                    authProvider,
+                    graphClientOptions: null,
+                    parseNodeFactory: new SanitizingJsonParseNodeFactory(
+                        _loggerFactory.CreateLogger<SanitizingJsonParseNodeFactory>()),
+                    serializationWriterFactory: null,
+                    httpClient: null);
+
+                return new GraphServiceClient(requestAdapter);
             });
         }
 

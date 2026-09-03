@@ -425,17 +425,7 @@ namespace MailArchiver.Services.Providers.Graph
                 _logger.LogInformation("Attempting Graph API query with filter for folder {FolderName}: {Filter}",
                     folder.DisplayName, filter);
 
-                var response = await graphClient.Users[account.EmailAddress].MailFolders[folder.Id].Messages.GetAsync((requestConfiguration) =>
-                {
-                    requestConfiguration.QueryParameters.Filter = filter;
-                    requestConfiguration.QueryParameters.Select = new string[]
-                {
-                    "id", "internetMessageId", "subject", "from", "toRecipients", "ccRecipients", "bccRecipients",
-                    "sentDateTime", "receivedDateTime", "hasAttachments", "body", "bodyPreview", "lastModifiedDateTime",
-                    "internetMessageHeaders"
-                };
-                requestConfiguration.QueryParameters.Top = _batchOptions.BatchSize;
-            });
+                var response = await QueryFolderMessagesAsync(graphClient, account, folder, filter, _batchOptions.BatchSize, fullSelect: true);
 
                 _logger.LogInformation("Graph API response for folder {FolderName}: {MessageCount} messages returned (filter attempt), has nextLink: {HasNextLink}",
                     folder.DisplayName, response?.Value?.Count ?? 0, !string.IsNullOrEmpty(response?.OdataNextLink));
@@ -456,16 +446,7 @@ namespace MailArchiver.Services.Providers.Graph
                 try
                 {
                     // Attempt 2: Reduced select fields with filter
-                    var response = await graphClient.Users[account.EmailAddress].MailFolders[folder.Id].Messages.GetAsync((requestConfiguration) =>
-                    {
-                        requestConfiguration.QueryParameters.Filter = filter;
-                        requestConfiguration.QueryParameters.Select = new string[]
-                        {
-                            "id", "internetMessageId", "subject", "from", "sentDateTime", "receivedDateTime", "lastModifiedDateTime",
-                            "internetMessageHeaders"
-                        };
-                        requestConfiguration.QueryParameters.Top = _batchOptions.BatchSize;
-                    });
+                    var response = await QueryFolderMessagesAsync(graphClient, account, folder, filter, _batchOptions.BatchSize, fullSelect: false);
 
                     _logger.LogInformation("Second attempt returned {Count} messages for folder {FolderName}, has nextLink: {HasNextLink}",
                         response?.Value?.Count ?? 0, folder.DisplayName, !string.IsNullOrEmpty(response?.OdataNextLink));
@@ -478,15 +459,7 @@ namespace MailArchiver.Services.Providers.Graph
                         folder.DisplayName, ex2.Message);
 
                     // Attempt 3: No filter
-                    var response = await graphClient.Users[account.EmailAddress].MailFolders[folder.Id].Messages.GetAsync((requestConfiguration) =>
-                    {
-                        requestConfiguration.QueryParameters.Select = new string[]
-                        {
-                            "id", "internetMessageId", "subject", "from", "sentDateTime", "receivedDateTime", "lastModifiedDateTime",
-                            "internetMessageHeaders"
-                        };
-                        requestConfiguration.QueryParameters.Top = _batchOptions.BatchSize;
-                    });
+                    var response = await QueryFolderMessagesAsync(graphClient, account, folder, filter, _batchOptions.BatchSize, fullSelect: false, applyFilter: false);
 
                     _logger.LogDebug("Third attempt (basic query) succeeded for folder {FolderName}, has nextLink: {HasNextLink}",
                         folder.DisplayName, !string.IsNullOrEmpty(response?.OdataNextLink));
@@ -494,12 +467,103 @@ namespace MailArchiver.Services.Providers.Graph
                     return response;
                 }
             }
+            catch (System.Text.Json.JsonException ex)
+            {
+                // Corrupted response payload (e.g. invalid UTF-8 in a message body) that the
+                // SanitizingJsonParseNodeFactory could not rescue at the stream level. Shrink
+                // the page size so the corrupted message drags fewer healthy messages into
+                // the failure and can be isolated per message.
+                _logger.LogWarning(ex,
+                    "JSON deserialization failed for folder {FolderName} with page size {PageSize}; retrying with smaller page size: {Error}",
+                    folder.DisplayName, _batchOptions.BatchSize, ex.Message);
+
+                return await FetchMessagesWithReducedPageSizeAsync(graphClient, account, folder, filter);
+            }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Unexpected error during Graph API query for folder {FolderName}: {Error}",
                     folder.DisplayName, ex.Message);
                 throw;
             }
+        }
+
+        /// <summary>
+        /// Retry chain for JSON deserialization failures: shrinks the page size down to
+        /// <see cref="MinimumRetryPageSize"/> so a single corrupted message affects as few
+        /// healthy messages as possible. The final attempt uses a page size of 1; if even
+        /// that fails the exception propagates to the folder-level error handling.
+        /// </summary>
+        private const int MinimumRetryPageSize = 1;
+
+        private async Task<MessageCollectionResponse?> FetchMessagesWithReducedPageSizeAsync(
+            GraphServiceClient graphClient,
+            MailAccount account,
+            MailFolder folder,
+            string? filter)
+        {
+            var pageSizes = new[] { Math.Min(10, _batchOptions.BatchSize), MinimumRetryPageSize };
+
+            foreach (var pageSize in pageSizes)
+            {
+                try
+                {
+                    var response = await QueryFolderMessagesAsync(graphClient, account, folder, filter, pageSize, fullSelect: true);
+
+                    _logger.LogInformation("Reduced page size {PageSize} succeeded for folder {FolderName}: {MessageCount} messages returned",
+                        pageSize, folder.DisplayName, response?.Value?.Count ?? 0);
+
+                    return response;
+                }
+                catch (System.Text.Json.JsonException ex)
+                {
+                    _logger.LogWarning(ex,
+                        "JSON deserialization failed for folder {FolderName} even with page size {PageSize}: {Error}",
+                        folder.DisplayName, pageSize, ex.Message);
+                }
+            }
+
+            // Even a single-message page failed to deserialize. Let the exception surface to
+            // the caller which counts the folder as failed; the sync continues with the next folder.
+            _logger.LogError("All page sizes failed to deserialize messages for folder {FolderName}; giving up on this folder for this sync run",
+                folder.DisplayName);
+            return null;
+        }
+
+        /// <summary>
+        /// Executes the folder messages query with the given page size and select list.
+        /// Extracted from FetchMessagesWithFallbackAsync so the JSON-retry chain can reuse
+        /// the exact same query shape with a reduced page size.
+        /// </summary>
+        private static async Task<MessageCollectionResponse?> QueryFolderMessagesAsync(
+            GraphServiceClient graphClient,
+            MailAccount account,
+            MailFolder folder,
+            string? filter,
+            int top,
+            bool fullSelect,
+            bool applyFilter = true)
+        {
+            return await graphClient.Users[account.EmailAddress].MailFolders[folder.Id].Messages.GetAsync((requestConfiguration) =>
+            {
+                if (applyFilter && filter != null)
+                {
+                    requestConfiguration.QueryParameters.Filter = filter;
+                }
+
+                requestConfiguration.QueryParameters.Select = fullSelect
+                    ? new string[]
+                    {
+                        "id", "internetMessageId", "subject", "from", "toRecipients", "ccRecipients", "bccRecipients",
+                        "sentDateTime", "receivedDateTime", "hasAttachments", "body", "bodyPreview", "lastModifiedDateTime",
+                        "internetMessageHeaders"
+                    }
+                    : new string[]
+                    {
+                        "id", "internetMessageId", "subject", "from", "sentDateTime", "receivedDateTime", "lastModifiedDateTime",
+                        "internetMessageHeaders"
+                    };
+                requestConfiguration.QueryParameters.Top = top;
+            });
         }
 
         /// <summary>
