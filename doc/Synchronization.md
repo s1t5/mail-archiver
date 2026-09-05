@@ -127,6 +127,64 @@ The archived copies in Mail Archiver are **not** affected by this – only the s
 
 ---
 
+## 🛟 Recovering Messages the Server Reports as Missing
+
+Some servers refuse a message through the normal UID fetch and still return a usable MIME document
+for a plain `BODY[]` fetch. This has been observed on legacy on-premises Exchange, where the fetch
+fails with:
+
+```
+MailKit.MessageNotFoundException: The IMAP server did not return the requested message.
+```
+
+Without a fallback such a message is counted as a failed email, and because `LastSync` is not
+advanced while an account has failures, the account re-reads the same messages on every run and
+never makes progress.
+
+**What Mail Archiver does:** exactly one further fetch attempt for that UID, and only for this
+specific error. Authentication problems, connection loss, throttling and parse errors are not
+affected, and the existing transient-retry behaviour is unchanged. The attempt is read-only: no
+message is marked as read, no flag is changed, nothing is moved or deleted. It counts as a success
+only if raw data actually arrived **and** parsed as a MIME message — anything less remains a failed
+email. Recovered messages then take the normal archiving path, including duplicate detection, so a
+repeated full sync does not archive them twice.
+
+**Provider error placeholders:** what the server returns is often not the original message but a
+document the provider generated in its place, for example:
+
+```
+Subject: Retrieval using the IMAP4 protocol failed for the following message: 270198
+From: Microsoft Exchange Server 2010
+
+The server couldn't retrieve the following message: ...
+```
+
+This is archived exactly as received and is never rewritten into the sender, subject or body quoted
+inside it. Mail Archiver cannot recover content the provider itself refuses to convert to MIME; what
+it preserves is the best representation the server is able to expose, plus the fact that a
+placeholder is what arrived. Each one is logged at `Warning` level with account, folder, UID and
+subject.
+
+**When the fallback comes back empty**, the message stays a failed email exactly as before, and the
+attempt is logged at `Warning` rather than passing quietly — an unretrieved message must never be
+able to look archived. Should a server ever behave that way consistently, the documented next step is
+to fetch `BODY.PEEK[HEADER]` and `BODY.PEEK[TEXT]` separately and assemble them into one MIME
+document. That is a genuinely different request, where the current fallback is the same request read
+differently. It is deliberately not implemented: it costs a second round trip per message and adds a
+"header arrived, text did not" state to define, and no server seen so far needs it.
+
+Both counts appear in the account's completion log line:
+
+```
+Sync completed for account: Example. New: 0, Failed: 0, Deleted: 0, Recovered: 25, Provider placeholders: 25
+```
+
+`Recovered` counts messages the fallback rescued; `Provider placeholders` is the subset of those
+that turned out to be provider-generated error documents. `Failed: 0` alongside them is the point of
+the feature — the account is no longer stuck.
+
+---
+
 ## 👀 Observing the Sync
 
 - **Account Details page**: Shows the current `LastSync` timestamp and the active sync job (folder, processed count, new count, failed count). The **Full Resync** button is located here.

@@ -105,6 +105,8 @@ namespace MailArchiver.Services.Providers.Imap
             var processedEmails = 0;
             var newEmails = 0;
             var failedEmails = 0;
+            var recoveredEmails = 0;
+            var providerPlaceholderEmails = 0;
             var deletedEmails = 0;
             var totalBytesDownloaded = 0L;
             var wasRateLimited = false;
@@ -163,6 +165,8 @@ namespace MailArchiver.Services.Providers.Imap
                         processedEmails += folderResult.ProcessedEmails;
                         newEmails += folderResult.NewEmails;
                         failedEmails += folderResult.FailedEmails;
+                        recoveredEmails += folderResult.RecoveredEmails;
+                        providerPlaceholderEmails += folderResult.ProviderPlaceholderEmails;
 
                         if (folderResult.WasRateLimited)
                         {
@@ -251,8 +255,9 @@ namespace MailArchiver.Services.Providers.Imap
                 }
 
                 await client.DisconnectAsync(true);
-                _logger.LogInformation("Sync completed for account: {AccountName}. New: {New}, Failed: {Failed}, Deleted: {Deleted}",
-                    account.Name, newEmails, failedEmails, deletedEmails);
+                _logger.LogInformation("Sync completed for account: {AccountName}. New: {New}, Failed: {Failed}, Deleted: {Deleted}, " +
+                    "Recovered: {Recovered}, Provider placeholders: {ProviderPlaceholders}",
+                    account.Name, newEmails, failedEmails, deletedEmails, recoveredEmails, providerPlaceholderEmails);
 
                 if (jobId != null)
                 {
@@ -848,6 +853,8 @@ namespace MailArchiver.Services.Providers.Imap
                                 MimeKit.MimeMessage? message = null;
                                 var maxAttempts = TransientFetchRetryDelaysMs.Length + 1;
                                 var mboxRecoveryAttempted = false;
+                                var notFoundRecoveryAttempted = false;
+                                var wasRecovered = false;
                                 for (int attempt = 1; attempt <= maxAttempts; attempt++)
                                 {
                                     try
@@ -888,6 +895,32 @@ namespace MailArchiver.Services.Providers.Imap
                                                 "Failed to parse message headers even after mbox From-line recovery.",
                                                 parseEx);
                                         }
+                                        consecutiveTransientFailures = 0;
+                                        break;
+                                    }
+                                    catch (MessageNotFoundException) when (!notFoundRecoveryAttempted)
+                                    {
+                                        // One-shot recovery: legacy servers can refuse a message through
+                                        // GetMessageAsync and still hand out a usable MIME document for a
+                                        // plain BODY[] fetch. Without this the UID fails on every run, and
+                                        // because LastSync is not advanced while FailedEmails > 0 the whole
+                                        // account keeps re-reading the same messages forever.
+                                        notFoundRecoveryAttempted = true;
+                                        _logger.LogDebug(
+                                            "Server reported UID {Uid} in folder {FolderName} as missing, attempting IMAP fallback fetch",
+                                            uid, folder.FullName);
+
+                                        message = await ImapMessageRecovery.TryRecoverAsync(
+                                            folder, uid, _logger, CancellationToken.None);
+
+                                        if (message == null)
+                                        {
+                                            // Nothing usable came back, so this stays a failure and keeps
+                                            // its original exception for the outer handler to log.
+                                            throw;
+                                        }
+
+                                        wasRecovered = true;
                                         consecutiveTransientFailures = 0;
                                         break;
                                     }
@@ -962,6 +995,33 @@ namespace MailArchiver.Services.Providers.Imap
                                         $"FETCH for UID {uid} in folder {folder.FullName} returned no message and no exception.");
                                 }
 
+                                var recoveredIsPlaceholder = false;
+                                if (wasRecovered)
+                                {
+                                    recoveredIsPlaceholder =
+                                        ProviderPlaceholderDetector.IsProviderRetrievalErrorPlaceholder(message);
+
+                                    if (recoveredIsPlaceholder)
+                                    {
+                                        // Archived as-is: it is the best representation the server is able
+                                        // to expose for this UID. Never rewritten into the values quoted
+                                        // inside it, so the archive cannot claim to hold the original.
+                                        _logger.LogWarning(
+                                            "Recovered UID {Uid} in folder {FolderName} for account {AccountName} using the IMAP fallback. " +
+                                            "The server returned a provider retrieval-error placeholder instead of the original message. " +
+                                            "Placeholder subject: {PlaceholderSubject}. Original subject: {OriginalSubject}",
+                                            uid, folder.FullName, account.Name, message.Subject,
+                                            ProviderPlaceholderDetector.TryGetOriginalSubject(message) ?? "(not quoted)");
+                                    }
+                                    else
+                                    {
+                                        _logger.LogWarning(
+                                            "Recovered UID {Uid} in folder {FolderName} for account {AccountName} using the IMAP fallback " +
+                                            "after the server reported it as missing. Subject: {Subject}",
+                                            uid, folder.FullName, account.Name, message.Subject);
+                                    }
+                                }
+
                                 _mailCleaner.PreCleanMessage(message);
 
 
@@ -1006,6 +1066,18 @@ namespace MailArchiver.Services.Providers.Imap
                                 }
 
                                 result.ProcessedEmails++;
+
+                                if (wasRecovered)
+                                {
+                                    // Counted next to ProcessedEmails, not at the moment of the fetch, so a
+                                    // message that is recovered but then deferred by the bandwidth limit is
+                                    // not counted twice once the sync resumes and fetches it again.
+                                    result.RecoveredEmails++;
+                                    if (recoveredIsPlaceholder)
+                                    {
+                                        result.ProviderPlaceholderEmails++;
+                                    }
+                                }
 
                                 if (_bandwidthOptions.Enabled && messageSize > 0)
                                 {
@@ -1394,6 +1466,19 @@ namespace MailArchiver.Services.Providers.Imap
             public int ProcessedEmails { get; set; }
             public int NewEmails { get; set; }
             public int FailedEmails { get; set; }
+
+            /// <summary>
+            /// Messages the normal fetch reported as missing and the IMAP fallback retrieved
+            /// anyway. They are processed like any other message and are never failures.
+            /// </summary>
+            public int RecoveredEmails { get; set; }
+
+            /// <summary>
+            /// Subset of <see cref="RecoveredEmails"/>: what came back was the provider's own
+            /// retrieval-error placeholder rather than the original message.
+            /// </summary>
+            public int ProviderPlaceholderEmails { get; set; }
+
             public long BytesDownloaded { get; set; }
             public bool WasRateLimited { get; set; }
         }
