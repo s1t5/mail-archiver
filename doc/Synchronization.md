@@ -140,8 +140,11 @@ Both lists use the same matching rules, so they cannot drift apart:
 3. path-suffix match, which catches separator variations — `Drafts` also matches `INBOX.Drafts` and
    `INBOX/Drafts` — and Gmail-style names such as `[Gmail]/Drafts`.
 
-All comparisons are case-insensitive. The suffix rule anchors on the path separator, so `Kalender`
-does not take a folder named `Kalenderwoche` with it.
+All comparisons are case-insensitive. The full-path suffix rule anchors on the path separator, so
+`Kalender` does not take a folder named `Kalenderwoche` with it. The name comparison is not anchored
+the same way: a short entry also matches any folder whose own name **ends with** it, so `Kalender`
+takes a folder named `AltKalender` with it. To exclude exactly one folder among similarly named
+ones, enter its full path.
 
 **No folder name is ever excluded by default.** Which names are worth listing depends entirely on
 the server and its language — a mailbox tree that also carries calendar, contact, task and note
@@ -152,6 +155,10 @@ Changing either list does not remove anything already archived. Run a
 [Full Sync](#-full-sync-resync) afterwards if you want to confirm the archive matches the current
 selection.
 
+Exclusion applies everywhere the folder list is walked, not only to archiving: an excluded folder
+is also skipped by the server-side deletion pass (see below), so an entry protects the folder on
+the server as well.
+
 ---
 
 ## 🗑️ Server-Side Deletion During Sync
@@ -161,7 +168,7 @@ If an account has `DeleteAfterDays` configured (> 0), Mail Archiver deletes mess
 - **IMAP**: `SearchQuery.SentBefore(now − DeleteAfterDays)` per folder, then expunge.
 - **M365 (Graph)**: `receivedDateTime lt (now − DeleteAfterDays)` per folder, then delete.
 
-The archived copies in Mail Archiver are **not** affected by this – only the server-side mailbox is trimmed. See [Retention Policies](RetentionPolicies.md) for the local retention counterpart that controls how long archived copies are kept.
+The archived copies in Mail Archiver are **not** affected by this – only the server-side mailbox is trimmed. Folders on either exclusion list ([Excluded Folders](#-excluded-folders)) are skipped by this deletion pass and left untouched on the server. See [Retention Policies](RetentionPolicies.md) for the local retention counterpart that controls how long archived copies are kept.
 
 ---
 
