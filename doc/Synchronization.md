@@ -152,16 +152,6 @@ Changing either list does not remove anything already archived. Run a
 [Full Sync](#-full-sync-resync) afterwards if you want to confirm the archive matches the current
 selection.
 
-Both lists and all three matching rules apply to **IMAP and M365 (Graph)** accounts alike, and on
-the Graph side to the retention deletion as well as the sync. Everything resolves exclusions through
-the same matcher, so an entry means the same thing wherever it is written.
-
-> ℹ️ Two Graph details changed with this: an entry written as a **path** now also excludes the folder
-> from Graph's retention deletion, which previously compared the folder's own name only, and the
-> **suffix rule** now applies to Graph, so `Drafts` matches `Inbox/Drafts` there as it always did for
-> IMAP. Both can exclude more folders than before, never fewer. If you rely on a short name matching
-> only a top-level Graph folder, spell it out as a full path instead.
-
 ---
 
 ## 🗑️ Server-Side Deletion During Sync
