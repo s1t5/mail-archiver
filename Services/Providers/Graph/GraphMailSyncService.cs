@@ -378,11 +378,27 @@ namespace MailArchiver.Services.Providers.Graph
                         messagesResponse = null;
 
                         _logger.LogDebug("Fetching next page of messages for folder {FolderName}...", folder.DisplayName);
-                        messagesResponse = await graphClient.Users[account.EmailAddress]
-                            .MailFolders[folder.Id]
-                            .Messages
-                            .WithUrl(nextLink)
-                            .GetAsync();
+                        try
+                        {
+                            messagesResponse = await graphClient.Users[account.EmailAddress]
+                                .MailFolders[folder.Id]
+                                .Messages
+                                .WithUrl(nextLink)
+                                .GetAsync();
+                        }
+                        catch (System.Text.Json.JsonException ex)
+                        {
+                            // A subsequent page still refuses to deserialize - a single corrupted
+                            // email should no longer abort the whole folder. Already archived pages
+                            // stay archived; the account's LastSync is intentionally NOT advanced so
+                            // the next sync retries this folder from the same checkpoint.
+                            _logger.LogWarning(ex,
+                                "JSON deserialization failed for folder {FolderName} page {PageNumber} (nextLink pagination): ending this folder early, next sync retries from the same LastSync: {Error}",
+                                folder.DisplayName, pageNumber + 1, ex.Message);
+
+                            result.FailedEmails++;
+                            break;
+                        }
                     }
                     else
                     {
@@ -503,6 +519,8 @@ namespace MailArchiver.Services.Providers.Graph
         {
             var pageSizes = new[] { Math.Min(10, _batchOptions.BatchSize), MinimumRetryPageSize };
 
+            System.Text.Json.JsonException? lastJsonException = null;
+
             foreach (var pageSize in pageSizes)
             {
                 try
@@ -516,17 +534,23 @@ namespace MailArchiver.Services.Providers.Graph
                 }
                 catch (System.Text.Json.JsonException ex)
                 {
+                    lastJsonException = ex;
                     _logger.LogWarning(ex,
                         "JSON deserialization failed for folder {FolderName} even with page size {PageSize}: {Error}",
                         folder.DisplayName, pageSize, ex.Message);
                 }
             }
 
-            // Even a single-message page failed to deserialize. Let the exception surface to
-            // the caller which counts the folder as failed; the sync continues with the next folder.
-            _logger.LogError("All page sizes failed to deserialize messages for folder {FolderName}; giving up on this folder for this sync run",
+            // Even a single-message page failed to deserialize. Returning null here would make
+            // SyncFolderAsync silently skip a folder with pending messages and still advance
+            // LastSync, which would permanently lose the unarchived emails. Instead the
+            // exception must propagate so the folder is counted as failed and LastSync stays
+            // untouched, letting the next sync run retry from the same checkpoint.
+            _logger.LogError("All page sizes failed to deserialize messages for folder {FolderName}; giving up on this folder for this sync run; next sync will retry it",
                 folder.DisplayName);
-            return null;
+
+            throw lastJsonException
+                ?? (Exception)new InvalidOperationException($"All page sizes failed to deserialize messages for folder {folder.DisplayName}");
         }
 
         /// <summary>
