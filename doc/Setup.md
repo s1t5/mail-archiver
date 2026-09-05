@@ -279,10 +279,6 @@ The optional MCP (Model Context Protocol) server exposes the same read-only mail
       - MailSync__GlobalExcludedFolders__7=Notizen
       - MailSync__GlobalExcludedFolders__8=Journal
   ```
-  In `appsettings.json` the same setting is a plain array under `MailSync`:
-  ```json
-  "GlobalExcludedFolders": [ "Calendar", "Kalender" ]
-  ```
 
 ### 📤 BatchRestore Settings
 - `BatchRestore__AsyncThreshold`: The number of emails that triggers async processing.
