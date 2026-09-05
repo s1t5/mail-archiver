@@ -396,12 +396,6 @@ namespace MailArchiver.Services.Providers.Imap
         }
 
         /// <summary>
-        /// Determines whether a folder is in the account's excluded list.
-        /// Checks both <see cref="IMailFolder.FullName"/> and <see cref="IMailFolder.Name"/>
-        /// for exact matches, with a leading-path fallback to handle IMAP folder prefixes
-        /// used by different servers (e.g. "INBOX.Drafts", "[Gmail]/Drafts").
-        /// </summary>
-        /// <summary>
         /// True when the folder is excluded from synchronization, either by the account's own list
         /// or by the installation-wide <c>MailSync:GlobalExcludedFolders</c>. The matching itself
         /// lives in <see cref="FolderExclusionMatcher"/> so both sources are compared the same way.
