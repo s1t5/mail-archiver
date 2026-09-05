@@ -143,6 +143,28 @@ public class ProviderPlaceholderDetectorTests
     }
 
     [Fact]
+    public void Original_subject_is_read_out_of_a_crlf_placeholder_body()
+    {
+        // MimeKit's TextBody getter normalises line endings to Environment.NewLine of the
+        // running platform, so on Windows the body arrives with CRLF even when the raw
+        // message used LF. Setting the body via TextPart stores the string as-is, so CRLF
+        // can be forced here regardless of the platform the tests run on.
+        var message = new MimeMessage
+        {
+            Subject = "Retrieval using the IMAP4 protocol failed for the following message: 270198",
+        };
+        message.Body = new TextPart("plain")
+        {
+            Text = "The server couldn't retrieve the following message:\r\n" +
+                   "Subject: \"Example meeting\"\r\n" +
+                   "From: \"Example Sender\"\r\n"
+        };
+
+        Assert.Equal("Example meeting",
+            ProviderPlaceholderDetector.TryGetOriginalSubject(message));
+    }
+
+    [Fact]
     public void Original_subject_is_null_when_the_body_does_not_quote_one()
     {
         var raw = Placeholder.Replace("Subject: \"Example meeting\"", "Subject: not quoted");

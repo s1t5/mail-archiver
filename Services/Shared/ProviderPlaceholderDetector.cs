@@ -43,8 +43,15 @@ namespace MailArchiver.Services.Shared
         /// Pulls the original subject out of the placeholder body, which quotes it on its own line
         /// as <c>Subject: "..."</c>. Only for logging, so a miss is not an error.
         /// </summary>
+        /// <remarks>
+        /// The trailing <c>\r?</c> is load-bearing: MimeKit's <see cref="MimeKit.TextPart.Text"/>
+        /// decoder normalises line endings to the running platform's <c>Environment.NewLine</c>,
+        /// so on Windows the body carries CRLF. With <see cref="RegexOptions.Multiline"/>, .NET's
+        /// <c>$</c> matches only before <c>\n</c> and not before <c>\r\n</c> — without the optional
+        /// carriage return the pattern would not match at all on Windows deployments.
+        /// </remarks>
         private static readonly Regex OriginalSubjectPattern = new(
-            "^[ \\t]*Subject:[ \\t]*\"(?<subject>.*)\"[ \\t]*$",
+            "^[ \\t]*Subject:[ \\t]*\"(?<subject>.*)\"[ \\t]*\\r?$",
             RegexOptions.Multiline | RegexOptions.CultureInvariant | RegexOptions.Compiled);
 
         /// <summary>
