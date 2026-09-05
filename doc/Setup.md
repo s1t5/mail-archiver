@@ -59,6 +59,8 @@ services:
       - MailSync__MaxConcurrentSyncs=1
       - MailSync__InterAccountDelaySeconds=0
       - MailSync__FullSyncIntervalHours=24
+      - MailSync__GlobalExcludedFolders__0=Calendar
+      - MailSync__GlobalExcludedFolders__1=Contacts
 
       # BatchRestore Settings
       - BatchRestore__AsyncThreshold=50
@@ -265,6 +267,18 @@ The optional MCP (Model Context Protocol) server exposes the same read-only mail
 - `MailSync__IgnoreSelfSignedCert`: Whether to ignore self-signed certificates (true/false).
 - `MailSync__MaxConcurrentSyncs`: Maximum number of account syncs that may run in parallel within one poll cycle. Default `1` (sequential, backwards-compatible). Increase to sync multiple accounts concurrently — keep in mind provider rate limits and local resource usage.
 - `MailSync__InterAccountDelaySeconds`: Optional stagger delay in seconds applied at the end of each account sync task. Default `0` (no delay). Useful to avoid burst-starts when `MaxConcurrentSyncs > 1`.
+- `MailSync__GlobalExcludedFolders__<n>`: Folders excluded from synchronization for **every** account, on top of each account's own excluded-folders list. Empty by default, so existing setups are unaffected. The two lists are **additive** — a folder is skipped when it matches either — and both use the same matching rules: exact match on the full path, exact match on the folder name, or a path-suffix match (so `Drafts` also matches `INBOX/Drafts` and `INBOX.Drafts`). Matching is case-insensitive. Useful when importing many mailboxes from the same server, where the alternative is maintaining an identical exclusion list on every account. No folder is excluded by default; which names are worth listing depends on the server and its language. Example for a mailbox tree that also carries calendar and contact folders:
+  ```yaml
+      - MailSync__GlobalExcludedFolders__0=Calendar
+      - MailSync__GlobalExcludedFolders__1=Kalender
+      - MailSync__GlobalExcludedFolders__2=Contacts
+      - MailSync__GlobalExcludedFolders__3=Kontakte
+      - MailSync__GlobalExcludedFolders__4=Tasks
+      - MailSync__GlobalExcludedFolders__5=Aufgaben
+      - MailSync__GlobalExcludedFolders__6=Notes
+      - MailSync__GlobalExcludedFolders__7=Notizen
+      - MailSync__GlobalExcludedFolders__8=Journal
+  ```
 
 ### 📤 BatchRestore Settings
 - `BatchRestore__AsyncThreshold`: The number of emails that triggers async processing.
