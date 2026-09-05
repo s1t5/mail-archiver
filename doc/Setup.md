@@ -59,6 +59,8 @@ services:
       - MailSync__MaxConcurrentSyncs=1
       - MailSync__InterAccountDelaySeconds=0
       - MailSync__FullSyncIntervalHours=24
+      - MailSync__GlobalExcludedFolders__0=Calendar
+      - MailSync__GlobalExcludedFolders__1=Contacts
 
       # BatchRestore Settings
       - BatchRestore__AsyncThreshold=50
@@ -281,7 +283,6 @@ The optional MCP (Model Context Protocol) server exposes the same read-only mail
   ```json
   "GlobalExcludedFolders": [ "Calendar", "Kalender" ]
   ```
-  Applies to IMAP and M365 (Graph) accounts alike, and to Graph's retention deletion as well as its sync — all of them resolve exclusions through the same matcher, so an entry means the same thing everywhere.
 
 ### 📤 BatchRestore Settings
 - `BatchRestore__AsyncThreshold`: The number of emails that triggers async processing.
