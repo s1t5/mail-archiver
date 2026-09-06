@@ -2131,6 +2131,45 @@
   <data name="DeleteSelectedEmailsConfirm" xml:space="preserve">
     <value>Weet u zeker dat u {0} geselecteerde e-mail(s) permanent wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt en elke verwijdering wordt gelogd voor auditdoeleinden.</value>
   </data>
+  <data name="EmptyFolder" xml:space="preserve">
+    <value>Map leegmaken</value>
+  </data>
+  <data name="DeleteFilteredEmails" xml:space="preserve">
+    <value>Gefilterde e-mails verwijderen</value>
+  </data>
+  <data name="EmptyFolderConfirmTitle" xml:space="preserve">
+    <value>Map definitief leegmaken</value>
+  </data>
+  <data name="DeleteFilteredConfirmTitle" xml:space="preserve">
+    <value>Gefilterde e-mails definitief verwijderen</value>
+  </data>
+  <data name="EmptyFolderConfirmWarning" xml:space="preserve">
+    <value>Dit verwijdert definitief alle {0} e-mail(s) in map "{1}". Deze actie kan niet ongedaan worden gemaakt en elke verwijdering wordt gelogd.</value>
+  </data>
+  <data name="DeleteFilteredConfirmWarning" xml:space="preserve">
+    <value>Dit verwijdert definitief de {0} e-mail(s) die overeenkomen met het huidige filter in map "{1}". Deze actie kan niet ongedaan worden gemaakt en elke verwijdering wordt gelogd.</value>
+  </data>
+  <data name="TypeFolderNameToConfirm" xml:space="preserve">
+    <value>Typ ter bevestiging de mapnaam hieronder (je kunt deze kopiëren uit het veld hierboven):</value>
+  </data>
+  <data name="PermanentlyDeleteConfirmButton" xml:space="preserve">
+    <value>Definitief verwijderen</value>
+  </data>
+  <data name="DeleteAllFilteredEmails" xml:space="preserve">
+    <value>Gefilterde e-mails verwijderen (alle mappen)</value>
+  </data>
+  <data name="DeleteAllFilteredConfirmTitle" xml:space="preserve">
+    <value>Gefilterde e-mails definitief verwijderen in alle mappen</value>
+  </data>
+  <data name="DeleteAllFilteredConfirmWarning" xml:space="preserve">
+    <value>Dit verwijdert definitief alle {0} e-mail(s) die overeenkomen met het huidige filter, in alle mappen van dit account. Deze actie kan niet ongedaan worden gemaakt en elke verwijdering wordt gelogd.</value>
+  </data>
+  <data name="TypeDeleteWordToConfirm" xml:space="preserve">
+    <value>Typ ter bevestiging hieronder "{0}":</value>
+  </data>
+  <data name="DeleteConfirmationWord" xml:space="preserve">
+    <value>VERWIJDEREN</value>
+  </data>
   <data name="EmailDeleted" xml:space="preserve">
     <value>E-mail succesvol verwijderd</value>
   </data>

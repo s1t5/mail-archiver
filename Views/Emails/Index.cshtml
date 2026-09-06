@@ -5,6 +5,36 @@
 @model MailArchiver.Models.ViewModels.SearchViewModel
 @{
     ViewData["Title"] = Localizer["EmailArchive"];
+
+    var hasActiveFilter = !string.IsNullOrWhiteSpace(Model.SearchTerm) || Model.FromDate.HasValue || Model.ToDate.HasValue || Model.IsOutgoing.HasValue;
+    var canDeleteEmails = User.IsInRole("Admin") || User.IsInRole("SelfManager");
+    var hasAccountAndFolder = Model.SelectedAccountId.HasValue && !string.IsNullOrEmpty(Model.SelectedFolder);
+
+    // "Empty folder" only appears when nothing is filtered, so it always matches exactly
+    // what's on screen (the whole folder) - never a hidden larger scope than what's visible.
+    var showEmptyFolderBtn = hasAccountAndFolder && !hasActiveFilter && canDeleteEmails;
+    var selectedFolderTotalCount = showEmptyFolderBtn ? FindFolderCount(Model.FolderTree, Model.SelectedFolder) : 0;
+
+    // "Delete filtered emails" is scoped to the single selected folder.
+    var showDeleteFilteredBtn = hasAccountAndFolder && hasActiveFilter && canDeleteEmails;
+
+    // "Delete filtered emails (all folders)" ignores folder selection entirely - it only
+    // needs an account and an active filter, and always targets every folder of that account.
+    var showDeleteAllFilteredBtn = Model.SelectedAccountId.HasValue && hasActiveFilter && canDeleteEmails;
+    var accountWideFilteredCount = showDeleteAllFilteredBtn ? (ViewBag.AccountWideFilteredCount ?? 0) : 0;
+}
+@functions {
+    private static int FindFolderCount(List<MailArchiver.Models.ViewModels.FolderTreeNode> nodes, string path)
+    {
+        if (nodes == null) return 0;
+        foreach (var node in nodes)
+        {
+            if (node.FullPath == path) return node.TotalCount;
+            var childCount = FindFolderCount(node.Children, path);
+            if (childCount > 0) return childCount;
+        }
+        return 0;
+    }
 }
 
 @* Anti-Forgery Token für JavaScript *@
@@ -209,7 +239,39 @@
                             </div>
                         </div>
                     </div>
-                    
+
+                    @if (showEmptyFolderBtn || showDeleteFilteredBtn || showDeleteAllFilteredBtn)
+                    {
+                        <div class="p-2 bg-light border-bottom d-flex flex-wrap gap-2 align-items-center">
+                            @if (showEmptyFolderBtn)
+                            {
+                                <button type="button" id="emptyFolderBtn" class="btn btn-sm btn-outline-danger" data-confirm-mode="folder"
+                                        data-account-id="@Model.SelectedAccountId" data-folder-name="@Model.SelectedFolder" data-total-count="@selectedFolderTotalCount">
+                                    <i class="bi bi-trash3"></i>
+                                    <span class="d-inline">@Localizer["EmptyFolder"]</span>
+                                </button>
+                            }
+                            @if (showDeleteFilteredBtn)
+                            {
+                                <button type="button" id="deleteFilteredBtn" class="btn btn-sm btn-outline-danger" data-confirm-mode="folder"
+                                        data-account-id="@Model.SelectedAccountId" data-folder-name="@Model.SelectedFolder" data-total-count="@Model.TotalResults"
+                                        data-search-term="@Model.SearchTerm" data-from-date="@Model.FromDate?.ToString("yyyy-MM-dd")" data-to-date="@Model.ToDate?.ToString("yyyy-MM-dd")" data-is-outgoing="@Model.IsOutgoing">
+                                    <i class="bi bi-trash3"></i>
+                                    <span class="d-inline">@Localizer["DeleteFilteredEmails"]</span>
+                                </button>
+                            }
+                            @if (showDeleteAllFilteredBtn)
+                            {
+                                <button type="button" id="deleteAllFilteredBtn" class="btn btn-sm btn-outline-danger" data-confirm-mode="word"
+                                        data-account-id="@Model.SelectedAccountId" data-total-count="@accountWideFilteredCount"
+                                        data-search-term="@Model.SearchTerm" data-from-date="@Model.FromDate?.ToString("yyyy-MM-dd")" data-to-date="@Model.ToDate?.ToString("yyyy-MM-dd")" data-is-outgoing="@Model.IsOutgoing">
+                                    <i class="bi bi-trash3"></i>
+                                    <span class="d-inline">@Localizer["DeleteAllFilteredEmails"]</span>
+                                </button>
+                            }
+                        </div>
+                    }
+
                     @if (Model.ShowSelectionControls)
                     {
                         <div class="p-2 bg-light border-bottom">
@@ -465,6 +527,38 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">@Localizer["Cancel"]</button>
                 <button type="button" class="btn btn-primary" id="confirmBatchRestoreBtn">@Localizer["Continue"]</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Folder-wide Deletion Confirmation Modal -->
+<div class="modal fade" id="folderDeleteConfirmModal" tabindex="-1" aria-labelledby="folderDeleteConfirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="folderDeleteConfirmModalLabel"></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    <span id="folderDeleteConfirmWarning"></span>
+                </div>
+                <div class="mb-2">
+                    <label class="form-label small" id="folderDeleteInputLabel"></label>
+                    <div class="input-group mb-2" id="folderDeleteNameGroup">
+                        <input type="text" class="form-control form-control-sm font-monospace" id="folderDeleteNameDisplay" readonly>
+                        <button type="button" class="btn btn-outline-dark btn-sm" id="folderDeleteCopyBtn">
+                            <i class="bi bi-clipboard"></i> @Localizer["Copy"]
+                        </button>
+                    </div>
+                    <input type="text" class="form-control" id="folderDeleteNameInput" autocomplete="off">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">@Localizer["Cancel"]</button>
+                <button type="button" class="btn btn-danger" id="folderDeleteConfirmBtn" disabled>@Localizer["PermanentlyDeleteConfirmButton"]</button>
             </div>
         </div>
     </div>
@@ -762,7 +856,16 @@
             tooManyEmailsSelected: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["TooManyEmailsSelected"].Value)),
             continueWithOperation: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["ContinueWithOperation"].Value)),
             deleteSelectedEmailsConfirm: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["DeleteSelectedEmailsConfirm"].Value)),
-            loading: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["Loading"].Value))
+            loading: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["Loading"].Value)),
+            emptyFolderConfirmTitle: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["EmptyFolderConfirmTitle"].Value)),
+            deleteFilteredConfirmTitle: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["DeleteFilteredConfirmTitle"].Value)),
+            emptyFolderConfirmWarning: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["EmptyFolderConfirmWarning"].Value)),
+            deleteFilteredConfirmWarning: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["DeleteFilteredConfirmWarning"].Value)),
+            deleteAllFilteredConfirmTitle: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["DeleteAllFilteredConfirmTitle"].Value)),
+            deleteAllFilteredConfirmWarning: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["DeleteAllFilteredConfirmWarning"].Value)),
+            typeFolderNameToConfirm: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["TypeFolderNameToConfirm"].Value)),
+            typeDeleteWordToConfirm: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["TypeDeleteWordToConfirm"].Value)),
+            deleteConfirmationWord: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["DeleteConfirmationWord"].Value))
         };
         
         const toggleSelectionMode = document.getElementById('toggleSelectionMode');
@@ -1070,6 +1173,119 @@
             selectedIds.forEach(id => form.appendChild(createHiddenInput('ids', id)));
             document.body.appendChild(form);
             form.submit();
+        }
+
+        // Folder-wide / account-wide deletion buttons ("Empty folder", "Delete filtered
+        // emails", "Delete filtered emails (all folders)") share one confirmation modal.
+        // Two confirmation modes, from data-confirm-mode:
+        //   "folder" - must type the exact folder name (shown read-only + copyable above).
+        //   "word"   - must type the fixed localized confirmation word (no single folder to
+        //              name, since the action spans every folder of the account).
+        // The "filtered" buttons carry the active search filters as data attributes; "empty
+        // folder" does not, which is how the submit handler decides whether to include
+        // filter fields in the POST. Only "folder" mode buttons carry a folder name.
+        function setupFolderDeleteButton(buttonId, actionUrl, titleKey, warningKey) {
+            const btn = document.getElementById(buttonId);
+            if (!btn) return;
+
+            const mode = btn.dataset.confirmMode;
+
+            btn.addEventListener('click', function() {
+                const accountId = btn.dataset.accountId;
+                const folderName = btn.dataset.folderName;
+                const totalCount = Number(btn.dataset.totalCount || 0);
+                const requiredText = mode === 'word' ? i18n.deleteConfirmationWord : folderName;
+
+                document.getElementById('folderDeleteConfirmModalLabel').textContent = i18n[titleKey];
+                document.getElementById('folderDeleteConfirmWarning').textContent = i18n[warningKey]
+                    .replace('{0}', totalCount.toLocaleString())
+                    .replace('{1}', folderName || '');
+
+                const nameGroup = document.getElementById('folderDeleteNameGroup');
+                const inputLabel = document.getElementById('folderDeleteInputLabel');
+                const nameDisplay = document.getElementById('folderDeleteNameDisplay');
+                const nameInput = document.getElementById('folderDeleteNameInput');
+                const confirmBtn = document.getElementById('folderDeleteConfirmBtn');
+
+                if (mode === 'word') {
+                    nameGroup.style.display = 'none';
+                    inputLabel.textContent = i18n.typeDeleteWordToConfirm.replace('{0}', requiredText);
+                } else {
+                    nameGroup.style.display = '';
+                    inputLabel.textContent = i18n.typeFolderNameToConfirm;
+                    nameDisplay.value = folderName;
+                }
+                nameInput.value = '';
+                confirmBtn.disabled = true;
+
+                nameInput.oninput = function() {
+                    confirmBtn.disabled = nameInput.value !== requiredText;
+                };
+
+                confirmBtn.onclick = function() {
+                    if (nameInput.value !== requiredText) return;
+
+                    const form = document.createElement('form');
+                    form.method = 'post';
+                    form.action = actionUrl;
+                    form.appendChild(createHiddenInput('__RequestVerificationToken', document.querySelector('input[name="__RequestVerificationToken"]').value));
+                    form.appendChild(createHiddenInput('accountId', accountId));
+                    if (folderName !== undefined) {
+                        form.appendChild(createHiddenInput('folderName', folderName));
+                    }
+                    form.appendChild(createHiddenInput('returnUrl', '@Context.Request.Path@Context.Request.QueryString'));
+                    if (btn.dataset.searchTerm !== undefined) {
+                        form.appendChild(createHiddenInput('searchTerm', btn.dataset.searchTerm || ''));
+                        form.appendChild(createHiddenInput('fromDate', btn.dataset.fromDate || ''));
+                        form.appendChild(createHiddenInput('toDate', btn.dataset.toDate || ''));
+                        form.appendChild(createHiddenInput('isOutgoing', btn.dataset.isOutgoing || ''));
+                    }
+                    document.body.appendChild(form);
+                    form.submit();
+                };
+
+                new bootstrap.Modal(document.getElementById('folderDeleteConfirmModal')).show();
+            });
+        }
+
+        setupFolderDeleteButton('emptyFolderBtn', '@Url.Action("DeleteFolder", "Emails")', 'emptyFolderConfirmTitle', 'emptyFolderConfirmWarning');
+        setupFolderDeleteButton('deleteFilteredBtn', '@Url.Action("DeleteFiltered", "Emails")', 'deleteFilteredConfirmTitle', 'deleteFilteredConfirmWarning');
+        setupFolderDeleteButton('deleteAllFilteredBtn', '@Url.Action("DeleteFilteredAllFolders", "Emails")', 'deleteAllFilteredConfirmTitle', 'deleteAllFilteredConfirmWarning');
+
+        const folderDeleteCopyBtn = document.getElementById('folderDeleteCopyBtn');
+        if (folderDeleteCopyBtn) {
+            const folderDeleteCopyIcon = folderDeleteCopyBtn.querySelector('i');
+            const showCopyFeedback = function(success) {
+                if (!folderDeleteCopyIcon) return;
+                const originalIconClass = 'bi bi-clipboard';
+                folderDeleteCopyBtn.classList.remove('btn-outline-dark');
+                folderDeleteCopyBtn.classList.toggle('btn-outline-success', success);
+                folderDeleteCopyBtn.classList.toggle('btn-outline-danger', !success);
+                folderDeleteCopyIcon.className = success ? 'bi bi-clipboard-check' : 'bi bi-clipboard-x';
+                setTimeout(function() {
+                    folderDeleteCopyBtn.classList.remove('btn-outline-success', 'btn-outline-danger');
+                    folderDeleteCopyBtn.classList.add('btn-outline-dark');
+                    folderDeleteCopyIcon.className = originalIconClass;
+                }, 1500);
+            };
+
+            folderDeleteCopyBtn.addEventListener('click', function() {
+                const nameDisplay = document.getElementById('folderDeleteNameDisplay');
+                nameDisplay.select();
+                nameDisplay.setSelectionRange(0, 99999);
+
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(nameDisplay.value).then(function() {
+                        showCopyFeedback(true);
+                    }, function() {
+                        showCopyFeedback(document.execCommand('copy'));
+                    });
+                } else {
+                    // navigator.clipboard requires a secure context (HTTPS/localhost);
+                    // fall back to the legacy selection-based copy for plain HTTP deployments.
+                    showCopyFeedback(document.execCommand('copy'));
+                }
+            });
         }
 
         @if (Model.ShowSelectionControls)

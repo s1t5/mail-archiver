@@ -2123,6 +2123,45 @@
   <data name="DeleteSelectedEmailsConfirm" xml:space="preserve">
     <value>Biztosan véglegesen törölni szeretné a(z) {0} kiválasztott e-mailt? Ez a művelet nem vonható vissza és minden törlés naplózásra kerül audit célokból.</value>
   </data>
+  <data name="EmptyFolder" xml:space="preserve">
+    <value>Mappa ürítése</value>
+  </data>
+  <data name="DeleteFilteredEmails" xml:space="preserve">
+    <value>Szűrt e-mailek törlése</value>
+  </data>
+  <data name="EmptyFolderConfirmTitle" xml:space="preserve">
+    <value>Mappa végleges ürítése</value>
+  </data>
+  <data name="DeleteFilteredConfirmTitle" xml:space="preserve">
+    <value>Szűrt e-mailek végleges törlése</value>
+  </data>
+  <data name="EmptyFolderConfirmWarning" xml:space="preserve">
+    <value>Ez véglegesen törli a(z) {0} e-mailt a(z) "{1}" mappából. Ez a művelet nem vonható vissza, és minden törlés naplózásra kerül.</value>
+  </data>
+  <data name="DeleteFilteredConfirmWarning" xml:space="preserve">
+    <value>Ez véglegesen törli az aktuális szűrőnek megfelelő {0} e-mailt a(z) "{1}" mappából. Ez a művelet nem vonható vissza, és minden törlés naplózásra kerül.</value>
+  </data>
+  <data name="TypeFolderNameToConfirm" xml:space="preserve">
+    <value>A megerősítéshez írja be alább a mappa nevét (a fenti mezőből átmásolhatja):</value>
+  </data>
+  <data name="PermanentlyDeleteConfirmButton" xml:space="preserve">
+    <value>Végleges törlés</value>
+  </data>
+  <data name="DeleteAllFilteredEmails" xml:space="preserve">
+    <value>Szűrt e-mailek törlése (összes mappa)</value>
+  </data>
+  <data name="DeleteAllFilteredConfirmTitle" xml:space="preserve">
+    <value>Szűrt e-mailek végleges törlése az összes mappában</value>
+  </data>
+  <data name="DeleteAllFilteredConfirmWarning" xml:space="preserve">
+    <value>Ez véglegesen törli az aktuális szűrőnek megfelelő összes ({0}) e-mailt a fiók valamennyi mappájában. Ez a művelet nem vonható vissza, és minden törlés naplózásra kerül.</value>
+  </data>
+  <data name="TypeDeleteWordToConfirm" xml:space="preserve">
+    <value>A megerősítéshez írja be alább: "{0}"</value>
+  </data>
+  <data name="DeleteConfirmationWord" xml:space="preserve">
+    <value>TÖRLÉS</value>
+  </data>
   <data name="EmailDeleted" xml:space="preserve">
     <value>E-mail sikeresen törölve</value>
   </data>

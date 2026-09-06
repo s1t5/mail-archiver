@@ -2130,6 +2130,45 @@
   <data name="DeleteSelectedEmailsConfirm" xml:space="preserve">
     <value>¿Está seguro de que desea eliminar permanentemente {0} correo(s) seleccionado(s)? Esta acción no se puede deshacer y cada eliminación se registrará con fines de auditoría.</value>
   </data>
+  <data name="EmptyFolder" xml:space="preserve">
+    <value>Vaciar carpeta</value>
+  </data>
+  <data name="DeleteFilteredEmails" xml:space="preserve">
+    <value>Eliminar correos filtrados</value>
+  </data>
+  <data name="EmptyFolderConfirmTitle" xml:space="preserve">
+    <value>Vaciar carpeta permanentemente</value>
+  </data>
+  <data name="DeleteFilteredConfirmTitle" xml:space="preserve">
+    <value>Eliminar permanentemente los correos filtrados</value>
+  </data>
+  <data name="EmptyFolderConfirmWarning" xml:space="preserve">
+    <value>Esto eliminará permanentemente los {0} correo(s) de la carpeta "{1}". Esta acción no se puede deshacer y cada eliminación quedará registrada.</value>
+  </data>
+  <data name="DeleteFilteredConfirmWarning" xml:space="preserve">
+    <value>Esto eliminará permanentemente los {0} correo(s) que coinciden con el filtro actual en la carpeta "{1}". Esta acción no se puede deshacer y cada eliminación quedará registrada.</value>
+  </data>
+  <data name="TypeFolderNameToConfirm" xml:space="preserve">
+    <value>Para confirmar, escribe el nombre de la carpeta a continuación (puedes copiarlo del campo de arriba):</value>
+  </data>
+  <data name="PermanentlyDeleteConfirmButton" xml:space="preserve">
+    <value>Eliminar permanentemente</value>
+  </data>
+  <data name="DeleteAllFilteredEmails" xml:space="preserve">
+    <value>Eliminar correos filtrados (todas las carpetas)</value>
+  </data>
+  <data name="DeleteAllFilteredConfirmTitle" xml:space="preserve">
+    <value>Eliminar permanentemente los correos filtrados en todas las carpetas</value>
+  </data>
+  <data name="DeleteAllFilteredConfirmWarning" xml:space="preserve">
+    <value>Esto eliminará permanentemente los {0} correo(s) que coinciden con el filtro actual en todas las carpetas de esta cuenta. Esta acción no se puede deshacer y cada eliminación quedará registrada.</value>
+  </data>
+  <data name="TypeDeleteWordToConfirm" xml:space="preserve">
+    <value>Para confirmar, escribe "{0}" a continuación:</value>
+  </data>
+  <data name="DeleteConfirmationWord" xml:space="preserve">
+    <value>ELIMINAR</value>
+  </data>
   <data name="EmailDeleted" xml:space="preserve">
     <value>Correo eliminado exitosamente</value>
   </data>

@@ -2228,6 +2228,45 @@
   <data name="DeleteSelectedEmailsConfirm" xml:space="preserve">
     <value>Sind Sie sicher, dass Sie {0} ausgewählte E-Mail(s) dauerhaft löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden und jede Löschung wird zu Prüfzwecken protokolliert.</value>
   </data>
+  <data name="EmptyFolder" xml:space="preserve">
+    <value>Ordner leeren</value>
+  </data>
+  <data name="DeleteFilteredEmails" xml:space="preserve">
+    <value>Gefilterte Mails löschen</value>
+  </data>
+  <data name="EmptyFolderConfirmTitle" xml:space="preserve">
+    <value>Ordner endgültig leeren</value>
+  </data>
+  <data name="DeleteFilteredConfirmTitle" xml:space="preserve">
+    <value>Gefilterte E-Mails endgültig löschen</value>
+  </data>
+  <data name="EmptyFolderConfirmWarning" xml:space="preserve">
+    <value>Dies löscht endgültig alle {0} E-Mail(s) im Ordner "{1}". Diese Aktion kann nicht rückgängig gemacht werden und jede Löschung wird protokolliert.</value>
+  </data>
+  <data name="DeleteFilteredConfirmWarning" xml:space="preserve">
+    <value>Dies löscht endgültig die {0} E-Mail(s), die dem aktuellen Filter im Ordner "{1}" entsprechen. Diese Aktion kann nicht rückgängig gemacht werden und jede Löschung wird protokolliert.</value>
+  </data>
+  <data name="TypeFolderNameToConfirm" xml:space="preserve">
+    <value>Zur Bestätigung den Ordnernamen unten eingeben (du kannst ihn aus dem Feld oben kopieren):</value>
+  </data>
+  <data name="PermanentlyDeleteConfirmButton" xml:space="preserve">
+    <value>Endgültig löschen</value>
+  </data>
+  <data name="DeleteAllFilteredEmails" xml:space="preserve">
+    <value>Gefilterte Mails löschen (alle Ordner)</value>
+  </data>
+  <data name="DeleteAllFilteredConfirmTitle" xml:space="preserve">
+    <value>Gefilterte E-Mails kontoweit endgültig löschen</value>
+  </data>
+  <data name="DeleteAllFilteredConfirmWarning" xml:space="preserve">
+    <value>Dies löscht endgültig alle {0} E-Mail(s), die dem aktuellen Filter entsprechen, über alle Ordner dieses Kontos hinweg. Diese Aktion kann nicht rückgängig gemacht werden und jede Löschung wird protokolliert.</value>
+  </data>
+  <data name="TypeDeleteWordToConfirm" xml:space="preserve">
+    <value>Zur Bestätigung unten "{0}" eingeben:</value>
+  </data>
+  <data name="DeleteConfirmationWord" xml:space="preserve">
+    <value>LÖSCHEN</value>
+  </data>
   <data name="EmailDeleted" xml:space="preserve">
     <value>E-Mail erfolgreich gelöscht</value>
   </data>
