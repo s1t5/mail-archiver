@@ -14,6 +14,9 @@ namespace MailArchiver.Services.Providers.Graph
         /// </summary>
         Task<List<string>> GetMailFoldersAsync(MailAccount account);
 
+        /// <inheritdoc cref="MailArchiver.Services.Providers.IProviderEmailService.GetMailFolderDetailsAsync"/>
+        Task<List<MailFolderInfo>> GetMailFolderDetailsAsync(MailAccount account);
+
         /// <summary>
         /// Retrieves all mail folders (including child folders) for a user.
         /// </summary>

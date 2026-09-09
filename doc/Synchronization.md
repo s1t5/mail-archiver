@@ -133,8 +133,19 @@ as before. It exists for the case where many mailboxes are imported from the sam
 alternative is maintaining an identical exclusion list on every single account.
 
 The global entries are shown on the **Account Details** page next to the account's own, whenever any
-are configured. Without that the two lists are asymmetric in the UI: one is editable and visible, the
-other applies silently, so a folder can go unsynced with nothing anywhere explaining why.
+are configured, and on the **Edit Mail Account** page, which is where the question "do I still need
+to add this one" actually comes up. Without that the two lists are asymmetric in the UI: one is
+editable and visible, the other applies silently, so a folder can go unsynced with nothing anywhere
+explaining why.
+
+In the folder picker on the edit page, folders the global list already covers are shown struck
+through and cannot be selected. Adding them per account would change nothing, and offering the choice
+would suggest the folder is otherwise synced. They are shown rather than hidden, because a folder
+that exists and is skipped is worth seeing.
+
+Whether a folder is covered is decided on the server, through the same matcher the sync uses. It
+cannot be a name comparison in the browser, because the rules below include an unanchored match on
+the folder's own name: a global entry `Kontakte` also covers `Vorgeschlagene Kontakte`.
 
 Both lists use the same matching rules, so they cannot drift apart:
 

@@ -652,6 +652,9 @@
   <data name="GlobalExcludedFoldersHint" xml:space="preserve">
     <value>Configured installation-wide and applied on top of this account's own list. Not editable here.</value>
   </data>
+  <data name="FolderAlreadyExcludedGlobally" xml:space="preserve">
+    <value>Already excluded for all accounts — nothing to change here</value>
+  </data>
   <data name="EnterFolderNames" xml:space="preserve">
     <value>Enter folder names separated by semicolons, e.g.: Junk;Spam;Trash</value>
   </data>

@@ -710,6 +710,9 @@
   <data name="GlobalExcludedFoldersHint" xml:space="preserve">
     <value>Skonfigurowane dla całej instalacji i stosowane obok własnej listy konta. Nie można tu edytować.</value>
   </data>
+  <data name="FolderAlreadyExcludedGlobally" xml:space="preserve">
+    <value>Już wykluczone dla wszystkich kont — nie ma tu nic do zmiany</value>
+  </data>
   <data name="EnterFolderNames" xml:space="preserve">
     <value>Wprowadź nazwy folderów oddzielone średnikami, np.: Śmieci;Spam;Kosz</value>
   </data>

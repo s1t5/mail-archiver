@@ -655,6 +655,9 @@
   <data name="GlobalExcludedFoldersHint" xml:space="preserve">
     <value>Configurato a livello di installazione e applicato in aggiunta all'elenco dell'account. Non modificabile qui.</value>
   </data>
+  <data name="FolderAlreadyExcludedGlobally" xml:space="preserve">
+    <value>Già esclusa per tutti gli account — qui non c'è nulla da modificare</value>
+  </data>
   <data name="EnterFolderNames" xml:space="preserve">
     <value>Inserisci nomi cartelle separati da punto e virgola, es: Junk;Spam;Trash</value>
   </data>

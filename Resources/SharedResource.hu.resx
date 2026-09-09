@@ -658,6 +658,9 @@
   <data name="GlobalExcludedFoldersHint" xml:space="preserve">
     <value>A teljes telepítésre beállítva, a fiók saját listáján felül érvényes. Itt nem szerkeszthető.</value>
   </data>
+  <data name="FolderAlreadyExcludedGlobally" xml:space="preserve">
+    <value>Már minden fiókból kizárva — itt nincs mit módosítani</value>
+  </data>
   <data name="EnterFolderNames" xml:space="preserve">
     <value>Adja meg a mappa neveket pontosvesszővel elválasztva, pl.: Levélszemét;Spam;Lomtár</value>
   </data>

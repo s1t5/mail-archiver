@@ -77,6 +77,38 @@ namespace MailArchiver.Services.Providers
             }
         }
 
+        public async Task<List<MailFolderInfo>> GetMailFolderDetailsAsync(int accountId)
+        {
+            var account = await _context.MailAccounts.FindAsync(accountId);
+            if (account == null)
+                return new List<MailFolderInfo>();
+
+            try
+            {
+                using var client = _connectionFactory.CreateImapClient(account.Name);
+                client.Timeout = 30000;
+                client.ServerCertificateValidationCallback = _connectionFactory.ServerCertificateValidationCallback;
+
+                await _connectionFactory.ConnectWithFallbackAsync(client, account.ImapServer, account.ImapPort ?? 993, account.UseSSL, account.Name);
+                await _connectionFactory.AuthenticateClientAsync(client, account);
+
+                // Same discovery as the sync uses, so the editor shows the same set the sync sees -
+                // including the ones only LSUB reports.
+                var folders = await _folderService.GetAllFoldersAsync(client, account.Name);
+                var details = folders
+                    .Select(f => new MailFolderInfo { FullName = f.FullName, Name = f.Name })
+                    .ToList();
+
+                await client.DisconnectAsync(true);
+                return details;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting mail folder details for account {AccountName}", account.Name);
+                return new List<MailFolderInfo>();
+            }
+        }
+
         public async Task<bool> RestoreEmailToFolderAsync(int emailId, int targetAccountId, string folderName)
         {
             return await _restorer.RestoreEmailToFolderAsync(emailId, targetAccountId, folderName, false);

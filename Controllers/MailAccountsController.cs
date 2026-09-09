@@ -729,7 +729,12 @@ namespace MailArchiver.Controllers
             ViewBag.MsaHasDefaultClientId = _msaOptions.HasDefaultClientId;
             
             // Note: Folders are now loaded on-demand via AJAX to improve page load performance
-            // The GetFolders endpoint handles folder loading when the user clicks the "Load Folders" button
+            // The GetFoldersForExclusion endpoint handles folder loading when the user clicks the
+            // "Load Folders" button, and marks the ones the installation-wide list already covers.
+
+            // Shown read-only next to the account's own list: this is where somebody asks whether
+            // they still need to add Kalender, and the answer is usually no.
+            ViewBag.GlobalExcludedFolders = _mailSyncOptions.GlobalExcludedFolders;
 
             return View(model);
         }
@@ -2382,6 +2387,60 @@ namespace MailArchiver.Controllers
             }
 
             return Redirect(returnUrl ?? Url.Action(nameof(Index)));
+        }
+
+        /// <summary>
+        /// The folder picker for the exclusion editor. Separate from <see cref="GetFolders"/>, which
+        /// three other views consume as a plain string list and which must keep that shape.
+        ///
+        /// Each folder carries whether the installation-wide list already covers it. That has to be
+        /// decided here rather than in the browser: the matching rules include an unanchored suffix
+        /// match on the folder's own name, so a global entry "Kontakte" also excludes
+        /// "Vorgeschlagene Kontakte" — a name comparison in JavaScript would miss exactly the cases
+        /// worth showing.
+        /// </summary>
+        [HttpGet]
+        public async Task<JsonResult> GetFoldersForExclusion(int accountId)
+        {
+            if (!await HasAccessToAccountAsync(accountId))
+            {
+                return Json(new List<MailFolderInfo>());
+            }
+
+            var account = await _context.MailAccounts.FindAsync(accountId);
+            if (account == null || account.Provider == ProviderType.IMPORT)
+            {
+                return Json(new List<MailFolderInfo>());
+            }
+
+            try
+            {
+                List<MailFolderInfo> folders;
+                if (account.Provider == ProviderType.M365)
+                {
+                    folders = await _graphEmailService.GetMailFolderDetailsAsync(account);
+                }
+                else
+                {
+                    var provider = await _providerFactory.GetServiceForAccountAsync(accountId);
+                    folders = await provider.GetMailFolderDetailsAsync(accountId);
+                }
+
+                FolderExclusionMarking.MarkGloballyExcluded(
+                    folders, _mailSyncOptions.GlobalExcludedFolders);
+
+                return Json(folders.Select(f => new
+                {
+                    fullName = f.FullName,
+                    name = f.Name,
+                    globallyExcluded = f.GloballyExcluded
+                }));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading folder details for account {AccountId}", accountId);
+                return Json(new List<MailFolderInfo>());
+            }
         }
 
         // AJAX endpoint for folder loading

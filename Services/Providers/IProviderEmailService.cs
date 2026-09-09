@@ -34,6 +34,14 @@ namespace MailArchiver.Services.Providers
         Task<List<string>> GetMailFoldersAsync(int accountId);
 
         /// <summary>
+        /// The same folders, but carrying their own name alongside the full path. Separate from
+        /// <see cref="GetMailFoldersAsync"/> on purpose: a dozen callers only ever want names, and
+        /// only the exclusion editor needs enough to ask the matcher whether a folder is already
+        /// covered installation-wide.
+        /// </summary>
+        Task<List<MailFolderInfo>> GetMailFolderDetailsAsync(int accountId);
+
+        /// <summary>
         /// Restores a single email to a specific folder
         /// </summary>
         /// <param name="emailId">The archived email ID to restore</param>
