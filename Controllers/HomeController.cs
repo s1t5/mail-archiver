@@ -80,6 +80,10 @@ namespace MailArchiver.Controllers
                     stat.IsSyncPending = !isSyncing
                         && stat.Provider != ProviderType.IMPORT
                         && stat.LastSyncTime <= new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+
+                    var lastRun = _syncJobService.GetLastCompletedJobForAccount(stat.AccountId);
+                    stat.LastRunHadIssues = lastRun != null
+                        && (lastRun.FailedEmails > 0 || lastRun.FailedFolders > 0 || lastRun.MissingFolders > 0);
                 }
             }
 

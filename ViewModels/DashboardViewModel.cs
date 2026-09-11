@@ -40,6 +40,7 @@ namespace MailArchiver.Models.ViewModels
         public ProviderType Provider { get; set; }
         public bool IsSyncing { get; set; }
         public bool IsSyncPending { get; set; }
+        public bool LastRunHadIssues { get; set; }
         public string StorageUsed { get; set; }
     }
 
