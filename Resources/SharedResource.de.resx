@@ -1499,6 +1499,42 @@
   <data name="TimedOut" xml:space="preserve">
     <value>Zeitlimit erreicht</value>
   </data>
+  <data name="LastRunTitle" xml:space="preserve">
+    <value>Letzter Synchronisationslauf</value>
+  </data>
+  <data name="LastRunNone" xml:space="preserve">
+    <value>Seit dem Start der Anwendung noch kein abgeschlossener Lauf.</value>
+  </data>
+  <data name="LastRunSyncInProgress" xml:space="preserve">
+    <value>Gerade läuft eine Synchronisation.</value>
+  </data>
+  <data name="LastRunSummary" xml:space="preserve">
+    <value>Beendet {0}, Dauer {1}, verarbeitete Nachrichten: {2}, neu: {3}.</value>
+  </data>
+  <data name="LastRunHeldBack" xml:space="preserve">
+    <value>Der Zeitstempel der letzten Synchronisation wurde nicht fortgeschrieben, der nächste Lauf deckt denselben Zeitraum erneut ab.</value>
+  </data>
+  <data name="IssueKindFolderFailed" xml:space="preserve">
+    <value>Ordner, die nicht gelesen werden konnten</value>
+  </data>
+  <data name="IssueKindFolderMissing" xml:space="preserve">
+    <value>Ordner, die es auf dem Server nicht gibt</value>
+  </data>
+  <data name="IssueKindFolderMissingHint" xml:space="preserve">
+    <value>Meist übrig gebliebene Abonnements gelöschter Ordner. Harmlos, aber im Mailprogramm aufräumenswert.</value>
+  </data>
+  <data name="IssueKindMessageFailed" xml:space="preserve">
+    <value>Nachrichten, die nicht archiviert werden konnten</value>
+  </data>
+  <data name="IssueNoDetails" xml:space="preserve">
+    <value>Keine Einzelheiten aufgezeichnet.</value>
+  </data>
+  <data name="IssueAndMore" xml:space="preserve">
+    <value>und {0} weitere</value>
+  </data>
+  <data name="LastRunHadIssuesHint" xml:space="preserve">
+    <value>Der letzte Lauf hat Probleme gemeldet</value>
+  </data>
   <data name="SyncProgressTooltip" xml:space="preserve">
     <value>Der Fortschritt wird anhand abgeschlossener Ordner gemessen. Ein großer Ordner (z.&#160;B. INBOX) hält den Balken bei 0%, bis er fertig ist.</value>
   </data>

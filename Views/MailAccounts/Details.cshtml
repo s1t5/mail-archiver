@@ -120,6 +120,123 @@
         </div>
     </div>
 
+
+    @* Last Run Card - what the previous sync actually did, and what went wrong if anything did. *@
+    @{
+        var lastRun = ViewBag.LastRun as MailArchiver.Models.SyncJob;
+        var runHeldBack = lastRun != null && (lastRun.FailedEmails > 0 || lastRun.FailedFolders > 0);
+        var runHasIssues = lastRun != null && (runHeldBack || lastRun.MissingFolders > 0);
+    }
+    <div class="card mb-3">
+        <div class="card-header">
+            @if (lastRun == null)
+            {
+                <i class="bi bi-dash-circle me-1"></i>
+            }
+            else if (runHasIssues)
+            {
+                <i class="bi bi-exclamation-triangle text-warning me-1"></i>
+            }
+            else
+            {
+                <i class="bi bi-check-circle text-success me-1"></i>
+            }
+            @Localizer["LastRunTitle"]
+        </div>
+        <div class="card-body">
+            @if (Model.IsSyncing)
+            {
+                <div class="small text-muted mb-2">
+                    <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+                    @Localizer["LastRunSyncInProgress"]
+                </div>
+            }
+
+            @if (lastRun == null)
+            {
+                <p class="mb-0 text-muted">@Localizer["LastRunNone"]</p>
+            }
+            else
+            {
+                var finished = lastRun.Completed ?? lastRun.Started;
+                var duration = finished - lastRun.Started;
+
+                var finishedStamp = $"<span class=\"utc-timestamp\" data-utc-time=\"{finished.ToString("yyyy-MM-ddTHH:mm:ss")}\">{finished.ToString("g")}</span>";
+
+                <p class="mb-2">
+                    @Html.Raw(string.Format(Localizer["LastRunSummary"].Value,
+                        finishedStamp,
+                        duration.TotalSeconds < 60
+                            ? $"{duration.TotalSeconds:F0} s"
+                            : $"{duration.TotalMinutes:F0} min",
+                        lastRun.ProcessedEmails.ToString("N0"),
+                        lastRun.NewEmails.ToString("N0")))
+                </p>
+
+                @if (runHeldBack)
+                {
+                    <p class="mb-2 text-warning-emphasis">
+                        <i class="bi bi-pause-circle me-1"></i>@Localizer["LastRunHeldBack"]
+                    </p>
+                }
+
+                @if (runHasIssues)
+                {
+                    var kinds = new[]
+                    {
+                        (Kind: MailArchiver.Models.SyncIssueKind.FolderFailed, Label: Localizer["IssueKindFolderFailed"], Count: lastRun.FailedFolders),
+                        (Kind: MailArchiver.Models.SyncIssueKind.FolderMissing, Label: Localizer["IssueKindFolderMissing"], Count: lastRun.MissingFolders),
+                        (Kind: MailArchiver.Models.SyncIssueKind.MessageFailed, Label: Localizer["IssueKindMessageFailed"], Count: lastRun.FailedEmails)
+                    };
+                    var issues = lastRun.Issues.Issues;
+
+                    foreach (var group in kinds.Where(k => k.Count > 0))
+                    {
+                        var shown = issues.Where(i => i.Kind == group.Kind).ToList();
+                        var dropped = lastRun.Issues.DroppedFor(group.Kind);
+
+                        <h6 class="mt-3 mb-1">@group.Label <span class="badge bg-secondary">@group.Count</span></h6>
+
+                        @if (group.Kind == MailArchiver.Models.SyncIssueKind.FolderMissing)
+                        {
+                            <p class="small text-muted mb-1">@Localizer["IssueKindFolderMissingHint"]</p>
+                        }
+
+                        @if (shown.Count == 0)
+                        {
+                            <p class="small text-muted mb-0">@Localizer["IssueNoDetails"]</p>
+                        }
+                        else
+                        {
+                            <ul class="list-unstyled small mb-0">
+                                @foreach (var issue in shown)
+                                {
+                                    <li class="mb-1">
+                                        <i class="bi bi-folder me-1"></i><code>@issue.Folder</code>
+                                        @if (!string.IsNullOrWhiteSpace(issue.Subject))
+                                        {
+                                            <span class="ms-1">— @issue.Subject</span>
+                                        }
+                                        @if (issue.Uid.HasValue)
+                                        {
+                                            <span class="text-muted ms-1">(UID @issue.Uid)</span>
+                                        }
+                                        <div class="text-muted ms-4">@issue.Reason</div>
+                                    </li>
+                                }
+                            </ul>
+
+                            @if (dropped > 0)
+                            {
+                                <p class="small text-muted mb-0">@string.Format(Localizer["IssueAndMore"], dropped)</p>
+                            }
+                        }
+                    }
+                }
+            }
+        </div>
+    </div>
+
     @* Storage & Sync Card *@
     <div class="card mb-3">
         <div class="card-header">

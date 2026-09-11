@@ -2527,6 +2527,42 @@
   <data name="TimedOut" xml:space="preserve">
     <value>Délai dépassé</value>
   </data>
+  <data name="LastRunTitle" xml:space="preserve">
+    <value>Dernière synchronisation</value>
+  </data>
+  <data name="LastRunNone" xml:space="preserve">
+    <value>Aucune exécution terminée depuis le démarrage de l'application.</value>
+  </data>
+  <data name="LastRunSyncInProgress" xml:space="preserve">
+    <value>Une synchronisation est en cours.</value>
+  </data>
+  <data name="LastRunSummary" xml:space="preserve">
+    <value>Terminé {0}, durée {1}, messages traités : {2}, nouveaux : {3}.</value>
+  </data>
+  <data name="LastRunHeldBack" xml:space="preserve">
+    <value>L'horodatage de la dernière synchronisation n'a pas avancé ; la prochaine exécution couvrira la même période.</value>
+  </data>
+  <data name="IssueKindFolderFailed" xml:space="preserve">
+    <value>Dossiers illisibles</value>
+  </data>
+  <data name="IssueKindFolderMissing" xml:space="preserve">
+    <value>Dossiers absents du serveur</value>
+  </data>
+  <data name="IssueKindFolderMissingHint" xml:space="preserve">
+    <value>Il s'agit généralement d'abonnements résiduels à des dossiers supprimés. Sans danger, mais à nettoyer dans votre logiciel de messagerie.</value>
+  </data>
+  <data name="IssueKindMessageFailed" xml:space="preserve">
+    <value>Messages non archivés</value>
+  </data>
+  <data name="IssueNoDetails" xml:space="preserve">
+    <value>Aucun détail enregistré.</value>
+  </data>
+  <data name="IssueAndMore" xml:space="preserve">
+    <value>et {0} de plus</value>
+  </data>
+  <data name="LastRunHadIssuesHint" xml:space="preserve">
+    <value>La dernière exécution a signalé des problèmes</value>
+  </data>
   <data name="SyncProgressTooltip" xml:space="preserve">
     <value>La progression est mesurée par dossiers terminés. Un grand dossier (ex. INBOX) maintient la barre à 0% jusqu'à ce qu'il se termine.</value>
   </data>

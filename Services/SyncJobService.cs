@@ -9,14 +9,25 @@ namespace MailArchiver.Services
     {
         private readonly ConcurrentDictionary<string, SyncJob> _jobs = new();
         private readonly ConcurrentDictionary<int, string> _activeAccountJobs = new(); // Track active jobs per account
+
+        // Last finished run per account, held by reference so it survives the 24-hour cleanup. One
+        // entry per account, so it is bounded by the number of accounts rather than by the number of
+        // runs — the account page needs an answer even for a mailbox that has been quiet all day.
+        private readonly ConcurrentDictionary<int, SyncJob> _lastCompletedByAccount = new();
         private readonly ILogger<SyncJobService> _logger;
         private readonly Timer _cleanupTimer;
         private readonly IServiceProvider _serviceProvider;
 
-        public SyncJobService(ILogger<SyncJobService> logger, IServiceProvider serviceProvider)
+        private readonly int _maxIssuesPerKind;
+
+        public SyncJobService(
+            ILogger<SyncJobService> logger,
+            IServiceProvider serviceProvider,
+            Microsoft.Extensions.Options.IOptions<MailSyncOptions> mailSyncOptions)
         {
             _logger = logger;
             _serviceProvider = serviceProvider;
+            _maxIssuesPerKind = mailSyncOptions.Value.MaxIssuesPerKind;
             
             // Cleanup-Timer: Jeden Stunde alte Jobs entfernen
             _cleanupTimer = new Timer(
@@ -60,7 +71,8 @@ namespace MailArchiver.Services
                 MailAccountId = accountId,
                 AccountName = accountName,
                 LastSync = lastSync,
-                UserId = string.IsNullOrEmpty(userId) ? "System" : userId
+                UserId = string.IsNullOrEmpty(userId) ? "System" : userId,
+                Issues = new MailArchiver.Services.Shared.SyncIssueLog(_maxIssuesPerKind)
             };
 
             _jobs[job.JobId] = job;
@@ -125,6 +137,7 @@ namespace MailArchiver.Services
                 
                 // Remove from active account jobs
                 _activeAccountJobs.TryRemove(job.MailAccountId, out _);
+                RememberAsLastCompleted(job);
                 
                 _logger.LogInformation("Completed sync job {JobId} with status {Status}", 
                     jobId, job.Status);
@@ -141,6 +154,7 @@ namespace MailArchiver.Services
                 
                 // Remove from active account jobs
                 _activeAccountJobs.TryRemove(job.MailAccountId, out _);
+                RememberAsLastCompleted(job);
                 
                 _logger.LogWarning("Sync job {JobId} paused due to rate limit. Checkpoints saved for resume.", jobId);
             }
@@ -156,6 +170,7 @@ namespace MailArchiver.Services
 
                 // Remove from active account jobs
                 _activeAccountJobs.TryRemove(job.MailAccountId, out _);
+                RememberAsLastCompleted(job);
 
                 _logger.LogWarning("Sync job {JobId} stopped at the sync timeout. Checkpoints kept for resume.", jobId);
             }
@@ -186,6 +201,11 @@ namespace MailArchiver.Services
                     
                     // Remove from active account jobs
                     _activeAccountJobs.TryRemove(job.MailAccountId, out _);
+
+                    // A cancelled run is still a run that ended, and saying so on the account page is
+                    // more use than showing the one before it as if nothing had happened since.
+                    RememberAsLastCompleted(job);
+
                     _logger.LogInformation("Cancelled sync job {JobId} for account {AccountName}", jobId, job.AccountName);
                     return true;
                 }
@@ -277,6 +297,20 @@ namespace MailArchiver.Services
             return true;
         }
 
+        public SyncJob? GetLastCompletedJobForAccount(int accountId)
+        {
+            return _lastCompletedByAccount.TryGetValue(accountId, out var job) ? job : null;
+        }
+
+        /// <summary>
+        /// Records a job as this account's last finished run. Called from every terminal path, so
+        /// the account page shows what actually happened rather than only the runs that went well.
+        /// </summary>
+        private void RememberAsLastCompleted(SyncJob job)
+        {
+            _lastCompletedByAccount[job.MailAccountId] = job;
+        }
+
         public void CleanupOldJobs()
         {
             var cutoffTime = DateTime.UtcNow.AddHours(-24);
@@ -289,6 +323,9 @@ namespace MailArchiver.Services
             {
                 if (_jobs.TryGetValue(jobId, out var job))
                 {
+                    // Deliberately not RememberAsLastCompleted here: this is the 24-hour cleanup, and
+                    // the job being removed is by definition older than whatever is already recorded
+                    // as the account's last run.
                     _activeAccountJobs.TryRemove(job.MailAccountId, out _);
                 }
                 _jobs.TryRemove(jobId, out _);

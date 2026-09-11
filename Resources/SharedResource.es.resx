@@ -2526,6 +2526,42 @@
   <data name="TimedOut" xml:space="preserve">
     <value>Tiempo de espera agotado</value>
   </data>
+  <data name="LastRunTitle" xml:space="preserve">
+    <value>Última ejecución de sincronización</value>
+  </data>
+  <data name="LastRunNone" xml:space="preserve">
+    <value>Ninguna ejecución completada desde el inicio de la aplicación.</value>
+  </data>
+  <data name="LastRunSyncInProgress" xml:space="preserve">
+    <value>Hay una sincronización en curso.</value>
+  </data>
+  <data name="LastRunSummary" xml:space="preserve">
+    <value>Finalizado {0}, duración {1}, mensajes procesados: {2}, nuevos: {3}.</value>
+  </data>
+  <data name="LastRunHeldBack" xml:space="preserve">
+    <value>La marca de tiempo de la última sincronización no avanzó, por lo que la próxima ejecución cubrirá el mismo periodo.</value>
+  </data>
+  <data name="IssueKindFolderFailed" xml:space="preserve">
+    <value>Carpetas que no se pudieron leer</value>
+  </data>
+  <data name="IssueKindFolderMissing" xml:space="preserve">
+    <value>Carpetas que no existen en el servidor</value>
+  </data>
+  <data name="IssueKindFolderMissingHint" xml:space="preserve">
+    <value>Suelen ser suscripciones sobrantes de carpetas eliminadas. Inofensivo, pero conviene limpiarlo en su programa de correo.</value>
+  </data>
+  <data name="IssueKindMessageFailed" xml:space="preserve">
+    <value>Mensajes que no se pudieron archivar</value>
+  </data>
+  <data name="IssueNoDetails" xml:space="preserve">
+    <value>No se registraron detalles.</value>
+  </data>
+  <data name="IssueAndMore" xml:space="preserve">
+    <value>y {0} más</value>
+  </data>
+  <data name="LastRunHadIssuesHint" xml:space="preserve">
+    <value>La última ejecución informó de problemas</value>
+  </data>
   <data name="SyncProgressTooltip" xml:space="preserve">
     <value>El progreso se mide por carpetas completadas. Una carpeta grande (p.&#160;ej. INBOX) mantiene la barra en 0% hasta que termina.</value>
   </data>

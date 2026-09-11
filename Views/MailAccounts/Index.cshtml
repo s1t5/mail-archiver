@@ -140,6 +140,15 @@
                                     {
                                         <span class="text-muted">@Localizer["NotSynced"]</span>
                                     }
+                                    @if (item.LastRunHadIssues)
+                                    {
+                                        <a asp-action="Details" asp-route-id="@item.Id"
+                                           class="ms-1 text-warning text-decoration-none"
+                                           title="@Localizer["LastRunHadIssuesHint"]">
+                                            <i class="bi bi-exclamation-triangle-fill"></i>
+                                        </a>
+                                    }
+
                                 </td>
                                 <td class="small text-nowrap">@item.StorageUsed</td>
                                 <td>

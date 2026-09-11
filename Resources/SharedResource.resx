@@ -1463,6 +1463,42 @@
   <data name="TimedOut" xml:space="preserve">
     <value>Timed Out</value>
   </data>
+  <data name="LastRunTitle" xml:space="preserve">
+    <value>Last Sync Run</value>
+  </data>
+  <data name="LastRunNone" xml:space="preserve">
+    <value>No completed run since the application started.</value>
+  </data>
+  <data name="LastRunSyncInProgress" xml:space="preserve">
+    <value>A sync is running right now.</value>
+  </data>
+  <data name="LastRunSummary" xml:space="preserve">
+    <value>Finished {0}, took {1}, messages processed: {2}, new: {3}.</value>
+  </data>
+  <data name="LastRunHeldBack" xml:space="preserve">
+    <value>The last-sync timestamp was not advanced, so the next run covers the same period again.</value>
+  </data>
+  <data name="IssueKindFolderFailed" xml:space="preserve">
+    <value>Folders that could not be read</value>
+  </data>
+  <data name="IssueKindFolderMissing" xml:space="preserve">
+    <value>Folders the server does not have</value>
+  </data>
+  <data name="IssueKindFolderMissingHint" xml:space="preserve">
+    <value>Usually left-over subscriptions to folders that were deleted. Harmless, but worth clearing in your mail program.</value>
+  </data>
+  <data name="IssueKindMessageFailed" xml:space="preserve">
+    <value>Messages that could not be archived</value>
+  </data>
+  <data name="IssueNoDetails" xml:space="preserve">
+    <value>No details recorded.</value>
+  </data>
+  <data name="IssueAndMore" xml:space="preserve">
+    <value>and {0} more</value>
+  </data>
+  <data name="LastRunHadIssuesHint" xml:space="preserve">
+    <value>The last run reported problems</value>
+  </data>
   <data name="SyncProgressTooltip" xml:space="preserve">
     <value>Progress is measured by completed folders. A large folder (e.g. INBOX) keeps the bar at 0% until it finishes.</value>
   </data>

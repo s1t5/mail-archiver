@@ -44,6 +44,14 @@ namespace MailArchiver.Models.ViewModels
         // The UI shows "Synchronization pending…" instead of 01.01.1970.
         public bool IsSyncPending { get; set; }
 
+        /// <summary>
+        /// The last finished run left something behind — failed messages, failed folders or folders
+        /// the server says are gone. Drives a marker next to LastSync in the account list, which is
+        /// where a stale timestamp is actually noticed. Only set when there is something to say: a
+        /// green tick on every row would be wallpaper and would defeat the point of the marker.
+        /// </summary>
+        public bool LastRunHadIssues { get; set; }
+
         [Display(Name = "Account Enabled")]
         public bool IsEnabled { get; set; } = true;
 

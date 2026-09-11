@@ -21,8 +21,10 @@ public class SyncJobServiceTests
     private readonly TestDbFixture _fixture;
     public SyncJobServiceTests(TestDbFixture fixture) => _fixture = fixture;
 
-    private SyncJobService CreateService(MailArchiverDbContext sharedContext) =>
-        new(NullLogger<SyncJobService>.Instance, ServiceFactory.BuildScopedProviderFor(sharedContext));
+    private SyncJobService CreateService(MailArchiverDbContext sharedContext, int maxIssuesPerKind = 20) =>
+        new(NullLogger<SyncJobService>.Instance,
+            ServiceFactory.BuildScopedProviderFor(sharedContext),
+            Microsoft.Extensions.Options.Options.Create(new MailSyncOptions { MaxIssuesPerKind = maxIssuesPerKind }));
 
     private static async Task<MailAccount> SeedAccountAsync(MailArchiverDbContext ctx, ProviderType provider = ProviderType.IMAP)
     {

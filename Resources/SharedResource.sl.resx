@@ -2527,6 +2527,42 @@
   <data name="TimedOut" xml:space="preserve">
     <value>Časovna omejitev presežena</value>
   </data>
+  <data name="LastRunTitle" xml:space="preserve">
+    <value>Zadnji sinhronizacijski zagon</value>
+  </data>
+  <data name="LastRunNone" xml:space="preserve">
+    <value>Od zagona aplikacije ni bilo dokončanega zagona.</value>
+  </data>
+  <data name="LastRunSyncInProgress" xml:space="preserve">
+    <value>Trenutno poteka sinhronizacija.</value>
+  </data>
+  <data name="LastRunSummary" xml:space="preserve">
+    <value>Končano {0}, trajanje {1}, obdelanih sporočil: {2}, novih: {3}.</value>
+  </data>
+  <data name="LastRunHeldBack" xml:space="preserve">
+    <value>Časovni žig zadnje sinhronizacije se ni premaknil, zato bo naslednji zagon zajel isto obdobje.</value>
+  </data>
+  <data name="IssueKindFolderFailed" xml:space="preserve">
+    <value>Mape, ki jih ni bilo mogoče prebrati</value>
+  </data>
+  <data name="IssueKindFolderMissing" xml:space="preserve">
+    <value>Mape, ki jih na strežniku ni</value>
+  </data>
+  <data name="IssueKindFolderMissingHint" xml:space="preserve">
+    <value>Običajno so to ostanki naročnin na izbrisane mape. Neškodljivo, a vredno počistiti v poštnem programu.</value>
+  </data>
+  <data name="IssueKindMessageFailed" xml:space="preserve">
+    <value>Sporočila, ki jih ni bilo mogoče arhivirati</value>
+  </data>
+  <data name="IssueNoDetails" xml:space="preserve">
+    <value>Podrobnosti niso zabeležene.</value>
+  </data>
+  <data name="IssueAndMore" xml:space="preserve">
+    <value>in še {0}</value>
+  </data>
+  <data name="LastRunHadIssuesHint" xml:space="preserve">
+    <value>Zadnji zagon je javil težave</value>
+  </data>
   <data name="SyncProgressTooltip" xml:space="preserve">
     <value>Napredek se meri po končanih mapah. Velika mapa (npr. INBOX) drži vrstico na 0%, dokler se ne konča.</value>
   </data>
