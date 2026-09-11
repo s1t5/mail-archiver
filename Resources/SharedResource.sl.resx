@@ -649,6 +649,12 @@
   <data name="ExcludedFolders" xml:space="preserve">
     <value>Izločene mape</value>
   </data>
+  <data name="GlobalExcludedFolders" xml:space="preserve">
+    <value>Izključeno za vse račune</value>
+  </data>
+  <data name="GlobalExcludedFoldersHint" xml:space="preserve">
+    <value>Nastavljeno za celotno namestitev in velja poleg lastnega seznama računa. Tu ni mogoče urejati.</value>
+  </data>
   <data name="EnterFolderNames" xml:space="preserve">
     <value>Vnesite imena map, ločena s podpičji, npr.: Neželena pošta; Koš</value>
   </data>

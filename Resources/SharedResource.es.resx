@@ -652,6 +652,12 @@
   <data name="ExcludedFolders" xml:space="preserve">
     <value>Carpetas Excluidas</value>
   </data>
+  <data name="GlobalExcludedFolders" xml:space="preserve">
+    <value>Excluidas para todas las cuentas</value>
+  </data>
+  <data name="GlobalExcludedFoldersHint" xml:space="preserve">
+    <value>Configurado para toda la instalación y aplicado además de la lista propia de la cuenta. No editable aquí.</value>
+  </data>
   <data name="EnterFolderNames" xml:space="preserve">
     <value>Ingrese nombres de carpetas separados por punto y coma, ej.: Correo no deseado;Spam;Papelera</value>
   </data>

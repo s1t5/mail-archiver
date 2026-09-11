@@ -132,6 +132,10 @@ The global list is **empty by default**, so an installation that never configure
 as before. It exists for the case where many mailboxes are imported from the same server and the
 alternative is maintaining an identical exclusion list on every single account.
 
+The global entries are shown on the **Account Details** page next to the account's own, whenever any
+are configured. Without that the two lists are asymmetric in the UI: one is editable and visible, the
+other applies silently, so a folder can go unsynced with nothing anywhere explaining why.
+
 Both lists use the same matching rules, so they cannot drift apart:
 
 1. exact match against the folder's full path (`INBOX/Drafts`);

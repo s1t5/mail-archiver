@@ -26,6 +26,7 @@ namespace MailArchiver.Controllers
     private readonly ILogger<MailAccountsController> _logger;
     private readonly BatchRestoreOptions _batchOptions;
     private readonly TenantManagementOptions _tenantManagementOptions;
+    private readonly MailSyncOptions _mailSyncOptions;
     private readonly ISyncJobService _syncJobService;
     private readonly IMBoxImportService _mboxImportService;
     private readonly IEmlImportService _emlImportService;
@@ -62,6 +63,7 @@ namespace MailArchiver.Controllers
         IAccountStorageService accountStorageService,
         IOptions<CsvImportOptions> csvImportOptions,
         IOptions<OffloadOptions> offloadOptions,
+        IOptions<MailSyncOptions> mailSyncOptions,
         IBatchRestoreService batchRestoreService,
         MailArchiver.Utilities.DateTimeHelper dateTimeHelper)
     {
@@ -72,6 +74,7 @@ namespace MailArchiver.Controllers
         _logger = logger;
         _batchOptions = batchOptions.Value;
         _tenantManagementOptions = tenantManagementOptions.Value;
+        _mailSyncOptions = mailSyncOptions.Value;
         _syncJobService = syncJobService;
         _mboxImportService = mboxImportService;
         _emlImportService = emlImportService;
@@ -265,6 +268,11 @@ namespace MailArchiver.Controllers
                 && account.LastSync <= new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 
             ViewBag.EmailCount = emailCount;
+
+            // The installation-wide exclusions apply on top of the account's own and are otherwise
+            // invisible, so a folder can go unsynced with no explanation anywhere in the UI.
+            ViewBag.GlobalExcludedFolders = _mailSyncOptions.GlobalExcludedFolders;
+
             return View(model);
         }
 

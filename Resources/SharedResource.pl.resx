@@ -704,6 +704,12 @@
   <data name="ExcludedFolders" xml:space="preserve">
     <value>Foldery Wyłączone</value>
   </data>
+  <data name="GlobalExcludedFolders" xml:space="preserve">
+    <value>Wykluczone dla wszystkich kont</value>
+  </data>
+  <data name="GlobalExcludedFoldersHint" xml:space="preserve">
+    <value>Skonfigurowane dla całej instalacji i stosowane obok własnej listy konta. Nie można tu edytować.</value>
+  </data>
   <data name="EnterFolderNames" xml:space="preserve">
     <value>Wprowadź nazwy folderów oddzielone średnikami, np.: Śmieci;Spam;Kosz</value>
   </data>

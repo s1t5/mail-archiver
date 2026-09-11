@@ -652,6 +652,12 @@
   <data name="ExcludedFolders" xml:space="preserve">
     <value>Kizárt Mappák</value>
   </data>
+  <data name="GlobalExcludedFolders" xml:space="preserve">
+    <value>Minden fiókból kizárva</value>
+  </data>
+  <data name="GlobalExcludedFoldersHint" xml:space="preserve">
+    <value>A teljes telepítésre beállítva, a fiók saját listáján felül érvényes. Itt nem szerkeszthető.</value>
+  </data>
   <data name="EnterFolderNames" xml:space="preserve">
     <value>Adja meg a mappa neveket pontosvesszővel elválasztva, pl.: Levélszemét;Spam;Lomtár</value>
   </data>

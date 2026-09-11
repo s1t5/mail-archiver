@@ -649,6 +649,12 @@
   <data name="ExcludedFolders" xml:space="preserve">
     <value>Uitgesloten mappen</value>
   </data>
+  <data name="GlobalExcludedFolders" xml:space="preserve">
+    <value>Uitgesloten voor alle accounts</value>
+  </data>
+  <data name="GlobalExcludedFoldersHint" xml:space="preserve">
+    <value>Installatiebreed geconfigureerd en aanvullend op de eigen lijst van dit account. Hier niet te bewerken.</value>
+  </data>
   <data name="EnterFolderNames" xml:space="preserve">
     <value>Voer mapnamen in gescheiden door puntkomma's, bijv.: Junk;Spam;Trash</value>
   </data>

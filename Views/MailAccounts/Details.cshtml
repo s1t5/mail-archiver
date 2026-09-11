@@ -224,11 +224,31 @@
                     <dt class="col-sm-3">@Localizer["ExcludedFolders"]</dt>
                     <dd class="col-sm-9">
                         <div class="d-flex flex-wrap gap-1">
-                            @foreach (var folder in Model.ExcludedFolders.Split(new[] { '\n', ',' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+                            @* Semicolon, because that is what MailAccount.ExcludedFoldersList parses
+                               and what the edit form writes. Splitting on commas here showed two
+                               badges for a single entry that matched nothing. *@
+                            @foreach (var folder in Model.ExcludedFolders.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
                             {
                                 <span class="badge bg-light text-dark"><i class="bi bi-folder-x me-1"></i>@folder</span>
                             }
                         </div>
+                    </dd>
+                }
+
+                @{
+                    var globalExcluded = ViewBag.GlobalExcludedFolders as IEnumerable<string> ?? Enumerable.Empty<string>();
+                }
+                @if (globalExcluded.Any())
+                {
+                    <dt class="col-sm-3">@Localizer["GlobalExcludedFolders"]</dt>
+                    <dd class="col-sm-9">
+                        <div class="d-flex flex-wrap gap-1 mb-1">
+                            @foreach (var folder in globalExcluded)
+                            {
+                                <span class="badge bg-secondary-subtle text-dark border"><i class="bi bi-folder-x me-1"></i>@folder</span>
+                            }
+                        </div>
+                        <div class="form-text">@Localizer["GlobalExcludedFoldersHint"]</div>
                     </dd>
                 }
             </dl>
