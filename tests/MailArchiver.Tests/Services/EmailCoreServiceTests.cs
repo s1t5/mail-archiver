@@ -592,6 +592,38 @@ public class EmailCoreServiceTests
     }
 
     [Fact]
+    public async Task GetDashboardStatisticsAsync_AccountPanel_LimitedTo25ByLastSyncDesc()
+    {
+        var ctx = _fixture.CreateContext();
+        try
+        {
+            // More accounts than the panel shows, with last-sync times spread far enough apart
+            // that the ordering is unambiguous whatever else the shared DB holds.
+            for (int i = 0; i < 30; i++)
+            {
+                var seeded = await SeedAccountAsync(ctx);
+                seeded.LastSync = DateTime.UtcNow.AddMinutes(-i);
+            }
+            await ctx.SaveChangesAsync();
+
+            var svc = ServiceFactory.CreateEmailCoreServiceNoCache(ctx);
+            var dash = await svc.GetDashboardStatisticsAsync();
+
+            // The panel is capped and ordered by last sync, newest first. The shared Dev DB may
+            // hold accounts of its own, so only the cap and the ordering are checked, the same
+            // way the recent-emails test does it.
+            Assert.True(dash.EmailsPerAccount.Count <= 25);
+            for (int i = 1; i < dash.EmailsPerAccount.Count; i++)
+                Assert.True(dash.EmailsPerAccount[i - 1].LastSyncTime >= dash.EmailsPerAccount[i].LastSyncTime);
+        }
+        finally
+        {
+            await CleanupTestAccountAsync(ctx);
+            await ctx.DisposeAsync();
+        }
+    }
+
+    [Fact]
     public async Task GetDashboardStatisticsAsync_MonthsBucketsCurrentMonthCounted()
     {
         var ctx = _fixture.CreateContext();

@@ -170,6 +170,8 @@ namespace MailArchiver.Controllers
 
                 model.EmailsPerAccount = ctx.MailAccounts
                     .Where(a => accountIds.Contains(a.Id))
+                    .OrderByDescending(a => a.LastSync)
+                    .Take(MailArchiver.Services.Core.EmailCoreService.DashboardAccountRows)
                     .Select(a => new AccountStatistics
                     {
                         AccountId = a.Id,
