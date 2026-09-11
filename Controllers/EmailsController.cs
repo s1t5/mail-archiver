@@ -2189,7 +2189,7 @@ namespace MailArchiver.Controllers
                 var allBatchJobs = GetAllBatchJobsFromService();
                 batchJobs = allBatchJobs
                     .OrderByDescending(j => j.Status == BatchRestoreJobStatus.Queued || j.Status == BatchRestoreJobStatus.Running)
-                    .ThenByDescending(j => j.Created)
+                    .ThenByDescending(j => j.Completed ?? j.Created)
                     .Take(20) // Apply top 20 restriction
                     .ToList();
             }
@@ -2200,7 +2200,12 @@ namespace MailArchiver.Controllers
                 var allSyncJobs = _syncJobService.GetAllJobs();
                 syncJobs = allSyncJobs
                     .OrderByDescending(j => j.Status == SyncJobStatus.Running) // Running jobs first
-                    .ThenByDescending(j => j.Started) // Then by start time
+                    // Then by when they ended, not when they began. Sorting finished jobs by start
+                    // time pushes the long ones to the back the moment they finish: a run that took
+                    // an hour started earlier than everything that started and finished while it was
+                    // still going. With a sync timeout that is not a near miss but a guarantee, and
+                    // the timed-out runs are exactly the ones worth seeing.
+                    .ThenByDescending(j => j.Completed ?? j.Started)
                     .Take(20) // Apply top 20 restriction
                     .ToList();
             }
@@ -2213,7 +2218,7 @@ namespace MailArchiver.Controllers
                 {
                     mboxJobs = mboxService.GetAllJobs()
                         .OrderByDescending(j => j.Status == MBoxImportJobStatus.Running || j.Status == MBoxImportJobStatus.Queued)
-                        .ThenByDescending(j => j.Created)
+                        .ThenByDescending(j => j.Completed ?? j.Created)
                         .Take(20) // Apply top 20 restriction
                         .ToList();
                 }
@@ -2230,7 +2235,7 @@ namespace MailArchiver.Controllers
                 {
                     exportJobs = _exportService.GetAllJobs()
                         .OrderByDescending(j => j.Status == AccountExportJobStatus.Running || j.Status == AccountExportJobStatus.Queued)
-                        .ThenByDescending(j => j.Created)
+                        .ThenByDescending(j => j.Completed ?? j.Created)
                         .Take(20) // Apply top 20 restriction
                         .ToList();
                 }
@@ -2248,7 +2253,7 @@ namespace MailArchiver.Controllers
                 {
                     selectedEmailsExportJobs = selectedEmailsExportService.GetAllJobs()
                         .OrderByDescending(j => j.Status == SelectedEmailsExportJobStatus.Running || j.Status == SelectedEmailsExportJobStatus.Queued)
-                        .ThenByDescending(j => j.Created)
+                        .ThenByDescending(j => j.Completed ?? j.Created)
                         .Take(20) // Apply top 20 restriction
                         .ToList();
                 }
@@ -2266,7 +2271,7 @@ namespace MailArchiver.Controllers
                 {
                     emlImportJobs = emlImportService.GetAllJobs()
                         .OrderByDescending(j => j.Status == EmlImportJobStatus.Running || j.Status == EmlImportJobStatus.Queued)
-                        .ThenByDescending(j => j.Created)
+                        .ThenByDescending(j => j.Completed ?? j.Created)
                         .Take(20) // Apply top 20 restriction consistent with other job types
                         .ToList();
                 }
