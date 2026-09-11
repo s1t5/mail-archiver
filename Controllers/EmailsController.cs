@@ -158,7 +158,7 @@ namespace MailArchiver.Controllers
                     accountsQuery = accountsQuery.Where(a => false);
                 }
             }
-            var accounts = await accountsQuery.ToListAsync();
+            var accounts = await accountsQuery.OrderBy(a => a.Name).ToListAsync();
             
             model.AccountOptions = new List<SelectListItem>
             {

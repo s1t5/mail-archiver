@@ -454,7 +454,7 @@ namespace MailArchiver.Controllers
             }
 
             // Get all mail accounts
-            var allAccounts = await _context.MailAccounts.ToListAsync();
+            var allAccounts = await _context.MailAccounts.OrderBy(a => a.Name).ToListAsync();
 
             // Get currently assigned accounts
             var assignedAccounts = await _userService.GetUserMailAccountsAsync(id);
