@@ -331,6 +331,27 @@ namespace MailArchiver.Services
                 _jobs.TryRemove(jobId, out _);
             }
 
+            // The last-run index is keyed by account and held by reference, so a deleted account
+            // would keep its entry until the process restarts. Harmless in size, but an installation
+            // that creates and drops accounts - a bulk import being tested, say - accumulates them.
+            // Pruned against what the database actually holds rather than against enabled accounts:
+            // a disabled account's last run is still the answer its page should give.
+            try
+            {
+                using var scope = _serviceProvider.CreateScope();
+                var context = scope.ServiceProvider.GetRequiredService<MailArchiverDbContext>();
+                var existingIds = context.MailAccounts.Select(a => a.Id).ToHashSet();
+
+                foreach (var accountId in _lastCompletedByAccount.Keys.Where(id => !existingIds.Contains(id)).ToList())
+                {
+                    _lastCompletedByAccount.TryRemove(accountId, out _);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogDebug(ex, "Could not prune the last-run index (non-fatal)");
+            }
+
             if (toRemove.Any())
             {
                 _logger.LogInformation("Cleaned up {Count} old sync jobs", toRemove.Count);
