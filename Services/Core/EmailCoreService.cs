@@ -968,35 +968,80 @@ namespace MailArchiver.Services.Core
         /// </summary>
         internal const int DashboardAccountRows = 25;
 
-        public async Task<DashboardViewModel> GetDashboardStatisticsAsync()
+        /// <summary>
+        /// Picks the accounts the dashboard panel shows and puts the ones whose last run reported
+        /// something at the top, then orders by last sync descending.
+        ///
+        /// Ordering by last sync alone drops exactly the accounts worth looking at. A run that
+        /// failed messages or folders does not advance LastSync, so such an account keeps sinking
+        /// while the healthy ones move up on every cycle, and on an installation with more
+        /// accounts than rows it leaves the panel altogether. Missing folders do not hold the
+        /// timestamp back, so that milder case stayed visible while the worse one did not.
+        ///
+        /// The issue flag comes from the in-process last-run index and not from a column, so the
+        /// order cannot be expressed in SQL. Hence two passes: two columns for every account, the
+        /// decision in memory, and the per-account message count only for the rows that survive
+        /// it. The expensive projection still runs over <see cref="DashboardAccountRows"/> rows,
+        /// which is the point of capping it in the first place.
+        /// </summary>
+        internal static List<AccountStatistics> BuildAccountPanel(
+            IQueryable<MailAccount> accounts,
+            Func<int, bool> lastRunHadIssues)
         {
+            var candidates = accounts
+                .Select(a => new { a.Id, a.LastSync })
+                .ToList();
+
+            var chosen = candidates
+                .OrderByDescending(a => lastRunHadIssues(a.Id))
+                .ThenByDescending(a => a.LastSync)
+                .Take(DashboardAccountRows)
+                .Select(a => a.Id)
+                .ToList();
+
+            var rows = accounts
+                .Where(a => chosen.Contains(a.Id))
+                .Select(a => new AccountStatistics
+                {
+                    AccountId = a.Id,
+                    AccountName = a.Name,
+                    EmailAddress = a.EmailAddress,
+                    EmailCount = a.ArchivedEmails.Count,
+                    LastSyncTime = a.LastSync,
+                    IsEnabled = a.IsEnabled,
+                    Provider = a.Provider
+                })
+                .ToDictionary(a => a.AccountId);
+
+            // Contains() carries no order, and the order is the whole point here. An account
+            // deleted between the two passes is simply not in the second one.
+            return chosen
+                .Where(rows.ContainsKey)
+                .Select(id => rows[id])
+                .ToList();
+        }
+
+        /// <param name="lastRunHadIssues">
+        /// Whether an account's last finished run reported anything. Comes from the caller because
+        /// it lives in the sync job service and not in the database. Null orders by last sync
+        /// alone, which is what a caller without that index gets.
+        /// </param>
+        public async Task<DashboardViewModel> GetDashboardStatisticsAsync(
+            Func<int, bool>? lastRunHadIssues = null)
+        {
+            var hasIssues = lastRunHadIssues ?? (_ => false);
             return await GetOrCreateCachedStatisticsAsync("admin", queryable =>
                 new DashboardViewModel
                 {
                     TotalEmails = queryable.ArchivedEmails.Count(),
                     TotalAccounts = queryable.MailAccounts.Count(),
                     TotalAttachments = queryable.EmailAttachments.Count(),
-                    // Ordered and capped before the projection, so the per-account count is
-                    // computed for the rows that are shown and not for every account on the
-                    // installation. The panel sits next to the ten most recent emails and is meant
-                    // to be read at a glance, not to be a second account list: that one is one
-                    // click away and pages. Accounts that never completed a sync sort last by
-                    // their epoch timestamp, which is where they belong when mailboxes are
-                    // provisioned disabled and switched on later.
-                    EmailsPerAccount = queryable.MailAccounts
-                        .OrderByDescending(a => a.LastSync)
-                        .Take(DashboardAccountRows)
-                        .Select(a => new AccountStatistics
-                        {
-                            AccountId = a.Id,
-                            AccountName = a.Name,
-                            EmailAddress = a.EmailAddress,
-                            EmailCount = a.ArchivedEmails.Count,
-                            LastSyncTime = a.LastSync,
-                            IsEnabled = a.IsEnabled,
-                            Provider = a.Provider
-                        })
-                        .ToList(),
+                    // The panel sits next to the ten most recent emails and is meant to be read at
+                    // a glance, not to be a second account list: that one is one click away and
+                    // pages. Accounts that never completed a sync sort last by their epoch
+                    // timestamp, which is where they belong when mailboxes are provisioned
+                    // disabled and switched on later.
+                    EmailsPerAccount = BuildAccountPanel(queryable.MailAccounts, hasIssues),
                     EmailsByMonth = BuildEmailsByMonth(queryable.ArchivedEmails),
                     TopSenders = queryable.ArchivedEmails
                         .Where(e => !e.IsOutgoing)

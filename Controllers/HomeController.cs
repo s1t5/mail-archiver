@@ -47,7 +47,7 @@ namespace MailArchiver.Controllers
             // If user is admin, show all accounts, otherwise show only assigned accounts
             if (currentUser != null && currentUser.IsAdmin)
             {
-                model = await _emailCoreService.GetDashboardStatisticsAsync();
+                model = await _emailCoreService.GetDashboardStatisticsAsync(LastRunHadIssues);
             }
             else if (currentUser != null)
             {
@@ -61,7 +61,7 @@ namespace MailArchiver.Controllers
             else
             {
                 // Fallback to default dashboard
-                model = await _emailCoreService.GetDashboardStatisticsAsync();
+                model = await _emailCoreService.GetDashboardStatisticsAsync(LastRunHadIssues);
             }
 
             // Speicherverbrauch pro Account befuellen (aus Cache)
@@ -81,10 +81,7 @@ namespace MailArchiver.Controllers
                         && stat.Provider != ProviderType.IMPORT
                         && stat.LastSyncTime <= new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 
-                    var lastRun = _syncJobService.GetLastCompletedJobForAccount(stat.AccountId);
-                    stat.LastRunHadIssues = lastRun != null
-                        && ((!lastRun.FailuresAcknowledged && (lastRun.FailedEmails > 0 || lastRun.FailedFolders > 0))
-                            || lastRun.MissingFolders > 0);
+                    stat.LastRunHadIssues = LastRunHadIssues(stat.AccountId);
                 }
             }
 
@@ -96,6 +93,19 @@ namespace MailArchiver.Controllers
             }
 
             return View(model);
+        }
+
+        /// <summary>
+        /// Whether an account's last finished run reported anything. One definition for both uses:
+        /// it decides the warning marker on a row and which rows the panel keeps at all, and those
+        /// two drifting apart would show a panel ordered by one rule and marked by another.
+        /// </summary>
+        private bool LastRunHadIssues(int accountId)
+        {
+            var lastRun = _syncJobService.GetLastCompletedJobForAccount(accountId);
+            return lastRun != null
+                && ((!lastRun.FailuresAcknowledged && (lastRun.FailedEmails > 0 || lastRun.FailedFolders > 0))
+                    || lastRun.MissingFolders > 0);
         }
 
         public IActionResult Privacy()
@@ -173,21 +183,11 @@ namespace MailArchiver.Controllers
                 model.TotalAttachments = ctx.EmailAttachments
                     .Count(a => accountEmails.Any(e => e.Id == a.ArchivedEmailId));
 
-                model.EmailsPerAccount = ctx.MailAccounts
-                    .Where(a => accountIds.Contains(a.Id))
-                    .OrderByDescending(a => a.LastSync)
-                    .Take(MailArchiver.Services.Core.EmailCoreService.DashboardAccountRows)
-                    .Select(a => new AccountStatistics
-                    {
-                        AccountId = a.Id,
-                        AccountName = a.Name,
-                        EmailAddress = a.EmailAddress,
-                        EmailCount = a.ArchivedEmails.Count,
-                        LastSyncTime = a.LastSync,
-                        IsEnabled = a.IsEnabled,
-                        Provider = a.Provider
-                    })
-                    .ToList();
+                // Same rule as the admin dashboard, and through the same helper: a self-manager
+                // watching a handful of accounts has the same reason to see a troubled one first.
+                model.EmailsPerAccount = MailArchiver.Services.Core.EmailCoreService.BuildAccountPanel(
+                    ctx.MailAccounts.Where(a => accountIds.Contains(a.Id)),
+                    LastRunHadIssues);
 
                 model.EmailsByMonth = MailArchiver.Services.Core.EmailCoreService
                     .BuildEmailsByMonth(accountEmails);
