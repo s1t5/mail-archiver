@@ -1,5 +1,6 @@
 @inject Microsoft.Extensions.Localization.IStringLocalizer<MailArchiver.SharedResource> Localizer
 @inject MailArchiver.Services.IAuthenticationService AuthService
+@inject Microsoft.Extensions.Options.IOptions<MailArchiver.Models.JobsOptions> JobsOptions
 @model List<MailArchiver.Models.BatchRestoreJob>
 @{
     ViewData["Title"] = Localizer["Jobs"];
@@ -1119,7 +1120,23 @@
 @section Scripts {
     <script>
         const lastUpdateLabel = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["LastUpdate"].Value));
-        setTimeout(function(){ location.reload(); }, 5000);
+        const refreshSeconds = @JobsOptions.Value.RefreshSeconds;
+
+        // The reload is cancelled as soon as the visitor is on their way somewhere else. Without
+        // that, a click on a link that has not finished loading when the timer fires is replaced
+        // by a reload of this page, and the click is simply lost. The click handler runs in the
+        // capture phase because beforeunload arrives only once the navigation has taken over,
+        // which is already too late.
+        if (refreshSeconds > 0) {
+            const reloadTimer = setTimeout(function () { location.reload(); }, refreshSeconds * 1000);
+            const cancelReload = function () { clearTimeout(reloadTimer); };
+            document.addEventListener('click', function (e) {
+                if (e.target.closest('a[href], button[type="submit"], input[type="submit"]')) cancelReload();
+            }, true);
+            document.addEventListener('submit', cancelReload, true);
+            window.addEventListener('beforeunload', cancelReload);
+        }
+
         document.addEventListener('DOMContentLoaded', function(){
             const refreshInfo=document.createElement('small');
             refreshInfo.className='text-muted float-end';
