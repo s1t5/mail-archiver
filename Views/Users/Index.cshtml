@@ -28,6 +28,13 @@
                 </div>
                 <div class="d-flex align-items-center gap-2">
                     <span class="small" id="userPageInfo" data-template="@Localizer["PageOf", "{PAGE}", "{TOTAL}"]">@Localizer["PageOf", 1, totalPages]</span>
+                    <select id="userPageSize" class="form-select form-select-sm" style="width: 80px;">
+                        <option value="20">20</option>
+                        <option value="50" selected>50</option>
+                        <option value="75">75</option>
+                        <option value="100">100</option>
+                        <option value="150">150</option>
+                    </select>
                 </div>
             </div>
         </div>
@@ -43,19 +50,21 @@
                 <table class="table table-striped table-hover table-sm mb-0">
                     <thead class="table-dark">
                         <tr>
-                            <th>@Localizer["Username"]</th>
-                            <th>@Localizer["Email"]</th>
+                            <th class="user-sort" data-sort-key="username" style="cursor: pointer;">@Localizer["Username"] <span class="sort-indicator"></span></th>
+                            <th class="user-sort" data-sort-key="email" style="cursor: pointer;">@Localizer["Email"] <span class="sort-indicator"></span></th>
                             <th>@Localizer["Role"]</th>
                             <th>@Localizer["Status"]</th>
-                            <th>@Localizer["Created"]</th>
-                            <th>@Localizer["LastLogin"]</th>
+                            <th class="user-sort" data-sort-key="created" style="cursor: pointer;">@Localizer["Created"] <span class="sort-indicator"></span></th>
+                            <th class="user-sort" data-sort-key="lastlogin" style="cursor: pointer;">@Localizer["LastLogin"] <span class="sort-indicator"></span></th>
                             <th class="text-center">@Localizer["Actions"]</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="userTableBody">
                         @foreach (var item in Model)
                         {
-                            <tr class="user-row" data-search="@($"{item.Username} {item.Email}")">
+                            <tr class="user-row" data-search="@($"{item.Username} {item.Email}")"
+                                data-username="@item.Username" data-email="@item.Email"
+                                data-created="@item.CreatedAt.Ticks" data-lastlogin="@(item.LastLoginAt?.Ticks ?? 0)">
                                 <td><a asp-action="Details" asp-route-id="@item.Id">@item.Username</a></td>
                                 <td>@item.Email</td>
                                 <td>
@@ -154,11 +163,48 @@
             var desktopRows = Array.from(document.querySelectorAll('.user-row'));
             var mobileRows = Array.from(document.querySelectorAll('.user-card'));
             var allRows = desktopRows.map(function(dr, i) {
-                return { desktop: dr, mobile: mobileRows[i], search: (dr.getAttribute('data-search') || '').toLowerCase() };
+                return {
+                    desktop: dr,
+                    mobile: mobileRows[i],
+                    search: (dr.getAttribute('data-search') || '').toLowerCase(),
+                    username: (dr.getAttribute('data-username') || '').toLowerCase(),
+                    email: (dr.getAttribute('data-email') || '').toLowerCase(),
+                    created: parseInt(dr.getAttribute('data-created'), 10) || 0,
+                    lastlogin: parseInt(dr.getAttribute('data-lastlogin'), 10) || 0
+                };
             });
             var filteredRows = allRows;
+            var sortKey = null;
+            var sortDir = 1;
 
             function totalPages() { return Math.max(1, Math.ceil(filteredRows.length / pageSize)); }
+
+            function applySort() {
+                if (!sortKey) { return; }
+                var numeric = sortKey === 'created' || sortKey === 'lastlogin';
+                filteredRows.sort(function(a, b) {
+                    var x = a[sortKey], y = b[sortKey];
+                    if (numeric) { return (x - y) * sortDir; }
+                    return String(x).localeCompare(String(y)) * sortDir;
+                });
+
+                // The table body and the card list hold the same users in the same order, and the
+                // pager pairs them by position, so both have to be reordered together.
+                var tbody = document.getElementById('userTableBody');
+                var cards = document.getElementById('userCardList');
+                filteredRows.forEach(function(row) {
+                    if (tbody) { tbody.appendChild(row.desktop); }
+                    if (cards && row.mobile) { cards.appendChild(row.mobile); }
+                });
+
+                document.querySelectorAll('.user-sort .sort-indicator').forEach(function(el) {
+                    el.className = 'sort-indicator';
+                });
+                var active = document.querySelector('.user-sort[data-sort-key="' + sortKey + '"] .sort-indicator');
+                if (active) {
+                    active.className = 'sort-indicator bi ' + (sortDir === 1 ? 'bi-caret-up-fill' : 'bi-caret-down-fill');
+                }
+            }
 
             function renderPage() {
                 var start = (currentPage - 1) * pageSize;
@@ -224,6 +270,7 @@
                     });
                 }
                 currentPage = 1;
+                applySort();
                 renderPage();
                 renderPagination();
                 updateSummary();
@@ -251,6 +298,32 @@
                     renderPagination();
                     updateSummary();
                     window.scrollTo({ top: 0, behavior: 'smooth' });
+                });
+            }
+
+            document.querySelectorAll('.user-sort').forEach(function(th) {
+                th.addEventListener('click', function() {
+                    var key = th.getAttribute('data-sort-key');
+                    sortDir = (sortKey === key) ? -sortDir : 1;
+                    sortKey = key;
+                    currentPage = 1;
+                    applySort();
+                    renderPage();
+                    renderPagination();
+                    updateSummary();
+                });
+            });
+
+            var pageSizeSelect = document.getElementById('userPageSize');
+            if (pageSizeSelect) {
+                pageSizeSelect.addEventListener('change', function() {
+                    var value = parseInt(pageSizeSelect.value, 10);
+                    if (!value || value < 1) { return; }
+                    pageSize = value;
+                    currentPage = 1;
+                    renderPage();
+                    renderPagination();
+                    updateSummary();
                 });
             }
 
@@ -289,7 +362,7 @@
         @await Html.PartialAsync("_ModalTemplate", deleteUserModal)
     }
 }
-    <div class="d-lg-none">
+    <div class="d-lg-none" id="userCardList">
         @foreach (var item in Model)
         {
             <div class="card mb-3 user-card" data-search="@($"{item.Username} {item.Email}")">
