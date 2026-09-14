@@ -2542,6 +2542,9 @@
   <data name="LastRunHeldBack" xml:space="preserve">
     <value>Отметка времени последней синхронизации не была продвинута, поэтому следующий запуск охватит тот же период.</value>
   </data>
+  <data name="LastRunFailuresAcknowledged" xml:space="preserve">
+    <value>Ошибки этого запуска были подтверждены, поэтому отметка времени последней синхронизации была продвинута.</value>
+  </data>
   <data name="LastRunResumes" xml:space="preserve">
     <value>Запуск был приостановлен, а не завершён. Следующий продолжится с места остановки.</value>
   </data>

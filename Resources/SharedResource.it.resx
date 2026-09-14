@@ -2542,6 +2542,9 @@
   <data name="LastRunHeldBack" xml:space="preserve">
     <value>La marca temporale dell'ultima sincronizzazione non è avanzata, quindi la prossima esecuzione coprirà lo stesso periodo.</value>
   </data>
+  <data name="LastRunFailuresAcknowledged" xml:space="preserve">
+    <value>Gli errori di questa esecuzione sono stati riconosciuti, quindi la marca temporale dell'ultima sincronizzazione è avanzata.</value>
+  </data>
   <data name="LastRunResumes" xml:space="preserve">
     <value>L'esecuzione è stata messa in pausa, non completata. La successiva riprenderà da dove questa si è fermata.</value>
   </data>

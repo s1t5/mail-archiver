@@ -2542,6 +2542,9 @@
   <data name="LastRunHeldBack" xml:space="preserve">
     <value>Časovni žig zadnje sinhronizacije se ni premaknil, zato bo naslednji zagon zajel isto obdobje.</value>
   </data>
+  <data name="LastRunFailuresAcknowledged" xml:space="preserve">
+    <value>Napake tega zagona so bile potrjene, zato se je časovni žig zadnje sinhronizacije premaknil.</value>
+  </data>
   <data name="LastRunResumes" xml:space="preserve">
     <value>Izvajanje je bilo zaustavljeno, ne zaključeno. Naslednje se bo nadaljevalo tam, kjer se je to ustavilo.</value>
   </data>

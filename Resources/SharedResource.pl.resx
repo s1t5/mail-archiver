@@ -2588,6 +2588,9 @@
   <data name="LastRunHeldBack" xml:space="preserve">
     <value>Znacznik czasu ostatniej synchronizacji nie został przesunięty, więc następny przebieg obejmie ten sam okres.</value>
   </data>
+  <data name="LastRunFailuresAcknowledged" xml:space="preserve">
+    <value>Błędy tego przebiegu zostały uznane, więc znacznik czasu ostatniej synchronizacji został przesunięty.</value>
+  </data>
   <data name="LastRunResumes" xml:space="preserve">
     <value>Przebieg został wstrzymany, a nie zakończony. Następny zacznie w miejscu, w którym ten się zatrzymał.</value>
   </data>

@@ -83,7 +83,8 @@ namespace MailArchiver.Controllers
 
                     var lastRun = _syncJobService.GetLastCompletedJobForAccount(stat.AccountId);
                     stat.LastRunHadIssues = lastRun != null
-                        && (lastRun.FailedEmails > 0 || lastRun.FailedFolders > 0 || lastRun.MissingFolders > 0);
+                        && ((!lastRun.FailuresAcknowledged && (lastRun.FailedEmails > 0 || lastRun.FailedFolders > 0))
+                            || lastRun.MissingFolders > 0);
                 }
             }
 

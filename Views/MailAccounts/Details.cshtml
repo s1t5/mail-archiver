@@ -124,7 +124,15 @@
     @* Last Run Card - what the previous sync actually did, and what went wrong if anything did. *@
     @{
         var lastRun = ViewBag.LastRun as MailArchiver.Models.SyncJob;
-        var runHeldBack = lastRun != null && (lastRun.FailedEmails > 0 || lastRun.FailedFolders > 0);
+
+        // Acknowledging a failed run advances LastSync past it. From then on the timestamp has been
+        // advanced, so the run must stop claiming it was held back and must stop raising the
+        // attention marker. The detail list stays so the record is still somewhere on the page.
+        var failuresAcknowledged = lastRun?.FailuresAcknowledged == true;
+        var hasFailedWork = lastRun != null && (lastRun.FailedEmails > 0 || lastRun.FailedFolders > 0);
+        var runHeldBack = hasFailedWork && !failuresAcknowledged;
+        var runAcknowledged = hasFailedWork && failuresAcknowledged;
+        var hasIssueDetails = lastRun != null && (hasFailedWork || lastRun.MissingFolders > 0);
         var runHasIssues = lastRun != null && (runHeldBack || lastRun.MissingFolders > 0);
 
         // How a run ended is a different question from whether anything in it went wrong, and the
@@ -211,6 +219,13 @@
                     </p>
                 }
 
+                @if (runAcknowledged)
+                {
+                    <p class="mb-2 text-muted">
+                        <i class="bi bi-check2-all me-1"></i>@Localizer["LastRunFailuresAcknowledged"]
+                    </p>
+                }
+
                 @if (runPaused)
                 {
                     <p class="mb-2 text-muted">
@@ -226,7 +241,7 @@
                     </p>
                 }
 
-                @if (runHasIssues)
+                @if (hasIssueDetails)
                 {
                     var kinds = new[]
                     {

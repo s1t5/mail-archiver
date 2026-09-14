@@ -2534,6 +2534,9 @@
   <data name="LastRunHeldBack" xml:space="preserve">
     <value>A legutóbbi szinkronizálás időbélyege nem lépett előre, ezért a következő futás ugyanazt az időszakot dolgozza fel.</value>
   </data>
+  <data name="LastRunFailuresAcknowledged" xml:space="preserve">
+    <value>A futás hibái elismerésre kerültek, ezért a legutóbbi szinkronizálás időbélyege előre lépett.</value>
+  </data>
   <data name="LastRunResumes" xml:space="preserve">
     <value>A futás szünetel, nem fejeződött be. A következő ott folytatja, ahol ez abbamaradt.</value>
   </data>

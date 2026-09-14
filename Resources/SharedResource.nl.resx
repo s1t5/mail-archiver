@@ -2542,6 +2542,9 @@
   <data name="LastRunHeldBack" xml:space="preserve">
     <value>De tijdstempel van de laatste synchronisatie is niet bijgewerkt; de volgende uitvoering behandelt dezelfde periode opnieuw.</value>
   </data>
+  <data name="LastRunFailuresAcknowledged" xml:space="preserve">
+    <value>De fouten van deze uitvoering zijn erkend, daarom is de tijdstempel van de laatste synchronisatie bijgewerkt.</value>
+  </data>
   <data name="LastRunResumes" xml:space="preserve">
     <value>De uitvoering is gepauzeerd, niet voltooid. De volgende gaat verder waar deze is gestopt.</value>
   </data>

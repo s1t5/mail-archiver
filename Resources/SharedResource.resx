@@ -1478,6 +1478,9 @@
   <data name="LastRunHeldBack" xml:space="preserve">
     <value>The last-sync timestamp was not advanced, so the next run covers the same period again.</value>
   </data>
+  <data name="LastRunFailuresAcknowledged" xml:space="preserve">
+    <value>The failures in this run were acknowledged, so the last-sync timestamp was advanced.</value>
+  </data>
   <data name="LastRunResumes" xml:space="preserve">
     <value>The run was paused, not finished. The next one picks up where this one stopped.</value>
   </data>
