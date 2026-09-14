@@ -2519,6 +2519,9 @@
   <data name="EmailDeletionJobs" xml:space="preserve">
     <value>Zadania Usuwania E-Mail</value>
   </data>
+  <data name="AccountDeletionJobs" xml:space="preserve">
+    <value>Zadania usuwania kont</value>
+  </data>
   <data name="ShowHtml" xml:space="preserve">
   <value>Pokaż HTML</value>
   </data>

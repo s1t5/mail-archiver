@@ -853,6 +853,147 @@
         }
     }
     
+    @* Deletion Jobs Section - both kinds have their own status page, and until now the only way
+       there was the redirect that started them. Compact on purpose: the status page carries the
+       detail, this is about being able to find it again. *@
+    @if (ViewBag.AccountDeletionJobs != null)
+    {
+        var accountDeletionJobs = ViewBag.AccountDeletionJobs as List<MailArchiver.Models.MailAccountDeletionJob>;
+        if (accountDeletionJobs != null && accountDeletionJobs.Any())
+        {
+            <div class="card mb-4">
+                <div class="card-header">
+                    <span class="h6 mb-0"><i class="bi bi-trash me-2"></i>@Localizer["AccountDeletionJobs"]</span>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive d-none d-lg-block">
+                        <table class="table table-striped table-hover table-sm mb-0">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>@Localizer["JobID"]</th>
+                                    <th>@Localizer["AccountName"]</th>
+                                    <th>@Localizer["Status"]</th>
+                                    <th>@Localizer["EmailsLabel"]</th>
+                                    <th>@Localizer["CreatedLabel"]</th>
+                                    <th>@Localizer["Actions"]</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var job in accountDeletionJobs)
+                                {
+                                    var cls = job.Status switch
+                                    {
+                                        MailArchiver.Models.MailAccountDeletionJobStatus.Running => "primary",
+                                        MailArchiver.Models.MailAccountDeletionJobStatus.Completed => "success",
+                                        MailArchiver.Models.MailAccountDeletionJobStatus.Failed => "danger",
+                                        MailArchiver.Models.MailAccountDeletionJobStatus.Cancelled => "warning",
+                                        _ => "secondary"
+                                    };
+                                    <tr>
+                                        <td><code>@job.JobId.Substring(0, 8)...</code></td>
+                                        <td>@job.MailAccountName</td>
+                                        <td><span class="badge bg-@cls">@Localizer[job.Status.ToString()]</span></td>
+                                        <td>@job.DeletedEmails.ToString("N0") / @job.TotalEmails.ToString("N0")</td>
+                                        <td><span class="utc-timestamp" data-utc-time="@job.Created.ToString("yyyy-MM-ddTHH:mm:ss")">@job.Created.ToString("g")</span></td>
+                                        <td>
+                                            <a asp-controller="MailAccounts" asp-action="DeletionStatus" asp-route-jobId="@job.JobId"
+                                               class="btn btn-outline-secondary btn-sm">@Localizer["Details"]</a>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="d-lg-none">
+                        @foreach (var job in accountDeletionJobs)
+                        {
+                            <div class="border rounded p-2 mb-2">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <strong>@job.MailAccountName</strong>
+                                    <span class="badge bg-secondary">@Localizer[job.Status.ToString()]</span>
+                                </div>
+                                <div class="small text-muted">
+                                    @job.DeletedEmails.ToString("N0") / @job.TotalEmails.ToString("N0")
+                                    · <span class="utc-timestamp" data-utc-time="@job.Created.ToString("yyyy-MM-ddTHH:mm:ss")">@job.Created.ToString("g")</span>
+                                </div>
+                                <a asp-controller="MailAccounts" asp-action="DeletionStatus" asp-route-jobId="@job.JobId"
+                                   class="btn btn-outline-secondary btn-sm mt-2">@Localizer["Details"]</a>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+    }
+
+    @if (ViewBag.EmailDeletionJobs != null)
+    {
+        var emailDeletionJobs = ViewBag.EmailDeletionJobs as List<MailArchiver.Models.EmailDeletionJob>;
+        if (emailDeletionJobs != null && emailDeletionJobs.Any())
+        {
+            <div class="card mb-4">
+                <div class="card-header">
+                    <span class="h6 mb-0"><i class="bi bi-trash me-2"></i>@Localizer["EmailDeletionJobs"]</span>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive d-none d-lg-block">
+                        <table class="table table-striped table-hover table-sm mb-0">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>@Localizer["JobID"]</th>
+                                    <th>@Localizer["Status"]</th>
+                                    <th>@Localizer["EmailsLabel"]</th>
+                                    <th>@Localizer["CreatedLabel"]</th>
+                                    <th>@Localizer["Actions"]</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var job in emailDeletionJobs)
+                                {
+                                    var cls = job.Status switch
+                                    {
+                                        MailArchiver.Models.EmailDeletionJobStatus.Running => "primary",
+                                        MailArchiver.Models.EmailDeletionJobStatus.Completed => "success",
+                                        MailArchiver.Models.EmailDeletionJobStatus.Failed => "danger",
+                                        MailArchiver.Models.EmailDeletionJobStatus.Cancelled => "warning",
+                                        _ => "secondary"
+                                    };
+                                    <tr>
+                                        <td><code>@job.JobId.Substring(0, 8)...</code></td>
+                                        <td><span class="badge bg-@cls">@Localizer[job.Status.ToString()]</span></td>
+                                        <td>@job.DeletedEmails.ToString("N0") / @job.TotalEmails.ToString("N0")</td>
+                                        <td><span class="utc-timestamp" data-utc-time="@job.Created.ToString("yyyy-MM-ddTHH:mm:ss")">@job.Created.ToString("g")</span></td>
+                                        <td>
+                                            <a asp-action="EmailDeletionStatus" asp-route-jobId="@job.JobId"
+                                               class="btn btn-outline-secondary btn-sm">@Localizer["Details"]</a>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="d-lg-none">
+                        @foreach (var job in emailDeletionJobs)
+                        {
+                            <div class="border rounded p-2 mb-2">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <code>@job.JobId.Substring(0, 8)...</code>
+                                    <span class="badge bg-secondary">@Localizer[job.Status.ToString()]</span>
+                                </div>
+                                <div class="small text-muted">
+                                    @job.DeletedEmails.ToString("N0") / @job.TotalEmails.ToString("N0")
+                                    · <span class="utc-timestamp" data-utc-time="@job.Created.ToString("yyyy-MM-ddTHH:mm:ss")">@job.Created.ToString("g")</span>
+                                </div>
+                                <a asp-action="EmailDeletionStatus" asp-route-jobId="@job.JobId"
+                                   class="btn btn-outline-secondary btn-sm mt-2">@Localizer["Details"]</a>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+    }
+
     @* Batch Restore Jobs Section *@
     @if (ViewBag.BatchJobs != null)
     {

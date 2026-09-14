@@ -2455,6 +2455,9 @@
   <data name="EmailDeletionJobs" xml:space="preserve">
     <value>Tâches de suppression d'emails</value>
   </data>
+  <data name="AccountDeletionJobs" xml:space="preserve">
+    <value>Suppressions de comptes</value>
+  </data>
   <data name="EmailDeletionProgress" xml:space="preserve">
     <value>Progression de suppression d'emails</value>
   </data>

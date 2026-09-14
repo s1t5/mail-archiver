@@ -2514,6 +2514,9 @@
   <data name="EmailDeletionJobs" xml:space="preserve">
     <value>Email Deletion Jobs</value>
   </data>
+  <data name="AccountDeletionJobs" xml:space="preserve">
+    <value>Account Deletion Jobs</value>
+  </data>
   <data name="ShowHtml" xml:space="preserve">
     <value>Show HTML</value>
   </data>

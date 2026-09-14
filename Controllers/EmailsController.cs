@@ -2179,6 +2179,8 @@ namespace MailArchiver.Controllers
             var exportJobs = new List<AccountExportJob>();
             var selectedEmailsExportJobs = new List<SelectedEmailsExportJob>();
             var emlImportJobs = new List<EmlImportJob>();
+            var accountDeletionJobs = new List<MailAccountDeletionJob>();
+            var emailDeletionJobs = new List<EmailDeletionJob>();
 
             if (_batchRestoreService != null)
             {
@@ -2274,12 +2276,50 @@ namespace MailArchiver.Controllers
                 // Ignore if service not available
             }
 
+            // Deletion jobs. Both kinds have had their own status page since they were introduced,
+            // reachable only through the redirect that starts them — close the window and there was
+            // no way back, and the job is dropped after 24 hours anyway.
+            try
+            {
+                var accountDeletionService = HttpContext.RequestServices.GetService<IMailAccountDeletionService>();
+                if (accountDeletionService != null)
+                {
+                    accountDeletionJobs = accountDeletionService.GetAllJobs()
+                        .OrderByDescending(j => j.Status == MailAccountDeletionJobStatus.Running || j.Status == MailAccountDeletionJobStatus.Queued)
+                        .ThenByDescending(j => j.Created)
+                        .Take(20) // Apply top 20 restriction consistent with other job types
+                        .ToList();
+                }
+            }
+            catch
+            {
+                // Ignore if service not available
+            }
+
+            try
+            {
+                if (_emailDeletionService != null)
+                {
+                    emailDeletionJobs = _emailDeletionService.GetAllJobs()
+                        .OrderByDescending(j => j.Status == EmailDeletionJobStatus.Running || j.Status == EmailDeletionJobStatus.Queued)
+                        .ThenByDescending(j => j.Created)
+                        .Take(20) // Apply top 20 restriction consistent with other job types
+                        .ToList();
+                }
+            }
+            catch
+            {
+                // Ignore if service not available
+            }
+
             ViewBag.BatchJobs = batchJobs;
             ViewBag.SyncJobs = syncJobs;
             ViewBag.MBoxJobs = mboxJobs;
             ViewBag.ExportJobs = exportJobs;
             ViewBag.SelectedEmailsExportJobs = selectedEmailsExportJobs;
             ViewBag.EmlImportJobs = emlImportJobs;
+            ViewBag.AccountDeletionJobs = accountDeletionJobs;
+            ViewBag.EmailDeletionJobs = emailDeletionJobs;
 
             return View(batchJobs);
         }

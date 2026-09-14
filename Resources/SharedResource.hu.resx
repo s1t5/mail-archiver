@@ -2447,6 +2447,9 @@
   <data name="EmailDeletionJobs" xml:space="preserve">
     <value>E-mail törlési feladatok</value>
   </data>
+  <data name="AccountDeletionJobs" xml:space="preserve">
+    <value>Fióktörlési feladatok</value>
+  </data>
   <data name="EmailDeletionProgress" xml:space="preserve">
     <value>E-mail törlési előrehaladás</value>
   </data>

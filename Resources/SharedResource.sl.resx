@@ -2455,6 +2455,9 @@
   <data name="EmailDeletionJobs" xml:space="preserve">
     <value>Naloge brisanja e-pošte</value>
   </data>
+  <data name="AccountDeletionJobs" xml:space="preserve">
+    <value>Opravila brisanja računov</value>
+  </data>
   <data name="EmailDeletionProgress" xml:space="preserve">
     <value>Napredek brisanja e-pošte</value>
   </data>
