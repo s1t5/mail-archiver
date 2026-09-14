@@ -167,6 +167,7 @@ namespace MailArchiver.Services.Providers.Graph
                                 job.ProcessedEmails = processedEmails;
                                 job.NewEmails = newEmails;
                                 job.FailedEmails = failedEmails;
+                                job.FailedFolders = failedFolders;
                             });
                         }
                     }
@@ -175,6 +176,7 @@ namespace MailArchiver.Services.Providers.Graph
                         _logger.LogError(ex, "Error syncing folder {FolderName} for account {AccountName}: {Message}",
                             folder.DisplayName, account.Name, ex.Message);
                         failedFolders++;
+                        RecordIssue(jobId, SyncIssueKind.FolderFailed, folder.DisplayName ?? string.Empty, ex);
                     }
                 }
 
@@ -350,6 +352,31 @@ namespace MailArchiver.Services.Providers.Graph
         /// Syncs a single mail folder: fetches messages with filter fallback, processes them in batches,
         /// and handles pagination with memory optimization.
         /// </summary>
+        /// <summary>
+        /// Records one problem on the job so the account page can show what went wrong, not just how
+        /// often. Mirrors the IMAP side; Graph has no equivalent of a folder that discovery reports
+        /// and the server then denies, so <see cref="SyncIssueKind.FolderMissing"/> never occurs here.
+        /// </summary>
+        private void RecordIssue(string? jobId, SyncIssueKind kind, string folder,
+            Exception ex, string? subject = null)
+        {
+            if (jobId == null) return;
+
+            var innermost = ex;
+            while (innermost.InnerException != null)
+            {
+                innermost = innermost.InnerException;
+            }
+
+            _syncJobService.GetJob(jobId)?.Issues.Add(new SyncIssue
+            {
+                Kind = kind,
+                Folder = folder,
+                Subject = subject,
+                Reason = innermost.Message
+            });
+        }
+
         private async Task<SyncFolderResult> SyncFolderAsync(
             GraphServiceClient graphClient,
             MailFolder folder,
@@ -459,6 +486,7 @@ namespace MailArchiver.Services.Providers.Graph
                                 folder.DisplayName, pageNumber + 1, ex.Message);
 
                             result.FailedEmails++;
+                            RecordIssue(jobId, SyncIssueKind.MessageFailed, folder.DisplayName ?? string.Empty, ex);
                             break;
                         }
                     }
@@ -476,6 +504,7 @@ namespace MailArchiver.Services.Providers.Graph
                 _logger.LogError(ex, "Error syncing Graph API folder {FolderName} for account {AccountName}: {Message}",
                     folder.DisplayName, account.Name, ex.Message);
                 result.FailedFolders = 1;
+                RecordIssue(jobId, SyncIssueKind.FolderFailed, folder.DisplayName ?? string.Empty, ex);
             }
 
             return result;
@@ -786,6 +815,7 @@ namespace MailArchiver.Services.Providers.Graph
                     _logger.LogError(ex, "Error archiving Graph API message {MessageId} from folder {FolderName}. Subject: {Subject}, Date: {Date}, Message: {Message}",
                         messages[i].Id, folderNameForStorage, subject, date, ex.Message);
                     result.FailedEmails++;
+                    RecordIssue(jobId, SyncIssueKind.MessageFailed, folderNameForStorage, ex, subject);
                     processedInBatch++;
 
                     // Still free up the body content even on failure

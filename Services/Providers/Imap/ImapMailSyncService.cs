@@ -225,6 +225,8 @@ namespace MailArchiver.Services.Providers.Imap
                                 job.ProcessedEmails = processedEmails;
                                 job.NewEmails = newEmails;
                                 job.FailedEmails = failedEmails;
+                                job.FailedFolders = failedFolders;
+                                job.MissingFolders = missingFolders;
                             });
                         }
                     }
@@ -235,12 +237,14 @@ namespace MailArchiver.Services.Providers.Imap
                             _logger.LogInformation("Folder {FolderName} for account {AccountName} is reported by the server " +
                                 "but does not exist; skipping it. {Message}", folder.FullName, account.Name, ex.Message);
                             missingFolders++;
+                            RecordIssue(jobId, SyncIssueKind.FolderMissing, folder.FullName, ex);
                         }
                         else
                         {
                             _logger.LogError(ex, "Error syncing folder {FolderName} for account {AccountName}: {Message}",
                                 folder.FullName, account.Name, ex.Message);
                             failedFolders++;
+                            RecordIssue(jobId, SyncIssueKind.FolderFailed, folder.FullName, ex);
                         }
                     }
                 }
@@ -483,6 +487,32 @@ namespace MailArchiver.Services.Providers.Imap
         /// or by the installation-wide <c>MailSync:GlobalExcludedFolders</c>. The matching itself
         /// lives in <see cref="FolderExclusionMatcher"/> so both sources are compared the same way.
         /// </summary>
+        /// <summary>
+        /// Records one problem on the job so the account page can show what went wrong, not just how
+        /// often. The reason is the innermost exception message: the outer ones say where the call
+        /// was made, the innermost one is what the server actually said.
+        /// </summary>
+        private void RecordIssue(string? jobId, SyncIssueKind kind, string folder,
+            Exception ex, uint? uid = null, string? subject = null)
+        {
+            if (jobId == null) return;
+
+            var innermost = ex;
+            while (innermost.InnerException != null)
+            {
+                innermost = innermost.InnerException;
+            }
+
+            _syncJobService.GetJob(jobId)?.Issues.Add(new SyncIssue
+            {
+                Kind = kind,
+                Folder = folder,
+                Uid = uid,
+                Subject = subject,
+                Reason = innermost.Message
+            });
+        }
+
         private bool IsExcludedFolder(IMailFolder folder, MailAccount account)
             => FolderExclusionMatcher.IsExcluded(
                 folder.FullName,
@@ -1235,6 +1265,8 @@ namespace MailArchiver.Services.Providers.Imap
                                     folder.FullName, emailSubject, emailFrom, emailDate, emailMessageId, uid, isUtf8Error, innermostEx.Message);
 
                                 result.FailedEmails++;
+                                RecordIssue(jobId, SyncIssueKind.MessageFailed, folder.FullName, ex,
+                                    uid.Id, emailSubject);
 
                                 // From here on this folder's watermark stays where it is. Anything
                                 // above this UID is read again on the next run, which is the price
@@ -1271,12 +1303,14 @@ namespace MailArchiver.Services.Providers.Imap
                         _logger.LogInformation("Folder {FolderName} for account {AccountName} is reported by the server " +
                             "but does not exist; skipping it. {Message}", folder.FullName, account.Name, ex.Message);
                         result.MissingFolders = 1;
+                        RecordIssue(jobId, SyncIssueKind.FolderMissing, folder.FullName, ex);
                     }
                     else
                     {
                         _logger.LogError(ex, "Error searching messages in folder {FolderName} for account {AccountName}: {Message}",
                             folder.FullName, account.Name, ex.Message);
                         result.FailedFolders = 1;
+                        RecordIssue(jobId, SyncIssueKind.FolderFailed, folder.FullName, ex);
                     }
                 }
             }
@@ -1287,12 +1321,14 @@ namespace MailArchiver.Services.Providers.Imap
                     _logger.LogInformation("Folder {FolderName} for account {AccountName} is reported by the server " +
                         "but does not exist; skipping it. {Message}", folder.FullName, account.Name, ex.Message);
                     result.MissingFolders = 1;
+                    RecordIssue(jobId, SyncIssueKind.FolderMissing, folder.FullName, ex);
                 }
                 else
                 {
                     _logger.LogError(ex, "Error syncing folder {FolderName} for account {AccountName}: {Message}",
                         folder.FullName, account.Name, ex.Message);
                     result.FailedFolders = 1;
+                    RecordIssue(jobId, SyncIssueKind.FolderFailed, folder.FullName, ex);
                 }
             }
 

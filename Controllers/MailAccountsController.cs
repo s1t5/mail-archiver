@@ -209,6 +209,11 @@ namespace MailArchiver.Controllers
                         && account.Provider != ProviderType.IMPORT
                         && account.LastSync.HasValue
                         && account.LastSync.Value <= new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+
+                    var lastRun = _syncJobService.GetLastCompletedJobForAccount(account.Id);
+                    account.LastRunHadIssues = lastRun != null
+                        && ((!lastRun.FailuresAcknowledged && (lastRun.FailedEmails > 0 || lastRun.FailedFolders > 0))
+                            || lastRun.MissingFolders > 0);
                 }
             }
 
@@ -272,6 +277,11 @@ namespace MailArchiver.Controllers
             // The installation-wide exclusions apply on top of the account's own and are otherwise
             // invisible, so a folder can go unsynced with no explanation anywhere in the UI.
             ViewBag.GlobalExcludedFolders = _mailSyncOptions.GlobalExcludedFolders;
+
+            // The last run that reached an end, so the page can say what happened rather than only
+            // when it happened. Null right after a restart, which the view says out loud instead of
+            // pretending the account is fine.
+            ViewBag.LastRun = _syncJobService.GetLastCompletedJobForAccount(account.Id);
 
             return View(model);
         }

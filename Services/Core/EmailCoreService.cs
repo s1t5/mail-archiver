@@ -1051,7 +1051,7 @@ namespace MailArchiver.Services.Core
 
         /// <summary>
         /// Deep-copies the cacheable statistics so per-request mutations (StorageUsed,
-        /// IsSyncing, IsSyncPending) never leak into the shared cache entry.
+        /// IsSyncing, IsSyncPending, LastRunHadIssues) never leak into the shared cache entry.
         /// </summary>
         private static DashboardViewModel CloneStatistics(DashboardViewModel source)
         {

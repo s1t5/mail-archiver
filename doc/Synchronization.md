@@ -111,6 +111,7 @@ The sync behavior is controlled by the `MailSync` section of `appsettings.json` 
 | `MailSync:IgnoreSelfSignedCert` | `false` | Accept self-signed TLS certificates for IMAP connections. |
 | `MailSync:MaxConcurrentSyncs` | `1` | How many account syncs may run at the same time. Slots are refilled as they come free, see [How accounts are scheduled](#-how-accounts-are-scheduled). `1` keeps syncs sequential; increase to parallelize — mind provider rate limits and local resource usage. |
 | `MailSync:InterAccountDelaySeconds` | `0` | Optional stagger delay in seconds applied at the end of each account sync task. Useful to avoid burst-starts when `MaxConcurrentSyncs > 1`. `0` disables it. |
+| `MailSync:MaxIssuesPerKind` | `20` | How many problems of each kind a sync job remembers for the account page — failed folders, missing folders and failed messages are budgeted separately. Anything beyond is counted, not kept. `0` switches the detail off and leaves only the counters. |
 | `MailSync:GlobalExcludedFolders` | _empty_ | Folders excluded from synchronization for every account, additive to each account's own list. See [Excluded Folders](#-excluded-folders) below. |
 
 > 💡 Both the normal sync interval and the full-sync interval can be overridden per account on the **Create/Edit Mail Account** page. Leave the per-account fields empty to fall back to the global defaults above. To remove an account from the scheduler entirely, disable it (toggle *Enabled* off on the Account Details page).
@@ -401,6 +402,28 @@ rather have no timeout at all.
 ---
 
 ## 👀 Observing the Sync
+
+### The account page answers "what did the last run do"
+
+Every mail account carries a **Last Sync Run** card showing the run that finished most recently: when
+it ended, how long it took, how many messages it processed and how many were new. It survives the
+24-hour job retention, so a mailbox that has been quiet all day still has an answer — only a restart
+clears it, and the card says so rather than pretending the account is fine.
+
+When something went wrong the card lists it, grouped and budgeted per kind:
+
+- **Folders that could not be read** — the folder failed as a unit. Holds `LastSync` back.
+- **Folders the server does not have** — reported by discovery, denied on open. Usually left-over
+  subscriptions to deleted folders; does not hold `LastSync` back. See
+  [Folders that are gone](#folders-that-are-gone-as-opposed-to-broken).
+- **Messages that could not be archived** — with folder, subject, UID and the server's own wording.
+
+Each group is capped by `MailSync:MaxIssuesPerKind` and reports what did not fit as "and N more", so
+a flood of one kind cannot bury the others. When `LastSync` was held back the card says that too, in
+one sentence, because that is the question a stale timestamp actually raises.
+
+The account list marks accounts whose last run reported problems, next to the timestamp. Deliberately
+only those: a tick on every row would be noise and would defeat the point of the marker.
 
 - **Account Details page**: Shows the current `LastSync` timestamp and the active sync job (folder, processed count, new count, failed count). The **Full Resync** button is located here.
 - **Logs**: Sync progress is logged at `Information` level. In Docker:

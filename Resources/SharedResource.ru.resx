@@ -2527,6 +2527,48 @@
   <data name="TimedOut" xml:space="preserve">
     <value>Время ожидания истекло</value>
   </data>
+  <data name="LastRunTitle" xml:space="preserve">
+    <value>Последний запуск синхронизации</value>
+  </data>
+  <data name="LastRunNone" xml:space="preserve">
+    <value>С момента запуска приложения нет завершённых запусков.</value>
+  </data>
+  <data name="LastRunSyncInProgress" xml:space="preserve">
+    <value>Сейчас выполняется синхронизация.</value>
+  </data>
+  <data name="LastRunSummary" xml:space="preserve">
+    <value>Завершено {0}, длительность {1}, обработано сообщений: {2}, новых: {3}.</value>
+  </data>
+  <data name="LastRunHeldBack" xml:space="preserve">
+    <value>Отметка времени последней синхронизации не была продвинута, поэтому следующий запуск охватит тот же период.</value>
+  </data>
+  <data name="LastRunFailuresAcknowledged" xml:space="preserve">
+    <value>Ошибки этого запуска были подтверждены, поэтому отметка времени последней синхронизации была продвинута.</value>
+  </data>
+  <data name="LastRunResumes" xml:space="preserve">
+    <value>Запуск был приостановлен, а не завершён. Следующий продолжится с места остановки.</value>
+  </data>
+  <data name="IssueKindFolderFailed" xml:space="preserve">
+    <value>Папки, которые не удалось прочитать</value>
+  </data>
+  <data name="IssueKindFolderMissing" xml:space="preserve">
+    <value>Папки, которых нет на сервере</value>
+  </data>
+  <data name="IssueKindFolderMissingHint" xml:space="preserve">
+    <value>Обычно это оставшиеся подписки на удалённые папки. Безвредно, но стоит очистить в почтовой программе.</value>
+  </data>
+  <data name="IssueKindMessageFailed" xml:space="preserve">
+    <value>Сообщения, которые не удалось архивировать</value>
+  </data>
+  <data name="IssueNoDetails" xml:space="preserve">
+    <value>Подробности не записаны.</value>
+  </data>
+  <data name="IssueAndMore" xml:space="preserve">
+    <value>и ещё {0}</value>
+  </data>
+  <data name="LastRunHadIssuesHint" xml:space="preserve">
+    <value>Последний запуск сообщил о проблемах</value>
+  </data>
   <data name="SyncProgressTooltip" xml:space="preserve">
     <value>Прогресс измеряется по завершённым папкам. Большая папка (напр. INBOX) удерживает полосу на 0%, пока не завершится.</value>
   </data>

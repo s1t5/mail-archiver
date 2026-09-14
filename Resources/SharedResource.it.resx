@@ -2527,6 +2527,48 @@
   <data name="TimedOut" xml:space="preserve">
     <value>Tempo scaduto</value>
   </data>
+  <data name="LastRunTitle" xml:space="preserve">
+    <value>Ultima sincronizzazione</value>
+  </data>
+  <data name="LastRunNone" xml:space="preserve">
+    <value>Nessuna esecuzione completata dall'avvio dell'applicazione.</value>
+  </data>
+  <data name="LastRunSyncInProgress" xml:space="preserve">
+    <value>È in corso una sincronizzazione.</value>
+  </data>
+  <data name="LastRunSummary" xml:space="preserve">
+    <value>Terminato {0}, durata {1}, messaggi elaborati: {2}, nuovi: {3}.</value>
+  </data>
+  <data name="LastRunHeldBack" xml:space="preserve">
+    <value>La marca temporale dell'ultima sincronizzazione non è avanzata, quindi la prossima esecuzione coprirà lo stesso periodo.</value>
+  </data>
+  <data name="LastRunFailuresAcknowledged" xml:space="preserve">
+    <value>Gli errori di questa esecuzione sono stati riconosciuti, quindi la marca temporale dell'ultima sincronizzazione è avanzata.</value>
+  </data>
+  <data name="LastRunResumes" xml:space="preserve">
+    <value>L'esecuzione è stata messa in pausa, non completata. La successiva riprenderà da dove questa si è fermata.</value>
+  </data>
+  <data name="IssueKindFolderFailed" xml:space="preserve">
+    <value>Cartelle non leggibili</value>
+  </data>
+  <data name="IssueKindFolderMissing" xml:space="preserve">
+    <value>Cartelle inesistenti sul server</value>
+  </data>
+  <data name="IssueKindFolderMissingHint" xml:space="preserve">
+    <value>Di solito sono sottoscrizioni rimaste di cartelle eliminate. Innocuo, ma conviene ripulirle nel programma di posta.</value>
+  </data>
+  <data name="IssueKindMessageFailed" xml:space="preserve">
+    <value>Messaggi non archiviabili</value>
+  </data>
+  <data name="IssueNoDetails" xml:space="preserve">
+    <value>Nessun dettaglio registrato.</value>
+  </data>
+  <data name="IssueAndMore" xml:space="preserve">
+    <value>e altri {0}</value>
+  </data>
+  <data name="LastRunHadIssuesHint" xml:space="preserve">
+    <value>L'ultima esecuzione ha segnalato problemi</value>
+  </data>
   <data name="SyncProgressTooltip" xml:space="preserve">
     <value>Il progresso è misurato in base alle cartelle completate. Una cartella grande (es. INBOX) mantiene la barra a 0% fino al termine.</value>
   </data>

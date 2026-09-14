@@ -2527,6 +2527,48 @@
   <data name="TimedOut" xml:space="preserve">
     <value>Time-out bereikt</value>
   </data>
+  <data name="LastRunTitle" xml:space="preserve">
+    <value>Laatste synchronisatie</value>
+  </data>
+  <data name="LastRunNone" xml:space="preserve">
+    <value>Geen voltooide uitvoering sinds het starten van de toepassing.</value>
+  </data>
+  <data name="LastRunSyncInProgress" xml:space="preserve">
+    <value>Er loopt op dit moment een synchronisatie.</value>
+  </data>
+  <data name="LastRunSummary" xml:space="preserve">
+    <value>Voltooid {0}, duur {1}, verwerkte berichten: {2}, nieuw: {3}.</value>
+  </data>
+  <data name="LastRunHeldBack" xml:space="preserve">
+    <value>De tijdstempel van de laatste synchronisatie is niet bijgewerkt; de volgende uitvoering behandelt dezelfde periode opnieuw.</value>
+  </data>
+  <data name="LastRunFailuresAcknowledged" xml:space="preserve">
+    <value>De fouten van deze uitvoering zijn erkend, daarom is de tijdstempel van de laatste synchronisatie bijgewerkt.</value>
+  </data>
+  <data name="LastRunResumes" xml:space="preserve">
+    <value>De uitvoering is gepauzeerd, niet voltooid. De volgende gaat verder waar deze is gestopt.</value>
+  </data>
+  <data name="IssueKindFolderFailed" xml:space="preserve">
+    <value>Mappen die niet gelezen konden worden</value>
+  </data>
+  <data name="IssueKindFolderMissing" xml:space="preserve">
+    <value>Mappen die niet op de server bestaan</value>
+  </data>
+  <data name="IssueKindFolderMissingHint" xml:space="preserve">
+    <value>Meestal achtergebleven abonnementen op verwijderde mappen. Onschadelijk, maar het opruimen in uw mailprogramma is aan te raden.</value>
+  </data>
+  <data name="IssueKindMessageFailed" xml:space="preserve">
+    <value>Berichten die niet gearchiveerd konden worden</value>
+  </data>
+  <data name="IssueNoDetails" xml:space="preserve">
+    <value>Geen details vastgelegd.</value>
+  </data>
+  <data name="IssueAndMore" xml:space="preserve">
+    <value>en nog {0}</value>
+  </data>
+  <data name="LastRunHadIssuesHint" xml:space="preserve">
+    <value>De laatste uitvoering meldde problemen</value>
+  </data>
   <data name="SyncProgressTooltip" xml:space="preserve">
     <value>Voortgang wordt gemeten aan voltooide mappen. Een grote map (bijv. INBOX) houdt de balk op 0% tot deze klaar is.</value>
   </data>

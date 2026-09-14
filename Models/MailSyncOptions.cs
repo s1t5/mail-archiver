@@ -26,5 +26,16 @@ namespace MailArchiver.Models
         /// worth listing depend entirely on the server and its language.
         /// </summary>
         public List<string> GlobalExcludedFolders { get; set; } = new();
+
+        /// <summary>
+        /// How many problems of each kind a sync job remembers for the account page: failed folders,
+        /// missing folders and failed messages are budgeted separately, so a flood of one kind
+        /// cannot bury the others. Anything beyond the budget is counted rather than kept.
+        ///
+        /// Jobs live for 24 hours, so on a large installation there are thousands of them at once —
+        /// but only accounts with trouble hold entries at all, and this bounds the worst case per
+        /// job at three times the value. Zero switches the log off and leaves only the counters.
+        /// </summary>
+        public int MaxIssuesPerKind { get; set; } = 20;
     }
 }

@@ -23,6 +23,14 @@ namespace MailArchiver.Services
         bool CancelJob(string jobId);
         bool CancelJobsForAccount(int accountId);
         bool AcknowledgeJobFailures(string jobId);
+        /// <summary>
+        /// The last run of this account that reached an end, whatever kind of end. Kept beyond the
+        /// 24-hour job retention, because the account page is the one place where "what did the last
+        /// run do" is asked and an empty answer there is worse than an old one. Null only when the
+        /// account has not finished a run since the process started.
+        /// </summary>
+        SyncJob? GetLastCompletedJobForAccount(int accountId);
+
         void CleanupOldJobs();
     }
 }

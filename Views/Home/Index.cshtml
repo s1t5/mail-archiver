@@ -182,6 +182,22 @@
                                                     </span>
                                                 </span>
                                             }
+                                            @if (account.LastRunHadIssues)
+                                            {
+                                                if (canManageAccounts)
+                                                {
+                                                    <a asp-controller="MailAccounts" asp-action="Details" asp-route-id="@account.AccountId"
+                                                       class="ms-1 text-warning text-decoration-none"
+                                                       title="@Localizer["LastRunHadIssuesHint"]">
+                                                        <i class="bi bi-exclamation-triangle-fill"></i>
+                                                    </a>
+                                                }
+                                                else
+                                                {
+                                                    <i class="bi bi-exclamation-triangle-fill text-warning ms-1"
+                                                       title="@Localizer["LastRunHadIssuesHint"]"></i>
+                                                }
+                                            }
                                         </td>
                                     </tr>
                                 }
@@ -258,6 +274,22 @@
                                                     @account.LastSyncTime.ToString("g")
                                                 </span>
                                             </span>
+                                        }
+                                        @if (account.LastRunHadIssues)
+                                        {
+                                            if (canManageAccounts)
+                                            {
+                                                <a asp-controller="MailAccounts" asp-action="Details" asp-route-id="@account.AccountId"
+                                                   class="ms-1 text-warning text-decoration-none"
+                                                   title="@Localizer["LastRunHadIssuesHint"]">
+                                                    <i class="bi bi-exclamation-triangle-fill"></i>
+                                                </a>
+                                            }
+                                            else
+                                            {
+                                                <i class="bi bi-exclamation-triangle-fill text-warning ms-1"
+                                                   title="@Localizer["LastRunHadIssuesHint"]"></i>
+                                            }
                                         }
                                     </div>
                                 </div>
