@@ -53,6 +53,9 @@ namespace MailArchiver.Services.Providers
         public async Task<List<string>> GetMailFoldersAsync(MailAccount account)
             => await _folderService.GetMailFoldersAsync(account);
 
+        public async Task<List<MailFolderInfo>> GetMailFolderDetailsAsync(MailAccount account)
+            => await _folderService.GetMailFolderDetailsAsync(account);
+
         public async Task<bool> RestoreEmailToFolderAsync(ArchivedEmail email, MailAccount targetAccount, string folderName)
             => await _restorer.RestoreEmailToFolderAsync(email, targetAccount, folderName, false);
 
@@ -62,6 +65,14 @@ namespace MailArchiver.Services.Providers
         // ========================================
         // IProviderEmailService (ID-based wrappers)
         // ========================================
+
+        async Task<List<MailFolderInfo>> IProviderEmailService.GetMailFolderDetailsAsync(int accountId)
+        {
+            var account = await _context.MailAccounts.FindAsync(accountId);
+            if (account == null)
+                return new List<MailFolderInfo>();
+            return await _folderService.GetMailFolderDetailsAsync(account);
+        }
 
         async Task<List<string>> IProviderEmailService.GetMailFoldersAsync(int accountId)
         {

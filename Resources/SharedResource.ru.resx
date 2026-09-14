@@ -649,6 +649,15 @@
   <data name="ExcludedFolders" xml:space="preserve">
     <value>Исключенные папки</value>
   </data>
+  <data name="GlobalExcludedFolders" xml:space="preserve">
+    <value>Исключено для всех учётных записей</value>
+  </data>
+  <data name="GlobalExcludedFoldersHint" xml:space="preserve">
+    <value>Настроено для всей установки и применяется дополнительно к собственному списку учётной записи. Здесь не редактируется.</value>
+  </data>
+  <data name="FolderAlreadyExcludedGlobally" xml:space="preserve">
+    <value>Уже исключено для всех учётных записей — здесь менять нечего</value>
+  </data>
   <data name="EnterFolderNames" xml:space="preserve">
     <value>Введите имена папок через точку с запятой, например: Junk;Spam;Trash</value>
   </data>

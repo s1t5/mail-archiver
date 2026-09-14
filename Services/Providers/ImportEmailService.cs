@@ -23,6 +23,11 @@ namespace MailArchiver.Services.Providers
             throw new NotSupportedException("Import provider does not have folders");
         }
 
+        public Task<List<MailFolderInfo>> GetMailFolderDetailsAsync(int accountId)
+        {
+            throw new NotSupportedException("Import provider does not have folders");
+        }
+
         public Task<bool> RestoreEmailToFolderAsync(int emailId, int targetAccountId, string folderName)
         {
             throw new NotSupportedException("Import provider does not support email restoration");

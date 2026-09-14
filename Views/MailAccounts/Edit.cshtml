@@ -239,6 +239,23 @@
                             <span asp-validation-for="ExcludedFolders" class="text-danger"></span>
                         </div>
 
+                        @{
+                            var globalExcluded = ViewBag.GlobalExcludedFolders as IEnumerable<string> ?? Enumerable.Empty<string>();
+                        }
+                        @if (globalExcluded.Any())
+                        {
+                            <div class="mb-3">
+                                <label class="form-label">@Localizer["GlobalExcludedFolders"]</label>
+                                <div class="d-flex flex-wrap gap-1 mb-1">
+                                    @foreach (var folder in globalExcluded)
+                                    {
+                                        <span class="badge bg-secondary-subtle text-dark border"><i class="bi bi-folder-x me-1"></i>@folder</span>
+                                    }
+                                </div>
+                                <div class="form-text">@Localizer["GlobalExcludedFoldersHint"]</div>
+                            </div>
+                        }
+
                         <div class="mb-3">
                             <label class="form-label">@Localizer["AvailableFolders"]</label>
                             <button type="button" class="btn btn-sm btn-outline-primary" id="loadFoldersBtn">
@@ -615,7 +632,7 @@
                     foldersLoading.style.display = 'block';
                     foldersContainer.style.display = 'none';
 
-                    fetch('@Url.Action("GetFolders", "MailAccounts")?accountId=@Model.Id')
+                    fetch('@Url.Action("GetFoldersForExclusion", "MailAccounts")?accountId=@Model.Id')
                         .then(response => {
                             if (!response.ok) throw new Error('Network response was not ok');
                             return response.json();
@@ -627,8 +644,21 @@
                                 const excludedList = excludedFoldersInput.value
                                     .split(';').map(s => s.trim()).filter(s => s.length > 0);
 
-                                folders.forEach(folder => {
+                                folders.forEach(entry => {
+                                    const folder = entry.fullName;
                                     const badge = document.createElement('span');
+
+                                    // Already excluded for every account, so there is nothing to
+                                    // decide here. Shown rather than hidden: the folder exists, and
+                                    // leaving it out would look like the server does not have it.
+                                    if (entry.globallyExcluded) {
+                                        badge.className = 'badge bg-secondary-subtle text-muted border text-decoration-line-through';
+                                        badge.textContent = folder;
+                                        badge.title = '@Localizer["FolderAlreadyExcludedGlobally"]';
+                                        foldersContent.appendChild(badge);
+                                        return;
+                                    }
+
                                     const isExcluded = excludedList.includes(folder);
                                     badge.className = 'badge folder-badge-clickable ' + (isExcluded ? 'bg-secondary text-white' : 'bg-light text-dark');
                                     badge.textContent = folder;

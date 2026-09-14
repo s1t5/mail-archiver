@@ -649,6 +649,15 @@
   <data name="ExcludedFolders" xml:space="preserve">
     <value>Dossiers exclus</value>
   </data>
+  <data name="GlobalExcludedFolders" xml:space="preserve">
+    <value>Exclus pour tous les comptes</value>
+  </data>
+  <data name="GlobalExcludedFoldersHint" xml:space="preserve">
+    <value>Configuré pour toute l'installation et appliqué en plus de la liste propre au compte. Non modifiable ici.</value>
+  </data>
+  <data name="FolderAlreadyExcludedGlobally" xml:space="preserve">
+    <value>Déjà exclu pour tous les comptes — rien à modifier ici</value>
+  </data>
   <data name="EnterFolderNames" xml:space="preserve">
     <value>Entrez les noms de dossiers séparés par des points-virgules, ex. : Indésirable;Spam;Corbeille</value>
   </data>

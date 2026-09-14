@@ -43,6 +43,9 @@ namespace MailArchiver.Services.Providers
         /// <returns>List of folder names</returns>
         Task<List<string>> GetMailFoldersAsync(MailAccount account);
 
+        /// <inheritdoc cref="IProviderEmailService.GetMailFolderDetailsAsync"/>
+        Task<List<MailFolderInfo>> GetMailFolderDetailsAsync(MailAccount account);
+
         /// <summary>
         /// Restores an email to a specific folder using Microsoft Graph API
         /// </summary>

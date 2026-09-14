@@ -35,6 +35,31 @@ namespace MailArchiver.Services.Providers.Graph
             }
         }
 
+        public async Task<List<MailFolderInfo>> GetMailFolderDetailsAsync(MailAccount account)
+        {
+            try
+            {
+                var graphClient = _authFactory.CreateGraphClient(account);
+                var folders = await GetAllMailFoldersAsync(graphClient, account.EmailAddress);
+                var folderPaths = BuildFolderPathDictionary(folders);
+
+                return folders
+                    .Where(f => f.Id != null)
+                    .Select(f => new MailFolderInfo
+                    {
+                        FullName = folderPaths.TryGetValue(f.Id!, out var path) ? path : (f.DisplayName ?? string.Empty),
+                        Name = f.DisplayName ?? string.Empty
+                    })
+                    .OrderBy(f => f.FullName)
+                    .ToList();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving Graph API folder details for account {AccountId}: {Message}", account.Id, ex.Message);
+                return new List<MailFolderInfo>();
+            }
+        }
+
         /// <inheritdoc/>
         public async Task<List<MailFolder>> GetAllMailFoldersAsync(GraphServiceClient graphClient, string userPrincipalName)
         {

@@ -649,6 +649,15 @@
   <data name="ExcludedFolders" xml:space="preserve">
     <value>ausgeschlossene Ordner</value>
   </data>
+  <data name="GlobalExcludedFolders" xml:space="preserve">
+    <value>Für alle Konten ausgeschlossen</value>
+  </data>
+  <data name="GlobalExcludedFoldersHint" xml:space="preserve">
+    <value>Installationsweit konfiguriert und zusätzlich zur kontoeigenen Liste wirksam. Hier nicht änderbar.</value>
+  </data>
+  <data name="FolderAlreadyExcludedGlobally" xml:space="preserve">
+    <value>Bereits für alle Konten ausgeschlossen — hier nichts zu ändern</value>
+  </data>
   <data name="EnterFolderNames" xml:space="preserve">
     <value>Geben Sie die Ordnernamen durch Semikolons getrennt ein, z.B.: Junk;Spam;Trash</value>
   </data>
