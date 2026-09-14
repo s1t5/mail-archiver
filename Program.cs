@@ -533,6 +533,9 @@ builder.Services.AddMemoryCache();
 builder.Services.Configure<DashboardOptions>(
     builder.Configuration.GetSection(DashboardOptions.SectionName));
 
+builder.Services.Configure<JobsOptions>(
+    builder.Configuration.GetSection(JobsOptions.SectionName));
+
 // Add Localization
 builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
 // Configure Form Options for large file uploads

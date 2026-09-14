@@ -95,6 +95,9 @@ services:
       # Dashboard Settings (statistics cache)
       - Dashboard__CacheSeconds=60
 
+      # Jobs Settings (background jobs page)
+      - Jobs__RefreshSeconds=30
+
       # Npgsql Settings
       - Npgsql__CommandTimeout=900
 
@@ -342,6 +345,9 @@ Both folder settings ship empty on purpose: rewriting or dropping folders withou
 
 ### 📊 Dashboard Settings
 - `Dashboard__CacheSeconds`: How long computed dashboard statistics (totals, per-account counts, monthly histogram, top senders, recent emails, database size) are kept in the server's in-memory cache. Default is `60` seconds. Set to `0` to disable caching and always recompute the statistics. Higher values reduce database load in large environments at the cost of more stale numbers. Sync status badges and storage values are always fetched live and are not affected by this cache.
+
+### 🔄 Jobs Settings
+- `Jobs__RefreshSeconds`: How often the background jobs page reloads itself while a browser tab has it open. Default is `30` seconds. Set to `0` to turn the automatic reload off and refresh by hand. Each reload rebuilds the page from all eight job sources, so on installations with many accounts a longer interval keeps the load down, multiplied by every tab that is open on the page.
 
 ### 🗃️ Npgsql Settings
 - `Npgsql__CommandTimeout`: The timeout for database commands in seconds.
