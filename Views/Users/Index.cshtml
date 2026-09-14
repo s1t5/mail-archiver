@@ -253,6 +253,12 @@
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                 });
             }
+
+            // The handlers above only run on input or on a click, so without this first pass the
+            // list stays exactly as the server rendered it: every row visible, no pagination built,
+            // and a "page 1 of N" label that nothing has updated. It looks like a single page
+            // holding everything, and typing into the search box is what makes paging appear.
+            applyFilter();
         });
     </script>
 
