@@ -1478,6 +1478,9 @@
   <data name="LastRunHeldBack" xml:space="preserve">
     <value>The last-sync timestamp was not advanced, so the next run covers the same period again.</value>
   </data>
+  <data name="LastRunResumes" xml:space="preserve">
+    <value>The run was paused, not finished. The next one picks up where this one stopped.</value>
+  </data>
   <data name="IssueKindFolderFailed" xml:space="preserve">
     <value>Folders that could not be read</value>
   </data>

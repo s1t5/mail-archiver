@@ -2542,6 +2542,9 @@
   <data name="LastRunHeldBack" xml:space="preserve">
     <value>De tijdstempel van de laatste synchronisatie is niet bijgewerkt; de volgende uitvoering behandelt dezelfde periode opnieuw.</value>
   </data>
+  <data name="LastRunResumes" xml:space="preserve">
+    <value>De uitvoering is gepauzeerd, niet voltooid. De volgende gaat verder waar deze is gestopt.</value>
+  </data>
   <data name="IssueKindFolderFailed" xml:space="preserve">
     <value>Mappen die niet gelezen konden worden</value>
   </data>

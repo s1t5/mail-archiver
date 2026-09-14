@@ -2541,6 +2541,9 @@
   <data name="LastRunHeldBack" xml:space="preserve">
     <value>La marca de tiempo de la última sincronización no avanzó, por lo que la próxima ejecución cubrirá el mismo periodo.</value>
   </data>
+  <data name="LastRunResumes" xml:space="preserve">
+    <value>La ejecución se pausó, no finalizó. La siguiente continuará donde esta se detuvo.</value>
+  </data>
   <data name="IssueKindFolderFailed" xml:space="preserve">
     <value>Carpetas que no se pudieron leer</value>
   </data>

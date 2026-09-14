@@ -126,6 +126,29 @@
         var lastRun = ViewBag.LastRun as MailArchiver.Models.SyncJob;
         var runHeldBack = lastRun != null && (lastRun.FailedEmails > 0 || lastRun.FailedFolders > 0);
         var runHasIssues = lastRun != null && (runHeldBack || lastRun.MissingFolders > 0);
+
+        // How a run ended is a different question from whether anything in it went wrong, and the
+        // counters answer only the second one. A run stopped at the timeout with nothing failed is
+        // the normal shape of a first sync over a large mailbox, and it is the state an operator
+        // asks about most often while one is under way.
+        var runPaused = lastRun != null
+            && (lastRun.Status == MailArchiver.Models.SyncJobStatus.TimedOut
+                || lastRun.Status == MailArchiver.Models.SyncJobStatus.RateLimited);
+        var outcomeLabel = lastRun?.Status switch
+        {
+            MailArchiver.Models.SyncJobStatus.Completed => Localizer["Completed"].Value,
+            MailArchiver.Models.SyncJobStatus.TimedOut => Localizer["TimedOut"].Value,
+            MailArchiver.Models.SyncJobStatus.RateLimited => Localizer["RateLimited"].Value,
+            MailArchiver.Models.SyncJobStatus.Cancelled => Localizer["Cancelled"].Value,
+            MailArchiver.Models.SyncJobStatus.Failed => Localizer["Failed"].Value,
+            _ => (string?)null
+        };
+        var outcomeBadgeClass = lastRun?.Status switch
+        {
+            MailArchiver.Models.SyncJobStatus.Completed => "bg-success",
+            MailArchiver.Models.SyncJobStatus.Failed => "bg-danger",
+            _ => "bg-secondary"
+        };
     }
     <div class="card mb-3">
         <div class="card-header">
@@ -137,11 +160,19 @@
             {
                 <i class="bi bi-exclamation-triangle text-warning me-1"></i>
             }
+            else if (runPaused)
+            {
+                <i class="bi bi-hourglass-split text-secondary me-1"></i>
+            }
             else
             {
                 <i class="bi bi-check-circle text-success me-1"></i>
             }
             @Localizer["LastRunTitle"]
+            @if (outcomeLabel != null)
+            {
+                <span class="badge @outcomeBadgeClass ms-2">@outcomeLabel</span>
+            }
         </div>
         <div class="card-body">
             @if (Model.IsSyncing)
@@ -177,6 +208,21 @@
                 {
                     <p class="mb-2 text-warning-emphasis">
                         <i class="bi bi-pause-circle me-1"></i>@Localizer["LastRunHeldBack"]
+                    </p>
+                }
+
+                @if (runPaused)
+                {
+                    <p class="mb-2 text-muted">
+                        <i class="bi bi-arrow-repeat me-1"></i>@Localizer["LastRunResumes"]
+                    </p>
+                }
+
+                @if (lastRun.Status == MailArchiver.Models.SyncJobStatus.Failed
+                    && !string.IsNullOrWhiteSpace(lastRun.ErrorMessage))
+                {
+                    <p class="mb-2 text-danger-emphasis">
+                        <i class="bi bi-x-circle me-1"></i>@lastRun.ErrorMessage
                     </p>
                 }
 

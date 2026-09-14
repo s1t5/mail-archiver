@@ -2542,6 +2542,9 @@
   <data name="LastRunHeldBack" xml:space="preserve">
     <value>L'horodatage de la dernière synchronisation n'a pas avancé ; la prochaine exécution couvrira la même période.</value>
   </data>
+  <data name="LastRunResumes" xml:space="preserve">
+    <value>L'exécution a été mise en pause, pas terminée. La suivante reprendra là où celle-ci s'est arrêtée.</value>
+  </data>
   <data name="IssueKindFolderFailed" xml:space="preserve">
     <value>Dossiers illisibles</value>
   </data>

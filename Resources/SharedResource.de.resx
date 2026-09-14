@@ -1514,6 +1514,9 @@
   <data name="LastRunHeldBack" xml:space="preserve">
     <value>Der Zeitstempel der letzten Synchronisation wurde nicht fortgeschrieben, der nächste Lauf deckt denselben Zeitraum erneut ab.</value>
   </data>
+  <data name="LastRunResumes" xml:space="preserve">
+    <value>Der Lauf wurde angehalten, nicht beendet. Der nächste setzt dort an, wo dieser aufgehört hat.</value>
+  </data>
   <data name="IssueKindFolderFailed" xml:space="preserve">
     <value>Ordner, die nicht gelesen werden konnten</value>
   </data>
