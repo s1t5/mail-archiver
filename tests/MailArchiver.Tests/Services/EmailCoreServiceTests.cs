@@ -624,6 +624,103 @@ public class EmailCoreServiceTests
     }
 
     [Fact]
+    public async Task GetDashboardStatisticsAsync_AccountPanel_KeepsAnAccountWithIssuesThatLastSyncWouldDrop()
+    {
+        var ctx = _fixture.CreateContext();
+        try
+        {
+            // The account with the oldest timestamp is the one an order by last sync alone pushes
+            // out of a capped panel, and it is exactly the shape of the accounts worth seeing:
+            // a failed run does not advance LastSync, so a troubled account keeps sinking.
+            MailAccount? oldest = null;
+            for (int i = 0; i < 30; i++)
+            {
+                var seeded = await SeedAccountAsync(ctx);
+                seeded.LastSync = DateTime.UtcNow.AddMinutes(-i);
+                if (i == 29) oldest = seeded;
+            }
+            await ctx.SaveChangesAsync();
+
+            var svc = ServiceFactory.CreateEmailCoreServiceNoCache(ctx);
+            var dash = await svc.GetDashboardStatisticsAsync(id => id == oldest!.Id);
+
+            Assert.True(dash.EmailsPerAccount.Count <= 25);
+            Assert.Equal(oldest!.Id, dash.EmailsPerAccount[0].AccountId);
+        }
+        finally
+        {
+            await CleanupTestAccountAsync(ctx);
+            await ctx.DisposeAsync();
+        }
+    }
+
+    [Fact]
+    public async Task GetDashboardStatisticsAsync_AccountPanel_OrdersByLastSyncWithinEachGroup()
+    {
+        var ctx = _fixture.CreateContext();
+        try
+        {
+            // Two flagged accounts, the older one flagged first, so a stable-but-unordered
+            // implementation would return them the wrong way round.
+            var older = await SeedAccountAsync(ctx);
+            older.LastSync = DateTime.UtcNow.AddMinutes(-40);
+            var newer = await SeedAccountAsync(ctx);
+            newer.LastSync = DateTime.UtcNow.AddMinutes(-30);
+            for (int i = 0; i < 28; i++)
+            {
+                var seeded = await SeedAccountAsync(ctx);
+                seeded.LastSync = DateTime.UtcNow.AddMinutes(-i);
+            }
+            await ctx.SaveChangesAsync();
+
+            var svc = ServiceFactory.CreateEmailCoreServiceNoCache(ctx);
+            var flagged = new[] { older.Id, newer.Id };
+            var dash = await svc.GetDashboardStatisticsAsync(id => flagged.Contains(id));
+
+            Assert.Equal(newer.Id, dash.EmailsPerAccount[0].AccountId);
+            Assert.Equal(older.Id, dash.EmailsPerAccount[1].AccountId);
+
+            // And the rest still reads newest first.
+            for (int i = 3; i < dash.EmailsPerAccount.Count; i++)
+                Assert.True(dash.EmailsPerAccount[i - 1].LastSyncTime >= dash.EmailsPerAccount[i].LastSyncTime);
+        }
+        finally
+        {
+            await CleanupTestAccountAsync(ctx);
+            await ctx.DisposeAsync();
+        }
+    }
+
+    [Fact]
+    public async Task GetDashboardStatisticsAsync_AccountPanel_CountsAreForTheRowsThatAreShown()
+    {
+        var ctx = _fixture.CreateContext();
+        try
+        {
+            // The second pass has to carry the per-account message count over, and it is loaded
+            // through a Contains() whose result carries no order of its own.
+            var flagged = await SeedAccountAsync(ctx);
+            flagged.LastSync = DateTime.UtcNow.AddMinutes(-90);
+            ctx.ArchivedEmails.Add(BuildEmail(flagged, "s1", "a@test.local", "b@test.local"));
+            ctx.ArchivedEmails.Add(BuildEmail(flagged, "s2", "a@test.local", "b@test.local"));
+            await ctx.SaveChangesAsync();
+
+            var svc = ServiceFactory.CreateEmailCoreServiceNoCache(ctx);
+            var dash = await svc.GetDashboardStatisticsAsync(id => id == flagged.Id);
+
+            var row = dash.EmailsPerAccount[0];
+            Assert.Equal(flagged.Id, row.AccountId);
+            Assert.Equal(2, row.EmailCount);
+            Assert.Equal(flagged.Name, row.AccountName);
+        }
+        finally
+        {
+            await CleanupTestAccountAsync(ctx);
+            await ctx.DisposeAsync();
+        }
+    }
+
+    [Fact]
     public async Task GetDashboardStatisticsAsync_MonthsBucketsCurrentMonthCounted()
     {
         var ctx = _fixture.CreateContext();
