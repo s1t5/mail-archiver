@@ -58,6 +58,7 @@ services:
       - MailSync__IgnoreSelfSignedCert=false
       - MailSync__MaxConcurrentSyncs=1
       - MailSync__InterAccountDelaySeconds=0
+      - MailSync__MaxIssuesPerKind=20
       - MailSync__FullSyncIntervalHours=24
       - MailSync__GlobalExcludedFolders__0=Calendar
       - MailSync__GlobalExcludedFolders__1=Contacts
