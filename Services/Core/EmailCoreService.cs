@@ -962,6 +962,12 @@ namespace MailArchiver.Services.Core
 
         #region Dashboard Methods
 
+        /// <summary>
+        /// How many accounts the dashboard panel shows. Roughly what fits beside the ten most
+        /// recent emails on a 1080p screen.
+        /// </summary>
+        internal const int DashboardAccountRows = 25;
+
         public async Task<DashboardViewModel> GetDashboardStatisticsAsync()
         {
             return await GetOrCreateCachedStatisticsAsync("admin", queryable =>
@@ -970,7 +976,16 @@ namespace MailArchiver.Services.Core
                     TotalEmails = queryable.ArchivedEmails.Count(),
                     TotalAccounts = queryable.MailAccounts.Count(),
                     TotalAttachments = queryable.EmailAttachments.Count(),
+                    // Ordered and capped before the projection, so the per-account count is
+                    // computed for the rows that are shown and not for every account on the
+                    // installation. The panel sits next to the ten most recent emails and is meant
+                    // to be read at a glance, not to be a second account list: that one is one
+                    // click away and pages. Accounts that never completed a sync sort last by
+                    // their epoch timestamp, which is where they belong when mailboxes are
+                    // provisioned disabled and switched on later.
                     EmailsPerAccount = queryable.MailAccounts
+                        .OrderByDescending(a => a.LastSync)
+                        .Take(DashboardAccountRows)
                         .Select(a => new AccountStatistics
                         {
                             AccountId = a.Id,
