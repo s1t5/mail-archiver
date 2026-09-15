@@ -167,13 +167,30 @@
 
     @* Folder Tree Panel - Desktop *@
     <div class="row">
-        <div class="d-none d-lg-block" id="folderTreeColumn">
+        @* d-lg-flex, not d-lg-block: the column has to be a flex container so the panel inside it
+           can take the row's height, and Bootstrap's display utilities carry !important. *@
+        <div class="d-none d-lg-flex" id="folderTreeColumn">
             <div class="folder-tree-panel" id="folderTreePanel">
                 <div class="folder-tree-header" id="folderTreeHeader" role="button" tabindex="0" title="@Localizer["ToggleFolderTree"]">
                     <div class="d-flex align-items-center">
                         <i class="bi bi-folder me-2"></i><span class="folder-tree-header-text">@Localizer["Folders"]</span>
                     </div>
-                    <i class="bi bi-chevron-down folder-tree-collapse-icon" id="folderTreeCollapseIcon"></i>
+                    @* Own class, not d-flex align-items-center: site.css widens that pair to 100%
+                       and spreads its children below 1024px, which is meant for the navbar and
+                       would fling these two buttons across the header. *@
+                    <div class="folder-tree-header-actions">
+                        @* Inside the header, which is itself the click target that folds the panel
+                           away. The handler stops the click there, see initializeFolderTreeBulk. *@
+                        <button type="button" class="folder-tree-bulk-btn" data-tree-action="expand"
+                                title="@Localizer["ExpandAllFolders"]" aria-label="@Localizer["ExpandAllFolders"]">
+                            <i class="bi bi-arrows-expand"></i>
+                        </button>
+                        <button type="button" class="folder-tree-bulk-btn" data-tree-action="collapse"
+                                title="@Localizer["CollapseAllFolders"]" aria-label="@Localizer["CollapseAllFolders"]">
+                            <i class="bi bi-arrows-collapse"></i>
+                        </button>
+                        <i class="bi bi-chevron-down folder-tree-collapse-icon" id="folderTreeCollapseIcon"></i>
+                    </div>
                 </div>
                 <div class="folder-tree-content" id="folderTreeContent">
                     @if (Model.FolderTree != null && Model.FolderTree.Any())
@@ -192,6 +209,17 @@
             </div>
         </div>
         <div class="folder-tree-result-col">
+            @* Picking a folder is a full navigation, and on a large archive the query behind it
+               takes long enough that nothing moving on the page reads as nothing happening.
+               Covers the result side, which is where the answer is going to appear. *@
+            <div class="folder-tree-busy" id="folderTreeBusy" hidden>
+                <div class="folder-tree-busy-box">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">@Localizer["Loading"]</span>
+                    </div>
+                    <div class="mt-2 small">@Localizer["Loading"]</div>
+                </div>
+            </div>
             @if (Model.SearchResults != null && Model.SearchResults.Any())
             {
                 <div class="card">
@@ -430,7 +458,17 @@
         <h5 class="offcanvas-title" id="folderTreeOffcanvasLabel">
             <i class="bi bi-folder me-2"></i>@Localizer["Folders"]
         </h5>
-        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        <div class="folder-tree-header-actions">
+            <button type="button" class="folder-tree-bulk-btn" data-tree-action="expand"
+                    title="@Localizer["ExpandAllFolders"]" aria-label="@Localizer["ExpandAllFolders"]">
+                <i class="bi bi-arrows-expand"></i>
+            </button>
+            <button type="button" class="folder-tree-bulk-btn" data-tree-action="collapse"
+                    title="@Localizer["CollapseAllFolders"]" aria-label="@Localizer["CollapseAllFolders"]">
+                <i class="bi bi-arrows-collapse"></i>
+            </button>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
     </div>
     <div class="offcanvas-body p-0">
         <div class="folder-tree-content" id="folderTreeContentMobile">
@@ -643,20 +681,83 @@
             });
         }
 
+        // Which folders are folded shut. Kept because every click on a folder navigates and the
+        // tree comes back from the server fully expanded — without this, collapsing a tree of a
+        // thousand folders would survive exactly one click and the two buttons would be useless.
+        // Paths, not indices, so the list survives folders appearing and disappearing.
+        // Declared up here on purpose: initializeFolderTree() runs immediately and reaches the
+        // helpers below through hoisting, but a const is not hoisted and would still be in its
+        // temporal dead zone.
+        const FOLDER_TREE_CLOSED_KEY = 'folderTreeClosedFolders';
+
         // Folder tree click handler
         function initializeFolderTree() {
+            // Read on click, never here. searchForm is a const declared far below this call, so
+            // touching it while initializeFolderTree() runs lands in its temporal dead zone, the
+            // whole function throws, and not one folder handler gets attached. The form carries
+            // the folder in a hidden field, which is the value the page is actually filtered by.
+            function activeFolder() {
+                const field = searchForm ? searchForm.querySelector('input[name="SelectedFolder"]') : null;
+                return field ? field.value : '';
+            }
+
+            // Shows that the click was taken. Nothing clears it: the navigation replaces the page.
+            function markFolderPending(item) {
+                const busy = document.getElementById('folderTreeBusy');
+                if (busy) busy.hidden = false;
+
+                const icon = item.querySelector('.folder-tree-icon');
+                if (icon) {
+                    icon.className = 'spinner-border spinner-border-sm folder-tree-icon';
+                    icon.setAttribute('role', 'status');
+                }
+                // A second click would start a second navigation and the first answer would win
+                // at random, so the tree stops taking clicks once one is under way.
+                document.querySelectorAll('.folder-tree-item').forEach(function (el) {
+                    el.classList.add('folder-tree-item-pending');
+                });
+            }
+
+            function goToFolder(folder) {
+                const url = new URL(window.location.href);
+                // Merge first, delete second: the merge pulls the hidden SelectedFolder field in.
+                mergeFormValuesIntoUrl(url, searchForm);
+                if (folder) {
+                    url.searchParams.set('SelectedFolder', folder);
+                } else {
+                    url.searchParams.delete('SelectedFolder');
+                }
+                url.searchParams.set('PageNumber', '1');
+                window.location.href = url.toString();
+            }
+
             document.querySelectorAll('.folder-tree-item').forEach(function(item) {
-                item.addEventListener('click', function(e) {
+                function activate(e) {
                     if (e.target.closest('.folder-tree-toggle')) {
                         return; // Let toggle handle expand/collapse
                     }
-                    const folder = this.dataset.folder;
-                    if (folder) {
-                        const url = new URL(window.location.href);
-                        mergeFormValuesIntoUrl(url, searchForm);
-                        url.searchParams.set('SelectedFolder', folder);
-                        url.searchParams.set('PageNumber', '1');
-                        window.location.href = url.toString();
+                    if (item.classList.contains('folder-tree-item-pending')) {
+                        return; // A navigation is already under way
+                    }
+                    // Two ways to stop filtering by folder: the All Folders row, and clicking the
+                    // folder that is already filtering. Everything else on the page stays put,
+                    // which is what Reset cannot do — it drops the search term as well.
+                    if (item.hasAttribute('data-folder-clear')) {
+                        markFolderPending(item);
+                        goToFolder('');
+                        return;
+                    }
+                    const folder = item.dataset.folder;
+                    if (!folder) return;
+                    markFolderPending(item);
+                    goToFolder(folder === activeFolder() ? '' : folder);
+                }
+
+                item.addEventListener('click', activate);
+                item.addEventListener('keydown', function(ev) {
+                    if (ev.key === 'Enter' || ev.key === ' ') {
+                        ev.preventDefault();
+                        activate(ev);
                     }
                 });
             });
@@ -666,18 +767,81 @@
                 toggle.addEventListener('click', function(e) {
                     e.stopPropagation();
                     const parent = this.closest('.folder-tree-item');
-                    // .folder-tree-children is a SIBLING of .folder-tree-item (not a descendant),
-                    // so querySelector won't find it — use nextElementSibling instead.
                     const sibling = parent.nextElementSibling;
                     const children = sibling && sibling.classList.contains('folder-tree-children') ? sibling : null;
                     if (children) {
-                        children.style.display = children.style.display === 'none' ? '' : 'none';
-                        this.classList.toggle('expanded');
+                        rememberFolderOpen(parent.dataset.folder, children.style.display === 'none');
+                        setFolderOpen(parent, children.style.display === 'none');
                     }
                 });
             });
+
+            applyRememberedFolders();
         }
         initializeFolderTree();
+
+        function readClosedFolders() {
+            try {
+                const raw = localStorage.getItem(FOLDER_TREE_CLOSED_KEY);
+                const parsed = raw ? JSON.parse(raw) : [];
+                return new Set(Array.isArray(parsed) ? parsed : []);
+            } catch (e) {
+                return new Set();
+            }
+        }
+
+        function writeClosedFolders(closed) {
+            try {
+                localStorage.setItem(FOLDER_TREE_CLOSED_KEY, JSON.stringify(Array.from(closed)));
+            } catch (e) {}
+        }
+
+        function rememberFolderOpen(path, open) {
+            if (!path) return;
+            const closed = readClosedFolders();
+            if (open) { closed.delete(path); } else { closed.add(path); }
+            writeClosedFolders(closed);
+        }
+
+        // .folder-tree-children is a SIBLING of .folder-tree-item, not a descendant, so
+        // querySelector won't find it — nextElementSibling is the only way down.
+        // Returns false for a leaf, which is how the callers tell the two apart.
+        function setFolderOpen(item, open) {
+            const sibling = item.nextElementSibling;
+            if (!sibling || !sibling.classList.contains('folder-tree-children')) return false;
+            sibling.style.display = open ? '' : 'none';
+            const toggle = item.querySelector('.folder-tree-toggle');
+            if (toggle) toggle.classList.toggle('expanded', open);
+            return true;
+        }
+
+        function applyRememberedFolders() {
+            const closed = readClosedFolders();
+            if (closed.size === 0) return;
+            document.querySelectorAll('.folder-tree-item').forEach(function(item) {
+                if (item.dataset.folder) setFolderOpen(item, !closed.has(item.dataset.folder));
+            });
+        }
+
+        // Both the desktop panel and the mobile offcanvas render the same tree, so the buttons act
+        // on every copy at once and the two cannot drift apart.
+        function setAllFolders(open) {
+            const closed = new Set();
+            document.querySelectorAll('.folder-tree-item').forEach(function(item) {
+                const hasChildren = setFolderOpen(item, open);
+                if (hasChildren && !open && item.dataset.folder) closed.add(item.dataset.folder);
+            });
+            writeClosedFolders(closed);
+        }
+
+        document.querySelectorAll('.folder-tree-bulk-btn').forEach(function(btn) {
+            btn.addEventListener('click', function(e) {
+                // The desktop button sits inside the header that folds the whole panel away.
+                e.stopPropagation();
+                e.preventDefault();
+                setAllFolders(this.dataset.treeAction === 'expand');
+            });
+        });
 
         // Resizable folder tree panel
         (function() {

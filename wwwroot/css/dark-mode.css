@@ -543,6 +543,14 @@
   background-color: var(--table-hover-bg);
 }
 
+[data-theme="dark"] .folder-tree-bulk-btn {
+  color: var(--text-muted);
+}
+
+[data-theme="dark"] .folder-tree-bulk-btn:hover {
+  color: var(--text-color);
+}
+
 [data-theme="dark"] .folder-tree-collapse-icon {
   color: var(--text-muted);
 }
@@ -553,6 +561,18 @@
 
 [data-theme="dark"] .folder-tree-content {
   background-color: var(--card-bg);
+}
+
+[data-theme="dark"] .folder-tree-busy {
+  background: rgba(26, 26, 26, 0.72);
+}
+
+[data-theme="dark"] .folder-tree-busy-box {
+  color: var(--text-color);
+}
+
+[data-theme="dark"] .folder-tree-all {
+  border-bottom-color: var(--border-color);
 }
 
 [data-theme="dark"] .folder-tree-item {
