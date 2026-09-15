@@ -57,4 +57,16 @@
     }
 }
 
+@* The way back to an unfiltered search. Without it the only exits are Reset, which throws
+   away the search term and every other filter with it, and switching accounts. Marked selected
+   while no folder is chosen, so the row also says whether a folder filter is in force at all.
+   No data-folder: it clears rather than selects, and the handler tells the two apart by the
+   data-folder-clear attribute. *@
+<div class="folder-tree-item folder-tree-all @(string.IsNullOrEmpty(selectedFolder) ? "selected" : "")"
+     data-folder-clear="true" role="button" tabindex="0">
+    <span class="folder-tree-toggle empty"></span>
+    <i class="bi bi-collection folder-tree-icon"></i>
+    <span class="folder-tree-name">@Localizer["AllFolders"]</span>
+</div>
+
 @{ RenderFolderTree(Model, selectedFolder, Localizer); }
