@@ -60,6 +60,7 @@ services:
       - MailSync__InterAccountDelaySeconds=0
       - MailSync__MaxIssuesPerKind=20
       - MailSync__FullSyncIntervalHours=24
+      - MailSync__ExcludeSubfolders=true
       - MailSync__GlobalExcludedFolders__0=Calendar
       - MailSync__GlobalExcludedFolders__1=Contacts
 
@@ -272,7 +273,7 @@ The optional MCP (Model Context Protocol) server exposes the same read-only mail
 - `MailSync__MaxConcurrentSyncs`: How many account syncs may run at the same time. Default `1` (sequential, backwards-compatible). The scheduler refills slots as they come free rather than waiting for a whole batch, so one slow mailbox no longer holds up the others. Increase to sync multiple accounts concurrently — keep in mind provider rate limits and local resource usage. See [Synchronization.md](Synchronization.md#-how-accounts-are-scheduled).
 - `MailSync__InterAccountDelaySeconds`: Optional stagger delay in seconds applied at the end of each account sync task. Default `0` (no delay). Useful to avoid burst-starts when `MaxConcurrentSyncs > 1`.
 - `MailSync__MaxIssuesPerKind`: How many problems of each kind a sync job remembers for the account page. Failed folders, missing folders and failed messages are budgeted separately, so a flood of one kind cannot push the others out of view; anything beyond the budget is counted rather than kept. Default `20`. `0` switches the detail off and leaves only the counters. See [Synchronization.md](Synchronization.md#-observing-the-sync).
-- `MailSync__GlobalExcludedFolders__<n>`: Folders excluded from synchronization for **every** account, on top of each account's own excluded-folders list. Empty by default, so existing setups are unaffected. The two lists are **additive** — a folder is skipped when it matches either — and both use the same matching rules: exact match on the full path, exact match on the folder name, or a path-suffix match (so `Drafts` also matches `INBOX/Drafts` and `INBOX.Drafts`). Matching is case-insensitive. Useful when importing many mailboxes from the same server, where the alternative is maintaining an identical exclusion list on every account. No folder is excluded by default; which names are worth listing depends on the server and its language. Example for a mailbox tree that also carries calendar and contact folders:
+- `MailSync__GlobalExcludedFolders__<n>`: Folders excluded from synchronization for **every** account, on top of each account's own excluded-folders list. Empty by default, so existing setups are unaffected. The two lists are **additive** — a folder is skipped when it matches either — and both use the same matching rules: exact match on the full path, exact match on the folder name, a path-suffix match (so `Drafts` also matches `INBOX/Drafts` and `INBOX.Drafts`), and everything below the folder an entry names unless `MailSync__ExcludeSubfolders` is switched off. Matching is case-insensitive. Useful when importing many mailboxes from the same server, where the alternative is maintaining an identical exclusion list on every account. No folder is excluded by default; which names are worth listing depends on the server and its language. Example for a mailbox tree that also carries calendar and contact folders:
   ```yaml
       - MailSync__GlobalExcludedFolders__0=Calendar
       - MailSync__GlobalExcludedFolders__1=Kalender
@@ -284,6 +285,7 @@ The optional MCP (Model Context Protocol) server exposes the same read-only mail
       - MailSync__GlobalExcludedFolders__7=Notizen
       - MailSync__GlobalExcludedFolders__8=Journal
   ```
+- `MailSync__ExcludeSubfolders`: Whether an exclusion entry also covers the folders below the one it names. Applies to the per-account list and the installation-wide one alike, and to both providers. Default `true`: an entry `Deleted Items` keeps `Deleted Items/2024` and the rest of that tree out of the archive as well, so a mailbox tree can be excluded by naming its root instead of every folder in it. The rule anchors on the path separator, so it takes whole folders and never part of a name: `Kalender` covers `Kalender` and `Kalender/KfW`, and leaves a mail folder called `SDA DO-Kalender Performance` alone. A `.` counts as a separator too, the same way the path-suffix rule treats it. Set to `false` for an entry to match only the one folder it names.
 
 ### 📤 BatchRestore Settings
 - `BatchRestore__AsyncThreshold`: The number of emails that triggers async processing.

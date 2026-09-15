@@ -17,20 +17,26 @@ namespace MailArchiver.Services.Shared
     /// with an unanchored suffix rule, so a global entry "Kontakte" also covers "Vorgeschlagene
     /// Kontakte". Guessing the name from a delimiter the server chooses would get exactly those
     /// cases wrong.
+    ///
+    /// Third: the entry that covers the folder is recorded, not just the fact. An entry covers what
+    /// lies underneath it, so the folder struck through in the picker is often not named anywhere
+    /// in the list, and the user would otherwise be searching for an entry that does not exist.
     /// </summary>
     public static class FolderExclusionMarking
     {
         public static void MarkGloballyExcluded(
             IEnumerable<MailFolderInfo> folders,
-            IEnumerable<string>? globalExclusions)
+            IEnumerable<string>? globalExclusions,
+            bool excludeSubfolders)
         {
             if (folders == null)
                 return;
 
             foreach (var folder in folders)
             {
-                folder.GloballyExcluded = FolderExclusionMatcher.IsExcluded(
-                    folder.FullName, folder.Name, null, globalExclusions);
+                folder.GloballyExcludedBy = FolderExclusionMatcher.FindCoveringEntry(
+                    folder.FullName, folder.Name, null, globalExclusions, excludeSubfolders);
+                folder.GloballyExcluded = folder.GloballyExcludedBy != null;
             }
         }
     }

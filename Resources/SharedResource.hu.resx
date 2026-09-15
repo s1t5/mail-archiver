@@ -661,6 +661,15 @@
   <data name="FolderAlreadyExcludedGlobally" xml:space="preserve">
     <value>Már minden fiókból kizárva — itt nincs mit módosítani</value>
   </data>
+  <data name="ExclusionsCoverSubfolders" xml:space="preserve">
+    <value>Egy bejegyzés a megnevezett mappa alatti mappákra is vonatkozik.</value>
+  </data>
+  <data name="FolderAlreadyExcludedGloballyBy" xml:space="preserve">
+    <value>A(z) „{0}” bejegyzés miatt már minden fiókban kizárva — itt nincs mit módosítani</value>
+  </data>
+  <data name="FolderCoveredByOwnEntry" xml:space="preserve">
+    <value>A(z) „{0}” bejegyzés ebben a listában már lefedi, az alatta lévőkkel együtt</value>
+  </data>
   <data name="EnterFolderNames" xml:space="preserve">
     <value>Adja meg a mappa neveket pontosvesszővel elválasztva, pl.: Levélszemét;Spam;Lomtár</value>
   </data>

@@ -113,6 +113,7 @@ The sync behavior is controlled by the `MailSync` section of `appsettings.json` 
 | `MailSync:InterAccountDelaySeconds` | `0` | Optional stagger delay in seconds applied at the end of each account sync task. Useful to avoid burst-starts when `MaxConcurrentSyncs > 1`. `0` disables it. |
 | `MailSync:MaxIssuesPerKind` | `20` | How many problems of each kind a sync job remembers for the account page — failed folders, missing folders and failed messages are budgeted separately. Anything beyond is counted, not kept. `0` switches the detail off and leaves only the counters. |
 | `MailSync:GlobalExcludedFolders` | _empty_ | Folders excluded from synchronization for every account, additive to each account's own list. See [Excluded Folders](#-excluded-folders) below. |
+| `MailSync:ExcludeSubfolders` | `true` | Whether an exclusion entry also covers the folders below the one it names, in both lists. See [Excluded Folders](#-excluded-folders) below. |
 
 > 💡 Both the normal sync interval and the full-sync interval can be overridden per account on the **Create/Edit Mail Account** page. Leave the per-account fields empty to fall back to the global defaults above. To remove an account from the scheduler entirely, disable it (toggle *Enabled* off on the Account Details page).
 
@@ -139,13 +140,24 @@ Both lists use the same matching rules, so they cannot drift apart:
 2. exact match against the folder's own name (`Drafts`), which catches an entry typed as the short
    name when the server reports a prefixed path;
 3. path-suffix match, which catches separator variations — `Drafts` also matches `INBOX.Drafts` and
-   `INBOX/Drafts` — and Gmail-style names such as `[Gmail]/Drafts`.
+   `INBOX/Drafts` — and Gmail-style names such as `[Gmail]/Drafts`;
+4. everything below the folder an entry names, so `Kalender` also covers `Kalender/KfW` and
+   `INBOX.Kalender.KfW`. A mailbox tree can therefore be excluded by naming its root instead of
+   every folder in it. Set `MailSync:ExcludeSubfolders` to `false` for an entry to match only the
+   one folder it names.
 
 All comparisons are case-insensitive. The full-path suffix rule anchors on the path separator, so
 `Kalender` does not take a folder named `Kalenderwoche` with it. The name comparison is not anchored
 the same way: a short entry also matches any folder whose own name **ends with** it, so `Kalender`
 takes a folder named `AltKalender` with it. To exclude exactly one folder among similarly named
 ones, enter its full path.
+
+Rule 4 anchors on the separator the way rule 3 does, so it takes whole folders and never part of a
+name: `Kalender` covers `Kalender/KfW`, while a mail folder called `SDA DO-Kalender Performance`
+stays in the sync. Ancestors are compared by path only, so the unanchored name comparison is not
+handed down to a folder's children. A `.` counts as a separator wherever it appears, which means
+that on a server delimiting with `/`, a top-level folder literally named `Kalender.ics` is read as
+lying below `Kalender`.
 
 **No folder name is ever excluded by default.** Which names are worth listing depends entirely on
 the server and its language — a mailbox tree that also carries calendar, contact, task and note

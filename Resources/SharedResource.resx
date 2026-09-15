@@ -655,6 +655,15 @@
   <data name="FolderAlreadyExcludedGlobally" xml:space="preserve">
     <value>Already excluded for all accounts — nothing to change here</value>
   </data>
+  <data name="ExclusionsCoverSubfolders" xml:space="preserve">
+    <value>An entry also covers the folders below the one it names.</value>
+  </data>
+  <data name="FolderAlreadyExcludedGloballyBy" xml:space="preserve">
+    <value>Already excluded for all accounts by the entry “{0}” — nothing to change here</value>
+  </data>
+  <data name="FolderCoveredByOwnEntry" xml:space="preserve">
+    <value>Covered by the entry “{0}” in this list, together with everything below it</value>
+  </data>
   <data name="EnterFolderNames" xml:space="preserve">
     <value>Enter folder names separated by semicolons, e.g.: Junk;Spam;Trash</value>
   </data>

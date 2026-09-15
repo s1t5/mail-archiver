@@ -278,6 +278,9 @@ namespace MailArchiver.Controllers
             // invisible, so a folder can go unsynced with no explanation anywhere in the UI.
             ViewBag.GlobalExcludedFolders = _mailSyncOptions.GlobalExcludedFolders;
 
+            // Same reason: an entry reaching downwards is invisible in a list of bare folder names.
+            ViewBag.ExcludeSubfolders = _mailSyncOptions.ExcludeSubfolders;
+
             // The last run that reached an end, so the page can say what happened rather than only
             // when it happened. Null right after a restart, which the view says out loud instead of
             // pretending the account is fine.
@@ -745,6 +748,12 @@ namespace MailArchiver.Controllers
             // Shown read-only next to the account's own list: this is where somebody asks whether
             // they still need to add Kalender, and the answer is usually no.
             ViewBag.GlobalExcludedFolders = _mailSyncOptions.GlobalExcludedFolders;
+
+            // The picker decides in the browser which folders the account's own entries already
+            // cover, because that list changes with every click and a round trip per click would be
+            // absurd. It needs the same switch the matcher gets, or it would claim a reach the sync
+            // does not have.
+            ViewBag.ExcludeSubfolders = _mailSyncOptions.ExcludeSubfolders;
 
             return View(model);
         }
@@ -2437,13 +2446,18 @@ namespace MailArchiver.Controllers
                 }
 
                 FolderExclusionMarking.MarkGloballyExcluded(
-                    folders, _mailSyncOptions.GlobalExcludedFolders);
+                    folders, _mailSyncOptions.GlobalExcludedFolders,
+                    _mailSyncOptions.ExcludeSubfolders);
 
+                // coveredBy, not just the flag: an entry covers what lies underneath it, so the
+                // folder the picker strikes through is often named nowhere in the list and the
+                // user would be hunting for an entry that does not exist.
                 return Json(folders.Select(f => new
                 {
                     fullName = f.FullName,
                     name = f.Name,
-                    globallyExcluded = f.GloballyExcluded
+                    globallyExcluded = f.GloballyExcluded,
+                    coveredBy = f.GloballyExcludedBy
                 }));
             }
             catch (Exception ex)
