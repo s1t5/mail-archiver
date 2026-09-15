@@ -658,6 +658,15 @@
   <data name="FolderAlreadyExcludedGlobally" xml:space="preserve">
     <value>Že izključeno za vse račune — tu ni kaj spreminjati</value>
   </data>
+  <data name="ExclusionsCoverSubfolders" xml:space="preserve">
+    <value>Vnos zajame tudi mape pod navedeno mapo.</value>
+  </data>
+  <data name="FolderAlreadyExcludedGloballyBy" xml:space="preserve">
+    <value>Že izključeno za vse račune z vnosom »{0}« — tukaj ni kaj spreminjati</value>
+  </data>
+  <data name="FolderCoveredByOwnEntry" xml:space="preserve">
+    <value>Že zajeto z vnosom »{0}« na tem seznamu, skupaj z vsem pod njim</value>
+  </data>
   <data name="EnterFolderNames" xml:space="preserve">
     <value>Vnesite imena map, ločena s podpičji, npr.: Neželena pošta; Koš</value>
   </data>

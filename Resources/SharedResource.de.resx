@@ -658,6 +658,15 @@
   <data name="FolderAlreadyExcludedGlobally" xml:space="preserve">
     <value>Bereits für alle Konten ausgeschlossen — hier nichts zu ändern</value>
   </data>
+  <data name="ExclusionsCoverSubfolders" xml:space="preserve">
+    <value>Ein Eintrag schließt auch die Ordner unterhalb des genannten Ordners aus.</value>
+  </data>
+  <data name="FolderAlreadyExcludedGloballyBy" xml:space="preserve">
+    <value>Durch den Eintrag „{0}“ bereits für alle Konten ausgeschlossen — hier nichts zu ändern</value>
+  </data>
+  <data name="FolderCoveredByOwnEntry" xml:space="preserve">
+    <value>Durch den Eintrag „{0}“ in dieser Liste bereits erfasst, samt allem darunter</value>
+  </data>
   <data name="EnterFolderNames" xml:space="preserve">
     <value>Geben Sie die Ordnernamen durch Semikolons getrennt ein, z.B.: Junk;Spam;Trash</value>
   </data>

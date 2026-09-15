@@ -21,5 +21,13 @@ namespace MailArchiver.Models
         /// cannot sync it whatever its own list says.
         /// </summary>
         public bool GloballyExcluded { get; set; }
+
+        /// <summary>
+        /// The installation-wide entry that covers this folder, or null when none does. Carried
+        /// alongside the flag because an entry covers the folders underneath it as well, so the
+        /// entry responsible is often neither this folder's name nor its path, and a picker that
+        /// only said "excluded" would leave the user looking for an entry that is not there.
+        /// </summary>
+        public string? GloballyExcludedBy { get; set; }
     }
 }

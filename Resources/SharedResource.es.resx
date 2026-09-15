@@ -661,6 +661,15 @@
   <data name="FolderAlreadyExcludedGlobally" xml:space="preserve">
     <value>Ya excluida para todas las cuentas: aquí no hay nada que cambiar</value>
   </data>
+  <data name="ExclusionsCoverSubfolders" xml:space="preserve">
+    <value>Una entrada también abarca las carpetas situadas debajo de la que indica.</value>
+  </data>
+  <data name="FolderAlreadyExcludedGloballyBy" xml:space="preserve">
+    <value>Ya excluida para todas las cuentas por la entrada «{0}»: aquí no hay nada que cambiar</value>
+  </data>
+  <data name="FolderCoveredByOwnEntry" xml:space="preserve">
+    <value>Ya cubierta por la entrada «{0}» de esta lista, junto con todo lo que hay debajo</value>
+  </data>
   <data name="EnterFolderNames" xml:space="preserve">
     <value>Ingrese nombres de carpetas separados por punto y coma, ej.: Correo no deseado;Spam;Papelera</value>
   </data>

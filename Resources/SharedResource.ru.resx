@@ -658,6 +658,15 @@
   <data name="FolderAlreadyExcludedGlobally" xml:space="preserve">
     <value>Уже исключено для всех учётных записей — здесь менять нечего</value>
   </data>
+  <data name="ExclusionsCoverSubfolders" xml:space="preserve">
+    <value>Запись распространяется и на папки, расположенные ниже указанной.</value>
+  </data>
+  <data name="FolderAlreadyExcludedGloballyBy" xml:space="preserve">
+    <value>Уже исключено для всех учётных записей записью «{0}» — здесь ничего менять не нужно</value>
+  </data>
+  <data name="FolderCoveredByOwnEntry" xml:space="preserve">
+    <value>Уже охвачено записью «{0}» в этом списке вместе со всем, что находится ниже</value>
+  </data>
   <data name="EnterFolderNames" xml:space="preserve">
     <value>Введите имена папок через точку с запятой, например: Junk;Spam;Trash</value>
   </data>
