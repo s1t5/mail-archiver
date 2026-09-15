@@ -1,6 +1,7 @@
 using MailArchiver.Data;
 using MailArchiver.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata;
 using Npgsql;
 
 namespace MailArchiver.Services
@@ -129,31 +130,12 @@ namespace MailArchiver.Services
             using var connection = new NpgsqlConnection(connectionString);
             await connection.OpenAsync();
 
-            // Hinweis: pg_column_size(e) liefert die Groesse der gesamten Zeile
-            // (Summe aller Spalten inkl. Kompression/TOAST). Die COALESCE-Subqueries
-            // garantieren einen 0-Fallback fuer Accounts ohne Emails bzw. ohne Anhaenge.
-            var fallbackSql = @"
-                SELECT
-                    COALESCE((
-                        SELECT SUM(pg_column_size(e))
-                        FROM mail_archiver.""ArchivedEmails"" e
-                        WHERE e.""MailAccountId"" = @accountId
-                    ), 0) AS MailBytes,
-                    COALESCE((
-                        SELECT SUM(a.""Size"")
-                        FROM mail_archiver.""EmailAttachments"" a
-                        JOIN mail_archiver.""ArchivedEmails"" e2 ON a.""ArchivedEmailId"" = e2.""Id""
-                        WHERE e2.""MailAccountId"" = @accountId
-                    ), 0) AS AttachmentBytes;
-            ";
-
             // Hinweis: Der Npgsql-Default-CommandTimeout betraegt 30 Sekunden und ist
-            // fuer grosse Archive zu knapp (pg_column_size muss jede Zeile inkl.
-            // TOAST lesen). Der Timeout ist daher konfigurierbar, analog zu
+            // fuer grosse Archive zu knapp. Der Timeout ist daher konfigurierbar, analog zu
             // AttachmentDeduplication:CommandTimeoutSeconds.
             var commandTimeoutSeconds = _configuration.GetValue<int>("AccountStorage:CommandTimeoutSeconds", 300);
 
-            using var command = new NpgsqlCommand(fallbackSql, connection);
+            using var command = new NpgsqlCommand(BuildStorageSql(_context.Model), connection);
             command.CommandTimeout = commandTimeoutSeconds;
             command.Parameters.AddWithValue("@accountId", mailAccountId);
             using var reader = await command.ExecuteReaderAsync();
@@ -165,6 +147,40 @@ namespace MailArchiver.Services
             }
 
             return (0, 0);
+        }
+
+        /// <summary>
+        /// Builds the storage query. MailBytes adds up pg_column_size for each column of
+        /// ArchivedEmails separately instead of calling it on the whole row.
+        /// </summary>
+        /// <remarks>
+        /// pg_column_size(e) makes PostgreSQL turn the row into a composite value, and that
+        /// fetches every TOASTed column first, so it read every mail body of the account on
+        /// each refresh. On a single column the size comes from the TOAST pointer and nothing
+        /// is fetched, so only the table itself is scanned. The result is the same apart from
+        /// the row header. The columns come from the EF model so new ones are counted too.
+        /// The COALESCE subqueries return 0 for accounts without emails or attachments.
+        /// </remarks>
+        internal static string BuildStorageSql(IModel model)
+        {
+            var columnSizes = model.FindEntityType(typeof(ArchivedEmail))!
+                .GetProperties()
+                .Select(p => $@"COALESCE(pg_column_size(e.""{p.GetColumnName()}""), 0)::bigint");
+
+            return $@"
+                SELECT
+                    COALESCE((
+                        SELECT SUM({string.Join(" + ", columnSizes)})
+                        FROM mail_archiver.""ArchivedEmails"" e
+                        WHERE e.""MailAccountId"" = @accountId
+                    ), 0) AS MailBytes,
+                    COALESCE((
+                        SELECT SUM(a.""Size"")
+                        FROM mail_archiver.""EmailAttachments"" a
+                        JOIN mail_archiver.""ArchivedEmails"" e2 ON a.""ArchivedEmailId"" = e2.""Id""
+                        WHERE e2.""MailAccountId"" = @accountId
+                    ), 0) AS AttachmentBytes;
+            ";
         }
 
         private async Task UpsertCacheAsync(int mailAccountId, long mailBytes, long attachmentBytes, long totalBytes)
