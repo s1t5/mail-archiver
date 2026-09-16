@@ -22,14 +22,14 @@ namespace MailArchiver.Services.Shared
     /// <item>exact match against the folder's own name, which catches an entry typed as the short
     /// name when the server reports a prefixed path;</item>
     /// <item>suffix match, which catches IMAP path separator variations such as "Drafts" against
-    /// "INBOX.Drafts" or "INBOX/Drafts", and Gmail-style names such as "[Gmail]/Drafts";</item>
+    /// "INBOX.Drafts" or "INBOX/Drafts", and server-prefixed names such as "[Prefix]/Drafts";</item>
     /// <item>an entry also covers what lies underneath the folder it names, unless
-    /// <c>MailSync:ExcludeSubfolders</c> is switched off. "Kalender" therefore also covers
-    /// "Kalender/KfW" and "INBOX.Kalender.KfW".</item>
+    /// <c>MailSync:ExcludeSubfolders</c> is switched off. "Archive" therefore also covers
+    /// "Archive/Team" and "INBOX.Archive.Team".</item>
     /// </list>
     ///
     /// The fourth rule anchors on the path separator, so it takes whole folders and never parts of
-    /// a name: "Kalender" covers "Kalender/KfW" but not "SDA DO-Kalender Performance", which is an
+    /// a name: "Archive" covers "Archive/Team" but not "SDA DO-Archive Performance", which is an
     /// ordinary mail folder that happens to carry the word. Anchoring is what separates the two,
     /// and a substring rule would quietly take the second one out of the archive.
     ///
@@ -43,8 +43,8 @@ namespace MailArchiver.Services.Shared
     /// delimiter the server chooses, which is exactly the guessing
     /// <see cref="MailArchiver.Models.MailFolderInfo"/> avoids.</item>
     /// <item>"." counts as a separator wherever it appears, the same way rule 3 already treats it.
-    /// On a server that delimits with "/", a top-level folder literally named "Kalender.ics" is
-    /// therefore read as lying underneath "Kalender". The two cannot be told apart from the path
+    /// On a server that delimits with "/", a top-level folder literally named "Archive.ics" is
+    /// therefore read as lying underneath "Archive". The two cannot be told apart from the path
     /// alone, and for an exclusion list taking the folder is the safe direction.</item>
     /// </list>
     ///
@@ -117,9 +117,9 @@ namespace MailArchiver.Services.Shared
                     return entry;
                 }
 
-                // 3b) Name ends with the excluded entry (handles Gmail-style "[Gmail]/Drafts").
-                //     Deliberately unanchored, which is why "Kontakte" also takes "Vorgeschlagene
-                //     Kontakte". Pre-existing and kept: for an exclusion list, matching more is the
+                // 3b) Name ends with the excluded entry (handles server-prefixed "[Prefix]/Drafts").
+                //     Deliberately unanchored, which is why "Contacts" also takes "Suggested
+                //     Contacts". Pre-existing and kept: for an exclusion list, matching more is the
                 //     safe direction, and installations rely on it.
                 if (!string.IsNullOrEmpty(name) &&
                     name.EndsWith(entry, StringComparison.OrdinalIgnoreCase))

@@ -140,24 +140,24 @@ Both lists use the same matching rules, so they cannot drift apart:
 2. exact match against the folder's own name (`Drafts`), which catches an entry typed as the short
    name when the server reports a prefixed path;
 3. path-suffix match, which catches separator variations — `Drafts` also matches `INBOX.Drafts` and
-   `INBOX/Drafts` — and Gmail-style names such as `[Gmail]/Drafts`;
-4. everything below the folder an entry names, so `Kalender` also covers `Kalender/KfW` and
-   `INBOX.Kalender.KfW`. A mailbox tree can therefore be excluded by naming its root instead of
+   `INBOX/Drafts` — and server-prefixed names such as `[Provider]/Drafts`;
+4. everything below the folder an entry names, so `Archive` also covers `Archive/KfW` and
+   `INBOX.Archive.KfW`. A mailbox tree can therefore be excluded by naming its root instead of
    every folder in it. Set `MailSync:ExcludeSubfolders` to `false` for an entry to match only the
    one folder it names.
 
 All comparisons are case-insensitive. The full-path suffix rule anchors on the path separator, so
-`Kalender` does not take a folder named `Kalenderwoche` with it. The name comparison is not anchored
-the same way: a short entry also matches any folder whose own name **ends with** it, so `Kalender`
-takes a folder named `AltKalender` with it. To exclude exactly one folder among similarly named
+`Archive` does not take a folder named `ArchiveWeek` with it. The name comparison is not anchored
+the same way: a short entry also matches any folder whose own name **ends with** it, so `Archive`
+takes a folder named `OldArchive` with it. To exclude exactly one folder among similarly named
 ones, enter its full path.
 
 Rule 4 anchors on the separator the way rule 3 does, so it takes whole folders and never part of a
-name: `Kalender` covers `Kalender/KfW`, while a mail folder called `SDA DO-Kalender Performance`
+name: `Archive` covers `Archive/KfW`, while a mail folder called `SDA DO-Archive Performance`
 stays in the sync. Ancestors are compared by path only, so the unanchored name comparison is not
 handed down to a folder's children. A `.` counts as a separator wherever it appears, which means
-that on a server delimiting with `/`, a top-level folder literally named `Kalender.ics` is read as
-lying below `Kalender`.
+that on a server delimiting with `/`, a top-level folder literally named `Archive.ics` is read as
+lying below `Archive`.
 
 **No folder name is ever excluded by default.** Which names are worth listing depends entirely on
 the server and its language — a mailbox tree that also carries calendar, contact, task and note

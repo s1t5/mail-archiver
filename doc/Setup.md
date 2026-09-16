@@ -276,16 +276,16 @@ The optional MCP (Model Context Protocol) server exposes the same read-only mail
 - `MailSync__GlobalExcludedFolders__<n>`: Folders excluded from synchronization for **every** account, on top of each account's own excluded-folders list. Empty by default, so existing setups are unaffected. The two lists are **additive** — a folder is skipped when it matches either — and both use the same matching rules: exact match on the full path, exact match on the folder name, a path-suffix match (so `Drafts` also matches `INBOX/Drafts` and `INBOX.Drafts`), and everything below the folder an entry names unless `MailSync__ExcludeSubfolders` is switched off. Matching is case-insensitive. Useful when importing many mailboxes from the same server, where the alternative is maintaining an identical exclusion list on every account. No folder is excluded by default; which names are worth listing depends on the server and its language. Example for a mailbox tree that also carries calendar and contact folders:
   ```yaml
       - MailSync__GlobalExcludedFolders__0=Calendar
-      - MailSync__GlobalExcludedFolders__1=Kalender
+      - MailSync__GlobalExcludedFolders__1=Calendars
       - MailSync__GlobalExcludedFolders__2=Contacts
-      - MailSync__GlobalExcludedFolders__3=Kontakte
+      - MailSync__GlobalExcludedFolders__3=AddressBook
       - MailSync__GlobalExcludedFolders__4=Tasks
-      - MailSync__GlobalExcludedFolders__5=Aufgaben
+      - MailSync__GlobalExcludedFolders__5=TaskList
       - MailSync__GlobalExcludedFolders__6=Notes
-      - MailSync__GlobalExcludedFolders__7=Notizen
+      - MailSync__GlobalExcludedFolders__7=NoteList
       - MailSync__GlobalExcludedFolders__8=Journal
   ```
-- `MailSync__ExcludeSubfolders`: Whether an exclusion entry also covers the folders below the one it names. Applies to the per-account list and the installation-wide one alike, and to both providers. Default `true`: an entry `Deleted Items` keeps `Deleted Items/2024` and the rest of that tree out of the archive as well, so a mailbox tree can be excluded by naming its root instead of every folder in it. The rule anchors on the path separator, so it takes whole folders and never part of a name: `Kalender` covers `Kalender` and `Kalender/KfW`, and leaves a mail folder called `SDA DO-Kalender Performance` alone. A `.` counts as a separator too, the same way the path-suffix rule treats it. Set to `false` for an entry to match only the one folder it names.
+- `MailSync__ExcludeSubfolders`: Whether an exclusion entry also covers the folders below the one it names. Applies to the per-account list and the installation-wide one alike, and to both providers. Default `true`: an entry `Deleted Items` keeps `Deleted Items/2024` and the rest of that tree out of the archive as well, so a mailbox tree can be excluded by naming its root instead of every folder in it. The rule anchors on the path separator, so it takes whole folders and never part of a name: `Archive` covers `Archive` and `Archive/Team`, and leaves a mail folder called `SDA DO-Archive Performance` alone. A `.` counts as a separator too, the same way the path-suffix rule treats it. Set to `false` for an entry to match only the one folder it names.
 
 ### 📤 BatchRestore Settings
 - `BatchRestore__AsyncThreshold`: The number of emails that triggers async processing.
