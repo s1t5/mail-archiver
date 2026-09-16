@@ -179,8 +179,9 @@
                        and spreads its children below 1024px, which is meant for the navbar and
                        would fling these two buttons across the header. *@
                     <div class="folder-tree-header-actions">
-                        @* Inside the header, which is itself the click target that folds the panel
-                           away. The handler stops the click there, see initializeFolderTreeBulk. *@
+                    @* Inside the header, which is itself the click target that folds the panel
+                       away. The click handler stops the click there, see the bulk-btn wiring
+                       further down. *@
                         <button type="button" class="folder-tree-bulk-btn" data-tree-action="expand"
                                 title="@Localizer["ExpandAllFolders"]" aria-label="@Localizer["ExpandAllFolders"]">
                             <i class="bi bi-arrows-expand"></i>
@@ -663,8 +664,11 @@
                     updateToggleBtnState();
                 });
                 
-                // Keyboard support
+                // Keyboard support. Only when the header itself is the target: Enter/Space on a
+                // bulk button inside it bubbles here too, and would fold the panel away instead
+                // of running the button's action.
                 folderTreeHeader.addEventListener('keydown', function(e) {
+                    if (e.target !== folderTreeHeader) return;
                     if (e.key === 'Enter' || e.key === ' ') {
                         e.preventDefault();
                         toggleFolderTree();
@@ -701,13 +705,18 @@
                 return field ? field.value : '';
             }
 
-            // Shows that the click was taken. Nothing clears it: the navigation replaces the page.
+            // Shows that the click was taken. Nothing clears it in the normal flow: the
+            // navigation replaces the page. clearFolderPending() covers the bfcache path.
             function markFolderPending(item) {
                 const busy = document.getElementById('folderTreeBusy');
                 if (busy) busy.hidden = false;
 
                 const icon = item.querySelector('.folder-tree-icon');
                 if (icon) {
+                    // Kept so clearFolderPending() can put the original icon back after bfcache restore.
+                    icon.dataset.icon = icon.getAttribute('class').split(/\s+/).filter(function (c) {
+                        return c.indexOf('bi-') === 0;
+                    }).join(' ');
                     icon.className = 'spinner-border spinner-border-sm folder-tree-icon';
                     icon.setAttribute('role', 'status');
                 }
@@ -715,6 +724,23 @@
                 // at random, so the tree stops taking clicks once one is under way.
                 document.querySelectorAll('.folder-tree-item').forEach(function (el) {
                     el.classList.add('folder-tree-item-pending');
+                });
+            }
+
+            // Undoes markFolderPending(). Needed when the browser serves the page back out of
+            // the back/forward cache instead of re-fetching it: the overlay and the inert tree
+            // would survive the restore and the page would sit dead until a manual reload.
+            function clearFolderPending() {
+                const busy = document.getElementById('folderTreeBusy');
+                if (busy) busy.hidden = true;
+
+                document.querySelectorAll('.folder-tree-item').forEach(function (el) {
+                    el.classList.remove('folder-tree-item-pending');
+                    const icon = el.querySelector('.folder-tree-icon');
+                    if (icon) {
+                        icon.className = 'bi ' + (icon.dataset.icon || 'bi-folder') + ' folder-tree-icon';
+                        icon.removeAttribute('role');
+                    }
                 });
             }
 
@@ -779,6 +805,13 @@
             applyRememberedFolders();
         }
         initializeFolderTree();
+
+        // Back/forward cache restore: the browser resurrects the DOM exactly as it was left,
+        // pending state included. Nothing on this page disqualifies it from the cache, so this
+        // is the only chance to undo it.
+        window.addEventListener('pageshow', function(e) {
+            if (e.persisted) clearFolderPending();
+        });
 
         function readClosedFolders() {
             try {
