@@ -821,6 +821,8 @@ namespace MailArchiver.Controllers
             }
 
             ViewBag.MsaHasDefaultClientId = _msaOptions.HasDefaultClientId;
+            ViewBag.GlobalExcludedFolders = _mailSyncOptions.GlobalExcludedFolders;
+            ViewBag.ExcludeSubfolders = _mailSyncOptions.ExcludeSubfolders;
 
             // For MSA without a configured default ClientId, a per-account ClientId is required.
             if (model.Provider == ProviderType.MSA && !_msaOptions.HasDefaultClientId
