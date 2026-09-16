@@ -37,21 +37,21 @@ public class FolderExclusionMarkingTests
     [Fact]
     public void No_global_list_marks_nothing()
     {
-        var folders = Mark(null, Folder("INBOX/Kalender", "Kalender"));
+        var folders = Mark(null, Folder("INBOX/Archive", "Archive"));
         Assert.False(folders[0].GloballyExcluded);
     }
 
     [Fact]
     public void Empty_global_list_marks_nothing()
     {
-        var folders = Mark(new List<string>(), Folder("INBOX/Kalender", "Kalender"));
+        var folders = Mark(new List<string>(), Folder("INBOX/Archive", "Archive"));
         Assert.False(folders[0].GloballyExcluded);
     }
 
     [Fact]
     public void A_null_collection_of_folders_is_not_an_error()
     {
-        FolderExclusionMarking.MarkGloballyExcluded(null!, new[] { "Kalender" }, true);
+        FolderExclusionMarking.MarkGloballyExcluded(null!, new[] { "Archive" }, true);
     }
 
     // ---- only the global list decides --------------------------------------------------------
@@ -59,7 +59,7 @@ public class FolderExclusionMarkingTests
     [Fact]
     public void A_folder_the_global_list_covers_is_marked()
     {
-        var folders = Mark(new[] { "Kalender" }, Folder("INBOX/Kalender", "Kalender"));
+        var folders = Mark(new[] { "Archive" }, Folder("INBOX/Archive", "Archive"));
         Assert.True(folders[0].GloballyExcluded);
     }
 
@@ -68,7 +68,7 @@ public class FolderExclusionMarkingTests
     {
         // The account may well exclude this one already. That is the list being edited on this
         // page, and a struck-through entry there could not be taken back.
-        var folders = Mark(new[] { "Kalender" }, Folder("INBOX/Drafts", "Drafts"));
+        var folders = Mark(new[] { "Archive" }, Folder("INBOX/Drafts", "Drafts"));
         Assert.False(folders[0].GloballyExcluded);
     }
 
@@ -79,7 +79,7 @@ public class FolderExclusionMarkingTests
         var stale = Folder("INBOX/Drafts", "Drafts");
         stale.GloballyExcluded = true;
 
-        Mark(new[] { "Kalender" }, stale);
+        Mark(new[] { "Archive" }, stale);
 
         Assert.False(stale.GloballyExcluded);
     }
@@ -89,20 +89,20 @@ public class FolderExclusionMarkingTests
     [Fact]
     public void An_entry_reaches_a_folder_whose_name_merely_ends_with_it()
     {
-        // Neither path rule fires here: the path does not end in "/Kontakte". Only the unanchored
+        // Neither path rule fires here: the path does not end in "/Contacts". Only the unanchored
         // rule on the folder's own name does, and that is the shape a comparison in JavaScript
         // would be written as an equality and miss.
-        var folders = Mark(new[] { "Kontakte" },
-            Folder("Kontakte/Unsortierte Kontakte", "Unsortierte Kontakte"));
+        var folders = Mark(new[] { "Contacts" },
+            Folder("Contacts/Unsorted Contacts", "Unsorted Contacts"));
         Assert.True(folders[0].GloballyExcluded);
     }
 
     [Fact]
     public void A_folder_that_only_looks_similar_is_left_alone()
     {
-        // "Performance" ends a real customer mail folder's name; nothing here may take it out of
-        // the picker on a resemblance.
-        var folders = Mark(new[] { "Kalender" }, Folder("INBOX/Kalenderwoche", "Kalenderwoche"));
+        // An ordinary mail folder whose name merely starts with the entry; nothing here may
+        // take it out of the picker on a resemblance.
+        var folders = Mark(new[] { "Archive" }, Folder("INBOX/ArchiveWeek", "ArchiveWeek"));
         Assert.False(folders[0].GloballyExcluded);
     }
 
@@ -124,7 +124,7 @@ public class FolderExclusionMarkingTests
     [Fact]
     public void A_folder_no_entry_covers_names_none()
     {
-        var folders = Mark(new[] { "Kalender" }, Folder("INBOX/Drafts", "Drafts"));
+        var folders = Mark(new[] { "Archive" }, Folder("INBOX/Drafts", "Drafts"));
         Assert.Null(folders[0].GloballyExcludedBy);
     }
 
@@ -133,9 +133,9 @@ public class FolderExclusionMarkingTests
     {
         // Same reason as the flag: a reused DTO must not carry a stale entry into the next listing.
         var stale = Folder("INBOX/Drafts", "Drafts");
-        stale.GloballyExcludedBy = "Kalender";
+        stale.GloballyExcludedBy = "Archive";
 
-        Mark(new[] { "Kalender" }, stale);
+        Mark(new[] { "Archive" }, stale);
 
         Assert.Null(stale.GloballyExcludedBy);
     }
@@ -159,11 +159,11 @@ public class FolderExclusionMarkingTests
     [Fact]
     public void Each_folder_is_judged_on_its_own()
     {
-        var folders = Mark(new[] { "Kalender", "Kontakte" },
+        var folders = Mark(new[] { "Archive", "Contacts" },
             Folder("INBOX", "INBOX"),
-            Folder("INBOX/Kalender", "Kalender"),
+            Folder("INBOX/Archive", "Archive"),
             Folder("INBOX/Drafts", "Drafts"),
-            Folder("Kontakte/Unsortierte Kontakte", "Unsortierte Kontakte"));
+            Folder("Contacts/Unsorted Contacts", "Unsorted Contacts"));
 
         Assert.Equal(
             new[] { false, true, false, true },

@@ -29,7 +29,7 @@ namespace MailArchiver.Services.Shared
     /// </list>
     ///
     /// The fourth rule anchors on the path separator, so it takes whole folders and never parts of
-    /// a name: "Archive" covers "Archive/Team" but not "SDA DO-Archive Performance", which is an
+    /// a name: "Archive" covers "Archive/Team" but not "Team Archive Review", which is an
     /// ordinary mail folder that happens to carry the word. Anchoring is what separates the two,
     /// and a substring rule would quietly take the second one out of the archive.
     ///
