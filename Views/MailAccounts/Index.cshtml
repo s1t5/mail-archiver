@@ -54,6 +54,13 @@
                 </div>
                 <div class="d-flex align-items-center gap-2">
                     <span class="small" id="accountPageInfo" data-template="@Localizer["PageOf", "{PAGE}", "{TOTAL}"]">@Localizer["PageOf", 1, totalPages]</span>
+                    <select id="accountPageSize" class="form-select form-select-sm" style="width: 80px;">
+                        <option value="20">20</option>
+                        <option value="50" selected>50</option>
+                        <option value="75">75</option>
+                        <option value="100">100</option>
+                        <option value="150">150</option>
+                    </select>
                 </div>
             </div>
         </div>
@@ -65,21 +72,23 @@
                 <table class="table table-striped table-hover table-sm mb-0">
                     <thead class="table-dark">
                         <tr>
-                            <th>@Localizer["Name"]</th>
-                            <th>@Localizer["EmailAddress"]</th>
-                            <th>@Localizer["Count"]</th>
+                            <th class="account-sort" data-sort-key="name" style="cursor: pointer;">@Localizer["Name"] <span class="sort-indicator"></span></th>
+                            <th class="account-sort" data-sort-key="email" style="cursor: pointer;">@Localizer["EmailAddress"] <span class="sort-indicator"></span></th>
+                            <th class="account-sort" data-sort-key="count" data-sort-type="number" style="cursor: pointer;">@Localizer["Count"] <span class="sort-indicator"></span></th>
                             <th>@Localizer["Provider"]</th>
                             <th>@Localizer["Sync"]</th>
-                            <th>@Localizer["LastSync"]</th>
+                            <th class="account-sort" data-sort-key="lastsync" data-sort-type="number" style="cursor: pointer;">@Localizer["LastSync"] <span class="sort-indicator"></span></th>
                             <th>@Localizer["Storage"]</th>
                             <th>@Localizer["AutoDelete"]</th>
                             <th class="text-center">@Localizer["Actions"]</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="accountTableBody">
                         @foreach (var item in Model)
                         {
-                            <tr class="account-row" data-search="@($"{item.Name} {item.EmailAddress} {item.Username}")">
+                            <tr class="account-row" data-search="@($"{item.Name} {item.EmailAddress} {item.Username}")"
+                                data-name="@item.Name" data-email="@item.EmailAddress"
+                                data-count="@item.EmailCount" data-lastsync="@(item.LastSync?.Ticks ?? 0)">
                                 <td>@item.Name</td>
                                 <td>@item.EmailAddress</td>
                                 <td>@item.EmailCount.ToString("N0")</td>
@@ -173,6 +182,7 @@
 </div>
 
 @section Scripts {
+    <script src="~/js/list-view.js" asp-append-version="true"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             @foreach (var item in Model)
@@ -189,123 +199,23 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            var pageSize = 50;
-            var currentPage = 1;
-            var prevText = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["Previous"].Value));
-            var nextText = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["Next"].Value));
-            var pageInfo = document.getElementById('accountPageInfo');
-            var pageOfTemplate = pageInfo ? pageInfo.getAttribute('data-template') : '';
-            var noMatchHint = document.getElementById('noAccountMatchHint');
-            var searchInput = document.getElementById('accountSearch');
-
-            var desktopRows = Array.from(document.querySelectorAll('.account-row'));
-            var mobileRows = Array.from(document.querySelectorAll('.account-card'));
-            var allRows = desktopRows.map(function(dr, i) {
-                return { desktop: dr, mobile: mobileRows[i], search: (dr.getAttribute('data-search') || '').toLowerCase() };
+            ListView.init({
+                searchInputId: 'accountSearch',
+                pageInfoId: 'accountPageInfo',
+                totalId: 'accountTotal',
+                noMatchHintId: 'noAccountMatchHint',
+                pageSizeSelectId: 'accountPageSize',
+                defaultPageSize: 50,
+                desktopRowSelector: '.account-row',
+                mobileRowSelector: '.account-card',
+                sortHeaderSelector: '.account-sort',
+                tableBodyId: 'accountTableBody',
+                cardListId: 'accountCardList',
+                paginationId: 'accountPagination',
+                paginationCardId: 'accountPaginationCard',
+                prevText: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["Previous"].Value)),
+                nextText: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["Next"].Value))
             });
-            var filteredRows = allRows;
-
-            function totalPages() { return Math.max(1, Math.ceil(filteredRows.length / pageSize)); }
-
-            function renderPage() {
-                var start = (currentPage - 1) * pageSize;
-                var end = start + pageSize;
-                allRows.forEach(function(row) {
-                    row.desktop.style.display = 'none';
-                    row.mobile.style.display = 'none';
-                });
-                filteredRows.forEach(function(row, idx) {
-                    if (idx >= start && idx < end) {
-                        row.desktop.style.display = '';
-                        row.mobile.style.display = '';
-                    }
-                });
-            }
-
-            function renderPagination() {
-                var ul = document.getElementById('accountPagination');
-                var card = document.getElementById('accountPaginationCard');
-                var pages = totalPages();
-                if (pages <= 1) {
-                    card.style.display = 'none';
-                    ul.innerHTML = '';
-                    return;
-                }
-                card.style.display = '';
-                var html = '';
-                if (currentPage > 1) {
-                    html += '<li class="page-item"><a class="page-link" href="#" data-page="' + (currentPage - 1) + '">' + prevText + '</a></li>';
-                }
-                var startPage = Math.max(1, currentPage - 1);
-                var endPage = Math.min(pages, currentPage + 1);
-                for (var i = startPage; i <= endPage; i++) {
-                    html += '<li class="page-item ' + (i === currentPage ? 'active' : '') + '"><a class="page-link" href="#" data-page="' + i + '">' + i + '</a></li>';
-                }
-                if (currentPage < pages) {
-                    html += '<li class="page-item"><a class="page-link" href="#" data-page="' + (currentPage + 1) + '">' + nextText + '</a></li>';
-                }
-                ul.innerHTML = html;
-            }
-
-            function updateSummary() {
-                var totalEl = document.getElementById('accountTotal');
-                if (totalEl) { totalEl.textContent = filteredRows.length; }
-                if (pageInfo && pageOfTemplate) {
-                    pageInfo.textContent = pageOfTemplate.replace('{PAGE}', currentPage).replace('{TOTAL}', totalPages());
-                }
-            }
-
-            function updateNoMatchHint() {
-                if (noMatchHint) {
-                    noMatchHint.style.display = (filteredRows.length === 0 && allRows.length > 0) ? '' : 'none';
-                }
-            }
-
-            function applyFilter() {
-                var term = (searchInput.value || '').trim().toLowerCase();
-                if (!term) {
-                    filteredRows = allRows;
-                } else {
-                    filteredRows = allRows.filter(function(row) {
-                        return row.search.indexOf(term) !== -1;
-                    });
-                }
-                currentPage = 1;
-                renderPage();
-                renderPagination();
-                updateSummary();
-                updateNoMatchHint();
-            }
-
-            var pendingFrame = null;
-            if (searchInput) {
-                searchInput.addEventListener('input', function() {
-                    if (pendingFrame) { cancelAnimationFrame(pendingFrame); }
-                    pendingFrame = requestAnimationFrame(applyFilter);
-                });
-            }
-
-            var paginationUl = document.getElementById('accountPagination');
-            if (paginationUl) {
-                paginationUl.addEventListener('click', function(e) {
-                    var link = e.target.closest('.page-link');
-                    if (!link) { return; }
-                    e.preventDefault();
-                    var page = parseInt(link.getAttribute('data-page'), 10);
-                    if (isNaN(page) || page < 1 || page > totalPages()) { return; }
-                    currentPage = page;
-                    renderPage();
-                    renderPagination();
-                    updateSummary();
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                });
-            }
-
-            // The handlers above only run on input or on a click, so without this first pass the
-            // list stays exactly as the server rendered it: every row visible, no pagination built,
-            // and a "page 1 of N" label that nothing has updated. It looks like a single page
-            // holding everything, and typing into the search box is what makes paging appear.
-            applyFilter();
         });
     </script>
 
@@ -338,7 +248,7 @@
 }
 
     @* Mobile/Tablet Cards - bis groÃŸe Bildschirme *@
-    <div class="d-lg-none">
+    <div class="d-lg-none" id="accountCardList">
         @foreach (var item in Model)
         {
             <div class="card mb-3 account-card @(!item.IsEnabled ? "border-secondary" : "")" data-search="@($"{item.Name} {item.EmailAddress} {item.Username}")">
