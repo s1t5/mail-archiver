@@ -8,8 +8,8 @@ using MailArchiver.Data;
 namespace MailArchiver.Migrations
 {
     [DbContext(typeof(MailArchiverDbContext))]
-    [Migration("20260915120000_MigrateV2609_3")]
-    partial class MigrateV2609_3
+    [Migration("20260915120000_MigrateV2609_1_1")]
+    partial class MigrateV2609_1_1
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

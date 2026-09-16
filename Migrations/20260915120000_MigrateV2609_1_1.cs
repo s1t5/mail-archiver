@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace MailArchiver.Migrations
 {
     /// <inheritdoc />
-    public partial class MigrateV2609_3 : Migration
+    public partial class MigrateV2609_1_1 : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
