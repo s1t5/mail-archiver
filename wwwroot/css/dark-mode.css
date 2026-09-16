@@ -19,12 +19,6 @@
   --table-hover-bg: #4a5568;
   --form-control-bg: #2d3748;
   --form-control-border: #4a5568;
-  --btn-primary-bg: #3498db;
-  --btn-primary-border: #3498db;
-  --btn-success-bg: #2ecc71;
-  --btn-success-border: #2ecc71;
-  --btn-danger-bg: #e74c3c;
-  --btn-danger-border: #e74c3c;
   --alert-success-bg: #1a472a;
   --alert-success-border: #2ecc71;
   --alert-danger-bg: #5b1a18;
@@ -112,21 +106,16 @@
   color: var(--text-color);
 }
 
+/* Button backgrounds use the theme colors in site.css so hover states still apply. */
 [data-theme="dark"] .btn-primary {
-  background-color: var(--btn-primary-bg);
-  border-color: var(--btn-primary-border);
   color: white !important;
 }
 
 [data-theme="dark"] .btn-success {
-  background-color: var(--btn-success-bg);
-  border-color: var(--btn-success-border);
   color: white !important;
 }
 
 [data-theme="dark"] .btn-danger {
-  background-color: var(--btn-danger-bg);
-  border-color: var(--btn-danger-border);
   color: white;
 }
 
@@ -293,11 +282,6 @@
   color: white !important;
 }
 
-/* Alle Buttons behalten ihre ursprüngliche Farbe bei */
-[data-theme="dark"] .btn {
-  color: inherit !important;
-}
-
 /* Spezielle Anpassung für btn-info und btn-warning in Desktop-Ansicht */
 @media (min-width: 769px) {
   [data-theme="dark"] .btn-info,
@@ -440,16 +424,6 @@
   border-color: #683434;
 }
 
-/* Dark Mode für Theme Toggle Button */
-[data-theme="dark"] #theme-toggle {
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  color: white;
-}
-
-[data-theme="dark"] #theme-toggle:hover {
-  background-color: rgba(255, 255, 255, 0.1);
-}
-
 /* Dark Mode für Dropdown Menüs */
 [data-theme="dark"] .dropdown-menu {
   background-color: var(--card-bg) !important;
@@ -467,6 +441,16 @@
   color: var(--text-color) !important;
 }
 
+/* Dark mode for the theme toggle button */
+[data-theme="dark"] #theme-toggle {
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+}
+
+[data-theme="dark"] #theme-toggle:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
 [data-theme="dark"] .dropdown-header {
   color: var(--text-color) !important;
 }
@@ -475,7 +459,7 @@
   border-top: 1px solid var(--border-color) !important;
 }
 
-/* Dark Mode für Modals (falls verwendet) */
+/* Dark mode for modals (if used) */
 [data-theme="dark"] .modal-content {
   background-color: var(--card-bg);
   color: var(--text-color);
