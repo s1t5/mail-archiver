@@ -1021,6 +1021,30 @@ namespace MailArchiver.Services.Core
                 .ToList();
         }
 
+        /// <summary>
+        /// Applies the panel rule of <see cref="BuildAccountPanel"/> to already-built rows. The
+        /// panel is cached for <see cref="DashboardOptions.CacheSeconds"/> but the issue flag is
+        /// read per request, so a cached order can go stale the moment a run finishes or a failure
+        /// is acknowledged. Re-sorting the decorated rows right before they are shown keeps the
+        /// order and the marker on the same data; the rows themselves stay cached, only the
+        /// ordering work repeats.
+        /// </summary>
+        internal static void ApplyPanelOrder(
+            List<AccountStatistics> rows,
+            Func<int, bool> lastRunHadIssues)
+        {
+            if (rows == null || rows.Count < 2)
+                return;
+
+            var ordered = rows
+                .OrderByDescending(a => lastRunHadIssues(a.AccountId))
+                .ThenByDescending(a => a.LastSyncTime)
+                .ToList();
+
+            rows.Clear();
+            rows.AddRange(ordered);
+        }
+
         /// <param name="lastRunHadIssues">
         /// Whether an account's last finished run reported anything. Comes from the caller because
         /// it lives in the sync job service and not in the database. Null orders by last sync

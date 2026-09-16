@@ -83,6 +83,12 @@ namespace MailArchiver.Controllers
 
                     stat.LastRunHadIssues = LastRunHadIssues(stat.AccountId);
                 }
+
+                // The panel order was computed when the statistics were cached, the markers above
+                // were just read fresh. Re-applying the same rule to the decorated rows keeps the
+                // two from drifting apart within the cache window.
+                MailArchiver.Services.Core.EmailCoreService.ApplyPanelOrder(
+                    model.EmailsPerAccount, LastRunHadIssues);
             }
 
             // Aktive Jobs für Dashboard anzeigen

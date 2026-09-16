@@ -721,6 +721,44 @@ public class EmailCoreServiceTests
     }
 
     [Fact]
+    public void ApplyPanelOrder_StaleCachedOrderIsCorrectedAgainstFreshFlags()
+    {
+        // The panel order is cached, the flags are read per request. A run finishing or a
+        // failure being acknowledged within the cache window has to reorder the rows, or the
+        // panel shows an account marked as troubled somewhere it can be missed. The troubled
+        // account is also the older one, because a failed run does not advance LastSync.
+        var troubled = new MailArchiver.Models.ViewModels.AccountStatistics { AccountId = 1, LastSyncTime = DateTime.UtcNow.AddMinutes(-40) };
+        var healthy = new MailArchiver.Models.ViewModels.AccountStatistics { AccountId = 2, LastSyncTime = DateTime.UtcNow.AddMinutes(-10) };
+        var rows = new List<MailArchiver.Models.ViewModels.AccountStatistics> { healthy, troubled };
+
+        EmailCoreService.ApplyPanelOrder(rows, id => id == troubled.AccountId);
+
+        Assert.Equal(troubled.AccountId, rows[0].AccountId);
+        Assert.Equal(healthy.AccountId, rows[1].AccountId);
+
+        // Acknowledging the failure drops the account back into last-sync order without
+        // changing the underlying rows.
+        EmailCoreService.ApplyPanelOrder(rows, _ => false);
+        Assert.Equal(healthy.AccountId, rows[0].AccountId);
+        Assert.Equal(troubled.AccountId, rows[1].AccountId);
+        Assert.Same(troubled, rows[1]);
+    }
+
+    [Fact]
+    public void ApplyPanelOrder_ShortOrEmptyListsAreUntouched()
+    {
+        var single = new List<MailArchiver.Models.ViewModels.AccountStatistics> { new() { AccountId = 1, LastSyncTime = DateTime.UtcNow } };
+        EmailCoreService.ApplyPanelOrder(single, _ => true);
+        Assert.Single(single);
+
+        var empty = new List<MailArchiver.Models.ViewModels.AccountStatistics>();
+        EmailCoreService.ApplyPanelOrder(empty, _ => true);
+        Assert.Empty(empty);
+
+        EmailCoreService.ApplyPanelOrder(null!, _ => true);
+    }
+
+    [Fact]
     public async Task GetDashboardStatisticsAsync_MonthsBucketsCurrentMonthCounted()
     {
         var ctx = _fixture.CreateContext();
