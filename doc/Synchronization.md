@@ -141,8 +141,8 @@ Both lists use the same matching rules, so they cannot drift apart:
    name when the server reports a prefixed path;
 3. path-suffix match, which catches separator variations — `Drafts` also matches `INBOX.Drafts` and
    `INBOX/Drafts` — and server-prefixed names such as `[Provider]/Drafts`;
-4. everything below the folder an entry names, so `Archive` also covers `Archive/KfW` and
-   `INBOX.Archive.KfW`. A mailbox tree can therefore be excluded by naming its root instead of
+4. everything below the folder an entry names, so `Archive` also covers `Archive/Team` and
+   `INBOX.Archive.Team`. A mailbox tree can therefore be excluded by naming its root instead of
    every folder in it. Set `MailSync:ExcludeSubfolders` to `false` for an entry to match only the
    one folder it names.
 
@@ -153,7 +153,7 @@ takes a folder named `OldArchive` with it. To exclude exactly one folder among s
 ones, enter its full path.
 
 Rule 4 anchors on the separator the way rule 3 does, so it takes whole folders and never part of a
-name: `Archive` covers `Archive/KfW`, while a mail folder called `SDA DO-Archive Performance`
+name: `Archive` covers `Archive/Team`, while a mail folder called `Team Archive Review`
 stays in the sync. Ancestors are compared by path only, so the unanchored name comparison is not
 handed down to a folder's children. A `.` counts as a separator wherever it appears, which means
 that on a server delimiting with `/`, a top-level folder literally named `Archive.ics` is read as

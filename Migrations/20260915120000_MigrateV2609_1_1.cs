@@ -22,10 +22,10 @@ namespace MailArchiver.Migrations
             // of messages that bet loses completely: it walks the whole index and
             // fetches every heap page to test a column it cannot see from there.
             //
-            // Measured on an installation with 2,494,213 rows and a 29 GB table,
-            // selecting a folder with ten messages in it:
+            // Measured on an installation holding a few million rows, selecting a
+            // folder with ten messages in it:
             //
-            //   page query   6182 ms, 1,389,349 blocks read, 2,494,203 rows
+            //   page query   6182 ms, 1,389,349 blocks read, all but ten rows
             //                filtered out   ->   2.5 ms, 25 blocks
             //   result count  596 ms, 394,329 blocks         ->   0.26 ms, 22 blocks
             //

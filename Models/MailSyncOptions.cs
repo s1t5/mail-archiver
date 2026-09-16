@@ -29,7 +29,7 @@ namespace MailArchiver.Models
 
         /// <summary>
         /// Whether an exclusion entry also covers the folders underneath the one it names, so
-        /// "Kalender" covers "Kalender/KfW" as well. Applies to both lists and to both providers.
+        /// "Archive" covers "Archive/Team" as well. Applies to both lists and to both providers.
         ///
         /// On by default, because that is what an entry is read to mean: a parent that did not
         /// cover its children left the folders below an excluded tree in the archive, and the only
@@ -37,7 +37,7 @@ namespace MailArchiver.Models
         /// one folder it names and nothing below it.
         ///
         /// The rule anchors on the path separator, so it takes whole folders and never parts of a
-        /// name: "Kalender" covers "Kalender/KfW" but leaves "SDA DO-Kalender Performance" alone.
+        /// name: "Archive" covers "Archive/Team" but leaves "Team Archive Review" alone.
         /// </summary>
         public bool ExcludeSubfolders { get; set; } = true;
 
