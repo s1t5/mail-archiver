@@ -236,6 +236,10 @@
                             <label asp-for="ExcludedFolders" class="form-label">@Localizer["ExcludedFolders"]</label>
                             <textarea asp-for="ExcludedFolders" class="form-control" rows="3" placeholder="@Localizer["EnterFolderNames"]" id="ExcludedFoldersInput"></textarea>
                             <div class="form-text">@Localizer["EnterFolderNamesText"]</div>
+                            @if (ViewBag.ExcludeSubfolders as bool? ?? true)
+                            {
+                                <div class="form-text">@Localizer["ExclusionsCoverSubfolders"]</div>
+                            }
                             <span asp-validation-for="ExcludedFolders" class="text-danger"></span>
                         </div>
 
@@ -386,8 +390,16 @@
             saving: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["Saving"].Value)),
             unsavedWarning: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["UnsavedChangesWarning"].Value)),
             showPassword: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["ShowPassword"].Value)),
-            hidePassword: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["HidePassword"].Value))
+            hidePassword: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["HidePassword"].Value)),
+            copyFolderToExcluded: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["CopyFolderToExcluded"].Value)),
+            folderExcludedGlobally: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["FolderAlreadyExcludedGlobally"].Value)),
+            folderExcludedGloballyBy: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["FolderAlreadyExcludedGloballyBy"].Value)),
+            folderCoveredByOwnEntry: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["FolderCoveredByOwnEntry"].Value))
         };
+
+        // Whether an entry reaches the folders underneath the one it names. The picker decides that
+        // for the account's own list in the browser, because the list changes with every click.
+        const excludeSubfolders = @Html.Raw((ViewBag.ExcludeSubfolders as bool? ?? true) ? "true" : "false");
         document.addEventListener('DOMContentLoaded', function() {
             const providerSelect = document.getElementById('Provider');
             const imapSettings = document.getElementById('imapSettings');
@@ -641,8 +653,68 @@
                             foldersContent.innerHTML = '';
 
                             if (folders && folders.length > 0) {
-                                const excludedList = excludedFoldersInput.value
+                                const ownEntries = () => excludedFoldersInput.value
                                     .split(';').map(s => s.trim()).filter(s => s.length > 0);
+
+                                // The ancestor rule of FolderExclusionMatcher and only that one:
+                                // every separator in the path opens an ancestor, and an ancestor
+                                // counts when it is the entry or ends at it on a separator. The two
+                                // name rules are not mirrored here, so this marks a subset of what
+                                // the sync skips and never claims more than it does.
+                                const pathIsOrEndsAt = (path, entry) => {
+                                    const p = path.toLowerCase(), e = entry.toLowerCase();
+                                    return p === e || p.endsWith('.' + e) || p.endsWith('/' + e);
+                                };
+
+                                const coveringOwnEntry = (fullName) => {
+                                    if (!excludeSubfolders) return null;
+                                    for (const entry of ownEntries()) {
+                                        for (let i = 1; i < fullName.length - 1; i++) {
+                                            const c = fullName.charAt(i);
+                                            if (c !== '/' && c !== '.') continue;
+                                            if (pathIsOrEndsAt(fullName.substring(0, i), entry)) return entry;
+                                        }
+                                    }
+                                    return null;
+                                };
+
+                                // Every clickable badge, so one pass can restate all of them after a
+                                // click: ticking a parent decides its children too, and a child that
+                                // still looked free to pick would be the page contradicting the sync.
+                                const clickable = [];
+
+                                const refreshCoverage = () => {
+                                    const list = ownEntries();
+                                    clickable.forEach(item => {
+                                        const ticked = list.indexOf(item.folder) !== -1;
+                                        const coveredBy = ticked ? null : coveringOwnEntry(item.folder);
+
+                                        // Struck through, like a folder the installation-wide list
+                                        // covers: both say the sync walks past it. The light
+                                        // background and the tooltip tell the two apart, and this
+                                        // one comes back when the entry above it is taken out. A
+                                        // struck badge decides nothing, so it stops being a control
+                                        // for as long as it lasts. Strike-through rather than a muted
+                                        // colour: bg-light stays light in the dark theme, where muted
+                                        // text would sit grey on near-white.
+                                        item.badge.className = coveredBy
+                                            ? 'badge bg-light text-dark opacity-75 text-decoration-line-through'
+                                            : 'badge folder-badge-clickable ' +
+                                              (ticked ? 'bg-secondary text-white' : 'bg-light text-dark');
+
+                                        if (coveredBy) {
+                                            item.badge.removeAttribute('role');
+                                            item.badge.removeAttribute('tabindex');
+                                        } else {
+                                            item.badge.setAttribute('role', 'button');
+                                            item.badge.setAttribute('tabindex', '0');
+                                        }
+
+                                        item.badge.title = coveredBy
+                                            ? i18n.folderCoveredByOwnEntry.replace('{0}', coveredBy)
+                                            : i18n.copyFolderToExcluded;
+                                    });
+                                };
 
                                 folders.forEach(entry => {
                                     const folder = entry.fullName;
@@ -654,32 +726,35 @@
                                     if (entry.globallyExcluded) {
                                         badge.className = 'badge bg-secondary-subtle text-muted border text-decoration-line-through';
                                         badge.textContent = folder;
-                                        badge.title = '@Localizer["FolderAlreadyExcludedGlobally"]';
+                                        // Which entry covers it, because with subfolder coverage the
+                                        // responsible entry is often named nowhere near this folder.
+                                        badge.title = entry.coveredBy
+                                            ? i18n.folderExcludedGloballyBy.replace('{0}', entry.coveredBy)
+                                            : i18n.folderExcludedGlobally;
                                         foldersContent.appendChild(badge);
                                         return;
                                     }
 
-                                    const isExcluded = excludedList.includes(folder);
-                                    badge.className = 'badge folder-badge-clickable ' + (isExcluded ? 'bg-secondary text-white' : 'bg-light text-dark');
                                     badge.textContent = folder;
-                                    badge.setAttribute('role', 'button');
-                                    badge.setAttribute('tabindex', '0');
-                                    badge.title = '@Localizer["CopyFolderToExcluded"]';
 
                                     const toggleFolderInExcluded = () => {
                                         const current = excludedFoldersInput.value.trim();
                                         let lines = current.split(';').map(s => s.trim()).filter(s => s.length > 0);
                                         const idx = lines.indexOf(folder);
+
+                                        // An entry above this folder already decides it, so adding it
+                                        // by name would only put a second entry in the list that
+                                        // changes nothing. Guarded on idx so a folder that is both
+                                        // listed itself and covered from above can still be removed.
+                                        if (idx === -1 && coveringOwnEntry(folder)) return;
+
                                         if (idx === -1) {
                                             lines.push(folder);
-                                            badge.classList.add('bg-secondary', 'text-white');
-                                            badge.classList.remove('bg-light', 'text-dark');
                                         } else {
                                             lines.splice(idx, 1);
-                                            badge.classList.remove('bg-secondary', 'text-white');
-                                            badge.classList.add('bg-light', 'text-dark');
                                         }
                                         excludedFoldersInput.value = lines.join(';');
+                                        refreshCoverage();
                                         markDirty();
                                     };
 
@@ -691,8 +766,15 @@
                                         }
                                     });
 
+                                    clickable.push({ folder: folder, badge: badge });
                                     foldersContent.appendChild(badge);
                                 });
+
+                                refreshCoverage();
+
+                                // Typing in the list has to move the badges too, or the picker
+                                // only agrees with the field when the field was filled by clicking.
+                                excludedFoldersInput.addEventListener('input', refreshCoverage);
 
                                 foldersLoading.style.display = 'none';
                                 foldersContainer.style.display = 'block';

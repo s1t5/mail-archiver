@@ -113,7 +113,8 @@ namespace MailArchiver.Services.Providers.Graph
 
                         if (FolderExclusionMatcher.IsExcluded(
                                 fullFolderPath, folder.DisplayName,
-                                account.ExcludedFoldersList, _mailSyncOptions.GlobalExcludedFolders))
+                                account.ExcludedFoldersList, _mailSyncOptions.GlobalExcludedFolders,
+                                _mailSyncOptions.ExcludeSubfolders))
                         {
                             _logger.LogInformation("Skipping excluded folder: {FolderName} (full path: {FullPath}) for account: {AccountName}",
                                 folder.DisplayName, fullFolderPath, account.Name);
@@ -871,7 +872,8 @@ namespace MailArchiver.Services.Providers.Graph
 
                     if (FolderExclusionMatcher.IsExcluded(
                             fullFolderPath, folder.DisplayName,
-                            account.ExcludedFoldersList, _mailSyncOptions.GlobalExcludedFolders))
+                            account.ExcludedFoldersList, _mailSyncOptions.GlobalExcludedFolders,
+                            _mailSyncOptions.ExcludeSubfolders))
                     {
                         _logger.LogInformation("Skipping excluded folder for deletion: {FolderName} (full path: {FullPath}) for account: {AccountName}",
                             folder.DisplayName, fullFolderPath, account.Name);

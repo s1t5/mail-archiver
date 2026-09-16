@@ -658,6 +658,15 @@
   <data name="FolderAlreadyExcludedGlobally" xml:space="preserve">
     <value>Déjà exclu pour tous les comptes — rien à modifier ici</value>
   </data>
+  <data name="ExclusionsCoverSubfolders" xml:space="preserve">
+    <value>Une entrée couvre également les dossiers situés sous celui qu'elle nomme.</value>
+  </data>
+  <data name="FolderAlreadyExcludedGloballyBy" xml:space="preserve">
+    <value>Déjà exclu pour tous les comptes par l'entrée « {0} » : rien à modifier ici</value>
+  </data>
+  <data name="FolderCoveredByOwnEntry" xml:space="preserve">
+    <value>Déjà couvert par l'entrée « {0} » de cette liste, ainsi que tout ce qui se trouve en dessous</value>
+  </data>
   <data name="EnterFolderNames" xml:space="preserve">
     <value>Entrez les noms de dossiers séparés par des points-virgules, ex. : Indésirable;Spam;Corbeille</value>
   </data>

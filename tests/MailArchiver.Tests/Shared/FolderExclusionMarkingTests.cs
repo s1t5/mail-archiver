@@ -23,8 +23,12 @@ public class FolderExclusionMarkingTests
 
     private static IReadOnlyList<MailFolderInfo> Mark(
         IEnumerable<string>? global, params MailFolderInfo[] folders)
+        => Mark(global, true, folders);
+
+    private static IReadOnlyList<MailFolderInfo> Mark(
+        IEnumerable<string>? global, bool excludeSubfolders, params MailFolderInfo[] folders)
     {
-        FolderExclusionMarking.MarkGloballyExcluded(folders, global);
+        FolderExclusionMarking.MarkGloballyExcluded(folders, global, excludeSubfolders);
         return folders;
     }
 
@@ -47,7 +51,7 @@ public class FolderExclusionMarkingTests
     [Fact]
     public void A_null_collection_of_folders_is_not_an_error()
     {
-        FolderExclusionMarking.MarkGloballyExcluded(null!, new[] { "Kalender" });
+        FolderExclusionMarking.MarkGloballyExcluded(null!, new[] { "Kalender" }, true);
     }
 
     // ---- only the global list decides --------------------------------------------------------
@@ -100,6 +104,54 @@ public class FolderExclusionMarkingTests
         // the picker on a resemblance.
         var folders = Mark(new[] { "Kalender" }, Folder("INBOX/Kalenderwoche", "Kalenderwoche"));
         Assert.False(folders[0].GloballyExcluded);
+    }
+
+    // ---- naming the entry, not just the fact ---------------------------------------------------
+
+    [Fact]
+    public void The_entry_that_covers_the_folder_is_reported()
+    {
+        // The picker says which entry is responsible. For a folder below an excluded one that entry
+        // appears nowhere in the folder's own path or name, so the fact alone would send the user
+        // looking for something that is not there.
+        var folders = Mark(new[] { "Deleted Items" },
+            Folder("Deleted Items/2024/Q1", "Q1"));
+
+        Assert.True(folders[0].GloballyExcluded);
+        Assert.Equal("Deleted Items", folders[0].GloballyExcludedBy);
+    }
+
+    [Fact]
+    public void A_folder_no_entry_covers_names_none()
+    {
+        var folders = Mark(new[] { "Kalender" }, Folder("INBOX/Drafts", "Drafts"));
+        Assert.Null(folders[0].GloballyExcludedBy);
+    }
+
+    [Fact]
+    public void The_named_entry_is_assigned_not_accumulated()
+    {
+        // Same reason as the flag: a reused DTO must not carry a stale entry into the next listing.
+        var stale = Folder("INBOX/Drafts", "Drafts");
+        stale.GloballyExcludedBy = "Kalender";
+
+        Mark(new[] { "Kalender" }, stale);
+
+        Assert.Null(stale.GloballyExcludedBy);
+    }
+
+    // ---- the switch reaches this helper too -----------------------------------------------------
+
+    [Fact]
+    public void With_subfolder_coverage_off_a_folder_below_an_entry_stays_selectable()
+    {
+        // The picker has to agree with the sync. Marking here while the sync would walk the folder
+        // would take a choice away for no reason.
+        var folders = Mark(new[] { "Deleted Items" }, false,
+            Folder("Deleted Items/2024", "2024"));
+
+        Assert.False(folders[0].GloballyExcluded);
+        Assert.Null(folders[0].GloballyExcludedBy);
     }
 
     // ---- a whole listing at once --------------------------------------------------------------

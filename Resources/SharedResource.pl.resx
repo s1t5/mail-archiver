@@ -713,6 +713,15 @@
   <data name="FolderAlreadyExcludedGlobally" xml:space="preserve">
     <value>Już wykluczone dla wszystkich kont — nie ma tu nic do zmiany</value>
   </data>
+  <data name="ExclusionsCoverSubfolders" xml:space="preserve">
+    <value>Wpis obejmuje także foldery znajdujące się poniżej wskazanego folderu.</value>
+  </data>
+  <data name="FolderAlreadyExcludedGloballyBy" xml:space="preserve">
+    <value>Już wykluczone dla wszystkich kont przez wpis „{0}” — tutaj nie ma nic do zmiany</value>
+  </data>
+  <data name="FolderCoveredByOwnEntry" xml:space="preserve">
+    <value>Już objęte wpisem „{0}” na tej liście, wraz ze wszystkim poniżej</value>
+  </data>
   <data name="EnterFolderNames" xml:space="preserve">
     <value>Wprowadź nazwy folderów oddzielone średnikami, np.: Śmieci;Spam;Kosz</value>
   </data>

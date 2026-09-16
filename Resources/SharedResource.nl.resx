@@ -658,6 +658,15 @@
   <data name="FolderAlreadyExcludedGlobally" xml:space="preserve">
     <value>Al uitgesloten voor alle accounts — hier valt niets te wijzigen</value>
   </data>
+  <data name="ExclusionsCoverSubfolders" xml:space="preserve">
+    <value>Een vermelding geldt ook voor de mappen onder de genoemde map.</value>
+  </data>
+  <data name="FolderAlreadyExcludedGloballyBy" xml:space="preserve">
+    <value>Al uitgesloten voor alle accounts door de vermelding “{0}” — hier valt niets te wijzigen</value>
+  </data>
+  <data name="FolderCoveredByOwnEntry" xml:space="preserve">
+    <value>Al gedekt door de vermelding “{0}” in deze lijst, samen met alles eronder</value>
+  </data>
   <data name="EnterFolderNames" xml:space="preserve">
     <value>Voer mapnamen in gescheiden door puntkomma's, bijv.: Junk;Spam;Trash</value>
   </data>

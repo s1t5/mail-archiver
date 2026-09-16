@@ -483,11 +483,6 @@ namespace MailArchiver.Services.Providers.Imap
         }
 
         /// <summary>
-        /// True when the folder is excluded from synchronization, either by the account's own list
-        /// or by the installation-wide <c>MailSync:GlobalExcludedFolders</c>. The matching itself
-        /// lives in <see cref="FolderExclusionMatcher"/> so both sources are compared the same way.
-        /// </summary>
-        /// <summary>
         /// Records one problem on the job so the account page can show what went wrong, not just how
         /// often. The reason is the innermost exception message: the outer ones say where the call
         /// was made, the innermost one is what the server actually said.
@@ -513,12 +508,20 @@ namespace MailArchiver.Services.Providers.Imap
             });
         }
 
+        /// <summary>
+        /// True when the folder is excluded from synchronization, either by the account's own list
+        /// or by the installation-wide <c>MailSync:GlobalExcludedFolders</c>. The matching itself
+        /// lives in <see cref="FolderExclusionMatcher"/> so both sources are compared the same way,
+        /// and <c>MailSync:ExcludeSubfolders</c> decides there whether an entry reaches the folders
+        /// underneath the one it names.
+        /// </summary>
         private bool IsExcludedFolder(IMailFolder folder, MailAccount account)
             => FolderExclusionMatcher.IsExcluded(
                 folder.FullName,
                 folder.Name,
                 account.ExcludedFoldersList,
-                _mailSyncOptions.GlobalExcludedFolders);
+                _mailSyncOptions.GlobalExcludedFolders,
+                _mailSyncOptions.ExcludeSubfolders);
 
         /// <summary>
         /// Syncs a single IMAP folder: search with progressive fallback, bandwidth tracking,

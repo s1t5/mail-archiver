@@ -397,6 +397,14 @@
                     </dd>
                 }
 
+                @{
+                    // Said once, under whichever of the two lists is shown first: the rule is the
+                    // same for both, and the two blocks sit a few pixels apart. The condition below
+                    // stays written out rather than hoisted into this block, so the compiler keeps
+                    // knowing that ExcludedFolders is not null inside it.
+                    var subfolderHint = ViewBag.ExcludeSubfolders as bool? ?? true;
+                    var hasOwnExclusions = !string.IsNullOrWhiteSpace(Model.ExcludedFolders);
+                }
                 @if (!string.IsNullOrWhiteSpace(Model.ExcludedFolders))
                 {
                     <dt class="col-sm-3">@Localizer["ExcludedFolders"]</dt>
@@ -410,6 +418,10 @@
                                 <span class="badge bg-light text-dark"><i class="bi bi-folder-x me-1"></i>@folder</span>
                             }
                         </div>
+                        @if (subfolderHint)
+                        {
+                            <div class="form-text">@Localizer["ExclusionsCoverSubfolders"]</div>
+                        }
                     </dd>
                 }
 
@@ -427,6 +439,10 @@
                             }
                         </div>
                         <div class="form-text">@Localizer["GlobalExcludedFoldersHint"]</div>
+                        @if (subfolderHint && !hasOwnExclusions)
+                        {
+                            <div class="form-text">@Localizer["ExclusionsCoverSubfolders"]</div>
+                        }
                     </dd>
                 }
             </dl>

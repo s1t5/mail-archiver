@@ -658,6 +658,15 @@
   <data name="FolderAlreadyExcludedGlobally" xml:space="preserve">
     <value>Già esclusa per tutti gli account — qui non c'è nulla da modificare</value>
   </data>
+  <data name="ExclusionsCoverSubfolders" xml:space="preserve">
+    <value>Una voce comprende anche le cartelle sottostanti a quella indicata.</value>
+  </data>
+  <data name="FolderAlreadyExcludedGloballyBy" xml:space="preserve">
+    <value>Già escluso per tutti gli account dalla voce “{0}”: qui non c'è nulla da modificare</value>
+  </data>
+  <data name="FolderCoveredByOwnEntry" xml:space="preserve">
+    <value>Già coperto dalla voce “{0}” in questo elenco, insieme a tutto ciò che si trova sotto</value>
+  </data>
   <data name="EnterFolderNames" xml:space="preserve">
     <value>Inserisci nomi cartelle separati da punto e virgola, es: Junk;Spam;Trash</value>
   </data>
