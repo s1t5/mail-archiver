@@ -2636,6 +2636,12 @@
   <data name="ToggleFolderTree" xml:space="preserve">
     <value>Kliknij, aby rozwinąć/zwinąć drzewo folderów</value>
   </data>
+  <data name="ExpandAllFolders" xml:space="preserve">
+    <value>Rozwiń wszystkie foldery</value>
+  </data>
+  <data name="CollapseAllFolders" xml:space="preserve">
+    <value>Zwiń wszystkie foldery</value>
+  </data>
   <data name="NoFolders" xml:space="preserve">
     <value>Brak dostępnych folderów</value>
   </data>

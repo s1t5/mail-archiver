@@ -2590,6 +2590,12 @@
   <data name="ToggleFolderTree" xml:space="preserve">
     <value>Kliknite za razširitev/skrajšitev drevesa map</value>
   </data>
+  <data name="ExpandAllFolders" xml:space="preserve">
+    <value>Razpri vse mape</value>
+  </data>
+  <data name="CollapseAllFolders" xml:space="preserve">
+    <value>Strni vse mape</value>
+  </data>
   <data name="NoFolders" xml:space="preserve">
     <value>Ni razpoložljivih map</value>
   </data>

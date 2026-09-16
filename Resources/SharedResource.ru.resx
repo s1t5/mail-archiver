@@ -2590,6 +2590,12 @@
   <data name="ToggleFolderTree" xml:space="preserve">
     <value>Нажмите, чтобы развернуть/свернуть дерево папок</value>
   </data>
+  <data name="ExpandAllFolders" xml:space="preserve">
+    <value>Развернуть все папки</value>
+  </data>
+  <data name="CollapseAllFolders" xml:space="preserve">
+    <value>Свернуть все папки</value>
+  </data>
   <data name="NoFolders" xml:space="preserve">
     <value>Папки недоступны</value>
   </data>

@@ -2590,6 +2590,12 @@
   <data name="ToggleFolderTree" xml:space="preserve">
     <value>Fai clic per espandere/comprimere l'albero delle cartelle</value>
   </data>
+  <data name="ExpandAllFolders" xml:space="preserve">
+    <value>Espandi tutte le cartelle</value>
+  </data>
+  <data name="CollapseAllFolders" xml:space="preserve">
+    <value>Comprimi tutte le cartelle</value>
+  </data>
   <data name="NoFolders" xml:space="preserve">
     <value>Nessuna cartella disponibile</value>
   </data>

@@ -1568,6 +1568,12 @@
   <data name="ToggleFolderTree" xml:space="preserve">
     <value>Klicken zum Ein-/Ausklappen der Ordnerübersicht</value>
   </data>
+  <data name="ExpandAllFolders" xml:space="preserve">
+    <value>Alle Ordner aufklappen</value>
+  </data>
+  <data name="CollapseAllFolders" xml:space="preserve">
+    <value>Alle Ordner zuklappen</value>
+  </data>
   <data name="NoFolders" xml:space="preserve">
     <value>Keine Ordner verfügbar</value>
   </data>

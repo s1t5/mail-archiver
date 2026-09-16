@@ -1532,6 +1532,12 @@
   <data name="ToggleFolderTree" xml:space="preserve">
     <value>Click to expand/collapse folder tree</value>
   </data>
+  <data name="ExpandAllFolders" xml:space="preserve">
+    <value>Expand all folders</value>
+  </data>
+  <data name="CollapseAllFolders" xml:space="preserve">
+    <value>Collapse all folders</value>
+  </data>
   <data name="NoFolders" xml:space="preserve">
     <value>No folders available</value>
   </data>

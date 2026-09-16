@@ -2590,6 +2590,12 @@
   <data name="ToggleFolderTree" xml:space="preserve">
     <value>Klik om mappenboom in/uit te klappen</value>
   </data>
+  <data name="ExpandAllFolders" xml:space="preserve">
+    <value>Alle mappen uitvouwen</value>
+  </data>
+  <data name="CollapseAllFolders" xml:space="preserve">
+    <value>Alle mappen samenvouwen</value>
+  </data>
   <data name="NoFolders" xml:space="preserve">
     <value>Geen mappen beschikbaar</value>
   </data>

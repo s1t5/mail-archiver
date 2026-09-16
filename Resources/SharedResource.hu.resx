@@ -2582,6 +2582,12 @@
   <data name="ToggleFolderTree" xml:space="preserve">
     <value>Kattintás a mappatár bővítéséhez/összehúzásához</value>
   </data>
+  <data name="ExpandAllFolders" xml:space="preserve">
+    <value>Az összes mappa kibontása</value>
+  </data>
+  <data name="CollapseAllFolders" xml:space="preserve">
+    <value>Az összes mappa összecsukása</value>
+  </data>
   <data name="NoFolders" xml:space="preserve">
     <value>Nincsenek elérhető mappák</value>
   </data>
