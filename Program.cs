@@ -1037,6 +1037,17 @@ static async Task ApplyDeletionPolicyAsync(MailArchiverDbContext context, Deleti
 }
 
 // Configure the HTTP request pipeline
+
+// Subpath hosting support (e.g. https://mydomain.com/mail/). When set, the
+// reverse proxy must forward the prefix through as-is (do NOT strip it) so
+// this middleware can consume it and re-add it to every generated URL,
+// redirect, and cookie path.
+var pathBase = app.Configuration["PathBase"];
+if (!string.IsNullOrWhiteSpace(pathBase))
+{
+    app.UsePathBase(pathBase);
+}
+
 if (app.Environment.IsDevelopment())
 {
     app.UseDeveloperExceptionPage();

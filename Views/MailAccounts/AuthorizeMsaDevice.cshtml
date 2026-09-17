@@ -8,6 +8,9 @@
     var successMsg = Localizer["MsaAuthorizationSuccessful"].Value;
     var errorPrefix = Localizer["MsaErrorPrefix"].Value;
     var retryLabel = Localizer["MsaRetry"].Value;
+    var pollUrlBase = Url.Action("PollMsaDeviceCode", "MailAccounts");
+    var editUrlBase = Url.Action("Edit", "MailAccounts");
+    var retryUrlBase = Url.Action("AuthorizeMsaDevice", "MailAccounts");
 }
 
 <div class="container" style="max-width:600px;">
@@ -80,6 +83,9 @@
 
 (function () {
     const accountId = @Model.AccountId;
+    const pollUrlBase = '@pollUrlBase';
+    const editUrlBase = '@editUrlBase';
+    const retryUrlBase = '@retryUrlBase';
     // Mutable: the server may return a larger interval on RFC 8628 "slow_down" responses.
     let currentIntervalMs = @(Model.PollIntervalSeconds * 1000);
     const statusBox = document.getElementById('statusBox');
@@ -102,12 +108,12 @@
 
     async function poll() {
         try {
-            const r = await fetch(`/MailAccounts/PollMsaDeviceCode?id=${accountId}`, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+            const r = await fetch(`${pollUrlBase}?id=${accountId}`, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
             const data = await r.json();
 
             if (data.status === 'success') {
                 setStatus('success', `<i class="bi bi-check-circle-fill me-2"></i><strong>${successMsg}</strong>`);
-                setTimeout(() => { window.location = `/MailAccounts/Edit/${accountId}`; }, 1500);
+                setTimeout(() => { window.location = `${editUrlBase}/${accountId}`; }, 1500);
                 return;
             }
             if (data.status === 'error') {
@@ -116,7 +122,7 @@
                 // may have already authorized on the Microsoft page.
                 const safeMsg = document.createElement('span');
                 safeMsg.textContent = data.message;
-                setStatus('danger', `<i class="bi bi-x-circle-fill me-2"></i><strong>${errorPrefix}</strong> ${safeMsg.innerHTML} &nbsp;<a href="/MailAccounts/AuthorizeMsaDevice/${accountId}" class="btn btn-sm btn-outline-danger ms-2">${retryLabel}</a>`);
+                setStatus('danger', `<i class="bi bi-x-circle-fill me-2"></i><strong>${errorPrefix}</strong> ${safeMsg.innerHTML} &nbsp;<a href="${retryUrlBase}/${accountId}" class="btn btn-sm btn-outline-danger ms-2">${retryLabel}</a>`);
                 return;
             }
             // pending — keep the waiting message visible and continue polling.
