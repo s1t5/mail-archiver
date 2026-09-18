@@ -3451,4 +3451,55 @@
   <data name="CancelExportConfirm" xml:space="preserve">
     <value>¿Cancelar esta exportación?</value>
   </data>
+  <data name="Domains" xml:space="preserve">
+    <value>Dominios</value>
+  </data>
+  <data name="EmailsPerPeriod" xml:space="preserve">
+    <value>Correos por periodo</value>
+  </data>
+  <data name="ChartGranularity" xml:space="preserve">
+    <value>Resolución</value>
+  </data>
+  <data name="ChartLoadFailed" xml:space="preserve">
+    <value>No se pudo cargar el gráfico. Inténtelo de nuevo.</value>
+  </data>
+  <data name="Hour" xml:space="preserve">
+    <value>Hora</value>
+  </data>
+  <data name="Day" xml:space="preserve">
+    <value>Día</value>
+  </data>
+  <data name="Month" xml:space="preserve">
+    <value>Mes</value>
+  </data>
+  <data name="Year" xml:space="preserve">
+    <value>Año</value>
+  </data>
+  <data name="PeriodUnitDay" xml:space="preserve">
+    <value>día</value>
+  </data>
+  <data name="PeriodUnitDays" xml:space="preserve">
+    <value>días</value>
+  </data>
+  <data name="PeriodUnitMonth" xml:space="preserve">
+    <value>mes</value>
+  </data>
+  <data name="PeriodUnitMonths" xml:space="preserve">
+    <value>meses</value>
+  </data>
+  <data name="PeriodUnitYear" xml:space="preserve">
+    <value>año</value>
+  </data>
+  <data name="PeriodUnitYears" xml:space="preserve">
+    <value>años</value>
+  </data>
+  <data name="EarlierPeriod" xml:space="preserve">
+    <value>Periodo anterior</value>
+  </data>
+  <data name="LaterPeriod" xml:space="preserve">
+    <value>Periodo posterior</value>
+  </data>
+  <data name="CurrentPeriod" xml:space="preserve">
+    <value>Ahora</value>
+  </data>
 </root>
