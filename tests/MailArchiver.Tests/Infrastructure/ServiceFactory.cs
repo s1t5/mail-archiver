@@ -36,6 +36,23 @@ internal static class ServiceFactory
             Options.Create(new Models.DashboardOptions { CacheSeconds = 0 }),
             memoryCache: null);
 
+    /// <summary>
+    /// Creates an EmailCoreService with the dashboard features switched off, so that the
+    /// "as it was before" state can be asserted rather than described.
+    /// </summary>
+    public static EmailCoreService CreateEmailCoreServiceWithoutDashboardFeatures(MailArchiverDbContext ctx) =>
+        new(ctx,
+            NullLogger<EmailCoreService>.Instance,
+            new DateTimeHelper(Options.Create(new TimeZoneOptions { DisplayTimeZoneId = "Europe/Berlin" })),
+            Options.Create(new BatchOperationOptions()),
+            Options.Create(new Models.DashboardOptions
+            {
+                CacheSeconds = 0,
+                ShowDirectionSplits = false,
+                SelectablePeriods = false
+            }),
+            memoryCache: null);
+
     public static BandwidthService CreateBandwidthService(MailArchiverDbContext ctx, BandwidthTrackingOptions? options = null) =>
         new(ctx,
             NullLogger<BandwidthService>.Instance,

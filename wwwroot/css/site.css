@@ -1532,6 +1532,62 @@ body.resizing-folder-tree {
   line-height: 1.2;
 }
 
+/* Period pickers in a chart card header. Deliberately not "d-flex align-items-center":
+   that pair is given full width and space-between below 1024px further up this file. */
+.dashboard-chart-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.dashboard-chart-controls .form-select {
+  width: auto;
+  min-width: 7rem;
+}
+
+/* The two paging arrows. Their own class instead of a btn-group, which is turned into a
+   vertical stack below 768px further up this file. */
+.dashboard-chart-pager {
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: nowrap;
+  gap: 0.25rem;
+}
+
+/* The resolved period, spelled out. Once the window can be paged, the two pickers no longer
+   say where the reader is. */
+.dashboard-chart-range {
+  align-self: center;
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  opacity: 0.75;
+}
+
+/* While a chart is being refetched. Dims the drawing only: the pickers stay in the header
+   and stay usable, so there is no state here that could keep the page locked. */
+.dashboard-chart-body.is-busy {
+  opacity: 0.45;
+  transition: opacity 0.15s ease-in-out;
+}
+
+/* Split line under a counter (incoming/outgoing, domains). Sits on the coloured card
+   background, so it is dimmed rather than recoloured and inherits the card's text colour. */
+.stat-card-modern .stat-split {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.15rem 0.75rem;
+  margin-top: 0.35rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  opacity: 0.8;
+  font-variant-numeric: tabular-nums;
+}
+
+.stat-card-modern .stat-split i {
+  opacity: 0.85;
+}
+
 .stat-card-modern:hover {
   transform: translateY(-4px);
   box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
