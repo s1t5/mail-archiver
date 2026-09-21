@@ -166,7 +166,9 @@
     }
 
     @* Folder Tree Panel - Desktop *@
-    <div class="row">
+    @* g-0: the two columns below are custom flex items, not Bootstrap columns, so the
+       gutters would only shift the whole row 0.75rem left of the search card above. *@
+    <div class="row g-0">
         @* d-lg-flex, not d-lg-block: the column has to be a flex container so the panel inside it
            can take the row's height, and Bootstrap's display utilities carry !important. *@
         <div class="d-none d-lg-flex" id="folderTreeColumn">
