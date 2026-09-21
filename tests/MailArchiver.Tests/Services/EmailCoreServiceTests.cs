@@ -1,5 +1,6 @@
 using MailArchiver.Data;
 using MailArchiver.Models;
+using MailArchiver.Models.ViewModels;
 using MailArchiver.Services.Core;
 using MailArchiver.Services.Shared;
 using MailArchiver.Tests.Infrastructure;
@@ -804,6 +805,63 @@ public class EmailCoreServiceTests
 
             var second = await svc.GetDashboardStatisticsAsync();
             Assert.NotEqual("leaked", second.EmailsPerAccount[0].StorageUsed);
+        }
+        finally
+        {
+            await CleanupTestAccountAsync(ctx);
+            await ctx.DisposeAsync();
+        }
+    }
+
+    [Fact]
+    public async Task GetDashboardStatisticsAsync_Cache_EvictsEntriesWhenSizeLimitIsExceeded()
+    {
+        var ctx = _fixture.CreateContext();
+        try
+        {
+            var acct = await SeedAccountAsync(ctx);
+            var email1 = BuildEmail(acct, "evict-1", "a@x.com", "b@x.com");
+            ctx.ArchivedEmails.Add(email1);
+            await ctx.SaveChangesAsync();
+
+            // SizeLimit of 2 with Size = 1 per entry: filling a third distinct key must
+            // not grow the cache past the limit. (Overcapacity compaction keeps the
+            // existing entries and drops the excess insert — the guarantee that matters
+            // is bounded memory, not which entry survives.)
+            var (svc, cache) = ServiceFactory.CreateEmailCoreServiceWithSizeLimitedCache(ctx, sizeLimit: 2);
+
+            // Minimal model: CloneStatistics deep-copies every list, so they must not be null
+            DashboardViewModel Factory(MailArchiverDbContext c) => new()
+            {
+                TotalEmails = 1,
+                EmailsPerAccount = new List<AccountStatistics>(),
+                EmailsByMonth = new List<EmailCountByPeriod>(),
+                TopSenders = new List<EmailCountByAddress>(),
+                RecentEmails = new List<RecentEmailDto>()
+            };
+
+            var first = await svc.GetOrCreateCachedStatisticsAsync("user-1", Factory);
+            var second = await svc.GetOrCreateCachedStatisticsAsync("user-2", Factory);
+
+            // Over the limit: distinct keys far beyond SizeLimit, sequential inserts
+            for (var i = 3; i <= 12; i++)
+            {
+                var model = await svc.GetOrCreateCachedStatisticsAsync($"user-{i}", Factory);
+                Assert.NotNull(model);
+            }
+
+            // The cache never holds more than the limit, no matter how many distinct
+            // account combinations were requested (IMemoryCache exposes no key
+            // enumeration; the 12 candidate keys from this test are a superset)
+            var surviving = Enumerable.Range(1, 12)
+                .Count(i => cache.TryGetValue($"dashboard-stats-user-{i}", out _));
+            Assert.True(surviving <= 2,
+                $"Cache must stay bounded at SizeLimit, held {surviving} entries");
+
+            // And the service keeps serving data (the excess insert is recomputed on miss)
+            var again = await svc.GetOrCreateCachedStatisticsAsync("user-1", Factory);
+            Assert.NotNull(again);
+            Assert.Equal(1, again.TotalEmails);
         }
         finally
         {

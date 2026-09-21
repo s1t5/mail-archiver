@@ -528,8 +528,11 @@ builder.Services.AddScoped<MailArchiver.Services.Providers.ImapEmailService>();
 builder.Services.AddScoped<MailArchiver.Services.Providers.ImportEmailService>();
 builder.Services.AddScoped<MailArchiver.Services.Factories.ProviderEmailServiceFactory>();
 
-// In-memory cache for dashboard statistics (TTL via Dashboard:CacheSeconds)
-builder.Services.AddMemoryCache();
+// In-memory cache for dashboard statistics (TTL via Dashboard:CacheSeconds).
+// The cache is keyed per account-assignment set, so a SizeLimit caps how many of those
+// combinations pile up when operators raise CacheSeconds or accounts churn; without it the
+// entries only ever expire, never get evicted.
+builder.Services.AddMemoryCache(options => options.SizeLimit = 500);
 builder.Services.Configure<DashboardOptions>(
     builder.Configuration.GetSection(DashboardOptions.SectionName));
 

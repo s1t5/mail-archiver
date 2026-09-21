@@ -2291,7 +2291,10 @@ namespace MailArchiver.Controllers
                 {
                     accountDeletionJobs = accountDeletionService.GetAllJobs()
                         .OrderByDescending(j => j.Status == MailAccountDeletionJobStatus.Running || j.Status == MailAccountDeletionJobStatus.Queued)
-                        .ThenByDescending(j => j.Created)
+                        // By when they ended, like every other panel: an account deletion can run
+                        // for hours, and sorting it by its start time would sink it below quick
+                        // jobs the moment it finishes — with the cap of 20 it would never show.
+                        .ThenByDescending(j => j.Completed ?? j.Created)
                         .Take(20) // Apply top 20 restriction consistent with other job types
                         .ToList();
                 }
@@ -2307,7 +2310,8 @@ namespace MailArchiver.Controllers
                 {
                     emailDeletionJobs = _emailDeletionService.GetAllJobs()
                         .OrderByDescending(j => j.Status == EmailDeletionJobStatus.Running || j.Status == EmailDeletionJobStatus.Queued)
-                        .ThenByDescending(j => j.Created)
+                        // By when they ended, like every other panel (see the account deletion list above)
+                        .ThenByDescending(j => j.Completed ?? j.Created)
                         .Take(20) // Apply top 20 restriction consistent with other job types
                         .ToList();
                 }

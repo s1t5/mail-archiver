@@ -1128,7 +1128,11 @@ namespace MailArchiver.Services.Core
             }
 
             if (cacheSeconds > 0)
-                _memoryCache.Set(cacheKey, model, TimeSpan.FromSeconds(cacheSeconds));
+                _memoryCache.Set(cacheKey, model, new MemoryCacheEntryOptions
+                {
+                    AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(cacheSeconds),
+                    Size = 1
+                });
 
             return CloneStatistics(model);
         }
