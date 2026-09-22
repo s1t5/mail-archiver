@@ -8,7 +8,7 @@ namespace MailArchiver.Models
     {
         public int MailAccountId { get; set; }
 
-        /// <summary>Speicherverbrauch aller Felder einer Mail in Bytes (pg_column_size der gesamten Zeile).</summary>
+        /// <summary>Speicherverbrauch aller Felder einer Mail in Bytes (Summe von pg_column_size je Spalte).</summary>
         public long MailBytes { get; set; }
 
         /// <summary>Logische Summe der Anhangsgroessen in Bytes (Sum EmailAttachment.Size).</summary>
