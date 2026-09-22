@@ -991,6 +991,8 @@ body {
 #folderTreeColumn.collapsed-col + .folder-tree-result-col {
   flex: 0 0 100%;
   max-width: 100%;
+  /* No tree left of it, so no gap to keep. */
+  padding-left: 0;
 }
 
 /* Toggle button in table header - only show when folder tree is collapsed */
@@ -1177,6 +1179,9 @@ body {
   flex: 1;
   min-width: 0;
   position: relative;
+  /* The row above is gutter-free (g-0) because its two children are custom flex
+     items, so this supplies the visual gap between tree and list by hand. */
+  padding-left: 1.5rem;
 }
 
 /* Covers the result side while a folder click is on its way back. Not a modal: it does
