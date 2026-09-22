@@ -56,8 +56,11 @@ body {
 
 /* Theme Toggle Button */
 #theme-toggle {
-  border: 1px solid rgba(255, 255, 255, 0.3);
   height: 38px; /* Match height with user profile button */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 #theme-toggle:hover {
@@ -103,11 +106,6 @@ body {
   margin-bottom: 1.5rem;
   overflow: hidden;
   transition: transform var(--transition-speed), box-shadow var(--transition-speed);
-}
-
-.card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
 }
 
 .card-header {
@@ -322,10 +320,6 @@ body {
   opacity: 0.15;
   z-index: 1;
   transform: rotate(-15deg);
-}
-
-.stat-card:hover {
-  transform: translateY(-5px);
 }
 
 .display-4 {
@@ -1532,11 +1526,6 @@ body.resizing-folder-tree {
   line-height: 1.2;
 }
 
-.stat-card-modern:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
-}
-
 /* Gradient backgrounds per color */
 .stat-card-modern.bg-primary {
   background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%) !important;
@@ -1628,7 +1617,6 @@ body.resizing-folder-tree {
 }
 
 .action-card:hover {
-  transform: translateY(-3px);
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
   border-color: var(--primary-color, #3498db);
   text-decoration: none;
