@@ -108,7 +108,7 @@ The sync behavior is controlled by the `MailSync` section of `appsettings.json` 
 | `MailSync:ConnectionTimeoutSeconds` | `300` | IMAP connection timeout. |
 | `MailSync:CommandTimeoutSeconds` | `600` | IMAP command timeout. |
 | `MailSync:AlwaysForceFullSync` | `false` | When `true`, every cycle is a Full Sync for all accounts. **Diagnostics only – keep off in production.** |
-| `MailSync:IgnoreSelfSignedCert` | `false` | Accept self-signed TLS certificates for IMAP connections. |
+| `MailSync:IgnoreSelfSignedCert` | `false` | Accept self-signed TLS certificates (untrusted root, incomplete chain) and hostname mismatches for IMAP connections — e.g. Proton Bridge, whose certificate is issued to `127.0.0.1`. Other chain problems such as expired certificates are still rejected. |
 | `MailSync:MaxConcurrentSyncs` | `1` | How many account syncs may run at the same time. Slots are refilled as they come free, see [How accounts are scheduled](#-how-accounts-are-scheduled). `1` keeps syncs sequential; increase to parallelize — mind provider rate limits and local resource usage. |
 | `MailSync:InterAccountDelaySeconds` | `0` | Optional stagger delay in seconds applied at the end of each account sync task. Useful to avoid burst-starts when `MaxConcurrentSyncs > 1`. `0` disables it. |
 | `MailSync:MaxIssuesPerKind` | `20` | How many problems of each kind a sync job remembers for the account page — failed folders, missing folders and failed messages are budgeted separately. Anything beyond is counted, not kept. `0` switches the detail off and leaves only the counters. |

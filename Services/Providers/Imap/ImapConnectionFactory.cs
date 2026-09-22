@@ -241,8 +241,8 @@ namespace MailArchiver.Services.Providers.Imap
                 }
 
                 _logger.LogInformation("Reconnecting to IMAP server for account {AccountName}", account.Name);
-                await ConnectWithFallbackAsync(client, account.ImapServer, account.ImapPort ?? 993, account.UseSSL, account.Name);
                 client.ServerCertificateValidationCallback = ServerCertificateValidationCallback;
+                await ConnectWithFallbackAsync(client, account.ImapServer, account.ImapPort ?? 993, account.UseSSL, account.Name);
                 await AuthenticateClientAsync(client, account);
                 _logger.LogInformation("Successfully reconnected to IMAP server for account {AccountName}", account.Name);
             }
@@ -256,6 +256,9 @@ namespace MailArchiver.Services.Providers.Imap
         /// <summary>
         /// Validates the server certificate based on the IgnoreSelfSignedCert setting.
         /// Accepts self-signed certificates and name mismatches when configured to do so.
+        /// SslPolicyErrors is a flags enum, so multiple errors (e.g. a self-signed certificate
+        /// issued to 127.0.0.1 served under a different hostname, as Proton Bridge does)
+        /// arrive combined and must be checked with HasFlag, not equality.
         /// </summary>
         public bool ServerCertificateValidationCallback(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)
         {
@@ -265,15 +268,21 @@ namespace MailArchiver.Services.Providers.Imap
                 return true;
             }
 
-            // If we're configured to ignore self-signed certificates and the only error is
-            // that the certificate is untrusted (which is typical for self-signed certs),
-            // then accept the certificate
-            if (_mailSyncOptions.IgnoreSelfSignedCert &&
-                (sslPolicyErrors == SslPolicyErrors.RemoteCertificateChainErrors ||
-                 sslPolicyErrors == SslPolicyErrors.RemoteCertificateNameMismatch))
+            if (!_mailSyncOptions.IgnoreSelfSignedCert)
             {
-                // Additional check: if it's a chain error, verify it's specifically a self-signed certificate
-                if (sslPolicyErrors == SslPolicyErrors.RemoteCertificateChainErrors && chain.ChainStatus.Length > 0)
+                // Log the certificate validation error
+                _logger.LogWarning("Certificate validation failed for IMAP server: {SslPolicyErrors}", sslPolicyErrors);
+                return false;
+            }
+
+            var hasChainErrors = sslPolicyErrors.HasFlag(SslPolicyErrors.RemoteCertificateChainErrors);
+            var hasNameMismatch = sslPolicyErrors.HasFlag(SslPolicyErrors.RemoteCertificateNameMismatch);
+
+            // A chain error requires the self-signed check: the chain problems must be
+            // limited to untrusted roots / incomplete chains, not e.g. expired certificates
+            if (hasChainErrors)
+            {
+                if (chain.ChainStatus.Length > 0)
                 {
                     // Check if the chain status indicates a self-signed certificate
                     bool isSelfSigned = chain.ChainStatus.All(status =>
@@ -287,14 +296,20 @@ namespace MailArchiver.Services.Providers.Imap
                         return true;
                     }
                 }
-                else if (sslPolicyErrors == SslPolicyErrors.RemoteCertificateNameMismatch)
-                {
-                    _logger.LogDebug("Accepting certificate with name mismatch for IMAP server (IgnoreSelfSignedCert=true)");
-                    return true;
-                }
+
+                _logger.LogWarning("Certificate validation failed for IMAP server: {SslPolicyErrors} (chain errors are not limited to a self-signed certificate)", sslPolicyErrors);
+                return false;
             }
 
-            // Log the certificate validation error
+            // Chain is fine (or at least not flagged), only the hostname does not match:
+            // accept it like the other tolerated classes of certificate problems
+            if (hasNameMismatch)
+            {
+                _logger.LogDebug("Accepting certificate with name mismatch for IMAP server (IgnoreSelfSignedCert=true)");
+                return true;
+            }
+
+            // CertificateNotProvided or unknown errors are never tolerated
             _logger.LogWarning("Certificate validation failed for IMAP server: {SslPolicyErrors}", sslPolicyErrors);
             return false;
         }
