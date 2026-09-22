@@ -274,16 +274,7 @@ namespace MailArchiver.Services.Providers
 
                 try
                 {
-                    string targetFolder = "INBOX";
-                    if (!string.IsNullOrEmpty(entry.FullName))
-                    {
-                        var folderPath = Path.GetDirectoryName(entry.FullName);
-                        if (!string.IsNullOrEmpty(folderPath))
-                        {
-                            var folders = folderPath.Split(new[] { '/', '\\' }, StringSplitOptions.RemoveEmptyEntries);
-                            if (folders.Length > 0) targetFolder = folders[folders.Length - 1];
-                        }
-                    }
+                    string targetFolder = EmlFolderPathResolver.Resolve(entry.FullName);
 
                     using var entryStream = entry.Open();
                     using var memoryStream = new MemoryStream();
