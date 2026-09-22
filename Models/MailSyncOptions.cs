@@ -31,15 +31,14 @@ namespace MailArchiver.Models
         /// Whether an exclusion entry also covers the folders underneath the one it names, so
         /// "Archive" covers "Archive/Team" as well. Applies to both lists and to both providers.
         ///
-        /// On by default, because that is what an entry is read to mean: a parent that did not
-        /// cover its children left the folders below an excluded tree in the archive, and the only
-        /// way to keep them out was to name every child. Set to false to have an entry match the
-        /// one folder it names and nothing below it.
+        /// Off by default, matching the behaviour before this option existed: an entry matched the
+        /// folder it names and nothing below it. Set to true to have an entry take the tree under
+        /// the folder it names as well.
         ///
         /// The rule anchors on the path separator, so it takes whole folders and never parts of a
         /// name: "Archive" covers "Archive/Team" but leaves "Team Archive Review" alone.
         /// </summary>
-        public bool ExcludeSubfolders { get; set; } = true;
+        public bool ExcludeSubfolders { get; set; } = false;
 
         /// <summary>
         /// How many problems of each kind a sync job remembers for the account page: failed folders,

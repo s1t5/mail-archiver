@@ -402,7 +402,7 @@
                     // same for both, and the two blocks sit a few pixels apart. The condition below
                     // stays written out rather than hoisted into this block, so the compiler keeps
                     // knowing that ExcludedFolders is not null inside it.
-                    var subfolderHint = ViewBag.ExcludeSubfolders as bool? ?? true;
+                    var subfolderHint = ViewBag.ExcludeSubfolders as bool? ?? false;
                     var hasOwnExclusions = !string.IsNullOrWhiteSpace(Model.ExcludedFolders);
                 }
                 @if (!string.IsNullOrWhiteSpace(Model.ExcludedFolders))

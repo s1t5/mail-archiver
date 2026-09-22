@@ -236,7 +236,7 @@
                             <label asp-for="ExcludedFolders" class="form-label">@Localizer["ExcludedFolders"]</label>
                             <textarea asp-for="ExcludedFolders" class="form-control" rows="3" placeholder="@Localizer["EnterFolderNames"]" id="ExcludedFoldersInput"></textarea>
                             <div class="form-text">@Localizer["EnterFolderNamesText"]</div>
-                            @if (ViewBag.ExcludeSubfolders as bool? ?? true)
+                            @if (ViewBag.ExcludeSubfolders as bool? ?? false)
                             {
                                 <div class="form-text">@Localizer["ExclusionsCoverSubfolders"]</div>
                             }
@@ -399,7 +399,7 @@
 
         // Whether an entry reaches the folders underneath the one it names. The picker decides that
         // for the account's own list in the browser, because the list changes with every click.
-        const excludeSubfolders = @Html.Raw((ViewBag.ExcludeSubfolders as bool? ?? true) ? "true" : "false");
+        const excludeSubfolders = @Html.Raw((ViewBag.ExcludeSubfolders as bool? ?? false) ? "true" : "false");
         document.addEventListener('DOMContentLoaded', function() {
             const providerSelect = document.getElementById('Provider');
             const imapSettings = document.getElementById('imapSettings');

@@ -113,7 +113,7 @@ The sync behavior is controlled by the `MailSync` section of `appsettings.json` 
 | `MailSync:InterAccountDelaySeconds` | `0` | Optional stagger delay in seconds applied at the end of each account sync task. Useful to avoid burst-starts when `MaxConcurrentSyncs > 1`. `0` disables it. |
 | `MailSync:MaxIssuesPerKind` | `20` | How many problems of each kind a sync job remembers for the account page — failed folders, missing folders and failed messages are budgeted separately. Anything beyond is counted, not kept. `0` switches the detail off and leaves only the counters. |
 | `MailSync:GlobalExcludedFolders` | _empty_ | Folders excluded from synchronization for every account, additive to each account's own list. See [Excluded Folders](#-excluded-folders) below. |
-| `MailSync:ExcludeSubfolders` | `true` | Whether an exclusion entry also covers the folders below the one it names, in both lists. See [Excluded Folders](#-excluded-folders) below. |
+| `MailSync:ExcludeSubfolders` | `false` | Whether an exclusion entry also covers the folders below the one it names, in both lists. See [Excluded Folders](#-excluded-folders) below. |
 
 > 💡 Both the normal sync interval and the full-sync interval can be overridden per account on the **Create/Edit Mail Account** page. Leave the per-account fields empty to fall back to the global defaults above. To remove an account from the scheduler entirely, disable it (toggle *Enabled* off on the Account Details page).
 
@@ -142,8 +142,9 @@ Both lists use the same matching rules, so they cannot drift apart:
 3. path-suffix match, which catches separator variations — `Drafts` also matches `INBOX.Drafts` and
    `INBOX/Drafts` — and server-prefixed names such as `[Provider]/Drafts`;
 4. everything below the folder an entry names, so `Archive` also covers `Archive/Team` and
-   `INBOX.Archive.Team`. A mailbox tree can therefore be excluded by naming its root instead of
-   every folder in it. Set `MailSync:ExcludeSubfolders` to `false` for an entry to match only the
+   `INBOX.Archive.Team`, whenever `MailSync:ExcludeSubfolders` is enabled (it is off by default,
+   matching the behaviour before the option existed). Set it to `true` to exclude a mailbox tree
+   by naming its root instead of every folder in it; with the default an entry matches only the
    one folder it names.
 
 All comparisons are case-insensitive. The full-path suffix rule anchors on the path separator, so
