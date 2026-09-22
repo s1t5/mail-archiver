@@ -3452,4 +3452,37 @@
   <data name="CancelExportConfirm" xml:space="preserve">
     <value>Отменить этот экспорт?</value>
   </data>
+  <data name="FailedFilesTitle" xml:space="preserve">
+    <value>Неудачные файлы ({0})</value>
+  </data>
+  <data name="FailedFilesTruncated" xml:space="preserve">
+    <value>Показаны только первые 200 неудачных файлов. Полный список см. в журналах Docker.</value>
+  </data>
+  <data name="FailedFilesReason_BannerLine" xml:space="preserve">
+    <value>Нестандартная строка баннера перед заголовками письма (напр. экспорт PST из MailStore)</value>
+  </data>
+  <data name="FailedFilesReason_MboxFromLine" xml:space="preserve">
+    <value>Остаток строки-маркера mbox &apos;From &apos;</value>
+  </data>
+  <data name="FailedFilesReason_SplitHeaderBlock" xml:space="preserve">
+    <value>Блок заголовков, разделённый пустыми строками</value>
+  </data>
+  <data name="FailedFilesReason_JunkBeforeHeaders" xml:space="preserve">
+    <value>Нечитаемые строки перед заголовками письма</value>
+  </data>
+  <data name="FailedFilesReason_UnparseableHeaders" xml:space="preserve">
+    <value>Не удалось разобрать заголовки письма</value>
+  </data>
+  <data name="FailedFilesReason_Generic" xml:space="preserve">
+    <value>Ошибка при обработке файла</value>
+  </data>
+  <data name="RecoveredLabel" xml:space="preserve">
+    <value>Восстановлено:</value>
+  </data>
+  <data name="RecoveredTitle" xml:space="preserve">
+    <value>Восстановленные письма</value>
+  </data>
+  <data name="RecoveredSummary" xml:space="preserve">
+    <value>{0} письмо(ем) с нестандартными заголовками было автоматически восстановлено и архивировано.</value>
+  </data>
 </root>

@@ -776,4 +776,37 @@
   <data name="CancelExportConfirm" xml:space="preserve">
     <value>Cancel this export?</value>
   </data>
+  <data name="FailedFilesTitle" xml:space="preserve">
+    <value>Failed files ({0})</value>
+  </data>
+  <data name="FailedFilesTruncated" xml:space="preserve">
+    <value>Only the first 200 failed files are listed. See the Docker logs for the complete list.</value>
+  </data>
+  <data name="FailedFilesReason_BannerLine" xml:space="preserve">
+    <value>Non-standard banner line before the email headers (e.g. MailStore PST export)</value>
+  </data>
+  <data name="FailedFilesReason_MboxFromLine" xml:space="preserve">
+    <value>Leftover mbox &apos;From &apos; marker line</value>
+  </data>
+  <data name="FailedFilesReason_SplitHeaderBlock" xml:space="preserve">
+    <value>Header block split by blank lines</value>
+  </data>
+  <data name="FailedFilesReason_JunkBeforeHeaders" xml:space="preserve">
+    <value>Unparseable lines before the email headers</value>
+  </data>
+  <data name="FailedFilesReason_UnparseableHeaders" xml:space="preserve">
+    <value>Email headers could not be parsed</value>
+  </data>
+  <data name="FailedFilesReason_Generic" xml:space="preserve">
+    <value>Error whilst processing the file</value>
+  </data>
+  <data name="RecoveredLabel" xml:space="preserve">
+    <value>Recovered:</value>
+  </data>
+  <data name="RecoveredTitle" xml:space="preserve">
+    <value>Recovered emails</value>
+  </data>
+  <data name="RecoveredSummary" xml:space="preserve">
+    <value>{0} email(s) with non-standard headers were automatically repaired and archived.</value>
+  </data>
 </root>

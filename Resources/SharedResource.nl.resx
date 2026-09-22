@@ -3452,4 +3452,37 @@
   <data name="CancelExportConfirm" xml:space="preserve">
     <value>Deze export annuleren?</value>
   </data>
+  <data name="FailedFilesTitle" xml:space="preserve">
+    <value>Mislukte bestanden ({0})</value>
+  </data>
+  <data name="FailedFilesTruncated" xml:space="preserve">
+    <value>Alleen de eerste 200 mislukte bestanden worden vermeld. Zie de Docker-logs voor de volledige lijst.</value>
+  </data>
+  <data name="FailedFilesReason_BannerLine" xml:space="preserve">
+    <value>Niet-standaard bannerregel vóór de e-mailheaders (bijv. MailStore PST-export)</value>
+  </data>
+  <data name="FailedFilesReason_MboxFromLine" xml:space="preserve">
+    <value>Restant mbox &apos;From &apos;-markeringsregel</value>
+  </data>
+  <data name="FailedFilesReason_SplitHeaderBlock" xml:space="preserve">
+    <value>Headerblok gesplitst door lege regels</value>
+  </data>
+  <data name="FailedFilesReason_JunkBeforeHeaders" xml:space="preserve">
+    <value>Onleesbare regels vóór de e-mailheaders</value>
+  </data>
+  <data name="FailedFilesReason_UnparseableHeaders" xml:space="preserve">
+    <value>E-mailheaders konden niet worden geïnterpreteerd</value>
+  </data>
+  <data name="FailedFilesReason_Generic" xml:space="preserve">
+    <value>Fout bij het verwerken van het bestand</value>
+  </data>
+  <data name="RecoveredLabel" xml:space="preserve">
+    <value>Hersteld:</value>
+  </data>
+  <data name="RecoveredTitle" xml:space="preserve">
+    <value>Herstelde e-mails</value>
+  </data>
+  <data name="RecoveredSummary" xml:space="preserve">
+    <value>{0} e-mail(s) met niet-standaardheaders zijn automatisch hersteld en gearchiveerd.</value>
+  </data>
 </root>

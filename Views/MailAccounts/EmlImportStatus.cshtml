@@ -171,6 +171,15 @@
                                 </div>
                             }
                         </div>
+                        @if (Model.RecoveredCount > 0)
+                        {
+                            <div class="mt-2">
+                                <span class="badge bg-info text-dark">
+                                    <i class="bi bi-wrench me-1"></i>
+                                    @Localizer["RecoveredLabel"] @Model.RecoveredCount.ToString("N0")
+                                </span>
+                            </div>
+                        }
                     </dd>
                 }
 
@@ -246,6 +255,45 @@
             @if (Model.Status == MailArchiver.Models.EmlImportJobStatus.Completed)
             {
                 <div class="mt-4 pt-3 border-top">
+                    @if (Model.FailedEntries.Any())
+                    {
+                        <div class="alert alert-warning">
+                            <div class="d-flex justify-content-between align-items-center" role="button"
+                                 data-bs-toggle="collapse" data-bs-target="#failedEntriesCollapse"
+                                 aria-expanded="false" aria-controls="failedEntriesCollapse">
+                                <span>
+                                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                                    <strong>@string.Format(Localizer["FailedFilesTitle"], Model.FailedEntries.Count.ToString("N0"))</strong>
+                                </span>
+                                <i class="bi bi-chevron-down"></i>
+                            </div>
+                            <div class="collapse" id="failedEntriesCollapse">
+                                <div class="mt-2">
+                                    @if (Model.FailedEntries.Count >= MailArchiver.Models.EmlImportJob.MaxFailedEntries)
+                                    {
+                                        <small class="text-muted d-block mb-1">@Localizer["FailedFilesTruncated"]</small>
+                                    }
+                                    <ul class="mb-0 small">
+                                        @foreach (var failed in Model.FailedEntries)
+                                        {
+                                            <li>
+                                                <code>@(failed.EntryPath.Length > 100 ? failed.EntryPath[..100] + "..." : failed.EntryPath)</code>
+                                                &mdash; @Localizer[$"FailedFilesReason_{failed.Reason}"]
+                                            </li>
+                                        }
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                    @if (Model.RecoveredCount > 0)
+                    {
+                        <div class="alert alert-info">
+                            <i class="bi bi-wrench me-2"></i>
+                            <strong>@Localizer["RecoveredTitle"]</strong>
+                            @string.Format(Localizer["RecoveredSummary"], Model.RecoveredCount.ToString("N0"))
+                        </div>
+                    }
                     @if (Model.SkippedAlreadyExistsCount > 0)
                     {
                         <div class="alert alert-warning">

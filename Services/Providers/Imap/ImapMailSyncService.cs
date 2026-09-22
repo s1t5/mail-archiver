@@ -978,12 +978,13 @@ namespace MailArchiver.Services.Providers.Imap
                                         && parseEx.Message.Contains("Failed to parse message headers"))
                                     {
                                         // One-shot recovery: messages originating from
-                                        // 3rd party clients can carry a leftover
-                                        // mbox "From " line the Entity parser cannot handle.
-                                        // Re-fetch the raw stream and try mbox-aware parsing.
+                                        // 3rd party clients can carry a leftover mbox
+                                        // "From " line, a non-standard banner line
+                                        // Re-fetch the raw stream and try tolerant
+                                        // header recovery.
                                         mboxRecoveryAttempted = true;
                                         _logger.LogDebug(
-                                            "Header parse failed for UID {Uid} in folder {FolderName}, attempting mbox From-line recovery",
+                                            "Header parse failed for UID {Uid} in folder {FolderName}, attempting header recovery",
                                             uid, folder.FullName);
                                         try
                                         {
@@ -991,18 +992,25 @@ namespace MailArchiver.Services.Providers.Imap
                                             using var buffered = new MemoryStream();
                                             await rawStream.CopyToAsync(buffered);
                                             buffered.Position = 0;
-                                            message = await _mailCleaner.TryParseMessageFromCorruptedMboxAsync(buffered);
+                                            var recovery = await _mailCleaner.TryRecoverHeadersAsync(buffered);
+                                            message = recovery.Message;
+                                            if (message != null)
+                                            {
+                                                _logger.LogInformation(
+                                                    "Recovered message UID {Uid} in folder {FolderName} via {Category}",
+                                                    uid, folder.FullName, recovery.Category);
+                                            }
                                         }
                                         catch (Exception recoveryEx)
                                         {
                                             _logger.LogWarning(recoveryEx,
-                                                "Mbox recovery fetch failed for UID {Uid} in folder {FolderName}",
+                                                "Header recovery fetch failed for UID {Uid} in folder {FolderName}",
                                                 uid, folder.FullName);
                                         }
                                         if (message == null)
                                         {
                                             throw new FormatException(
-                                                "Failed to parse message headers even after mbox From-line recovery.",
+                                                "Failed to parse message headers even after header recovery.",
                                                 parseEx);
                                         }
                                         consecutiveTransientFailures = 0;

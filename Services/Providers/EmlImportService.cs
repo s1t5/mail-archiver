@@ -298,20 +298,24 @@ namespace MailArchiver.Services.Providers
                     }
                     catch (FormatException firstEx) when (firstEx.Message.Contains("Failed to parse message headers"))
                     {
-                        // Retry: files exported from 3rd party tools sometimes
-                        // carry a leftover mbox "From " line (or a ">>From"/whitespace variant),
-                        // which the Entity parser cannot handle. Try mbox-aware recovery.
-                        _logger.LogDebug("Job {JobId}: Header parse failed for {Entry}, attempting mbox From-line recovery",
+                        // Retry: files exported from 3rd party tools sometimes carry
+                        // non-standard leading lines (mbox "From " markers)
+                        _logger.LogDebug("Job {JobId}: Header parse failed for {Entry}, attempting header recovery",
                             job.JobId, entry.FullName);
                         memoryStream.Position = 0;
-                        message = await mailCleaner.TryParseMessageFromCorruptedMboxAsync(memoryStream, ct);
-                        if (message == null)
+                        var recovery = await mailCleaner.TryRecoverHeadersAsync(memoryStream, ct);
+                        if (recovery.Message == null)
                         {
                             _logger.LogWarning(firstEx, "Job {JobId}: Skipping unrecoverable email in {Entry}", job.JobId, entry.FullName);
                             job.FailedCount++;
                             job.ProcessedEmails++;
+                            AddFailedEntry(job, entry.FullName, GetRecoveryReasonKey(firstEx, recovery.Category));
                             continue;
                         }
+                        message = recovery.Message;
+                        job.RecoveredCount++;
+                        _logger.LogInformation("Job {JobId}: Recovered email in {Entry} ({Category})",
+                            job.JobId, entry.FullName, recovery.Category);
                     }
                     if (message == null)
                     {
@@ -363,14 +367,43 @@ namespace MailArchiver.Services.Providers
                 {
                     _logger.LogWarning(ex, "Job {JobId}: Skipping malformed email in {Entry}", job.JobId, entry.FullName);
                     job.FailedCount++;
+                    AddFailedEntry(job, entry.FullName, GetExceptionReasonKey(ex));
                 }
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, "Job {JobId}: Error processing {Entry}", job.JobId, entry.FullName);
                     job.FailedCount++;
+                    AddFailedEntry(job, entry.FullName, GetExceptionReasonKey(ex));
                 }
             }
         }
+
+        private static void AddFailedEntry(EmlImportJob job, string entryPath, string reason)
+        {
+            if (job.FailedEntries.Count >= EmlImportJob.MaxFailedEntries) return;
+            job.FailedEntries.Add(new EmlImportFailedEntry { EntryPath = entryPath, Reason = reason });
+        }
+
+        /// <summary>
+        /// Maps a recovery category / exception to a localization key suffix used by
+        /// the import status UI.
+        /// </summary>
+        private static string GetRecoveryReasonKey(Exception originalEx, HeaderRecoveryCategory category)
+            => category switch
+            {
+                HeaderRecoveryCategory.BannerLine => "BannerLine",
+                HeaderRecoveryCategory.MboxFromLine => "MboxFromLine",
+                HeaderRecoveryCategory.SplitHeaderBlock => "SplitHeaderBlock",
+                HeaderRecoveryCategory.JunkBeforeHeaders => "JunkBeforeHeaders",
+                _ => GetExceptionReasonKey(originalEx)
+            };
+
+        private static string GetExceptionReasonKey(Exception ex)
+            => ex.Message.Contains("Failed to parse message headers")
+                ? "UnparseableHeaders"
+                : ex.Message.Contains("mbox From marker")
+                    ? "MboxFromLine"
+                    : "Generic";
 
         private void DeleteTempFile(string filePath, string jobId)
         {

@@ -925,6 +925,39 @@
   <data name="MalformedSkippedLabel" xml:space="preserve">
     <value>Fehlerhaft (übersprungen):</value>
   </data>
+  <data name="FailedFilesTitle" xml:space="preserve">
+    <value>Fehlgeschlagene Dateien ({0})</value>
+  </data>
+  <data name="FailedFilesTruncated" xml:space="preserve">
+    <value>Es werden nur die ersten 200 fehlgeschlagenen Dateien aufgelistet. Die vollständige Liste steht in den Docker-Logs.</value>
+  </data>
+  <data name="FailedFilesReason_BannerLine" xml:space="preserve">
+    <value>Nicht standardkonforme Banner-Zeile vor den E-Mail-Headern (z. B. MailStore-PST-Export)</value>
+  </data>
+  <data name="FailedFilesReason_MboxFromLine" xml:space="preserve">
+    <value>Überbleibsel einer mbox-'From '-Markierungszeile</value>
+  </data>
+  <data name="FailedFilesReason_SplitHeaderBlock" xml:space="preserve">
+    <value>Durch Leerzeilen getrennter Header-Block</value>
+  </data>
+  <data name="FailedFilesReason_JunkBeforeHeaders" xml:space="preserve">
+    <value>Nicht interpretierbare Zeilen vor den E-Mail-Headern</value>
+  </data>
+  <data name="FailedFilesReason_UnparseableHeaders" xml:space="preserve">
+    <value>E-Mail-Header konnten nicht interpretiert werden</value>
+  </data>
+  <data name="FailedFilesReason_Generic" xml:space="preserve">
+    <value>Fehler beim Verarbeiten der Datei</value>
+  </data>
+  <data name="RecoveredLabel" xml:space="preserve">
+    <value>Wiederhergestellt:</value>
+  </data>
+  <data name="RecoveredTitle" xml:space="preserve">
+    <value>Wiederhergestellte E-Mails</value>
+  </data>
+  <data name="RecoveredSummary" xml:space="preserve">
+    <value>{0} E-Mail(s) mit nicht standardkonformen Headern wurden automatisch repariert und archiviert.</value>
+  </data>
   <data name="DetailsLabel" xml:space="preserve">
     <value>Details</value>
   </data>

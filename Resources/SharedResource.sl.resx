@@ -3452,4 +3452,37 @@
   <data name="CancelExportConfirm" xml:space="preserve">
     <value>Prekliči ta izvoz?</value>
   </data>
+  <data name="FailedFilesTitle" xml:space="preserve">
+    <value>Neuspeli datoteke ({0})</value>
+  </data>
+  <data name="FailedFilesTruncated" xml:space="preserve">
+    <value>Navedenih je le prvih 200 neuspelih datotek. Celoten seznam je v dnevnikih Docker.</value>
+  </data>
+  <data name="FailedFilesReason_BannerLine" xml:space="preserve">
+    <value>Nestandardna vrstica pasice pred glavami e-pošte (npr. izvoz PST iz MailStore)</value>
+  </data>
+  <data name="FailedFilesReason_MboxFromLine" xml:space="preserve">
+    <value>Preostala oznaka mbox &apos;From &apos;</value>
+  </data>
+  <data name="FailedFilesReason_SplitHeaderBlock" xml:space="preserve">
+    <value>Blok glav razdeljen s praznimi vrsticami</value>
+  </data>
+  <data name="FailedFilesReason_JunkBeforeHeaders" xml:space="preserve">
+    <value>Neberljive vrstice pred glavami e-pošte</value>
+  </data>
+  <data name="FailedFilesReason_UnparseableHeaders" xml:space="preserve">
+    <value>Glav e-pošte ni bilo mogoče razbrati</value>
+  </data>
+  <data name="FailedFilesReason_Generic" xml:space="preserve">
+    <value>Napaka pri obdelavi datoteke</value>
+  </data>
+  <data name="RecoveredLabel" xml:space="preserve">
+    <value>Obnovljeno:</value>
+  </data>
+  <data name="RecoveredTitle" xml:space="preserve">
+    <value>Obnovljena e-pošta</value>
+  </data>
+  <data name="RecoveredSummary" xml:space="preserve">
+    <value>{0} e-poštnih sporočil z nestandardnimi glavami je bilo samodejno popravljeno in arhiviranih.</value>
+  </data>
 </root>

@@ -3444,4 +3444,37 @@
   <data name="CancelExportConfirm" xml:space="preserve">
     <value>Biztosan megszakítja ezt az exportot?</value>
   </data>
+  <data name="FailedFilesTitle" xml:space="preserve">
+    <value>Sikertelen fájlok ({0})</value>
+  </data>
+  <data name="FailedFilesTruncated" xml:space="preserve">
+    <value>Csak az első 200 sikertelen fájl van felsorolva. A teljes lista a Docker-naplókban található.</value>
+  </data>
+  <data name="FailedFilesReason_BannerLine" xml:space="preserve">
+    <value>Nem szabványos banner sor az e-mail fejlécek előtt (pl. MailStore PST exportálás)</value>
+  </data>
+  <data name="FailedFilesReason_MboxFromLine" xml:space="preserve">
+    <value>Maradék mbox &apos;From &apos; jelölő sor</value>
+  </data>
+  <data name="FailedFilesReason_SplitHeaderBlock" xml:space="preserve">
+    <value>Üres sorokkal kettéosztott fejlécblokk</value>
+  </data>
+  <data name="FailedFilesReason_JunkBeforeHeaders" xml:space="preserve">
+    <value>Értelmezhetetlen sorok az e-mail fejlécek előtt</value>
+  </data>
+  <data name="FailedFilesReason_UnparseableHeaders" xml:space="preserve">
+    <value>Az e-mail fejléceket nem sikerült értelmezni</value>
+  </data>
+  <data name="FailedFilesReason_Generic" xml:space="preserve">
+    <value>Hiba a fájl feldolgozása során</value>
+  </data>
+  <data name="RecoveredLabel" xml:space="preserve">
+    <value>Helyreállítva:</value>
+  </data>
+  <data name="RecoveredTitle" xml:space="preserve">
+    <value>Helyreállított e-mailek</value>
+  </data>
+  <data name="RecoveredSummary" xml:space="preserve">
+    <value>{0} nem szabványos fejlécű e-mail automatikusan javítva és archiválva lett.</value>
+  </data>
 </root>

@@ -3451,4 +3451,37 @@
   <data name="CancelExportConfirm" xml:space="preserve">
     <value>¿Cancelar esta exportación?</value>
   </data>
+  <data name="FailedFilesTitle" xml:space="preserve">
+    <value>Archivos fallidos ({0})</value>
+  </data>
+  <data name="FailedFilesTruncated" xml:space="preserve">
+    <value>Solo se muestran los primeros 200 archivos fallidos. Consulte los registros de Docker para ver la lista completa.</value>
+  </data>
+  <data name="FailedFilesReason_BannerLine" xml:space="preserve">
+    <value>Línea de banner no estándar antes de las cabeceras del correo (p. ej. exportación PST de MailStore)</value>
+  </data>
+  <data name="FailedFilesReason_MboxFromLine" xml:space="preserve">
+    <value>Línea de marcador mbox &apos;From &apos; residual</value>
+  </data>
+  <data name="FailedFilesReason_SplitHeaderBlock" xml:space="preserve">
+    <value>Bloque de cabeceras dividido por líneas en blanco</value>
+  </data>
+  <data name="FailedFilesReason_JunkBeforeHeaders" xml:space="preserve">
+    <value>Líneas no interpretables antes de las cabeceras del correo</value>
+  </data>
+  <data name="FailedFilesReason_UnparseableHeaders" xml:space="preserve">
+    <value>No se pudieron interpretar las cabeceras del correo</value>
+  </data>
+  <data name="FailedFilesReason_Generic" xml:space="preserve">
+    <value>Error al procesar el archivo</value>
+  </data>
+  <data name="RecoveredLabel" xml:space="preserve">
+    <value>Recuperados:</value>
+  </data>
+  <data name="RecoveredTitle" xml:space="preserve">
+    <value>Correos recuperados</value>
+  </data>
+  <data name="RecoveredSummary" xml:space="preserve">
+    <value>{0} correo(s) con cabeceras no estándar fueron reparados automáticamente y archivados.</value>
+  </data>
 </root>
