@@ -1,4 +1,5 @@
 ﻿@using MailArchiver.Services
+@using MailArchiver.Services.Shared
 @inject MailArchiver.Services.IAuthenticationService AuthService
 @inject Microsoft.Extensions.Localization.IStringLocalizer<MailArchiver.SharedResource> Localizer
 @model MailArchiver.Models.ViewModels.DashboardViewModel
@@ -6,6 +7,63 @@
     ViewData["Title"] = Localizer["Dashboard"];
     var canManageAccounts = AuthService.IsCurrentUserAdmin(Context) || AuthService.IsCurrentUserSelfManager(Context);
     var currentUsername = AuthService.GetCurrentUserDisplayName(Context);
+
+    // The charts are fed from a JSON island rather than from values written into the script,
+    // both so that the first paint and every later selection run through one code path, and
+    // because a sender address is a header value: an apostrophe in one would otherwise end the
+    // string literal it was written into. The default serializer escapes the characters that
+    // matter inside a script element.
+    var chartPayload = new
+    {
+        granularity = Model.Series.Granularity,
+        window = Model.Series.Window,
+        senders = Model.Series.OutgoingSenders ? "outgoing" : "incoming",
+        selectable = Model.SelectablePeriods,
+        offset = Model.Series.Offset,
+        canGoBack = Model.Series.CanGoBack,
+        canGoForward = Model.Series.CanGoForward,
+        rangeLabel = Model.Series.RangeLabel,
+        labels = Model.Series.Emails.Select(e => e.Period),
+        incoming = Model.Series.Emails.Select(e => e.Incoming),
+        outgoing = Model.Series.Emails.Select(e => e.Outgoing),
+        senderLabels = Model.Series.TopSenders.Select(s => s.EmailAddress),
+        senderCounts = Model.Series.TopSenders.Select(s => s.Count),
+        texts = new
+        {
+            incoming = Localizer["Incoming"].Value,
+            outgoing = Localizer["Outgoing"].Value,
+            loadFailed = Localizer["ChartLoadFailed"].Value
+        }
+    };
+    var chartPayloadJson = System.Text.Json.JsonSerializer.Serialize(chartPayload);
+}
+
+@functions {
+    /// <summary>
+    /// Text of one window option: everything, or an amount with its unit in the singular or the
+    /// plural.
+    /// <para>
+    /// The unit words have their own resource keys rather than sharing the ones the resolution
+    /// menu uses, because a unit after a number is written differently per language: lower case
+    /// in English, capitalised in German. Both spellings of the same word therefore have to be
+    /// translatable separately.
+    /// </para>
+    /// </summary>
+    private string WindowText(PeriodWindow window)
+    {
+        if (window.Unit == PeriodWindowUnit.Everything)
+            return Localizer["All"].Value;
+
+        var singular = window.Amount == 1;
+        var unit = window.Unit switch
+        {
+            PeriodWindowUnit.Day => singular ? Localizer["PeriodUnitDay"] : Localizer["PeriodUnitDays"],
+            PeriodWindowUnit.Month => singular ? Localizer["PeriodUnitMonth"] : Localizer["PeriodUnitMonths"],
+            _ => singular ? Localizer["PeriodUnitYear"] : Localizer["PeriodUnitYears"]
+        };
+
+        return $"{window.Amount} {unit.Value}";
+    }
 }
 
 <div class="container-fluid">
@@ -53,6 +111,13 @@
                     <i class="bi bi-envelope stat-icon"></i>
                     <div class="stat-label">@Localizer["Emails"]</div>
                     <div class="stat-value" data-count-target="@Model.TotalEmails">@Model.TotalEmails.ToString("N0")</div>
+                    @if (Model.ShowDirectionSplits)
+                    {
+                        <div class="stat-split">
+                            <span title="@Localizer["Incoming"]"><i class="bi bi-arrow-down-left"></i> @Model.IncomingEmails.ToString("N0")</span>
+                            <span title="@Localizer["Outgoing"]"><i class="bi bi-arrow-up-right"></i> @Model.OutgoingEmails.ToString("N0")</span>
+                        </div>
+                    }
                 </div>
             </div>
         </div>
@@ -62,6 +127,12 @@
                     <i class="bi bi-person-lines-fill stat-icon"></i>
                     <div class="stat-label">@Localizer["Accounts"]</div>
                     <div class="stat-value" data-count-target="@Model.TotalAccounts">@Model.TotalAccounts.ToString("N0")</div>
+                    @if (Model.ShowDirectionSplits)
+                    {
+                        <div class="stat-split">
+                            <span title="@Localizer["Domains"]"><i class="bi bi-globe2"></i> @Model.AccountDomains.ToString("N0") @Localizer["Domains"]</span>
+                        </div>
+                    }
                 </div>
             </div>
         </div>
@@ -71,6 +142,13 @@
                     <i class="bi bi-paperclip stat-icon"></i>
                     <div class="stat-label">@Localizer["AttachmentsCount"]</div>
                     <div class="stat-value" data-count-target="@Model.TotalAttachments">@Model.TotalAttachments.ToString("N0")</div>
+                    @if (Model.ShowDirectionSplits)
+                    {
+                        <div class="stat-split">
+                            <span title="@Localizer["Incoming"]"><i class="bi bi-arrow-down-left"></i> @Model.IncomingAttachments.ToString("N0")</span>
+                            <span title="@Localizer["Outgoing"]"><i class="bi bi-arrow-up-right"></i> @Model.OutgoingAttachments.ToString("N0")</span>
+                        </div>
+                    }
                 </div>
             </div>
         </div>
@@ -88,9 +166,56 @@
     <div class="row mb-4">
         <div class="col-12 col-lg-8 mb-4">
             <div class="card h-100">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <span class="h6 mb-0"><i class="bi bi-bar-chart me-1"></i>@Localizer["EmailsPerMonth"]</span>
-                    <span class="badge bg-primary">@Localizer["Last12Months"]</span>
+                <div class="card-header d-flex justify-content-between align-items-center@(Model.SelectablePeriods ? " flex-wrap gap-2" : "")">
+                    <span class="h6 mb-0"><i class="bi bi-bar-chart me-1"></i>@(Model.SelectablePeriods ? Localizer["EmailsPerPeriod"] : Localizer["EmailsPerMonth"])</span>
+                    @if (!Model.SelectablePeriods)
+                    {
+                        <span class="badge bg-primary">@Localizer["Last12Months"]</span>
+                    }
+                    else
+                    {
+                    <div class="dashboard-chart-controls">
+                        @* Deliberately not a btn-group: that class is turned into a vertical
+                           stack below 768px further up site.css, which would put the two arrows
+                           on top of each other. *@
+                        <div class="dashboard-chart-pager" role="group">
+                            <button type="button" id="chartEarlier" class="btn btn-sm btn-outline-secondary"
+                                    aria-label="@Localizer["EarlierPeriod"]" title="@Localizer["EarlierPeriod"]"
+                                    disabled="@(!Model.Series.CanGoBack)">
+                                <i class="bi bi-chevron-left"></i>
+                            </button>
+                            <button type="button" id="chartLater" class="btn btn-sm btn-outline-secondary"
+                                    aria-label="@Localizer["LaterPeriod"]" title="@Localizer["LaterPeriod"]"
+                                    disabled="@(!Model.Series.CanGoForward)">
+                                <i class="bi bi-chevron-right"></i>
+                            </button>
+                        </div>
+                        <span id="chartRange" class="dashboard-chart-range">@Model.Series.RangeLabel</span>
+                        <button type="button" id="chartNow" class="btn btn-sm btn-link p-0"
+                                hidden="@(Model.Series.Offset == 0)">@Localizer["CurrentPeriod"]</button>
+                        <select id="chartGranularity" class="form-select form-select-sm"
+                                aria-label="@Localizer["ChartGranularity"]" title="@Localizer["ChartGranularity"]">
+                            @foreach (var granularity in DashboardPeriods.Granularities)
+                            {
+                                <option value="@granularity" selected="@(granularity.ToString() == Model.Series.Granularity)">
+                                    @Localizer[granularity.ToString()]
+                                </option>
+                            }
+                        </select>
+                        <select id="chartWindow" class="form-select form-select-sm"
+                                aria-label="@Localizer["Period"]" title="@Localizer["Period"]">
+                            @foreach (var window in DashboardPeriods.Windows)
+                            {
+                                var offeredBy = string.Join(" ", DashboardPeriods.Granularities
+                                    .Where(g => DashboardPeriods.IsOffered(g, window)));
+                                <option value="@window.Key" data-granularities="@offeredBy"
+                                        selected="@(window.Key == Model.Series.Window)">
+                                    @WindowText(window)
+                                </option>
+                            }
+                        </select>
+                    </div>
+                    }
                 </div>
                 <div class="card-body dashboard-chart-body">
                     <div class="chart-container">
@@ -101,9 +226,22 @@
         </div>
         <div class="col-12 col-lg-4 mb-4">
             <div class="card h-100">
-                <div class="card-header d-flex justify-content-between align-items-center">
+                <div class="card-header d-flex justify-content-between align-items-center@(Model.SelectablePeriods ? " flex-wrap gap-2" : "")">
                     <span class="h6 mb-0"><i class="bi bi-pie-chart me-1"></i>@Localizer["TopSenders"]</span>
-                    <span class="badge bg-primary">@Localizer["Incoming"]</span>
+                    @if (!Model.SelectablePeriods)
+                    {
+                        <span class="badge bg-primary">@Localizer["Incoming"]</span>
+                    }
+                    else
+                    {
+                        <div class="dashboard-chart-controls">
+                            <select id="chartSenders" class="form-select form-select-sm"
+                                    aria-label="@Localizer["Direction"]" title="@Localizer["Direction"]">
+                                <option value="incoming" selected="@(!Model.Series.OutgoingSenders)">@Localizer["Incoming"]</option>
+                                <option value="outgoing" selected="@Model.Series.OutgoingSenders">@Localizer["Outgoing"]</option>
+                            </select>
+                        </div>
+                    }
                 </div>
                 <div class="card-body dashboard-chart-body">
                     <div class="chart-container">
@@ -112,6 +250,12 @@
                 </div>
             </div>
         </div>
+        @if (Model.SelectablePeriods)
+        {
+            <div class="col-12">
+                <div id="chartLoadError" class="alert alert-warning py-2 mb-4 small" role="status" hidden></div>
+            </div>
+        }
     </div>
 
     <div class="row">
@@ -420,6 +564,7 @@
 
 @section Scripts {
      <script src="~/lib/chart.js/chart.js"></script>
+    <script type="application/json" id="dashboard-chart-data">@Html.Raw(chartPayloadJson)</script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -524,6 +669,10 @@
             const chartColors = {
                 blue: 'rgba(13, 110, 253, 0.8)',
                 blueBorder: 'rgba(13, 110, 253, 1)',
+                // Same pairing the archive list uses for a message's direction: green arrived,
+                // blue was sent.
+                green: 'rgba(25, 135, 84, 0.8)',
+                greenBorder: 'rgba(25, 135, 84, 1)',
                 colors: [
                     'rgba(220, 53, 69, 0.8)',
                     'rgba(13, 110, 253, 0.8)',
@@ -594,106 +743,344 @@
             let monthlyChartInstance = null;
             let topSendersChartInstance = null;
 
-            const monthlyChartCanvas = document.getElementById('monthlyChart');
-            if (monthlyChartCanvas) {
-                monthlyChartInstance = new Chart(monthlyChartCanvas.getContext('2d'), {
-                    type: 'bar',
-                    data: {
-                        labels: [@Html.Raw(string.Join(",", Model.EmailsByMonth.Select(m => $"'{m.Period}'")))],
-                        datasets: [{
-                            label: 'Emails',
-                            data: [@string.Join(",", Model.EmailsByMonth.Select(m => m.Count))],
-                            backgroundColor: chartColors.blue,
-                            borderColor: chartColors.blueBorder,
-                            borderWidth: 1,
-                            borderRadius: 4
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        animation: prefersReducedMotion ? false : { duration: 800, easing: 'easeOutCubic' },
-                        plugins: {
-                            legend: { display: false },
-                            tooltip: {
-                                backgroundColor: chartTheme.tooltipBg,
-                                titleColor: chartTheme.tooltipTitleColor,
-                                bodyColor: chartTheme.tooltipBodyColor,
-                                borderColor: chartTheme.tooltipBorderColor
-                            }
-                        },
-                        scales: {
-                            x: {
-                                ticks: {
-                                    maxRotation: 45,
-                                    minRotation: 0,
-                                    color: chartTheme.textColor,
-                                    font: { size: window.innerWidth < 768 ? 10 : 12 }
-                                },
-                                grid: { display: false }
-                            },
-                            y: {
-                                beginAtZero: true,
-                                ticks: {
-                                    precision: 0,
-                                    color: chartTheme.textColor,
-                                    font: { size: window.innerWidth < 768 ? 10 : 12 }
-                                },
-                                grid: { color: chartTheme.gridColor }
-                            }
-                        }
-                    }
-                });
+            // Everything the charts need comes from the island and from the two selects. Read
+            // here, at the top of the section, and not while wiring up a handler: a const
+            // declared further down is in its temporal dead zone until then, and touching it
+            // early throws without anything on the page looking wrong.
+            const chartDataElement = document.getElementById('dashboard-chart-data');
+            const chartDataUrl = '@Url.Action("ChartData", "Home")';
+            const granularitySelect = document.getElementById('chartGranularity');
+            const windowSelect = document.getElementById('chartWindow');
+            const sendersSelect = document.getElementById('chartSenders');
+            const earlierButton = document.getElementById('chartEarlier');
+            const laterButton = document.getElementById('chartLater');
+            const nowButton = document.getElementById('chartNow');
+            const rangeLabel = document.getElementById('chartRange');
+            const chartBodies = Array.prototype.slice.call(document.querySelectorAll('.dashboard-chart-body'));
+
+            // Whole windows into the past, zero being the one holding the current instant. The
+            // server owns this number: it pulls a position past the oldest mail back to the
+            // furthest one that holds any, and every answer says which position it used.
+            let chartOffset = 0;
+
+            let chartData = null;
+            if (chartDataElement) {
+                try {
+                    chartData = JSON.parse(chartDataElement.textContent);
+                } catch (e) {
+                    chartData = null;
+                }
             }
 
-            const topSendersChartCanvas = document.getElementById('topSendersChart');
-            if (topSendersChartCanvas) {
-                topSendersChartInstance = new Chart(topSendersChartCanvas.getContext('2d'), {
-                    type: 'doughnut',
-                    data: {
-                        labels: [@Html.Raw(string.Join(",", Model.TopSenders.Select(s => $"'{(s.EmailAddress.Length > 25 ? s.EmailAddress.Substring(0, 25) + "..." : s.EmailAddress)}'")))],
-                        datasets: [{
-                            data: [@string.Join(",", Model.TopSenders.Select(s => s.Count))],
-                            backgroundColor: chartColors.colors,
-                            borderColor: chartColors.colorsBorder,
-                            borderWidth: 1,
-                            hoverOffset: 4
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        animation: prefersReducedMotion ? false : { duration: 800, easing: 'easeOutCubic' },
-                        plugins: {
-                            legend: {
-                                position: 'bottom',
-                                labels: {
-                                    boxWidth: 12,
-                                    color: chartTheme.textColor,
-                                    font: { size: window.innerWidth < 768 ? 9 : 11 },
-                                    padding: window.innerWidth < 768 ? 10 : 15
+            const senderLabelMaxLength = 25;
+            function shortenAddress(address) {
+                const value = address || '';
+                return value.length > senderLabelMaxLength
+                    ? value.substring(0, senderLabelMaxLength) + '...'
+                    : value;
+            }
+
+            function setChartsBusy(busy) {
+                chartBodies.forEach(body => body.classList.toggle('is-busy', busy));
+            }
+
+            function showChartError(message) {
+                const holder = document.getElementById('chartLoadError');
+                if (!holder) return;
+                holder.textContent = message || '';
+                holder.hidden = !message;
+            }
+
+            if (chartData) {
+                const monthlyChartCanvas = document.getElementById('monthlyChart');
+                if (monthlyChartCanvas) {
+                    monthlyChartInstance = new Chart(monthlyChartCanvas.getContext('2d'), {
+                        type: 'bar',
+                        // With fixed periods the chart is the one series it was before the
+                        // pickers existed: the split belongs to the same package as the legend
+                        // and the two colours.
+                        data: {
+                            labels: chartData.labels,
+                            datasets: chartData.selectable
+                                ? [
+                                    {
+                                        label: chartData.texts.incoming,
+                                        data: chartData.incoming,
+                                        backgroundColor: chartColors.green,
+                                        borderColor: chartColors.greenBorder,
+                                        borderWidth: 1,
+                                        borderRadius: 4,
+                                        stack: 'mail'
+                                    },
+                                    {
+                                        label: chartData.texts.outgoing,
+                                        data: chartData.outgoing,
+                                        backgroundColor: chartColors.blue,
+                                        borderColor: chartColors.blueBorder,
+                                        borderWidth: 1,
+                                        borderRadius: 4,
+                                        stack: 'mail'
+                                    }
+                                ]
+                                : [{
+                                    label: 'Emails',
+                                    data: chartData.incoming.map((value, i) => value + chartData.outgoing[i]),
+                                    backgroundColor: chartColors.blue,
+                                    borderColor: chartColors.blueBorder,
+                                    borderWidth: 1,
+                                    borderRadius: 4
+                                }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            animation: prefersReducedMotion ? false : { duration: 800, easing: 'easeOutCubic' },
+                            plugins: {
+                                legend: {
+                                    display: chartData.selectable,
+                                    position: 'bottom',
+                                    labels: {
+                                        boxWidth: 12,
+                                        color: chartTheme.textColor,
+                                        font: { size: window.innerWidth < 768 ? 9 : 11 }
+                                    }
+                                },
+                                tooltip: {
+                                    backgroundColor: chartTheme.tooltipBg,
+                                    titleColor: chartTheme.tooltipTitleColor,
+                                    bodyColor: chartTheme.tooltipBodyColor,
+                                    borderColor: chartTheme.tooltipBorderColor
                                 }
                             },
-                            tooltip: {
-                                backgroundColor: chartTheme.tooltipBg,
-                                titleColor: chartTheme.tooltipTitleColor,
-                                bodyColor: chartTheme.tooltipBodyColor,
-                                borderColor: chartTheme.tooltipBorderColor,
-                                callbacks: {
-                                    label: function(context) {
-                                        let label = context.label || '';
-                                        let value = context.parsed || 0;
-                                        let total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                        let percentage = total > 0 ? Math.round((value * 100) / total) : 0;
-                                        return `${label}: ${value} (${percentage}%)`;
+                            scales: {
+                                x: {
+                                    stacked: chartData.selectable,
+                                    ticks: {
+                                        maxRotation: 45,
+                                        minRotation: 0,
+                                        color: chartTheme.textColor,
+                                        font: { size: window.innerWidth < 768 ? 10 : 12 }
+                                    },
+                                    grid: { display: false }
+                                },
+                                y: {
+                                    stacked: chartData.selectable,
+                                    beginAtZero: true,
+                                    ticks: {
+                                        precision: 0,
+                                        color: chartTheme.textColor,
+                                        font: { size: window.innerWidth < 768 ? 10 : 12 }
+                                    },
+                                    grid: { color: chartTheme.gridColor }
+                                }
+                            }
+                        }
+                    });
+                }
+
+                const topSendersChartCanvas = document.getElementById('topSendersChart');
+                if (topSendersChartCanvas) {
+                    topSendersChartInstance = new Chart(topSendersChartCanvas.getContext('2d'), {
+                        type: 'doughnut',
+                        data: {
+                            labels: chartData.senderLabels.map(shortenAddress),
+                            datasets: [{
+                                data: chartData.senderCounts,
+                                backgroundColor: chartColors.colors,
+                                borderColor: chartColors.colorsBorder,
+                                borderWidth: 1,
+                                hoverOffset: 4
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            animation: prefersReducedMotion ? false : { duration: 800, easing: 'easeOutCubic' },
+                            plugins: {
+                                legend: {
+                                    position: 'bottom',
+                                    labels: {
+                                        boxWidth: 12,
+                                        color: chartTheme.textColor,
+                                        font: { size: window.innerWidth < 768 ? 9 : 11 },
+                                        padding: window.innerWidth < 768 ? 10 : 15
+                                    }
+                                },
+                                tooltip: {
+                                    backgroundColor: chartTheme.tooltipBg,
+                                    titleColor: chartTheme.tooltipTitleColor,
+                                    bodyColor: chartTheme.tooltipBodyColor,
+                                    borderColor: chartTheme.tooltipBorderColor,
+                                    callbacks: {
+                                        label: function(context) {
+                                            // The legend shows the address shortened, the tooltip
+                                            // shows what it was shortened from.
+                                            const full = context.chart.fullSenderLabels || [];
+                                            let label = full[context.dataIndex] || context.label || '';
+                                            let value = context.parsed || 0;
+                                            let total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                            let percentage = total > 0 ? Math.round((value * 100) / total) : 0;
+                                            return `${label}: ${value} (${percentage}%)`;
+                                        }
                                     }
                                 }
                             }
                         }
-                    }
-                });
+                    });
+                    topSendersChartInstance.fullSenderLabels = chartData.senderLabels;
+                }
             }
 
+            // The server decides which pairs of resolution and window are worth drawing, and it
+            // answers with the pair it actually used. The selects follow that answer instead of
+            // what they were set to, so a resolution that does not offer the chosen window
+            // cannot leave the page claiming something the chart does not show.
+            function syncChartSelects(data) {
+                if (granularitySelect && data.granularity) granularitySelect.value = data.granularity;
+                if (windowSelect && data.window) windowSelect.value = data.window;
+                if (sendersSelect && data.senders) sendersSelect.value = data.senders;
+            }
+
+            // Where the paging controls get their state: from the answer, never from counting
+            // along locally. How far back there is mail is something only the server knows.
+            function syncChartPaging(data) {
+                chartOffset = typeof data.offset === 'number' ? data.offset : 0;
+                if (earlierButton) earlierButton.disabled = !data.canGoBack;
+                if (laterButton) laterButton.disabled = !data.canGoForward;
+                if (nowButton) nowButton.hidden = chartOffset === 0;
+                if (rangeLabel) rangeLabel.textContent = data.rangeLabel || '';
+            }
+
+            function offerWindowsFor(granularity) {
+                if (!windowSelect) return;
+
+                const options = Array.prototype.slice.call(windowSelect.options);
+                options.forEach(option => {
+                    const offeredBy = (option.dataset.granularities || '').split(' ');
+                    option.hidden = offeredBy.indexOf(granularity) === -1;
+                    option.disabled = option.hidden;
+                });
+
+                const selected = windowSelect.selectedOptions[0];
+                if (selected && !selected.hidden) return;
+
+                // Nothing on offer at the chosen window: move to the nearest one that is, by
+                // position in the menu, so months to hours lands on the longest hour window.
+                const position = options.indexOf(selected);
+                const candidates = options
+                    .filter(option => !option.hidden)
+                    .sort((a, b) => Math.abs(options.indexOf(a) - position) - Math.abs(options.indexOf(b) - position));
+                if (candidates.length > 0) windowSelect.value = candidates[0].value;
+            }
+
+            function applyChartSeries(data) {
+                chartData = Object.assign({}, data, { texts: chartData ? chartData.texts : data.texts });
+
+                if (monthlyChartInstance) {
+                    monthlyChartInstance.data.labels = data.labels;
+                    if (monthlyChartInstance.data.datasets.length > 1) {
+                        monthlyChartInstance.data.datasets[0].data = data.incoming;
+                        monthlyChartInstance.data.datasets[1].data = data.outgoing;
+                    } else {
+                        monthlyChartInstance.data.datasets[0].data =
+                            data.incoming.map((value, i) => value + data.outgoing[i]);
+                    }
+                    monthlyChartInstance.update();
+                }
+
+                if (topSendersChartInstance) {
+                    topSendersChartInstance.data.labels = data.senderLabels.map(shortenAddress);
+                    topSendersChartInstance.data.datasets[0].data = data.senderCounts;
+                    topSendersChartInstance.fullSenderLabels = data.senderLabels;
+                    topSendersChartInstance.update();
+                }
+
+                syncChartSelects(data);
+                syncChartPaging(data);
+                offerWindowsFor(data.granularity);
+                showChartError(null);
+            }
+
+            let pendingSeriesRequest = null;
+
+            function requestChartSeries() {
+                if (!granularitySelect || !windowSelect || !sendersSelect) return;
+
+                // A second change while one request is in flight makes the first answer stale,
+                // and answers can come back out of order.
+                if (pendingSeriesRequest) pendingSeriesRequest.abort();
+                pendingSeriesRequest = new AbortController();
+
+                const query = new URLSearchParams({
+                    granularity: granularitySelect.value,
+                    window: windowSelect.value,
+                    senders: sendersSelect.value,
+                    offset: String(chartOffset)
+                });
+
+                setChartsBusy(true);
+                fetch(chartDataUrl + '?' + query.toString(), {
+                    signal: pendingSeriesRequest.signal,
+                    credentials: 'same-origin',
+                    headers: { 'Accept': 'application/json' }
+                })
+                    .then(response => response.ok ? response.json() : Promise.reject(new Error(response.status)))
+                    .then(applyChartSeries)
+                    .catch(error => {
+                        if (error.name === 'AbortError') return;
+                        showChartError(chartData && chartData.texts ? chartData.texts.loadFailed : '');
+                    })
+                    .finally(() => {
+                        pendingSeriesRequest = null;
+                        setChartsBusy(false);
+                    });
+            }
+
+            if (granularitySelect && windowSelect && sendersSelect) {
+                offerWindowsFor(granularitySelect.value);
+                if (chartData) syncChartPaging(chartData);
+
+                // A position means something else in another window, so changing the resolution
+                // or the window goes back to the present rather than landing somewhere in
+                // history without saying so.
+                function requestFromPresent() {
+                    chartOffset = 0;
+                    requestChartSeries();
+                }
+
+                granularitySelect.addEventListener('change', function() {
+                    offerWindowsFor(granularitySelect.value);
+                    requestFromPresent();
+                });
+                windowSelect.addEventListener('change', requestFromPresent);
+                sendersSelect.addEventListener('change', requestChartSeries);
+
+                if (earlierButton) {
+                    earlierButton.addEventListener('click', function() {
+                        chartOffset -= 1;
+                        requestChartSeries();
+                    });
+                }
+                if (laterButton) {
+                    laterButton.addEventListener('click', function() {
+                        chartOffset = Math.min(chartOffset + 1, 0);
+                        requestChartSeries();
+                    });
+                }
+                if (nowButton) {
+                    nowButton.addEventListener('click', requestFromPresent);
+                }
+            }
+
+            // Leaving the page aborts a request in flight without running the handler that
+            // clears the dimming, and the back button restores the DOM exactly as it was left,
+            // dimmed charts included. Nothing else clears it, so this does.
+            window.addEventListener('pageshow', function(e) {
+                if (!e.persisted) return;
+                pendingSeriesRequest = null;
+                setChartsBusy(false);
+                showChartError(null);
+            });
             // Live-Update der Charts beim Theme-Wechsel
             const themeToggleBtn = document.getElementById('theme-toggle');
             if (themeToggleBtn) {
