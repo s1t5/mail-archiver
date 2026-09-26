@@ -968,6 +968,9 @@ namespace MailArchiver.Services.Core
         /// </summary>
         internal const int DashboardAccountRows = 25;
 
+        /// <summary>Senders shown in the dashboard's sender chart.</summary>
+        internal const int TopSenderRows = 10;
+
         /// <summary>
         /// Picks the accounts the dashboard panel shows and puts the ones whose last run reported
         /// something at the top, then orders by last sync descending.
@@ -1045,6 +1048,84 @@ namespace MailArchiver.Services.Core
             rows.AddRange(ordered);
         }
 
+        /// <summary>
+        /// Whether the counter cards carry their incoming and outgoing parts. Read from here by
+        /// the page as well, so that what is rendered and what is computed cannot disagree.
+        /// </summary>
+        public bool ShowDirectionSplits => _dashboardOptions.ShowDirectionSplits;
+
+        /// <summary>
+        /// Whether the charts offer a resolution, a period and arrows to move it.
+        /// </summary>
+        public bool SelectablePeriods => _dashboardOptions.SelectablePeriods;
+
+        /// <summary>
+        /// Counts archived emails by direction in a single grouped query. IsOutgoing is a
+        /// non-nullable bool column, so every row lands in exactly one of the two buckets and
+        /// the total follows from their sum. Counting the total separately would read the table
+        /// a second time and could still show a total that differs from the two parts when a
+        /// sync commits between the two queries.
+        /// </summary>
+        internal static DirectionCounts CountEmailsByDirection(IQueryable<ArchivedEmail> emails)
+        {
+            var byDirection = emails
+                .GroupBy(e => e.IsOutgoing)
+                .Select(g => new { IsOutgoing = g.Key, Count = g.Count() })
+                .ToList();
+
+            return new DirectionCounts
+            {
+                Incoming = byDirection.FirstOrDefault(d => !d.IsOutgoing)?.Count ?? 0,
+                Outgoing = byDirection.FirstOrDefault(d => d.IsOutgoing)?.Count ?? 0
+            };
+        }
+
+        /// <summary>
+        /// Counts attachments by the direction of the email carrying them, in a single grouped
+        /// query, for the same reason as <see cref="CountEmailsByDirection"/>. The direction is
+        /// not on the attachment row, so this joins to the email; the plain total did not need
+        /// that join.
+        /// </summary>
+        internal static DirectionCounts CountAttachmentsByDirection(IQueryable<EmailAttachment> attachments)
+        {
+            var byDirection = attachments
+                .GroupBy(a => a.ArchivedEmail.IsOutgoing)
+                .Select(g => new { IsOutgoing = g.Key, Count = g.Count() })
+                .ToList();
+
+            return new DirectionCounts
+            {
+                Incoming = byDirection.FirstOrDefault(d => !d.IsOutgoing)?.Count ?? 0,
+                Outgoing = byDirection.FirstOrDefault(d => d.IsOutgoing)?.Count ?? 0
+            };
+        }
+
+        /// <summary>
+        /// Number of distinct mail domains among the given account addresses, compared without
+        /// regard to case. Counted in memory because there is one row per mailbox and because
+        /// splitting an address has no portable translation to SQL. The domain is what follows
+        /// the last '@': a quoted local part may contain one itself. An address without a domain
+        /// part contributes nothing rather than an empty domain.
+        /// </summary>
+        internal static int CountAccountDomains(IEnumerable<string?> emailAddresses)
+        {
+            var domains = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var address in emailAddresses)
+            {
+                if (string.IsNullOrWhiteSpace(address))
+                    continue;
+
+                var at = address.LastIndexOf('@');
+                if (at < 0)
+                    continue;
+
+                var domain = address[(at + 1)..].Trim();
+                if (domain.Length > 0)
+                    domains.Add(domain);
+            }
+            return domains.Count;
+        }
+
         /// <param name="lastRunHadIssues">
         /// Whether an account's last finished run reported anything. Comes from the caller because
         /// it lives in the sync job service and not in the database. Null orders by last sync
@@ -1060,33 +1141,11 @@ namespace MailArchiver.Services.Core
             // cheap live and in a periodically refreshed snapshot they would be
             // up to RefreshIntervalMinutes old.
             var model = await GetOrCreateCachedStatisticsAsync("admin", queryable =>
-                new DashboardViewModel
-                {
-                    // Fallback while the table has no admin row yet (first start,
-                    // or Dashboard:RefreshIntervalMinutes = 0): same queries the
-                    // background service runs, once, then cached in memory.
-                    TotalEmails = queryable.ArchivedEmails.Count(),
-                    TotalAccounts = queryable.MailAccounts.Count(),
-                    TotalAttachments = queryable.EmailAttachments.Count(),
-                    // The panel sits next to the ten most recent emails and is meant to be read at
-                    // a glance, not to be a second account list: that one is one click away and
-                    // pages. Accounts that never completed a sync sort last by their epoch
-                    // timestamp, which is where they belong when mailboxes are provisioned
-                    // disabled and switched on later.
-                    EmailsPerAccount = BuildAccountPanel(queryable.MailAccounts, lastRunHadIssues ?? (_ => false)),
-                    EmailsByMonth = BuildEmailsByMonth(queryable.ArchivedEmails),
-                    TopSenders = queryable.ArchivedEmails
-                        .Where(e => !e.IsOutgoing)
-                        .GroupBy(e => e.From)
-                        .Select(g => new EmailCountByAddress
-                        {
-                            EmailAddress = g.Key,
-                            Count = g.Count()
-                        })
-                        .OrderByDescending(e => e.Count)
-                        .Take(10)
-                        .ToList()
-                });
+                // Fallback while the table has no usable admin row yet (first start,
+                // Dashboard:RefreshIntervalMinutes = 0, or a row computed with other
+                // settings): same queries the background service runs, once, then
+                // cached in memory.
+                BuildAdminStatistics(queryable, lastRunHadIssues ?? (_ => false)));
 
             model.RecentEmails = await _context.ArchivedEmails
                 .OrderByDescending(e => e.SentDate)
@@ -1106,12 +1165,54 @@ namespace MailArchiver.Services.Core
         }
 
         /// <summary>
+        /// The admin statistics without the recent emails and the database size. One definition
+        /// for the request path and for DashboardStatsRefreshService, so the stored row and the
+        /// live fallback cannot drift apart.
+        /// </summary>
+        internal DashboardViewModel BuildAdminStatistics(
+            MailArchiverDbContext queryable, Func<int, bool> lastRunHadIssues)
+        {
+            // Switched off, the parts are not computed rather than computed and hidden: a
+            // plain count reads an index, while the split reads the direction column and the
+            // attachment one joins to the mail it hangs on.
+            var splits = ShowDirectionSplits;
+            var emails = splits ? CountEmailsByDirection(queryable.ArchivedEmails) : null;
+            var attachments = splits ? CountAttachmentsByDirection(queryable.EmailAttachments) : null;
+
+            // One read of the accounts serves both numbers on the account card. Counting the
+            // rows separately from the addresses they are taken from would let the two
+            // disagree over an account added or removed between the two queries.
+            var accountAddresses = splits
+                ? queryable.MailAccounts.Select(a => a.EmailAddress).ToList()
+                : null;
+
+            return new DashboardViewModel
+            {
+                TotalEmails = emails?.Total ?? queryable.ArchivedEmails.Count(),
+                IncomingEmails = emails?.Incoming ?? 0,
+                OutgoingEmails = emails?.Outgoing ?? 0,
+                TotalAccounts = accountAddresses?.Count ?? queryable.MailAccounts.Count(),
+                AccountDomains = accountAddresses == null ? 0 : CountAccountDomains(accountAddresses),
+                TotalAttachments = attachments?.Total ?? queryable.EmailAttachments.Count(),
+                IncomingAttachments = attachments?.Incoming ?? 0,
+                OutgoingAttachments = attachments?.Outgoing ?? 0,
+                // The panel sits next to the ten most recent emails and is meant to be read at
+                // a glance, not to be a second account list: that one is one click away and
+                // pages. Accounts that never completed a sync sort last by their epoch
+                // timestamp, which is where they belong when mailboxes are provisioned
+                // disabled and switched on later.
+                EmailsPerAccount = BuildAccountPanel(queryable.MailAccounts, lastRunHadIssues),
+                Series = BuildDefaultSeries(queryable.ArchivedEmails)
+            };
+        }
+
+        /// <summary>
         /// Computes or fetches cached dashboard statistics. Two layers: the short-lived
         /// in-memory cache first (see <see cref="DashboardOptions.CacheSeconds"/>), then
         /// for the admin scope the DashboardStatsCache row that
         /// DashboardStatsRefreshService recomputes periodically (see
         /// <see cref="DashboardOptions.RefreshIntervalMinutes"/>). The factory only runs
-        /// as a fallback when neither has a row yet. Values are enumerated synchronously
+        /// as a fallback when neither has a usable row. Values are enumerated synchronously
         /// on a background thread (EF does not allow parallel async evaluation inside a
         /// single context). A per-key semaphore keeps concurrent cold requests from each
         /// running the full workload (cache stampede). Dynamic per-request decorations
@@ -1121,10 +1222,9 @@ namespace MailArchiver.Services.Core
             string cacheKeySuffix,
             Func<MailArchiverDbContext, DashboardViewModel> statisticsFactory)
         {
-            var cacheSeconds = _dashboardOptions.CacheSeconds;
             var cacheKey = $"dashboard-stats-{cacheKeySuffix}";
 
-            if (cacheSeconds > 0
+            if (_dashboardOptions.CacheSeconds > 0
                 && _memoryCache.TryGetValue(cacheKey, out DashboardViewModel? cached)
                 && cached != null)
                 return CloneStatistics(cached);
@@ -1135,42 +1235,24 @@ namespace MailArchiver.Services.Core
             await gate.WaitAsync();
             try
             {
-                if (cacheSeconds > 0
-                    && _memoryCache.TryGetValue(cacheKey, out cached)
-                    && cached != null)
-                    return CloneStatistics(cached);
-
-                DashboardViewModel model;
-
-                var precomputed = await TryGetPrecomputedStatisticsAsync(cacheKeySuffix);
-                if (precomputed != null)
-                {
-                    model = precomputed;
-                }
-                else
-                {
-                    model = await Task.Run(() => statisticsFactory(_context));
-
-                    try
+                return await GetOrCreateCachedAsync(
+                    cacheKey,
+                    statisticsFactory,
+                    CloneStatistics,
+                    async model =>
                     {
-                        var totalDatabaseSizeBytes = await GetDatabaseSizeAsync();
-                        model.TotalStorageUsed = FormatFileSize(totalDatabaseSizeBytes);
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogError(ex, "Error getting database size: {Message}", ex.Message);
-                        model.TotalStorageUsed = string.Empty;
-                    }
-                }
-
-                if (cacheSeconds > 0)
-                    _memoryCache.Set(cacheKey, model, new MemoryCacheEntryOptions
-                    {
-                        AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(cacheSeconds),
-                        Size = 1
-                    });
-
-                return CloneStatistics(model);
+                        try
+                        {
+                            var totalDatabaseSizeBytes = await GetDatabaseSizeAsync();
+                            model.TotalStorageUsed = FormatFileSize(totalDatabaseSizeBytes);
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError(ex, "Error getting database size: {Message}", ex.Message);
+                            model.TotalStorageUsed = string.Empty;
+                        }
+                    },
+                    () => TryGetPrecomputedStatisticsAsync(cacheKeySuffix));
             }
             finally
             {
@@ -1186,10 +1268,63 @@ namespace MailArchiver.Services.Core
             StatisticsGates = new();
 
         /// <summary>
+        /// Cache mechanics shared by everything the dashboard computes: look up, otherwise take
+        /// the stored value or build on a background thread, cache, and hand out a copy either
+        /// way.
+        /// </summary>
+        /// <param name="copy">
+        /// Deep copy of the cached value. Every caller gets one, because the callers decorate
+        /// what they get and a decoration written into the cache entry would show up in another
+        /// user's dashboard.
+        /// </param>
+        /// <param name="decorate">
+        /// Work that belongs in the cached value but cannot run inside the factory, which is
+        /// synchronous because EF does not allow parallel async evaluation on one context. Runs
+        /// only on what the factory built: a stored value is complete as it is read.
+        /// </param>
+        /// <param name="precomputed">
+        /// Reads the value DashboardStatsRefreshService stored, or null when there is none to
+        /// use, in which case the factory builds it.
+        /// </param>
+        private async Task<T> GetOrCreateCachedAsync<T>(
+            string cacheKey,
+            Func<MailArchiverDbContext, T> factory,
+            Func<T, T> copy,
+            Func<T, Task>? decorate = null,
+            Func<Task<T?>>? precomputed = null) where T : class
+        {
+            var cacheSeconds = _dashboardOptions.CacheSeconds;
+
+            if (cacheSeconds > 0
+                && _memoryCache.TryGetValue(cacheKey, out T? cached)
+                && cached != null)
+                return copy(cached);
+
+            var value = precomputed == null ? null : await precomputed();
+
+            if (value == null)
+            {
+                value = await Task.Run(() => factory(_context));
+
+                if (decorate != null)
+                    await decorate(value);
+            }
+
+            if (cacheSeconds > 0)
+                _memoryCache.Set(cacheKey, value, new MemoryCacheEntryOptions
+                {
+                    AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(cacheSeconds),
+                    Size = 1
+                });
+
+            return copy(value);
+        }
+
+        /// <summary>
         /// Reads the pre-computed row written by DashboardStatsRefreshService. Only the
         /// admin scope is materialized; user scopes would mean one row per account
         /// assignment set, which is why they still compute live. Returns null when the
-        /// table has no row yet (or does not exist), letting the caller fall back to
+        /// table has no usable row (or does not exist), letting the caller fall back to
         /// computing once itself.
         /// </summary>
         private async Task<DashboardViewModel?> TryGetPrecomputedStatisticsAsync(string cacheKeySuffix)
@@ -1197,26 +1332,68 @@ namespace MailArchiver.Services.Core
             if (!string.Equals(cacheKeySuffix, "admin", StringComparison.Ordinal))
                 return null;
 
+            var row = await TryGetPrecomputedRowAsync();
+            if (row == null)
+                return null;
+
+            return new DashboardViewModel
+            {
+                TotalEmails = ClampToInt(row.TotalEmails),
+                IncomingEmails = ClampToInt(row.IncomingEmails),
+                OutgoingEmails = ClampToInt(row.OutgoingEmails),
+                TotalAccounts = row.TotalAccounts,
+                AccountDomains = row.AccountDomains,
+                TotalAttachments = ClampToInt(row.TotalAttachments),
+                IncomingAttachments = ClampToInt(row.IncomingAttachments),
+                OutgoingAttachments = ClampToInt(row.OutgoingAttachments),
+                TotalStorageUsed = FormatFileSize(row.TotalDatabaseSizeBytes),
+                EmailsPerAccount = row.EmailsPerAccount ?? new List<AccountStatistics>(),
+                Series = row.DefaultSeries ?? new DashboardSeries(),
+                RecentEmails = new List<RecentEmailDto>()
+            };
+        }
+
+        /// <summary>
+        /// The default chart selection of the admin scope as stored with the statistics, so the
+        /// chart endpoint answers it with the numbers the first paint showed. Null for every
+        /// other selection and whenever there is no usable row.
+        /// </summary>
+        private async Task<DashboardSeries?> TryGetPrecomputedSeriesAsync(
+            List<int>? accountIds, PeriodGranularity granularity, PeriodWindow window,
+            bool outgoingSenders, int offset)
+        {
+            if (accountIds != null
+                || granularity != DashboardPeriods.DefaultGranularity
+                || window.Key != DashboardPeriods.DefaultWindowKey
+                || outgoingSenders
+                || offset != 0)
+                return null;
+
+            var row = await TryGetPrecomputedRowAsync();
+            return row?.DefaultSeries;
+        }
+
+        /// <summary>
+        /// The admin row, provided it was computed with the settings in force now. A row from
+        /// before the switches were changed, or from before the columns carrying the parts
+        /// existed, would show parts that are not wanted or zeros where parts are, so it is
+        /// passed over until the next refresh replaces it.
+        /// </summary>
+        private async Task<DashboardStatsCache?> TryGetPrecomputedRowAsync()
+        {
             try
             {
                 var row = await _context.DashboardStatsCaches
                     .AsNoTracking()
                     .FirstOrDefaultAsync(c => c.Key == "admin");
 
-                if (row == null)
+                if (row == null
+                    || string.IsNullOrWhiteSpace(row.DefaultSeriesJson)
+                    || row.ComputedWithDirectionSplits != ShowDirectionSplits
+                    || row.ComputedWithSelectablePeriods != SelectablePeriods)
                     return null;
 
-                return new DashboardViewModel
-                {
-                    TotalEmails = (int)Math.Min(row.TotalEmails, int.MaxValue),
-                    TotalAccounts = row.TotalAccounts,
-                    TotalAttachments = (int)Math.Min(row.TotalAttachments, int.MaxValue),
-                    TotalStorageUsed = FormatFileSize(row.TotalDatabaseSizeBytes),
-                    EmailsPerAccount = row.EmailsPerAccount ?? new List<AccountStatistics>(),
-                    EmailsByMonth = row.EmailsByMonth ?? new List<EmailCountByPeriod>(),
-                    TopSenders = row.TopSenders ?? new List<EmailCountByAddress>(),
-                    RecentEmails = new List<RecentEmailDto>()
-                };
+                return row;
             }
             catch (Exception ex)
             {
@@ -1225,6 +1402,41 @@ namespace MailArchiver.Services.Core
                 _logger.LogWarning(ex, "Reading pre-computed dashboard statistics failed, falling back to live computation: {Message}", ex.Message);
                 return null;
             }
+        }
+
+        private static int ClampToInt(long value) => (int)Math.Min(value, int.MaxValue);
+
+        /// <summary>
+        /// Deep-copies a series so that a caller holding one cannot reach into the cache entry
+        /// it came from. Nothing decorates a series today; this keeps it that way by
+        /// construction rather than by everyone remembering.
+        /// </summary>
+        private static DashboardSeries CloneSeries(DashboardSeries source)
+        {
+            if (source == null)
+                return new DashboardSeries();
+
+            return new DashboardSeries
+            {
+                Granularity = source.Granularity,
+                Window = source.Window,
+                OutgoingSenders = source.OutgoingSenders,
+                Offset = source.Offset,
+                CanGoBack = source.CanGoBack,
+                CanGoForward = source.CanGoForward,
+                RangeLabel = source.RangeLabel,
+                Emails = (source.Emails ?? Enumerable.Empty<EmailCountByPeriod>())
+                    .Select(m => new EmailCountByPeriod
+                    {
+                        Period = m.Period,
+                        Incoming = m.Incoming,
+                        Outgoing = m.Outgoing
+                    })
+                    .ToList(),
+                TopSenders = (source.TopSenders ?? Enumerable.Empty<EmailCountByAddress>())
+                    .Select(s => new EmailCountByAddress { EmailAddress = s.EmailAddress, Count = s.Count })
+                    .ToList()
+            };
         }
 
         /// <summary>
@@ -1238,8 +1450,13 @@ namespace MailArchiver.Services.Core
             return new DashboardViewModel
             {
                 TotalEmails = source.TotalEmails,
+                IncomingEmails = source.IncomingEmails,
+                OutgoingEmails = source.OutgoingEmails,
                 TotalAccounts = source.TotalAccounts,
+                AccountDomains = source.AccountDomains,
                 TotalAttachments = source.TotalAttachments,
+                IncomingAttachments = source.IncomingAttachments,
+                OutgoingAttachments = source.OutgoingAttachments,
                 TotalStorageUsed = source.TotalStorageUsed,
                 EmailsPerAccount = (source.EmailsPerAccount ?? Enumerable.Empty<AccountStatistics>())
                     .Select(a => new AccountStatistics
@@ -1253,12 +1470,7 @@ namespace MailArchiver.Services.Core
                         Provider = a.Provider
                     })
                     .ToList(),
-                EmailsByMonth = (source.EmailsByMonth ?? Enumerable.Empty<EmailCountByPeriod>())
-                    .Select(m => new EmailCountByPeriod { Period = m.Period, Count = m.Count })
-                    .ToList(),
-                TopSenders = (source.TopSenders ?? Enumerable.Empty<EmailCountByAddress>())
-                    .Select(s => new EmailCountByAddress { EmailAddress = s.EmailAddress, Count = s.Count })
-                    .ToList(),
+                Series = CloneSeries(source.Series),
                 RecentEmails = (source.RecentEmails ?? Enumerable.Empty<RecentEmailDto>())
                     .Select(e => new RecentEmailDto
                     {
@@ -1274,36 +1486,251 @@ namespace MailArchiver.Services.Core
         }
 
         /// <summary>
-        /// Builds the last-12-months histogram with a single grouped query instead of
-        /// twelve sequential COUNT roundtrips. Groups by year/month so it translates
-        /// to both PostgreSQL and the query providers used by tests.
+        /// Rows of the grouped histogram query. Only the components the granularity needs are
+        /// grouped on, the rest stay at the value the bucket starts with, so a chart of whole
+        /// years asks the database for one row per year and direction rather than for one per
+        /// hour.
         /// </summary>
-        internal static List<EmailCountByPeriod> BuildEmailsByMonth(IQueryable<ArchivedEmail> emails)
+        private sealed class PeriodBucketCount
         {
-            var now = DateTime.UtcNow;
-            var startDate = now.AddMonths(-11).Date;
-            startDate = new DateTime(startDate.Year, startDate.Month, 1);
-            var nextMonth = startDate.AddMonths(12);
-
-            var counts = emails
-                .Where(e => e.SentDate >= startDate && e.SentDate < nextMonth)
-                .GroupBy(e => new { e.SentDate.Year, e.SentDate.Month })
-                .Select(g => new { g.Key.Year, g.Key.Month, Count = g.Count() })
-                .ToDictionary(k => (k.Year, k.Month), k => k.Count);
-
-            var months = new List<EmailCountByPeriod>(12);
-            for (int i = 0; i < 12; i++)
-            {
-                var currentMonth = startDate.AddMonths(i);
-                counts.TryGetValue((currentMonth.Year, currentMonth.Month), out var count);
-                months.Add(new EmailCountByPeriod
-                {
-                    Period = $"{CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(currentMonth.Month)} {currentMonth.Year}",
-                    Count = count
-                });
-            }
-            return months;
+            public int Year { get; set; }
+            public int Month { get; set; } = 1;
+            public int Day { get; set; } = 1;
+            public int Hour { get; set; }
+            public bool IsOutgoing { get; set; }
+            public int Count { get; set; }
         }
+
+        /// <summary>
+        /// Builds the mail histogram for a resolved period with a single grouped query instead
+        /// of one COUNT per bucket. Groups by date components rather than through a date
+        /// function so it translates to PostgreSQL unchanged.
+        /// </summary>
+        internal static List<EmailCountByPeriod> BuildEmailSeries(IQueryable<ArchivedEmail> emails, PeriodRange range)
+        {
+            var inRange = emails.Where(e => e.SentDate < range.EndExclusive);
+            if (range.FilterStart.HasValue)
+            {
+                var filterStart = range.FilterStart.Value;
+                inRange = inRange.Where(e => e.SentDate >= filterStart);
+            }
+
+            var counted = range.Granularity switch
+            {
+                PeriodGranularity.Year => inRange
+                    .GroupBy(e => new { e.SentDate.Year, e.IsOutgoing })
+                    .Select(g => new PeriodBucketCount
+                    {
+                        Year = g.Key.Year,
+                        IsOutgoing = g.Key.IsOutgoing,
+                        Count = g.Count()
+                    })
+                    .ToList(),
+                PeriodGranularity.Month => inRange
+                    .GroupBy(e => new { e.SentDate.Year, e.SentDate.Month, e.IsOutgoing })
+                    .Select(g => new PeriodBucketCount
+                    {
+                        Year = g.Key.Year,
+                        Month = g.Key.Month,
+                        IsOutgoing = g.Key.IsOutgoing,
+                        Count = g.Count()
+                    })
+                    .ToList(),
+                PeriodGranularity.Day => inRange
+                    .GroupBy(e => new { e.SentDate.Year, e.SentDate.Month, e.SentDate.Day, e.IsOutgoing })
+                    .Select(g => new PeriodBucketCount
+                    {
+                        Year = g.Key.Year,
+                        Month = g.Key.Month,
+                        Day = g.Key.Day,
+                        IsOutgoing = g.Key.IsOutgoing,
+                        Count = g.Count()
+                    })
+                    .ToList(),
+                _ => inRange
+                    .GroupBy(e => new { e.SentDate.Year, e.SentDate.Month, e.SentDate.Day, e.SentDate.Hour, e.IsOutgoing })
+                    .Select(g => new PeriodBucketCount
+                    {
+                        Year = g.Key.Year,
+                        Month = g.Key.Month,
+                        Day = g.Key.Day,
+                        Hour = g.Key.Hour,
+                        IsOutgoing = g.Key.IsOutgoing,
+                        Count = g.Count()
+                    })
+                    .ToList()
+            };
+
+            var series = range.Buckets
+                .Select(b => new EmailCountByPeriod { Period = b.Label })
+                .ToList();
+
+            if (series.Count == 0)
+                return series;
+
+            var positionOf = new Dictionary<DateTime, int>(range.Buckets.Count);
+            for (var i = 0; i < range.Buckets.Count; i++)
+                positionOf[range.Buckets[i].Start] = i;
+
+            var kind = range.EndExclusive.Kind;
+            foreach (var row in counted)
+            {
+                var bucketStart = new DateTime(row.Year, row.Month, row.Day, row.Hour, 0, 0, kind);
+                if (!positionOf.TryGetValue(bucketStart, out var position))
+                {
+                    // Older than the first bucket. The query has no lower bound exactly when the
+                    // first bucket is there to hold that mail; with a bound it cannot happen.
+                    if (!range.FirstBucketCollectsOlder || bucketStart >= range.Buckets[0].Start)
+                        continue;
+                    position = 0;
+                }
+
+                if (row.IsOutgoing)
+                    series[position].Outgoing += row.Count;
+                else
+                    series[position].Incoming += row.Count;
+            }
+
+            return series;
+        }
+
+        /// <summary>
+        /// The most frequent values of the From column in one direction and one period.
+        /// <para>
+        /// For received mail this is who wrote most, for sent mail it is which mailbox sent most:
+        /// the column holds the sender either way. The recipients of sent mail are not an option
+        /// here because the To column holds the whole recipient list of a message as one value,
+        /// so grouping on it would count combinations of addresses rather than addresses.
+        /// </para>
+        /// </summary>
+        /// <param name="range">
+        /// Period to count within, or null for the whole archive without a date predicate at
+        /// all. Null is what the dashboard asks for when the periods cannot be chosen: the card
+        /// then says all time and has to mean it, including anything dated ahead.
+        /// </param>
+        internal static List<EmailCountByAddress> BuildTopSenders(
+            IQueryable<ArchivedEmail> emails, PeriodRange? range, bool outgoing, int take)
+        {
+            var inRange = emails.Where(e => e.IsOutgoing == outgoing);
+            if (range != null)
+            {
+                var endExclusive = range.EndExclusive;
+                inRange = inRange.Where(e => e.SentDate < endExclusive);
+
+                if (range.FilterStart.HasValue)
+                {
+                    var filterStart = range.FilterStart.Value;
+                    inRange = inRange.Where(e => e.SentDate >= filterStart);
+                }
+            }
+
+            return inRange
+                .GroupBy(e => e.From)
+                .Select(g => new EmailCountByAddress
+                {
+                    EmailAddress = g.Key,
+                    Count = g.Count()
+                })
+                // The address breaks ties so that two senders of equal count keep their order
+                // between requests instead of swapping around in the legend.
+                .OrderByDescending(e => e.Count)
+                .ThenBy(e => e.EmailAddress)
+                .Take(take)
+                .ToList();
+        }
+
+        internal static DashboardSeries BuildSeries(
+            IQueryable<ArchivedEmail> emails, PeriodRange range, bool outgoingSenders,
+            bool sendersOverWholeArchive = false) =>
+            new DashboardSeries
+            {
+                Granularity = range.Granularity.ToString(),
+                Window = range.Window.Key,
+                OutgoingSenders = outgoingSenders,
+                Offset = range.Offset,
+                CanGoBack = range.CanGoBack,
+                CanGoForward = range.CanGoForward,
+                RangeLabel = range.Label,
+                Emails = BuildEmailSeries(emails, range),
+                TopSenders = BuildTopSenders(
+                    emails, sendersOverWholeArchive ? null : range, outgoingSenders, TopSenderRows)
+            };
+
+        /// <summary>
+        /// The series the dashboard shows before anything has been chosen. Both dashboard paths
+        /// go through here so the page always starts on the same period.
+        /// </summary>
+        internal DashboardSeries BuildDefaultSeries(IQueryable<ArchivedEmail> emails)
+        {
+            // With fixed periods there is nothing to page, so the oldest send date is not asked
+            // for, and the sender card goes back to the whole archive the way it read before the
+            // pickers existed.
+            var fixedPeriods = !SelectablePeriods;
+
+            var range = DashboardPeriods.Resolve(
+                DashboardPeriods.DefaultGranularity,
+                DashboardPeriods.DefaultWindow,
+                NowInDisplayTimeZone(),
+                fixedPeriods ? null : EarliestSentDate(emails));
+
+            return BuildSeries(emails, range, outgoingSenders: false, sendersOverWholeArchive: fixedPeriods);
+        }
+
+        /// <summary>
+        /// Oldest send date in reach, which decides how far back the charts may be paged. An
+        /// aggregate over an indexed column, so it is a lookup and not a pass over the table.
+        /// </summary>
+        private static DateTime? EarliestSentDate(IQueryable<ArchivedEmail> emails) =>
+            emails.Min(e => (DateTime?)e.SentDate);
+
+        /// <summary>
+        /// Builds one chart selection, cached per scope and selection.
+        /// </summary>
+        /// <param name="accountIds">
+        /// Accounts the caller may see, or null for all of them. The caller resolves this, the
+        /// same way it resolves it for the page itself.
+        /// </param>
+        /// <returns>
+        /// Null when the periods cannot be chosen. The guard sits here and not only in the
+        /// controller so that nothing can reach the queries behind a switched off feature.
+        /// </returns>
+        public async Task<DashboardSeries?> GetChartSeriesAsync(
+            List<int>? accountIds,
+            PeriodGranularity granularity,
+            PeriodWindow window,
+            bool outgoingSenders,
+            int offset = 0)
+        {
+            if (!SelectablePeriods)
+                return null;
+
+            var scope = accountIds == null
+                ? "admin"
+                : "user-" + string.Join(",", accountIds.OrderBy(id => id));
+            var cacheKey =
+                $"dashboard-series-{scope}-{granularity}-{window.Key}-{(outgoingSenders ? "out" : "in")}-{offset}";
+            var now = NowInDisplayTimeZone();
+
+            return await GetOrCreateCachedAsync(cacheKey, ctx =>
+            {
+                var emails = accountIds == null
+                    ? ctx.ArchivedEmails.AsQueryable()
+                    : ctx.ArchivedEmails.Where(e => accountIds.Contains(e.MailAccountId));
+
+                var range = DashboardPeriods.Resolve(
+                    granularity, window, now, EarliestSentDate(emails), offset);
+                return BuildSeries(emails, range, outgoingSenders);
+            }, CloneSeries,
+            precomputed: () => TryGetPrecomputedSeriesAsync(accountIds, granularity, window, outgoingSenders, offset));
+        }
+
+        /// <summary>
+        /// Wall-clock time of the configured display timezone, which is the timezone archived
+        /// send dates are stored in. Bucketing against UTC would cut a day boundary at the wrong
+        /// moment everywhere the two differ.
+        /// </summary>
+        private DateTime NowInDisplayTimeZone() =>
+            _dateTimeHelper.ConvertToDisplayTimeZone(DateTimeOffset.UtcNow);
 
         private async Task<long> GetDatabaseSizeAsync()
         {

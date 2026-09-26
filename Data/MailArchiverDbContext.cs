@@ -405,7 +405,23 @@ namespace MailArchiver.Data
                 .HasColumnType("bigint");
 
             modelBuilder.Entity<DashboardStatsCache>()
+                .Property(c => c.IncomingEmails)
+                .HasColumnType("bigint");
+
+            modelBuilder.Entity<DashboardStatsCache>()
+                .Property(c => c.OutgoingEmails)
+                .HasColumnType("bigint");
+
+            modelBuilder.Entity<DashboardStatsCache>()
                 .Property(c => c.TotalAttachments)
+                .HasColumnType("bigint");
+
+            modelBuilder.Entity<DashboardStatsCache>()
+                .Property(c => c.IncomingAttachments)
+                .HasColumnType("bigint");
+
+            modelBuilder.Entity<DashboardStatsCache>()
+                .Property(c => c.OutgoingAttachments)
                 .HasColumnType("bigint");
 
             modelBuilder.Entity<DashboardStatsCache>()
@@ -413,15 +429,15 @@ namespace MailArchiver.Data
                 .HasColumnType("integer");
 
             modelBuilder.Entity<DashboardStatsCache>()
+                .Property(c => c.AccountDomains)
+                .HasColumnType("integer");
+
+            modelBuilder.Entity<DashboardStatsCache>()
                 .Property(c => c.TotalDatabaseSizeBytes)
                 .HasColumnType("bigint");
 
             modelBuilder.Entity<DashboardStatsCache>()
-                .Property(c => c.TopSendersJson)
-                .HasColumnType("jsonb");
-
-            modelBuilder.Entity<DashboardStatsCache>()
-                .Property(c => c.EmailsByMonthJson)
+                .Property(c => c.DefaultSeriesJson)
                 .HasColumnType("jsonb");
 
             modelBuilder.Entity<DashboardStatsCache>()
@@ -431,6 +447,14 @@ namespace MailArchiver.Data
             modelBuilder.Entity<DashboardStatsCache>()
                 .Property(c => c.ComputedAtUtc)
                 .HasColumnType("timestamp with time zone");
+
+            modelBuilder.Entity<DashboardStatsCache>()
+                .Property(c => c.ComputedWithDirectionSplits)
+                .HasColumnType("boolean");
+
+            modelBuilder.Entity<DashboardStatsCache>()
+                .Property(c => c.ComputedWithSelectablePeriods)
+                .HasColumnType("boolean");
 
             modelBuilder.Entity<DashboardStatsCache>()
                 .ToTable("DashboardStatsCache", "mail_archiver");
