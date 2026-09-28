@@ -785,6 +785,40 @@ namespace MailArchiver.Migrations
                     b.ToTable("AccountStorageBackfillState", "mail_archiver");
                 });
 
+            modelBuilder.Entity("MailArchiver.Models.DashboardStatsCache", b =>
+                {
+                    b.Property<string>("Key")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("ComputedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("EmailsByMonthJson")
+                        .HasColumnType("jsonb");
+
+                    b.Property<string>("EmailsPerAccountJson")
+                        .HasColumnType("jsonb");
+
+                    b.Property<int>("TotalAccounts")
+                        .HasColumnType("integer");
+
+                    b.Property<long>("TotalAttachments")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("TotalDatabaseSizeBytes")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("TotalEmails")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("TopSendersJson")
+                        .HasColumnType("jsonb");
+
+                    b.HasKey("Key");
+
+                    b.ToTable("DashboardStatsCache", "mail_archiver");
+                });
+
             modelBuilder.Entity("MailArchiver.Models.BandwidthUsage", b =>
                 {
                     b.HasOne("MailArchiver.Models.MailAccount", "MailAccount")

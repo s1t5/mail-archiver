@@ -18,6 +18,7 @@ namespace MailArchiver.Data
         public DbSet<AccountStorageBackfillState> AccountStorageBackfillStates { get; set; }
         public DbSet<ApiKey> ApiKeys { get; set; }
         public DbSet<AuditExportJob> AuditExportJobs { get; set; }
+        public DbSet<DashboardStatsCache> DashboardStatsCaches { get; set; }
 
         public MailArchiverDbContext(DbContextOptions<MailArchiverDbContext> options)
             : base(options)
@@ -389,6 +390,50 @@ namespace MailArchiver.Data
 
             modelBuilder.Entity<AccountStorageCache>()
                 .ToTable("AccountStorageCache", "mail_archiver");
+
+            // DashboardStatsCache entity configuration (pre-computed dashboard
+            // statistics, refreshed periodically by DashboardStatsRefreshService)
+            modelBuilder.Entity<DashboardStatsCache>()
+                .HasKey(c => c.Key);
+
+            modelBuilder.Entity<DashboardStatsCache>()
+                .Property(c => c.Key)
+                .HasColumnType("text");
+
+            modelBuilder.Entity<DashboardStatsCache>()
+                .Property(c => c.TotalEmails)
+                .HasColumnType("bigint");
+
+            modelBuilder.Entity<DashboardStatsCache>()
+                .Property(c => c.TotalAttachments)
+                .HasColumnType("bigint");
+
+            modelBuilder.Entity<DashboardStatsCache>()
+                .Property(c => c.TotalAccounts)
+                .HasColumnType("integer");
+
+            modelBuilder.Entity<DashboardStatsCache>()
+                .Property(c => c.TotalDatabaseSizeBytes)
+                .HasColumnType("bigint");
+
+            modelBuilder.Entity<DashboardStatsCache>()
+                .Property(c => c.TopSendersJson)
+                .HasColumnType("jsonb");
+
+            modelBuilder.Entity<DashboardStatsCache>()
+                .Property(c => c.EmailsByMonthJson)
+                .HasColumnType("jsonb");
+
+            modelBuilder.Entity<DashboardStatsCache>()
+                .Property(c => c.EmailsPerAccountJson)
+                .HasColumnType("jsonb");
+
+            modelBuilder.Entity<DashboardStatsCache>()
+                .Property(c => c.ComputedAtUtc)
+                .HasColumnType("timestamp with time zone");
+
+            modelBuilder.Entity<DashboardStatsCache>()
+                .ToTable("DashboardStatsCache", "mail_archiver");
 
             // AccountStorageBackfillState entity configuration
             modelBuilder.Entity<AccountStorageBackfillState>()

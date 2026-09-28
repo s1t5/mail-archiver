@@ -1053,10 +1053,18 @@ namespace MailArchiver.Services.Core
         public async Task<DashboardViewModel> GetDashboardStatisticsAsync(
             Func<int, bool>? lastRunHadIssues = null)
         {
-            var hasIssues = lastRunHadIssues ?? (_ => false);
-            return await GetOrCreateCachedStatisticsAsync("admin", queryable =>
+            // The heavy aggregates come from the DashboardStatsCache row that
+            // DashboardStatsRefreshService keeps up to date, so a dashboard load
+            // never aggregates millions of rows in the request path. RecentEmails
+            // are deliberately NOT part of that row: ten index-backed rows are
+            // cheap live and in a periodically refreshed snapshot they would be
+            // up to RefreshIntervalMinutes old.
+            var model = await GetOrCreateCachedStatisticsAsync("admin", queryable =>
                 new DashboardViewModel
                 {
+                    // Fallback while the table has no admin row yet (first start,
+                    // or Dashboard:RefreshIntervalMinutes = 0): same queries the
+                    // background service runs, once, then cached in memory.
                     TotalEmails = queryable.ArchivedEmails.Count(),
                     TotalAccounts = queryable.MailAccounts.Count(),
                     TotalAttachments = queryable.EmailAttachments.Count(),
@@ -1065,7 +1073,7 @@ namespace MailArchiver.Services.Core
                     // pages. Accounts that never completed a sync sort last by their epoch
                     // timestamp, which is where they belong when mailboxes are provisioned
                     // disabled and switched on later.
-                    EmailsPerAccount = BuildAccountPanel(queryable.MailAccounts, hasIssues),
+                    EmailsPerAccount = BuildAccountPanel(queryable.MailAccounts, lastRunHadIssues ?? (_ => false)),
                     EmailsByMonth = BuildEmailsByMonth(queryable.ArchivedEmails),
                     TopSenders = queryable.ArchivedEmails
                         .Where(e => !e.IsOutgoing)
@@ -1077,30 +1085,37 @@ namespace MailArchiver.Services.Core
                         })
                         .OrderByDescending(e => e.Count)
                         .Take(10)
-                        .ToList(),
-                    RecentEmails = queryable.ArchivedEmails
-                        .OrderByDescending(e => e.SentDate)
-                        .Select(e => new RecentEmailDto
-                        {
-                            Id = e.Id,
-                            Subject = e.Subject,
-                            From = e.From,
-                            SentDate = e.SentDate,
-                            IsOutgoing = e.IsOutgoing,
-                            MailAccountName = e.MailAccount.Name
-                        })
-                        .Take(10)
                         .ToList()
                 });
+
+            model.RecentEmails = await _context.ArchivedEmails
+                .OrderByDescending(e => e.SentDate)
+                .Select(e => new RecentEmailDto
+                {
+                    Id = e.Id,
+                    Subject = e.Subject,
+                    From = e.From,
+                    SentDate = e.SentDate,
+                    IsOutgoing = e.IsOutgoing,
+                    MailAccountName = e.MailAccount.Name
+                })
+                .Take(10)
+                .ToListAsync();
+
+            return model;
         }
 
         /// <summary>
-        /// Computes or fetches cached dashboard statistics. The factory receives the
-        /// DbContext so it can build queries; values are enumerated synchronously on
-        /// a background thread (EF does not allow parallel async evaluation inside a
-        /// single context). The result is cached for <see cref="DashboardOptions.CacheSeconds"/>.
-        /// Dynamic per-request decorations (storage, sync flags, active jobs) are applied
-        /// by the caller and are NOT cached.
+        /// Computes or fetches cached dashboard statistics. Two layers: the short-lived
+        /// in-memory cache first (see <see cref="DashboardOptions.CacheSeconds"/>), then
+        /// for the admin scope the DashboardStatsCache row that
+        /// DashboardStatsRefreshService recomputes periodically (see
+        /// <see cref="DashboardOptions.RefreshIntervalMinutes"/>). The factory only runs
+        /// as a fallback when neither has a row yet. Values are enumerated synchronously
+        /// on a background thread (EF does not allow parallel async evaluation inside a
+        /// single context). A per-key semaphore keeps concurrent cold requests from each
+        /// running the full workload (cache stampede). Dynamic per-request decorations
+        /// (storage, sync flags, active jobs) are applied by the caller and are NOT cached.
         /// </summary>
         internal async Task<DashboardViewModel> GetOrCreateCachedStatisticsAsync(
             string cacheKeySuffix,
@@ -1114,32 +1129,109 @@ namespace MailArchiver.Services.Core
                 && cached != null)
                 return CloneStatistics(cached);
 
-            var model = await Task.Run(() => statisticsFactory(_context));
+            // The in-process lock is what makes this stampede-proof: the first cold
+            // request computes, concurrent ones wait and then read the fresh entry.
+            var gate = StatisticsGates.GetOrAdd(cacheKey, _ => new SemaphoreSlim(1, 1));
+            await gate.WaitAsync();
+            try
+            {
+                if (cacheSeconds > 0
+                    && _memoryCache.TryGetValue(cacheKey, out cached)
+                    && cached != null)
+                    return CloneStatistics(cached);
+
+                DashboardViewModel model;
+
+                var precomputed = await TryGetPrecomputedStatisticsAsync(cacheKeySuffix);
+                if (precomputed != null)
+                {
+                    model = precomputed;
+                }
+                else
+                {
+                    model = await Task.Run(() => statisticsFactory(_context));
+
+                    try
+                    {
+                        var totalDatabaseSizeBytes = await GetDatabaseSizeAsync();
+                        model.TotalStorageUsed = FormatFileSize(totalDatabaseSizeBytes);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Error getting database size: {Message}", ex.Message);
+                        model.TotalStorageUsed = string.Empty;
+                    }
+                }
+
+                if (cacheSeconds > 0)
+                    _memoryCache.Set(cacheKey, model, new MemoryCacheEntryOptions
+                    {
+                        AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(cacheSeconds),
+                        Size = 1
+                    });
+
+                return CloneStatistics(model);
+            }
+            finally
+            {
+                gate.Release();
+            }
+        }
+
+        /// <summary>
+        /// Static per-key gates: EmailCoreService is scoped (one instance per request),
+        /// so the stampede lock has to live outside the instances to synchronize them.
+        /// </summary>
+        private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, SemaphoreSlim>
+            StatisticsGates = new();
+
+        /// <summary>
+        /// Reads the pre-computed row written by DashboardStatsRefreshService. Only the
+        /// admin scope is materialized; user scopes would mean one row per account
+        /// assignment set, which is why they still compute live. Returns null when the
+        /// table has no row yet (or does not exist), letting the caller fall back to
+        /// computing once itself.
+        /// </summary>
+        private async Task<DashboardViewModel?> TryGetPrecomputedStatisticsAsync(string cacheKeySuffix)
+        {
+            if (!string.Equals(cacheKeySuffix, "admin", StringComparison.Ordinal))
+                return null;
 
             try
             {
-                var totalDatabaseSizeBytes = await GetDatabaseSizeAsync();
-                model.TotalStorageUsed = FormatFileSize(totalDatabaseSizeBytes);
+                var row = await _context.DashboardStatsCaches
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(c => c.Key == "admin");
+
+                if (row == null)
+                    return null;
+
+                return new DashboardViewModel
+                {
+                    TotalEmails = (int)Math.Min(row.TotalEmails, int.MaxValue),
+                    TotalAccounts = row.TotalAccounts,
+                    TotalAttachments = (int)Math.Min(row.TotalAttachments, int.MaxValue),
+                    TotalStorageUsed = FormatFileSize(row.TotalDatabaseSizeBytes),
+                    EmailsPerAccount = row.EmailsPerAccount ?? new List<AccountStatistics>(),
+                    EmailsByMonth = row.EmailsByMonth ?? new List<EmailCountByPeriod>(),
+                    TopSenders = row.TopSenders ?? new List<EmailCountByAddress>(),
+                    RecentEmails = new List<RecentEmailDto>()
+                };
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error getting database size: {Message}", ex.Message);
-                model.TotalStorageUsed = string.Empty;
+                // Missing table (migration not applied yet) or a broken connection:
+                // never let the fallback path die because the fast path is unavailable.
+                _logger.LogWarning(ex, "Reading pre-computed dashboard statistics failed, falling back to live computation: {Message}", ex.Message);
+                return null;
             }
-
-            if (cacheSeconds > 0)
-                _memoryCache.Set(cacheKey, model, new MemoryCacheEntryOptions
-                {
-                    AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(cacheSeconds),
-                    Size = 1
-                });
-
-            return CloneStatistics(model);
         }
 
         /// <summary>
         /// Deep-copies the cacheable statistics so per-request mutations (StorageUsed,
-        /// IsSyncing, IsSyncPending, LastRunHadIssues) never leak into the shared cache entry.
+        /// IsSyncing, IsSyncPending, LastRunHadIssues) never leak into the shared cache
+        /// entry. List members may be null: the admin path fills RecentEmails outside
+        /// this cache, so a model straight from the factory has it unset.
         /// </summary>
         private static DashboardViewModel CloneStatistics(DashboardViewModel source)
         {
@@ -1149,7 +1241,7 @@ namespace MailArchiver.Services.Core
                 TotalAccounts = source.TotalAccounts,
                 TotalAttachments = source.TotalAttachments,
                 TotalStorageUsed = source.TotalStorageUsed,
-                EmailsPerAccount = source.EmailsPerAccount
+                EmailsPerAccount = (source.EmailsPerAccount ?? Enumerable.Empty<AccountStatistics>())
                     .Select(a => new AccountStatistics
                     {
                         AccountId = a.AccountId,
@@ -1161,13 +1253,13 @@ namespace MailArchiver.Services.Core
                         Provider = a.Provider
                     })
                     .ToList(),
-                EmailsByMonth = source.EmailsByMonth
+                EmailsByMonth = (source.EmailsByMonth ?? Enumerable.Empty<EmailCountByPeriod>())
                     .Select(m => new EmailCountByPeriod { Period = m.Period, Count = m.Count })
                     .ToList(),
-                TopSenders = source.TopSenders
+                TopSenders = (source.TopSenders ?? Enumerable.Empty<EmailCountByAddress>())
                     .Select(s => new EmailCountByAddress { EmailAddress = s.EmailAddress, Count = s.Count })
                     .ToList(),
-                RecentEmails = source.RecentEmails
+                RecentEmails = (source.RecentEmails ?? Enumerable.Empty<RecentEmailDto>())
                     .Select(e => new RecentEmailDto
                     {
                         Id = e.Id,

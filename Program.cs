@@ -503,6 +503,12 @@ builder.Services.AddHostedService<AttachmentDeduplicationBackgroundService>();
 builder.Services.AddScoped<IAccountStorageService, AccountStorageService>();
 builder.Services.AddHostedService<AccountStorageRefreshService>();
 
+// Register the autark dashboard stats refresh background service (periodically
+// pre-computes the expensive admin dashboard aggregates into the
+// DashboardStatsCache table; independent of DatabaseMaintenance:Enabled)
+builder.Services.AddSingleton<DashboardStatsRefreshService>();
+builder.Services.AddHostedService<DashboardStatsRefreshService>(provider => provider.GetRequiredService<DashboardStatsRefreshService>());
+
 // Register AccessLogService
 builder.Services.AddScoped<IAccessLogService, AccessLogService>();
 
