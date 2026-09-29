@@ -2188,6 +2188,12 @@
   <data name="DeleteConfirmationWord" xml:space="preserve">
     <value>УДАЛИТЬ</value>
   </data>
+  <data name="DeleteIncludeSubfoldersConfirm" xml:space="preserve">
+    <value>Также удалить {0} писем во вложенных папках "{1}"</value>
+  </data>
+  <data name="DeleteSubfoldersNotConfirmed" xml:space="preserve">
+    <value>Ничего не удалено: у папки есть вложенные папки, удаление писем в которых не было подтверждено.</value>
+  </data>
   <data name="EmailDeleted" xml:space="preserve">
     <value>Письмо успешно удалено</value>
   </data>

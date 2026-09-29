@@ -2369,6 +2369,12 @@
   <data name="DeleteConfirmationWord" xml:space="preserve">
     <value>LÖSCHEN</value>
   </data>
+  <data name="DeleteIncludeSubfoldersConfirm" xml:space="preserve">
+    <value>Auch die {0} E-Mail(s) in Unterordnern von "{1}" löschen</value>
+  </data>
+  <data name="DeleteSubfoldersNotConfirmed" xml:space="preserve">
+    <value>Es wurde nichts gelöscht: Der Ordner hat Unterordner, deren E-Mails nicht zur Löschung bestätigt wurden.</value>
+  </data>
   <data name="EmailDeleted" xml:space="preserve">
     <value>E-Mail erfolgreich gelöscht</value>
   </data>

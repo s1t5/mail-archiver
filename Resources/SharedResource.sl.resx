@@ -2188,6 +2188,12 @@
   <data name="DeleteConfirmationWord" xml:space="preserve">
     <value>IZBRIŠI</value>
   </data>
+  <data name="DeleteIncludeSubfoldersConfirm" xml:space="preserve">
+    <value>Izbriši tudi {0} e-poštnih sporočil v podmapah mape "{1}"</value>
+  </data>
+  <data name="DeleteSubfoldersNotConfirmed" xml:space="preserve">
+    <value>Nič ni bilo izbrisano: mapa ima podmape, katerih brisanje e-poštnih sporočil ni bilo potrjeno.</value>
+  </data>
   <data name="EmailDeleted" xml:space="preserve">
     <value>E-pošta uspešno izbrisana</value>
   </data>

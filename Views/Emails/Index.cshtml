@@ -12,8 +12,11 @@
 
     // "Empty folder" only appears when nothing is filtered, so it always matches exactly
     // what's on screen (the whole folder) - never a hidden larger scope than what's visible.
+    // Selecting a folder also lists the emails of its subfolders, so TotalResults already is
+    // the full scope of the deletion; subfolderEmailCount is the part that needs an extra
+    // confirmation in the modal.
     var showEmptyFolderBtn = hasAccountAndFolder && !hasActiveFilter && canDeleteEmails;
-    var selectedFolderTotalCount = showEmptyFolderBtn ? FindFolderCount(Model.FolderTree, Model.SelectedFolder) : 0;
+    var subfolderEmailCount = hasAccountAndFolder ? (ViewBag.SubfolderEmailCount ?? 0) : 0;
 
     // "Delete filtered emails" is scoped to the single selected folder.
     var showDeleteFilteredBtn = hasAccountAndFolder && hasActiveFilter && canDeleteEmails;
@@ -23,20 +26,6 @@
     var showDeleteAllFilteredBtn = Model.SelectedAccountId.HasValue && hasActiveFilter && canDeleteEmails;
     var accountWideFilteredCount = showDeleteAllFilteredBtn ? (ViewBag.AccountWideFilteredCount ?? 0) : 0;
 }
-@functions {
-    private static int FindFolderCount(List<MailArchiver.Models.ViewModels.FolderTreeNode> nodes, string path)
-    {
-        if (nodes == null) return 0;
-        foreach (var node in nodes)
-        {
-            if (node.FullPath == path) return node.TotalCount;
-            var childCount = FindFolderCount(node.Children, path);
-            if (childCount > 0) return childCount;
-        }
-        return 0;
-    }
-}
-
 @* Anti-Forgery Token für JavaScript *@
 @Html.AntiForgeryToken()
 
@@ -277,7 +266,7 @@
                             @if (showEmptyFolderBtn)
                             {
                                 <button type="button" id="emptyFolderBtn" class="btn btn-sm btn-outline-danger" data-confirm-mode="folder"
-                                        data-account-id="@Model.SelectedAccountId" data-folder-name="@Model.SelectedFolder" data-total-count="@selectedFolderTotalCount">
+                                        data-account-id="@Model.SelectedAccountId" data-folder-name="@Model.SelectedFolder" data-total-count="@Model.TotalResults" data-subfolder-count="@subfolderEmailCount">
                                     <i class="bi bi-trash3"></i>
                                     <span class="d-inline">@Localizer["EmptyFolder"]</span>
                                 </button>
@@ -285,7 +274,7 @@
                             @if (showDeleteFilteredBtn)
                             {
                                 <button type="button" id="deleteFilteredBtn" class="btn btn-sm btn-outline-danger" data-confirm-mode="folder"
-                                        data-account-id="@Model.SelectedAccountId" data-folder-name="@Model.SelectedFolder" data-total-count="@Model.TotalResults"
+                                        data-account-id="@Model.SelectedAccountId" data-folder-name="@Model.SelectedFolder" data-total-count="@Model.TotalResults" data-subfolder-count="@subfolderEmailCount"
                                         data-search-term="@Model.SearchTerm" data-from-date="@Model.FromDate?.ToString("yyyy-MM-dd")" data-to-date="@Model.ToDate?.ToString("yyyy-MM-dd")" data-is-outgoing="@Model.IsOutgoing">
                                     <i class="bi bi-trash3"></i>
                                     <span class="d-inline">@Localizer["DeleteFilteredEmails"]</span>
@@ -595,6 +584,10 @@
                         </button>
                     </div>
                     <input type="text" class="form-control" id="folderDeleteNameInput" autocomplete="off">
+                </div>
+                <div class="form-check mt-3" id="folderDeleteSubfoldersGroup" style="display: none;">
+                    <input class="form-check-input" type="checkbox" id="folderDeleteSubfoldersCheck">
+                    <label class="form-check-label fw-semibold text-danger" for="folderDeleteSubfoldersCheck" id="folderDeleteSubfoldersLabel"></label>
                 </div>
             </div>
             <div class="modal-footer">
@@ -1064,7 +1057,8 @@
             deleteAllFilteredConfirmWarning: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["DeleteAllFilteredConfirmWarning"].Value)),
             typeFolderNameToConfirm: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["TypeFolderNameToConfirm"].Value)),
             typeDeleteWordToConfirm: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["TypeDeleteWordToConfirm"].Value)),
-            deleteConfirmationWord: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["DeleteConfirmationWord"].Value))
+            deleteConfirmationWord: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["DeleteConfirmationWord"].Value)),
+            deleteIncludeSubfoldersConfirm: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["DeleteIncludeSubfoldersConfirm"].Value))
         };
         
         const toggleSelectionMode = document.getElementById('toggleSelectionMode');
@@ -1383,6 +1377,9 @@
         // The "filtered" buttons carry the active search filters as data attributes; "empty
         // folder" does not, which is how the submit handler decides whether to include
         // filter fields in the POST. Only "folder" mode buttons carry a folder name.
+        // A folder selection also covers its subfolders: if any of the affected emails live in
+        // a subfolder, a separate checkbox must be ticked as well, otherwise nothing is sent
+        // (the server refuses such a request on its own, too).
         function setupFolderDeleteButton(buttonId, actionUrl, titleKey, warningKey) {
             const btn = document.getElementById(buttonId);
             if (!btn) return;
@@ -1393,6 +1390,7 @@
                 const accountId = btn.dataset.accountId;
                 const folderName = btn.dataset.folderName;
                 const totalCount = Number(btn.dataset.totalCount || 0);
+                const subfolderCount = Number(btn.dataset.subfolderCount || 0);
                 const requiredText = mode === 'word' ? i18n.deleteConfirmationWord : folderName;
 
                 document.getElementById('folderDeleteConfirmModalLabel').textContent = i18n[titleKey];
@@ -1414,15 +1412,30 @@
                     inputLabel.textContent = i18n.typeFolderNameToConfirm;
                     nameDisplay.value = folderName;
                 }
+                const subfoldersGroup = document.getElementById('folderDeleteSubfoldersGroup');
+                const subfoldersCheck = document.getElementById('folderDeleteSubfoldersCheck');
+                const needsSubfolderConfirm = subfolderCount > 0;
+                subfoldersGroup.style.display = needsSubfolderConfirm ? '' : 'none';
+                subfoldersCheck.checked = false;
+                if (needsSubfolderConfirm) {
+                    document.getElementById('folderDeleteSubfoldersLabel').textContent = i18n.deleteIncludeSubfoldersConfirm
+                        .replace('{0}', subfolderCount.toLocaleString())
+                        .replace('{1}', folderName || '');
+                }
+
                 nameInput.value = '';
                 confirmBtn.disabled = true;
 
-                nameInput.oninput = function() {
-                    confirmBtn.disabled = nameInput.value !== requiredText;
+                const isConfirmed = function() {
+                    return nameInput.value === requiredText && (!needsSubfolderConfirm || subfoldersCheck.checked);
                 };
+                nameInput.oninput = function() {
+                    confirmBtn.disabled = !isConfirmed();
+                };
+                subfoldersCheck.onchange = nameInput.oninput;
 
                 confirmBtn.onclick = function() {
-                    if (nameInput.value !== requiredText) return;
+                    if (!isConfirmed()) return;
 
                     const form = document.createElement('form');
                     form.method = 'post';
@@ -1431,6 +1444,9 @@
                     form.appendChild(createHiddenInput('accountId', accountId));
                     if (folderName !== undefined) {
                         form.appendChild(createHiddenInput('folderName', folderName));
+                    }
+                    if (needsSubfolderConfirm) {
+                        form.appendChild(createHiddenInput('includeSubfolders', 'true'));
                     }
                     form.appendChild(createHiddenInput('returnUrl', '@Context.Request.Path@Context.Request.QueryString'));
                     if (btn.dataset.searchTerm !== undefined) {

@@ -238,6 +238,14 @@ namespace MailArchiver.Controllers
                         model.SearchTerm, model.FromDate, model.ToDate, model.SelectedAccountId, null, model.IsOutgoing, allowedAccountIds);
             }
 
+            // The folder filter also matches subfolders, so a folder-wide deletion would remove
+            // their emails too. The confirmation modal needs that share to ask for it explicitly.
+            if (model.SelectedAccountId.HasValue && !string.IsNullOrEmpty(model.SelectedFolder))
+            {
+                ViewBag.SubfolderEmailCount = await _emailCoreService.CountSubfolderEmailsAsync(
+                    model.SearchTerm, model.FromDate, model.ToDate, model.SelectedAccountId.Value, model.SelectedFolder, model.IsOutgoing, allowedAccountIds);
+            }
+
                     // Log the search action
                     if (_accessLogService != null && _serviceScopeFactory != null)
                     {
@@ -3110,10 +3118,10 @@ namespace MailArchiver.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [SelfManagerRequired]
-        public async Task<IActionResult> DeleteFolder(int accountId, string folderName, string returnUrl = null)
+        public async Task<IActionResult> DeleteFolder(int accountId, string folderName, bool includeSubfolders = false, string returnUrl = null)
         {
             return await QueueFolderDeletionJob(accountId, folderName, requireFolder: true, applyFilters: false,
-                searchTerm: null, fromDate: null, toDate: null, isOutgoing: null, returnUrl);
+                searchTerm: null, fromDate: null, toDate: null, isOutgoing: null, includeSubfolders, returnUrl);
         }
 
         // POST: Emails/DeleteFiltered
@@ -3123,10 +3131,10 @@ namespace MailArchiver.Controllers
         [ValidateAntiForgeryToken]
         [SelfManagerRequired]
         public async Task<IActionResult> DeleteFiltered(int accountId, string folderName, string searchTerm,
-            DateTime? fromDate, DateTime? toDate, bool? isOutgoing, string returnUrl = null)
+            DateTime? fromDate, DateTime? toDate, bool? isOutgoing, bool includeSubfolders = false, string returnUrl = null)
         {
             return await QueueFolderDeletionJob(accountId, folderName, requireFolder: true, applyFilters: true,
-                searchTerm, fromDate, toDate, isOutgoing, returnUrl);
+                searchTerm, fromDate, toDate, isOutgoing, includeSubfolders, returnUrl);
         }
 
         // POST: Emails/DeleteFilteredAllFolders
@@ -3139,11 +3147,11 @@ namespace MailArchiver.Controllers
             DateTime? fromDate, DateTime? toDate, bool? isOutgoing, string returnUrl = null)
         {
             return await QueueFolderDeletionJob(accountId, folderName: null, requireFolder: false, applyFilters: true,
-                searchTerm, fromDate, toDate, isOutgoing, returnUrl);
+                searchTerm, fromDate, toDate, isOutgoing, includeSubfolders: true, returnUrl);
         }
 
         private async Task<IActionResult> QueueFolderDeletionJob(int accountId, string folderName, bool requireFolder, bool applyFilters,
-            string searchTerm, DateTime? fromDate, DateTime? toDate, bool? isOutgoing, string returnUrl)
+            string searchTerm, DateTime? fromDate, DateTime? toDate, bool? isOutgoing, bool includeSubfolders, string returnUrl)
         {
             if (requireFolder && string.IsNullOrEmpty(folderName))
             {
@@ -3181,6 +3189,27 @@ namespace MailArchiver.Controllers
                 if (!hasAccess)
                 {
                     TempData["ErrorMessage"] = "You do not have access to this account.";
+                    return Redirect(returnUrl ?? Url.Action("Index"));
+                }
+            }
+
+            // The folder filter also matches subfolders. Unless the user explicitly agreed to
+            // include them, nothing is deleted as soon as any subfolder email would be affected.
+            if (requireFolder && !includeSubfolders)
+            {
+                var subfolderEmailCount = await _emailCoreService.CountSubfolderEmailsAsync(
+                    applyFilters ? searchTerm : null,
+                    applyFilters ? fromDate : null,
+                    applyFilters ? toDate : null,
+                    accountId,
+                    folderName,
+                    applyFilters ? isOutgoing : null);
+
+                if (subfolderEmailCount > 0)
+                {
+                    _logger.LogWarning("Folder email deletion refused: {Count} emails in subfolders of '{FolderName}' (account {AccountId}) were not confirmed",
+                        subfolderEmailCount, folderName, accountId);
+                    TempData["ErrorMessage"] = _localizer?["DeleteSubfoldersNotConfirmed"] ?? "Nothing was deleted: the folder has subfolders whose emails were not confirmed for deletion.";
                     return Redirect(returnUrl ?? Url.Action("Index"));
                 }
             }

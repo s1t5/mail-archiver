@@ -2188,6 +2188,12 @@
   <data name="DeleteConfirmationWord" xml:space="preserve">
     <value>VERWIJDEREN</value>
   </data>
+  <data name="DeleteIncludeSubfoldersConfirm" xml:space="preserve">
+    <value>Ook de {0} e-mail(s) in submappen van "{1}" verwijderen</value>
+  </data>
+  <data name="DeleteSubfoldersNotConfirmed" xml:space="preserve">
+    <value>Er is niets verwijderd: de map heeft submappen waarvan de e-mails niet voor verwijdering zijn bevestigd.</value>
+  </data>
   <data name="EmailDeleted" xml:space="preserve">
     <value>E-mail succesvol verwijderd</value>
   </data>

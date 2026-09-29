@@ -438,6 +438,41 @@ namespace MailArchiver.Services.Core
             return await ExecuteScalarQueryAsync<int>(sql, parameters);
         }
 
+        /// <summary>
+        /// Counts the emails matching the given filters that live in descendant folders of
+        /// <paramref name="folderName"/> (not in the folder itself). Selecting a folder also
+        /// covers its subfolders, so a folder-wide deletion needs this to tell the user - and
+        /// to refuse the deletion unless they explicitly agreed to include the subfolders.
+        /// </summary>
+        public async Task<int> CountSubfolderEmailsAsync(
+            string searchTerm,
+            DateTime? fromDate,
+            DateTime? toDate,
+            int accountId,
+            string folderName,
+            bool? isOutgoing,
+            List<int> allowedAccountIds = null)
+        {
+            if (string.IsNullOrEmpty(folderName))
+            {
+                return 0;
+            }
+
+            var (whereClause, parameters, noResults) = BuildSearchWhereClause(searchTerm, fromDate, toDate, accountId, folderName, isOutgoing, allowedAccountIds);
+            if (noResults)
+            {
+                return 0;
+            }
+
+            parameters.Add(new Npgsql.NpgsqlParameter("@ownFolderName", folderName));
+            var sql = $@"
+                SELECT COUNT(*)
+                FROM mail_archiver.""ArchivedEmails""
+                {whereClause} AND ""FolderName"" <> @ownFolderName";
+
+            return await ExecuteScalarQueryAsync<int>(sql, parameters);
+        }
+
         private async Task<List<int>> ExecuteIdListQueryAsync(string sql, List<Npgsql.NpgsqlParameter> parameters)
         {
             var ids = new List<int>();

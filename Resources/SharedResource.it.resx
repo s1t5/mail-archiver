@@ -2188,6 +2188,12 @@
   <data name="DeleteConfirmationWord" xml:space="preserve">
     <value>ELIMINA</value>
   </data>
+  <data name="DeleteIncludeSubfoldersConfirm" xml:space="preserve">
+    <value>Elimina anche le {0} email nelle sottocartelle di "{1}"</value>
+  </data>
+  <data name="DeleteSubfoldersNotConfirmed" xml:space="preserve">
+    <value>Non è stato eliminato nulla: la cartella contiene sottocartelle le cui email non sono state confermate per l'eliminazione.</value>
+  </data>
   <data name="EmailDeleted" xml:space="preserve">
     <value>Email eliminata con successo</value>
   </data>

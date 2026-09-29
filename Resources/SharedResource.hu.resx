@@ -2180,6 +2180,12 @@
   <data name="DeleteConfirmationWord" xml:space="preserve">
     <value>TÖRLÉS</value>
   </data>
+  <data name="DeleteIncludeSubfoldersConfirm" xml:space="preserve">
+    <value>A(z) "{1}" almappáiban lévő {0} e-mail törlése is</value>
+  </data>
+  <data name="DeleteSubfoldersNotConfirmed" xml:space="preserve">
+    <value>Semmi sem lett törölve: a mappának vannak almappái, amelyek e-mailjeinek törlése nem lett megerősítve.</value>
+  </data>
   <data name="EmailDeleted" xml:space="preserve">
     <value>E-mail sikeresen törölve</value>
   </data>

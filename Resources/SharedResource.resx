@@ -1853,6 +1853,12 @@
   <data name="DeleteConfirmationWord" xml:space="preserve">
     <value>DELETE</value>
   </data>
+  <data name="DeleteIncludeSubfoldersConfirm" xml:space="preserve">
+    <value>Also delete the {0} email(s) in subfolders of "{1}"</value>
+  </data>
+  <data name="DeleteSubfoldersNotConfirmed" xml:space="preserve">
+    <value>Nothing was deleted: the folder has subfolders whose emails were not confirmed for deletion.</value>
+  </data>
   <data name="DeleteButton" xml:space="preserve">
     <value>Delete</value>
   </data>
