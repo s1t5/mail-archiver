@@ -183,6 +183,12 @@
         </div>
     </div>
 
+    <script>
+        // Base path the app is hosted under (e.g. "/" or "/mail/" behind a reverse
+        // proxy). Standalone .js files (which can't use Razor's Url helpers) read
+        // this to build request URLs that respect PathBase.
+        window.appBasePath = '@Url.Content("~/")';
+    </script>
     <script src="~/lib/jquery/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
@@ -287,7 +293,7 @@
                 var dismissBtn = document.getElementById('dismissChangelogBtn');
 
                 function dismissVersion() {
-                    fetch('/Home/DismissVersion', {
+                    fetch('@Url.Action("DismissVersion", "Home")', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -305,7 +311,7 @@
                 }
 
                 document.addEventListener('DOMContentLoaded', function () {
-                    fetch('/Home/GetReleaseNotes')
+                    fetch('@Url.Action("GetReleaseNotes", "Home")')
                         .then(function (r) { return r.json(); })
                         .then(function (data) {
                             if (!data || !data.show) return;
