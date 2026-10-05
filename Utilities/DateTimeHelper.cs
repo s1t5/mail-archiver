@@ -57,6 +57,20 @@ namespace MailArchiver.Utilities
         }
 
         /// <summary>
+        /// Formats a job duration as hh:mm:ss, prefixed with the number of days once it
+        /// exceeds 24 hours (e.g. "1d 08:15:00"). The plain "hh" format specifier drops
+        /// whole days, so a job running for 32 hours would otherwise show as 08:00:00.
+        /// </summary>
+        public static string FormatDuration(TimeSpan duration)
+        {
+            if (duration < TimeSpan.Zero)
+                duration = TimeSpan.Zero;
+
+            var time = duration.ToString(@"hh\:mm\:ss");
+            return duration.Days > 0 ? $"{duration.Days}d {time}" : time;
+        }
+
+        /// <summary>
         /// Builds a <see cref="DateTimeOffset"/> for a <see cref="DateTime"/> value that is
         /// stored in the configured display timezone (e.g. <c>ArchivedEmail.SentDate</c> after
         /// it round-tripped through PostgreSQL <c>timestamp without time zone</c>, which strips

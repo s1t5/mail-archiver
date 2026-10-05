@@ -112,4 +112,23 @@ public class DateTimeHelperTests
         var dt = new DateTime(2024, 6, 15, 12, 0, 0, DateTimeKind.Utc);
         Assert.Equal(dt, helper.ConvertFromDisplayTimeZoneToUtc(dt));
     }
+
+    [Theory]
+    [InlineData(0, 0, 0, 0, "00:00:00")]
+    [InlineData(0, 8, 15, 30, "08:15:30")]
+    [InlineData(0, 23, 59, 59, "23:59:59")]
+    [InlineData(1, 0, 0, 0, "1d 00:00:00")]
+    [InlineData(1, 8, 0, 0, "1d 08:00:00")]
+    [InlineData(12, 3, 4, 5, "12d 03:04:05")]
+    public void FormatDuration_IncludesDaysBeyond24Hours(int days, int hours, int minutes, int seconds, string expected)
+    {
+        var duration = new TimeSpan(days, hours, minutes, seconds);
+        Assert.Equal(expected, DateTimeHelper.FormatDuration(duration));
+    }
+
+    [Fact]
+    public void FormatDuration_Negative_ClampedToZero()
+    {
+        Assert.Equal("00:00:00", DateTimeHelper.FormatDuration(TimeSpan.FromMinutes(-5)));
+    }
 }
