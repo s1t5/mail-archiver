@@ -10,7 +10,7 @@ The Dashboard "Account Overview" table and the MailAccounts "Show All" table inc
 
 Storage values are **cached** in the `AccountStorageCache` database table. This means the web pages read pre-computed values instead of running an expensive query each time you open the Dashboard or the account list. The cache is kept up-to-date by an independent background service (`AccountStorageRefreshService`).
 
-For each account, the service asks PostgreSQL to calculate the size of every row in the `ArchivedEmails` table using `pg_column_size`. This single call covers **all fields of a mail** at once (Subject, From, To, Cc, Bcc, Body, HtmlBody, RawHeaders, ContentHash, etc.), including PostgreSQL compression and out-of-line storage (TOAST). The attachment portion is added separately as the logical sum of `EmailAttachment.Size`.
+For each account, the service asks PostgreSQL to add up `pg_column_size` for every column of the account's rows in the `ArchivedEmails` table. This covers **all fields of a mail** (Subject, From, To, Cc, Bcc, Body, HtmlBody, RawHeaders, ContentHash, etc.), including PostgreSQL compression and out-of-line storage (TOAST). The size of an out-of-line value is read from its TOAST pointer, so the calculation only scans the table itself and never loads the mail bodies. The attachment portion is added separately as the logical sum of `EmailAttachment.Size`.
 
 The refresh service updates the cache in three situations:
 

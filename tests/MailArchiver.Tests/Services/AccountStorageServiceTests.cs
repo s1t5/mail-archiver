@@ -3,6 +3,9 @@ using MailArchiver.Models;
 using MailArchiver.Services;
 using MailArchiver.Tests.Infrastructure;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
+using System.Security.Cryptography;
+using System.Text.Json;
 using Xunit;
 
 namespace MailArchiver.Tests.Services;
@@ -207,6 +210,103 @@ public class AccountStorageServiceTests
             await ctx.DisposeAsync();
         }
     }
+
+    [Fact]
+    public async Task RefreshAccountStorageAsync_MailBytesMatchesWholeRowSize()
+    {
+        var ctx = _fixture.CreateContext();
+        try
+        {
+            var acct = await SeedAccountAsync(ctx);
+            var email = NewEmailWithLargeContent(acct.Id);
+            ctx.ArchivedEmails.Add(email);
+            await ctx.SaveChangesAsync();
+
+            var svc = ServiceFactory.CreateAccountStorageService(ctx);
+            Assert.True(await svc.RefreshAccountStorageAsync(acct.Id));
+
+            await using var readCtx = _fixture.CreateContext();
+            var cache = await readCtx.AccountStorageCaches.AsNoTracking().FirstAsync(c => c.MailAccountId == acct.Id);
+
+            await using var conn = new NpgsqlConnection(_fixture.ConnectionString);
+            await conn.OpenAsync();
+            await using var cmd = new NpgsqlCommand(
+                @"SELECT pg_column_size(e) FROM mail_archiver.""ArchivedEmails"" e WHERE e.""Id"" = @id", conn);
+            cmd.Parameters.AddWithValue("@id", email.Id);
+            var wholeRowBytes = Convert.ToInt64(await cmd.ExecuteScalarAsync());
+
+            // Summing per column leaves out only the row header, null bitmap and padding.
+            Assert.InRange(cache.MailBytes, wholeRowBytes - 128, wholeRowBytes);
+        }
+        finally
+        {
+            await CleanupAccountAsync(ctx);
+            await ctx.DisposeAsync();
+        }
+    }
+
+    [Fact]
+    public async Task BuildStorageSql_DoesNotReadToastedContent()
+    {
+        var ctx = _fixture.CreateContext();
+        try
+        {
+            var acct = await SeedAccountAsync(ctx);
+            ctx.ArchivedEmails.Add(NewEmailWithLargeContent(acct.Id));
+            await ctx.SaveChangesAsync();
+
+            await using var conn = new NpgsqlConnection(_fixture.ConnectionString);
+            await conn.OpenAsync();
+            await using var cmd = new NpgsqlCommand(
+                "EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON) " + AccountStorageService.BuildStorageSql(ctx.Model), conn);
+            cmd.Parameters.AddWithValue("@accountId", acct.Id);
+            using var explain = JsonDocument.Parse((string)(await cmd.ExecuteScalarAsync())!);
+            var plan = explain.RootElement[0].GetProperty("Plan");
+            var blocks = plan.GetProperty("Shared Hit Blocks").GetInt64() + plan.GetProperty("Shared Read Blocks").GetInt64();
+
+            // The mail's 3 MB of content takes up several hundred TOAST pages (the whole-row
+            // query touched ~390 buffers here). Reading column sizes needs only a few.
+            Assert.True(blocks < 100, $"Storage query touched {blocks} shared buffers");
+        }
+        finally
+        {
+            await CleanupAccountAsync(ctx);
+            await ctx.DisposeAsync();
+        }
+    }
+
+    /// <summary>
+    /// A mail with every nullable column set and about 3 MB of random content, which
+    /// PostgreSQL cannot compress and stores out of line.
+    /// </summary>
+    private static ArchivedEmail NewEmailWithLargeContent(int accountId) => new()
+    {
+        MailAccountId = accountId,
+        MessageId = Guid.NewGuid().ToString(),
+        Subject = "storage-toast-test",
+        From = "a@x.com",
+        To = "b@x.com",
+        Cc = "c@x.com",
+        Bcc = "d@x.com",
+        FromDisplayName = "A",
+        ToDisplayNames = "B",
+        CcDisplayNames = "C",
+        BccDisplayNames = "D",
+        Body = "some body text that takes a few bytes",
+        HtmlBody = "<p>html</p>",
+        BodyUntruncatedText = Convert.ToBase64String(RandomNumberGenerator.GetBytes(750_000)),
+        BodyUntruncatedHtml = "<p>untruncated</p>",
+        RawHeaders = "Received: from x by y\r\nX-Test: storage\r\n",
+        OriginalBodyText = RandomNumberGenerator.GetBytes(2_000_000),
+        OriginalBodyHtml = RandomNumberGenerator.GetBytes(100),
+        ContentHash = new string('a', 64),
+        HashCreatedAt = DateTime.UtcNow,
+        SentDate = DateTime.UtcNow.AddDays(-1),
+        ReceivedDate = DateTime.UtcNow,
+        IsOutgoing = false,
+        HasAttachments = false,
+        FolderName = "INBOX"
+    };
 
     /// <summary>
     /// Removes all test rows for accounts created in the given context (emails, caches,
