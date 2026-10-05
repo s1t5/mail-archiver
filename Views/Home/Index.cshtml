@@ -179,21 +179,21 @@
                            stack below 768px further up site.css, which would put the two arrows
                            on top of each other. *@
                         <div class="dashboard-chart-pager" role="group">
-                            <button type="button" id="chartEarlier" class="btn btn-sm btn-outline-secondary"
+                            <button type="button" id="chartEarlier" class="btn btn-sm dashboard-chart-btn"
                                     aria-label="@Localizer["EarlierPeriod"]" title="@Localizer["EarlierPeriod"]"
                                     disabled="@(!Model.Series.CanGoBack)">
                                 <i class="bi bi-chevron-left"></i>
                             </button>
-                            <button type="button" id="chartLater" class="btn btn-sm btn-outline-secondary"
+                            <button type="button" id="chartLater" class="btn btn-sm dashboard-chart-btn"
                                     aria-label="@Localizer["LaterPeriod"]" title="@Localizer["LaterPeriod"]"
                                     disabled="@(!Model.Series.CanGoForward)">
                                 <i class="bi bi-chevron-right"></i>
                             </button>
                         </div>
                         <span id="chartRange" class="dashboard-chart-range">@Model.Series.RangeLabel</span>
-                        <button type="button" id="chartNow" class="btn btn-sm btn-link p-0"
+                        <button type="button" id="chartNow" class="btn btn-sm dashboard-chart-now"
                                 hidden="@(Model.Series.Offset == 0)">@Localizer["CurrentPeriod"]</button>
-                        <select id="chartGranularity" class="form-select form-select-sm"
+                        <select id="chartGranularity" class="form-select form-select-sm dashboard-chart-select"
                                 aria-label="@Localizer["ChartGranularity"]" title="@Localizer["ChartGranularity"]">
                             @foreach (var granularity in DashboardPeriods.Granularities)
                             {
@@ -202,7 +202,7 @@
                                 </option>
                             }
                         </select>
-                        <select id="chartWindow" class="form-select form-select-sm"
+                        <select id="chartWindow" class="form-select form-select-sm dashboard-chart-select"
                                 aria-label="@Localizer["Period"]" title="@Localizer["Period"]">
                             @foreach (var window in DashboardPeriods.Windows)
                             {
@@ -235,7 +235,7 @@
                     else
                     {
                         <div class="dashboard-chart-controls">
-                            <select id="chartSenders" class="form-select form-select-sm"
+                            <select id="chartSenders" class="form-select form-select-sm dashboard-chart-select"
                                     aria-label="@Localizer["Direction"]" title="@Localizer["Direction"]">
                                 <option value="incoming" selected="@(!Model.Series.OutgoingSenders)">@Localizer["Incoming"]</option>
                                 <option value="outgoing" selected="@Model.Series.OutgoingSenders">@Localizer["Outgoing"]</option>
@@ -1009,7 +1009,8 @@
                 // A second change while one request is in flight makes the first answer stale,
                 // and answers can come back out of order.
                 if (pendingSeriesRequest) pendingSeriesRequest.abort();
-                pendingSeriesRequest = new AbortController();
+                const controller = new AbortController();
+                pendingSeriesRequest = controller;
 
                 const query = new URLSearchParams({
                     granularity: granularitySelect.value,
@@ -1020,7 +1021,7 @@
 
                 setChartsBusy(true);
                 fetch(chartDataUrl + '?' + query.toString(), {
-                    signal: pendingSeriesRequest.signal,
+                    signal: controller.signal,
                     credentials: 'same-origin',
                     headers: { 'Accept': 'application/json' }
                 })
@@ -1031,6 +1032,10 @@
                         showChartError(chartData && chartData.texts ? chartData.texts.loadFailed : '');
                     })
                     .finally(() => {
+                        // Only the latest request may clear the handle: an aborted earlier
+                        // request finishing after a newer one started must not leave the newer
+                        // request unabortable or drop the busy state while it still loads.
+                        if (pendingSeriesRequest !== controller) return;
                         pendingSeriesRequest = null;
                         setChartsBusy(false);
                     });
