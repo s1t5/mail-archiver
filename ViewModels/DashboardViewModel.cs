@@ -70,6 +70,12 @@ namespace MailArchiver.Models.ViewModels
         public bool CanGoForward { get; set; }
 
         /// <summary>
+        /// Whether <see cref="Emails"/>' first bucket also holds everything older than it, which
+        /// is what puts the comparison sign in front of its label.
+        /// </summary>
+        public bool FirstBucketCollectsOlder { get; set; }
+
+        /// <summary>
         /// The period as one line, for a card that can be paged: the two pickers no longer say
         /// where the reader is once the window can move.
         /// </summary>
@@ -126,6 +132,13 @@ namespace MailArchiver.Models.ViewModels
     /// </summary>
     public class EmailCountByPeriod
     {
+        /// <summary>
+        /// Start of the bucket. Carried alongside the label so a cached series can be relabelled
+        /// in the culture of the request that reads it: the label is a formatted value, and the
+        /// shared cache (and the pre-computed row) may have been written under another culture.
+        /// </summary>
+        public DateTime Start { get; set; }
+
         public string Period { get; set; }
         public int Incoming { get; set; }
         public int Outgoing { get; set; }

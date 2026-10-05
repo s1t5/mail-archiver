@@ -455,9 +455,7 @@ namespace MailArchiver.Services.Shared
             var cursor = firstBucketStart;
             while (cursor < endExclusive && buckets.Count < MaxBuckets)
             {
-                var label = Label(cursor, granularity, culture);
-                if (buckets.Count == 0 && collectsOlder)
-                    label = CollectsOlderPrefix + label;
+                var label = Label(cursor, granularity, buckets.Count == 0 && collectsOlder, culture);
 
                 buckets.Add(new PeriodBucket(cursor, label));
                 cursor = Step(cursor, granularity, 1);
@@ -482,6 +480,25 @@ namespace MailArchiver.Services.Shared
                 PeriodGranularity.Day => start.ToString("d", culture),
                 _ => $"{start.ToString("d", culture)} {start.Hour:00}:00"
             };
+
+        /// <summary>
+        /// The label of one bucket, with the comparison sign when it also holds everything older
+        /// than itself. One definition for the axis a range builds and for relabelling a cached
+        /// series in the culture of the request that reads it.
+        /// </summary>
+        public static string Label(
+            DateTime start, PeriodGranularity granularity, bool collectsOlder, CultureInfo culture) =>
+            collectsOlder
+                ? CollectsOlderPrefix + Label(start, granularity, culture)
+                : Label(start, granularity, culture);
+
+        /// <summary>
+        /// The granularity an enum name came from, or the default when it is missing or unknown.
+        /// </summary>
+        public static PeriodGranularity ParseGranularity(string? value) =>
+            Enum.TryParse<PeriodGranularity>(value, ignoreCase: true, out var granularity)
+                ? granularity
+                : DefaultGranularity;
 
         /// <summary>
         /// Start of the bucket a moment falls into. The kind is carried over unchanged: these are

@@ -1224,40 +1224,24 @@ namespace MailArchiver.Services.Core
         {
             var cacheKey = $"dashboard-stats-{cacheKeySuffix}";
 
-            if (_dashboardOptions.CacheSeconds > 0
-                && _memoryCache.TryGetValue(cacheKey, out DashboardViewModel? cached)
-                && cached != null)
-                return CloneStatistics(cached);
-
-            // The in-process lock is what makes this stampede-proof: the first cold
-            // request computes, concurrent ones wait and then read the fresh entry.
-            var gate = StatisticsGates.GetOrAdd(cacheKey, _ => new SemaphoreSlim(1, 1));
-            await gate.WaitAsync();
-            try
-            {
-                return await GetOrCreateCachedAsync(
-                    cacheKey,
-                    statisticsFactory,
-                    CloneStatistics,
-                    async model =>
+            return await GetOrCreateCachedAsync(
+                cacheKey,
+                statisticsFactory,
+                CloneStatistics,
+                async model =>
+                {
+                    try
                     {
-                        try
-                        {
-                            var totalDatabaseSizeBytes = await GetDatabaseSizeAsync();
-                            model.TotalStorageUsed = FormatFileSize(totalDatabaseSizeBytes);
-                        }
-                        catch (Exception ex)
-                        {
-                            _logger.LogError(ex, "Error getting database size: {Message}", ex.Message);
-                            model.TotalStorageUsed = string.Empty;
-                        }
-                    },
-                    () => TryGetPrecomputedStatisticsAsync(cacheKeySuffix));
-            }
-            finally
-            {
-                gate.Release();
-            }
+                        var totalDatabaseSizeBytes = await GetDatabaseSizeAsync();
+                        model.TotalStorageUsed = FormatFileSize(totalDatabaseSizeBytes);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Error getting database size: {Message}", ex.Message);
+                        model.TotalStorageUsed = string.Empty;
+                    }
+                },
+                () => TryGetPrecomputedStatisticsAsync(cacheKeySuffix));
         }
 
         /// <summary>
@@ -1300,24 +1284,42 @@ namespace MailArchiver.Services.Core
                 && cached != null)
                 return copy(cached);
 
-            var value = precomputed == null ? null : await precomputed();
-
-            if (value == null)
+            // The in-process lock is what makes this stampede-proof: the first cold request
+            // computes, concurrent ones wait and then read the fresh entry. EmailCoreService is
+            // scoped (one instance per request), so the gate has to live outside the instances
+            // to synchronize them. It guards the chart selections as well as the statistics.
+            var gate = StatisticsGates.GetOrAdd(cacheKey, _ => new SemaphoreSlim(1, 1));
+            await gate.WaitAsync();
+            try
             {
-                value = await Task.Run(() => factory(_context));
+                if (cacheSeconds > 0
+                    && _memoryCache.TryGetValue(cacheKey, out T? fresh)
+                    && fresh != null)
+                    return copy(fresh);
 
-                if (decorate != null)
-                    await decorate(value);
-            }
+                var value = precomputed == null ? null : await precomputed();
 
-            if (cacheSeconds > 0)
-                _memoryCache.Set(cacheKey, value, new MemoryCacheEntryOptions
+                if (value == null)
                 {
-                    AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(cacheSeconds),
-                    Size = 1
-                });
+                    value = await Task.Run(() => factory(_context));
 
-            return copy(value);
+                    if (decorate != null)
+                        await decorate(value);
+                }
+
+                if (cacheSeconds > 0)
+                    _memoryCache.Set(cacheKey, value, new MemoryCacheEntryOptions
+                    {
+                        AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(cacheSeconds),
+                        Size = 1
+                    });
+
+                return copy(value);
+            }
+            finally
+            {
+                gate.Release();
+            }
         }
 
         /// <summary>
@@ -1408,13 +1410,33 @@ namespace MailArchiver.Services.Core
 
         /// <summary>
         /// Deep-copies a series so that a caller holding one cannot reach into the cache entry
-        /// it came from. Nothing decorates a series today; this keeps it that way by
-        /// construction rather than by everyone remembering.
+        /// it came from. The labels are rebuilt in <paramref name="culture"/> (the current one
+        /// when none is given), because a shared entry may have been written under a different
+        /// request's culture or, for the pre-computed row, the background thread's. Nothing
+        /// decorates a series today; the copy keeps it that way by construction rather than by
+        /// everyone remembering.
         /// </summary>
-        private static DashboardSeries CloneSeries(DashboardSeries source)
+        internal static DashboardSeries CloneSeries(DashboardSeries source, CultureInfo? culture = null)
         {
             if (source == null)
                 return new DashboardSeries();
+
+            // The labels are formatted values, and the source may be a shared cache entry (or the
+            // pre-computed row) written under another culture, so they are rebuilt here in the
+            // culture of the request that is reading the copy. The bucket starts are what make
+            // that possible.
+            var granularity = DashboardPeriods.ParseGranularity(source.Granularity);
+            culture ??= CultureInfo.CurrentCulture;
+
+            var emails = (source.Emails ?? Enumerable.Empty<EmailCountByPeriod>())
+                .Select((m, index) => new EmailCountByPeriod
+                {
+                    Start = m.Start,
+                    Period = RelabelBucket(m, granularity, source.FirstBucketCollectsOlder, index == 0, culture),
+                    Incoming = m.Incoming,
+                    Outgoing = m.Outgoing
+                })
+                .ToList();
 
             return new DashboardSeries
             {
@@ -1424,19 +1446,44 @@ namespace MailArchiver.Services.Core
                 Offset = source.Offset,
                 CanGoBack = source.CanGoBack,
                 CanGoForward = source.CanGoForward,
-                RangeLabel = source.RangeLabel,
-                Emails = (source.Emails ?? Enumerable.Empty<EmailCountByPeriod>())
-                    .Select(m => new EmailCountByPeriod
-                    {
-                        Period = m.Period,
-                        Incoming = m.Incoming,
-                        Outgoing = m.Outgoing
-                    })
-                    .ToList(),
+                FirstBucketCollectsOlder = source.FirstBucketCollectsOlder,
+                RangeLabel = RelabelRange(source, emails, granularity, culture),
+                Emails = emails,
                 TopSenders = (source.TopSenders ?? Enumerable.Empty<EmailCountByAddress>())
                     .Select(s => new EmailCountByAddress { EmailAddress = s.EmailAddress, Count = s.Count })
                     .ToList()
             };
+        }
+
+        /// <summary>
+        /// The label of one copied bucket in the reading culture. A bucket without a start is one
+        /// from a series cached before the start was carried, and keeps the label it was stored
+        /// with rather than being relabelled to the year one.
+        /// </summary>
+        private static string RelabelBucket(
+            EmailCountByPeriod bucket, PeriodGranularity granularity, bool collectsOlder, bool isFirst,
+            CultureInfo culture) =>
+            bucket.Start == default
+                ? bucket.Period
+                : DashboardPeriods.Label(bucket.Start, granularity, collectsOlder && isFirst, culture);
+
+        /// <summary>
+        /// The one-line period label of a copied series, rebuilt from the starts of its own first
+        /// and last bucket for the same reason the buckets themselves are relabelled.
+        /// </summary>
+        private static string RelabelRange(
+            DashboardSeries source, List<EmailCountByPeriod> emails, PeriodGranularity granularity,
+            CultureInfo culture)
+        {
+            if (emails.Count == 0 || emails[0].Start == default)
+                return source.RangeLabel;
+
+            var first = DashboardPeriods.Label(
+                emails[0].Start, granularity, source.FirstBucketCollectsOlder, culture);
+
+            return emails.Count == 1
+                ? first
+                : $"{first} \u2013 {DashboardPeriods.Label(emails[^1].Start, granularity, false, culture)}";
         }
 
         /// <summary>
@@ -1562,7 +1609,7 @@ namespace MailArchiver.Services.Core
             };
 
             var series = range.Buckets
-                .Select(b => new EmailCountByPeriod { Period = b.Label })
+                .Select(b => new EmailCountByPeriod { Start = b.Start, Period = b.Label })
                 .ToList();
 
             if (series.Count == 0)
@@ -1650,6 +1697,7 @@ namespace MailArchiver.Services.Core
                 Offset = range.Offset,
                 CanGoBack = range.CanGoBack,
                 CanGoForward = range.CanGoForward,
+                FirstBucketCollectsOlder = range.FirstBucketCollectsOlder,
                 RangeLabel = range.Label,
                 Emails = BuildEmailSeries(emails, range),
                 TopSenders = BuildTopSenders(
@@ -1720,7 +1768,7 @@ namespace MailArchiver.Services.Core
                 var range = DashboardPeriods.Resolve(
                     granularity, window, now, EarliestSentDate(emails), offset);
                 return BuildSeries(emails, range, outgoingSenders);
-            }, CloneSeries,
+            }, series => CloneSeries(series),
             precomputed: () => TryGetPrecomputedSeriesAsync(accountIds, granularity, window, outgoingSenders, offset));
         }
 

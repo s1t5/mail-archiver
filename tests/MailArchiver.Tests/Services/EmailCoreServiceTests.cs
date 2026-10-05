@@ -1204,6 +1204,80 @@ public class EmailCoreServiceTests
     }
 
     [Fact]
+    public void CloneSeries_RebuildsTheLabelsInTheGivenCulture()
+    {
+        // A series read out of the shared cache (or the pre-computed row) was labelled under
+        // whatever culture wrote it. The copy has to carry the labels of the request that reads
+        // it, which is what the bucket starts are stored for.
+        var source = new DashboardSeries
+        {
+            Granularity = nameof(PeriodGranularity.Month),
+            Window = "1y",
+            RangeLabel = "stale",
+            Emails = new List<EmailCountByPeriod>
+            {
+                new() { Start = new DateTime(2026, 1, 1), Period = "stale", Incoming = 1 },
+                new() { Start = new DateTime(2026, 2, 1), Period = "stale", Incoming = 2 }
+            }
+        };
+
+        var english = EmailCoreService.CloneSeries(source, new CultureInfo("en-US"));
+        var german = EmailCoreService.CloneSeries(source, new CultureInfo("de-DE"));
+
+        Assert.Equal("January 2026", english.Emails[0].Period);
+        Assert.Equal("Januar 2026", german.Emails[0].Period);
+        Assert.Equal("January 2026 \u2013 February 2026", english.RangeLabel);
+        Assert.Equal("Januar 2026 \u2013 Februar 2026", german.RangeLabel);
+        Assert.Equal(1, english.Emails[0].Incoming);
+        Assert.Equal(2, german.Emails[1].Incoming);
+    }
+
+    [Fact]
+    public void CloneSeries_KeepsTheStoredLabelsOfASeriesWithoutStarts()
+    {
+        // A series cached before the start was part of the model cannot be relabelled without
+        // guessing a year one axis, so it keeps the labels it was stored with.
+        var source = new DashboardSeries
+        {
+            Granularity = nameof(PeriodGranularity.Month),
+            RangeLabel = "March 2026 \u2013 April 2026",
+            Emails = new List<EmailCountByPeriod>
+            {
+                new() { Period = "March 2026", Incoming = 1 },
+                new() { Period = "April 2026", Incoming = 2 }
+            }
+        };
+
+        var copy = EmailCoreService.CloneSeries(source, new CultureInfo("de-DE"));
+
+        Assert.Equal("March 2026", copy.Emails[0].Period);
+        Assert.Equal("April 2026", copy.Emails[1].Period);
+        Assert.Equal("March 2026 \u2013 April 2026", copy.RangeLabel);
+    }
+
+    [Fact]
+    public void CloneSeries_KeepsTheCollectsOlderSignOnTheFirstBucket()
+    {
+        var source = new DashboardSeries
+        {
+            Granularity = nameof(PeriodGranularity.Year),
+            Window = "all",
+            FirstBucketCollectsOlder = true,
+            Emails = new List<EmailCountByPeriod>
+            {
+                new() { Start = new DateTime(2007, 1, 1), Incoming = 1 },
+                new() { Start = new DateTime(2008, 1, 1), Incoming = 2 }
+            }
+        };
+
+        var copy = EmailCoreService.CloneSeries(source, new CultureInfo("en-US"));
+
+        Assert.Equal("\u2264 2007", copy.Emails[0].Period);
+        Assert.Equal("2008", copy.Emails[1].Period);
+        Assert.Equal("\u2264 2007 \u2013 2008", copy.RangeLabel);
+    }
+
+    [Fact]
     public async Task BuildTopSenders_CountsTheChosenDirectionWithinTheWindow()
     {
         var ctx = _fixture.CreateContext();
@@ -1815,6 +1889,10 @@ public class EmailCoreServiceTests
             Assert.True(row.ComputedWithDirectionSplits);
             Assert.True(row.ComputedWithSelectablePeriods);
             Assert.Equal(nameof(PeriodGranularity.Month), row.DefaultSeries!.Granularity);
+            // The bucket starts survive the jsonb round-trip, which is what lets the reading
+            // request rebuild the labels in its own culture instead of trusting the stored ones.
+            Assert.NotEmpty(row.DefaultSeries.Emails);
+            Assert.All(row.DefaultSeries.Emails, e => Assert.NotEqual(default, e.Start));
 
             // Mail archived after the refresh is not in the stored numbers, which is how the
             // test tells a read of the row from a live count. The recent emails stay live.
