@@ -311,3 +311,7 @@ AGENTS.md
 MailArchiver.sln
 tests/MailArchiver.Tests/appsettings.Test.json
 mail-archiver-review-*.md
+
+# MkDocs build output
+site/
+__pycache__/

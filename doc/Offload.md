@@ -1,6 +1,6 @@
 # 📤 Date-Windowed Offload
 
-[← Back to Documentation Index](Index.md)
+[← Back to Documentation Index](index.md)
 
 ## 📋 Overview
 
@@ -189,7 +189,7 @@ source, target and cutoff.
 ## 📋 A migration, end to end
 
 1. Create the target mailboxes. For many at once see the CSV bulk import in
-   [Account Import](Account%20Import.md).
+   [Account Import](Account-Import.md).
 2. Configure `Offload:ExcludedSourceFolders` and `Offload:FolderRenameMap`. Both are empty by
    default, so skipping this migrates spam folders and creates duplicated special folders.
 3. Confirm each source mailbox is fully archived before offloading it.

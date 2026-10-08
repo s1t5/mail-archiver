@@ -1,6 +1,6 @@
 # 📧 Gmail Best Practices
 
-[← Back to Documentation Index](Index.md)
+[← Back to Documentation Index](index.md)
 
 When using Gmail accounts with the Mail Archiver application, there are several specific configurations and best practices that should be followed to ensure optimal performance and avoid potential issues.
 

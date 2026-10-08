@@ -1,6 +1,6 @@
 # 🐳 Docker Compose Logs Guide
 
-[← Back to Documentation Index](Index.md)
+[← Back to Documentation Index](index.md)
 
 ## 📋 Overview
 

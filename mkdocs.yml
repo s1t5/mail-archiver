@@ -1,0 +1,135 @@
+site_name: Mail-Archiver Documentation
+site_description: Documentation for Mail-Archiver — self-hosted email archiving, search and export.
+site_url: https://s1t5.github.io/mail-archiver/
+site_author: s1t5
+copyright: Copyright &copy; s1t5 — GPL-3.0
+
+repo_url: https://github.com/s1t5/mail-archiver
+repo_name: s1t5/mail-archiver
+edit_uri: edit/main/doc/
+
+docs_dir: doc
+hooks:
+  - hooks.py
+
+theme:
+  name: material
+  language: en
+  logo: assets/logo.svg
+  favicon: assets/favicon.svg
+  features:
+    - navigation.instant
+    - navigation.instant.progress
+    - navigation.tracking
+    - navigation.tabs
+    - navigation.sections
+    - navigation.indexes
+    - navigation.top
+    - navigation.footer
+    - toc.follow
+    - search.suggest
+    - search.highlight
+    - search.share
+    - content.code.copy
+    - content.action.edit
+    - content.action.view
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+
+markdown_extensions:
+  - abbr
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+      toc_depth: 3
+  - pymdownx.betterem
+  - pymdownx.caret
+  - pymdownx.details
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.keys
+  - pymdownx.mark
+  - pymdownx.smartsymbols
+  - pymdownx.snippets
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.tilde
+
+plugins:
+  - search
+
+nav:
+  - Home: index.md
+  - Installation & Maintenance:
+      - Setup and Parameters: Setup.md
+      - Backup and Restore: BackupRestore.md
+      - Database Maintenance: DatabaseMaintenance.md
+      - PostgreSQL Major Upgrade: PostgreSQLUpgrade.md
+      - Reverse Proxy: ReverseProxy.md
+      - Docker Compose Logs: DockerComposeLogs.md
+      - Dev Tag (Development Versions): DevTag.md
+      - Local Test Environment: LocalTestEnvironment.md
+  - Configuration & Usage:
+      - User Management & Permissions: UserManagement.md
+      - Account Import: Account-Import.md
+      - Mail Synchronization: Synchronization.md
+      - Mail Search: Search.md
+      - Retention Policies: RetentionPolicies.md
+      - Per-Account Storage: AccountStorage.md
+      - Attachment Deduplication: AttachmentDeduplication.md
+      - Access Logging: Logs.md
+      - Audit Data Export: AuditExport.md
+      - Date-Windowed Offload: Offload.md
+      - Emergency Account Recovery: EmergencyAccountRecovery.md
+      - CLI Local Import: CLI-Local-Import.md
+  - Authentication:
+      - OIDC / SSO: OIDC_Implementation.md
+  - Provider Guides:
+      - Azure App Registration (M365): AZURE_APP_REGISTRATION_M365.md
+      - M365 Tenant Mailbox Import: M365TenantImport.md
+      - Personal Microsoft Accounts: MSA_Outlook_Setup.md
+      - Gmail Best Practices: GmailBestPractices.md
+      - Yahoo Mail Limitations: YahooMailExportLimitations.md
+      - Rate Limit Handling: RateLimitHandling.md
+      - Mailbox Migration: MailboxMigration.md
+  - Programmatic Access:
+      - REST API: API.md
+      - MCP Server: MCP.md
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/s1t5/mail-archiver
+    - icon: fontawesome/solid/globe
+      link: https://mail-archiver.org
+
+extra_css:
+  - stylesheets/extra.css
+
+validation:
+  omitted_files: warn
+  absolute_links: warn
+  unrecognized_links: warn

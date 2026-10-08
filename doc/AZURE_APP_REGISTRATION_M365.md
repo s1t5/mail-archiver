@@ -1,6 +1,6 @@
 # ☁️ Azure App Registration and Retention Policy Guide for Mail Archiver
 
-[← Back to Documentation Index](Index.md)
+[← Back to Documentation Index](index.md)
 
 ## 📋 Overview
 

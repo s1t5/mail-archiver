@@ -1,6 +1,6 @@
 # 📥 Mailbox Migration Guide
 
-[← Back to Documentation Index](Index.md)
+[← Back to Documentation Index](index.md)
 
 This guide explains how to migrate a mailbox from one email provider to another using the Mail Archiver application.
 
