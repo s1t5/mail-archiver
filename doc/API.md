@@ -41,6 +41,7 @@ deletes data.
 - [Data types](#data-types)
 - [Access logging](#access-logging)
 - [OpenAPI and Swagger UI](#openapi-and-swagger-ui)
+- [API Reference](API-Reference.md) — generated endpoint and data-type reference
 
 ## Enabling the API
 
@@ -480,3 +481,18 @@ When the API is enabled and `Api:EnableSwaggerUi=true`:
 Both paths sit outside `/api/` and are therefore gated by the normal web
 (cookie) authentication — a logged-in browser session is required to view them,
 and they cannot be reached with an API key.
+
+### Endpoint reference on this site
+
+The endpoints and data types are also published here as a generated page:
+**[API Reference](API-Reference.md)**. It is rendered from the same OpenAPI
+document — a copy is kept at `doc/assets/openapi-v1.json` — by
+`tools/gen_api_reference.py`. CI fails when the page and the specification fall
+out of sync, so the reference always describes the API that actually ships.
+
+!!! note "Regenerating"
+    The page is generated output. Change the API (or the generator), then run
+    `python3 tools/gen_api_reference.py` and commit the result.
+
+    Refreshing the vendored specification itself means re-running the build-time
+    document generation described in `tools/README.md`.

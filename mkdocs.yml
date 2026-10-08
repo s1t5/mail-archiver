@@ -75,6 +75,11 @@ markdown_extensions:
   - pymdownx.mark
   - pymdownx.smartsymbols
   - pymdownx.snippets
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
   - pymdownx.tabbed:
       alternate_style: true
   - pymdownx.tasklist:
@@ -83,46 +88,59 @@ markdown_extensions:
 
 plugins:
   - search
+  # Shows "Last updated" / "Created" per page, taken from git history.
+  # Requires a full clone: actions/checkout must use fetch-depth: 0, otherwise
+  # every page silently falls back to the build date.
+  - git-revision-date-localized:
+      type: date
+      enable_creation_date: true
+      locale: en
+      fallback_to_build_date: false
 
 nav:
+  # The grouping here mirrors the sections on the landing page (doc/index.md).
+  # Keep the two in sync: navigation.tabs turns these into the top tab bar.
   - Home: index.md
   - Installation & Maintenance:
       - Setup and Parameters: Setup.md
-      - Backup and Restore: BackupRestore.md
-      - Database Maintenance: DatabaseMaintenance.md
-      - PostgreSQL Major Upgrade: PostgreSQLUpgrade.md
       - Reverse Proxy: ReverseProxy.md
-      - Docker Compose Logs: DockerComposeLogs.md
-      - Dev Tag (Development Versions): DevTag.md
+      - PostgreSQL Major Upgrade: PostgreSQLUpgrade.md
+      - Database Maintenance: DatabaseMaintenance.md
+      - Backup and Restore: BackupRestore.md
       - Local Test Environment: LocalTestEnvironment.md
-  - Configuration & Usage:
-      - User Management & Permissions: UserManagement.md
+  - Getting Mail In:
       - Account Import: Account-Import.md
       - Mail Synchronization: Synchronization.md
-      - Mail Search: Search.md
-      - Retention Policies: RetentionPolicies.md
-      - Per-Account Storage: AccountStorage.md
-      - Attachment Deduplication: AttachmentDeduplication.md
-      - Access Logging: Logs.md
-      - Background Jobs: BackgroundJobs.md
-      - Audit Data Export: AuditExport.md
-      - Date-Windowed Offload: Offload.md
-      - Emergency Account Recovery: EmergencyAccountRecovery.md
       - CLI Local Import: CLI-Local-Import.md
-  - Authentication:
-      - OIDC / SSO: OIDC_Implementation.md
+      - Rate Limit Handling: RateLimitHandling.md
+  - Working with the Archive:
+      - Mail Search: Search.md
+      - Background Jobs: BackgroundJobs.md
+      - Mailbox Migration: MailboxMigration.md
+      - Attachment Deduplication: AttachmentDeduplication.md
+      - Date-Windowed Offload: Offload.md
+      - Per-Account Storage: AccountStorage.md
+  - Administration & Security:
+      - User Management & Permissions: UserManagement.md
       - Two-Factor Authentication: TwoFactor.md
+      - OIDC / SSO: OIDC_Implementation.md
+      - Access Logging: Logs.md
+      - Audit Data Export: AuditExport.md
+      - Emergency Account Recovery: EmergencyAccountRecovery.md
+      - Retention Policies: RetentionPolicies.md
   - Provider Guides:
       - Azure App Registration (M365): AZURE_APP_REGISTRATION_M365.md
       - M365 Tenant Mailbox Import: M365TenantImport.md
       - Personal Microsoft Accounts: MSA_Outlook_Setup.md
       - Gmail Best Practices: GmailBestPractices.md
       - Yahoo Mail Limitations: YahooMailExportLimitations.md
-      - Rate Limit Handling: RateLimitHandling.md
-      - Mailbox Migration: MailboxMigration.md
   - Programmatic Access:
       - REST API: API.md
+      - API Reference: API-Reference.md
       - MCP Server: MCP.md
+  - Operations & Development:
+      - Docker Compose Logs: DockerComposeLogs.md
+      - Dev Tag (Development Versions): DevTag.md
 
 extra:
   social:
