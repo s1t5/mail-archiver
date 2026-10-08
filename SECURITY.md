@@ -56,7 +56,7 @@ You may encrypt your report using the maintainer's OpenPGP public key, available
   Npgsql, EF Core, etc.). Please report those **upstream** to the respective maintainers.
 - Issues arising from insecure production deployments — e.g. a misconfigured reverse proxy,
   an exposed database port, weak OAuth client secrets, or a missing HTTPS termination. See the
-  configuration guides under `doc/` for hardening guidance.
+  [documentation site](https://s1t5.github.io/mail-archiver/) for hardening guidance.
 - Social engineering, physical attacks, or denial-of-service via sheer network volume against
   infrastructure we do not control.
 
@@ -65,10 +65,10 @@ You may encrypt your report using the maintainer's OpenPGP public key, available
 Security in Mail-Archiver depends strongly on how it is deployed. Please review the relevant
 guides before exposing the application publicly:
 
-- **Setup & hardening:** [doc/Setup.md](doc/Setup.md)
-- **Reverse proxy / TLS:** [doc/ReverseProxy.md](doc/ReverseProxy.md)
-- **OpenID Connect authentication:** [doc/OIDC_Implementation.md](doc/OIDC_Implementation.md)
-- **Microsoft 365 app registration:** [doc/AZURE_APP_REGISTRATION_M365.md](doc/AZURE_APP_REGISTRATION_M365.md)
+- **Setup & hardening:** [Setup guide](https://s1t5.github.io/mail-archiver/Setup/)
+- **Reverse proxy / TLS:** [Reverse proxy guide](https://s1t5.github.io/mail-archiver/ReverseProxy/)
+- **OpenID Connect authentication:** [OIDC guide](https://s1t5.github.io/mail-archiver/OIDC_Implementation/)
+- **Microsoft 365 app registration:** [M365 app registration guide](https://s1t5.github.io/mail-archiver/AZURE_APP_REGISTRATION_M365/)
 
 Important defaults to be aware of:
 
@@ -77,7 +77,7 @@ Important defaults to be aware of:
   user secrets, or a secure secret store.
 - `appsettings.Development.json` is **gitignored** and intended only for local development.
 - Enforce **HTTPS** in production. Do not expose the Kestrel HTTP port directly; terminate TLS at
-  a reverse proxy (see `doc/ReverseProxy.md`).
+  a reverse proxy (see the [reverse proxy guide](https://s1t5.github.io/mail-archiver/ReverseProxy/)).
 
 ## 🚫 What We Will Not Do
 
