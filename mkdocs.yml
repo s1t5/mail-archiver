@@ -107,6 +107,7 @@ nav:
       - CLI Local Import: CLI-Local-Import.md
   - Authentication:
       - OIDC / SSO: OIDC_Implementation.md
+      - Two-Factor Authentication: TwoFactor.md
   - Provider Guides:
       - Azure App Registration (M365): AZURE_APP_REGISTRATION_M365.md
       - M365 Tenant Mailbox Import: M365TenantImport.md
