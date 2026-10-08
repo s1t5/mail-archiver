@@ -7,6 +7,7 @@ on:
       - 'doc/**'
       - 'mkdocs.yml'
       - 'hooks.py'
+      - 'requirements-docs.txt'
       - '.github/workflows/docs.yml'
   # Allow running the workflow manually from the Actions tab.
   workflow_dispatch:
@@ -28,30 +29,27 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: '3.12'
           cache: pip
+          cache-dependency-path: requirements-docs.txt
 
       - name: Install MkDocs Material
-        run: |
-          python -m pip install --upgrade pip
-          pip install \
-            "mkdocs-material==9.7.*" \
-            "pymdown-extensions>=10.0"
+        run: python -m pip install -r requirements-docs.txt
 
       - name: Build site
         # --strict fails the build on broken internal links and missing files.
         run: mkdocs build --strict
 
       - name: Configure Pages
-        uses: actions/configure-pages@v5
+        uses: actions/configure-pages@v6
 
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v5
         with:
           path: site
 
@@ -64,4 +62,4 @@ jobs:
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5.0.1

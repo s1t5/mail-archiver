@@ -1,0 +1,7 @@
+# Documentation build dependencies.
+#
+# Used by .github/workflows/docs.yml. Keeping these pinned in a requirements
+# file (rather than inline `pip install` arguments) lets actions/setup-python
+# cache the download, which needs a dependency file to hash.
+mkdocs-material==9.7.7
+pymdown-extensions>=10.0
