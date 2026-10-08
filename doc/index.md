@@ -20,6 +20,7 @@ Mail Archiver is a comprehensive application designed to archive emails from var
 
 ### ⚙️ Configuration & Usage
 - [Access Logging](Logs.md)
+- [Background Jobs](BackgroundJobs.md)
 - [Account Import](Account-Import.md)
 - [Attachment Deduplication](AttachmentDeduplication.md)
 - [Audit Data Export](AuditExport.md)

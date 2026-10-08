@@ -101,6 +101,7 @@ nav:
       - Per-Account Storage: AccountStorage.md
       - Attachment Deduplication: AttachmentDeduplication.md
       - Access Logging: Logs.md
+      - Background Jobs: BackgroundJobs.md
       - Audit Data Export: AuditExport.md
       - Date-Windowed Offload: Offload.md
       - Emergency Account Recovery: EmergencyAccountRecovery.md
