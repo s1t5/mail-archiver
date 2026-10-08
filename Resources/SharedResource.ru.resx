@@ -2647,6 +2647,9 @@
   <data name="AllReleases" xml:space="preserve">
     <value>Все выпуски</value>
   </data>
+  <data name="Documentation" xml:space="preserve">
+    <value>Документация</value>
+  </data>
   <data name="GotIt" xml:space="preserve">
     <value>Понятно!</value>
   </data>

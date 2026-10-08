@@ -2693,6 +2693,9 @@
   <data name="AllReleases" xml:space="preserve">
     <value>Wszystkie wydania</value>
   </data>
+  <data name="Documentation" xml:space="preserve">
+    <value>Dokumentacja</value>
+  </data>
   <data name="GotIt" xml:space="preserve">
     <value>Rozumiem!</value>
   </data>
