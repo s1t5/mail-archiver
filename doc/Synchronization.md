@@ -20,27 +20,23 @@ Both modes are safe to run repeatedly – Mail Archiver detects duplicates (by `
 ## 🔁 The Sync Cycle at a Glance
 
 ```mermaid
+%%{init: {"flowchart": {"rankSpacing": 22, "nodeSpacing": 30, "padding": 6}}}%%
 flowchart TD
-    A[Background tick, once a minute] --> B[Pick the most overdue accounts,<br/>up to MaxConcurrentSyncs]
-    B --> C{LastSync is the Unix epoch?}
-    C -->|Yes| D[Full Sync<br/>every message in every non-excluded folder]
-    C -->|No| E[Quick Sync<br/>messages since LastSync minus 12 h]
-    D --> F[Next folder]
-    E --> F
-    F --> G{Opening the folder}
-    G -->|Does not exist| H[Missing folder<br/>does not hold LastSync back]
-    G -->|Fails to open| I[Failed folder<br/>holds LastSync back]
-    G -->|Succeeds| J[Fetch and archive messages<br/>duplicates are skipped]
-    J --> K[Checkpoint watermark advances<br/>up to the first failed message]
-    K --> L{More folders?}
-    H --> L
-    I --> L
-    L -->|Yes| F
-    L -->|No| M{Any failed message<br/>or failed folder?}
-    M -->|Yes| N[LastSync stays put<br/>the next cycle re-reads the same window]
-    M -->|No| O[LastSync = now<br/>checkpoints are dropped]
-    N --> P[Server-side and local retention passes]
-    O --> P
+    A[Background tick picks the most<br/>overdue accounts, up to MaxConcurrentSyncs] --> B{LastSync is<br/>the Unix epoch?}
+    B -->|Yes| C[Full Sync<br/>every message]
+    B -->|No| D[Quick Sync<br/>LastSync minus 12 h]
+    C --> E[Walk the folders]
+    D --> E
+    E -->|missing| F[Missing folder<br/>does not hold LastSync back]
+    E -->|fails| G[Failed folder<br/>holds LastSync back]
+    E -->|readable| H[Archive new messages,<br/>skip duplicates,<br/>advance the checkpoint]
+    F --> I{Any failed message<br/>or failed folder?}
+    G --> I
+    H --> I
+    I -->|Yes| J[LastSync stays put<br/>next cycle re-reads the window]
+    I -->|No| K[LastSync = now<br/>checkpoints dropped]
+    J --> L[Retention passes]
+    K --> L
 ```
 
 The last decision is the one that matters. `LastSync` advances only when the run
