@@ -375,6 +375,25 @@ namespace MailArchiver.Services.Shared
         }
 
         /// <summary>
+        /// Pulls a requested position onto the page a resolve answers with. The window holding
+        /// the current instant is the most recent page there is, and a position reaching past
+        /// the oldest mail lands on the furthest one — the same treatment an unknown granularity
+        /// gets, for the same reason.
+        /// <para>
+        /// One definition ahead of <see cref="Resolve"/> rather than inside it: callers that turn
+        /// a selection into a cache key normalize before the key is built, so whatever the
+        /// request carried, the key names the page the answer shows and cannot mint new entries,
+        /// gates and computations for positions that resolve to the same chart.
+        /// </para>
+        /// </summary>
+        /// <param name="windowsSinceFloor">
+        /// How many windows <see cref="WindowsSinceFloor"/> counts for the selection, 1 for the
+        /// window over the whole archive.
+        /// </param>
+        public static int NormalizeOffset(int windowsSinceFloor, int offset) =>
+            Math.Min(Math.Max(offset, -(windowsSinceFloor - 1)), 0);
+
+        /// <summary>
         /// Resolves a selection against the current instant. <paramref name="nowInDisplayTimeZone"/>
         /// has to be the wall-clock time of the configured display timezone, because that is the
         /// timezone archived send dates are stored in: a day bucket cut at UTC midnight would
@@ -406,14 +425,10 @@ namespace MailArchiver.Services.Shared
             if (earliestSentDate.HasValue)
                 earliestSentDate = DateTime.SpecifyKind(earliestSentDate.Value, DateTimeKind.Unspecified);
 
-            // The window over the whole archive already holds everything, so there is nothing to
-            // page through, and anything after now is a broken header rather than data.
-            if (window.Unit == PeriodWindowUnit.Everything || offset > 0)
-                offset = 0;
-
+            // One clamp shared with the callers that key caches by it: whatever walks in, the
+            // answer names the page it shows and identical pages answer identically.
             var windows = WindowsSinceFloor(window, nowInDisplayTimeZone, earliestSentDate);
-            if (offset < -(windows - 1))
-                offset = -(windows - 1);
+            offset = NormalizeOffset(windows, offset);
 
             var currentEnd = Step(Truncate(nowInDisplayTimeZone, granularity), granularity, 1);
             var endExclusive = offset == 0

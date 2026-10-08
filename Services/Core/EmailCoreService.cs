@@ -1752,24 +1752,36 @@ namespace MailArchiver.Services.Core
             if (!SelectablePeriods)
                 return null;
 
+            // The floor decides which pages exist, so it is looked up once here: the key, the
+            // stampede gate and the resolve inside all mean the same page, and a requested
+            // position is pulled onto the page it would land on before anything is keyed.
+            // Keying the request as it arrived would let caller-chosen offsets mint cache
+            // entries, gates and computations for charts that are the same page.
+            var earliest = accountIds == null
+                ? EarliestSentDate(_context.ArchivedEmails.AsQueryable())
+                : EarliestSentDate(_context.ArchivedEmails
+                    .Where(e => accountIds.Contains(e.MailAccountId)));
+            var now = NowInDisplayTimeZone();
+            var windows = DashboardPeriods.WindowsSinceFloor(window, now, earliest);
+            var normalizedOffset = DashboardPeriods.NormalizeOffset(windows, offset);
+
             var scope = accountIds == null
                 ? "admin"
                 : "user-" + string.Join(",", accountIds.OrderBy(id => id));
             var cacheKey =
-                $"dashboard-series-{scope}-{granularity}-{window.Key}-{(outgoingSenders ? "out" : "in")}-{offset}";
-            var now = NowInDisplayTimeZone();
+                $"dashboard-series-{scope}-{granularity}-{window.Key}-{(outgoingSenders ? "out" : "in")}-{normalizedOffset}";
 
             return await GetOrCreateCachedAsync(cacheKey, ctx =>
             {
-                var emails = accountIds == null
+                var scopedEmails = accountIds == null
                     ? ctx.ArchivedEmails.AsQueryable()
                     : ctx.ArchivedEmails.Where(e => accountIds.Contains(e.MailAccountId));
 
                 var range = DashboardPeriods.Resolve(
-                    granularity, window, now, EarliestSentDate(emails), offset);
-                return BuildSeries(emails, range, outgoingSenders);
+                    granularity, window, now, earliest, normalizedOffset);
+                return BuildSeries(scopedEmails, range, outgoingSenders);
             }, series => CloneSeries(series),
-            precomputed: () => TryGetPrecomputedSeriesAsync(accountIds, granularity, window, outgoingSenders, offset));
+            precomputed: () => TryGetPrecomputedSeriesAsync(accountIds, granularity, window, outgoingSenders, normalizedOffset));
         }
 
         /// <summary>

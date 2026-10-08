@@ -401,6 +401,55 @@ public class DashboardPeriodsTests
     }
 
     [Fact]
+    public void NormalizeOffset_IncomingPositionsCollapseOntoThePagesThatExist()
+    {
+        // Whatever a request carries, it has to end on a page the archive can answer for:
+        // a positive count is today, positions past the furthest window fall on it, and
+        // everything in between keeps its page. Collapsing this way is what keeps callers
+        // that key caches by the answer from minting entries for pages that do not exist.
+        foreach (var window in DashboardPeriods.Windows)
+        {
+            if (window.Unit == PeriodWindowUnit.Everything)
+            {
+                // The whole-archive window is one page and cannot be moved.
+                Assert.Equal(0, DashboardPeriods.NormalizeOffset(1, offset: -3));
+                Assert.Equal(0, DashboardPeriods.NormalizeOffset(1, offset: 5));
+                continue;
+            }
+
+            const int windows = 10;
+
+            Assert.Equal(0, DashboardPeriods.NormalizeOffset(windows, offset: 0));
+            Assert.Equal(0, DashboardPeriods.NormalizeOffset(windows, offset: 12));
+            Assert.Equal(-1, DashboardPeriods.NormalizeOffset(windows, offset: -1));
+            Assert.Equal(-(windows - 1), DashboardPeriods.NormalizeOffset(windows, offset: -500));
+        }
+    }
+
+    [Fact]
+    public void NormalizeOffset_MatchesTheOffsetAResolveAnswersWith()
+    {
+        // The clamp behind the cache key and the one inside the resolve are one definition:
+        // paging to the answer of a resolved request has to show that answer again.
+        var earliest = new DateTime(2026, 9, 1);
+
+        foreach (var window in DashboardPeriods.Windows)
+        foreach (var offset in new[] { 0, 1, 7, -1, -3, -500 })
+        {
+            var range = DashboardPeriods.Resolve(
+                PeriodGranularity.Day, window, _now, earliest, offset);
+
+            var reResolved = DashboardPeriods.Resolve(
+                PeriodGranularity.Day, window, _now, earliest, range.Offset);
+
+            Assert.Equal(range.EndExclusive, reResolved.EndExclusive);
+            Assert.Equal(range.Buckets.Count, reResolved.Buckets.Count);
+            Assert.Equal(range.Offset, reResolved.Offset);
+            Assert.Equal(range.CanGoBack, reResolved.CanGoBack);
+        }
+    }
+
+    [Fact]
     public void ArchiveFloor_IsTheOldestMailWhenThatIsInsideTheAxis()
     {
         // Day precise on purpose: the year the axis starts in would let a fresh installation
