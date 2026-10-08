@@ -17,6 +17,40 @@ Both modes are safe to run repeatedly – Mail Archiver detects duplicates (by `
 
 ---
 
+## 🔁 The Sync Cycle at a Glance
+
+```mermaid
+flowchart TD
+    A[Background tick, once a minute] --> B[Pick the most overdue accounts,<br/>up to MaxConcurrentSyncs]
+    B --> C{LastSync is the Unix epoch?}
+    C -->|Yes| D[Full Sync<br/>every message in every non-excluded folder]
+    C -->|No| E[Quick Sync<br/>messages since LastSync minus 12 h]
+    D --> F[Next folder]
+    E --> F
+    F --> G{Opening the folder}
+    G -->|Does not exist| H[Missing folder<br/>does not hold LastSync back]
+    G -->|Fails to open| I[Failed folder<br/>holds LastSync back]
+    G -->|Succeeds| J[Fetch and archive messages<br/>duplicates are skipped]
+    J --> K[Checkpoint watermark advances<br/>up to the first failed message]
+    K --> L{More folders?}
+    H --> L
+    I --> L
+    L -->|Yes| F
+    L -->|No| M{Any failed message<br/>or failed folder?}
+    M -->|Yes| N[LastSync stays put<br/>the next cycle re-reads the same window]
+    M -->|No| O[LastSync = now<br/>checkpoints are dropped]
+    N --> P[Server-side and local retention passes]
+    O --> P
+```
+
+The last decision is the one that matters. `LastSync` advances only when the run
+finished without failed messages **and** without failed folders. That is why a
+mailbox with a single unreadable folder keeps re-reading the same window instead
+of quietly moving past it — and why a run that ends early (timeout, cancel, rate
+limit) costs a re-read rather than losing mail.
+
+---
+
 ## ⚡ Quick Sync (Incremental Sync)
 
 Quick sync is the normal operating mode that runs automatically at the configured interval. The global default is `MailSync:IntervalMinutes` minutes (default 15); each account can override this with its own `SyncIntervalMinutes` value set on the Create/Edit page (leave empty to use the global default).

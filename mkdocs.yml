@@ -152,6 +152,15 @@ extra:
 extra_css:
   - stylesheets/extra.css
 
+extra_javascript:
+  # Mermaid is self-hosted so the site has no third-party CDN dependency at
+  # view time. Material checks for a global `mermaid` when it renders a
+  # diagram and only falls back to unpkg.com when it finds none, so shipping
+  # the library here keeps diagrams working on networks without CDN access.
+  # defer keeps the (large) file from blocking the parser.
+  - path: assets/javascripts/mermaid.min.js
+    defer: true
+
 validation:
   omitted_files: warn
   absolute_links: warn

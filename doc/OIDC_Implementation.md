@@ -8,22 +8,67 @@ This guide provides comprehensive instructions for setting up OpenID Connect (OI
 
 ## 📚 Table of Contents
 
-1. [Overview](#overview)
-2. [Prerequisites](#prerequisites)
-3. [OIDC Configuration](#oidc-configuration)
+1. [How the Login Flow Works](#how-the-login-flow-works)
+2. [Overview](#overview)
+3. [Prerequisites](#prerequisites)
+4. [OIDC Configuration](#oidc-configuration)
    - [Enable OIDC in Configuration](#enable-oidc-in-configuration)
    - [Environment Variables](#environment-variables)
-4. [Microsoft Entra ID Setup](#microsoft-entra-id-setup)
+5. [Microsoft Entra ID Setup](#microsoft-entra-id-setup)
    - [Create App Registration](#create-app-registration)
    - [Configure Authentication](#configure-authentication)
-   - [Set Token Configuration](#set-token-configuration)
-5. [Authelia Setup](#authelia-setup)
+   - [Configure API Permissions](#configure-api-permissions)
+   - [Generate Client Secret](#generate-client-secret)
+6. [Authelia Setup](#authelia-setup)
    - [Authelia Configuration](#authelia-configuration)
-   - [Client Registration](#client-registration)
-6. [Testing and Validation](#testing-and-validation)
-7. [User Management with OIDC](#user-management-with-oidc)
-8. [Auto-Approve OIDC Users](#auto-approve-oidc-users)
-9. [Passwordless Login Configuration](#passwordless-login-configuration)
+   - [Client Registration Details](#client-registration-details)
+7. [Testing and Validation](#testing-and-validation)
+8. [User Management with OIDC](#user-management-with-oidc)
+9. [Auto-Approve OIDC Users](#auto-approve-oidc-users)
+10. [Passwordless Login Configuration](#passwordless-login-configuration)
+
+## 🔄 How the Login Flow Works
+
+The diagram shows the whole round trip — browser, Mail Archiver and identity
+provider — and, more importantly, the local decision Mail Archiver makes *after*
+the provider has already accepted the user.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant U as User (browser)
+    participant MA as Mail Archiver
+    participant IdP as Identity provider
+
+    U->>MA: Open the login page
+    MA-->>U: Redirect to the identity provider
+    U->>IdP: Sign in
+    IdP-->>U: Redirect to /oidc-signin-completed with a code
+    U->>MA: Callback carrying the authorization code
+    MA->>IdP: Exchange the code for tokens
+    IdP-->>MA: ID token and access token
+    Note over MA: Email and sub are read from the ID token
+
+    alt Email is listed in AdminEmails
+        MA->>MA: Create the user as an active admin
+        MA-->>U: Session, full administrative access
+    else Existing, active user
+        MA->>MA: Load the existing account
+        MA-->>U: Session
+    else New user, AutoApproveUsers = true
+        MA->>MA: Create the user as active
+        MA-->>U: Session
+    else New user, AutoApproveUsers = false (the default)
+        MA->>MA: Create the user as inactive
+        MA-->>U: "Account pending approval"
+    end
+```
+
+A successful sign-in at the provider is therefore **not** the end of the story.
+With the default `AutoApproveUsers=false`, a new user is created inactive and an
+administrator has to activate the account. A user who authenticates correctly and
+still cannot get in has almost always hit this gate rather than an OIDC
+misconfiguration.
 
 ## 🌐 Overview
 

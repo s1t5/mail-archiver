@@ -11,6 +11,33 @@ Mail Archiver provides comprehensive retention policy management to help you con
 
 This dual approach gives you fine-grained control over storage management while ensuring data consistency and compliance requirements are met.
 
+## 🗂️ Where a Message Lives
+
+The two policies act on two different copies of the same message, which is why
+they are configured independently:
+
+```mermaid
+stateDiagram-v2
+    direction LR
+    [*] --> OnServer : mail arrives
+    OnServer --> OnServerAndArchived : a sync archives it
+    OnServerAndArchived --> ArchivedOnly : DeleteAfterDays elapses<br/>IMAP EXPUNGE on the server
+    ArchivedOnly --> Removed : LocalRetentionDays elapses<br/>row and attachments deleted
+    OnServerAndArchived --> Removed : LocalRetentionDays elapses
+    Removed --> [*]
+
+    note right of OnServerAndArchived
+        Local retention must be greater than or
+        equal to server retention, so the archived
+        copy is never removed before the server copy.
+    end note
+```
+
+Server retention trims the mailbox; local retention trims the archive. Deleting
+from the server does **not** touch the archived copy — that is the entire point of
+an archive. The validation rule (local retention must be at least the server
+retention) exists so the archive always outlives the mailbox it was taken from.
+
 ## Key Features
 
 - **Automatic Cleanup**: Automatic deletion of old emails during sync cycles
