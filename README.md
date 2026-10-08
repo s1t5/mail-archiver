@@ -22,7 +22,7 @@
 ### 📌 Core Features
 - Automated archiving from multiple accounts with scheduled sync
 - Multilingual responsive UI with dark mode
-- OpenID Connect (OIDC) authentication ([OIDC Guide](doc/OIDC_Implementation.md))
+- OpenID Connect (OIDC) authentication ([OIDC Guide](https://s1t5.github.io/mail-archiver/OIDC_Implementation/))
 
 ### 🔍 Search & Access
 - Advanced search with filters
@@ -30,45 +30,45 @@
 - Export accounts or selected emails as mbox / zipped EML
 
 ### 🔌 Programmatic & AI Agent Access
-- **Read-only REST API (v1)** for programmatic access to the archive via scoped per-user API keys — lets scripts read archived mail without ever exposing mailbox credentials ([REST API Guide](doc/API.md))
-- **MCP Server (Model Context Protocol)** — optional Streamable HTTP endpoint at `/mcp` that exposes the same read-only archive to AI agents as discoverable tools (`search_emails`, `get_email`, `list_accounts`, `list_folders`, `get_attachment`) ([MCP Guide](doc/MCP.md))
+- **Read-only REST API (v1)** for programmatic access to the archive via scoped per-user API keys — lets scripts read archived mail without ever exposing mailbox credentials ([REST API Guide](https://s1t5.github.io/mail-archiver/API/))
+- **MCP Server (Model Context Protocol)** — optional Streamable HTTP endpoint at `/mcp` that exposes the same read-only archive to AI agents as discoverable tools (`search_emails`, `get_email`, `list_accounts`, `list_folders`, `get_attachment`) ([MCP Guide](https://s1t5.github.io/mail-archiver/MCP/))
 
 ### 👥 User Management
 - Multi-user support with account-specific permissions
 - Dashboard with statistics and storage monitoring
-- Detailed access logging ([Access Logging Guide](doc/Logs.md))
+- Detailed access logging ([Access Logging Guide](https://s1t5.github.io/mail-archiver/Logs/))
 
 ### 🧩 Email Provider Support
 - **IMAP**: Traditional IMAP accounts with full synchronization capabilities
-- **M365**: Microsoft 365 mail accounts via Microsoft Graph API ([Setup Guide](doc/AZURE_APP_REGISTRATION_M365.md))
-- **Microsoft Personal**: Personal Microsoft accounts (Outlook.com, Hotmail, live.com, M365 Family) via OAuth2 Device Code Flow — ships with a pre-registered shared Client ID so no Azure App Registration is required ([Setup Guide](doc/MSA_Outlook_Setup.md))
+- **M365**: Microsoft 365 mail accounts via Microsoft Graph API ([Setup Guide](https://s1t5.github.io/mail-archiver/AZURE_APP_REGISTRATION_M365/))
+- **Microsoft Personal**: Personal Microsoft accounts (Outlook.com, Hotmail, live.com, M365 Family) via OAuth2 Device Code Flow — ships with a pre-registered shared Client ID so no Azure App Registration is required ([Setup Guide](https://s1t5.github.io/mail-archiver/MSA_Outlook_Setup/))
 - **IMPORT**: Import-only accounts for migrating existing email archives
 
 ### 🏢 M365 Tenant Import
 
 - Bulk-import all Microsoft 365 mailboxes of a tenant from one form
 - Import all mailboxes or select specific ones; skips existing and disabled accounts
-- See the [M365 Tenant Import Guide](doc/M365TenantImport.md) for details
+- See the [M365 Tenant Import Guide](https://s1t5.github.io/mail-archiver/M365TenantImport/) for details
 
 ### 📥 Import & Restore Functions
 - MBox and EML (ZIP) import with folder structure support
 - Restore emails or entire mailboxes
-- **📤 Mailbox Migrations**: Copy emails between mailboxes while preserving folder structure ([Migration Guide](doc/MailboxMigration.md))
+- **📤 Mailbox Migrations**: Copy emails between mailboxes while preserving folder structure ([Migration Guide](https://s1t5.github.io/mail-archiver/MailboxMigration/))
 
 ### 🗑️ Retention Policies
-- Automatic deletion from mailserver after a configurable period ([Retention Policies](doc/RetentionPolicies.md))
+- Automatic deletion from mailserver after a configurable period ([Retention Policies](https://s1t5.github.io/mail-archiver/RetentionPolicies/))
 - Per-account retention (e.g., 30, 90, or 365 days)
 - Separate retention for the local archive
 
 ### 🔒 Deletion Lock (Compliance)
 - Disable manual deletion of archived emails via `DeletionPolicy__DeletionAllowed=false`
 - Local retention deletion remains exempt and still runs
-- See [Setup Guide](doc/Setup.md#-deletion-policy-settings) for details
+- See [Setup Guide](https://s1t5.github.io/mail-archiver/Setup/#deletion-policy-settings) for details
 
 ### 📋 Access Log
-- The application logs various types of user activities such as Login, Opening, Searches, Exports and many more. ([Logging](doc/Logs.md))
+- The application logs various types of user activities such as Login, Opening, Searches, Exports and many more. ([Logging](https://s1t5.github.io/mail-archiver/Logs/))
 
-For detailed documentation on installation, configuration, and usage, please refer to the [Documentation Index](doc/Index.md). Please note that the documentation is still fresh and is continuously being expanded.
+For detailed documentation on installation, configuration, and usage, please refer to the [Documentation Index](https://s1t5.github.io/mail-archiver/). Please note that the documentation is still fresh and is continuously being expanded.
 
 ## 🚀 Quick Start
 
@@ -162,9 +162,9 @@ docker compose restart
 ## 🔐 Security Notes
 - Use strong passwords and change default credentials
 - Set up HTTPS via a reverse proxy in production (the app itself does not provide HTTPS)
-- Regular backups of the PostgreSQL database recommended (see [Backup & Restore Guide](doc/BackupRestore.md))
+- Regular backups of the PostgreSQL database recommended (see [Backup & Restore Guide](https://s1t5.github.io/mail-archiver/BackupRestore/))
 
-For all configuration options, see the [Setup Guide](doc/Setup.md).
+For all configuration options, see the [Setup Guide](https://s1t5.github.io/mail-archiver/Setup/).
 
 ## 🤝 Contributing
 
