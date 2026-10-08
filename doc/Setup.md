@@ -433,6 +433,24 @@ The per-account storage display shows the database storage usage (all mail field
 ### 🛡️ Security Settings
 - `AllowedHosts`: A semicolon-separated list of host names that the application is allowed to serve. This helps prevent HTTP Host header attacks. Example: `AllowedHosts=mailarchiver.example.com;www.mailarchiver.example.com`. **Important**: Do not use `*` in production environments as it disables host header validation.
 
+#### 🔐 Credential Encryption at Rest
+Mail account credentials (IMAP password, M365 client secret and MSA OAuth tokens) can be encrypted in the database. The encryption key is kept **outside** the database (environment variable / Docker secret), so a database dump alone is not enough to read the credentials.
+
+- `Security__CredentialEncryptionKey`: Base64 encoded 256-bit (32 byte) key encryption key. Generate one with:
+  ```bash
+  openssl rand -base64 32
+  ```
+  Set the value as an environment variable (recommended: `Security__CredentialEncryptionKey` in your compose file or container environment). The application does not support `_FILE` style Docker secrets — if you use a Docker secret, mount it and load its content into the environment variable in your entrypoint. Never commit the key to `appsettings.json`. When a key is configured, credentials are encrypted on write, and a background service encrypts existing plain text credentials once.
+- `Security__EncryptAccountCredentials`: Enable or disable encryption of new/updated credential values (true/false). Default is `true`. When no key is configured, credentials are stored as plain text and a warning is logged at startup — existing installations are not affected until a key is provided.
+- `Security__CredentialEncryptionBackfill`: Whether the background service should encrypt existing plain text credentials on startup (true/false). Default is `true`. No-op without a configured key.
+- `Security__CredentialEncryptionKeyPrevious`: Optional previous key, only used to decrypt values encrypted with it (for key rotation). New values are always encrypted with `Security__CredentialEncryptionKey`.
+
+  > ⚠️ **Key rotation**: after rotating, keep `Security__CredentialEncryptionKeyPrevious` configured **until every credential has been rewritten** (e.g. by editing the account or an automatic OAuth token refresh) — existing values encrypted with the old key are *not* automatically re-encrypted with the new key. Once you remove the previous key, any credential still encrypted with it becomes unreadable and has to be entered again. As long as it is configured, it must be kept as safe as the current key.
+
+> ⚠️ **Keep the key safe**: Without the key, encrypted credentials cannot be recovered and have to be entered again. Back it up together with (but separately from) your database backups.
+>
+> 💡 **Existing installations**: Upgrade safely — as long as no `Security__CredentialEncryptionKey` is set, nothing changes. Set the key when you are ready; existing plain text credentials remain readable and are encrypted in the background.
+
 ### 🔐 OIDC Configuration
 
 For detailed setup instructions for OpenID Connect authentication, see [OIDC Implementation Guide](OIDC_Implementation.md).
@@ -539,6 +557,9 @@ AUTH_PASSWORD=YourSecureAdminPassword456!
 # OIDC / OAuth Secrets
 OAUTH_CLIENT_SECRET=YourOAuthClientSecret
 
+# Credential Encryption at Rest (generate with: openssl rand -base64 32)
+CREDENTIAL_ENCRYPTION_KEY=YourBase64Encoded32ByteKey
+
 # Kestrel HTTPS (optional)
 KESTREL_CERT_PASSWORD=YourCertPassword
 ```
@@ -565,6 +586,9 @@ services:
 
       # OIDC Configuration
       - OAuth__ClientSecret=${OAUTH_CLIENT_SECRET}
+
+      # Credential Encryption at Rest
+      - Security__CredentialEncryptionKey=${CREDENTIAL_ENCRYPTION_KEY}
     # ... ports, volumes, networks ...
 
   postgres:
@@ -597,6 +621,10 @@ AUTH_PASSWORD=change_me_admin_password
 
 # --- OIDC / OAuth ---
 OAUTH_CLIENT_SECRET=change_me_client_secret
+
+# --- Credential Encryption at Rest ---
+# Generate with: openssl rand -base64 32
+CREDENTIAL_ENCRYPTION_KEY=change_me_base64_32_byte_key
 
 #...and so on
 ```

@@ -196,6 +196,25 @@ docker compose down
 docker compose up -d
 ```
 
+## 🔑 Lost Credential Encryption Key
+
+If `Security__CredentialEncryptionKey` (credential encryption at rest) is lost, the stored
+mail account credentials can no longer be decrypted. The application does **not** crash: the
+affected values are treated as "no credential" and a warning is logged. To recover:
+
+1. Restore the key from your backup / secret manager and restart the application. The
+   credentials work again immediately, no data changes are required.
+2. If the key is permanently lost, the encrypted credentials cannot be recovered. Affected
+   accounts are easy to identify: their synchronization fails and a decryption warning is
+   written to the application log (and shows up as a sync issue in the UI).
+3. Open each affected account under **Mail Accounts → Edit** and re-enter its credentials:
+   the IMAP password, the M365 client secret, or re-authorize the account (MSA). Saving the
+   form re-encrypts the credential with the now-configured key — no manual database changes
+   are necessary.
+
+> 💡 The key is never stored in the database, so database backups alone are not sufficient —
+> always back up the key separately.
+
 ## 🔒 Security Best Practices
 
 1. **Use Strong Temporary Passwords**: Make your emergency password complex and unique

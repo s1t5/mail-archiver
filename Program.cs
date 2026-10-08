@@ -5,6 +5,7 @@ using MailArchiver.Data;
 using MailArchiver.Models;
 using MailArchiver.Services;
 using MailArchiver.Services.Providers;
+using MailArchiver.Services.Security;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
@@ -155,6 +156,11 @@ builder.Services.Configure<ReleaseNotesOptions>(
 // Add Deletion Policy Options
 builder.Services.Configure<DeletionPolicyOptions>(
     builder.Configuration.GetSection(DeletionPolicyOptions.DeletionPolicy));
+
+// Add Security Options (credential encryption at rest)
+builder.Services.Configure<SecurityOptions>(
+    builder.Configuration.GetSection(SecurityOptions.SectionName));
+builder.Services.AddSingleton<ICredentialProtector, CredentialProtector>();
 
 // ===== Read-only REST API (v1) — kept in one contiguous block to minimize
 // upstream merge churn. Disabled by default via Api:Enabled. =====
@@ -401,6 +407,7 @@ builder.Services.AddDbContext<MailArchiverDbContext>((serviceProvider, options) 
         }
     )
     .ConfigureWarnings(warnings => warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning))
+    .ReplaceService<Microsoft.EntityFrameworkCore.Infrastructure.IModelCacheKeyFactory, MailArchiver.Data.CredentialModelCacheKeyFactory>()
     .AddInterceptors(serviceProvider.GetRequiredService<MailArchiver.Services.AttachmentDeduplicationInterceptor>());
     
     // Enable sensitive data logging for debugging (remove in production)
@@ -498,6 +505,10 @@ builder.Services.AddHostedService<DatabaseMaintenanceService>(provider => provid
 // Register the resumable attachment deduplication background migration (existing data)
 builder.Services.AddHostedService<AttachmentDeduplicationBackgroundService>();
 
+// Register the credential encryption backfill as singleton and hosted service - MUST be the same instance
+builder.Services.AddSingleton<CredentialEncryptionBackfillService>();
+builder.Services.AddHostedService<CredentialEncryptionBackfillService>(provider => provider.GetRequiredService<CredentialEncryptionBackfillService>());
+
 // Register AccountStorageService (scoped) and the autark refresh background service
 // (backfill on startup + daily full refresh, independent of DatabaseMaintenance:Enabled)
 builder.Services.AddScoped<IAccountStorageService, AccountStorageService>();
@@ -583,6 +594,10 @@ builder.WebHost.ConfigureKestrel((context, options) =>
 });
 
 var app = builder.Build();
+
+// Resolve the credential protector once at startup so its configuration warning (if any)
+// is logged before the first request instead of on first credential access.
+_ = app.Services.GetRequiredService<ICredentialProtector>();
 
 // Handle CLI commands: S3 disaster recovery and local import
 var cliArgs = Environment.GetCommandLineArgs();
