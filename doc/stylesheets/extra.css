@@ -1,0 +1,31 @@
+/* Mail-Archiver docs — small theme tweaks on top of Material */
+
+/* Keep long code blocks and API tables readable */
+.md-typeset code {
+  word-break: break-word;
+}
+
+.md-typeset table:not([class]) {
+  font-size: 0.72rem;
+}
+
+/* Slightly wider content column for the API reference tables */
+.md-grid {
+  max-width: 1440px;
+}
+
+/* Admonition icons in brand colour */
+.md-typeset .admonition.note,
+.md-typeset details.note {
+  border-color: #4A90D9;
+}
+
+.md-typeset .note > .admonition-title,
+.md-typeset .note > summary {
+  background-color: rgba(74, 144, 217, 0.1);
+}
+
+.md-typeset .note > .admonition-title::before,
+.md-typeset .note > summary::before {
+  background-color: #4A90D9;
+}

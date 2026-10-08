@@ -1,6 +1,6 @@
 # 👥 User Management and Mailbox Permissions
 
-[← Back to Documentation Index](Index.md)
+[← Back to Documentation Index](index.md)
 
 ## 📋 Overview
 

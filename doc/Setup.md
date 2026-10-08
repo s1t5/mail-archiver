@@ -1,6 +1,6 @@
 # 🛠️ Mail Archiver Setup Guide
 
-[← Back to Documentation Index](Index.md)
+[← Back to Documentation Index](index.md)
 
 ## 📋 Overview
 
@@ -371,7 +371,7 @@ Both folder settings ship empty on purpose: rewriting or dropping folders withou
 ### 📄 CSV Import Settings
 - `CsvImport__MaxRows`: Maximum number of CSV rows (mailboxes) processed in a single bulk import. Default is `5000`. Increase this value for large deployments; lower it to limit the impact of a single import run on database load.
 - `CsvImport__MaxFileSizeBytes`: Maximum allowed size (in bytes) of the uploaded CSV file. Default is `10000000` (10 MB). Adjust this value to match your upload limits if needed.
-- See [Account Import Guide](Account%20Import.md) for detailed usage instructions on bulk IMAP account import via CSV.
+- See [Account Import Guide](Account-Import.md) for detailed usage instructions on bulk IMAP account import via CSV.
 
 ### 📤 Audit Export Settings
 Settings for the audit data export page (admin only, reachable from the Logs page). The export generates a ZIP package with tabular mass data (INDEX.XML + CSV tables + DTD) from the existing archive for external audit tools. See the [Audit Data Export Guide](AuditExport.md) for usage details.

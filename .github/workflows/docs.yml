@@ -1,0 +1,67 @@
+name: Build and deploy documentation
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'doc/**'
+      - 'mkdocs.yml'
+      - 'hooks.py'
+      - '.github/workflows/docs.yml'
+  # Allow running the workflow manually from the Actions tab.
+  workflow_dispatch:
+
+# Required for GitHub Pages deployment via Actions.
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Allow one concurrent deployment, cancelling in-progress runs of the same
+# ref so a fast sequence of pushes does not queue up stale builds.
+concurrency:
+  group: pages-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+
+      - name: Install MkDocs Material
+        run: |
+          python -m pip install --upgrade pip
+          pip install \
+            "mkdocs-material==9.7.*" \
+            "pymdown-extensions>=10.0"
+
+      - name: Build site
+        # --strict fails the build on broken internal links and missing files.
+        run: mkdocs build --strict
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

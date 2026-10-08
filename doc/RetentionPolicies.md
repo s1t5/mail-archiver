@@ -1,6 +1,6 @@
 # 🗑️ Retention Policies
 
-[← Back to Documentation Index](Index.md)
+[← Back to Documentation Index](index.md)
 
 ## Overview
 
@@ -35,7 +35,7 @@ The server retention policy automatically deletes emails from the mail server af
 ### Requirements
 > 🚨 **Important note for retention policies**
 > - Requires IMAP Expunge support from the mail server to permanently delete emails
-> - For Gmail accounts, Auto-Expunge must be disabled in Gmail settings under the "Forwarding and POP/IMAP" tab! (See [Gmail Best Practices](doc/GmailBestPractices.md) for more details)
+> - For Gmail accounts, Auto-Expunge must be disabled in Gmail settings under the "Forwarding and POP/IMAP" tab! (See [Gmail Best Practices](GmailBestPractices.md) for more details)
 
 
 ## Local Archive Retention Policy

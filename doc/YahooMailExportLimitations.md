@@ -1,6 +1,6 @@
 # 📧 Yahoo Mail Export Endpoint
 
-[← Back to Documentation Index](Index.md)
+[← Back to Documentation Index](index.md)
 
 When archiving Yahoo Mail accounts, it's recommended to use Yahoo's dedicated export endpoint for optimal performance and compatibility.
 

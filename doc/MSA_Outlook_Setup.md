@@ -1,6 +1,6 @@
 # ☁️ Personal Microsoft Account (Outlook.com / M365 Family) Setup
 
-[← Back to Documentation Index](Index.md)
+[← Back to Documentation Index](index.md)
 
 ## 📋 Overview
 
