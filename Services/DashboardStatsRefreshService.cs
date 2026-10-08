@@ -137,6 +137,7 @@ namespace MailArchiver.Services
             {
                 using var scope = _serviceScopeFactory.CreateScope();
                 var context = scope.ServiceProvider.GetRequiredService<MailArchiverDbContext>();
+                var emailCoreService = scope.ServiceProvider.GetRequiredService<EmailCoreService>();
 
                 var connectionString = context.Database.GetConnectionString();
                 if (string.IsNullOrEmpty(connectionString))
@@ -153,7 +154,10 @@ namespace MailArchiver.Services
 
                 var startTime = DateTime.UtcNow;
 
-                var model = await Task.Run(() => BuildAdminStatistics(context), cancellationToken);
+                // Dieselbe Definition wie der Live-Fallback des Dashboards. Das
+                // Account-Panel ohne Issue-Flag zu speichern ist hier genau richtig:
+                // die Reihenfolge wird ohnehin pro Request neu angewandt (ApplyPanelOrder).
+                var model = await Task.Run(() => emailCoreService.BuildAdminStatistics(context, _ => false), cancellationToken);
 
                 var databaseSizeBytes = await GetDatabaseSizeAsync(context);
 
@@ -161,13 +165,19 @@ namespace MailArchiver.Services
                 {
                     Key = AdminCacheKey,
                     TotalEmails = model.TotalEmails,
+                    IncomingEmails = model.IncomingEmails,
+                    OutgoingEmails = model.OutgoingEmails,
                     TotalAttachments = model.TotalAttachments,
+                    IncomingAttachments = model.IncomingAttachments,
+                    OutgoingAttachments = model.OutgoingAttachments,
                     TotalAccounts = model.TotalAccounts,
+                    AccountDomains = model.AccountDomains,
                     TotalDatabaseSizeBytes = databaseSizeBytes,
-                    TopSendersJson = Serialize(model.TopSenders),
-                    EmailsByMonthJson = Serialize(model.EmailsByMonth),
+                    DefaultSeriesJson = JsonSerializer.Serialize(model.Series ?? new DashboardSeries()),
                     EmailsPerAccountJson = Serialize(model.EmailsPerAccount),
-                    ComputedAtUtc = DateTime.UtcNow
+                    ComputedAtUtc = DateTime.UtcNow,
+                    ComputedWithDirectionSplits = emailCoreService.ShowDirectionSplits,
+                    ComputedWithSelectablePeriods = emailCoreService.SelectablePeriods
                 };
 
                 // Update und Insert in einem Roundtrip: die Zeile existiert
@@ -178,13 +188,19 @@ namespace MailArchiver.Services
                 if (existing != null)
                 {
                     existing.TotalEmails = cache.TotalEmails;
+                    existing.IncomingEmails = cache.IncomingEmails;
+                    existing.OutgoingEmails = cache.OutgoingEmails;
                     existing.TotalAttachments = cache.TotalAttachments;
+                    existing.IncomingAttachments = cache.IncomingAttachments;
+                    existing.OutgoingAttachments = cache.OutgoingAttachments;
                     existing.TotalAccounts = cache.TotalAccounts;
+                    existing.AccountDomains = cache.AccountDomains;
                     existing.TotalDatabaseSizeBytes = cache.TotalDatabaseSizeBytes;
-                    existing.TopSendersJson = cache.TopSendersJson;
-                    existing.EmailsByMonthJson = cache.EmailsByMonthJson;
+                    existing.DefaultSeriesJson = cache.DefaultSeriesJson;
                     existing.EmailsPerAccountJson = cache.EmailsPerAccountJson;
                     existing.ComputedAtUtc = cache.ComputedAtUtc;
+                    existing.ComputedWithDirectionSplits = cache.ComputedWithDirectionSplits;
+                    existing.ComputedWithSelectablePeriods = cache.ComputedWithSelectablePeriods;
                 }
                 else
                 {
@@ -208,36 +224,6 @@ namespace MailArchiver.Services
                 _logger.LogError(ex, "Error refreshing dashboard statistics: {Message}", ex.Message);
                 return false;
             }
-        }
-
-        /// <summary>
-        /// Dieselben Aggregate wie das admin-Dashboard, nur hier im Hintergrund.
-        /// RecentEmails bleiben bewusst draussen: zehn indexgestuetzte Zeilen liest
-        /// der Request-Pfad live, im Snapshot waeren die "neuesten Mails" alt.
-        /// Das Account-Panel ohne Issue-Flag zu speichern ist hier genau richtig:
-        /// die Reihenfolge wird ohnehin pro Request neu angewandt (ApplyPanelOrder).
-        /// </summary>
-        private static DashboardViewModel BuildAdminStatistics(MailArchiverDbContext context)
-        {
-            return new DashboardViewModel
-            {
-                TotalEmails = context.ArchivedEmails.Count(),
-                TotalAccounts = context.MailAccounts.Count(),
-                TotalAttachments = context.EmailAttachments.Count(),
-                EmailsPerAccount = EmailCoreService.BuildAccountPanel(context.MailAccounts, _ => false),
-                EmailsByMonth = EmailCoreService.BuildEmailsByMonth(context.ArchivedEmails),
-                TopSenders = context.ArchivedEmails
-                    .Where(e => !e.IsOutgoing)
-                    .GroupBy(e => e.From)
-                    .Select(g => new EmailCountByAddress
-                    {
-                        EmailAddress = g.Key,
-                        Count = g.Count()
-                    })
-                    .OrderByDescending(e => e.Count)
-                    .Take(10)
-                    .ToList()
-            };
         }
 
         private static async Task<long> GetDatabaseSizeAsync(MailArchiverDbContext context)

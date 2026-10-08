@@ -18,32 +18,47 @@ namespace MailArchiver.Models
 
         public long TotalEmails { get; set; }
 
+        public long IncomingEmails { get; set; }
+
+        public long OutgoingEmails { get; set; }
+
         public long TotalAttachments { get; set; }
+
+        public long IncomingAttachments { get; set; }
+
+        public long OutgoingAttachments { get; set; }
 
         public int TotalAccounts { get; set; }
 
+        public int AccountDomains { get; set; }
+
         public long TotalDatabaseSizeBytes { get; set; }
 
-        /// <summary>Top-Senders als serialisierte Liste (jsonb).</summary>
-        public string? TopSendersJson { get; set; }
-
-        /// <summary>Monats-Histogramm als serialisierte Liste (jsonb).</summary>
-        public string? EmailsByMonthJson { get; set; }
+        /// <summary>
+        /// Default-Diagrammauswahl (Monate, ein Jahr, eingehende Absender) samt
+        /// Top-Senders als serialisierte DashboardSeries (jsonb).
+        /// </summary>
+        public string? DefaultSeriesJson { get; set; }
 
         /// <summary>Account-Panel als serialisierte Liste (jsonb).</summary>
         public string? EmailsPerAccountJson { get; set; }
 
         public DateTime ComputedAtUtc { get; set; } = DateTime.UtcNow;
 
-        [JsonIgnore]
-        [NotMapped]
-        public List<EmailCountByAddress>? TopSenders =>
-            Deserialize(TopSendersJson, () => new List<EmailCountByAddress>());
+        /// <summary>
+        /// Dashboard:ShowDirectionSplits zum Zeitpunkt der Berechnung. Null bei
+        /// Zeilen, die vor dieser Spalte entstanden sind; eine Zeile, die nicht
+        /// zur aktuellen Einstellung passt, wird bis zum naechsten Lauf ignoriert.
+        /// </summary>
+        public bool? ComputedWithDirectionSplits { get; set; }
+
+        /// <summary>Dashboard:SelectablePeriods zum Zeitpunkt der Berechnung (siehe oben).</summary>
+        public bool? ComputedWithSelectablePeriods { get; set; }
 
         [JsonIgnore]
         [NotMapped]
-        public List<EmailCountByPeriod>? EmailsByMonth =>
-            Deserialize(EmailsByMonthJson, () => new List<EmailCountByPeriod>());
+        public DashboardSeries? DefaultSeries =>
+            Deserialize(DefaultSeriesJson, () => new DashboardSeries());
 
         [JsonIgnore]
         [NotMapped]

@@ -790,14 +790,35 @@ namespace MailArchiver.Migrations
                     b.Property<string>("Key")
                         .HasColumnType("text");
 
+                    b.Property<int>("AccountDomains")
+                        .HasColumnType("integer");
+
                     b.Property<DateTime>("ComputedAtUtc")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("EmailsByMonthJson")
+                    b.Property<bool?>("ComputedWithDirectionSplits")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool?>("ComputedWithSelectablePeriods")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("DefaultSeriesJson")
                         .HasColumnType("jsonb");
 
                     b.Property<string>("EmailsPerAccountJson")
                         .HasColumnType("jsonb");
+
+                    b.Property<long>("IncomingAttachments")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("IncomingEmails")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("OutgoingAttachments")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("OutgoingEmails")
+                        .HasColumnType("bigint");
 
                     b.Property<int>("TotalAccounts")
                         .HasColumnType("integer");
@@ -810,9 +831,6 @@ namespace MailArchiver.Migrations
 
                     b.Property<long>("TotalEmails")
                         .HasColumnType("bigint");
-
-                    b.Property<string>("TopSendersJson")
-                        .HasColumnType("jsonb");
 
                     b.HasKey("Key");
 

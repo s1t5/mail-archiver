@@ -93,9 +93,11 @@ services:
       - View__DefaultToPlainText=true
       - View__BlockExternalResources=false
 
-      # Dashboard Settings (statistics cache)
+      # Dashboard Settings (statistics cache, counter parts, chart periods)
       - Dashboard__CacheSeconds=60
       - Dashboard__RefreshIntervalMinutes=15
+      - Dashboard__ShowDirectionSplits=true
+      - Dashboard__SelectablePeriods=true
 
       # Jobs Settings (background jobs page)
       - Jobs__RefreshSeconds=30
@@ -347,8 +349,10 @@ Both folder settings ship empty on purpose: rewriting or dropping folders withou
   - This setting works independently from `DefaultToPlainText` and provides an additional layer of privacy protection when viewing HTML emails.
 
 ### 📊 Dashboard Settings
-- `Dashboard__CacheSeconds`: How long computed dashboard statistics are kept in the server's in-memory cache. Default is `60` seconds. Set to `0` to disable caching and always recompute the statistics. Higher values reduce database load in large environments at the cost of more stale numbers. Sync status badges, storage values and the recent-emails list are always fetched live and are not affected by this cache.
-- `Dashboard__RefreshIntervalMinutes`: How often the `DashboardStatsRefreshService` background service recomputes the expensive dashboard aggregates (total counts, per-account counts, monthly histogram, top senders, database size) into the `DashboardStatsCache` database table. On installations with several million mails the dashboard reads these prepared values instead of aggregating the whole archive in the request path, which turns a ~10 second first load into milliseconds. Default is `15` minutes. Set to `0` to disable the background refresh; the dashboard then computes the statistics live again (with the in-memory cache above still applying). The values shown may lag up to the configured interval behind the actual archive state.
+- `Dashboard__ShowDirectionSplits`: Whether the counter cards carry their incoming and outgoing parts, and the account card the number of distinct domains. Default is `true`. Set to `false` and those numbers are not computed rather than computed and hidden: the counters read a plain count, and the attachment count stops joining to the mail it hangs on, which is the one query these parts add.
+- `Dashboard__SelectablePeriods`: Whether the dashboard charts offer a resolution, a period and arrows to move it. Default is `true`. Set to `false` and the charts show the last twelve months by month and the senders of the whole archive, the chart endpoint answers as if it did not exist, and the oldest send date is not looked up.
+- `Dashboard__CacheSeconds`: How long computed dashboard statistics (totals with their incoming and outgoing splits, per-account counts, the chart series, top senders, recent emails, database size) are kept in the server's in-memory cache. Default is `60` seconds. Set to `0` to disable caching and always recompute the statistics. Each chart selection of resolution and period is cached on its own, so a dashboard that is switched between selections holds one entry per selection. Higher values reduce database load in large environments at the cost of more stale numbers. Sync status badges, storage values and the recent-emails list are always fetched live and are not affected by this cache.
+- `Dashboard__RefreshIntervalMinutes`: How often the `DashboardStatsRefreshService` background service recomputes the expensive dashboard aggregates (total counts with their incoming and outgoing splits, per-account counts, the number of account domains, the default chart series with its top senders, database size) into the `DashboardStatsCache` database table. On installations with several million mails the dashboard reads these prepared values instead of aggregating the whole archive in the request path, which turns a ~10 second first load into milliseconds. The chart endpoint answers the default selection (months over one year, incoming senders, the current period) from the same row, so returning to it shows the numbers of the first paint; every other selection is computed on request and kept in the in-memory cache above. Default is `15` minutes. Set to `0` to disable the background refresh; the dashboard then computes the statistics live again (with the in-memory cache above still applying). The values shown may lag up to the configured interval behind the actual archive state. A row computed with other `ShowDirectionSplits` or `SelectablePeriods` values than the current ones is not used; the dashboard computes live until the next refresh.
 
 ### 🔄 Jobs Settings
 - `Jobs__RefreshSeconds`: How often the background jobs page reloads itself while a browser tab has it open. Default is `30` seconds. Set to `0` to turn the automatic reload off and refresh by hand. Each reload rebuilds the page from all eight job sources, so on installations with many accounts a longer interval keeps the load down, multiplied by every tab that is open on the page.
