@@ -26,10 +26,10 @@ get pushed out of sight by newer ones.
 | Section | What it covers | Started from |
 |---|---|---|
 | **Synchronization Jobs** | Fetching new mail from the mail server | Automatic schedule, or *Sync now* on an account |
-| **MBox Import Jobs** | Importing `.mbox` files | Mail Accounts → Import MBOX |
-| **EML Import Jobs** | Importing `.eml` files / ZIP archives | Mail Accounts → Import EML |
+| **MBox Import Jobs** | Importing `.mbox` files | Mail Accounts → [Import MBOX](Import-EML-MBox.md#-import-mbox) |
+| **EML Import Jobs** | Importing `.eml` files / ZIP archives | Mail Accounts → [Import EML](Import-EML-MBox.md#-import-eml) |
 | **Batch Restore Jobs** | Copying selected emails back to a mailbox | Archive → select emails → Batch Restore |
-| **Account Export Jobs** | Exporting a whole account (mbox / EML) | Mail Accounts → Export |
+| **Account Export Jobs** | Exporting a whole account (mbox / EML) | Mail Accounts → [Export](Export-Account.md) |
 | **Selected Emails Export Jobs** | Exporting a hand-picked set of emails | Archive → select emails → Export |
 | **Email Deletion Jobs** | Deleting emails from server or archive | Retention policy, or manual deletion |
 | **Account Deletion Jobs** | Removing an entire mail account | Mail Accounts → Delete |

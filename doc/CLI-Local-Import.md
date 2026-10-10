@@ -167,12 +167,12 @@ Add more paths by incrementing the index (`__2`, `__3`, etc.).
 | `--import-mbox` | MBox file | `.mbox`, `.mbx` | ❌ (always bulk) | ✅ |
 | `--import-eml` | ZIP archive of EMLs | `.zip` | ❌ (ZIP required) | ✅ |
 
-*Single `.eml` files are not directly supported. Use `zip` to wrap them, or import via the web upload.*
+*Single `.eml` files are not directly supported. Use `zip` to wrap them, or import via the [web upload](Import-EML-MBox.md).*
 
 ## ❓ FAQ
 
 **Q: Why does `--import-eml` require a ZIP file?**
-A: The underlying EML import service (`EmlImportService`) processes ZIP archives internally using .NET's `ZipFile` API. This design supports bulk imports efficiently. For individual `.eml` files, wrap them in a ZIP archive (e.g., `zip emails.zip *.eml`) or use the web upload.
+A: The underlying EML import service (`EmlImportService`) processes ZIP archives internally using .NET's `ZipFile` API. This design supports bulk imports efficiently. For individual `.eml` files, wrap them in a ZIP archive (e.g., `zip emails.zip *.eml`) or use the [web upload](Import-EML-MBox.md).
 
 **Q: Why can't I browse files from the web UI?**
 A: This is a deliberate security design. This function is intentionally implemented via CLI for system-level interactions because normal users do not have direct access to the OS level; they only interact with the Web UI.

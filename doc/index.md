@@ -123,6 +123,14 @@ Set it up once, keep every message, and find it again years later.
 
     [:octicons-arrow-right-24: Read](CLI-Local-Import.md)
 
+-   :material-upload:{ .lg .middle } __Web import (EML / MBox)__
+
+    ---
+
+    Upload an MBox file or a ZIP of EML files through the browser.
+
+    [:octicons-arrow-right-24: Read](Import-EML-MBox.md)
+
 -   :material-timer-sand:{ .lg .middle } __Rate limit handling__
 
     ---
@@ -161,6 +169,14 @@ Set it up once, keep every message, and find it again years later.
 
     [:octicons-arrow-right-24: Read](MailboxMigration.md)
 
+-   :material-download:{ .lg .middle } __Account export (EML / MBox)__
+
+    ---
+
+    Write a whole account back out as a portable EML or MBox archive.
+
+    [:octicons-arrow-right-24: Read](Export-Account.md)
+
 -   :material-content-duplicate:{ .lg .middle } __Attachment deduplication__
 
     ---
@@ -195,7 +211,8 @@ Set it up once, keep every message, and find it again years later.
 
     ---
 
-    Create users, grant admin rights and assign mailbox permissions.
+    Create users, grant admin rights, assign mailbox permissions and change your
+    own password.
 
     [:octicons-arrow-right-24: Read](UserManagement.md)
 
@@ -320,6 +337,14 @@ Set it up once, keep every message, and find it again years later.
 ## 🧰 Operations & Development
 
 <div class="grid cards" markdown>
+
+-   :material-translate:{ .lg .middle } __Language and localization__
+
+    ---
+
+    Switch the interface language, and how to add a translation.
+
+    [:octicons-arrow-right-24: Read](Localization.md)
 
 -   :material-docker:{ .lg .middle } __Docker Compose logs__
 
