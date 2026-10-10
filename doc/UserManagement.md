@@ -4,7 +4,7 @@
 
 ## 📋 Overview
 
-This guide provides detailed instructions for creating new user accounts and assigning mailbox permissions in the Mail Archiver application.
+This guide provides detailed instructions for creating new user accounts and assigning mailbox permissions in the Mail Archiver application. It also covers changing your own password and the forced password change on a freshly installed instance.
 
 
 ## 🛠️ Prerequisites
@@ -60,11 +60,56 @@ Standard users have limited access and can:
 - Restore emails from their assigned accounts
 - Access email attachments from assigned accounts
 
+## 🔑 Changing Your Own Password
+
+Every user with a local password can change it without an administrator:
+
+1. Click your **username** in the top-right corner to open the user menu.
+2. Choose **Change Password**.
+3. Enter your **current password** and the **new password** twice, then submit.
+
+The new password must meet the requirements below, and it must be **different
+from the current one**.
+
+> ℹ️ **OIDC users cannot change their password here.** The page answers with
+> *"OIDC users cannot change their password. Password management is handled by
+> your OIDC provider."* Change the password at your identity provider instead —
+> see [OIDC / SSO](OIDC_Implementation.md).
+
+### Password requirements
+
+- at least **10 characters**
+- at least one **uppercase** letter
+- at least one **lowercase** letter
+- at least one **number**
+- at least one **special character**
+
+The form shows these as a live checklist while you type. The same rules apply when
+an administrator creates a user or resets a password.
+
+## ⚠️ Forced Password Change (Initial Setup)
+
+A freshly installed instance starts with the administrator credentials from the
+configuration (`Authentication__Username` / `Authentication__Password`). As long as
+that default password is still in use **and no mail account exists yet**, the first
+login forces a change:
+
+- A warning banner explains why: *"For security reasons, you must change your
+  password before continuing. This is required because you are using the default
+  system credentials on a newly set up system."*
+- You cannot navigate away from the page: *"You must change your password before
+  you can continue using the system."*
+- The new password must be different from the current one.
+- After saving, the flag is cleared and you are taken to the dashboard.
+
+Once you have changed the default password, the forced change never appears again.
+
 ## 🔒 Security Considerations
 
 1. Use strong passwords for all user accounts
-2. Only assign the Admin permission to users who need it
-3. Only assign the Self Manager permission to users who need to manage their own accounts
-4. Regularly review user permissions to ensure access is appropriate
-5. Remove user access when it is no longer needed
-6. Use the principle of least privilege - only assign access to the email accounts that users need
+2. Change the default administrator password immediately after installation
+3. Only assign the Admin permission to users who need it
+4. Only assign the Self Manager permission to users who need to manage their own accounts
+5. Regularly review user permissions to ensure access is appropriate
+6. Remove user access when it is no longer needed
+7. Use the principle of least privilege - only assign access to the email accounts that users need

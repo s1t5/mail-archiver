@@ -112,11 +112,13 @@ nav:
       - Account Import: Account-Import.md
       - Mail Synchronization: Synchronization.md
       - CLI Local Import: CLI-Local-Import.md
+      - Web Import (EML / MBox): Import-EML-MBox.md
       - Rate Limit Handling: RateLimitHandling.md
   - Working with the Archive:
       - Mail Search: Search.md
       - Background Jobs: BackgroundJobs.md
       - Mailbox Migration: MailboxMigration.md
+      - Account Export (EML / MBox): Export-Account.md
       - Attachment Deduplication: AttachmentDeduplication.md
       - Date-Windowed Offload: Offload.md
       - Per-Account Storage: AccountStorage.md
@@ -139,6 +141,7 @@ nav:
       - API Reference: API-Reference.md
       - MCP Server: MCP.md
   - Operations & Development:
+      - Language and Localization: Localization.md
       - Docker Compose Logs: DockerComposeLogs.md
       - Dev Tag (Development Versions): DevTag.md
 
