@@ -35,33 +35,12 @@ body:
     validations:
       required: true
 
-  - type: dropdown
+  - type: input
     id: version
     attributes:
       label: Application Version
       description: Which version are you using?
-      options:
-        - "2607.5"
-        - "2607.4"
-        - "2607.3"
-        - "2607.2"
-        - "2607.1"
-        - "2606.5"
-        - "2606.4"
-        - "2606.3"
-        - "2606.2"
-        - "2601.1"
-        - "2605.2"
-        - "2605.1"
-        - "2604.2"
-        - "2604.1"
-        - "2603.1"
-        - "2602.4"
-        - "2602.3"
-        - "2602.2"
-        - "2602.1"
-        - "older"
-      default: 0
+      placeholder: 'e.g., 2607.5'
     validations:
       required: true
 
