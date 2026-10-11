@@ -4,6 +4,10 @@
     'use strict';
 
     var pollTimer = null;
+    // Base path the app is hosted under (e.g. "/" or "/mail/" behind a reverse
+    // proxy). Set in _Layout.cshtml via Url.Content("~/"). Falls back to "/"
+    // if unset so this still works if the global is ever missing.
+    var basePath = window.appBasePath || '/';
 
     function formatBytes(bytes) {
         if (!bytes || bytes <= 0) return '-';
@@ -29,12 +33,12 @@
     function renderActions(job) {
         var actions = '';
         if (job.status === 'Completed' || job.status === 'Downloaded') {
-            actions += '<a href="/Logs/DownloadAuditExport?jobId=' + encodeURIComponent(job.jobId) +
+            actions += '<a href="' + basePath + 'Logs/DownloadAuditExport?jobId=' + encodeURIComponent(job.jobId) +
                 '" class="btn btn-outline-primary btn-sm" title="Download"><i class="bi bi-download"></i></a> ';
         }
         if (job.status === 'Queued' || job.status === 'Running') {
             var token = document.querySelector('#auditExportJobs input[name="__RequestVerificationToken"]');
-            actions += '<form method="post" action="/Logs/CancelAuditExport" class="d-inline">' +
+            actions += '<form method="post" action="' + basePath + 'Logs/CancelAuditExport" class="d-inline">' +
                 '<input type="hidden" name="__RequestVerificationToken" value="' + (token ? token.value : '') + '" />' +
                 '<input type="hidden" name="jobId" value="' + escapeHtml(job.jobId) + '" />' +
                 '<button type="submit" class="btn btn-outline-danger btn-sm" title="Abbrechen" ' +
@@ -116,7 +120,7 @@
         }
 
         activeJobIds.forEach(function (jobId) {
-            fetch('/Logs/AuditExportStatus?jobId=' + encodeURIComponent(jobId), {
+            fetch(basePath + 'Logs/AuditExportStatus?jobId=' + encodeURIComponent(jobId), {
                 headers: { 'X-Requested-With': 'XMLHttpRequest' }
             })
                 .then(function (response) { return response.ok ? response.json() : null; })

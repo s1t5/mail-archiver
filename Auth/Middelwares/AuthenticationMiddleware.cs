@@ -56,9 +56,12 @@ namespace MailArchiver.Auth.Middlewares
                 // Also check our custom service for 2FA state
                 if (!authService.IsAuthenticated(context))
                 {
-                    // Store the original URL for redirect after login
-                    var returnUrl = context.Request.Path + context.Request.QueryString;
-                    context.Response.Redirect($"/Auth/Login?returnUrl={Uri.EscapeDataString(returnUrl)}");
+                    // Store the original URL for redirect after login. PathBase is
+                    // prepended explicitly because this is a raw string redirect, not
+                    // one generated via Url.Action/tag helpers, so it would otherwise
+                    // ignore any subpath the app is hosted under.
+                    var returnUrl = context.Request.PathBase + context.Request.Path + context.Request.QueryString;
+                    context.Response.Redirect($"{context.Request.PathBase}/Auth/Login?returnUrl={Uri.EscapeDataString(returnUrl)}");
                     return;
                 }
             }

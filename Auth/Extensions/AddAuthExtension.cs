@@ -113,8 +113,10 @@ namespace MailArchiver.Auth.Extensions
                         var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<Program>>();
                         logger.LogInformation("Redirecting to identity provider for sign-out");
                         
-                        // Add post-logout redirect URI to return user to login page after OIDC logout
-                        context.ProtocolMessage.PostLogoutRedirectUri = context.Request.Scheme + "://" + context.Request.Host + "/Auth/Login";
+                        // Add post-logout redirect URI to return user to login page after OIDC logout.
+                        // PathBase is included explicitly since this is a raw string, not a
+                        // generated URL, so it would otherwise ignore any subpath.
+                        context.ProtocolMessage.PostLogoutRedirectUri = context.Request.Scheme + "://" + context.Request.Host + context.Request.PathBase + "/Auth/Login";
                         return Task.CompletedTask;
                     };
 

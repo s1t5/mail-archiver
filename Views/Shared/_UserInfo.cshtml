@@ -55,7 +55,7 @@
         }
         <li><hr class="dropdown-divider"></li>
 <li class="px-3 py-2">
-            <form method="post" action="/Localization/SetLanguage">
+            <form method="post" action="@Url.Action("SetLanguage", "Localization")">
                 <input type="hidden" name="returnUrl" value="@Context.Request.Path@Context.Request.QueryString" />
                 <div class="mb-2">
                     <label class="form-label small text-muted mb-1">@Localizer["Language"]</label>
