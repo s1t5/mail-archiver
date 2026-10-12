@@ -1,0 +1,812 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Português (Brasil) resource overrides.
+     This file intentionally contains only overrides for pt_BR.
+     Missing entries will fall back to SharedResource.resx (neutral). -->
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+              </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+                <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+                <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+                <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+                <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <!-- Add keys that only require en-GB-specific wording here.
+       Leave empty to inherit missing strings from SharedResource.resx. -->
+  <data name="LastSync" xml:space="preserve">
+    <value>Última Sincronização</value>
+  </data>
+    <data name="SynchronizationJobs" xml:space="preserve">
+    <value>Tarefas de Sincronização</value>
+  </data>
+  <data name="DisabledAccountsNotSynced" xml:space="preserve">
+    <value>Contas desativadas não serão sincronizadas</value>
+  </data>
+  <data name="DeleteItemSyncHistory" xml:space="preserve">
+    <value>Histórico de sincronização</value>
+  </data>
+  <data name="ActionWillStopSync" xml:space="preserve">
+    <value>Interromperá toda a sincronização desta conta</value>
+  </data>
+  <data name="AlternativeDisableInfo" xml:space="preserve">
+    <value>Se você quiser apenas interromper a sincronização de e-mails sem perder dados, pode desativar a conta.</value>
+  </data>
+  <data name="EnterFolderNamesText" xml:space="preserve">
+    <value>Pastas a excluir da sincronização. Insira os nomes das pastas separados por ponto e vírgula.</value>
+  </data>
+  <data name="NotYetSynchronized" xml:space="preserve">
+    <value>Ainda não sincronizado</value>
+  </data>
+  <data name="SyncRunning" xml:space="preserve">
+    <value>Sincronização em andamento…</value>
+  </data>
+  <data name="SyncPending" xml:space="preserve">
+    <value>Sincronização pendente…</value>
+  </data>
+  <data name="Never" xml:space="preserve">
+    <value>Nunca</value>
+  </data>
+  <data name="EmailAccountEnabled" xml:space="preserve">
+    <value>A conta '{0}' foi habilitada para sincronização.</value>
+    <comment>{0} - account name</comment>
+  </data>
+  <data name="EmailAccountDisabled" xml:space="preserve">
+    <value>A conta '{0}' foi desativada para sincronização.</value>
+    <comment>{0} - account name</comment>
+  </data>
+  <data name="SyncStarted" xml:space="preserve">
+    <value>A sincronização de '{0}' foi iniciada com sucesso.</value>
+    <comment>{0} - account name</comment>
+  </data>
+  <data name="SyncSuccess" xml:space="preserve">
+    <value>A sincronização de '{0}' foi concluída com sucesso.</value>
+    <comment>{0} - account name</comment>
+  </data>
+    <data name="SyncFailed" xml:space="preserve">
+    <value>Erro durante a sincronização</value>
+  </data>
+    <data name="ImportOnlyAccountDescription" xml:space="preserve">
+    <value>Conta para importar arquivos MBox ou EML sem sincronização IMAP</value>
+  </data>
+  <data name="ImportOnlyAccountNoSync" xml:space="preserve">
+    <value>Contas somente de importação não podem ser sincronizadas</value>
+  </data>
+    <data name="ExportInfoText" xml:space="preserve">
+    <value>Esta exportação criará um arquivo ZIP para download contendo todos os e-mails desta conta. O formato escolhido determina como os e-mails são organizados.</value>
+  </data>
+    <data name="EMLFormatDescription" xml:space="preserve">
+    <value>Cria arquivos .eml individuais organizados em pastas.</value>
+  </data>
+
+  <!-- MSA (personal Microsoft account) OAuth2 device code flow -->
+  <data name="MsaAuthorizeTitle" xml:space="preserve">
+    <value>Autorizar conta Microsoft</value>
+  </data>
+  <data name="MsaAccountLabel" xml:space="preserve">
+    <value>Conta:</value>
+  </data>
+  <data name="MsaStep1OpenBrowser" xml:space="preserve">
+    <value>1. Abra em um navegador (ou smartphone etc.):</value>
+  </data>
+  <data name="MsaStep2EnterCode" xml:space="preserve">
+    <value>2. Insira este código:</value>
+  </data>
+  <data name="MsaCopyCode" xml:space="preserve">
+    <value>Copiar</value>
+  </data>
+  <data name="MsaCopyCodeTooltip" xml:space="preserve">
+    <value>Copiar código</value>
+  </data>
+  <data name="MsaCodeValidFor" xml:space="preserve">
+    <value>Código válido por {0} minutos.</value>
+  </data>
+  <data name="MsaWaitingForAuthorization" xml:space="preserve">
+    <value>Aguardando autorização …</value>
+  </data>
+  <data name="MsaAuthorizationSuccessful" xml:space="preserve">
+    <value>Autorização bem-sucedida! Redirecionando …</value>
+  </data>
+  <data name="MsaErrorPrefix" xml:space="preserve">
+    <value>Erro:</value>
+  </data>
+  <data name="MsaRetry" xml:space="preserve">
+    <value>Tentar novamente</value>
+  </data>
+  <data name="MsaProviderLabel" xml:space="preserve">
+    <value>Microsoft Pessoal</value>
+  </data>
+  <data name="MsaSettingsHeading" xml:space="preserve">
+    <value>Conta Microsoft Pessoal (Outlook.com / M365 Family)</value>
+  </data>
+  <data name="MsaNoAppRegistrationNeeded" xml:space="preserve">
+    <value>Não é necessário registro de aplicativo.</value>
+  </data>
+  <data name="MsaDefaultClientInfoCreate" xml:space="preserve">
+    <value>O Mail-Archiver usa um registro de aplicativo pré-configurado. Insira o endereço de e-mail, salve e clique em {0}.</value>
+  </data>
+  <data name="MsaAuthorize" xml:space="preserve">
+    <value>Autorizar</value>
+  </data>
+  <data name="MsaAppRegistrationSetup" xml:space="preserve">
+    <value>Configurar registro de aplicativo do Azure (uma vez, ~2 minutos)</value>
+  </data>
+  <data name="MsaCreateAppRegistration" xml:space="preserve">
+    <value>Criar registro de aplicativo</value>
+  </data>
+  <data name="MsaSignInWithMicrosoftAccount" xml:space="preserve">
+    <value>(entre com sua conta Microsoft)</value>
+  </data>
+  <data name="MsaAppRegStepName" xml:space="preserve">
+    <value>Escolha qualquer nome (ex.: mail-archiver)</value>
+  </data>
+  <data name="MsaAppRegStepAccountTypes" xml:space="preserve">
+    <value>Em Tipos de conta compatíveis, selecione: Contas em qualquer diretório organizacional e contas Microsoft pessoais</value>
+  </data>
+  <data name="MsaAppRegStepRedirect" xml:space="preserve">
+    <value>Deixe o URI de redirecionamento em branco → clique em Registrar</value>
+  </data>
+  <data name="MsaAppRegStepClientId" xml:space="preserve">
+    <value>Insira abaixo a ID do Aplicativo (cliente) exibida</value>
+  </data>
+  <data name="MsaAppRegStepAuth" xml:space="preserve">
+    <value>Clique em Autenticação no aplicativo → habilite Permitir fluxos de cliente público → Salvar</value>
+  </data>
+  <data name="MsaNoSecretNeededCreate" xml:space="preserve">
+    <value>Nenhum segredo e nenhum URI de redirecionamento são necessários. Após salvar, clique em Autorizar.</value>
+  </data>
+  <data name="MsaClientIdPlaceholder" xml:space="preserve">
+    <value>ID do Aplicativo (cliente) do Azure</value>
+  </data>
+  <data name="MsaClientSecretOptional" xml:space="preserve">
+    <value>(opcional)</value>
+  </data>
+  <data name="MsaClientSecretPlaceholder" xml:space="preserve">
+    <value>Não é necessário para aplicativos de cliente público</value>
+  </data>
+  <data name="MsaClientSecretHint" xml:space="preserve">
+    <value>Necessário apenas para aplicativos de cliente confidencial. Deixe em branco ao usar um cliente público.</value>
+  </data>
+  <data name="MsaAuthorized" xml:space="preserve">
+    <value>Autorizado. Conta Microsoft conectada, o token é renovado automaticamente.</value>
+  </data>
+  <data name="MsaReAuthorize" xml:space="preserve">
+    <value>Reautorizar</value>
+  </data>
+  <data name="MsaNotYetAuthorized" xml:space="preserve">
+    <value>Ainda não autorizado.</value>
+  </data>
+  <data name="MsaSaveThenAuthorize" xml:space="preserve">
+    <value>Salve e clique em {0}.</value>
+  </data>
+  <data name="MsaEnterClientIdThenAuthorize" xml:space="preserve">
+    <value>Insira a ID do Cliente, salve e clique em {0}.</value>
+  </data>
+  <data name="MsaDefaultClientInfoEdit" xml:space="preserve">
+    <value>O Mail-Archiver usa um registro de aplicativo pré-configurado — não é necessário ter seu próprio registro de aplicativo. Preencha apenas para usar uma ID de Cliente personalizada.</value>
+  </data>
+  <data name="MsaNoSecretNeededShort" xml:space="preserve">
+    <value>Nenhum segredo e nenhum URI de redirecionamento são necessários.</value>
+  </data>
+  <data name="MsaClientIdOptionalHint" xml:space="preserve">
+    <value>Opcional — deixe em branco para usar o registro de aplicativo padrão.</value>
+  </data>
+  <data name="MsaClientIdKeepExisting" xml:space="preserve">
+    <value>Deixe em branco para manter o valor existente.</value>
+  </data>
+  <data name="MsaClientSecretPlaceholderEdit" xml:space="preserve">
+    <value>Não é necessário para o Fluxo de Código do Dispositivo</value>
+  </data>
+  <data name="MsaAuthorizeWithMicrosoft" xml:space="preserve">
+    <value>Autorizar com a Microsoft</value>
+  </data>
+  <data name="MsaReAuthorizeWithMicrosoft" xml:space="preserve">
+    <value>Reautorizar com a Microsoft</value>
+  </data>
+  <data name="MsaClientIdRequired" xml:space="preserve">
+    <value>Uma ID de Cliente é necessária para contas Microsoft Pessoais quando nenhuma ID de Cliente padrão está configurada.</value>
+  </data>
+  <data name="MsaNotAuthorizedSync" xml:space="preserve">
+    <value>Esta conta Microsoft ainda não foi autorizada. Clique em &quot;Autorizar com a Microsoft&quot; na página de edição da conta primeiro.</value>
+  </data>
+  <data name="MsaClientIdNotConfigured" xml:space="preserve">
+    <value>A ID do Cliente não está configurada. Edite a conta primeiro.</value>
+  </data>
+  <data name="MsaAuthorizationFailed" xml:space="preserve">
+    <value>Falha ao iniciar a autorização: {0}</value>
+  </data>
+  <data name="MsaAccessDenied" xml:space="preserve">
+    <value>Acesso negado.</value>
+  </data>
+  <data name="MsaSessionExpired" xml:space="preserve">
+    <value>Sessão expirada. Inicie a autorização novamente.</value>
+  </data>
+  <data name="MsaAccountNotFound" xml:space="preserve">
+    <value>Conta não encontrada.</value>
+  </data>
+  <data name="MsaAuthorizationCancelled" xml:space="preserve">
+    <value>Criação da conta cancelada.</value>
+  </data>
+  <data name="ShowPassword" xml:space="preserve">
+    <value>Mostrar senha</value>
+  </data>
+  <data name="HidePassword" xml:space="preserve">
+    <value>Ocultar senha</value>
+  </data>
+  <data name="AdvancedSettings" xml:space="preserve">
+    <value>Configurações avançadas</value>
+  </data>
+  <data name="UnsavedChangesWarning" xml:space="preserve">
+    <value>Você tem alterações não salvas. Tem certeza de que deseja sair desta página?</value>
+  </data>
+  <data name="Saving" xml:space="preserve">
+    <value>Salvando...</value>
+  </data>
+  <data name="CopyFolderToExcluded" xml:space="preserve">
+    <value>Clique em uma pasta para adicioná-la ou removê-la da lista de exclusão</value>
+  </data>
+  <data name="DatabaseStorage" xml:space="preserve">
+    <value>Tamanho do banco de dados</value>
+  </data>
+  <data name="StorageUsed" xml:space="preserve">
+    <value>Armazenamento usado</value>
+  </data>
+  <data name="ConnectionDetails" xml:space="preserve">
+    <value>Detalhes da conexão</value>
+  </data>
+  <data name="PrimaryActions" xml:space="preserve">
+    <value>Ações</value>
+  </data>
+  <data name="FilterMailboxes" xml:space="preserve">
+    <value>Filtrar caixas de correio...</value>
+  </data>
+  <data name="NoMailboxesMatchFilter" xml:space="preserve">
+    <value>Nenhuma caixa de correio corresponde ao seu filtro.</value>
+  </data>
+  <data name="MsaBadge" xml:space="preserve">
+    <value>MSA (pessoal)</value>
+  </data>
+  <data name="MsaAuthAfterSaveInfo" xml:space="preserve">
+    <value>Após salvar, você será redirecionado para a Microsoft para autorizar o acesso à sua caixa de correio.</value>
+  </data>
+  <data name="UserAccountSection" xml:space="preserve">
+    <value>Detalhes da conta</value>
+  </data>
+  <data name="UserSecuritySection" xml:space="preserve">
+    <value>Segurança</value>
+  </data>
+  <data name="OidcPasswordManagedExternally" xml:space="preserve">
+    <value>Este é um usuário OIDC. O gerenciamento de senha é feito pelo provedor OIDC.</value>
+  </data>
+  <data name="BackgroundJobsActiveCount" xml:space="preserve">
+    <value>{0} tarefa(s) em segundo plano em execução no momento.</value>
+  </data>
+  <data name="AutoRefreshInfo" xml:space="preserve">
+    <value>Atualização automática em {0}s</value>
+  </data>
+  <data name="WelcomeBack" xml:space="preserve">
+    <value>Bem-vindo de volta, {0}</value>
+  </data>
+  <!-- CSV Bulk IMAP Import -->
+  <data name="ImportCsvBulk" xml:space="preserve">
+    <value>Importação em massa via CSV</value>
+  </data>
+  <data name="CsvImportTitle" xml:space="preserve">
+    <value>Importar caixas de correio IMAP de CSV</value>
+  </data>
+  <data name="CsvImportInformation" xml:space="preserve">
+    <value>Importe várias caixas de correio IMAP de uma vez por meio de um arquivo CSV.</value>
+  </data>
+  <data name="CsvImportFormatHelp" xml:space="preserve">
+    <value>Colunas: email (obrigatório), password (obrigatório), name (opcional), username (opcional), imap_server (opcional), imap_port (opcional), use_ssl (opcional)</value>
+  </data>
+  <data name="CsvImportCommonServerHelp" xml:space="preserve">
+    <value>As configurações comuns de servidor se aplicam a todas as linhas sem uma coluna imap_server.</value>
+  </data>
+  <data name="CsvImportNoConnectionTest" xml:space="preserve">
+    <value>Nenhum teste de conexão IMAP é realizado — os erros só aparecerão na primeira sincronização.</value>
+  </data>
+  <data name="CsvImportAdminOnlyNote" xml:space="preserve">
+    <value>Este recurso está disponível apenas para administradores.</value>
+  </data>
+  <data name="DownloadExampleCsv" xml:space="preserve">
+    <value>Baixar CSV de exemplo</value>
+  </data>
+  <data name="CsvImportSettingsTitle" xml:space="preserve">
+    <value>Upload e configurações</value>
+  </data>
+  <data name="CsvFile" xml:space="preserve">
+    <value>Arquivo CSV</value>
+  </data>
+  <data name="CsvFileHelp" xml:space="preserve">
+    <value>Arquivo CSV codificado em UTF-8 com linha de cabeçalho. Colunas obrigatórias: email, password.</value>
+  </data>
+  <data name="CommonServerSettings" xml:space="preserve">
+    <value>Configurações comuns de servidor</value>
+  </data>
+  <data name="CommonServerSettingsHelp" xml:space="preserve">
+    <value>Usado quando a linha do CSV não tem um valor imap_server.</value>
+  </data>
+  <data name="ImapServerLabel" xml:space="preserve">
+    <value>Servidor IMAP</value>
+  </data>
+  <data name="ImapPortLabel" xml:space="preserve">
+    <value>Porta IMAP</value>
+  </data>
+  <data name="UseSslLabel" xml:space="preserve">
+    <value>Usar SSL</value>
+  </data>
+  <data name="NamePrefix" xml:space="preserve">
+    <value>Prefixo do nome</value>
+  </data>
+  <data name="NamePrefixHelp" xml:space="preserve">
+    <value>Nome padrão: "{prefix} - &lt;{email}&gt;"</value>
+  </data>
+  <data name="SkipExisting" xml:space="preserve">
+    <value>Ignorar caixas de correio existentes</value>
+  </data>
+  <data name="SkipExistingHelp" xml:space="preserve">
+    <value>Duplicatas são ignoradas, não marcadas como erros.</value>
+  </data>
+  <data name="AccountEnabledLabel" xml:space="preserve">
+    <value>Conta habilitada</value>
+  </data>
+  <data name="CsvImportSubmit" xml:space="preserve">
+    <value>Importar</value>
+  </data>
+  <data name="CsvImportResult" xml:space="preserve">
+    <value>Resultado da importação</value>
+  </data>
+  <data name="CsvImportAgain" xml:space="preserve">
+    <value>Importar outro CSV</value>
+  </data>
+  <data name="CsvImportResultSummary" xml:space="preserve">
+    <value>{0} criadas, {1} ignoradas, {2} com falha</value>
+  </data>
+  <data name="CsvImportCreated" xml:space="preserve">
+    <value>Criadas</value>
+  </data>
+  <data name="CsvImportSkipped" xml:space="preserve">
+    <value>Ignoradas</value>
+  </data>
+  <data name="CsvImportFailed" xml:space="preserve">
+    <value>Com falha</value>
+  </data>
+  <data name="CsvImportEmail" xml:space="preserve">
+    <value>E-mail</value>
+  </data>
+  <data name="CsvImportNameCol" xml:space="preserve">
+    <value>Nome</value>
+  </data>
+  <data name="CsvImportReason" xml:space="preserve">
+    <value>Motivo</value>
+  </data>
+  <data name="CsvImportRowNumber" xml:space="preserve">
+    <value>Linha</value>
+  </data>
+  <data name="CsvImportNoFile" xml:space="preserve">
+    <value>Selecione um arquivo CSV.</value>
+  </data>
+  <data name="CsvImportFileTooLarge" xml:space="preserve">
+    <value>Arquivo muito grande: {0} MB, o máximo é {1} MB.</value>
+  </data>
+  <data name="CsvImportNoValidRows" xml:space="preserve">
+    <value>Nenhuma caixa de correio válida encontrada no arquivo CSV.</value>
+  </data>
+  <data name="CsvImportTooManyRows" xml:space="preserve">
+    <value>O arquivo CSV contém {0} linhas, o máximo é {1}.</value>
+  </data>
+  <data name="CsvImportMissingServer" xml:space="preserve">
+    <value>Nenhum servidor IMAP fornecido (nem na linha nem no formulário).</value>
+  </data>
+  <data name="CsvImportInvalidPort" xml:space="preserve">
+    <value>Porta inválida "{1}"</value>
+  </data>
+  <data name="CsvImportInvalidUseSsl" xml:space="preserve">
+    <value>Valor use_ssl inválido "{1}"</value>
+  </data>
+  <data name="CsvImportMissingEmail" xml:space="preserve">
+    <value>Endereço de e-mail ausente.</value>
+  </data>
+  <data name="CsvImportMissingPassword" xml:space="preserve">
+    <value>Senha ausente.</value>
+  </data>
+  <data name="CsvImportMalformedLine" xml:space="preserve">
+    <value>Linha CSV malformada — não foi possível analisar.</value>
+  </data>
+  <data name="CsvImportDuplicateInFile" xml:space="preserve">
+    <value>Duplicado no arquivo CSV</value>
+  </data>
+  <data name="CsvImportAlreadyExists" xml:space="preserve">
+    <value>Caixa de correio já existe</value>
+  </data>
+  <data name="CsvImportCouldNotBeProcessed" xml:space="preserve">
+    <value>Não foi possível processar a importação do CSV</value>
+  </data>
+  <data name="CsvImportAdminOnly" xml:space="preserve">
+    <value>A importação em massa via CSV está disponível apenas para administradores.</value>
+  </data>
+  <data name="ImportEmailsHeader" xml:space="preserve">
+    <value>Importar e-mails</value>
+  </data>
+  <data name="ImportAccountsHeader" xml:space="preserve">
+    <value>Importar contas</value>
+  </data>
+  <!-- API Keys (read-only REST API) -->
+  <data name="ApiKeys" xml:space="preserve">
+    <value>Chaves de API</value>
+  </data>
+  <data name="ApiKeysDescription" xml:space="preserve">
+    <value>Gerencie chaves de API para acesso programático somente leitura ao seu e-mail arquivado.</value>
+  </data>
+  <data name="CreateApiKey" xml:space="preserve">
+    <value>Criar chave de API</value>
+  </data>
+  <data name="ApiKeyName" xml:space="preserve">
+    <value>Nome</value>
+  </data>
+  <data name="ApiKeyExpiration" xml:space="preserve">
+    <value>Expiração (opcional)</value>
+  </data>
+  <data name="ApiKeyCreatedOnce" xml:space="preserve">
+    <value>Copie esta chave agora. Por segurança, ela é exibida apenas uma vez e não pode ser recuperada depois.</value>
+  </data>
+  <data name="ApiKeyValue" xml:space="preserve">
+    <value>Chave de API</value>
+  </data>
+  <data name="ApiKeyPrefix" xml:space="preserve">
+    <value>Prefixo</value>
+  </data>
+  <data name="ApiKeyCreatedColumn" xml:space="preserve">
+    <value>Criada</value>
+  </data>
+  <data name="ApiKeyLastUsed" xml:space="preserve">
+    <value>Último uso</value>
+  </data>
+  <data name="ApiKeyExpires" xml:space="preserve">
+    <value>Expira</value>
+  </data>
+  <data name="ApiKeyStatus" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="ApiKeyActive" xml:space="preserve">
+    <value>Ativa</value>
+  </data>
+  <data name="ApiKeyRevoked" xml:space="preserve">
+    <value>Revogada</value>
+  </data>
+  <data name="ApiKeyExpired" xml:space="preserve">
+    <value>Expirada</value>
+  </data>
+  <data name="ApiKeyRevoke" xml:space="preserve">
+    <value>Revogar</value>
+  </data>
+  <data name="ApiKeyRevokeConfirm" xml:space="preserve">
+    <value>Revogar esta chave de API? Os aplicativos que a usam pararão de funcionar imediatamente.</value>
+  </data>
+  <data name="ApiKeyOwner" xml:space="preserve">
+    <value>Proprietário</value>
+  </data>
+  <data name="NoApiKeys" xml:space="preserve">
+    <value>Ainda não há chaves de API.</value>
+  </data>
+  <data name="ApiKeyCreatedSuccess" xml:space="preserve">
+    <value>Chave de API criada.</value>
+  </data>
+  <data name="ApiKeyRevokedSuccess" xml:space="preserve">
+    <value>Chave de API revogada.</value>
+  </data>
+  <data name="ApiKeyRevokeFailed" xml:space="preserve">
+    <value>Não foi possível revogar a chave de API.</value>
+  </data>
+  <data name="Copy" xml:space="preserve">
+    <value>Copiar</value>
+  </data>
+  <data name="MeetingInvitation" xml:space="preserve">
+    <value>Convite de reunião</value>
+  </data>
+  <data name="MeetingStart" xml:space="preserve">
+    <value>Início</value>
+  </data>
+  <data name="MeetingEnd" xml:space="preserve">
+    <value>Fim</value>
+  </data>
+  <data name="MeetingLocation" xml:space="preserve">
+    <value>Local</value>
+  </data>
+  <data name="MeetingOrganizer" xml:space="preserve">
+    <value>Organizador</value>
+  </data>
+  <data name="MeetingAttendees" xml:space="preserve">
+    <value>Participantes</value>
+  </data>
+  <data name="MeetingDescription" xml:space="preserve">
+    <value>Descrição</value>
+  </data>
+  <data name="AcknowledgeFailures" xml:space="preserve">
+    <value>Reconhecer falhas</value>
+  </data>
+  <data name="AcknowledgeFailuresConfirm" xml:space="preserve">
+    <value>Isso avançará o carimbo de data/hora da sincronização para o horário de conclusão deste trabalho, então a próxima sincronização será uma sincronização incremental normal. Os e-mails com falha não serão tentados novamente. Continuar?</value>
+  </data>
+  <data name="AcknowledgeFailuresSuccess" xml:space="preserve">
+    <value>O carimbo de data/hora da sincronização foi avançado. A próxima sincronização será incremental.</value>
+  </data>
+  <data name="FailuresAcknowledged" xml:space="preserve">
+    <value>Falhas reconhecidas</value>
+  </data>
+  <data name="OffloadTitle" xml:space="preserve">
+    <value>Descarregar para outra caixa de correio</value>
+  </data>
+  <data name="OffloadIntro" xml:space="preserve">
+    <value>Anexa e-mails arquivados mais recentes que um limite a outra caixa de correio, ignorando tudo o que essa caixa de correio já contém. E-mails mais antigos permanecem no arquivo. Executar isso novamente é seguro e não anexa nada que já tenha chegado.</value>
+  </data>
+  <data name="OffloadSourceAndTarget" xml:space="preserve">
+    <value>Origem e destino</value>
+  </data>
+  <data name="SourceAccount" xml:space="preserve">
+    <value>Conta de origem</value>
+  </data>
+  <data name="OffloadSelectTarget" xml:space="preserve">
+    <value>Selecione uma caixa de correio de destino…</value>
+  </data>
+  <data name="OffloadLoadingFolders" xml:space="preserve">
+    <value>Carregando pastas…</value>
+  </data>
+  <data name="OffloadSelectFolder" xml:space="preserve">
+    <value>-- Selecione uma pasta de destino --</value>
+  </data>
+  <data name="OffloadErrorLoadingFolders" xml:space="preserve">
+    <value>Erro ao carregar pastas</value>
+  </data>
+  <data name="OffloadSelectTargetFirst" xml:space="preserve">
+    <value>Selecione primeiro uma caixa de correio de destino</value>
+  </data>
+  <data name="OffloadTargetFolderHelp" xml:space="preserve">
+    <value>Pasta raiz na caixa de correio de destino. Com INBOX, a estrutura de pastas de origem é recriada no nível superior.</value>
+  </data>
+  <data name="OffloadWindow" xml:space="preserve">
+    <value>Janela de datas</value>
+  </data>
+  <data name="OffloadWindowMonths" xml:space="preserve">
+    <value>Últimos N meses</value>
+  </data>
+  <data name="OffloadWindowMonthsHelp" xml:space="preserve">
+    <value>Resolvido para uma data fixa quando o trabalho começa, então repetir o trabalho seleciona os mesmos e-mails. Defina como 0 para usar uma data explícita.</value>
+  </data>
+  <data name="OffloadCutoffFrom" xml:space="preserve">
+    <value>Data inicial</value>
+  </data>
+  <data name="OffloadCutoffFromHelp" xml:space="preserve">
+    <value>Substitui a janela de meses. Inclusivo, a partir das 00:00 deste dia.</value>
+  </data>
+  <data name="OffloadCutoffTo" xml:space="preserve">
+    <value>Data final (opcional)</value>
+  </data>
+  <data name="OffloadCutoffToHelp" xml:space="preserve">
+    <value>Inclusivo, até as 23:59:59 deste dia.</value>
+  </data>
+  <data name="OffloadOptions" xml:space="preserve">
+    <value>Opções</value>
+  </data>
+  <data name="OffloadDryRun" xml:space="preserve">
+    <value>Simulação</value>
+  </data>
+  <data name="OffloadDryRunHelp" xml:space="preserve">
+    <value>Resolve tudo e informa o que aconteceria por pasta, mas não anexa nada. Recomendado antes de uma execução real.</value>
+  </data>
+  <data name="OffloadMarkAsSeen" xml:space="preserve">
+    <value>Marcar e-mails anexados como lidos</value>
+  </data>
+  <data name="OffloadMarkAsSeenHelp" xml:space="preserve">
+    <value>Desativar esta opção mantém e-mails não lidos como não lidos na caixa de correio de destino.</value>
+  </data>
+  <data name="OffloadFolderHandling" xml:space="preserve">
+    <value>Tratamento de pastas</value>
+  </data>
+  <data name="OffloadExcludedFolders" xml:space="preserve">
+    <value>Pastas de origem excluídas</value>
+  </data>
+  <data name="OffloadRenameMap" xml:space="preserve">
+    <value>Mapa de renomeação de pastas</value>
+  </data>
+  <data name="OffloadNoneConfigured" xml:space="preserve">
+    <value>nenhum configurado</value>
+  </data>
+  <data name="OffloadFolderHandlingHelp" xml:space="preserve">
+    <value>Ambos são configurados na seção Offload do appsettings.json e ficam vazios por padrão. As exclusões são correspondidas antes da renomeação e abrangem subpastas.</value>
+  </data>
+  <data name="OffloadStart" xml:space="preserve">
+    <value>Iniciar descarregamento</value>
+  </data>
+  <data name="OffloadNoTargets" xml:space="preserve">
+    <value>Nenhuma outra conta IMAP está disponível como destino. Crie uma primeiro.</value>
+  </data>
+  <data name="OffloadNoTargetsAssigned" xml:space="preserve">
+    <value>Nenhuma das caixas de correio atribuídas a você pode ser usada como destino. Peça a um administrador para atribuir outra conta IMAP a você.</value>
+  </data>
+  <data name="OffloadTargetRequired" xml:space="preserve">
+    <value>Escolha uma caixa de correio de destino.</value>
+  </data>
+  <data name="OffloadTargetMustDiffer" xml:space="preserve">
+    <value>A caixa de correio de destino deve ser diferente da origem.</value>
+  </data>
+  <data name="OffloadTargetNotFound" xml:space="preserve">
+    <value>A caixa de correio de destino selecionada não existe mais.</value>
+  </data>
+  <data name="OffloadTargetMustBeImap" xml:space="preserve">
+    <value>A caixa de correio de destino deve ser uma conta IMAP.</value>
+  </data>
+  <data name="OffloadCutoffRequired" xml:space="preserve">
+    <value>Forneça uma janela de meses ou uma data inicial.</value>
+  </data>
+  <data name="OffloadCutoffToBeforeFrom" xml:space="preserve">
+    <value>A data final não deve ser anterior à data inicial.</value>
+  </data>
+  <data name="OffloadNothingInWindow" xml:space="preserve">
+    <value>Nenhum e-mail arquivado está dentro dessa janela de datas.</value>
+  </data>
+  <data name="OffloadQueued" xml:space="preserve">
+    <value>Descarregamento enfileirado para {0} e-mails.</value>
+  </data>
+  <data name="OffloadDryRunQueued" xml:space="preserve">
+    <value>Simulação enfileirada para {0} e-mails. Nada será anexado.</value>
+  </data>
+  <data name="OffloadAppended" xml:space="preserve">
+    <value>Anexados</value>
+  </data>
+  <data name="OffloadAlreadyPresent" xml:space="preserve">
+    <value>Já presentes</value>
+  </data>
+  <data name="OffloadByFingerprint" xml:space="preserve">
+    <value>correspondidos por impressão digital</value>
+  </data>
+  <data name="OffloadExcluded" xml:space="preserve">
+    <value>Pasta excluída</value>
+  </data>
+  <data name="OffloadReport" xml:space="preserve">
+    <value>Relatório de descarregamento</value>
+  </data>
+  <data name="OffloadJob" xml:space="preserve">
+    <value>Descarregamento</value>
+  </data>
+
+  <data name="AuditExport" xml:space="preserve">
+    <value>Exportação de dados de auditoria</value>
+  </data>
+  <data name="AuditExportHistory" xml:space="preserve">
+    <value>Histórico de exportações</value>
+  </data>
+  <data name="Mailbox" xml:space="preserve">
+    <value>Caixa de correio</value>
+  </data>
+  <data name="AllMailboxes" xml:space="preserve">
+    <value>Todas as caixas de correio</value>
+  </data>
+  <data name="AttachmentMetadata" xml:space="preserve">
+    <value>Metadados de anexos</value>
+  </data>
+  <data name="IncludeAttachmentMetadata" xml:space="preserve">
+    <value>Incluir tabela de metadados de anexos</value>
+  </data>
+  <data name="DataSupplierName" xml:space="preserve">
+    <value>Nome do fornecedor de dados</value>
+  </data>
+  <data name="DataSupplierLocation" xml:space="preserve">
+    <value>Localização do fornecedor de dados</value>
+  </data>
+  <data name="NoAuditExportsYet" xml:space="preserve">
+    <value>Ainda não há exportações</value>
+  </data>
+  <data name="Period" xml:space="preserve">
+    <value>Período</value>
+  </data>
+
+  <data name="Comment" xml:space="preserve">
+    <value>Comentário</value>
+  </data>
+  <data name="AuditExportInvalidPeriod" xml:space="preserve">
+    <value>Período inválido: data de início e fim são obrigatórias.</value>
+  </data>
+  <data name="AuditExportRangeTooLong" xml:space="preserve">
+    <value>O período não deve exceder {0} anos.</value>
+  </data>
+  <data name="AuditExportAccountNotFound" xml:space="preserve">
+    <value>A caixa de correio selecionada não foi encontrada.</value>
+  </data>
+  <data name="AuditExportFileNotFound" xml:space="preserve">
+    <value>O arquivo de exportação não foi encontrado ou não está mais disponível.</value>
+  </data>
+
+  <data name="BackToLogs" xml:space="preserve">
+    <value>Voltar para os logs</value>
+  </data>
+  <data name="ExportSettings" xml:space="preserve">
+    <value>Configurações de exportação</value>
+  </data>
+  <data name="CancelExportConfirm" xml:space="preserve">
+    <value>Cancelar esta exportação?</value>
+  </data>
+  <data name="FailedFilesTitle" xml:space="preserve">
+    <value>Arquivos com falha ({0})</value>
+  </data>
+  <data name="FailedFilesTruncated" xml:space="preserve">
+    <value>Apenas os primeiros 200 arquivos com falha são listados. Consulte os logs do Docker para a lista completa.</value>
+  </data>
+  <data name="FailedFilesReason_BannerLine" xml:space="preserve">
+    <value>Linha de banner não padrão antes dos cabeçalhos de e-mail (ex.: exportação PST do MailStore)</value>
+  </data>
+  <data name="FailedFilesReason_MboxFromLine" xml:space="preserve">
+    <value>Linha de marcador &apos;From &apos; de mbox residual</value>
+  </data>
+  <data name="FailedFilesReason_SplitHeaderBlock" xml:space="preserve">
+    <value>Bloco de cabeçalho dividido por linhas em branco</value>
+  </data>
+  <data name="FailedFilesReason_JunkBeforeHeaders" xml:space="preserve">
+    <value>Linhas não analisáveis antes dos cabeçalhos de e-mail</value>
+  </data>
+  <data name="FailedFilesReason_UnparseableHeaders" xml:space="preserve">
+    <value>Não foi possível analisar os cabeçalhos de e-mail</value>
+  </data>
+  <data name="FailedFilesReason_Generic" xml:space="preserve">
+    <value>Erro durante o processamento do arquivo</value>
+  </data>
+  <data name="RecoveredLabel" xml:space="preserve">
+    <value>Recuperados:</value>
+  </data>
+  <data name="RecoveredTitle" xml:space="preserve">
+    <value>E-mails recuperados</value>
+  </data>
+  <data name="RecoveredSummary" xml:space="preserve">
+    <value>{0} e-mail(s) com cabeçalhos não padrão foram reparados e arquivados automaticamente.</value>
+  </data>
+</root>
