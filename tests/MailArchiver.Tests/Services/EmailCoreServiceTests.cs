@@ -479,6 +479,67 @@ public class EmailCoreServiceTests
     }
 
     // ============================================================
+    // CountSubfolderEmailsAsync
+    // ============================================================
+
+    [Fact]
+    public async Task CountSubfolderEmails_CountsOnlyDescendantFolders()
+    {
+        var ctx = _fixture.CreateContext();
+        try
+        {
+            var acct = await SeedAccountAsync(ctx);
+            ctx.ArchivedEmails.Add(BuildEmail(acct, "own-1",        "a@x.com", "b@x.com", folder: "travel"));
+            ctx.ArchivedEmails.Add(BuildEmail(acct, "own-2",        "a@x.com", "b@x.com", folder: "travel"));
+            ctx.ArchivedEmails.Add(BuildEmail(acct, "nested-slash", "a@x.com", "b@x.com", folder: "travel/2022"));
+            ctx.ArchivedEmails.Add(BuildEmail(acct, "deep-slash",   "a@x.com", "b@x.com", folder: "travel/2022/France"));
+            ctx.ArchivedEmails.Add(BuildEmail(acct, "nested-dot",   "a@x.com", "b@x.com", folder: "travel.old"));
+            ctx.ArchivedEmails.Add(BuildEmail(acct, "lookalike",    "a@x.com", "b@x.com", folder: "travelXyz"));
+            await ctx.SaveChangesAsync();
+
+            var svc = ServiceFactory.CreateEmailCoreService(ctx);
+
+            Assert.Equal(3, await svc.CountSubfolderEmailsAsync(null, null, null, acct.Id, "travel", null));
+            Assert.Equal(1, await svc.CountSubfolderEmailsAsync(null, null, null, acct.Id, "travel/2022", null));
+            Assert.Equal(0, await svc.CountSubfolderEmailsAsync(null, null, null, acct.Id, "travel/2022/France", null));
+            Assert.Equal(0, await svc.CountSubfolderEmailsAsync(null, null, null, acct.Id, "travelXyz", null));
+            Assert.Equal(0, await svc.CountSubfolderEmailsAsync(null, null, null, acct.Id, "", null));
+        }
+        finally
+        {
+            await CleanupTestAccountAsync(ctx);
+            await ctx.DisposeAsync();
+        }
+    }
+
+    [Fact]
+    public async Task CountSubfolderEmails_AppliesFiltersAndAccount()
+    {
+        var ctx = _fixture.CreateContext();
+        try
+        {
+            var acct = await SeedAccountAsync(ctx);
+            var other = await SeedAccountAsync(ctx);
+            ctx.ArchivedEmails.Add(BuildEmail(acct, "sub-in",   "a@x.com", "b@x.com", folder: "INBOX/Work", isOutgoing: false));
+            ctx.ArchivedEmails.Add(BuildEmail(acct, "sub-out",  "a@x.com", "b@x.com", folder: "INBOX/Work", isOutgoing: true));
+            ctx.ArchivedEmails.Add(BuildEmail(other, "foreign", "a@x.com", "b@x.com", folder: "INBOX/Work"));
+            await ctx.SaveChangesAsync();
+
+            var svc = ServiceFactory.CreateEmailCoreService(ctx);
+
+            Assert.Equal(2, await svc.CountSubfolderEmailsAsync(null, null, null, acct.Id, "INBOX", null));
+            Assert.Equal(1, await svc.CountSubfolderEmailsAsync(null, null, null, acct.Id, "INBOX", true));
+            Assert.Equal(0, await svc.CountSubfolderEmailsAsync(null, null, null, acct.Id, "INBOX", null,
+                allowedAccountIds: new List<int> { other.Id }));
+        }
+        finally
+        {
+            await CleanupTestAccountAsync(ctx);
+            await ctx.DisposeAsync();
+        }
+    }
+
+    // ============================================================
     // GetEmailCountByAccountAsync
     // ============================================================
 
