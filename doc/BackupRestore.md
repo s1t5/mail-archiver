@@ -110,7 +110,7 @@ mkdir -p "$BACKUP_DIR"
 
 # 2. Backup the database
 # Replace 'mailuser' and 'MailArchiver' with your actual POSTGRES_USER and POSTGRES_DB
-docker compose exec -T postgres pg_dump -U mailuser -d MailArchiver > "$BACKUP_DIR/database.sql"
+docker compose exec -T postgres pg_dump -U mailuser -d MailArchiver | gzip > "$BACKUP_DIR/database.sql.gz"
 
 # 3. Backup data protection keys (these change rarely, can be done while running)
 cp -r data-protection-keys "$BACKUP_DIR/"
