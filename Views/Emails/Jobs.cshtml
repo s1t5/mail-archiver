@@ -1131,8 +1131,17 @@
         // by a reload of this page, and the click is simply lost. The click handler runs in the
         // capture phase because beforeunload arrives only once the navigation has taken over,
         // which is already too late.
+        // While a modal is open (e.g. the release notes shown after an update) the reload is
+        // postponed, otherwise the dialog disappears before it can be read or dismissed.
         if (refreshSeconds > 0) {
-            const reloadTimer = setTimeout(function () { location.reload(); }, refreshSeconds * 1000);
+            let reloadTimer;
+            const scheduleReload = function () {
+                reloadTimer = setTimeout(function () {
+                    if (document.querySelector('.modal.show')) { scheduleReload(); return; }
+                    location.reload();
+                }, refreshSeconds * 1000);
+            };
+            scheduleReload();
             const cancelReload = function () { clearTimeout(reloadTimer); };
             document.addEventListener('click', function (e) {
                 if (e.target.closest('a[href], button[type="submit"], input[type="submit"]')) cancelReload();
