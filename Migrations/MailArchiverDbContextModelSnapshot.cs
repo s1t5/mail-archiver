@@ -169,6 +169,10 @@ namespace MailArchiver.Migrations
                     b.Property<bool>("IsOutgoing")
                         .HasColumnType("boolean");
 
+                    b.Property<bool>("IsRead")
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
+
                     b.Property<int>("MailAccountId")
                         .HasColumnType("integer");
 
