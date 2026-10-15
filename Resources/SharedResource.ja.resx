@@ -1,0 +1,3529 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="EmailArchive" xml:space="preserve">
+    <value>メールアーカイブ</value>
+  </data>
+  <data name="Export" xml:space="preserve">
+    <value>エクスポート</value>
+  </data>
+  <data name="Dashboard" xml:space="preserve">
+    <value>ダッシュボード</value>
+  </data>
+  <data name="Archive" xml:space="preserve">
+    <value>アーカイブ</value>
+  </data>
+  <data name="MailAccounts" xml:space="preserve">
+    <value>メールアカウント</value>
+  </data>
+  <data name="Users" xml:space="preserve">
+    <value>ユーザー</value>
+  </data>
+  <data name="Jobs" xml:space="preserve">
+    <value>ジョブ</value>
+  </data>
+  <data name="LastUpdate" xml:space="preserve">
+    <value>最終更新:</value>
+  </data>
+  <data name="SearchTerm" xml:space="preserve">
+    <value>検索キーワード</value>
+  </data>
+  <data name="From" xml:space="preserve">
+    <value>送信元</value>
+  </data>
+  <data name="To" xml:space="preserve">
+    <value>送信先</value>
+  </data>
+  <data name="Direction" xml:space="preserve">
+    <value>送受信区分</value>
+  </data>
+  <data name="Reset" xml:space="preserve">
+    <value>リセット</value>
+  </data>
+  <data name="SelectionMode" xml:space="preserve">
+    <value>選択モード</value>
+  </data>
+  <data name="BatchOperationInformation" xml:space="preserve">
+    <value>一括操作情報</value>
+  </data>
+  <data name="DirectProcessing" xml:space="preserve">
+    <value>直接処理</value>
+  </data>
+  <data name="BackgroundJob" xml:space="preserve">
+    <value>バックグラウンドジョブ</value>
+  </data>
+  <data name="MaximumLimit" xml:space="preserve">
+    <value>上限数</value>
+  </data>
+  <data name="ProcessOnPage" xml:space="preserve">
+    <value>このページで処理（完了まで待機）</value>
+  </data>
+  <data name="ProcessInBackground" xml:space="preserve">
+    <value>バックグラウンドで処理（別途監視）</value>
+  </data>
+  <data name="SplitLargerOperations" xml:space="preserve">
+    <value>大きな操作を複数のバッチに分割</value>
+  </data>
+  <data name="ActiveJobsCurrentlyRunning" xml:space="preserve">
+    <value>現在 {0} 件のアクティブなジョブが実行中です</value>
+  </data>
+  <data name="NoBackgroundJobsRunning" xml:space="preserve">
+    <value>現在実行中のバックグラウンドジョブはありません</value>
+  </data>
+  <data name="MonitorBackgroundJobs" xml:space="preserve">
+    <value>バックグラウンドジョブを監視</value>
+  </data>
+  <data name="ViewJobHistory" xml:space="preserve">
+    <value>ジョブ履歴を表示</value>
+  </data>
+  <data name="EmailsFound" xml:space="preserve">
+    <value>{0} 件のメールが見つかりました</value>
+  </data>
+  <data name="PageOf" xml:space="preserve">
+    <value>{0} / {1} ページ</value>
+  </data>
+  <data name="SelectAll" xml:space="preserve">
+    <value>すべて選択</value>
+  </data>
+  <data name="DeselectAll" xml:space="preserve">
+    <value>選択を解除</value>
+  </data>
+  <data name="CopySelected" xml:space="preserve">
+    <value>選択項目をコピー</value>
+  </data>
+  <data name="Subject" xml:space="preserve">
+    <value>件名</value>
+  </data>
+  <data name="Date" xml:space="preserve">
+    <value>日時</value>
+  </data>
+  <data name="Attachments" xml:space="preserve">
+    <value>添付ファイル</value>
+  </data>
+  <data name="Details" xml:space="preserve">
+    <value>詳細</value>
+  </data>
+  <data name="Out" xml:space="preserve">
+    <value>送信</value>
+  </data>
+  <data name="In" xml:space="preserve">
+    <value>受信</value>
+  </data>
+  <data name="SelectThisEmail" xml:space="preserve">
+    <value>このメールを選択</value>
+  </data>
+  <data name="Previous" xml:space="preserve">
+    <value>前へ</value>
+  </data>
+  <data name="Next" xml:space="preserve">
+    <value>次へ</value>
+  </data>
+  <data name="NoEmailsFoundTitle" xml:space="preserve">
+    <value>メールが見つかりません</value>
+  </data>
+  <data name="NoEmailsFoundText" xml:space="preserve">
+    <value>指定された検索条件に一致するメールは見つかりませんでした。</value>
+  </data>
+  <data name="ExportFormat" xml:space="preserve">
+    <value>エクスポート形式</value>
+  </data>
+  <data name="ExportInformation" xml:space="preserve">
+    <value>エクスポート情報:</value>
+  </data>
+  <data name="ExportingFilteredResults" xml:space="preserve">
+    <value>現在の検索条件に基づいて絞り込まれた結果をエクスポートしています。</value>
+  </data>
+  <data name="ExportingAllEmails" xml:space="preserve">
+    <value>アーカイブからすべてのメールをエクスポートしています。</value>
+  </data>
+  <data name="ExportMayTakeTime" xml:space="preserve">
+    <value>メール件数が大量にある場合、エクスポートに時間がかかることがあります。出力ファイルには最大10,000件のメールが含まれます。</value>
+  </data>
+  <data name="EmailsMatchCriteria" xml:space="preserve">
+    <value>{0} 件のメールが現在の条件に一致し、エクスポートされます。</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>キャンセル</value>
+  </data>
+  <data name="ExportButton" xml:space="preserve">
+    <value>エクスポート</value>
+  </data>
+  <data name="DirectProcessingMode" xml:space="preserve">
+    <value>直接処理</value>
+  </data>
+  <data name="BackgroundJobMode" xml:space="preserve">
+    <value>バックグラウンドジョブ</value>
+  </data>
+  <data name="TooManySelected" xml:space="preserve">
+    <value>選択件数が多すぎます - 分割が必要です</value>
+  </data>
+  <data name="PleaseSelectAtLeastOne" xml:space="preserve">
+    <value>コピーするメールを少なくとも1件選択してください。</value>
+  </data>
+  <data name="TooManyEmailsSelected" xml:space="preserve">
+    <value>選択されたメールが多すぎます ({0} 件)。許容される最大数は {1} 件です。選択数を減らすか、複数の操作に分割してください。</value>
+  </data>
+  <data name="ContinueWithOperation" xml:space="preserve">
+    <value>{0} 件のメールを選択しました。これはバックグラウンドジョブとして処理され、別途進捗を監視できます。続行しますか？</value>
+  </data>
+  <data name="ConfirmBatchRestore" xml:space="preserve">
+    <value>一括復元の確認</value>
+  </data>
+  <data name="ConfirmBatchDelete" xml:space="preserve">
+    <value>一括削除の確認</value>
+  </data>
+  <data name="Continue" xml:space="preserve">
+    <value>続行</value>
+  </data>
+  <data name="NoEmailsArchivedYet" xml:space="preserve">
+    <value>アーカイブされたメールはまだありません</value>
+  </data>
+  <data name="QuickActions" xml:space="preserve">
+    <value>クイックアクション</value>
+  </data>
+  <data name="SearchArchive" xml:space="preserve">
+    <value>アーカイブを検索</value>
+  </data>
+  <data name="AddAccount" xml:space="preserve">
+    <value>アカウント追加</value>
+  </data>
+  <data name="ManageAccounts" xml:space="preserve">
+    <value>アカウント管理</value>
+  </data>
+  <data name="BackgroundJobs" xml:space="preserve">
+    <value>バックグラウンドジョブ</value>
+  </data>
+  <data name="ActiveJobs" xml:space="preserve">
+    <value>アクティブなジョブ</value>
+  </data>
+  <data name="Emails" xml:space="preserve">
+    <value>メール</value>
+  </data>
+  <data name="Accounts" xml:space="preserve">
+    <value>アカウント</value>
+  </data>
+  <data name="Storage" xml:space="preserve">
+    <value>ストレージ</value>
+  </data>
+  <data name="DatabaseStorage" xml:space="preserve">
+    <value>データベースサイズ</value>
+  </data>
+  <data name="EmailsPerMonth" xml:space="preserve">
+    <value>月別メール数</value>
+  </data>
+  <data name="Last12Months" xml:space="preserve">
+    <value>過去12ヶ月</value>
+  </data>
+  <data name="TopSenders" xml:space="preserve">
+    <value>上位送信者</value>
+  </data>
+  <data name="Incoming" xml:space="preserve">
+    <value>受信</value>
+  </data>
+  <data name="AccountOverview" xml:space="preserve">
+    <value>アカウント概要</value>
+  </data>
+  <data name="ShowAll" xml:space="preserve">
+    <value>すべて表示</value>
+  </data>
+  <data name="Name" xml:space="preserve">
+    <value>名前</value>
+  </data>
+  <data name="EmailAddress" xml:space="preserve">
+    <value>メールアドレス</value>
+  </data>
+  <data name="Count" xml:space="preserve">
+    <value>件数</value>
+  </data>
+  <data name="LastSync" xml:space="preserve">
+    <value>最終同期</value>
+  </data>
+  <data name="NoEmailAccountsFound" xml:space="preserve">
+    <value>メールアカウントが見つかりません</value>
+  </data>
+  <data name="BackgroundJobsActive" xml:space="preserve">
+    <value>実行中のバックグラウンドジョブ:</value>
+  </data>
+  <data name="ViewJobs" xml:space="preserve">
+    <value>ジョブを表示</value>
+  </data>
+  <data name="AttachmentsCount" xml:space="preserve">
+    <value>添付ファイル数</value>
+  </data>
+  <data name="AutoDelete" xml:space="preserve">
+    <value>自動削除</value>
+  </data>
+  <data name="Actions" xml:space="preserve">
+    <value>操作</value>
+  </data>
+  <data name="Enabled" xml:space="preserve">
+    <value>有効</value>
+  </data>
+  <data name="Disabled" xml:space="preserve">
+    <value>無効</value>
+  </data>
+  <data name="NotSynced" xml:space="preserve">
+    <value>未同期</value>
+  </data>
+  <data name="SyncRunning" xml:space="preserve">
+    <value>同期実行中…</value>
+  </data>
+  <data name="SyncPending" xml:space="preserve">
+    <value>同期保留中…</value>
+  </data>
+  <data name="Days" xml:space="preserve">
+    <value>日</value>
+  </data>
+  <data name="Server" xml:space="preserve">
+    <value>サーバー</value>
+  </data>
+  <data name="EmailAccounts" xml:space="preserve">
+    <value>メールアカウント</value>
+  </data>
+  <data name="CreateNewUser" xml:space="preserve">
+    <value>新規ユーザー作成</value>
+  </data>
+  <data name="Username" xml:space="preserve">
+    <value>ユーザー名</value>
+  </data>
+  <data name="Role" xml:space="preserve">
+    <value>権限</value>
+  </data>
+  <data name="Status" xml:space="preserve">
+    <value>ステータス</value>
+  </data>
+  <data name="Created" xml:space="preserve">
+    <value>作成日時</value>
+  </data>
+  <data name="LastLogin" xml:space="preserve">
+    <value>最終ログイン</value>
+  </data>
+  <data name="Admin" xml:space="preserve">
+    <value>管理者</value>
+  </data>
+  <data name="User" xml:space="preserve">
+    <value>一般ユーザー</value>
+  </data>
+  <data name="Active" xml:space="preserve">
+    <value>有効</value>
+  </data>
+  <data name="Inactive" xml:space="preserve">
+    <value>無効</value>
+  </data>
+  <data name="Never" xml:space="preserve">
+    <value>なし</value>
+  </data>
+  <data name="Assign" xml:space="preserve">
+    <value>割り当て</value>
+  </data>
+  <data name="Disable" xml:space="preserve">
+    <value>無効化</value>
+  </data>
+  <data name="Enable" xml:space="preserve">
+    <value>有効化</value>
+  </data>
+  <data name="Delete" xml:space="preserve">
+    <value>削除</value>
+  </data>
+  <data name="DeleteAccountConfirm" xml:space="preserve">
+    <value>アカウント {0} とすべてのアーカイブ済みメールを削除しますか？この操作は取り消せません！</value>
+  </data>
+  <data name="DeleteUserConfirm" xml:space="preserve">
+    <value>ユーザー {0} を削除してもよろしいですか？この操作は取り消せません。</value>
+  </data>
+  <data name="NoUsersFound" xml:space="preserve">
+    <value>ユーザーが見つかりません</value>
+  </data>
+  <data name="AddFirstUser" xml:space="preserve">
+    <value>メールアーカイブへのアクセスを管理するため、最初のユーザーを追加してください。</value>
+  </data>
+  <data name="BackgroundJobsTitle" xml:space="preserve">
+    <value>バックグラウンドジョブ</value>
+  </data>
+  <data name="BackToArchive" xml:space="preserve">
+    <value>アーカイブに戻る</value>
+  </data>
+  <data name="MBoxImportJobs" xml:space="preserve">
+    <value>MBox インポートジョブ</value>
+  </data>
+  <data name="JobID" xml:space="preserve">
+    <value>ジョブ ID</value>
+  </data>
+  <data name="FileName" xml:space="preserve">
+    <value>ファイル名</value>
+  </data>
+  <data name="Progress" xml:space="preserve">
+    <value>進捗状況</value>
+  </data>
+  <data name="EmailsLabel" xml:space="preserve">
+    <value>メール件数</value>
+  </data>
+  <data name="CreatedLabel" xml:space="preserve">
+    <value>作成日時</value>
+  </data>
+  <data name="SynchronizationJobs" xml:space="preserve">
+    <value>同期ジョブ</value>
+  </data>
+  <data name="Last20" xml:space="preserve">
+    <value>直近20件</value>
+  </data>
+  <data name="Started" xml:space="preserve">
+    <value>開始日時</value>
+  </data>
+  <data name="Duration" xml:space="preserve">
+    <value>所要時間</value>
+  </data>
+  <data name="BatchRestoreJobs" xml:space="preserve">
+    <value>一括復元ジョブ</value>
+  </data>
+  <data name="BatchRestore" xml:space="preserve">
+    <value>一括復元</value>
+  </data>
+  <data name="NoBackgroundJobs" xml:space="preserve">
+    <value>バックグラウンドジョブはありません</value>
+  </data>
+  <data name="NoActiveBackgroundJobs" xml:space="preserve">
+    <value>現在アクティブなバックグラウンドジョブはありません。</value>
+  </data>
+  <data name="ImportMBoxFiles" xml:space="preserve">
+    <value>MBox ファイルをインポート</value>
+  </data>
+  <data name="RecentEmails" xml:space="preserve">
+    <value>最近のメール</value>
+  </data>
+  <data name="SubjectSender" xml:space="preserve">
+    <value>件名、送信者...</value>
+  </data>
+  <data name="ImportMBox" xml:space="preserve">
+    <value>Mbox インポート</value>
+  </data>
+  <data name="IMAPSettings" xml:space="preserve">
+    <value>IMAP 設定</value>
+  </data>
+  <data name="IMAPServer" xml:space="preserve">
+    <value>IMAP サーバー</value>
+  </data>
+  <data name="Edit" xml:space="preserve">
+    <value>編集</value>
+  </data>
+  <data name="Sync" xml:space="preserve">
+    <value>同期</value>
+  </data>
+  <data name="NoEmailAccountsConfigured" xml:space="preserve">
+    <value>設定されているメールアカウントはありません</value>
+  </data>
+  <data name="AddFirstAccount" xml:space="preserve">
+    <value>メールのアーカイブを開始するか既存の MBox ファイルをインポートするには、最初のメールアカウントを追加してください。</value>
+  </data>
+  <data name="CreateNewEmailAccount" xml:space="preserve">
+    <value>新規メールアカウント作成</value>
+  </data>
+  <data name="AccountName" xml:space="preserve">
+    <value>アカウント名</value>
+  </data>
+  <data name="IMAPPort" xml:space="preserve">
+    <value>IMAP ポート</value>
+  </data>
+  <data name="Password" xml:space="preserve">
+    <value>パスワード</value>
+  </data>
+  <data name="LeaveEmpty" xml:space="preserve">
+    <value>現在のパスワードを変更しない場合は空欄のままにしてください。</value>
+  </data>
+  <data name="UseSSL" xml:space="preserve">
+    <value>SSL または STARTTLS を使用</value>
+  </data>
+  <data name="AccountEnabled" xml:space="preserve">
+    <value>アカウント有効</value>
+  </data>
+  <data name="DisabledAccountsNotSynced" xml:space="preserve">
+    <value>無効化されたアカウントは同期されません</value>
+  </data>
+  <data name="DeleteAfterDays" xml:space="preserve">
+    <value>指定日数後に削除</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>保存</value>
+  </data>
+  <data name="BackToList" xml:space="preserve">
+    <value>一覧に戻る</value>
+  </data>
+  <data name="LeaveEmptyToDisableAutomaticDeletion" xml:space="preserve">
+    <value>自動削除を無効にする場合は空欄にしてください</value>
+  </data>
+  <data name="AutoDeleteText" xml:space="preserve">
+    <value>アーカイブされてから指定した日数が経過したメールをサーバーから自動的に削除します。自動削除を無効にする場合は空欄にしてください。</value>
+  </data>
+  <data name="Authentication" xml:space="preserve">
+    <value>認証</value>
+  </data>
+  <data name="EmailDeletion" xml:space="preserve">
+    <value>メール削除</value>
+  </data>
+  <data name="SyncScheduling" xml:space="preserve">
+    <value>同期スケジュール</value>
+  </data>
+  <data name="SyncIntervalMinutes" xml:space="preserve">
+    <value>同期感覚 (分)</value>
+  </data>
+  <data name="SyncIntervalMinutesPlaceholder" xml:space="preserve">
+    <value>全体設定のデフォルト値</value>
+  </data>
+  <data name="SyncIntervalMinutesInfo" xml:space="preserve">
+    <value>このアカウントのグローバル同期間隔を上書きします。appsettings.json のデフォルト値を使用する場合は空欄にしてください。</value>
+  </data>
+  <data name="FullSyncIntervalHours" xml:space="preserve">
+    <value>完全同期感覚 (時間)</value>
+  </data>
+  <data name="FullSyncIntervalHoursPlaceholder" xml:space="preserve">
+    <value>アカウント固有の完全同期なし</value>
+  </data>
+  <data name="FullSyncIntervalHoursInfo" xml:space="preserve">
+    <value>このスケジュールに従って完全な再同期を実行します。appsettings.json のグローバル設定を使用するか、自動完全同期を無効にする場合は空欄にしてください。手動での再同期ボタンは設定に関わらず常に利用可能です。</value>
+  </data>
+  <data name="DeleteEmailAccountTitle" xml:space="preserve">
+    <value>メールアカウントの削除</value>
+  </data>
+  <data name="PermanentDeletionWarning" xml:space="preserve">
+    <value>永久削除に関する警告</value>
+  </data>
+  <data name="AboutToDeleteAccountAllEmails" xml:space="preserve">
+    <value>このメールアカウントとアーカイブされたすべてのメールを永久に削除しようとしています。</value>
+  </data>
+  <data name="WhatWillBeDeleted" xml:space="preserve">
+    <value>削除される内容:</value>
+  </data>
+  <data name="DeleteItemAccountConfig" xml:space="preserve">
+    <value>アカウント設定および構成情報</value>
+  </data>
+  <data name="DeleteItemAllArchivedEmails" xml:space="preserve">
+    <value>アーカイブされた全 {0} 件のメール</value>
+  </data>
+  <data name="DeleteItemAllAttachments" xml:space="preserve">
+    <value>すべての添付ファイルおよびコンテンツ</value>
+  </data>
+  <data name="DeleteItemSyncHistory" xml:space="preserve">
+    <value>同期履歴</value>
+  </data>
+  <data name="ThisAction" xml:space="preserve">
+    <value>この操作は:</value>
+  </data>
+  <data name="ActionCannotBeUndone" xml:space="preserve">
+    <value>元に戻すことができません</value>
+  </data>
+  <data name="ActionCannotBeRecovered" xml:space="preserve">
+    <value>復元することができません</value>
+  </data>
+  <data name="ActionWillFreeStorage" xml:space="preserve">
+    <value>データベースのストレージ容量を解放します</value>
+  </data>
+  <data name="ActionWillStopSync" xml:space="preserve">
+    <value>このアカウントのすべての同期を停止します</value>
+  </data>
+  <data name="Alternative" xml:space="preserve">
+    <value>代替案:</value>
+  </data>
+  <data name="AlternativeDisableInfo" xml:space="preserve">
+    <value>データを保持したままメール同期のみを停止したい場合は、代わりにアカウントを無効化できます。</value>
+  </data>
+  <data name="DisableAccountInsteadLink" xml:space="preserve">
+    <value>代わりにアカウントを無効化する</value>
+  </data>
+  <data name="AccountToBeDeleted" xml:space="preserve">
+    <value>削除対象アカウント</value>
+  </data>
+  <data name="ArchivedEmails" xml:space="preserve">
+    <value>アーカイブ済みメール</value>
+  </data>
+  <data name="ArchivedEmailsWillBeDeleted" xml:space="preserve">
+    <value>{0} 件のメールが削除されます</value>
+  </data>
+  <data name="FinalConfirmation" xml:space="preserve">
+    <value>最終確認</value>
+  </data>
+  <data name="UnderstandDeletionAcknowledge" xml:space="preserve">
+    <value>アカウント "{0}" およびアーカイブされた全 {1} 件のメールが永久に削除されることを理解しました。この操作は元に戻せません。</value>
+  </data>
+  <data name="CancelKeepAccount" xml:space="preserve">
+    <value>キャンセル - アカウントを保持</value>
+  </data>
+  <data name="CancelKeepAccountMessage" xml:space="preserve">
+    <value>キャンセルしてもよろしいですか？アカウントは保持され、変更は行われません。</value>
+  </data>
+  <data name="YesCancel" xml:space="preserve">
+    <value>はい、キャンセルします</value>
+  </data>
+  <data name="DisableInstead" xml:space="preserve">
+    <value>代わりに無効化する</value>
+  </data>
+  <data name="PermanentlyDeleteAccountAndEmails" xml:space="preserve">
+    <value>アカウントと {0} 件のメールを永久に削除</value>
+  </data>
+  <data name="FinalWarningTitle" xml:space="preserve">
+    <value>最終警告！</value>
+  </data>
+  <data name="YouAreAboutToDelete" xml:space="preserve">
+    <value>以下を永久に削除しようとしています:</value>
+  </data>
+  <data name="BulletAccount" xml:space="preserve">
+    <value>アカウント: "{0}"</value>
+  </data>
+  <data name="BulletArchivedEmails" xml:space="preserve">
+    <value>{0} 件のアーカイブ済みメール</value>
+  </data>
+  <data name="BulletAllAttachments" xml:space="preserve">
+    <value>すべての添付ファイルとデータ</value>
+  </data>
+  <data name="DeletionCannotBeUndone" xml:space="preserve">
+    <value>この操作は絶対に取り消せません！</value>
+  </data>
+  <data name="AreYouAbsolutelySure" xml:space="preserve">
+    <value>本当に実行してもよろしいですか？</value>
+  </data>
+  <data name="EditEmailAccount" xml:space="preserve">
+    <value>メールアカウントの編集</value>
+  </data>
+  <data name="FolderExclusion" xml:space="preserve">
+    <value>フォルダ除外</value>
+  </data>
+  <data name="ExcludedFolders" xml:space="preserve">
+    <value>除外フォルダ</value>
+  </data>
+  <data name="GlobalExcludedFolders" xml:space="preserve">
+    <value>全アカウントで除外</value>
+  </data>
+  <data name="GlobalExcludedFoldersHint" xml:space="preserve">
+    <value>システム全体で設定されており、このアカウント自体のリストに加えて適用されます。ここでは編集できません。</value>
+  </data>
+  <data name="FolderAlreadyExcludedGlobally" xml:space="preserve">
+    <value>すでに全アカウント共通で除外されています。ここでの変更は不要です</value>
+  </data>
+  <data name="ExclusionsCoverSubfolders" xml:space="preserve">
+    <value>指定されたエントリは、その下にあるサブフォルダも対象となります。</value>
+  </data>
+  <data name="FolderAlreadyExcludedGloballyBy" xml:space="preserve">
+    <value>すでにエントリ “{0}” によって全アカウント共通で除外されています。ここでの変更は不要です</value>
+  </data>
+  <data name="FolderCoveredByOwnEntry" xml:space="preserve">
+    <value>このリスト内のエントリ “{0}” およびその配下のすべてのフォルダに含まれています</value>
+  </data>
+  <data name="EnterFolderNames" xml:space="preserve">
+    <value>セミコロン区切りでフォルダ名を入力してください（例: Junk;Spam;Trash）</value>
+  </data>
+  <data name="EnterFolderNamesText" xml:space="preserve">
+    <value>同期から除外するフォルダ。セミコロン区切りでフォルダ名を入力してください。</value>
+  </data>
+  <data name="AvailableFolders" xml:space="preserve">
+    <value>利用可能なフォルダ</value>
+  </data>
+  <data name="FoldersOnServer" xml:space="preserve">
+    <value>以下のフォルダが IMAP サーバー上で利用可能です。</value>
+  </data>
+  <data name="AccountDetailsTitle" xml:space="preserve">
+    <value>アカウント詳細</value>
+  </data>
+  <data name="EmailAccountDetailsHeader" xml:space="preserve">
+    <value>メールアカウントの詳細</value>
+  </data>
+  <data name="TotalEmails" xml:space="preserve">
+    <value>総メール数</value>
+  </data>
+  <data name="EmailsArchived" xml:space="preserve">
+    <value>{0} 件のメールがアーカイブ済み</value>
+  </data>
+  <data name="DeletingAccountWillRemoveAllEmails" xml:space="preserve">
+    <value>このアカウントを削除すると、アーカイブされた全 {0} 件のメールが永久に削除されます</value>
+  </data>
+  <data name="NotYetSynchronized" xml:space="preserve">
+    <value>まだ同期されていません</value>
+  </data>
+  <data name="ResetSyncTime" xml:space="preserve">
+    <value>同期時刻のリセット</value>
+  </data>
+  <data name="ResetSyncTimeConfirm" xml:space="preserve">
+    <value>同期時刻を現在時刻にリセットしてもよろしいですか？システムはこのタイムスタンプより新しいメールのみを同期するため、同期エラーの繰り返しによる不完全な同期を防ぐことができます。</value>
+  </data>
+  <data name="ResetSyncTimeNote" xml:space="preserve">
+    <value>注: これにより同期時刻が現在時刻にリセットされます。システムはこのタイムスタンプより新しいメールのみを同期するため、繰り返し発生する同期エラーによる不完全な同期を防ぐことができます。</value>
+  </data>
+  <data name="AutoDeleteEnabledInfo" xml:space="preserve">
+    <value>メールはアーカイブされてから {0} 日後にサーバーから自動的に削除されます</value>
+  </data>
+  <data name="AutoDeleteDisabledInfo" xml:space="preserve">
+    <value>メールはサーバーから自動削除されません</value>
+  </data>
+  <data name="AccountActions" xml:space="preserve">
+    <value>アカウント操作</value>
+  </data>
+  <data name="EditAccount" xml:space="preserve">
+    <value>アカウントの編集</value>
+  </data>
+  <data name="DisableAccount" xml:space="preserve">
+    <value>アカウントの無効化</value>
+  </data>
+  <data name="EnableAccount" xml:space="preserve">
+    <value>アカウントの有効化</value>
+  </data>
+  <data name="QuickSync" xml:space="preserve">
+    <value>クイック同期</value>
+  </data>
+  <data name="FullResync" xml:space="preserve">
+    <value>完全再同期</value>
+  </data>
+  <data name="FullResyncConfirm" xml:space="preserve">
+    <value>完全再同期を実行してもよろしいですか？サーバーのすべてのコンテンツとアーカイブを比較するため、完了までに長時間かかる場合があります。</value>
+  </data>
+  <data name="CopyAllEmailsToAnotherMailbox" xml:space="preserve">
+    <value>すべてのメールを別のメールボックスにコピー</value>
+  </data>
+  <data name="DangerZone" xml:space="preserve">
+    <value>危険な操作</value>
+  </data>
+  <data name="DangerZoneInfo" xml:space="preserve">
+    <value>以下の操作は元に戻すことができず、データを永久に削除します。</value>
+  </data>
+  <data name="DeleteAccountWithEmailsButton" xml:space="preserve">
+    <value>アカウントとすべてのメール ({0}) を削除</value>
+  </data>
+  <data name="DeleteAccountWithEmailsConfirm" xml:space="preserve">
+    <value>このアカウントとアーカイブされた全 {0} 件のメールを削除してもよろしいですか？この操作は元に戻せません！</value>
+  </data>
+  <data name="BackToAccounts" xml:space="preserve">
+    <value>アカウント一覧に戻る</value>
+  </data>
+  <data name="ImportMBoxFileTitle" xml:space="preserve">
+    <value>MBox ファイルのインポート</value>
+  </data>
+  <data name="MBoxImportInformation" xml:space="preserve">
+    <value>MBox インポート情報:</value>
+  </data>
+  <data name="SupportedFormatsStandard" xml:space="preserve">
+    <value>対応フォーマット: 標準 MBox ファイル (.mbox, .mbx)</value>
+  </data>
+  <data name="MaximumFileSize" xml:space="preserve">
+    <value>最大ファイルサイズ: {0}</value>
+  </data>
+  <data name="LargeFilesBackground" xml:space="preserve">
+    <value>容量の大きいファイルはバックグラウンドで処理されます</value>
+  </data>
+  <data name="DuplicateEmailsSkipped" xml:space="preserve">
+    <value>重複するメールは自動的にスキップされます</value>
+  </data>
+  <data name="AllEmailsImported" xml:space="preserve">
+    <value>すべてのメールが指定されたフォルダにインポートされます</value>
+  </data>
+  <data name="UploadAndImportSettings" xml:space="preserve">
+    <value>アップロードとインポートの設定</value>
+  </data>
+  <data name="SelectMBoxFile" xml:space="preserve">
+    <value>MBox ファイルの選択</value>
+  </data>
+  <data name="SupportedFormatsWithMax" xml:space="preserve">
+    <value>対応フォーマット: .mbox, .mbx ファイル。最大サイズ: {0}</value>
+  </data>
+  <data name="TargetAccount" xml:space="preserve">
+    <value>対象アカウント</value>
+  </data>
+  <data name="PlaceholderSelectAccount" xml:space="preserve">
+    <value>-- アカウントを選択 --</value>
+  </data>
+  <data name="TargetFolder" xml:space="preserve">
+    <value>対象フォルダ</value>
+  </data>
+  <data name="PlaceholderSelectAccountFirst" xml:space="preserve">
+    <value>-- 最初にアカウントを選択してください --</value>
+  </data>
+  <data name="FileInformation" xml:space="preserve">
+    <value>ファイル情報:</value>
+  </data>
+  <data name="FileNameLabel" xml:space="preserve">
+    <value>ファイル名:</value>
+  </data>
+  <data name="FileSizeLabel" xml:space="preserve">
+    <value>ファイルサイズ:</value>
+  </data>
+  <data name="EstimatedProcessingTime" xml:space="preserve">
+    <value>推定処理時間:</value>
+  </data>
+  <data name="Important" xml:space="preserve">
+    <value>重要:</value>
+  </data>
+  <data name="ImportBackgroundInfo1" xml:space="preserve">
+    <value>容量の大きいファイルの場合、インポート処理はバックグラウンドで実行されます。</value>
+  </data>
+  <data name="ImportBackgroundInfo2" xml:space="preserve">
+    <value>インポート開始後、ステータスページで進捗状況を確認できます。</value>
+  </data>
+  <data name="StartImport" xml:space="preserve">
+    <value>インポート開始</value>
+  </data>
+  <data name="ViewImportJobs" xml:space="preserve">
+    <value>インポートジョブを表示</value>
+  </data>
+  <data name="FileSizeExceedsMax" xml:space="preserve">
+    <value>ファイルサイズが上限の {0} を超えています</value>
+  </data>
+  <data name="LoadingFolders" xml:space="preserve">
+    <value>フォルダを読み込み中...</value>
+  </data>
+  <data name="PlaceholderSelectFolder" xml:space="preserve">
+    <value>-- フォルダを選択 --</value>
+  </data>
+  <data name="ErrorLoadingFolders" xml:space="preserve">
+    <value>フォルダの読み込みエラー</value>
+  </data>
+  <data name="UploadInProgress" xml:space="preserve">
+    <value>アップロード中... 転送されるまでこのページを閉じないでください。</value>
+  </data>
+  <data name="StartingImport" xml:space="preserve">
+    <value>インポートを開始中...</value>
+  </data>
+  <data name="MBoxImportStatusTitle" xml:space="preserve">
+    <value>MBox インポートステータス</value>
+  </data>
+  <data name="AllJobs" xml:space="preserve">
+    <value>すべてのジョブ</value>
+  </data>
+  <data name="ImportJobInformation" xml:space="preserve">
+    <value>インポートジョブ情報</value>
+  </data>
+  <data name="JobIDLabel" xml:space="preserve">
+    <value>ジョブ ID:</value>
+  </data>
+  <data name="StatusLabel" xml:space="preserve">
+    <value>ステータス:</value>
+  </data>
+  <data name="EmailsLabelStatus" xml:space="preserve">
+    <value>メール件数:</value>
+  </data>
+  <data name="EstimatedSuffix" xml:space="preserve">
+    <value>(推定)</value>
+  </data>
+  <data name="EmailsProcessedSuffix" xml:space="preserve">
+    <value>件処理済み</value>
+  </data>
+  <data name="EmailsEstimatedSuffix" xml:space="preserve">
+    <value>件 (推定)</value>
+  </data>
+  <data name="Estimating" xml:space="preserve">
+    <value>推定中...</value>
+  </data>
+  <data name="ProgressLabel" xml:space="preserve">
+    <value>進捗:</value>
+  </data>
+  <data name="ImportComplete" xml:space="preserve">
+    <value>インポート完了</value>
+  </data>
+  <data name="FileProcessingProgress" xml:space="preserve">
+    <value>ファイル処理の進捗</value>
+  </data>
+  <data name="ResultsLabel" xml:space="preserve">
+    <value>結果:</value>
+  </data>
+  <data name="SuccessLabel" xml:space="preserve">
+    <value>成功:</value>
+  </data>
+  <data name="FailedLabel" xml:space="preserve">
+    <value>失敗:</value>
+  </data>
+  <data name="CurrentEmailLabel" xml:space="preserve">
+    <value>現在のメール:</value>
+  </data>
+  <data name="StartedLabel" xml:space="preserve">
+    <value>開始日時:</value>
+  </data>
+  <data name="CompletedLabel" xml:space="preserve">
+    <value>完了日時:</value>
+  </data>
+  <data name="DurationLabel" xml:space="preserve">
+    <value>所要時間:</value>
+  </data>
+  <data name="ErrorLabel" xml:space="preserve">
+    <value>エラー:</value>
+  </data>
+  <data name="CancelImportConfirm" xml:space="preserve">
+    <value>このインポートジョブをキャンセルしてもよろしいですか？</value>
+  </data>
+  <data name="CancelImport" xml:space="preserve">
+    <value>インポートをキャンセル</value>
+  </data>
+  <data name="ImportCompletedTitle" xml:space="preserve">
+    <value>インポートが完了しました！</value>
+  </data>
+  <data name="ImportCompletedSummary" xml:space="preserve">
+    <value>{0} 件のメールのインポートに成功しました（エラー: {1} 件）。</value>
+  </data>
+  <data name="CompletedWithErrors" xml:space="preserve">
+    <value>エラーありで完了</value>
+  </data>
+  <data name="ImportCompletedWithErrorsTitle" xml:space="preserve">
+    <value>一部エラーを含んでインポートが完了しました</value>
+  </data>
+  <data name="ImportCompletedWithErrorsDescription" xml:space="preserve">
+    <value>インポートは終了しましたが、一部のメールを処理できませんでした。正常にインポートされたメールはアーカイブで利用可能です。形式が不正なメールはスキップされました。影響を受けたメールの詳細についてはログを確認してください。</value>
+  </data>
+  <data name="MalformedSkippedLabel" xml:space="preserve">
+    <value>不正形式（スキップ済み）:</value>
+  </data>
+  <data name="FailedFilesTitle" xml:space="preserve">
+    <value>失敗したファイル ({0})</value>
+  </data>
+  <data name="FailedFilesTruncated" xml:space="preserve">
+    <value>失敗した最初の200ファイルのみが表示されています。完全なリストは Docker ログを参照してください。</value>
+  </data>
+  <data name="FailedFilesReason_BannerLine" xml:space="preserve">
+    <value>メールヘッダーの前に非標準のバナー行が存在します（例: MailStore PST エクスポート）</value>
+  </data>
+  <data name="FailedFilesReason_MboxFromLine" xml:space="preserve">
+    <value>mbox の 'From ' マーカー行が残っています</value>
+  </data>
+  <data name="FailedFilesReason_SplitHeaderBlock" xml:space="preserve">
+    <value>空行によってヘッダーブロックが分割されています</value>
+  </data>
+  <data name="FailedFilesReason_JunkBeforeHeaders" xml:space="preserve">
+    <value>メールヘッダーの前に解析不能な行が存在します</value>
+  </data>
+  <data name="FailedFilesReason_UnparseableHeaders" xml:space="preserve">
+    <value>メールヘッダーを解析できませんでした</value>
+  </data>
+  <data name="FailedFilesReason_Generic" xml:space="preserve">
+    <value>ファイルの処理中にエラーが発生しました</value>
+  </data>
+  <data name="RecoveredLabel" xml:space="preserve">
+    <value>復元済み:</value>
+  </data>
+  <data name="RecoveredTitle" xml:space="preserve">
+    <value>復元されたメール</value>
+  </data>
+  <data name="RecoveredSummary" xml:space="preserve">
+    <value>非標準ヘッダーを持つ {0} 件のメールが自動的に修復され、アーカイブされました。</value>
+  </data>
+  <data name="DetailsLabel" xml:space="preserve">
+    <value>詳細</value>
+  </data>
+  <data name="SearchImportedEmails" xml:space="preserve">
+    <value>インポートされたメールを検索</value>
+  </data>
+  <data name="ImportAnotherFile" xml:space="preserve">
+    <value>別のファイルをインポート</value>
+  </data>
+  <data name="MoreEmailsThanEstimated" xml:space="preserve">
+    <value>想定以上のメールが見つかりました - ファイルサイズに基づいて進捗を計算中</value>
+  </data>
+  <data name="LoginTitle" xml:space="preserve">
+    <value>ログイン</value>
+  </data>
+  <data name="AppName" xml:space="preserve">
+    <value>メールアーカイバー</value>
+  </data>
+  <data name="LoginSubtitle" xml:space="preserve">
+    <value>メールアーカイブにアクセスするにはサインインしてください</value>
+  </data>
+  <data name="UsernameLabel" xml:space="preserve">
+    <value>ユーザー名</value>
+  </data>
+  <data name="UsernamePlaceholder" xml:space="preserve">
+    <value>ユーザー名を入力してください</value>
+  </data>
+  <data name="PasswordLabel" xml:space="preserve">
+    <value>パスワード</value>
+  </data>
+  <data name="PasswordPlaceholder" xml:space="preserve">
+    <value>パスワードを入力してください</value>
+  </data>
+  <data name="RememberMe" xml:space="preserve">
+    <value>ログイン状態を保持する</value>
+  </data>
+  <data name="SignIn" xml:space="preserve">
+    <value>サインイン</value>
+  </data>
+  <data name="AccessDeniedTitle" xml:space="preserve">
+    <value>アクセスが拒否されました</value>
+  </data>
+  <data name="AccessDeniedIntro" xml:space="preserve">
+    <value>このリソースにアクセスする権限がありません。</value>
+  </data>
+  <data name="AccessDeniedLoggedInInfo1" xml:space="preserve">
+    <value>ログインしていますが、アカウントに必要なアクセス権限が付与されていません。</value>
+  </data>
+  <data name="AccessDeniedLoggedInInfo2" xml:space="preserve">
+    <value>これがエラーであると思われる場合は、システム管理者にお問い合わせください。</value>
+  </data>
+  <data name="GoToDashboard" xml:space="preserve">
+    <value>ダッシュボードへ移動</value>
+  </data>
+  <data name="SignOut" xml:space="preserve">
+    <value>サインアウト</value>
+  </data>
+  <data name="RestoreEmailTitle" xml:space="preserve">
+    <value>メールの復元</value>
+  </data>
+  <data name="CopyEmailToMailbox" xml:space="preserve">
+    <value>メールボックスにメールをコピー</value>
+  </data>
+  <data name="Back" xml:space="preserve">
+    <value>戻る</value>
+  </data>
+  <data name="EmailInformation" xml:space="preserve">
+    <value>メール情報</value>
+  </data>
+  <data name="SubjectLabel" xml:space="preserve">
+    <value>件名:</value>
+  </data>
+  <data name="FromLabel" xml:space="preserve">
+    <value>差出人:</value>
+  </data>
+  <data name="DateLabel" xml:space="preserve">
+    <value>日時:</value>
+  </data>
+  <data name="SelectAccountToViewFolders" xml:space="preserve">
+    <value>利用可能なフォルダを表示するには、まずメールアカウントを選択してください。</value>
+  </data>
+  <data name="CopySingleEmailInfo" xml:space="preserve">
+    <value>この機能はアーカイブされたメールを転送先アカウントの指定されたフォルダにコピーします。メールはアーカイブ内に残ります。</value>
+  </data>
+  <data name="CopyEmailButton" xml:space="preserve">
+    <value>メールをコピー</value>
+  </data>
+  <data name="BatchCopyEmailsTitle" xml:space="preserve">
+    <value>メールの一括コピー</value>
+  </data>
+  <data name="CopyMultipleEmailsToMailbox" xml:space="preserve">
+    <value>複数のメールをメールボックスにコピー</value>
+  </data>
+  <data name="SelectedEmailsHeader" xml:space="preserve">
+    <value>選択されたメール</value>
+  </data>
+  <data name="SelectedEmailsCountMessage" xml:space="preserve">
+    <value>メールボックスフォルダにコピーするメールを {0} 件選択しました。</value>
+  </data>
+  <data name="BatchOperationMayTakeTime" xml:space="preserve">
+    <value>メールの件数や容量によっては、この処理に時間がかかる場合があります。</value>
+  </data>
+  <data name="CopyMultipleEmailsInfo" xml:space="preserve">
+    <value>この機能は選択したアーカイブメールを転送先アカウントの指定されたフォルダにコピーします。メールはアーカイブ内に残ります。</value>
+  </data>
+  <data name="CopyEmailsButton" xml:space="preserve">
+    <value>メールを一括コピー</value>
+  </data>
+  <data name="BatchRestoreStatusTitle" xml:space="preserve">
+    <value>一括復元ステータス</value>
+  </data>
+  <data name="JobInformation" xml:space="preserve">
+    <value>ジョブ情報</value>
+  </data>
+  <data name="TotalEmailsLabel" xml:space="preserve">
+    <value>総メール数:</value>
+  </data>
+  <data name="RemainingSuffix" xml:space="preserve">
+    <value>残り</value>
+  </data>
+  <data name="CancelJobConfirm" xml:space="preserve">
+    <value>このジョブをキャンセルしてもよろしいですか？</value>
+  </data>
+  <data name="CancelJob" xml:space="preserve">
+    <value>ジョブをキャンセル</value>
+  </data>
+  <data name="JobCompletedTitle" xml:space="preserve">
+    <value>ジョブが完了しました！</value>
+  </data>
+  <data name="JobCompletedSummary" xml:space="preserve">
+    <value>{0} 件のメールを処理しました（成功: {1} 件、失敗: {2} 件）。</value>
+  </data>
+  <data name="AsynchronousBatchCopyTitle" xml:space="preserve">
+    <value>非同期一括コピー</value>
+  </data>
+  <data name="LargeOperationDetected" xml:space="preserve">
+    <value>大規模な処理の検出:</value>
+  </data>
+  <data name="AsyncBatchCopyIntro" xml:space="preserve">
+    <value>{0} 件のメールを選択しました。この処理はバックグラウンドで実行され、進捗状況を確認できます。</value>
+  </data>
+  <data name="BenefitsHeader" xml:space="preserve">
+    <value>メリット:</value>
+  </data>
+  <data name="BenefitRunsInBackground" xml:space="preserve">
+    <value>バックグラウンドで処理が進行します</value>
+  </data>
+  <data name="BenefitMonitorRealtime" xml:space="preserve">
+    <value>リアルタイムに進捗をモニタリングできます</value>
+  </data>
+  <data name="BenefitCanCancel" xml:space="preserve">
+    <value>必要に応じて処理をキャンセルできます</value>
+  </data>
+  <data name="BenefitNoTimeout" xml:space="preserve">
+    <value>ブラウザセッションがタイムアウトしません</value>
+  </data>
+  <data name="BenefitAutoRetry" xml:space="preserve">
+    <value>一時的なエラーが発生した場合に自動再試行を行います</value>
+  </data>
+  <data name="AsyncBatchCopyWarning" xml:space="preserve">
+    <value>この処理により {0} 件のメールが選択したフォルダにコピーされます。バックグラウンドで実行され、完了まで約 {1} 分かかる場合があります。</value>
+  </data>
+  <data name="StartBackgroundOperation" xml:space="preserve">
+    <value>バックグラウンド処理を開始</value>
+  </data>
+  <data name="AssignMailAccountsTitle" xml:space="preserve">
+    <value>メールアカウントの割り当て</value>
+  </data>
+  <data name="AssignMailAccountsToUser" xml:space="preserve">
+    <value>ユーザーへメールアカウントを割り当て</value>
+  </data>
+  <data name="UserLabel" xml:space="preserve">
+    <value>ユーザー:</value>
+  </data>
+  <data name="AvailableMailAccounts" xml:space="preserve">
+    <value>割り当て可能なメールアカウント</value>
+  </data>
+  <data name="NoMailAccountsAvailable" xml:space="preserve">
+    <value>利用可能なメールアカウントはありません。</value>
+  </data>
+  <data name="SaveAssignments" xml:space="preserve">
+    <value>割り当てを保存</value>
+  </data>
+  <data name="ChangePasswordTitle" xml:space="preserve">
+    <value>パスワードの変更</value>
+  </data>
+  <data name="BackToDashboard" xml:space="preserve">
+    <value>ダッシュボードに戻る</value>
+  </data>
+  <data name="CurrentPassword" xml:space="preserve">
+    <value>現在のパスワード</value>
+  </data>
+  <data name="NewPassword" xml:space="preserve">
+    <value>新しいパスワード</value>
+  </data>
+  <data name="ConfirmNewPassword" xml:space="preserve">
+    <value>新しいパスワード（確認）</value>
+  </data>
+  <data name="LeaveBlankToKeepPassword" xml:space="preserve">
+    <value>パスワードを変更しない場合は空欄のままにしてください</value>
+  </data>
+  <data name="CreateUserTitle" xml:space="preserve">
+    <value>ユーザー作成</value>
+  </data>
+  <data name="EditUserTitle" xml:space="preserve">
+    <value>ユーザー編集</value>
+  </data>
+  <data name="UserDetailsTitle" xml:space="preserve">
+    <value>ユーザー詳細</value>
+  </data>
+  <data name="UserInformation" xml:space="preserve">
+    <value>ユーザー情報</value>
+  </data>
+  <data name="AssignedMailAccounts" xml:space="preserve">
+    <value>割り当て済みメールアカウント</value>
+  </data>
+  <data name="NoMailAccountsAssigned" xml:space="preserve">
+    <value>このユーザーにはメールアカウントが割り当てられていません。</value>
+  </data>
+  <data name="SaveChanges" xml:space="preserve">
+    <value>変更を保存</value>
+  </data>
+  <data name="Email" xml:space="preserve">
+    <value>メール</value>
+  </data>
+  <data name="CreateUser" xml:space="preserve">
+    <value>ユーザー作成</value>
+  </data>
+  <data name="EditUser" xml:space="preserve">
+    <value>ユーザー編集</value>
+  </data>
+  <data name="ErrorTitle" xml:space="preserve">
+    <value>エラー</value>
+  </data>
+  <data name="ErrorProcessingRequest" xml:space="preserve">
+    <value>リクエストの処理中にエラーが発生しました。</value>
+  </data>
+  <data name="RequestId" xml:space="preserve">
+    <value>リクエスト ID:</value>
+  </data>
+  <data name="DevelopmentMode" xml:space="preserve">
+    <value>開発モード</value>
+  </data>
+  <data name="DevelopmentModeDetail1" xml:space="preserve">
+    <value>Development（開発）環境に切り替えると、発生したエラーに関するより詳細な情報が表示されます。</value>
+  </data>
+  <data name="DevelopmentModeDetail2" xml:space="preserve">
+    <value>本番環境で Development 環境を有効にしないでください。例外による機密情報がエンドユーザーに表示される可能性があります。ローカルでのデバッグを行う場合は、環境変数 ASPNETCORE_ENVIRONMENT を Development に設定してアプリを再起動してください。</value>
+  </data>
+  <data name="EmailDetails" xml:space="preserve">
+    <value>メール詳細</value>
+  </data>
+  <data name="ExportEML" xml:space="preserve">
+    <value>EML としてエクスポート</value>
+  </data>
+  <data name="ExportCSV" xml:space="preserve">
+    <value>CSV としてエクスポート</value>
+  </data>
+  <data name="ExportJSON" xml:space="preserve">
+    <value>JSON としてエクスポート</value>
+  </data>
+  <data name="MoreExportOptions" xml:space="preserve">
+    <value>その他のエクスポートオプション</value>
+  </data>
+  <data name="CopyToMailbox" xml:space="preserve">
+    <value>メールボックスにコピー</value>
+  </data>
+  <data name="ToggleDropdown" xml:space="preserve">
+    <value>ドロップダウンの切り替え</value>
+  </data>
+  <data name="Outgoing" xml:space="preserve">
+    <value>送信</value>
+  </data>
+  <data name="Folder" xml:space="preserve">
+    <value>フォルダ</value>
+  </data>
+  <data name="CC" xml:space="preserve">
+    <value>CC</value>
+  </data>
+  <data name="EmailContent" xml:space="preserve">
+    <value>メール本文</value>
+  </data>
+  <data name="FullView" xml:space="preserve">
+    <value>全体表示</value>
+  </data>
+  <data name="TargetSettings" xml:space="preserve">
+    <value>対象設定</value>
+  </data>
+  <data name="Language" xml:space="preserve">
+    <value>言語</value>
+  </data>
+  <data name="AdvancedSearch" xml:space="preserve">
+    <value>詳細検索</value>
+  </data>
+  <data name="AdvancedSearchInfo1" xml:space="preserve">
+    <value>• 完全一致フレーズを検索するには引用符を使用: "重要な会議"</value>
+  </data>
+  <data name="AdvancedSearchInfo2" xml:space="preserve">
+    <value>• フィールド指定検索: subject:請求書, from:yamada, to:domain, body:"重要"</value>
+  </data>
+  <data name="AdvancedSearchInfo3" xml:space="preserve">
+    <value>• 条件の組み合わせ: "自動車保険" subject:請求書 from:保険会社</value>
+  </data>
+  <data name="Preview" xml:space="preserve">
+    <value>プレビュー</value>
+  </data>
+  <data name="Close" xml:space="preserve">
+    <value>閉じる</value>
+  </data>
+  <data name="AttachmentPreview" xml:space="preserve">
+    <value>添付ファイルのプレビュー</value>
+  </data>
+  <data name="PreviewNotAvailable" xml:space="preserve">
+    <value>プレビュー利用不可</value>
+  </data>
+  <data name="FileTypeCannotBePreviewed" xml:space="preserve">
+    <value>このファイル形式はプレビューできません。閲覧するにはダウンロードしてください。</value>
+  </data>
+  <data name="DownloadAllAttachments" xml:space="preserve">
+    <value>すべての添付ファイルをダウンロード</value>
+  </data>
+  <data name="ChangePassword" xml:space="preserve">
+    <value>パスワード変更</value>
+  </data>
+  <data name="PasswordHint" xml:space="preserve">
+    <value>パスワードは6文字以上にする必要があります。</value>
+  </data>
+  <data name="AllAccounts" xml:space="preserve">
+    <value>すべてのアカウント</value>
+  </data>
+  <data name="AllFolders" xml:space="preserve">
+    <value>すべてのフォルダ</value>
+  </data>
+  <data name="All" xml:space="preserve">
+    <value>すべて</value>
+  </data>
+  <data name="PasswordRequired" xml:space="preserve">
+    <value>パスワードは必須です。</value>
+  </data>
+  <data name="PasswordTooShort" xml:space="preserve">
+    <value>パスワードは6文字以上で指定してください。</value>
+  </data>
+  <data name="UsernameExists" xml:space="preserve">
+    <value>そのユーザー名はすでに存在します。</value>
+  </data>
+  <data name="EmailExists" xml:space="preserve">
+    <value>そのメールアドレスはすでに存在します。</value>
+  </data>
+  <data name="UserCreatedSuccess" xml:space="preserve">
+    <value>ユーザー '{0}' を正常に作成しました。</value>
+    <comment>{0} - username</comment>
+  </data>
+  <data name="ErrorOccurred" xml:space="preserve">
+    <value>エラーが発生しました</value>
+  </data>
+  <data name="CannotRemoveAdmin" xml:space="preserve">
+    <value>管理者権限を削除できません。少なくとも1人の管理者が存在する必要があります。</value>
+  </data>
+  <data name="UserUpdated" xml:space="preserve">
+    <value>ユーザー '{0}' を正常に更新しました。</value>
+    <comment>{0} - username</comment>
+  </data>
+  <data name="UserUpdateFailed" xml:space="preserve">
+    <value>ユーザーの更新に失敗しました。</value>
+  </data>
+  <data name="UserNotFound" xml:space="preserve">
+    <value>ユーザーが見つかりません。</value>
+  </data>
+  <data name="UserDeleteAdmin" xml:space="preserve">
+    <value>最後の管理者ユーザーを削除することはできません。少なくとも1人の管理者が存在する必要があります。</value>
+  </data>
+  <data name="UserDeleteSuccess" xml:space="preserve">
+    <value>ユーザー '{0}' を正常に削除しました。</value>
+    <comment>{0} - username</comment>
+  </data>
+  <data name="UserDeleteFail" xml:space="preserve">
+    <value>ユーザー '{0}' の削除に失敗しました。</value>
+    <comment>{0} - username</comment>
+  </data>
+  <data name="AccountAssignmentSuccess" xml:space="preserve">
+    <value>ユーザー '{0}' のメールアカウント割り当てを正常に更新しました。</value>
+  </data>
+  <data name="PasswordCurrentRequired" xml:space="preserve">
+    <value>現在のパスワードを入力してください。</value>
+  </data>
+  <data name="PasswordNewRequired" xml:space="preserve">
+    <value>新しいパスワードを入力してください。</value>
+  </data>
+  <data name="PasswordNotMatch" xml:space="preserve">
+    <value>新しいパスワードと確認用パスワードが一致しません。</value>
+  </data>
+  <data name="PasswordCurrentIncorrect" xml:space="preserve">
+    <value>現在のパスワードが正しくありません。</value>
+  </data>
+  <data name="PasswordChangeSuccess" xml:space="preserve">
+    <value>パスワードを正常に変更しました。</value>
+  </data>
+  <data name="PasswordChangeFail" xml:space="preserve">
+    <value>パスワードの更新に失敗しました。</value>
+  </data>
+  <data name="CannotDisableAdmin" xml:space="preserve">
+    <value>最後の管理者ユーザーを無効化することはできません。少なくとも1人の管理者が存在する必要があります。</value>
+  </data>
+  <data name="UserChangeActiveSuccess" xml:space="preserve">
+    <value>ユーザー '{0}' を {1} に変更しました。</value>
+    <comment>{0} - username, {1} enabled/disabled</comment>
+  </data>
+  <data name="UserDisabled" xml:space="preserve">
+    <value>無効</value>
+  </data>
+  <data name="UserEnabled" xml:space="preserve">
+    <value>有効</value>
+  </data>
+  <data name="UserChangeActiveFail" xml:space="preserve">
+    <value>ユーザー '{0}' の {1} 化に失敗しました。</value>
+    <comment>{0} - username, {1} enabled/disabled</comment>
+  </data>
+  <data name="EmailAccountError" xml:space="preserve">
+    <value>メールサーバーへの接続を確立できませんでした。設定を確認し、サーバーに接続可能であることを確かめてください。</value>
+  </data>
+  <data name="EmailAccountCreateSuccess" xml:space="preserve">
+    <value>メールアカウントを正常に作成しました。</value>
+  </data>
+  <data name="EmailAccountEnabled" xml:space="preserve">
+    <value>アカウント '{0}' の同期を有効にしました。</value>
+    <comment>{0} - account name</comment>
+  </data>
+  <data name="EmailAccountDisabled" xml:space="preserve">
+    <value>アカウント '{0}' の同期を無効にしました。</value>
+    <comment>{0} - account name</comment>
+  </data>
+  <data name="EmailAccountUpdateSuccess" xml:space="preserve">
+    <value>メールアカウントを正常に更新しました。</value>
+  </data>
+  <data name="EmailAccountDeleteSuccess" xml:space="preserve">
+    <value>メールアカウントおよび関連する {0} 件のメールが正常に削除されました。</value>
+    <comment>{0} - email count</comment>
+  </data>
+  <data name="SyncStarted" xml:space="preserve">
+    <value>'{0}' の同期を正常に開始しました。</value>
+    <comment>{0} - account name</comment>
+  </data>
+  <data name="SyncSuccess" xml:space="preserve">
+    <value>'{0}' の同期が正常に完了しました。</value>
+    <comment>{0} - account name</comment>
+  </data>
+  <data name="SyncFailed" xml:space="preserve">
+    <value>同期中にエラーが発生しました</value>
+  </data>
+  <data name="FullSyncStarted" xml:space="preserve">
+    <value>'{0}' の完全再同期を正常に開始しました。</value>
+    <comment>{0} - account name</comment>
+  </data>
+  <data name="FullSyncFailed" xml:space="preserve">
+    <value>'{0}' の再同期の開始に失敗しました。</value>
+    <comment>{0} - account name</comment>
+  </data>
+  <data name="FullSyncError" xml:space="preserve">
+    <value>再同期中にエラーが発生しました</value>
+  </data>
+  <data name="MoveEmailsNotFound" xml:space="preserve">
+    <value>このアカウントにコピーするメールが見つかりませんでした。</value>
+  </data>
+  <data name="TooManyEmailsInAccount" xml:space="preserve">
+    <value>このアカウント内のメール数が多すぎます ({0:N0} 件)。1回の操作で許容される最大数は {1:N0} 件です。より少ない件数に絞り込んで手動選択を行ってください。</value>
+  </data>
+  <data name="SelectValidMBoxFile" xml:space="preserve">
+    <value>有効な MBox ファイルを選択してください。</value>
+  </data>
+  <data name="MBoxFileTooLarge" xml:space="preserve">
+    <value>ファイルサイズが上限の {0} を超えています。</value>
+  </data>
+  <data name="SelectedAccountNotFound" xml:space="preserve">
+    <value>選択されたアカウントが見つかりません。</value>
+  </data>
+  <data name="MBoxImportStarted" xml:space="preserve">
+    <value>MBox ファイル '{0}' が正常にアップロードされました。推定 {1:N0} 件のメールインポートジョブを開始しました。</value>
+  </data>
+  <data name="MBoxImportError" xml:space="preserve">
+    <value>インポートの開始エラー</value>
+  </data>
+  <data name="InvalidMBoxID" xml:space="preserve">
+    <value>MBox インポートジョブ ID が無効です。</value>
+  </data>
+  <data name="MBoxImportJobNotFound" xml:space="preserve">
+    <value>MBox インポートジョブが見つかりません。</value>
+  </data>
+  <data name="MBoxImportCancelled" xml:space="preserve">
+    <value>MBox インポートジョブがキャンセルされました。</value>
+  </data>
+  <data name="MBoxImportCancelError" xml:space="preserve">
+    <value>MBox インポートジョブをキャンセルできませんでした。ジョブがすでに完了しているか、存在しない可能性があります。</value>
+  </data>
+  <data name="SyncTimeResetSuccess" xml:space="preserve">
+    <value>同期時刻を現在時刻にリセットしました。システムはこのタイムスタンプより新しいメールのみを同期するため、同期エラーの繰り返しによる不完全な同期を防ぐことができます。</value>
+  </data>
+  <data name="EditSyncTime" xml:space="preserve">
+    <value>同期時刻の編集</value>
+  </data>
+  <data name="EditSyncTimeTitle" xml:space="preserve">
+    <value>同期時刻の編集</value>
+  </data>
+  <data name="EditSyncTimeForAccount" xml:space="preserve">
+    <value>アカウントの同期時刻を編集: {0}</value>
+  </data>
+  <data name="CurrentSyncTime" xml:space="preserve">
+    <value>現在の同期時刻</value>
+  </data>
+  <data name="NewSyncTime" xml:space="preserve">
+    <value>新しい同期時刻</value>
+  </data>
+  <data name="SyncTimeUpdatedSuccess" xml:space="preserve">
+    <value>同期時刻が正常に更新されました。システムは新しいタイムスタンプに基づいてメールを同期します。</value>
+  </data>
+  <data name="EditSyncTimeNote" xml:space="preserve">
+    <value>注: これにより同期時刻が指定された日時に設定されます。システムはこのタイムスタンプより新しいメールのみを同期します。部分的な同期失敗後など、同期ポイントを手動で調整する必要がある場合にこの機能を使用してください。</value>
+  </data>
+  <data name="InvalidUserPassword" xml:space="preserve">
+    <value>ユーザー名またはパスワードが無効です。</value>
+  </data>
+  <data name="SelfManager" xml:space="preserve">
+    <value>自己管理者</value>
+  </data>
+  <data name="ImportOnlyAccount" xml:space="preserve">
+    <value>インポート専用アカウント</value>
+  </data>
+  <data name="ImportOnlyAccountDescription" xml:space="preserve">
+    <value>IMAP 同期を行わずに MBox または EML ファイルをインポートするためのアカウント</value>
+  </data>
+  <data name="ImportOnlyAccountNoSync" xml:space="preserve">
+    <value>インポート専用アカウントは同期できません</value>
+  </data>
+  <data name="Running" xml:space="preserve">
+    <value>実行中</value>
+  </data>
+  <data name="Completed" xml:space="preserve">
+    <value>完了</value>
+  </data>
+  <data name="Failed" xml:space="preserve">
+    <value>失敗</value>
+  </data>
+  <data name="Cancelled" xml:space="preserve">
+    <value>キャンセル済み</value>
+  </data>
+  <data name="RateLimited" xml:space="preserve">
+    <value>レート制限中</value>
+  </data>
+  <data name="TimedOut" xml:space="preserve">
+    <value>タイムアウト</value>
+  </data>
+  <data name="LastRunTitle" xml:space="preserve">
+    <value>前回の同期実行</value>
+  </data>
+  <data name="LastRunNone" xml:space="preserve">
+    <value>アプリケーション起動後、完了した実行はありません。</value>
+  </data>
+  <data name="LastRunSyncInProgress" xml:space="preserve">
+    <value>現在同期が実行中です。</value>
+  </data>
+  <data name="LastRunSummary" xml:space="preserve">
+    <value>{0} に終了。所要時間: {1}、処理済みメッセージ: {2} 件、新規: {3} 件。</value>
+  </data>
+  <data name="LastRunHeldBack" xml:space="preserve">
+    <value>前回の同期タイムスタンプが更新されなかったため、次回の実行では同じ期間が再処理されます。</value>
+  </data>
+  <data name="LastRunFailuresAcknowledged" xml:space="preserve">
+    <value>この実行での失敗が承認されたため、前回の同期タイムスタンプが更新されました。</value>
+  </data>
+  <data name="LastRunResumes" xml:space="preserve">
+    <value>実行は完了せず一時停止されました。次回の実行は停止した箇所から再開されます。</value>
+  </data>
+  <data name="IssueKindFolderFailed" xml:space="preserve">
+    <value>読み込めなかったフォルダ</value>
+  </data>
+  <data name="IssueKindFolderMissing" xml:space="preserve">
+    <value>サーバー上に存在しないフォルダ</value>
+  </data>
+  <data name="IssueKindFolderMissingHint" xml:space="preserve">
+    <value>通常、削除されたフォルダへの購読情報が残っていることが原因です。無害ですが、メールソフトでクリーンアップすることをお勧めします。</value>
+  </data>
+  <data name="IssueKindMessageFailed" xml:space="preserve">
+    <value>アーカイブできなかったメッセージ</value>
+  </data>
+  <data name="IssueNoDetails" xml:space="preserve">
+    <value>詳細情報は記録されていません。</value>
+  </data>
+  <data name="IssueAndMore" xml:space="preserve">
+    <value>他 {0} 件</value>
+  </data>
+  <data name="LastRunHadIssuesHint" xml:space="preserve">
+    <value>前回の実行で問題が報告されました</value>
+  </data>
+  <data name="SyncProgressTooltip" xml:space="preserve">
+    <value>進捗は完了したフォルダ数で測定されます。大きなフォルダ（例：受信トレイ）がある場合、そのフォルダの処理が完了するまでプログレスバーは0%のままになります。</value>
+  </data>
+  <data name="SyncStatusTooltip" xml:space="preserve">
+    <value>ステータスコード:&lt;br&gt;実行中 = 同期進行中&lt;br&gt;完了 = 正常終了&lt;br&gt;失敗 = エラー終了&lt;br&gt;キャンセル済み = ユーザーによる停止&lt;br&gt;レート制限中 = 帯域幅制限のため一時停止中</value>
+  </data>
+  <data name="SyncJobRateLimited" xml:space="preserve">
+    <value>帯域制限のため同期を一時停止しました。自動的に再開されます。</value>
+  </data>
+  <data name="Queued" xml:space="preserve">
+    <value>処理待ち</value>
+  </data>
+  <data name="Folders" xml:space="preserve">
+    <value>フォルダ</value>
+  </data>
+  <data name="ToggleFolderTree" xml:space="preserve">
+    <value>クリックしてフォルダツリーを展開/折りたたみ</value>
+  </data>
+  <data name="ExpandAllFolders" xml:space="preserve">
+    <value>すべてのフォルダを展開</value>
+  </data>
+  <data name="CollapseAllFolders" xml:space="preserve">
+    <value>すべてのフォルダを折りたたむ</value>
+  </data>
+  <data name="NoFolders" xml:space="preserve">
+    <value>利用可能なフォルダはありません</value>
+  </data>
+  <data name="ProcessedSuffix" xml:space="preserve">
+    <value>処理済み</value>
+  </data>
+  <data name="New" xml:space="preserve">
+    <value>新規</value>
+  </data>
+  <data name="Deleted" xml:space="preserve">
+    <value>削除済み</value>
+  </data>
+  <data name="AdminRoleDescription" xml:space="preserve">
+    <value>ユーザー管理や全メールアカウントを含む、すべてのシステム機能への完全アクセス権限</value>
+  </data>
+  <data name="SelfManagerRoleDescription" xml:space="preserve">
+    <value>自身のアカウント設定の管理および新しいアカウントの追加が可能</value>
+  </data>
+  <data name="ImportEml" xml:space="preserve">
+    <value>EML インポート</value>
+  </data>
+  <data name="ImportEmlFileTitle" xml:space="preserve">
+    <value>EML ファイルのインポート</value>
+  </data>
+  <data name="EmlImportInformation" xml:space="preserve">
+    <value>EML インポート情報:</value>
+  </data>
+  <data name="SupportedFormatsEml" xml:space="preserve">
+    <value>対応フォーマット: EML ファイルを含む ZIP ファイル</value>
+  </data>
+  <data name="EmlFolderStructureInfo" xml:space="preserve">
+    <value>ZIP 内のフォルダ構造がインポート先のメールフォルダになります</value>
+  </data>
+  <data name="SelectEmlFile" xml:space="preserve">
+    <value>EML ファイルの選択（ZIP 形式）</value>
+  </data>
+  <data name="SupportedFormatsEmlWithMax" xml:space="preserve">
+    <value>対応フォーマット: EML ファイルを含む .zip ファイル。最大サイズ: {0}</value>
+  </data>
+  <data name="EmlImportFolderInfo" xml:space="preserve">
+    <value>フォルダインポート情報</value>
+  </data>
+  <data name="EmlImportFolderInfoDetail" xml:space="preserve">
+    <value>ZIP のルートにある EML ファイルは INBOX（受信トレイ）にインポートされます。サブフォルダ内の EML ファイルは、そのサブフォルダと同名のフォルダにインポートされます。</value>
+  </data>
+  <data name="SelectValidEmlFile" xml:space="preserve">
+    <value>有効な EML ファイル（ZIP 形式）を選択してください。</value>
+  </data>
+  <data name="EmlFileTooLarge" xml:space="preserve">
+    <value>ファイルサイズが上限の {0} を超えています。</value>
+  </data>
+  <data name="EmlImportStarted" xml:space="preserve">
+    <value>EML ファイル '{0}' が正常にアップロードされました。推定 {1:N0} 件のメールインポートジョブを開始しました。</value>
+  </data>
+  <data name="EmlImportError" xml:space="preserve">
+    <value>EML インポートの開始エラー</value>
+  </data>
+  <data name="InvalidEmlID" xml:space="preserve">
+    <value>EML インポートジョブ ID が無効です。</value>
+  </data>
+  <data name="EmlImportJobNotFound" xml:space="preserve">
+    <value>EML インポートジョブが見つかりません。</value>
+  </data>
+  <data name="EmlImportCancelled" xml:space="preserve">
+    <value>EML インポートジョブがキャンセルされました。</value>
+  </data>
+  <data name="EmlImportCancelError" xml:space="preserve">
+    <value>EML インポートジョブをキャンセルできませんでした。ジョブがすでに完了しているか、存在しない可能性があります。</value>
+  </data>
+  <data name="EmlImportStatusTitle" xml:space="preserve">
+    <value>EML インポートステータス</value>
+  </data>
+  <data name="Import" xml:space="preserve">
+    <value>インポート</value>
+  </data>
+  <data name="Microsoft365Account" xml:space="preserve">
+    <value>Microsoft 365 アカウント</value>
+  </data>
+  <data name="Microsoft365AccountDescription" xml:space="preserve">
+    <value>Microsoft 365 OAuth2 認証を使用するアカウント</value>
+  </data>
+  <data name="Microsoft365Settings" xml:space="preserve">
+    <value>Microsoft 365 設定</value>
+  </data>
+  <data name="ClientId" xml:space="preserve">
+    <value>クライアント ID</value>
+  </data>
+  <data name="ClientSecret" xml:space="preserve">
+    <value>クライアントシークレット</value>
+  </data>
+  <data name="LeaveEmptyToKeepCurrent" xml:space="preserve">
+    <value>現在の値を維持する場合は空欄にしてください</value>
+  </data>
+  <data name="TwoFactorEnabledSuccess" xml:space="preserve">
+    <value>2要素認証が正常に有効化されました。</value>
+  </data>
+  <data name="TwoFactorEnableFail" xml:space="preserve">
+    <value>2要素認証の有効化に失敗しました。もう一度お試しください。</value>
+  </data>
+  <data name="TwoFactorDisabledSuccess" xml:space="preserve">
+    <value>2要素認証が正常に無効化されました。</value>
+  </data>
+  <data name="TwoFactorDisableFail" xml:space="preserve">
+    <value>2要素認証の無効化に失敗しました。もう一度お試しください。</value>
+  </data>
+  <data name="TwoFactorTokenInvalid" xml:space="preserve">
+    <value>認証コードが無効です。もう一度お試しください。</value>
+  </data>
+  <data name="TwoFactorSecretMissing" xml:space="preserve">
+    <value>2要素認証のシークレットが存在しません。設定プロセスを最初からやり直してください。</value>
+  </data>
+  <data name="TwoFactorNotEnabled" xml:space="preserve">
+    <value>このアカウントでは2要素認証が有効化されていません。</value>
+  </data>
+  <data name="TwoFactorSessionExpired" xml:space="preserve">
+    <value>セッションが切れました。再度ログインしてください。</value>
+  </data>
+  <data name="PasswordIncorrect" xml:space="preserve">
+    <value>入力されたパスワードが正しくありません。</value>
+  </data>
+  <data name="TwoFactorResetSuccess" xml:space="preserve">
+    <value>ユーザー {0} の2要素認証を正常にリセットしました。</value>
+  </data>
+  <data name="TwoFactorResetFail" xml:space="preserve">
+    <value>ユーザー {0} の2要素認証のリセットに失敗しました。</value>
+  </data>
+  <data name="TwoFactorSetup" xml:space="preserve">
+    <value>2要素認証のセットアップ</value>
+  </data>
+  <data name="TwoFactorSetupInstructions" xml:space="preserve">
+    <value>認証アプリで QR コードをスキャンするか、シークレットを手動で入力してください。</value>
+  </data>
+  <data name="ScanQRCode" xml:space="preserve">
+    <value>QR コードをスキャン</value>
+  </data>
+  <data name="UseAuthenticatorApp" xml:space="preserve">
+    <value>Google アセンティケーターや Authy などの認証アプリを使用して QR コードをスキャンします。</value>
+  </data>
+  <data name="OrEnterManually" xml:space="preserve">
+    <value>または、以下のシークレットを認証アプリに手動で入力します:</value>
+  </data>
+  <data name="BackupCodes" xml:space="preserve">
+    <value>バックアップコード</value>
+  </data>
+  <data name="BackupCodesDescription" xml:space="preserve">
+    <value>これらのバックアップコードを安全な場所に保管してください。認証アプリへのアクセスを失った場合でもログインに使用できます。</value>
+  </data>
+  <data name="BackupCodesWarning" xml:space="preserve">
+    <value>各バックアップコードは1回のみ使用できます。使用したコードは無効化されます。</value>
+  </data>
+  <data name="EnterVerificationCode" xml:space="preserve">
+    <value>確認コードの入力</value>
+  </data>
+  <data name="EnableTwoFactor" xml:space="preserve">
+    <value>2要素認証を有効化</value>
+  </data>
+  <data name="TwoFactorVerification" xml:space="preserve">
+    <value>2要素認証の確認</value>
+  </data>
+  <data name="TwoFactorAuthentication" xml:space="preserve">
+    <value>2要素認証</value>
+  </data>
+  <data name="EnterTwoFactorCode" xml:space="preserve">
+    <value>認証アプリのコードまたはバックアップコードを入力してください</value>
+  </data>
+  <data name="VerificationCode" xml:space="preserve">
+    <value>確認コード</value>
+  </data>
+  <data name="EnterCodePlaceholder" xml:space="preserve">
+    <value>6桁のコードまたは16Enter 6-digit code or 16-character backup codeのバックアップコードを入力</value>
+  </data>
+  <data name="EnterTotpOrBackupCode" xml:space="preserve">
+    <value>認証アプリの6桁の TOTP コードまたは16Enter 6-digit code or 16-character backup codeのバックアップコードを入力してください</value>
+  </data>
+  <data name="Verify" xml:space="preserve">
+    <value>検証</value>
+  </data>
+  <data name="DisableTwoFactor" xml:space="preserve">
+    <value>2要素認証を無効化</value>
+  </data>
+  <data name="DisableTwoFactorConfirmation" xml:space="preserve">
+    <value>2要素認証を無効にしてもよろしいですか？アカウントのセキュリティレベルが低下します。</value>
+  </data>
+  <data name="DisableTwoFactorDescription" xml:space="preserve">
+    <value>2要素認証を無効にするには、以下にパスワードを入力してください。</value>
+  </data>
+  <data name="EnterPassword" xml:space="preserve">
+    <value>パスワードの入力</value>
+  </data>
+  <data name="ScanQRCodeDescription" xml:space="preserve">
+    <value>2要素認証を設定するには、この QR コードを認証アプリでスキャンしてください。</value>
+  </data>
+  <data name="ManualEntryDescription" xml:space="preserve">
+    <value>QR コードをスキャンできない場合は、このシークレットを認証アプリに手動で入力してください:</value>
+  </data>
+  <data name="VerifyTwoFactor" xml:space="preserve">
+    <value>2要素認証の確認</value>
+  </data>
+  <data name="EnterCodeDescription" xml:space="preserve">
+    <value>2要素認証を検証して有効化するには、認証アプリに表示されている6桁のコードを入力してください。</value>
+  </data>
+  <data name="DownloadBackupCodes" xml:space="preserve">
+    <value>バックアップコードをダウンロード</value>
+  </data>
+  <data name="BackupCodesFileHeader" xml:space="preserve">
+    <value>メールアーカイバー - 2要素認証用バックアップコード。これらのコードは安全な場所に保管してください。認証アプリが利用できなくなった場合のログインに使用できます。各コードは一度しか使用できず、使用後は無効になります。</value>
+  </data>
+  <data name="BackupCodesFileFooter" xml:space="preserve">
+    <value>重要: これらのコードは厳重に保管し、他人に共有しないでください。</value>
+  </data>
+  <data name="BackupCodesOneTimeOnly" xml:space="preserve">
+    <value>これらのバックアップコードは1回限り使用可能です。一度使用すると無効になります。</value>
+  </data>
+  <data name="ContinueToDashboard" xml:space="preserve">
+    <value>ダッシュボードへ移動</value>
+  </data>
+  <data name="Code" xml:space="preserve">
+    <value>コード</value>
+  </data>
+  <data name="EnterCodeFromApp" xml:space="preserve">
+    <value>認証アプリに表示されているコードを入力してください</value>
+  </data>
+  <data name="ManualEntry" xml:space="preserve">
+    <value>手動入力</value>
+  </data>
+  <data name="EnterCode" xml:space="preserve">
+    <value>コード入力</value>
+  </data>
+  <data name="DeleteEmail" xml:space="preserve">
+    <value>メールの削除</value>
+  </data>
+  <data name="DeleteSelected" xml:space="preserve">
+    <value>選択項目を削除</value>
+  </data>
+  <data name="ConfirmDeletion" xml:space="preserve">
+    <value>削除の確認</value>
+  </data>
+  <data name="DeleteEmailConfirm" xml:space="preserve">
+    <value>このメールを永久に削除してもよろしいですか？この操作は取り消すことができず、監査目的でログに記録されます。</value>
+  </data>
+  <data name="DeleteSelectedEmailsConfirm" xml:space="preserve">
+    <value>選択された {0} 件のメールを永久に削除してもよろしいですか？この操作は取り消すことができず、各削除処理は監査目的でログに記録されます。</value>
+  </data>
+  <data name="DeleteButton" xml:space="preserve">
+    <value>削除</value>
+  </data>
+  <data name="EmailDeleted" xml:space="preserve">
+    <value>メールを正常に削除しました</value>
+  </data>
+  <data name="EmailsDeleted" xml:space="preserve">
+    <value>{0} 件のメールを正常に削除しました</value>
+  </data>
+  <data name="RateLimitExceeded" xml:space="preserve">
+    <value>リクエスト上限を超えました。しばらく時間をおいてから再度お試しください。</value>
+  </data>
+  <data name="LoginBlocked" xml:space="preserve">
+    <value>ログインが一時的にブロックされています</value>
+  </data>
+  <data name="LoginBlockedTitle" xml:space="preserve">
+    <value>アクセスがブロックされました</value>
+  </data>
+  <data name="LoginBlockedMessage" xml:space="preserve">
+    <value>多数のログイン失敗が検出されました</value>
+  </data>
+  <data name="LoginBlockedInfo" xml:space="preserve">
+    <value>セキュリティ上の理由により、認証試行の失敗が連続したため、お使いの IP アドレスからのログインが一時的に制限されています。10分ほど待ってから再度お試しください。</value>
+  </data>
+  <data name="BackToLogin" xml:space="preserve">
+    <value>ログイン画面に戻る</value>
+  </data>
+  <data name="PasswordMinLength" xml:space="preserve">
+    <value>パスワードは10文字以上にする必要があります</value>
+  </data>
+  <data name="PasswordRequiresUppercase" xml:space="preserve">
+    <value>パスワードには少なくとも1つの英大文字を含める必要があります</value>
+  </data>
+  <data name="PasswordRequiresLowercase" xml:space="preserve">
+    <value>パスワードには少なくとも1つの英小文字を含める必要があります</value>
+  </data>
+  <data name="PasswordRequiresNumber" xml:space="preserve">
+    <value>パスワードには少なくとも1つの数字を含める必要があります</value>
+  </data>
+  <data name="PasswordRequiresSpecialChar" xml:space="preserve">
+    <value>パスワードには少なくとも1つの特殊文字（記号）を含める必要があります</value>
+  </data>
+  <data name="PasswordMustBeDifferent" xml:space="preserve">
+    <value>新しいパスワードは現在のパスワードと異なるものを指定してください</value>
+  </data>
+  <data name="PasswordRequirements" xml:space="preserve">
+    <value>パスワードの要件</value>
+  </data>
+  <data name="PasswordChangeRequired" xml:space="preserve">
+    <value>パスワードの変更が必要です</value>
+  </data>
+  <data name="PasswordChangeRequiredMessage" xml:space="preserve">
+    <value>セキュリティのため、利用を継続する前にパスワードを変更する必要があります。これは新規セットアップ時のシステムデフォルト資格情報を使用しているために必要です。</value>
+  </data>
+  <data name="PasswordChangeRequiredInfo" xml:space="preserve">
+    <value>新しいパスワードは現在のパスワードと異なるものであり、すべてのセキュリティ要件を満たしている必要があります。</value>
+  </data>
+  <data name="CannotLeavePasswordChange" xml:space="preserve">
+    <value>システムの利用を続けるには、事前にパスワードを変更する必要があります。</value>
+  </data>
+  <data name="TwoFactorEnabled" xml:space="preserve">
+    <value>このユーザーは現在2要素認証が有効になっています。</value>
+  </data>
+  <data name="ConfirmResetTwoFactor" xml:space="preserve">
+    <value>このユーザーの2要素認証をリセットしてもよろしいですか？ユーザーは再度セットアップを行う必要があります。</value>
+  </data>
+  <data name="ResetTwoFactor" xml:space="preserve">
+    <value>2要素認証のリセット</value>
+  </data>
+  <data name="TooManyAttempts" xml:space="preserve">
+    <value>試行回数が多すぎます。{0} 秒待ってから再度お試しください。</value>
+  </data>
+  <data name="RateLimitTwoFactorTitle" xml:space="preserve">
+    <value>試行回数が多すぎます</value>
+  </data>
+  <data name="RateLimitTwoFactorMessage" xml:space="preserve">
+    <value>2要素認証の検証試行回数が上限を超えました。しばらく待ってから再度お試しください。</value>
+  </data>
+  <data name="ExportAccount" xml:space="preserve">
+    <value>アカウントのエクスポート</value>
+  </data>
+  <data name="ExportAccountTitle" xml:space="preserve">
+    <value>メールアカウントのエクスポート</value>
+  </data>
+  <data name="ExportAccountDescription" xml:space="preserve">
+    <value>このアカウントのすべてのメールをファイルとしてダウンロード用にエクスポートします</value>
+  </data>
+  <data name="ExportAccountInfo" xml:space="preserve">
+    <value>アカウントエクスポート情報</value>
+  </data>
+  <data name="ExportAccountInfoDetail" xml:space="preserve">
+    <value>このメールアカウントからすべてのメールをエクスポートします。選択した形式に応じて、すべてのメールを含む ZIP ファイルが作成されます。</value>
+  </data>
+  <data name="ExportFormatLabel" xml:space="preserve">
+    <value>エクスポート形式</value>
+  </data>
+  <data name="ExportFormatEML" xml:space="preserve">
+    <value>EML（個別メールファイル）</value>
+  </data>
+  <data name="ExportFormatMBox" xml:space="preserve">
+    <value>MBox（メールボックス形式）</value>
+  </data>
+  <data name="ExportFormatEMLDescription" xml:space="preserve">
+    <value>個別 .eml ファイルをフォルダ構造でまとめた ZIP ファイルを作成します</value>
+  </data>
+  <data name="ExportFormatMBoxDescription" xml:space="preserve">
+    <value>すべてのメールをまとめた .mbox ファイルを含む ZIP ファイルを作成します</value>
+  </data>
+  <data name="StartExport" xml:space="preserve">
+    <value>エクスポート開始</value>
+  </data>
+  <data name="ExportJobStarted" xml:space="preserve">
+    <value>アカウント '{0}' のエクスポートジョブを開始しました。ステータスページへリダイレクトします。</value>
+  </data>
+  <data name="ExportStatusTitle" xml:space="preserve">
+    <value>エクスポートステータス</value>
+  </data>
+  <data name="ExportJobInformation" xml:space="preserve">
+    <value>エクスポートジョブ情報</value>
+  </data>
+  <data name="ExportJobStatus" xml:space="preserve">
+    <value>エクスポートジョブのステータス</value>
+  </data>
+  <data name="ExportProgress" xml:space="preserve">
+    <value>エクスポートの進捗</value>
+  </data>
+  <data name="EmailsExported" xml:space="preserve">
+    <value>エクスポート済みメール数</value>
+  </data>
+  <data name="ExportCompleted" xml:space="preserve">
+    <value>エクスポート完了</value>
+  </data>
+  <data name="ExportFailed" xml:space="preserve">
+    <value>エクスポート失敗</value>
+  </data>
+  <data name="ExportCancelled" xml:space="preserve">
+    <value>エクスポートキャンセル済み</value>
+  </data>
+  <data name="ExportInProgress" xml:space="preserve">
+    <value>エクスポート処理中</value>
+  </data>
+  <data name="ExportQueued" xml:space="preserve">
+    <value>エクスポート処理待ち</value>
+  </data>
+  <data name="DownloadExport" xml:space="preserve">
+    <value>エクスポートをダウンロード</value>
+  </data>
+  <data name="DownloadReady" xml:space="preserve">
+    <value>ダウンロード準備完了</value>
+  </data>
+  <data name="DownloadStarting" xml:space="preserve">
+    <value>ダウンロードを開始中...</value>
+  </data>
+  <data name="CancelExport" xml:space="preserve">
+    <value>エクスポートをキャンセル</value>
+  </data>
+  <data name="ExportJobCancelled" xml:space="preserve">
+    <value>エクスポートジョブがキャンセルされました。</value>
+  </data>
+  <data name="ExportJobCancelError" xml:space="preserve">
+    <value>エクスポートジョブをキャンセルできませんでした。すでに完了しているか、存在しない可能性があります。</value>
+  </data>
+  <data name="ExportNotFound" xml:space="preserve">
+    <value>エクスポートジョブが見つかりません。</value>
+  </data>
+  <data name="ExportDownloadNotReady" xml:space="preserve">
+    <value>ダウンロードの準備がまだできていません。エクスポートが完了するまでお待ちください。</value>
+  </data>
+  <data name="ExportFileNotFound" xml:space="preserve">
+    <value>エクスポートファイルが見つかりません。ファイルが削除されたか、エクスポートに失敗した可能性があります。</value>
+  </data>
+  <data name="ExportStarted" xml:space="preserve">
+    <value>アカウント '{0}' のエクスポートジョブを開始しました。ステータスページへリダイレクトします。</value>
+  </data>
+  <data name="ExportError" xml:space="preserve">
+    <value>エクスポート中にエラーが発生しました</value>
+  </data>
+  <data name="InvalidExportID" xml:space="preserve">
+    <value>エクスポートジョブ ID が無効です。</value>
+  </data>
+  <data name="ExportJobNotFound" xml:space="preserve">
+    <value>エクスポートジョブが見つかりません。</value>
+  </data>
+  <data name="ExportCancelError" xml:space="preserve">
+    <value>エクスポートジョブをキャンセルできませんでした。すでに完了しているか、存在しない可能性があります。</value>
+  </data>
+  <data name="IncomingEmails" xml:space="preserve">
+    <value>受信メール</value>
+  </data>
+  <data name="OutgoingEmails" xml:space="preserve">
+    <value>送信メール</value>
+  </data>
+  <data name="AccountExportJobs" xml:space="preserve">
+    <value>アカウントエクスポートジョブ</value>
+  </data>
+  <data name="FileCreated" xml:space="preserve">
+    <value>ファイル作成日時</value>
+  </data>
+  <data name="FileSize" xml:space="preserve">
+    <value>ファイルサイズ</value>
+  </data>
+  <data name="BackToExport" xml:space="preserve">
+    <value>エクスポートに戻る</value>
+  </data>
+  <data name="RefreshStatus" xml:space="preserve">
+    <value>ステータス更新</value>
+  </data>
+  <data name="AutoRefresh" xml:space="preserve">
+    <value>3秒ごとに自動更新</value>
+  </data>
+  <data name="NoEmailsToExport" xml:space="preserve">
+    <value>このアカウントにはエクスポート可能なメールがありません。</value>
+  </data>
+  <data name="ExportInfo" xml:space="preserve">
+    <value>エクスポート情報</value>
+  </data>
+  <data name="ExportInfoText" xml:space="preserve">
+    <value>このエクスポート処理により、このアカウントの全メールを含むダウンロード可能な ZIP ファイルが生成されます。選択したフォーマットによって整理方法が異なります。</value>
+  </data>
+  <data name="EMLFormat" xml:space="preserve">
+    <value>EML 形式</value>
+  </data>
+  <data name="MBoxFormat" xml:space="preserve">
+    <value>MBox 形式</value>
+  </data>
+  <data name="EMLFormatInfo" xml:space="preserve">
+    <value>EML 形式の情報</value>
+  </data>
+  <data name="EMLFormatDescription" xml:space="preserve">
+    <value>フォルダごとに分類された個別の .eml ファイルを生成します。</value>
+  </data>
+  <data name="MBoxFormatInfo" xml:space="preserve">
+    <value>MBox 形式の情報</value>
+  </data>
+  <data name="MBoxFormatDescription" xml:space="preserve">
+    <value>フォルダごとの全メールを1つのファイルにまとめた、標準的なメールボックス形式ファイルを生成します。</value>
+  </data>
+  <data name="ExportWarning" xml:space="preserve">
+    <value>エクスポートに関する重要な注意事項</value>
+  </data>
+  <data name="ExportWarningTime" xml:space="preserve">
+    <value>大きなアカウントのエクスポートには数分かかることがあり、バックグラウンドで処理されます</value>
+  </data>
+  <data name="ExportWarningSize" xml:space="preserve">
+    <value>メールの通数や添付ファイルの量によって、生成される ZIP ファイルのサイズが非常に大きくなる場合があります</value>
+  </data>
+  <data name="ExportWarningCleanup" xml:space="preserve">
+    <value>エクスポートファイルはダウンロード後、または7日経過後に自動的に削除されます</value>
+  </data>
+  <data name="ConfirmExport" xml:space="preserve">
+    <value>エクスポートを開始してもよろしいですか？このアカウントのすべてのメールが処理されます。</value>
+  </data>
+  <data name="BackToAccount" xml:space="preserve">
+    <value>アカウントに戻る</value>
+  </data>
+  <data name="CurrentEmail" xml:space="preserve">
+    <value>現在のメール</value>
+  </data>
+  <data name="ProcessedEmails" xml:space="preserve">
+    <value>処理済みメール数</value>
+  </data>
+  <data name="ExportStatus" xml:space="preserve">
+    <value>エクスポートステータス</value>
+  </data>
+  <data name="Downloaded" xml:space="preserve">
+    <value>ダウンロード済み</value>
+  </data>
+  <data name="Error" xml:space="preserve">
+    <value>エラー</value>
+  </data>
+  <data name="Refresh" xml:space="preserve">
+    <value>更新</value>
+  </data>
+  <data name="ExportFormatSelection" xml:space="preserve">
+    <value>エクスポート形式の選択</value>
+  </data>
+  <data name="ExportFormatSelectionInfo" xml:space="preserve">
+    <value>メールエクスポートの形式を選択してください。用途に応じて特長が異なります。</value>
+  </data>
+  <data name="ExportSelectedInfo" xml:space="preserve">
+    <value>エクスポートはバックグラウンドで実行され、完了後にジョブページから結果をダウンロードできます。</value>
+  </data>
+  <data name="ExportSelected" xml:space="preserve">
+    <value>選択項目をエクスポート</value>
+  </data>
+  <data name="SelectedEmailsExportStatusTitle" xml:space="preserve">
+    <value>選択されたメールのエクスポートステータス</value>
+  </data>
+  <data name="SelectedEmailsExportJobs" xml:space="preserve">
+    <value>選択されたメールのエクスポートジョブ</value>
+  </data>
+  <data name="SelectedEmailsExport" xml:space="preserve">
+    <value>選択されたメールのエクスポート</value>
+  </data>
+  <data name="ExportSelectedEmails" xml:space="preserve">
+    <value>選択したメールをエクスポート</value>
+  </data>
+  <data name="SelectedEmailsExportComplete" xml:space="preserve">
+    <value>選択したメールのエクスポートが正常に完了しました。{0} 件のメールがエクスポートされました。</value>
+  </data>
+  <data name="SelectedEmailsExportFailed" xml:space="preserve">
+    <value>選択したメールのエクスポートに失敗しました。詳細はログを確認してください。</value>
+  </data>
+  <data name="SelectedEmailsExportCancelled" xml:space="preserve">
+    <value>選択したメールのエクスポートがキャンセルされました。</value>
+  </data>
+  <data name="EMLImportJobs" xml:space="preserve">
+    <value>EML インポートジョブ</value>
+  </data>
+  <data name="EmailHasNoAttachments" xml:space="preserve">
+    <value>このメールには添付ファイルがありません。</value>
+  </data>
+  <data name="NoAccessToEmail" xml:space="preserve">
+    <value>このメールへのアクセス権限がありません。</value>
+  </data>
+  <data name="EmailNotFound" xml:space="preserve">
+    <value>メールが見つかりませんでした。</value>
+  </data>
+  <data name="EmailCopiedSuccessfully" xml:space="preserve">
+    <value>指定されたフォルダにメールを正常にコピーしました。</value>
+  </data>
+  <data name="EmailCopyFailed" xml:space="preserve">
+    <value>指定されたフォルダにメールをコピーできませんでした。ログを確認してください。</value>
+  </data>
+  <data name="NoEmailsSelectedForBatch" xml:space="preserve">
+    <value>一括操作用のメールが選択されていません。</value>
+  </data>
+  <data name="NoEmailsCopiedCheckLogs" xml:space="preserve">
+    <value>選択したメールをどれもコピーできませんでした。詳細はログを確認してください。</value>
+  </data>
+  <data name="MailAccountNotFound" xml:space="preserve">
+    <value>メールアカウントが見つかりません。</value>
+  </data>
+  <data name="NoEmailsFoundForAccount" xml:space="preserve">
+    <value>このアカウントにコピーするメールが見つかりませんでした。</value>
+  </data>
+  <data name="TooManyEmailsToProcess" xml:space="preserve">
+    <value>処理するメールの件数が多すぎます。選択件数を減らして再試行してください。</value>
+  </data>
+  <data name="TooManyEmailsSelectFewer" xml:space="preserve">
+    <value>選択されたメールが多すぎます。選択件数を減らして再度お試しください。</value>
+  </data>
+  <data name="NoEnabledEmailAccounts" xml:space="preserve">
+    <value>有効なメールアカウントが見つかりません。</value>
+  </data>
+  <data name="AsyncBatchRestoreNotAvailable" xml:space="preserve">
+    <value>非同期一括復元は利用できません。</value>
+  </data>
+  <data name="BatchRestoreServiceNotAvailable" xml:space="preserve">
+    <value>一括復元サービスは利用できません。</value>
+  </data>
+  <data name="InvalidJobID" xml:space="preserve">
+    <value>ジョブ ID が無効です。</value>
+  </data>
+  <data name="BatchRestoreJobNotFound" xml:space="preserve">
+    <value>一括復元ジョブが見つかりません。</value>
+  </data>
+  <data name="BatchRestoreJobCancelled" xml:space="preserve">
+    <value>一括復元ジョブがキャンセルされました。</value>
+  </data>
+  <data name="CouldNotCancelBatchRestoreJob" xml:space="preserve">
+    <value>一括復元ジョブをキャンセルできませんでした。</value>
+  </data>
+  <data name="SyncJobServiceNotAvailable" xml:space="preserve">
+    <value>同期ジョブサービスは利用できません。</value>
+  </data>
+  <data name="SyncJobCancelled" xml:space="preserve">
+    <value>同期ジョブがキャンセルされました。</value>
+  </data>
+  <data name="CouldNotCancelSyncJob" xml:space="preserve">
+    <value>同期ジョブをキャンセルできませんでした。</value>
+  </data>
+  <data name="SelectedEmailsExportServiceNotAvailable" xml:space="preserve">
+    <value>選択メールエクスポートサービスは利用できません。</value>
+  </data>
+  <data name="SelectedEmailsExportJobNotFound" xml:space="preserve">
+    <value>選択メールエクスポートジョブが見つかりません。</value>
+  </data>
+  <data name="SelectedEmailsExportJobCancelled" xml:space="preserve">
+    <value>選択メールエクスポートジョブがキャンセルされました。</value>
+  </data>
+  <data name="CouldNotCancelSelectedEmailsExportJob" xml:space="preserve">
+    <value>選択メールエクスポートジョブをキャンセルできませんでした。</value>
+  </data>
+  <data name="SelectedEmailsExportNotCompleted" xml:space="preserve">
+    <value>選択メールのエクスポートジョブがまだ完了していないか、すでにダウンロード済みです。</value>
+  </data>
+  <data name="ErrorDownloadingExportFile" xml:space="preserve">
+    <value>エクスポートファイルのダウンロードエラー。</value>
+  </data>
+  <data name="ExportParametersInvalid" xml:space="preserve">
+    <value>エクスポートパラメータが無効です。もう一度お試しください。</value>
+  </data>
+  <data name="NoAccessToSelectedAccount" xml:space="preserve">
+    <value>選択されたアカウントへのアクセス権限がありません。</value>
+  </data>
+  <data name="NoEmailsSelectedForExport" xml:space="preserve">
+    <value>エクスポートするメールが選択されていません。</value>
+  </data>
+  <data name="SelectedEmailsExportNotAvailable" xml:space="preserve">
+    <value>選択メールのエクスポートは利用できません。</value>
+  </data>
+  <data name="NoAccessToSelectedEmails" xml:space="preserve">
+    <value>選択されたメールのいずれにもアクセス権限がありません。</value>
+  </data>
+  <data name="ExportFailedWithError" xml:space="preserve">
+    <value>エクスポートに失敗しました: {0}</value>
+  </data>
+  <data name="ErrorOccurredWithMessage" xml:space="preserve">
+    <value>エラーが発生しました: {0}</value>
+  </data>
+  <data name="TooManyEmailsSelectedWithLimits" xml:space="preserve">
+    <value>選択されたメールが多すぎます ({0:N0} 件)。1回の操作で許容される最大数は {1:N0} 件です。</value>
+  </data>
+  <data name="TooManyEmailsForDirectProcessing" xml:space="preserve">
+    <value>直接処理するには選択されたメールが多すぎます ({0:N0} 件)。直接処理の最大数は {1:N0} 件です。</value>
+  </data>
+  <data name="AllEmailsCopiedSuccessfully" xml:space="preserve">
+    <value>全 {0} 件のメールが指定されたフォルダに正常にコピーされました。</value>
+  </data>
+  <data name="EmailsCopiedWithSomeFailures" xml:space="preserve">
+    <value>{0} 件のメールがコピーされましたが、{1} 件はコピーできませんでした。詳細はログを確認してください。</value>
+  </data>
+  <data name="TooManyEmailsInAccountWithLimits" xml:space="preserve">
+    <value>このアカウント内のメール数が多すぎます ({0:N0} 件)。1回の操作で許容される最大数は {1:N0} 件です。</value>
+  </data>
+  <data name="BatchRestoreJobStartedWithDetails" xml:space="preserve">
+    <value>{0:N0} 件のメールで一括復元ジョブを開始しました。ジョブ ID: {1}</value>
+  </data>
+  <data name="FailedToStartBatchRestore" xml:space="preserve">
+    <value>一括復元の開始に失敗しました: {0}</value>
+  </data>
+  <data name="ExportJobStartedWithDetails" xml:space="preserve">
+    <value>{0:N0} 件のメールを {1} 形式でエクスポートするジョブを開始しました。ジョブ ID: {2}</value>
+  </data>
+  <data name="FailedToStartExport" xml:space="preserve">
+    <value>エクスポートの開始に失敗しました: {0}</value>
+  </data>
+  <data name="ExportCompletedTitle" xml:space="preserve">
+    <value>エクスポートが完了しました！</value>
+  </data>
+  <data name="ExportCompletedSummary" xml:space="preserve">
+    <value>選択した {0} 件のメールのエクスポートに成功しました。</value>
+  </data>
+  <data name="SelectedOf" xml:space="preserve">
+    <value>{1} 件中 {0} 件選択済み</value>
+  </data>
+  <data name="MaxSelectionsReached" xml:space="preserve">
+    <value>選択制限数（{0} 件）に達しました</value>
+  </data>
+  <data name="SelectAllOnPage" xml:space="preserve">
+    <value>このページのすべてを選択</value>
+  </data>
+  <data name="DeselectAllOnPage" xml:space="preserve">
+    <value>このページの選択をすべて解除</value>
+  </data>
+  <data name="Log" xml:space="preserve">
+    <value>ログ</value>
+  </data>
+  <data name="AccessLog" xml:space="preserve">
+    <value>アクセスログ</value>
+  </data>
+  <data name="AccessLogEntries" xml:space="preserve">
+    <value>アクセスログ エントリ</value>
+  </data>
+  <data name="Account" xml:space="preserve">
+    <value>アカウント</value>
+  </data>
+  <data name="Timestamp" xml:space="preserve">
+    <value>タイムスタンプ</value>
+  </data>
+  <data name="Type" xml:space="preserve">
+    <value>種別</value>
+  </data>
+  <data name="EmailSubject" xml:space="preserve">
+    <value>メール件名</value>
+  </data>
+  <data name="SearchParameters" xml:space="preserve">
+    <value>検索条件パラメータ</value>
+  </data>
+  <data name="Login" xml:space="preserve">
+    <value>ログイン</value>
+  </data>
+  <data name="Logout" xml:space="preserve">
+    <value>ログアウト</value>
+  </data>
+  <data name="Search" xml:space="preserve">
+    <value>検索</value>
+  </data>
+  <data name="Open" xml:space="preserve">
+    <value>開く</value>
+  </data>
+  <data name="Download" xml:space="preserve">
+    <value>ダウンロード</value>
+  </data>
+  <data name="Restore" xml:space="preserve">
+    <value>復元</value>
+  </data>
+  <data name="Deletion" xml:space="preserve">
+    <value>削除</value>
+  </data>
+  <data name="FromDate" xml:space="preserve">
+    <value>開始日</value>
+  </data>
+  <data name="ToDate" xml:space="preserve">
+    <value>終了日</value>
+  </data>
+  <data name="Filter" xml:space="preserve">
+    <value>絞り込み</value>
+  </data>
+  <data name="Info" xml:space="preserve">
+    <value>情報</value>
+  </data>
+  <data name="NoInfo" xml:space="preserve">
+    <value>情報なし</value>
+  </data>
+  <data name="NoAccessLogEntries" xml:space="preserve">
+    <value>アクセスログ エントリが見つかりません</value>
+  </data>
+  <data name="EmailNotFoundTitle" xml:space="preserve">
+    <value>メールが見つかりません</value>
+  </data>
+  <data name="EmailNotFoundMessage" xml:space="preserve">
+    <value>お探しのメールは存在しないか、削除されています。</value>
+  </data>
+  <data name="BackToEmails" xml:space="preserve">
+    <value>メールアーカイブに戻る</value>
+  </data>
+  <data name="EmailNotFoundHelp" xml:space="preserve">
+    <value>これがエラーと思われる場合は、システム管理者にお問い合わせください。</value>
+  </data>
+  <data name="Reply" xml:space="preserve">
+    <value>返信</value>
+  </data>
+  <data name="LocalRetentionDays" xml:space="preserve">
+    <value>ローカル保持日数</value>
+  </data>
+  <data name="LocalRetentionRequiresServerRetention" xml:space="preserve">
+    <value>ローカル保持日数は、サーバー保持日数（'指定日数後に削除'）が設定されている場合のみ指定できます。</value>
+  </data>
+  <data name="LocalRetentionMustBeGreaterOrEqual" xml:space="preserve">
+    <value>メールサーバーから削除される前にローカルアーカイブから削除されないよう、ローカル保持日数は '指定日数後に削除' 以上の値にする必要があります。</value>
+  </data>
+  <data name="LocalRetentionInfo" xml:space="preserve">
+    <value>ローカルアーカイブからメールが削除されるまでの日数。無期限に保持する場合は空欄にしてください。両方を設定する場合、'指定日数後に削除' 以上の値を設定する必要があります。</value>
+  </data>
+  <data name="LoadAvailableFolders" xml:space="preserve">
+    <value>利用可能なフォルダを読み込む</value>
+  </data>
+  <data name="CouldNotLoadFolders" xml:space="preserve">
+    <value>サーバーからフォルダを読み込めませんでした</value>
+  </data>
+  <data name="NoFoldersFound" xml:space="preserve">
+    <value>サーバー上にフォルダが見つかりませんでした</value>
+  </data>
+  <data name="ComplianceModeStarted" xml:space="preserve">
+    <value>コンプライアンスモードを開始しました</value>
+  </data>
+  <data name="ComplianceModeActive" xml:space="preserve">
+    <value>コンプライアンスモード: 有効</value>
+  </data>
+  <data name="ComplianceModeDisabled" xml:space="preserve">
+    <value>コンプライアンスモード: 無効</value>
+  </data>
+  <data name="EmailDeletionPrevented" xml:space="preserve">
+    <value>メールの削除が防止されました</value>
+  </data>
+  <data name="EmailDeletionAllowed" xml:space="preserve">
+    <value>メールの削除が許可されています</value>
+  </data>
+  <data name="HashCreated" xml:space="preserve">
+    <value>ハッシュ作成済み</value>
+  </data>
+  <data name="IntegrityCheck" xml:space="preserve">
+    <value>整合性チェック</value>
+  </data>
+  <data name="IntegrityViolation" xml:space="preserve">
+    <value>整合性の違反</value>
+  </data>
+  <data name="DatabaseMaintenance" xml:space="preserve">
+    <value>データベース保守</value>
+  </data>
+  <data name="SyncCancel" xml:space="preserve">
+    <value>同期がキャンセルされました</value>
+  </data>
+  <data name="DeletionPolicy" xml:space="preserve">
+    <value>削除ポリシー</value>
+  </data>
+  <data name="SyncAcknowledgeFailures" xml:space="preserve">
+    <value>同期エラーを確認済み</value>
+  </data>
+  <data name="Retention" xml:space="preserve">
+    <value>保持</value>
+  </data>
+  <data name="DeletionDisabledMessage" xml:space="preserve">
+    <value>設定によりメールの削除が無効化されています。</value>
+  </data>
+  <data name="ComplianceStatus" xml:space="preserve">
+    <value>コンプライアンス状態</value>
+  </data>
+  <data name="ApplicationStarted" xml:space="preserve">
+    <value>アプリケーションが開始されました</value>
+  </data>
+  <data name="ComplianceInformation" xml:space="preserve">
+    <value>コンプライアンス情報</value>
+  </data>
+  <data name="ContentHash" xml:space="preserve">
+    <value>コンテンツハッシュ (SHA-256)</value>
+  </data>
+  <data name="EmailLocked" xml:space="preserve">
+    <value>ロック済み</value>
+  </data>
+  <data name="EmailLockedDescription" xml:space="preserve">
+    <value>このメールはロックされており、暗号学的ハッシュによってコンテンツの整合性が保護されています</value>
+  </data>
+  <data name="StoredHash" xml:space="preserve">
+    <value>保存されたハッシュ</value>
+  </data>
+  <data name="CurrentHash" xml:space="preserve">
+    <value>現在のハッシュ</value>
+  </data>
+  <data name="IntegrityValid" xml:space="preserve">
+    <value>整合性有効</value>
+  </data>
+  <data name="IntegrityValidDescription" xml:space="preserve">
+    <value>メールのコンテンツは変更されていません。現在のハッシュは保存されたハッシュと一致しています。</value>
+  </data>
+  <data name="IntegrityViolationDescription" xml:space="preserve">
+    <value>警告: 現在のハッシュが保存されたハッシュと一致しません。メールのコンテンツが改ざんされている可能性があります。</value>
+  </data>
+  <data name="Mismatch" xml:space="preserve">
+    <value>不一致</value>
+  </data>
+  <data name="HasAttachments" xml:space="preserve">
+    <value>添付ファイルあり</value>
+  </data>
+  <data name="LockedEmail" xml:space="preserve">
+    <value>ロックされたメール - コンプライアンスのためにコンテンツが保護されています</value>
+  </data>
+  <data name="ExistingM365AccountsFound" xml:space="preserve">
+    <value>既存のM365アカウントが見つかりました</value>
+  </data>
+  <data name="UseExistingCredentialsPrompt" xml:space="preserve">
+    <value>このドメインの他のMicrosoft 365アカウントが既に存在します。時間を節約するために資格情報をコピーできます。</value>
+  </data>
+  <data name="SelectAccount" xml:space="preserve">
+    <value>-- アカウントを選択 --</value>
+  </data>
+  <data name="CopyCredentials" xml:space="preserve">
+    <value>資格情報をコピー</value>
+  </data>
+  <data name="CredentialsCopied" xml:space="preserve">
+    <value>資格情報が正常にコピーされました！</value>
+  </data>
+  <data name="ErrorCopyingCredentials" xml:space="preserve">
+    <value>資格情報のコピー中にエラーが発生しました</value>
+  </data>
+  <data name="PleaseSelectAccount" xml:space="preserve">
+    <value>最初にアカウントを選択してください</value>
+  </data>
+  <data name="CredentialChangeDetected" xml:space="preserve">
+    <value>資格情報の変更が検出されました</value>
+  </data>
+  <data name="ApplyToAllDomainAccountsPrompt" xml:space="preserve">
+    <value>Microsoft 365の資格情報を変更しました。これらの変更を同じドメインの他のすべてのアカウントに適用しますか？</value>
+  </data>
+  <data name="AffectedAccounts" xml:space="preserve">
+    <value>影響を受けるアカウント</value>
+  </data>
+  <data name="ApplyToAllAccounts" xml:space="preserve">
+    <value>このドメイン内のすべてのアカウントに適用する</value>
+  </data>
+  <data name="ErrorSavingChanges" xml:space="preserve">
+    <value>変更の保存中にエラーが発生しました</value>
+  </data>
+  <data name="TenantId" xml:space="preserve">
+    <value>テナントID</value>
+  </data>
+  <data name="Provider" xml:space="preserve">
+    <value>プロバイダー</value>
+  </data>
+  <data name="SignInWithOAuth" xml:space="preserve">
+    <value>OAuthでログイン</value>
+  </data>
+  <data name="SignInWithOAuthProvider" xml:space="preserve">
+    <value>{0}でログイン</value>
+  </data>
+  <data name="RedirectingToProvider" xml:space="preserve">
+    <value>{0}にリダイレクトしています...</value>
+    <comment>{0} - OAuth provider display name</comment>
+  </data>
+  <data name="PleaseWaitRedirectingToProvider" xml:space="preserve">
+    <value>{0}へリダイレクトしています。しばらくお待ちください...</value>
+    <comment>{0} - OAuth provider display name</comment>
+  </data>
+  <data name="Loading" xml:space="preserve">
+    <value>読み込み中...</value>
+  </data>
+  <data name="OidcUserCannotHavePassword" xml:space="preserve">
+    <value>OIDCユーザーにパスワードを設定することはできません。OIDCプロバイダーを通じて認証されます。</value>
+  </data>
+  <data name="OidcUserCannotChangeUsername" xml:space="preserve">
+    <value>OIDCユーザーのユーザー名は、OIDCプロバイダーのIDにリンクされているため変更できません。</value>
+  </data>
+  <data name="OidcUserCannotChangePassword" xml:space="preserve">
+    <value>OIDCユーザーはパスワードを変更できません。パスワード管理はOIDCプロバイダーによって処理されます。</value>
+  </data>
+  <data name="OidcAccountAlreadyExists" xml:space="preserve">
+    <value>このメールアドレスを持つアカウントは既に存在します。OIDC認証を使用する前に、管理者に連絡して既存のローカルアカウントを削除または変更してください。</value>
+  </data>
+  <data name="OidcAccountPendingApproval" xml:space="preserve">
+    <value>アカウントは管理者による承認待ちです。管理者に連絡してください。</value>
+  </data>
+  <data name="OidcAccountDeactivated" xml:space="preserve">
+    <value>アカウントが無効化されています。管理者に連絡してください。</value>
+  </data>
+  <data name="OidcInvalidEmailFormat" xml:space="preserve">
+    <value>IDプロバイダーから受信したメールアドレスの形式が無効です</value>
+  </data>
+  <data name="OidcClaimLengthExceeded" xml:space="preserve">
+    <value>クレームの値が許可されている最大長を超えています</value>
+  </data>
+  <data name="AccountDeletionQueued" xml:space="preserve">
+    <value>アカウント '{0}' の削除がキューに登録されました。バックグラウンドで処理されます。</value>
+    <comment>{0} - account name</comment>
+  </data>
+  <data name="InvalidDeletionJobID" xml:space="preserve">
+    <value>削除ジョブIDが無効です。</value>
+  </data>
+  <data name="DeletionJobNotFound" xml:space="preserve">
+    <value>削除ジョブが見つかりません。</value>
+  </data>
+  <data name="DeletionCancelled" xml:space="preserve">
+    <value>削除ジョブがキャンセルされました。</value>
+  </data>
+  <data name="DeletionCancelError" xml:space="preserve">
+    <value>削除ジョブをキャンセルできませんでした。ジョブが既に完了しているか、存在しない可能性があります。</value>
+  </data>
+  <data name="DeletionStatus" xml:space="preserve">
+    <value>削除状態</value>
+  </data>
+  <data name="AccountDeletionStatus" xml:space="preserve">
+    <value>アカウント削除状態</value>
+  </data>
+  <data name="CurrentPhase" xml:space="preserve">
+    <value>現在のフェーズ</value>
+  </data>
+  <data name="DeletedEmails" xml:space="preserve">
+    <value>削除されたメール</value>
+  </data>
+  <data name="TotalAttachments" xml:space="preserve">
+    <value>添付ファイル合計</value>
+  </data>
+  <data name="DeletedAttachments" xml:space="preserve">
+    <value>削除された添付ファイル</value>
+  </data>
+  <data name="DeletionProgress" xml:space="preserve">
+    <value>削除進捗</value>
+  </data>
+  <data name="EmailDeletionProgress" xml:space="preserve">
+    <value>メール削除進捗</value>
+  </data>
+  <data name="AttachmentDeletionProgress" xml:space="preserve">
+    <value>添付ファイル削除進捗</value>
+  </data>
+  <data name="DeletionCompletedSuccessfully" xml:space="preserve">
+    <value>削除が正常に完了しました</value>
+  </data>
+  <data name="AccountDeleted" xml:space="preserve">
+    <value>アカウント '{0}' は、アーカイブされたすべてのメールおよび添付ファイルとともに正常に削除されました。</value>
+    <comment>{0} - account name</comment>
+  </data>
+  <data name="CancelDeletion" xml:space="preserve">
+    <value>削除をキャンセル</value>
+  </data>
+  <data name="CancelDeletionConfirm" xml:space="preserve">
+    <value>この削除ジョブを本当にキャンセルしますか？削除が既に開始されている場合、一部のデータが既に削除されている可能性があります。</value>
+  </data>
+  <data name="EmailDeletionStatus" xml:space="preserve">
+    <value>メール削除状態</value>
+  </data>
+  <data name="EmailProgress" xml:space="preserve">
+    <value>メール進捗</value>
+  </data>
+  <data name="AttachmentProgress" xml:space="preserve">
+    <value>添付ファイル進捗</value>
+  </data>
+  <data name="ConfirmCancelEmailDeletion" xml:space="preserve">
+    <value>このメール削除ジョブを本当にキャンセルしますか？</value>
+  </data>
+  <data name="BackToJobs" xml:space="preserve">
+    <value>ジョブ一覧に戻る</value>
+  </data>
+  <data name="JobDetails" xml:space="preserve">
+    <value>ジョブ詳細</value>
+  </data>
+  <data name="EmailDeletionJobs" xml:space="preserve">
+    <value>メール削除ジョブ</value>
+  </data>
+  <data name="AccountDeletionJobs" xml:space="preserve">
+    <value>アカウント削除ジョブ</value>
+  </data>
+  <data name="ShowHtml" xml:space="preserve">
+    <value>HTMLを表示</value>
+  </data>
+  <data name="ShowPlainText" xml:space="preserve">
+    <value>プレーンテキストを表示</value>
+  </data>
+  <data name="SwitchToHtml" xml:space="preserve">
+    <value>HTML表示に切り替え</value>
+  </data>
+  <data name="SwitchToPlainText" xml:space="preserve">
+    <value>プレーンテキスト表示に切り替え</value>
+  </data>
+  <data name="EnterFolderName" xml:space="preserve">
+    <value>フォルダ名を入力</value>
+  </data>
+  <data name="EnterFolderNameOrSelect" xml:space="preserve">
+    <value>新しいフォルダ名を入力するか、既存のフォルダを選択してください。インポート時にフォルダが自動的に作成されます。</value>
+  </data>
+  <data name="ManualSyncTooltip" xml:space="preserve">
+    <value>手動同期 - このアカウントでは自動同期が無効になっています</value>
+  </data>
+  <data name="PreserveFolderStructure" xml:space="preserve">
+    <value>フォルダ構造を維持する</value>
+  </data>
+  <data name="PreserveFolderStructureHelp" xml:space="preserve">
+    <value>選択したターゲットフォルダの下で、元のフォルダ構造に一致するサブフォルダにメールを復元します。</value>
+  </data>
+  <data name="SkippedLabel" xml:space="preserve">
+    <value>スキップ済み (重複):</value>
+  </data>
+  <data name="DuplicatesSkippedTitle" xml:space="preserve">
+    <value>重複メールがスキップされました</value>
+  </data>
+  <data name="DuplicatesSkippedSummary" xml:space="preserve">
+    <value>ターゲットアカウントに既に存在するため、{0}件のメールがスキップされました。</value>
+  </data>
+  <data name="FailedEmailSingular" xml:space="preserve">
+    <value>メールを処理できませんでした</value>
+  </data>
+  <data name="FailedEmailsPlural" xml:space="preserve">
+    <value>メールを処理できませんでした</value>
+  </data>
+  <data name="EmailId" xml:space="preserve">
+    <value>メールID</value>
+  </data>
+  <data name="NewFeatures" xml:space="preserve">
+    <value>新機能</value>
+  </data>
+  <data name="AllReleases" xml:space="preserve">
+    <value>すべてのリリース</value>
+  </data>
+  <data name="Documentation" xml:space="preserve">
+    <value>ドキュメント</value>
+  </data>
+  <data name="GotIt" xml:space="preserve">
+    <value>了解！</value>
+  </data>
+
+  <!-- MSA (personal Microsoft account) OAuth2 device code flow -->
+  <data name="MsaAuthorizeTitle" xml:space="preserve">
+    <value>Microsoftアカウントの承認</value>
+  </data>
+  <data name="MsaAccountLabel" xml:space="preserve">
+    <value>アカウント:</value>
+  </data>
+  <data name="MsaStep1OpenBrowser" xml:space="preserve">
+    <value>1. ブラウザ（またはスマートフォンなど）で開きます:</value>
+  </data>
+  <data name="MsaStep2EnterCode" xml:space="preserve">
+    <value>2. 次のコードを入力します:</value>
+  </data>
+  <data name="MsaCopyCode" xml:space="preserve">
+    <value>コピー</value>
+  </data>
+  <data name="MsaCopyCodeTooltip" xml:space="preserve">
+    <value>コードをコピー</value>
+  </data>
+  <data name="MsaCodeValidFor" xml:space="preserve">
+    <value>コードの有効期限は {0} 分です。</value>
+  </data>
+  <data name="MsaWaitingForAuthorization" xml:space="preserve">
+    <value>承認を待機しています…</value>
+  </data>
+  <data name="MsaAuthorizationSuccessful" xml:space="preserve">
+    <value>承認されました！リダイレクトしています…</value>
+  </data>
+  <data name="MsaErrorPrefix" xml:space="preserve">
+    <value>エラー:</value>
+  </data>
+  <data name="MsaRetry" xml:space="preserve">
+    <value>再試行</value>
+  </data>
+  <data name="MsaProviderLabel" xml:space="preserve">
+    <value>Microsoft 個人用</value>
+  </data>
+  <data name="MsaSettingsHeading" xml:space="preserve">
+    <value>Microsoft 個人用アカウント (Outlook.com / M365 Family)</value>
+  </data>
+  <data name="MsaNoAppRegistrationNeeded" xml:space="preserve">
+    <value>アプリの登録は必要ありません。</value>
+  </data>
+  <data name="MsaDefaultClientInfoCreate" xml:space="preserve">
+    <value>Mail-Archiverは事前設定済みのアプリ登録を使用します。メールアドレスを入力して保存し、{0} をクリックしてください。</value>
+  </data>
+  <data name="MsaAuthorize" xml:space="preserve">
+    <value>承認</value>
+  </data>
+  <data name="MsaAppRegistrationSetup" xml:space="preserve">
+    <value>Azureアプリの登録を設定する（1回のみ、約2分）</value>
+  </data>
+  <data name="MsaCreateAppRegistration" xml:space="preserve">
+    <value>アプリ登録の作成</value>
+  </data>
+  <data name="MsaSignInWithMicrosoftAccount" xml:space="preserve">
+    <value>（Microsoftアカウントでサインイン）</value>
+  </data>
+  <data name="MsaAppRegStepName" xml:space="preserve">
+    <value>任意の名前を選択します（例: mail-archiver）</value>
+  </data>
+  <data name="MsaAppRegStepAccountTypes" xml:space="preserve">
+    <value>サポートされているアカウントの種類で「任意の組織ディレクトリ内のアカウントと個人用のMicrosoftアカウント」を選択します</value>
+  </data>
+  <data name="MsaAppRegStepRedirect" xml:space="preserve">
+    <value>リダイレクトURIは空のままにして → [登録] をクリックします</value>
+  </data>
+  <data name="MsaAppRegStepClientId" xml:space="preserve">
+    <value>表示されたアプリケーション（クライアント）IDを以下に入力します</value>
+  </data>
+  <data name="MsaAppRegStepAuth" xml:space="preserve">
+    <value>アプリの [認証] をクリック → [パブリッククライアントフローを許可する] を有効にして → [保存] をクリックします</value>
+  </data>
+  <data name="MsaNoSecretNeededCreate" xml:space="preserve">
+    <value>シークレットもリダイレクトURIも必要ありません。保存後、[承認] をクリックしてください。</value>
+  </data>
+  <data name="MsaClientIdPlaceholder" xml:space="preserve">
+    <value>Azureアプリ（クライアント）ID</value>
+  </data>
+  <data name="MsaClientSecretOptional" xml:space="preserve">
+    <value>（オプション）</value>
+  </data>
+  <data name="MsaClientSecretPlaceholder" xml:space="preserve">
+    <value>パブリッククライアントアプリでは不要です</value>
+  </data>
+  <data name="MsaClientSecretHint" xml:space="preserve">
+    <value>機密クライアントアプリでのみ必要です。パブリッククライアントを使用する場合は空のままにしてください。</value>
+  </data>
+  <data name="MsaAuthorized" xml:space="preserve">
+    <value>承認済み。Microsoftアカウントが接続され、トークンは自動的に更新されます。</value>
+  </data>
+  <data name="MsaReAuthorize" xml:space="preserve">
+    <value>再承認</value>
+  </data>
+  <data name="MsaNotYetAuthorized" xml:space="preserve">
+    <value>まだ承認されていません。</value>
+  </data>
+  <data name="MsaSaveThenAuthorize" xml:space="preserve">
+    <value>保存してから、{0} をクリックしてください。</value>
+  </data>
+  <data name="MsaEnterClientIdThenAuthorize" xml:space="preserve">
+    <value>クライアントIDを入力して保存し、{0} をクリックしてください。</value>
+  </data>
+  <data name="MsaDefaultClientInfoEdit" xml:space="preserve">
+    <value>Mail-Archiverは事前設定済みのアプリ登録を使用するため、独自のアプリ登録は必須ではありません。カスタムクライアントIDを使用する場合のみ入力してください。</value>
+  </data>
+  <data name="MsaNoSecretNeededShort" xml:space="preserve">
+    <value>シークレットもリダイレクトURIも必要ありません。</value>
+  </data>
+  <data name="MsaClientIdOptionalHint" xml:space="preserve">
+    <value>オプション — デフォルトのアプリ登録を使用するには空のままにします。</value>
+  </data>
+  <data name="MsaClientIdKeepExisting" xml:space="preserve">
+    <value>既存の値を維持するには空のままにします。</value>
+  </data>
+  <data name="MsaClientSecretPlaceholderEdit" xml:space="preserve">
+    <value>デバイスコードフローでは不要です</value>
+  </data>
+  <data name="MsaAuthorizeWithMicrosoft" xml:space="preserve">
+    <value>Microsoftで承認</value>
+  </data>
+  <data name="MsaReAuthorizeWithMicrosoft" xml:space="preserve">
+    <value>Microsoftで再承認</value>
+  </data>
+  <data name="MsaClientIdRequired" xml:space="preserve">
+    <value>デフォルトのクライアントIDが設定されていない場合、Microsoft個人用アカウントにはクライアントIDが必要です。</value>
+  </data>
+  <data name="MsaNotAuthorizedSync" xml:space="preserve">
+    <value>このMicrosoftアカウントはまだ承認されていません。まずアカウントの編集ページで「Microsoftで承認」をクリックしてください。</value>
+  </data>
+  <data name="MsaClientIdNotConfigured" xml:space="preserve">
+    <value>クライアントIDが設定されていません。最初にアカウントを編集してください。</value>
+  </data>
+  <data name="MsaAuthorizationFailed" xml:space="preserve">
+    <value>承認の開始に失敗しました: {0}</value>
+  </data>
+  <data name="MsaAccessDenied" xml:space="preserve">
+    <value>アクセスが拒否されました。</value>
+  </data>
+  <data name="MsaSessionExpired" xml:space="preserve">
+    <value>セッションの有効期限が切れました。再度承認を開始してください。</value>
+  </data>
+  <data name="MsaAccountNotFound" xml:space="preserve">
+    <value>アカウントが見つかりません。</value>
+  </data>
+  <data name="MsaAuthorizationCancelled" xml:space="preserve">
+    <value>アカウントの作成がキャンセルされました。</value>
+  </data>
+  <data name="UseTenantImport" xml:space="preserve">
+    <value>テナントインポートを使用する</value>
+  </data>
+  <data name="UseTenantImportHelp" xml:space="preserve">
+    <value>テナントのメールボックスを読み込み、「入力された名前 - &lt;mailbox@example.com&gt;」という命名規則でアカウントを作成します。</value>
+  </data>
+  <data name="SkipDisabledMailboxes" xml:space="preserve">
+    <value>無効なメールボックスをスキップする</value>
+  </data>
+  <data name="ImportAllListedMailboxes" xml:space="preserve">
+    <value>リストされているすべてのメールボックスをインポートする</value>
+  </data>
+  <data name="ImportAllListedMailboxesHelp" xml:space="preserve">
+    <value>無効にした場合、以下で選択したメールボックスのみがインポートされます。</value>
+  </data>
+  <data name="LoadMailboxes" xml:space="preserve">
+    <value>メールボックスを読み込む</value>
+  </data>
+  <data name="TenantMailboxes" xml:space="preserve">
+    <value>テナントのメールボックス</value>
+  </data>
+  <data name="ClearSelection" xml:space="preserve">
+    <value>選択をクリア</value>
+  </data>
+  <data name="NoMailboxesFound" xml:space="preserve">
+    <value>メールボックスが見つかりません。</value>
+  </data>
+  <data name="DisabledLowercase" xml:space="preserve">
+    <value>無効</value>
+  </data>
+  <data name="AlreadyExistsLowercase" xml:space="preserve">
+    <value>既に存在します</value>
+  </data>
+  <data name="LoadingMailboxes" xml:space="preserve">
+    <value>メールボックスを読み込んでいます...</value>
+  </data>
+  <data name="MailboxesCouldNotBeLoaded" xml:space="preserve">
+    <value>メールボックスを読み込めませんでした。</value>
+  </data>
+  <data name="MailboxesFound" xml:space="preserve">
+    <value>{0} 件のメールボックスが見つかりました。</value>
+  </data>
+  <data name="M365MailboxDefaultName" xml:space="preserve">
+    <value>M365メールボックス</value>
+  </data>
+  <data name="NoEnabledM365UsersFound" xml:space="preserve">
+    <value>このテナントには、メールアドレスまたはユーザープリンシパル名を持つ有効なM365ユーザーが見つかりませんでした。</value>
+  </data>
+  <data name="SelectAtLeastOneMailboxOrImportAll" xml:space="preserve">
+    <value>少なくとも1つのメールボックスを選択するか、リストされているすべてのメールボックスのインポートを有効にしてください。</value>
+  </data>
+  <data name="AllSelectedM365TenantMailboxesAlreadyExist" xml:space="preserve">
+    <value>選択された {0} 件のM365テナントメールボックスはすべて既に存在します。</value>
+  </data>
+  <data name="ImportedM365TenantAccounts" xml:space="preserve">
+    <value>{0} 件のM365テナントメールアカウントをインポートしました。既存の {1} 件のアカウントをスキップしました。</value>
+  </data>
+  <data name="M365TenantCredentialsRequired" xml:space="preserve">
+    <value>テナントのメールボックスを一覧表示するには、クライアントID、クライアントシークレット、テナントIDが必要です。</value>
+  </data>
+  <data name="M365TenantMailboxesCouldNotBeListed" xml:space="preserve">
+    <value>テナントのメールボックスを一覧表示できませんでした。M365の資格情報と権限を確認してください。</value>
+  </data>
+  <data name="M365TenantAccountsCouldNotBeImported" xml:space="preserve">
+    <value>M365テナントアカウントをインポートできませんでした。資格情報と権限を確認してください。</value>
+  </data>
+  <data name="NameRequired" xml:space="preserve">
+    <value>名前は必須です</value>
+  </data>
+  <data name="EmailAddressRequired" xml:space="preserve">
+    <value>メールアドレスは必須です</value>
+  </data>
+  <data name="ProviderM365Single" xml:space="preserve">
+    <value>Microsoft 365 (単一メールボックス)</value>
+  </data>
+  <data name="ProviderM365Tenant" xml:space="preserve">
+    <value>Microsoft 365 (テナント)</value>
+  </data>
+  <data name="LoadMailboxesHelp" xml:space="preserve">
+    <value>インポートするアカウントを選択するために、テナントメールボックスのリストを読み込みます。</value>
+  </data>
+  <data name="InvalidImportFileType" xml:space="preserve">
+    <value>ファイル形式が無効です。許可される拡張子: .mbox, .eml, .zip</value>
+  </data>
+  <data name="ClientSecretWillBeCopiedOnSave" xml:space="preserve">
+    <value>保存時に、選択した既存のアカウントからクライアントシークレットがコピーされます。</value>
+  </data>
+  <data name="ClientSecretRequired" xml:space="preserve">
+    <value>M365アカウントにはクライアントシークレットが必要です</value>
+  </data>
+  <data name="TenantManagement" xml:space="preserve">
+    <value>テナント管理</value>
+  </data>
+  <data name="TenantManagementTitle" xml:space="preserve">
+    <value>テナント管理</value>
+  </data>
+  <data name="TenantManagementHelp" xml:space="preserve">
+    <value>このテナントから不足しているメールボックスを追加します。新しいアカウントにはソースアカウントの資格情報が使用されます。</value>
+  </data>
+  <data name="AddSelectedMailboxes" xml:space="preserve">
+    <value>選択したメールボックスを追加</value>
+  </data>
+  <data name="MailboxesAdded" xml:space="preserve">
+    <value>{0} 件のメールボックスを追加しました。</value>
+  </data>
+  <data name="NoNewMailboxesToAdd" xml:space="preserve">
+    <value>追加する新しいメールボックスはありません。</value>
+  </data>
+  <data name="SelectAtLeastOneMailboxForManagement" xml:space="preserve">
+    <value>追加するメールボックスを少なくとも1つ選択してください。</value>
+  </data>
+  <data name="MoreActions" xml:space="preserve">
+    <value>その他のアクション</value>
+  </data>
+  <data name="AccountNameTooLong" xml:space="preserve">
+    <value>アカウント名は200文字以内で入力してください。</value>
+  </data>
+  <data name="SelectAtMostMailboxes" xml:space="preserve">
+    <value>一度に選択できるメールボックスは最大 {0} 件です。</value>
+  </data>
+  <data name="SearchMailboxes" xml:space="preserve">
+    <value>メールボックスを検索...</value>
+  </data>
+  <data name="NoMailboxesMatch" xml:space="preserve">
+    <value>検索に一致するメールボックスはありません。</value>
+  </data>
+  <data name="SearchAccounts" xml:space="preserve">
+    <value>アカウントを検索...</value>
+  </data>
+  <data name="NoAccountsMatch" xml:space="preserve">
+    <value>検索に一致するアカウントはありません。</value>
+  </data>
+  <data name="SearchUsers" xml:space="preserve">
+    <value>ユーザーを検索...</value>
+  </data>
+  <data name="NoUsersMatch" xml:space="preserve">
+    <value>検索に一致するユーザーはありません。</value>
+  </data>
+  <data name="AccountsFound" xml:space="preserve">
+    <value>{0} 件のアカウントが見つかりました</value>
+  </data>
+  <data name="UsersFound" xml:space="preserve">
+    <value>{0} 人のユーザーが見つかりました</value>
+  </data>
+  <data name="RenameExistingAccounts" xml:space="preserve">
+    <value>既存のアカウントの名前を変更する</value>
+  </data>
+  <data name="RenameExistingAccountsHelp" xml:space="preserve">
+    <value>保存後、同じアプリ登録を使用するすべてのM365アカウントに命名規則を適用します。</value>
+  </data>
+  <data name="AccountsRenamed" xml:space="preserve">
+    <value>{0} 件のアカウントの名前を変更しました。</value>
+  </data>
+  <data name="MailboxesAddedAndAccountsRenamed" xml:space="preserve">
+    <value>{0} 件のメールボックスを追加し、{1} 件のアカウントの名前を変更しました。</value>
+  </data>
+  <data name="ShowPassword" xml:space="preserve">
+    <value>パスワードを表示</value>
+  </data>
+  <data name="HidePassword" xml:space="preserve">
+    <value>パスワードを非表示</value>
+  </data>
+  <data name="AdvancedSettings" xml:space="preserve">
+    <value>詳細設定</value>
+  </data>
+  <data name="UnsavedChangesWarning" xml:space="preserve">
+    <value>保存されていない変更があります。このページから移動してもよろしいですか？</value>
+  </data>
+  <data name="Saving" xml:space="preserve">
+    <value>保存中...</value>
+  </data>
+  <data name="CopyFolderToExcluded" xml:space="preserve">
+    <value>フォルダをクリックして、除外リストへの追加または除外リストからの削除を行います</value>
+  </data>
+  <data name="StorageUsed" xml:space="preserve">
+    <value>使用ストレージ</value>
+  </data>
+  <data name="ConnectionDetails" xml:space="preserve">
+    <value>接続の詳細</value>
+  </data>
+  <data name="PrimaryActions" xml:space="preserve">
+    <value>アクション</value>
+  </data>
+  <data name="FilterMailboxes" xml:space="preserve">
+    <value>メールボックスをフィルタ...</value>
+  </data>
+  <data name="NoMailboxesMatchFilter" xml:space="preserve">
+    <value>フィルタに一致するメールボックスはありません。</value>
+  </data>
+  <data name="MsaBadge" xml:space="preserve">
+    <value>MSA (個人用)</value>
+  </data>
+  <data name="MsaAuthAfterSaveInfo" xml:space="preserve">
+    <value>保存後、メールボックスへのアクセスを承認するためにMicrosoftへリダイレクトされます。</value>
+  </data>
+  <data name="UserAccountSection" xml:space="preserve">
+    <value>アカウントの詳細</value>
+  </data>
+  <data name="UserSecuritySection" xml:space="preserve">
+    <value>セキュリティ</value>
+  </data>
+  <data name="OidcPasswordManagedExternally" xml:space="preserve">
+    <value>これはOIDCユーザーです。パスワード管理はOIDCプロバイダーによって行われます。</value>
+  </data>
+  <data name="BackgroundJobsActiveCount" xml:space="preserve">
+    <value>現在 {0} 件のバックグラウンドジョブが実行中です。</value>
+  </data>
+  <data name="AutoRefreshInfo" xml:space="preserve">
+    <value>{0}秒後に自動更新</value>
+  </data>
+  <data name="WelcomeBack" xml:space="preserve">
+    <value>おかえりなさい、{0}さん</value>
+  </data>
+  <!-- CSV Bulk IMAP Import -->
+  <data name="ImportCsvBulk" xml:space="preserve">
+    <value>CSV一括インポート</value>
+  </data>
+  <data name="CsvImportTitle" xml:space="preserve">
+    <value>CSVからIMAPメールボックスをインポート</value>
+  </data>
+  <data name="CsvImportInformation" xml:space="preserve">
+    <value>CSVファイルを使用して、複数のIMAPメールボックスを一度にインポートします。</value>
+  </data>
+  <data name="CsvImportFormatHelp" xml:space="preserve">
+    <value>列: email (必須), password (必須), name (任意), username (任意), imap_server (任意), imap_port (任意), use_ssl (任意)</value>
+  </data>
+  <data name="CsvImportCommonServerHelp" xml:space="preserve">
+    <value>共通サーバー設定は、imap_server列がないすべての行に適用されます。</value>
+  </data>
+  <data name="CsvImportNoConnectionTest" xml:space="preserve">
+    <value>IMAP接続テストは実行されません。エラーは初回同期時にのみ表示されます。</value>
+  </data>
+  <data name="CsvImportAdminOnlyNote" xml:space="preserve">
+    <value>この機能は管理者のみ利用可能です。</value>
+  </data>
+  <data name="DownloadExampleCsv" xml:space="preserve">
+    <value>サンプルCSVをダウンロード</value>
+  </data>
+  <data name="CsvImportSettingsTitle" xml:space="preserve">
+    <value>アップロードと設定</value>
+  </data>
+  <data name="CsvFile" xml:space="preserve">
+    <value>CSVファイル</value>
+  </data>
+  <data name="CsvFileHelp" xml:space="preserve">
+    <value>ヘッダー行を含むUTF-8エンコードされたCSVファイル。必須列: email, password。</value>
+  </data>
+  <data name="CommonServerSettings" xml:space="preserve">
+    <value>共通サーバー設定</value>
+  </data>
+  <data name="CommonServerSettingsHelp" xml:space="preserve">
+    <value>CSVの行にimap_serverの値がない場合に使用されます。</value>
+  </data>
+  <data name="ImapServerLabel" xml:space="preserve">
+    <value>IMAPサーバー</value>
+  </data>
+  <data name="ImapPortLabel" xml:space="preserve">
+    <value>IMAPポート</value>
+  </data>
+  <data name="UseSslLabel" xml:space="preserve">
+    <value>SSLを使用する</value>
+  </data>
+  <data name="NamePrefix" xml:space="preserve">
+    <value>名前プレフィックス</value>
+  </data>
+  <data name="NamePrefixHelp" xml:space="preserve">
+    <value>デフォルト名: "{prefix} - &lt;{email}&gt;"</value>
+  </data>
+  <data name="SkipExisting" xml:space="preserve">
+    <value>既存のメールボックスをスキップする</value>
+  </data>
+  <data name="SkipExistingHelp" xml:space="preserve">
+    <value>重複分はエラーとして扱われず、スキップされます。</value>
+  </data>
+  <data name="AccountEnabledLabel" xml:space="preserve">
+    <value>アカウント有効</value>
+  </data>
+  <data name="CsvImportSubmit" xml:space="preserve">
+    <value>インポート</value>
+  </data>
+  <data name="CsvImportResult" xml:space="preserve">
+    <value>インポート結果</value>
+  </data>
+  <data name="CsvImportAgain" xml:space="preserve">
+    <value>別のCSVをインポート</value>
+  </data>
+  <data name="CsvImportResultSummary" xml:space="preserve">
+    <value>作成: {0}件、スキップ: {1}件、失敗: {2}件</value>
+  </data>
+  <data name="CsvImportCreated" xml:space="preserve">
+    <value>作成済み</value>
+  </data>
+  <data name="CsvImportSkipped" xml:space="preserve">
+    <value>スキップ済み</value>
+  </data>
+  <data name="CsvImportFailed" xml:space="preserve">
+    <value>失敗</value>
+  </data>
+  <data name="CsvImportEmail" xml:space="preserve">
+    <value>メールアドレス</value>
+  </data>
+  <data name="CsvImportNameCol" xml:space="preserve">
+    <value>名前</value>
+  </data>
+  <data name="CsvImportReason" xml:space="preserve">
+    <value>理由</value>
+  </data>
+  <data name="CsvImportRowNumber" xml:space="preserve">
+    <value>行番号</value>
+  </data>
+  <data name="CsvImportNoFile" xml:space="preserve">
+    <value>CSVファイルを選択してください。</value>
+  </data>
+  <data name="CsvImportFileTooLarge" xml:space="preserve">
+    <value>ファイルが大きすぎます: {0} MB（最大 {1} MB）。</value>
+  </data>
+  <data name="CsvImportNoValidRows" xml:space="preserve">
+    <value>CSVファイルに有効なメールボックスが見つかりませんでした。</value>
+  </data>
+  <data name="CsvImportTooManyRows" xml:space="preserve">
+    <value>CSVファイルに {0} 行含まれています。最大は {1} 行です。</value>
+  </data>
+  <data name="CsvImportMissingServer" xml:space="preserve">
+    <value>IMAPサーバーが指定されていません（行にもフォームにもありません）。</value>
+  </data>
+  <data name="CsvImportInvalidPort" xml:space="preserve">
+    <value>ポート "{1}" が無効です</value>
+  </data>
+  <data name="CsvImportInvalidUseSsl" xml:space="preserve">
+    <value>use_sslの値 "{1}" が無効です</value>
+  </data>
+  <data name="CsvImportMissingEmail" xml:space="preserve">
+    <value>メールアドレスがありません。</value>
+  </data>
+  <data name="CsvImportMissingPassword" xml:space="preserve">
+    <value>パスワードがありません。</value>
+  </data>
+  <data name="CsvImportMalformedLine" xml:space="preserve">
+    <value>不正な形式のCSV行です — 解析できませんでした。</value>
+  </data>
+  <data name="CsvImportDuplicateInFile" xml:space="preserve">
+    <value>CSVファイル内で重複しています</value>
+  </data>
+  <data name="CsvImportAlreadyExists" xml:space="preserve">
+    <value>メールボックスは既に存在します</value>
+  </data>
+  <data name="CsvImportCouldNotBeProcessed" xml:space="preserve">
+    <value>CSVインポートを処理できませんでした</value>
+  </data>
+  <data name="CsvImportAdminOnly" xml:space="preserve">
+    <value>CSV一括インポートは管理者のみ利用可能です。</value>
+  </data>
+  <data name="ImportEmailsHeader" xml:space="preserve">
+    <value>メールをインポート</value>
+  </data>
+  <data name="ImportAccountsHeader" xml:space="preserve">
+    <value>アカウントをインポート</value>
+  </data>
+  <!-- API Keys (read-only REST API) -->
+  <data name="ApiKeys" xml:space="preserve">
+    <value>APIキー</value>
+  </data>
+  <data name="ApiKeysDescription" xml:space="preserve">
+    <value>アーカイブされたメールへのプログラムによる読み取り専用アクセス用のAPIキーを管理します。</value>
+  </data>
+  <data name="CreateApiKey" xml:space="preserve">
+    <value>APIキーを作成</value>
+  </data>
+  <data name="ApiKeyName" xml:space="preserve">
+    <value>名前</value>
+  </data>
+  <data name="ApiKeyExpiration" xml:space="preserve">
+    <value>有効期限 (任意)</value>
+  </data>
+  <data name="ApiKeyCreatedOnce" xml:space="preserve">
+    <value>今すぐこのキーをコピーしてください。セキュリティ上の理由から一度だけ表示され、後から取得することはできません。</value>
+  </data>
+  <data name="ApiKeyValue" xml:space="preserve">
+    <value>APIキー</value>
+  </data>
+  <data name="ApiKeyPrefix" xml:space="preserve">
+    <value>プレフィックス</value>
+  </data>
+  <data name="ApiKeyCreatedColumn" xml:space="preserve">
+    <value>作成日時</value>
+  </data>
+  <data name="ApiKeyLastUsed" xml:space="preserve">
+    <value>最終使用日</value>
+  </data>
+  <data name="ApiKeyExpires" xml:space="preserve">
+    <value>有効期限</value>
+  </data>
+  <data name="ApiKeyStatus" xml:space="preserve">
+    <value>ステータス</value>
+  </data>
+  <data name="ApiKeyActive" xml:space="preserve">
+    <value>有効</value>
+  </data>
+  <data name="ApiKeyRevoked" xml:space="preserve">
+    <value>取り消し済み</value>
+  </data>
+  <data name="ApiKeyExpired" xml:space="preserve">
+    <value>期限切れ</value>
+  </data>
+  <data name="ApiKeyRevoke" xml:space="preserve">
+    <value>取り消し</value>
+  </data>
+  <data name="ApiKeyRevokeConfirm" xml:space="preserve">
+    <value>このAPIキーを取り消しますか？これを使用しているアプリケーションは直ちに動作を停止します。</value>
+  </data>
+  <data name="ApiKeyOwner" xml:space="preserve">
+    <value>所有者</value>
+  </data>
+  <data name="NoApiKeys" xml:space="preserve">
+    <value>APIキーはまだありません。</value>
+  </data>
+  <data name="ApiKeyCreatedSuccess" xml:space="preserve">
+    <value>APIキーが作成されました。</value>
+  </data>
+  <data name="ApiKeyRevokedSuccess" xml:space="preserve">
+    <value>APIキーが取り消されました。</value>
+  </data>
+  <data name="ApiKeyRevokeFailed" xml:space="preserve">
+    <value>APIキーを取り消しできませんでした。</value>
+  </data>
+  <data name="Copy" xml:space="preserve">
+    <value>コピー</value>
+  </data>
+  <data name="MeetingInvitation" xml:space="preserve">
+    <value>会議の招待</value>
+  </data>
+  <data name="MeetingStart" xml:space="preserve">
+    <value>開始</value>
+  </data>
+  <data name="MeetingEnd" xml:space="preserve">
+    <value>終了</value>
+  </data>
+  <data name="MeetingLocation" xml:space="preserve">
+    <value>場所</value>
+  </data>
+  <data name="MeetingOrganizer" xml:space="preserve">
+    <value>主催者</value>
+  </data>
+  <data name="MeetingAttendees" xml:space="preserve">
+    <value>出席者</value>
+  </data>
+  <data name="MeetingDescription" xml:space="preserve">
+    <value>説明</value>
+  </data>
+  <data name="AcknowledgeFailures" xml:space="preserve">
+    <value>エラーを確認する</value>
+  </data>
+  <data name="AcknowledgeFailuresConfirm" xml:space="preserve">
+    <value>これにより、同期タイムスタンプがこのジョブの完了時刻に進められ、次回の同期は通常の増分同期になります。失敗したメールは再試行されません。続行しますか？</value>
+  </data>
+  <data name="AcknowledgeFailuresSuccess" xml:space="preserve">
+    <value>同期タイムスタンプが進められました。次回の同期は増分同期になります。</value>
+  </data>
+  <data name="FailuresAcknowledged" xml:space="preserve">
+    <value>エラー確認済み</value>
+  </data>
+  <data name="OffloadTitle" xml:space="preserve">
+    <value>別のメールボックスへオフロード</value>
+  </data>
+  <data name="OffloadIntro" xml:space="preserve">
+    <value>指定したカットオフ日より新しいアーカイブ済みメールを別のメールボックスに追加し、そのメールボックスに既に存在するメールはスキップします。古いメールはアーカイブに残ります。これを再度実行しても安全であり、既に到着しているメールが追加されることはありません。</value>
+  </data>
+  <data name="OffloadSourceAndTarget" xml:space="preserve">
+    <value>ソースとターゲット</value>
+  </data>
+  <data name="SourceAccount" xml:space="preserve">
+    <value>ソースアカウント</value>
+  </data>
+  <data name="OffloadSelectTarget" xml:space="preserve">
+    <value>ターゲットメールボックスを選択...</value>
+  </data>
+  <data name="OffloadLoadingFolders" xml:space="preserve">
+    <value>フォルダを読み込んでいます...</value>
+  </data>
+  <data name="OffloadSelectFolder" xml:space="preserve">
+    <value>-- ターゲットフォルダを選択 --</value>
+  </data>
+  <data name="OffloadErrorLoadingFolders" xml:space="preserve">
+    <value>フォルダの読み込み中にエラーが発生しました</value>
+  </data>
+  <data name="OffloadSelectTargetFirst" xml:space="preserve">
+    <value>最初にターゲットメールボックスを選択してください</value>
+  </data>
+  <data name="OffloadTargetFolderHelp" xml:space="preserve">
+    <value>ターゲットメールボックス内のルートフォルダ。「INBOX」を指定すると、トップレベルで元のフォルダ構造が再作成されます。</value>
+  </data>
+  <data name="OffloadWindow" xml:space="preserve">
+    <value>期間ウィンドウ</value>
+  </data>
+  <data name="OffloadWindowMonths" xml:space="preserve">
+    <value>過去Nヶ月</value>
+  </data>
+  <data name="OffloadWindowMonthsHelp" xml:space="preserve">
+    <value>ジョブ開始時に固定日に解決されるため、ジョブを繰り返しても同じメールが選択されます。明示的な日付を使用するには0に設定します。</value>
+  </data>
+  <data name="OffloadCutoffFrom" xml:space="preserve">
+    <value>開始日</value>
+  </data>
+  <data name="OffloadCutoffFromHelp" xml:space="preserve">
+    <value>月ウィンドウを上書きします。この日の00:00から含みます。</value>
+  </data>
+  <data name="OffloadCutoffTo" xml:space="preserve">
+    <value>終了日 (任意)</value>
+  </data>
+  <data name="OffloadCutoffToHelp" xml:space="preserve">
+    <value>この日の23:59:59まで含みます。</value>
+  </data>
+  <data name="OffloadOptions" xml:space="preserve">
+    <value>オプション</value>
+  </data>
+  <data name="OffloadDryRun" xml:space="preserve">
+    <value>ドライラン（テスト実行）</value>
+  </data>
+  <data name="OffloadDryRunHelp" xml:space="preserve">
+    <value>すべてを解決してフォルダごとに何が起きるかを報告しますが、追加は行いません。実際の実行前の確認を推奨します。</value>
+  </data>
+  <data name="OffloadMarkAsSeen" xml:space="preserve">
+    <value>追加したメール既読にする</value>
+  </data>
+  <data name="OffloadMarkAsSeenHelp" xml:space="preserve">
+    <value>これをオフにすると、ターゲットメールボックスで未読メールは未読のままになります。</value>
+  </data>
+  <data name="OffloadFolderHandling" xml:space="preserve">
+    <value>フォルダ処理</value>
+  </data>
+  <data name="OffloadExcludedFolders" xml:space="preserve">
+    <value>除外されたソースフォルダ</value>
+  </data>
+  <data name="OffloadRenameMap" xml:space="preserve">
+    <value>フォルダ名前変更マップ</value>
+  </data>
+  <data name="OffloadNoneConfigured" xml:space="preserve">
+    <value>設定されていません</value>
+  </data>
+  <data name="OffloadFolderHandlingHelp" xml:space="preserve">
+    <value>どちらも appsettings.json の Offload セクションで設定され、デフォルトでは空です。除外は名前変更の前に一致判定され、サブフォルダも対象となります。</value>
+  </data>
+  <data name="OffloadStart" xml:space="preserve">
+    <value>オフロードを開始</value>
+  </data>
+  <data name="OffloadNoTargets" xml:space="preserve">
+    <value>ターゲットとして使用できる他のIMAPアカウントがありません。先に作成してください。</value>
+  </data>
+  <data name="OffloadNoTargetsAssigned" xml:space="preserve">
+    <value>あなたに割り当てられたメールボックスのいずれもターゲットとして使用できません。管理者に別IMAPアカウントの割り当てを依頼してください。</value>
+  </data>
+  <data name="OffloadTargetRequired" xml:space="preserve">
+    <value>ターゲットメールボックスを選択してください。</value>
+  </data>
+  <data name="OffloadTargetMustDiffer" xml:space="preserve">
+    <value>ターゲットメールボックスはソースとは異なるものである必要があります。</value>
+  </data>
+  <data name="OffloadTargetNotFound" xml:space="preserve">
+    <value>選択されたターゲットメールボックスはもう存在しません。</value>
+  </data>
+  <data name="OffloadTargetMustBeImap" xml:space="preserve">
+    <value>ターゲットメールボックスはIMAPアカウントである必要があります。</value>
+  </data>
+  <data name="OffloadCutoffRequired" xml:space="preserve">
+    <value>月ウィンドウまたは開始日のいずれかを指定してください。</value>
+  </data>
+  <data name="OffloadCutoffToBeforeFrom" xml:space="preserve">
+    <value>終了日は開始日より前であってはなりません。</value>
+  </data>
+  <data name="OffloadNothingInWindow" xml:space="preserve">
+    <value>指定された期間ウィンドウに該当するアーカイブ済みメールはありません。</value>
+  </data>
+  <data name="OffloadQueued" xml:space="preserve">
+    <value>{0} 件のメールのオフロードがキューに登録されました。</value>
+  </data>
+  <data name="OffloadDryRunQueued" xml:space="preserve">
+    <value>{0} 件のメールのドライランがキューに登録されました。何も追加されません。</value>
+  </data>
+  <data name="OffloadAppended" xml:space="preserve">
+    <value>追加済み</value>
+  </data>
+  <data name="OffloadAlreadyPresent" xml:space="preserve">
+    <value>既に存在します</value>
+  </data>
+  <data name="OffloadByFingerprint" xml:space="preserve">
+    <value>フィンガープリントで一致</value>
+  </data>
+  <data name="OffloadExcluded" xml:space="preserve">
+    <value>除外されたフォルダ</value>
+  </data>
+  <data name="OffloadReport" xml:space="preserve">
+    <value>オフロードレポート</value>
+  </data>
+  <data name="OffloadJob" xml:space="preserve">
+    <value>オフロード</value>
+  </data>
+
+  <data name="AuditExport" xml:space="preserve">
+    <value>監査データエクスポート</value>
+  </data>
+  <data name="AuditExportHistory" xml:space="preserve">
+    <value>エクスポート履歴</value>
+  </data>
+  <data name="Mailbox" xml:space="preserve">
+    <value>メールボックス</value>
+  </data>
+  <data name="AllMailboxes" xml:space="preserve">
+    <value>すべてのメールボックス</value>
+  </data>
+  <data name="AttachmentMetadata" xml:space="preserve">
+    <value>添付ファイルメタデータ</value>
+  </data>
+  <data name="IncludeAttachmentMetadata" xml:space="preserve">
+    <value>添付ファイルメタデータテーブルを含める</value>
+  </data>
+  <data name="DataSupplierName" xml:space="preserve">
+    <value>データ提供者名</value>
+  </data>
+  <data name="DataSupplierLocation" xml:space="preserve">
+    <value>データ提供者の場所</value>
+  </data>
+  <data name="NoAuditExportsYet" xml:space="preserve">
+    <value>エクスポートはまだありません</value>
+  </data>
+  <data name="Period" xml:space="preserve">
+    <value>期間</value>
+  </data>
+
+  <data name="Comment" xml:space="preserve">
+    <value>コメント</value>
+  </data>
+  <data name="AuditExportInvalidPeriod" xml:space="preserve">
+    <value>期間が無効です: 開始日と終了日は必須です。</value>
+  </data>
+  <data name="AuditExportRangeTooLong" xml:space="preserve">
+    <value>期間は {0} 年を超えてはなりません。</value>
+  </data>
+  <data name="AuditExportAccountNotFound" xml:space="preserve">
+    <value>選択されたメールボックスが見つかりませんでした。</value>
+  </data>
+  <data name="AuditExportFileNotFound" xml:space="preserve">
+    <value>エクスポートファイルが見つからないか、利用できなくなっています。</value>
+  </data>
+
+  <data name="BackToLogs" xml:space="preserve">
+    <value>ログに戻る</value>
+  </data>
+  <data name="ExportSettings" xml:space="preserve">
+    <value>エクスポート設定</value>
+  </data>
+  <data name="CancelExportConfirm" xml:space="preserve">
+    <value>このエクスポートをキャンセルしますか？</value>
+  </data>
+  <data name="Domains" xml:space="preserve">
+    <value>ドメイン</value>
+  </data>
+  <data name="EmailsPerPeriod" xml:space="preserve">
+    <value>期間ごとのメール数</value>
+  </data>
+  <data name="ChartGranularity" xml:space="preserve">
+    <value>解像度</value>
+  </data>
+  <data name="ChartLoadFailed" xml:space="preserve">
+    <value>チャートを読み込めませんでした。もう一度お試しください。</value>
+  </data>
+  <data name="Hour" xml:space="preserve">
+    <value>時間</value>
+  </data>
+  <data name="Day" xml:space="preserve">
+    <value>日</value>
+  </data>
+  <data name="Month" xml:space="preserve">
+    <value>月</value>
+  </data>
+  <data name="Year" xml:space="preserve">
+    <value>年</value>
+  </data>
+  <data name="PeriodUnitDay" xml:space="preserve">
+    <value>日</value>
+  </data>
+  <data name="PeriodUnitDays" xml:space="preserve">
+    <value>日</value>
+  </data>
+  <data name="PeriodUnitMonth" xml:space="preserve">
+    <value>ヶ月</value>
+  </data>
+  <data name="PeriodUnitMonths" xml:space="preserve">
+    <value>ヶ月</value>
+  </data>
+  <data name="PeriodUnitYear" xml:space="preserve">
+    <value>年</value>
+  </data>
+  <data name="PeriodUnitYears" xml:space="preserve">
+    <value>年</value>
+  </data>
+  <data name="EarlierPeriod" xml:space="preserve">
+    <value>前の期間</value>
+  </data>
+  <data name="LaterPeriod" xml:space="preserve">
+    <value>後の期間</value>
+  </data>
+  <data name="CurrentPeriod" xml:space="preserve">
+    <value>現在</value>
+  </data>
+</root>
