@@ -809,4 +809,23 @@
   <data name="RecoveredSummary" xml:space="preserve">
     <value>{0} email(s) with non-standard headers were automatically repaired and archived.</value>
   </data>
+  <data name="MailcowInstances" xml:space="preserve"><value>Mailcow instances</value></data>
+  <data name="MailcowIntroduction" xml:space="preserve"><value>Archive selected Mailcow mailboxes without personal passwords.</value></data>
+  <data name="MailcowConnect" xml:space="preserve"><value>Connect Mailcow</value></data>
+  <data name="MailcowManage" xml:space="preserve"><value>Manage mailboxes</value></data>
+  <data name="MailcowConnectHelp" xml:space="preserve"><value>Use an API key with mailbox listing and app password management permissions. Credential encryption must be enabled. IMAP uses verified TLS.</value></data>
+  <data name="MailcowUrl" xml:space="preserve"><value>Mailcow URL</value></data>
+  <data name="MailcowApiKey" xml:space="preserve"><value>API key</value></data>
+  <data name="MailcowImapHost" xml:space="preserve"><value>IMAP host</value></data>
+  <data name="MailcowImapPort" xml:space="preserve"><value>IMAP TLS port</value></data>
+  <data name="MailcowSelectionHelp" xml:space="preserve"><value>Select mailboxes to create dedicated IMAP app passwords. Pending mailboxes can be retried. Revoking access stops synchronization and retains the archive.</value></data>
+  <data name="MailcowActivate" xml:space="preserve"><value>Archive selected mailboxes / retry</value></data>
+  <data name="MailcowActive" xml:space="preserve"><value>Archiving enabled</value></data>
+  <data name="MailcowRevoked" xml:space="preserve"><value>Access revoked</value></data>
+  <data name="MailcowPending" xml:space="preserve"><value>Pending — retry or revoke</value></data>
+  <data name="MailcowDisabled" xml:space="preserve"><value>Disabled in Mailcow</value></data>
+  <data name="MailcowExisting" xml:space="preserve"><value>Archive account already exists</value></data>
+  <data name="MailcowAvailable" xml:space="preserve"><value>Available</value></data>
+  <data name="MailcowRevoke" xml:space="preserve"><value>Revoke app password</value></data>
+  <data name="MailcowRemainingAccess" xml:space="preserve"><value>Remaining app passwords</value></data>
 </root>

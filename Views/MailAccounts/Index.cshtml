@@ -17,6 +17,10 @@
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h1 class="h3">@Localizer["EmailAccounts"]</h1>
         <div class="d-flex gap-2">
+            @if (isAdmin)
+            {
+                <a asp-controller="Mailcow" asp-action="Index" class="btn btn-outline-primary btn-sm">@Localizer["MailcowInstances"]</a>
+            }
             <div class="dropdown">
                 <button class="btn btn-outline-success btn-sm dropdown-toggle" type="button" id="importDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                     <i class="bi bi-upload"></i>
