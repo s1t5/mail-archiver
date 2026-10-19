@@ -11,6 +11,8 @@ namespace MailArchiver.Data
         private readonly ICredentialProtector _credentialProtector;
 
         public DbSet<MailAccount> MailAccounts { get; set; }
+        public DbSet<MailcowInstance> MailcowInstances { get; set; }
+        public DbSet<MailcowMailbox> MailcowMailboxes { get; set; }
         public DbSet<ArchivedEmail> ArchivedEmails { get; set; }
         public DbSet<EmailAttachment> EmailAttachments { get; set; }
         public DbSet<AttachmentContent> AttachmentContents { get; set; }
@@ -278,6 +280,13 @@ namespace MailArchiver.Data
                 value => value);
 
             var mailAccountBuilder = modelBuilder.Entity<MailAccount>();
+            modelBuilder.Entity<MailcowInstance>().HasIndex(x => x.ApiUrl).IsUnique();
+            modelBuilder.Entity<MailcowInstance>().Property(x => x.ApiKey).HasConversion(credentialConverter);
+            modelBuilder.Entity<MailcowMailbox>().HasIndex(x => new { x.InstanceId, x.EmailAddress }).IsUnique();
+            modelBuilder.Entity<MailcowMailbox>().HasOne(x => x.Instance).WithMany()
+                .HasForeignKey(x => x.InstanceId).OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<MailcowMailbox>().HasOne(x => x.MailAccount).WithMany()
+                .HasForeignKey(x => x.MailAccountId).OnDelete(DeleteBehavior.SetNull);
             foreach (var credentialProperty in new[]
             {
                 nameof(MailAccount.Password),

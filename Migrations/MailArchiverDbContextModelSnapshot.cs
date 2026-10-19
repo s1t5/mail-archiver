@@ -880,6 +880,96 @@ namespace MailArchiver.Migrations
 
                     b.Navigation("MailAccount");
                 });
+            modelBuilder.Entity("MailArchiver.Models.MailcowInstance", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ApiKey")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("ApiUrl")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("ImapHost")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("ImapPort")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ApiUrl")
+                        .IsUnique();
+
+                    b.ToTable("MailcowInstances", "mail_archiver");
+                });
+
+            modelBuilder.Entity("MailArchiver.Models.MailcowMailbox", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("AppName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("AppPasswordId")
+                        .HasColumnType("text");
+
+                    b.Property<string>("EmailAddress")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("InstanceId")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("IsRevoked")
+                        .HasColumnType("boolean");
+
+                    b.Property<int?>("MailAccountId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MailAccountId");
+
+                    b.HasIndex("InstanceId", "EmailAddress")
+                        .IsUnique();
+
+                    b.ToTable("MailcowMailboxes", "mail_archiver");
+                });
+
+            modelBuilder.Entity("MailArchiver.Models.MailcowMailbox", b =>
+                {
+                    b.HasOne("MailArchiver.Models.MailcowInstance", "Instance")
+                        .WithMany()
+                        .HasForeignKey("InstanceId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("MailAccount", "MailAccount")
+                        .WithMany()
+                        .HasForeignKey("MailAccountId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Instance");
+
+                    b.Navigation("MailAccount");
+                });
 #pragma warning restore 612, 618
         }
     }

@@ -3540,4 +3540,23 @@
   <data name="CurrentPeriod" xml:space="preserve">
     <value>Jetzt</value>
   </data>
+  <data name="MailcowInstances" xml:space="preserve"><value>Mailcow-Instanzen</value></data>
+  <data name="MailcowIntroduction" xml:space="preserve"><value>Ausgewählte Mailcow-Postfächer ohne persönliche Passwörter archivieren.</value></data>
+  <data name="MailcowConnect" xml:space="preserve"><value>Mailcow verbinden</value></data>
+  <data name="MailcowManage" xml:space="preserve"><value>Postfächer verwalten</value></data>
+  <data name="MailcowConnectHelp" xml:space="preserve"><value>Ein API-Schlüssel mit Zugriff auf Postfachlisten und App-Passwort-Verwaltung wird benötigt. Die Zugangsdatenverschlüsselung muss aktiviert sein. IMAP verwendet geprüftes TLS.</value></data>
+  <data name="MailcowUrl" xml:space="preserve"><value>Mailcow-URL</value></data>
+  <data name="MailcowApiKey" xml:space="preserve"><value>API-Schlüssel</value></data>
+  <data name="MailcowImapHost" xml:space="preserve"><value>IMAP-Server</value></data>
+  <data name="MailcowImapPort" xml:space="preserve"><value>IMAP-TLS-Port</value></data>
+  <data name="MailcowSelectionHelp" xml:space="preserve"><value>Postfächer auswählen, um eigene IMAP-App-Passwörter anzulegen. Ausstehende Einrichtungen können erneut versucht werden. Ein Widerruf beendet die Synchronisierung und erhält das Archiv.</value></data>
+  <data name="MailcowActivate" xml:space="preserve"><value>Ausgewählte Postfächer archivieren / erneut versuchen</value></data>
+  <data name="MailcowActive" xml:space="preserve"><value>Archivierung aktiv</value></data>
+  <data name="MailcowRevoked" xml:space="preserve"><value>Zugang widerrufen</value></data>
+  <data name="MailcowPending" xml:space="preserve"><value>Ausstehend – erneut versuchen oder widerrufen</value></data>
+  <data name="MailcowDisabled" xml:space="preserve"><value>In Mailcow deaktiviert</value></data>
+  <data name="MailcowExisting" xml:space="preserve"><value>Archivkonto bereits vorhanden</value></data>
+  <data name="MailcowAvailable" xml:space="preserve"><value>Verfügbar</value></data>
+  <data name="MailcowRevoke" xml:space="preserve"><value>App-Passwort widerrufen</value></data>
+  <data name="MailcowRemainingAccess" xml:space="preserve"><value>Verbliebene App-Passwörter</value></data>
 </root>

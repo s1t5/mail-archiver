@@ -1,0 +1,59 @@
+@model MailArchiver.ViewModels.MailcowMailboxesViewModel
+@inject Microsoft.Extensions.Localization.IStringLocalizer<MailArchiver.SharedResource> L
+@{ ViewData["Title"] = Model.Name; }
+<div class="container">
+    <h1>@Model.Name</h1>
+    <p>@L["MailcowSelectionHelp"]</p>
+    <div class="d-flex gap-2 mb-3">
+        <input type="search" id="mailcowSearch" class="form-control" placeholder="@L["SearchMailboxes"]" aria-label="@L["SearchMailboxes"]" />
+        <button type="button" id="mailcowSelectAll" class="btn btn-outline-secondary">@L["SelectAll"]</button>
+        <button type="button" id="mailcowClear" class="btn btn-outline-secondary">@L["ClearSelection"]</button>
+    </div>
+    @if (TempData["MailcowResult"] is string result) { <div class="alert alert-info" role="status">@result</div> }
+    @if ((TempData["MailcowError"] ?? ViewData["Error"]) is string error) { <div class="alert alert-danger" role="alert">@error</div> }
+    <form asp-action="Import" asp-route-id="@Model.InstanceId" id="mailcowImport" method="post">
+        <button type="submit" class="btn btn-primary mb-3">@L["MailcowActivate"]</button>
+        <a asp-action="Index" class="btn btn-outline-secondary mb-3">@L["BackToList"]</a>
+    </form>
+    <div class="table-responsive">
+        <table class="table align-middle">
+            <thead><tr><th>@L["SelectionMode"]</th><th>@L["EmailAddress"]</th><th>@L["AccountName"]</th><th>@L["Status"]</th><th>@L["Actions"]</th></tr></thead>
+            <tbody>
+            @foreach (var row in Model.Mailboxes)
+            {
+                var binding = row.Binding;
+                var active = binding is { IsRevoked: false, MailAccount.IsEnabled: true };
+                var canImport = row.Mailbox.Active && !active && (!row.AlreadyExists || binding?.MailAccount != null) &&
+                    !(binding is { IsRevoked: false, MailAccount: null });
+                <tr data-mailcow-mailbox>
+                    <td><input type="checkbox" name="selectedMailboxes" value="@row.Mailbox.Address" form="mailcowImport" disabled="@(!canImport)" aria-label="@row.Mailbox.Address" /></td>
+                    <td>@row.Mailbox.Address</td><td>@row.Mailbox.Name</td>
+                    <td>@(active ? L["MailcowActive"] : binding?.IsRevoked == true ? L["MailcowRevoked"] : binding != null ? L["MailcowPending"] : !row.Mailbox.Active ? L["MailcowDisabled"] : row.AlreadyExists ? L["MailcowExisting"] : L["MailcowAvailable"])</td>
+                    <td>
+                    @if (binding is { IsRevoked: false })
+                    {
+                        <form asp-action="Revoke" asp-route-id="@binding.Id" method="post">
+                            <button class="btn btn-outline-danger btn-sm" type="submit">@L["MailcowRevoke"]</button>
+                        </form>
+                    }
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+    @if (Model.OrphanedBindings.Count > 0)
+    {
+        <h2 class="h5">@L["MailcowRemainingAccess"]</h2>
+        @foreach (var binding in Model.OrphanedBindings)
+        {
+            <form asp-action="Revoke" asp-route-id="@binding.Id" method="post" class="mb-2">
+                <span>@binding.EmailAddress</span>
+                <button class="btn btn-outline-danger btn-sm" type="submit">@L["MailcowRevoke"]</button>
+            </form>
+        }
+    }
+</div>
+@section Scripts {
+    <script src="~/js/mailcow.js" asp-append-version="true"></script>
+}
