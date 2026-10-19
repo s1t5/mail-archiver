@@ -35,6 +35,7 @@ public class MailcowApiClientTests
     [InlineData("[{\"type\":\"danger\",\"msg\":\"secret-value\"}]")]
     [InlineData("not-json secret-value")]
     [InlineData("[]")]
+    [InlineData("{}")]
     public async Task RejectedOrMalformedMutation_DoesNotExposeResponse(string response)
     {
         var api = new MailcowApiClient(new HttpClient(new Handler(_ => Task.FromResult(
@@ -49,6 +50,15 @@ public class MailcowApiClientTests
     [InlineData("https://mail.example.com/api/")]
     [InlineData("https://mail.example.com/?key=secret")]
     public void RejectsUnsafeApiOrigins(string value) => Assert.Throws<MailcowException>(() => MailcowApiClient.ValidateUrl(value));
+
+    [Fact]
+    public async Task EmptyObjectFromMailcow_IsAnEmptyCollectionForReads()
+    {
+        var api = new MailcowApiClient(new HttpClient(new Handler(_ => Task.FromResult(
+            new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent("{}") }))));
+        Assert.Empty(await api.GetAppPasswordsAsync(Instance(), "test@example.com", default));
+        Assert.Empty(await api.GetMailboxesAsync(Instance(), default));
+    }
 
     [Fact]
     public async Task MailboxListing_HandlesNumericAndBooleanActiveFlags_AndNormalizesAddresses()

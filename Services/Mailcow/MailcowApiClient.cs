@@ -37,6 +37,10 @@ public class MailcowApiClient(HttpClient http)
             // Deliberately deserialize only the fields we need, without logging raw responses.
             using var json = await JsonDocument.ParseAsync(await response.Content.ReadAsStreamAsync(ct), cancellationToken: ct);
             var root = json.RootElement;
+            // Mailcow serializes an empty collection as {} on some list endpoints.
+            // Accept this only for reads; mutations still require explicit success rows.
+            if (method == HttpMethod.Get && root.ValueKind == JsonValueKind.Object && !root.EnumerateObject().Any())
+                return JsonSerializer.SerializeToElement(Array.Empty<object>());
             if (root.ValueKind != JsonValueKind.Array || root.EnumerateArray().Any(x => Text(x, "type") is "error" or "danger" or "warning"))
                 throw new MailcowException("Mailcow rejected the API request. Check the instance configuration and API permissions.");
             if (method == HttpMethod.Post &&
