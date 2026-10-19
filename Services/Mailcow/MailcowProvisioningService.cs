@@ -11,6 +11,9 @@ namespace MailArchiver.Services.Mailcow;
 public class MailcowProvisioningService(MailArchiverDbContext db, MailcowApiClient api,
     ICredentialProtector protector)
 {
+    // Keep 256 random bits while satisfying Mailcow's configurable character-class rules.
+    internal static string GenerateAppPassword() => Convert.ToHexString(RandomNumberGenerator.GetBytes(32)) + "aA1!";
+
     public void RequireEncryption()
     {
         if (!protector.IsEnabled)
@@ -89,7 +92,7 @@ public class MailcowProvisioningService(MailArchiverDbContext db, MailcowApiClie
                 LastSync = DateTime.UnixEpoch
             };
             binding.MailAccount.IsEnabled = false;
-            binding.MailAccount.Password = Convert.ToHexString(RandomNumberGenerator.GetBytes(32));
+            binding.MailAccount.Password = GenerateAppPassword();
             if (binding.Id == 0) db.MailcowMailboxes.Add(binding);
             // Persist the credential and unique operation name BEFORE contacting Mailcow.
             // Retries can reconcile even when the API times out after creating the password.
