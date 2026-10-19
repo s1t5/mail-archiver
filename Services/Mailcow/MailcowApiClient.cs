@@ -68,7 +68,8 @@ public class MailcowApiClient(HttpClient http)
     public virtual async Task<List<MailcowAppPassword>> GetAppPasswordsAsync(MailcowInstance instance, string address, CancellationToken ct)
     {
         var root = await SendAsync(instance, HttpMethod.Get, "get/app-passwd/all/" + Uri.EscapeDataString(address), null, ct);
-        return root.EnumerateArray().Select(x => new MailcowAppPassword(Text(x, "id"), Text(x, "app_name"))).ToList();
+        return root.EnumerateArray().Select(x => new MailcowAppPassword(Text(x, "id"),
+            string.IsNullOrEmpty(Text(x, "name")) ? Text(x, "app_name") : Text(x, "name"))).ToList();
     }
 
     public virtual async Task CreateAppPasswordAsync(MailcowInstance instance, string address, string name, string password, CancellationToken ct)

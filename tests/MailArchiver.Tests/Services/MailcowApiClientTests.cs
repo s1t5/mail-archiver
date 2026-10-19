@@ -60,6 +60,20 @@ public class MailcowApiClientTests
         Assert.Empty(await api.GetMailboxesAsync(Instance(), default));
     }
 
+    [Theory]
+    [InlineData("name")]
+    [InlineData("app_name")]
+    public async Task AppPasswordListing_ReadsTheReturnedNameField(string field)
+    {
+        var response = "[{\"id\":42,\"" + field + "\":\"MailArchiver-test\",\"password\":\"not-returned\"}]";
+        var api = new MailcowApiClient(new HttpClient(new Handler(_ => Task.FromResult(
+            new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent(response) }))));
+        var app = Assert.Single(await api.GetAppPasswordsAsync(Instance(), "test@example.com", default));
+        Assert.Equal("42", app.Id);
+        Assert.Equal("MailArchiver-test", app.Name);
+        Assert.DoesNotContain("not-returned", app.ToString());
+    }
+
     [Fact]
     public async Task MailboxListing_HandlesNumericAndBooleanActiveFlags_AndNormalizesAddresses()
     {

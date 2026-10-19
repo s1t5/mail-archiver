@@ -15,6 +15,18 @@ namespace MailArchiver.Tests.Services;
 [Collection(TestDbFixture.CollectionName)]
 public class MailcowProvisioningTests(TestDbFixture fixture)
 {
+    [Fact]
+    public void GeneratedPasswords_MeetMailcowCharacterClassRules()
+    {
+        var password = MailcowProvisioningService.GenerateAppPassword();
+        Assert.True(password.Length >= 32);
+        Assert.Contains(password, char.IsLower);
+        Assert.Contains(password, char.IsUpper);
+        Assert.Contains(password, char.IsDigit);
+        Assert.Contains(password, c => !char.IsLetterOrDigit(c));
+        Assert.NotEqual(password, MailcowProvisioningService.GenerateAppPassword());
+    }
+
     private sealed class FakeApi : MailcowApiClient
     {
         public FakeApi() : base(new HttpClient()) { }
