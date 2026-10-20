@@ -3539,4 +3539,43 @@
   <data name="CurrentPeriod" xml:space="preserve">
     <value>Adesso</value>
   </data>
+  <data name="MailcowInstances" xml:space="preserve"><value>Istanze Mailcow</value></data>
+  <data name="MailcowIntroduction" xml:space="preserve"><value>Archivia le cassette Mailcow selezionate senza password personali.</value></data>
+  <data name="MailcowConnect" xml:space="preserve"><value>Connetti Mailcow</value></data>
+  <data name="MailcowManage" xml:space="preserve"><value>Gestisci cassette</value></data>
+  <data name="MailcowConnectHelp" xml:space="preserve"><value>Usa una chiave API con autorizzazione a elencare le cassette e gestire le password delle app. La crittografia delle credenziali deve essere abilitata. IMAP usa TLS verificato.</value></data>
+  <data name="MailcowUrl" xml:space="preserve"><value>URL Mailcow</value></data>
+  <data name="MailcowApiKey" xml:space="preserve"><value>Chiave API</value></data>
+  <data name="MailcowImapHost" xml:space="preserve"><value>Host IMAP</value></data>
+  <data name="MailcowImapPort" xml:space="preserve"><value>Porta TLS IMAP</value></data>
+  <data name="MailcowSelectionHelp" xml:space="preserve"><value>Seleziona le cassette per creare password delle app IMAP dedicate. Le cassette in sospeso possono essere ritentate. La revoca dell'accesso interrompe la sincronizzazione e conserva l'archivio.</value></data>
+  <data name="MailcowActivate" xml:space="preserve"><value>Archivia le cassette selezionate / riprova</value></data>
+  <data name="MailcowActive" xml:space="preserve"><value>Archiviazione abilitata</value></data>
+  <data name="MailcowRevoked" xml:space="preserve"><value>Accesso revocato</value></data>
+  <data name="MailcowPending" xml:space="preserve"><value>In sospeso — riprova o revoca</value></data>
+  <data name="MailcowDisabled" xml:space="preserve"><value>Disabilitata in Mailcow</value></data>
+  <data name="MailcowExisting" xml:space="preserve"><value>L'account di archivio esiste già</value></data>
+  <data name="MailcowAvailable" xml:space="preserve"><value>Disponibile</value></data>
+  <data name="MailcowRevoke" xml:space="preserve"><value>Revoca password dell'app</value></data>
+  <data name="MailcowRemainingAccess" xml:space="preserve"><value>Password delle app rimanenti</value></data>
+  <data name="MailcowImapHostInvalid" xml:space="preserve"><value>Inserisci un nome host IMAP senza schema o porta.</value></data>
+  <data name="MailcowInstanceAlreadyConnected" xml:space="preserve"><value>Questa istanza Mailcow è già connessa.</value></data>
+  <data name="MailcowInstanceSaveFailed" xml:space="preserve"><value>Non è stato possibile salvare l'istanza. Verifica se è già connessa.</value></data>
+  <data name="MailcowSelectMailboxCount" xml:space="preserve"><value>Seleziona da 1 a {0} cassette.</value></data>
+  <data name="MailcowConcurrentChange" xml:space="preserve"><value>Una modifica simultanea ha impedito il provisioning. Ricarica l'elenco delle cassette e riprova.</value></data>
+  <data name="MailcowImportResult" xml:space="preserve"><value>{0} cassetta/e pronta/e; {1} non è stato possibile attivarle. L'accesso in sospeso può essere ritentato o revocato.</value></data>
+  <data name="MailcowRevokedSuccess" xml:space="preserve"><value>Password dell'app revocata. L'archivio viene conservato e la sincronizzazione è disabilitata.</value></data>
+  <data name="MailcowEncryptionRequired" xml:space="preserve"><value>Abilita la crittografia delle credenziali con Security__CredentialEncryptionKey prima di connettere Mailcow.</value></data>
+  <data name="MailcowImapVerificationFailed" xml:space="preserve"><value>Non è stato possibile verificare la password dell'app tramite IMAP con TLS. Controlla host IMAP, certificato e stato della cassetta, quindi riprova.</value></data>
+  <data name="MailcowMailboxUnavailable" xml:space="preserve"><value>Questa cassetta non è disponibile o è disabilitata in Mailcow.</value></data>
+  <data name="MailcowRevokePreviousPassword" xml:space="preserve"><value>Revoca la password dell'app precedente prima di aggiungere di nuovo questo account di archivio eliminato.</value></data>
+  <data name="MailcowImapAccountExists" xml:space="preserve"><value>Esiste già un account di archivio IMAP per questa cassetta.</value></data>
+  <data name="MailcowPasswordUndecryptable" xml:space="preserve"><value>La password dell'app memorizzata non può essere decifrata. Ripristina la chiave di crittografia o revoca questo accesso.</value></data>
+  <data name="MailcowAppPasswordIdMissing" xml:space="preserve"><value>Mailcow non ha restituito un ID della password dell'app. Riprova per riconciliare questo accesso.</value></data>
+  <data name="MailcowHttpsOriginRequired" xml:space="preserve"><value>Usa l'origine HTTPS della tua istanza Mailcow, ad esempio https://mail.example.com.</value></data>
+  <data name="MailcowApiKeyUnavailable" xml:space="preserve"><value>La chiave API non è disponibile. Controlla la chiave di crittografia delle credenziali configurata.</value></data>
+  <data name="MailcowApiRequestFailed" xml:space="preserve"><value>Richiesta all'API Mailcow non riuscita (HTTP {0}). Controlla i permessi dell'API e gli IP di origine consentiti.</value></data>
+  <data name="MailcowApiRejected" xml:space="preserve"><value>Mailcow ha rifiutato la richiesta API. Controlla la configurazione dell'istanza e i permessi dell'API.</value></data>
+  <data name="MailcowApiNotConfirmed" xml:space="preserve"><value>Mailcow non ha confermato la modifica.</value></data>
+  <data name="MailcowApiUnreachable" xml:space="preserve"><value>Impossibile raggiungere Mailcow o risposta non valida. Riprova per riconciliare lo stato remoto.</value></data>
 </root>

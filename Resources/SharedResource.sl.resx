@@ -3539,4 +3539,43 @@
   <data name="CurrentPeriod" xml:space="preserve">
     <value>Zdaj</value>
   </data>
+  <data name="MailcowInstances" xml:space="preserve"><value>Primerki Mailcow</value></data>
+  <data name="MailcowIntroduction" xml:space="preserve"><value>Arhivirajte izbrane nabiralnike Mailcow brez osebnih gesel.</value></data>
+  <data name="MailcowConnect" xml:space="preserve"><value>Poveži Mailcow</value></data>
+  <data name="MailcowManage" xml:space="preserve"><value>Upravljaj nabiralnike</value></data>
+  <data name="MailcowConnectHelp" xml:space="preserve"><value>Uporabite ključ API z dovoljenji za seznam nabiralnikov in upravljanje gesel aplikacij. Šifriranje poverilnic mora biti omogočeno. IMAP uporablja preverjen TLS.</value></data>
+  <data name="MailcowUrl" xml:space="preserve"><value>URL Mailcow</value></data>
+  <data name="MailcowApiKey" xml:space="preserve"><value>Ključ API</value></data>
+  <data name="MailcowImapHost" xml:space="preserve"><value>Gostitelj IMAP</value></data>
+  <data name="MailcowImapPort" xml:space="preserve"><value>Vrata TLS IMAP</value></data>
+  <data name="MailcowSelectionHelp" xml:space="preserve"><value>Izberite nabiralnike za ustvarjanje namenskih gesel aplikacij IMAP. Nabiralnike v čakanju lahko poskusite znova. Preklic dostopa ustavi sinhronizacijo in ohrani arhiv.</value></data>
+  <data name="MailcowActivate" xml:space="preserve"><value>Arhiviraj izbrane nabiralnike / poskusi znova</value></data>
+  <data name="MailcowActive" xml:space="preserve"><value>Arhiviranje omogočeno</value></data>
+  <data name="MailcowRevoked" xml:space="preserve"><value>Dostop preklican</value></data>
+  <data name="MailcowPending" xml:space="preserve"><value>V čakanju — poskusi znova ali prekliči</value></data>
+  <data name="MailcowDisabled" xml:space="preserve"><value>Onemogočeno v Mailcow</value></data>
+  <data name="MailcowExisting" xml:space="preserve"><value>Arhivski račun že obstaja</value></data>
+  <data name="MailcowAvailable" xml:space="preserve"><value>Na voljo</value></data>
+  <data name="MailcowRevoke" xml:space="preserve"><value>Prekliči geslo aplikacije</value></data>
+  <data name="MailcowRemainingAccess" xml:space="preserve"><value>Preostala gesla aplikacij</value></data>
+  <data name="MailcowImapHostInvalid" xml:space="preserve"><value>Vnesite ime gostitelja IMAP brez sheme in vrat.</value></data>
+  <data name="MailcowInstanceAlreadyConnected" xml:space="preserve"><value>Ta primerek Mailcow je že povezan.</value></data>
+  <data name="MailcowInstanceSaveFailed" xml:space="preserve"><value>Primerka ni bilo mogoče shraniti. Preverite, ali je že povezan.</value></data>
+  <data name="MailcowSelectMailboxCount" xml:space="preserve"><value>Izberite med 1 in {0} nabiralniki.</value></data>
+  <data name="MailcowConcurrentChange" xml:space="preserve"><value>Sočasna sprememba je preprečila vzpostavitev. Znova naložite seznam nabiralnikov in poskusite znova.</value></data>
+  <data name="MailcowImportResult" xml:space="preserve"><value>{0} nabiralnikov pripravljenih; {1} ni bilo mogoče aktivirati. Dostop v čakanju lahko poskusite znova ali prekličete.</value></data>
+  <data name="MailcowRevokedSuccess" xml:space="preserve"><value>Geslo aplikacije preklicano. Arhiv je ohranjen, sinhronizacija je onemogočena.</value></data>
+  <data name="MailcowEncryptionRequired" xml:space="preserve"><value>Omogočite šifriranje poverilnic s Security__CredentialEncryptionKey, preden povežete Mailcow.</value></data>
+  <data name="MailcowImapVerificationFailed" xml:space="preserve"><value>Gesla aplikacije ni bilo mogoče preveriti prek IMAP s TLS. Preverite gostitelja IMAP, potrdilo in stanje nabiralnika, nato poskusite znova.</value></data>
+  <data name="MailcowMailboxUnavailable" xml:space="preserve"><value>Ta nabiralnik v Mailcow ni na voljo ali je onemogočen.</value></data>
+  <data name="MailcowRevokePreviousPassword" xml:space="preserve"><value>Prekličite prejšnje geslo aplikacije, preden znova dodate ta izbrisani arhivski račun.</value></data>
+  <data name="MailcowImapAccountExists" xml:space="preserve"><value>Za ta nabiralnik že obstaja arhivski račun IMAP.</value></data>
+  <data name="MailcowPasswordUndecryptable" xml:space="preserve"><value>Shranjenega gesla aplikacije ni mogoče dešifrirati. Obnovite šifrirni ključ ali prekličite ta dostop.</value></data>
+  <data name="MailcowAppPasswordIdMissing" xml:space="preserve"><value>Mailcow ni vrnil ID-ja gesla aplikacije. Poskusite znova, da uskladite ta dostop.</value></data>
+  <data name="MailcowHttpsOriginRequired" xml:space="preserve"><value>Uporabite izvor HTTPS svojega primerka Mailcow, na primer https://mail.example.com.</value></data>
+  <data name="MailcowApiKeyUnavailable" xml:space="preserve"><value>Ključ API ni na voljo. Preverite konfigurirani šifrirni ključ poverilnic.</value></data>
+  <data name="MailcowApiRequestFailed" xml:space="preserve"><value>Zahteva API Mailcow ni uspela (HTTP {0}). Preverite dovoljenja API in dovoljene izvorne IP-naslove.</value></data>
+  <data name="MailcowApiRejected" xml:space="preserve"><value>Mailcow je zavrnil zahtevo API. Preverite konfiguracijo primerka in dovoljenja API.</value></data>
+  <data name="MailcowApiNotConfirmed" xml:space="preserve"><value>Mailcow ni potrdil spremembe.</value></data>
+  <data name="MailcowApiUnreachable" xml:space="preserve"><value>Mailcow ni dosegljiv ali je vrnil neveljaven odgovor. Poskusite znova, da uskladite oddaljeno stanje.</value></data>
 </root>

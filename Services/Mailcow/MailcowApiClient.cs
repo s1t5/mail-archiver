@@ -8,7 +8,18 @@ public record MailcowRemoteMailbox(string Address, string Name, bool Active);
 public record MailcowAppPassword(string Id, string Name);
 
 // Never expose Mailcow response bodies: app-passwd responses echo plaintext passwords.
-public class MailcowException(string message) : Exception(message);
+// The resource key is localized by the controller; service and API layers stay UI-agnostic.
+public class MailcowException : Exception
+{
+    public string ResourceKey { get; }
+    public object[] ResourceArgs { get; }
+
+    public MailcowException(string resourceKey, params object[] resourceArgs) : base(resourceKey)
+    {
+        ResourceKey = resourceKey;
+        ResourceArgs = resourceArgs;
+    }
+}
 
 public class MailcowApiClient(HttpClient http)
 {
@@ -17,7 +28,7 @@ public class MailcowApiClient(HttpClient http)
         if (!Uri.TryCreate(value, UriKind.Absolute, out var uri) || uri.Scheme != "https" ||
             !string.IsNullOrEmpty(uri.UserInfo) || !string.IsNullOrEmpty(uri.Query) ||
             !string.IsNullOrEmpty(uri.Fragment) || uri.AbsolutePath != "/")
-            throw new MailcowException("Use the HTTPS origin of your Mailcow instance, for example https://mail.example.com.");
+            throw new MailcowException("MailcowHttpsOriginRequired");
         return uri;
     }
 
@@ -25,7 +36,7 @@ public class MailcowApiClient(HttpClient http)
         object? body, CancellationToken ct)
     {
         if (string.IsNullOrWhiteSpace(instance.ApiKey))
-            throw new MailcowException("The API key is unavailable. Check the configured credential encryption key.");
+            throw new MailcowException("MailcowApiKeyUnavailable");
         using var request = new HttpRequestMessage(method, new Uri(ValidateUrl(instance.ApiUrl), "api/v1/" + path));
         request.Headers.Add("X-API-Key", instance.ApiKey);
         if (body != null) request.Content = JsonContent.Create(body);
@@ -33,7 +44,7 @@ public class MailcowApiClient(HttpClient http)
         {
             using var response = await http.SendAsync(request, ct);
             if (!response.IsSuccessStatusCode)
-                throw new MailcowException($"Mailcow API request failed (HTTP {(int)response.StatusCode}). Check API permissions and the allowed source IPs.");
+                throw new MailcowException("MailcowApiRequestFailed", (int)response.StatusCode);
             // Deliberately deserialize only the fields we need, without logging raw responses.
             using var json = await JsonDocument.ParseAsync(await response.Content.ReadAsStreamAsync(ct), cancellationToken: ct);
             var root = json.RootElement;
@@ -42,15 +53,15 @@ public class MailcowApiClient(HttpClient http)
             if (method == HttpMethod.Get && root.ValueKind == JsonValueKind.Object && !root.EnumerateObject().Any())
                 return JsonSerializer.SerializeToElement(Array.Empty<object>());
             if (root.ValueKind != JsonValueKind.Array || root.EnumerateArray().Any(x => Text(x, "type") is "error" or "danger" or "warning"))
-                throw new MailcowException("Mailcow rejected the API request. Check the instance configuration and API permissions.");
+                throw new MailcowException("MailcowApiRejected");
             if (method == HttpMethod.Post &&
                 (root.GetArrayLength() == 0 || root.EnumerateArray().Any(x => Text(x, "type") != "success")))
-                throw new MailcowException("Mailcow did not confirm the change.");
+                throw new MailcowException("MailcowApiNotConfirmed");
             return root.Clone();
         }
         catch (Exception e) when (e is HttpRequestException or JsonException or TaskCanceledException)
         {
-            throw new MailcowException("Mailcow could not be reached or returned an invalid response. Retry to reconcile the remote state.");
+            throw new MailcowException("MailcowApiUnreachable");
         }
     }
 

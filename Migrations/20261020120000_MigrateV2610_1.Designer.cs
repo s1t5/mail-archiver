@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace MailArchiver.Migrations
 {
     [DbContext(typeof(MailArchiverDbContext))]
-    [Migration("20261019130558_AddMailcowInstances")]
-    partial class AddMailcowInstances
+    [Migration("20261020120000_MigrateV2610_1")]
+    partial class MigrateV2610_1
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {

@@ -3539,4 +3539,43 @@
   <data name="CurrentPeriod" xml:space="preserve">
     <value>Nu</value>
   </data>
+  <data name="MailcowInstances" xml:space="preserve"><value>Mailcow-instanties</value></data>
+  <data name="MailcowIntroduction" xml:space="preserve"><value>Archiveer geselecteerde Mailcow-postbussen zonder persoonlijke wachtwoorden.</value></data>
+  <data name="MailcowConnect" xml:space="preserve"><value>Mailcow verbinden</value></data>
+  <data name="MailcowManage" xml:space="preserve"><value>Postbussen beheren</value></data>
+  <data name="MailcowConnectHelp" xml:space="preserve"><value>Gebruik een API-sleutel met rechten om postbussen te tonen en app-wachtwoorden te beheren. Versleuteling van inloggegevens moet zijn ingeschakeld. IMAP gebruikt geverifieerde TLS.</value></data>
+  <data name="MailcowUrl" xml:space="preserve"><value>Mailcow-URL</value></data>
+  <data name="MailcowApiKey" xml:space="preserve"><value>API-sleutel</value></data>
+  <data name="MailcowImapHost" xml:space="preserve"><value>IMAP-host</value></data>
+  <data name="MailcowImapPort" xml:space="preserve"><value>IMAP TLS-poort</value></data>
+  <data name="MailcowSelectionHelp" xml:space="preserve"><value>Selecteer postbussen om speciale IMAP-app-wachtwoorden aan te maken. Postbussen in afwachting kunnen opnieuw worden geprobeerd. Toegang intrekken stopt de synchronisatie en behoudt het archief.</value></data>
+  <data name="MailcowActivate" xml:space="preserve"><value>Geselecteerde postbussen archiveren / opnieuw proberen</value></data>
+  <data name="MailcowActive" xml:space="preserve"><value>Archivering ingeschakeld</value></data>
+  <data name="MailcowRevoked" xml:space="preserve"><value>Toegang ingetrokken</value></data>
+  <data name="MailcowPending" xml:space="preserve"><value>In afwachting — opnieuw proberen of intrekken</value></data>
+  <data name="MailcowDisabled" xml:space="preserve"><value>Uitgeschakeld in Mailcow</value></data>
+  <data name="MailcowExisting" xml:space="preserve"><value>Archiefaccount bestaat al</value></data>
+  <data name="MailcowAvailable" xml:space="preserve"><value>Beschikbaar</value></data>
+  <data name="MailcowRevoke" xml:space="preserve"><value>App-wachtwoord intrekken</value></data>
+  <data name="MailcowRemainingAccess" xml:space="preserve"><value>Resterende app-wachtwoorden</value></data>
+  <data name="MailcowImapHostInvalid" xml:space="preserve"><value>Voer een IMAP-hostnaam in zonder schema of poort.</value></data>
+  <data name="MailcowInstanceAlreadyConnected" xml:space="preserve"><value>Deze Mailcow-instantie is al verbonden.</value></data>
+  <data name="MailcowInstanceSaveFailed" xml:space="preserve"><value>De instantie kon niet worden opgeslagen. Controleer of deze al is verbonden.</value></data>
+  <data name="MailcowSelectMailboxCount" xml:space="preserve"><value>Selecteer tussen 1 en {0} postbussen.</value></data>
+  <data name="MailcowConcurrentChange" xml:space="preserve"><value>Een gelijktijdige wijziging verhinderde het inrichten. Herlaad de postbuslijst en probeer het opnieuw.</value></data>
+  <data name="MailcowImportResult" xml:space="preserve"><value>{0} postbus(sen) gereed; {1} konden niet worden geactiveerd. Toegang in afwachting kan opnieuw worden geprobeerd of ingetrokken.</value></data>
+  <data name="MailcowRevokedSuccess" xml:space="preserve"><value>App-wachtwoord ingetrokken. Het archief blijft behouden en synchronisatie is uitgeschakeld.</value></data>
+  <data name="MailcowEncryptionRequired" xml:space="preserve"><value>Schakel versleuteling van inloggegevens in met Security__CredentialEncryptionKey voordat u Mailcow verbindt.</value></data>
+  <data name="MailcowImapVerificationFailed" xml:space="preserve"><value>Het app-wachtwoord kon niet via IMAP met TLS worden geverifieerd. Controleer de IMAP-host, het certificaat en de postbusstatus en probeer het opnieuw.</value></data>
+  <data name="MailcowMailboxUnavailable" xml:space="preserve"><value>Deze postbus is niet beschikbaar of is uitgeschakeld in Mailcow.</value></data>
+  <data name="MailcowRevokePreviousPassword" xml:space="preserve"><value>Trek het vorige app-wachtwoord in voordat u dit verwijderde archiefaccount opnieuw toevoegt.</value></data>
+  <data name="MailcowImapAccountExists" xml:space="preserve"><value>Er bestaat al een IMAP-archiefaccount voor deze postbus.</value></data>
+  <data name="MailcowPasswordUndecryptable" xml:space="preserve"><value>Het opgeslagen app-wachtwoord kan niet worden ontsleuteld. Herstel de versleutelingssleutel of trek deze toegang in.</value></data>
+  <data name="MailcowAppPasswordIdMissing" xml:space="preserve"><value>Mailcow heeft geen app-wachtwoord-ID teruggegeven. Probeer het opnieuw om deze toegang te verzoenen.</value></data>
+  <data name="MailcowHttpsOriginRequired" xml:space="preserve"><value>Gebruik de HTTPS-origin van uw Mailcow-instantie, bijvoorbeeld https://mail.example.com.</value></data>
+  <data name="MailcowApiKeyUnavailable" xml:space="preserve"><value>De API-sleutel is niet beschikbaar. Controleer de geconfigureerde versleutelingssleutel voor inloggegevens.</value></data>
+  <data name="MailcowApiRequestFailed" xml:space="preserve"><value>Mailcow-API-verzoek mislukt (HTTP {0}). Controleer API-rechten en de toegestane bron-IP's.</value></data>
+  <data name="MailcowApiRejected" xml:space="preserve"><value>Mailcow heeft het API-verzoek geweigerd. Controleer de configuratie van de instantie en de API-rechten.</value></data>
+  <data name="MailcowApiNotConfirmed" xml:space="preserve"><value>Mailcow heeft de wijziging niet bevestigd.</value></data>
+  <data name="MailcowApiUnreachable" xml:space="preserve"><value>Mailcow kon niet worden bereikt of gaf een ongeldig antwoord. Probeer het opnieuw om de externe status te verzoenen.</value></data>
 </root>

@@ -17,7 +17,7 @@ public class MailcowProvisioningService(MailArchiverDbContext db, MailcowApiClie
     public void RequireEncryption()
     {
         if (!protector.IsEnabled)
-            throw new MailcowException("Enable credential encryption with Security__CredentialEncryptionKey before connecting Mailcow.");
+            throw new MailcowException("MailcowEncryptionRequired");
     }
 
     public virtual async Task VerifyImapAsync(MailcowInstance instance, string address, string password, CancellationToken ct)
@@ -31,7 +31,7 @@ public class MailcowProvisioningService(MailArchiverDbContext db, MailcowApiClie
         }
         catch (Exception e) when (e is not MailcowException)
         {
-            throw new MailcowException("The app password could not be verified over IMAP with TLS. Check the IMAP host, certificate and mailbox status, then retry.");
+            throw new MailcowException("MailcowImapVerificationFailed");
         }
     }
 
@@ -66,12 +66,12 @@ public class MailcowProvisioningService(MailArchiverDbContext db, MailcowApiClie
         address = address.Trim().ToLowerInvariant();
         // Revalidate posted selections against the server, including disabled mailbox state.
         var remote = (await api.GetMailboxesAsync(instance, ct)).SingleOrDefault(x => x.Address == address && x.Active)
-            ?? throw new MailcowException("This mailbox is unavailable or disabled in Mailcow.");
+            ?? throw new MailcowException("MailcowMailboxUnavailable");
         var binding = await db.MailcowMailboxes.Include(x => x.MailAccount)
             .SingleOrDefaultAsync(x => x.InstanceId == instance.Id && x.EmailAddress == address, ct);
         if (binding is { IsRevoked: false, MailAccount.IsEnabled: true }) return;
         if (binding != null && binding.MailAccount == null && !binding.IsRevoked)
-            throw new MailcowException("Revoke the previous app password before adding this deleted archive account again.");
+            throw new MailcowException("MailcowRevokePreviousPassword");
 
         if (binding == null || binding.IsRevoked)
         {
@@ -79,7 +79,7 @@ public class MailcowProvisioningService(MailArchiverDbContext db, MailcowApiClie
             var previousAccountId = binding?.MailAccountId;
             if (await db.MailAccounts.AnyAsync(x => x.EmailAddress.ToLower() == address &&
                 x.Provider == ProviderType.IMAP && (!previousAccountId.HasValue || x.Id != previousAccountId.Value), ct))
-                throw new MailcowException("An IMAP archive account already exists for this mailbox.");
+                throw new MailcowException("MailcowImapAccountExists");
             binding ??= new MailcowMailbox { InstanceId = instance.Id, EmailAddress = address };
             binding.AppName = "MailArchiver-" + Guid.NewGuid().ToString("N");
             binding.AppPasswordId = null;
@@ -100,7 +100,7 @@ public class MailcowProvisioningService(MailArchiverDbContext db, MailcowApiClie
         }
 
         var password = binding.MailAccount!.Password;
-        if (string.IsNullOrEmpty(password)) throw new MailcowException("The stored app password cannot be decrypted. Restore the encryption key or revoke this access.");
+        if (string.IsNullOrEmpty(password)) throw new MailcowException("MailcowPasswordUndecryptable");
         var appPasswords = await api.GetAppPasswordsAsync(instance, address, ct);
         var existing = appPasswords.SingleOrDefault(x => x.Name == binding.AppName);
         if (existing == null)
@@ -109,7 +109,7 @@ public class MailcowProvisioningService(MailArchiverDbContext db, MailcowApiClie
             existing = (await api.GetAppPasswordsAsync(instance, address, ct)).SingleOrDefault(x => x.Name == binding.AppName);
         }
         if (existing == null || string.IsNullOrEmpty(existing.Id))
-            throw new MailcowException("Mailcow has not returned the app password ID. Retry to reconcile this access.");
+            throw new MailcowException("MailcowAppPasswordIdMissing");
         binding.AppPasswordId = existing.Id;
         await db.SaveChangesAsync(ct);
         await VerifyImapAsync(instance, address, password, ct);
@@ -134,7 +134,7 @@ public class MailcowProvisioningService(MailArchiverDbContext db, MailcowApiClie
             .Where(x => x.Name == binding.AppName).ToList();
         foreach (var app in matches)
         {
-            if (string.IsNullOrWhiteSpace(app.Id)) throw new MailcowException("Mailcow did not return an app password ID.");
+            if (string.IsNullOrWhiteSpace(app.Id)) throw new MailcowException("MailcowAppPasswordIdMissing");
             await api.DeleteAppPasswordAsync(binding.Instance, app.Id, ct);
         }
         if (binding.MailAccount != null) binding.MailAccount.Password = null;

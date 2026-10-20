@@ -828,4 +828,24 @@
   <data name="MailcowAvailable" xml:space="preserve"><value>Available</value></data>
   <data name="MailcowRevoke" xml:space="preserve"><value>Revoke app password</value></data>
   <data name="MailcowRemainingAccess" xml:space="preserve"><value>Remaining app passwords</value></data>
+  <data name="MailcowImapHostInvalid" xml:space="preserve"><value>Enter an IMAP hostname without a scheme or port.</value></data>
+  <data name="MailcowInstanceAlreadyConnected" xml:space="preserve"><value>This Mailcow instance is already connected.</value></data>
+  <data name="MailcowInstanceSaveFailed" xml:space="preserve"><value>The instance could not be saved. Check whether it is already connected.</value></data>
+  <data name="MailcowSelectMailboxCount" xml:space="preserve"><value>Select between 1 and {0} mailboxes.</value></data>
+  <data name="MailcowConcurrentChange" xml:space="preserve"><value>A concurrent change prevented provisioning. Reload the mailbox list and retry.</value></data>
+  <data name="MailcowImportResult" xml:space="preserve"><value>{0} mailbox(es) ready; {1} could not be activated. Pending access can be retried or revoked.</value></data>
+  <data name="MailcowRevokedSuccess" xml:space="preserve"><value>App password revoked. The archive is retained and synchronization is disabled.</value></data>
+  <data name="MailcowEncryptionRequired" xml:space="preserve"><value>Enable credential encryption with Security__CredentialEncryptionKey before connecting Mailcow.</value></data>
+  <data name="MailcowImapVerificationFailed" xml:space="preserve"><value>The app password could not be verified over IMAP with TLS. Check the IMAP host, certificate and mailbox status, then retry.</value></data>
+  <data name="MailcowMailboxUnavailable" xml:space="preserve"><value>This mailbox is unavailable or disabled in Mailcow.</value></data>
+  <data name="MailcowRevokePreviousPassword" xml:space="preserve"><value>Revoke the previous app password before adding this deleted archive account again.</value></data>
+  <data name="MailcowImapAccountExists" xml:space="preserve"><value>An IMAP archive account already exists for this mailbox.</value></data>
+  <data name="MailcowPasswordUndecryptable" xml:space="preserve"><value>The stored app password cannot be decrypted. Restore the encryption key or revoke this access.</value></data>
+  <data name="MailcowAppPasswordIdMissing" xml:space="preserve"><value>Mailcow did not return an app password ID. Retry to reconcile this access.</value></data>
+  <data name="MailcowHttpsOriginRequired" xml:space="preserve"><value>Use the HTTPS origin of your Mailcow instance, for example https://mail.example.com.</value></data>
+  <data name="MailcowApiKeyUnavailable" xml:space="preserve"><value>The API key is unavailable. Check the configured credential encryption key.</value></data>
+  <data name="MailcowApiRequestFailed" xml:space="preserve"><value>Mailcow API request failed (HTTP {0}). Check API permissions and the allowed source IPs.</value></data>
+  <data name="MailcowApiRejected" xml:space="preserve"><value>Mailcow rejected the API request. Check the instance configuration and API permissions.</value></data>
+  <data name="MailcowApiNotConfirmed" xml:space="preserve"><value>Mailcow did not confirm the change.</value></data>
+  <data name="MailcowApiUnreachable" xml:space="preserve"><value>Mailcow could not be reached or returned an invalid response. Retry to reconcile the remote state.</value></data>
 </root>

@@ -9,8 +9,7 @@
         <button type="button" id="mailcowSelectAll" class="btn btn-outline-secondary">@L["SelectAll"]</button>
         <button type="button" id="mailcowClear" class="btn btn-outline-secondary">@L["ClearSelection"]</button>
     </div>
-    @if (TempData["MailcowResult"] is string result) { <div class="alert alert-info" role="status">@result</div> }
-    @if ((TempData["MailcowError"] ?? ViewData["Error"]) is string error) { <div class="alert alert-danger" role="alert">@error</div> }
+    @if (ViewData["Error"] is string error) { <div class="alert alert-danger" role="alert">@error</div> }
     <form asp-action="Import" asp-route-id="@Model.InstanceId" id="mailcowImport" method="post">
         <button type="submit" class="btn btn-primary mb-3">@L["MailcowActivate"]</button>
         <a asp-action="Index" class="btn btn-outline-secondary mb-3">@L["BackToList"]</a>
