@@ -28,7 +28,9 @@ mailbox list and ignores disabled mailboxes. Each selected mailbox receives a
 random app password named `MailArchiver-<unique id>` with only `imap_access`.
 The archiver verifies the password using IMAP over TLS before enabling sync.
 Mail is then archived using the existing IMAP provider. Existing independent IMAP
-accounts are not overwritten or duplicated.
+accounts are not overwritten or duplicated. The maximum selection size is
+configurable with `Mailcow__MaxSelectedMailboxes` (default `1000`); see
+[Setup](Setup.md#mailcow-settings).
 
 IMAP permission is not intrinsically read-only. New accounts have no server-side
 deletion policy configured; administrators retain control of the existing account

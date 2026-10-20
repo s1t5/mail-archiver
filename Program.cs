@@ -121,6 +121,10 @@ builder.Services.Configure<OffloadOptions>(
 builder.Services.Configure<TenantManagementOptions>(
     builder.Configuration.GetSection(TenantManagementOptions.TenantManagement));
 
+// Add Mailcow Options
+builder.Services.Configure<MailcowOptions>(
+    builder.Configuration.GetSection(MailcowOptions.Mailcow));
+
 // Add Mail Sync Options
 builder.Services.Configure<MailSyncOptions>(
     builder.Configuration.GetSection(MailSyncOptions.MailSync));

@@ -3538,4 +3538,43 @@
   <data name="CurrentPeriod" xml:space="preserve">
     <value>Ahora</value>
   </data>
+  <data name="MailcowInstances" xml:space="preserve"><value>Instancias de Mailcow</value></data>
+  <data name="MailcowIntroduction" xml:space="preserve"><value>Archive los buzones de Mailcow seleccionados sin contraseñas personales.</value></data>
+  <data name="MailcowConnect" xml:space="preserve"><value>Conectar Mailcow</value></data>
+  <data name="MailcowManage" xml:space="preserve"><value>Gestionar buzones</value></data>
+  <data name="MailcowConnectHelp" xml:space="preserve"><value>Use una clave de API con permisos para listar buzones y gestionar contraseñas de aplicación. El cifrado de credenciales debe estar activado. IMAP usa TLS verificado.</value></data>
+  <data name="MailcowUrl" xml:space="preserve"><value>URL de Mailcow</value></data>
+  <data name="MailcowApiKey" xml:space="preserve"><value>Clave de API</value></data>
+  <data name="MailcowImapHost" xml:space="preserve"><value>Host IMAP</value></data>
+  <data name="MailcowImapPort" xml:space="preserve"><value>Puerto TLS IMAP</value></data>
+  <data name="MailcowSelectionHelp" xml:space="preserve"><value>Seleccione buzones para crear contraseñas de aplicación IMAP dedicadas. Los buzones pendientes se pueden reintentar. Revocar el acceso detiene la sincronización y conserva el archivo.</value></data>
+  <data name="MailcowActivate" xml:space="preserve"><value>Archivar buzones seleccionados / reintentar</value></data>
+  <data name="MailcowActive" xml:space="preserve"><value>Archivado activado</value></data>
+  <data name="MailcowRevoked" xml:space="preserve"><value>Acceso revocado</value></data>
+  <data name="MailcowPending" xml:space="preserve"><value>Pendiente: reintentar o revocar</value></data>
+  <data name="MailcowDisabled" xml:space="preserve"><value>Desactivado en Mailcow</value></data>
+  <data name="MailcowExisting" xml:space="preserve"><value>La cuenta de archivo ya existe</value></data>
+  <data name="MailcowAvailable" xml:space="preserve"><value>Disponible</value></data>
+  <data name="MailcowRevoke" xml:space="preserve"><value>Revocar contraseña de aplicación</value></data>
+  <data name="MailcowRemainingAccess" xml:space="preserve"><value>Contraseñas de aplicación restantes</value></data>
+  <data name="MailcowImapHostInvalid" xml:space="preserve"><value>Introduzca un nombre de host IMAP sin esquema ni puerto.</value></data>
+  <data name="MailcowInstanceAlreadyConnected" xml:space="preserve"><value>Esta instancia de Mailcow ya está conectada.</value></data>
+  <data name="MailcowInstanceSaveFailed" xml:space="preserve"><value>No se pudo guardar la instancia. Compruebe si ya está conectada.</value></data>
+  <data name="MailcowSelectMailboxCount" xml:space="preserve"><value>Seleccione entre 1 y {0} buzones.</value></data>
+  <data name="MailcowConcurrentChange" xml:space="preserve"><value>Un cambio concurrente impidió el aprovisionamiento. Vuelva a cargar la lista de buzones e inténtelo de nuevo.</value></data>
+  <data name="MailcowImportResult" xml:space="preserve"><value>{0} buzón/buzones listos; {1} no se pudieron activar. El acceso pendiente se puede reintentar o revocar.</value></data>
+  <data name="MailcowRevokedSuccess" xml:space="preserve"><value>Contraseña de aplicación revocada. El archivo se conserva y la sincronización está desactivada.</value></data>
+  <data name="MailcowEncryptionRequired" xml:space="preserve"><value>Active el cifrado de credenciales con Security__CredentialEncryptionKey antes de conectar Mailcow.</value></data>
+  <data name="MailcowImapVerificationFailed" xml:space="preserve"><value>No se pudo verificar la contraseña de aplicación mediante IMAP con TLS. Compruebe el host IMAP, el certificado y el estado del buzón e inténtelo de nuevo.</value></data>
+  <data name="MailcowMailboxUnavailable" xml:space="preserve"><value>Este buzón no está disponible o está desactivado en Mailcow.</value></data>
+  <data name="MailcowRevokePreviousPassword" xml:space="preserve"><value>Revoque la contraseña de aplicación anterior antes de volver a añadir esta cuenta de archivo eliminada.</value></data>
+  <data name="MailcowImapAccountExists" xml:space="preserve"><value>Ya existe una cuenta de archivo IMAP para este buzón.</value></data>
+  <data name="MailcowPasswordUndecryptable" xml:space="preserve"><value>No se puede descifrar la contraseña de aplicación almacenada. Restaure la clave de cifrado o revoque este acceso.</value></data>
+  <data name="MailcowAppPasswordIdMissing" xml:space="preserve"><value>Mailcow no devolvió un ID de contraseña de aplicación. Reintente para reconciliar este acceso.</value></data>
+  <data name="MailcowHttpsOriginRequired" xml:space="preserve"><value>Use el origen HTTPS de su instancia de Mailcow, por ejemplo https://mail.example.com.</value></data>
+  <data name="MailcowApiKeyUnavailable" xml:space="preserve"><value>La clave de API no está disponible. Compruebe la clave de cifrado de credenciales configurada.</value></data>
+  <data name="MailcowApiRequestFailed" xml:space="preserve"><value>La solicitud a la API de Mailcow falló (HTTP {0}). Compruebe los permisos de la API y las IP de origen permitidas.</value></data>
+  <data name="MailcowApiRejected" xml:space="preserve"><value>Mailcow rechazó la solicitud de API. Compruebe la configuración de la instancia y los permisos de la API.</value></data>
+  <data name="MailcowApiNotConfirmed" xml:space="preserve"><value>Mailcow no confirmó el cambio.</value></data>
+  <data name="MailcowApiUnreachable" xml:space="preserve"><value>No se pudo contactar con Mailcow o devolvió una respuesta no válida. Reintente para reconciliar el estado remoto.</value></data>
 </root>

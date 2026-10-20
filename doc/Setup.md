@@ -74,6 +74,9 @@ services:
       # Tenant Management Settings
       - TenantManagement__MaxSelectedMailboxes=1000
 
+      # Mailcow Settings
+      - Mailcow__MaxSelectedMailboxes=1000
+
       # BatchOperation Settings
       - BatchOperation__BatchSize=50
       - BatchOperation__PauseBetweenEmailsMs=50
@@ -299,6 +302,9 @@ The optional MCP (Model Context Protocol) server exposes the same read-only mail
 
 ### 🏢 Tenant Management Settings
 - `TenantManagement__MaxSelectedMailboxes`: Maximum number of mailboxes that can be added in a single Tenant Management operation. Default is `1000`. Increase this for very large tenants, or lower it to prevent accidental mass imports. When the limit is exceeded, the operation is rejected with a validation error and no accounts are created. See [M365 Tenant Import Guide](M365TenantImport.md) for details.
+
+### 🐄 Mailcow Settings
+- `Mailcow__MaxSelectedMailboxes`: Maximum number of mailboxes that can be provisioned in a single Mailcow import operation. Default is `1000`. Lower it to prevent accidental mass provisioning, or increase it for large instances. When the limit is exceeded, no accounts are created. See [Mailcow Instances](Mailcow.md) for details.
 
 ### 📦 BatchOperation Settings
 - `BatchOperation__BatchSize`: The batch size for email operations.
