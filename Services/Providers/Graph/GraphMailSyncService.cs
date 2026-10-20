@@ -671,12 +671,12 @@ namespace MailArchiver.Services.Providers.Graph
                     {
                         "id", "internetMessageId", "subject", "from", "toRecipients", "ccRecipients", "bccRecipients",
                         "sentDateTime", "receivedDateTime", "hasAttachments", "body", "bodyPreview", "lastModifiedDateTime",
-                        "internetMessageHeaders"
+                        "internetMessageHeaders", "isRead"
                     }
                     : new string[]
                     {
                         "id", "internetMessageId", "subject", "from", "sentDateTime", "receivedDateTime", "lastModifiedDateTime",
-                        "internetMessageHeaders"
+                        "internetMessageHeaders", "isRead"
                     };
                 requestConfiguration.QueryParameters.Top = top;
             });
@@ -763,7 +763,7 @@ namespace MailArchiver.Services.Providers.Graph
                                 {
                                     "id", "internetMessageId", "subject", "from", "toRecipients", "ccRecipients", "bccRecipients",
                                     "sentDateTime", "receivedDateTime", "hasAttachments", "body", "bodyPreview", "lastModifiedDateTime",
-                                    "internetMessageHeaders"
+                                    "internetMessageHeaders", "isRead"
                                 };
                             });
                         }
