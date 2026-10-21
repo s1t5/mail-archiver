@@ -3638,4 +3638,20 @@
   <data name="MailcowInstanceDeleted" xml:space="preserve"><value>Usunięto instancję Mailcow. Konta archiwum zostały zachowane i wyłączone.</value></data>
   <data name="MailcowInstanceNotFound" xml:space="preserve"><value>Instancja Mailcow już nie istnieje.</value></data>
   <data name="MailcowDeleteRequiresRevoke" xml:space="preserve"><value>Unieważnij wszystkie zarządzane hasła aplikacji przed usunięciem tej instancji.</value></data>
+  <data name="MailcowProviderLabel" xml:space="preserve"><value>Mailcow</value></data>
+  <data name="MailcowProviderHelp" xml:space="preserve"><value>Twórz konta i zarządzaj nimi przez połączoną instancję Mailcow.</value></data>
+  <data name="MailcowSelectInstance" xml:space="preserve"><value>Instancja Mailcow</value></data>
+  <data name="MailcowManageInstances" xml:space="preserve"><value>Zarządzaj instancjami Mailcow</value></data>
+  <data name="MailcowManageMailboxes" xml:space="preserve"><value>Zarządzaj skrzynkami</value></data>
+  <data name="MailcowNoInstancesConnected" xml:space="preserve"><value>Nie połączono jeszcze żadnej instancji Mailcow.</value></data>
+  <data name="MailcowLinkAccountHelp" xml:space="preserve"><value>Połącz to konto IMAP z instancją Mailcow. Dedykowane hasło aplikacji zastąpi obecne hasło.</value></data>
+  <data name="MailcowLinkedToInstance" xml:space="preserve"><value>Zarządzane przez instancję Mailcow {0}</value></data>
+  <data name="MailcowUnlinkHint" xml:space="preserve"><value>Wybierz innego dostawcę i zapisz, aby odwołać hasło aplikacji Mailcow.</value></data>
+  <data name="MailcowAccountNotFound" xml:space="preserve"><value>Nie znaleziono konta archiwum.</value></data>
+  <data name="MailcowOnlyImapAccounts" xml:space="preserve"><value>Tylko konta IMAP można połączyć z Mailcow.</value></data>
+  <data name="MailcowMailboxAlreadyLinked" xml:space="preserve"><value>Ta skrzynka jest już połączona z innym kontem archiwum.</value></data>
+  <data name="MailcowAccountAlreadyLinked" xml:space="preserve"><value>To konto jest już połączone z inną instancją Mailcow.</value></data>
+  <data name="MailcowNewImapPasswordRequired" xml:space="preserve"><value>Po opuszczeniu Mailcow wprowadź nowe hasło IMAP.</value></data>
+  <data name="MailcowLinkSuccess" xml:space="preserve"><value>Konto połączone z instancją Mailcow {0}.</value></data>
+  <data name="MailcowDetachSuccess" xml:space="preserve"><value>Dostęp do Mailcow odwołany. Wprowadź nowe dane logowania dla wybranego dostawcy.</value></data>
 </root>

@@ -862,4 +862,20 @@
   <data name="MailcowInstanceDeleted" xml:space="preserve"><value>Mailcow instance deleted. Archive accounts were kept and disabled.</value></data>
   <data name="MailcowInstanceNotFound" xml:space="preserve"><value>The Mailcow instance no longer exists.</value></data>
   <data name="MailcowDeleteRequiresRevoke" xml:space="preserve"><value>Revoke all managed app passwords before deleting this instance.</value></data>
+  <data name="MailcowProviderLabel" xml:space="preserve"><value>Mailcow</value></data>
+  <data name="MailcowProviderHelp" xml:space="preserve"><value>Create and manage accounts through a connected Mailcow instance.</value></data>
+  <data name="MailcowSelectInstance" xml:space="preserve"><value>Mailcow instance</value></data>
+  <data name="MailcowManageInstances" xml:space="preserve"><value>Manage Mailcow instances</value></data>
+  <data name="MailcowManageMailboxes" xml:space="preserve"><value>Manage mailboxes</value></data>
+  <data name="MailcowNoInstancesConnected" xml:space="preserve"><value>No Mailcow instance is connected yet.</value></data>
+  <data name="MailcowLinkAccountHelp" xml:space="preserve"><value>Link this IMAP account to a Mailcow instance. A dedicated app password will replace the current password.</value></data>
+  <data name="MailcowLinkedToInstance" xml:space="preserve"><value>Managed by Mailcow instance {0}</value></data>
+  <data name="MailcowUnlinkHint" xml:space="preserve"><value>Select another provider and save to revoke the Mailcow app password.</value></data>
+  <data name="MailcowAccountNotFound" xml:space="preserve"><value>The archive account was not found.</value></data>
+  <data name="MailcowOnlyImapAccounts" xml:space="preserve"><value>Only IMAP accounts can be linked to Mailcow.</value></data>
+  <data name="MailcowMailboxAlreadyLinked" xml:space="preserve"><value>This mailbox is already linked to another archive account.</value></data>
+  <data name="MailcowAccountAlreadyLinked" xml:space="preserve"><value>This account is already linked to another Mailcow instance.</value></data>
+  <data name="MailcowNewImapPasswordRequired" xml:space="preserve"><value>Enter a new IMAP password after leaving Mailcow.</value></data>
+  <data name="MailcowLinkSuccess" xml:space="preserve"><value>Account linked to Mailcow instance {0}.</value></data>
+  <data name="MailcowDetachSuccess" xml:space="preserve"><value>Mailcow access revoked. Enter new credentials for the selected provider.</value></data>
 </root>

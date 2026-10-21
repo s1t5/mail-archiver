@@ -2,9 +2,20 @@
 @model MailArchiver.Models.ViewModels.MailAccountViewModel
 @{
     ViewData["Title"] = @Localizer["EditEmailAccount"];
-    var imapSettingsDisplay = Model.Provider == ProviderType.IMAP ? "block" : "none";
-    var microsoft365SettingsDisplay = Model.Provider == ProviderType.M365 ? "block" : "none";
-    var emailDeletionSettingsDisplay = Model.Provider == ProviderType.IMPORT ? "none" : "block";
+    var isAdmin = ViewBag.IsAdmin as bool? ?? false;
+    var mailcowInstances = ViewBag.MailcowInstances as List<MailcowInstance> ?? new List<MailcowInstance>();
+    var visualProvider = Model.LinkToMailcow ? "Mailcow"
+        : Model.LeaveMailcow ? Model.Provider.ToString()
+        : Model.IsMailcowManaged ? "Mailcow"
+        : Model.Provider.ToString();
+    var isMailcowVisual = visualProvider == "Mailcow";
+    var readOnlyMailcow = Model.IsMailcowManaged && !isAdmin;
+    var canSelectMailcow = isAdmin && (Model.Provider == ProviderType.IMAP || Model.IsMailcowManaged);
+    var linkToMailcowDefault = Model.LinkToMailcow || (Model.IsMailcowManaged && isAdmin && !Model.LeaveMailcow);
+    var imapSettingsDisplay = visualProvider == "IMAP" ? "block" : "none";
+    var microsoft365SettingsDisplay = visualProvider == "M365" ? "block" : "none";
+    var mailcowSettingsDisplay = isMailcowVisual ? "block" : "none";
+    var emailDeletionSettingsDisplay = visualProvider == "IMPORT" ? "none" : "block";
 }
 <div class="container">
     <h1>@Localizer["EditEmailAccount"]</h1>
@@ -30,14 +41,82 @@
                     </div>
 
                     <div class="mb-3">
-                        <label asp-for="Provider" class="form-label">@Localizer["Provider"]</label>
-                        <select asp-for="Provider" class="form-select">
-                            <option value="@ProviderType.IMAP">IMAP</option>
-                            <option value="@ProviderType.M365">Microsoft 365 (Exchange Online)</option>
-                            <option value="@ProviderType.MSA">@Localizer["MsaProviderLabel"]</option>
-                            <option value="@ProviderType.IMPORT">Import Only</option>
-                        </select>
+                        <label class="form-label">@Localizer["Provider"]</label>
+                        @if (readOnlyMailcow)
+                        {
+                            <div class="form-control-plaintext">
+                                IMAP · @Localizer["MailcowProviderLabel"]
+                            </div>
+                            <input type="hidden" id="ProviderDisplay" value="Mailcow" />
+                            <input type="hidden" name="Provider" id="Provider" value="@ProviderType.IMAP" />
+                            <input type="hidden" name="LinkToMailcow" id="LinkToMailcow" value="false" />
+                            <input type="hidden" name="LeaveMailcow" id="LeaveMailcow" value="false" />
+                        }
+                        else
+                        {
+                            <select id="ProviderDisplay" class="form-select">
+                                <option value="IMAP" selected="@(visualProvider == "IMAP")">IMAP</option>
+                                <option value="M365" selected="@(visualProvider == "M365")">Microsoft 365 (Exchange Online)</option>
+                                <option value="MSA" selected="@(visualProvider == "MSA")">@Localizer["MsaProviderLabel"]</option>
+                                <option value="IMPORT" selected="@(visualProvider == "IMPORT")">Import Only</option>
+                                @if (canSelectMailcow)
+                                {
+                                    <option value="Mailcow" selected="@(visualProvider == "Mailcow")">@Localizer["MailcowProviderLabel"]</option>
+                                }
+                            </select>
+                            <input type="hidden" name="Provider" id="Provider" value="@Model.Provider" />
+                            <input type="hidden" name="LinkToMailcow" id="LinkToMailcow" value="@(linkToMailcowDefault ? "true" : "false")" />
+                            <input type="hidden" name="LeaveMailcow" id="LeaveMailcow" value="@(Model.LeaveMailcow ? "true" : "false")" />
+                        }
                         <span asp-validation-for="Provider" class="text-danger"></span>
+                    </div>
+
+                    <div id="mailcowSettings" style="display: @mailcowSettingsDisplay;">
+                        <div class="form-section">
+                            <div class="form-section-header">
+                                <i class="bi bi-server me-1"></i> @Localizer["MailcowProviderLabel"]
+                            </div>
+                            @if (Model.IsMailcowManaged)
+                            {
+                                <input type="hidden" name="MailcowInstanceId" value="@Model.MailcowInstanceId" />
+                                <div class="alert alert-info">
+                                    <i class="bi bi-info-circle me-1"></i>
+                                    @Localizer["MailcowLinkedToInstance", Model.MailcowInstanceName ?? Model.MailcowInstanceId?.ToString() ?? ""]
+                                </div>
+                                <a asp-controller="Mailcow" asp-action="Mailboxes" asp-route-id="@Model.MailcowInstanceId" class="btn btn-outline-primary">
+                                    <i class="bi bi-envelope me-1"></i>@Localizer["MailcowManageMailboxes"]
+                                </a>
+                                @if (isAdmin)
+                                {
+                                    <p class="form-text mt-2">@Localizer["MailcowUnlinkHint"]</p>
+                                }
+                            }
+                            else
+                            {
+                                <p class="text-muted">@Localizer["MailcowLinkAccountHelp"]</p>
+                                @if (mailcowInstances.Count == 0)
+                                {
+                                    <div class="alert alert-info">@Localizer["MailcowNoInstancesConnected"]</div>
+                                }
+                                else
+                                {
+                                    <div class="mb-3">
+                                        <label asp-for="MailcowInstanceId" class="form-label">@Localizer["MailcowSelectInstance"]</label>
+                                        <select asp-for="MailcowInstanceId" class="form-select">
+                                            <option value="">@Localizer["SelectAccount"]</option>
+                                            @foreach (var instance in mailcowInstances)
+                                            {
+                                                <option value="@instance.Id">@instance.Name (@instance.ApiUrl)</option>
+                                            }
+                                        </select>
+                                        <span asp-validation-for="MailcowInstanceId" class="text-danger"></span>
+                                    </div>
+                                }
+                                <a asp-controller="Mailcow" asp-action="Index" class="btn btn-outline-secondary">
+                                    <i class="bi bi-gear me-1"></i>@Localizer["MailcowManageInstances"]
+                                </a>
+                            }
+                        </div>
                     </div>
                 </div>
 
@@ -82,7 +161,7 @@
                     </div>
                 </div>
 
-                <div id="msaSettings" style="display: @(Model.Provider == ProviderType.MSA ? "block" : "none");">
+                <div id="msaSettings" style="display: @(visualProvider == "MSA" ? "block" : "none");">
                     <div class="form-section">
                         <div class="form-section-header">
                             <i class="bi bi-microsoft me-1"></i> @Localizer["MsaSettingsHeading"]
@@ -401,7 +480,14 @@
         // for the account's own list in the browser, because the list changes with every click.
         const excludeSubfolders = @Html.Raw((ViewBag.ExcludeSubfolders as bool? ?? false) ? "true" : "false");
         document.addEventListener('DOMContentLoaded', function() {
-            const providerSelect = document.getElementById('Provider');
+            const providerDisplaySelect = document.getElementById('ProviderDisplay');
+            const providerInput = document.getElementById('Provider');
+            const linkToMailcowInput = document.getElementById('LinkToMailcow');
+            const leaveMailcowInput = document.getElementById('LeaveMailcow');
+            const mailcowSettings = document.getElementById('mailcowSettings');
+            const emailAddressInput = document.getElementById('EmailAddress');
+            const mailcowReadOnly = @(readOnlyMailcow ? "true" : "false");
+            const originallyMailcowManaged = @(Model.IsMailcowManaged ? "true" : "false");
             const imapSettings = document.getElementById('imapSettings');
             const microsoft365Settings = document.getElementById('microsoft365Settings');
             const msaSettings = document.getElementById('msaSettings');
@@ -437,19 +523,38 @@
                 isDirty = true;
             }
 
+            function syncProviderFields() {
+                if (mailcowReadOnly) return;
+                const visualValue = providerDisplaySelect.value;
+                if (visualValue === 'Mailcow') {
+                    providerInput.value = '@ProviderType.IMAP';
+                    linkToMailcowInput.value = 'true';
+                    leaveMailcowInput.value = 'false';
+                } else {
+                    providerInput.value = visualValue;
+                    linkToMailcowInput.value = 'false';
+                    leaveMailcowInput.value = originallyMailcowManaged ? 'true' : 'false';
+                }
+            }
+
             function toggleSettings() {
-                const providerValue = providerSelect.value;
-                const isImport = providerValue === '@ProviderType.IMPORT';
-                const isM365 = providerValue === '@ProviderType.M365';
-                const isMsa = providerValue === '@ProviderType.MSA';
-                const isImap = !isImport && !isM365 && !isMsa;
+                const visualValue = providerDisplaySelect.value;
+                const isImport = visualValue === 'IMPORT';
+                const isM365 = visualValue === 'M365';
+                const isMsa = visualValue === 'MSA';
+                const isMailcow = visualValue === 'Mailcow';
+                const isImap = !isImport && !isM365 && !isMsa && !isMailcow;
 
                 imapSettings.style.display = isImap ? 'block' : 'none';
                 microsoft365Settings.style.display = isM365 ? 'block' : 'none';
                 if (msaSettings) msaSettings.style.display = isMsa ? 'block' : 'none';
+                if (mailcowSettings) mailcowSettings.style.display = isMailcow ? 'block' : 'none';
                 emailDeletionSettings.style.display = isImport ? 'none' : 'block';
                 setSectionEnabled(imapSettings, isImap);
                 setSectionEnabled(microsoft365Settings, isM365);
+                if (msaSettings) setSectionEnabled(msaSettings, isMsa);
+                if (mailcowSettings) setSectionEnabled(mailcowSettings, isMailcow);
+                if (emailAddressInput) emailAddressInput.readOnly = isMailcow;
 
                 if (!isM365) {
                     bulkUpdateSuggestion.style.display = 'none';
@@ -457,8 +562,8 @@
             }
 
             function checkCredentialChanges() {
-                const providerValue = providerSelect.value;
-                if (providerValue !== '@ProviderType.M365') {
+                const providerValue = providerDisplaySelect.value;
+                if (providerValue !== 'M365') {
                     bulkUpdateSuggestion.style.display = 'none';
                     return;
                 }
@@ -573,10 +678,14 @@
             });
 
             // Initial check
+            syncProviderFields();
             toggleSettings();
 
             // Add event listeners
-            providerSelect.addEventListener('change', toggleSettings);
+            providerDisplaySelect.addEventListener('change', function() {
+                syncProviderFields();
+                toggleSettings();
+            });
 
             // Monitor credential changes
             if (clientIdInput) clientIdInput.addEventListener('blur', checkCredentialChanges);
@@ -585,7 +694,7 @@
 
             // Intercept form submission
             editForm.addEventListener('submit', function(e) {
-                const providerValue = providerSelect.value;
+                const providerValue = providerInput.value;
 
                 // Don't disable button if client-side validation fails
                 if (typeof $ !== 'undefined' && !$(editForm).valid()) {

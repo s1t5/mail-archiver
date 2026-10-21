@@ -186,4 +186,126 @@ public class MailcowProvisioningTests(TestDbFixture fixture)
         await Assert.ThrowsAsync<MailcowException>(() => service.ImportAsync(MailcowApiClientTests.Instance(), api.Address, default));
         Assert.Equal(0, api.Creates);
     }
+
+    private (MailArchiverDbContext Db, CredentialProtector Protector) CreateProtectedContext()
+    {
+        var protector = new CredentialProtector(Options.Create(new SecurityOptions
+        { CredentialEncryptionKey = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32)) }), NullLogger<CredentialProtector>.Instance);
+        var options = new DbContextOptionsBuilder<MailArchiverDbContext>().UseNpgsql(fixture.ConnectionString)
+            .ReplaceService<IModelCacheKeyFactory, CredentialModelCacheKeyFactory>().Options;
+        return (new MailArchiverDbContext(options, protector), protector);
+    }
+
+    [Fact]
+    public async Task LinkExistingImapAccount_ReplacesCredentialsAndCreatesBinding()
+    {
+        var (db, protector) = CreateProtectedContext();
+        await using var _ = db;
+        var instance = MailcowApiClientTests.Instance();
+        instance.ApiUrl = "https://" + Guid.NewGuid().ToString("N") + ".example.com/";
+        var api = new FakeApi();
+        var account = new MailAccount
+        {
+            Name = "Existing IMAP", EmailAddress = api.Address, Provider = ProviderType.IMAP,
+            ImapServer = "old.example.com", ImapPort = 143, Username = "old-user",
+            Password = "old-password", UseSSL = false, IsEnabled = false,
+            LastSync = DateTime.UnixEpoch
+        };
+        db.MailcowInstances.Add(instance);
+        db.MailAccounts.Add(account);
+        await db.SaveChangesAsync();
+        try
+        {
+            var service = new Provisioner(db, api, protector);
+            await service.LinkAsync(instance, account.Id, default);
+
+            var binding = await db.MailcowMailboxes.Include(x => x.MailAccount)
+                .SingleAsync(x => x.MailAccountId == account.Id);
+            Assert.Equal(instance.Id, binding.InstanceId);
+            Assert.False(binding.IsRevoked);
+            Assert.NotNull(binding.AppPasswordId);
+            Assert.Equal(api.Address, binding.EmailAddress);
+            Assert.Equal(instance.ImapHost, account.ImapServer);
+            Assert.Equal(instance.ImapPort, account.ImapPort);
+            Assert.Equal(api.Address, account.Username);
+            Assert.NotEqual("old-password", account.Password);
+            Assert.True(account.IsEnabled);
+            Assert.Single(api.Passwords);
+        }
+        finally
+        {
+            await db.MailcowMailboxes.Where(x => x.MailAccountId == account.Id).ExecuteDeleteAsync();
+            await db.MailAccounts.Where(x => x.Id == account.Id).ExecuteDeleteAsync();
+            await db.MailcowInstances.Where(x => x.Id == instance.Id).ExecuteDeleteAsync();
+        }
+    }
+
+    [Fact]
+    public async Task Detach_RevokesPasswordAndClearsAccountCredentials()
+    {
+        var (db, protector) = CreateProtectedContext();
+        await using var _ = db;
+        var instance = MailcowApiClientTests.Instance();
+        instance.ApiUrl = "https://" + Guid.NewGuid().ToString("N") + ".example.com/";
+        var api = new FakeApi();
+        var account = new MailAccount
+        {
+            Name = "Existing IMAP", EmailAddress = api.Address, Provider = ProviderType.IMAP,
+            ImapServer = "old.example.com", ImapPort = 143, Username = "old-user",
+            Password = "old-password", UseSSL = false, IsEnabled = true,
+            LastSync = DateTime.UnixEpoch
+        };
+        db.MailcowInstances.Add(instance);
+        db.MailAccounts.Add(account);
+        await db.SaveChangesAsync();
+        try
+        {
+            var service = new Provisioner(db, api, protector);
+            await service.LinkAsync(instance, account.Id, default);
+            await service.DetachAsync(account, default);
+
+            var binding = await db.MailcowMailboxes.SingleAsync(x => x.MailAccountId == account.Id);
+            Assert.True(binding.IsRevoked);
+            Assert.Null(account.Password);
+            Assert.False(account.IsEnabled);
+            Assert.Empty(api.Passwords);
+        }
+        finally
+        {
+            await db.MailcowMailboxes.Where(x => x.MailAccountId == account.Id).ExecuteDeleteAsync();
+            await db.MailAccounts.Where(x => x.Id == account.Id).ExecuteDeleteAsync();
+            await db.MailcowInstances.Where(x => x.Id == instance.Id).ExecuteDeleteAsync();
+        }
+    }
+
+    [Fact]
+    public async Task LinkExistingAccount_RejectsNonImapProvider()
+    {
+        var (db, protector) = CreateProtectedContext();
+        await using var _ = db;
+        var instance = MailcowApiClientTests.Instance();
+        instance.ApiUrl = "https://" + Guid.NewGuid().ToString("N") + ".example.com/";
+        var api = new FakeApi();
+        var account = new MailAccount
+        {
+            Name = "M365", EmailAddress = api.Address, Provider = ProviderType.M365,
+            ClientId = "client", TenantId = "tenant", IsEnabled = true,
+            LastSync = DateTime.UnixEpoch
+        };
+        db.MailcowInstances.Add(instance);
+        db.MailAccounts.Add(account);
+        await db.SaveChangesAsync();
+        try
+        {
+            var service = new Provisioner(db, api, protector);
+            await Assert.ThrowsAsync<MailcowException>(() => service.LinkAsync(instance, account.Id, default));
+            Assert.Equal(0, api.Creates);
+            Assert.False(await db.MailcowMailboxes.AnyAsync(x => x.MailAccountId == account.Id));
+        }
+        finally
+        {
+            await db.MailAccounts.Where(x => x.Id == account.Id).ExecuteDeleteAsync();
+            await db.MailcowInstances.Where(x => x.Id == instance.Id).ExecuteDeleteAsync();
+        }
+    }
 }

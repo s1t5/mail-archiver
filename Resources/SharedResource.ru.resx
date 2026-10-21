@@ -3592,4 +3592,20 @@
   <data name="MailcowInstanceDeleted" xml:space="preserve"><value>Экземпляр Mailcow удалён. Архивные учётные записи сохранены и отключены.</value></data>
   <data name="MailcowInstanceNotFound" xml:space="preserve"><value>Экземпляр Mailcow больше не существует.</value></data>
   <data name="MailcowDeleteRequiresRevoke" xml:space="preserve"><value>Отзовите все управляемые пароли приложений перед удалением этого экземпляра.</value></data>
+  <data name="MailcowProviderLabel" xml:space="preserve"><value>Mailcow</value></data>
+  <data name="MailcowProviderHelp" xml:space="preserve"><value>Создавайте учётные записи и управляйте ими через подключённый экземпляр Mailcow.</value></data>
+  <data name="MailcowSelectInstance" xml:space="preserve"><value>Экземпляр Mailcow</value></data>
+  <data name="MailcowManageInstances" xml:space="preserve"><value>Управление экземплярами Mailcow</value></data>
+  <data name="MailcowManageMailboxes" xml:space="preserve"><value>Управление ящиками</value></data>
+  <data name="MailcowNoInstancesConnected" xml:space="preserve"><value>Пока не подключён ни один экземпляр Mailcow.</value></data>
+  <data name="MailcowLinkAccountHelp" xml:space="preserve"><value>Привяжите эту учётную запись IMAP к экземпляру Mailcow. Текущий пароль будет заменён отдельным паролем приложения.</value></data>
+  <data name="MailcowLinkedToInstance" xml:space="preserve"><value>Управляется экземпляром Mailcow {0}</value></data>
+  <data name="MailcowUnlinkHint" xml:space="preserve"><value>Выберите другого провайдера и сохраните, чтобы отозвать пароль приложения Mailcow.</value></data>
+  <data name="MailcowAccountNotFound" xml:space="preserve"><value>Учётная запись архива не найдена.</value></data>
+  <data name="MailcowOnlyImapAccounts" xml:space="preserve"><value>К Mailcow можно привязать только учётные записи IMAP.</value></data>
+  <data name="MailcowMailboxAlreadyLinked" xml:space="preserve"><value>Этот ящик уже привязан к другой учётной записи архива.</value></data>
+  <data name="MailcowAccountAlreadyLinked" xml:space="preserve"><value>Эта учётная запись уже привязана к другому экземпляру Mailcow.</value></data>
+  <data name="MailcowNewImapPasswordRequired" xml:space="preserve"><value>После выхода из Mailcow введите новый пароль IMAP.</value></data>
+  <data name="MailcowLinkSuccess" xml:space="preserve"><value>Учётная запись привязана к экземпляру Mailcow {0}.</value></data>
+  <data name="MailcowDetachSuccess" xml:space="preserve"><value>Доступ к Mailcow отозван. Введите новые учётные данные для выбранного провайдера.</value></data>
 </root>

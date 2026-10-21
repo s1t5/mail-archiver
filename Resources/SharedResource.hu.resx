@@ -3584,4 +3584,20 @@
   <data name="MailcowInstanceDeleted" xml:space="preserve"><value>Mailcow-példány törölve. Az archiválási fiókok megmaradtak és letiltásra kerültek.</value></data>
   <data name="MailcowInstanceNotFound" xml:space="preserve"><value>A Mailcow-példány már nem létezik.</value></data>
   <data name="MailcowDeleteRequiresRevoke" xml:space="preserve"><value>A példány törlése előtt vonja vissza az összes kezelt alkalmazásjelszót.</value></data>
+  <data name="MailcowProviderLabel" xml:space="preserve"><value>Mailcow</value></data>
+  <data name="MailcowProviderHelp" xml:space="preserve"><value>Fiókok létrehozása és kezelése csatlakoztatott Mailcow-példányon keresztül.</value></data>
+  <data name="MailcowSelectInstance" xml:space="preserve"><value>Mailcow-példány</value></data>
+  <data name="MailcowManageInstances" xml:space="preserve"><value>Mailcow-példányok kezelése</value></data>
+  <data name="MailcowManageMailboxes" xml:space="preserve"><value>Postafiókok kezelése</value></data>
+  <data name="MailcowNoInstancesConnected" xml:space="preserve"><value>Még nincs csatlakoztatva Mailcow-példány.</value></data>
+  <data name="MailcowLinkAccountHelp" xml:space="preserve"><value>Kapcsolja ezt az IMAP-fiókot egy Mailcow-példányhoz. A jelenlegi jelszót egy dedikált alkalmazásjelszó váltja fel.</value></data>
+  <data name="MailcowLinkedToInstance" xml:space="preserve"><value>A(z) {0} Mailcow-példány kezeli</value></data>
+  <data name="MailcowUnlinkHint" xml:space="preserve"><value>Válasszon másik szolgáltatót, és mentse el a Mailcow alkalmazásjelszó visszavonásához.</value></data>
+  <data name="MailcowAccountNotFound" xml:space="preserve"><value>Az archív fiók nem található.</value></data>
+  <data name="MailcowOnlyImapAccounts" xml:space="preserve"><value>Csak IMAP-fiókok kapcsolhatók a Mailcowhoz.</value></data>
+  <data name="MailcowMailboxAlreadyLinked" xml:space="preserve"><value>Ez a postafiók már egy másik archív fiókhoz van kapcsolva.</value></data>
+  <data name="MailcowAccountAlreadyLinked" xml:space="preserve"><value>Ez a fiók már egy másik Mailcow-példányhoz van kapcsolva.</value></data>
+  <data name="MailcowNewImapPasswordRequired" xml:space="preserve"><value>A Mailcow elhagyása után adjon meg új IMAP-jelszót.</value></data>
+  <data name="MailcowLinkSuccess" xml:space="preserve"><value>A fiók a(z) {0} Mailcow-példányhoz kapcsolva.</value></data>
+  <data name="MailcowDetachSuccess" xml:space="preserve"><value>A Mailcow-hozzáférés visszavonva. Adjon meg új hitelesítő adatokat a kiválasztott szolgáltatóhoz.</value></data>
 </root>

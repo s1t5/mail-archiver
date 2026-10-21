@@ -3591,4 +3591,20 @@
   <data name="MailcowInstanceDeleted" xml:space="preserve"><value>Instancia de Mailcow eliminada. Las cuentas de archivo se conservaron y desactivaron.</value></data>
   <data name="MailcowInstanceNotFound" xml:space="preserve"><value>La instancia de Mailcow ya no existe.</value></data>
   <data name="MailcowDeleteRequiresRevoke" xml:space="preserve"><value>Revoque todas las contraseñas de aplicación gestionadas antes de eliminar esta instancia.</value></data>
+  <data name="MailcowProviderLabel" xml:space="preserve"><value>Mailcow</value></data>
+  <data name="MailcowProviderHelp" xml:space="preserve"><value>Cree y gestione cuentas a través de una instancia de Mailcow conectada.</value></data>
+  <data name="MailcowSelectInstance" xml:space="preserve"><value>Instancia de Mailcow</value></data>
+  <data name="MailcowManageInstances" xml:space="preserve"><value>Gestionar instancias de Mailcow</value></data>
+  <data name="MailcowManageMailboxes" xml:space="preserve"><value>Gestionar buzones</value></data>
+  <data name="MailcowNoInstancesConnected" xml:space="preserve"><value>Aún no hay ninguna instancia de Mailcow conectada.</value></data>
+  <data name="MailcowLinkAccountHelp" xml:space="preserve"><value>Vincule esta cuenta IMAP a una instancia de Mailcow. Una contraseña de aplicación dedicada sustituirá la contraseña actual.</value></data>
+  <data name="MailcowLinkedToInstance" xml:space="preserve"><value>Gestionada por la instancia de Mailcow {0}</value></data>
+  <data name="MailcowUnlinkHint" xml:space="preserve"><value>Seleccione otro proveedor y guarde para revocar la contraseña de aplicación de Mailcow.</value></data>
+  <data name="MailcowAccountNotFound" xml:space="preserve"><value>No se encontró la cuenta de archivo.</value></data>
+  <data name="MailcowOnlyImapAccounts" xml:space="preserve"><value>Solo las cuentas IMAP se pueden vincular a Mailcow.</value></data>
+  <data name="MailcowMailboxAlreadyLinked" xml:space="preserve"><value>Este buzón ya está vinculado a otra cuenta de archivo.</value></data>
+  <data name="MailcowAccountAlreadyLinked" xml:space="preserve"><value>Esta cuenta ya está vinculada a otra instancia de Mailcow.</value></data>
+  <data name="MailcowNewImapPasswordRequired" xml:space="preserve"><value>Introduzca una nueva contraseña IMAP después de salir de Mailcow.</value></data>
+  <data name="MailcowLinkSuccess" xml:space="preserve"><value>Cuenta vinculada a la instancia de Mailcow {0}.</value></data>
+  <data name="MailcowDetachSuccess" xml:space="preserve"><value>Acceso a Mailcow revocado. Introduzca nuevas credenciales para el proveedor seleccionado.</value></data>
 </root>
