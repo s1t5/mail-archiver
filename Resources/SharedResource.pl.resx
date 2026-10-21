@@ -3630,12 +3630,12 @@
   <data name="MailcowApiKeyUnchanged" xml:space="preserve"><value>Pozostaw puste, aby zachować bieżący klucz</value></data>
   <data name="MailcowApiKeyKeepHelp" xml:space="preserve"><value>Zapisany klucz API nigdy nie jest wyświetlany. Wpisz nowy klucz tylko, aby go zastąpić.</value></data>
   <data name="MailcowDeleteInstance" xml:space="preserve"><value>Usuń instancję Mailcow</value></data>
-  <data name="MailcowDeleteHelp" xml:space="preserve"><value>Usunięcie instancji usuwa klucz API i powiązania skrzynek. Konta archiwum i zarchiwizowana poczta pozostają, ale zostają wyłączone.</value></data>
+  <data name="MailcowDeleteHelp" xml:space="preserve"><value>Usunięcie instancji usuwa klucz API i powiązania skrzynek. Konta archiwum i zarchiwizowana poczta pozostają zachowane.</value></data>
   <data name="MailcowDeleteConfirm" xml:space="preserve"><value>Usuń instancję</value></data>
   <data name="MailcowDeleteBlockedHelp" xml:space="preserve"><value>W Mailcow nadal istnieją aktywne hasła aplikacji. Najpierw je unieważnij na stronie skrzynek — usunięcie instancji usunęłoby klucz API potrzebny do ich unieważnienia.</value></data>
   <data name="MailcowMailboxes" xml:space="preserve"><value>Skrzynki</value></data>
   <data name="MailcowInstanceUpdated" xml:space="preserve"><value>Zaktualizowano instancję Mailcow.</value></data>
-  <data name="MailcowInstanceDeleted" xml:space="preserve"><value>Usunięto instancję Mailcow. Konta archiwum zostały zachowane i wyłączone.</value></data>
+  <data name="MailcowInstanceDeleted" xml:space="preserve"><value>Usunięto instancję Mailcow. Konta archiwum zostały zachowane.</value></data>
   <data name="MailcowInstanceNotFound" xml:space="preserve"><value>Instancja Mailcow już nie istnieje.</value></data>
   <data name="MailcowDeleteRequiresRevoke" xml:space="preserve"><value>Unieważnij wszystkie zarządzane hasła aplikacji przed usunięciem tej instancji.</value></data>
   <data name="MailcowProviderLabel" xml:space="preserve"><value>Mailcow</value></data>

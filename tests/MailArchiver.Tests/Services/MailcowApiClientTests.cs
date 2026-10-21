@@ -3,6 +3,7 @@ using System.Text;
 using System.Text.Json;
 using MailArchiver.Models;
 using MailArchiver.Services.Mailcow;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace MailArchiver.Tests.Services;
 
@@ -27,7 +28,8 @@ public class MailcowApiClientTests
             Assert.Equal("imap_access", Assert.Single(body.RootElement.GetProperty("protocols").EnumerateArray()).GetString());
             return new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent("[{\"type\":\"success\",\"log\":{\"app_passwd\":\"generated-secret\"}}]") };
         });
-        await new MailcowApiClient(new HttpClient(handler)).CreateAppPasswordAsync(Instance(), "mailbox@example.com", "archive", "generated-secret", default);
+        await new MailcowApiClient(new HttpClient(handler), NullLogger<MailcowApiClient>.Instance)
+            .CreateAppPasswordAsync(Instance(), "mailbox@example.com", "archive", "generated-secret", default);
     }
 
     [Theory]
@@ -39,7 +41,8 @@ public class MailcowApiClientTests
     public async Task RejectedOrMalformedMutation_DoesNotExposeResponse(string response)
     {
         var api = new MailcowApiClient(new HttpClient(new Handler(_ => Task.FromResult(
-            new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent(response, Encoding.UTF8, "application/json") }))));
+            new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent(response, Encoding.UTF8, "application/json") }))),
+            NullLogger<MailcowApiClient>.Instance);
         var error = await Assert.ThrowsAsync<MailcowException>(() => api.DeleteAppPasswordAsync(Instance(), "123", default));
         Assert.DoesNotContain("secret-value", error.ToString());
     }
@@ -55,7 +58,8 @@ public class MailcowApiClientTests
     public async Task EmptyObjectFromMailcow_IsAnEmptyCollectionForReads()
     {
         var api = new MailcowApiClient(new HttpClient(new Handler(_ => Task.FromResult(
-            new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent("{}") }))));
+            new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent("{}") }))),
+            NullLogger<MailcowApiClient>.Instance);
         Assert.Empty(await api.GetAppPasswordsAsync(Instance(), "test@example.com", default));
         Assert.Empty(await api.GetMailboxesAsync(Instance(), default));
     }
@@ -67,7 +71,8 @@ public class MailcowApiClientTests
     {
         var response = "[{\"id\":42,\"" + field + "\":\"MailArchiver-test\",\"password\":\"not-returned\"}]";
         var api = new MailcowApiClient(new HttpClient(new Handler(_ => Task.FromResult(
-            new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent(response) }))));
+            new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent(response) }))),
+            NullLogger<MailcowApiClient>.Instance);
         var app = Assert.Single(await api.GetAppPasswordsAsync(Instance(), "test@example.com", default));
         Assert.Equal("42", app.Id);
         Assert.Equal("MailArchiver-test", app.Name);
@@ -78,7 +83,8 @@ public class MailcowApiClientTests
     public async Task MailboxListing_HandlesNumericAndBooleanActiveFlags_AndNormalizesAddresses()
     {
         var api = new MailcowApiClient(new HttpClient(new Handler(_ => Task.FromResult(
-            new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent("[{\"username\":\"A@Example.com\",\"active\":1},{\"username\":\"b@example.com\",\"active\":true},{\"username\":\"c@example.com\",\"active\":0}]") }))));
+            new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent("[{\"username\":\"A@Example.com\",\"active\":1},{\"username\":\"b@example.com\",\"active\":true},{\"username\":\"c@example.com\",\"active\":0}]") }))),
+            NullLogger<MailcowApiClient>.Instance);
         var mailboxes = await api.GetMailboxesAsync(Instance(), default);
         Assert.Equal("a@example.com", mailboxes[0].Address);
         Assert.True(mailboxes[0].Active);

@@ -935,9 +935,26 @@ namespace MailArchiver.Controllers
                     {
                         await _mailcowProvisioning.DetachAsync(account, HttpContext.RequestAborted);
                         mailcowDetached = true;
+                        var username = HttpContext.RequestServices
+                            .GetService<MailArchiver.Services.IAuthenticationService>()?
+                            .GetCurrentUserDisplayName(HttpContext);
+                        if (!string.IsNullOrEmpty(username))
+                        {
+                            await _accessLogService.LogAccessAsync(username, AccessLogType.Account,
+                                searchParameters: $"Detached mail account '{account.Name}' from Mailcow (app password revoked)",
+                                mailAccountId: account.Id);
+                        }
                     }
-                    catch (MailcowException e) { ModelState.AddModelError("", LocalizeMailcow(e)); }
-                    catch (DbUpdateException) { ModelState.AddModelError("", _localizer["MailcowConcurrentChange"].Value); }
+                    catch (MailcowException e)
+                    {
+                        _logger.LogWarning(e, "Detaching mail account {AccountId} from Mailcow failed", id);
+                        ModelState.AddModelError("", LocalizeMailcow(e));
+                    }
+                    catch (DbUpdateException)
+                    {
+                        _logger.LogWarning("Detaching mail account {AccountId} from Mailcow conflicted", id);
+                        ModelState.AddModelError("", _localizer["MailcowConcurrentChange"].Value);
+                    }
                 }
             }
             else if (activeMailcowBinding != null)
@@ -1200,10 +1217,18 @@ namespace MailArchiver.Controllers
                                 account.IsEnabled = model.IsEnabled;
                                 await _context.SaveChangesAsync();
                                 TempData["SuccessMessage"] = _localizer["MailcowLinkSuccess", instance.Name].Value;
+                                if (!string.IsNullOrEmpty(currentUsername))
+                                {
+                                    await _accessLogService.LogAccessAsync(currentUsername, AccessLogType.Account,
+                                        searchParameters: $"Linked mail account '{account.Name}' to Mailcow instance '{instance.Name}'",
+                                        mailAccountId: account.Id);
+                                }
                             }
                         }
                         catch (MailcowException e)
                         {
+                            _logger.LogWarning(e, "Linking mail account {AccountId} to Mailcow instance {InstanceId} failed",
+                                id, linkInstanceId);
                             ModelState.AddModelError("", LocalizeMailcow(e));
                             await PopulateMailcowViewDataAsync();
                             await PopulateMailcowAccountStateAsync(model, id);
@@ -1211,6 +1236,8 @@ namespace MailArchiver.Controllers
                         }
                         catch (DbUpdateException)
                         {
+                            _logger.LogWarning("Linking mail account {AccountId} to Mailcow instance {InstanceId} conflicted",
+                                id, linkInstanceId);
                             ModelState.AddModelError("", _localizer["MailcowConcurrentChange"].Value);
                             await PopulateMailcowViewDataAsync();
                             await PopulateMailcowAccountStateAsync(model, id);

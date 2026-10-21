@@ -1,6 +1,7 @@
 using System.Net.Http.Json;
 using System.Text.Json;
 using MailArchiver.Models;
+using Microsoft.Extensions.Logging;
 
 namespace MailArchiver.Services.Mailcow;
 
@@ -14,14 +15,17 @@ public class MailcowException : Exception
     public string ResourceKey { get; }
     public object[] ResourceArgs { get; }
 
-    public MailcowException(string resourceKey, params object[] resourceArgs) : base(resourceKey)
+    // The args are non-sensitive details (HTTP status codes) and make the message
+    // usable in logs, where only the resource key would otherwise appear.
+    public MailcowException(string resourceKey, params object[] resourceArgs)
+        : base(resourceArgs.Length == 0 ? resourceKey : $"{resourceKey} [{string.Join(", ", resourceArgs)}]")
     {
         ResourceKey = resourceKey;
         ResourceArgs = resourceArgs;
     }
 }
 
-public class MailcowApiClient(HttpClient http)
+public class MailcowApiClient(HttpClient http, ILogger<MailcowApiClient> logger)
 {
     public static Uri ValidateUrl(string value)
     {
@@ -61,6 +65,8 @@ public class MailcowApiClient(HttpClient http)
         }
         catch (Exception e) when (e is HttpRequestException or JsonException or TaskCanceledException)
         {
+            // The MailcowException hides the network detail from users; keep it in the logs.
+            logger.LogWarning(e, "Mailcow API request to {Method} {Path} failed", method.Method, path);
             throw new MailcowException("MailcowApiUnreachable");
         }
     }

@@ -3585,12 +3585,12 @@
   <data name="MailcowApiKeyUnchanged" xml:space="preserve"><value>Leer lassen, um den aktuellen Schlüssel zu behalten</value></data>
   <data name="MailcowApiKeyKeepHelp" xml:space="preserve"><value>Der gespeicherte API-Schlüssel wird nie angezeigt. Nur zum Ersetzen einen neuen Schlüssel eingeben.</value></data>
   <data name="MailcowDeleteInstance" xml:space="preserve"><value>Mailcow-Instanz löschen</value></data>
-  <data name="MailcowDeleteHelp" xml:space="preserve"><value>Beim Löschen der Instanz werden API-Schlüssel und Postfachzuordnungen entfernt. Archivkonten und ihr archiviertes E-Mail-Aufkommen bleiben erhalten, werden aber deaktiviert.</value></data>
+  <data name="MailcowDeleteHelp" xml:space="preserve"><value>Beim Löschen der Instanz werden API-Schlüssel und Postfachzuordnungen entfernt. Archivkonten und ihr archiviertes E-Mail-Aufkommen bleiben erhalten.</value></data>
   <data name="MailcowDeleteConfirm" xml:space="preserve"><value>Instanz löschen</value></data>
   <data name="MailcowDeleteBlockedHelp" xml:space="preserve"><value>In Mailcow sind noch aktive App-Passwörter vorhanden. Widerrufen Sie diese zuerst auf der Postfachseite — beim Löschen der Instanz ginge der API-Schlüssel verloren, der zum Widerruf nötig ist.</value></data>
   <data name="MailcowMailboxes" xml:space="preserve"><value>Postfächer</value></data>
   <data name="MailcowInstanceUpdated" xml:space="preserve"><value>Mailcow-Instanz aktualisiert.</value></data>
-  <data name="MailcowInstanceDeleted" xml:space="preserve"><value>Mailcow-Instanz gelöscht. Archivkonten wurden behalten und deaktiviert.</value></data>
+  <data name="MailcowInstanceDeleted" xml:space="preserve"><value>Mailcow-Instanz gelöscht. Archivkonten wurden behalten.</value></data>
   <data name="MailcowInstanceNotFound" xml:space="preserve"><value>Die Mailcow-Instanz existiert nicht mehr.</value></data>
   <data name="MailcowDeleteRequiresRevoke" xml:space="preserve"><value>Widerrufen Sie alle verwalteten App-Passwörter, bevor Sie diese Instanz löschen.</value></data>
   <data name="MailcowProviderLabel" xml:space="preserve"><value>Mailcow</value></data>

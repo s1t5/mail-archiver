@@ -3576,12 +3576,12 @@
   <data name="MailcowApiKeyUnchanged" xml:space="preserve"><value>Hagyja üresen az aktuális kulcs megtartásához</value></data>
   <data name="MailcowApiKeyKeepHelp" xml:space="preserve"><value>A tárolt API-kulcs soha nem jelenik meg. Új kulcsot csak a lecseréléshez adjon meg.</value></data>
   <data name="MailcowDeleteInstance" xml:space="preserve"><value>Mailcow-példány törlése</value></data>
-  <data name="MailcowDeleteHelp" xml:space="preserve"><value>A példány törlésével eltávolítja az API-kulcsot és a postaláda-hozzárendeléseket. Az archiválási fiókok és a bennük lévő levelek megmaradnak, de letiltásra kerülnek.</value></data>
+  <data name="MailcowDeleteHelp" xml:space="preserve"><value>A példány törlésével eltávolítja az API-kulcsot és a postaláda-hozzárendeléseket. Az archiválási fiókok és a bennük lévő levelek megmaradnak.</value></data>
   <data name="MailcowDeleteConfirm" xml:space="preserve"><value>Példány törlése</value></data>
   <data name="MailcowDeleteBlockedHelp" xml:space="preserve"><value>A Mailcow-ban még aktív alkalmazásjelszavak vannak. Először vonja vissza ezeket a postaláda oldalon — a példány törlése eltávolítaná a visszavonáshoz szükséges API-kulcsot.</value></data>
   <data name="MailcowMailboxes" xml:space="preserve"><value>Postaládák</value></data>
   <data name="MailcowInstanceUpdated" xml:space="preserve"><value>Mailcow-példány frissítve.</value></data>
-  <data name="MailcowInstanceDeleted" xml:space="preserve"><value>Mailcow-példány törölve. Az archiválási fiókok megmaradtak és letiltásra kerültek.</value></data>
+  <data name="MailcowInstanceDeleted" xml:space="preserve"><value>Mailcow-példány törölve. Az archiválási fiókok megmaradtak.</value></data>
   <data name="MailcowInstanceNotFound" xml:space="preserve"><value>A Mailcow-példány már nem létezik.</value></data>
   <data name="MailcowDeleteRequiresRevoke" xml:space="preserve"><value>A példány törlése előtt vonja vissza az összes kezelt alkalmazásjelszót.</value></data>
   <data name="MailcowProviderLabel" xml:space="preserve"><value>Mailcow</value></data>

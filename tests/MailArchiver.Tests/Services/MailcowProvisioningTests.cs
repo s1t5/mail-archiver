@@ -29,7 +29,7 @@ public class MailcowProvisioningTests(TestDbFixture fixture)
 
     private sealed class FakeApi : MailcowApiClient
     {
-        public FakeApi() : base(new HttpClient()) { }
+        public FakeApi() : base(new HttpClient(), NullLogger<MailcowApiClient>.Instance) { }
         public readonly List<MailcowAppPassword> Passwords = [];
         public string Address { get; } = Guid.NewGuid().ToString("N") + "@example.com";
         public bool TimeoutAfterCreate { get; set; }
@@ -53,7 +53,7 @@ public class MailcowProvisioningTests(TestDbFixture fixture)
     }
 
     private sealed class Provisioner(MailArchiverDbContext db, MailcowApiClient api, ICredentialProtector protector)
-        : MailcowProvisioningService(db, api, protector)
+        : MailcowProvisioningService(db, api, protector, NullLogger<MailcowProvisioningService>.Instance)
     {
         public bool FailImap { get; set; }
         public override Task VerifyImapAsync(MailcowInstance i, string address, string password, CancellationToken ct) =>
@@ -273,6 +273,100 @@ public class MailcowProvisioningTests(TestDbFixture fixture)
         finally
         {
             await db.MailcowMailboxes.Where(x => x.MailAccountId == account.Id).ExecuteDeleteAsync();
+            await db.MailAccounts.Where(x => x.Id == account.Id).ExecuteDeleteAsync();
+            await db.MailcowInstances.Where(x => x.Id == instance.Id).ExecuteDeleteAsync();
+        }
+    }
+
+    [Fact]
+    public async Task LinkImapFailure_LeavesAccountPendingAndRetryCompletesProvisioning()
+    {
+        var (db, protector) = CreateProtectedContext();
+        await using var _ = db;
+        var instance = MailcowApiClientTests.Instance();
+        instance.ApiUrl = "https://" + Guid.NewGuid().ToString("N") + ".example.com/";
+        var api = new FakeApi();
+        var account = new MailAccount
+        {
+            Name = "Existing IMAP", EmailAddress = api.Address, Provider = ProviderType.IMAP,
+            ImapServer = "old.example.com", ImapPort = 143, Username = "old-user",
+            Password = "old-password", UseSSL = false, IsEnabled = true,
+            LastSync = DateTime.UnixEpoch
+        };
+        db.MailcowInstances.Add(instance);
+        db.MailAccounts.Add(account);
+        await db.SaveChangesAsync();
+        try
+        {
+            var service = new Provisioner(db, api, protector) { FailImap = true };
+            await Assert.ThrowsAsync<MailcowException>(() => service.LinkAsync(instance, account.Id, default));
+            // A failed link must leave a pending state, never an enabled account
+            // whose replaced password may not authenticate.
+            Assert.False(account.IsEnabled);
+            Assert.NotEqual("old-password", account.Password);
+            var binding = await db.MailcowMailboxes.Include(x => x.MailAccount)
+                .SingleAsync(x => x.MailAccountId == account.Id);
+            Assert.False(binding.IsRevoked);
+
+            service.FailImap = false;
+            await service.LinkAsync(instance, account.Id, default);
+            Assert.True(account.IsEnabled);
+            Assert.Equal(1, api.Creates);
+            Assert.NotNull(binding.AppPasswordId);
+
+            // A completed link is idempotent.
+            await service.LinkAsync(instance, account.Id, default);
+            Assert.Equal(1, api.Creates);
+        }
+        finally
+        {
+            await db.MailcowMailboxes.Where(x => x.MailAccountId == account.Id).ExecuteDeleteAsync();
+            await db.MailAccounts.Where(x => x.Id == account.Id).ExecuteDeleteAsync();
+            await db.MailcowInstances.Where(x => x.Id == instance.Id).ExecuteDeleteAsync();
+        }
+    }
+
+    [Fact]
+    public async Task DeleteInstance_KeepsDeliberatelyReconfiguredAccountsIntact()
+    {
+        var (db, protector) = CreateProtectedContext();
+        await using var _ = db;
+        var instance = MailcowApiClientTests.Instance();
+        instance.ApiUrl = "https://" + Guid.NewGuid().ToString("N") + ".example.com/";
+        var api = new FakeApi();
+        var account = new MailAccount
+        {
+            Name = "Existing IMAP", EmailAddress = api.Address, Provider = ProviderType.IMAP,
+            ImapServer = "old.example.com", ImapPort = 143, Username = "old-user",
+            Password = "old-password", UseSSL = false, IsEnabled = true,
+            LastSync = DateTime.UnixEpoch
+        };
+        db.MailcowInstances.Add(instance);
+        db.MailAccounts.Add(account);
+        await db.SaveChangesAsync();
+        try
+        {
+            var service = new Provisioner(db, api, protector);
+            await service.LinkAsync(instance, account.Id, default);
+            await service.DetachAsync(account, default);
+            Assert.False(account.IsEnabled);
+            Assert.Null(account.Password);
+
+            // A revoked binding is unmanaged: an admin may reconfigure the account.
+            account.IsEnabled = true;
+            account.Password = "manual-imap-password";
+            await db.SaveChangesAsync();
+
+            await service.DeleteInstanceAsync(instance.Id, default);
+            Assert.False(await db.MailcowMailboxes.AnyAsync(x => x.InstanceId == instance.Id));
+            Assert.False(await db.MailcowInstances.AnyAsync(x => x.Id == instance.Id));
+            // The reconfigured credentials survive the instance deletion.
+            Assert.True(account.IsEnabled);
+            Assert.Equal("manual-imap-password", account.Password);
+        }
+        finally
+        {
+            await db.MailcowMailboxes.Where(x => x.InstanceId == instance.Id).ExecuteDeleteAsync();
             await db.MailAccounts.Where(x => x.Id == account.Id).ExecuteDeleteAsync();
             await db.MailcowInstances.Where(x => x.Id == instance.Id).ExecuteDeleteAsync();
         }

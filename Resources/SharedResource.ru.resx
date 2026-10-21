@@ -3584,12 +3584,12 @@
   <data name="MailcowApiKeyUnchanged" xml:space="preserve"><value>Оставьте пустым, чтобы сохранить текущий ключ</value></data>
   <data name="MailcowApiKeyKeepHelp" xml:space="preserve"><value>Сохранённый ключ API никогда не отображается. Вводите новый ключ только для замены.</value></data>
   <data name="MailcowDeleteInstance" xml:space="preserve"><value>Удалить экземпляр Mailcow</value></data>
-  <data name="MailcowDeleteHelp" xml:space="preserve"><value>Удаление экземпляра удаляет его ключ API и привязки почтовых ящиков. Архивные учётные записи и их архив сохраняются, но отключаются.</value></data>
+  <data name="MailcowDeleteHelp" xml:space="preserve"><value>Удаление экземпляра удаляет его ключ API и привязки почтовых ящиков. Архивные учётные записи и их архив сохраняются.</value></data>
   <data name="MailcowDeleteConfirm" xml:space="preserve"><value>Удалить экземпляр</value></data>
   <data name="MailcowDeleteBlockedHelp" xml:space="preserve"><value>В Mailcow ещё есть активные пароли приложений. Сначала отзовите их на странице почтовых ящиков — при удалении экземпляра будет удалён ключ API, необходимый для отзыва.</value></data>
   <data name="MailcowMailboxes" xml:space="preserve"><value>Почтовые ящики</value></data>
   <data name="MailcowInstanceUpdated" xml:space="preserve"><value>Экземпляр Mailcow обновлён.</value></data>
-  <data name="MailcowInstanceDeleted" xml:space="preserve"><value>Экземпляр Mailcow удалён. Архивные учётные записи сохранены и отключены.</value></data>
+  <data name="MailcowInstanceDeleted" xml:space="preserve"><value>Экземпляр Mailcow удалён. Архивные учётные записи сохранены.</value></data>
   <data name="MailcowInstanceNotFound" xml:space="preserve"><value>Экземпляр Mailcow больше не существует.</value></data>
   <data name="MailcowDeleteRequiresRevoke" xml:space="preserve"><value>Отзовите все управляемые пароли приложений перед удалением этого экземпляра.</value></data>
   <data name="MailcowProviderLabel" xml:space="preserve"><value>Mailcow</value></data>

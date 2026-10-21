@@ -69,8 +69,16 @@ namespace MailArchiver.Controllers
                     await LogAsync($"Connected Mailcow instance {instance.Name} ({instance.ApiUrl})");
                     return RedirectToAction(nameof(Mailboxes), new { id = instance.Id });
                 }
-                catch (MailcowException e) { ModelState.AddModelError("", Localize(e)); }
-                catch (DbUpdateException) { ModelState.AddModelError("", _localizer["MailcowInstanceSaveFailed"].Value); }
+                catch (MailcowException e)
+                {
+                    _logger.LogWarning(e, "Connecting Mailcow instance {Name} failed", model.Name);
+                    ModelState.AddModelError("", Localize(e));
+                }
+                catch (DbUpdateException)
+                {
+                    _logger.LogWarning("Saving Mailcow instance {Name} failed", model.Name);
+                    ModelState.AddModelError("", _localizer["MailcowInstanceSaveFailed"].Value);
+                }
             }
             // Credentials must never be repopulated into the response HTML or validation errors.
             ModelState.Remove(nameof(model.ApiKey));
@@ -97,6 +105,7 @@ namespace MailArchiver.Controllers
             }
             catch (MailcowException e)
             {
+                _logger.LogWarning(e, "Listing Mailcow mailboxes for instance {InstanceId} failed", id);
                 ViewData["Error"] = Localize(e);
                 model.OrphanedBindings = bindings.Where(x => !x.IsRevoked).ToList();
             }
@@ -124,7 +133,8 @@ namespace MailArchiver.Controllers
                 catch (MailcowException e)
                 {
                     // Do not include response bodies, API keys or passwords in logs or TempData.
-                    _logger.LogWarning("Mailcow provisioning failed for instance {InstanceId}", id);
+                    _logger.LogWarning(e, "Mailcow provisioning failed for mailbox {EmailAddress} on instance {InstanceId}",
+                        address, id);
                     lastError = Localize(e);
                     failed++;
                     _db.ChangeTracker.Clear();
@@ -154,7 +164,12 @@ namespace MailArchiver.Controllers
                 TempData["SuccessMessage"] = _localizer["MailcowRevokedSuccess"].Value;
                 await LogAsync($"Revoked Mailcow app password for {binding.EmailAddress} on instance {binding.Instance?.Name ?? binding.InstanceId.ToString()}");
             }
-            catch (MailcowException e) { TempData["ErrorMessage"] = Localize(e); }
+            catch (MailcowException e)
+            {
+                _logger.LogWarning(e, "Revoking Mailcow app password for binding {BindingId} on instance {InstanceId} failed",
+                    id, binding.InstanceId);
+                TempData["ErrorMessage"] = Localize(e);
+            }
             return RedirectToAction(nameof(Mailboxes), new { id = binding.InstanceId });
         }
 
@@ -206,8 +221,16 @@ namespace MailArchiver.Controllers
                     TempData["SuccessMessage"] = _localizer["MailcowInstanceUpdated"].Value;
                     return RedirectToAction(nameof(Index));
                 }
-                catch (MailcowException e) { ModelState.AddModelError("", Localize(e)); }
-                catch (DbUpdateException) { ModelState.AddModelError("", _localizer["MailcowInstanceSaveFailed"].Value); }
+                catch (MailcowException e)
+                {
+                    _logger.LogWarning(e, "Updating Mailcow instance {InstanceId} failed", id);
+                    ModelState.AddModelError("", Localize(e));
+                }
+                catch (DbUpdateException)
+                {
+                    _logger.LogWarning("Saving Mailcow instance {InstanceId} failed", id);
+                    ModelState.AddModelError("", _localizer["MailcowInstanceSaveFailed"].Value);
+                }
             }
             // Credentials must never be repopulated into the response HTML or validation errors.
             ModelState.Remove(nameof(model.ApiKey));
@@ -245,6 +268,7 @@ namespace MailArchiver.Controllers
             }
             catch (MailcowException e)
             {
+                _logger.LogWarning(e, "Deleting Mailcow instance {InstanceId} failed", id);
                 TempData["ErrorMessage"] = Localize(e);
                 return RedirectToAction(nameof(Delete), new { id });
             }
