@@ -59,10 +59,11 @@ We welcome various types of contributions:
 
 When contributing changes that require database schema modifications:
 
-- **Follow the existing naming pattern**: Migrations should follow the format `YYYYMMDDHHMMSS_MigrateVYYMM_Z.cs` where:
+- **Follow the naming pattern**: Migrations should follow the format `YYYYMMDDHHMMSS_<FeatureName>.cs` where:
   - `YYYYMMDDHHMMSS` is the timestamp in UTC format
-  - `VYYMM` represents the version
-  - `Z` is a sequential number for the version
+  - `<FeatureName>` is a short PascalCase description of the change (e.g., `AddMailcowInstances`)
+
+  Do not use version numbers in new migration names. Existing migrations keep their historical names.
 
 - **Structure and conventions**:
   - Use the same SQL pattern checking for column/index existence before adding/removing
