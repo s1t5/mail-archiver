@@ -3570,4 +3570,18 @@
   <data name="MailcowApiRejected" xml:space="preserve"><value>A Mailcow elutasította az API-kérést. Ellenőrizze a példány konfigurációját és az API-jogosultságokat.</value></data>
   <data name="MailcowApiNotConfirmed" xml:space="preserve"><value>A Mailcow nem erősítette meg a módosítást.</value></data>
   <data name="MailcowApiUnreachable" xml:space="preserve"><value>A Mailcow nem érhető el, vagy érvénytelen választ adott. Próbálja újra a távoli állapot egyeztetéséhez.</value></data>
+  <data name="MailcowNoInstances" xml:space="preserve"><value>Még nincs csatlakoztatott Mailcow-példány.</value></data>
+  <data name="MailcowEditInstance" xml:space="preserve"><value>Mailcow-példány szerkesztése</value></data>
+  <data name="MailcowEditHelp" xml:space="preserve"><value>A URL vagy API-kulcs módosításakor a kapcsolat mentés előtt ellenőrzésre kerül a Mailcownál.</value></data>
+  <data name="MailcowApiKeyUnchanged" xml:space="preserve"><value>Hagyja üresen az aktuális kulcs megtartásához</value></data>
+  <data name="MailcowApiKeyKeepHelp" xml:space="preserve"><value>A tárolt API-kulcs soha nem jelenik meg. Új kulcsot csak a lecseréléshez adjon meg.</value></data>
+  <data name="MailcowDeleteInstance" xml:space="preserve"><value>Mailcow-példány törlése</value></data>
+  <data name="MailcowDeleteHelp" xml:space="preserve"><value>A példány törlésével eltávolítja az API-kulcsot és a postaláda-hozzárendeléseket. Az archiválási fiókok és a bennük lévő levelek megmaradnak, de letiltásra kerülnek.</value></data>
+  <data name="MailcowDeleteConfirm" xml:space="preserve"><value>Példány törlése</value></data>
+  <data name="MailcowDeleteBlockedHelp" xml:space="preserve"><value>A Mailcow-ban még aktív alkalmazásjelszavak vannak. Először vonja vissza ezeket a postaláda oldalon — a példány törlése eltávolítaná a visszavonáshoz szükséges API-kulcsot.</value></data>
+  <data name="MailcowMailboxes" xml:space="preserve"><value>Postaládák</value></data>
+  <data name="MailcowInstanceUpdated" xml:space="preserve"><value>Mailcow-példány frissítve.</value></data>
+  <data name="MailcowInstanceDeleted" xml:space="preserve"><value>Mailcow-példány törölve. Az archiválási fiókok megmaradtak és letiltásra kerültek.</value></data>
+  <data name="MailcowInstanceNotFound" xml:space="preserve"><value>A Mailcow-példány már nem létezik.</value></data>
+  <data name="MailcowDeleteRequiresRevoke" xml:space="preserve"><value>A példány törlése előtt vonja vissza az összes kezelt alkalmazásjelszót.</value></data>
 </root>

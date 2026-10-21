@@ -3577,4 +3577,18 @@
   <data name="MailcowApiRejected" xml:space="preserve"><value>Mailcow rechazó la solicitud de API. Compruebe la configuración de la instancia y los permisos de la API.</value></data>
   <data name="MailcowApiNotConfirmed" xml:space="preserve"><value>Mailcow no confirmó el cambio.</value></data>
   <data name="MailcowApiUnreachable" xml:space="preserve"><value>No se pudo contactar con Mailcow o devolvió una respuesta no válida. Reintente para reconciliar el estado remoto.</value></data>
+  <data name="MailcowNoInstances" xml:space="preserve"><value>Todavía no hay ninguna instancia de Mailcow conectada.</value></data>
+  <data name="MailcowEditInstance" xml:space="preserve"><value>Editar instancia de Mailcow</value></data>
+  <data name="MailcowEditHelp" xml:space="preserve"><value>Al cambiar la URL o la clave de API se verifica la conexión con Mailcow antes de guardar.</value></data>
+  <data name="MailcowApiKeyUnchanged" xml:space="preserve"><value>Dejar vacío para mantener la clave actual</value></data>
+  <data name="MailcowApiKeyKeepHelp" xml:space="preserve"><value>La clave de API guardada nunca se muestra. Introduzca una nueva solo para reemplazarla.</value></data>
+  <data name="MailcowDeleteInstance" xml:space="preserve"><value>Eliminar instancia de Mailcow</value></data>
+  <data name="MailcowDeleteHelp" xml:space="preserve"><value>Al eliminar la instancia se eliminan su clave de API y sus vínculos de buzón. Las cuentas de archivo y el correo archivado se conservan, pero se desactivan.</value></data>
+  <data name="MailcowDeleteConfirm" xml:space="preserve"><value>Eliminar instancia</value></data>
+  <data name="MailcowDeleteBlockedHelp" xml:space="preserve"><value>Todavía existen contraseñas de aplicación activas en Mailcow. Revóquelas primero en la página de buzones: al eliminar la instancia se perdería la clave de API necesaria para revocarlas.</value></data>
+  <data name="MailcowMailboxes" xml:space="preserve"><value>Buzones</value></data>
+  <data name="MailcowInstanceUpdated" xml:space="preserve"><value>Instancia de Mailcow actualizada.</value></data>
+  <data name="MailcowInstanceDeleted" xml:space="preserve"><value>Instancia de Mailcow eliminada. Las cuentas de archivo se conservaron y desactivaron.</value></data>
+  <data name="MailcowInstanceNotFound" xml:space="preserve"><value>La instancia de Mailcow ya no existe.</value></data>
+  <data name="MailcowDeleteRequiresRevoke" xml:space="preserve"><value>Revoque todas las contraseñas de aplicación gestionadas antes de eliminar esta instancia.</value></data>
 </root>

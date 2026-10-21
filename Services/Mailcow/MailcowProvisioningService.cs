@@ -142,4 +142,41 @@ public class MailcowProvisioningService(MailArchiverDbContext db, MailcowApiClie
         binding.AppPasswordId = null;
         await db.SaveChangesAsync(ct);
     }
+
+    /// <summary>
+    /// Removes a Mailcow instance together with its mailbox bindings.
+    /// Managed app passwords must already be revoked: deleting the instance drops the
+    /// encrypted API key, after which Mail Archiver could no longer revoke them remotely.
+    /// The archive accounts themselves are kept so archived mail survives.
+    /// </summary>
+    public async Task DeleteInstanceAsync(int instanceId, CancellationToken ct)
+        => await SerializeAsync(instanceId, () => DeleteInstanceCoreAsync(instanceId, ct), ct);
+
+    private async Task DeleteInstanceCoreAsync(int instanceId, CancellationToken ct)
+    {
+        var instance = await db.MailcowInstances.FindAsync([instanceId], ct)
+            ?? throw new MailcowException("MailcowInstanceNotFound");
+        var bindings = await db.MailcowMailboxes
+            .Include(x => x.MailAccount)
+            .Where(x => x.InstanceId == instanceId)
+            .ToListAsync(ct);
+
+        // Refuse while any managed app password is still active in Mailcow.
+        if (bindings.Any(x => !x.IsRevoked))
+            throw new MailcowException("MailcowDeleteRequiresRevoke");
+
+        foreach (var binding in bindings)
+        {
+            // Disable the archive account but keep its mail and row.
+            if (binding.MailAccount != null)
+            {
+                binding.MailAccount.IsEnabled = false;
+                binding.MailAccount.Password = null;
+            }
+        }
+        // MailAccountId uses ON DELETE SET NULL, so bindings can be removed safely.
+        db.MailcowMailboxes.RemoveRange(bindings);
+        db.MailcowInstances.Remove(instance);
+        await db.SaveChangesAsync(ct);
+    }
 }

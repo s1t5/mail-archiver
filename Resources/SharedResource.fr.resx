@@ -3578,4 +3578,18 @@
   <data name="MailcowApiRejected" xml:space="preserve"><value>Mailcow a rejeté la requête API. Vérifiez la configuration de l'instance et les autorisations de l'API.</value></data>
   <data name="MailcowApiNotConfirmed" xml:space="preserve"><value>Mailcow n'a pas confirmé la modification.</value></data>
   <data name="MailcowApiUnreachable" xml:space="preserve"><value>Mailcow est injoignable ou a renvoyé une réponse invalide. Réessayez pour réconcilier l'état distant.</value></data>
+  <data name="MailcowNoInstances" xml:space="preserve"><value>Aucune instance Mailcow n'est encore connectée.</value></data>
+  <data name="MailcowEditInstance" xml:space="preserve"><value>Modifier l'instance Mailcow</value></data>
+  <data name="MailcowEditHelp" xml:space="preserve"><value>Modifier l'URL ou la clé API vérifie la connexion à Mailcow avant l'enregistrement.</value></data>
+  <data name="MailcowApiKeyUnchanged" xml:space="preserve"><value>Laisser vide pour conserver la clé actuelle</value></data>
+  <data name="MailcowApiKeyKeepHelp" xml:space="preserve"><value>La clé API enregistrée n'est jamais affichée. Saisissez une nouvelle clé uniquement pour la remplacer.</value></data>
+  <data name="MailcowDeleteInstance" xml:space="preserve"><value>Supprimer l'instance Mailcow</value></data>
+  <data name="MailcowDeleteHelp" xml:space="preserve"><value>Supprimer l'instance supprime sa clé API et ses associations de boîtes aux lettres. Les comptes d'archivage et leurs courriels archivés sont conservés mais désactivés.</value></data>
+  <data name="MailcowDeleteConfirm" xml:space="preserve"><value>Supprimer l'instance</value></data>
+  <data name="MailcowDeleteBlockedHelp" xml:space="preserve"><value>Des mots de passe d'application actifs existent encore dans Mailcow. Révoquez-les d'abord sur la page des boîtes aux lettres : supprimer l'instance supprimerait la clé API nécessaire à leur révocation.</value></data>
+  <data name="MailcowMailboxes" xml:space="preserve"><value>Boîtes aux lettres</value></data>
+  <data name="MailcowInstanceUpdated" xml:space="preserve"><value>Instance Mailcow mise à jour.</value></data>
+  <data name="MailcowInstanceDeleted" xml:space="preserve"><value>Instance Mailcow supprimée. Les comptes d'archivage ont été conservés et désactivés.</value></data>
+  <data name="MailcowInstanceNotFound" xml:space="preserve"><value>L'instance Mailcow n'existe plus.</value></data>
+  <data name="MailcowDeleteRequiresRevoke" xml:space="preserve"><value>Révoquez tous les mots de passe d'application gérés avant de supprimer cette instance.</value></data>
 </root>
