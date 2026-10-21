@@ -187,6 +187,31 @@ reverse-proxy or browser timeouts; split the selection into batches.
   server-side deletion policy configured, and administrators retain control of the
   account settings. This feature archives messages, not Mailcow configuration or backups.
 
+### Hostnames and private networks
+
+The Mailcow URL and the IMAP host are entered by an administrator and may point to
+private address space. This is intentional and supported: Mail Archiver is commonly
+deployed next to the mail server, so `mail.example.lan`, `192.168.10.20` or `10.0.0.5`
+are normal values. **No private, loopback or link-local address is blocked.**
+
+The trust boundary is the administrator role, not the network address. `Mail Accounts`
+is available to self-managers, who may already configure an arbitrary IMAP server for
+their own accounts; the Mailcow section is restricted to administrators, and an
+administrator already has unrestricted access to every archive account in the
+installation. Restricting the IMAP host would therefore not close a privilege boundary,
+while it would break the intended on-premise deployment.
+
+Two constraints still apply:
+
+- The Mailcow URL must be a bare HTTPS origin. Paths, query strings, user info and
+  redirects are rejected, so the API key cannot be forwarded to another origin.
+- The IMAP host must be a hostname without a scheme or port, and provisioning always
+  connects with TLS (`SslOnConnect`).
+
+If you need to restrict which hosts Mail Archiver may reach, enforce it at the network
+layer — egress firewall rules or a DNS policy for the container — rather than relying on
+input validation in the application.
+
 ## Troubleshooting
 
 | Symptom | Cause and remedy |
