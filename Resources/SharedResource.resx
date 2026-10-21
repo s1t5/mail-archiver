@@ -3565,4 +3565,18 @@
   <data name="MailcowApiRejected" xml:space="preserve"><value>Mailcow rejected the API request. Check the instance configuration and API permissions.</value></data>
   <data name="MailcowApiNotConfirmed" xml:space="preserve"><value>Mailcow did not confirm the change.</value></data>
   <data name="MailcowApiUnreachable" xml:space="preserve"><value>Mailcow could not be reached or returned an invalid response. Retry to reconcile the remote state.</value></data>
+  <data name="MailcowNoInstances" xml:space="preserve"><value>No Mailcow instance is connected yet.</value></data>
+  <data name="MailcowEditInstance" xml:space="preserve"><value>Edit Mailcow instance</value></data>
+  <data name="MailcowEditHelp" xml:space="preserve"><value>Changing the URL or API key verifies the connection against Mailcow before saving.</value></data>
+  <data name="MailcowApiKeyUnchanged" xml:space="preserve"><value>Leave empty to keep the current key</value></data>
+  <data name="MailcowApiKeyKeepHelp" xml:space="preserve"><value>The stored API key is never displayed. Enter a new key only to replace it.</value></data>
+  <data name="MailcowDeleteInstance" xml:space="preserve"><value>Delete Mailcow instance</value></data>
+  <data name="MailcowDeleteHelp" xml:space="preserve"><value>Deleting the instance removes its API key and mailbox bindings. Archive accounts and their archived mail are kept but disabled.</value></data>
+  <data name="MailcowDeleteConfirm" xml:space="preserve"><value>Delete instance</value></data>
+  <data name="MailcowDeleteBlockedHelp" xml:space="preserve"><value>Active app passwords still exist in Mailcow. Revoke them on the mailbox page first — deleting the instance would remove the API key needed to revoke them.</value></data>
+  <data name="MailcowMailboxes" xml:space="preserve"><value>Mailboxes</value></data>
+  <data name="MailcowInstanceUpdated" xml:space="preserve"><value>Mailcow instance updated.</value></data>
+  <data name="MailcowInstanceDeleted" xml:space="preserve"><value>Mailcow instance deleted. Archive accounts were kept and disabled.</value></data>
+  <data name="MailcowInstanceNotFound" xml:space="preserve"><value>The Mailcow instance no longer exists.</value></data>
+  <data name="MailcowDeleteRequiresRevoke" xml:space="preserve"><value>Revoke all managed app passwords before deleting this instance.</value></data>
 </root>

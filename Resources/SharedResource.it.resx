@@ -3578,4 +3578,18 @@
   <data name="MailcowApiRejected" xml:space="preserve"><value>Mailcow ha rifiutato la richiesta API. Controlla la configurazione dell'istanza e i permessi dell'API.</value></data>
   <data name="MailcowApiNotConfirmed" xml:space="preserve"><value>Mailcow non ha confermato la modifica.</value></data>
   <data name="MailcowApiUnreachable" xml:space="preserve"><value>Impossibile raggiungere Mailcow o risposta non valida. Riprova per riconciliare lo stato remoto.</value></data>
+  <data name="MailcowNoInstances" xml:space="preserve"><value>Nessuna istanza Mailcow è ancora connessa.</value></data>
+  <data name="MailcowEditInstance" xml:space="preserve"><value>Modifica istanza Mailcow</value></data>
+  <data name="MailcowEditHelp" xml:space="preserve"><value>La modifica dell'URL o della chiave API verifica la connessione a Mailcow prima del salvataggio.</value></data>
+  <data name="MailcowApiKeyUnchanged" xml:space="preserve"><value>Lasciare vuoto per mantenere la chiave attuale</value></data>
+  <data name="MailcowApiKeyKeepHelp" xml:space="preserve"><value>La chiave API memorizzata non viene mai mostrata. Inserire una nuova chiave solo per sostituirla.</value></data>
+  <data name="MailcowDeleteInstance" xml:space="preserve"><value>Elimina istanza Mailcow</value></data>
+  <data name="MailcowDeleteHelp" xml:space="preserve"><value>L'eliminazione dell'istanza rimuove la chiave API e le associazioni delle caselle. Gli account di archiviazione e la posta archiviata vengono conservati ma disattivati.</value></data>
+  <data name="MailcowDeleteConfirm" xml:space="preserve"><value>Elimina istanza</value></data>
+  <data name="MailcowDeleteBlockedHelp" xml:space="preserve"><value>In Mailcow esistono ancora password per applicazioni attive. Revocale prima nella pagina delle caselle: eliminando l'istanza si perderebbe la chiave API necessaria per revocarle.</value></data>
+  <data name="MailcowMailboxes" xml:space="preserve"><value>Caselle</value></data>
+  <data name="MailcowInstanceUpdated" xml:space="preserve"><value>Istanza Mailcow aggiornata.</value></data>
+  <data name="MailcowInstanceDeleted" xml:space="preserve"><value>Istanza Mailcow eliminata. Gli account di archiviazione sono stati conservati e disattivati.</value></data>
+  <data name="MailcowInstanceNotFound" xml:space="preserve"><value>L'istanza Mailcow non esiste più.</value></data>
+  <data name="MailcowDeleteRequiresRevoke" xml:space="preserve"><value>Revoca tutte le password per applicazioni gestite prima di eliminare questa istanza.</value></data>
 </root>

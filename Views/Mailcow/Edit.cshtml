@@ -1,0 +1,25 @@
+@model MailArchiver.ViewModels.EditMailcowInstanceViewModel
+@inject Microsoft.Extensions.Localization.IStringLocalizer<MailArchiver.SharedResource> L
+@{ ViewData["Title"] = L["MailcowEditInstance"]; }
+<div class="container">
+    <h1>@L["MailcowEditInstance"]</h1>
+    <p>@L["MailcowEditHelp"]</p>
+    <form asp-action="Edit" asp-route-id="@Model.Id" method="post" autocomplete="off">
+        <input type="hidden" asp-for="Id" />
+        <div asp-validation-summary="All" class="text-danger"></div>
+        <div class="mb-3"><label asp-for="Name" class="form-label">@L["AccountName"]</label><input asp-for="Name" class="form-control" /></div>
+        <div class="mb-3"><label asp-for="ApiUrl" class="form-label">@L["MailcowUrl"]</label><input asp-for="ApiUrl" class="form-control" placeholder="https://mail.example.com" /></div>
+        <div class="mb-3">
+            <label asp-for="ApiKey" class="form-label">@L["MailcowApiKey"]</label>
+            <input asp-for="ApiKey" type="password" autocomplete="new-password" class="form-control" placeholder="@L["MailcowApiKeyUnchanged"]" />
+            <div class="form-text">@L["MailcowApiKeyKeepHelp"]</div>
+        </div>
+        <div class="mb-3"><label asp-for="ImapHost" class="form-label">@L["MailcowImapHost"]</label><input asp-for="ImapHost" class="form-control" placeholder="mail.example.com" /></div>
+        <div class="mb-3"><label asp-for="ImapPort" class="form-label">@L["MailcowImapPort"]</label><input asp-for="ImapPort" class="form-control" /></div>
+        <button type="submit" class="btn btn-primary">@L["Save"]</button>
+        <a asp-action="Index" class="btn btn-outline-secondary">@L["BackToList"]</a>
+    </form>
+</div>
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

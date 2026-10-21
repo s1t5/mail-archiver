@@ -4,15 +4,43 @@
 <div class="container">
     <h1>@L["MailcowInstances"]</h1>
     <p>@L["MailcowIntroduction"]</p>
-    <a asp-action="Create" class="btn btn-primary mb-3">@L["MailcowConnect"]</a>
-    <a asp-controller="MailAccounts" asp-action="Index" class="btn btn-outline-secondary mb-3">@L["BackToList"]</a>
-    <ul class="list-group">
-        @foreach (var instance in Model)
-        {
-            <li class="list-group-item d-flex justify-content-between align-items-center">
-                <span><strong>@instance.Name</strong> <span class="text-muted">@instance.ApiUrl</span></span>
-                <a asp-action="Mailboxes" asp-route-id="@instance.Id" class="btn btn-outline-primary">@L["MailcowManage"]</a>
-            </li>
-        }
-    </ul>
+
+    @if (TempData["SuccessMessage"] is string success)
+    {
+        <div class="alert alert-success" role="status"><i class="bi bi-check-circle"></i> @success</div>
+    }
+    @if (TempData["ErrorMessage"] is string error)
+    {
+        <div class="alert alert-danger" role="alert"><i class="bi bi-exclamation-triangle"></i> @error</div>
+    }
+
+    <div class="d-flex gap-2 mb-3">
+        <a asp-action="Create" class="btn btn-primary">@L["MailcowConnect"]</a>
+        <a asp-controller="MailAccounts" asp-action="Index" class="btn btn-outline-secondary">@L["BackToList"]</a>
+    </div>
+
+    @if (Model.Count == 0)
+    {
+        <div class="alert alert-info" role="status"><i class="bi bi-info-circle"></i> @L["MailcowNoInstances"]</div>
+    }
+    else
+    {
+        <ul class="list-group">
+            @foreach (var instance in Model)
+            {
+                <li class="list-group-item d-flex flex-wrap justify-content-between align-items-center gap-2">
+                    <span>
+                        <strong>@instance.Name</strong>
+                        <span class="text-muted d-block small">@instance.ApiUrl</span>
+                        <span class="text-muted d-block small">@instance.ImapHost:@instance.ImapPort</span>
+                    </span>
+                    <span class="btn-group btn-group-sm">
+                        <a asp-action="Mailboxes" asp-route-id="@instance.Id" class="btn btn-outline-primary">@L["MailcowManage"]</a>
+                        <a asp-action="Edit" asp-route-id="@instance.Id" class="btn btn-outline-secondary">@L["Edit"]</a>
+                        <a asp-action="Delete" asp-route-id="@instance.Id" class="btn btn-outline-danger">@L["Delete"]</a>
+                    </span>
+                </li>
+            }
+        </ul>
+    }
 </div>

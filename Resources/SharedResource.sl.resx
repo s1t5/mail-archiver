@@ -3578,4 +3578,18 @@
   <data name="MailcowApiRejected" xml:space="preserve"><value>Mailcow je zavrnil zahtevo API. Preverite konfiguracijo primerka in dovoljenja API.</value></data>
   <data name="MailcowApiNotConfirmed" xml:space="preserve"><value>Mailcow ni potrdil spremembe.</value></data>
   <data name="MailcowApiUnreachable" xml:space="preserve"><value>Mailcow ni dosegljiv ali je vrnil neveljaven odgovor. Poskusite znova, da uskladite oddaljeno stanje.</value></data>
+  <data name="MailcowNoInstances" xml:space="preserve"><value>Nobena instanca Mailcow še ni povezana.</value></data>
+  <data name="MailcowEditInstance" xml:space="preserve"><value>Uredi instanco Mailcow</value></data>
+  <data name="MailcowEditHelp" xml:space="preserve"><value>Sprememba URL-ja ali ključa API pred shranjevanjem preveri povezavo z Mailcow.</value></data>
+  <data name="MailcowApiKeyUnchanged" xml:space="preserve"><value>Pustite prazno, da obdržite trenutni ključ</value></data>
+  <data name="MailcowApiKeyKeepHelp" xml:space="preserve"><value>Shranjeni ključ API ni nikoli prikazan. Vnesite nov ključ le za zamenjavo.</value></data>
+  <data name="MailcowDeleteInstance" xml:space="preserve"><value>Izbriši instanco Mailcow</value></data>
+  <data name="MailcowDeleteHelp" xml:space="preserve"><value>Brisanje instance odstrani ključ API in povezave predalov. Arhivski računi in njihova arhivirana pošta se ohranijo, vendar onemogočijo.</value></data>
+  <data name="MailcowDeleteConfirm" xml:space="preserve"><value>Izbriši instanco</value></data>
+  <data name="MailcowDeleteBlockedHelp" xml:space="preserve"><value>V Mailcow še obstajajo aktivna gesla aplikacij. Najprej jih prekličite na strani predalov — z brisanjem instance bi odstranili ključ API, potreben za preklic.</value></data>
+  <data name="MailcowMailboxes" xml:space="preserve"><value>Predali</value></data>
+  <data name="MailcowInstanceUpdated" xml:space="preserve"><value>Instanca Mailcow posodobljena.</value></data>
+  <data name="MailcowInstanceDeleted" xml:space="preserve"><value>Instanca Mailcow izbrisana. Arhivski računi so bili ohranjeni in onemogočeni.</value></data>
+  <data name="MailcowInstanceNotFound" xml:space="preserve"><value>Instanca Mailcow ne obstaja več.</value></data>
+  <data name="MailcowDeleteRequiresRevoke" xml:space="preserve"><value>Pred brisanjem te instance prekličite vsa upravljana gesla aplikacij.</value></data>
 </root>

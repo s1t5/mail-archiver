@@ -158,6 +158,105 @@ namespace MailArchiver.Controllers
             return RedirectToAction(nameof(Mailboxes), new { id = binding.InstanceId });
         }
 
+        public async Task<IActionResult> Edit(int id, CancellationToken ct)
+        {
+            var instance = await _db.MailcowInstances.FindAsync([id], ct);
+            if (instance == null) return NotFound();
+            // The API key is intentionally not copied into the view model.
+            return View(new EditMailcowInstanceViewModel
+            {
+                Id = instance.Id, Name = instance.Name, ApiUrl = instance.ApiUrl,
+                ImapHost = instance.ImapHost, ImapPort = instance.ImapPort, ApiKey = null
+            });
+        }
+
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(int id, EditMailcowInstanceViewModel model, CancellationToken ct)
+        {
+            if (id != model.Id) return NotFound();
+            var instance = await _db.MailcowInstances.FindAsync([id], ct);
+            if (instance == null) return NotFound();
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    var uri = MailcowApiClient.ValidateUrl(model.ApiUrl.Trim());
+                    var imapHost = model.ImapHost.Trim();
+                    if (Uri.CheckHostName(imapHost) == UriHostNameType.Unknown || imapHost.Contains(':'))
+                        throw new MailcowException("MailcowImapHostInvalid");
+                    if (await _db.MailcowInstances.AnyAsync(x => x.ApiUrl == uri.AbsoluteUri && x.Id != id, ct))
+                        throw new MailcowException("MailcowInstanceAlreadyConnected");
+
+                    // Verify the new connection details before persisting them.
+                    var candidate = new MailcowInstance
+                    {
+                        Id = instance.Id, Name = model.Name.Trim(), ApiUrl = uri.AbsoluteUri,
+                        ApiKey = string.IsNullOrWhiteSpace(model.ApiKey) ? instance.ApiKey : model.ApiKey.Trim(),
+                        ImapHost = imapHost, ImapPort = model.ImapPort
+                    };
+                    await _api.GetMailboxesAsync(candidate, ct);
+
+                    instance.Name = candidate.Name;
+                    instance.ApiUrl = candidate.ApiUrl;
+                    instance.ApiKey = candidate.ApiKey;
+                    instance.ImapHost = candidate.ImapHost;
+                    instance.ImapPort = candidate.ImapPort;
+                    await _db.SaveChangesAsync(ct);
+                    await LogAsync($"Updated Mailcow instance {instance.Name} ({instance.ApiUrl})");
+                    TempData["SuccessMessage"] = _localizer["MailcowInstanceUpdated"].Value;
+                    return RedirectToAction(nameof(Index));
+                }
+                catch (MailcowException e) { ModelState.AddModelError("", Localize(e)); }
+                catch (DbUpdateException) { ModelState.AddModelError("", _localizer["MailcowInstanceSaveFailed"].Value); }
+            }
+            // Credentials must never be repopulated into the response HTML or validation errors.
+            ModelState.Remove(nameof(model.ApiKey));
+            model.ApiKey = string.Empty;
+            return View(model);
+        }
+
+        public async Task<IActionResult> Delete(int id, CancellationToken ct)
+        {
+            var instance = await _db.MailcowInstances.FindAsync([id], ct);
+            if (instance == null) return NotFound();
+            var bindings = await _db.MailcowMailboxes.Include(x => x.MailAccount)
+                .Where(x => x.InstanceId == id).ToListAsync(ct);
+            return View(new DeleteMailcowInstanceViewModel
+            {
+                Id = instance.Id, Name = instance.Name, ApiUrl = instance.ApiUrl,
+                ImapHost = instance.ImapHost, ImapPort = instance.ImapPort,
+                BindingCount = bindings.Count,
+                ActiveBindingCount = bindings.Count(x => !x.IsRevoked),
+                ArchiveAccountCount = bindings.Count(x => x.MailAccount != null)
+            });
+        }
+
+        [HttpPost, ActionName("Delete"), ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteConfirmed(int id, CancellationToken ct)
+        {
+            var instance = await _db.MailcowInstances.FindAsync([id], ct);
+            if (instance == null) return NotFound();
+            var name = instance.Name;
+            try
+            {
+                await _provisioning.DeleteInstanceAsync(id, ct);
+                TempData["SuccessMessage"] = _localizer["MailcowInstanceDeleted"].Value;
+                await LogAsync($"Deleted Mailcow instance {name}");
+            }
+            catch (MailcowException e)
+            {
+                TempData["ErrorMessage"] = Localize(e);
+                return RedirectToAction(nameof(Delete), new { id });
+            }
+            catch (DbUpdateException)
+            {
+                _logger.LogWarning("Mailcow instance deletion conflicted for instance {InstanceId}", id);
+                TempData["ErrorMessage"] = _localizer["MailcowConcurrentChange"].Value;
+                return RedirectToAction(nameof(Delete), new { id });
+            }
+            return RedirectToAction(nameof(Index));
+        }
+
         private string Localize(MailcowException e) => _localizer[e.ResourceKey, e.ResourceArgs].Value;
 
         private async Task LogAsync(string description)
