@@ -3583,12 +3583,12 @@
   <data name="MailcowApiKeyUnchanged" xml:space="preserve"><value>Dejar vacío para mantener la clave actual</value></data>
   <data name="MailcowApiKeyKeepHelp" xml:space="preserve"><value>La clave de API guardada nunca se muestra. Introduzca una nueva solo para reemplazarla.</value></data>
   <data name="MailcowDeleteInstance" xml:space="preserve"><value>Eliminar instancia de Mailcow</value></data>
-  <data name="MailcowDeleteHelp" xml:space="preserve"><value>Al eliminar la instancia se eliminan su clave de API y sus vínculos de buzón. Las cuentas de archivo y el correo archivado se conservan, pero se desactivan.</value></data>
+  <data name="MailcowDeleteHelp" xml:space="preserve"><value>Al eliminar la instancia se eliminan su clave de API y sus vínculos de buzón. Las cuentas de archivo y el correo archivado se conservan.</value></data>
   <data name="MailcowDeleteConfirm" xml:space="preserve"><value>Eliminar instancia</value></data>
   <data name="MailcowDeleteBlockedHelp" xml:space="preserve"><value>Todavía existen contraseñas de aplicación activas en Mailcow. Revóquelas primero en la página de buzones: al eliminar la instancia se perdería la clave de API necesaria para revocarlas.</value></data>
   <data name="MailcowMailboxes" xml:space="preserve"><value>Buzones</value></data>
   <data name="MailcowInstanceUpdated" xml:space="preserve"><value>Instancia de Mailcow actualizada.</value></data>
-  <data name="MailcowInstanceDeleted" xml:space="preserve"><value>Instancia de Mailcow eliminada. Las cuentas de archivo se conservaron y desactivaron.</value></data>
+  <data name="MailcowInstanceDeleted" xml:space="preserve"><value>Instancia de Mailcow eliminada. Las cuentas de archivo se conservaron.</value></data>
   <data name="MailcowInstanceNotFound" xml:space="preserve"><value>La instancia de Mailcow ya no existe.</value></data>
   <data name="MailcowDeleteRequiresRevoke" xml:space="preserve"><value>Revoque todas las contraseñas de aplicación gestionadas antes de eliminar esta instancia.</value></data>
   <data name="MailcowProviderLabel" xml:space="preserve"><value>Mailcow</value></data>

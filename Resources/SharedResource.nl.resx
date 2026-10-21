@@ -3584,12 +3584,12 @@
   <data name="MailcowApiKeyUnchanged" xml:space="preserve"><value>Leeg laten om de huidige sleutel te behouden</value></data>
   <data name="MailcowApiKeyKeepHelp" xml:space="preserve"><value>De opgeslagen API-sleutel wordt nooit getoond. Voer alleen een nieuwe sleutel in om deze te vervangen.</value></data>
   <data name="MailcowDeleteInstance" xml:space="preserve"><value>Mailcow-instantie verwijderen</value></data>
-  <data name="MailcowDeleteHelp" xml:space="preserve"><value>Het verwijderen van de instantie verwijdert de API-sleutel en mailboxkoppelingen. Archiefaccounts en hun gearchiveerde mail blijven behouden maar worden uitgeschakeld.</value></data>
+  <data name="MailcowDeleteHelp" xml:space="preserve"><value>Het verwijderen van de instantie verwijdert de API-sleutel en mailboxkoppelingen. Archiefaccounts en hun gearchiveerde mail blijven behouden.</value></data>
   <data name="MailcowDeleteConfirm" xml:space="preserve"><value>Instantie verwijderen</value></data>
   <data name="MailcowDeleteBlockedHelp" xml:space="preserve"><value>Er bestaan nog actieve app-wachtwoorden in Mailcow. Trek deze eerst in op de mailboxpagina — bij het verwijderen van de instantie gaat de API-sleutel verloren die nodig is om ze in te trekken.</value></data>
   <data name="MailcowMailboxes" xml:space="preserve"><value>Mailboxen</value></data>
   <data name="MailcowInstanceUpdated" xml:space="preserve"><value>Mailcow-instantie bijgewerkt.</value></data>
-  <data name="MailcowInstanceDeleted" xml:space="preserve"><value>Mailcow-instantie verwijderd. Archiefaccounts zijn behouden en uitgeschakeld.</value></data>
+  <data name="MailcowInstanceDeleted" xml:space="preserve"><value>Mailcow-instantie verwijderd. Archiefaccounts zijn behouden.</value></data>
   <data name="MailcowInstanceNotFound" xml:space="preserve"><value>De Mailcow-instantie bestaat niet meer.</value></data>
   <data name="MailcowDeleteRequiresRevoke" xml:space="preserve"><value>Trek alle beheerde app-wachtwoorden in voordat u deze instantie verwijdert.</value></data>
   <data name="MailcowProviderLabel" xml:space="preserve"><value>Mailcow</value></data>

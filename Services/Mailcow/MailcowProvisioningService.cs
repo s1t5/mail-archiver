@@ -5,11 +5,12 @@ using MailArchiver.Services.Security;
 using MailKit.Net.Imap;
 using MailKit.Security;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace MailArchiver.Services.Mailcow;
 
 public class MailcowProvisioningService(MailArchiverDbContext db, MailcowApiClient api,
-    ICredentialProtector protector)
+    ICredentialProtector protector, ILogger<MailcowProvisioningService> logger)
 {
     // Keep 256 random bits while satisfying Mailcow's configurable character-class rules.
     internal static string GenerateAppPassword() => Convert.ToHexString(RandomNumberGenerator.GetBytes(32)) + "aA1!";
@@ -31,6 +32,9 @@ public class MailcowProvisioningService(MailArchiverDbContext db, MailcowApiClie
         }
         catch (Exception e) when (e is not MailcowException)
         {
+            // The underlying IMAP error never reaches the controller; keep it in the logs.
+            logger.LogWarning(e, "Mailcow IMAP verification failed for {EmailAddress} on {ImapHost}:{ImapPort}",
+                address, instance.ImapHost, instance.ImapPort);
             throw new MailcowException("MailcowImapVerificationFailed");
         }
     }
@@ -100,6 +104,8 @@ public class MailcowProvisioningService(MailArchiverDbContext db, MailcowApiClie
         }
 
         await ProvisionAppPasswordAsync(instance, address, binding, ct);
+        logger.LogInformation("Mailcow app password provisioned for mailbox {EmailAddress} on instance {InstanceId}",
+            address, instance.Id);
     }
 
     public async Task LinkAsync(MailcowInstance instance, int mailAccountId, CancellationToken ct)
@@ -123,8 +129,24 @@ public class MailcowProvisioningService(MailArchiverDbContext db, MailcowApiClie
             throw new MailcowException("MailcowRevokePreviousPassword");
         if (binding is { IsRevoked: false, MailAccountId: not null })
         {
-            if (binding.MailAccountId == mailAccountId) return;
-            throw new MailcowException("MailcowMailboxAlreadyLinked");
+            if (binding.MailAccountId != mailAccountId)
+                throw new MailcowException("MailcowMailboxAlreadyLinked");
+            // Completed provisioning is a no-op. A binding whose provisioning failed
+            // after the credential was persisted resumes with that stored credential
+            // instead of reporting success while the account cannot authenticate.
+            if (binding is { AppPasswordId: not null, MailAccount.IsEnabled: true }) return;
+            account.IsEnabled = false;
+            // Refresh connection details: the instance configuration may have been
+            // corrected (e.g. IMAP host) since the failed attempt.
+            account.ImapServer = instance.ImapHost;
+            account.ImapPort = instance.ImapPort;
+            account.Username = address;
+            account.UseSSL = true;
+            await db.SaveChangesAsync(ct);
+            await ProvisionAppPasswordAsync(instance, address, binding, ct);
+            logger.LogInformation("Mailcow app password provisioned for account {MailAccountId} on instance {InstanceId}",
+                mailAccountId, instance.Id);
+            return;
         }
 
         if (await db.MailcowMailboxes.AnyAsync(x => x.MailAccountId == mailAccountId &&
@@ -144,12 +166,18 @@ public class MailcowProvisioningService(MailArchiverDbContext db, MailcowApiClie
         account.Username = address;
         account.UseSSL = true;
         account.Provider = ProviderType.IMAP;
+        // Disable until provisioning succeeds so a failed link leaves the account in
+        // a pending state (mirroring ImportCoreAsync) instead of syncing with a
+        // password that may not exist in Mailcow.
+        account.IsEnabled = false;
         account.Password = GenerateAppPassword();
         if (binding.Id == 0) db.MailcowMailboxes.Add(binding);
         // Persist the credential and unique operation name BEFORE contacting Mailcow.
         await db.SaveChangesAsync(ct);
 
         await ProvisionAppPasswordAsync(instance, address, binding, ct);
+        logger.LogInformation("Mailcow app password provisioned for account {MailAccountId} on instance {InstanceId}",
+            mailAccountId, instance.Id);
     }
 
     private async Task ProvisionAppPasswordAsync(MailcowInstance instance, string address,
@@ -213,6 +241,8 @@ public class MailcowProvisioningService(MailArchiverDbContext db, MailcowApiClie
         binding.IsRevoked = true;
         binding.AppPasswordId = null;
         await db.SaveChangesAsync(ct);
+        logger.LogInformation("Mailcow app password revoked for mailbox {EmailAddress} on instance {InstanceId}",
+            binding.EmailAddress, binding.InstanceId);
     }
 
     /// <summary>
@@ -237,18 +267,14 @@ public class MailcowProvisioningService(MailArchiverDbContext db, MailcowApiClie
         if (bindings.Any(x => !x.IsRevoked))
             throw new MailcowException("MailcowDeleteRequiresRevoke");
 
-        foreach (var binding in bindings)
-        {
-            // Disable the archive account but keep its mail and row.
-            if (binding.MailAccount != null)
-            {
-                binding.MailAccount.IsEnabled = false;
-                binding.MailAccount.Password = null;
-            }
-        }
+        // Revocation already disabled these accounts and cleared their managed
+        // credentials. Accounts deliberately re-configured by an admin afterwards
+        // (new password, re-enabled, other provider) must keep their working state.
         // MailAccountId uses ON DELETE SET NULL, so bindings can be removed safely.
         db.MailcowMailboxes.RemoveRange(bindings);
         db.MailcowInstances.Remove(instance);
         await db.SaveChangesAsync(ct);
+        logger.LogInformation("Mailcow instance {InstanceId} deleted with {BindingCount} mailbox binding(s)",
+            instanceId, bindings.Count);
     }
 }
