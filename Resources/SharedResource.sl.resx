@@ -3592,4 +3592,20 @@
   <data name="MailcowInstanceDeleted" xml:space="preserve"><value>Instanca Mailcow izbrisana. Arhivski računi so bili ohranjeni in onemogočeni.</value></data>
   <data name="MailcowInstanceNotFound" xml:space="preserve"><value>Instanca Mailcow ne obstaja več.</value></data>
   <data name="MailcowDeleteRequiresRevoke" xml:space="preserve"><value>Pred brisanjem te instance prekličite vsa upravljana gesla aplikacij.</value></data>
+  <data name="MailcowProviderLabel" xml:space="preserve"><value>Mailcow</value></data>
+  <data name="MailcowProviderHelp" xml:space="preserve"><value>Ustvarjajte in upravljajte račune prek povezanega primerka Mailcow.</value></data>
+  <data name="MailcowSelectInstance" xml:space="preserve"><value>Primerek Mailcow</value></data>
+  <data name="MailcowManageInstances" xml:space="preserve"><value>Upravljaj primerke Mailcow</value></data>
+  <data name="MailcowManageMailboxes" xml:space="preserve"><value>Upravljaj nabiralnike</value></data>
+  <data name="MailcowNoInstancesConnected" xml:space="preserve"><value>Noben primerek Mailcow še ni povezan.</value></data>
+  <data name="MailcowLinkAccountHelp" xml:space="preserve"><value>Povežite ta račun IMAP s primerkom Mailcow. Namensko geslo aplikacije bo zamenjalo trenutno geslo.</value></data>
+  <data name="MailcowLinkedToInstance" xml:space="preserve"><value>Upravlja primerek Mailcow {0}</value></data>
+  <data name="MailcowUnlinkHint" xml:space="preserve"><value>Izberite drugega ponudnika in shranite, da prekličete geslo aplikacije Mailcow.</value></data>
+  <data name="MailcowAccountNotFound" xml:space="preserve"><value>Arhivskega računa ni bilo mogoče najti.</value></data>
+  <data name="MailcowOnlyImapAccounts" xml:space="preserve"><value>S programom Mailcow je mogoče povezati samo račune IMAP.</value></data>
+  <data name="MailcowMailboxAlreadyLinked" xml:space="preserve"><value>Ta nabiralnik je že povezan z drugim arhivskim računom.</value></data>
+  <data name="MailcowAccountAlreadyLinked" xml:space="preserve"><value>Ta račun je že povezan z drugim primerkom Mailcow.</value></data>
+  <data name="MailcowNewImapPasswordRequired" xml:space="preserve"><value>Po zapustitvi Mailcow vnesite novo geslo IMAP.</value></data>
+  <data name="MailcowLinkSuccess" xml:space="preserve"><value>Račun je povezan s primerkom Mailcow {0}.</value></data>
+  <data name="MailcowDetachSuccess" xml:space="preserve"><value>Dostop do Mailcow je preklican. Vnesite nove poverilnice za izbranega ponudnika.</value></data>
 </root>

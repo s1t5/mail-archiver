@@ -3592,4 +3592,20 @@
   <data name="MailcowInstanceDeleted" xml:space="preserve"><value>Istanza Mailcow eliminata. Gli account di archiviazione sono stati conservati e disattivati.</value></data>
   <data name="MailcowInstanceNotFound" xml:space="preserve"><value>L'istanza Mailcow non esiste più.</value></data>
   <data name="MailcowDeleteRequiresRevoke" xml:space="preserve"><value>Revoca tutte le password per applicazioni gestite prima di eliminare questa istanza.</value></data>
+  <data name="MailcowProviderLabel" xml:space="preserve"><value>Mailcow</value></data>
+  <data name="MailcowProviderHelp" xml:space="preserve"><value>Crea e gestisci account tramite un'istanza Mailcow connessa.</value></data>
+  <data name="MailcowSelectInstance" xml:space="preserve"><value>Istanza Mailcow</value></data>
+  <data name="MailcowManageInstances" xml:space="preserve"><value>Gestisci istanze Mailcow</value></data>
+  <data name="MailcowManageMailboxes" xml:space="preserve"><value>Gestisci cassette</value></data>
+  <data name="MailcowNoInstancesConnected" xml:space="preserve"><value>Nessuna istanza Mailcow è ancora connessa.</value></data>
+  <data name="MailcowLinkAccountHelp" xml:space="preserve"><value>Collega questo account IMAP a un'istanza Mailcow. Una password dell'app dedicata sostituirà la password corrente.</value></data>
+  <data name="MailcowLinkedToInstance" xml:space="preserve"><value>Gestito dall'istanza Mailcow {0}</value></data>
+  <data name="MailcowUnlinkHint" xml:space="preserve"><value>Seleziona un altro provider e salva per revocare la password dell'app Mailcow.</value></data>
+  <data name="MailcowAccountNotFound" xml:space="preserve"><value>L'account di archivio non è stato trovato.</value></data>
+  <data name="MailcowOnlyImapAccounts" xml:space="preserve"><value>Solo gli account IMAP possono essere collegati a Mailcow.</value></data>
+  <data name="MailcowMailboxAlreadyLinked" xml:space="preserve"><value>Questa cassetta è già collegata a un altro account di archivio.</value></data>
+  <data name="MailcowAccountAlreadyLinked" xml:space="preserve"><value>Questo account è già collegato a un'altra istanza Mailcow.</value></data>
+  <data name="MailcowNewImapPasswordRequired" xml:space="preserve"><value>Inserisci una nuova password IMAP dopo aver lasciato Mailcow.</value></data>
+  <data name="MailcowLinkSuccess" xml:space="preserve"><value>Account collegato all'istanza Mailcow {0}.</value></data>
+  <data name="MailcowDetachSuccess" xml:space="preserve"><value>Accesso a Mailcow revocato. Inserisci nuove credenziali per il provider selezionato.</value></data>
 </root>

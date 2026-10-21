@@ -3592,4 +3592,20 @@
   <data name="MailcowInstanceDeleted" xml:space="preserve"><value>Mailcow-instantie verwijderd. Archiefaccounts zijn behouden en uitgeschakeld.</value></data>
   <data name="MailcowInstanceNotFound" xml:space="preserve"><value>De Mailcow-instantie bestaat niet meer.</value></data>
   <data name="MailcowDeleteRequiresRevoke" xml:space="preserve"><value>Trek alle beheerde app-wachtwoorden in voordat u deze instantie verwijdert.</value></data>
+  <data name="MailcowProviderLabel" xml:space="preserve"><value>Mailcow</value></data>
+  <data name="MailcowProviderHelp" xml:space="preserve"><value>Maak en beheer accounts via een verbonden Mailcow-instantie.</value></data>
+  <data name="MailcowSelectInstance" xml:space="preserve"><value>Mailcow-instantie</value></data>
+  <data name="MailcowManageInstances" xml:space="preserve"><value>Mailcow-instanties beheren</value></data>
+  <data name="MailcowManageMailboxes" xml:space="preserve"><value>Postbussen beheren</value></data>
+  <data name="MailcowNoInstancesConnected" xml:space="preserve"><value>Er is nog geen Mailcow-instantie verbonden.</value></data>
+  <data name="MailcowLinkAccountHelp" xml:space="preserve"><value>Koppel dit IMAP-account aan een Mailcow-instantie. Een speciaal app-wachtwoord vervangt het huidige wachtwoord.</value></data>
+  <data name="MailcowLinkedToInstance" xml:space="preserve"><value>Beheerd door Mailcow-instantie {0}</value></data>
+  <data name="MailcowUnlinkHint" xml:space="preserve"><value>Selecteer een andere provider en sla op om het Mailcow-app-wachtwoord in te trekken.</value></data>
+  <data name="MailcowAccountNotFound" xml:space="preserve"><value>Het archiefaccount is niet gevonden.</value></data>
+  <data name="MailcowOnlyImapAccounts" xml:space="preserve"><value>Alleen IMAP-accounts kunnen aan Mailcow worden gekoppeld.</value></data>
+  <data name="MailcowMailboxAlreadyLinked" xml:space="preserve"><value>Deze postbus is al gekoppeld aan een ander archiefaccount.</value></data>
+  <data name="MailcowAccountAlreadyLinked" xml:space="preserve"><value>Dit account is al gekoppeld aan een andere Mailcow-instantie.</value></data>
+  <data name="MailcowNewImapPasswordRequired" xml:space="preserve"><value>Voer een nieuw IMAP-wachtwoord in nadat u Mailcow hebt verlaten.</value></data>
+  <data name="MailcowLinkSuccess" xml:space="preserve"><value>Account gekoppeld aan Mailcow-instantie {0}.</value></data>
+  <data name="MailcowDetachSuccess" xml:space="preserve"><value>Mailcow-toegang ingetrokken. Voer nieuwe inloggegevens in voor de geselecteerde provider.</value></data>
 </root>

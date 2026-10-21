@@ -12,9 +12,32 @@ the mailboxes and, for each mailbox selected for archiving, creates a **dedicate
 password** restricted to `imap_access`. That app password is used by the existing IMAP
 provider to archive the mailbox and can be revoked again at any time.
 
-Mailcow instances are managed under **Mail Accounts → Mailcow instances**. The section is
-only visible to administrators, because the stored API key can manage credentials for
-every mailbox in the instance.
+Administrators reach the instance manager from **Add Account → Mailcow** or from the
+actions menu of an account that is already managed by Mailcow. The manager is
+administrator-only, because the stored API key can manage credentials for every mailbox
+in the instance.
+
+## Creating accounts from Mailcow
+
+In **Mail Accounts → Add Account**, administrators can select **Mailcow** as the provider.
+The form then offers the connected instances and a **Manage mailboxes** action. Selecting
+mailboxes there creates ordinary IMAP archive accounts with dedicated app passwords; no
+separate Mailcow account is stored. If no instance exists yet, **Manage Mailcow instances**
+opens the instance manager where one can be connected.
+
+## Linking an existing account
+
+In the edit view of an IMAP account, administrators can switch the provider to **Mailcow**
+and choose an instance. The account keeps the IMAP provider but is adopted into Mailcow
+management: Mail Archiver creates a dedicated app password, verifies it over IMAP and
+replaces the account's stored password. The account then appears with a Mailcow action in
+the account list.
+
+To leave Mailcow management, select another provider and save. The app password is
+revoked and the local password is cleared. When switching back to IMAP, enter a new IMAP
+password; switching to Microsoft 365 or an import-only account supplies its own
+credentials. Non-administrators can still edit the non-credential settings of a
+Mailcow-managed account, but cannot link or unlink it.
 
 ## Prerequisites
 

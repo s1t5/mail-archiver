@@ -5,6 +5,7 @@ using MailArchiver.ViewModels;
 using MailArchiver.Services;
 using MailArchiver.Services.Providers;
 using MailArchiver.Services.Shared;
+using MailArchiver.Services.Mailcow;
 using MailArchiver.Utilities;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -40,6 +41,7 @@ namespace MailArchiver.Controllers
     private readonly MsaOAuthOptions _msaOptions;
     private readonly IAccountStorageService _accountStorageService;
     private readonly CsvImportOptions _csvImportOptions;
+    private readonly MailcowProvisioningService _mailcowProvisioning;
 
     public MailAccountsController(
         MailArchiverDbContext context,
@@ -65,6 +67,7 @@ namespace MailArchiver.Controllers
         IOptions<OffloadOptions> offloadOptions,
         IOptions<MailSyncOptions> mailSyncOptions,
         IBatchRestoreService batchRestoreService,
+        MailcowProvisioningService mailcowProvisioning,
         MailArchiver.Utilities.DateTimeHelper dateTimeHelper)
     {
         _context = context;
@@ -90,12 +93,37 @@ namespace MailArchiver.Controllers
         _csvImportOptions = csvImportOptions.Value;
         _offloadOptions = offloadOptions.Value;
         _batchRestoreService = batchRestoreService;
+        _mailcowProvisioning = mailcowProvisioning;
         _dateTimeHelper = dateTimeHelper;
     }
 
         private readonly OffloadOptions _offloadOptions;
         private readonly IBatchRestoreService _batchRestoreService;
         private readonly MailArchiver.Utilities.DateTimeHelper _dateTimeHelper;
+
+        private async Task PopulateMailcowViewDataAsync()
+        {
+            var authService = HttpContext.RequestServices.GetService<IAuthenticationService>();
+            var isAdmin = authService?.IsCurrentUserAdmin(HttpContext) ?? false;
+            ViewBag.IsAdmin = isAdmin;
+            ViewBag.MailcowInstances = isAdmin
+                ? await _context.MailcowInstances.OrderBy(x => x.Name).ToListAsync()
+                : new List<MailcowInstance>();
+        }
+
+        private async Task PopulateMailcowAccountStateAsync(MailAccountViewModel model, int accountId)
+        {
+            model.IsMailcowManaged = false;
+            var binding = await _context.MailcowMailboxes.Include(x => x.Instance)
+                .FirstOrDefaultAsync(x => x.MailAccountId == accountId && !x.IsRevoked);
+            if (binding == null) return;
+            model.IsMailcowManaged = true;
+            model.MailcowInstanceId = binding.InstanceId;
+            model.MailcowInstanceName = binding.Instance?.Name;
+        }
+
+        private string LocalizeMailcow(MailcowException e)
+            => _localizer[e.ResourceKey, e.ResourceArgs].Value;
 
         private async Task<bool> HasAccessToAccountAsync(int accountId)
         {
@@ -215,6 +243,20 @@ namespace MailArchiver.Controllers
                         && ((!lastRun.FailuresAcknowledged && (lastRun.FailedEmails > 0 || lastRun.FailedFolders > 0))
                             || lastRun.MissingFolders > 0);
                 }
+
+                var mailcowBindings = (await _context.MailcowMailboxes
+                    .Where(x => x.MailAccountId != null && !x.IsRevoked && accountIds.Contains(x.MailAccountId.Value))
+                    .Select(x => new { x.MailAccountId, x.InstanceId, InstanceName = x.Instance.Name })
+                    .ToListAsync())
+                    .GroupBy(x => x.MailAccountId!.Value)
+                    .ToDictionary(g => g.Key, g => g.First());
+                foreach (var account in accounts)
+                {
+                    if (!mailcowBindings.TryGetValue(account.Id, out var binding)) continue;
+                    account.IsMailcowManaged = true;
+                    account.MailcowInstanceId = binding.InstanceId;
+                    account.MailcowInstanceName = binding.InstanceName;
+                }
             }
 
             return View(accounts);
@@ -290,8 +332,9 @@ namespace MailArchiver.Controllers
         }
 
         // GET: MailAccounts/Create
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
+            await PopulateMailcowViewDataAsync();
             ViewBag.MsaHasDefaultClientId = _msaOptions.HasDefaultClientId;
             var model = new CreateMailAccountViewModel
             {
@@ -310,6 +353,17 @@ namespace MailArchiver.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(CreateMailAccountViewModel model)
         {
+            if (model.MailcowSelected)
+            {
+                var mailcowAuth = HttpContext.RequestServices.GetService<IAuthenticationService>();
+                if (mailcowAuth == null || !mailcowAuth.IsCurrentUserAdmin(HttpContext)) return Forbid();
+                return model.MailcowInstanceId is int instanceId
+                    ? RedirectToAction("Mailboxes", "Mailcow", new { id = instanceId })
+                    : RedirectToAction("Index", "Mailcow");
+            }
+
+            await PopulateMailcowViewDataAsync();
+
             // When a default MSA ClientId is configured, per-account ClientId is optional.
             // When it is NOT configured, the per-account ClientId is required (validated below).
             if (model.Provider == ProviderType.MSA && !_msaOptions.HasDefaultClientId
@@ -755,6 +809,9 @@ namespace MailArchiver.Controllers
             // does not have.
             ViewBag.ExcludeSubfolders = _mailSyncOptions.ExcludeSubfolders;
 
+            await PopulateMailcowViewDataAsync();
+            await PopulateMailcowAccountStateAsync(model, id);
+
             return View(model);
         }
 
@@ -812,6 +869,94 @@ namespace MailArchiver.Controllers
             if (!await HasAccessToAccountAsync(id))
             {
                 return NotFound();
+            }
+
+            var isAdminUser = HttpContext.RequestServices.GetService<IAuthenticationService>()?
+                .IsCurrentUserAdmin(HttpContext) ?? false;
+            var activeMailcowBinding = await _context.MailcowMailboxes.Include(x => x.Instance)
+                .FirstOrDefaultAsync(x => x.MailAccountId == id && !x.IsRevoked);
+            var mailcowDetached = false;
+
+            if (model.LocalRetentionDays.HasValue && !model.DeleteAfterDays.HasValue)
+                ModelState.AddModelError(nameof(model.LocalRetentionDays), _localizer["LocalRetentionRequiresServerRetention"].Value);
+            if (model.LocalRetentionDays.HasValue && model.DeleteAfterDays.HasValue &&
+                model.LocalRetentionDays.Value < model.DeleteAfterDays.Value)
+                ModelState.AddModelError(nameof(model.LocalRetentionDays), _localizer["LocalRetentionMustBeGreaterOrEqual"].Value);
+
+            if (model.LinkToMailcow)
+            {
+                if (!isAdminUser) return Forbid();
+                if (model.MailcowInstanceId is not int mailcowInstanceId)
+                {
+                    ModelState.AddModelError(nameof(model.MailcowInstanceId), _localizer["MailcowSelectInstance"].Value);
+                }
+                else
+                {
+                    var instance = await _context.MailcowInstances.FindAsync(mailcowInstanceId);
+                    var account = await _context.MailAccounts.FindAsync(id);
+                    if (account == null) return NotFound();
+                    if (instance == null)
+                    {
+                        ModelState.AddModelError(nameof(model.MailcowInstanceId), _localizer["MailcowSelectInstance"].Value);
+                    }
+                    else
+                    {
+                        if (account.Provider != ProviderType.IMAP)
+                            ModelState.AddModelError("", _localizer["MailcowOnlyImapAccounts"].Value);
+                        if (activeMailcowBinding != null && activeMailcowBinding.InstanceId != mailcowInstanceId)
+                            ModelState.AddModelError("", _localizer["MailcowAccountAlreadyLinked"].Value);
+                        model.Provider = ProviderType.IMAP;
+                        model.EmailAddress = account.EmailAddress;
+                        model.ImapServer = instance.ImapHost;
+                        model.ImapPort = instance.ImapPort;
+                        model.Username = account.EmailAddress;
+                        model.Password = null;
+                        model.UseSSL = true;
+                        ModelState.Remove(nameof(model.EmailAddress));
+                        ModelState.Remove(nameof(model.ImapServer));
+                        ModelState.Remove(nameof(model.ImapPort));
+                        ModelState.Remove(nameof(model.Username));
+                        ModelState.Remove(nameof(model.Password));
+                    }
+                }
+            }
+            else if (activeMailcowBinding != null && model.LeaveMailcow)
+            {
+                if (!isAdminUser) return Forbid();
+                if (model.Provider == ProviderType.IMAP && string.IsNullOrEmpty(model.Password))
+                {
+                    ModelState.AddModelError(nameof(model.Password), _localizer["MailcowNewImapPasswordRequired"].Value);
+                }
+                else if (ModelState.IsValid)
+                {
+                    var account = await _context.MailAccounts.FindAsync(id);
+                    if (account == null) return NotFound();
+                    try
+                    {
+                        await _mailcowProvisioning.DetachAsync(account, HttpContext.RequestAborted);
+                        mailcowDetached = true;
+                    }
+                    catch (MailcowException e) { ModelState.AddModelError("", LocalizeMailcow(e)); }
+                    catch (DbUpdateException) { ModelState.AddModelError("", _localizer["MailcowConcurrentChange"].Value); }
+                }
+            }
+            else if (activeMailcowBinding != null)
+            {
+                // Keep the account Mailcow-managed while editing non-credential fields.
+                var account = await _context.MailAccounts.FindAsync(id);
+                if (account == null) return NotFound();
+                model.Provider = account.Provider;
+                model.EmailAddress = account.EmailAddress;
+                model.ImapServer = account.ImapServer;
+                model.ImapPort = account.ImapPort;
+                model.Username = account.Username;
+                model.Password = null;
+                model.UseSSL = account.UseSSL;
+                ModelState.Remove(nameof(model.EmailAddress));
+                ModelState.Remove(nameof(model.ImapServer));
+                ModelState.Remove(nameof(model.ImapPort));
+                ModelState.Remove(nameof(model.Username));
+                ModelState.Remove(nameof(model.Password));
             }
 
             // Remove password validation if left blank
@@ -1043,7 +1188,40 @@ namespace MailArchiver.Controllers
                     {
                         TempData["SuccessMessage"] = _localizer["EmailAccountUpdateSuccess"].Value;
                     }
-                    
+
+                    if (model.LinkToMailcow && model.MailcowInstanceId is int linkInstanceId)
+                    {
+                        try
+                        {
+                            var instance = await _context.MailcowInstances.FindAsync(linkInstanceId);
+                            if (instance != null)
+                            {
+                                await _mailcowProvisioning.LinkAsync(instance, account.Id, HttpContext.RequestAborted);
+                                account.IsEnabled = model.IsEnabled;
+                                await _context.SaveChangesAsync();
+                                TempData["SuccessMessage"] = _localizer["MailcowLinkSuccess", instance.Name].Value;
+                            }
+                        }
+                        catch (MailcowException e)
+                        {
+                            ModelState.AddModelError("", LocalizeMailcow(e));
+                            await PopulateMailcowViewDataAsync();
+                            await PopulateMailcowAccountStateAsync(model, id);
+                            return View(model);
+                        }
+                        catch (DbUpdateException)
+                        {
+                            ModelState.AddModelError("", _localizer["MailcowConcurrentChange"].Value);
+                            await PopulateMailcowViewDataAsync();
+                            await PopulateMailcowAccountStateAsync(model, id);
+                            return View(model);
+                        }
+                    }
+                    else if (mailcowDetached)
+                    {
+                        TempData["SuccessMessage"] = _localizer["MailcowDetachSuccess"].Value;
+                    }
+
                     return RedirectToAction(nameof(Index));
                 }
                 catch (DbUpdateConcurrencyException)
@@ -1057,6 +1235,15 @@ namespace MailArchiver.Controllers
                         throw;
                     }
                 }
+            }
+
+            await PopulateMailcowViewDataAsync();
+            await PopulateMailcowAccountStateAsync(model, id);
+            if (mailcowDetached)
+            {
+                model.MailcowInstanceId = null;
+                model.MailcowInstanceName = null;
+                model.LinkToMailcow = false;
             }
             return View(model);
         }
