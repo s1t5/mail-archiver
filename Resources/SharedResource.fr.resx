@@ -3539,4 +3539,73 @@
   <data name="CurrentPeriod" xml:space="preserve">
     <value>Maintenant</value>
   </data>
+  <data name="MailcowInstances" xml:space="preserve"><value>Instances Mailcow</value></data>
+  <data name="MailcowIntroduction" xml:space="preserve"><value>Archivez les boîtes aux lettres Mailcow sélectionnées sans mots de passe personnels.</value></data>
+  <data name="MailcowConnect" xml:space="preserve"><value>Connecter Mailcow</value></data>
+  <data name="MailcowManage" xml:space="preserve"><value>Gérer les boîtes aux lettres</value></data>
+  <data name="MailcowConnectHelp" xml:space="preserve"><value>Utilisez une clé API autorisant la liste des boîtes aux lettres et la gestion des mots de passe d'application. Le chiffrement des identifiants doit être activé. IMAP utilise TLS vérifié.</value></data>
+  <data name="MailcowUrl" xml:space="preserve"><value>URL Mailcow</value></data>
+  <data name="MailcowApiKey" xml:space="preserve"><value>Clé API</value></data>
+  <data name="MailcowImapHost" xml:space="preserve"><value>Hôte IMAP</value></data>
+  <data name="MailcowImapPort" xml:space="preserve"><value>Port TLS IMAP</value></data>
+  <data name="MailcowSelectionHelp" xml:space="preserve"><value>Sélectionnez des boîtes aux lettres pour créer des mots de passe d'application IMAP dédiés. Les boîtes en attente peuvent être réessayées. La révocation de l'accès arrête la synchronisation et conserve l'archive.</value></data>
+  <data name="MailcowActivate" xml:space="preserve"><value>Archiver les boîtes sélectionnées / réessayer</value></data>
+  <data name="MailcowActive" xml:space="preserve"><value>Archivage activé</value></data>
+  <data name="MailcowRevoked" xml:space="preserve"><value>Accès révoqué</value></data>
+  <data name="MailcowPending" xml:space="preserve"><value>En attente — réessayer ou révoquer</value></data>
+  <data name="MailcowDisabled" xml:space="preserve"><value>Désactivé dans Mailcow</value></data>
+  <data name="MailcowExisting" xml:space="preserve"><value>Le compte d'archive existe déjà</value></data>
+  <data name="MailcowAvailable" xml:space="preserve"><value>Disponible</value></data>
+  <data name="MailcowRevoke" xml:space="preserve"><value>Révoquer le mot de passe d'application</value></data>
+  <data name="MailcowRemainingAccess" xml:space="preserve"><value>Mots de passe d'application restants</value></data>
+  <data name="MailcowImapHostInvalid" xml:space="preserve"><value>Saisissez un nom d'hôte IMAP sans schéma ni port.</value></data>
+  <data name="MailcowInstanceAlreadyConnected" xml:space="preserve"><value>Cette instance Mailcow est déjà connectée.</value></data>
+  <data name="MailcowInstanceSaveFailed" xml:space="preserve"><value>L'instance n'a pas pu être enregistrée. Vérifiez si elle est déjà connectée.</value></data>
+  <data name="MailcowSelectMailboxCount" xml:space="preserve"><value>Sélectionnez entre 1 et {0} boîtes aux lettres.</value></data>
+  <data name="MailcowConcurrentChange" xml:space="preserve"><value>Une modification concurrente a empêché le provisionnement. Rechargez la liste des boîtes et réessayez.</value></data>
+  <data name="MailcowImportResult" xml:space="preserve"><value>{0} boîte(s) prête(s) ; {1} n'ont pas pu être activées. L'accès en attente peut être réessayé ou révoqué.</value></data>
+  <data name="MailcowRevokedSuccess" xml:space="preserve"><value>Mot de passe d'application révoqué. L'archive est conservée et la synchronisation est désactivée.</value></data>
+  <data name="MailcowEncryptionRequired" xml:space="preserve"><value>Activez le chiffrement des identifiants avec Security__CredentialEncryptionKey avant de connecter Mailcow.</value></data>
+  <data name="MailcowImapVerificationFailed" xml:space="preserve"><value>Le mot de passe d'application n'a pas pu être vérifié via IMAP avec TLS. Vérifiez l'hôte IMAP, le certificat et l'état de la boîte, puis réessayez.</value></data>
+  <data name="MailcowMailboxUnavailable" xml:space="preserve"><value>Cette boîte aux lettres est indisponible ou désactivée dans Mailcow.</value></data>
+  <data name="MailcowRevokePreviousPassword" xml:space="preserve"><value>Révoquez le mot de passe d'application précédent avant d'ajouter à nouveau ce compte d'archive supprimé.</value></data>
+  <data name="MailcowImapAccountExists" xml:space="preserve"><value>Un compte d'archive IMAP existe déjà pour cette boîte aux lettres.</value></data>
+  <data name="MailcowPasswordUndecryptable" xml:space="preserve"><value>Le mot de passe d'application stocké ne peut pas être déchiffré. Restaurez la clé de chiffrement ou révoquez cet accès.</value></data>
+  <data name="MailcowAppPasswordIdMissing" xml:space="preserve"><value>Mailcow n'a pas renvoyé d'ID de mot de passe d'application. Réessayez pour réconcilier cet accès.</value></data>
+  <data name="MailcowHttpsOriginRequired" xml:space="preserve"><value>Utilisez l'origine HTTPS de votre instance Mailcow, par exemple https://mail.example.com.</value></data>
+  <data name="MailcowApiKeyUnavailable" xml:space="preserve"><value>La clé API est indisponible. Vérifiez la clé de chiffrement des identifiants configurée.</value></data>
+  <data name="MailcowApiRequestFailed" xml:space="preserve"><value>La requête à l'API Mailcow a échoué (HTTP {0}). Vérifiez les autorisations de l'API et les IP sources autorisées.</value></data>
+  <data name="MailcowApiRejected" xml:space="preserve"><value>Mailcow a rejeté la requête API. Vérifiez la configuration de l'instance et les autorisations de l'API.</value></data>
+  <data name="MailcowApiNotConfirmed" xml:space="preserve"><value>Mailcow n'a pas confirmé la modification.</value></data>
+  <data name="MailcowApiUnreachable" xml:space="preserve"><value>Mailcow est injoignable ou a renvoyé une réponse invalide. Réessayez pour réconcilier l'état distant.</value></data>
+  <data name="MailcowNoInstances" xml:space="preserve"><value>Aucune instance Mailcow n'est encore connectée.</value></data>
+  <data name="MailcowEditInstance" xml:space="preserve"><value>Modifier l'instance Mailcow</value></data>
+  <data name="MailcowEditHelp" xml:space="preserve"><value>Modifier l'URL ou la clé API vérifie la connexion à Mailcow avant l'enregistrement.</value></data>
+  <data name="MailcowApiKeyUnchanged" xml:space="preserve"><value>Laisser vide pour conserver la clé actuelle</value></data>
+  <data name="MailcowApiKeyKeepHelp" xml:space="preserve"><value>La clé API enregistrée n'est jamais affichée. Saisissez une nouvelle clé uniquement pour la remplacer.</value></data>
+  <data name="MailcowDeleteInstance" xml:space="preserve"><value>Supprimer l'instance Mailcow</value></data>
+  <data name="MailcowDeleteHelp" xml:space="preserve"><value>Supprimer l'instance supprime sa clé API et ses associations de boîtes aux lettres. Les comptes d'archivage et leurs courriels archivés sont conservés.</value></data>
+  <data name="MailcowDeleteConfirm" xml:space="preserve"><value>Supprimer l'instance</value></data>
+  <data name="MailcowDeleteBlockedHelp" xml:space="preserve"><value>Des mots de passe d'application actifs existent encore dans Mailcow. Révoquez-les d'abord sur la page des boîtes aux lettres : supprimer l'instance supprimerait la clé API nécessaire à leur révocation.</value></data>
+  <data name="MailcowMailboxes" xml:space="preserve"><value>Boîtes aux lettres</value></data>
+  <data name="MailcowInstanceUpdated" xml:space="preserve"><value>Instance Mailcow mise à jour.</value></data>
+  <data name="MailcowInstanceDeleted" xml:space="preserve"><value>Instance Mailcow supprimée. Les comptes d'archivage ont été conservés.</value></data>
+  <data name="MailcowInstanceNotFound" xml:space="preserve"><value>L'instance Mailcow n'existe plus.</value></data>
+  <data name="MailcowDeleteRequiresRevoke" xml:space="preserve"><value>Révoquez tous les mots de passe d'application gérés avant de supprimer cette instance.</value></data>
+  <data name="MailcowProviderLabel" xml:space="preserve"><value>Mailcow</value></data>
+  <data name="MailcowProviderHelp" xml:space="preserve"><value>Créez et gérez des comptes via une instance Mailcow connectée.</value></data>
+  <data name="MailcowSelectInstance" xml:space="preserve"><value>Instance Mailcow</value></data>
+  <data name="MailcowManageInstances" xml:space="preserve"><value>Gérer les instances Mailcow</value></data>
+  <data name="MailcowManageMailboxes" xml:space="preserve"><value>Gérer les boîtes aux lettres</value></data>
+  <data name="MailcowNoInstancesConnected" xml:space="preserve"><value>Aucune instance Mailcow n'est encore connectée.</value></data>
+  <data name="MailcowLinkAccountHelp" xml:space="preserve"><value>Liez ce compte IMAP à une instance Mailcow. Un mot de passe d'application dédié remplacera le mot de passe actuel.</value></data>
+  <data name="MailcowLinkedToInstance" xml:space="preserve"><value>Géré par l'instance Mailcow {0}</value></data>
+  <data name="MailcowUnlinkHint" xml:space="preserve"><value>Sélectionnez un autre fournisseur et enregistrez pour révoquer le mot de passe d'application Mailcow.</value></data>
+  <data name="MailcowAccountNotFound" xml:space="preserve"><value>Le compte d'archive est introuvable.</value></data>
+  <data name="MailcowOnlyImapAccounts" xml:space="preserve"><value>Seuls les comptes IMAP peuvent être liés à Mailcow.</value></data>
+  <data name="MailcowMailboxAlreadyLinked" xml:space="preserve"><value>Cette boîte aux lettres est déjà liée à un autre compte d'archive.</value></data>
+  <data name="MailcowAccountAlreadyLinked" xml:space="preserve"><value>Ce compte est déjà lié à une autre instance Mailcow.</value></data>
+  <data name="MailcowNewImapPasswordRequired" xml:space="preserve"><value>Saisissez un nouveau mot de passe IMAP après avoir quitté Mailcow.</value></data>
+  <data name="MailcowLinkSuccess" xml:space="preserve"><value>Compte lié à l'instance Mailcow {0}.</value></data>
+  <data name="MailcowDetachSuccess" xml:space="preserve"><value>Accès Mailcow révoqué. Saisissez de nouveaux identifiants pour le fournisseur sélectionné.</value></data>
 </root>
