@@ -8,7 +8,6 @@ using MailArchiver.Services.Providers;
 using MailArchiver.Services.Security;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.HttpOverrides;
-using Microsoft.AspNetCore.Localization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using System.Threading.RateLimiting;
@@ -1127,14 +1126,12 @@ app.UseForwardedHeaders();
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
-var supportedCultures = new[] { "en", "en-GB", "de", "es", "fr", "it", "sl", "nl", "ru", "hu", "pl", "zh-CN" };
+var supportedCultures = new[] { "en", "en-GB", "de", "es", "fr", "it", "sl", "nl", "ru", "hu", "pl", "zh", "zh-Hans", "zh-CN" };
 var localizationOptions = new RequestLocalizationOptions()
     .SetDefaultCulture("en")
     .AddSupportedCultures(supportedCultures)
     .AddSupportedUICultures(supportedCultures);
 
-// Must run before the default Accept-Language provider so zh/zh-Hans are not skipped.
-localizationOptions.RequestCultureProviders.Insert(2, new SimplifiedChineseRequestCultureProvider(supportedCultures));
 app.UseRequestLocalization(localizationOptions);
 app.UseRouting();
 app.UseSession();
