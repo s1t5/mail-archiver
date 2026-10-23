@@ -1,4 +1,4 @@
-﻿@using MailArchiver.Services
+@using MailArchiver.Services
 @using MailArchiver.Models
 @inject MailArchiver.Services.IAuthenticationService AuthService
 @inject IUserService UserService
@@ -72,6 +72,7 @@
                         <option value="ru" selected="@(cultureName=="ru" ? "selected" : null)">Русский</option>
                         <option value="hu" selected="@(cultureName=="hu" ? "selected" : null)">Magyar</option>
                         <option value="pl" selected="@(cultureName=="pl" ? "selected" : null)">Polski</option>
+                        <option value="zh-CN" selected="@(cultureName.StartsWith("zh") ? "selected" : null)">简体中文</option>
                     </select>
                 </div>
             </form>

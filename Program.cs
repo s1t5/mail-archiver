@@ -1126,10 +1126,13 @@ app.UseForwardedHeaders();
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
-app.UseRequestLocalization(new RequestLocalizationOptions()
+var supportedCultures = new[] { "en", "en-GB", "de", "es", "fr", "it", "sl", "nl", "ru", "hu", "pl", "zh", "zh-Hans", "zh-CN" };
+var localizationOptions = new RequestLocalizationOptions()
     .SetDefaultCulture("en")
-    .AddSupportedCultures("en", "en-GB", "de", "es", "fr", "it", "sl", "nl", "ru", "hu", "pl")
-    .AddSupportedUICultures("en", "en-GB", "de", "es", "fr", "it", "sl", "nl", "ru", "hu", "pl"));
+    .AddSupportedCultures(supportedCultures)
+    .AddSupportedUICultures(supportedCultures);
+
+app.UseRequestLocalization(localizationOptions);
 app.UseRouting();
 app.UseSession();
 
