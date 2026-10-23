@@ -4,7 +4,7 @@
 
 ## 📋 Overview
 
-The Mail Archiver interface is available in **13 languages**. The language is a
+The Mail Archiver interface is available in **14 languages**. The language is a
 **per-browser preference** stored in a cookie — it is not tied to a user account,
 and it never affects the archived mail itself: messages are always stored exactly
 as they were received.
@@ -26,6 +26,7 @@ as they were received.
 | Polski | `pl` |
 | Português (Brasil) | `pt-BR` |
 | 日本語 | `ja` |
+| 简体中文 | `zh` |
 
 **English is the default and the fallback.** Anything a translation does not cover
 is shown in English, so a partly translated language never leaves you with an
@@ -72,12 +73,15 @@ Rules that follow from how .NET resolves resources here:
    breaks, the page just stays partly English.
 2. **A key that exists only in a translation file is dead weight.** It is never
    looked up, because lookup starts at the neutral file. (At the time of writing,
-   `DeleteAccountAllEmailsButton` and `Sign Out` exist only in some translations.)
+   `DeleteAccountAllEmailsButton` and `Sign Out` exist only in some translations,
+   and the Polish file also carries leftover designer keys: `Bitmap1`, `Icon1`,
+   `Name1`.)
 3. **`en-GB` is a partial override, by design.** It defines only 245 of the 1148
    keys and inherits the rest from the neutral English file — which is why it
    reads like English except where British wording or date formats differ.
-   German, Spanish, French, Hungarian, Italian, Japanese, Dutch, Polish,
-   Portuguese (Brazil), Russian and Slovenian are currently complete.
+   Chinese (Simplified), German, Spanish, French, Hungarian, Italian,
+   Japanese, Dutch, Polish, Portuguese (Brazil), Russian and Slovenian are
+   currently complete.
 4. **Adding a whole language** needs three things: a new
    `SharedResource.<culture>.resx`, an entry in the culture list in `Program.cs`
    (`UseRequestLocalization` → `AddSupportedCultures` / `AddSupportedUICultures`),
