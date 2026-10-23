@@ -1405,4 +1405,1039 @@
   <data name="ImportOnlyAccountDescription" xml:space="preserve">
     <value>用于导入 MBox 或 EML 文件而无需 IMAP 同步的账户</value>
   </data>
+  <data name="ImportOnlyAccountNoSync" xml:space="preserve">
+    <value>仅导入账户无法同步</value>
+  </data>
+  <data name="Running" xml:space="preserve">
+    <value>运行中</value>
+  </data>
+  <data name="Completed" xml:space="preserve">
+    <value>已完成</value>
+  </data>
+  <data name="Failed" xml:space="preserve">
+    <value>失败</value>
+  </data>
+  <data name="Cancelled" xml:space="preserve">
+    <value>已取消</value>
+  </data>
+  <data name="Queued" xml:space="preserve">
+    <value>排队中</value>
+  </data>
+  <data name="Folders" xml:space="preserve">
+    <value>文件夹</value>
+  </data>
+  <data name="New" xml:space="preserve">
+    <value>新增</value>
+  </data>
+  <data name="Deleted" xml:space="preserve">
+    <value>已删除</value>
+  </data>
+  <data name="AdminRoleDescription" xml:space="preserve">
+    <value>拥有完整系统访问权限，包括用户管理和所有邮件账户</value>
+  </data>
+  <data name="SelfManagerRoleDescription" xml:space="preserve">
+    <value>可以管理自己的账户设置并添加新账户</value>
+  </data>
+  <data name="ImportEml" xml:space="preserve">
+    <value>导入 EML</value>
+  </data>
+  <data name="ImportEmlFileTitle" xml:space="preserve">
+    <value>导入 EML 文件</value>
+  </data>
+  <data name="EmlImportInformation" xml:space="preserve">
+    <value>EML 导入信息：</value>
+  </data>
+  <data name="SupportedFormatsEml" xml:space="preserve">
+    <value>支持的格式：包含 EML 文件的 ZIP 文件</value>
+  </data>
+  <data name="EmlFolderStructureInfo" xml:space="preserve">
+    <value>ZIP 内的文件夹结构将决定邮件的目标文件夹</value>
+  </data>
+  <data name="SelectEmlFile" xml:space="preserve">
+    <value>选择 EML 文件（ZIP 格式）</value>
+  </data>
+  <data name="SupportedFormatsEmlWithMax" xml:space="preserve">
+    <value>支持的格式：包含 EML 文件的 .zip 文件。最大大小：{0}</value>
+  </data>
+  <data name="EmlImportFolderInfo" xml:space="preserve">
+    <value>文件夹导入信息</value>
+  </data>
+  <data name="EmlImportFolderInfoDetail" xml:space="preserve">
+    <value>ZIP 根目录中的 EML 文件将导入到 INBOX。子文件夹中的 EML 文件将导入到与子文件夹同名的文件夹。</value>
+  </data>
+  <data name="SelectValidEmlFile" xml:space="preserve">
+    <value>请选择有效的 EML 文件（ZIP 格式）。</value>
+  </data>
+  <data name="EmlFileTooLarge" xml:space="preserve">
+    <value>文件大小超过最大允许大小 {0}。</value>
+  </data>
+  <data name="EmlImportStarted" xml:space="preserve">
+    <value>EML 文件 '{0}' 上传成功。导入任务已开始，估计有 {1:N0} 封邮件。</value>
+  </data>
+  <data name="EmlImportError" xml:space="preserve">
+    <value>开始 EML 导入时出错</value>
+  </data>
+  <data name="InvalidEmlID" xml:space="preserve">
+    <value>无效的 EML 导入任务 ID。</value>
+  </data>
+  <data name="EmlImportJobNotFound" xml:space="preserve">
+    <value>未找到 EML 导入任务。</value>
+  </data>
+  <data name="EmlImportCancelled" xml:space="preserve">
+    <value>EML 导入任务已取消。</value>
+  </data>
+  <data name="EmlImportCancelError" xml:space="preserve">
+    <value>无法取消 EML 导入任务。该任务可能已经完成或不存在。</value>
+  </data>
+  <data name="EmlImportStatusTitle" xml:space="preserve">
+    <value>EML 导入状态</value>
+  </data>
+  <data name="Import" xml:space="preserve">
+    <value>导入</value>
+  </data>
+  <data name="Microsoft365Account" xml:space="preserve">
+    <value>Microsoft 365 账户</value>
+  </data>
+  <data name="Microsoft365AccountDescription" xml:space="preserve">
+    <value>使用 Microsoft 365 OAuth2 身份验证的账户</value>
+  </data>
+  <data name="Microsoft365Settings" xml:space="preserve">
+    <value>Microsoft 365 设置</value>
+  </data>
+  <data name="ClientId" xml:space="preserve">
+    <value>客户端 ID</value>
+  </data>
+  <data name="ClientSecret" xml:space="preserve">
+    <value>客户端密钥</value>
+  </data>
+  <data name="LeaveEmptyToKeepCurrent" xml:space="preserve">
+    <value>留空以保持当前值</value>
+  </data>
+  <data name="TwoFactorEnabledSuccess" xml:space="preserve">
+    <value>双因素身份验证已成功启用。</value>
+  </data>
+  <data name="TwoFactorEnableFail" xml:space="preserve">
+    <value>启用双因素身份验证失败。请重试。</value>
+  </data>
+  <data name="TwoFactorDisabledSuccess" xml:space="preserve">
+    <value>双因素身份验证已成功禁用。</value>
+  </data>
+  <data name="TwoFactorDisableFail" xml:space="preserve">
+    <value>禁用双因素身份验证失败。请重试。</value>
+  </data>
+  <data name="TwoFactorTokenInvalid" xml:space="preserve">
+    <value>身份验证码无效。请重试。</value>
+  </data>
+  <data name="TwoFactorSecretMissing" xml:space="preserve">
+    <value>缺少双因素密钥。请重新开始设置流程。</value>
+  </data>
+  <data name="TwoFactorNotEnabled" xml:space="preserve">
+    <value>此账户未启用双因素身份验证。</value>
+  </data>
+  <data name="TwoFactorSessionExpired" xml:space="preserve">
+    <value>您的会话已过期。请重新登录。</value>
+  </data>
+  <data name="PasswordIncorrect" xml:space="preserve">
+    <value>您输入的密码不正确。</value>
+  </data>
+  <data name="TwoFactorResetSuccess" xml:space="preserve">
+    <value>已成功重置用户 {0} 的双因素身份验证。</value>
+  </data>
+  <data name="TwoFactorResetFail" xml:space="preserve">
+    <value>重置用户 {0} 的双因素身份验证失败。</value>
+  </data>
+  <data name="TwoFactorSetup" xml:space="preserve">
+    <value>双因素设置</value>
+  </data>
+  <data name="TwoFactorSetupInstructions" xml:space="preserve">
+    <value>使用身份验证器应用扫描二维码，或手动输入密钥。</value>
+  </data>
+  <data name="ScanQRCode" xml:space="preserve">
+    <value>扫描二维码</value>
+  </data>
+  <data name="UseAuthenticatorApp" xml:space="preserve">
+    <value>使用 Google Authenticator 或 Authy 等身份验证器应用扫描二维码。</value>
+  </data>
+  <data name="OrEnterManually" xml:space="preserve">
+    <value>或在身份验证器应用中手动输入此密钥：</value>
+  </data>
+  <data name="BackupCodes" xml:space="preserve">
+    <value>备份代码</value>
+  </data>
+  <data name="BackupCodesDescription" xml:space="preserve">
+    <value>请将这些备份代码存放在安全的地方。如果您无法访问身份验证器应用，可以使用它们登录。</value>
+  </data>
+  <data name="BackupCodesWarning" xml:space="preserve">
+    <value>每个备份代码只能使用一次。使用后，该代码将失效。</value>
+  </data>
+  <data name="EnterVerificationCode" xml:space="preserve">
+    <value>输入验证码</value>
+  </data>
+  <data name="EnableTwoFactor" xml:space="preserve">
+    <value>启用双因素身份验证</value>
+  </data>
+  <data name="TwoFactorVerification" xml:space="preserve">
+    <value>双因素验证</value>
+  </data>
+  <data name="TwoFactorAuthentication" xml:space="preserve">
+    <value>双因素身份验证</value>
+  </data>
+  <data name="EnterTwoFactorCode" xml:space="preserve">
+    <value>输入身份验证器应用中的代码或备份代码</value>
+  </data>
+  <data name="VerificationCode" xml:space="preserve">
+    <value>验证码</value>
+  </data>
+  <data name="EnterCodePlaceholder" xml:space="preserve">
+    <value>输入 6 位代码或 16 位备份代码</value>
+  </data>
+  <data name="EnterTotpOrBackupCode" xml:space="preserve">
+    <value>输入身份验证器应用中的 6 位 TOTP 代码或 16 位备份代码</value>
+  </data>
+  <data name="Verify" xml:space="preserve">
+    <value>验证</value>
+  </data>
+  <data name="DisableTwoFactor" xml:space="preserve">
+    <value>禁用双因素身份验证</value>
+  </data>
+  <data name="DisableTwoFactorConfirmation" xml:space="preserve">
+    <value>您确定要禁用双因素身份验证吗？这会降低您账户的安全性。</value>
+  </data>
+  <data name="DisableTwoFactorDescription" xml:space="preserve">
+    <value>要禁用双因素身份验证，请在下方输入您的密码。</value>
+  </data>
+  <data name="EnterPassword" xml:space="preserve">
+    <value>输入密码</value>
+  </data>
+  <data name="ScanQRCodeDescription" xml:space="preserve">
+    <value>使用身份验证器应用扫描此二维码以设置双因素身份验证。</value>
+  </data>
+  <data name="ManualEntryDescription" xml:space="preserve">
+    <value>如果您无法扫描二维码，请在身份验证器应用中手动输入此密钥：</value>
+  </data>
+  <data name="VerifyTwoFactor" xml:space="preserve">
+    <value>验证双因素身份验证</value>
+  </data>
+  <data name="EnterCodeDescription" xml:space="preserve">
+    <value>输入身份验证器应用中的 6 位代码以验证并启用双因素身份验证。</value>
+  </data>
+  <data name="DownloadBackupCodes" xml:space="preserve">
+    <value>下载备份代码</value>
+  </data>
+  <data name="BackupCodesFileHeader" xml:space="preserve">
+    <value>邮件归档 - 双因素身份验证备份代码。请将这些备份代码存放在安全的地方。如果您无法访问身份验证器应用，可以使用它们登录。每个备份代码只能使用一次。使用后，该代码将失效。</value>
+  </data>
+  <data name="BackupCodesFileFooter" xml:space="preserve">
+    <value>重要：请妥善保管这些代码，不要与任何人分享。</value>
+  </data>
+  <data name="BackupCodesOneTimeOnly" xml:space="preserve">
+    <value>这些备份代码仅供一次性使用。使用后，该代码将失效。</value>
+  </data>
+  <data name="ContinueToDashboard" xml:space="preserve">
+    <value>继续前往仪表盘</value>
+  </data>
+  <data name="Code" xml:space="preserve">
+    <value>代码</value>
+  </data>
+  <data name="EnterCodeFromApp" xml:space="preserve">
+    <value>输入身份验证器应用中的代码</value>
+  </data>
+  <data name="ManualEntry" xml:space="preserve">
+    <value>手动输入</value>
+  </data>
+  <data name="EnterCode" xml:space="preserve">
+    <value>输入代码</value>
+  </data>
+  <data name="DeleteEmail" xml:space="preserve">
+    <value>删除邮件</value>
+  </data>
+  <data name="DeleteSelected" xml:space="preserve">
+    <value>删除所选</value>
+  </data>
+  <data name="ConfirmDeletion" xml:space="preserve">
+    <value>确认删除</value>
+  </data>
+  <data name="DeleteEmailConfirm" xml:space="preserve">
+    <value>您确定要永久删除此邮件吗？此操作无法撤销，并将记录到审计日志中。</value>
+  </data>
+  <data name="DeleteSelectedEmailsConfirm" xml:space="preserve">
+    <value>您确定要永久删除所选的 {0} 封邮件吗？此操作无法撤销，每次删除都将记录到审计日志中。</value>
+  </data>
+  <data name="DeleteButton" xml:space="preserve">
+    <value>删除</value>
+  </data>
+  <data name="EmailDeleted" xml:space="preserve">
+    <value>邮件已成功删除</value>
+  </data>
+  <data name="EmailsDeleted" xml:space="preserve">
+    <value>已成功删除 {0} 封邮件</value>
+  </data>
+  <data name="RateLimitExceeded" xml:space="preserve">
+    <value>超出速率限制。请稍后重试。</value>
+  </data>
+  <data name="LoginBlocked" xml:space="preserve">
+    <value>登录暂时被阻止</value>
+  </data>
+  <data name="LoginBlockedTitle" xml:space="preserve">
+    <value>访问被阻止</value>
+  </data>
+  <data name="LoginBlockedMessage" xml:space="preserve">
+    <value>检测到过多失败的登录尝试</value>
+  </data>
+  <data name="LoginBlockedInfo" xml:space="preserve">
+    <value>出于安全原因，由于多次身份验证失败，来自您 IP 地址的登录尝试已被暂时阻止。请等待 10 分钟后重试。</value>
+  </data>
+  <data name="BackToLogin" xml:space="preserve">
+    <value>返回登录</value>
+  </data>
+  <data name="PasswordMinLength" xml:space="preserve">
+    <value>密码长度必须至少为 10 个字符</value>
+  </data>
+  <data name="PasswordRequiresUppercase" xml:space="preserve">
+    <value>密码必须包含至少一个大写字母</value>
+  </data>
+  <data name="PasswordRequiresLowercase" xml:space="preserve">
+    <value>密码必须包含至少一个小写字母</value>
+  </data>
+  <data name="PasswordRequiresNumber" xml:space="preserve">
+    <value>密码必须包含至少一个数字</value>
+  </data>
+  <data name="PasswordRequiresSpecialChar" xml:space="preserve">
+    <value>密码必须包含至少一个特殊字符</value>
+  </data>
+  <data name="PasswordMustBeDifferent" xml:space="preserve">
+    <value>新密码必须与当前密码不同</value>
+  </data>
+  <data name="PasswordRequirements" xml:space="preserve">
+    <value>密码要求</value>
+  </data>
+  <data name="PasswordChangeRequired" xml:space="preserve">
+    <value>需要修改密码</value>
+  </data>
+  <data name="PasswordChangeRequiredMessage" xml:space="preserve">
+    <value>出于安全原因，您必须先修改密码才能继续。这是因为您正在新设置的系统上使用默认系统凭据。</value>
+  </data>
+  <data name="PasswordChangeRequiredInfo" xml:space="preserve">
+    <value>您的新密码必须与当前密码不同，并满足所有安全要求。</value>
+  </data>
+  <data name="CannotLeavePasswordChange" xml:space="preserve">
+    <value>您必须先修改密码才能继续使用系统。</value>
+  </data>
+  <data name="TwoFactorEnabled" xml:space="preserve">
+    <value>此用户当前已启用双因素身份验证。</value>
+  </data>
+  <data name="ConfirmResetTwoFactor" xml:space="preserve">
+    <value>您确定要重置此用户的双因素身份验证吗？该用户将需要重新设置。</value>
+  </data>
+  <data name="ResetTwoFactor" xml:space="preserve">
+    <value>重置双因素身份验证</value>
+  </data>
+  <data name="TooManyAttempts" xml:space="preserve">
+    <value>尝试次数过多。请等待 {0} 秒后重试。</value>
+  </data>
+  <data name="RateLimitTwoFactorTitle" xml:space="preserve">
+    <value>尝试次数过多</value>
+  </data>
+  <data name="RateLimitTwoFactorMessage" xml:space="preserve">
+    <value>您进行双因素验证的尝试次数过多。请稍后重试。</value>
+  </data>
+  <data name="ExportAccount" xml:space="preserve">
+    <value>导出账户</value>
+  </data>
+  <data name="ExportAccountTitle" xml:space="preserve">
+    <value>导出邮件账户</value>
+  </data>
+  <data name="ExportAccountDescription" xml:space="preserve">
+    <value>将此账户的所有邮件导出为可下载的文件</value>
+  </data>
+  <data name="ExportAccountInfo" xml:space="preserve">
+    <value>账户导出信息</value>
+  </data>
+  <data name="ExportAccountInfoDetail" xml:space="preserve">
+    <value>导出此邮件账户的所有邮件。根据所选格式，您将收到一个包含所有邮件的 ZIP 文件。</value>
+  </data>
+  <data name="ExportFormatLabel" xml:space="preserve">
+    <value>导出格式</value>
+  </data>
+  <data name="ExportFormatEML" xml:space="preserve">
+    <value>EML（单独的邮件文件）</value>
+  </data>
+  <data name="ExportFormatMBox" xml:space="preserve">
+    <value>MBox（邮箱格式）</value>
+  </data>
+  <data name="ExportFormatEMLDescription" xml:space="preserve">
+    <value>创建一个 ZIP 文件，其中包含存放单独 .eml 文件的各个文件夹</value>
+  </data>
+  <data name="ExportFormatMBoxDescription" xml:space="preserve">
+    <value>创建一个包含 .mbox 文件的 ZIP 文件，其中包含所有邮件</value>
+  </data>
+  <data name="StartExport" xml:space="preserve">
+    <value>开始导出</value>
+  </data>
+  <data name="ExportJobStarted" xml:space="preserve">
+    <value>账户 '{0}' 的导出任务已开始。您将被重定向到状态页面。</value>
+  </data>
+  <data name="ExportStatusTitle" xml:space="preserve">
+    <value>导出状态</value>
+  </data>
+  <data name="ExportJobInformation" xml:space="preserve">
+    <value>导出任务信息</value>
+  </data>
+  <data name="ExportJobStatus" xml:space="preserve">
+    <value>导出任务状态</value>
+  </data>
+  <data name="ExportProgress" xml:space="preserve">
+    <value>导出进度</value>
+  </data>
+  <data name="EmailsExported" xml:space="preserve">
+    <value>已导出邮件</value>
+  </data>
+  <data name="ExportCompleted" xml:space="preserve">
+    <value>导出完成</value>
+  </data>
+  <data name="ExportFailed" xml:space="preserve">
+    <value>导出失败</value>
+  </data>
+  <data name="ExportCancelled" xml:space="preserve">
+    <value>导出已取消</value>
+  </data>
+  <data name="ExportInProgress" xml:space="preserve">
+    <value>正在导出</value>
+  </data>
+  <data name="ExportQueued" xml:space="preserve">
+    <value>导出已排队</value>
+  </data>
+  <data name="DownloadExport" xml:space="preserve">
+    <value>下载导出文件</value>
+  </data>
+  <data name="DownloadReady" xml:space="preserve">
+    <value>可下载</value>
+  </data>
+  <data name="DownloadStarting" xml:space="preserve">
+    <value>正在开始下载...</value>
+  </data>
+  <data name="CancelExport" xml:space="preserve">
+    <value>取消导出</value>
+  </data>
+  <data name="ExportJobCancelled" xml:space="preserve">
+    <value>导出任务已取消。</value>
+  </data>
+  <data name="ExportJobCancelError" xml:space="preserve">
+    <value>无法取消导出任务。该任务可能已经完成或不存在。</value>
+  </data>
+  <data name="ExportNotFound" xml:space="preserve">
+    <value>未找到导出任务。</value>
+  </data>
+  <data name="ExportDownloadNotReady" xml:space="preserve">
+    <value>导出文件尚不可下载。请等待导出完成。</value>
+  </data>
+  <data name="ExportFileNotFound" xml:space="preserve">
+    <value>未找到导出文件。该文件可能已被清理，或导出失败。</value>
+  </data>
+  <data name="ExportStarted" xml:space="preserve">
+    <value>账户 '{0}' 的导出任务已开始。您将被重定向到状态页面。</value>
+  </data>
+  <data name="ExportError" xml:space="preserve">
+    <value>导出过程中出错</value>
+  </data>
+  <data name="InvalidExportID" xml:space="preserve">
+    <value>无效的导出任务 ID。</value>
+  </data>
+  <data name="ExportJobNotFound" xml:space="preserve">
+    <value>未找到导出任务。</value>
+  </data>
+  <data name="ExportCancelError" xml:space="preserve">
+    <value>无法取消导出任务。该任务可能已经完成或不存在。</value>
+  </data>
+  <data name="IncomingEmails" xml:space="preserve">
+    <value>接收的邮件</value>
+  </data>
+  <data name="OutgoingEmails" xml:space="preserve">
+    <value>发出的邮件</value>
+  </data>
+  <data name="AccountExportJobs" xml:space="preserve">
+    <value>账户导出任务</value>
+  </data>
+  <data name="FileCreated" xml:space="preserve">
+    <value>文件创建时间</value>
+  </data>
+  <data name="FileSize" xml:space="preserve">
+    <value>文件大小</value>
+  </data>
+  <data name="BackToExport" xml:space="preserve">
+    <value>返回导出</value>
+  </data>
+  <data name="RefreshStatus" xml:space="preserve">
+    <value>刷新状态</value>
+  </data>
+  <data name="AutoRefresh" xml:space="preserve">
+    <value>每 3 秒自动刷新</value>
+  </data>
+  <data name="NoEmailsToExport" xml:space="preserve">
+    <value>此账户中没有可导出的邮件。</value>
+  </data>
+  <data name="ExportInfo" xml:space="preserve">
+    <value>导出信息</value>
+  </data>
+  <data name="ExportInfoText" xml:space="preserve">
+    <value>此导出将创建一个可下载的 ZIP 文件，其中包含此账户的所有邮件。您选择的格式决定了邮件的组织方式。</value>
+  </data>
+  <data name="EMLFormat" xml:space="preserve">
+    <value>EML 格式</value>
+  </data>
+  <data name="MBoxFormat" xml:space="preserve">
+    <value>MBox 格式</value>
+  </data>
+  <data name="EMLFormatInfo" xml:space="preserve">
+    <value>EML 格式信息</value>
+  </data>
+  <data name="EMLFormatDescription" xml:space="preserve">
+    <value>创建按文件夹组织的单独 .eml 文件。</value>
+  </data>
+  <data name="MBoxFormatInfo" xml:space="preserve">
+    <value>MBox 格式信息</value>
+  </data>
+  <data name="MBoxFormatDescription" xml:space="preserve">
+    <value>创建传统的邮箱文件，每个文件夹的所有邮件存放在一个文件中。</value>
+  </data>
+  <data name="ExportWarning" xml:space="preserve">
+    <value>重要导出信息</value>
+  </data>
+  <data name="ExportWarningTime" xml:space="preserve">
+    <value>大型账户可能需要几分钟才能导出，并将在后台运行</value>
+  </data>
+  <data name="ExportWarningSize" xml:space="preserve">
+    <value>生成的 ZIP 文件可能相当大，具体取决于邮件数量和附件</value>
+  </data>
+  <data name="ExportWarningCleanup" xml:space="preserve">
+    <value>导出文件将在下载后或 7 天后自动删除</value>
+  </data>
+  <data name="ConfirmExport" xml:space="preserve">
+    <value>您确定要开始导出吗？这将处理此账户中的所有邮件。</value>
+  </data>
+  <data name="BackToAccount" xml:space="preserve">
+    <value>返回账户</value>
+  </data>
+  <data name="CurrentEmail" xml:space="preserve">
+    <value>当前邮件</value>
+  </data>
+  <data name="ProcessedEmails" xml:space="preserve">
+    <value>已处理邮件</value>
+  </data>
+  <data name="ExportStatus" xml:space="preserve">
+    <value>导出状态</value>
+  </data>
+  <data name="Downloaded" xml:space="preserve">
+    <value>已下载</value>
+  </data>
+  <data name="Error" xml:space="preserve">
+    <value>错误</value>
+  </data>
+  <data name="Refresh" xml:space="preserve">
+    <value>刷新</value>
+  </data>
+  <data name="ExportFormatSelection" xml:space="preserve">
+    <value>导出格式选择</value>
+  </data>
+  <data name="ExportFormatSelectionInfo" xml:space="preserve">
+    <value>选择邮件导出的格式。每种格式根据您的需求有不同的优势。</value>
+  </data>
+  <data name="ExportSelectedInfo" xml:space="preserve">
+    <value>导出将在后台运行，完成后您可以从任务页面下载结果。</value>
+  </data>
+  <data name="ExportSelected" xml:space="preserve">
+    <value>导出所选</value>
+  </data>
+  <data name="SelectedEmailsExportStatusTitle" xml:space="preserve">
+    <value>所选邮件导出状态</value>
+  </data>
+  <data name="SelectedEmailsExportJobs" xml:space="preserve">
+    <value>所选邮件导出任务</value>
+  </data>
+  <data name="SelectedEmailsExport" xml:space="preserve">
+    <value>所选邮件导出</value>
+  </data>
+  <data name="ExportSelectedEmails" xml:space="preserve">
+    <value>导出所选邮件</value>
+  </data>
+  <data name="SelectedEmailsExportComplete" xml:space="preserve">
+    <value>所选邮件导出成功完成。已导出 {0} 封邮件。</value>
+  </data>
+  <data name="SelectedEmailsExportFailed" xml:space="preserve">
+    <value>所选邮件导出失败。请查看日志了解更多详情。</value>
+  </data>
+  <data name="SelectedEmailsExportCancelled" xml:space="preserve">
+    <value>所选邮件导出已取消。</value>
+  </data>
+  <data name="EMLImportJobs" xml:space="preserve">
+    <value>EML 导入任务</value>
+  </data>
+  <data name="EmailHasNoAttachments" xml:space="preserve">
+    <value>此邮件没有附件。</value>
+  </data>
+  <data name="NoAccessToEmail" xml:space="preserve">
+    <value>您无权访问此邮件。</value>
+  </data>
+  <data name="EmailNotFound" xml:space="preserve">
+    <value>未找到该邮件。</value>
+  </data>
+  <data name="EmailCopiedSuccessfully" xml:space="preserve">
+    <value>邮件已成功复制到指定文件夹。</value>
+  </data>
+  <data name="EmailCopyFailed" xml:space="preserve">
+    <value>无法将邮件复制到指定文件夹。请查看日志。</value>
+  </data>
+  <data name="NoEmailsSelectedForBatch" xml:space="preserve">
+    <value>未选择要批量操作的邮件。</value>
+  </data>
+  <data name="NoEmailsCopiedCheckLogs" xml:space="preserve">
+    <value>所选邮件均无法复制。请查看日志了解详情。</value>
+  </data>
+  <data name="MailAccountNotFound" xml:space="preserve">
+    <value>未找到邮件账户。</value>
+  </data>
+  <data name="NoEmailsFoundForAccount" xml:space="preserve">
+    <value>未找到此账户要复制的邮件。</value>
+  </data>
+  <data name="TooManyEmailsToProcess" xml:space="preserve">
+    <value>要处理的邮件过多。请尝试选择更少的邮件。</value>
+  </data>
+  <data name="TooManyEmailsSelectFewer" xml:space="preserve">
+    <value>选择的邮件过多。请选择更少的邮件后重试。</value>
+  </data>
+  <data name="NoEnabledEmailAccounts" xml:space="preserve">
+    <value>未找到已启用的邮件账户。</value>
+  </data>
+  <data name="AsyncBatchRestoreNotAvailable" xml:space="preserve">
+    <value>异步批量恢复不可用。</value>
+  </data>
+  <data name="BatchRestoreServiceNotAvailable" xml:space="preserve">
+    <value>批量恢复服务不可用。</value>
+  </data>
+  <data name="InvalidJobID" xml:space="preserve">
+    <value>无效的任务 ID。</value>
+  </data>
+  <data name="BatchRestoreJobNotFound" xml:space="preserve">
+    <value>未找到批量恢复任务。</value>
+  </data>
+  <data name="BatchRestoreJobCancelled" xml:space="preserve">
+    <value>批量恢复任务已取消。</value>
+  </data>
+  <data name="CouldNotCancelBatchRestoreJob" xml:space="preserve">
+    <value>无法取消批量恢复任务。</value>
+  </data>
+  <data name="SyncJobServiceNotAvailable" xml:space="preserve">
+    <value>同步任务服务不可用。</value>
+  </data>
+  <data name="SyncJobCancelled" xml:space="preserve">
+    <value>同步任务已取消。</value>
+  </data>
+  <data name="CouldNotCancelSyncJob" xml:space="preserve">
+    <value>无法取消同步任务。</value>
+  </data>
+  <data name="SelectedEmailsExportServiceNotAvailable" xml:space="preserve">
+    <value>所选邮件导出服务不可用。</value>
+  </data>
+  <data name="SelectedEmailsExportJobNotFound" xml:space="preserve">
+    <value>未找到所选邮件导出任务。</value>
+  </data>
+  <data name="SelectedEmailsExportJobCancelled" xml:space="preserve">
+    <value>所选邮件导出任务已取消。</value>
+  </data>
+  <data name="CouldNotCancelSelectedEmailsExportJob" xml:space="preserve">
+    <value>无法取消所选邮件导出任务。</value>
+  </data>
+  <data name="SelectedEmailsExportNotCompleted" xml:space="preserve">
+    <value>所选邮件导出任务尚未完成或已被下载。</value>
+  </data>
+  <data name="ErrorDownloadingExportFile" xml:space="preserve">
+    <value>下载导出文件时出错。</value>
+  </data>
+  <data name="ExportParametersInvalid" xml:space="preserve">
+    <value>导出参数无效。请重试。</value>
+  </data>
+  <data name="NoAccessToSelectedAccount" xml:space="preserve">
+    <value>您无权访问所选账户。</value>
+  </data>
+  <data name="NoEmailsSelectedForExport" xml:space="preserve">
+    <value>未选择要导出的邮件。</value>
+  </data>
+  <data name="SelectedEmailsExportNotAvailable" xml:space="preserve">
+    <value>所选邮件导出不可用。</value>
+  </data>
+  <data name="NoAccessToSelectedEmails" xml:space="preserve">
+    <value>您无权访问任何所选邮件。</value>
+  </data>
+  <data name="ExportFailedWithError" xml:space="preserve">
+    <value>导出失败：{0}</value>
+  </data>
+  <data name="ErrorOccurredWithMessage" xml:space="preserve">
+    <value>发生错误：{0}</value>
+  </data>
+  <data name="TooManyEmailsSelectedWithLimits" xml:space="preserve">
+    <value>选择的邮件过多（{0:N0}）。每次操作最多允许 {1:N0} 封邮件。</value>
+  </data>
+  <data name="TooManyEmailsForDirectProcessing" xml:space="preserve">
+    <value>选择的邮件过多，无法直接处理（{0:N0}）。直接处理的最大数量为 {1:N0} 封邮件。</value>
+  </data>
+  <data name="AllEmailsCopiedSuccessfully" xml:space="preserve">
+    <value>全部 {0} 封邮件已成功复制到指定文件夹。</value>
+  </data>
+  <data name="EmailsCopiedWithSomeFailures" xml:space="preserve">
+    <value>已复制 {0} 封邮件，但有 {1} 封无法复制。请查看日志了解详情。</value>
+  </data>
+  <data name="TooManyEmailsInAccountWithLimits" xml:space="preserve">
+    <value>此账户中的邮件过多（{0:N0}）。每次操作最多允许 {1:N0} 封邮件。</value>
+  </data>
+  <data name="BatchRestoreJobStartedWithDetails" xml:space="preserve">
+    <value>批量恢复任务已启动，共 {0:N0} 封邮件。任务 ID：{1}</value>
+  </data>
+  <data name="FailedToStartBatchRestore" xml:space="preserve">
+    <value>启动批量恢复失败：{0}</value>
+  </data>
+  <data name="ExportJobStartedWithDetails" xml:space="preserve">
+    <value>导出任务已启动，共 {0:N0} 封邮件，格式为 {1}。任务 ID：{2}</value>
+  </data>
+  <data name="FailedToStartExport" xml:space="preserve">
+    <value>启动导出失败：{0}</value>
+  </data>
+  <data name="ExportCompletedTitle" xml:space="preserve">
+    <value>导出完成！</value>
+  </data>
+  <data name="ExportCompletedSummary" xml:space="preserve">
+    <value>已成功导出 {0} 封所选邮件。</value>
+  </data>
+  <data name="SelectedOf" xml:space="preserve">
+    <value>已选择 {0}/{1}</value>
+  </data>
+  <data name="MaxSelectionsReached" xml:space="preserve">
+    <value>已达到最大选择数量（{0}）</value>
+  </data>
+  <data name="SelectAllOnPage" xml:space="preserve">
+    <value>选择本页全部</value>
+  </data>
+  <data name="DeselectAllOnPage" xml:space="preserve">
+    <value>取消选择本页全部</value>
+  </data>
+  <data name="Log" xml:space="preserve">
+    <value>日志</value>
+  </data>
+  <data name="AccessLog" xml:space="preserve">
+    <value>访问日志</value>
+  </data>
+  <data name="AccessLogEntries" xml:space="preserve">
+    <value>访问日志条目</value>
+  </data>
+  <data name="Timestamp" xml:space="preserve">
+    <value>时间戳</value>
+  </data>
+  <data name="Type" xml:space="preserve">
+    <value>类型</value>
+  </data>
+  <data name="EmailSubject" xml:space="preserve">
+    <value>邮件主题</value>
+  </data>
+  <data name="SearchParameters" xml:space="preserve">
+    <value>搜索参数</value>
+  </data>
+  <data name="Login" xml:space="preserve">
+    <value>登录</value>
+  </data>
+  <data name="Logout" xml:space="preserve">
+    <value>登出</value>
+  </data>
+  <data name="Open" xml:space="preserve">
+    <value>打开</value>
+  </data>
+  <data name="Restore" xml:space="preserve">
+    <value>恢复</value>
+  </data>
+  <data name="FromDate" xml:space="preserve">
+    <value>开始日期</value>
+  </data>
+  <data name="ToDate" xml:space="preserve">
+    <value>结束日期</value>
+  </data>
+  <data name="Filter" xml:space="preserve">
+    <value>筛选</value>
+  </data>
+  <data name="Info" xml:space="preserve">
+    <value>信息</value>
+  </data>
+  <data name="NoInfo" xml:space="preserve">
+    <value>无信息</value>
+  </data>
+  <data name="NoAccessLogEntries" xml:space="preserve">
+    <value>未找到访问日志条目</value>
+  </data>
+  <data name="EmailNotFoundTitle" xml:space="preserve">
+    <value>未找到邮件</value>
+  </data>
+  <data name="EmailNotFoundMessage" xml:space="preserve">
+    <value>您要查找的邮件不存在或已被移除。</value>
+  </data>
+  <data name="BackToEmails" xml:space="preserve">
+    <value>返回邮件归档</value>
+  </data>
+  <data name="EmailNotFoundHelp" xml:space="preserve">
+    <value>如果您认为这是一个错误，请联系您的系统管理员。</value>
+  </data>
+  <data name="Reply" xml:space="preserve">
+    <value>回复</value>
+  </data>
+  <data name="LocalRetentionDays" xml:space="preserve">
+    <value>本地保留天数</value>
+  </data>
+  <data name="LocalRetentionRequiresServerRetention" xml:space="preserve">
+    <value>只有在同时配置了服务器保留（“删除天数”）时，才能设置本地保留。</value>
+  </data>
+  <data name="LocalRetentionMustBeGreaterOrEqual" xml:space="preserve">
+    <value>本地保留天数必须大于或等于删除天数，以确保邮件在从邮件服务器删除之前不会从本地归档中删除。</value>
+  </data>
+  <data name="LocalRetentionInfo" xml:space="preserve">
+    <value>邮件从本地归档中删除前的天数。留空可无限期保留邮件。如果两者都设置，则必须大于或等于“删除天数”。</value>
+  </data>
+  <data name="LoadAvailableFolders" xml:space="preserve">
+    <value>加载可用文件夹</value>
+  </data>
+  <data name="CouldNotLoadFolders" xml:space="preserve">
+    <value>无法从服务器加载文件夹</value>
+  </data>
+  <data name="NoFoldersFound" xml:space="preserve">
+    <value>服务器上未找到文件夹</value>
+  </data>
+  <data name="ComplianceModeStarted" xml:space="preserve">
+    <value>合规模式已启动</value>
+  </data>
+  <data name="ComplianceModeActive" xml:space="preserve">
+    <value>合规模式已启用</value>
+  </data>
+  <data name="ComplianceModeDisabled" xml:space="preserve">
+    <value>合规模式已禁用</value>
+  </data>
+  <data name="EmailDeletionPrevented" xml:space="preserve">
+    <value>邮件删除已被阻止</value>
+  </data>
+  <data name="EmailDeletionAllowed" xml:space="preserve">
+    <value>邮件删除已允许</value>
+  </data>
+  <data name="HashCreated" xml:space="preserve">
+    <value>哈希创建时间</value>
+  </data>
+  <data name="IntegrityCheck" xml:space="preserve">
+    <value>完整性检查</value>
+  </data>
+  <data name="IntegrityViolation" xml:space="preserve">
+    <value>完整性违规</value>
+  </data>
+  <data name="DatabaseMaintenance" xml:space="preserve">
+    <value>数据库维护</value>
+  </data>
+  <data name="ComplianceStatus" xml:space="preserve">
+    <value>合规状态</value>
+  </data>
+  <data name="ApplicationStarted" xml:space="preserve">
+    <value>应用程序已启动</value>
+  </data>
+  <data name="ComplianceInformation" xml:space="preserve">
+    <value>合规信息</value>
+  </data>
+  <data name="ContentHash" xml:space="preserve">
+    <value>内容哈希（SHA-256）</value>
+  </data>
+  <data name="EmailLocked" xml:space="preserve">
+    <value>已锁定</value>
+  </data>
+  <data name="EmailLockedDescription" xml:space="preserve">
+    <value>此邮件已锁定，其内容完整性受加密哈希保护</value>
+  </data>
+  <data name="StoredHash" xml:space="preserve">
+    <value>存储的哈希</value>
+  </data>
+  <data name="CurrentHash" xml:space="preserve">
+    <value>当前哈希</value>
+  </data>
+  <data name="IntegrityValid" xml:space="preserve">
+    <value>完整性有效</value>
+  </data>
+  <data name="IntegrityValidDescription" xml:space="preserve">
+    <value>邮件内容未被修改。当前哈希与存储的哈希一致。</value>
+  </data>
+  <data name="IntegrityViolationDescription" xml:space="preserve">
+    <value>警告：当前哈希与存储的哈希不一致。邮件内容可能已被篡改。</value>
+  </data>
+  <data name="Mismatch" xml:space="preserve">
+    <value>不匹配</value>
+  </data>
+  <data name="HasAttachments" xml:space="preserve">
+    <value>有附件</value>
+  </data>
+  <data name="LockedEmail" xml:space="preserve">
+    <value>已锁定的邮件 - 内容为合规而受保护</value>
+  </data>
+  <data name="ExistingM365AccountsFound" xml:space="preserve">
+    <value>找到现有的 M365 账户</value>
+  </data>
+  <data name="UseExistingCredentialsPrompt" xml:space="preserve">
+    <value>此域中已存在其他 Microsoft 365 账户。您可以复制其凭据以节省时间。</value>
+  </data>
+  <data name="SelectAccount" xml:space="preserve">
+    <value>-- 选择账户 --</value>
+  </data>
+  <data name="CopyCredentials" xml:space="preserve">
+    <value>复制凭据</value>
+  </data>
+  <data name="CredentialsCopied" xml:space="preserve">
+    <value>凭据复制成功！</value>
+  </data>
+  <data name="ErrorCopyingCredentials" xml:space="preserve">
+    <value>复制凭据时出错</value>
+  </data>
+  <data name="PleaseSelectAccount" xml:space="preserve">
+    <value>请先选择一个账户</value>
+  </data>
+  <data name="CredentialChangeDetected" xml:space="preserve">
+    <value>检测到凭据更改</value>
+  </data>
+  <data name="ApplyToAllDomainAccountsPrompt" xml:space="preserve">
+    <value>您已修改 Microsoft 365 凭据。是否要将这些更改应用到同一域中的所有其他账户？</value>
+  </data>
+  <data name="AffectedAccounts" xml:space="preserve">
+    <value>受影响的账户</value>
+  </data>
+  <data name="ApplyToAllAccounts" xml:space="preserve">
+    <value>应用到此域中的所有账户</value>
+  </data>
+  <data name="ErrorSavingChanges" xml:space="preserve">
+    <value>保存更改时出错</value>
+  </data>
+  <data name="TenantId" xml:space="preserve">
+    <value>租户 ID</value>
+  </data>
+  <data name="Provider" xml:space="preserve">
+    <value>提供商</value>
+  </data>
+  <data name="SignInWithOAuth" xml:space="preserve">
+    <value>使用 OAuth 登录</value>
+  </data>
+  <data name="OidcUserCannotHavePassword" xml:space="preserve">
+    <value>OIDC 用户不能设置密码。他们通过 OIDC 提供商进行身份验证。</value>
+  </data>
+  <data name="OidcUserCannotChangeUsername" xml:space="preserve">
+    <value>OIDC 用户的用户名无法更改，因为它们与 OIDC 提供商身份关联。</value>
+  </data>
+  <data name="OidcUserCannotChangePassword" xml:space="preserve">
+    <value>OIDC 用户无法修改密码。密码管理由您的 OIDC 提供商处理。</value>
+  </data>
+  <data name="OidcAccountAlreadyExists" xml:space="preserve">
+    <value>使用此邮箱的账户已存在。请联系管理员删除或修改现有的本地账户，然后再使用 OIDC 身份验证。</value>
+  </data>
+  <data name="OidcAccountPendingApproval" xml:space="preserve">
+    <value>您的账户正在等待管理员批准。请联系管理员。</value>
+  </data>
+  <data name="OidcAccountDeactivated" xml:space="preserve">
+    <value>您的账户已被停用。请联系管理员。</value>
+  </data>
+  <data name="OidcInvalidEmailFormat" xml:space="preserve">
+    <value>从身份提供商收到的邮箱格式无效</value>
+  </data>
+  <data name="OidcClaimLengthExceeded" xml:space="preserve">
+    <value>声明值超过最大允许长度</value>
+  </data>
+  <data name="AccountDeletionQueued" xml:space="preserve">
+    <value>账户 '{0}' 的删除已排队，将在后台处理。</value>
+  </data>
+  <data name="InvalidDeletionJobID" xml:space="preserve">
+    <value>无效的删除任务 ID。</value>
+  </data>
+  <data name="DeletionJobNotFound" xml:space="preserve">
+    <value>未找到删除任务。</value>
+  </data>
+  <data name="DeletionCancelled" xml:space="preserve">
+    <value>删除任务已取消。</value>
+  </data>
+  <data name="DeletionCancelError" xml:space="preserve">
+    <value>无法取消删除任务。该任务可能已经完成或不存在。</value>
+  </data>
+  <data name="DeletionStatus" xml:space="preserve">
+    <value>删除状态</value>
+  </data>
+  <data name="AccountDeletionStatus" xml:space="preserve">
+    <value>账户删除状态</value>
+  </data>
+  <data name="CurrentPhase" xml:space="preserve">
+    <value>当前阶段</value>
+  </data>
+  <data name="DeletedEmails" xml:space="preserve">
+    <value>已删除邮件</value>
+  </data>
+  <data name="TotalAttachments" xml:space="preserve">
+    <value>附件总数</value>
+  </data>
+  <data name="DeletedAttachments" xml:space="preserve">
+    <value>已删除附件</value>
+  </data>
+  <data name="DeletionProgress" xml:space="preserve">
+    <value>删除进度</value>
+  </data>
+  <data name="EmailDeletionProgress" xml:space="preserve">
+    <value>邮件删除进度</value>
+  </data>
+  <data name="AttachmentDeletionProgress" xml:space="preserve">
+    <value>附件删除进度</value>
+  </data>
+  <data name="DeletionCompletedSuccessfully" xml:space="preserve">
+    <value>删除已成功完成</value>
+  </data>
+  <data name="AccountDeleted" xml:space="preserve">
+    <value>账户 '{0}' 及其所有归档邮件和附件已成功删除。</value>
+  </data>
+  <data name="CancelDeletion" xml:space="preserve">
+    <value>取消删除</value>
+  </data>
+  <data name="CancelDeletionConfirm" xml:space="preserve">
+    <value>您确定要取消此删除任务吗？如果删除已经开始，部分数据可能已被移除。</value>
+  </data>
+  <data name="EmailDeletionStatus" xml:space="preserve">
+    <value>邮件删除状态</value>
+  </data>
+  <data name="EmailProgress" xml:space="preserve">
+    <value>邮件进度</value>
+  </data>
+  <data name="AttachmentProgress" xml:space="preserve">
+    <value>附件进度</value>
+  </data>
+  <data name="ConfirmCancelEmailDeletion" xml:space="preserve">
+    <value>您确定要取消此邮件删除任务吗？</value>
+  </data>
+  <data name="BackToJobs" xml:space="preserve">
+    <value>返回任务</value>
+  </data>
+  <data name="JobDetails" xml:space="preserve">
+    <value>任务详情</value>
+  </data>
+  <data name="EmailDeletionJobs" xml:space="preserve">
+    <value>邮件删除任务</value>
+  </data>
+  <data name="ShowHtml" xml:space="preserve">
+    <value>显示 HTML</value>
+  </data>
+  <data name="ShowPlainText" xml:space="preserve">
+    <value>显示纯文本</value>
+  </data>
+  <data name="SwitchToHtml" xml:space="preserve">
+    <value>切换到 HTML 视图</value>
+  </data>
+  <data name="SwitchToPlainText" xml:space="preserve">
+    <value>切换到纯文本视图</value>
+  </data>
+  <data name="EnterFolderName" xml:space="preserve">
+    <value>输入文件夹名称</value>
+  </data>
+  <data name="EnterFolderNameOrSelect" xml:space="preserve">
+    <value>输入新的文件夹名称或选择一个现有文件夹。导入期间将自动创建该文件夹。</value>
+  </data>
+  <data name="ManualSyncTooltip" xml:space="preserve">
+    <value>手动同步 - 账户已禁用自动同步</value>
+  </data>
 </root>
