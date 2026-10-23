@@ -19,6 +19,15 @@ namespace MailArchiver.Models
         public long OutputFileSize { get; set; }
         public int IncomingEmailsCount { get; set; }
         public int OutgoingEmailsCount { get; set; }
+        public List<FailedEmailInfo> FailedEmails { get; set; } = new();
+    }
+
+    public class FailedEmailInfo
+    {
+        public int EmailId { get; set; }
+        public string Subject { get; set; } = string.Empty;
+        public string FolderName { get; set; } = string.Empty;
+        public string Error { get; set; } = string.Empty;
     }
 
     public enum AccountExportJobStatus

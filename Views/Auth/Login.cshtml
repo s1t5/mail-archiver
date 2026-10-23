@@ -66,7 +66,7 @@
                     <input type="hidden" name="ReturnUrl" value="@ViewData["ReturnUrl"]" />
                     <div class="d-grid">
                         <button type="submit" class="btn btn-primary btn-lg">
-                            <i class="bi bi-box-arrow-in-right me-2"></i>@Localizer["SignInWithOAuth"]
+                            <i class="bi bi-box-arrow-in-right me-2"></i>@(ViewBag.OAuthSignInLabel ?? Localizer["SignInWithOAuth"])
                         </button>
                     </div>
                 </form>

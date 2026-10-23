@@ -1,4 +1,4 @@
-﻿@inject Microsoft.Extensions.Localization.IStringLocalizer<MailArchiver.SharedResource> Localizer
+@inject Microsoft.Extensions.Localization.IStringLocalizer<MailArchiver.SharedResource> Localizer
 @model MailArchiver.Models.ViewModels.AsyncBatchRestoreViewModel
 @{
     ViewData["Title"] = Localizer["AsynchronousBatchCopyTitle"];
@@ -62,6 +62,13 @@
                     </select>
                     <span asp-validation-for="TargetFolder" class="text-danger"></span>
                 </div>
+                <div class="mb-3 form-check">
+                    <input asp-for="PreserveFolderStructure" class="form-check-input" type="checkbox" id="preserveFolderStructure" />
+                    <label asp-for="PreserveFolderStructure" class="form-check-label">@Localizer["PreserveFolderStructure"]</label>
+                    <div class="form-text">
+                        @Localizer["PreserveFolderStructureHelp"]
+                    </div>
+                </div>
                 <div class="d-flex mt-4">
                     <button type="submit" class="btn btn-primary">
                         <i class="bi bi-clock me-2"></i>@Localizer["StartBackgroundOperation"]
@@ -80,10 +87,18 @@
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
     <script>
         $(document).ready(function () {
+            var preselectedFolder = @Json.Serialize(Model.TargetFolder ?? "");
+            var isInitialLoad = true;
+            const i18n = {
+                loadingFolders: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["LoadingFolders"].Value)),
+                errorLoadingFolders: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["ErrorLoadingFolders"].Value))
+            };
             $('#accountSelect').change(function () {
+                var selectPreselected = isInitialLoad;
+                isInitialLoad = false;
                 var accountId = $(this).val();
                 if (accountId) {
-                    $('#folderSelect').html('<option>@Localizer["LoadingFolders"]</option>');
+                    $('#folderSelect').html($('<option>').text(i18n.loadingFolders));
                     $.ajax({
                         url: '@Url.Action("GetFolders", "Emails")',
                         data: { accountId: accountId },
@@ -97,10 +112,13 @@
                                 if (folderName.toUpperCase() === 'INBOX') { inboxFound = true; }
                             });
                             $('#folderSelect').html(options);
-                            if (inboxFound) { $("#folderSelect option").filter(function () { return this.value.toUpperCase() === 'INBOX'; }).prop('selected', true); }
+                            var target = (selectPreselected && preselectedFolder) ? preselectedFolder : null;
+                            var matched = target ? $("#folderSelect option").filter(function () { return this.value.toUpperCase() === target.toUpperCase(); }).first() : $();
+                            if (matched.length) { matched.prop('selected', true); }
+                            else if (inboxFound) { $("#folderSelect option").filter(function () { return this.value.toUpperCase() === 'INBOX'; }).prop('selected', true); }
                         },
                         error: function () {
-                            $('#folderSelect').html('<option value="">@Localizer["ErrorLoadingFolders"]</option><option value="INBOX">INBOX</option>');
+                            $('#folderSelect').html($('<option>').val('').text(i18n.errorLoadingFolders)).append('<option value="INBOX">INBOX</option>');
                         }
                     });
                 } else {

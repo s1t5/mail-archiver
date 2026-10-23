@@ -5,13 +5,13 @@
 }
 
 <div class="container">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1>@Localizer["EmlImportStatusTitle"]</h1>
-        <div>
-            <a asp-action="Index" class="btn btn-outline-secondary">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="h3 mb-0">@Localizer["EmlImportStatusTitle"]</h1>
+        <div class="d-flex gap-2">
+            <a asp-action="Index" class="btn btn-outline-secondary btn-sm">
                 <i class="bi bi-arrow-left"></i> @Localizer["BackToAccounts"]
             </a>
-            <a asp-controller="Emails" asp-action="Jobs" class="btn btn-outline-info">
+            <a asp-controller="Emails" asp-action="Jobs" class="btn btn-outline-info btn-sm">
                 <i class="bi bi-list"></i> @Localizer["AllJobs"]
             </a>
         </div>
@@ -19,7 +19,7 @@
 
     <div class="card">
         <div class="card-header bg-light">
-            <h5 class="mb-0">@Localizer["ImportJobInformation"]</h5>
+            <span class="h6 mb-0"><i class="bi bi-info-circle me-1"></i>@Localizer["ImportJobInformation"]</span>
         </div>
         <div class="card-body">
             <dl class="row">
@@ -149,19 +149,37 @@
                     <dt class="col-sm-3">@Localizer["ResultsLabel"]</dt>
                     <dd class="col-sm-9">
                         <div class="row">
-                            <div class="col-6">
+                            <div class="col-4">
                                 <span class="badge bg-success">
                                     <i class="bi bi-check-circle me-1"></i>
                                     @Localizer["SuccessLabel"] @Model.SuccessCount.ToString("N0")
                                 </span>
                             </div>
-                            <div class="col-6">
+                            <div class="col-4">
                                 <span class="badge bg-danger">
                                     <i class="bi bi-x-circle me-1"></i>
                                     @Localizer["FailedLabel"] @Model.FailedCount.ToString("N0")
                                 </span>
                             </div>
+                            @if (Model.SkippedAlreadyExistsCount > 0)
+                            {
+                                <div class="col-4">
+                                    <span class="badge bg-warning text-dark">
+                                        <i class="bi bi-exclamation-triangle me-1"></i>
+                                        @Localizer["SkippedLabel"] @Model.SkippedAlreadyExistsCount.ToString("N0")
+                                    </span>
+                                </div>
+                            }
                         </div>
+                        @if (Model.RecoveredCount > 0)
+                        {
+                            <div class="mt-2">
+                                <span class="badge bg-info text-dark">
+                                    <i class="bi bi-wrench me-1"></i>
+                                    @Localizer["RecoveredLabel"] @Model.RecoveredCount.ToString("N0")
+                                </span>
+                            </div>
+                        }
                     </dd>
                 }
 
@@ -237,6 +255,53 @@
             @if (Model.Status == MailArchiver.Models.EmlImportJobStatus.Completed)
             {
                 <div class="mt-4 pt-3 border-top">
+                    @if (Model.FailedEntries.Any())
+                    {
+                        <div class="alert alert-warning">
+                            <div class="d-flex justify-content-between align-items-center" role="button"
+                                 data-bs-toggle="collapse" data-bs-target="#failedEntriesCollapse"
+                                 aria-expanded="false" aria-controls="failedEntriesCollapse">
+                                <span>
+                                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                                    <strong>@string.Format(Localizer["FailedFilesTitle"], Model.FailedEntries.Count.ToString("N0"))</strong>
+                                </span>
+                                <i class="bi bi-chevron-down"></i>
+                            </div>
+                            <div class="collapse" id="failedEntriesCollapse">
+                                <div class="mt-2">
+                                    @if (Model.FailedEntries.Count >= MailArchiver.Models.EmlImportJob.MaxFailedEntries)
+                                    {
+                                        <small class="text-muted d-block mb-1">@Localizer["FailedFilesTruncated"]</small>
+                                    }
+                                    <ul class="mb-0 small">
+                                        @foreach (var failed in Model.FailedEntries)
+                                        {
+                                            <li>
+                                                <code>@(failed.EntryPath.Length > 100 ? failed.EntryPath[..100] + "..." : failed.EntryPath)</code>
+                                                &mdash; @Localizer[$"FailedFilesReason_{failed.Reason}"]
+                                            </li>
+                                        }
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                    @if (Model.RecoveredCount > 0)
+                    {
+                        <div class="alert alert-info">
+                            <i class="bi bi-wrench me-2"></i>
+                            <strong>@Localizer["RecoveredTitle"]</strong>
+                            @string.Format(Localizer["RecoveredSummary"], Model.RecoveredCount.ToString("N0"))
+                        </div>
+                    }
+                    @if (Model.SkippedAlreadyExistsCount > 0)
+                    {
+                        <div class="alert alert-warning">
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                            <strong>@Localizer["DuplicatesSkippedTitle"]</strong>
+                            @string.Format(Localizer["DuplicatesSkippedSummary"], Model.SkippedAlreadyExistsCount.ToString("N0"))
+                        </div>
+                    }
                     <div class="alert alert-success">
                         <i class="bi bi-check-circle-fill me-2"></i>
                         <strong>@Localizer["ImportCompletedTitle"]</strong>
@@ -275,6 +340,8 @@
 {
     @section Scripts {
         <script>
+            const statusTitle = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["EmlImportStatusTitle"].Value));
+            const fileName = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.FileName));
             // Auto-refresh page every 5 seconds for running jobs
             setTimeout(function() {
                 location.reload();
@@ -284,7 +351,7 @@
             let countdown = 5;
             const countdownInterval = setInterval(function() {
                 countdown--;
-                document.title = `(${countdown}s) ${'@Localizer["EmlImportStatusTitle"]'} - @Model.FileName`;
+                document.title = `(${countdown}s) ${statusTitle} - ${fileName}`;
                 if (countdown <= 0) {
                     clearInterval(countdownInterval);
                 }

@@ -1,6 +1,6 @@
 # 📧 Gmail Best Practices
 
-[← Back to Documentation Index](Index.md)
+[← Back to Documentation Index](index.md)
 
 When using Gmail accounts with the Mail Archiver application, there are several specific configurations and best practices that should be followed to ensure optimal performance and avoid potential issues.
 
@@ -51,4 +51,43 @@ To configure this setting:
 
 ## ⚠️ Gmail IMAP Rate Limiting
 
-Gmail imposes a daily rate limit of 2500MB for IMAP retrieval. When archiving large volumes of emails, be aware that you may hit this limit, which could temporarily pause email retrieval until the next day. Plan your archiving schedule accordingly to work within these limitations.
+Gmail imposes a daily rate limit of 2500MB for IMAP retrieval. When archiving large volumes of emails, be aware that you may hit this limit, which could temporarily pause email retrieval until the next day.
+
+### 📊 Rate Limit Handling
+
+Mail Archiver provides built-in rate limit handling to manage Gmail's IMAP bandwidth limits:
+
+- **Automatic bandwidth tracking**: Monitors downloaded data per account per day
+- **Configurable limits**: Set `BandwidthTracking__DailyLimitMb=2500` for Gmail
+- **Automatic pause**: Sync pauses when limit is reached and resumes after reset
+- **Checkpoint system**: Sync progress is saved and resumed from the last position
+
+For detailed configuration and usage, see the **[Rate Limit Handling Guide](RateLimitHandling.md)**.
+
+### 🔧 Gmail Configuration Example
+
+```yaml
+environment:
+  # Enable bandwidth tracking for Gmail
+  - BandwidthTracking__Enabled=true
+  - BandwidthTracking__DailyLimitMb=2500
+  - BandwidthTracking__WarningThresholdPercent=80
+  - BandwidthTracking__PauseHoursOnLimit=24
+```
+
+### 📈 Large Mailbox Considerations
+
+For large Gmail mailboxes (e.g., 14 GB), the initial sync will take multiple days:
+
+| Mailbox Size | Days to Complete (at 2500 MB/day) |
+|--------------|-----------------------------------|
+| 5 GB | ~2 days |
+| 10 GB | ~4 days |
+| 14 GB | ~6 days |
+| 20 GB | ~8 days |
+
+**Tip**: Enable bandwidth tracking **before** adding large Gmail accounts to ensure proper rate limit handling from the start.
+
+## ✅ Best Practices Summary
+
+Following these best practices will help ensure smooth operation of the Mail Archiver with your Gmail accounts while maintaining data integrity and optimal performance.

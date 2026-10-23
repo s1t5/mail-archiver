@@ -1,0 +1,156 @@
+using MailArchiver.Auth.Options;
+using MailArchiver.Data;
+using MailArchiver.Models;
+using MailArchiver.Services;
+using MailArchiver.Services.Core;
+using MailArchiver.Utilities;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Localization;
+using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
+
+namespace MailArchiver.Tests.Infrastructure;
+
+/// <summary>
+/// Factory for constructing service instances against a given <see cref="MailArchiverDbContext"/>
+/// with minimal, test-friendly dependencies (NullLogger, default options, stub localizer/config).
+/// </summary>
+internal static class ServiceFactory
+{
+    public static EmailCoreService CreateEmailCoreService(MailArchiverDbContext ctx) =>
+        new(ctx,
+            NullLogger<EmailCoreService>.Instance,
+            new DateTimeHelper(Options.Create(new TimeZoneOptions { DisplayTimeZoneId = "Europe/Berlin" })),
+            Options.Create(new BatchOperationOptions()));
+
+    /// <summary>
+    /// Creates an EmailCoreService with dashboard caching disabled so integration
+    /// tests always see freshly computed statistics.
+    /// </summary>
+    public static EmailCoreService CreateEmailCoreServiceNoCache(MailArchiverDbContext ctx) =>
+        new(ctx,
+            NullLogger<EmailCoreService>.Instance,
+            new DateTimeHelper(Options.Create(new TimeZoneOptions { DisplayTimeZoneId = "Europe/Berlin" })),
+            Options.Create(new BatchOperationOptions()),
+            Options.Create(new Models.DashboardOptions { CacheSeconds = 0 }),
+            memoryCache: null);
+
+    /// <summary>
+    /// Creates an EmailCoreService whose dashboard cache is backed by a MemoryCache with a
+    /// small SizeLimit, so eviction behavior can be asserted without touching DI.
+    /// </summary>
+    public static (EmailCoreService Service, Microsoft.Extensions.Caching.Memory.IMemoryCache Cache)
+        CreateEmailCoreServiceWithSizeLimitedCache(MailArchiverDbContext ctx, long sizeLimit)
+    {
+        var cache = new Microsoft.Extensions.Caching.Memory.MemoryCache(
+            new Microsoft.Extensions.Caching.Memory.MemoryCacheOptions { SizeLimit = sizeLimit });
+        var svc = new EmailCoreService(ctx,
+            NullLogger<EmailCoreService>.Instance,
+            new DateTimeHelper(Options.Create(new TimeZoneOptions { DisplayTimeZoneId = "Europe/Berlin" })),
+            Options.Create(new BatchOperationOptions()),
+            Options.Create(new Models.DashboardOptions { CacheSeconds = 60 }),
+            memoryCache: cache);
+        return (svc, cache);
+    }
+
+    /// <summary>
+    /// Creates an EmailCoreService with the dashboard features switched off, so that the
+    /// "as it was before" state can be asserted rather than described.
+    /// </summary>
+    public static EmailCoreService CreateEmailCoreServiceWithoutDashboardFeatures(MailArchiverDbContext ctx) =>
+        new(ctx,
+            NullLogger<EmailCoreService>.Instance,
+            new DateTimeHelper(Options.Create(new TimeZoneOptions { DisplayTimeZoneId = "Europe/Berlin" })),
+            Options.Create(new BatchOperationOptions()),
+            Options.Create(new Models.DashboardOptions
+            {
+                CacheSeconds = 0,
+                ShowDirectionSplits = false,
+                SelectablePeriods = false
+            }),
+            memoryCache: null);
+
+    public static BandwidthService CreateBandwidthService(MailArchiverDbContext ctx, BandwidthTrackingOptions? options = null) =>
+        new(ctx,
+            NullLogger<BandwidthService>.Instance,
+            Options.Create(options ?? new BandwidthTrackingOptions { Enabled = true, DailyLimitMb = 10 }));
+
+    public static UserService CreateUserService(MailArchiverDbContext ctx, OAuthOptions? oauth = null) =>
+        new(ctx,
+            NullLogger<UserService>.Instance,
+            new NullStringLocalizer<SharedResource>(),
+            Options.Create(oauth ?? new OAuthOptions()));
+
+    public static AccountStorageService CreateAccountStorageService(MailArchiverDbContext ctx) =>
+        new(ctx,
+            NullLogger<AccountStorageService>.Instance,
+            new ConfigurationBuilder().Build());
+
+    public static MailArchiver.Services.Providers.Imap.ImapMailRestorer CreateImapMailRestorer(
+        MailArchiverDbContext ctx,
+        BatchOperationOptions? batchOptions = null,
+        OffloadOptions? offloadOptions = null) =>
+            new(ctx,
+            NullLogger<MailArchiver.Services.Providers.Imap.ImapMailRestorer>.Instance,
+            // OffloadEmailsAsync fails before opening a connection for an unreachable target,
+            // so the connection factory is never exercised by these tests. The folder service
+            // is only reached after a successful connection, so it stays null here too.
+            connectionFactory: null!,
+            new DateTimeHelper(Options.Create(new TimeZoneOptions { DisplayTimeZoneId = "Europe/Berlin" })),
+            Options.Create(batchOptions ?? new BatchOperationOptions()),
+            Options.Create(offloadOptions ?? new OffloadOptions()),
+            folderService: null!);
+
+    /// <summary>
+    /// Builds a <see cref="ServiceProvider"/> that resolves the shared
+    /// <see cref="MailArchiverDbContext"/> from every scope, so services that call
+    /// <c>CreateScope().GetRequiredService&lt;MailArchiverDbContext&gt;()</c> receive a context
+    /// sharing the same connection/transaction as the test. Registered as Singleton so that
+    /// disposing the scope does NOT dispose the shared context (and its transaction).
+    /// </summary>
+    public static IServiceProvider BuildScopedProviderFor(MailArchiverDbContext sharedContext)
+    {
+        var services = new ServiceCollection();
+        services.AddSingleton(sharedContext);
+        return services.BuildServiceProvider();
+    }
+
+    /// <summary>
+    /// Creates a DashboardStatsRefreshService whose scopes resolve the shared context and an
+    /// EmailCoreService built with the given dashboard settings, so a test can run one refresh
+    /// and then read the row it wrote.
+    /// </summary>
+    public static DashboardStatsRefreshService CreateDashboardStatsRefreshService(
+        MailArchiverDbContext sharedContext, Models.DashboardOptions dashboardOptions)
+    {
+        var services = new ServiceCollection();
+        services.AddSingleton(sharedContext);
+        services.AddScoped(_ => new EmailCoreService(sharedContext,
+            NullLogger<EmailCoreService>.Instance,
+            new DateTimeHelper(Options.Create(new TimeZoneOptions { DisplayTimeZoneId = "Europe/Berlin" })),
+            Options.Create(new BatchOperationOptions()),
+            Options.Create(dashboardOptions),
+            memoryCache: null));
+        var provider = services.BuildServiceProvider();
+
+        return new DashboardStatsRefreshService(
+            provider.GetRequiredService<IServiceScopeFactory>(),
+            NullLogger<DashboardStatsRefreshService>.Instance,
+            Options.Create(dashboardOptions),
+            new ConfigurationBuilder().Build());
+    }
+}
+
+/// <summary>
+/// Minimal <see cref="IStringLocalizer{T}"/> that returns the key as the value,
+/// so resource lookups in <see cref="UserService"/> never throw.
+/// </summary>
+internal sealed class NullStringLocalizer<T> : IStringLocalizer<T>
+{
+    public LocalizedString this[string name] => new(name, name, false);
+    public LocalizedString this[string name, params object[] arguments] =>
+        new(name, string.Format(name, arguments), false);
+    public IEnumerable<LocalizedString> GetAllStrings(bool includeParentCultures) =>
+        Enumerable.Empty<LocalizedString>();
+}

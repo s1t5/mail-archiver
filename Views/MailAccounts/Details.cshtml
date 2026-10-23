@@ -7,35 +7,70 @@
     var isAdmin = AuthService.IsCurrentUserAdmin(Context);
     var isSelfManager = AuthService.IsCurrentUserSelfManager(Context);
     var canExport = isAdmin || isSelfManager;
+
+    var providerBadgeClass = Model.Provider switch
+    {
+        ProviderType.IMAP => "bg-primary",
+        ProviderType.M365 => "bg-success",
+        ProviderType.MSA => "bg-info text-dark",
+        ProviderType.IMPORT => "bg-secondary",
+        _ => "bg-secondary"
+    };
+    var providerBadgeText = Model.Provider switch
+    {
+        ProviderType.IMAP => "IMAP",
+        ProviderType.M365 => "Microsoft 365",
+        ProviderType.MSA => Localizer["MsaBadge"].Value,
+        ProviderType.IMPORT => "Import Only",
+        _ => Model.Provider.ToString()
+    };
+
+    var hasConnectionDetails = Model.Provider == ProviderType.IMAP
+        || Model.Provider == ProviderType.M365
+        || Model.Provider == ProviderType.MSA;
 }
+
 <div class="container">
     <h1>@Localizer["EmailAccountDetailsHeader"]</h1>
-    <div class="card">
+
+    @* Status Header Card *@
+    <div class="card mb-3 account-status-header">
         <div class="card-body">
-            <dl class="row">
+            <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+                <div>
+                    <h2 class="h4 mb-1">@Model.Name</h2>
+                    <div class="text-muted">@Model.EmailAddress</div>
+                </div>
+                <div class="d-flex flex-wrap align-items-center gap-2">
+                    <span class="badge @providerBadgeClass">@providerBadgeText</span>
+                    @if (Model.IsEnabled)
+                    {
+                        <span class="badge bg-success"><i class="bi bi-play-fill"></i> @Localizer["Enabled"]</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-secondary"><i class="bi bi-pause-fill"></i> @Localizer["Disabled"]</span>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-3">
+        <div class="card-header">
+            <i class="bi bi-info-circle me-1"></i> @Localizer["AccountDetailsTitle"]
+        </div>
+        <div class="card-body">
+            <dl class="row mb-0">
                 <dt class="col-sm-3">@Localizer["Name"]</dt>
                 <dd class="col-sm-9">@Model.Name</dd>
+
                 <dt class="col-sm-3">@Localizer["EmailAddress"]</dt>
                 <dd class="col-sm-9">@Model.EmailAddress</dd>
+
                 <dt class="col-sm-3">@Localizer["Provider"]</dt>
-                <dd class="col-sm-9">
-                    @switch (Model.Provider)
-                    {
-                        case ProviderType.IMAP:
-                            <span class="badge bg-primary">IMAP</span>
-                            break;
-                        case ProviderType.M365:
-                            <span class="badge bg-success">Microsoft 365</span>
-                            break;
-                        case ProviderType.IMPORT:
-                            <span class="badge bg-secondary">Import Only</span>
-                            break;
-                    }
-                </dd>
-                <dt class="col-sm-3">@Localizer["Username"]</dt>
-                <dd class="col-sm-9">@Model.Username</dd>
-                <dt class="col-sm-3">SSL</dt>
-                <dd class="col-sm-9">@(Model.UseSSL? Localizer["Enabled"] : Localizer["Disabled"])</dd>
+                <dd class="col-sm-9"><span class="badge @providerBadgeClass">@providerBadgeText</span></dd>
+
                 <dt class="col-sm-3">@Localizer["Status"]</dt>
                 <dd class="col-sm-9">
                     @if (Model.IsEnabled)
@@ -47,6 +82,229 @@
                         <span class="badge bg-secondary">@Localizer["Disabled"]</span>
                     }
                 </dd>
+
+                @if (Model.Provider == ProviderType.IMAP)
+                {
+                    <dt class="col-sm-3">@Localizer["IMAPServer"]</dt>
+                    <dd class="col-sm-9">@(string.IsNullOrWhiteSpace(Model.ImapServer) ? Html.Raw($"<span class=\"text-muted\">—</span>") : Html.Raw($"{Model.ImapServer}:{Model.ImapPort}"))</dd>
+
+                    <dt class="col-sm-3">@Localizer["Username"]</dt>
+                    <dd class="col-sm-9">@(string.IsNullOrWhiteSpace(Model.Username) ? Html.Raw($"<span class=\"text-muted\">—</span>") : Html.Raw(Model.Username))</dd>
+
+                    <dt class="col-sm-3">SSL</dt>
+                    <dd class="col-sm-9">@(Model.UseSSL ? Localizer["Enabled"] : Localizer["Disabled"])</dd>
+                }
+                else if (Model.Provider == ProviderType.M365)
+                {
+                    <dt class="col-sm-3">@Localizer["TenantId"]</dt>
+                    <dd class="col-sm-9">@(string.IsNullOrWhiteSpace(Model.TenantId) ? Html.Raw($"<span class=\"text-muted\">—</span>") : Html.Raw(Model.TenantId))</dd>
+                }
+                else if (Model.Provider == ProviderType.MSA)
+                {
+                    <dt class="col-sm-3">@Localizer["ClientId"]</dt>
+                    <dd class="col-sm-9">@(string.IsNullOrWhiteSpace(Model.MsaClientId) ? Html.Raw($"<span class=\"text-muted\">—</span>") : Html.Raw(Model.MsaClientId))</dd>
+
+                    <dt class="col-sm-3">@Localizer["Status"]</dt>
+                    <dd class="col-sm-9">
+                        @if (Model.MsaIsAuthorized)
+                        {
+                            <span class="badge bg-success"><i class="bi bi-check-circle-fill me-1"></i>@Localizer["MsaAuthorized"]</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-warning text-dark"><i class="bi bi-exclamation-triangle me-1"></i>@Localizer["MsaNotYetAuthorized"]</span>
+                        }
+                    </dd>
+                }
+            </dl>
+        </div>
+    </div>
+
+
+    @* Last Run Card - what the previous sync actually did, and what went wrong if anything did. *@
+    @{
+        var lastRun = ViewBag.LastRun as MailArchiver.Models.SyncJob;
+
+        // Acknowledging a failed run advances LastSync past it. From then on the timestamp has been
+        // advanced, so the run must stop claiming it was held back and must stop raising the
+        // attention marker. The detail list stays so the record is still somewhere on the page.
+        var failuresAcknowledged = lastRun?.FailuresAcknowledged == true;
+        var hasFailedWork = lastRun != null && (lastRun.FailedEmails > 0 || lastRun.FailedFolders > 0);
+        var runHeldBack = hasFailedWork && !failuresAcknowledged;
+        var runAcknowledged = hasFailedWork && failuresAcknowledged;
+        var hasIssueDetails = lastRun != null && (hasFailedWork || lastRun.MissingFolders > 0);
+        var runHasIssues = lastRun != null && (runHeldBack || lastRun.MissingFolders > 0);
+
+        // How a run ended is a different question from whether anything in it went wrong, and the
+        // counters answer only the second one. A run stopped at the timeout with nothing failed is
+        // the normal shape of a first sync over a large mailbox, and it is the state an operator
+        // asks about most often while one is under way.
+        var runPaused = lastRun != null
+            && (lastRun.Status == MailArchiver.Models.SyncJobStatus.TimedOut
+                || lastRun.Status == MailArchiver.Models.SyncJobStatus.RateLimited);
+        var outcomeLabel = lastRun?.Status switch
+        {
+            MailArchiver.Models.SyncJobStatus.Completed => Localizer["Completed"].Value,
+            MailArchiver.Models.SyncJobStatus.TimedOut => Localizer["TimedOut"].Value,
+            MailArchiver.Models.SyncJobStatus.RateLimited => Localizer["RateLimited"].Value,
+            MailArchiver.Models.SyncJobStatus.Cancelled => Localizer["Cancelled"].Value,
+            MailArchiver.Models.SyncJobStatus.Failed => Localizer["Failed"].Value,
+            _ => (string?)null
+        };
+        var outcomeBadgeClass = lastRun?.Status switch
+        {
+            MailArchiver.Models.SyncJobStatus.Completed => "bg-success",
+            MailArchiver.Models.SyncJobStatus.Failed => "bg-danger",
+            _ => "bg-secondary"
+        };
+    }
+    <div class="card mb-3">
+        <div class="card-header">
+            @if (lastRun == null)
+            {
+                <i class="bi bi-dash-circle me-1"></i>
+            }
+            else if (runHasIssues)
+            {
+                <i class="bi bi-exclamation-triangle text-warning me-1"></i>
+            }
+            else if (runPaused)
+            {
+                <i class="bi bi-hourglass-split text-secondary me-1"></i>
+            }
+            else
+            {
+                <i class="bi bi-check-circle text-success me-1"></i>
+            }
+            @Localizer["LastRunTitle"]
+            @if (outcomeLabel != null)
+            {
+                <span class="badge @outcomeBadgeClass ms-2">@outcomeLabel</span>
+            }
+        </div>
+        <div class="card-body">
+            @if (Model.IsSyncing)
+            {
+                <div class="small text-muted mb-2">
+                    <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+                    @Localizer["LastRunSyncInProgress"]
+                </div>
+            }
+
+            @if (lastRun == null)
+            {
+                <p class="mb-0 text-muted">@Localizer["LastRunNone"]</p>
+            }
+            else
+            {
+                var finished = lastRun.Completed ?? lastRun.Started;
+                var duration = finished - lastRun.Started;
+
+                var finishedStamp = $"<span class=\"utc-timestamp\" data-utc-time=\"{finished.ToString("yyyy-MM-ddTHH:mm:ss")}\">{finished.ToString("g")}</span>";
+
+                <p class="mb-2">
+                    @Html.Raw(string.Format(Localizer["LastRunSummary"].Value,
+                        finishedStamp,
+                        duration.TotalSeconds < 60
+                            ? $"{duration.TotalSeconds:F0} s"
+                            : $"{duration.TotalMinutes:F0} min",
+                        lastRun.ProcessedEmails.ToString("N0"),
+                        lastRun.NewEmails.ToString("N0")))
+                </p>
+
+                @if (runHeldBack)
+                {
+                    <p class="mb-2 text-warning-emphasis">
+                        <i class="bi bi-pause-circle me-1"></i>@Localizer["LastRunHeldBack"]
+                    </p>
+                }
+
+                @if (runAcknowledged)
+                {
+                    <p class="mb-2 text-muted">
+                        <i class="bi bi-check2-all me-1"></i>@Localizer["LastRunFailuresAcknowledged"]
+                    </p>
+                }
+
+                @if (runPaused)
+                {
+                    <p class="mb-2 text-muted">
+                        <i class="bi bi-arrow-repeat me-1"></i>@Localizer["LastRunResumes"]
+                    </p>
+                }
+
+                @if (lastRun.Status == MailArchiver.Models.SyncJobStatus.Failed
+                    && !string.IsNullOrWhiteSpace(lastRun.ErrorMessage))
+                {
+                    <p class="mb-2 text-danger-emphasis">
+                        <i class="bi bi-x-circle me-1"></i>@lastRun.ErrorMessage
+                    </p>
+                }
+
+                @if (hasIssueDetails)
+                {
+                    var kinds = new[]
+                    {
+                        (Kind: MailArchiver.Models.SyncIssueKind.FolderFailed, Label: Localizer["IssueKindFolderFailed"], Count: lastRun.FailedFolders),
+                        (Kind: MailArchiver.Models.SyncIssueKind.FolderMissing, Label: Localizer["IssueKindFolderMissing"], Count: lastRun.MissingFolders),
+                        (Kind: MailArchiver.Models.SyncIssueKind.MessageFailed, Label: Localizer["IssueKindMessageFailed"], Count: lastRun.FailedEmails)
+                    };
+                    var issues = lastRun.Issues.Issues;
+
+                    foreach (var group in kinds.Where(k => k.Count > 0))
+                    {
+                        var shown = issues.Where(i => i.Kind == group.Kind).ToList();
+                        var dropped = lastRun.Issues.DroppedFor(group.Kind);
+
+                        <h6 class="mt-3 mb-1">@group.Label <span class="badge bg-secondary">@group.Count</span></h6>
+
+                        @if (group.Kind == MailArchiver.Models.SyncIssueKind.FolderMissing)
+                        {
+                            <p class="small text-muted mb-1">@Localizer["IssueKindFolderMissingHint"]</p>
+                        }
+
+                        @if (shown.Count == 0)
+                        {
+                            <p class="small text-muted mb-0">@Localizer["IssueNoDetails"]</p>
+                        }
+                        else
+                        {
+                            <ul class="list-unstyled small mb-0">
+                                @foreach (var issue in shown)
+                                {
+                                    <li class="mb-1">
+                                        <i class="bi bi-folder me-1"></i><code>@issue.Folder</code>
+                                        @if (!string.IsNullOrWhiteSpace(issue.Subject))
+                                        {
+                                            <span class="ms-1">— @issue.Subject</span>
+                                        }
+                                        @if (issue.Uid.HasValue)
+                                        {
+                                            <span class="text-muted ms-1">(UID @issue.Uid)</span>
+                                        }
+                                        <div class="text-muted ms-4">@issue.Reason</div>
+                                    </li>
+                                }
+                            </ul>
+
+                            @if (dropped > 0)
+                            {
+                                <p class="small text-muted mb-0">@string.Format(Localizer["IssueAndMore"], dropped)</p>
+                            }
+                        }
+                    }
+                }
+            }
+        </div>
+    </div>
+
+    @* Storage & Sync Card *@
+    <div class="card mb-3">
+        <div class="card-header">
+            <i class="bi bi-database me-1"></i> @Localizer["TotalEmails"]
+        </div>
+        <div class="card-body">
+            <dl class="row mb-0">
                 <dt class="col-sm-3">@Localizer["TotalEmails"]</dt>
                 <dd class="col-sm-9">
                     <strong>@ViewBag.EmailCount.ToString("N0")</strong> @string.Format(Localizer["EmailsArchived"], "")
@@ -55,15 +313,36 @@
                         <div class="mt-1">
                             <small class="text-warning">
                                 <i class="bi bi-exclamation-triangle me-1"></i>
-                                @string.Format(Localizer["DeletingAccountWillRemoveAllEmails"],
-                                ViewBag.EmailCount.ToString("N0"))
-                        </small>
-                    </div>
-                                        }
+                                @string.Format(Localizer["DeletingAccountWillRemoveAllEmails"], ViewBag.EmailCount.ToString("N0"))
+                            </small>
+                        </div>
+                    }
                 </dd>
+
+                @if (!string.IsNullOrWhiteSpace(Model.StorageUsed))
+                {
+                    <dt class="col-sm-3">@Localizer["StorageUsed"]</dt>
+                    <dd class="col-sm-9">@Model.StorageUsed</dd>
+                }
+
                 <dt class="col-sm-3">@Localizer["LastSync"]</dt>
                 <dd class="col-sm-9">
-                    @if (Model.LastSync.HasValue)
+                    @if (Model.IsSyncing)
+                    {
+                        <span class="badge bg-primary">
+                            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="width:0.7em;height:0.7em;"></span>
+                            @Localizer["SyncRunning"]
+                        </span>
+                    }
+                    else if (Model.IsSyncPending)
+                    {
+                        <span class="badge bg-secondary">@Localizer["SyncPending"]</span>
+                    }
+                    else if (Model.Provider == ProviderType.IMPORT)
+                    {
+                        <span class="badge bg-light text-dark">@Localizer["Never"]</span>
+                    }
+                    else if (Model.LastSync.HasValue)
                     {
                         <span class="utc-timestamp" data-utc-time="@Model.LastSync.Value.ToString("yyyy-MM-ddTHH:mm:ss")">
                             @Model.LastSync.Value.ToString("g")
@@ -75,8 +354,7 @@
                     }
                     <div class="mt-2">
                         <div class="d-flex flex-wrap gap-2">
-                            <form asp-action="ResetSyncTime" asp-route-id="@Model.Id" method="post"
-                                style="display: inline;">
+                            <form asp-action="ResetSyncTime" asp-route-id="@Model.Id" method="post" style="display: inline;">
                                 @Html.AntiForgeryToken()
                                 <button type="submit" class="btn btn-sm btn-outline-info"
                                     onclick="return confirm('@Localizer["ResetSyncTimeConfirm"]');">
@@ -87,11 +365,10 @@
                                 <i class="bi bi-pencil"></i> @Localizer["EditSyncTime"]
                             </a>
                         </div>
-                        <div class="small text-muted mt-1">
-                            @Localizer["ResetSyncTimeNote"]
-                        </div>
+                        <div class="small text-muted mt-1">@Localizer["ResetSyncTimeNote"]</div>
                     </div>
                 </dd>
+
                 <dt class="col-sm-3">@Localizer["AutoDelete"]</dt>
                 <dd class="col-sm-9">
                     @if (Model.DeleteAfterDays.HasValue)
@@ -111,86 +388,156 @@
                         </div>
                     }
                 </dd>
-            </dl>
-            <div class="mt-4">
-                <h6 class="text-muted mb-3">@Localizer["AccountActions"]</h6>
-                <div class="d-flex flex-wrap gap-2 mb-3">
-                    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">
-                        <i class="bi bi-pencil"></i> @Localizer["EditAccount"]
-                    </a>
-                    <form asp-action="ToggleEnabled" asp-route-id="@Model.Id" method="post" style="display: inline;">
-                        @Html.AntiForgeryToken()
-                        <button type="submit"
-                            class="btn @(Model.IsEnabled ? "btn-outline-secondary" : "btn-outline-success")">
-                            <i class="bi bi-@(Model.IsEnabled ? "pause" : "play")"></i>
-                            @(Model.IsEnabled? Localizer["DisableAccount"] : Localizer["EnableAccount"])
-                        </button>
-                    </form>
-                    @if (Model.IsEnabled)
-                    {
-                        <form asp-action="Sync" asp-route-id="@Model.Id" method="post" style="display: inline;">
-                            @Html.AntiForgeryToken()
-                            <button type="submit" class="btn btn-success">
-                                <i class="bi bi-arrow-clockwise"></i> @Localizer["QuickSync"]
-                            </button>
-                        </form>
-                        <button type="button" class="btn btn-outline-warning" data-bs-toggle="modal" data-bs-target="#fullResyncModal">
-                            <i class="bi bi-arrow-clockwise"></i> @Localizer["FullResync"]
-                        </button>
-                    }
-                    <form asp-action="MoveAllEmails" asp-route-id="@Model.Id" method="post" style="display: inline;">
-                        @Html.AntiForgeryToken()
-                        <button type="submit" class="btn btn-outline-success">
-                            <i class="bi bi-envelope-arrow-up"></i> @Localizer["CopyAllEmailsToAnotherMailbox"]
-                        </button>
-                    </form>
-                    @if (canExport)
-                    {
-                        <a asp-action="Export" asp-route-id="@Model.Id" class="btn btn-outline-primary">
-                            <i class="bi bi-download"></i> @Localizer["ExportAccount"]
-                        </a>
-                    }
-                    <div class="dropdown">
-                        <button class="btn btn-outline-success dropdown-toggle" type="button" id="importDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="bi bi-upload"></i> @Localizer["Import"]
-                        </button>
-                        <ul class="dropdown-menu" aria-labelledby="importDropdown">
-                            <li><a class="dropdown-item" asp-action="ImportMBox" asp-route-id="@Model.Id"><i class="bi bi-file-earmark-text me-2"></i>@Localizer["ImportMBox"]</a></li>
-                            <li><a class="dropdown-item" asp-action="ImportEml" asp-route-id="@Model.Id"><i class="bi bi-file-earmark-zip me-2"></i>@Localizer["ImportEml"]</a></li>
-                        </ul>
-                    </div>
-                </div>
-<div class="border border-danger rounded p-3 bg-light">
-                    <h6 class="text-danger mb-2">
-                        <i class="bi bi-exclamation-triangle-fill me-1"></i>
-                        @Localizer["DangerZone"]
-                    </h6>
-                    <p class="small text-muted mb-3">
-                        @Localizer["DangerZoneInfo"]
-                    </p>
-                    <div class="d-flex flex-column flex-md-row gap-2">
-                        @{
-                            var emailCountText = ViewBag.EmailCount.ToString();
+
+                @if (Model.LocalRetentionDays.HasValue)
+                {
+                    <dt class="col-sm-3">@Localizer["LocalRetentionDays"]</dt>
+                    <dd class="col-sm-9">
+                        @Model.LocalRetentionDays.Value @Localizer["Days"]
+                    </dd>
+                }
+
+                @{
+                    // Said once, under whichever of the two lists is shown first: the rule is the
+                    // same for both, and the two blocks sit a few pixels apart. The condition below
+                    // stays written out rather than hoisted into this block, so the compiler keeps
+                    // knowing that ExcludedFolders is not null inside it.
+                    var subfolderHint = ViewBag.ExcludeSubfolders as bool? ?? false;
+                    var hasOwnExclusions = !string.IsNullOrWhiteSpace(Model.ExcludedFolders);
+                }
+                @if (!string.IsNullOrWhiteSpace(Model.ExcludedFolders))
+                {
+                    <dt class="col-sm-3">@Localizer["ExcludedFolders"]</dt>
+                    <dd class="col-sm-9">
+                        <div class="d-flex flex-wrap gap-1">
+                            @* Semicolon, because that is what MailAccount.ExcludedFoldersList parses
+                               and what the edit form writes. Splitting on commas here showed two
+                               badges for a single entry that matched nothing. *@
+                            @foreach (var folder in Model.ExcludedFolders.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+                            {
+                                <span class="badge bg-light text-dark"><i class="bi bi-folder-x me-1"></i>@folder</span>
+                            }
+                        </div>
+                        @if (subfolderHint)
+                        {
+                            <div class="form-text">@Localizer["ExclusionsCoverSubfolders"]</div>
                         }
-                        <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal"
-                            data-bs-target="#deleteAccountModal-@Model.Id">
-                            <i class="bi bi-trash-fill"></i>
-                            @Localizer["DeleteEmailAccountTitle"]
+                    </dd>
+                }
+
+                @{
+                    var globalExcluded = ViewBag.GlobalExcludedFolders as IEnumerable<string> ?? Enumerable.Empty<string>();
+                }
+                @if (globalExcluded.Any())
+                {
+                    <dt class="col-sm-3">@Localizer["GlobalExcludedFolders"]</dt>
+                    <dd class="col-sm-9">
+                        <div class="d-flex flex-wrap gap-1 mb-1">
+                            @foreach (var folder in globalExcluded)
+                            {
+                                <span class="badge bg-secondary-subtle text-dark border"><i class="bi bi-folder-x me-1"></i>@folder</span>
+                            }
+                        </div>
+                        <div class="form-text">@Localizer["GlobalExcludedFoldersHint"]</div>
+                        @if (subfolderHint && !hasOwnExclusions)
+                        {
+                            <div class="form-text">@Localizer["ExclusionsCoverSubfolders"]</div>
+                        }
+                    </dd>
+                }
+            </dl>
+        </div>
+    </div>
+
+    @* Actions Card *@
+    <div class="card mb-3">
+        <div class="card-header">
+            <i class="bi bi-gear me-1"></i> @Localizer["PrimaryActions"]
+        </div>
+        <div class="card-body">
+            <div class="d-flex flex-wrap gap-2 mb-3">
+                <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">
+                    <i class="bi bi-pencil"></i> @Localizer["EditAccount"]
+                </a>
+                <form asp-action="ToggleEnabled" asp-route-id="@Model.Id" method="post" style="display: inline;">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn @(Model.IsEnabled ? "btn-outline-secondary" : "btn-outline-success")">
+                        <i class="bi bi-@(Model.IsEnabled ? "pause" : "play")"></i>
+                        @(Model.IsEnabled ? Localizer["DisableAccount"] : Localizer["EnableAccount"])
+                    </button>
+                </form>
+                @if (Model.IsEnabled)
+                {
+                    <form asp-action="Sync" asp-route-id="@Model.Id" method="post" style="display: inline;">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-arrow-clockwise"></i> @Localizer["QuickSync"]
                         </button>
-                    </div>
+                    </form>
+                    <button type="button" class="btn btn-outline-warning" data-bs-toggle="modal" data-bs-target="#fullResyncModal">
+                        <i class="bi bi-arrow-clockwise"></i> @Localizer["FullResync"]
+                    </button>
+                }
+            </div>
+
+            <div class="d-flex flex-wrap gap-2 mb-3">
+                @* First and solid, ahead of "copy all", because it is the safer of the two: it
+                   takes a date window, honours folder exclusions and the rename map, skips what
+                   the target already holds, and can be dry run. "Copy all" is all or nothing and
+                   starts on click, so it should not be what the eye lands on first. No role check
+                   here: this page is only reachable for an account the user is assigned to, and
+                   the target list is scoped the same way. *@
+                <a asp-action="Offload" asp-route-id="@Model.Id" class="btn btn-success">
+                    <i class="bi bi-box-arrow-right"></i> @Localizer["OffloadTitle"]
+                </a>
+                <form asp-action="MoveAllEmails" asp-route-id="@Model.Id" method="post" style="display: inline;">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-outline-success">
+                        <i class="bi bi-envelope-arrow-up"></i> @Localizer["CopyAllEmailsToAnotherMailbox"]
+                    </button>
+                </form>
+                @if (canExport)
+                {
+                    <a asp-action="Export" asp-route-id="@Model.Id" class="btn btn-outline-primary">
+                        <i class="bi bi-download"></i> @Localizer["ExportAccount"]
+                    </a>
+                }
+                <div class="dropdown">
+                    <button class="btn btn-outline-success dropdown-toggle" type="button" id="importDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-upload"></i> @Localizer["Import"]
+                    </button>
+                    <ul class="dropdown-menu" aria-labelledby="importDropdown">
+                        <li><a class="dropdown-item" asp-action="ImportMBox" asp-route-id="@Model.Id"><i class="bi bi-file-earmark-text me-2"></i>@Localizer["ImportMBox"]</a></li>
+                        <li><a class="dropdown-item" asp-action="ImportEml" asp-route-id="@Model.Id"><i class="bi bi-file-earmark-zip me-2"></i>@Localizer["ImportEml"]</a></li>
+                    </ul>
                 </div>
             </div>
-<div class="mt-4 pt-3 border-top">
-                <a asp-action="Index" class="btn btn-outline-secondary">
-                    <i class="bi bi-arrow-left"></i> @Localizer["BackToAccounts"]
-                </a>
+
+            <div class="border border-danger rounded p-3 bg-light danger-zone">
+                <h6 class="text-danger mb-2">
+                    <i class="bi bi-exclamation-triangle-fill me-1"></i>
+                    @Localizer["DangerZone"]
+                </h6>
+                <p class="small text-muted mb-3">@Localizer["DangerZoneInfo"]</p>
+                <div class="d-flex flex-column flex-md-row gap-2">
+                    <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal"
+                        data-bs-target="#deleteAccountModal-@Model.Id">
+                        <i class="bi bi-trash-fill"></i>
+                        @Localizer["DeleteEmailAccountTitle"]
+                    </button>
+                </div>
             </div>
         </div>
+    </div>
+
+    <div class="mt-3">
+        <a asp-action="Index" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> @Localizer["BackToAccounts"]
+        </a>
     </div>
 </div>
 
 @{
-    // Full resync modal
     var fullResyncModal = new ModalViewModel
     {
         Id = "fullResyncModal",
@@ -200,8 +547,7 @@
         ConfirmButtonClass = "btn-warning",
         CancelButtonText = Localizer["Cancel"].ToString()
     };
-    
-    // Delete account modal
+
     var deleteAccountModal = new ModalViewModel
     {
         Id = "deleteAccountModal-" + Model.Id,
@@ -209,11 +555,10 @@
         Message = string.Format(Localizer["DeleteAccountConfirm"].ToString(), Model.EmailAddress),
         IncludeList = true,
         ListTitle1 = Localizer["WhatWillBeDeleted"].ToString(),
-        ListItems1 = new List<string> {
-            Localizer["DeleteItemAccountConfig"].ToString()
-        },
+        ListItems1 = new List<string> { Localizer["DeleteItemAccountConfig"].ToString() },
         ListTitle2 = Localizer["ThisAction"].ToString(),
-        ListItems2 = new List<string> {
+        ListItems2 = new List<string>
+        {
             Localizer["ActionCannotBeUndone"].ToString(),
             Localizer["ActionCannotBeRecovered"].ToString()
         },
@@ -230,9 +575,7 @@
 
 @section Scripts {
     <script>
-// Delete account modal handling
         document.addEventListener('DOMContentLoaded', function () {
-            // Handle delete account confirmation
             document.getElementById('deleteAccountModal-@Model.Id-Confirm').addEventListener('click', function () {
                 window.location.href = '@Url.Action("Delete", "MailAccounts", new { id = Model.Id })';
             });
@@ -240,16 +583,12 @@
     </script>
 
     <script>
-        // Full resync modal handling
         document.addEventListener('DOMContentLoaded', function () {
-            // Handle full resync confirmation
             document.getElementById('fullResyncModal-Confirm').addEventListener('click', function () {
-                // Submit the resync form
                 var form = document.createElement('form');
                 form.method = 'post';
                 form.action = '@Url.Action("Resync", "MailAccounts", new { id = Model.Id })';
-                
-                // Add anti-forgery token
+
                 var antiForgeryToken = document.querySelector('form input[name="__RequestVerificationToken"]');
                 if (antiForgeryToken) {
                     var tokenInput = document.createElement('input');
@@ -258,11 +597,10 @@
                     tokenInput.value = antiForgeryToken.value;
                     form.appendChild(tokenInput);
                 }
-                
+
                 document.body.appendChild(form);
                 form.submit();
-                
-                // Redirect to jobs page after a short delay to allow form submission
+
                 setTimeout(function() {
                     window.location.href = '@Url.Action("Jobs", "Emails")';
                 }, 500);

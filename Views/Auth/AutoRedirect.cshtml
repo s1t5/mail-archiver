@@ -11,14 +11,14 @@
             <div class="text-center mb-4">
                 <i class="bi bi-envelope-check display-3 text-primary"></i>
                 <h2 class="mt-3">@Localizer["AppName"]</h2>
-                <p class="text-muted">Redirecting to authentication provider...</p>
+                <p class="text-muted">@Localizer["RedirectingToProvider", Model.DisplayName]</p>
             </div>
 
             <div class="text-center mb-4">
                 <div class="spinner-border text-primary" role="status">
-                    <span class="visually-hidden">Loading...</span>
+                    <span class="visually-hidden">@Localizer["Loading"]</span>
                 </div>
-                <p class="mt-3 text-muted">Please wait while we redirect you to the login provider...</p>
+                <p class="mt-3 text-muted">@Localizer["PleaseWaitRedirectingToProvider", Model.DisplayName]</p>
             </div>
 
             <form id="autoRedirectForm" asp-action="LoginWithOAuth" method="post">

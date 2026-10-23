@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
     <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
@@ -187,9 +187,6 @@
   <data name="NoEmailsFoundText" xml:space="preserve">
     <value>Er zijn geen e-mails gevonden voor de opgegeven zoekcriteria.</value>
   </data>
-  <data name="ExportSearchResults" xml:space="preserve">
-    <value>Zoekresultaten exporteren</value>
-  </data>
   <data name="ExportFormat" xml:space="preserve">
     <value>Exportformaat</value>
   </data>
@@ -268,6 +265,9 @@
   <data name="Storage" xml:space="preserve">
     <value>Opslag</value>
   </data>
+  <data name="DatabaseStorage" xml:space="preserve">
+    <value>Databasegrootte</value>
+  </data>
   <data name="EmailsPerMonth" xml:space="preserve">
     <value>E-mails per maand</value>
   </data>
@@ -324,6 +324,12 @@
   </data>
   <data name="NotSynced" xml:space="preserve">
     <value>Niet gesynchroniseerd</value>
+  </data>
+  <data name="SyncRunning" xml:space="preserve">
+    <value>Synchronisatie loopt…</value>
+  </data>
+  <data name="SyncPending" xml:space="preserve">
+    <value>Synchronisatie in afwachting…</value>
   </data>
   <data name="Days" xml:space="preserve">
     <value>dagen</value>
@@ -514,6 +520,27 @@
   <data name="EmailDeletion" xml:space="preserve">
     <value>E-mail verwijdering</value>
   </data>
+  <data name="SyncScheduling" xml:space="preserve">
+    <value>Synchronisatieplanning</value>
+  </data>
+  <data name="SyncIntervalMinutes" xml:space="preserve">
+    <value>Sync-interval (minuten)</value>
+  </data>
+  <data name="SyncIntervalMinutesPlaceholder" xml:space="preserve">
+    <value>Standaard uit instellingen</value>
+  </data>
+  <data name="SyncIntervalMinutesInfo" xml:space="preserve">
+    <value>Overschrijft het globale sync-interval voor deze account. Leeg laten om de standaardwaarde uit appsettings.json te gebruiken.</value>
+  </data>
+  <data name="FullSyncIntervalHours" xml:space="preserve">
+    <value>Volledige sync-interval (uren)</value>
+  </data>
+  <data name="FullSyncIntervalHoursPlaceholder" xml:space="preserve">
+    <value>Geen accountspecifieke volledige sync</value>
+  </data>
+  <data name="FullSyncIntervalHoursInfo" xml:space="preserve">
+    <value>Voert op dit schema een volledige resync uit. Leeg laten om de algemene standaard uit appsettings.json te gebruiken (indien ingesteld) of automatische volledige sync uit te schakelen. Handmatige resync blijft altijd beschikbaar.</value>
+  </data>
   <data name="DeleteEmailAccountTitle" xml:space="preserve">
     <value>E-mailaccount verwijderen</value>
   </data>
@@ -580,6 +607,12 @@
   <data name="CancelKeepAccount" xml:space="preserve">
     <value>Annuleren - Account behouden</value>
   </data>
+  <data name="CancelKeepAccountMessage" xml:space="preserve">
+    <value>Weet u zeker dat u wilt annuleren? Het account blijft behouden en er worden geen wijzigingen aangebracht.</value>
+  </data>
+  <data name="YesCancel" xml:space="preserve">
+    <value>Ja, annuleren</value>
+  </data>
   <data name="DisableInstead" xml:space="preserve">
     <value>In plaats daarvan uitschakelen</value>
   </data>
@@ -615,6 +648,24 @@
   </data>
   <data name="ExcludedFolders" xml:space="preserve">
     <value>Uitgesloten mappen</value>
+  </data>
+  <data name="GlobalExcludedFolders" xml:space="preserve">
+    <value>Uitgesloten voor alle accounts</value>
+  </data>
+  <data name="GlobalExcludedFoldersHint" xml:space="preserve">
+    <value>Installatiebreed geconfigureerd en aanvullend op de eigen lijst van dit account. Hier niet te bewerken.</value>
+  </data>
+  <data name="FolderAlreadyExcludedGlobally" xml:space="preserve">
+    <value>Al uitgesloten voor alle accounts — hier valt niets te wijzigen</value>
+  </data>
+  <data name="ExclusionsCoverSubfolders" xml:space="preserve">
+    <value>Een vermelding geldt ook voor de mappen onder de genoemde map.</value>
+  </data>
+  <data name="FolderAlreadyExcludedGloballyBy" xml:space="preserve">
+    <value>Al uitgesloten voor alle accounts door de vermelding “{0}” — hier valt niets te wijzigen</value>
+  </data>
+  <data name="FolderCoveredByOwnEntry" xml:space="preserve">
+    <value>Al gedekt door de vermelding “{0}” in deze lijst, samen met alles eronder</value>
   </data>
   <data name="EnterFolderNames" xml:space="preserve">
     <value>Voer mapnamen in gescheiden door puntkomma's, bijv.: Junk;Spam;Trash</value>
@@ -1459,7 +1510,7 @@
     <value>Kon de EML import taak niet annuleren. De taak is mogelijk al voltooid of bestaat niet.</value>
   </data>
   <data name="EmlImportStatusTitle" xml:space="preserve">
-    <value>EML Import Status</value>
+    <value>EML-importstatus</value>
   </data>
   <data name="Import" xml:space="preserve">
     <value>Importeren</value>
@@ -1475,10 +1526,10 @@
     <value>Microsoft 365 Instellingen</value>
   </data>
   <data name="ClientId" xml:space="preserve">
-    <value>Client ID</value>
+    <value>Client-ID</value>
   </data>
   <data name="ClientSecret" xml:space="preserve">
-    <value>Client Secret</value>
+    <value>Clientgeheim</value>
   </data>
   <data name="LeaveEmptyToKeepCurrent" xml:space="preserve">
     <value>Leeg laten om huidige waarde te behouden</value>
@@ -1533,7 +1584,7 @@
     <value>Of voer dit geheim handmatig in uw authenticatie-app in:</value>
   </data>
   <data name="BackupCodes" xml:space="preserve">
-    <value>Backup Codes</value>
+    <value>Back-upcodes</value>
   </data>
   <data name="BackupCodesDescription" xml:space="preserve">
     <value>Bewaar deze backup codes op een veilige plaats. U kunt ze gebruiken om in te loggen als u toegang tot uw authenticatie-app verliest.</value>
@@ -1672,7 +1723,7 @@
     <value>Export taak gestart voor account '{0}'. U wordt doorgeleid naar de statuspagina.</value>
   </data>
   <data name="ExportStatusTitle" xml:space="preserve">
-    <value>Export Status</value>
+    <value>Exportstatus</value>
   </data>
   <data name="ExportJobInformation" xml:space="preserve">
     <value>Export Taak Informatie</value>
@@ -1820,7 +1871,7 @@
     <value>Verwerkte E-mails</value>
   </data>
   <data name="ExportStatus" xml:space="preserve">
-    <value>Export Status</value>
+    <value>Exportstatus</value>
   </data>
   <data name="Downloaded" xml:space="preserve">
     <value>Gedownload</value>
@@ -2329,6 +2380,18 @@
   <data name="SignInWithOAuth" xml:space="preserve">
     <value>Inloggen met OAuth</value>
   </data>
+  <data name="SignInWithOAuthProvider" xml:space="preserve">
+    <value>Inloggen met {0}</value>
+  </data>
+  <data name="RedirectingToProvider" xml:space="preserve">
+    <value>Doorverwijzen naar {0}...</value>
+  </data>
+  <data name="PleaseWaitRedirectingToProvider" xml:space="preserve">
+    <value>Een ogenblik geduld terwijl we u doorverwijzen naar {0}...</value>
+  </data>
+  <data name="Loading" xml:space="preserve">
+    <value>Laden...</value>
+  </data>
   <data name="CurrentSyncTime" xml:space="preserve">
     <value>Huidige synchronisatietijd</value>
   </data>
@@ -2410,6 +2473,9 @@
   <data name="EmailDeletionJobs" xml:space="preserve">
     <value>E-mailverwijderingsopdrachten</value>
   </data>
+  <data name="AccountDeletionJobs" xml:space="preserve">
+    <value>Accountverwijderingstaken</value>
+  </data>
   <data name="EmailDeletionProgress" xml:space="preserve">
     <value>E-mailverwijderingsvoortgang</value>
   </data>
@@ -2463,5 +2529,1014 @@
   </data>
   <data name="DetailsLabel" xml:space="preserve">
     <value>Details</value>
+  </data>
+  <data name="RateLimited" xml:space="preserve">
+    <value>Bandbreedtebeperking bereikt</value>
+  </data>
+  <data name="TimedOut" xml:space="preserve">
+    <value>Time-out bereikt</value>
+  </data>
+  <data name="LastRunTitle" xml:space="preserve">
+    <value>Laatste synchronisatie</value>
+  </data>
+  <data name="LastRunNone" xml:space="preserve">
+    <value>Geen voltooide uitvoering sinds het starten van de toepassing.</value>
+  </data>
+  <data name="LastRunSyncInProgress" xml:space="preserve">
+    <value>Er loopt op dit moment een synchronisatie.</value>
+  </data>
+  <data name="LastRunSummary" xml:space="preserve">
+    <value>Voltooid {0}, duur {1}, verwerkte berichten: {2}, nieuw: {3}.</value>
+  </data>
+  <data name="LastRunHeldBack" xml:space="preserve">
+    <value>De tijdstempel van de laatste synchronisatie is niet bijgewerkt; de volgende uitvoering behandelt dezelfde periode opnieuw.</value>
+  </data>
+  <data name="LastRunFailuresAcknowledged" xml:space="preserve">
+    <value>De fouten van deze uitvoering zijn erkend, daarom is de tijdstempel van de laatste synchronisatie bijgewerkt.</value>
+  </data>
+  <data name="LastRunResumes" xml:space="preserve">
+    <value>De uitvoering is gepauzeerd, niet voltooid. De volgende gaat verder waar deze is gestopt.</value>
+  </data>
+  <data name="IssueKindFolderFailed" xml:space="preserve">
+    <value>Mappen die niet gelezen konden worden</value>
+  </data>
+  <data name="IssueKindFolderMissing" xml:space="preserve">
+    <value>Mappen die niet op de server bestaan</value>
+  </data>
+  <data name="IssueKindFolderMissingHint" xml:space="preserve">
+    <value>Meestal achtergebleven abonnementen op verwijderde mappen. Onschadelijk, maar het opruimen in uw mailprogramma is aan te raden.</value>
+  </data>
+  <data name="IssueKindMessageFailed" xml:space="preserve">
+    <value>Berichten die niet gearchiveerd konden worden</value>
+  </data>
+  <data name="IssueNoDetails" xml:space="preserve">
+    <value>Geen details vastgelegd.</value>
+  </data>
+  <data name="IssueAndMore" xml:space="preserve">
+    <value>en nog {0}</value>
+  </data>
+  <data name="LastRunHadIssuesHint" xml:space="preserve">
+    <value>De laatste uitvoering meldde problemen</value>
+  </data>
+  <data name="SyncProgressTooltip" xml:space="preserve">
+    <value>Voortgang wordt gemeten aan voltooide mappen. Een grote map (bijv. INBOX) houdt de balk op 0% tot deze klaar is.</value>
+  </data>
+  <data name="SyncStatusTooltip" xml:space="preserve">
+    <value>Statuscodes:&lt;br&gt;Running = synchronisatie loopt&lt;br&gt;Completed = succesvol voltooid&lt;br&gt;Failed = beëindigd met fouten&lt;br&gt;Cancelled = gestopt door gebruiker&lt;br&gt;Rate Limited = gepauzeerd wegens bandbreedtequotum</value>
+  </data>
+  <data name="SyncJobRateLimited" xml:space="preserve">
+    <value>Synchronisatie gepauzeerd door bandbreedtebeperking. Wordt automatisch hervat.</value>
+  </data>
+  <data name="ToggleFolderTree" xml:space="preserve">
+    <value>Klik om mappenboom in/uit te klappen</value>
+  </data>
+  <data name="ExpandAllFolders" xml:space="preserve">
+    <value>Alle mappen uitvouwen</value>
+  </data>
+  <data name="CollapseAllFolders" xml:space="preserve">
+    <value>Alle mappen samenvouwen</value>
+  </data>
+  <data name="NoFolders" xml:space="preserve">
+    <value>Geen mappen beschikbaar</value>
+  </data>
+  <data name="PreserveFolderStructure" xml:space="preserve">
+    <value>Mapstructuur behouden</value>
+  </data>
+  <data name="PreserveFolderStructureHelp" xml:space="preserve">
+    <value>Herstelt e-mails in submappen die overeenkomen met de oorspronkelijke mapstructuur onder de geselecteerde doelmap.</value>
+  </data>
+  <data name="SkippedLabel" xml:space="preserve">
+    <value>Overgeslagen (duplicaten):</value>
+  </data>
+  <data name="DuplicatesSkippedTitle" xml:space="preserve">
+    <value>Dubbele e-mails overgeslagen</value>
+  </data>
+  <data name="DuplicatesSkippedSummary" xml:space="preserve">
+    <value>{0} e-mails zijn overgeslagen omdat ze al bestaan in het doelaccount.</value>
+  </data>
+  <data name="SyncCancel" xml:space="preserve">
+    <value>Synchronisatie geannuleerd</value>
+  </data>
+  <data name="DeletionPolicy" xml:space="preserve">
+    <value>Verwijderingsbeleid</value>
+  </data>
+  <data name="SyncAcknowledgeFailures" xml:space="preserve">
+    <value>Sync-fouten bevestigd</value>
+  </data>
+  <data name="Retention" xml:space="preserve">
+    <value>Bewaring</value>
+  </data>
+  <data name="DeletionDisabledMessage" xml:space="preserve">
+    <value>Het verwijderen van e-mails is uitgeschakeld via configuratie.</value>
+  </data>
+  <data name="ConfirmBatchDelete" xml:space="preserve">
+    <value>Batchgewijs verwijderen bevestigen</value>
+  </data>
+  <data name="FailedEmailSingular" xml:space="preserve">
+    <value>De e-mail kon niet worden verwerkt</value>
+  </data>
+  <data name="FailedEmailsPlural" xml:space="preserve">
+    <value>De e-mails konden niet worden verwerkt</value>
+  </data>
+  <data name="EmailId" xml:space="preserve">
+    <value>E-mail-ID</value>
+  </data>
+  <data name="NewFeatures" xml:space="preserve">
+    <value>Nieuwe functies</value>
+  </data>
+  <data name="AllReleases" xml:space="preserve">
+    <value>Alle releases</value>
+  </data>
+  <data name="Documentation" xml:space="preserve">
+    <value>Documentatie</value>
+  </data>
+  <data name="GotIt" xml:space="preserve">
+    <value>Begrepen!</value>
+  </data>
+
+  <!-- MSA (personal Microsoft account) OAuth2 device code flow -->
+  <data name="MsaAuthorizeTitle" xml:space="preserve">
+    <value>Microsoft-account autoriseren</value>
+  </data>
+  <data name="MsaAccountLabel" xml:space="preserve">
+    <value>Account:</value>
+  </data>
+  <data name="MsaStep1OpenBrowser" xml:space="preserve">
+    <value>1. Open in een browser (of smartphone, enz.):</value>
+  </data>
+  <data name="MsaStep2EnterCode" xml:space="preserve">
+    <value>2. Voer deze code in:</value>
+  </data>
+  <data name="MsaCopyCode" xml:space="preserve">
+    <value>Kopiëren</value>
+  </data>
+  <data name="MsaCopyCodeTooltip" xml:space="preserve">
+    <value>Code kopiëren</value>
+  </data>
+  <data name="MsaCodeValidFor" xml:space="preserve">
+    <value>Code {0} minuten geldig.</value>
+  </data>
+  <data name="MsaWaitingForAuthorization" xml:space="preserve">
+    <value>Wachten op autorisatie …</value>
+  </data>
+  <data name="MsaAuthorizationSuccessful" xml:space="preserve">
+    <value>Autorisatie geslaagd! Doorsturen …</value>
+  </data>
+  <data name="MsaErrorPrefix" xml:space="preserve">
+    <value>Fout:</value>
+  </data>
+  <data name="MsaRetry" xml:space="preserve">
+    <value>Opnieuw proberen</value>
+  </data>
+  <data name="MsaProviderLabel" xml:space="preserve">
+    <value>Microsoft Persoonlijk</value>
+  </data>
+  <data name="MsaSettingsHeading" xml:space="preserve">
+    <value>Persoonlijk Microsoft-account (Outlook.com / M365 Family)</value>
+  </data>
+  <data name="MsaNoAppRegistrationNeeded" xml:space="preserve">
+    <value>Geen app-registratie vereist.</value>
+  </data>
+  <data name="MsaDefaultClientInfoCreate" xml:space="preserve">
+    <value>Mail-AArchiver gebruikt een vooraf geconfigureerde app-registratie. Voer het e-mailadres in, sla op en klik vervolgens op {0}.</value>
+  </data>
+  <data name="MsaAuthorize" xml:space="preserve">
+    <value>Autoriseren</value>
+  </data>
+  <data name="MsaAppRegistrationSetup" xml:space="preserve">
+    <value>Azure-app-registratie instellen (eenmalig, ~2 minuten)</value>
+  </data>
+  <data name="MsaCreateAppRegistration" xml:space="preserve">
+    <value>App-registratie aanmaken</value>
+  </data>
+  <data name="MsaSignInWithMicrosoftAccount" xml:space="preserve">
+    <value>(meld je aan met je Microsoft-account)</value>
+  </data>
+  <data name="MsaAppRegStepName" xml:space="preserve">
+    <value>Kies een willekeurige naam (bijv. mail-archiver)</value>
+  </data>
+  <data name="MsaAppRegStepAccountTypes" xml:space="preserve">
+    <value>Selecteer bij Ondersteunde accounttypen: Accounts in any organizational directory and personal Microsoft accounts</value>
+  </data>
+  <data name="MsaAppRegStepRedirect" xml:space="preserve">
+    <value>Laat Redirect-URI leeg → klik op Registreren</value>
+  </data>
+  <data name="MsaAppRegStepClientId" xml:space="preserve">
+    <value>Voer hieronder het getoonde Application (client) ID in</value>
+  </data>
+  <data name="MsaAppRegStepAuth" xml:space="preserve">
+    <value>Klik op Authentication in de app → schakel Allow public client flows in → Opslaan</value>
+  </data>
+  <data name="MsaNoSecretNeededCreate" xml:space="preserve">
+    <value>Geen secret, geen redirect-URI vereist. Klik na het opslaan op Autoriseren.</value>
+  </data>
+  <data name="MsaClientIdPlaceholder" xml:space="preserve">
+    <value>Azure App (client)-ID</value>
+  </data>
+  <data name="MsaClientSecretOptional" xml:space="preserve">
+    <value>(optioneel)</value>
+  </data>
+  <data name="MsaClientSecretPlaceholder" xml:space="preserve">
+    <value>Niet vereist voor public-client-apps</value>
+  </data>
+  <data name="MsaClientSecretHint" xml:space="preserve">
+    <value>Alleen nodig voor vertrouwelijke client-apps. Leeg laten bij gebruik van een public client.</value>
+  </data>
+  <data name="MsaAuthorized" xml:space="preserve">
+    <value>Geautoriseerd. Microsoft-account verbonden, token wordt automatisch vernieuwd.</value>
+  </data>
+  <data name="MsaReAuthorize" xml:space="preserve">
+    <value>Opnieuw autoriseren</value>
+  </data>
+  <data name="MsaNotYetAuthorized" xml:space="preserve">
+    <value>Nog niet geautoriseerd.</value>
+  </data>
+  <data name="MsaSaveThenAuthorize" xml:space="preserve">
+    <value>Opslaan, klik vervolgens op {0}.</value>
+  </data>
+  <data name="MsaEnterClientIdThenAuthorize" xml:space="preserve">
+    <value>Voer Client ID in, sla op, klik vervolgens op {0}.</value>
+  </data>
+  <data name="MsaDefaultClientInfoEdit" xml:space="preserve">
+    <value>Mail-Archiver gebruikt een vooraf geconfigureerde app-registratie — eigen registratie is niet vereist. Vul alleen in om een aangepaste Client ID te gebruiken.</value>
+  </data>
+  <data name="MsaNoSecretNeededShort" xml:space="preserve">
+    <value>Geen secret, geen redirect-URI vereist.</value>
+  </data>
+  <data name="MsaClientIdOptionalHint" xml:space="preserve">
+    <value>Optioneel — leeg laten om de standaard app-registratie te gebruiken.</value>
+  </data>
+  <data name="MsaClientIdKeepExisting" xml:space="preserve">
+    <value>Leeg laten om bestaande waarde te behouden.</value>
+  </data>
+  <data name="MsaClientSecretPlaceholderEdit" xml:space="preserve">
+    <value>Niet vereist voor Device Code Flow</value>
+  </data>
+  <data name="MsaAuthorizeWithMicrosoft" xml:space="preserve">
+    <value>Autoriseren met Microsoft</value>
+  </data>
+  <data name="MsaReAuthorizeWithMicrosoft" xml:space="preserve">
+    <value>Opnieuw autoriseren met Microsoft</value>
+  </data>
+  <data name="MsaClientIdRequired" xml:space="preserve">
+    <value>Een Client ID is vereist voor MS Persoonlijk-accounts wanneer geen standaard Client ID is geconfigureerd.</value>
+  </data>
+  <data name="MsaNotAuthorizedSync" xml:space="preserve">
+    <value>Dit Microsoft-account is nog niet geautoriseerd. Klik eerst op &quot;Autoriseren met Microsoft&quot; op de bewerkpagina van het account.</value>
+  </data>
+  <data name="MsaClientIdNotConfigured" xml:space="preserve">
+    <value>Client ID is niet geconfigureerd. Bewerk eerst het account.</value>
+  </data>
+  <data name="MsaAuthorizationFailed" xml:space="preserve">
+    <value>Starten van autorisatie mislukt: {0}</value>
+  </data>
+  <data name="MsaAccessDenied" xml:space="preserve">
+    <value>Toegang geweigerd.</value>
+  </data>
+  <data name="MsaSessionExpired" xml:space="preserve">
+    <value>Sessie verlopen. Start de autorisatie opnieuw.</value>
+  </data>
+  <data name="MsaAccountNotFound" xml:space="preserve">
+    <value>Account niet gevonden.</value>
+  </data>
+  <data name="MsaAuthorizationCancelled" xml:space="preserve">
+    <value>Accountaanmaak geannuleerd.</value>
+  </data>
+  <data name="UseTenantImport" xml:space="preserve">
+    <value>Tenantimporteren gebruiken</value>
+  </data>
+  <data name="UseTenantImportHelp" xml:space="preserve">
+    <value>Laadt de postvakken van de tenant en maakt accounts aan volgens het naamgevingsschema: ingevoerde naam - &lt;postvak@voorbeeld.com&gt;.</value>
+  </data>
+  <data name="SkipDisabledMailboxes" xml:space="preserve">
+    <value>Uitgeschakelde postvakken overslaan</value>
+  </data>
+  <data name="ImportAllListedMailboxes" xml:space="preserve">
+    <value>Alle vermelde postvakken importeren</value>
+  </data>
+  <data name="ImportAllListedMailboxesHelp" xml:space="preserve">
+    <value>Wanneer uitgeschakeld, worden alleen de hieronder geselecteerde postvakken geïmporteerd.</value>
+  </data>
+  <data name="LoadMailboxes" xml:space="preserve">
+    <value>Postvakken laden</value>
+  </data>
+  <data name="TenantMailboxes" xml:space="preserve">
+    <value>Tenant-postvakken</value>
+  </data>
+  <data name="ClearSelection" xml:space="preserve">
+    <value>Selectie wissen</value>
+  </data>
+  <data name="NoMailboxesFound" xml:space="preserve">
+    <value>Geen postvakken gevonden.</value>
+  </data>
+  <data name="DisabledLowercase" xml:space="preserve">
+    <value>uitgeschakeld</value>
+  </data>
+  <data name="AlreadyExistsLowercase" xml:space="preserve">
+    <value>bestaat al</value>
+  </data>
+  <data name="LoadingMailboxes" xml:space="preserve">
+    <value>Postvakken laden...</value>
+  </data>
+  <data name="MailboxesCouldNotBeLoaded" xml:space="preserve">
+    <value>Postvakken konden niet worden geladen.</value>
+  </data>
+  <data name="MailboxesFound" xml:space="preserve">
+    <value>{0} postvak(ken) gevonden.</value>
+  </data>
+  <data name="M365MailboxDefaultName" xml:space="preserve">
+    <value>M365-postvak</value>
+  </data>
+  <data name="NoEnabledM365UsersFound" xml:space="preserve">
+    <value>Er zijn geen ingeschakelde M365-gebruikers gevonden met een e-mailadres of een gebruikersprincipalnaam in deze tenant.</value>
+  </data>
+  <data name="SelectAtLeastOneMailboxOrImportAll" xml:space="preserve">
+    <value>Selecteer ten minste één postvak of schakel het importeren van alle vermelde postvakken in.</value>
+  </data>
+  <data name="AllSelectedM365TenantMailboxesAlreadyExist" xml:space="preserve">
+    <value>Alle {0} geselecteerde M365-tenantpostvakken bestaan al.</value>
+  </data>
+  <data name="ImportedM365TenantAccounts" xml:space="preserve">
+    <value>{0} M365-tenant-e-mailaccounts geïmporteerd. {1} bestaande accounts overgeslagen.</value>
+  </data>
+  <data name="M365TenantCredentialsRequired" xml:space="preserve">
+    <value>Client-ID, clientgeheim en tenant-ID zijn vereist om tenantpostvakken op te sommen.</value>
+  </data>
+  <data name="M365TenantMailboxesCouldNotBeListed" xml:space="preserve">
+    <value>Tenantpostvakken konden niet worden opgesomd. Controleer de M365-referenties en machtigingen.</value>
+  </data>
+  <data name="M365TenantAccountsCouldNotBeImported" xml:space="preserve">
+    <value>De M365-tenantaccounts konden niet worden geïmporteerd. Controleer de referenties en machtigingen.</value>
+  </data>
+  <data name="NameRequired" xml:space="preserve">
+    <value>Naam is vereist</value>
+  </data>
+  <data name="EmailAddressRequired" xml:space="preserve">
+    <value>E-mailadres is vereist</value>
+  </data>
+  <data name="ProviderM365Single" xml:space="preserve">
+    <value>Microsoft 365 (enkel postvak)</value>
+  </data>
+  <data name="ProviderM365Tenant" xml:space="preserve">
+    <value>Microsoft 365 (tenant)</value>
+  </data>
+  <data name="LoadMailboxesHelp" xml:space="preserve">
+    <value>Laad de lijst met tenantpostvakken om te kiezen welke accounts moeten worden geïmporteerd.</value>
+  </data>
+  <data name="InvalidImportFileType" xml:space="preserve">
+    <value>Ongeldig bestandstype. Toegestane extensies: .mbox, .eml, .zip</value>
+  </data>
+  <data name="ClientSecretWillBeCopiedOnSave" xml:space="preserve">
+    <value>Het clientgeheim wordt bij het opslaan gekopieerd van het geselecteerde bestaande account.</value>
+  </data>
+  <data name="ClientSecretRequired" xml:space="preserve">
+    <value>Clientgeheim is vereist voor M365-accounts</value>
+  </data>
+  <data name="TenantManagement" xml:space="preserve">
+    <value>Tenantbeheer</value>
+  </data>
+  <data name="TenantManagementTitle" xml:space="preserve">
+    <value>Tenantbeheer</value>
+  </data>
+  <data name="TenantManagementHelp" xml:space="preserve">
+    <value>Voeg ontbrekende postvakken van deze tenant toe. Nieuwe accounts gebruiken de inloggegevens van het bronaccount.</value>
+  </data>
+  <data name="AddSelectedMailboxes" xml:space="preserve">
+    <value>Geselecteerde postvakken toevoegen</value>
+  </data>
+  <data name="MailboxesAdded" xml:space="preserve">
+    <value>{0} postvak(ken) toegevoegd.</value>
+  </data>
+  <data name="NoNewMailboxesToAdd" xml:space="preserve">
+    <value>Geen nieuwe postvakken om toe te voegen.</value>
+  </data>
+  <data name="SelectAtLeastOneMailboxForManagement" xml:space="preserve">
+    <value>Selecteer ten minste één postvak om toe te voegen.</value>
+  </data>
+  <data name="MoreActions" xml:space="preserve">
+    <value>Meer acties</value>
+  </data>
+  <data name="AccountNameTooLong" xml:space="preserve">
+    <value>De accountnaam mag uit maximaal 200 tekens bestaan.</value>
+  </data>
+  <data name="SelectAtMostMailboxes" xml:space="preserve">
+    <value>Selecteer maximaal {0} postvakken tegelijk.</value>
+  </data>
+  <data name="SearchMailboxes" xml:space="preserve">
+    <value>Postvakken zoeken...</value>
+  </data>
+  <data name="NoMailboxesMatch" xml:space="preserve">
+    <value>Geen postvakken komen overeen met uw zoekopdracht.</value>
+  </data>
+  <data name="SearchAccounts" xml:space="preserve">
+    <value>Accounts zoeken...</value>
+  </data>
+  <data name="NoAccountsMatch" xml:space="preserve">
+    <value>Geen accounts komen overeen met uw zoekopdracht.</value>
+  </data>
+  <data name="SearchUsers" xml:space="preserve">
+    <value>Gebruikers zoeken...</value>
+  </data>
+  <data name="NoUsersMatch" xml:space="preserve">
+    <value>Geen gebruikers komen overeen met uw zoekopdracht.</value>
+  </data>
+  <data name="AccountsFound" xml:space="preserve">
+    <value>{0} accounts gevonden</value>
+  </data>
+  <data name="UsersFound" xml:space="preserve">
+    <value>{0} gebruikers gevonden</value>
+  </data>
+  <data name="RenameExistingAccounts" xml:space="preserve">
+    <value>Bestaande accounts hernoemen</value>
+  </data>
+  <data name="RenameExistingAccountsHelp" xml:space="preserve">
+    <value>Past het naamgevingschema na opslaan toe op alle M365-accounts die dezelfde app-registratie gebruiken.</value>
+  </data>
+  <data name="AccountsRenamed" xml:space="preserve">
+    <value>{0} account(s) hernoemd.</value>
+  </data>
+  <data name="MailboxesAddedAndAccountsRenamed" xml:space="preserve">
+    <value>{0} postvak(ken) toegevoegd en {1} account(s) hernoemd.</value>
+  </data>
+  <data name="ShowPassword" xml:space="preserve">
+    <value>Wachtwoord tonen</value>
+  </data>
+  <data name="HidePassword" xml:space="preserve">
+    <value>Wachtwoord verbergen</value>
+  </data>
+  <data name="AdvancedSettings" xml:space="preserve">
+    <value>Geavanceerde instellingen</value>
+  </data>
+  <data name="UnsavedChangesWarning" xml:space="preserve">
+    <value>U heeft niet-opgeslagen wijzigingen. Weet u zeker dat u deze pagina wilt verlaten?</value>
+  </data>
+  <data name="Saving" xml:space="preserve">
+    <value>Opslaan...</value>
+  </data>
+  <data name="CopyFolderToExcluded" xml:space="preserve">
+    <value>Klik op een map om deze toe te voegen of te verwijderen uit de uitsluitingslijst</value>
+  </data>
+  <data name="StorageUsed" xml:space="preserve">
+    <value>Gebruikte opslag</value>
+  </data>
+  <data name="ConnectionDetails" xml:space="preserve">
+    <value>Verbindingsgegevens</value>
+  </data>
+  <data name="PrimaryActions" xml:space="preserve">
+    <value>Acties</value>
+  </data>
+  <data name="FilterMailboxes" xml:space="preserve">
+    <value>Postvakken filteren...</value>
+  </data>
+  <data name="NoMailboxesMatchFilter" xml:space="preserve">
+    <value>Geen postvakken komen overeen met uw filter.</value>
+  </data>
+  <data name="MsaBadge" xml:space="preserve">
+    <value>MSA (persoonlijk)</value>
+  </data>
+  <data name="MsaAuthAfterSaveInfo" xml:space="preserve">
+    <value>Na het opslaan wordt u doorverwezen naar Microsoft om toegang tot uw postvak te autoriseren.</value>
+  </data>
+  <data name="UserAccountSection" xml:space="preserve">
+    <value>Accountgegevens</value>
+  </data>
+  <data name="UserSecuritySection" xml:space="preserve">
+    <value>Beveiliging</value>
+  </data>
+  <data name="OidcPasswordManagedExternally" xml:space="preserve">
+    <value>Dit is een OIDC-gebruiker. Wachtwoordbeheer wordt afgehandeld door de OIDC-provider.</value>
+  </data>
+  <data name="BackgroundJobsActiveCount" xml:space="preserve">
+    <value>{0} achtergrondtaak(ken) actief.</value>
+  </data>
+  <data name="AutoRefreshInfo" xml:space="preserve">
+    <value>Automatisch vernieuwen over {0}s</value>
+  </data>
+  <data name="WelcomeBack" xml:space="preserve">
+    <value>Welkom terug, {0}</value>
+  </data>
+  <!-- CSV Bulk IMAP Import -->
+  <data name="ImportCsvBulk" xml:space="preserve">
+    <value>CSV bulk import</value>
+  </data>
+  <data name="CsvImportTitle" xml:space="preserve">
+    <value>IMAP-postvakken importeren vanuit CSV</value>
+  </data>
+  <data name="CsvImportInformation" xml:space="preserve">
+    <value>Importeer meerdere IMAP-postvakken tegelijk via een CSV-bestand.</value>
+  </data>
+  <data name="CsvImportFormatHelp" xml:space="preserve">
+    <value>Kolommen: email (verplicht), password (verplicht), name (optioneel), username (optioneel), imap_server (optioneel), imap_port (optioneel), use_ssl (optioneel)</value>
+  </data>
+  <data name="CsvImportCommonServerHelp" xml:space="preserve">
+    <value>Algemene serverinstellingen gelden voor alle rijen zonder een imap_server-kolom.</value>
+  </data>
+  <data name="CsvImportNoConnectionTest" xml:space="preserve">
+    <value>Er wordt geen IMAP-verbindingstest uitgevoerd — fouten verschijnen pas bij de eerste synchronisatie.</value>
+  </data>
+  <data name="CsvImportAdminOnlyNote" xml:space="preserve">
+    <value>Deze functie is alleen beschikbaar voor beheerders.</value>
+  </data>
+  <data name="DownloadExampleCsv" xml:space="preserve">
+    <value>Voorbeeld-CSV downloaden</value>
+  </data>
+  <data name="CsvImportSettingsTitle" xml:space="preserve">
+    <value>Upload en instellingen</value>
+  </data>
+  <data name="CsvFile" xml:space="preserve">
+    <value>CSV-bestand</value>
+  </data>
+  <data name="CsvFileHelp" xml:space="preserve">
+    <value>UTF-8 gecodeerd CSV-bestand met koptekstrij. Verplichte kolommen: email, password.</value>
+  </data>
+  <data name="CommonServerSettings" xml:space="preserve">
+    <value>Algemene serverinstellingen</value>
+  </data>
+  <data name="CommonServerSettingsHelp" xml:space="preserve">
+    <value>Wordt gebruikt wanneer de CSV-rij geen imap_server-waarde heeft.</value>
+  </data>
+  <data name="ImapServerLabel" xml:space="preserve">
+    <value>IMAP-server</value>
+  </data>
+  <data name="ImapPortLabel" xml:space="preserve">
+    <value>IMAP-poort</value>
+  </data>
+  <data name="UseSslLabel" xml:space="preserve">
+    <value>SSL gebruiken</value>
+  </data>
+  <data name="NamePrefix" xml:space="preserve">
+    <value>Naamvoorvoegsel</value>
+  </data>
+  <data name="NamePrefixHelp" xml:space="preserve">
+    <value>Standaardnaam: "{prefix} - &lt;{email}&gt;"</value>
+  </data>
+  <data name="SkipExisting" xml:space="preserve">
+    <value>Bestaande postvakken overslaan</value>
+  </data>
+  <data name="SkipExistingHelp" xml:space="preserve">
+    <value>Duplicaten worden overgeslagen, niet gemarkeerd als fouten.</value>
+  </data>
+  <data name="AccountEnabledLabel" xml:space="preserve">
+    <value>Account ingeschakeld</value>
+  </data>
+  <data name="CsvImportSubmit" xml:space="preserve">
+    <value>Importeren</value>
+  </data>
+  <data name="CsvImportResult" xml:space="preserve">
+    <value>Importresultaat</value>
+  </data>
+  <data name="CsvImportAgain" xml:space="preserve">
+    <value>Nog een CSV importeren</value>
+  </data>
+  <data name="CsvImportResultSummary" xml:space="preserve">
+    <value>{0} aangemaakt, {1} overgeslagen, {2} mislukt</value>
+  </data>
+  <data name="CsvImportCreated" xml:space="preserve">
+    <value>Aangemaakt</value>
+  </data>
+  <data name="CsvImportSkipped" xml:space="preserve">
+    <value>Overgeslagen</value>
+  </data>
+  <data name="CsvImportFailed" xml:space="preserve">
+    <value>Mislukt</value>
+  </data>
+  <data name="CsvImportEmail" xml:space="preserve">
+    <value>E-mail</value>
+  </data>
+  <data name="CsvImportNameCol" xml:space="preserve">
+    <value>Naam</value>
+  </data>
+  <data name="CsvImportReason" xml:space="preserve">
+    <value>Reden</value>
+  </data>
+  <data name="CsvImportRowNumber" xml:space="preserve">
+    <value>Regel</value>
+  </data>
+  <data name="CsvImportNoFile" xml:space="preserve">
+    <value>Selecteer een CSV-bestand.</value>
+  </data>
+  <data name="CsvImportFileTooLarge" xml:space="preserve">
+    <value>Bestand te groot: {0} MB, maximum is {1} MB.</value>
+  </data>
+  <data name="CsvImportNoValidRows" xml:space="preserve">
+    <value>Geen geldige postvakken gevonden in het CSV-bestand.</value>
+  </data>
+  <data name="CsvImportTooManyRows" xml:space="preserve">
+    <value>Het CSV-bestand bevat {0} rijen, maximum is {1}.</value>
+  </data>
+  <data name="CsvImportMissingServer" xml:space="preserve">
+    <value>Geen IMAP-server opgegeven (noch in de rij noch in het formulier).</value>
+  </data>
+  <data name="CsvImportInvalidPort" xml:space="preserve">
+    <value>Ongeldige poort "{1}"</value>
+  </data>
+  <data name="CsvImportInvalidUseSsl" xml:space="preserve">
+    <value>Ongeldige use_ssl-waarde "{1}"</value>
+  </data>
+  <data name="CsvImportMissingEmail" xml:space="preserve">
+    <value>E-mailadres ontbreekt.</value>
+  </data>
+  <data name="CsvImportMissingPassword" xml:space="preserve">
+    <value>Wachtwoord ontbreekt.</value>
+  </data>
+  <data name="CsvImportMalformedLine" xml:space="preserve">
+    <value>Onjuist gevormde CSV-regel — kon niet worden geparseerd.</value>
+  </data>
+  <data name="CsvImportDuplicateInFile" xml:space="preserve">
+    <value>Duplicaat in CSV-bestand</value>
+  </data>
+  <data name="CsvImportAlreadyExists" xml:space="preserve">
+    <value>Postvak bestaat al</value>
+  </data>
+  <data name="CsvImportCouldNotBeProcessed" xml:space="preserve">
+    <value>CSV-import kon niet worden verwerkt</value>
+  </data>
+  <data name="CsvImportAdminOnly" xml:space="preserve">
+    <value>CSV bulk import is alleen beschikbaar voor beheerders.</value>
+  </data>
+  <data name="ImportEmailsHeader" xml:space="preserve">
+    <value>E-mails importeren</value>
+  </data>
+  <data name="ImportAccountsHeader" xml:space="preserve">
+    <value>Accounts importeren</value>
+  </data>
+  <!-- API Keys (read-only REST API) -->
+  <data name="ApiKeys" xml:space="preserve">
+    <value>API-sleutels</value>
+  </data>
+  <data name="ApiKeysDescription" xml:space="preserve">
+    <value>Beheer API-sleutels voor programmatische, alleen-lezen toegang tot je gearchiveerde mail.</value>
+  </data>
+  <data name="CreateApiKey" xml:space="preserve">
+    <value>API-sleutel maken</value>
+  </data>
+  <data name="ApiKeyName" xml:space="preserve">
+    <value>Naam</value>
+  </data>
+  <data name="ApiKeyExpiration" xml:space="preserve">
+    <value>Vervaldatum (optioneel)</value>
+  </data>
+  <data name="ApiKeyCreatedOnce" xml:space="preserve">
+    <value>Kopieer deze sleutel nu. Om veiligheidsredenen wordt deze maar één keer getoond en kan deze later niet worden opgehaald.</value>
+  </data>
+  <data name="ApiKeyValue" xml:space="preserve">
+    <value>API-sleutel</value>
+  </data>
+  <data name="ApiKeyPrefix" xml:space="preserve">
+    <value>Voorvoegsel</value>
+  </data>
+  <data name="ApiKeyCreatedColumn" xml:space="preserve">
+    <value>Aangemaakt</value>
+  </data>
+  <data name="ApiKeyLastUsed" xml:space="preserve">
+    <value>Laatst gebruikt</value>
+  </data>
+  <data name="ApiKeyExpires" xml:space="preserve">
+    <value>Vervalt</value>
+  </data>
+  <data name="ApiKeyStatus" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="ApiKeyActive" xml:space="preserve">
+    <value>Actief</value>
+  </data>
+  <data name="ApiKeyRevoked" xml:space="preserve">
+    <value>Ingetrokken</value>
+  </data>
+  <data name="ApiKeyExpired" xml:space="preserve">
+    <value>Verlopen</value>
+  </data>
+  <data name="ApiKeyRevoke" xml:space="preserve">
+    <value>Intrekken</value>
+  </data>
+  <data name="ApiKeyRevokeConfirm" xml:space="preserve">
+    <value>Deze API-sleutel intrekken? Applicaties die deze gebruiken stoppen onmiddellijk met werken.</value>
+  </data>
+  <data name="ApiKeyOwner" xml:space="preserve">
+    <value>Eigenaar</value>
+  </data>
+  <data name="NoApiKeys" xml:space="preserve">
+    <value>Nog geen API-sleutels.</value>
+  </data>
+  <data name="ApiKeyCreatedSuccess" xml:space="preserve">
+    <value>API-sleutel aangemaakt.</value>
+  </data>
+  <data name="ApiKeyRevokedSuccess" xml:space="preserve">
+    <value>API-sleutel ingetrokken.</value>
+  </data>
+  <data name="ApiKeyRevokeFailed" xml:space="preserve">
+    <value>Kan de API-sleutel niet intrekken.</value>
+  </data>
+  <data name="Copy" xml:space="preserve">
+    <value>Kopiëren</value>
+  </data>
+  <data name="MeetingInvitation" xml:space="preserve">
+    <value>Uitnodiging voor vergadering</value>
+  </data>
+  <data name="MeetingStart" xml:space="preserve">
+    <value>Start</value>
+  </data>
+  <data name="MeetingEnd" xml:space="preserve">
+    <value>Einde</value>
+  </data>
+  <data name="MeetingLocation" xml:space="preserve">
+    <value>Locatie</value>
+  </data>
+  <data name="MeetingOrganizer" xml:space="preserve">
+    <value>Organisator</value>
+  </data>
+  <data name="MeetingAttendees" xml:space="preserve">
+    <value>Deelnemers</value>
+  </data>
+  <data name="MeetingDescription" xml:space="preserve">
+    <value>Beschrijving</value>
+  </data>
+  <data name="AcknowledgeFailures" xml:space="preserve">
+    <value>Fouten erkennen</value>
+  </data>
+  <data name="AcknowledgeFailuresConfirm" xml:space="preserve">
+    <value>Dit zal de synchronisatietijdstempel vooruitschuiven naar de voltooiingstijd van deze taak, zodat de volgende synchronisatie een normale incrementele synchronisatie zal zijn. De mislukte e-mails worden niet opnieuw geprobeerd. Doorgaan?</value>
+  </data>
+  <data name="AcknowledgeFailuresSuccess" xml:space="preserve">
+    <value>De synchronisatietijdstempel is vooruitgeschoven. De volgende synchronisatie zal incrementeel zijn.</value>
+  </data>
+  <data name="FailuresAcknowledged" xml:space="preserve">
+    <value>Fouten erkend</value>
+  </data>
+  <data name="OffloadTitle" xml:space="preserve">
+    <value>Naar ander postvak overbrengen</value>
+  </data>
+  <data name="OffloadIntro" xml:space="preserve">
+    <value>Voegt gearchiveerde mail nieuwer dan een afkapdatum toe aan een ander postvak en slaat over wat dat postvak al bevat. Oudere mail blijft in het archief. Opnieuw uitvoeren is veilig en voegt niets toe wat al is aangekomen.</value>
+  </data>
+  <data name="OffloadSourceAndTarget" xml:space="preserve">
+    <value>Bron en doel</value>
+  </data>
+  <data name="SourceAccount" xml:space="preserve">
+    <value>Bronaccount</value>
+  </data>
+  <data name="OffloadSelectTarget" xml:space="preserve">
+    <value>Selecteer een doelpostvak…</value>
+  </data>
+  <data name="OffloadLoadingFolders" xml:space="preserve">
+    <value>Mappen laden…</value>
+  </data>
+  <data name="OffloadSelectFolder" xml:space="preserve">
+    <value>-- Kies een doelmap --</value>
+  </data>
+  <data name="OffloadErrorLoadingFolders" xml:space="preserve">
+    <value>Fout bij laden van mappen</value>
+  </data>
+  <data name="OffloadSelectTargetFirst" xml:space="preserve">
+    <value>Kies eerst een doelpostvak</value>
+  </data>
+  <data name="OffloadTargetFolderHelp" xml:space="preserve">
+    <value>Hoofdmap in het doelpostvak. Met INBOX wordt de bronmapstructuur op het hoogste niveau gereconstrueerd.</value>
+  </data>
+  <data name="OffloadWindow" xml:space="preserve">
+    <value>Datumvenster</value>
+  </data>
+  <data name="OffloadWindowMonths" xml:space="preserve">
+    <value>Laatste N maanden</value>
+  </data>
+  <data name="OffloadWindowMonthsHelp" xml:space="preserve">
+    <value>Wordt bij start van de taak omgezet naar een vaste datum, zodat herhaling dezelfde mail selecteert. Stel in op 0 om een expliciete datum te gebruiken.</value>
+  </data>
+  <data name="OffloadCutoffFrom" xml:space="preserve">
+    <value>Vanaf datum</value>
+  </data>
+  <data name="OffloadCutoffFromHelp" xml:space="preserve">
+    <value>Negeert het maandvenster. Inclusief, vanaf 00:00 van deze dag.</value>
+  </data>
+  <data name="OffloadCutoffTo" xml:space="preserve">
+    <value>Tot datum (optioneel)</value>
+  </data>
+  <data name="OffloadCutoffToHelp" xml:space="preserve">
+    <value>Inclusief, tot 23:59:59 van deze dag.</value>
+  </data>
+  <data name="OffloadOptions" xml:space="preserve">
+    <value>Opties</value>
+  </data>
+  <data name="OffloadDryRun" xml:space="preserve">
+    <value>Proefrun</value>
+  </data>
+  <data name="OffloadDryRunHelp" xml:space="preserve">
+    <value>Lost alles op en meldt per map wat er zou gebeuren, maar voegt niets toe. Aanbevolen voor een echte run.</value>
+  </data>
+  <data name="OffloadMarkAsSeen" xml:space="preserve">
+    <value>Toegevoegde mail markeren als gelezen</value>
+  </data>
+  <data name="OffloadMarkAsSeenHelp" xml:space="preserve">
+    <value>Schakel dit uit om ongelezen mail in het doelpostvak ongelezen te houden.</value>
+  </data>
+  <data name="OffloadFolderHandling" xml:space="preserve">
+    <value>Mapafhandeling</value>
+  </data>
+  <data name="OffloadExcludedFolders" xml:space="preserve">
+    <value>Uitgesloten bronmappen</value>
+  </data>
+  <data name="OffloadRenameMap" xml:space="preserve">
+    <value>Mapnaam wijzigingstabel</value>
+  </data>
+  <data name="OffloadNoneConfigured" xml:space="preserve">
+    <value>geen geconfigureerd</value>
+  </data>
+  <data name="OffloadFolderHandlingHelp" xml:space="preserve">
+    <value>Beide worden in de sectie Offload van appsettings.json geconfigureerd en zijn standaard leeg. Uitsluitingen worden vóór het hernoemen toegepast en dekken submappen.</value>
+  </data>
+  <data name="OffloadStart" xml:space="preserve">
+    <value>Overbrengen starten</value>
+  </data>
+  <data name="OffloadNoTargets" xml:space="preserve">
+    <value>Geen ander IMAP-account beschikbaar als doel. Maak er eerst een aan.</value>
+  </data>
+  <data name="OffloadNoTargetsAssigned" xml:space="preserve">
+    <value>Geen van de aan u toegewezen postvakken kan als doel worden gebruikt. Vraag een beheerder om een ander IMAP-account toe te wijzen.</value>
+  </data>
+  <data name="OffloadTargetRequired" xml:space="preserve">
+    <value>Kies een doelpostvak.</value>
+  </data>
+  <data name="OffloadTargetMustDiffer" xml:space="preserve">
+    <value>Het doelpostvak moet verschillen van de bron.</value>
+  </data>
+  <data name="OffloadTargetNotFound" xml:space="preserve">
+    <value>Het geselecteerde doelpostvak bestaat niet meer.</value>
+  </data>
+  <data name="OffloadTargetMustBeImap" xml:space="preserve">
+    <value>Het doelpostvak moet een IMAP-account zijn.</value>
+  </data>
+  <data name="OffloadCutoffRequired" xml:space="preserve">
+    <value>Geef een maandvenster of een vanaf-datum op.</value>
+  </data>
+  <data name="OffloadCutoffToBeforeFrom" xml:space="preserve">
+    <value>De tot-datum mag niet vóór de vanaf-datum liggen.</value>
+  </data>
+  <data name="OffloadNothingInWindow" xml:space="preserve">
+    <value>Er valt geen gearchiveerde mail binnen dat datumvenster.</value>
+  </data>
+  <data name="OffloadQueued" xml:space="preserve">
+    <value>Overbrengen in de wachtrij voor {0} mails.</value>
+  </data>
+  <data name="OffloadDryRunQueued" xml:space="preserve">
+    <value>Proefrun in de wachtrij voor {0} mails. Er wordt niets toegevoegd.</value>
+  </data>
+  <data name="OffloadAppended" xml:space="preserve">
+    <value>Toegevoegd</value>
+  </data>
+  <data name="OffloadAlreadyPresent" xml:space="preserve">
+    <value>Reeds aanwezig</value>
+  </data>
+  <data name="OffloadByFingerprint" xml:space="preserve">
+    <value>gedetecteerd via vingerafdruk</value>
+  </data>
+  <data name="OffloadExcluded" xml:space="preserve">
+    <value>Uitgesloten map</value>
+  </data>
+  <data name="OffloadReport" xml:space="preserve">
+    <value>Overbrengingsrapport</value>
+  </data>
+  <data name="OffloadJob" xml:space="preserve">
+    <value>Overbrengen</value>
+  </data>
+
+  <data name="AuditExport" xml:space="preserve">
+    <value>Auditdata-export</value>
+  </data>
+  <data name="AuditExportHistory" xml:space="preserve">
+    <value>Exportgeschiedenis</value>
+  </data>
+  <data name="Mailbox" xml:space="preserve">
+    <value>Postvak</value>
+  </data>
+  <data name="AllMailboxes" xml:space="preserve">
+    <value>Alle postvakken</value>
+  </data>
+  <data name="AttachmentMetadata" xml:space="preserve">
+    <value>Metagegevens van bijlagen</value>
+  </data>
+  <data name="IncludeAttachmentMetadata" xml:space="preserve">
+    <value>Tabel met metagegevens van bijlagen opnemen</value>
+  </data>
+  <data name="DataSupplierName" xml:space="preserve">
+    <value>Naam van de gegevensleverancier</value>
+  </data>
+  <data name="DataSupplierLocation" xml:space="preserve">
+    <value>Locatie van de gegevensleverancier</value>
+  </data>
+  <data name="NoAuditExportsYet" xml:space="preserve">
+    <value>Nog geen exports</value>
+  </data>
+  <data name="Period" xml:space="preserve">
+    <value>Periode</value>
+  </data>
+
+  <data name="Comment" xml:space="preserve">
+    <value>Opmerking</value>
+  </data>
+  <data name="AuditExportInvalidPeriod" xml:space="preserve">
+    <value>Ongeldige periode: start- en einddatum zijn vereist.</value>
+  </data>
+  <data name="AuditExportRangeTooLong" xml:space="preserve">
+    <value>De periode mag niet langer zijn dan {0} jaar.</value>
+  </data>
+  <data name="AuditExportAccountNotFound" xml:space="preserve">
+    <value>Het geselecteerde postvak is niet gevonden.</value>
+  </data>
+  <data name="AuditExportFileNotFound" xml:space="preserve">
+    <value>Het exportbestand is niet gevonden of is niet langer beschikbaar.</value>
+  </data>
+
+  <data name="BackToLogs" xml:space="preserve">
+    <value>Terug naar logboek</value>
+  </data>
+  <data name="ExportSettings" xml:space="preserve">
+    <value>Exportinstellingen</value>
+  </data>
+  <data name="CancelExportConfirm" xml:space="preserve">
+    <value>Deze export annuleren?</value>
+  </data>
+  <data name="FailedFilesTitle" xml:space="preserve">
+    <value>Mislukte bestanden ({0})</value>
+  </data>
+  <data name="FailedFilesTruncated" xml:space="preserve">
+    <value>Alleen de eerste 200 mislukte bestanden worden vermeld. Zie de Docker-logs voor de volledige lijst.</value>
+  </data>
+  <data name="FailedFilesReason_BannerLine" xml:space="preserve">
+    <value>Niet-standaard bannerregel vóór de e-mailheaders (bijv. MailStore PST-export)</value>
+  </data>
+  <data name="FailedFilesReason_MboxFromLine" xml:space="preserve">
+    <value>Restant mbox &apos;From &apos;-markeringsregel</value>
+  </data>
+  <data name="FailedFilesReason_SplitHeaderBlock" xml:space="preserve">
+    <value>Headerblok gesplitst door lege regels</value>
+  </data>
+  <data name="FailedFilesReason_JunkBeforeHeaders" xml:space="preserve">
+    <value>Onleesbare regels vóór de e-mailheaders</value>
+  </data>
+  <data name="FailedFilesReason_UnparseableHeaders" xml:space="preserve">
+    <value>E-mailheaders konden niet worden geïnterpreteerd</value>
+  </data>
+  <data name="FailedFilesReason_Generic" xml:space="preserve">
+    <value>Fout bij het verwerken van het bestand</value>
+  </data>
+  <data name="RecoveredLabel" xml:space="preserve">
+    <value>Hersteld:</value>
+  </data>
+  <data name="RecoveredTitle" xml:space="preserve">
+    <value>Herstelde e-mails</value>
+  </data>
+  <data name="RecoveredSummary" xml:space="preserve">
+    <value>{0} e-mail(s) met niet-standaardheaders zijn automatisch hersteld en gearchiveerd.</value>
+  </data>
+  <data name="Domains" xml:space="preserve">
+    <value>Domeinen</value>
+  </data>
+  <data name="EmailsPerPeriod" xml:space="preserve">
+    <value>E-mails per periode</value>
+  </data>
+  <data name="ChartGranularity" xml:space="preserve">
+    <value>Resolutie</value>
+  </data>
+  <data name="ChartLoadFailed" xml:space="preserve">
+    <value>De grafiek kon niet worden geladen. Probeer het opnieuw.</value>
+  </data>
+  <data name="Hour" xml:space="preserve">
+    <value>Uur</value>
+  </data>
+  <data name="Day" xml:space="preserve">
+    <value>Dag</value>
+  </data>
+  <data name="Month" xml:space="preserve">
+    <value>Maand</value>
+  </data>
+  <data name="Year" xml:space="preserve">
+    <value>Jaar</value>
+  </data>
+  <data name="PeriodUnitDay" xml:space="preserve">
+    <value>dag</value>
+  </data>
+  <data name="PeriodUnitDays" xml:space="preserve">
+    <value>dagen</value>
+  </data>
+  <data name="PeriodUnitMonth" xml:space="preserve">
+    <value>maand</value>
+  </data>
+  <data name="PeriodUnitMonths" xml:space="preserve">
+    <value>maanden</value>
+  </data>
+  <data name="PeriodUnitYear" xml:space="preserve">
+    <value>jaar</value>
+  </data>
+  <data name="PeriodUnitYears" xml:space="preserve">
+    <value>jaren</value>
+  </data>
+  <data name="EarlierPeriod" xml:space="preserve">
+    <value>Eerdere periode</value>
+  </data>
+  <data name="LaterPeriod" xml:space="preserve">
+    <value>Latere periode</value>
+  </data>
+  <data name="CurrentPeriod" xml:space="preserve">
+    <value>Nu</value>
   </data>
 </root>

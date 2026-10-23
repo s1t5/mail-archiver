@@ -8,7 +8,7 @@ namespace MailArchiver.Services.Providers
     /// </summary>
     public class ImportEmailService : IProviderEmailService
     {
-        public Task SyncMailAccountAsync(MailAccount account, string? jobId = null)
+        public Task SyncMailAccountAsync(MailAccount account, string? jobId = null, CancellationToken cancellationToken = default)
         {
             throw new NotSupportedException("Import provider does not support sync operations");
         }
@@ -23,7 +23,17 @@ namespace MailArchiver.Services.Providers
             throw new NotSupportedException("Import provider does not have folders");
         }
 
+        public Task<List<MailFolderInfo>> GetMailFolderDetailsAsync(int accountId)
+        {
+            throw new NotSupportedException("Import provider does not have folders");
+        }
+
         public Task<bool> RestoreEmailToFolderAsync(int emailId, int targetAccountId, string folderName)
+        {
+            throw new NotSupportedException("Import provider does not support email restoration");
+        }
+
+        public Task<bool> RestoreEmailToFolderAsync(int emailId, int targetAccountId, string folderName, bool preserveFolderStructure)
         {
             throw new NotSupportedException("Import provider does not support email restoration");
         }
@@ -38,6 +48,17 @@ namespace MailArchiver.Services.Providers
             throw new NotSupportedException("Import provider does not support email restoration");
         }
 
+        public Task<(int Successful, int Failed)> RestoreMultipleEmailsWithProgressAsync(
+            List<int> emailIds,
+            int targetAccountId,
+            string folderName,
+            bool preserveFolderStructure,
+            Action<int, int, int> progressCallback,
+            CancellationToken cancellationToken = default)
+        {
+            throw new NotSupportedException("Import provider does not support email restoration");
+        }
+
         public Task<bool> ResyncAccountAsync(int accountId)
         {
             throw new NotSupportedException("Import provider does not support resync operations");
@@ -45,7 +66,7 @@ namespace MailArchiver.Services.Providers
 
         public Task<int> GetEmailCountByAccountAsync(int accountId)
         {
-            throw new NotSupportedException("Import provider does not support this operation");
+            throw new NotSupportedException("Import provider does not support email counting");
         }
     }
 }

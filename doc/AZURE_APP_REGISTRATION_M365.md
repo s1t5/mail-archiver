@@ -1,6 +1,6 @@
 # ☁️ Azure App Registration and Retention Policy Guide for Mail Archiver
 
-[← Back to Documentation Index](Index.md)
+[← Back to Documentation Index](index.md)
 
 ## 📋 Overview
 
@@ -55,6 +55,7 @@ The Mail Archiver application supports Microsoft 365 (M365) accounts using OAuth
 5. Add the following permissions:
    - **Mail.Read** - Read mail in all mailboxes
    - **Mail.ReadWrite** - Read and write mail in all mailboxes (for restore function as well as deletion)
+   - **User.Read.All** - Read all users' full profiles (required for Microsoft 365 tenant mailbox import; also provides `assignedPlans` for Exchange license filtering)
 
 6. Click **Add permissions**
 7. **CRITICAL**: Click **Grant admin consent for [Your Organization]**
@@ -97,8 +98,10 @@ After completing the app registration, you need to configure a M365 mail account
 
 ### ⚠️ Important Notes:
 
-- The **Email Address** field must contain the actual mailbox you want to archive
-- The app registration must have permissions to access the specified mailbox
+- The **Email Address** field must contain the actual mailbox you want to archive when creating a single M365 account.
+- The app registration must have permissions to access the specified mailbox.
+- To create accounts for all or selected mailboxes in the tenant at once, use the [Microsoft 365 Tenant Mailbox Import](M365TenantImport.md) guide.
+
 
 ## 🗑️ Retention Policy Setup
 
@@ -113,6 +116,42 @@ The Mail Archiver application provides retention policy functionality to automat
    - For example, enter `30` to delete emails after 30 days
    - Leave empty to disable automatic deletion
 5. Save the account configuration
+
+
+## ℹ️ Information Regarding Migrated Mailboxes
+
+### 📁 Folders Not Visible After Migration
+
+If you have migrated your mailbox from another email provider to Microsoft 365, some folders may not appear in the folder list.
+
+#### 🔍 Background
+
+Mail Archiver retrieves folder information from M365 mailboxes via the Microsoft Graph API. The application correctly requests all available folders (including hidden folders) and traverses the complete folder hierarchy.
+
+However, the Microsoft Graph API returns only folders with `PR_CONTAINER_CLASS` set to `IPF.Note`. During mailbox migrations from other email systems, folders may be assigned a different container class such as `IPF.Imap`. These folders are not exposed through the Graph API's folder listing endpoints.
+
+This behavior affects all applications using this API for folder retrieval.
+
+#### 🔧 Workaround Options
+
+**Option 1: Use MFCMAPI Tool (Recommended)**
+
+1. Download [MFCMAPI](https://github.com/Microsoft/mfcmapi/) from Microsoft's official repository
+2. Launch MFCMAPI and connect to your mailbox
+3. Navigate to each missing folder
+4. Change the `PR_CONTAINER_CLASS` property from `IPF.Imap` to `IPF.Note`
+5. Restart Outlook and reload the folders in Mail Archiver
+
+**Option 2: Recreate Folders in Outlook**
+
+1. Create new folders directly in Outlook (these will have the correct `IPF.Note` class)
+2. Move all emails from the migrated folders to the new folders
+3. Delete the old migrated folders if desired
+
+**Option 3: PowerShell Script (For Bulk Changes)**
+
+For mailboxes with many migrated folders, you can use PowerShell with Exchange Online module to change the container class for multiple folders at once. Contact your Exchange administrator for assistance with this approach.
+
 
 ---
 

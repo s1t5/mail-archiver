@@ -1,0 +1,1668 @@
+using MailArchiver.Data;
+using MailArchiver.Models;
+using MailArchiver.Services.Core;
+using MailArchiver.Services.Providers.Eml;
+using MailArchiver.Services.Shared;
+using MailArchiver.Utilities;
+using MailKit;
+using MailKit.Net.Imap;
+using MailKit.Search;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
+
+namespace MailArchiver.Services.Providers.Imap
+{
+    /// <summary>
+    /// Orchestrates the IMAP email sync pipeline: connection management, folder iteration,
+    /// message search with progressive fallback strategies, bandwidth tracking with checkpoints,
+    /// batch processing, memory management, and retention deletion.
+    /// </summary>
+    public class ImapMailSyncService
+    {
+        private readonly MailArchiverDbContext _context;
+        private readonly ILogger<ImapMailSyncService> _logger;
+        private readonly EmailCoreService _coreService;
+        private readonly ISyncJobService _syncJobService;
+        private readonly IBandwidthService _bandwidthService;
+        private readonly ImapConnectionFactory _connectionFactory;
+        private readonly EmlMailCleaner _mailCleaner;
+        private readonly IImapFolderService _folderService;
+        private readonly DateTimeHelper _dateTimeHelper;
+        private readonly BatchOperationOptions _batchOptions;
+        private readonly MailSyncOptions _mailSyncOptions;
+        private readonly BandwidthTrackingOptions _bandwidthOptions;
+
+        public ImapMailSyncService(
+            MailArchiverDbContext context,
+            ILogger<ImapMailSyncService> logger,
+            EmailCoreService coreService,
+            ISyncJobService syncJobService,
+            IBandwidthService bandwidthService,
+            ImapConnectionFactory connectionFactory,
+            EmlMailCleaner mailCleaner,
+            IImapFolderService folderService,
+            DateTimeHelper dateTimeHelper,
+            IOptions<BatchOperationOptions> batchOptions,
+            IOptions<MailSyncOptions> mailSyncOptions,
+            IOptions<BandwidthTrackingOptions> bandwidthOptions)
+        {
+            _context = context;
+            _logger = logger;
+            _coreService = coreService;
+            _syncJobService = syncJobService;
+            _bandwidthService = bandwidthService;
+            _connectionFactory = connectionFactory;
+            _mailCleaner = mailCleaner;
+            _folderService = folderService;
+            _dateTimeHelper = dateTimeHelper;
+            _batchOptions = batchOptions.Value;
+            _mailSyncOptions = mailSyncOptions.Value;
+            _bandwidthOptions = bandwidthOptions.Value;
+        }
+
+        /// <summary>
+        /// Syncs all emails from the IMAP mailbox for the specified account.
+        /// </summary>
+        /// <param name="cancellationToken">
+        /// The account's sync timeout. Checked at the same three points as a UI cancel — per folder,
+        /// per batch and before every message — and ends the sync as a pause that keeps its
+        /// checkpoints, not as a failure.
+        /// </param>
+        public async Task SyncMailAccountAsync(MailAccount account, string? jobId = null, CancellationToken cancellationToken = default)
+        {
+            _logger.LogInformation("Starting IMAP sync for account: {AccountName}", account.Name);
+
+            // Check bandwidth limit before starting sync
+            if (_bandwidthOptions.Enabled)
+            {
+                var limitReached = await _bandwidthService.IsLimitReachedAsync(account.Id);
+                if (limitReached)
+                {
+                    var status = await _bandwidthService.GetStatusAsync(account.Id);
+                    _logger.LogWarning("Sync skipped for account {AccountName} - bandwidth limit reached. " +
+                        "Downloaded: {DownloadedMB:F2} MB / {LimitMB:F2} MB. Reset at: {ResetTime}",
+                        account.Name, status.BytesDownloaded / (1024.0 * 1024.0),
+                        status.DailyLimitBytes / (1024.0 * 1024.0), status.ResetTime);
+
+                    if (jobId != null)
+                    {
+                        _syncJobService.CompleteJobRateLimited(jobId, "Bandwidth limit reached - sync paused");
+                    }
+                    return;
+                }
+            }
+
+            // Check for incomplete checkpoints (interrupted sync). Not tied to bandwidth tracking:
+            // a sync can also be interrupted by the sync timeout or a cancel, and those installations
+            // need to resume just as much.
+            var hasIncompleteCheckpoints = await _bandwidthService.HasIncompleteCheckpointsAsync(account.Id);
+            if (hasIncompleteCheckpoints)
+            {
+                _logger.LogInformation("Found incomplete checkpoints for account {AccountName} - resuming from last position", account.Name);
+            }
+
+            using var client = _connectionFactory.CreateImapClient(account.Name);
+            client.Timeout = 300000;
+            client.ServerCertificateValidationCallback = _connectionFactory.ServerCertificateValidationCallback;
+
+            var processedFolders = 0;
+            var processedEmails = 0;
+            var newEmails = 0;
+            var failedEmails = 0;
+            var failedFolders = 0;
+            var missingFolders = 0;
+            var recoveredEmails = 0;
+            var providerPlaceholderEmails = 0;
+            var deletedEmails = 0;
+            var totalBytesDownloaded = 0L;
+            var wasRateLimited = false;
+            var timedOut = false;
+
+            try
+            {
+                await _connectionFactory.ConnectWithFallbackAsync(client, account.ImapServer, account.ImapPort ?? 993, account.UseSSL, account.Name);
+                await _connectionFactory.AuthenticateClientAsync(client, account);
+                _logger.LogInformation("Connected to IMAP server for {AccountName}", account.Name);
+
+                var allFolders = await _folderService.GetAllFoldersAsync(client, account.Name);
+
+                if (jobId != null)
+                {
+                    _syncJobService.UpdateJobProgress(jobId, job =>
+                    {
+                        job.TotalFolders = allFolders.Count;
+                    });
+                }
+
+                _logger.LogInformation("Found {Count} folders for account: {AccountName}", allFolders.Count, account.Name);
+
+                foreach (var folder in allFolders)
+                {
+                    var stopReason = SyncInterruption.Evaluate(
+                        jobId != null ? _syncJobService.GetJob(jobId)?.Status : null,
+                        cancellationToken.IsCancellationRequested);
+
+                    if (stopReason == SyncStopReason.Cancelled)
+                    {
+                        _logger.LogInformation("Sync job {JobId} for account {AccountName} has been cancelled", jobId, account.Name);
+                        if (jobId != null)
+                        {
+                            _syncJobService.CompleteJob(jobId, false, "Job was cancelled");
+                        }
+                        return;
+                    }
+
+                    if (stopReason == SyncStopReason.TimedOut)
+                    {
+                        timedOut = true;
+                        break;
+                    }
+
+                    try
+                    {
+                        if (IsExcludedFolder(folder, account))
+                        {
+                            _logger.LogInformation("Skipping excluded folder: {FolderName} for account: {AccountName}",
+                                folder.FullName, account.Name);
+                            processedFolders++;
+                            continue;
+                        }
+
+                        if (jobId != null)
+                        {
+                            _syncJobService.UpdateJobProgress(jobId, job =>
+                            {
+                                job.CurrentFolder = folder.FullName;
+                                job.ProcessedFolders = processedFolders;
+                            });
+                        }
+
+                        var folderResult = await SyncFolderAsync(folder, account, client, jobId, cancellationToken);
+                        processedEmails += folderResult.ProcessedEmails;
+                        newEmails += folderResult.NewEmails;
+                        failedEmails += folderResult.FailedEmails;
+                        failedFolders += folderResult.FailedFolders;
+                        missingFolders += folderResult.MissingFolders;
+                        recoveredEmails += folderResult.RecoveredEmails;
+                        providerPlaceholderEmails += folderResult.ProviderPlaceholderEmails;
+
+                        // The folder evaluates the interrupt again inside its batch/message loops,
+                        // so it can have stopped for a reason this loop top never saw — most notably
+                        // a timeout during the last folder, which must not be completed as success
+                        // (it would advance LastSync and drop the checkpoints the resume needs).
+                        if (folderResult.StopReason == SyncStopReason.Cancelled)
+                        {
+                            _logger.LogInformation("Sync job {JobId} for account {AccountName} has been cancelled",
+                                jobId, account.Name);
+                            if (jobId != null)
+                            {
+                                _syncJobService.CompleteJob(jobId, false, "Job was cancelled");
+                            }
+                            return;
+                        }
+
+                        if (folderResult.StopReason == SyncStopReason.TimedOut)
+                        {
+                            timedOut = true;
+                            break;
+                        }
+
+                        if (folderResult.WasRateLimited)
+                        {
+                            wasRateLimited = true;
+                            _logger.LogWarning("Rate limit hit during folder {FolderName} for account {AccountName}. " +
+                                "Stopping folder iteration to preserve bandwidth.", folder.FullName, account.Name);
+                            break;
+                        }
+
+                        processedFolders++;
+
+                        if (jobId != null)
+                        {
+                            _syncJobService.UpdateJobProgress(jobId, job =>
+                            {
+                                job.ProcessedFolders = processedFolders;
+                                job.ProcessedEmails = processedEmails;
+                                job.NewEmails = newEmails;
+                                job.FailedEmails = failedEmails;
+                                job.FailedFolders = failedFolders;
+                                job.MissingFolders = missingFolders;
+                            });
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        if (ImapFolderAbsence.IsFolderGone(ex))
+                        {
+                            _logger.LogInformation("Folder {FolderName} for account {AccountName} is reported by the server " +
+                                "but does not exist; skipping it. {Message}", folder.FullName, account.Name, ex.Message);
+                            missingFolders++;
+                            RecordIssue(jobId, SyncIssueKind.FolderMissing, folder.FullName, ex);
+                        }
+                        else
+                        {
+                            _logger.LogError(ex, "Error syncing folder {FolderName} for account {AccountName}: {Message}",
+                                folder.FullName, account.Name, ex.Message);
+                            failedFolders++;
+                            RecordIssue(jobId, SyncIssueKind.FolderFailed, folder.FullName, ex);
+                        }
+                    }
+                }
+
+                if (timedOut)
+                {
+                    // A timeout is a pause, not a failure. Stop right here, before the retention
+                    // passes: running those would defeat the point of bounding the runtime. The
+                    // checkpoints stay in place and LastSync is left alone, so the next scheduled
+                    // run resumes where this one stopped.
+                    // Same counters as the completion line below. Without Failed the one number
+                    // that matters here is missing: a chunk that ended with failures is a chunk
+                    // whose resume watermark stopped moving, and that is not visible anywhere else.
+                    _logger.LogWarning("Sync for account {AccountName} stopped at the configured sync timeout. " +
+                        "Preserving checkpoints for resume. LastSync will NOT be updated. " +
+                        "Processed: {Processed}, New: {New}, Failed: {Failed}, " +
+                        "Recovered: {Recovered}, Provider placeholders: {ProviderPlaceholders}, " +
+                        "Failed folders: {FailedFolders}, Missing folders: {MissingFolders}",
+                        account.Name, processedEmails, newEmails, failedEmails,
+                        recoveredEmails, providerPlaceholderEmails, failedFolders, missingFolders);
+
+                    await client.DisconnectAsync(true);
+
+                    if (jobId != null)
+                    {
+                        _syncJobService.CompleteJobTimedOut(jobId,
+                            $"Sync timeout reached. Processed: {processedEmails}, New: {newEmails}. Sync will resume on the next run.");
+                    }
+                    return;
+                }
+
+                if (account.DeleteAfterDays.HasValue && account.DeleteAfterDays.Value > 0)
+                {
+                    deletedEmails = await DeleteOldEmailsAsync(account, client, jobId);
+
+                    if (jobId != null)
+                    {
+                        _syncJobService.UpdateJobProgress(jobId, job =>
+                        {
+                            job.DeletedEmails = deletedEmails;
+                        });
+                    }
+                }
+
+                if (account.LocalRetentionDays.HasValue && account.LocalRetentionDays.Value > 0)
+                {
+                    var localDeletedCount = await _coreService.DeleteOldLocalEmailsAsync(account, jobId);
+                    _logger.LogInformation("Deleted {Count} emails from local archive for account {AccountName} based on local retention policy",
+                        localDeletedCount, account.Name);
+                }
+
+                if (wasRateLimited)
+                {
+                    _logger.LogWarning("Sync for account {AccountName} was rate-limited. Preserving checkpoints for resume. " +
+                        "LastSync will NOT be updated. Processed: {Processed}, New: {New}",
+                        account.Name, processedEmails, newEmails);
+
+                    await client.DisconnectAsync(true);
+
+                    if (jobId != null)
+                    {
+                        _syncJobService.CompleteJobRateLimited(jobId,
+                            $"Bandwidth limit reached during sync. Processed: {processedEmails}, New: {newEmails}. Sync will resume from checkpoint.");
+                    }
+                    return;
+                }
+
+                if (SyncCompletionPolicy.MayAdvanceLastSync(failedEmails, failedFolders))
+                {
+                    var trackedAccount = await _context.MailAccounts.FindAsync(account.Id);
+                    if (trackedAccount != null)
+                    {
+                        trackedAccount.LastSync = DateTime.UtcNow;
+                        await _context.SaveChangesAsync();
+                    }
+
+                    // Always clear, not just with bandwidth tracking on: now that every installation
+                    // writes checkpoints, every installation has to drop them once the account is
+                    // through, or the next run resumes from a watermark that is no longer meaningful.
+                    await _bandwidthService.ClearCheckpointsAsync(account.Id);
+                    _logger.LogDebug("Cleared sync checkpoints for account {AccountName} after successful sync", account.Name);
+                }
+                else
+                {
+                    _logger.LogWarning("Not updating LastSync for account {AccountName}: {FailedCount} failed emails, " +
+                        "{FailedFolderCount} folders that could not be synced at all",
+                        account.Name, failedEmails, failedFolders);
+                }
+
+                await client.DisconnectAsync(true);
+                _logger.LogInformation("Sync completed for account: {AccountName}. New: {New}, Failed: {Failed}, Deleted: {Deleted}, " +
+                    "Recovered: {Recovered}, Provider placeholders: {ProviderPlaceholders}, " +
+                    "Failed folders: {FailedFolders}, Missing folders: {MissingFolders}",
+                    account.Name, newEmails, failedEmails, deletedEmails, recoveredEmails, providerPlaceholderEmails,
+                    failedFolders, missingFolders);
+
+                if (jobId != null)
+                {
+                    _syncJobService.CompleteJob(jobId, true);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error during sync for account {AccountName}: {Message}", account.Name, ex.Message);
+
+                if (jobId != null)
+                {
+                    _syncJobService.CompleteJob(jobId, false, ex.Message);
+                }
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Tests the connection to an IMAP server.
+        /// </summary>
+        public async Task<bool> TestConnectionAsync(MailAccount account)
+        {
+            try
+            {
+                _logger.LogInformation("Testing connection to IMAP server {Server}:{Port} for account {Name} ({Email})",
+                    account.ImapServer, account.ImapPort, account.Name, account.EmailAddress);
+
+                using var client = _connectionFactory.CreateImapClient(account.Name);
+                client.Timeout = 30000;
+                client.ServerCertificateValidationCallback = _connectionFactory.ServerCertificateValidationCallback;
+
+                _logger.LogDebug("Connecting to {Server}:{Port}, SSL: {UseSSL}",
+                    account.ImapServer, account.ImapPort, account.UseSSL);
+
+                await _connectionFactory.ConnectWithFallbackAsync(client, account.ImapServer, account.ImapPort ?? 993, account.UseSSL, account.Name);
+                _logger.LogDebug("Connection established, authenticating using {Provider} authentication", account.Provider);
+
+                await _connectionFactory.AuthenticateClientAsync(client, account);
+                _logger.LogInformation("Authentication successful for {Email}", account.EmailAddress);
+
+                try
+                {
+                    var inbox = client.Inbox;
+                    if (inbox != null)
+                    {
+                        await inbox.OpenAsync(FolderAccess.ReadOnly);
+                        _logger.LogInformation("INBOX opened successfully with {Count} messages", inbox.Count);
+                    }
+                    else
+                    {
+                        _logger.LogWarning("INBOX is null for account {Name} - server has non-standard IMAP implementation", account.Name);
+
+                        if (client.PersonalNamespaces != null && client.PersonalNamespaces.Count > 0)
+                        {
+                            _logger.LogInformation("Personal namespace available for account {Name}: {Namespace}",
+                                account.Name, client.PersonalNamespaces[0].Path);
+                        }
+                        else
+                        {
+                            _logger.LogWarning("No standard INBOX or personal namespace - server uses custom folder structure");
+                        }
+                    }
+                }
+                catch (Exception folderEx)
+                {
+                    _logger.LogWarning(folderEx, "Could not verify folder access for account {Name}, but connection and authentication succeeded. Error: {Message}",
+                        account.Name, folderEx.Message);
+                }
+
+                await client.DisconnectAsync(true);
+                _logger.LogInformation("Connection test passed for account {Name} - connection and authentication successful", account.Name);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Connection test failed for account {AccountName}: {Message}",
+                    account.Name, ex.Message);
+
+                if (ex is ImapCommandException imapEx)
+                {
+                    _logger.LogError("IMAP command error: {Response}", imapEx.Response);
+                }
+                else if (ex is MailKit.Security.AuthenticationException)
+                {
+                    _logger.LogError("Authentication failed - incorrect username or password");
+                }
+                else if (ex is ImapProtocolException)
+                {
+                    _logger.LogError("IMAP protocol error - server responded unexpectedly");
+                }
+                else if (ex is System.Net.Sockets.SocketException socketEx)
+                {
+                    _logger.LogError("Socket error: {ErrorCode} - could not reach server", socketEx.ErrorCode);
+                }
+                else if (ex is TimeoutException)
+                {
+                    _logger.LogError("Connection timed out - server did not respond in time");
+                }
+
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Performs a full resync of an IMAP account by resetting LastSync to Unix epoch.
+        /// </summary>
+        public async Task<bool> ResyncAccountAsync(int accountId)
+        {
+            try
+            {
+                var account = await _context.MailAccounts.FindAsync(accountId);
+                if (account == null)
+                {
+                    _logger.LogError("Account with ID {AccountId} not found for resync", accountId);
+                    return false;
+                }
+
+                _logger.LogInformation("Starting full resync for IMAP account {AccountName}", account.Name);
+
+                account.LastSync = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+                await _context.SaveChangesAsync();
+
+                var accountForSync = await _context.MailAccounts.AsNoTracking().FirstOrDefaultAsync(a => a.Id == accountId);
+                if (accountForSync == null)
+                {
+                    _logger.LogError("Account with ID {AccountId} not found after update", accountId);
+                    return false;
+                }
+
+                var jobId = _syncJobService.StartSync(accountForSync.Id, accountForSync.Name, accountForSync.LastSync);
+                await SyncMailAccountAsync(accountForSync, jobId);
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error during resync for account {AccountId}", accountId);
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Records one problem on the job so the account page can show what went wrong, not just how
+        /// often. The reason is the innermost exception message: the outer ones say where the call
+        /// was made, the innermost one is what the server actually said.
+        /// </summary>
+        private void RecordIssue(string? jobId, SyncIssueKind kind, string folder,
+            Exception ex, uint? uid = null, string? subject = null)
+        {
+            if (jobId == null) return;
+
+            var innermost = ex;
+            while (innermost.InnerException != null)
+            {
+                innermost = innermost.InnerException;
+            }
+
+            _syncJobService.GetJob(jobId)?.Issues.Add(new SyncIssue
+            {
+                Kind = kind,
+                Folder = folder,
+                Uid = uid,
+                Subject = subject,
+                Reason = innermost.Message
+            });
+        }
+
+        /// <summary>
+        /// True when the folder is excluded from synchronization, either by the account's own list
+        /// or by the installation-wide <c>MailSync:GlobalExcludedFolders</c>. The matching itself
+        /// lives in <see cref="FolderExclusionMatcher"/> so both sources are compared the same way,
+        /// and <c>MailSync:ExcludeSubfolders</c> decides there whether an entry reaches the folders
+        /// underneath the one it names.
+        /// </summary>
+        private bool IsExcludedFolder(IMailFolder folder, MailAccount account)
+            => FolderExclusionMatcher.IsExcluded(
+                folder.FullName,
+                folder.Name,
+                account.ExcludedFoldersList,
+                _mailSyncOptions.GlobalExcludedFolders,
+                _mailSyncOptions.ExcludeSubfolders);
+
+        /// <summary>
+        /// Syncs a single IMAP folder: search with progressive fallback, bandwidth tracking,
+        /// batch processing, and memory management.
+        /// </summary>
+        // Threshold for consecutive transient FETCH errors (server-side throttling)
+        // before pausing the sync gracefully (analogous to the bandwidth-limit pause).
+        private const int MaxConsecutiveTransientFetchFailures = 10;
+
+        // Threshold for consecutive reconnect/re-auth failures before pausing the folder
+        // sync gracefully. Prevents a single bad FETCH response from cascading into
+        // hundreds of failed messages when the reconnect loop keeps failing (e.g. MSA
+        // auth-throttling). Counter is reset only by a successful reconnect/re-auth
+        // (strict mode) — successful FETCHes do not reset it.
+        private const int MaxConsecutiveReconnectFailures = 3;
+
+        // Backoff delays (in milliseconds) for retrying a single message FETCH after a
+        // transient server response such as "NO Service temporarily unavailable".
+        private static readonly int[] TransientFetchRetryDelaysMs = new[] { 5_000, 15_000, 60_000 };
+
+        /// <summary>
+        /// Detects transient IMAP FETCH errors: server-side throttling responses
+        /// (e.g. "NO Service temporarily unavailable", over-quota, rate-limit) as well as
+        /// connection-level losses during FETCH (server unexpectedly disconnects or logs
+        /// out, e.g. observed with Yahoo while streaming certain messages). These errors
+        /// are not caused by malformed messages and typically succeed when retried after
+        /// a short backoff (the retry path reconnects/reopens as needed).
+        /// </summary>
+        internal static bool IsTransientImapError(Exception ex)
+        {
+            if (ex == null) return false;
+
+            if (IsConnectionLoss(ex))
+                return true;
+
+            var current = ex;
+            while (current != null)
+            {
+                if (current is ImapCommandException imapEx)
+                {
+                    if (imapEx.Response == ImapCommandResponse.No || imapEx.Response == ImapCommandResponse.Bad)
+                    {
+                        var msg = imapEx.Message ?? string.Empty;
+                        if (msg.IndexOf("temporarily unavailable", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                            msg.IndexOf("try again", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                            msg.IndexOf("throttle", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                            msg.IndexOf("rate limit", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                            msg.IndexOf("over quota", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                            msg.IndexOf("[LIMIT]", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                            msg.IndexOf("[OVERQUOTA]", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                            msg.IndexOf("[UNAVAILABLE]", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                            msg.IndexOf("[INUSE]", StringComparison.OrdinalIgnoreCase) >= 0)
+                        {
+                            return true;
+                        }
+                    }
+                }
+
+                current = current.InnerException;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Detects connection-level IMAP failures: the server unexpectedly disconnected,
+        /// logged out, timed out or the TCP connection was reset/aborted. Unlike
+        /// parser-level protocol errors, the session is unusable afterwards and must be
+        /// reconnected before further commands can be issued.
+        /// </summary>
+        internal static bool IsConnectionLoss(Exception ex)
+        {
+            var current = ex;
+            while (current != null)
+            {
+                if (current is System.IO.IOException or System.Net.Sockets.SocketException)
+                    return true;
+
+                var msg = current.Message ?? string.Empty;
+                if (msg.IndexOf("unexpectedly disconnected", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                    msg.IndexOf("server logging out", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                    msg.IndexOf("has timed out", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                    msg.IndexOf("connection was aborted", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                    msg.IndexOf("forcibly closed", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                    msg.IndexOf("connection reset", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                    msg.IndexOf("broken pipe", StringComparison.OrdinalIgnoreCase) >= 0)
+                {
+                    return true;
+                }
+
+                current = current.InnerException;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Detects parser-level IMAP protocol errors (e.g. "Unexpected atom token: Server")
+        /// thrown by <c>ImapFolder.GetMessageAsync</c> when the server returns a malformed
+        /// FETCH response for a single message. Unlike connection-level failures, these do
+        /// not imply the session is broken — only the offending response could not be
+        /// parsed. The caller should skip this message without triggering a reconnect.
+        /// Connection losses (<see cref="IsConnectionLoss"/>) are explicitly excluded —
+        /// the session is dead afterwards and must go through the reconnect path.
+        /// </summary>
+        internal static bool IsImapProtocolParseError(Exception ex)
+        {
+            if (IsConnectionLoss(ex))
+                return false;
+
+            var current = ex;
+            while (current != null)
+            {
+                if (current is ImapProtocolException)
+                    return true;
+                current = current.InnerException;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Ensures the IMAP client is connected and authenticated, and the folder is
+        /// open, before issuing a command. Reconnects/re-authenticates and reopens the
+        /// folder as needed. Used both before the initial SEARCH and between fallback
+        /// SEARCH queries, because a parser-level <see cref="ImapProtocolException"/>
+        /// from a previous SEARCH can silently desynchronize and drop the session.
+        /// </summary>
+        private async Task EnsureConnectedAsync(IMailFolder folder, ImapClient client, MailAccount account, CancellationToken ct = default)
+        {
+            if (!client.IsConnected)
+            {
+                _logger.LogWarning("Client disconnected during sync, attempting to reconnect...");
+                await _connectionFactory.ReconnectClientAsync(client, account);
+            }
+            else if (!client.IsAuthenticated)
+            {
+                _logger.LogWarning("Client not authenticated, attempting to re-authenticate...");
+                await _connectionFactory.AuthenticateClientAsync(client, account);
+            }
+
+            if (!folder.IsOpen)
+            {
+                await folder.OpenAsync(FolderAccess.ReadOnly, ct);
+            }
+        }
+
+        private async Task<SyncFolderResult> SyncFolderAsync(IMailFolder folder, MailAccount account, ImapClient client, string? jobId = null, CancellationToken cancellationToken = default)
+        {
+            var result = new SyncFolderResult();
+            var totalBytesDownloaded = 0L;
+            var consecutiveTransientFailures = 0;
+            var circuitBreaker = new ReconnectCircuitBreaker(MaxConsecutiveReconnectFailures);
+
+            // Set as soon as one message in this folder fails. From then on the resume watermark
+            // must not move any further: messages are walked in ascending UID order, so a watermark
+            // above a failed UID would tell the next run that the failed message is already
+            // archived, and it would never be attempted again. That is precisely what the LastSync
+            // bar exists to prevent - it holds the account back so failures ARE retried - so a
+            // watermark that outruns a failure would quietly defeat it and lose the message.
+            var watermarkFrozen = false;
+
+
+            _logger.LogInformation("Syncing folder: {FolderName} for account: {AccountName}",
+                folder.FullName, account.Name);
+
+            try
+            {
+                if (string.IsNullOrEmpty(folder.FullName) ||
+                    folder.Attributes.HasFlag(FolderAttributes.NonExistent) ||
+                    folder.Attributes.HasFlag(FolderAttributes.NoSelect))
+                {
+                    _logger.LogInformation("Skipping folder {FolderName} (empty name, non-existent or non-selectable)",
+                        folder.FullName);
+                    return result;
+                }
+
+                await EnsureConnectedAsync(folder, client, account);
+
+                bool isOutgoing = _folderService.IsOutgoingFolder(folder);
+                var lastSync = account.LastSync;
+                bool isFullSync = account.LastSync == new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+
+                // Resume watermark for this folder. The search below is deliberately left exactly as
+                // it would have been without a checkpoint; only the UIDs already archived are dropped
+                // from its result afterwards. That is what makes a resume safe — the search window
+                // never moves, so nothing can fall out of it.
+                //
+                // A checkpoint from a folder the server has renumbered since is worthless, because the
+                // stored UID now points at a different message. UIDVALIDITY has to match, otherwise the
+                // folder is read in full.
+                uint resumeAfterUid = 0;
+                try
+                {
+                    var checkpoints = await _bandwidthService.GetCheckpointsAsync(account.Id);
+                    var folderCheckpoint = checkpoints.FirstOrDefault(c => c.FolderName == folder.FullName);
+                    resumeAfterUid = SyncResumePoint.ResolveAfterUid(
+                        folderCheckpoint?.LastUid, folderCheckpoint?.UidValidity, folder.UidValidity);
+
+                    if (resumeAfterUid > 0)
+                    {
+                        _logger.LogInformation("Resuming folder {FolderName} for account {AccountName} after UID {LastUid}",
+                            folder.FullName, account.Name, resumeAfterUid);
+                    }
+                    else if (folderCheckpoint?.LastUid > 0)
+                    {
+                        _logger.LogInformation("Discarding checkpoint for folder {FolderName}: UIDVALIDITY is {Current}, " +
+                            "the checkpoint was written under {Stored}. Reading the folder in full.",
+                            folder.FullName, folder.UidValidity, folderCheckpoint.UidValidity);
+                    }
+                }
+                catch (Exception cpEx)
+                {
+                    _logger.LogWarning(cpEx, "Error reading checkpoints for folder {FolderName}, reading it in full", folder.FullName);
+                }
+
+                if (!isFullSync)
+                {
+                    lastSync = lastSync.AddHours(-12);
+                }
+
+                var query = SearchQuery.DeliveredAfter(lastSync);
+
+                try
+                {
+                    await EnsureConnectedAsync(folder, client, account);
+
+                    IList<UniqueId> uids;
+                    try
+                    {
+                        uids = await folder.SearchAsync(query);
+                        _logger.LogDebug("DeliveredAfter search found {Count} messages in folder {FolderName}",
+                            uids.Count, folder.FullName);
+
+                        if (uids.Count == 0 && folder.Count > 0 && isFullSync)
+                        {
+                            _logger.LogWarning("DeliveredAfter returned 0 results but folder contains {Count} messages during full sync for {FolderName}. Server may not support DeliveredAfter. Using SearchQuery.All instead.",
+                                folder.Count, folder.FullName);
+                            uids = await folder.SearchAsync(SearchQuery.All);
+                            _logger.LogInformation("SearchQuery.All found {Count} messages in folder {FolderName}",
+                                uids.Count, folder.FullName);
+                        }
+
+                        if (isFullSync && folder.Count > 0 && uids.Count > 0 && uids.Count < folder.Count)
+                        {
+                            double percentageReturned = (double)uids.Count / folder.Count * 100;
+
+                            _logger.LogWarning("Search returned only {ReturnedCount} of {TotalCount} messages ({Percentage:F1}%) for {FolderName}. " +
+                                "Server likely has SEARCH result limit. Fetching all UIDs by sequence instead.",
+                                uids.Count, folder.Count, percentageReturned, folder.FullName);
+
+                            var allUids = await folder.FetchAsync(0, -1, MessageSummaryItems.UniqueId);
+                            uids = allUids.Select(msg => msg.UniqueId).ToList();
+
+                            _logger.LogInformation("Retrieved {Count} UIDs by sequence for folder {FolderName}",
+                                uids.Count, folder.FullName);
+                        }
+                    }
+                    catch (Exception searchEx)
+                    {
+                        _logger.LogWarning(searchEx, "DeliveredAfter search failed for folder {FolderName}, falling back to SentSince",
+                            folder.FullName);
+
+                        try
+                        {
+                            await EnsureConnectedAsync(folder, client, account);
+                            uids = await folder.SearchAsync(SearchQuery.SentSince(lastSync.Date));
+                            _logger.LogDebug("SentSince search found {Count} messages in folder {FolderName}",
+                                uids.Count, folder.FullName);
+
+                            if (isFullSync && folder.Count > 0 && uids.Count > 0 && uids.Count < folder.Count)
+                            {
+                                double percentageReturned = (double)uids.Count / folder.Count * 100;
+
+                                _logger.LogWarning("SentSince returned only {ReturnedCount} of {TotalCount} messages ({Percentage:F1}%) for {FolderName}. " +
+                                    "Fetching all UIDs by sequence instead.",
+                                    uids.Count, folder.Count, percentageReturned, folder.FullName);
+
+                                var allUids = await folder.FetchAsync(0, -1, MessageSummaryItems.UniqueId);
+                                uids = allUids.Select(msg => msg.UniqueId).ToList();
+
+                                _logger.LogInformation("Retrieved {Count} UIDs by sequence for folder {FolderName}",
+                                    uids.Count, folder.FullName);
+                            }
+                        }
+                        catch (Exception fallbackEx)
+                        {
+                            _logger.LogWarning(fallbackEx, "SentSince also failed for folder {FolderName}, using All query",
+                                folder.FullName);
+                            await EnsureConnectedAsync(folder, client, account);
+                            uids = await folder.SearchAsync(SearchQuery.All);
+                            _logger.LogInformation("All query found {Count} total messages in folder {FolderName}, will filter by date client-side",
+                                uids.Count, folder.FullName);
+
+                            if (isFullSync && folder.Count > 0 && uids.Count > 0 && uids.Count < folder.Count)
+                            {
+                                double percentageReturned = (double)uids.Count / folder.Count * 100;
+
+                                _logger.LogWarning("SearchQuery.All returned only {ReturnedCount} of {TotalCount} messages ({Percentage:F1}%) for {FolderName}. " +
+                                    "Fetching all UIDs by sequence instead.",
+                                    uids.Count, folder.Count, percentageReturned, folder.FullName);
+
+                                var allUids = await folder.FetchAsync(0, -1, MessageSummaryItems.UniqueId);
+                                uids = allUids.Select(msg => msg.UniqueId).ToList();
+
+                                _logger.LogInformation("Retrieved {Count} UIDs by sequence for folder {FolderName}",
+                                    uids.Count, folder.FullName);
+                            }
+                        }
+                    }
+
+                    // Ascending order, so the recorded UID is a real watermark and not merely the last
+                    // one this run happened to see. SEARCH results normally arrive ascending; relying
+                    // on that silently would make the resume wrong on a server that does not.
+                    uids = uids.OrderBy(u => u.Id).ToList();
+
+                    if (resumeAfterUid > 0)
+                    {
+                        var beforeResume = uids.Count;
+                        uids = uids.Where(u => u.Id > resumeAfterUid).ToList();
+                        _logger.LogInformation("Checkpoint for folder {FolderName} of account {AccountName} skips {Skipped} of {Total} messages already archived",
+                            folder.FullName, account.Name, beforeResume - uids.Count, beforeResume);
+                    }
+
+                    _logger.LogInformation("Found {Count} messages to process in folder {FolderName} for account: {AccountName}",
+                        uids.Count, folder.FullName, account.Name);
+
+                    for (int i = 0; i < uids.Count; i += _batchOptions.BatchSize)
+                    {
+                        var batchStopReason = SyncInterruption.Evaluate(
+                            jobId != null ? _syncJobService.GetJob(jobId)?.Status : null,
+                            cancellationToken.IsCancellationRequested);
+                        if (batchStopReason != SyncStopReason.None)
+                        {
+                            _logger.LogInformation("Sync for account {AccountName} stopped before a batch in folder {FolderName}: {Reason}",
+                                account.Name, folder.FullName, batchStopReason);
+                            result.StopReason = batchStopReason;
+                            return result;
+                        }
+
+                        var batch = uids.Skip(i).Take(_batchOptions.BatchSize).ToList();
+                        _logger.LogInformation("Processing batch of {Count} messages (starting at {Start}) in folder {FolderName} via IMAP",
+                            batch.Count, i, folder.FullName);
+
+                        foreach (var uid in batch)
+                        {
+                            var messageStopReason = SyncInterruption.Evaluate(
+                                jobId != null ? _syncJobService.GetJob(jobId)?.Status : null,
+                                cancellationToken.IsCancellationRequested);
+                            if (messageStopReason != SyncStopReason.None)
+                            {
+                                _logger.LogInformation("Sync for account {AccountName} stopped during message processing in folder {FolderName}: {Reason}",
+                                    account.Name, folder.FullName, messageStopReason);
+                                result.StopReason = messageStopReason;
+                                return result;
+                            }
+
+                            try
+                            {
+                                if (circuitBreaker.SkipNextReconnectGate && !client.IsConnected)
+                                {
+                                    // The gate was set by a previous failure, but the session is actually
+                                    // dead. Invalidate the gate so the normal reconnect path below runs —
+                                    // never attempt a FETCH on a disconnected client.
+                                    _logger.LogWarning("Reconnect gate set but client is disconnected in folder {FolderName}, forcing reconnect path",
+                                        folder.FullName);
+                                    circuitBreaker.ConsumeSkipGate();
+                                }
+
+                                if (circuitBreaker.SkipNextReconnectGate)
+                                {
+                                    // Previous message triggered a parser-only ImapProtocolException.
+                                    // The session is likely still usable — bypass the reconnect gate
+                                    // this once and attempt the FETCH directly.
+                                    circuitBreaker.ConsumeSkipGate();
+                                }
+                                else if (!client.IsConnected)
+                                {
+                                    _logger.LogWarning("Client disconnected during sync, attempting to reconnect...");
+                                    try
+                                    {
+                                        await _connectionFactory.ReconnectClientAsync(client, account);
+                                        circuitBreaker.RecordSuccess();
+                                        await folder.OpenAsync(FolderAccess.ReadOnly);
+                                    }
+                                    catch (Exception rcEx)
+                                    {
+                                        if (circuitBreaker.RecordFailure())
+                                        {
+                                            _logger.LogWarning(rcEx,
+                                                "Aborting folder {FolderName} sync after {Count} consecutive reconnect failures " +
+                                                "for account {AccountName}. Will resume on next sync run. Processed: {Processed}, New: {New}",
+                                                folder.FullName, circuitBreaker.ConsecutiveFailures, account.Name,
+                                                result.ProcessedEmails, result.NewEmails);
+                                            result.WasRateLimited = true;
+                                            return result;
+                                        }
+                                        _logger.LogWarning(rcEx,
+                                            "Reconnect failed (attempt {Count}/{Max}) for account {AccountName} in folder {FolderName}",
+                                            circuitBreaker.ConsecutiveFailures, MaxConsecutiveReconnectFailures, account.Name, folder.FullName);
+                                        throw;
+                                    }
+                                }
+                                else if (!client.IsAuthenticated)
+                                {
+                                    _logger.LogWarning("Client not authenticated, attempting to re-authenticate...");
+                                    try
+                                    {
+                                        await _connectionFactory.AuthenticateClientAsync(client, account);
+                                        circuitBreaker.RecordSuccess();
+                                    }
+                                    catch (Exception authEx)
+                                    {
+                                        if (circuitBreaker.RecordFailure())
+                                        {
+                                            _logger.LogWarning(authEx,
+                                                "Aborting folder {folderName} sync after {Count} consecutive re-auth failures " +
+                                                "for account {AccountName}. Will resume on next sync run. Processed: {Processed}, New: {New}",
+                                                folder.FullName, circuitBreaker.ConsecutiveFailures, account.Name,
+                                                result.ProcessedEmails, result.NewEmails);
+                                            result.WasRateLimited = true;
+                                            return result;
+                                        }
+                                        _logger.LogWarning(authEx,
+                                            "Re-authentication failed (attempt {Count}/{Max}) for account {AccountName} in folder {FolderName}",
+                                            circuitBreaker.ConsecutiveFailures, MaxConsecutiveReconnectFailures, account.Name, folder.FullName);
+                                        throw;
+                                    }
+                                }
+                                else if (folder.IsOpen == false)
+                                {
+                                    _logger.LogWarning("Folder is not open, attempting to re-open...");
+                                    await folder.OpenAsync(FolderAccess.ReadOnly);
+                                }
+
+                                // Retry FETCH on transient server-side throttling responses
+                                // (e.g. "NO Service temporarily unavailable", over-quota, rate-limit).
+                                // Non-transient errors (malformed messages, UTF-8 issues, etc.) bubble
+                                // up immediately to the outer catch and are counted as FailedEmails.
+                                MimeKit.MimeMessage? message = null;
+                                var maxAttempts = TransientFetchRetryDelaysMs.Length + 1;
+                                var mboxRecoveryAttempted = false;
+                                var notFoundRecoveryAttempted = false;
+                                var wasRecovered = false;
+                                for (int attempt = 1; attempt <= maxAttempts; attempt++)
+                                {
+                                    try
+                                    {
+                                        message = await folder.GetMessageAsync(uid);
+                                        // Success - reset the consecutive throttling counter
+                                        consecutiveTransientFailures = 0;
+                                        break;
+                                    }
+                                    catch (FormatException parseEx) when (!mboxRecoveryAttempted
+                                        && parseEx.Message.Contains("Failed to parse message headers"))
+                                    {
+                                        // One-shot recovery: messages originating from
+                                        // 3rd party clients can carry a leftover mbox
+                                        // "From " line, a non-standard banner line
+                                        // Re-fetch the raw stream and try tolerant
+                                        // header recovery.
+                                        mboxRecoveryAttempted = true;
+                                        _logger.LogDebug(
+                                            "Header parse failed for UID {Uid} in folder {FolderName}, attempting header recovery",
+                                            uid, folder.FullName);
+                                        try
+                                        {
+                                            using var rawStream = await folder.GetStreamAsync(uid, CancellationToken.None, null);
+                                            using var buffered = new MemoryStream();
+                                            await rawStream.CopyToAsync(buffered);
+                                            buffered.Position = 0;
+                                            var recovery = await _mailCleaner.TryRecoverHeadersAsync(buffered);
+                                            message = recovery.Message;
+                                            if (message != null)
+                                            {
+                                                _logger.LogInformation(
+                                                    "Recovered message UID {Uid} in folder {FolderName} via {Category}",
+                                                    uid, folder.FullName, recovery.Category);
+                                            }
+                                        }
+                                        catch (Exception recoveryEx)
+                                        {
+                                            _logger.LogWarning(recoveryEx,
+                                                "Header recovery fetch failed for UID {Uid} in folder {FolderName}",
+                                                uid, folder.FullName);
+                                        }
+                                        if (message == null)
+                                        {
+                                            throw new FormatException(
+                                                "Failed to parse message headers even after header recovery.",
+                                                parseEx);
+                                        }
+                                        consecutiveTransientFailures = 0;
+                                        break;
+                                    }
+                                    catch (MessageNotFoundException) when (!notFoundRecoveryAttempted)
+                                    {
+                                        // One-shot recovery: legacy servers can refuse a message through
+                                        // GetMessageAsync and still hand out a usable MIME document for a
+                                        // plain BODY[] fetch. Without this the UID fails on every run, and
+                                        // because LastSync is not advanced while FailedEmails > 0 the whole
+                                        // account keeps re-reading the same messages forever.
+                                        notFoundRecoveryAttempted = true;
+                                        _logger.LogDebug(
+                                            "Server reported UID {Uid} in folder {FolderName} as missing, attempting IMAP fallback fetch",
+                                            uid, folder.FullName);
+
+                                        message = await ImapMessageRecovery.TryRecoverAsync(
+                                            folder, uid, _logger, CancellationToken.None);
+
+                                        if (message == null)
+                                        {
+                                            // Nothing usable came back, so this stays a failure and keeps
+                                            // its original exception for the outer handler to log.
+                                            throw;
+                                        }
+
+                                        wasRecovered = true;
+                                        consecutiveTransientFailures = 0;
+                                        break;
+                                    }
+                                    catch (Exception fetchEx) when (IsTransientImapError(fetchEx) && attempt < maxAttempts)
+                                    {
+                                        var delayMs = TransientFetchRetryDelaysMs[attempt - 1];
+                                        _logger.LogWarning(
+                                            "Transient IMAP FETCH error for UID {Uid} in folder {FolderName} on attempt {Attempt}/{Max} " +
+                                            "(throttling or connection loss). Retrying after {DelayMs}ms. Inner: {Message}",
+                                            uid, folder.FullName, attempt, maxAttempts, delayMs, fetchEx.Message);
+
+                                        await Task.Delay(delayMs);
+
+                                        // Restore connection / folder state before retrying
+                                        try
+                                        {
+                                            if (!client.IsConnected)
+                                            {
+                                                await _connectionFactory.ReconnectClientAsync(client, account);
+                                            }
+                                            else if (!client.IsAuthenticated)
+                                            {
+                                                await _connectionFactory.AuthenticateClientAsync(client, account);
+                                            }
+
+                                            if (!folder.IsOpen)
+                                            {
+                                                await folder.OpenAsync(FolderAccess.ReadOnly);
+                                            }
+                                        }
+                                        catch (Exception reconnectEx)
+                                        {
+                                            _logger.LogWarning(reconnectEx,
+                                                "Reconnect/reopen before retry failed for UID {Uid} in folder {FolderName}",
+                                                uid, folder.FullName);
+                                        }
+                                    }
+                                    catch (Exception fetchEx) when (IsTransientImapError(fetchEx))
+                                    {
+                                        // Final retry attempt also failed with a transient throttling error.
+                                        consecutiveTransientFailures++;
+
+                                        _logger.LogWarning(fetchEx,
+                                            "Transient IMAP FETCH error for UID {Uid} in folder {FolderName} persisted after {Attempts} attempts. " +
+                                            "Consecutive transient failures: {Count}/{Threshold}.",
+                                            uid, folder.FullName, maxAttempts,
+                                            consecutiveTransientFailures, MaxConsecutiveTransientFetchFailures);
+
+                                        if (consecutiveTransientFailures >= MaxConsecutiveTransientFetchFailures)
+                                        {
+                                            _logger.LogWarning(
+                                                "Server-side throttling detected: {Count} consecutive transient FETCH failures in folder {FolderName} " +
+                                                "for account {AccountName}. Pausing sync gracefully; will resume on the next sync run. " +
+                                                "Processed: {Processed}, New: {New}",
+                                                consecutiveTransientFailures, folder.FullName, account.Name,
+                                                result.ProcessedEmails, result.NewEmails);
+
+                                            result.WasRateLimited = true;
+                                            return result;
+                                        }
+
+                                        // Re-throw so the outer catch records it as a normal failed email
+                                        // (preserves existing detailed error logging and FailedEmails counter).
+                                        throw;
+                                    }
+                                }
+
+                                if (message == null)
+                                {
+                                    // Should not happen - either we set it or threw - defensive guard.
+                                    throw new InvalidOperationException(
+                                        $"FETCH for UID {uid} in folder {folder.FullName} returned no message and no exception.");
+                                }
+
+                                var recoveredIsPlaceholder = false;
+                                if (wasRecovered)
+                                {
+                                    recoveredIsPlaceholder =
+                                        ProviderPlaceholderDetector.IsProviderRetrievalErrorPlaceholder(message);
+
+                                    if (recoveredIsPlaceholder)
+                                    {
+                                        // Archived as-is: it is the best representation the server is able
+                                        // to expose for this UID. Never rewritten into the values quoted
+                                        // inside it, so the archive cannot claim to hold the original.
+                                        _logger.LogWarning(
+                                            "Recovered UID {Uid} in folder {FolderName} for account {AccountName} using the IMAP fallback. " +
+                                            "The server returned a provider retrieval-error placeholder instead of the original message. " +
+                                            "Placeholder subject: {PlaceholderSubject}. Original subject: {OriginalSubject}",
+                                            uid, folder.FullName, account.Name, message.Subject,
+                                            ProviderPlaceholderDetector.TryGetOriginalSubject(message) ?? "(not quoted)");
+                                    }
+                                    else
+                                    {
+                                        _logger.LogWarning(
+                                            "Recovered UID {Uid} in folder {FolderName} for account {AccountName} using the IMAP fallback " +
+                                            "after the server reported it as missing. Subject: {Subject}",
+                                            uid, folder.FullName, account.Name, message.Subject);
+                                    }
+                                }
+
+                                _mailCleaner.PreCleanMessage(message);
+
+
+                                long messageSize = 0;
+                                if (_bandwidthOptions.Enabled)
+                                {
+                                    try
+                                    {
+                                        var messageString = message.ToString();
+                                        messageSize = System.Text.Encoding.UTF8.GetByteCount(messageString);
+
+                                        var (_, limitReached) = await _bandwidthService.TrackUsageAndCheckLimitAsync(account.Id, messageSize);
+                                        totalBytesDownloaded += messageSize;
+
+                                        _logger.LogDebug("Tracked {Size} bytes for email in folder {FolderName}", messageSize, folder.FullName);
+
+                                        if (limitReached)
+                                        {
+                                            _logger.LogWarning("Bandwidth limit reached during sync of folder {FolderName} for account {AccountName}. " +
+                                                "Saving checkpoint and pausing sync. Processed: {Processed}, New: {New}",
+                                                folder.FullName, account.Name, result.ProcessedEmails, result.NewEmails);
+
+                                            // The triggering message was fetched but not archived, so
+                                            // the watermark must not advance past it. Passing no UID
+                                            // keeps the checkpoint at the last archived message,
+                                            // which is re-fetched on resume — the same invariant the
+                                            // watermarkFrozen gate below enforces.
+                                            await _bandwidthService.UpdateCheckpointAsync(
+                                                account.Id, folder.FullName,
+                                                null, null, messageSize);
+
+                                            result.WasRateLimited = true;
+                                            return result;
+                                        }
+                                    }
+                                    catch (Exception bwEx)
+                                    {
+                                        _logger.LogWarning(bwEx, "Error tracking bandwidth usage");
+                                    }
+                                }
+
+                                var isNew = await _coreService.ArchiveEmailAsync(account, message, isOutgoing, folder.FullName);
+                                if (isNew)
+                                {
+                                    result.NewEmails++;
+                                }
+
+                                result.ProcessedEmails++;
+
+                                if (wasRecovered)
+                                {
+                                    // Counted next to ProcessedEmails, not at the moment of the fetch, so a
+                                    // message that is recovered but then deferred by the bandwidth limit is
+                                    // not counted twice once the sync resumes and fetches it again.
+                                    result.RecoveredEmails++;
+                                    if (recoveredIsPlaceholder)
+                                    {
+                                        result.ProviderPlaceholderEmails++;
+                                    }
+                                }
+
+                                // Progress checkpoint, written for every installation. It used to be
+                                // gated on bandwidth tracking, which meant an interrupted sync could
+                                // only ever resume where that feature happened to be switched on.
+                                // messageSize is 0 unless bandwidth tracking computed it; the byte
+                                // tally on the checkpoint simply stays at 0 then.
+                                //
+                                // Not written once anything in this folder has failed: the watermark
+                                // has to keep meaning "everything at or below this is archived".
+                                if (!watermarkFrozen)
+                                {
+                                    try
+                                    {
+                                        await _bandwidthService.UpdateCheckpointAsync(
+                                            account.Id, folder.FullName,
+                                            message.Date.DateTime, message.MessageId,
+                                            messageSize, uid.Id, folder.UidValidity);
+                                    }
+                                    catch (Exception cpEx)
+                                    {
+                                        _logger.LogWarning(cpEx, "Error updating checkpoint");
+                                    }
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                // If the failure was a parser-level ImapProtocolException from
+                                // GetMessageAsync (e.g. "Unexpected atom token"), the session is
+                                // likely still usable. Set the skip flag so the next UID bypasses
+                                // the reconnect gate and attempts a direct FETCH instead of looping
+                                // through a doomed reconnect cycle.
+                                if (IsImapProtocolParseError(ex))
+                                {
+                                    circuitBreaker.RecordParseError();
+                                }
+
+                                var emailSubject = "Unknown";
+                                var emailFrom = "Unknown";
+                                var emailDate = "Unknown";
+                                var emailMessageId = "Unknown";
+
+                                try
+                                {
+                                    if (client.IsConnected && folder.IsOpen)
+                                    {
+                                        try
+                                        {
+                                            var summary = await folder.FetchAsync(new[] { uid }, MessageSummaryItems.Envelope | MessageSummaryItems.UniqueId);
+                                            if (summary != null && summary.Count > 0)
+                                            {
+                                                var envelope = summary[0].Envelope;
+                                                emailSubject = envelope?.Subject ?? "No Subject";
+                                                emailFrom = envelope?.From?.ToString() ?? "Unknown Sender";
+                                                emailDate = envelope?.Date?.ToString() ?? summary[0].InternalDate?.ToString() ?? "Unknown Date";
+                                                emailMessageId = envelope?.MessageId ?? "No Message-ID";
+                                            }
+                                        }
+                                        catch { }
+                                    }
+                                }
+                                catch { }
+
+                                var innermostEx = ex;
+                                while (innermostEx.InnerException != null)
+                                {
+                                    innermostEx = innermostEx.InnerException;
+                                }
+
+                                var isUtf8Error = innermostEx.Message.Contains("UTF8") || innermostEx.Message.Contains("0x00") || innermostEx.Message.Contains("22021");
+
+                                _logger.LogError(ex, "Error archiving message from folder {FolderName}. " +
+                                    "Email Details - Subject: '{Subject}', From: '{From}', Date: '{Date}', Message-ID: '{MessageId}', UID: {Uid}. " +
+                                    "IsUTF8Error: {IsUtf8Error}, InnermostError: {InnermostError}",
+                                    folder.FullName, emailSubject, emailFrom, emailDate, emailMessageId, uid, isUtf8Error, innermostEx.Message);
+
+                                result.FailedEmails++;
+                                RecordIssue(jobId, SyncIssueKind.MessageFailed, folder.FullName, ex,
+                                    uid.Id, emailSubject);
+
+                                // From here on this folder's watermark stays where it is. Anything
+                                // above this UID is read again on the next run, which is the price
+                                // of never skipping the message that just failed.
+                                watermarkFrozen = true;
+                            }
+                        }
+
+                        if (i + _batchOptions.BatchSize < uids.Count)
+                        {
+                            _context.ChangeTracker.Clear();
+
+                            if (_batchOptions.PauseBetweenBatchesMs > 0)
+                            {
+                                await Task.Delay(_batchOptions.PauseBetweenBatchesMs);
+                            }
+
+                            GC.Collect();
+                            GC.WaitForPendingFinalizers();
+
+                            _logger.LogInformation("Memory usage after processing batch {BatchNumber}: {MemoryUsage}",
+                                (i / _batchOptions.BatchSize) + 1, MemoryMonitor.GetMemoryUsageFormatted());
+                        }
+                        else if (_batchOptions.PauseBetweenEmailsMs > 0 && batch.Count > 1)
+                        {
+                            await Task.Delay(_batchOptions.PauseBetweenEmailsMs);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    if (ImapFolderAbsence.IsFolderGone(ex))
+                    {
+                        _logger.LogInformation("Folder {FolderName} for account {AccountName} is reported by the server " +
+                            "but does not exist; skipping it. {Message}", folder.FullName, account.Name, ex.Message);
+                        result.MissingFolders = 1;
+                        RecordIssue(jobId, SyncIssueKind.FolderMissing, folder.FullName, ex);
+                    }
+                    else
+                    {
+                        _logger.LogError(ex, "Error searching messages in folder {FolderName} for account {AccountName}: {Message}",
+                            folder.FullName, account.Name, ex.Message);
+                        result.FailedFolders = 1;
+                        RecordIssue(jobId, SyncIssueKind.FolderFailed, folder.FullName, ex);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                if (ImapFolderAbsence.IsFolderGone(ex))
+                {
+                    _logger.LogInformation("Folder {FolderName} for account {AccountName} is reported by the server " +
+                        "but does not exist; skipping it. {Message}", folder.FullName, account.Name, ex.Message);
+                    result.MissingFolders = 1;
+                    RecordIssue(jobId, SyncIssueKind.FolderMissing, folder.FullName, ex);
+                }
+                else
+                {
+                    _logger.LogError(ex, "Error syncing folder {FolderName} for account {AccountName}: {Message}",
+                        folder.FullName, account.Name, ex.Message);
+                    result.FailedFolders = 1;
+                    RecordIssue(jobId, SyncIssueKind.FolderFailed, folder.FullName, ex);
+                }
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Deletes old emails from the IMAP mailbox based on the account's retention policy.
+        /// Only deletes emails that are already archived locally.
+        /// </summary>
+        private async Task<int> DeleteOldEmailsAsync(MailAccount account, ImapClient client, string? jobId = null)
+        {
+            if (!account.DeleteAfterDays.HasValue || account.DeleteAfterDays.Value <= 0)
+            {
+                return 0;
+            }
+
+            var deletedCount = 0;
+            var cutoffDate = DateTime.UtcNow.AddDays(-account.DeleteAfterDays.Value);
+
+            _logger.LogInformation("Starting deletion of emails older than {Days} days (before {CutoffDate}) for account {AccountName}",
+                account.DeleteAfterDays.Value, cutoffDate, account.Name);
+
+            try
+            {
+                var allFolders = await _folderService.GetAllFoldersAsync(client, account.Name);
+
+                foreach (var folder in allFolders)
+                {
+                    if (folder == null || string.IsNullOrEmpty(folder.FullName) ||
+                        folder.Attributes.HasFlag(FolderAttributes.NonExistent) ||
+                        folder.Attributes.HasFlag(FolderAttributes.NoSelect))
+                    {
+                        _logger.LogInformation("Skipping folder {FolderName} (null, empty name, non-existent or non-selectable) for deletion",
+                            folder?.FullName ?? "NULL");
+                        continue;
+                    }
+
+                    if (IsExcludedFolder(folder, account))
+                    {
+                        _logger.LogInformation("Skipping excluded folder for deletion: {FolderName} for account: {AccountName}",
+                            folder.FullName, account.Name);
+                        continue;
+                    }
+
+                    try
+                    {
+                        if (!client.IsConnected)
+                        {
+                            _logger.LogWarning("Client disconnected during deletion, attempting to reconnect...");
+                            await _connectionFactory.ReconnectClientAsync(client, account);
+                        }
+                        else if (!client.IsAuthenticated)
+                        {
+                            _logger.LogWarning("Client not authenticated during deletion, attempting to re-authenticate...");
+                            await _connectionFactory.AuthenticateClientAsync(client, account);
+                        }
+
+                        if (!folder.IsOpen || folder.Access != FolderAccess.ReadWrite)
+                        {
+                            await folder.OpenAsync(FolderAccess.ReadWrite);
+                        }
+
+                        var uids = await folder.SearchAsync(SearchQuery.SentBefore(cutoffDate));
+
+                        _logger.LogInformation("SearchQuery.SentBefore found {Count} emails in folder {FolderName} for account {AccountName}",
+                            uids.Count, folder.FullName, account.Name);
+
+                        if (uids.Count == 0)
+                        {
+                            _logger.LogInformation("No old emails found in folder {FolderName} for account {AccountName}",
+                                folder.FullName, account.Name);
+                            continue;
+                        }
+
+                        _logger.LogInformation("Found {Count} old emails in folder {FolderName} for account {AccountName}",
+                            uids.Count, folder.FullName, account.Name);
+
+                        var batchSize = _batchOptions.BatchSize;
+                        var folderRefusedCount = 0;
+
+                        for (int i = 0; i < uids.Count; i += batchSize)
+                        {
+                            var batch = uids.Skip(i).Take(batchSize).ToList();
+
+                            var messageSummaries = await folder.FetchAsync(batch, MessageSummaryItems.UniqueId | MessageSummaryItems.Headers | MessageSummaryItems.InternalDate | MessageSummaryItems.Envelope);
+
+                            var uidsToDelete = new List<UniqueId>();
+
+                            foreach (var summary in messageSummaries)
+                            {
+                                // SAFETY GUARD: re-verify client-side that the message really is older
+                                // than the cutoff. The server-side SearchQuery.SentBefore above is the
+                                // primary date filter, but some IMAP servers (notably Yandex) return
+                                // non-compliant results for SENTBEFORE - which would otherwise delete
+                                // recent mail and cause irreversible data loss on the live mailbox.
+                                //
+                                // Policy: if a usable date is available, refuse to delete anything
+                                // not actually older than the cutoff. If no date can be determined
+                                // client-side, proceed per the server filter and log a warning -
+                                // this intentionally trusts the server in the null case rather than
+                                // skipping, which could leave mails undeletable indefinitely.
+                                DateTime? guardDate = null;
+                                if (summary.Envelope?.Date.HasValue == true)
+                                    guardDate = summary.Envelope.Date.Value.UtcDateTime;
+                                else if (summary.InternalDate.HasValue)
+                                    guardDate = summary.InternalDate.Value.UtcDateTime;
+
+                                if (guardDate.HasValue && guardDate.Value >= cutoffDate)
+                                {
+                                    folderRefusedCount++;
+                                    _logger.LogWarning("Refusing to delete UID {Uid} in folder {FolderName}: message date {Date} is not older than cutoff {Cutoff} (server SENTBEFORE returned it incorrectly). Account ID: {AccountId}",
+                                        summary.UniqueId, folder.FullName, guardDate.Value.ToString("u"), cutoffDate.ToString("u"), account.Id);
+                                    continue;
+                                }
+
+                                if (!guardDate.HasValue)
+                                {
+                                    _logger.LogWarning("Proceeding with deletion of UID {Uid} in folder {FolderName}: client-side message date unavailable, trusting server-side SENTBEFORE filter. Account ID: {AccountId}",
+                                        summary.UniqueId, folder.FullName, account.Id);
+                                }
+
+                                var rawMessageId = summary.Envelope?.MessageId;
+                                if (string.IsNullOrEmpty(rawMessageId))
+                                    rawMessageId = summary.Headers["Message-ID"];
+
+                                _logger.LogDebug("Raw Message-ID from IMAP: {RawMessageId}", rawMessageId ?? "NULL");
+
+                                List<string> candidateMessageIds;
+                                if (string.IsNullOrEmpty(rawMessageId))
+                                {
+                                    // No Message-ID header: depending on which pipeline and application
+                                    // version archived the message, it may be stored under any of the
+                                    // fallback key formats (current IMAP format with canonical headers,
+                                    // EML/MBOX import format without canonical headers, or the legacy
+                                    // string format). Compute all candidates and match against all of
+                                    // them so archived messages are reliably recognized.
+                                    var from = string.Join(",", summary.Envelope?.From?.Mailboxes.Select(m => m.Address) ?? Enumerable.Empty<string>());
+                                    var to = string.Join(",", summary.Envelope?.To?.Mailboxes.Select(m => m.Address) ?? Enumerable.Empty<string>());
+                                    var subject = summary.Envelope?.Subject ?? string.Empty;
+
+                                    candidateMessageIds = MailContentHelper.GenerateFallbackMessageIdCandidates(
+                                        from, to, subject,
+                                        summary.Envelope?.Date ?? default,
+                                        summary.Headers,
+                                        summary.Envelope?.From?.ToString(), summary.Envelope?.To?.ToString());
+
+                                    _logger.LogDebug("Constructed fallback Message-ID candidates (no header): {CandidateMessageIds}",
+                                        string.Join(", ", candidateMessageIds));
+                                }
+                                else
+                                {
+                                    var normalizedMessageId = MailContentHelper.NormalizeMessageId(rawMessageId);
+                                    candidateMessageIds = new List<string>(1) { normalizedMessageId };
+                                    _logger.LogDebug("Message-ID: raw={RawMessageId}, normalized={NormalizedMessageId}",
+                                        rawMessageId, normalizedMessageId);
+                                }
+
+                                var isArchived = await _context.ArchivedEmails
+                                    .AnyAsync(e => e.MailAccountId == account.Id && candidateMessageIds.Contains(e.MessageId));
+
+                                if (isArchived)
+                                {
+                                    uidsToDelete.Add(summary.UniqueId);
+                                    _logger.LogDebug("Marking email with Message-ID {MessageId} for deletion from folder {FolderName}",
+                                        candidateMessageIds[0], folder.FullName);
+                                }
+                                else
+                                {
+                                    _logger.LogInformation("Skipping deletion of email with Message-ID {MessageId} (raw: {RawMessageId}) from folder {FolderName} (not archived). Account ID: {AccountId}",
+                                        candidateMessageIds[0], rawMessageId ?? "NULL", folder.FullName, account.Id);
+                                }
+                            }
+
+                            if (uidsToDelete.Count > 0)
+                            {
+                                _logger.LogInformation("Attempting to delete {Count} emails from folder {FolderName} for account {AccountName}",
+                                    uidsToDelete.Count, folder.FullName, account.Name);
+
+                                try
+                                {
+                                    await folder.AddFlagsAsync(uidsToDelete, MessageFlags.Deleted, true);
+                                    _logger.LogDebug("Added Deleted flag to {Count} emails in folder {FolderName}",
+                                        uidsToDelete.Count, folder.FullName);
+
+                                    await folder.ExpungeAsync(uidsToDelete);
+                                    _logger.LogDebug("Expunged {Count} emails from folder {FolderName} (with UIDs)",
+                                        uidsToDelete.Count, folder.FullName);
+
+                                    deletedCount += uidsToDelete.Count;
+                                    _logger.LogInformation("Successfully processed {Count} emails for deletion from folder {FolderName} for account {AccountName}",
+                                        uidsToDelete.Count, folder.FullName, account.Name);
+                                }
+                                catch (Exception deleteEx)
+                                {
+                                    _logger.LogError(deleteEx, "Error deleting {Count} emails from folder {FolderName} for account {AccountName}",
+                                        uidsToDelete.Count, folder.FullName, account.Name);
+
+                                    try
+                                    {
+                                        _logger.LogInformation("Attempting to reconnect and retry deletion...");
+                                        await _connectionFactory.ReconnectClientAsync(client, account);
+                                        await folder.OpenAsync(FolderAccess.ReadWrite);
+
+                                        await folder.AddFlagsAsync(uidsToDelete, MessageFlags.Deleted, true);
+                                        await folder.ExpungeAsync(uidsToDelete);
+
+                                        deletedCount += uidsToDelete.Count;
+                                        _logger.LogInformation("Successfully processed {Count} emails for deletion on retry from folder {FolderName} for account {AccountName}",
+                                            uidsToDelete.Count, folder.FullName, account.Name);
+                                    }
+                                    catch (Exception retryEx)
+                                    {
+                                        _logger.LogError(retryEx, "Retry deletion also failed for {Count} emails from folder {FolderName} for account {AccountName}",
+                                            uidsToDelete.Count, folder.FullName, account.Name);
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                _logger.LogInformation("No archived emails to delete in current batch from folder {FolderName} for account {AccountName}",
+                                    folder.FullName, account.Name);
+                            }
+
+                            if (i + batchSize < uids.Count && _batchOptions.PauseBetweenBatchesMs > 0)
+                            {
+                                await Task.Delay(_batchOptions.PauseBetweenBatchesMs);
+                            }
+                        }
+
+                        if (folderRefusedCount > 0)
+                        {
+                            _logger.LogWarning("Refused deletion of {Count} email(s) in folder {FolderName} for account {AccountName} because the server SENTBEFORE filter returned messages newer than the cutoff. The mailbox was not modified for these messages.",
+                                folderRefusedCount, folder.FullName, account.Name);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Error processing folder {FolderName} for email deletion for account {AccountName}: {Message}",
+                            folder.FullName, account.Name, ex.Message);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error during email deletion for account {AccountName}: {Message}",
+                    account.Name, ex.Message);
+            }
+
+            _logger.LogInformation("Completed deletion process for account {AccountName}. Deleted {Count} emails",
+                account.Name, deletedCount);
+
+            if (deletedCount > 0)
+            {
+                try
+                {
+                    var accessLog = new AccessLog
+                    {
+                        Username = "System",
+                        Type = AccessLogType.Retention,
+                        Timestamp = DateTime.UtcNow,
+                        SearchParameters = $"Retention (IMAP): Deleted {deletedCount} emails older than {account.DeleteAfterDays} days from mailbox",
+                        MailAccountId = account.Id
+                    };
+
+                    _context.AccessLogs.Add(accessLog);
+                    await _context.SaveChangesAsync();
+                }
+                catch (Exception logEx)
+                {
+                    _logger.LogWarning(logEx, "Failed to log retention deletion summary for account {AccountName} to AccessLogs", account.Name);
+                }
+            }
+
+            return deletedCount;
+        }
+
+        /// <summary>
+        /// Internal result container for folder sync operations.
+        /// </summary>
+        private class SyncFolderResult
+        {
+            public int ProcessedEmails { get; set; }
+            public int NewEmails { get; set; }
+            public int FailedEmails { get; set; }
+
+            /// <summary>
+            /// Messages the normal fetch reported as missing and the IMAP fallback retrieved
+            /// anyway. They are processed like any other message and are never failures.
+            /// </summary>
+            public int RecoveredEmails { get; set; }
+
+            /// <summary>
+            /// Subset of <see cref="RecoveredEmails"/>: what came back was the provider's own
+            /// retrieval-error placeholder rather than the original message.
+            /// </summary>
+            public int ProviderPlaceholderEmails { get; set; }
+
+            /// <summary>
+            /// 1 when the folder failed as a unit — it could not be opened or searched, so no
+            /// statement can be made about the messages in it. Deliberately not expressed as a
+            /// number of failed messages: the count would be invented, and it would overwrite the
+            /// real per-message failures of that folder.
+            /// </summary>
+            public int FailedFolders { get; set; }
+
+            /// <summary>
+            /// 1 when the server reported the folder through discovery and then said it does not
+            /// exist. Deliberately not a failure: nothing can be retried, so counting it would hold
+            /// LastSync back forever. See <see cref="ImapFolderAbsence"/>.
+            /// </summary>
+            public int MissingFolders { get; set; }
+
+            public long BytesDownloaded { get; set; }
+            public bool WasRateLimited { get; set; }
+
+            /// <summary>
+            /// Why this folder's sync stopped before it was finished, or <see cref="SyncStopReason.None"/>
+            /// when it ran to the end. The folder loop re-evaluates the interrupt at its top, but only
+            /// there — so a token that fires inside the last folder would otherwise be swallowed and the
+            /// sync completed as if nothing had happened.
+            /// </summary>
+            public SyncStopReason StopReason { get; set; } = SyncStopReason.None;
+        }
+    }
+}

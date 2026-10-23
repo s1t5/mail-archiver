@@ -1,6 +1,6 @@
 # 🗑️ Retention Policies
 
-[← Back to Documentation Index](Index.md)
+[← Back to Documentation Index](index.md)
 
 ## Overview
 
@@ -10,6 +10,33 @@ Mail Archiver provides comprehensive retention policy management to help you con
 2. **Local Archive Retention Policy**: Controls automatic deletion of emails from the local archive
 
 This dual approach gives you fine-grained control over storage management while ensuring data consistency and compliance requirements are met.
+
+## 🗂️ Where a Message Lives
+
+The two policies act on two different copies of the same message, which is why
+they are configured independently:
+
+```mermaid
+stateDiagram-v2
+    direction LR
+    [*] --> OnServer : mail arrives
+    OnServer --> OnServerAndArchived : a sync archives it
+    OnServerAndArchived --> ArchivedOnly : DeleteAfterDays elapses<br/>IMAP EXPUNGE on the server
+    ArchivedOnly --> Removed : LocalRetentionDays elapses<br/>row and attachments deleted
+    OnServerAndArchived --> Removed : LocalRetentionDays elapses
+    Removed --> [*]
+
+    note right of OnServerAndArchived
+        Local retention must be greater than or
+        equal to server retention, so the archived
+        copy is never removed before the server copy.
+    end note
+```
+
+Server retention trims the mailbox; local retention trims the archive. Deleting
+from the server does **not** touch the archived copy — that is the entire point of
+an archive. The validation rule (local retention must be at least the server
+retention) exists so the archive always outlives the mailbox it was taken from.
 
 ## Key Features
 
@@ -35,7 +62,7 @@ The server retention policy automatically deletes emails from the mail server af
 ### Requirements
 > 🚨 **Important note for retention policies**
 > - Requires IMAP Expunge support from the mail server to permanently delete emails
-> - For Gmail accounts, Auto-Expunge must be disabled in Gmail settings under the "Forwarding and POP/IMAP" tab! (See [Gmail Best Practices](doc/GmailBestPractices.md) for more details)
+> - For Gmail accounts, Auto-Expunge must be disabled in Gmail settings under the "Forwarding and POP/IMAP" tab! (See [Gmail Best Practices](GmailBestPractices.md) for more details)
 
 
 ## Local Archive Retention Policy

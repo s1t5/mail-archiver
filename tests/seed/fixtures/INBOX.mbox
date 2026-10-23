@@ -1,0 +1,158 @@
+From alice@source.example Sat May 26 00:00:00 2012
+X-Fixture-Purpose: well before any plausible cutoff
+From: alice@source.example
+To: bob@target.example
+Subject: Ancient thread
+Date: Sat, 26 May 2012 00:00:00 +0000
+Message-ID: <ancient-thread-5200-0@source.example>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+
+Fixture message.
+
+From alice@source.example Thu Aug 17 00:00:00 2023
+X-Fixture-Purpose: inside a two year window, outside a six month one
+From: alice@source.example
+To: bob@target.example
+Subject: Mid-history note
+Date: Thu, 17 Aug 2023 00:00:00 +0000
+Message-ID: <mid-history-note-1100-0@source.example>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+
+Fixture message.
+
+From alice@source.example Wed Aug 12 00:00:00 2026
+X-Fixture-Purpose: inside every window a migration would use
+From: alice@source.example
+To: bob@target.example
+Subject: Recent note
+Date: Wed, 12 Aug 2026 00:00:00 +0000
+Message-ID: <recent-note-9-0@source.example>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+
+Fixture message.
+
+From alice@source.example Sat Aug 01 00:00:00 2026
+X-Fixture-Purpose: stored To carries ', ' but the import's dedup query builds ',' -- the separator mismatch in MailImporter.cs:35-37 vs :94-99
+From: alice@source.example
+To: bob@target.example, carol@target.example
+Subject: Two recipients
+Date: Sat, 01 Aug 2026 00:00:00 +0000
+Message-ID: <two-recipients-20-0@source.example>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+
+Fixture message.
+
+From alice@source.example Wed Jul 22 00:00:00 2026
+X-Fixture-Purpose: MessageId falls back to the deterministic GenerateFallbackMessageId, which does contain '@', so this row restores safely
+From: alice@source.example
+To: bob@target.example
+Subject: No Message-ID header
+Date: Wed, 22 Jul 2026 00:00:00 +0000
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+
+Fixture message.
+
+From alice@source.example Tue Jul 21 00:00:00 2026
+X-Fixture-Purpose: ImapMailRestorer.cs:1196 refuses to emit this, so MimeKit invents a fresh random Message-Id on every append and the row duplicates each repetition
+From: alice@source.example
+To: bob@target.example
+Subject: Message-ID without an at sign
+Date: Tue, 21 Jul 2026 00:00:00 +0000
+Message-ID: <bare-token-no-at-sign>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+
+Fixture message.
+
+From alice@source.example Mon Jul 20 00:00:00 2026
+X-Fixture-Purpose: CleanText replaces chars below 32 with a space before storing, so a fingerprint built from the raw header will not match the stored column
+From: alice@source.example
+To: bob@target.example
+Subject: Subject with a control char  inside
+Date: Mon, 20 Jul 2026 00:00:00 +0000
+Message-ID: <subject-with-a-control-char---inside-32-0@source.example>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+
+Fixture message.
+
+From alice@source.example Sun Jul 12 00:00:00 2026
+Received: from mx3.target.example by next.hop.example with ESMTP id ABC0; Sun, 12 Jul 2026 00:00:00 +0000
+Received: from mx2.relay.example by next.hop.example with ESMTP id ABC1; Sat, 11 Jul 2026 23:58:00 +0000
+Received: from mx1.source.example by next.hop.example with ESMTP id ABC2; Sat, 11 Jul 2026 23:55:00 +0000
+X-Fixture-Purpose: has a full Received chain, so the INTERNALDATE fix has something to parse
+From: alice@source.example
+To: bob@target.example
+Subject: Delivered through three hops
+Date: Sun, 12 Jul 2026 00:00:00 +0000
+Message-ID: <delivered-through-three-hops-40-0@source.example>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+
+Fixture message.
+
+From alice@source.example Sat Jul 11 00:00:00 2026
+X-Fixture-Purpose: forces the INTERNALDATE fallback path; rows archived before RawHeaders existed look like this
+From: alice@source.example
+To: bob@target.example
+Subject: No Received headers at all
+Date: Sat, 11 Jul 2026 00:00:00 +0000
+Message-ID: <no-received-headers-at-all-41-0@source.example>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+
+Fixture message.
+
+From alice@source.example Thu Jul 02 00:00:00 2026
+X-Fixture-Purpose: import dedup SHOULD collapse this pair
+From: alice@source.example
+To: bob@target.example
+Subject: Near duplicate single recipient
+Date: Thu, 02 Jul 2026 00:00:00 +0000
+Message-ID: <near-duplicate-single-recipient-50-0@source.example>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+
+Fixture message.
+
+From alice@source.example Thu Jul 02 00:00:01 2026
+X-Fixture-Purpose: second half of the pair, 1s later
+From: alice@source.example
+To: bob@target.example
+Subject: Near duplicate single recipient
+Date: Thu, 02 Jul 2026 00:00:01 +0000
+Message-ID: <near-duplicate-single-recipient-50-1@source.example>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+
+Fixture message.
+
+From alice@source.example Wed Jul 01 00:00:00 2026
+X-Fixture-Purpose: import dedup should collapse this pair but cannot -- this is defect 4 made visible in the seeded data
+From: alice@source.example
+To: bob@target.example, carol@target.example
+Subject: Near duplicate two recipients
+Date: Wed, 01 Jul 2026 00:00:00 +0000
+Message-ID: <near-duplicate-two-recipients-51-0@source.example>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+
+Fixture message.
+
+From alice@source.example Wed Jul 01 00:00:01 2026
+X-Fixture-Purpose: second half of the pair, 1s later
+From: alice@source.example
+To: bob@target.example, carol@target.example
+Subject: Near duplicate two recipients
+Date: Wed, 01 Jul 2026 00:00:01 +0000
+Message-ID: <near-duplicate-two-recipients-51-1@source.example>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+
+Fixture message.
+

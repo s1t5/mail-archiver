@@ -1,0 +1,66 @@
+# Local test environment for mail-archiver.
+#
+# Brings up the two backing services that the test suite and any IMAP work need,
+# both published on loopback so tools running on the host (dotnet test, dotnet run --
+# --offload, an IMAP client) can reach them:
+#
+#   postgres  the archive database, on 5433 to avoid clashing with a local server
+#   dovecot   an IMAP target standing in for mailcow, on 1143 (plain) and 1993 (TLS)
+#
+# The application itself is deliberately not included. Running it from the host with
+# `dotnet run` iterates far faster than rebuilding the image, and the deployable
+# stack already lives in docker-compose.yml.
+#
+#   docker compose -f docker-compose.test.yml up -d      start
+#   docker compose -f docker-compose.test.yml down -v     stop and wipe all state
+#
+# NOT for production. Credentials are fixed and dovecot accepts any username.
+
+networks:
+  mailarchiver-test:
+
+volumes:
+  test-postgres-data:
+  test-dovecot-mail:
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: MailArchiver
+      POSTGRES_USER: mailuser
+      POSTGRES_PASSWORD: masterkey
+    ports:
+      - "127.0.0.1:5433:5432"
+    volumes:
+      - test-postgres-data:/var/lib/postgresql/data
+      # Creates the second (application) database on first initialisation.
+      - ./tests/postgres:/docker-entrypoint-initdb.d:ro
+    networks:
+      - mailarchiver-test
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mailuser -d MailArchiver"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  dovecot:
+    image: dovecot/dovecot:2.3-latest
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:1143:143"
+      - "127.0.0.1:1993:993"
+    volumes:
+      # Mounted as a single file so the image's self-signed cert.pem / key.pem remain.
+      - ./tests/dovecot/dovecot.conf:/etc/dovecot/dovecot.conf:ro
+      - test-dovecot-mail:/srv/mail
+    networks:
+      - mailarchiver-test
+    healthcheck:
+      test: ["CMD-SHELL", "doveadm who >/dev/null 2>&1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s

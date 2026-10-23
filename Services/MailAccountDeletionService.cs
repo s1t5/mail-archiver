@@ -180,7 +180,7 @@ namespace MailArchiver.Services
                 _logger.LogInformation("Job {JobId}: Cancelled any running sync jobs for account {AccountId}",
                     job.JobId, job.MailAccountId);
 
-                // Phase 2: Unlock all emails (required for compliance mode)
+                // Phase 2: Unlock all emails
                 job.CurrentPhase = "Unlocking emails";
                 var lockedEmails = await context.ArchivedEmails
                     .Where(e => e.MailAccountId == job.MailAccountId && e.IsLocked)

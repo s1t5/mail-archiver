@@ -1,0 +1,182 @@
+@using MailArchiver.Models
+@using MailArchiver.ViewModels
+@model List<AuditExportJob>
+@inject Microsoft.Extensions.Localization.IStringLocalizer<MailArchiver.SharedResource> Localizer
+
+@{
+    ViewData["Title"] = Localizer["AuditExport"];
+    var mailAccounts = ViewBag.AuditExportMailAccounts as List<AuditExportMailAccountViewModel> ?? new List<AuditExportMailAccountViewModel>();
+    var exportOptions = ViewBag.AuditExportOptions as AuditExportOptions ?? new AuditExportOptions();
+}
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="h3 mb-0"><i class="bi bi-box-arrow-up me-1"></i>@Localizer["AuditExport"]</h1>
+        <a asp-controller="Logs" asp-action="Index" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-arrow-left me-1"></i>@Localizer["BackToLogs"]
+        </a>
+    </div>
+
+    <div class="card mb-3">
+        <div class="card-header bg-light">
+            <span class="h6 mb-0"><i class="bi bi-gear me-1"></i>@Localizer["ExportSettings"]</span>
+        </div>
+        <div class="card-body">
+            <form method="post" asp-controller="Logs" asp-action="StartAuditExport" class="mb-0">
+                @Html.AntiForgeryToken()
+                <div class="row g-2 mb-3">
+                    <div class="col-md-2">
+                        <label for="auditFromDate" class="form-label">@Localizer["FromDate"]</label>
+                        <input type="date" class="form-control form-control-sm" id="auditFromDate" name="fromDate" required />
+                    </div>
+                    <div class="col-md-2">
+                        <label for="auditToDate" class="form-label">@Localizer["ToDate"]</label>
+                        <input type="date" class="form-control form-control-sm" id="auditToDate" name="toDate" required />
+                    </div>
+                    <div class="col-md-3">
+                        <label for="auditMailbox" class="form-label">@Localizer["Mailbox"]</label>
+                        <select class="form-select form-select-sm" id="auditMailbox" name="mailAccountId">
+                            <option value="">@Localizer["AllMailboxes"]</option>
+                            @foreach (var account in mailAccounts)
+                            {
+                                <option value="@account.Id">@account.Name (@account.EmailAddress)</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label d-block" for="auditIncludeAttachments">@Localizer["AttachmentMetadata"]</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="auditIncludeAttachments" name="includeAttachments" value="true" />
+                            <label class="form-check-label" for="auditIncludeAttachments">@Localizer["IncludeAttachmentMetadata"]</label>
+                        </div>
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary btn-sm w-100" id="auditExportStartButton">
+                            <i class="bi bi-play-fill me-1"></i>@Localizer["StartExport"]
+                        </button>
+                    </div>
+                </div>
+                <div class="row g-2">
+                    <div class="col-md-4">
+                        <label for="auditSupplierName" class="form-label">@Localizer["DataSupplierName"]</label>
+                        <input type="text" class="form-control form-control-sm" id="auditSupplierName" name="dataSupplierName" value="@exportOptions.DataSupplierName" maxlength="200" />
+                    </div>
+                    <div class="col-md-4">
+                        <label for="auditSupplierLocation" class="form-label">@Localizer["DataSupplierLocation"]</label>
+                        <input type="text" class="form-control form-control-sm" id="auditSupplierLocation" name="dataSupplierLocation" value="@exportOptions.DataSupplierLocation" maxlength="200" />
+                    </div>
+                    <div class="col-md-4">
+                        <label for="auditSupplierComment" class="form-label">@Localizer["Comment"]</label>
+                        <input type="text" class="form-control form-control-sm" id="auditSupplierComment" name="dataSupplierComment" value="@exportOptions.Comment" maxlength="500" />
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header bg-light">
+            <span class="h6 mb-0"><i class="bi bi-clock-history me-1"></i>@Localizer["AuditExportHistory"]</span>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive" id="auditExportJobs">
+                <table class="table table-striped table-hover table-sm mb-0">
+                    <thead class="table-dark">
+                        <tr>
+                            <th style="width: 15%;">@Localizer["Created"]</th>
+                            <th style="width: 20%;">@Localizer["Period"]</th>
+                            <th style="width: 15%;">@Localizer["Mailbox"]</th>
+                            <th style="width: 10%;">@Localizer["Emails"]</th>
+                            <th style="width: 15%;">@Localizer["Status"]</th>
+                            <th style="width: 10%;">@Localizer["FileSize"]</th>
+                            <th style="width: 15%;"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.Count == 0)
+                        {
+                            <tr><td colspan="7" class="text-center text-muted py-3">@Localizer["NoAuditExportsYet"]</td></tr>
+                        }
+                        @foreach (var job in Model)
+                        {
+                            <tr data-job-id="@job.Id" data-job-status="@job.Status">
+                                <td>
+                                    <span class="utc-timestamp" data-utc-time="@job.Created.ToString("yyyy-MM-ddTHH:mm:ss")">
+                                        @job.Created.ToString("g")
+                                    </span>
+                                </td>
+                                <td>@job.FromDate.ToString("d") - @job.ToDate.ToString("d")</td>
+                                <td>@(job.MailAccountId.HasValue ? (job.MailAccountName ?? job.MailAccountId.ToString()) : Localizer["AllMailboxes"])</td>
+                                <td>
+                                    <span class="audit-progress">@job.ProcessedEmails / @job.TotalEmails</span>
+                                </td>
+                                <td>
+                                    @{
+                                        var statusBadge = job.Status switch
+                                        {
+                                            AuditExportJobStatus.Queued => "bg-secondary",
+                                            AuditExportJobStatus.Running => "bg-primary",
+                                            AuditExportJobStatus.Completed => "bg-success",
+                                            AuditExportJobStatus.Downloaded => "bg-success",
+                                            AuditExportJobStatus.Failed => "bg-danger",
+                                            AuditExportJobStatus.Cancelled => "bg-warning text-dark",
+                                            _ => "bg-secondary"
+                                        };
+                                    }
+                                    <span class="badge @statusBadge audit-status-badge">@Localizer[job.Status.ToString()]</span>
+                                    @if (job.Status == AuditExportJobStatus.Running)
+                                    {
+                                        <div class="progress mt-1" style="height: 5px;">
+                                            <div class="progress-bar progress-bar-striped progress-bar-animated audit-progress-bar"
+                                                 role="progressbar" style="width: @(job.TotalEmails > 0 ? (job.ProcessedEmails * 100.0 / job.TotalEmails).ToString("F0") : "0")%"></div>
+                                        </div>
+                                    }
+                                </td>
+                                <td class="audit-filesize">@(job.OutputFileSize > 0 ? $"{job.OutputFileSize / 1024.0 / 1024.0:F2} MB" : "-")</td>
+                                <td class="text-end audit-actions">
+                                    @if (job.Status == AuditExportJobStatus.Completed || job.Status == AuditExportJobStatus.Downloaded)
+                                    {
+                                        <a asp-controller="Logs" asp-action="DownloadAuditExport" asp-route-jobId="@job.Id"
+                                           class="btn btn-outline-primary btn-sm" title="@Localizer["Download"]">
+                                            <i class="bi bi-download"></i>
+                                        </a>
+                                    }
+                                    @if (job.Status == AuditExportJobStatus.Queued || job.Status == AuditExportJobStatus.Running)
+                                    {
+                                        <form method="post" asp-controller="Logs" asp-action="CancelAuditExport" class="d-inline">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="jobId" value="@job.Id" />
+                                            <button type="submit" class="btn btn-outline-danger btn-sm" title="@Localizer["Cancel"]"
+                                                    onclick="return confirm('@Html.Raw(Localizer["CancelExportConfirm"])');">
+                                                <i class="bi bi-x-circle"></i>
+                                            </button>
+                                        </form>
+                                    }
+                                    @if (job.Status == AuditExportJobStatus.Failed && !string.IsNullOrEmpty(job.ErrorMessage))
+                                    {
+                                        <i class="bi bi-exclamation-triangle text-danger" title="@job.ErrorMessage"></i>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    window.auditExportStatusLabels = {
+        Queued: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["Queued"].Value)),
+        Running: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["Running"].Value)),
+        Completed: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["Completed"].Value)),
+        Downloaded: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["Downloaded"].Value)),
+        Failed: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["Failed"].Value)),
+        Cancelled: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["Cancelled"].Value))
+    };
+</script>
+
+@section Scripts {
+    <script src="~/js/audit-export.js" asp-append-version="true"></script>
+}

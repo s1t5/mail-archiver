@@ -1,5 +1,7 @@
 using MailArchiver.Data;
 using MailArchiver.Models;
+using MailArchiver.Services.Shared;
+using MailArchiver.Utilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using System.Collections.Concurrent;
@@ -20,19 +22,16 @@ namespace MailArchiver.Services
         private readonly Timer _cleanupTimer;
         private CancellationTokenSource? _currentJobCancellation;
         private readonly string _exportsPath;
-        private readonly TimeZoneOptions _timeZoneOptions;
 
         public ExportService(
             IServiceProvider serviceProvider, 
             ILogger<ExportService> logger, 
             IWebHostEnvironment environment, 
-            IOptions<BatchOperationOptions> batchOptions,
-            IOptions<TimeZoneOptions> timeZoneOptions)
+            IOptions<BatchOperationOptions> batchOptions)
         {
             _serviceProvider = serviceProvider;
             _logger = logger;
             _batchOptions = batchOptions.Value;
-            _timeZoneOptions = timeZoneOptions.Value;
             _exportsPath = Path.Combine(environment.ContentRootPath, "exports");
 
             // Create exports directory if it doesn't exist
@@ -257,6 +256,7 @@ namespace MailArchiver.Services
 
                 using var scope = _serviceProvider.CreateScope();
                 var context = scope.ServiceProvider.GetRequiredService<MailArchiverDbContext>();
+                var dateTimeHelper = scope.ServiceProvider.GetRequiredService<DateTimeHelper>();
 
                 // Get email count
                 job.TotalEmails = await context.ArchivedEmails
@@ -277,14 +277,18 @@ namespace MailArchiver.Services
                 var fileName = $"export_{job.JobId}_{DateTime.UtcNow:yyyyMMddHHmmss}.zip";
                 job.OutputFilePath = Path.Combine(_exportsPath, fileName);
 
+                // Track the IDs of emails that were successfully written so we can detect
+                // any that were silently skipped during the main export pass.
+                var processedIds = new HashSet<int>();
+
                 // Perform export based on format
                 if (job.Format == AccountExportFormat.EML)
                 {
-                    await ExportToEmlFormat(job, context, cancellationToken);
+                    await ExportToEmlFormat(job, context, dateTimeHelper, processedIds, cancellationToken);
                 }
                 else if (job.Format == AccountExportFormat.MBox)
                 {
-                    await ExportToMBoxFormat(job, context, cancellationToken);
+                    await ExportToMBoxFormat(job, context, dateTimeHelper, processedIds, cancellationToken);
                 }
 
                 if (job.Status != AccountExportJobStatus.Cancelled)
@@ -336,7 +340,7 @@ namespace MailArchiver.Services
             }
         }
 
-        private async Task ExportToEmlFormat(AccountExportJob job, MailArchiverDbContext context, CancellationToken cancellationToken)
+        private async Task ExportToEmlFormat(AccountExportJob job, MailArchiverDbContext context, DateTimeHelper dateTimeHelper, HashSet<int> processedIds, CancellationToken cancellationToken)
         {
             using var zipStream = new FileStream(job.OutputFilePath, FileMode.Create, FileAccess.Write);
             using var archive = new ZipArchive(zipStream, ZipArchiveMode.Create);
@@ -351,11 +355,16 @@ namespace MailArchiver.Services
             // Process emails for each folder
             foreach (var folderName in folderNames)
             {
-                await ProcessEmailsForEmlExportByFolder(job, context, archive, folderName, cancellationToken);
+                await ProcessEmailsForEmlExportByFolder(job, context, archive, folderName, dateTimeHelper, processedIds, cancellationToken);
             }
+
+            // Reconciliation: recover any emails that were silently skipped during the main pass
+            // (e.g. due to paging edge cases) so the export is complete and discrepancies are visible.
+            await RecoverMissingEmlEmails(job, context, archive, dateTimeHelper, processedIds, cancellationToken);
         }
 
-        private async Task ProcessEmailsForEmlExportByFolder(AccountExportJob job, MailArchiverDbContext context, ZipArchive archive, string folderName, CancellationToken cancellationToken)
+        private async Task ProcessEmailsForEmlExportByFolder(AccountExportJob job, MailArchiverDbContext context, ZipArchive archive, string folderName, DateTimeHelper dateTimeHelper, HashSet<int> processedIds, CancellationToken cancellationToken)
+
         {
             // Get total count for this folder
             var totalEmailsInFolder = await context.ArchivedEmails
@@ -373,6 +382,7 @@ namespace MailArchiver.Services
                 var emailBatch = await context.ArchivedEmails
                     .Where(e => e.MailAccountId == job.MailAccountId && e.FolderName == folderName)
                     .Include(e => e.Attachments)
+                        .ThenInclude(a => a.AttachmentContent)
                     .OrderBy(e => e.Id)
                     .Skip(offset)
                     .Take(batchSize)
@@ -391,7 +401,7 @@ namespace MailArchiver.Services
                         job.CurrentEmailSubject = email.Subject;
 
                         // Create MIME message from archived email
-                        var mimeMessage = await CreateMimeMessageFromArchived(email);
+                        var mimeMessage = await CreateMimeMessageFromArchived(email, dateTimeHelper);
 
                         // Generate safe filename with In/Out indicator
                         var safeSubject = SanitizeFileName(email.Subject);
@@ -405,6 +415,7 @@ namespace MailArchiver.Services
                         await mimeMessage.WriteToAsync(entryStream, cancellationToken);
 
                         job.ProcessedEmails++;
+                        processedIds.Add(email.Id);
                         emailIndex++;
 
                         // Small pause every 10 emails
@@ -425,6 +436,13 @@ namespace MailArchiver.Services
                     {
                         _logger.LogWarning(ex, "Job {JobId}: Failed to export email {EmailId}: {Subject}", 
                             job.JobId, email.Id, email.Subject);
+                        job.FailedEmails.Add(new FailedEmailInfo
+                        {
+                            EmailId = email.Id,
+                            Subject = email.Subject ?? "",
+                            FolderName = folderName,
+                            Error = ex.Message
+                        });
                     }
                 }
 
@@ -443,7 +461,7 @@ namespace MailArchiver.Services
             }
         }
 
-        private async Task ExportToMBoxFormat(AccountExportJob job, MailArchiverDbContext context, CancellationToken cancellationToken)
+        private async Task ExportToMBoxFormat(AccountExportJob job, MailArchiverDbContext context, DateTimeHelper dateTimeHelper, HashSet<int> processedIds, CancellationToken cancellationToken)
         {
             using var zipStream = new FileStream(job.OutputFilePath, FileMode.Create, FileAccess.Write);
             using var archive = new ZipArchive(zipStream, ZipArchiveMode.Create);
@@ -460,11 +478,15 @@ namespace MailArchiver.Services
             {
                 var mboxEntry = archive.CreateEntry($"{SanitizeFileName(folderName)}.mbox");
                 using var mboxStream = mboxEntry.Open();
-                await ProcessEmailsForMBoxExportByFolder(job, context, mboxStream, folderName, cancellationToken);
+                await ProcessEmailsForMBoxExportByFolder(job, context, mboxStream, folderName, dateTimeHelper, processedIds, cancellationToken);
             }
+
+            // Reconciliation: recover any emails that were silently skipped during the main pass
+            // (e.g. due to paging edge cases) so the export is complete and discrepancies are visible.
+            await RecoverMissingMBoxEmails(job, context, archive, dateTimeHelper, processedIds, cancellationToken);
         }
 
-        private async Task ProcessEmailsForMBoxExportByFolder(AccountExportJob job, MailArchiverDbContext context, Stream mboxStream, string folderName, CancellationToken cancellationToken)
+        private async Task ProcessEmailsForMBoxExportByFolder(AccountExportJob job, MailArchiverDbContext context, Stream mboxStream, string folderName, DateTimeHelper dateTimeHelper, HashSet<int> processedIds, CancellationToken cancellationToken)
         {
             // Use UTF-8 without BOM - mbox files must start with "From " at byte offset 0
             // A BOM (0xEF 0xBB 0xBF) before "From " causes mbox parsers to reject the file
@@ -487,6 +509,7 @@ namespace MailArchiver.Services
                 var emailBatch = await context.ArchivedEmails
                     .Where(e => e.MailAccountId == job.MailAccountId && e.FolderName == folderName)
                     .Include(e => e.Attachments)
+                        .ThenInclude(a => a.AttachmentContent)
                     .OrderBy(e => e.SentDate)
                     .Skip(offset)
                     .Take(batchSize)
@@ -509,7 +532,7 @@ namespace MailArchiver.Services
                         await writer.WriteLineAsync(fromLine);
 
                         // Create MIME message and write to mbox
-                        var mimeMessage = await CreateMimeMessageFromArchived(email);
+                        var mimeMessage = await CreateMimeMessageFromArchived(email, dateTimeHelper);
                         
                         using var messageStream = new MemoryStream();
                         await mimeMessage.WriteToAsync(messageStream, cancellationToken);
@@ -531,6 +554,7 @@ namespace MailArchiver.Services
                         await writer.WriteLineAsync();
 
                         job.ProcessedEmails++;
+                        processedIds.Add(email.Id);
 
                         // Small pause every 10 emails
                         if (job.ProcessedEmails % 10 == 0 && _batchOptions.PauseBetweenEmailsMs > 0)
@@ -550,6 +574,13 @@ namespace MailArchiver.Services
                     {
                         _logger.LogWarning(ex, "Job {JobId}: Failed to export email {EmailId}: {Subject}", 
                             job.JobId, email.Id, email.Subject);
+                        job.FailedEmails.Add(new FailedEmailInfo
+                        {
+                            EmailId = email.Id,
+                            Subject = email.Subject ?? "",
+                            FolderName = folderName,
+                            Error = ex.Message
+                        });
                     }
                 }
 
@@ -570,25 +601,200 @@ namespace MailArchiver.Services
             await writer.FlushAsync();
         }
 
-        private async Task<MimeMessage> CreateMimeMessageFromArchived(ArchivedEmail email)
+        private async Task RecoverMissingEmlEmails(AccountExportJob job, MailArchiverDbContext context, ZipArchive archive, DateTimeHelper dateTimeHelper, HashSet<int> processedIds, CancellationToken cancellationToken)
+        {
+            var failedIds = new HashSet<int>(job.FailedEmails.Select(f => f.EmailId));
+
+            // Determine which account emails were neither exported nor already recorded as failed.
+            var allIds = await context.ArchivedEmails
+                .Where(e => e.MailAccountId == job.MailAccountId)
+                .Select(e => e.Id)
+                .ToListAsync(cancellationToken);
+
+            var missingIds = allIds
+                .Where(id => !processedIds.Contains(id) && !failedIds.Contains(id))
+                .ToList();
+
+            if (missingIds.Count == 0)
+                return;
+
+            _logger.LogWarning("Job {JobId}: {Count} email(s) were skipped during the main EML export pass. Attempting recovery. Email IDs: {Ids}",
+                job.JobId, missingIds.Count, string.Join(", ", missingIds));
+
+            var recoveryIndex = 1;
+            foreach (var id in missingIds)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                var email = await context.ArchivedEmails
+                    .Where(e => e.Id == id)
+                    .Include(e => e.Attachments)
+                        .ThenInclude(a => a.AttachmentContent)
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(cancellationToken);
+
+                if (email == null)
+                {
+                    job.FailedEmails.Add(new FailedEmailInfo
+                    {
+                        EmailId = id,
+                        Subject = string.Empty,
+                        FolderName = string.Empty,
+                        Error = "Email could not be loaded during recovery (it may have been deleted during the export)."
+                    });
+                    continue;
+                }
+
+                try
+                {
+                    var mimeMessage = await CreateMimeMessageFromArchived(email, dateTimeHelper);
+
+                    var safeSubject = SanitizeFileName(email.Subject);
+                    var inOutIndicator = email.IsOutgoing ? "Out" : "In";
+                    var fileName = $"recovered_{recoveryIndex:D6}_{email.SentDate:yyyyMMdd_HHmmss}_{inOutIndicator}_{safeSubject}.eml";
+                    var entryName = $"{SanitizeFileName(email.FolderName)}/{fileName}";
+
+                    var entry = archive.CreateEntry(entryName);
+                    using var entryStream = entry.Open();
+                    await mimeMessage.WriteToAsync(entryStream, cancellationToken);
+
+                    job.ProcessedEmails++;
+                    processedIds.Add(email.Id);
+                    recoveryIndex++;
+
+                    _logger.LogInformation("Job {JobId}: Recovered previously skipped email {EmailId}: {Subject}",
+                        job.JobId, email.Id, email.Subject);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Job {JobId}: Recovery failed for email {EmailId}: {Subject}",
+                        job.JobId, email.Id, email.Subject);
+                    job.FailedEmails.Add(new FailedEmailInfo
+                    {
+                        EmailId = email.Id,
+                        Subject = email.Subject ?? "",
+                        FolderName = email.FolderName ?? "",
+                        Error = ex.Message
+                    });
+                }
+            }
+        }
+
+        private async Task RecoverMissingMBoxEmails(AccountExportJob job, MailArchiverDbContext context, ZipArchive archive, DateTimeHelper dateTimeHelper, HashSet<int> processedIds, CancellationToken cancellationToken)
+        {
+            var failedIds = new HashSet<int>(job.FailedEmails.Select(f => f.EmailId));
+
+            var allIds = await context.ArchivedEmails
+                .Where(e => e.MailAccountId == job.MailAccountId)
+                .Select(e => e.Id)
+                .ToListAsync(cancellationToken);
+
+            var missingIds = allIds
+                .Where(id => !processedIds.Contains(id) && !failedIds.Contains(id))
+                .ToList();
+
+            if (missingIds.Count == 0)
+                return;
+
+            _logger.LogWarning("Job {JobId}: {Count} email(s) were skipped during the main MBox export pass. Attempting recovery. Email IDs: {Ids}",
+                job.JobId, missingIds.Count, string.Join(", ", missingIds));
+
+            var mboxEntry = archive.CreateEntry("_recovered.mbox");
+            using var mboxStream = mboxEntry.Open();
+            using var writer = new StreamWriter(mboxStream, new UTF8Encoding(false), leaveOpen: true);
+            writer.NewLine = "\n";
+
+            foreach (var id in missingIds)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                var email = await context.ArchivedEmails
+                    .Where(e => e.Id == id)
+                    .Include(e => e.Attachments)
+                        .ThenInclude(a => a.AttachmentContent)
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(cancellationToken);
+
+                if (email == null)
+                {
+                    job.FailedEmails.Add(new FailedEmailInfo
+                    {
+                        EmailId = id,
+                        Subject = string.Empty,
+                        FolderName = string.Empty,
+                        Error = "Email could not be loaded during recovery (it may have been deleted during the export)."
+                    });
+                    continue;
+                }
+
+                try
+                {
+                    var fromLine = CreateMBoxFromLine(email);
+                    await writer.WriteLineAsync(fromLine);
+
+                    var mimeMessage = await CreateMimeMessageFromArchived(email, dateTimeHelper);
+
+                    using var messageStream = new MemoryStream();
+                    await mimeMessage.WriteToAsync(messageStream, cancellationToken);
+                    messageStream.Position = 0;
+
+                    using var messageReader = new StreamReader(messageStream, Encoding.UTF8);
+                    string? line;
+                    while ((line = await messageReader.ReadLineAsync()) != null)
+                    {
+                        if (line.StartsWith("From "))
+                        {
+                            line = ">" + line;
+                        }
+                        await writer.WriteLineAsync(line);
+                    }
+
+                    await writer.WriteLineAsync();
+
+                    job.ProcessedEmails++;
+                    processedIds.Add(email.Id);
+
+                    _logger.LogInformation("Job {JobId}: Recovered previously skipped email {EmailId}: {Subject}",
+                        job.JobId, email.Id, email.Subject);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Job {JobId}: Recovery failed for email {EmailId}: {Subject}",
+                        job.JobId, email.Id, email.Subject);
+                    job.FailedEmails.Add(new FailedEmailInfo
+                    {
+                        EmailId = email.Id,
+                        Subject = email.Subject ?? "",
+                        FolderName = email.FolderName ?? "",
+                        Error = ex.Message
+                    });
+                }
+            }
+
+            await writer.FlushAsync();
+        }
+
+        private async Task<MimeMessage> CreateMimeMessageFromArchived(ArchivedEmail email, DateTimeHelper dateTimeHelper)
         {
             var message = new MimeMessage();
 
-            // Set headers
-            message.MessageId = email.MessageId;
+            // Set headers. Apply the stored Message-ID only when it normalizes to a usable
+            // value; MailKit 4.17.0 throws on an empty one (M3).
+            MailContentHelper.ApplyRestorableMessageId(message, email.MessageId);
             message.Subject = email.Subject;
-            
+
             // The SentDate in the database is already in the configured display timezone (converted during sync)
             // We need to specify this timezone when creating the DateTimeOffset to preserve the correct time
-            var displayTimeZone = TimeZoneInfo.FindSystemTimeZoneById(_timeZoneOptions.DisplayTimeZoneId);
-            message.Date = new DateTimeOffset(email.SentDate, displayTimeZone.GetUtcOffset(email.SentDate));
+            message.Date = dateTimeHelper.ToDisplayTimeZoneOffset(email.SentDate);
 
             // Parse addresses
             if (!string.IsNullOrEmpty(email.From))
             {
                 try
                 {
-                    message.From.AddRange(InternetAddressList.Parse(email.From));
+                    var fromList = InternetAddressList.Parse(email.From);
+                    MailContentHelper.ApplyDisplayNames(fromList, email.FromDisplayName);
+                    message.From.AddRange(fromList);
                 }
                 catch
                 {
@@ -600,7 +806,9 @@ namespace MailArchiver.Services
             {
                 try
                 {
-                    message.To.AddRange(InternetAddressList.Parse(email.To));
+                    var toList = InternetAddressList.Parse(email.To);
+                    MailContentHelper.ApplyDisplayNames(toList, email.ToDisplayNames);
+                    message.To.AddRange(toList);
                 }
                 catch
                 {
@@ -612,7 +820,9 @@ namespace MailArchiver.Services
             {
                 try
                 {
-                    message.Cc.AddRange(InternetAddressList.Parse(email.Cc));
+                    var ccList = InternetAddressList.Parse(email.Cc);
+                    MailContentHelper.ApplyDisplayNames(ccList, email.CcDisplayNames);
+                    message.Cc.AddRange(ccList);
                 }
                 catch
                 {
@@ -624,11 +834,55 @@ namespace MailArchiver.Services
             {
                 try
                 {
-                    message.Bcc.AddRange(InternetAddressList.Parse(email.Bcc));
+                    var bccList = InternetAddressList.Parse(email.Bcc);
+                    MailContentHelper.ApplyDisplayNames(bccList, email.BccDisplayNames);
+                    message.Bcc.AddRange(bccList);
                 }
                 catch
                 {
                     message.Bcc.Add(new MailboxAddress("", email.Bcc));
+                }
+            }
+
+            // Import raw headers if available (for forensic/compliance purposes)
+            if (!string.IsNullOrEmpty(email.RawHeaders))
+            {
+                try
+                {
+                    using var reader = new StringReader(email.RawHeaders);
+                    string? line;
+                    while ((line = reader.ReadLine()) != null)
+                    {
+                        var colonIndex = line.IndexOf(':');
+                        if (colonIndex > 0)
+                        {
+                            var headerName = line.Substring(0, colonIndex).Trim();
+                            var headerValue = line.Substring(colonIndex + 1).Trim();
+
+                            // Skip headers that are already set by MimeMessage properties to avoid duplicates
+                            var skipHeaders = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+                            {
+                                "Subject", "From", "To", "Cc", "Bcc", "Date", "Message-ID",
+                                "MIME-Version", "Content-Type"
+                            };
+
+                            if (!skipHeaders.Contains(headerName))
+                            {
+                                try
+                                {
+                                    message.Headers.Add(headerName, headerValue);
+                                }
+                                catch
+                                {
+                                    // Ignore headers that cannot be added
+                                }
+                            }
+                        }
+                    }
+                }
+                catch
+                {
+                    // Ignore raw header parsing errors to avoid breaking export
                 }
             }
 
@@ -642,16 +896,20 @@ namespace MailArchiver.Services
                     ? email.BodyUntruncatedText 
                     : email.Body);
 
-            if (!string.IsNullOrEmpty(textBody))
-            {
-                bodyBuilder.TextBody = textBody;
-            }
-
             var htmlBody = email.OriginalBodyHtml != null
                 ? System.Text.Encoding.UTF8.GetString(email.OriginalBodyHtml)
                 : (!string.IsNullOrEmpty(email.BodyUntruncatedHtml) 
                     ? email.BodyUntruncatedHtml 
                     : email.HtmlBody);
+
+            // Only emit a text/plain part when the content is genuine plain text.
+            // When an email was archived without a real text/plain part, the archiving fallback stores the
+            // raw HTML in the Body field; emitting that as text/plain would produce an HTML-in-plain-text part.
+            if (!string.IsNullOrEmpty(textBody)
+                && !MailArchiver.Services.Shared.MailContentHelper.IsHtmlContent(textBody, htmlBody))
+            {
+                bodyBuilder.TextBody = textBody;
+            }
 
             if (!string.IsNullOrEmpty(htmlBody))
             {

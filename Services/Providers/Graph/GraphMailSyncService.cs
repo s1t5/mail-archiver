@@ -1,0 +1,1100 @@
+using MailArchiver.Data;
+using MailArchiver.Models;
+using MailArchiver.Services.Shared;
+using MailArchiver.Utilities;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
+using Microsoft.Graph;
+using Microsoft.Graph.Models;
+using Microsoft.Graph.Models.ODataErrors;
+
+namespace MailArchiver.Services.Providers.Graph
+{
+    /// <summary>
+    /// Orchestrates the Microsoft Graph email sync pipeline: folder iteration, message batching,
+    /// pagination, memory management, delete-after-days retention, and resync.
+    /// </summary>
+    public class GraphMailSyncService
+    {
+        private readonly MailArchiverDbContext _context;
+        private readonly ILogger<GraphMailSyncService> _logger;
+        private readonly ISyncJobService _syncJobService;
+        private readonly GraphAuthClientFactory _authFactory;
+        private readonly IGraphFolderService _folderService;
+        private readonly GraphMailArchiver _archiver;
+        private readonly BatchOperationOptions _batchOptions;
+        private readonly MailSyncOptions _mailSyncOptions;
+        private readonly DateTimeHelper _dateTimeHelper;
+
+        public GraphMailSyncService(
+            MailArchiverDbContext context,
+            ILogger<GraphMailSyncService> logger,
+            ISyncJobService syncJobService,
+            GraphAuthClientFactory authFactory,
+            IGraphFolderService folderService,
+            GraphMailArchiver archiver,
+            IOptions<BatchOperationOptions> batchOptions,
+            IOptions<MailSyncOptions> mailSyncOptions,
+            DateTimeHelper dateTimeHelper)
+        {
+            _context = context;
+            _logger = logger;
+            _syncJobService = syncJobService;
+            _authFactory = authFactory;
+            _folderService = folderService;
+            _archiver = archiver;
+            _batchOptions = batchOptions.Value;
+            _mailSyncOptions = mailSyncOptions.Value;
+            _dateTimeHelper = dateTimeHelper;
+        }
+
+        /// <summary>
+        /// Syncs all emails from the M365 mailbox for the specified account.
+        /// </summary>
+        /// <param name="cancellationToken">
+        /// The account's sync timeout. Checked at the same three points as a UI cancel — per folder,
+        /// per page and before every message — and ends the sync as a pause, not as a failure.
+        /// </param>
+        public async Task SyncMailAccountAsync(MailAccount account, string? jobId = null, CancellationToken cancellationToken = default)
+        {
+            _logger.LogInformation("Starting Graph API sync for M365 account: {AccountName}", account.Name);
+
+            try
+            {
+                var graphClient = _authFactory.CreateGraphClient(account);
+
+                var processedFolders = 0;
+                var processedEmails = 0;
+                var newEmails = 0;
+                var failedEmails = 0;
+                var failedFolders = 0;
+
+                var folders = await _folderService.GetAllMailFoldersAsync(graphClient, account.EmailAddress);
+
+                if (jobId != null)
+                {
+                    _syncJobService.UpdateJobProgress(jobId, job =>
+                    {
+                        job.TotalFolders = folders.Count;
+                    });
+                }
+
+                _logger.LogInformation("Found {Count} folders for M365 account: {AccountName}", folders.Count, account.Name);
+
+                var folderPaths = _folderService.BuildFolderPathDictionary(folders);
+
+                var timedOut = false;
+
+                foreach (var folder in folders)
+                {
+                    var stopReason = SyncInterruption.Evaluate(
+                        jobId != null ? _syncJobService.GetJob(jobId)?.Status : null,
+                        cancellationToken.IsCancellationRequested);
+
+                    if (stopReason == SyncStopReason.Cancelled)
+                    {
+                        _logger.LogInformation("Sync job {JobId} for account {AccountName} has been cancelled", jobId, account.Name);
+                        if (jobId != null)
+                        {
+                            _syncJobService.CompleteJob(jobId, false, "Job was cancelled");
+                        }
+                        return;
+                    }
+
+                    if (stopReason == SyncStopReason.TimedOut)
+                    {
+                        timedOut = true;
+                        break;
+                    }
+
+                    try
+                    {
+                        var fullFolderPath = folderPaths.TryGetValue(folder.Id!, out var path) ? path : folder.DisplayName;
+
+                        if (FolderExclusionMatcher.IsExcluded(
+                                fullFolderPath, folder.DisplayName,
+                                account.ExcludedFoldersList, _mailSyncOptions.GlobalExcludedFolders,
+                                _mailSyncOptions.ExcludeSubfolders))
+                        {
+                            _logger.LogInformation("Skipping excluded folder: {FolderName} (full path: {FullPath}) for account: {AccountName}",
+                                folder.DisplayName, fullFolderPath, account.Name);
+                            processedFolders++;
+                            continue;
+                        }
+
+                        if (jobId != null)
+                        {
+                            _syncJobService.UpdateJobProgress(jobId, job =>
+                            {
+                                job.CurrentFolder = fullFolderPath;
+                                job.ProcessedFolders = processedFolders;
+                            });
+                        }
+
+                        var folderResult = await SyncFolderAsync(graphClient, folder, account, jobId, fullFolderPath, cancellationToken);
+                        processedEmails += folderResult.ProcessedEmails;
+                        newEmails += folderResult.NewEmails;
+                        failedEmails += folderResult.FailedEmails;
+                        failedFolders += folderResult.FailedFolders;
+
+                        // The folder evaluates the interrupt again inside its page/message loops, so
+                        // it can have stopped for a reason this loop top never saw — most notably a
+                        // timeout during the last folder, which must not be completed as success (it
+                        // would advance LastSync although the folder never finished).
+                        if (folderResult.StopReason == SyncStopReason.Cancelled)
+                        {
+                            _logger.LogInformation("Sync job {JobId} for account {AccountName} has been cancelled",
+                                jobId, account.Name);
+                            if (jobId != null)
+                            {
+                                _syncJobService.CompleteJob(jobId, false, "Job was cancelled");
+                            }
+                            return;
+                        }
+
+                        if (folderResult.StopReason == SyncStopReason.TimedOut)
+                        {
+                            timedOut = true;
+                            break;
+                        }
+
+                        processedFolders++;
+
+                        if (jobId != null)
+                        {
+                            _syncJobService.UpdateJobProgress(jobId, job =>
+                            {
+                                job.ProcessedFolders = processedFolders;
+                                job.ProcessedEmails = processedEmails;
+                                job.NewEmails = newEmails;
+                                job.FailedEmails = failedEmails;
+                                job.FailedFolders = failedFolders;
+                            });
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Error syncing folder {FolderName} for account {AccountName}: {Message}",
+                            folder.DisplayName, account.Name, ex.Message);
+                        failedFolders++;
+                        RecordIssue(jobId, SyncIssueKind.FolderFailed, folder.DisplayName ?? string.Empty, ex);
+                    }
+                }
+
+                if (timedOut)
+                {
+                    // A timeout is a pause, not a failure. Stop before the retention pass, leave
+                    // LastSync alone and let the next scheduled run continue.
+                    // Same counters as the completion line below, Failed included: a chunk that
+                    // ended with failures is one whose account stays held back, and that is not
+                    // visible anywhere else in this line.
+                    _logger.LogWarning("Graph API sync for account {AccountName} stopped at the configured sync timeout. " +
+                        "LastSync will NOT be updated. Processed: {Processed}, New: {New}, " +
+                        "Failed: {Failed}, Failed folders: {FailedFolders}",
+                        account.Name, processedEmails, newEmails, failedEmails, failedFolders);
+
+                    if (jobId != null)
+                    {
+                        _syncJobService.CompleteJobTimedOut(jobId,
+                            $"Sync timeout reached. Processed: {processedEmails}, New: {newEmails}. Sync will resume on the next run.");
+                    }
+                    return;
+                }
+
+                // Delete old emails if configured
+                var deletedEmails = 0;
+                if (account.DeleteAfterDays.HasValue && account.DeleteAfterDays.Value > 0)
+                {
+                    deletedEmails = await DeleteOldEmailsAsync(graphClient, account);
+                }
+
+                if (SyncCompletionPolicy.MayAdvanceLastSync(failedEmails, failedFolders))
+                {
+                    var trackedAccount = await _context.MailAccounts.FindAsync(account.Id);
+                    if (trackedAccount != null)
+                    {
+                        trackedAccount.LastSync = DateTime.UtcNow;
+                        await _context.SaveChangesAsync();
+                    }
+                }
+                else
+                {
+                    _logger.LogWarning("Not updating LastSync for account {AccountName}: {FailedCount} failed emails, " +
+                        "{FailedFolderCount} folders that could not be synced at all",
+                        account.Name, failedEmails, failedFolders);
+                }
+
+                _logger.LogInformation("Graph API sync completed for account: {AccountName}. New: {New}, Failed: {Failed}, Deleted: {Deleted}, " +
+                    "Failed folders: {FailedFolders}",
+                    account.Name, newEmails, failedEmails, deletedEmails, failedFolders);
+
+                if (jobId != null)
+                {
+                    _syncJobService.CompleteJob(jobId, true);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error during Graph API sync for account {AccountName}: {Message}",
+                    account.Name, ex.Message);
+
+                if (jobId != null)
+                {
+                    _syncJobService.CompleteJob(jobId, false, ex.Message);
+                }
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Tests the connection to Microsoft Graph API for the specified account.
+        /// </summary>
+        public async Task<bool> TestConnectionAsync(MailAccount account)
+        {
+            try
+            {
+                _logger.LogInformation("Testing Graph API connection for M365 account {Name} ({Email})",
+                    account.Name, account.EmailAddress);
+
+                var graphClient = _authFactory.CreateGraphClient(account);
+                var user = await graphClient.Users[account.EmailAddress].GetAsync();
+
+                if (user != null)
+                {
+                    _logger.LogInformation("Graph API connection test passed for account {Name}. User: {UserPrincipalName}",
+                        account.Name, user.UserPrincipalName);
+
+                    try
+                    {
+                        var foldersResponse = await graphClient.Users[account.EmailAddress].MailFolders.GetAsync((requestConfiguration) =>
+                        {
+                            requestConfiguration.QueryParameters.Select = new string[] { "id", "displayName" };
+                            requestConfiguration.QueryParameters.Top = 1;
+                        });
+
+                        _logger.LogInformation("Mail folder access test passed for account {Name}. Found {FolderCount} folders.",
+                            account.Name, foldersResponse?.Value?.Count ?? 0);
+
+                        if (foldersResponse?.Value?.Count > 0)
+                        {
+                            var firstFolder = foldersResponse.Value.First();
+                            try
+                            {
+                                var messagesResponse = await graphClient.Users[account.EmailAddress].MailFolders[firstFolder.Id].Messages.GetAsync((requestConfiguration) =>
+                                {
+                                    requestConfiguration.QueryParameters.Select = new string[] { "id" };
+                                    requestConfiguration.QueryParameters.Top = 1;
+                                });
+
+                                _logger.LogInformation("Message access test passed for account {Name} in folder {FolderName}. Found {MessageCount} messages.",
+                                    account.Name, firstFolder.DisplayName, messagesResponse?.Value?.Count ?? 0);
+                            }
+                            catch (Exception msgEx)
+                            {
+                                _logger.LogWarning(msgEx, "Message access test failed for account {Name} in folder {FolderName}: {Message}",
+                                    account.Name, firstFolder.DisplayName, msgEx.Message);
+                            }
+                        }
+                    }
+                    catch (Exception folderEx)
+                    {
+                        _logger.LogWarning(folderEx, "Mail folder access test failed for account {Name}: {Message}. " +
+                                             "This may indicate insufficient permissions (Mail.Read or Mail.ReadWrite required).",
+                            account.Name, folderEx.Message);
+                    }
+
+                    return true;
+                }
+
+                return false;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Graph API connection test failed for account {AccountName}: {Message}",
+                    account.Name, ex.Message);
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Performs a full resync of an account by resetting LastSync to Unix epoch.
+        /// </summary>
+        public async Task<bool> ResyncAccountAsync(int accountId)
+        {
+            try
+            {
+                var account = await _context.MailAccounts.FindAsync(accountId);
+                if (account == null)
+                    return false;
+
+                account.LastSync = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+                await _context.SaveChangesAsync();
+
+                var accountForSync = await _context.MailAccounts.AsNoTracking().FirstOrDefaultAsync(a => a.Id == accountId);
+                if (accountForSync == null)
+                {
+                    _logger.LogError("Account with ID {AccountId} not found after update", accountId);
+                    return false;
+                }
+
+                var jobId = _syncJobService.StartSync(accountForSync.Id, accountForSync.Name, accountForSync.LastSync);
+                await SyncMailAccountAsync(accountForSync, jobId);
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error during resync for Graph API account {AccountId}", accountId);
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Syncs a single mail folder: fetches messages with filter fallback, processes them in batches,
+        /// and handles pagination with memory optimization.
+        /// </summary>
+        /// <summary>
+        /// Records one problem on the job so the account page can show what went wrong, not just how
+        /// often. Mirrors the IMAP side; Graph has no equivalent of a folder that discovery reports
+        /// and the server then denies, so <see cref="SyncIssueKind.FolderMissing"/> never occurs here.
+        /// </summary>
+        private void RecordIssue(string? jobId, SyncIssueKind kind, string folder,
+            Exception ex, string? subject = null)
+        {
+            if (jobId == null) return;
+
+            var innermost = ex;
+            while (innermost.InnerException != null)
+            {
+                innermost = innermost.InnerException;
+            }
+
+            _syncJobService.GetJob(jobId)?.Issues.Add(new SyncIssue
+            {
+                Kind = kind,
+                Folder = folder,
+                Subject = subject,
+                Reason = innermost.Message
+            });
+        }
+
+        private async Task<SyncFolderResult> SyncFolderAsync(
+            GraphServiceClient graphClient,
+            MailFolder folder,
+            MailAccount account,
+            string? jobId,
+            string? fullFolderPath,
+            CancellationToken cancellationToken = default)
+        {
+            var result = new SyncFolderResult();
+            var folderNameForStorage = fullFolderPath ?? folder.DisplayName;
+
+            _logger.LogInformation("Syncing Graph API folder: {FolderName} (full path: {FullPath}) for account: {AccountName}",
+                folder.DisplayName, folderNameForStorage, account.Name);
+
+            try
+            {
+                bool isOutgoing = _folderService.IsOutgoingFolder(folder);
+                var lastSync = account.LastSync;
+
+                if (lastSync != new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc))
+                {
+                    lastSync = lastSync.AddHours(-12);
+                }
+
+                _logger.LogInformation("Syncing folder {FolderName} for account {AccountName} since {LastSync} (UTC)",
+                    folder.DisplayName, account.Name, lastSync);
+
+                // Fetch first page of messages with filter fallback
+                var messagesResponse = await FetchMessagesWithFallbackAsync(graphClient, account, folder, lastSync);
+
+                int pageNumber = 0;
+                int totalMessagesFound = 0;
+
+                // Paginate through all pages
+                while (messagesResponse?.Value != null)
+                {
+                    pageNumber++;
+                    var currentPageMessages = messagesResponse.Value;
+
+                    if (currentPageMessages.Count == 0)
+                        break;
+
+                    totalMessagesFound += currentPageMessages.Count;
+                    result.ProcessedEmails += currentPageMessages.Count;
+
+                    _logger.LogInformation("Processing page {PageNumber} with {Count} messages in folder {FolderName} (Total found so far: {TotalFound})",
+                        pageNumber, currentPageMessages.Count, folder.DisplayName, totalMessagesFound);
+
+                    await ProcessMessagePageAsync(graphClient, account, folder, currentPageMessages, lastSync,
+                        folderNameForStorage, isOutgoing, jobId, result, pageNumber, cancellationToken);
+
+                    // MEMORY FIX: Trigger a non-blocking background Gen 2 GC after each page.
+                    // Large message bodies (>85 KB strings) and attachment byte arrays live on
+                    // the Large Object Heap, which Gen 0 collections never reclaim - without a
+                    // Gen 2 collection the LOH garbage accumulates over the whole account sync.
+                    try
+                    {
+                        GC.Collect(2, GCCollectionMode.Optimized, blocking: false);
+                    }
+                    catch (Exception gcEx)
+                    {
+                        _logger.LogDebug(gcEx, "Post-page GC failed (non-fatal)");
+                    }
+
+                    // Check for cancellation or the sync timeout
+                    var pageStopReason = SyncInterruption.Evaluate(
+                        jobId != null ? _syncJobService.GetJob(jobId)?.Status : null,
+                        cancellationToken.IsCancellationRequested);
+                    if (pageStopReason != SyncStopReason.None)
+                    {
+                        _logger.LogInformation("Graph API sync for account {AccountName} stopped after a page in folder {FolderName}: {Reason}",
+                            account.Name, folder.DisplayName, pageStopReason);
+                        result.StopReason = pageStopReason;
+                        return result;
+                    }
+
+                    // Follow OData nextLink for pagination
+                    var nextLink = messagesResponse.OdataNextLink;
+                    if (!string.IsNullOrEmpty(nextLink))
+                    {
+                        if (_batchOptions.PauseBetweenBatchesMs > 0)
+                        {
+                            await Task.Delay(_batchOptions.PauseBetweenBatchesMs);
+                        }
+
+                        // MEMORY FIX: Drop the reference to the old response so the GC can
+                        // reclaim it (and all contained Message objects) before fetching the next page.
+                        messagesResponse = null;
+
+                        _logger.LogDebug("Fetching next page of messages for folder {FolderName}...", folder.DisplayName);
+                        try
+                        {
+                            messagesResponse = await graphClient.Users[account.EmailAddress]
+                                .MailFolders[folder.Id]
+                                .Messages
+                                .WithUrl(nextLink)
+                                .GetAsync();
+                        }
+                        catch (System.Text.Json.JsonException ex)
+                        {
+                            // A subsequent page still refuses to deserialize - a single corrupted
+                            // email should no longer abort the whole folder. Already archived pages
+                            // stay archived; the account's LastSync is intentionally NOT advanced so
+                            // the next sync retries this folder from the same checkpoint.
+                            _logger.LogWarning(ex,
+                                "JSON deserialization failed for folder {FolderName} page {PageNumber} (nextLink pagination): ending this folder early, next sync retries from the same LastSync: {Error}",
+                                folder.DisplayName, pageNumber + 1, ex.Message);
+
+                            result.FailedEmails++;
+                            RecordIssue(jobId, SyncIssueKind.MessageFailed, folder.DisplayName ?? string.Empty, ex);
+                            break;
+                        }
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+
+                _logger.LogInformation("Completed syncing folder {FolderName}. Total pages: {TotalPages}, Total messages: {TotalMessages}",
+                    folder.DisplayName, pageNumber, totalMessagesFound);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error syncing Graph API folder {FolderName} for account {AccountName}: {Message}",
+                    folder.DisplayName, account.Name, ex.Message);
+                result.FailedFolders = 1;
+                RecordIssue(jobId, SyncIssueKind.FolderFailed, folder.DisplayName ?? string.Empty, ex);
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Fetches messages from a folder with a progressive fallback strategy for OData filter complexity errors.
+        /// </summary>
+        private async Task<MessageCollectionResponse?> FetchMessagesWithFallbackAsync(
+            GraphServiceClient graphClient,
+            MailAccount account,
+            MailFolder folder,
+            DateTime lastSync)
+        {
+            // Use receivedDateTime instead of lastModifiedDateTime to mirror the IMAP sync behavior.
+            // lastModifiedDateTime is touched by Exchange Online for many background operations
+            // (re-indexing, flag changes, moves, …) and would cause the full mailbox to be
+            // re-fetched on every sync. receivedDateTime only changes when a new message arrives,
+            // matching the IMAP DeliveredAfter semantics.
+            var filter = $"receivedDateTime ge {lastSync:yyyy-MM-ddTHH:mm:ssZ}";
+
+            try
+            {
+                // Attempt 1: Full select with filter
+                _logger.LogInformation("Attempting Graph API query with filter for folder {FolderName}: {Filter}",
+                    folder.DisplayName, filter);
+
+                var response = await QueryFolderMessagesAsync(graphClient, account, folder, filter, _batchOptions.BatchSize, fullSelect: true);
+
+                _logger.LogInformation("Graph API response for folder {FolderName}: {MessageCount} messages returned (filter attempt), has nextLink: {HasNextLink}",
+                    folder.DisplayName, response?.Value?.Count ?? 0, !string.IsNullOrEmpty(response?.OdataNextLink));
+
+                // NOTE: Previously, when the filter returned 0 messages we ran a "permissive
+                // fallback" that re-queried the last 30 days. That caused the entire mailbox
+                // (or at least the last 30 days) to be re-fetched on every incremental sync,
+                // because 0 results is the *expected* outcome of an incremental sync that
+                // simply has no new mail. The fallback has been removed – 0 results is a valid
+                // and final answer here.
+                return response;
+            }
+            catch (ODataError ex) when (ex.Error?.Code == "ErrorInvalidRestriction" || ex.Message.Contains("too complex"))
+            {
+                _logger.LogWarning("Complex filter failed for folder {FolderName}, trying simpler approach: {Error}",
+                    folder.DisplayName, ex.Message);
+
+                try
+                {
+                    // Attempt 2: Reduced select fields with filter
+                    var response = await QueryFolderMessagesAsync(graphClient, account, folder, filter, _batchOptions.BatchSize, fullSelect: false);
+
+                    _logger.LogInformation("Second attempt returned {Count} messages for folder {FolderName}, has nextLink: {HasNextLink}",
+                        response?.Value?.Count ?? 0, folder.DisplayName, !string.IsNullOrEmpty(response?.OdataNextLink));
+
+                    return response;
+                }
+                catch (ODataError ex2) when (ex2.Error?.Code == "ErrorInvalidRestriction" || ex2.Message.Contains("too complex"))
+                {
+                    _logger.LogWarning("Filtered query still too complex for folder {FolderName}, falling back to basic query: {Error}",
+                        folder.DisplayName, ex2.Message);
+
+                    // Attempt 3: No filter
+                    var response = await QueryFolderMessagesAsync(graphClient, account, folder, filter, _batchOptions.BatchSize, fullSelect: false, applyFilter: false);
+
+                    _logger.LogDebug("Third attempt (basic query) succeeded for folder {FolderName}, has nextLink: {HasNextLink}",
+                        folder.DisplayName, !string.IsNullOrEmpty(response?.OdataNextLink));
+
+                    return response;
+                }
+            }
+            catch (System.Text.Json.JsonException ex)
+            {
+                // Corrupted response payload (e.g. invalid UTF-8 in a message body) that the
+                // SanitizingJsonParseNodeFactory could not rescue at the stream level. Shrink
+                // the page size so the corrupted message drags fewer healthy messages into
+                // the failure and can be isolated per message.
+                _logger.LogWarning(ex,
+                    "JSON deserialization failed for folder {FolderName} with page size {PageSize}; retrying with smaller page size: {Error}",
+                    folder.DisplayName, _batchOptions.BatchSize, ex.Message);
+
+                return await FetchMessagesWithReducedPageSizeAsync(graphClient, account, folder, filter);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unexpected error during Graph API query for folder {FolderName}: {Error}",
+                    folder.DisplayName, ex.Message);
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Retry chain for JSON deserialization failures: shrinks the page size down to
+        /// <see cref="MinimumRetryPageSize"/> so a single corrupted message affects as few
+        /// healthy messages as possible. The final attempt uses a page size of 1; if even
+        /// that fails the exception propagates to the folder-level error handling.
+        /// </summary>
+        private const int MinimumRetryPageSize = 1;
+
+        private async Task<MessageCollectionResponse?> FetchMessagesWithReducedPageSizeAsync(
+            GraphServiceClient graphClient,
+            MailAccount account,
+            MailFolder folder,
+            string? filter)
+        {
+            var pageSizes = new[] { Math.Min(10, _batchOptions.BatchSize), MinimumRetryPageSize };
+
+            System.Text.Json.JsonException? lastJsonException = null;
+
+            foreach (var pageSize in pageSizes)
+            {
+                try
+                {
+                    var response = await QueryFolderMessagesAsync(graphClient, account, folder, filter, pageSize, fullSelect: true);
+
+                    _logger.LogInformation("Reduced page size {PageSize} succeeded for folder {FolderName}: {MessageCount} messages returned",
+                        pageSize, folder.DisplayName, response?.Value?.Count ?? 0);
+
+                    return response;
+                }
+                catch (System.Text.Json.JsonException ex)
+                {
+                    lastJsonException = ex;
+                    _logger.LogWarning(ex,
+                        "JSON deserialization failed for folder {FolderName} even with page size {PageSize}: {Error}",
+                        folder.DisplayName, pageSize, ex.Message);
+                }
+            }
+
+            // Even a single-message page failed to deserialize. Returning null here would make
+            // SyncFolderAsync silently skip a folder with pending messages and still advance
+            // LastSync, which would permanently lose the unarchived emails. Instead the
+            // exception must propagate so the folder is counted as failed and LastSync stays
+            // untouched, letting the next sync run retry from the same checkpoint.
+            _logger.LogError("All page sizes failed to deserialize messages for folder {FolderName}; giving up on this folder for this sync run; next sync will retry it",
+                folder.DisplayName);
+
+            throw lastJsonException
+                ?? (Exception)new InvalidOperationException($"All page sizes failed to deserialize messages for folder {folder.DisplayName}");
+        }
+
+        /// <summary>
+        /// Executes the folder messages query with the given page size and select list.
+        /// Extracted from FetchMessagesWithFallbackAsync so the JSON-retry chain can reuse
+        /// the exact same query shape with a reduced page size.
+        /// </summary>
+        private static async Task<MessageCollectionResponse?> QueryFolderMessagesAsync(
+            GraphServiceClient graphClient,
+            MailAccount account,
+            MailFolder folder,
+            string? filter,
+            int top,
+            bool fullSelect,
+            bool applyFilter = true)
+        {
+            return await graphClient.Users[account.EmailAddress].MailFolders[folder.Id].Messages.GetAsync((requestConfiguration) =>
+            {
+                if (applyFilter && filter != null)
+                {
+                    requestConfiguration.QueryParameters.Filter = filter;
+                }
+
+                requestConfiguration.QueryParameters.Select = fullSelect
+                    ? new string[]
+                    {
+                        "id", "internetMessageId", "subject", "from", "toRecipients", "ccRecipients", "bccRecipients",
+                        "sentDateTime", "receivedDateTime", "hasAttachments", "body", "bodyPreview", "lastModifiedDateTime",
+                        "internetMessageHeaders"
+                    }
+                    : new string[]
+                    {
+                        "id", "internetMessageId", "subject", "from", "sentDateTime", "receivedDateTime", "lastModifiedDateTime",
+                        "internetMessageHeaders"
+                    };
+                requestConfiguration.QueryParameters.Top = top;
+            });
+        }
+
+        /// <summary>
+        /// Processes a page of messages: enriches with full details, archives each message, and manages memory.
+        /// </summary>
+        private async Task ProcessMessagePageAsync(
+            GraphServiceClient graphClient,
+            MailAccount account,
+            MailFolder folder,
+            List<Message> messages,
+            DateTime lastSync,
+            string folderNameForStorage,
+            bool isOutgoing,
+            string? jobId,
+            SyncFolderResult result,
+            int pageNumber,
+            CancellationToken cancellationToken = default)
+        {
+            _logger.LogInformation("Processing page {PageNumber} with {Count} messages in folder {FolderName} for account: {AccountName}",
+                pageNumber, messages.Count, folder.DisplayName, account.Name);
+
+            int processedInBatch = 0;
+
+            for (int i = 0; i < messages.Count; i++)
+            {
+                var messageStopReason = SyncInterruption.Evaluate(
+                    jobId != null ? _syncJobService.GetJob(jobId)?.Status : null,
+                    cancellationToken.IsCancellationRequested);
+                if (messageStopReason != SyncStopReason.None)
+                {
+                    _logger.LogInformation("Graph API sync for account {AccountName} stopped during message processing in folder {FolderName}: {Reason}",
+                        account.Name, folder.DisplayName, messageStopReason);
+                    result.StopReason = messageStopReason;
+                    return;
+                }
+
+                // MEMORY FIX: Declare fullMessage outside try so both try/catch blocks can
+                // null its Body/BodyPreview. Separate fetches would otherwise pin large strings.
+                Message fullMessage = messages[i];
+                try
+                {
+                    var message = messages[i];
+
+                    // MEMORY/BANDWIDTH FIX: Check for duplicates BEFORE enriching the message.
+                    // Every incremental sync re-fetches a 12h overlap window, so most messages
+                    // are already archived - fetching their full body per message just to have
+                    // the archiver discard them wastes requests and LOH allocations.
+                    // The fuzzy From/To/Subject/Date fallback needs From + ToRecipients, so the
+                    // early check only runs when those fields are present (standard page query);
+                    // otherwise the archiver performs the check after enrichment as before.
+                    bool duplicateCheckDone = false;
+                    if (message.From != null && message.ToRecipients != null)
+                    {
+                        var messageId = GraphMailArchiver.ResolveMessageId(message);
+                        var isDuplicate = await _archiver.IsDuplicateAsync(account.Id, messageId, message, folderNameForStorage);
+                        if (isDuplicate)
+                        {
+                            processedInBatch++;
+
+                            // Release the body content of the duplicate immediately.
+                            messages[i].Body = null;
+                            messages[i].BodyPreview = null;
+
+                            if (processedInBatch % 10 == 0)
+                            {
+                                _context.ChangeTracker.Clear();
+                            }
+                            continue;
+                        }
+                        duplicateCheckDone = true;
+                    }
+
+                    // Enrich with full details if needed
+                    if (message.Body?.Content == null || message.ToRecipients == null || message.CcRecipients == null)
+                    {
+                        try
+                        {
+                            fullMessage = await graphClient.Users[account.EmailAddress].Messages[message.Id].GetAsync((requestConfiguration) =>
+                            {
+                                requestConfiguration.QueryParameters.Select = new string[]
+                                {
+                                    "id", "internetMessageId", "subject", "from", "toRecipients", "ccRecipients", "bccRecipients",
+                                    "sentDateTime", "receivedDateTime", "hasAttachments", "body", "bodyPreview", "lastModifiedDateTime",
+                                    "internetMessageHeaders"
+                                };
+                            });
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogWarning(ex, "Failed to get full message details for {MessageId}, using limited data", message.Id);
+                        }
+                    }
+
+                    var isNew = await _archiver.ArchiveGraphEmailAsync(graphClient, account, fullMessage, isOutgoing, folderNameForStorage,
+                        skipDuplicateCheck: duplicateCheckDone);
+                    if (isNew)
+                        result.NewEmails++;
+
+                    processedInBatch++;
+
+                    // MEMORY FIX: Null out Body/BodyPreview on the processed Message objects to release
+                    // the potentially large HTML/text content strings immediately, rather than
+                    // keeping them alive until the entire List<Message> is GC'd at the end of the page.
+                    // fullMessage may be a separately-fetched copy — both need cleanup.
+                    if (!ReferenceEquals(fullMessage, messages[i]))
+                    {
+                        fullMessage.Body = null;
+                        fullMessage.BodyPreview = null;
+                    }
+                    messages[i].Body = null;
+                    messages[i].BodyPreview = null;
+
+                    // MEMORY FIX: For large pages (50+ messages), periodically trigger a
+                    // non-blocking background Gen 2 GC so LOH-resident objects (large bodies,
+                    // attachment byte arrays) from already-processed messages are reclaimed.
+                    if (processedInBatch % 50 == 0 && messages.Count >= 50)
+                    {
+                        try
+                        {
+                            GC.Collect(2, GCCollectionMode.Optimized, blocking: false);
+                            _logger.LogDebug("Background Gen-2 GC after {Count} messages in page {PageNumber}",
+                                processedInBatch, pageNumber);
+                        }
+                        catch (Exception gcEx)
+                        {
+                            _logger.LogDebug(gcEx, "Mid-page GC failed (non-fatal)");
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    var subject = messages[i].Subject ?? "Unknown";
+                    var date = messages[i].SentDateTime?.ToString() ?? "Unknown";
+                    _logger.LogError(ex, "Error archiving Graph API message {MessageId} from folder {FolderName}. Subject: {Subject}, Date: {Date}, Message: {Message}",
+                        messages[i].Id, folderNameForStorage, subject, date, ex.Message);
+                    result.FailedEmails++;
+                    RecordIssue(jobId, SyncIssueKind.MessageFailed, folderNameForStorage, ex, subject);
+                    processedInBatch++;
+
+                    // Still free up the body content even on failure
+                    if (!ReferenceEquals(fullMessage, messages[i]))
+                    {
+                        fullMessage.Body = null;
+                        fullMessage.BodyPreview = null;
+                    }
+                    messages[i].Body = null;
+                    messages[i].BodyPreview = null;
+                }
+
+                // Memory cleanup after each message
+                if (processedInBatch % 10 == 0)
+                {
+                    _context.ChangeTracker.Clear();
+                }
+            }
+
+            _logger.LogInformation("Memory usage after processing page {PageNumber}: {MemoryUsage}",
+                pageNumber, MemoryMonitor.GetMemoryUsageFormatted());
+        }
+
+        /// <summary>
+        /// Deletes old emails from the M365 mailbox based on the account's retention policy.
+        /// Reuses the Graph client from the sync run to avoid creating additional clients.
+        /// </summary>
+        private async Task<int> DeleteOldEmailsAsync(GraphServiceClient graphClient, MailAccount account)
+        {
+            if (!account.DeleteAfterDays.HasValue || account.DeleteAfterDays.Value <= 0)
+                return 0;
+
+            var deletedCount = 0;
+            var cutoffDate = DateTime.UtcNow.AddDays(-account.DeleteAfterDays.Value);
+
+            _logger.LogInformation("Starting deletion of emails older than {Days} days (before {CutoffDate}) for M365 account {AccountName}",
+                account.DeleteAfterDays.Value, cutoffDate, account.Name);
+
+            try
+            {
+                var folders = await _folderService.GetAllMailFoldersAsync(graphClient, account.EmailAddress);
+
+                _logger.LogInformation("Found {Count} folders for M365 account: {AccountName}", folders.Count, account.Name);
+
+                // Same path dictionary the sync path builds, so deletion resolves exclusions
+                // against the full folder path too. Matching on DisplayName alone meant an entry
+                // given as a path excluded a folder from the sync but not from the deletion.
+                var folderPaths = _folderService.BuildFolderPathDictionary(folders);
+
+                foreach (var folder in folders)
+                {
+                    var fullFolderPath = folderPaths.TryGetValue(folder.Id!, out var path) ? path : folder.DisplayName;
+
+                    if (FolderExclusionMatcher.IsExcluded(
+                            fullFolderPath, folder.DisplayName,
+                            account.ExcludedFoldersList, _mailSyncOptions.GlobalExcludedFolders,
+                            _mailSyncOptions.ExcludeSubfolders))
+                    {
+                        _logger.LogInformation("Skipping excluded folder for deletion: {FolderName} (full path: {FullPath}) for account: {AccountName}",
+                            folder.DisplayName, fullFolderPath, account.Name);
+                        continue;
+                    }
+
+                    try
+                    {
+                        _logger.LogInformation("Processing folder {FolderName} for email deletion for account: {AccountName}",
+                            folder.DisplayName, account.Name);
+
+                        var filter = $"receivedDateTime lt {cutoffDate:yyyy-MM-ddTHH:mm:ssZ}";
+
+                        var messagesResponse = await graphClient.Users[account.EmailAddress].MailFolders[folder.Id].Messages.GetAsync((requestConfiguration) =>
+                        {
+                            requestConfiguration.QueryParameters.Filter = filter;
+                            requestConfiguration.QueryParameters.Select = new string[] { "id", "internetMessageId", "subject", "receivedDateTime" };
+                            requestConfiguration.QueryParameters.Top = _batchOptions.BatchSize;
+                        });
+
+                        int totalOldEmailsFound = 0;
+                        int totalProcessedInFolder = 0;
+                        int paginationCount = 0;
+                        var folderRefusedCount = 0;
+
+                        while (messagesResponse?.Value != null)
+                        {
+                            paginationCount++;
+                            var currentPageSize = messagesResponse.Value.Count;
+                            totalOldEmailsFound += currentPageSize;
+
+                            _logger.LogInformation("Processing page {PageNumber} with {Count} old emails in folder {FolderName} for account {AccountName} (Total found so far: {TotalFound})",
+                                paginationCount, currentPageSize, folder.DisplayName, account.Name, totalOldEmailsFound);
+
+                            if (currentPageSize > 0)
+                            {
+                                var messageIdsToDelete = new List<string>();
+
+                                foreach (var message in messagesResponse.Value)
+                                {
+                                    // SAFETY GUARD: re-verify client-side that the message really is older
+                                    // than the cutoff. The server-side filter (receivedDateTime lt cutoff)
+                                    // above is the primary date filter, but for an irreversible deletion
+                                    // on the live mailbox a second client-side check is kept as defensive
+                                    // depth regardless of provider reliability.
+                                    //
+                                    // Policy: if a usable date is available, refuse to delete anything
+                                    // not actually older than the cutoff. If no date can be determined
+                                    // client-side, proceed per the server filter and log a warning -
+                                    // this intentionally trusts the server in the null case rather than
+                                    // skipping, which could leave mails undeletable indefinitely.
+                                    DateTime? guardDate = message.ReceivedDateTime?.UtcDateTime;
+
+                                    if (guardDate.HasValue && guardDate.Value >= cutoffDate)
+                                    {
+                                        folderRefusedCount++;
+                                        _logger.LogWarning("Refusing to delete message {MessageId} in folder {FolderName}: received date {Date} is not older than cutoff {Cutoff} (server filter returned it incorrectly). Account ID: {AccountId}",
+                                            message.Id, folder.DisplayName, guardDate.Value.ToString("u"), cutoffDate.ToString("u"), account.Id);
+                                        continue;
+                                    }
+
+                                    if (!guardDate.HasValue)
+                                    {
+                                        _logger.LogWarning("Proceeding with deletion of message {MessageId} in folder {FolderName}: client-side received date unavailable, trusting server-side filter. Account ID: {AccountId}",
+                                            message.Id, folder.DisplayName, account.Id);
+                                    }
+
+                                    var rawMessageId = message.InternetMessageId ?? message.Id;
+                                    var normalizedMessageId = MailContentHelper.NormalizeMessageId(rawMessageId);
+
+                                    if (string.IsNullOrEmpty(normalizedMessageId))
+                                    {
+                                        // Without a resolvable Message-ID the archive state cannot be
+                                        // verified - refuse to delete rather than risk removing an
+                                        // unarchived message from the live mailbox.
+                                        _logger.LogWarning("Skipping deletion of message {GraphMessageId} in folder {FolderName}: no Message-ID could be resolved for archive verification. Account ID: {AccountId}",
+                                            message.Id, folder.DisplayName, account.Id);
+                                        continue;
+                                    }
+
+                                    // MEMORY FIX: Existence check only – use AsNoTracking with an Id
+                                    // projection so the change tracker does not accumulate full
+                                    // ArchivedEmail entities over the whole deletion run.
+                                    //
+                                    // Legacy rows archived before the write-side normalization store
+                                    // the Message-ID with surrounding angle brackets. Match both
+                                    // variants so existing archives are recognized as archived.
+                                    var messageIdCandidates = MailContentHelper
+                                        .MessageIdMatchCandidates(normalizedMessageId).ToList();
+
+                                    var archivedEmailId = await _context.ArchivedEmails
+                                        .AsNoTracking()
+                                        .Where(e => e.MailAccountId == account.Id)
+                                        .Where(e => messageIdCandidates.Contains(e.MessageId))
+                                        .Select(e => (int?)e.Id)
+                                        .FirstOrDefaultAsync();
+
+                                    if (archivedEmailId != null)
+                                    {
+                                        messageIdsToDelete.Add(message.Id!);
+                                        _logger.LogDebug("Marking email with Message-ID {MessageId} (raw: {RawMessageId}) for deletion from folder {FolderName}",
+                                            normalizedMessageId, rawMessageId, folder.DisplayName);
+                                    }
+                                    else
+                                    {
+                                        _logger.LogDebug("Skipping deletion of email with Message-ID {MessageId} (raw: {RawMessageId}) from folder {FolderName} (not archived).",
+                                            normalizedMessageId, rawMessageId, folder.DisplayName);
+                                    }
+                                }
+
+                                foreach (var msgId in messageIdsToDelete)
+                                {
+                                    try
+                                    {
+                                        await graphClient.Users[account.EmailAddress].Messages[msgId].DeleteAsync();
+                                        deletedCount++;
+                                        totalProcessedInFolder++;
+                                        _logger.LogDebug("Successfully deleted email {MessageId} from folder {FolderName}", msgId, folder.DisplayName);
+                                    }
+                                    catch (Exception deleteEx)
+                                    {
+                                        _logger.LogError(deleteEx, "Error deleting email {MessageId} from folder {FolderName} for account {AccountName}",
+                                            msgId, folder.DisplayName, account.Name);
+                                    }
+                                }
+
+                                _logger.LogInformation("Successfully processed {Count} emails for deletion from page {PageNumber} in folder {FolderName}",
+                                    messageIdsToDelete.Count, paginationCount, folder.DisplayName);
+                            }
+
+                            if (!string.IsNullOrEmpty(messagesResponse.OdataNextLink))
+                            {
+                                if (_batchOptions.PauseBetweenBatchesMs > 0)
+                                {
+                                    await Task.Delay(_batchOptions.PauseBetweenBatchesMs);
+                                }
+                                messagesResponse = await graphClient.Users[account.EmailAddress]
+                                    .MailFolders[folder.Id]
+                                    .Messages
+                                    .WithUrl(messagesResponse.OdataNextLink)
+                                    .GetAsync();
+                            }
+                            else
+                            {
+                                break;
+                            }
+                        }
+
+                        _logger.LogInformation("Completed deletion processing for folder {FolderName}. Total found: {TotalFound}, Pages: {PagesProcessed}, Deleted: {DeletedInFolder}",
+                            folder.DisplayName, totalOldEmailsFound, paginationCount, totalProcessedInFolder);
+
+                        if (folderRefusedCount > 0)
+                        {
+                            _logger.LogWarning("Refused deletion of {Count} email(s) in folder {FolderName} for account {AccountName} because the server filter returned messages newer than the cutoff. The mailbox was not modified for these messages.",
+                                folderRefusedCount, folder.DisplayName, account.Name);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Error processing folder {FolderName} for email deletion for account {AccountName}: {Message}",
+                            folder.DisplayName, account.Name, ex.Message);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error during email deletion for M365 account {AccountName}: {Message}",
+                    account.Name, ex.Message);
+            }
+
+            _logger.LogInformation("Completed deletion process for M365 account {AccountName}. Deleted {Count} emails",
+                account.Name, deletedCount);
+
+            if (deletedCount > 0)
+            {
+                try
+                {
+                    var accessLog = new AccessLog
+                    {
+                        Username = "System",
+                        Type = AccessLogType.Retention,
+                        Timestamp = DateTime.UtcNow,
+                        SearchParameters = $"Retention (M365): Deleted {deletedCount} emails older than {account.DeleteAfterDays} days from mailbox",
+                        MailAccountId = account.Id
+                    };
+
+                    _context.AccessLogs.Add(accessLog);
+                    await _context.SaveChangesAsync();
+                }
+                catch (Exception logEx)
+                {
+                    _logger.LogWarning(logEx, "Failed to log retention deletion summary for account {AccountName} to AccessLogs", account.Name);
+                }
+            }
+
+            return deletedCount;
+        }
+
+        /// <summary>
+        /// Internal result container for folder sync operations.
+        /// </summary>
+        private class SyncFolderResult
+        {
+            public int ProcessedEmails { get; set; }
+            public int NewEmails { get; set; }
+            public int FailedEmails { get; set; }
+
+            /// <summary>
+            /// 1 when the folder failed as a unit rather than message by message. Same meaning as
+            /// on the IMAP side, and counted the same way: one per folder, never converted into a
+            /// number of failed messages.
+            /// </summary>
+            public int FailedFolders { get; set; }
+
+            /// <summary>
+            /// Why this folder's sync stopped before it was finished, or <see cref="SyncStopReason.None"/>
+            /// when it ran to the end. Same meaning as on the IMAP side: a token that fires inside the
+            /// last folder must reach the folder loop, or the sync would be completed as if nothing
+            /// had happened.
+            /// </summary>
+            public SyncStopReason StopReason { get; set; } = SyncStopReason.None;
+        }
+    }
+}

@@ -2,63 +2,72 @@
 
 **A comprehensive solution for archiving, searching, and exporting emails**
 
+🌐 **Website:** [mail-archiver.org](https://mail-archiver.org)
+
 <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px;">
+  <a href="https://mail-archiver.org" target="_blank"><img src="https://img.shields.io/badge/Website-mail--archiver.org-4A90D9?style=for-the-badge&logo=globe&logoColor=white" alt="Website"></a>
   <a href="#"><img src="https://img.shields.io/badge/Docker-2CA5E0?style=for-the-badge&logo=docker&logoColor=white" alt="Docker"></a>
   <a href="#"><img src="https://img.shields.io/badge/.NET-512BD4?style=for-the-badge&logo=dotnet&logoColor=white" alt=".NET"></a>
   <a href="#"><img src="https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white" alt="PostgreSQL"></a>
   <a href="#"><img src="https://img.shields.io/badge/Bootstrap-563D7C?style=for-the-badge&logo=bootstrap&logoColor=white" alt="Bootstrap"></a>
-  <a href="https://github.com/s1t5/mail-archiver"><img src="https://img.shields.io/github/stars/s1t5/mail-archiver?style=for-the-badge&logo=github" alt="GitHub Stars"></a>
   <a href="https://www.buymeacoffee.com/s1t5" target="_blank"><img src="https://img.shields.io/badge/Buy%20Me%20a%20Coffee-s1t5-FFDD00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=black" alt="Buy Me a Coffee"></a>
-  <a href="https://www.paypal.com/ncp/payment/E4HP9BVRYN54N" target="_blank"><img src="https://img.shields.io/badge/PayPal-Donate-00457C?style=for-the-badge&logo=paypal&logoColor=white" alt="PayPal Donate"></a>
+  <a href="https://ko-fi.com/s1t5dev" target="_blank"><img src="https://img.shields.io/badge/Ko--Fi-s1t5dev-FF5E5B?style=for-the-badge&logo=ko-fi&logoColor=white" alt="Ko-fi"></a>
 </div>
+
+![Mail-Archiver Dashboard](https://github.com/s1t5/mail-archiver/blob/main/Screenshots/dashboard.jpg?raw=true)
 
 ## ✨ Key Features
 
 ### 📌 Core Features
-- Automated archiving of incoming and outgoing emails from multiple accounts
-- Storage of email content and attachments with scheduled synchronization
-- Mobile and desktop optimized, multilingual responsive UI with dark mode
-- OpenID Connect (OIDC) for integration of external authentication services ([OIDC Implementation Guide](doc/OIDC_Implementation.md))
+- Automated archiving from multiple accounts with scheduled sync
+- Multilingual responsive UI with dark mode
+- OpenID Connect (OIDC) authentication ([OIDC Guide](https://s1t5.github.io/mail-archiver/OIDC_Implementation/))
 
 ### 🔍 Search & Access
-- Advanced search across all archived emails with filtering options
-- Preview emails with attachment list
-- Export entire mail accounts as mbox files or zipped EML archives
-- Export selected individual emails or email batches
+- Advanced search with filters
+- Email preview with attachments
+- Export accounts or selected emails as mbox / zipped EML
+
+### 🔌 Programmatic & AI Agent Access
+- **Read-only REST API (v1)** for programmatic access to the archive via scoped per-user API keys — lets scripts read archived mail without ever exposing mailbox credentials ([REST API Guide](https://s1t5.github.io/mail-archiver/API/))
+- **MCP Server (Model Context Protocol)** — optional Streamable HTTP endpoint at `/mcp` that exposes the same read-only archive to AI agents as discoverable tools (`search_emails`, `get_email`, `list_accounts`, `list_folders`, `get_attachment`) ([MCP Guide](https://s1t5.github.io/mail-archiver/MCP/))
 
 ### 👥 User Management
 - Multi-user support with account-specific permissions
-- Dashboard with statistics, storage monitoring, and sender analysis
-- Comprehensive access logging with detailed activity tracking of user activities (Access, Export, Deletion, Restore and many more) - see [Access Logging Guide](doc/Logs.md) for details
+- Dashboard with statistics and storage monitoring
+- Detailed access logging ([Access Logging Guide](https://s1t5.github.io/mail-archiver/Logs/))
 
 ### 🧩 Email Provider Support
 - **IMAP**: Traditional IMAP accounts with full synchronization capabilities
-- **M365**: Microsoft 365 mail accounts via Microsoft Graph API ([Setup Guide](doc/AZURE_APP_REGISTRATION_M365.md))
+- **M365**: Microsoft 365 mail accounts via Microsoft Graph API ([Setup Guide](https://s1t5.github.io/mail-archiver/AZURE_APP_REGISTRATION_M365/))
+- **Microsoft Personal**: Personal Microsoft accounts (Outlook.com, Hotmail, live.com, M365 Family) via OAuth2 Device Code Flow — ships with a pre-registered shared Client ID so no Azure App Registration is required ([Setup Guide](https://s1t5.github.io/mail-archiver/MSA_Outlook_Setup/))
 - **IMPORT**: Import-only accounts for migrating existing email archives
 
+### 🏢 M365 Tenant Import
+
+- Bulk-import all Microsoft 365 mailboxes of a tenant from one form
+- Import all mailboxes or select specific ones; skips existing and disabled accounts
+- See the [M365 Tenant Import Guide](https://s1t5.github.io/mail-archiver/M365TenantImport/) for details
+
 ### 📥 Import & Restore Functions
-- MBox Import and EML Import (ZIP files with folder structure support)
-- Restore selected emails or entire mailboxes to destination mailboxes
+- MBox and EML (ZIP) import with folder structure support
+- Restore emails or entire mailboxes
+- **📤 Mailbox Migrations**: Copy emails between mailboxes while preserving folder structure ([Migration Guide](https://s1t5.github.io/mail-archiver/MailboxMigration/))
 
 ### 🗑️ Retention Policies
-- Configure automatic deletion of archived emails from mailserver after specified days ([Retention Policies Documentation](doc/RetentionPolicies.md))
-- Set retention period per email account (e.g., 30, 90, or 365 days)
-- **Local Archive Retention**: Configure separate retention period for local archive
+- Automatic deletion from mailserver after a configurable period ([Retention Policies](https://s1t5.github.io/mail-archiver/RetentionPolicies/))
+- Per-account retention (e.g., 30, 90, or 365 days)
+- Separate retention for the local archive
 
-## 📚 Documentation
+### 🔒 Deletion Lock (Compliance)
+- Disable manual deletion of archived emails via `DeletionPolicy__DeletionAllowed=false`
+- Local retention deletion remains exempt and still runs
+- See [Setup Guide](https://s1t5.github.io/mail-archiver/Setup/#deletion-policy-settings) for details
 
-For detailed documentation on installation, configuration, and usage, please refer to the [Documentation Index](doc/Index.md). Please note that the documentation is still fresh and is continuously being expanded.
+### 📋 Access Log
+- The application logs various types of user activities such as Login, Opening, Searches, Exports and many more. ([Logging](https://s1t5.github.io/mail-archiver/Logs/))
 
-## 🖼️ Screenshots
-
-### Dashboard
-![Mail-Archiver Dashboard](https://github.com/s1t5/mail-archiver/blob/main/Screenshots/dashboard.jpg?raw=true)
-
-### Archive
-![Mail-Archiver Archive](https://github.com/s1t5/mail-archiver/blob/main/Screenshots/archive.jpg?raw=true)
-
-### Email Details
-![Mail-Archiver Mail](https://github.com/s1t5/mail-archiver/blob/main/Screenshots/details.jpg?raw=true)
+For detailed documentation on installation, configuration, and usage, please refer to the [Documentation Index](https://s1t5.github.io/mail-archiver/). Please note that the documentation is still fresh and is continuously being expanded.
 
 ## 🚀 Quick Start
 
@@ -128,7 +137,7 @@ networks:
 6. Configure a reverse proxy of your choice with https to secure access to the application. 
 
 > ⚠️ **Attention**
-> The application itself does not provide encrypted access via https! It must be set up via a reverse proxy! Moreover the application is not build for public internet access!
+> The application itself does not provide encrypted access via https! It must be set up via a reverse proxy!
 
 7. Initial start of the containers:
 ```bash
@@ -151,22 +160,10 @@ docker compose restart
 
 ## 🔐 Security Notes
 - Use strong passwords and change default credentials
-- Consider implementing HTTPS with a reverse proxy in production
-- Regular backups of the PostgreSQL database recommended (see [Backup & Restore Guide](doc/BackupRestore.md) for detailed instructions)
+- Set up HTTPS via a reverse proxy in production (the app itself does not provide HTTPS)
+- Regular backups of the PostgreSQL database recommended (see [Backup & Restore Guide](https://s1t5.github.io/mail-archiver/BackupRestore/))
 
-## ⚙️ Advanced Setup
-For a complete list of all configuration options, please refer to the [Setup Guide](doc/Setup.md).
-
-
-## 📋 Technical Details
-
-### Architecture
-- ASP.NET Core 10 MVC application
-- PostgreSQL database for email storage
-- MailKit library for IMAP communication
-- Microsoft Graph API for M365 email access
-- Background service for email synchronization
-- Bootstrap 5 and Chart.js for frontend
+For all configuration options, see the [Setup Guide](https://s1t5.github.io/mail-archiver/Setup/).
 
 ## 🤝 Contributing
 
@@ -183,7 +180,31 @@ You can also:
 If you find this project useful and would like to support its continued development, you can buy me a coffee! Your support helps me dedicate more time and resources to improving the application and adding new features. While financial support is not required, it is greatly appreciated and helps ensure the project's ongoing maintenance and enhancement.
 
 <a href="https://www.buymeacoffee.com/s1t5" target="_blank"><img src="https://img.shields.io/badge/Buy%20Me%20a%20Coffee-s1t5-FFDD00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=black" alt="Buy Me a Coffee"></a>
-<a href="https://www.paypal.com/ncp/payment/E4HP9BVRYN54N" target="_blank"><img src="https://img.shields.io/badge/PayPal-Donate-00457C?style=for-the-badge&logo=paypal&logoColor=white" alt="PayPal Donate"></a>
+<a href="https://ko-fi.com/s1t5dev" target="_blank"><img src="https://img.shields.io/badge/Ko--Fi-s1t5dev-FF5E5B?style=for-the-badge&logo=ko-fi&logoColor=white" alt="Ko-fi"></a>
+<a href="https://github.com/sponsors/s1t5" target="_blank"><img src="https://img.shields.io/badge/GitHub%20Sponsors-s1t5-FF9A00?style=for-the-badge&logo=github-sponsors&logoColor=white" alt="GitHub Sponsors"></a>
+
+## 🌟 Project Sponsors
+
+With the generous support of our sponsors, Mail Archiver continues to evolve. Thank you for making it possible!
+
+*Disclaimer: The services listed above are third-party offerings and are neither affiliated with, endorsed by, nor tested by the Mail Archiver project.*
+
+<table>
+<tbody>
+<tr>
+<td align="center">
+<a href="https://www.admin-intelligence.de/" target="_blank">
+<img width="210" src="https://github.com/user-attachments/assets/f0a8f1fc-e5a5-4900-95c5-809a18b5b719" alt="Admin Intelligence">
+</a>
+</td>
+</tr>
+</tbody>
+</table>
+
+
+### 💝 Individual Sponsors
+
+A special thanks to all individual sponsors who support this project through [GitHub Sponsors](https://github.com/sponsors/s1t5), [Ko-fi](https://ko-fi.com/s1t5dev), and [Buy Me a Coffee](https://www.buymeacoffee.com/s1t5). Your contributions make a real difference!
 
 ---
 

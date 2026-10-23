@@ -37,8 +37,9 @@ namespace MailArchiver.Services.Factories
 
             return providerType switch
             {
-                ProviderType.IMAP => _serviceProvider.GetRequiredService<ImapEmailService>(),
-                ProviderType.M365 => _serviceProvider.GetRequiredService<IGraphEmailService>() as IProviderEmailService 
+                ProviderType.IMAP  => _serviceProvider.GetRequiredService<ImapEmailService>(),
+                ProviderType.MSA   => _serviceProvider.GetRequiredService<ImapEmailService>(),
+                ProviderType.M365  => _serviceProvider.GetRequiredService<IGraphEmailService>() as IProviderEmailService
                     ?? throw new InvalidOperationException("GraphEmailService does not implement IProviderEmailService"),
                 ProviderType.IMPORT => _serviceProvider.GetRequiredService<ImportEmailService>(),
                 _ => throw new NotSupportedException($"Provider type '{providerType}' is not supported")

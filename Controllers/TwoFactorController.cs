@@ -296,8 +296,7 @@ namespace MailArchiver.Controllers
                     });
                     
                     // Clear 2FA session data
-                    HttpContext.Session.Remove("TwoFactorUsername");
-                    HttpContext.Session.Remove("TwoFactorRememberMe");
+                    HttpContext.Session.Clear();
                     // Clear any previous error messages
                     TempData.Clear();
                     return RedirectToAction("Index", "Home");
@@ -349,8 +348,7 @@ namespace MailArchiver.Controllers
                 });
                 
                 // Clear 2FA session data
-                HttpContext.Session.Remove("TwoFactorUsername");
-                HttpContext.Session.Remove("TwoFactorRememberMe");
+                HttpContext.Session.Clear();
                 // Clear any previous error messages
                 TempData.Clear();
                 return RedirectToAction("Index", "Home");

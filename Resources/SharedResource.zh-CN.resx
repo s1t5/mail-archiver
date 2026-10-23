@@ -187,9 +187,6 @@
   <data name="NoEmailsFoundText" xml:space="preserve">
     <value>未找到符合指定搜索条件的邮件。</value>
   </data>
-  <data name="ExportSearchResults" xml:space="preserve">
-    <value>导出搜索结果</value>
-  </data>
   <data name="ExportFormat" xml:space="preserve">
     <value>导出格式</value>
   </data>
@@ -691,9 +688,6 @@
   <data name="DangerZoneInfo" xml:space="preserve">
     <value>以下操作是不可逆的，将永久删除数据。</value>
   </data>
-  <data name="DeleteAccountAllEmailsButton" xml:space="preserve">
-    <value>删除账户和所有邮件 ({0})</value>
-  </data>
   <data name="DeleteAccountWithEmailsButton" xml:space="preserve">
     <value>删除账户和所有邮件 ({0})</value>
   </data>
@@ -935,9 +929,6 @@
     <value>前往仪表盘</value>
   </data>
   <data name="SignOut" xml:space="preserve">
-    <value>登出</value>
-  </data>
-  <data name="Sign Out" xml:space="preserve">
     <value>登出</value>
   </data>
   <data name="RestoreEmailTitle" xml:space="preserve">
@@ -2439,5 +2430,1076 @@
   </data>
   <data name="ManualSyncTooltip" xml:space="preserve">
     <value>手动同步 - 账户已禁用自动同步</value>
+  </data>
+  <data name="ConfirmBatchDelete" xml:space="preserve">
+    <value>确认批量删除</value>
+  </data>
+  <data name="DatabaseStorage" xml:space="preserve">
+    <value>数据库大小</value>
+  </data>
+  <data name="SyncRunning" xml:space="preserve">
+    <value>同步运行中…</value>
+  </data>
+  <data name="SyncPending" xml:space="preserve">
+    <value>等待同步…</value>
+  </data>
+  <data name="SyncScheduling" xml:space="preserve">
+    <value>同步计划</value>
+  </data>
+  <data name="SyncIntervalMinutes" xml:space="preserve">
+    <value>同步间隔（分钟）</value>
+  </data>
+  <data name="SyncIntervalMinutesPlaceholder" xml:space="preserve">
+    <value>使用设置中的默认值</value>
+  </data>
+  <data name="SyncIntervalMinutesInfo" xml:space="preserve">
+    <value>覆盖此账户的全局同步间隔。留空以使用 appsettings.json 中的默认值。</value>
+  </data>
+  <data name="FullSyncIntervalHours" xml:space="preserve">
+    <value>完全同步间隔（小时）</value>
+  </data>
+  <data name="FullSyncIntervalHoursPlaceholder" xml:space="preserve">
+    <value>无账户特定的完全同步</value>
+  </data>
+  <data name="FullSyncIntervalHoursInfo" xml:space="preserve">
+    <value>按此计划执行完全重新同步。留空以使用 appsettings.json 中的全局默认值（如果已设置）或禁用自动完全同步。手动重新同步按钮始终可用。</value>
+  </data>
+  <data name="CancelKeepAccountMessage" xml:space="preserve">
+    <value>您确定要取消吗？账户将被保留，不会进行任何更改。</value>
+  </data>
+  <data name="YesCancel" xml:space="preserve">
+    <value>是，取消</value>
+  </data>
+  <data name="GlobalExcludedFolders" xml:space="preserve">
+    <value>所有账户均排除</value>
+  </data>
+  <data name="GlobalExcludedFoldersHint" xml:space="preserve">
+    <value>在安装范围内配置，并应用在此账户自己的列表之上。无法在此处编辑。</value>
+  </data>
+  <data name="FolderAlreadyExcludedGlobally" xml:space="preserve">
+    <value>已对所有账户排除 — 此处无需更改</value>
+  </data>
+  <data name="ExclusionsCoverSubfolders" xml:space="preserve">
+    <value>条目还会涵盖其名称下的子文件夹。</value>
+  </data>
+  <data name="FolderAlreadyExcludedGloballyBy" xml:space="preserve">
+    <value>已通过条目“{0}”对所有账户排除 — 此处无需更改</value>
+  </data>
+  <data name="FolderCoveredByOwnEntry" xml:space="preserve">
+    <value>由此列表中的条目“{0}”涵盖，包括其下的所有内容</value>
+  </data>
+  <data name="FailedFilesTitle" xml:space="preserve">
+    <value>失败的文件（{0}）</value>
+  </data>
+  <data name="FailedFilesTruncated" xml:space="preserve">
+    <value>仅列出前 200 个失败文件。完整列表请查看 Docker 日志。</value>
+  </data>
+  <data name="FailedFilesReason_BannerLine" xml:space="preserve">
+    <value>邮件头之前的非标准横幅行（例如 MailStore PST 导出）</value>
+  </data>
+  <data name="FailedFilesReason_MboxFromLine" xml:space="preserve">
+    <value>残留的 mbox 'From ' 标记行</value>
+  </data>
+  <data name="FailedFilesReason_SplitHeaderBlock" xml:space="preserve">
+    <value>邮件头块被空行分隔</value>
+  </data>
+  <data name="FailedFilesReason_JunkBeforeHeaders" xml:space="preserve">
+    <value>邮件头之前的无法解析的行</value>
+  </data>
+  <data name="FailedFilesReason_UnparseableHeaders" xml:space="preserve">
+    <value>无法解析邮件头</value>
+  </data>
+  <data name="FailedFilesReason_Generic" xml:space="preserve">
+    <value>处理文件时出错</value>
+  </data>
+  <data name="RecoveredLabel" xml:space="preserve">
+    <value>已恢复：</value>
+  </data>
+  <data name="RecoveredTitle" xml:space="preserve">
+    <value>已恢复的邮件</value>
+  </data>
+  <data name="RecoveredSummary" xml:space="preserve">
+    <value>已自动修复并归档 {0} 封邮件头非标准的邮件。</value>
+  </data>
+  <data name="RateLimited" xml:space="preserve">
+    <value>已限流</value>
+  </data>
+  <data name="TimedOut" xml:space="preserve">
+    <value>已超时</value>
+  </data>
+  <data name="LastRunTitle" xml:space="preserve">
+    <value>上次同步运行</value>
+  </data>
+  <data name="LastRunNone" xml:space="preserve">
+    <value>自应用程序启动以来尚无已完成的运行。</value>
+  </data>
+  <data name="LastRunSyncInProgress" xml:space="preserve">
+    <value>当前正在运行同步。</value>
+  </data>
+  <data name="LastRunSummary" xml:space="preserve">
+    <value>完成于 {0}，耗时 {1}，已处理邮件：{2}，新增：{3}。</value>
+  </data>
+  <data name="LastRunHeldBack" xml:space="preserve">
+    <value>上次同步时间戳未推进，因此下次运行将再次涵盖同一时间段。</value>
+  </data>
+  <data name="LastRunFailuresAcknowledged" xml:space="preserve">
+    <value>本次运行中的失败已确认，因此上次同步时间戳已推进。</value>
+  </data>
+  <data name="LastRunResumes" xml:space="preserve">
+    <value>运行已暂停，尚未完成。下次运行将从本次停止的位置继续。</value>
+  </data>
+  <data name="IssueKindFolderFailed" xml:space="preserve">
+    <value>无法读取的文件夹</value>
+  </data>
+  <data name="IssueKindFolderMissing" xml:space="preserve">
+    <value>服务器上不存在的文件夹</value>
+  </data>
+  <data name="IssueKindFolderMissingHint" xml:space="preserve">
+    <value>通常是已删除文件夹的残留订阅。无害，但值得在邮件程序中清除。</value>
+  </data>
+  <data name="IssueKindMessageFailed" xml:space="preserve">
+    <value>无法归档的邮件</value>
+  </data>
+  <data name="IssueNoDetails" xml:space="preserve">
+    <value>未记录详细信息。</value>
+  </data>
+  <data name="IssueAndMore" xml:space="preserve">
+    <value>以及另外 {0} 项</value>
+  </data>
+  <data name="LastRunHadIssuesHint" xml:space="preserve">
+    <value>上次运行报告了问题</value>
+  </data>
+  <data name="SyncProgressTooltip" xml:space="preserve">
+    <value>进度按已完成的文件夹计算。大型文件夹（例如 INBOX）在完成之前会使进度条保持在 0%。</value>
+  </data>
+  <data name="SyncStatusTooltip" xml:space="preserve">
+    <value>状态代码：&lt;br&gt;运行中 = 同步进行中&lt;br&gt;已完成 = 成功完成&lt;br&gt;失败 = 因错误结束&lt;br&gt;已取消 = 被用户停止&lt;br&gt;已限流 = 因带宽配额暂停</value>
+  </data>
+  <data name="SyncJobRateLimited" xml:space="preserve">
+    <value>同步因带宽限制暂停。将自动恢复。</value>
+  </data>
+  <data name="ToggleFolderTree" xml:space="preserve">
+    <value>点击展开/折叠文件夹树</value>
+  </data>
+  <data name="ExpandAllFolders" xml:space="preserve">
+    <value>展开所有文件夹</value>
+  </data>
+  <data name="CollapseAllFolders" xml:space="preserve">
+    <value>折叠所有文件夹</value>
+  </data>
+  <data name="NoFolders" xml:space="preserve">
+    <value>没有可用文件夹</value>
+  </data>
+  <data name="SyncCancel" xml:space="preserve">
+    <value>同步已取消</value>
+  </data>
+  <data name="DeletionPolicy" xml:space="preserve">
+    <value>删除策略</value>
+  </data>
+  <data name="SyncAcknowledgeFailures" xml:space="preserve">
+    <value>同步失败已确认</value>
+  </data>
+  <data name="Retention" xml:space="preserve">
+    <value>保留</value>
+  </data>
+  <data name="DeletionDisabledMessage" xml:space="preserve">
+    <value>邮件删除已被配置禁用。</value>
+  </data>
+  <data name="SignInWithOAuthProvider" xml:space="preserve">
+    <value>使用 {0} 登录</value>
+  </data>
+  <data name="RedirectingToProvider" xml:space="preserve">
+    <value>正在重定向到 {0}...</value>
+  </data>
+  <data name="PleaseWaitRedirectingToProvider" xml:space="preserve">
+    <value>请稍候，正在将您重定向到 {0}...</value>
+  </data>
+  <data name="Loading" xml:space="preserve">
+    <value>加载中...</value>
+  </data>
+  <data name="AccountDeletionJobs" xml:space="preserve">
+    <value>账户删除任务</value>
+  </data>
+  <data name="PreserveFolderStructure" xml:space="preserve">
+    <value>保留文件夹结构</value>
+  </data>
+  <data name="PreserveFolderStructureHelp" xml:space="preserve">
+    <value>将邮件恢复到所选目标文件夹下与其原始文件夹结构匹配的子文件夹中。</value>
+  </data>
+  <data name="SkippedLabel" xml:space="preserve">
+    <value>已跳过（重复）：</value>
+  </data>
+  <data name="DuplicatesSkippedTitle" xml:space="preserve">
+    <value>已跳过重复邮件</value>
+  </data>
+  <data name="DuplicatesSkippedSummary" xml:space="preserve">
+    <value>由于目标账户中已存在，{0} 封邮件被跳过。</value>
+  </data>
+  <data name="FailedEmailSingular" xml:space="preserve">
+    <value>邮件无法处理</value>
+  </data>
+  <data name="FailedEmailsPlural" xml:space="preserve">
+    <value>邮件无法处理</value>
+  </data>
+  <data name="EmailId" xml:space="preserve">
+    <value>邮件 ID</value>
+  </data>
+  <data name="NewFeatures" xml:space="preserve">
+    <value>新功能</value>
+  </data>
+  <data name="AllReleases" xml:space="preserve">
+    <value>所有版本</value>
+  </data>
+  <data name="Documentation" xml:space="preserve">
+    <value>文档</value>
+  </data>
+  <data name="GotIt" xml:space="preserve">
+    <value>知道了！</value>
+  </data>
+  <data name="MsaAuthorizeTitle" xml:space="preserve">
+    <value>授权 Microsoft 账户</value>
+  </data>
+  <data name="MsaAccountLabel" xml:space="preserve">
+    <value>账户：</value>
+  </data>
+  <data name="MsaStep1OpenBrowser" xml:space="preserve">
+    <value>1. 在浏览器（或智能手机等）中打开：</value>
+  </data>
+  <data name="MsaStep2EnterCode" xml:space="preserve">
+    <value>2. 输入此代码：</value>
+  </data>
+  <data name="MsaCopyCode" xml:space="preserve">
+    <value>复制</value>
+  </data>
+  <data name="MsaCopyCodeTooltip" xml:space="preserve">
+    <value>复制代码</value>
+  </data>
+  <data name="MsaCodeValidFor" xml:space="preserve">
+    <value>代码有效期为 {0} 分钟。</value>
+  </data>
+  <data name="MsaWaitingForAuthorization" xml:space="preserve">
+    <value>正在等待授权…</value>
+  </data>
+  <data name="MsaAuthorizationSuccessful" xml:space="preserve">
+    <value>授权成功！正在重定向…</value>
+  </data>
+  <data name="MsaErrorPrefix" xml:space="preserve">
+    <value>错误：</value>
+  </data>
+  <data name="MsaRetry" xml:space="preserve">
+    <value>重试</value>
+  </data>
+  <data name="MsaProviderLabel" xml:space="preserve">
+    <value>Microsoft 个人账户</value>
+  </data>
+  <data name="MsaSettingsHeading" xml:space="preserve">
+    <value>Microsoft 个人账户（Outlook.com / M365 家庭版）</value>
+  </data>
+  <data name="MsaNoAppRegistrationNeeded" xml:space="preserve">
+    <value>无需应用注册。</value>
+  </data>
+  <data name="MsaDefaultClientInfoCreate" xml:space="preserve">
+    <value>邮件归档使用预配置的应用注册。请输入邮箱地址，保存，然后点击 {0}。</value>
+  </data>
+  <data name="MsaAuthorize" xml:space="preserve">
+    <value>授权</value>
+  </data>
+  <data name="MsaAppRegistrationSetup" xml:space="preserve">
+    <value>设置 Azure 应用注册（一次性，约 2 分钟）</value>
+  </data>
+  <data name="MsaCreateAppRegistration" xml:space="preserve">
+    <value>创建应用注册</value>
+  </data>
+  <data name="MsaSignInWithMicrosoftAccount" xml:space="preserve">
+    <value>（使用您的 Microsoft 账户登录）</value>
+  </data>
+  <data name="MsaAppRegStepName" xml:space="preserve">
+    <value>选择任意名称（例如 mail-archiver）</value>
+  </data>
+  <data name="MsaAppRegStepAccountTypes" xml:space="preserve">
+    <value>在“支持的账户类型”下选择：任何组织目录中的账户和个人 Microsoft 账户</value>
+  </data>
+  <data name="MsaAppRegStepRedirect" xml:space="preserve">
+    <value>将重定向 URI 留空 → 点击注册</value>
+  </data>
+  <data name="MsaAppRegStepClientId" xml:space="preserve">
+    <value>在下方输入显示的应用程序（客户端）ID</value>
+  </data>
+  <data name="MsaAppRegStepAuth" xml:space="preserve">
+    <value>在应用中点击“身份验证” → 启用“允许公共客户端流” → 保存</value>
+  </data>
+  <data name="MsaNoSecretNeededCreate" xml:space="preserve">
+    <value>无需密钥，也无需重定向 URI。保存后，点击授权。</value>
+  </data>
+  <data name="MsaClientIdPlaceholder" xml:space="preserve">
+    <value>Azure 应用（客户端）ID</value>
+  </data>
+  <data name="MsaClientSecretOptional" xml:space="preserve">
+    <value>（可选）</value>
+  </data>
+  <data name="MsaClientSecretPlaceholder" xml:space="preserve">
+    <value>公共客户端应用无需填写</value>
+  </data>
+  <data name="MsaClientSecretHint" xml:space="preserve">
+    <value>仅机密客户端应用需要。使用公共客户端时请留空。</value>
+  </data>
+  <data name="MsaAuthorized" xml:space="preserve">
+    <value>已授权。Microsoft 账户已连接，令牌将自动续订。</value>
+  </data>
+  <data name="MsaReAuthorize" xml:space="preserve">
+    <value>重新授权</value>
+  </data>
+  <data name="MsaNotYetAuthorized" xml:space="preserve">
+    <value>尚未授权。</value>
+  </data>
+  <data name="MsaSaveThenAuthorize" xml:space="preserve">
+    <value>保存，然后点击 {0}。</value>
+  </data>
+  <data name="MsaEnterClientIdThenAuthorize" xml:space="preserve">
+    <value>输入客户端 ID，保存，然后点击 {0}。</value>
+  </data>
+  <data name="MsaDefaultClientInfoEdit" xml:space="preserve">
+    <value>邮件归档使用预配置的应用注册 — 无需自己的应用注册。仅在需要使用自定义客户端 ID 时填写。</value>
+  </data>
+  <data name="MsaNoSecretNeededShort" xml:space="preserve">
+    <value>无需密钥，也无需重定向 URI。</value>
+  </data>
+  <data name="MsaClientIdOptionalHint" xml:space="preserve">
+    <value>可选 — 留空以使用默认应用注册。</value>
+  </data>
+  <data name="MsaClientIdKeepExisting" xml:space="preserve">
+    <value>留空以保持现有值。</value>
+  </data>
+  <data name="MsaClientSecretPlaceholderEdit" xml:space="preserve">
+    <value>设备代码流无需填写</value>
+  </data>
+  <data name="MsaAuthorizeWithMicrosoft" xml:space="preserve">
+    <value>使用 Microsoft 授权</value>
+  </data>
+  <data name="MsaReAuthorizeWithMicrosoft" xml:space="preserve">
+    <value>使用 Microsoft 重新授权</value>
+  </data>
+  <data name="MsaClientIdRequired" xml:space="preserve">
+    <value>当未配置默认客户端 ID 时，MS 个人账户需要客户端 ID。</value>
+  </data>
+  <data name="MsaNotAuthorizedSync" xml:space="preserve">
+    <value>此 Microsoft 账户尚未授权。请先在账户编辑页面点击“使用 Microsoft 授权”。</value>
+  </data>
+  <data name="MsaClientIdNotConfigured" xml:space="preserve">
+    <value>未配置客户端 ID。请先编辑账户。</value>
+  </data>
+  <data name="MsaAuthorizationFailed" xml:space="preserve">
+    <value>启动授权失败：{0}</value>
+  </data>
+  <data name="MsaAccessDenied" xml:space="preserve">
+    <value>访问被拒绝。</value>
+  </data>
+  <data name="MsaSessionExpired" xml:space="preserve">
+    <value>会话已过期。请重新开始授权。</value>
+  </data>
+  <data name="MsaAccountNotFound" xml:space="preserve">
+    <value>未找到账户。</value>
+  </data>
+  <data name="MsaAuthorizationCancelled" xml:space="preserve">
+    <value>账户创建已取消。</value>
+  </data>
+  <data name="UseTenantImport" xml:space="preserve">
+    <value>使用租户导入</value>
+  </data>
+  <data name="UseTenantImportHelp" xml:space="preserve">
+    <value>加载租户邮箱，并使用以下命名方案创建账户：输入的名称 - &lt;mailbox@example.com&gt;。</value>
+  </data>
+  <data name="SkipDisabledMailboxes" xml:space="preserve">
+    <value>跳过已禁用的邮箱</value>
+  </data>
+  <data name="ImportAllListedMailboxes" xml:space="preserve">
+    <value>导入所有列出的邮箱</value>
+  </data>
+  <data name="ImportAllListedMailboxesHelp" xml:space="preserve">
+    <value>禁用时，仅导入下方选中的邮箱。</value>
+  </data>
+  <data name="LoadMailboxes" xml:space="preserve">
+    <value>加载邮箱</value>
+  </data>
+  <data name="TenantMailboxes" xml:space="preserve">
+    <value>租户邮箱</value>
+  </data>
+  <data name="ClearSelection" xml:space="preserve">
+    <value>清除选择</value>
+  </data>
+  <data name="NoMailboxesFound" xml:space="preserve">
+    <value>未找到邮箱。</value>
+  </data>
+  <data name="DisabledLowercase" xml:space="preserve">
+    <value>已禁用</value>
+  </data>
+  <data name="AlreadyExistsLowercase" xml:space="preserve">
+    <value>已存在</value>
+  </data>
+  <data name="LoadingMailboxes" xml:space="preserve">
+    <value>正在加载邮箱...</value>
+  </data>
+  <data name="MailboxesCouldNotBeLoaded" xml:space="preserve">
+    <value>无法加载邮箱。</value>
+  </data>
+  <data name="MailboxesFound" xml:space="preserve">
+    <value>找到 {0} 个邮箱。</value>
+  </data>
+  <data name="M365MailboxDefaultName" xml:space="preserve">
+    <value>M365 邮箱</value>
+  </data>
+  <data name="NoEnabledM365UsersFound" xml:space="preserve">
+    <value>此租户中未找到具有邮箱地址或用户主体名称的已启用 M365 用户。</value>
+  </data>
+  <data name="SelectAtLeastOneMailboxOrImportAll" xml:space="preserve">
+    <value>请至少选择一个邮箱，或启用导入所有列出的邮箱。</value>
+  </data>
+  <data name="AllSelectedM365TenantMailboxesAlreadyExist" xml:space="preserve">
+    <value>所有 {0} 个选中的 M365 租户邮箱均已存在。</value>
+  </data>
+  <data name="ImportedM365TenantAccounts" xml:space="preserve">
+    <value>已导入 {0} 个 M365 租户邮件账户。跳过 {1} 个现有账户。</value>
+  </data>
+  <data name="M365TenantCredentialsRequired" xml:space="preserve">
+    <value>列出租户邮箱需要客户端 ID、客户端密钥和租户 ID。</value>
+  </data>
+  <data name="M365TenantMailboxesCouldNotBeListed" xml:space="preserve">
+    <value>无法列出租户邮箱。请检查 M365 凭据和权限。</value>
+  </data>
+  <data name="M365TenantAccountsCouldNotBeImported" xml:space="preserve">
+    <value>无法导入 M365 租户账户。请检查凭据和权限。</value>
+  </data>
+  <data name="NameRequired" xml:space="preserve">
+    <value>名称为必填项</value>
+  </data>
+  <data name="EmailAddressRequired" xml:space="preserve">
+    <value>邮箱地址为必填项</value>
+  </data>
+  <data name="ProviderM365Single" xml:space="preserve">
+    <value>Microsoft 365（单个邮箱）</value>
+  </data>
+  <data name="ProviderM365Tenant" xml:space="preserve">
+    <value>Microsoft 365（租户）</value>
+  </data>
+  <data name="LoadMailboxesHelp" xml:space="preserve">
+    <value>加载租户邮箱列表以选择要导入的账户。</value>
+  </data>
+  <data name="InvalidImportFileType" xml:space="preserve">
+    <value>文件类型无效。允许的扩展名：.mbox、.eml、.zip</value>
+  </data>
+  <data name="ClientSecretWillBeCopiedOnSave" xml:space="preserve">
+    <value>保存时将从所选现有账户复制客户端密钥。</value>
+  </data>
+  <data name="ClientSecretRequired" xml:space="preserve">
+    <value>M365 账户需要客户端密钥</value>
+  </data>
+  <data name="TenantManagement" xml:space="preserve">
+    <value>租户管理</value>
+  </data>
+  <data name="TenantManagementTitle" xml:space="preserve">
+    <value>租户管理</value>
+  </data>
+  <data name="TenantManagementHelp" xml:space="preserve">
+    <value>添加此租户中缺少的邮箱。新账户将使用源账户的凭据。</value>
+  </data>
+  <data name="AddSelectedMailboxes" xml:space="preserve">
+    <value>添加所选邮箱</value>
+  </data>
+  <data name="MailboxesAdded" xml:space="preserve">
+    <value>已添加 {0} 个邮箱。</value>
+  </data>
+  <data name="NoNewMailboxesToAdd" xml:space="preserve">
+    <value>没有要添加的新邮箱。</value>
+  </data>
+  <data name="SelectAtLeastOneMailboxForManagement" xml:space="preserve">
+    <value>请至少选择一个要添加的邮箱。</value>
+  </data>
+  <data name="MoreActions" xml:space="preserve">
+    <value>更多操作</value>
+  </data>
+  <data name="AccountNameTooLong" xml:space="preserve">
+    <value>账户名称最多只能有 200 个字符。</value>
+  </data>
+  <data name="SelectAtMostMailboxes" xml:space="preserve">
+    <value>一次最多选择 {0} 个邮箱。</value>
+  </data>
+  <data name="SearchMailboxes" xml:space="preserve">
+    <value>搜索邮箱...</value>
+  </data>
+  <data name="NoMailboxesMatch" xml:space="preserve">
+    <value>没有邮箱与您的搜索匹配。</value>
+  </data>
+  <data name="SearchAccounts" xml:space="preserve">
+    <value>搜索账户...</value>
+  </data>
+  <data name="NoAccountsMatch" xml:space="preserve">
+    <value>没有账户与您的搜索匹配。</value>
+  </data>
+  <data name="SearchUsers" xml:space="preserve">
+    <value>搜索用户...</value>
+  </data>
+  <data name="NoUsersMatch" xml:space="preserve">
+    <value>没有用户与您的搜索匹配。</value>
+  </data>
+  <data name="AccountsFound" xml:space="preserve">
+    <value>找到 {0} 个账户</value>
+  </data>
+  <data name="UsersFound" xml:space="preserve">
+    <value>找到 {0} 个用户</value>
+  </data>
+  <data name="RenameExistingAccounts" xml:space="preserve">
+    <value>重命名现有账户</value>
+  </data>
+  <data name="RenameExistingAccountsHelp" xml:space="preserve">
+    <value>保存后，将命名方案应用到使用同一应用注册的所有 M365 账户。</value>
+  </data>
+  <data name="AccountsRenamed" xml:space="preserve">
+    <value>已重命名 {0} 个账户。</value>
+  </data>
+  <data name="MailboxesAddedAndAccountsRenamed" xml:space="preserve">
+    <value>已添加 {0} 个邮箱并重命名 {1} 个账户。</value>
+  </data>
+  <data name="ShowPassword" xml:space="preserve">
+    <value>显示密码</value>
+  </data>
+  <data name="HidePassword" xml:space="preserve">
+    <value>隐藏密码</value>
+  </data>
+  <data name="AdvancedSettings" xml:space="preserve">
+    <value>高级设置</value>
+  </data>
+  <data name="UnsavedChangesWarning" xml:space="preserve">
+    <value>您有未保存的更改。确定要离开此页面吗？</value>
+  </data>
+  <data name="Saving" xml:space="preserve">
+    <value>正在保存...</value>
+  </data>
+  <data name="CopyFolderToExcluded" xml:space="preserve">
+    <value>点击文件夹以将其添加到排除列表或从排除列表中移除</value>
+  </data>
+  <data name="StorageUsed" xml:space="preserve">
+    <value>已用存储</value>
+  </data>
+  <data name="ConnectionDetails" xml:space="preserve">
+    <value>连接详情</value>
+  </data>
+  <data name="PrimaryActions" xml:space="preserve">
+    <value>操作</value>
+  </data>
+  <data name="FilterMailboxes" xml:space="preserve">
+    <value>筛选邮箱...</value>
+  </data>
+  <data name="NoMailboxesMatchFilter" xml:space="preserve">
+    <value>没有邮箱与您的筛选条件匹配。</value>
+  </data>
+  <data name="MsaBadge" xml:space="preserve">
+    <value>MSA（个人）</value>
+  </data>
+  <data name="MsaAuthAfterSaveInfo" xml:space="preserve">
+    <value>保存后，您将被重定向到 Microsoft 以授权访问您的邮箱。</value>
+  </data>
+  <data name="UserAccountSection" xml:space="preserve">
+    <value>账户详情</value>
+  </data>
+  <data name="UserSecuritySection" xml:space="preserve">
+    <value>安全</value>
+  </data>
+  <data name="OidcPasswordManagedExternally" xml:space="preserve">
+    <value>这是 OIDC 用户。密码管理由 OIDC 提供商处理。</value>
+  </data>
+  <data name="BackgroundJobsActiveCount" xml:space="preserve">
+    <value>当前有 {0} 个后台任务正在运行。</value>
+  </data>
+  <data name="AutoRefreshInfo" xml:space="preserve">
+    <value>{0} 秒后自动刷新</value>
+  </data>
+  <data name="WelcomeBack" xml:space="preserve">
+    <value>欢迎回来，{0}</value>
+  </data>
+  <data name="ImportCsvBulk" xml:space="preserve">
+    <value>CSV 批量导入</value>
+  </data>
+  <data name="CsvImportTitle" xml:space="preserve">
+    <value>从 CSV 导入 IMAP 邮箱</value>
+  </data>
+  <data name="CsvImportInformation" xml:space="preserve">
+    <value>通过 CSV 文件一次导入多个 IMAP 邮箱。</value>
+  </data>
+  <data name="CsvImportFormatHelp" xml:space="preserve">
+    <value>列：email（必填）、password（必填）、name（可选）、username（可选）、imap_server（可选）、imap_port（可选）、use_ssl（可选）</value>
+  </data>
+  <data name="CsvImportCommonServerHelp" xml:space="preserve">
+    <value>通用服务器设置适用于没有 imap_server 列的行。</value>
+  </data>
+  <data name="CsvImportNoConnectionTest" xml:space="preserve">
+    <value>不执行 IMAP 连接测试 — 错误只会在首次同步时出现。</value>
+  </data>
+  <data name="CsvImportAdminOnlyNote" xml:space="preserve">
+    <value>此功能仅对管理员可用。</value>
+  </data>
+  <data name="DownloadExampleCsv" xml:space="preserve">
+    <value>下载示例 CSV</value>
+  </data>
+  <data name="CsvImportSettingsTitle" xml:space="preserve">
+    <value>上传和设置</value>
+  </data>
+  <data name="CsvFile" xml:space="preserve">
+    <value>CSV 文件</value>
+  </data>
+  <data name="CsvFileHelp" xml:space="preserve">
+    <value>UTF-8 编码、带标题行的 CSV 文件。必需列：email、password。</value>
+  </data>
+  <data name="CommonServerSettings" xml:space="preserve">
+    <value>通用服务器设置</value>
+  </data>
+  <data name="CommonServerSettingsHelp" xml:space="preserve">
+    <value>当 CSV 行没有 imap_server 值时使用。</value>
+  </data>
+  <data name="ImapServerLabel" xml:space="preserve">
+    <value>IMAP 服务器</value>
+  </data>
+  <data name="ImapPortLabel" xml:space="preserve">
+    <value>IMAP 端口</value>
+  </data>
+  <data name="UseSslLabel" xml:space="preserve">
+    <value>使用 SSL</value>
+  </data>
+  <data name="NamePrefix" xml:space="preserve">
+    <value>名称前缀</value>
+  </data>
+  <data name="NamePrefixHelp" xml:space="preserve">
+    <value>默认名称：“{prefix} - &lt;{email}&gt;”</value>
+  </data>
+  <data name="SkipExisting" xml:space="preserve">
+    <value>跳过现有邮箱</value>
+  </data>
+  <data name="SkipExistingHelp" xml:space="preserve">
+    <value>重复项将被跳过，不会标记为错误。</value>
+  </data>
+  <data name="AccountEnabledLabel" xml:space="preserve">
+    <value>账户已启用</value>
+  </data>
+  <data name="CsvImportSubmit" xml:space="preserve">
+    <value>导入</value>
+  </data>
+  <data name="CsvImportResult" xml:space="preserve">
+    <value>导入结果</value>
+  </data>
+  <data name="CsvImportAgain" xml:space="preserve">
+    <value>导入另一个 CSV</value>
+  </data>
+  <data name="CsvImportResultSummary" xml:space="preserve">
+    <value>已创建 {0}，已跳过 {1}，失败 {2}</value>
+  </data>
+  <data name="CsvImportCreated" xml:space="preserve">
+    <value>已创建</value>
+  </data>
+  <data name="CsvImportSkipped" xml:space="preserve">
+    <value>已跳过</value>
+  </data>
+  <data name="CsvImportFailed" xml:space="preserve">
+    <value>失败</value>
+  </data>
+  <data name="CsvImportEmail" xml:space="preserve">
+    <value>邮箱</value>
+  </data>
+  <data name="CsvImportNameCol" xml:space="preserve">
+    <value>名称</value>
+  </data>
+  <data name="CsvImportReason" xml:space="preserve">
+    <value>原因</value>
+  </data>
+  <data name="CsvImportRowNumber" xml:space="preserve">
+    <value>行</value>
+  </data>
+  <data name="CsvImportNoFile" xml:space="preserve">
+    <value>请选择 CSV 文件。</value>
+  </data>
+  <data name="CsvImportFileTooLarge" xml:space="preserve">
+    <value>文件过大：{0} MB，最大为 {1} MB。</value>
+  </data>
+  <data name="CsvImportNoValidRows" xml:space="preserve">
+    <value>CSV 文件中未找到有效的邮箱。</value>
+  </data>
+  <data name="CsvImportTooManyRows" xml:space="preserve">
+    <value>CSV 文件包含 {0} 行，最多为 {1} 行。</value>
+  </data>
+  <data name="CsvImportMissingServer" xml:space="preserve">
+    <value>未提供 IMAP 服务器（行中和表单中均未提供）。</value>
+  </data>
+  <data name="CsvImportInvalidPort" xml:space="preserve">
+    <value>无效端口“{1}”</value>
+  </data>
+  <data name="CsvImportInvalidUseSsl" xml:space="preserve">
+    <value>无效的 use_ssl 值“{1}”</value>
+  </data>
+  <data name="CsvImportMissingEmail" xml:space="preserve">
+    <value>缺少邮箱地址。</value>
+  </data>
+  <data name="CsvImportMissingPassword" xml:space="preserve">
+    <value>缺少密码。</value>
+  </data>
+  <data name="CsvImportMalformedLine" xml:space="preserve">
+    <value>CSV 行格式错误 — 无法解析。</value>
+  </data>
+  <data name="CsvImportDuplicateInFile" xml:space="preserve">
+    <value>CSV 文件中存在重复项</value>
+  </data>
+  <data name="CsvImportAlreadyExists" xml:space="preserve">
+    <value>邮箱已存在</value>
+  </data>
+  <data name="CsvImportCouldNotBeProcessed" xml:space="preserve">
+    <value>无法处理 CSV 导入</value>
+  </data>
+  <data name="CsvImportAdminOnly" xml:space="preserve">
+    <value>CSV 批量导入仅对管理员可用。</value>
+  </data>
+  <data name="ImportEmailsHeader" xml:space="preserve">
+    <value>导入邮件</value>
+  </data>
+  <data name="ImportAccountsHeader" xml:space="preserve">
+    <value>导入账户</value>
+  </data>
+  <data name="ApiKeys" xml:space="preserve">
+    <value>API 密钥</value>
+  </data>
+  <data name="ApiKeysDescription" xml:space="preserve">
+    <value>管理用于以编程方式只读访问已归档邮件的 API 密钥。</value>
+  </data>
+  <data name="CreateApiKey" xml:space="preserve">
+    <value>创建 API 密钥</value>
+  </data>
+  <data name="ApiKeyName" xml:space="preserve">
+    <value>名称</value>
+  </data>
+  <data name="ApiKeyExpiration" xml:space="preserve">
+    <value>过期时间（可选）</value>
+  </data>
+  <data name="ApiKeyCreatedOnce" xml:space="preserve">
+    <value>请立即复制此密钥。出于安全考虑，它只显示一次，之后无法再获取。</value>
+  </data>
+  <data name="ApiKeyValue" xml:space="preserve">
+    <value>API 密钥</value>
+  </data>
+  <data name="ApiKeyPrefix" xml:space="preserve">
+    <value>前缀</value>
+  </data>
+  <data name="ApiKeyCreatedColumn" xml:space="preserve">
+    <value>创建时间</value>
+  </data>
+  <data name="ApiKeyLastUsed" xml:space="preserve">
+    <value>最后使用</value>
+  </data>
+  <data name="ApiKeyExpires" xml:space="preserve">
+    <value>过期时间</value>
+  </data>
+  <data name="ApiKeyStatus" xml:space="preserve">
+    <value>状态</value>
+  </data>
+  <data name="ApiKeyActive" xml:space="preserve">
+    <value>活跃</value>
+  </data>
+  <data name="ApiKeyRevoked" xml:space="preserve">
+    <value>已撤销</value>
+  </data>
+  <data name="ApiKeyExpired" xml:space="preserve">
+    <value>已过期</value>
+  </data>
+  <data name="ApiKeyRevoke" xml:space="preserve">
+    <value>撤销</value>
+  </data>
+  <data name="ApiKeyRevokeConfirm" xml:space="preserve">
+    <value>撤销此 API 密钥？使用它的应用程序将立即停止工作。</value>
+  </data>
+  <data name="ApiKeyOwner" xml:space="preserve">
+    <value>所有者</value>
+  </data>
+  <data name="NoApiKeys" xml:space="preserve">
+    <value>尚无 API 密钥。</value>
+  </data>
+  <data name="ApiKeyCreatedSuccess" xml:space="preserve">
+    <value>API 密钥已创建。</value>
+  </data>
+  <data name="ApiKeyRevokedSuccess" xml:space="preserve">
+    <value>API 密钥已撤销。</value>
+  </data>
+  <data name="ApiKeyRevokeFailed" xml:space="preserve">
+    <value>无法撤销 API 密钥。</value>
+  </data>
+  <data name="Copy" xml:space="preserve">
+    <value>复制</value>
+  </data>
+  <data name="MeetingInvitation" xml:space="preserve">
+    <value>会议邀请</value>
+  </data>
+  <data name="MeetingStart" xml:space="preserve">
+    <value>开始</value>
+  </data>
+  <data name="MeetingEnd" xml:space="preserve">
+    <value>结束</value>
+  </data>
+  <data name="MeetingLocation" xml:space="preserve">
+    <value>地点</value>
+  </data>
+  <data name="MeetingOrganizer" xml:space="preserve">
+    <value>组织者</value>
+  </data>
+  <data name="MeetingAttendees" xml:space="preserve">
+    <value>参与者</value>
+  </data>
+  <data name="MeetingDescription" xml:space="preserve">
+    <value>描述</value>
+  </data>
+  <data name="AcknowledgeFailures" xml:space="preserve">
+    <value>确认失败</value>
+  </data>
+  <data name="AcknowledgeFailuresConfirm" xml:space="preserve">
+    <value>这会将同步时间戳推进到此任务的完成时间，因此下次同步将是正常的增量同步。失败的邮件将不会重试。是否继续？</value>
+  </data>
+  <data name="AcknowledgeFailuresSuccess" xml:space="preserve">
+    <value>同步时间戳已推进。下次同步将是增量同步。</value>
+  </data>
+  <data name="FailuresAcknowledged" xml:space="preserve">
+    <value>失败已确认</value>
+  </data>
+  <data name="OffloadTitle" xml:space="preserve">
+    <value>卸载到另一个邮箱</value>
+  </data>
+  <data name="OffloadIntro" xml:space="preserve">
+    <value>将截止日期之后归档的邮件追加到另一个邮箱，跳过该邮箱已拥有的任何内容。较旧的邮件保留在归档中。再次运行此操作是安全的，并且不会追加任何已经到达的内容。</value>
+  </data>
+  <data name="OffloadSourceAndTarget" xml:space="preserve">
+    <value>源和目标</value>
+  </data>
+  <data name="SourceAccount" xml:space="preserve">
+    <value>源账户</value>
+  </data>
+  <data name="OffloadSelectTarget" xml:space="preserve">
+    <value>选择目标邮箱...</value>
+  </data>
+  <data name="OffloadLoadingFolders" xml:space="preserve">
+    <value>正在加载文件夹...</value>
+  </data>
+  <data name="OffloadSelectFolder" xml:space="preserve">
+    <value>-- 选择目标文件夹 --</value>
+  </data>
+  <data name="OffloadErrorLoadingFolders" xml:space="preserve">
+    <value>加载文件夹时出错</value>
+  </data>
+  <data name="OffloadSelectTargetFirst" xml:space="preserve">
+    <value>请先选择目标邮箱</value>
+  </data>
+  <data name="OffloadTargetFolderHelp" xml:space="preserve">
+    <value>目标邮箱中的根文件夹。使用 INBOX 时，源文件夹结构将在顶层重新创建。</value>
+  </data>
+  <data name="OffloadWindow" xml:space="preserve">
+    <value>日期范围</value>
+  </data>
+  <data name="OffloadWindowMonths" xml:space="preserve">
+    <value>最近 N 个月</value>
+  </data>
+  <data name="OffloadWindowMonthsHelp" xml:space="preserve">
+    <value>任务启动时解析为固定日期，因此重复执行任务会选择相同的邮件。设为 0 以改用明确日期。</value>
+  </data>
+  <data name="OffloadCutoffFrom" xml:space="preserve">
+    <value>开始日期</value>
+  </data>
+  <data name="OffloadCutoffFromHelp" xml:space="preserve">
+    <value>覆盖月份范围。包含该日 00:00 起。</value>
+  </data>
+  <data name="OffloadCutoffTo" xml:space="preserve">
+    <value>结束日期（可选）</value>
+  </data>
+  <data name="OffloadCutoffToHelp" xml:space="preserve">
+    <value>包含该日直到 23:59:59。</value>
+  </data>
+  <data name="OffloadOptions" xml:space="preserve">
+    <value>选项</value>
+  </data>
+  <data name="OffloadDryRun" xml:space="preserve">
+    <value>试运行</value>
+  </data>
+  <data name="OffloadDryRunHelp" xml:space="preserve">
+    <value>解析所有内容并按文件夹报告将要发生的情况，但不会追加任何内容。建议在正式运行前使用。</value>
+  </data>
+  <data name="OffloadMarkAsSeen" xml:space="preserve">
+    <value>将追加的邮件标记为已读</value>
+  </data>
+  <data name="OffloadMarkAsSeenHelp" xml:space="preserve">
+    <value>关闭此选项后，未读邮件在目标邮箱中仍保持未读。</value>
+  </data>
+  <data name="OffloadFolderHandling" xml:space="preserve">
+    <value>文件夹处理</value>
+  </data>
+  <data name="OffloadExcludedFolders" xml:space="preserve">
+    <value>排除的源文件夹</value>
+  </data>
+  <data name="OffloadRenameMap" xml:space="preserve">
+    <value>文件夹重命名映射</value>
+  </data>
+  <data name="OffloadNoneConfigured" xml:space="preserve">
+    <value>未配置</value>
+  </data>
+  <data name="OffloadFolderHandlingHelp" xml:space="preserve">
+    <value>两者均在 appsettings.json 的 Offload 部分配置，默认值为空。排除项在重命名之前匹配，并涵盖子文件夹。</value>
+  </data>
+  <data name="OffloadStart" xml:space="preserve">
+    <value>开始卸载</value>
+  </data>
+  <data name="OffloadNoTargets" xml:space="preserve">
+    <value>没有其他 IMAP 账户可用作目标。请先创建一个。</value>
+  </data>
+  <data name="OffloadNoTargetsAssigned" xml:space="preserve">
+    <value>分配给您的邮箱均不能用作目标。请让管理员为您分配另一个 IMAP 账户。</value>
+  </data>
+  <data name="OffloadTargetRequired" xml:space="preserve">
+    <value>请选择目标邮箱。</value>
+  </data>
+  <data name="OffloadTargetMustDiffer" xml:space="preserve">
+    <value>目标邮箱必须与源邮箱不同。</value>
+  </data>
+  <data name="OffloadTargetNotFound" xml:space="preserve">
+    <value>所选目标邮箱已不存在。</value>
+  </data>
+  <data name="OffloadTargetMustBeImap" xml:space="preserve">
+    <value>目标邮箱必须是 IMAP 账户。</value>
+  </data>
+  <data name="OffloadCutoffRequired" xml:space="preserve">
+    <value>请提供月份范围或开始日期。</value>
+  </data>
+  <data name="OffloadCutoffToBeforeFrom" xml:space="preserve">
+    <value>结束日期不得早于开始日期。</value>
+  </data>
+  <data name="OffloadNothingInWindow" xml:space="preserve">
+    <value>该日期范围内没有归档邮件。</value>
+  </data>
+  <data name="OffloadQueued" xml:space="preserve">
+    <value>已为 {0} 封邮件排队卸载。</value>
+  </data>
+  <data name="OffloadDryRunQueued" xml:space="preserve">
+    <value>已为 {0} 封邮件排队试运行。不会追加任何内容。</value>
+  </data>
+  <data name="OffloadAppended" xml:space="preserve">
+    <value>已追加</value>
+  </data>
+  <data name="OffloadAlreadyPresent" xml:space="preserve">
+    <value>已存在</value>
+  </data>
+  <data name="OffloadByFingerprint" xml:space="preserve">
+    <value>通过指纹匹配</value>
+  </data>
+  <data name="OffloadExcluded" xml:space="preserve">
+    <value>已排除的文件夹</value>
+  </data>
+  <data name="OffloadReport" xml:space="preserve">
+    <value>卸载报告</value>
+  </data>
+  <data name="OffloadJob" xml:space="preserve">
+    <value>卸载</value>
+  </data>
+  <data name="AuditExport" xml:space="preserve">
+    <value>审计数据导出</value>
+  </data>
+  <data name="AuditExportHistory" xml:space="preserve">
+    <value>导出历史</value>
+  </data>
+  <data name="Mailbox" xml:space="preserve">
+    <value>邮箱</value>
+  </data>
+  <data name="AllMailboxes" xml:space="preserve">
+    <value>所有邮箱</value>
+  </data>
+  <data name="AttachmentMetadata" xml:space="preserve">
+    <value>附件元数据</value>
+  </data>
+  <data name="IncludeAttachmentMetadata" xml:space="preserve">
+    <value>包含附件元数据表</value>
+  </data>
+  <data name="DataSupplierName" xml:space="preserve">
+    <value>数据供应商名称</value>
+  </data>
+  <data name="DataSupplierLocation" xml:space="preserve">
+    <value>数据供应商所在地</value>
+  </data>
+  <data name="NoAuditExportsYet" xml:space="preserve">
+    <value>尚无导出</value>
+  </data>
+  <data name="Period" xml:space="preserve">
+    <value>时间段</value>
+  </data>
+  <data name="Comment" xml:space="preserve">
+    <value>备注</value>
+  </data>
+  <data name="AuditExportInvalidPeriod" xml:space="preserve">
+    <value>时间段无效：开始日期和结束日期为必填项。</value>
+  </data>
+  <data name="AuditExportRangeTooLong" xml:space="preserve">
+    <value>时间段不得超过 {0} 年。</value>
+  </data>
+  <data name="AuditExportAccountNotFound" xml:space="preserve">
+    <value>未找到所选邮箱。</value>
+  </data>
+  <data name="AuditExportFileNotFound" xml:space="preserve">
+    <value>未找到导出文件或该文件已不可用。</value>
+  </data>
+  <data name="BackToLogs" xml:space="preserve">
+    <value>返回日志</value>
+  </data>
+  <data name="ExportSettings" xml:space="preserve">
+    <value>导出设置</value>
+  </data>
+  <data name="CancelExportConfirm" xml:space="preserve">
+    <value>取消此导出？</value>
+  </data>
+  <data name="Domains" xml:space="preserve">
+    <value>域</value>
+  </data>
+  <data name="EmailsPerPeriod" xml:space="preserve">
+    <value>每时间段邮件数</value>
+  </data>
+  <data name="ChartGranularity" xml:space="preserve">
+    <value>分辨率</value>
+  </data>
+  <data name="ChartLoadFailed" xml:space="preserve">
+    <value>无法加载图表。请重试。</value>
+  </data>
+  <data name="Hour" xml:space="preserve">
+    <value>小时</value>
+  </data>
+  <data name="Day" xml:space="preserve">
+    <value>天</value>
+  </data>
+  <data name="Month" xml:space="preserve">
+    <value>月</value>
+  </data>
+  <data name="Year" xml:space="preserve">
+    <value>年</value>
+  </data>
+  <data name="PeriodUnitDay" xml:space="preserve">
+    <value>天</value>
+  </data>
+  <data name="PeriodUnitDays" xml:space="preserve">
+    <value>天</value>
+  </data>
+  <data name="PeriodUnitMonth" xml:space="preserve">
+    <value>月</value>
+  </data>
+  <data name="PeriodUnitMonths" xml:space="preserve">
+    <value>月</value>
+  </data>
+  <data name="PeriodUnitYear" xml:space="preserve">
+    <value>年</value>
+  </data>
+  <data name="PeriodUnitYears" xml:space="preserve">
+    <value>年</value>
+  </data>
+  <data name="EarlierPeriod" xml:space="preserve">
+    <value>上一时间段</value>
+  </data>
+  <data name="LaterPeriod" xml:space="preserve">
+    <value>下一时间段</value>
+  </data>
+  <data name="CurrentPeriod" xml:space="preserve">
+    <value>现在</value>
   </data>
 </root>

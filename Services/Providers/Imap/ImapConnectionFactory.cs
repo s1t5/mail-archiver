@@ -1,0 +1,317 @@
+using MailArchiver.Models;
+using MailArchiver.Services;
+using MailKit.Net.Imap;
+using MailKit.Security;
+using Microsoft.Extensions.Options;
+using System.Net;
+using System.Net.Security;
+using System.Security.Cryptography.X509Certificates;
+
+namespace MailArchiver.Services.Providers.Imap
+{
+    /// <summary>
+    /// Factory for creating, connecting, and authenticating IMAP clients.
+    /// Handles SSL/TLS→STARTTLS fallback, SASL PLAIN→auto authentication,
+    /// certificate validation, and reconnection logic.
+    /// </summary>
+    public class ImapConnectionFactory
+    {
+        // Backoff applied between a forced MSA token refresh and the re-authentication
+        // attempt. Microsoft's IMAP endpoint throttles rapid successive logins from the
+        // same account; retrying immediately after a fresh token (HTTP 200 from the token
+        // endpoint) still fails with "Authentication failed." until the throttle window
+        // elapses. See issue: cascading reconnect/auth failure for MSA accounts.
+        private const int MsaReauthBackoffMs = 3000;
+
+        private readonly ILogger<ImapConnectionFactory> _logger;
+        private readonly MailSyncOptions _mailSyncOptions;
+        private readonly BatchOperationOptions _batchOptions;
+        private readonly IMsaOAuthService _msaOAuthService;
+        private readonly MailArchiver.Data.MailArchiverDbContext _dbContext;
+
+        public ImapConnectionFactory(
+            ILogger<ImapConnectionFactory> logger,
+            IOptions<MailSyncOptions> mailSyncOptions,
+            IOptions<BatchOperationOptions> batchOptions,
+            IMsaOAuthService msaOAuthService,
+            MailArchiver.Data.MailArchiverDbContext dbContext)
+        {
+            _logger = logger;
+            _mailSyncOptions = mailSyncOptions.Value;
+            _batchOptions = batchOptions.Value;
+            _msaOAuthService = msaOAuthService;
+            _dbContext = dbContext;
+        }
+
+        /// <summary>
+        /// Creates a new ImapClient instance without protocol logging.
+        /// </summary>
+        public ImapClient CreateImapClient(string accountName)
+        {
+            return new ImapClient();
+        }
+
+        /// <summary>
+        /// Extracts the authentication username from an account.
+        /// </summary>
+        public static string GetAuthenticationUsername(MailAccount account)
+        {
+            return account.Username ?? account.EmailAddress;
+        }
+
+        /// <summary>
+        /// Connects to an IMAP server with SSL/TLS, falling back to STARTTLS if the initial
+        /// SSL handshake fails.
+        /// </summary>
+        public async Task ConnectWithFallbackAsync(ImapClient client, string server, int port, bool useSSL, string accountName)
+        {
+            if (!useSSL)
+            {
+                _logger.LogDebug("Connecting to {Server}:{Port} with no security for account {AccountName}",
+                    server, port, accountName);
+                await client.ConnectAsync(server, port, SecureSocketOptions.None);
+                return;
+            }
+
+            // First try: SSL/TLS directly
+            try
+            {
+                _logger.LogDebug("Connecting to {Server}:{Port} with SSL/TLS for account {AccountName}",
+                    server, port, accountName);
+                await client.ConnectAsync(server, port, SecureSocketOptions.SslOnConnect);
+                _logger.LogDebug("Successfully connected using SSL/TLS for account {AccountName}", accountName);
+            }
+            catch (SslHandshakeException sslEx)
+            {
+                _logger.LogDebug("SSL/TLS connection failed for account {AccountName}, trying STARTTLS: {Message}",
+                    accountName, sslEx.Message);
+
+                // Fallback: STARTTLS
+                try
+                {
+                    await client.ConnectAsync(server, port, SecureSocketOptions.StartTls);
+                    _logger.LogInformation("Successfully connected using STARTTLS for account {AccountName} on {Server}:{Port}",
+                        accountName, server, port);
+                }
+                catch (Exception fallbackEx)
+                {
+                    _logger.LogError(fallbackEx, "STARTTLS fallback also failed for account {AccountName}", accountName);
+                    throw new AggregateException("Both SSL/TLS and STARTTLS connection attempts failed", sslEx, fallbackEx);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Authenticates the IMAP client. For MSA accounts uses OAuth2 bearer token;
+        /// for all other accounts tries SASL PLAIN first, then falls back to auto-negotiation.
+        /// </summary>
+        public async Task AuthenticateClientAsync(ImapClient client, MailAccount account)
+        {
+            client.AuthenticationMechanisms.Remove("GSSAPI");
+            client.AuthenticationMechanisms.Remove("NEGOTIATE");
+
+            if (account.Provider == ProviderType.MSA)
+            {
+                await AuthenticateMsaAsync(client, account);
+                return;
+            }
+
+            var username = GetAuthenticationUsername(account);
+            var password = account.Password;
+
+            if (client.AuthenticationMechanisms.Contains("PLAIN"))
+            {
+                try
+                {
+                    _logger.LogDebug("Attempting SASL PLAIN authentication for account {AccountName}", account.Name);
+                    var credentials = new NetworkCredential(username, password);
+                    var saslPlain = new SaslMechanismPlain(credentials);
+                    await client.AuthenticateAsync(saslPlain);
+                    _logger.LogDebug("SASL PLAIN authentication successful for account {AccountName}", account.Name);
+                    return;
+                }
+                catch (MailKit.Security.AuthenticationException ex)
+                {
+                    _logger.LogInformation("SASL PLAIN authentication failed for account {AccountName}, trying fallback: {Message}",
+                        account.Name, ex.Message);
+                }
+            }
+            else
+            {
+                _logger.LogInformation("SASL PLAIN not available for account {AccountName}, using fallback authentication", account.Name);
+            }
+
+            _logger.LogDebug("Using auto-negotiated authentication for account {AccountName}", account.Name);
+            await client.AuthenticateAsync(username, password);
+        }
+
+        private async Task AuthenticateMsaAsync(ImapClient client, MailAccount account)
+        {
+            if (string.IsNullOrEmpty(account.OAuthRefreshToken))
+                throw new InvalidOperationException($"MSA account '{account.Name}' has no OAuth refresh token. Please authorize the account first.");
+
+            var needsRefresh = string.IsNullOrEmpty(account.OAuthAccessToken)
+                || account.OAuthTokenExpiry == null
+                || account.OAuthTokenExpiry.Value <= DateTime.UtcNow;
+
+            if (needsRefresh)
+            {
+                await RefreshMsaTokenAsync(account);
+            }
+
+            var emailAddress = account.Username ?? account.EmailAddress;
+            _logger.LogDebug("Authenticating MSA account {AccountName} via XOAUTH2 as {Username}", account.Name, emailAddress);
+            try
+            {
+                await client.AuthenticateAsync(new SaslMechanismOAuth2(emailAddress, account.OAuthAccessToken!));
+            }
+            catch (AuthenticationException ex) when (!needsRefresh)
+            {
+                // The stored access token looked valid (expiry in the future) but the server
+                // rejected it — it may have been revoked (password change, session invalidation).
+                // Force a refresh and retry once before giving up.
+                _logger.LogWarning("XOAUTH2 authentication failed for MSA account {AccountName} with a non-expired token ({Message}). Forcing token refresh and retrying once.",
+                    account.Name, ex.Message);
+                await RefreshMsaTokenAsync(account);
+
+                // Backoff: Microsoft throttles rapid successive IMAP logins from the same
+                // account. A short pause between the forced token refresh and the re-auth
+                // attempt avoids an immediate second rejection on the same connection loop.
+                await Task.Delay(MsaReauthBackoffMs);
+
+                emailAddress = account.Username ?? account.EmailAddress;
+                await client.AuthenticateAsync(new SaslMechanismOAuth2(emailAddress, account.OAuthAccessToken!));
+                _logger.LogInformation("XOAUTH2 retry after forced token refresh succeeded for MSA account {AccountName}", account.Name);
+            }
+        }
+
+        private async Task RefreshMsaTokenAsync(MailAccount account)
+        {
+            _logger.LogInformation("Refreshing MSA access token for account {AccountName}", account.Name);
+            var refreshed = await _msaOAuthService.RefreshAccessTokenAsync(
+                account.OAuthRefreshToken!, account.ClientId, account.ClientSecret);
+
+            // Update in-memory fields so this sync run uses the new token
+            account.OAuthAccessToken = refreshed.AccessToken;
+            account.OAuthTokenExpiry = refreshed.Expiry;
+            if (!string.IsNullOrEmpty(refreshed.RefreshToken))
+                account.OAuthRefreshToken = refreshed.RefreshToken;
+
+            // Self-heal the XOAUTH2 username: Outlook requires the primary login name of the
+            // authorized account, which may differ from the user-entered email address (aliases).
+            if (!string.IsNullOrEmpty(refreshed.AuthorizedUsername)
+                && !string.Equals(refreshed.AuthorizedUsername, account.Username, StringComparison.OrdinalIgnoreCase))
+            {
+                _logger.LogInformation("Updating MSA account {AccountName} username from '{Old}' to authorized identity '{New}'",
+                    account.Name, account.Username ?? account.EmailAddress, refreshed.AuthorizedUsername);
+                account.Username = refreshed.AuthorizedUsername;
+            }
+
+            // Persist via a freshly-loaded tracked entity (account may be AsNoTracking)
+            var tracked = await _dbContext.MailAccounts.FindAsync(account.Id);
+            if (tracked != null)
+            {
+                tracked.OAuthAccessToken = refreshed.AccessToken;
+                tracked.OAuthTokenExpiry = refreshed.Expiry;
+                if (!string.IsNullOrEmpty(refreshed.RefreshToken))
+                    tracked.OAuthRefreshToken = refreshed.RefreshToken;
+                if (!string.IsNullOrEmpty(refreshed.AuthorizedUsername))
+                    tracked.Username = refreshed.AuthorizedUsername;
+                await _dbContext.SaveChangesAsync();
+            }
+        }
+
+        /// <summary>
+        /// Reconnects the IMAP client by disconnecting, delaying, and re-establishing
+        /// the connection with authentication.
+        /// </summary>
+        public async Task ReconnectClientAsync(ImapClient client, MailAccount account)
+        {
+            try
+            {
+                if (client.IsConnected)
+                {
+                    await client.DisconnectAsync(true);
+                }
+
+                // Use the configurable pause between batches as reconnection delay
+                if (_batchOptions.PauseBetweenBatchesMs > 0)
+                {
+                    await Task.Delay(_batchOptions.PauseBetweenBatchesMs);
+                }
+
+                _logger.LogInformation("Reconnecting to IMAP server for account {AccountName}", account.Name);
+                client.ServerCertificateValidationCallback = ServerCertificateValidationCallback;
+                await ConnectWithFallbackAsync(client, account.ImapServer, account.ImapPort ?? 993, account.UseSSL, account.Name);
+                await AuthenticateClientAsync(client, account);
+                _logger.LogInformation("Successfully reconnected to IMAP server for account {AccountName}", account.Name);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to reconnect to IMAP server for account {AccountName}", account.Name);
+                throw new InvalidOperationException("Failed to reconnect to IMAP server", ex);
+            }
+        }
+
+        /// <summary>
+        /// Validates the server certificate based on the IgnoreSelfSignedCert setting.
+        /// Accepts self-signed certificates and name mismatches when configured to do so.
+        /// SslPolicyErrors is a flags enum, so multiple errors (e.g. a self-signed certificate
+        /// issued to 127.0.0.1 served under a different hostname, as Proton Bridge does)
+        /// arrive combined and must be checked with HasFlag, not equality.
+        /// </summary>
+        public bool ServerCertificateValidationCallback(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)
+        {
+            // If there are no SSL policy errors, the certificate is valid
+            if (sslPolicyErrors == SslPolicyErrors.None)
+            {
+                return true;
+            }
+
+            if (!_mailSyncOptions.IgnoreSelfSignedCert)
+            {
+                // Log the certificate validation error
+                _logger.LogWarning("Certificate validation failed for IMAP server: {SslPolicyErrors}", sslPolicyErrors);
+                return false;
+            }
+
+            var hasChainErrors = sslPolicyErrors.HasFlag(SslPolicyErrors.RemoteCertificateChainErrors);
+            var hasNameMismatch = sslPolicyErrors.HasFlag(SslPolicyErrors.RemoteCertificateNameMismatch);
+
+            // A chain error requires the self-signed check: the chain problems must be
+            // limited to untrusted roots / incomplete chains, not e.g. expired certificates
+            if (hasChainErrors)
+            {
+                if (chain.ChainStatus.Length > 0)
+                {
+                    // Check if the chain status indicates a self-signed certificate
+                    bool isSelfSigned = chain.ChainStatus.All(status =>
+                        status.Status == X509ChainStatusFlags.UntrustedRoot ||
+                        status.Status == X509ChainStatusFlags.PartialChain ||
+                        status.Status == X509ChainStatusFlags.RevocationStatusUnknown);
+
+                    if (isSelfSigned)
+                    {
+                        _logger.LogDebug("Accepting self-signed certificate for IMAP server");
+                        return true;
+                    }
+                }
+
+                _logger.LogWarning("Certificate validation failed for IMAP server: {SslPolicyErrors} (chain errors are not limited to a self-signed certificate)", sslPolicyErrors);
+                return false;
+            }
+
+            // Chain is fine (or at least not flagged), only the hostname does not match:
+            // accept it like the other tolerated classes of certificate problems
+            if (hasNameMismatch)
+            {
+                _logger.LogDebug("Accepting certificate with name mismatch for IMAP server (IgnoreSelfSignedCert=true)");
+                return true;
+            }
+
+            // CertificateNotProvided or unknown errors are never tolerated
+            _logger.LogWarning("Certificate validation failed for IMAP server: {SslPolicyErrors}", sslPolicyErrors);
+            return false;
+        }
+    }
+}

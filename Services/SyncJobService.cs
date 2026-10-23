@@ -9,14 +9,25 @@ namespace MailArchiver.Services
     {
         private readonly ConcurrentDictionary<string, SyncJob> _jobs = new();
         private readonly ConcurrentDictionary<int, string> _activeAccountJobs = new(); // Track active jobs per account
+
+        // Last finished run per account, held by reference so it survives the 24-hour cleanup. One
+        // entry per account, so it is bounded by the number of accounts rather than by the number of
+        // runs — the account page needs an answer even for a mailbox that has been quiet all day.
+        private readonly ConcurrentDictionary<int, SyncJob> _lastCompletedByAccount = new();
         private readonly ILogger<SyncJobService> _logger;
         private readonly Timer _cleanupTimer;
         private readonly IServiceProvider _serviceProvider;
 
-        public SyncJobService(ILogger<SyncJobService> logger, IServiceProvider serviceProvider)
+        private readonly int _maxIssuesPerKind;
+
+        public SyncJobService(
+            ILogger<SyncJobService> logger,
+            IServiceProvider serviceProvider,
+            Microsoft.Extensions.Options.IOptions<MailSyncOptions> mailSyncOptions)
         {
             _logger = logger;
             _serviceProvider = serviceProvider;
+            _maxIssuesPerKind = mailSyncOptions.Value.MaxIssuesPerKind;
             
             // Cleanup-Timer: Jeden Stunde alte Jobs entfernen
             _cleanupTimer = new Timer(
@@ -27,7 +38,7 @@ namespace MailArchiver.Services
             );
         }
 
-        public async Task<string?> StartSyncAsync(int accountId, string accountName, DateTime? lastSync = null)
+        public async Task<string?> StartSyncAsync(int accountId, string accountName, DateTime? lastSync = null, string? userId = null)
         {
             // Validate that the account exists in the database
             // Note: We don't check IsEnabled here to allow manual sync for disabled accounts
@@ -59,7 +70,9 @@ namespace MailArchiver.Services
             {
                 MailAccountId = accountId,
                 AccountName = accountName,
-                LastSync = lastSync
+                LastSync = lastSync,
+                UserId = string.IsNullOrEmpty(userId) ? "System" : userId,
+                Issues = new MailArchiver.Services.Shared.SyncIssueLog(_maxIssuesPerKind)
             };
 
             _jobs[job.JobId] = job;
@@ -68,10 +81,10 @@ namespace MailArchiver.Services
             return job.JobId;
         }
 
-        public string StartSync(int accountId, string accountName, DateTime? lastSync = null)
+        public string StartSync(int accountId, string accountName, DateTime? lastSync = null, string? userId = null)
         {
             // Legacy method - delegates to async version
-            var result = StartSyncAsync(accountId, accountName, lastSync).GetAwaiter().GetResult();
+            var result = StartSyncAsync(accountId, accountName, lastSync, userId).GetAwaiter().GetResult();
             if (result == null)
             {
                 throw new InvalidOperationException($"Cannot start sync job for account {accountName} - account does not exist or is not enabled");
@@ -99,6 +112,13 @@ namespace MailArchiver.Services
                 .ToList();
         }
 
+        public bool IsAccountSyncing(int accountId)
+        {
+            return _activeAccountJobs.TryGetValue(accountId, out var jobId)
+                && _jobs.TryGetValue(jobId, out var job)
+                && job.Status == SyncJobStatus.Running;
+        }
+
         public void UpdateJobProgress(string jobId, Action<SyncJob> updateAction)
         {
             if (_jobs.TryGetValue(jobId, out var job))
@@ -117,9 +137,42 @@ namespace MailArchiver.Services
                 
                 // Remove from active account jobs
                 _activeAccountJobs.TryRemove(job.MailAccountId, out _);
+                RememberAsLastCompleted(job);
                 
                 _logger.LogInformation("Completed sync job {JobId} with status {Status}", 
                     jobId, job.Status);
+            }
+        }
+
+        public void CompleteJobRateLimited(string jobId, string? errorMessage = null)
+        {
+            if (_jobs.TryGetValue(jobId, out var job))
+            {
+                job.Status = SyncJobStatus.RateLimited;
+                job.Completed = DateTime.UtcNow;
+                job.ErrorMessage = errorMessage;
+                
+                // Remove from active account jobs
+                _activeAccountJobs.TryRemove(job.MailAccountId, out _);
+                RememberAsLastCompleted(job);
+                
+                _logger.LogWarning("Sync job {JobId} paused due to rate limit. Checkpoints saved for resume.", jobId);
+            }
+        }
+
+        public void CompleteJobTimedOut(string jobId, string? errorMessage = null)
+        {
+            if (_jobs.TryGetValue(jobId, out var job))
+            {
+                job.Status = SyncJobStatus.TimedOut;
+                job.Completed = DateTime.UtcNow;
+                job.ErrorMessage = errorMessage;
+
+                // Remove from active account jobs
+                _activeAccountJobs.TryRemove(job.MailAccountId, out _);
+                RememberAsLastCompleted(job);
+
+                _logger.LogWarning("Sync job {JobId} stopped at the sync timeout. Checkpoints kept for resume.", jobId);
             }
         }
 
@@ -148,6 +201,11 @@ namespace MailArchiver.Services
                     
                     // Remove from active account jobs
                     _activeAccountJobs.TryRemove(job.MailAccountId, out _);
+
+                    // A cancelled run is still a run that ended, and saying so on the account page is
+                    // more use than showing the one before it as if nothing had happened since.
+                    RememberAsLastCompleted(job);
+
                     _logger.LogInformation("Cancelled sync job {JobId} for account {AccountName}", jobId, job.AccountName);
                     return true;
                 }
@@ -186,6 +244,73 @@ namespace MailArchiver.Services
             return anyCancelled;
         }
 
+        public bool AcknowledgeJobFailures(string jobId)
+        {
+            if (!_jobs.TryGetValue(jobId, out var job))
+            {
+                _logger.LogWarning("Cannot acknowledge failures for job {JobId} because it doesn't exist", jobId);
+                return false;
+            }
+
+            if (job.Status != SyncJobStatus.Completed)
+            {
+                _logger.LogWarning("Cannot acknowledge failures for job {JobId} because it is not completed (status: {Status})", jobId, job.Status);
+                return false;
+            }
+
+            if (job.FailedEmails <= 0)
+            {
+                _logger.LogWarning("Cannot acknowledge failures for job {JobId} because it has no failed emails", jobId);
+                return false;
+            }
+
+            if (!job.Completed.HasValue)
+            {
+                _logger.LogWarning("Cannot acknowledge failures for job {JobId} because it has no completion timestamp", jobId);
+                return false;
+            }
+
+            if (job.FailuresAcknowledged)
+            {
+                _logger.LogWarning("Failures for job {JobId} have already been acknowledged", jobId);
+                return false;
+            }
+
+            using var scope = _serviceProvider.CreateScope();
+            var dbContext = scope.ServiceProvider.GetRequiredService<MailArchiverDbContext>();
+
+            var account = dbContext.MailAccounts.Find(job.MailAccountId);
+            if (account == null)
+            {
+                _logger.LogWarning("Cannot acknowledge failures for job {JobId} because account {AccountId} no longer exists", jobId, job.MailAccountId);
+                return false;
+            }
+
+            account.LastSync = job.Completed.Value;
+            dbContext.SaveChanges();
+
+            job.FailuresAcknowledged = true;
+
+            _logger.LogInformation("Acknowledged {FailedCount} failed emails for job {JobId} on account {AccountName}. LastSync advanced to {LastSync}.",
+                job.FailedEmails, jobId, job.AccountName, job.Completed.Value);
+
+            return true;
+        }
+
+        public SyncJob? GetLastCompletedJobForAccount(int accountId)
+        {
+            return _lastCompletedByAccount.TryGetValue(accountId, out var job) ? job : null;
+        }
+
+        /// <summary>
+        /// Records a job as this account's last finished run. Called from every terminal path, so
+        /// the account page shows what actually happened rather than only the runs that went well.
+        /// </summary>
+        private void RememberAsLastCompleted(SyncJob job)
+        {
+            _lastCompletedByAccount[job.MailAccountId] = job;
+        }
+
         public void CleanupOldJobs()
         {
             var cutoffTime = DateTime.UtcNow.AddHours(-24);
@@ -198,9 +323,33 @@ namespace MailArchiver.Services
             {
                 if (_jobs.TryGetValue(jobId, out var job))
                 {
+                    // Deliberately not RememberAsLastCompleted here: this is the 24-hour cleanup, and
+                    // the job being removed is by definition older than whatever is already recorded
+                    // as the account's last run.
                     _activeAccountJobs.TryRemove(job.MailAccountId, out _);
                 }
                 _jobs.TryRemove(jobId, out _);
+            }
+
+            // The last-run index is keyed by account and held by reference, so a deleted account
+            // would keep its entry until the process restarts. Harmless in size, but an installation
+            // that creates and drops accounts - a bulk import being tested, say - accumulates them.
+            // Pruned against what the database actually holds rather than against enabled accounts:
+            // a disabled account's last run is still the answer its page should give.
+            try
+            {
+                using var scope = _serviceProvider.CreateScope();
+                var context = scope.ServiceProvider.GetRequiredService<MailArchiverDbContext>();
+                var existingIds = context.MailAccounts.Select(a => a.Id).ToHashSet();
+
+                foreach (var accountId in _lastCompletedByAccount.Keys.Where(id => !existingIds.Contains(id)).ToList())
+                {
+                    _lastCompletedByAccount.TryRemove(accountId, out _);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogDebug(ex, "Could not prune the last-run index (non-fatal)");
             }
 
             if (toRemove.Any())

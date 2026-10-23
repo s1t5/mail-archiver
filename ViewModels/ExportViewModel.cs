@@ -31,8 +31,6 @@ namespace MailArchiver.ViewModels
     // Export formats for individual emails
     public enum ExportFormat
     {
-        Csv,
-        Json,
         Eml
     }
 }

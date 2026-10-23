@@ -1,0 +1,78 @@
+/* Mail-Archiver docs — small theme tweaks on top of Material */
+
+/* Keep long code blocks and API tables readable */
+.md-typeset code {
+  word-break: break-word;
+}
+
+.md-typeset table:not([class]) {
+  font-size: 0.72rem;
+}
+
+/* Slightly wider content column for the API reference tables */
+.md-grid {
+  max-width: 1440px;
+}
+
+/* Admonition icons in brand colour */
+.md-typeset .admonition.note,
+.md-typeset details.note {
+  border-color: #4A90D9;
+}
+
+.md-typeset .note > .admonition-title,
+.md-typeset .note > summary {
+  background-color: rgba(74, 144, 217, 0.1);
+}
+
+.md-typeset .note > .admonition-title::before,
+.md-typeset .note > summary::before {
+  background-color: #4A90D9;
+}
+
+/* ---------------------------------------------------------------------------
+   Landing page (doc/index.md)
+   --------------------------------------------------------------------------- */
+
+/* Lead paragraph under the page title */
+.md-typeset .docs-lead {
+  font-size: 1.05rem;
+  line-height: 1.6;
+  color: var(--md-default-fg-color--light);
+  margin: 0 0 1.6rem;
+  padding-left: 0.9rem;
+  border-left: 0.18rem solid var(--md-primary-fg-color);
+}
+
+.md-typeset .docs-lead strong {
+  color: var(--md-default-fg-color);
+}
+
+/* Cards: a touch more breathing room and a clearer title line */
+.md-typeset .grid.cards > ul > li {
+  border-radius: 0.35rem;
+}
+
+.md-typeset .grid.cards > ul > li > hr {
+  margin: 0.7rem 0;
+}
+
+/* Icon in the card title, sitting above the heading text */
+.md-typeset .grid.cards > ul > li > p:first-child .twemoji svg,
+.md-typeset .grid.cards > ul > li > p:first-child .twemoji img {
+  fill: var(--md-primary-fg-color);
+}
+
+/* Trailing note at the bottom of the landing page */
+.md-typeset .docs-footer-note {
+  margin-top: 1.6rem;
+  padding: 0.8rem 1rem;
+  border-radius: 0.35rem;
+  background-color: var(--md-code-bg-color);
+  color: var(--md-default-fg-color--light);
+  font-size: 0.8rem;
+}
+
+.md-typeset .docs-footer-note p {
+  margin: 0;
+}

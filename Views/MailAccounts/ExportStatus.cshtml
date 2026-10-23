@@ -5,14 +5,21 @@
     ViewData["Title"] = @Localizer["ExportStatus"];
 }
 
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header">
-                    <h3 class="card-title">@Localizer["ExportStatus"]: @Model.MailAccountName</h3>
-                </div>
-                <div class="card-body">
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="h3 mb-0">@Localizer["ExportStatus"]: @Model.MailAccountName</h1>
+        <div class="d-flex gap-2">
+            <a asp-controller="Emails" asp-action="Jobs" class="btn btn-outline-info btn-sm">
+                <i class="bi bi-list"></i> @Localizer["AllJobs"]
+            </a>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header bg-light">
+            <span class="h6 mb-0"><i class="bi bi-info-circle me-1"></i>@Localizer["ExportStatus"]</span>
+        </div>
+        <div class="card-body">
                     <div class="row mb-4">
                         <div class="col-md-6">
                             <dl class="row">
@@ -142,6 +149,36 @@
                         </div>
                     }
 
+                    @if (Model.Status == MailArchiver.Models.AccountExportJobStatus.Completed && Model.FailedEmails.Any())
+                    {
+                        <div class="alert alert-warning">
+                            <h6><i class="bi bi-exclamation-triangle-fill"></i> @Model.ProcessedEmails.ToString("N0") @Localizer["ProcessedEmails"] / @Model.TotalEmails.ToString("N0") @Localizer["TotalEmails"] — @Model.FailedEmails.Count @(Model.FailedEmails.Count == 1 ? Localizer["FailedEmailSingular"] : Localizer["FailedEmailsPlural"])</h6>
+                            <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
+                                <table class="table table-sm table-striped mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th>@Localizer["EmailId"]</th>
+                                            <th>@Localizer["Subject"]</th>
+                                            <th>@Localizer["Folder"]</th>
+                                            <th>@Localizer["Error"]</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var failed in Model.FailedEmails)
+                                        {
+                                            <tr>
+                                                <td><code>@failed.EmailId</code></td>
+                                                <td style="max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="@failed.Subject">@failed.Subject</td>
+                                                <td>@failed.FolderName</td>
+                                                <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="@failed.Error"><small class="text-muted">@failed.Error</small></td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    }
+
                     <div class="d-flex justify-content-between">
                         <a href="@Url.Action("Index")" class="btn btn-secondary">
                             <i class="bi bi-arrow-left"></i> @Localizer["BackToAccounts"]
@@ -172,15 +209,14 @@
                                 <i class="bi bi-arrow-clockwise"></i> @Localizer["Refresh"]
                             </button>
                         </div>
-                    </div>
                 </div>
-            </div>
         </div>
     </div>
 </div>
 
 @section Scripts {
     <script>
+        const exportCompletedMsg = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["ExportCompleted"].Value));
         document.addEventListener('DOMContentLoaded', function() {
             // Auto-refresh if the job is still running
             @if (Model.Status == MailArchiver.Models.AccountExportJobStatus.Queued || Model.Status == MailArchiver.Models.AccountExportJobStatus.Running)
@@ -196,7 +232,7 @@
                 <text>
                 // Show success notification
                 if (typeof window.showNotification === 'function') {
-                    window.showNotification('@Localizer["ExportCompleted"]', 'success');
+                    window.showNotification(exportCompletedMsg, 'success');
                 }
                 </text>
             }

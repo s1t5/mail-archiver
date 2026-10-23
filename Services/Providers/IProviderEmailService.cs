@@ -12,8 +12,12 @@ namespace MailArchiver.Services.Providers
         /// </summary>
         /// <param name="account">The mail account to sync</param>
         /// <param name="jobId">Optional sync job ID for progress tracking</param>
+        /// <param name="cancellationToken">
+        /// Cancels the sync. The background service passes the per-account sync timeout here, so a
+        /// long-running sync can be stopped between message batches instead of only between folders.
+        /// </param>
         /// <returns>Task</returns>
-        Task SyncMailAccountAsync(MailAccount account, string? jobId = null);
+        Task SyncMailAccountAsync(MailAccount account, string? jobId = null, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Tests the connection to the email provider
@@ -30,6 +34,14 @@ namespace MailArchiver.Services.Providers
         Task<List<string>> GetMailFoldersAsync(int accountId);
 
         /// <summary>
+        /// The same folders, but carrying their own name alongside the full path. Separate from
+        /// <see cref="GetMailFoldersAsync"/> on purpose: a dozen callers only ever want names, and
+        /// only the exclusion editor needs enough to ask the matcher whether a folder is already
+        /// covered installation-wide.
+        /// </summary>
+        Task<List<MailFolderInfo>> GetMailFolderDetailsAsync(int accountId);
+
+        /// <summary>
         /// Restores a single email to a specific folder
         /// </summary>
         /// <param name="emailId">The archived email ID to restore</param>
@@ -37,6 +49,16 @@ namespace MailArchiver.Services.Providers
         /// <param name="folderName">The target folder name</param>
         /// <returns>True if restoration is successful</returns>
         Task<bool> RestoreEmailToFolderAsync(int emailId, int targetAccountId, string folderName);
+
+        /// <summary>
+        /// Restores a single email to a specific folder with optional folder structure preservation
+        /// </summary>
+        /// <param name="emailId">The archived email ID to restore</param>
+        /// <param name="targetAccountId">The target account ID</param>
+        /// <param name="folderName">The target folder name (base folder when preserving structure)</param>
+        /// <param name="preserveFolderStructure">If true, recreates the original folder hierarchy under the target folder</param>
+        /// <returns>True if restoration is successful</returns>
+        Task<bool> RestoreEmailToFolderAsync(int emailId, int targetAccountId, string folderName, bool preserveFolderStructure);
 
         /// <summary>
         /// Restores multiple emails to a specific folder with progress tracking
@@ -51,6 +73,24 @@ namespace MailArchiver.Services.Providers
             List<int> emailIds,
             int targetAccountId,
             string folderName,
+            Action<int, int, int> progressCallback,
+            CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Restores multiple emails with optional folder structure preservation
+        /// </summary>
+        /// <param name="emailIds">List of email IDs to restore</param>
+        /// <param name="targetAccountId">The target account ID</param>
+        /// <param name="folderName">The target folder name (base folder when preserving structure)</param>
+        /// <param name="preserveFolderStructure">If true, recreates the original folder hierarchy under the target folder</param>
+        /// <param name="progressCallback">Progress callback (total, successful, failed)</param>
+        /// <param name="cancellationToken">Cancellation token</param>
+        /// <returns>Tuple with successful and failed counts</returns>
+        Task<(int Successful, int Failed)> RestoreMultipleEmailsWithProgressAsync(
+            List<int> emailIds,
+            int targetAccountId,
+            string folderName,
+            bool preserveFolderStructure,
             Action<int, int, int> progressCallback,
             CancellationToken cancellationToken = default);
 

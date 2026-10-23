@@ -12,6 +12,9 @@ services:
     networks:
       - postgres
     volumes:
+      # Uncomment the following line to mount a directory for local file imports
+      # (also add the path to appsettings.json: LocalImport.AllowedPaths)
+      # - /path/to/your/mbox/files:/data/import
       - ./appsettings.json:/app/appsettings.json
       - ./logs:/app/logs
       - ./data-protection-keys:/app/DataProtection-Keys

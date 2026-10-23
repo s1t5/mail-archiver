@@ -339,6 +339,33 @@ body {
   -webkit-overflow-scrolling: touch;
 }
 
+/* Basis für die Account-Tabelle: horizontal scrollbar bei schmalen Viewports. */
+.table-responsive-dropdown {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  max-width: 100%;
+}
+
+/* Desktop: Dropdowns in der Account-Tabelle dürfen überlappen (nicht clippen),
+   aber die Tabelle muss bei schmalen Viewports scrollbar bleiben.
+   Diese Regeln bewusst NACH der Basisregel und mit höherer Spezifität,
+   damit sie auch Bootstrap .table-responsive überschreiben. */
+@media (min-width: 992px) {
+  .card.card-dropdown-overflow {
+    overflow: visible;
+  }
+
+  .table-responsive.table-responsive-dropdown {
+    overflow: visible;
+  }
+}
+
+/* Verhindert, dass breite Tabellen den Container aus der Seite schieben */
+.card-dropdown-overflow,
+.table-responsive-dropdown {
+  min-width: 0;
+}
+
 /* Pagination */
 .pagination {
   margin-bottom: 0;
@@ -417,6 +444,90 @@ body {
 #previewContent embed {
   width: 100%;
   height: 70vh;
+}
+
+/* Calendar attachment preview card */
+.calendar-preview-card {
+  text-align: left;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 0.5rem;
+}
+
+.calendar-preview-icon {
+  width: 3.5rem;
+  height: 3.5rem;
+  background-color: rgba(13, 110, 253, 0.12);
+  color: #0d6efd;
+  font-size: 1.5rem;
+}
+
+.calendar-preview-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.calendar-preview-meta-icon {
+  width: 1.5rem;
+  color: #0d6efd;
+  flex-shrink: 0;
+  margin-right: 0.75rem;
+}
+
+.calendar-preview-people,
+.calendar-preview-description {
+  margin-top: 1.25rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid rgba(108, 117, 125, 0.25);
+}
+
+.calendar-preview-section-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #6c757d;
+  margin-bottom: 0.75rem;
+}
+
+.calendar-preview-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.375rem 0.75rem;
+  background-color: rgba(108, 117, 125, 0.12);
+  border: 1px solid rgba(108, 117, 125, 0.25);
+  border-radius: 999px;
+  font-size: 0.95rem;
+  max-width: 100%;
+}
+
+.calendar-preview-chip .badge {
+  font-size: 0.7rem;
+}
+
+.calendar-preview-description-text {
+  white-space: pre-wrap;
+  line-height: 1.5;
+}
+
+[data-theme="dark"] .calendar-preview-icon {
+  background-color: rgba(13, 110, 253, 0.2);
+  color: #6ea8fe;
+}
+
+[data-theme="dark"] .calendar-preview-meta-icon {
+  color: #6ea8fe;
+}
+
+[data-theme="dark"] .calendar-preview-chip {
+  background-color: rgba(173, 181, 189, 0.12);
+  border-color: rgba(173, 181, 189, 0.25);
+}
+
+[data-theme="dark"] .calendar-preview-section-label {
+  color: #adb5bd;
 }
 
 /* Anpassung für mobile Geräte */
@@ -734,4 +845,1018 @@ body {
       font-size: 0.9rem;
       padding: 0.5rem;
   }
+}
+
+/* M365 Credential Suggestion Box - Custom persistent alert */
+.m365-suggestion-box {
+  position: relative;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1rem;
+  border: 1px solid #b8daff;
+  border-radius: 0.375rem;
+  background-color: #d1ecf1;
+  color: #0c5460;
+}
+
+.m365-suggestion-box .alert-heading {
+  color: #0c5460;
+  margin-bottom: 0.5rem;
+}
+
+.m365-suggestion-box p {
+  margin-bottom: 0.5rem;
+}
+
+.m365-suggestion-box .bi {
+  margin-right: 0.5rem;
+}
+
+/* Warning variant for Edit page */
+.m365-suggestion-box.m365-warning {
+  border-color: #ffc107;
+  background-color: #fff3cd;
+  color: #856404;
+}
+
+.m365-suggestion-box.m365-warning .alert-heading {
+  color: #856404;
+}
+
+/* Folder Tree Panel Styles */
+.folder-tree-panel {
+  background-color: #fff;
+  border: 1px solid #dee2e6;
+  border-radius: 0.375rem;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  /* Out of flow on purpose. As a flex item its base size would be its content, so a
+     mailbox with a thousand folders sets the height of the whole row and the mail
+     list can never cap it. Absolute, it contributes no height at all: the row is as
+     tall as the list, the column is stretched to that, and the tree scrolls inside. */
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  /* The same margin every .card in this stylesheet carries. The result column is as
+     tall as its card plus that margin, so without it the panel would end 24px below
+     the list it is supposed to line up with. Absolutely positioned with both top and
+     bottom pinned, the margin comes off the height, which is exactly what is wanted. */
+  margin-bottom: 1.5rem;
+}
+
+.folder-tree-header {
+  background-color: #f8f9fa;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #dee2e6;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #495057;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.15s ease-in-out;
+}
+
+.folder-tree-header:hover {
+  background-color: #e9ecef;
+}
+
+.folder-tree-collapse-icon {
+  transition: transform 0.3s ease;
+  color: #6c757d;
+  font-size: 0.875rem;
+}
+
+.folder-tree-panel.collapsed .folder-tree-collapse-icon {
+  transform: rotate(-180deg);
+}
+
+.folder-tree-content {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 0.5rem 0;
+  transition: padding 0.3s ease, opacity 0.3s ease;
+}
+
+.folder-tree-panel.collapsed .folder-tree-content {
+  flex: 0 0 0;
+  padding: 0;
+  opacity: 0;
+  overflow: hidden;
+}
+
+/* Holds expand-all and collapse-all next to the panel's own collapse chevron.
+   Deliberately not .d-flex.align-items-center: the rule near the top of this file
+   gives that pair width: 100% and space-between below 1024px for the navbar, which
+   would fling these buttons across the whole header. */
+.folder-tree-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.folder-tree-bulk-btn {
+  border: 0;
+  background: transparent;
+  color: #6c757d;
+  padding: 0 0.25rem;
+  line-height: 1;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.folder-tree-bulk-btn:hover {
+  color: #212529;
+}
+
+/* Collapsed state - completely hide the folder tree panel */
+#folderTreeColumn.collapsed-col {
+  flex: 0 0 0;
+  width: 0;
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
+  margin: 0;
+  overflow: hidden;
+}
+
+#folderTreeColumn.collapsed-col .folder-tree-panel {
+  display: none;
+}
+
+/* Result column expands to full width when tree is collapsed */
+#folderTreeColumn.collapsed-col + .folder-tree-result-col {
+  flex: 0 0 100%;
+  max-width: 100%;
+  /* No tree left of it, so no gap to keep. */
+  padding-left: 0;
+}
+
+/* Toggle button in table header - only show when folder tree is collapsed */
+.folder-tree-toggle-btn {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.875rem;
+  cursor: pointer;
+  display: none; /* Hidden by default */
+}
+
+/* Show button only when folder tree column is collapsed */
+#folderTreeColumn.collapsed-col + .folder-tree-result-col .folder-tree-toggle-btn {
+  display: inline-block !important;
+}
+
+.folder-tree-toggle-btn:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.folder-tree-toggle-btn i {
+  transition: transform 0.3s ease;
+}
+
+.folder-tree-toggle-btn.collapsed i {
+  transform: rotate(-90deg);
+}
+
+/* Sits above the tree proper and clears the filter rather than setting one, so it is
+   separated from the folders below it. */
+.folder-tree-all {
+  border-bottom: 1px solid #dee2e6;
+  margin-bottom: 0.25rem;
+  padding-bottom: 0.35rem;
+}
+
+.folder-tree-item {
+  display: flex;
+  align-items: center;
+  padding: 0.4rem 0.75rem;
+  cursor: pointer;
+  border-left: 3px solid transparent;
+  transition: all 0.15s ease-in-out;
+}
+
+.folder-tree-item:hover {
+  background-color: #e9ecef;
+}
+
+.folder-tree-item.selected {
+  background-color: #cfe2ff;
+  border-left-color: #0d6efd;
+}
+
+.folder-tree-item.selected:hover {
+  background-color: #b6d4fe;
+}
+
+.folder-tree-toggle {
+  width: 1.25rem;
+  height: 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 0.25rem;
+  color: #6c757d;
+  font-size: 0.75rem;
+  transition: transform 0.15s ease-in-out;
+  flex-shrink: 0;
+}
+
+.folder-tree-toggle.expanded {
+  transform: rotate(90deg);
+}
+
+.folder-tree-toggle.empty {
+  visibility: hidden;
+}
+
+.folder-tree-icon {
+  width: 1.25rem;
+  margin-right: 0.5rem;
+  color: #ffc107;
+  flex-shrink: 0;
+}
+
+.folder-tree-name {
+  flex-grow: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 0.875rem;
+}
+
+.folder-tree-count {
+  font-size: 0.75rem;
+  color: #6c757d;
+  background-color: #e9ecef;
+  padding: 0.125rem 0.375rem;
+  border-radius: 0.25rem;
+  margin-left: 0.5rem;
+  flex-shrink: 0;
+}
+
+.folder-tree-item.selected .folder-tree-count {
+  background-color: #b6d4fe;
+  color: #0d6efd;
+}
+
+.folder-tree-children {
+  margin-left: 0;
+}
+
+/* Nested folder styling */
+.folder-tree-children .folder-tree-item {
+  padding-left: calc(0.75rem + 1.5rem);
+}
+
+.folder-tree-children .folder-tree-children .folder-tree-item {
+  padding-left: calc(0.75rem + 3rem);
+}
+
+.folder-tree-children .folder-tree-children .folder-tree-children .folder-tree-item {
+  padding-left: calc(0.75rem + 4.5rem);
+}
+
+/* Empty state */
+.folder-tree-empty {
+  padding: 1rem;
+  text-align: center;
+  color: #6c757d;
+  font-size: 0.875rem;
+}
+
+/* Responsive: Hide folder tree on mobile, show toggle button */
+@media (max-width: 991.98px) {
+  .folder-tree-panel {
+    display: none;
+  }
+  
+  .folder-tree-mobile-toggle {
+    display: block !important;
+  }
+  
+  .folder-tree-offcanvas {
+    display: block;
+  }
+}
+
+@media (min-width: 992px) {
+  .folder-tree-mobile-toggle {
+    display: none !important;
+  }
+  
+  .folder-tree-offcanvas {
+    display: none !important;
+  }
+}
+
+/* Folder tree mobile toggle button */
+.folder-tree-mobile-toggle {
+  margin-bottom: 0.5rem;
+}
+
+/* Offcanvas folder tree */
+.folder-tree-offcanvas .folder-tree-content {
+  max-height: calc(100vh - 200px);
+}
+
+/* Resizable folder tree panel */
+#folderTreeColumn {
+  flex: 0 0 var(--folder-tree-width, 250px);
+  min-width: 180px;
+  max-width: 600px;
+  position: relative;
+  overflow: visible;
+  /* The panel inside is absolute, so this is the only height the column brings to the
+     row. It is a floor, not a size: it keeps the tree usable when the result side is
+     nearly empty, and gets out of the way as soon as the list is taller. */
+  min-height: 22rem;
+}
+
+/* Result column takes remaining space */
+.folder-tree-result-col {
+  flex: 1;
+  min-width: 0;
+  position: relative;
+  /* The row above is gutter-free (g-0) because its two children are custom flex
+     items, so this supplies the visual gap between tree and list by hand. */
+  padding-left: 1.5rem;
+}
+
+/* Covers the result side while a folder click is on its way back. Not a modal: it does
+   not trap focus and nothing clears it, because the navigation replaces the page. */
+.folder-tree-busy {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.folder-tree-busy-box {
+  margin-top: 6rem;
+  text-align: center;
+  color: #495057;
+}
+
+/* Struck out of the interaction while a navigation is under way, so a second click
+   cannot start a second one and leave the two answers racing. */
+.folder-tree-item-pending {
+  pointer-events: none;
+  opacity: 0.6;
+}
+
+/* Resize handle */
+.folder-tree-resize-handle {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 6px;
+  height: 100%;
+  cursor: col-resize;
+  z-index: 10;
+  background: transparent;
+  transition: background-color 0.15s ease;
+}
+
+.folder-tree-resize-handle:hover,
+.folder-tree-resize-handle.active {
+  background-color: rgba(52, 152, 219, 0.3);
+}
+
+.folder-tree-resize-handle::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 2px;
+  height: 40px;
+  background-color: #ccc;
+  border-radius: 1px;
+  transition: background-color 0.15s ease, height 0.15s ease;
+}
+
+.folder-tree-resize-handle:hover::after,
+.folder-tree-resize-handle.active::after {
+  background-color: #3498db;
+  height: 60px;
+}
+
+/* Hide resize handle when folder tree is collapsed */
+#folderTreeColumn.collapsed-col .folder-tree-resize-handle {
+  display: none;
+}
+
+/* Prevent text selection while resizing */
+body.resizing-folder-tree {
+  user-select: none;
+  cursor: col-resize;
+}
+
+/* ======================================================= */
+/*    Version Update / Changelog Splash Screen Modal        */
+/* ======================================================= */
+
+#changelogModal .modal-header {
+  border-bottom: 2px solid rgba(255,255,255,0.2);
+}
+
+#changelogModal .modal-header .modal-title {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+#changelogBody {
+  font-size: 0.95rem;
+  line-height: 1.65;
+  color: var(--dark-color);
+}
+
+/* Markdown-rendered release notes inside the modal */
+#changelogBody h1 {
+  font-size: 1.5rem;
+  margin-top: 0.25rem;
+  margin-bottom: 0.75rem;
+  border-bottom: 1px solid #dee2e6;
+  padding-bottom: 0.4rem;
+}
+
+#changelogBody h2 {
+  font-size: 1.25rem;
+  margin-top: 1.25rem;
+  margin-bottom: 0.5rem;
+}
+
+#changelogBody h3 {
+  font-size: 1.1rem;
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+#changelogBody ul,
+#changelogBody ol {
+  padding-left: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+
+#changelogBody li {
+  margin-bottom: 0.35rem;
+}
+
+#changelogBody code {
+  background: #f4f4f4;
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  font-size: 0.875em;
+  color: #c7254e;
+}
+
+#changelogBody pre {
+  background: #f7f7f7;
+  border: 1px solid #dee2e6;
+  border-radius: 6px;
+  padding: 0.75rem 1rem;
+  overflow-x: auto;
+  font-size: 0.875rem;
+}
+
+#changelogBody pre code {
+  background: none;
+  padding: 0;
+  color: inherit;
+}
+
+#changelogBody p {
+  margin-bottom: 0.75rem;
+}
+
+#changelogBody a {
+  color: var(--primary-color);
+  text-decoration: underline;
+}
+
+#changelogBody blockquote {
+  border-left: 4px solid var(--primary-color);
+  padding: 0.5rem 1rem;
+  margin: 0.75rem 0;
+  background: rgba(52,152,219,0.05);
+  border-radius: 0 4px 4px 0;
+}
+
+#changelogBody img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 4px;
+}
+
+/* ======================================================= */
+/*    Mail Account Create / Edit / Details UX               */
+/* ======================================================= */
+
+/* Account Status Header (Details page) */
+.account-status-header {
+  border-left: 4px solid var(--primary-color);
+}
+
+.account-status-header h2 {
+  font-weight: 600;
+}
+
+/* Form Sections */
+.form-section {
+  padding: 1.25rem;
+  margin-bottom: 1.5rem;
+  border: 1px solid var(--border-color, #dee2e6);
+  border-radius: 0.375rem;
+  background-color: var(--section-bg, #f8f9fa);
+}
+
+.form-section-header {
+  font-weight: 600;
+  font-size: 1rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border-color, #dee2e6);
+  color: var(--text-color, #495057);
+}
+
+/* Advanced (collapsible) section */
+.form-advanced {
+  border: 1px solid var(--border-color, #dee2e6);
+  border-radius: 0.375rem;
+  background-color: var(--section-bg, #f8f9fa);
+}
+
+.form-advanced > summary {
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--text-color, #495057);
+  list-style: none;
+  user-select: none;
+}
+
+.form-advanced > summary::-webkit-details-marker {
+  display: none;
+}
+
+.form-advanced > summary::before {
+  content: "\F282"; /* bi-chevron-right */
+  font-family: "bootstrap-icons";
+  margin-right: 0.5rem;
+  transition: transform 0.2s ease;
+  display: inline-block;
+}
+
+.form-advanced[open] > summary::before {
+  transform: rotate(90deg);
+}
+
+.form-advanced-body {
+  padding: 1rem;
+  border-top: 1px solid var(--border-color, #dee2e6);
+}
+
+/* Password Toggle Button */
+.password-toggle {
+  border-color: var(--form-control-border, #ced4da);
+}
+
+.password-toggle:hover {
+  background-color: var(--table-hover-bg, #e9ecef);
+}
+
+/* Clickable Folder Badges (Edit page) */
+.folder-badge-clickable {
+  cursor: pointer;
+  transition: all 0.15s ease;
+  padding: 0.4rem 0.6rem;
+  font-size: 0.85rem;
+}
+
+.folder-badge-clickable:hover {
+  background-color: var(--primary-color) !important;
+  color: white !important;
+}
+
+/* Danger Zone (Details page) */
+.danger-zone {
+  background-color: var(--danger-zone-bg, #fff5f5);
+}
+
+/* Tenant Mailbox Filter Input */
+.form-sm {
+  font-size: 0.875rem;
+  padding: 0.25rem 0.5rem;
+}
+
+/* Submit error alert in forms */
+.submit-error-alert {
+  margin-bottom: 1rem;
+}
+
+/* MSA Info Banner (Create page) — not a Bootstrap alert, so it won't auto-dismiss */
+.msa-info-banner {
+  position: relative;
+  padding: 0.75rem 1.25rem;
+  margin-bottom: 1rem;
+  border: 1px solid #b8daff;
+  border-radius: 0.375rem;
+  background-color: #d1ecf1;
+  color: #0c5460;
+}
+
+.msa-info-banner .bi {
+  color: #0c5460;
+}
+
+/* ======================================================= */
+/*    Dashboard Visual Polish                               */
+/* ======================================================= */
+
+/* Hero Header */
+.dashboard-hero {
+  padding-bottom: 1rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.dashboard-hero .hero-subtitle {
+  color: var(--text-muted, #6c757d);
+  font-size: 0.9rem;
+  margin-top: 0.25rem;
+}
+
+/* Modern Stat Cards */
+.stat-card-modern {
+  position: relative;
+  overflow: hidden;
+  border-radius: 10px;
+  border: none;
+  border-top: 3px solid rgba(255, 255, 255, 0.25);
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+              box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.stat-card-modern .card-body {
+  position: relative;
+  z-index: 2;
+  padding: 1.25rem;
+}
+
+.stat-card-modern .stat-icon {
+  position: absolute;
+  bottom: -20px;
+  right: -10px;
+  font-size: 6rem;
+  opacity: 0.12;
+  z-index: 1;
+  transform: rotate(-12deg);
+  pointer-events: none;
+}
+
+.stat-card-modern .stat-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.25rem;
+  opacity: 0.85;
+}
+
+.stat-card-modern .stat-value {
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin-bottom: 0;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+}
+
+/* Period pickers in a chart card header. Deliberately not "d-flex align-items-center":
+   that pair is given full width and space-between below 1024px further up this file.
+   Kept quiet on purpose: the controls are a secondary affordance and read as muted text
+   until the reader reaches for them. */
+.dashboard-chart-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.15rem 0.35rem;
+  font-size: 0.8rem;
+  color: var(--text-muted, #6c757d);
+}
+
+/* The two pickers. Borderless and transparent at rest, so they do not compete with the
+   card title; border and background return on hover and focus. The compound selector is
+   what outranks the dark-mode form rule, which is loaded after this file. */
+.dashboard-chart-controls select.dashboard-chart-select {
+  width: auto;
+  max-width: 9rem;
+  padding: 0.15rem 1.5rem 0.15rem 0.4rem;
+  border: 1px solid transparent;
+  background-color: transparent;
+  color: inherit;
+  font-size: 0.8rem;
+  opacity: 0.75;
+  transition: opacity 0.15s ease-in-out, border-color 0.15s ease-in-out, background-color 0.15s ease-in-out;
+}
+
+.dashboard-chart-controls select.dashboard-chart-select:hover,
+.dashboard-chart-controls select.dashboard-chart-select:focus {
+  border-color: rgba(128, 128, 128, 0.35);
+  background-color: rgba(128, 128, 128, 0.12);
+  opacity: 1;
+}
+
+/* The two paging arrows. Their own class instead of a btn-group, which is turned into a
+   vertical stack below 768px further up this file. */
+.dashboard-chart-pager {
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: nowrap;
+  gap: 0.05rem;
+}
+
+.dashboard-chart-controls button.dashboard-chart-btn {
+  padding: 0.15rem 0.35rem;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font-size: 0.8rem;
+  line-height: 1;
+  opacity: 0.7;
+  transition: opacity 0.15s ease-in-out, background-color 0.15s ease-in-out;
+}
+
+.dashboard-chart-controls button.dashboard-chart-btn:hover:not(:disabled) {
+  background-color: rgba(128, 128, 128, 0.15);
+  opacity: 1;
+}
+
+.dashboard-chart-controls button.dashboard-chart-btn:disabled {
+  opacity: 0.3;
+}
+
+/* "Now" appears only while paging in the past; a quiet text button. */
+.dashboard-chart-controls button.dashboard-chart-now {
+  padding: 0.15rem 0.4rem;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font-size: 0.75rem;
+  text-decoration: none;
+  opacity: 0.7;
+}
+
+.dashboard-chart-controls button.dashboard-chart-now:hover {
+  text-decoration: underline;
+  opacity: 1;
+}
+
+/* The resolved period, spelled out. Once the window can be paged, the two pickers no longer
+   say where the reader is. */
+.dashboard-chart-range {
+  align-self: center;
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  opacity: 0.75;
+}
+
+/* While a chart is being refetched. Dims the drawing only: the pickers stay in the header
+   and stay usable, so there is no state here that could keep the page locked. */
+.dashboard-chart-body.is-busy {
+  opacity: 0.45;
+  transition: opacity 0.15s ease-in-out;
+}
+
+/* Split line under a counter (incoming/outgoing, domains). Sits on the coloured card
+   background, so it is dimmed rather than recoloured and inherits the card's text colour. */
+.stat-card-modern .stat-split {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.15rem 0.75rem;
+  margin-top: 0.35rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  opacity: 0.8;
+  font-variant-numeric: tabular-nums;
+}
+
+.stat-card-modern .stat-split i {
+  opacity: 0.85;
+}
+
+.stat-card-modern:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+}
+
+/* Gradient backgrounds per color */
+.stat-card-modern.bg-primary {
+  background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%) !important;
+}
+.stat-card-modern.bg-success {
+  background: linear-gradient(135deg, #198754 0%, #14744a 100%) !important;
+}
+.stat-card-modern.bg-info {
+  background: linear-gradient(135deg, #0dcaf0 0%, #0bb8d6 100%) !important;
+}
+.stat-card-modern.bg-warning {
+  background: linear-gradient(135deg, #ffc107 0%, #f0b400 100%) !important;
+}
+
+/* Chart body subtle tint */
+.dashboard-chart-body {
+  background: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.02) 100%);
+}
+
+/* Recent Email Items */
+.recent-email-item {
+  transition: background-color 0.2s ease, border-left-color 0.2s ease;
+  border-left: 3px solid transparent;
+}
+
+.recent-email-item:hover {
+  background-color: rgba(0, 0, 0, 0.03);
+  border-left-color: var(--primary-color, #3498db);
+}
+
+.recent-email-item .avatar-initial {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: white;
+  flex-shrink: 0;
+  flex-grow: 0;
+}
+
+.avatar-color-0 { background-color: #3498db; }
+.avatar-color-1 { background-color: #e74c3c; }
+.avatar-color-2 { background-color: #2ecc71; }
+.avatar-color-3 { background-color: #f39c12; }
+.avatar-color-4 { background-color: #9b59b6; }
+.avatar-color-5 { background-color: #1abc9c; }
+.avatar-color-6 { background-color: #e67e22; }
+.avatar-color-7 { background-color: #34495e; }
+
+.recent-email-item .direction-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 0.4rem;
+  flex-shrink: 0;
+}
+
+.direction-dot.incoming { background-color: #2ecc71; }
+.direction-dot.outgoing { background-color: #3498db; }
+
+.recent-email-item .relative-date {
+  font-size: 0.75rem;
+  color: var(--text-muted, #6c757d);
+  margin-top: 0.15rem;
+}
+
+/* Action Cards (Quick Actions) */
+.action-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem 0.75rem;
+  border-radius: 10px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  background: var(--card-bg, #fff);
+  text-decoration: none;
+  color: inherit;
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+              box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+              border-color 0.25s ease;
+  height: 100%;
+  text-align: center;
+}
+
+.action-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+  border-color: var(--primary-color, #3498db);
+  text-decoration: none;
+  color: inherit;
+}
+
+.action-card .action-icon-circle {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.5rem;
+}
+
+.action-card .action-icon-circle i {
+  font-size: 1.35rem;
+}
+
+.action-card .action-label {
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.action-card.action-primary .action-icon-circle { background-color: rgba(13, 110, 253, 0.1); color: #0d6efd; }
+.action-card.action-success .action-icon-circle { background-color: rgba(25, 135, 84, 0.1); color: #198754; }
+.action-card.action-info .action-icon-circle { background-color: rgba(13, 202, 240, 0.1); color: #0dcaf0; }
+.action-card.action-warning .action-icon-circle { background-color: rgba(255, 193, 7, 0.1); color: #ffc107; }
+
+/* Empty state refinement */
+.dashboard-empty-state {
+  padding: 2.5rem 1rem;
+}
+
+.dashboard-empty-state .empty-icon {
+  font-size: 3rem;
+  opacity: 0.25;
+  display: block;
+  margin-bottom: 0.75rem;
+}
+
+.dashboard-empty-state .empty-text {
+  font-size: 1.05rem;
+  color: var(--text-muted, #6c757d);
+}
+
+/* Animations */
+@keyframes countUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes staggerFadeIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.stat-card-modern .stat-value {
+  animation: countUp 0.6s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+.action-card {
+  animation: staggerFadeIn 0.5s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+.action-card:nth-child(1) { animation-delay: 0.05s; }
+.action-card:nth-child(2) { animation-delay: 0.1s; }
+.action-card:nth-child(3) { animation-delay: 0.15s; }
+.action-card:nth-child(4) { animation-delay: 0.2s; }
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .stat-card-modern,
+  .action-card,
+  .recent-email-item,
+  .stat-card-modern .stat-value {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .stat-card-modern:hover,
+  .action-card:hover {
+    transform: none !important;
+  }
+}
+
+/* Flexbox min-width utility (Bootstrap 5.1 doesn't include min-w-0) */
+.flex-min-0 {
+  min-width: 0;
+}
+
+/* Subtle disabled-row styling (doesn't break table-striped/hover like table-secondary does) */
+.row-disabled {
+  opacity: 0.55;
+}
+.row-disabled:hover {
+  opacity: 0.75;
+}
+
+/* Clickable email rows in the Archive view (mirrors Dashboard recent-email-item behaviour) */
+.email-row {
+  transition: background-color 0.2s ease;
+}
+
+.email-row:hover {
+  background-color: rgba(0, 0, 0, 0.03);
+}
+
+.email-card-mobile.email-row:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
 }

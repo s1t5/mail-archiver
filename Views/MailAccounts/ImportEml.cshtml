@@ -5,28 +5,32 @@
 }
 
 <div class="container">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1>@Localizer["ImportEmlFileTitle"]</h1>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="h3 mb-0">@Localizer["ImportEmlFileTitle"]</h1>
         <a asp-action="Index" class="btn btn-outline-secondary">
             <i class="bi bi-arrow-left"></i> @Localizer["BackToAccounts"]
         </a>
     </div>
 
-    <div class="alert alert-info mb-4">
-        <i class="bi bi-info-circle-fill me-2"></i>
-        <strong>@Localizer["EmlImportInformation"]</strong>
-        <ul class="mb-0 mt-2">
-            <li>@Localizer["SupportedFormatsEml"]</li>
-            <li>@string.Format(Localizer["MaximumFileSize"], Model.MaxFileSizeFormatted)</li>
-            <li>@Localizer["LargeFilesBackground"]</li>
-            <li>@Localizer["DuplicateEmailsSkipped"]</li>
-            <li>@Localizer["EmlFolderStructureInfo"]</li>
-        </ul>
+    <div class="msa-info-banner mb-3">
+        <div class="d-flex align-items-start">
+            <i class="bi bi-info-circle-fill me-2 mt-1"></i>
+            <div>
+                <strong>@Localizer["EmlImportInformation"]</strong>
+                <ul class="mb-0 mt-1">
+                    <li>@Localizer["SupportedFormatsEml"]</li>
+                    <li>@string.Format(Localizer["MaximumFileSize"], Model.MaxFileSizeFormatted)</li>
+                    <li>@Localizer["LargeFilesBackground"]</li>
+                    <li>@Localizer["DuplicateEmailsSkipped"]</li>
+                    <li>@Localizer["EmlFolderStructureInfo"]</li>
+                </ul>
+            </div>
+        </div>
     </div>
 
     <div class="card">
         <div class="card-header bg-light">
-            <h5 class="mb-0">@Localizer["UploadAndImportSettings"]</h5>
+            <span class="h6 mb-0"><i class="bi bi-file-earmark-zip me-1"></i>@Localizer["UploadAndImportSettings"]</span>
         </div>
         <div class="card-body">
             <form asp-action="ImportEml" method="post" enctype="multipart/form-data" id="emlImportForm">
@@ -99,6 +103,10 @@
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
     <script>
+        const i18n = {
+            startingImport: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["StartingImport"].Value)),
+            uploadInProgress: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["UploadInProgress"].Value))
+        };
         $(document).ready(function () {
             // File input change handler
             $('#emlFileInput').on('change', function() {
@@ -158,13 +166,13 @@
             // Form submission handler with progress indication
             $('#emlImportForm').on('submit', function(e) {
                 const submitBtn = $('#submitBtn');
-                submitBtn.html('<i class="bi bi-hourglass-split me-2"></i>@Localizer["StartingImport"]');
+                submitBtn.html('<i class="bi bi-hourglass-split me-2"></i>' + i18n.startingImport);
                 submitBtn.prop('disabled', true);
                 
                 // Show processing message
                 const processingAlert = $('<div class="alert alert-info mt-3">' +
                     '<i class="bi bi-clock-history me-2"></i>' +
-                    '@Localizer["UploadInProgress"]' +
+                    i18n.uploadInProgress +
                     '</div>');
                 $(this).after(processingAlert);
             });

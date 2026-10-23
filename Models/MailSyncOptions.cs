@@ -5,10 +5,50 @@ namespace MailArchiver.Models
         public const string MailSync = "MailSync";
         
         public int IntervalMinutes { get; set; } = 5;
-        public int TimeoutMinutes { get; set; } = 60;
+        public int? FullSyncIntervalHours { get; set; }
+        // 0 = no timeout: a sync runs until it finishes or is cancelled from the UI.
+        public int TimeoutMinutes { get; set; } = 0;
         public int ConnectionTimeoutSeconds { get; set; } = 180;
         public int CommandTimeoutSeconds { get; set; } = 300;
         public bool AlwaysForceFullSync { get; set; } = false;
         public bool IgnoreSelfSignedCert { get; set; } = false;
+        public int MaxConcurrentSyncs { get; set; } = 1;
+        public int InterAccountDelaySeconds { get; set; } = 0;
+
+        /// <summary>
+        /// Folders excluded from synchronization for every account of this installation, on top of
+        /// each account's own exclusion list. Additive: a folder is skipped when it matches either
+        /// list, and the same matching rules apply to both.
+        ///
+        /// Empty by default, so existing installations are unaffected. Intended for importing many
+        /// mailboxes from the same server, where maintaining an identical exclusion list on every
+        /// account is the only alternative. No folder name is ever excluded by default — the names
+        /// worth listing depend entirely on the server and its language.
+        /// </summary>
+        public List<string> GlobalExcludedFolders { get; set; } = new();
+
+        /// <summary>
+        /// Whether an exclusion entry also covers the folders underneath the one it names, so
+        /// "Archive" covers "Archive/Team" as well. Applies to both lists and to both providers.
+        ///
+        /// Off by default, matching the behaviour before this option existed: an entry matched the
+        /// folder it names and nothing below it. Set to true to have an entry take the tree under
+        /// the folder it names as well.
+        ///
+        /// The rule anchors on the path separator, so it takes whole folders and never parts of a
+        /// name: "Archive" covers "Archive/Team" but leaves "Team Archive Review" alone.
+        /// </summary>
+        public bool ExcludeSubfolders { get; set; } = false;
+
+        /// <summary>
+        /// How many problems of each kind a sync job remembers for the account page: failed folders,
+        /// missing folders and failed messages are budgeted separately, so a flood of one kind
+        /// cannot bury the others. Anything beyond the budget is counted rather than kept.
+        ///
+        /// Jobs live for 24 hours, so on a large installation there are thousands of them at once —
+        /// but only accounts with trouble hold entries at all, and this bounds the worst case per
+        /// job at three times the value. Zero switches the log off and leaves only the counters.
+        /// </summary>
+        public int MaxIssuesPerKind { get; set; } = 20;
     }
 }

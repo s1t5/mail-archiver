@@ -133,6 +133,11 @@ namespace MailArchiver.Services
                     
                     _logger.LogInformation("VACUUM ANALYZE completed successfully in {Duration:F1} seconds", duration.TotalSeconds);
 
+                    // Remove deduplicated attachment contents that are no longer referenced
+                    // by any attachment (orphans left behind by deletions / cascade deletes).
+                    await CleanupOrphanedAttachmentContentsAsync(connection);
+
+
                     // Log the maintenance action using scoped service
                     using (var scope = _serviceScopeFactory.CreateScope())
                     {
@@ -142,6 +147,12 @@ namespace MailArchiver.Services
                             AccessLogType.DatabaseMaintenance,
                             searchParameters: $"Database maintenance completed in {duration.TotalSeconds:F1} seconds"
                         );
+
+                        // Cleanup old bandwidth usage records
+                        await CleanupBandwidthRecordsAsync(scope.ServiceProvider);
+                        
+                        // Cleanup old sync checkpoints
+                        await CleanupSyncCheckpointsAsync(scope.ServiceProvider);
                     }
 
                     return true;
@@ -203,6 +214,98 @@ namespace MailArchiver.Services
         {
             _logger.LogInformation("Database Maintenance Service is stopping.");
             return base.StopAsync(cancellationToken);
+        }
+
+        /// <summary>
+        /// Deletes deduplicated attachment contents that are no longer referenced by
+        /// any EmailAttachment. This is the authoritative cleanup for shared attachment
+        /// payloads and is robust against all deletion paths (RemoveRange, cascade
+        /// deletes, raw SQL) because it only relies on the actual reference state.
+        /// </summary>
+        private async Task CleanupOrphanedAttachmentContentsAsync(NpgsqlConnection connection)
+        {
+            try
+            {
+                // Skip silently if the dedup table does not exist yet (schema migration not applied).
+                using (var existsCommand = new NpgsqlCommand(@"
+                    SELECT EXISTS (
+                        SELECT 1 FROM information_schema.tables
+                        WHERE table_schema = 'mail_archiver' AND table_name = 'AttachmentContents'
+                    );", connection))
+                {
+                    var exists = await existsCommand.ExecuteScalarAsync();
+                    if (exists == null || !(bool)exists)
+                        return;
+                }
+
+                using (var command = new NpgsqlCommand(@"
+                    DELETE FROM mail_archiver.""AttachmentContents"" ac
+                    WHERE NOT EXISTS (
+                        SELECT 1 FROM mail_archiver.""EmailAttachments"" e
+                        WHERE e.""AttachmentContentId"" = ac.""Id""
+                    );", connection))
+                {
+                    var maintenanceTimeout = _configuration.GetValue<int>("DatabaseMaintenance:TimeoutMinutes", 30);
+                    command.CommandTimeout = maintenanceTimeout * 60;
+
+                    var removed = await command.ExecuteNonQueryAsync();
+                    if (removed > 0)
+                    {
+                        _logger.LogInformation("Cleaned up {Count} orphaned deduplicated attachment contents during maintenance", removed);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error cleaning up orphaned attachment contents: {Message}", ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// Cleans up old bandwidth usage records.
+        /// </summary>
+        private async Task CleanupBandwidthRecordsAsync(IServiceProvider serviceProvider)
+
+        {
+            try
+            {
+                var bandwidthService = serviceProvider.GetService<IBandwidthService>();
+                if (bandwidthService != null)
+                {
+                    var removedCount = await bandwidthService.CleanupOldBandwidthRecordsAsync(olderThanDays: 7);
+                    if (removedCount > 0)
+                    {
+                        _logger.LogInformation("Cleaned up {Count} old bandwidth usage records during maintenance", removedCount);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error cleaning up bandwidth records: {Message}", ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// Cleans up old sync checkpoints.
+        /// </summary>
+        private async Task CleanupSyncCheckpointsAsync(IServiceProvider serviceProvider)
+        {
+            try
+            {
+                var bandwidthService = serviceProvider.GetService<IBandwidthService>();
+                if (bandwidthService != null)
+                {
+                    var removedCount = await bandwidthService.CleanupOldCheckpointsAsync(olderThanDays: 30);
+                    if (removedCount > 0)
+                    {
+                        _logger.LogInformation("Cleaned up {Count} old sync checkpoints during maintenance", removedCount);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error cleaning up sync checkpoints: {Message}", ex.Message);
+            }
         }
     }
 }

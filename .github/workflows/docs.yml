@@ -1,0 +1,75 @@
+name: Build and deploy documentation
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'doc/**'
+      - 'mkdocs.yml'
+      - 'hooks.py'
+      - 'requirements-docs.txt'
+      - 'tools/**'
+      - '.github/workflows/docs.yml'
+  # Allow running the workflow manually from the Actions tab.
+  workflow_dispatch:
+
+# Required for GitHub Pages deployment via Actions.
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Allow one concurrent deployment, cancelling in-progress runs of the same
+# ref so a fast sequence of pushes does not queue up stale builds.
+concurrency:
+  group: pages-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          # Full history: the git-revision-date-localized plugin reads commit
+          # dates per page. A shallow clone would date every page to the build.
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: requirements-docs.txt
+
+      - name: Install MkDocs Material
+        run: python -m pip install -r requirements-docs.txt
+
+      - name: Check generated API reference is up to date
+        # Fails when doc/API-Reference.md no longer matches the OpenAPI
+        # specification in doc/assets/openapi-v1.json.
+        run: python3 tools/gen_api_reference.py --check
+
+      - name: Build site
+        # --strict fails the build on broken internal links and missing files.
+        run: mkdocs build --strict
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v6
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5.0.1

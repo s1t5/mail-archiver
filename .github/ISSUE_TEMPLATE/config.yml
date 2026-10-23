@@ -1,7 +1,7 @@
 blank_issues_enabled: false
 contact_links:
   - name: Project Documentation
-    url: https://github.com/s1t5/mail-archiver/blob/main/doc/Index.md
+    url: https://s1t5.github.io/mail-archiver/
     about: Read the official documentation for installation guides, configuration instructions, and usage examples.
   - name: Feature Request
     url: https://github.com/s1t5/mail-archiver/discussions/categories/ideas

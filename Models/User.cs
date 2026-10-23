@@ -7,7 +7,7 @@ namespace MailArchiver.Models
         public int Id { get; set; }
         
         [Required]
-        [StringLength(50)]
+        [StringLength(320)]
         public string Username { get; set; }
         
         [Required]
@@ -36,8 +36,12 @@ namespace MailArchiver.Models
         // OAuth properties
         public string? OAuthRemoteUserId { get; set; }
         public bool RequiresApproval { get; set; } = false;
+
+        // Version update tracking
+        public string? LastSeenChangelogVersion { get; set; }
         
         // Navigation properties
         public virtual ICollection<UserMailAccount> UserMailAccounts { get; set; } = new List<UserMailAccount>();
+        public virtual ICollection<ApiKey> ApiKeys { get; set; } = new List<ApiKey>();
     }
 }

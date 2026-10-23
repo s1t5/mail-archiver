@@ -1,5 +1,5 @@
 using MailArchiver.Models;
-using Microsoft.Graph.Models;
+using GraphUser = Microsoft.Graph.Models.User;
 
 namespace MailArchiver.Services.Providers
 {
@@ -13,8 +13,12 @@ namespace MailArchiver.Services.Providers
         /// </summary>
         /// <param name="account">The M365 mail account</param>
         /// <param name="jobId">Optional sync job ID for progress tracking</param>
+        /// <param name="cancellationToken">
+        /// Cancels the sync. The background service passes the per-account sync timeout here, so a
+        /// long-running sync can be stopped between message batches instead of only between folders.
+        /// </param>
         /// <returns>Task</returns>
-        Task SyncMailAccountAsync(MailAccount account, string? jobId = null);
+        Task SyncMailAccountAsync(MailAccount account, string? jobId = null, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Tests the connection to Microsoft Graph API
@@ -24,11 +28,23 @@ namespace MailArchiver.Services.Providers
         Task<bool> TestConnectionAsync(MailAccount account);
 
         /// <summary>
+        /// Lists tenant users that can be imported as M365 mail accounts.
+        /// </summary>
+        /// <param name="clientId">Azure application client ID.</param>
+        /// <param name="clientSecret">Azure application client secret.</param>
+        /// <param name="tenantId">Azure tenant ID.</param>
+        /// <returns>Tenant users with an email address or user principal name.</returns>
+        Task<List<GraphUser>> GetTenantMailboxUsersAsync(string clientId, string clientSecret, string tenantId, bool includeDisabled = false);
+
+        /// <summary>
         /// Gets mail folders from Microsoft Graph API
         /// </summary>
         /// <param name="account">The M365 mail account</param>
         /// <returns>List of folder names</returns>
         Task<List<string>> GetMailFoldersAsync(MailAccount account);
+
+        /// <inheritdoc cref="IProviderEmailService.GetMailFolderDetailsAsync"/>
+        Task<List<MailFolderInfo>> GetMailFolderDetailsAsync(MailAccount account);
 
         /// <summary>
         /// Restores an email to a specific folder using Microsoft Graph API
@@ -38,5 +54,15 @@ namespace MailArchiver.Services.Providers
         /// <param name="folderName">The target folder name</param>
         /// <returns>True if restoration is successful</returns>
         Task<bool> RestoreEmailToFolderAsync(ArchivedEmail email, MailAccount targetAccount, string folderName);
+
+        /// <summary>
+        /// Restores an email to a specific folder using Microsoft Graph API with optional folder structure preservation
+        /// </summary>
+        /// <param name="email">The archived email to restore</param>
+        /// <param name="targetAccount">The target M365 account</param>
+        /// <param name="folderName">The target folder name (base folder when preserving structure)</param>
+        /// <param name="preserveFolderStructure">If true, recreates the original folder hierarchy under the target folder</param>
+        /// <returns>True if restoration is successful</returns>
+        Task<bool> RestoreEmailToFolderAsync(ArchivedEmail email, MailAccount targetAccount, string folderName, bool preserveFolderStructure);
     }
 }

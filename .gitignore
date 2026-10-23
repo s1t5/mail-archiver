@@ -7,12 +7,17 @@
 *.sln.docstates
 *.userprefs
 .editorconfig
+nextrelease.md
 
 # Import
 uploads/*
 
 # DataProtection Keys
 DataProtection-Keys/
+data-protection-keys/
+
+# Local Postgres data volume (docker-compose)
+postgres-data/
 
 # Build-Ergebnisse
 [Dd]ebug/
@@ -293,9 +298,20 @@ coverage/
 /obj
 *.cache
 *.sln
+!MailArchiver.sln
 /ResXManager.config.xml
 update_resource_files.ps1
 *.cache
 /exports
 /obj
 /.clinerules
+nextrelease.md
+.gitignore
+AGENTS.md
+MailArchiver.sln
+tests/MailArchiver.Tests/appsettings.Test.json
+mail-archiver-review-*.md
+
+# MkDocs build output
+site/
+__pycache__/
