@@ -1126,7 +1126,7 @@ app.UseForwardedHeaders();
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
-var supportedCultures = new[] { "en", "en-GB", "de", "es", "fr", "it", "sl", "nl", "ru", "hu", "pl", "zh", "zh-Hans", "zh-CN", "pt-BR" };
+var supportedCultures = new[] { "en", "en-GB", "de", "es", "fr", "it", "sl", "nl", "ru", "hu", "pl", "zh", "zh-Hans", "zh-CN", "pt-BR", "ja" };
 var localizationOptions = new RequestLocalizationOptions()
     .SetDefaultCulture("en")
     .AddSupportedCultures(supportedCultures)
