@@ -7,7 +7,7 @@
 <div class="container">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h1>@Localizer["CopyEmailToMailbox"]</h1>
-        <a asp-action="Details" asp-route-id="@Model.EmailId" class="btn btn-outline-secondary">
+        <a asp-action="Details" asp-route-id="@Model.EmailId" asp-route-returnUrl="@Model.ReturnUrl" class="btn btn-outline-secondary">
             <i class="bi bi-arrow-left"></i> @Localizer["Back"]
         </a>
     </div>
@@ -36,6 +36,7 @@
             <form asp-action="Restore" asp-controller="Emails" method="post">
                 <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
                 <input type="hidden" asp-for="EmailId" />
+                <input type="hidden" asp-for="ReturnUrl" />
                 <input type="hidden" asp-for="EmailSubject" />
                 <input type="hidden" asp-for="EmailSender" />
                 <input type="hidden" asp-for="EmailDate" />
@@ -82,7 +83,7 @@
                     <button type="submit" class="btn btn-primary">
                         <i class="bi bi-envelope-arrow-up me-2"></i>@Localizer["CopyEmailButton"]
                     </button>
-                    <a asp-action="Details" asp-route-id="@Model.EmailId" class="btn btn-outline-secondary ms-2">
+                    <a asp-action="Details" asp-route-id="@Model.EmailId" asp-route-returnUrl="@Model.ReturnUrl" class="btn btn-outline-secondary ms-2">
                         @Localizer["Cancel"]
                     </a>
                 </div>
