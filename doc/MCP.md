@@ -31,6 +31,8 @@ never creates, modifies or deletes data.
   - [search_emails](#search_emails)
   - [get_email](#get_email)
   - [get_attachment](#get_attachment)
+  - [get_email_eml](#get_email_eml)
+  - [get_email_raw](#get_email_raw)
 - [Rate limiting](#rate-limiting)
 - [Access logging](#access-logging)
 - [Connecting an agent](#connecting-an-agent)
@@ -48,6 +50,8 @@ the equivalent environment variables, e.g. `Mcp__Enabled=true`):
   "DefaultPageSize": 20,
   "MaxResults": 100,
   "MaxAttachmentBytes": 10000000,
+  "AllowMessageDownloads": true,
+  "MaxMessageBytes": 10000000,
   "RateLimitPerMinute": 120
 }
 ```
@@ -59,6 +63,8 @@ the equivalent environment variables, e.g. `Mcp__Enabled=true`):
 | `DefaultPageSize` | `20` | Page size used by `search_emails` when the caller omits `pageSize`. |
 | `MaxResults` | `100` | Upper bound for the `search_emails` page size; larger values are clamped. |
 | `MaxAttachmentBytes` | `10000000` | Maximum attachment size (in bytes) `get_attachment` will return inline as base64; larger attachments are refused. |
+| `AllowMessageDownloads` | `true` | When `false`, `get_email_eml` and `get_email_raw` return an error instead of the message. A complete message carries its attachments, so switch this off together with `AllowAttachmentDownloads`. |
+| `MaxMessageBytes` | `10000000` | Maximum message size (in bytes) `get_email_eml` and `get_email_raw` will return inline; larger messages are refused. |
 | `RateLimitPerMinute` | `120` | Fixed-window request budget per API key per minute (see [Rate limiting](#rate-limiting)). |
 
 ## Authentication
@@ -158,7 +164,8 @@ Fetches the full content of a single archived email.
 
 **Result:** a single email object with all summary fields plus `cc`, `bcc`,
 `receivedDate`, `messageId`, `textBody`, `htmlBody` and `attachments` (array of
-`{ id, fileName, contentType, size }`). Returns `null` if the email does not
+`{ id, fileName, contentType, size }`) and `hasRawMessage` (whether
+`get_email_raw` can return the original). Returns `null` if the email does not
 exist or the key is not authorized for its account.
 
 ### get_attachment
@@ -177,6 +184,50 @@ and `base64Data` (the raw attachment bytes, base64-encoded). The tool returns an
 error when `Mcp:AllowAttachmentDownloads=false`, when the attachment exceeds
 `Mcp:MaxAttachmentBytes`, or when the key is not authorized for the email's
 account.
+
+### get_email_eml
+
+Returns an email as a complete RFC 5322 message (`.eml`), rebuilt from the
+archived fields: the stored headers (`Received`, `Authentication-Results`,
+`X-Spam-*`, …), bodies and attachments. Works for every archived email, but the
+result is not byte-identical to what was received, so DKIM signatures will not
+verify against it — use [`get_email_raw`](#get_email_raw) for that. Mirrors
+`GET /api/v1/emails/{id}/eml`.
+
+**Parameters:**
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `id` | integer | yes | The archived email id (from `search_emails`). |
+
+**Result:** an object with `emailId`, `kind` (`eml`), `source` (`null`),
+`sha256`, `size`, `encoding` and `content`. `content` is the message text when
+`encoding` is `utf-8`, and the message base64-encoded when `encoding` is
+`base64` (messages that are not valid UTF-8, so no byte is altered). The tool
+returns an error when `Mcp:AllowMessageDownloads=false`, when the message
+exceeds `Mcp:MaxMessageBytes`, or when the key is not authorized for the
+email's account.
+
+### get_email_raw
+
+Returns the original message exactly as received, for spam analysis,
+DKIM/SPF/ARC checks or forensics. Only available when the original was stored at
+archive time (`RawMessages:Enabled`, see
+[Original Message Storage Settings](Setup.md#-original-message-storage-settings));
+`get_email` reports it as `hasRawMessage`. Mirrors
+`GET /api/v1/emails/{id}/raw`.
+
+**Parameters:**
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `id` | integer | yes | The archived email id (from `search_emails`). |
+
+**Result:** the same object as `get_email_eml` with `kind` `raw`, `source` set
+to how the original was captured (`imap`, `graph`, `eml-file` — exact copies —
+or `serialized`, re-written by the parser with line endings normalized to CRLF)
+and `sha256` the checksum recorded at archive time. Returns the same errors as
+`get_email_eml`, and an error when no original is stored for the email.
 
 ## Rate limiting
 
@@ -278,6 +329,8 @@ key that has been explicitly issued to an account. The points below are
    - `get_attachment` returns the raw bytes with the original `contentType`.
      Do **not** auto-open or auto-execute attachments; treat the
      `contentType` field as untrusted metadata, not as a safe instruction.
+   - `get_email_eml` and `get_email_raw` return the complete message including
+     every attachment. The same rules apply to each of its parts.
 10. **Do not let the agent take write actions based on mail content without
     confirmation.** A malicious email can contain prompt-injection text aimed
     at the consuming LLM. Enforce permissions and confirmation in the agent's
@@ -294,7 +347,9 @@ key that has been explicitly issued to an account. The points below are
     `get_email`.
 13. **Lower `Mcp:MaxAttachmentBytes`** to the smallest value your agents
     actually need (default `10000000` ≈ 10 MB). This bounds the largest single
-    response an API key can pull per request.
+    response an API key can pull per request. The same goes for
+    `Mcp:MaxMessageBytes`, or set `Mcp:AllowMessageDownloads` to `false` when
+    agents do not need complete messages.
 14. **Lower `Mcp:MaxResults` and `Mcp:DefaultPageSize`** to bound the largest
     search result an API key can pull per request (default `100` / `20`).
 15. **Monitor `AccessLogs` and rate-limit rejections** (`429`) operationally.

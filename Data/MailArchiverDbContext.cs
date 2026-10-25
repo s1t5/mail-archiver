@@ -14,6 +14,7 @@ namespace MailArchiver.Data
         public DbSet<ArchivedEmail> ArchivedEmails { get; set; }
         public DbSet<EmailAttachment> EmailAttachments { get; set; }
         public DbSet<AttachmentContent> AttachmentContents { get; set; }
+        public DbSet<RawMessage> RawMessages { get; set; }
         public DbSet<User> Users { get; set; }
         public DbSet<UserMailAccount> UserMailAccounts { get; set; }
         public DbSet<AccessLog> AccessLogs { get; set; }
@@ -211,6 +212,47 @@ namespace MailArchiver.Data
 
             modelBuilder.Entity<AttachmentContent>()
                 .ToTable("AttachmentContents", "mail_archiver");
+
+            // Original message storage (opt-in, RawMessages:Enabled). One row per email,
+            // keyed by the email id and removed together with it.
+            modelBuilder.Entity<RawMessage>()
+                .HasKey(r => r.ArchivedEmailId);
+
+            modelBuilder.Entity<RawMessage>()
+                .HasOne(r => r.ArchivedEmail)
+                .WithOne(e => e.RawMessage)
+                .HasForeignKey<RawMessage>(r => r.ArchivedEmailId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<RawMessage>()
+                .Property(r => r.ArchivedEmailId)
+                .ValueGeneratedNever();
+
+            modelBuilder.Entity<RawMessage>()
+                .Property(r => r.Content)
+                .HasColumnType("bytea")
+                .IsRequired();
+
+            modelBuilder.Entity<RawMessage>()
+                .Property(r => r.Sha256)
+                .HasColumnType("varchar(64)")
+                .IsRequired();
+
+            modelBuilder.Entity<RawMessage>()
+                .Property(r => r.Size)
+                .HasColumnType("bigint");
+
+            modelBuilder.Entity<RawMessage>()
+                .Property(r => r.Source)
+                .HasColumnType("varchar(16)")
+                .IsRequired();
+
+            modelBuilder.Entity<RawMessage>()
+                .Property(r => r.CreatedAt)
+                .HasColumnType("timestamp without time zone");
+
+            modelBuilder.Entity<RawMessage>()
+                .ToTable("RawMessages", "mail_archiver");
 
 
             // User entity configuration

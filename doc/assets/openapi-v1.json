@@ -254,6 +254,60 @@
         }
       }
     },
+    "/api/v1/emails/{id}/eml": {
+      "get": {
+        "tags": [
+          "EmailsApi"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "message/rfc822": { }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/emails/{id}/raw": {
+      "get": {
+        "tags": [
+          "EmailsApi"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "message/rfc822": { }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/emails/{id}/attachments/{attachmentId}": {
       "get": {
         "tags": [
@@ -418,6 +472,9 @@
             "items": {
               "$ref": "#/components/schemas/AttachmentDto"
             }
+          },
+          "hasRawMessage": {
+            "type": "boolean"
           }
         }
       },

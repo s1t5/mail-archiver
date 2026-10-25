@@ -4,6 +4,8 @@ using MailArchiver.Models;
 using MailArchiver.Models.Api;
 using MailArchiver.Services;
 using MailArchiver.Services.Core;
+using MailArchiver.Services.Shared;
+using MailArchiver.Utilities;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -18,19 +20,22 @@ public class EmailsApiController : ApiControllerBase
     private readonly ApiOptions _options;
     private readonly IAccessLogService _accessLogService;
     private readonly IAuthenticationService _authService;
+    private readonly DateTimeHelper _dateTimeHelper;
 
     public EmailsApiController(
         MailArchiverDbContext context,
         EmailCoreService emailCoreService,
         IOptions<ApiOptions> options,
         IAccessLogService accessLogService,
-        IAuthenticationService authService)
+        IAuthenticationService authService,
+        DateTimeHelper dateTimeHelper)
     {
         _context = context;
         _emailCoreService = emailCoreService;
         _options = options.Value;
         _accessLogService = accessLogService;
         _authService = authService;
+        _dateTimeHelper = dateTimeHelper;
     }
 
     private string CurrentUsername => _authService.GetCurrentUserDisplayName(HttpContext);
@@ -120,7 +125,76 @@ public class EmailsApiController : ApiControllerBase
             emailSubject: Truncate(email.Subject, 255),
             emailFrom: Truncate(email.From, 255));
 
-        return Ok(EmailDetailDto.FromEntity(email));
+        var hasRawMessage = await _context.RawMessages.AnyAsync(r => r.ArchivedEmailId == email.Id);
+
+        return Ok(EmailDetailDto.FromEntity(email, hasRawMessage));
+    }
+
+    // The message rebuilt from the archived fields (headers, bodies, attachments). Available
+    // for every email, but not byte-identical to what was received: use /raw for that.
+    [HttpGet("{id:int}/eml")]
+    [Produces("message/rfc822")]
+    public async Task<IActionResult> DownloadEml(int id)
+    {
+        if (!_options.AllowMessageDownloads)
+        {
+            return Problem(statusCode: 403, title: "Message downloads are disabled.");
+        }
+
+        var allowed = await GetAllowedAccountIdsAsync();
+        var email = await _context.ArchivedEmails
+            .AsNoTracking()
+            .Include(e => e.Attachments)
+                .ThenInclude(a => a.AttachmentContent)
+            .FirstOrDefaultAsync(e => e.Id == id);
+
+        if (email == null || (allowed != null && !allowed.Contains(email.MailAccountId)))
+        {
+            return NotFound();
+        }
+
+        await _accessLogService.LogAccessAsync(CurrentUsername, AccessLogType.Download, emailId: id);
+
+        var message = ArchivedEmailMimeBuilder.Build(email, _dateTimeHelper);
+        return File(RawMessageCodec.Serialize(message), "message/rfc822", $"email-{id}.eml");
+    }
+
+    // The original message as received, stored only when RawMessages:Enabled was set at
+    // archive time. 404 with a problem title when the email exists but has no original.
+    [HttpGet("{id:int}/raw")]
+    [Produces("message/rfc822")]
+    public async Task<IActionResult> DownloadRaw(int id)
+    {
+        if (!_options.AllowMessageDownloads)
+        {
+            return Problem(statusCode: 403, title: "Message downloads are disabled.");
+        }
+
+        var allowed = await GetAllowedAccountIdsAsync();
+        var accountId = await _context.ArchivedEmails
+            .Where(e => e.Id == id)
+            .Select(e => (int?)e.MailAccountId)
+            .FirstOrDefaultAsync();
+
+        if (accountId == null || (allowed != null && !allowed.Contains(accountId.Value)))
+        {
+            return NotFound();
+        }
+
+        var raw = await _context.RawMessages
+            .AsNoTracking()
+            .FirstOrDefaultAsync(r => r.ArchivedEmailId == id);
+
+        if (raw == null)
+        {
+            return Problem(statusCode: 404, title: "No original message is stored for this email.");
+        }
+
+        await _accessLogService.LogAccessAsync(CurrentUsername, AccessLogType.Download, emailId: id);
+
+        Response.Headers["X-Raw-Message-Sha256"] = raw.Sha256;
+        Response.Headers["X-Raw-Message-Source"] = raw.Source;
+        return File(RawMessageCodec.Decompress(raw), "message/rfc822", $"email-{id}-original.eml");
     }
 
     [HttpGet("{id:int}/attachments/{attachmentId:int}")]

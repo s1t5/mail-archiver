@@ -21,6 +21,8 @@ For authentication, pagination, error handling and rate limiting see
 | `GET` | [`/api/v1/emails`](#apiv1emails) |
 | `GET` | [`/api/v1/emails/{id}`](#apiv1emailsid) |
 | `GET` | [`/api/v1/emails/{id}/attachments/{attachmentId}`](#apiv1emailsidattachmentsattachmentid) |
+| `GET` | [`/api/v1/emails/{id}/eml`](#apiv1emailsideml) |
+| `GET` | [`/api/v1/emails/{id}/raw`](#apiv1emailsidraw) |
 | `GET` | [`/api/v1/stats`](#apiv1stats) |
 
 ### `GET` /api/v1/accounts { #apiv1accounts }
@@ -79,6 +81,26 @@ For authentication, pagination, error handling and rate limiting see
 | ------ | ------------ | ------ |
 | 200 | — | no body |
 
+### `GET` /api/v1/emails/{id}/eml { #apiv1emailsideml }
+
+| Name | In | Type | Required | Default |
+| ---- | -- | ---- | -------- | ------- |
+| `id` | path | integer (int32) | yes | — |
+
+| Status | Content type | Schema |
+| ------ | ------------ | ------ |
+| 200 | `message/rfc822` | any |
+
+### `GET` /api/v1/emails/{id}/raw { #apiv1emailsidraw }
+
+| Name | In | Type | Required | Default |
+| ---- | -- | ---- | -------- | ------- |
+| `id` | path | integer (int32) | yes | — |
+
+| Status | Content type | Schema |
+| ------ | ------------ | ------ |
+| 200 | `message/rfc822` | any |
+
 ### `GET` /api/v1/stats { #apiv1stats }
 
 | Status | Content type | Schema |
@@ -107,6 +129,7 @@ For authentication, pagination, error handling and rate limiting see
 | `folderName` | string | no |
 | `from` | string | no |
 | `hasAttachments` | boolean | no |
+| `hasRawMessage` | boolean | no |
 | `htmlBody` | null | no |
 | `id` | integer (int32) | no |
 | `isOutgoing` | boolean | no |

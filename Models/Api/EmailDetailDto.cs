@@ -21,7 +21,10 @@ public class EmailDetailDto
     public string? HtmlBody { get; set; }
     public List<AttachmentDto> Attachments { get; set; } = new();
 
-    public static EmailDetailDto FromEntity(ArchivedEmail e)
+    /// <summary>Whether the original message is stored, i.e. GET /emails/{id}/raw returns it.</summary>
+    public bool HasRawMessage { get; set; }
+
+    public static EmailDetailDto FromEntity(ArchivedEmail e, bool hasRawMessage = false)
     {
         return new EmailDetailDto
         {
@@ -44,7 +47,8 @@ public class EmailDetailDto
             TextBody = e.OriginalBodyText != null
                 ? System.Text.Encoding.UTF8.GetString(e.OriginalBodyText)
                 : (!string.IsNullOrEmpty(e.BodyUntruncatedText) ? e.BodyUntruncatedText : e.Body),
-            Attachments = e.Attachments.Select(AttachmentDto.FromEntity).ToList()
+            Attachments = e.Attachments.Select(AttachmentDto.FromEntity).ToList(),
+            HasRawMessage = hasRawMessage
         };
     }
 }

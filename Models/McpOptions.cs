@@ -25,6 +25,12 @@ namespace MailArchiver.Models
         /// <summary>Maximum attachment size (in bytes) the get_attachment tool will return inline.</summary>
         public long MaxAttachmentBytes { get; set; } = 10_000_000;
 
+        /// <summary>When false, the get_email_eml and get_email_raw tools return an error instead of the message.</summary>
+        public bool AllowMessageDownloads { get; set; } = true;
+
+        /// <summary>Maximum message size (in bytes) the get_email_eml and get_email_raw tools will return inline.</summary>
+        public long MaxMessageBytes { get; set; } = 10_000_000;
+
         /// <summary>Fixed-window request budget per API key per minute.</summary>
         public int RateLimitPerMinute { get; set; } = 120;
     }
