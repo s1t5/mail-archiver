@@ -808,7 +808,7 @@ namespace MailArchiver.Controllers
         // GET: Emails/Restore/5
         [HttpGet]
         [EmailAccessRequired]
-        public async Task<IActionResult> Restore(int id)
+        public async Task<IActionResult> Restore(int id, string returnUrl = null)
         {
             var email = await _context.ArchivedEmails
                 .Include(e => e.MailAccount)
@@ -860,6 +860,7 @@ namespace MailArchiver.Controllers
             var model = new EmailRestoreViewModel
             {
                 EmailId = email.Id,
+                ReturnUrl = IsLocalUrl(returnUrl) ? returnUrl : null,
                 EmailSubject = email.Subject,
                 EmailDate = email.SentDate,
                 EmailSender = email.From,
@@ -1105,21 +1106,40 @@ namespace MailArchiver.Controllers
                         }
                     }
                     
-                    return RedirectToAction(nameof(Details), new { id = model.EmailId });
+                    return RedirectAfterRestore(model);
                 }
                 else
                 {
                     _logger.LogWarning("Email restoration failed, but no exception was thrown");
                     TempData["ErrorMessage"] = "The email could not be copied to the specified folder. Please check the logs.";
-                    return RedirectToAction(nameof(Details), new { id = model.EmailId });
+                    return RedirectAfterRestore(model);
                 }
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Exception occurred during email restoration");
                 TempData["ErrorMessage"] = $"An error occurred: {ex.Message}";
-                return RedirectToAction(nameof(Details), new { id = model.EmailId });
+                return RedirectAfterRestore(model);
             }
+        }
+
+        /// <summary>
+        /// Redirects back to the view the user came from (e.g. the filtered list) when a valid
+        /// local return URL was supplied, otherwise falls back to the email details page.
+        /// </summary>
+        private IActionResult RedirectAfterRestore(EmailRestoreViewModel model)
+        {
+            if (IsLocalUrl(model.ReturnUrl))
+            {
+                return LocalRedirect(model.ReturnUrl);
+            }
+
+            return RedirectToAction(nameof(Details), new { id = model.EmailId });
+        }
+
+        private bool IsLocalUrl(string url)
+        {
+            return !string.IsNullOrWhiteSpace(url) && Url.IsLocalUrl(url);
         }
 
         // POST: Emails/BatchRestoreStart - Startet Batch-Operation
