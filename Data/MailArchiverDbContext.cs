@@ -545,7 +545,7 @@ namespace MailArchiver.Data
             modelBuilder.Entity<AccountStorageBackfillState>()
                 .ToTable("AccountStorageBackfillState", "mail_archiver");
 
-            // ApiKey entity configuration (read-only REST API authentication)
+            // ApiKey entity configuration (REST API authentication)
             modelBuilder.Entity<ApiKey>()
                 .Property(k => k.Name)
                 .HasColumnType("text");
@@ -553,6 +553,13 @@ namespace MailArchiver.Data
             modelBuilder.Entity<ApiKey>()
                 .Property(k => k.KeyPrefix)
                 .HasMaxLength(16);
+
+            // Comma-separated scope list ("read", "read,write"). Short and fixed
+            // vocabulary, so a plain varchar is enough.
+            modelBuilder.Entity<ApiKey>()
+                .Property(k => k.Scopes)
+                .HasColumnType("varchar(64)")
+                .IsRequired();
 
             modelBuilder.Entity<ApiKey>()
                 .Property(k => k.KeyHash)

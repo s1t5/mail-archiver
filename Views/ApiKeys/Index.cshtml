@@ -59,6 +59,7 @@
                         <tr>
                             <th>@Localizer["ApiKeyName"]</th>
                             <th>@Localizer["ApiKeyPrefix"]</th>
+                            <th>@Localizer["ApiKeyScopes"]</th>
                             <th>@Localizer["ApiKeyCreatedColumn"]</th>
                             <th>@Localizer["ApiKeyLastUsed"]</th>
                             <th>@Localizer["ApiKeyExpires"]</th>
@@ -74,7 +75,7 @@
                         @if (!Model.Any())
                         {
                             <tr>
-                                <td colspan="@(isAdmin ? 8 : 7)" class="text-center text-muted py-4">@Localizer["NoApiKeys"]</td>
+                                <td colspan="@(isAdmin ? 9 : 8)" class="text-center text-muted py-4">@Localizer["NoApiKeys"]</td>
                             </tr>
                         }
                         @foreach (var k in Model)
@@ -82,6 +83,11 @@
                             <tr>
                                 <td>@k.Name</td>
                                 <td><code>@k.KeyPrefix</code></td>
+                                <td>
+                                    <span class="badge @(k.HasWriteAccess ? "bg-warning text-dark" : "bg-secondary")">
+                                        @(k.HasWriteAccess ? Localizer["ApiKeyScopeReadWrite"] : Localizer["ApiKeyScopeRead"])
+                                    </span>
+                                </td>
                                 <td><span class="utc-timestamp" data-utc-time="@k.CreatedAt.ToString("yyyy-MM-ddTHH:mm:ss")">@k.CreatedAt.ToString("g")</span></td>
                                 <td>
                                     @if (k.LastUsedAt.HasValue)
@@ -163,6 +169,12 @@
                         }
                     </div>
                     <p class="card-text small mb-2"><strong>@Localizer["ApiKeyPrefix"]:</strong> <code>@k.KeyPrefix</code></p>
+                    <p class="card-text small mb-2">
+                        <strong>@Localizer["ApiKeyScopes"]:</strong>
+                        <span class="badge @(k.HasWriteAccess ? "bg-warning text-dark" : "bg-secondary")">
+                            @(k.HasWriteAccess ? Localizer["ApiKeyScopeReadWrite"] : Localizer["ApiKeyScopeRead"])
+                        </span>
+                    </p>
                     @if (isAdmin)
                     {
                         <p class="card-text small mb-2"><strong>@Localizer["ApiKeyOwner"]:</strong> @k.OwnerUsername</p>

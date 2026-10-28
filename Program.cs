@@ -166,7 +166,7 @@ builder.Services.Configure<SecurityOptions>(
     builder.Configuration.GetSection(SecurityOptions.SectionName));
 builder.Services.AddSingleton<ICredentialProtector, CredentialProtector>();
 
-// ===== Read-only REST API (v1) — kept in one contiguous block to minimize
+// ===== REST API (v1) — kept in one contiguous block to minimize
 // upstream merge churn. Disabled by default via Api:Enabled. =====
 builder.Services.Configure<MailArchiver.Models.ApiOptions>(
     builder.Configuration.GetSection(MailArchiver.Models.ApiOptions.Api));
@@ -181,7 +181,7 @@ builder.Services.AddOpenApi("v1", openApiOptions =>
         description.RelativePath?.StartsWith("api/v1", StringComparison.OrdinalIgnoreCase) ?? false;
     openApiOptions.AddDocumentTransformer<MailArchiver.Models.Api.OpenApi.BearerSecuritySchemeTransformer>();
 });
-// ===== End read-only REST API block =====
+// ===== End REST API block =====
 
 // ===== MCP (Model Context Protocol) server — mirrors the REST API for AI agent
 // access. Disabled by default via Mcp:Enabled. Uses the same API keys (/mcp is
@@ -302,7 +302,7 @@ builder.Services.AddRateLimiter(options =>
             });
     });
 
-    // Read-only REST API rate limiting: fixed window per API key (prefix),
+    // REST API rate limiting: fixed window per API key (prefix),
     // falling back to client IP. Budget from Api:RateLimitPerMinute (default 120).
     var apiOptionsForRateLimit = builder.Configuration.GetSection(MailArchiver.Models.ApiOptions.Api)
         .Get<MailArchiver.Models.ApiOptions>() ?? new MailArchiver.Models.ApiOptions();
@@ -1151,7 +1151,7 @@ app.UseRateLimiter();
 // Add our custom authentication middleware
 app.UseAuth();
 
-// OpenAPI document + Swagger UI for the read-only REST API. Mapped only when the
+// OpenAPI document + Swagger UI for the REST API. Mapped only when the
 // API and its UI are enabled. Both paths sit OUTSIDE /api/, so the cookie
 // middleware above gates them — a logged-in browser session is required, and
 // they are unreachable with an API key.

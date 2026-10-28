@@ -67,7 +67,7 @@ namespace MailArchiver.Services.Shared
                     _logger.LogInformation(
                         "Job {JobId}: Skipping duplicate email. Subject: '{Subject}', From: '{From}', MessageId: '{MessageId}'",
                         jobId, checkSubject, checkFrom, messageId);
-                    return ImportResult.CreateAlreadyExists();
+                    return ImportResult.CreateAlreadyExists(existing.Id);
                 }
 
                 var rawTextBody = message.TextBody;
@@ -216,7 +216,7 @@ namespace MailArchiver.Services.Shared
 
                 context.ArchivedEmails.Add(archivedEmail);
                 await context.SaveChangesAsync();
-                return ImportResult.CreateSuccess();
+                return ImportResult.CreateSuccess(archivedEmail.Id);
             }
             catch (Exception ex)
             {
@@ -292,8 +292,13 @@ namespace MailArchiver.Services.Shared
         public bool AlreadyExists { get; set; }
         public string? Error { get; set; }
 
-        public static ImportResult CreateSuccess() => new ImportResult { Success = true };
-        public static ImportResult CreateAlreadyExists() => new ImportResult { AlreadyExists = true };
+        /// <summary>Id of the created message, or of the existing message for a duplicate.</summary>
+        public int? EmailId { get; set; }
+
+        public static ImportResult CreateSuccess(int? emailId = null)
+            => new ImportResult { Success = true, EmailId = emailId };
+        public static ImportResult CreateAlreadyExists(int? existingId = null)
+            => new ImportResult { AlreadyExists = true, EmailId = existingId };
         public static ImportResult CreateFailed(string error) => new ImportResult { Error = error };
     }
 }

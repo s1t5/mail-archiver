@@ -1,3 +1,4 @@
+using MailArchiver.Models;
 using MailArchiver.Models.ViewModels;
 using MailArchiver.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -58,7 +59,11 @@ namespace MailArchiver.Controllers
                 return View(model);
             }
 
-            var (_, plaintext) = await _apiKeyService.CreateAsync(uid.Value, model.Name, model.ExpiresAt);
+            var scopes = model.WriteAccess
+                ? new[] { ApiKeyScopes.Read, ApiKeyScopes.Write }
+                : new[] { ApiKeyScopes.Read };
+
+            var (_, plaintext) = await _apiKeyService.CreateAsync(uid.Value, model.Name, model.ExpiresAt, scopes);
             TempData["NewApiKey"] = plaintext;
             TempData["NewApiKeyName"] = model.Name;
             TempData["SuccessMessage"] = _localizer["ApiKeyCreatedSuccess"].Value;

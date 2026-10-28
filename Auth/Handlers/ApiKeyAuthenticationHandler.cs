@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using System.Text.Encodings.Web;
+using MailArchiver.Models;
 using MailArchiver.Services;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.DependencyInjection;
@@ -9,7 +10,7 @@ using Microsoft.Extensions.Options;
 namespace MailArchiver.Auth.Handlers
 {
     /// <summary>
-    /// Authenticates read-only REST API requests via an <c>Authorization: Bearer ma_...</c>
+    /// Authenticates REST API requests via an <c>Authorization: Bearer ma_...</c>
     /// header. On success it builds a <see cref="ClaimsPrincipal"/> with the exact claim
     /// shape that cookie login issues (see CookieAuthenticationService.StartUserSessionAsync),
     /// so all existing IAuthenticationService / allowedAccountIds logic works unchanged.
@@ -45,11 +46,13 @@ namespace MailArchiver.Auth.Handlers
 
             // IApiKeyService is scoped; resolve it from the request services.
             var apiKeyService = Context.RequestServices.GetRequiredService<IApiKeyService>();
-            var user = await apiKeyService.ValidateAsync(token);
-            if (user == null)
+            var validation = await apiKeyService.ValidateKeyAsync(token);
+            if (validation == null)
             {
                 return AuthenticateResult.Fail("Invalid or inactive API key.");
             }
+
+            var user = validation.User;
 
             var claims = new List<Claim>
             {
@@ -57,6 +60,14 @@ namespace MailArchiver.Auth.Handlers
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
                 new Claim("UserId", user.Id.ToString())
             };
+
+            // One "scope" claim per granted scope. A key without a stored scope
+            // list validates as "read" (see ApiKeyScopes.Parse), so keys issued
+            // before scopes existed stay read-only.
+            foreach (var scope in ApiKeyScopes.Parse(validation.Key.Scopes))
+            {
+                claims.Add(new Claim(ApiKeyScopes.ClaimType, scope));
+            }
 
             if (user.IsAdmin)
             {

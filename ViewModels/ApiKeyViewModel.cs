@@ -14,6 +14,12 @@ namespace MailArchiver.Models.ViewModels
         public bool IsActive { get; set; }
         public string? OwnerUsername { get; set; }
 
+        /// <summary>Scopes granted to the key, e.g. ["read"] or ["read", "write"].</summary>
+        public List<string> Scopes { get; set; } = new();
+
+        /// <summary>True when the key may call the write endpoints.</summary>
+        public bool HasWriteAccess => Scopes.Contains(ApiKeyScopes.Write);
+
         public static ApiKeyViewModel FromEntity(ApiKey k, bool includeOwner)
         {
             return new ApiKeyViewModel
@@ -26,7 +32,8 @@ namespace MailArchiver.Models.ViewModels
                 ExpiresAt = k.ExpiresAt,
                 RevokedAt = k.RevokedAt,
                 IsActive = k.IsActive,
-                OwnerUsername = includeOwner ? k.User?.Username : null
+                OwnerUsername = includeOwner ? k.User?.Username : null,
+                Scopes = ApiKeyScopes.Parse(k.Scopes).ToList()
             };
         }
     }

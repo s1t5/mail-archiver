@@ -47,8 +47,14 @@ namespace MailArchiver.Services
 
         // ---- Service operations (implemented by the delegated TDD slice) ------------
 
-        public async Task<(ApiKey Entity, string PlaintextKey)> CreateAsync(int userId, string name, DateTime? expiresAt)
+        public async Task<(ApiKey Entity, string PlaintextKey)> CreateAsync(
+            int userId, string name, DateTime? expiresAt, IEnumerable<string>? scopes = null)
         {
+            if (!ApiKeyScopes.TryNormalize(scopes ?? new[] { ApiKeyScopes.Default }, out var normalizedScopes, out var scopeError))
+            {
+                throw new ArgumentException(scopeError, nameof(scopes));
+            }
+
             var plaintextKey = GenerateKey();
             var entity = new ApiKey
             {
@@ -56,6 +62,7 @@ namespace MailArchiver.Services
                 KeyPrefix = plaintextKey.Substring(0, StoredPrefixLength),
                 Name = name,
                 UserId = userId,
+                Scopes = normalizedScopes,
                 CreatedAt = DateTime.UtcNow,
                 ExpiresAt = expiresAt
             };
@@ -67,6 +74,9 @@ namespace MailArchiver.Services
         }
 
         public async Task<User?> ValidateAsync(string plaintextKey)
+            => (await ValidateKeyAsync(plaintextKey))?.User;
+
+        public async Task<ApiKeyValidation?> ValidateKeyAsync(string plaintextKey)
         {
             if (string.IsNullOrEmpty(plaintextKey) || !plaintextKey.StartsWith(KeyPrefixMarker))
             {
@@ -102,7 +112,7 @@ namespace MailArchiver.Services
                 await _context.SaveChangesAsync();
             }
 
-            return key.User;
+            return new ApiKeyValidation(key.User, key);
         }
 
         public async Task<bool> RevokeAsync(int keyId, int requestingUserId, bool isAdmin)

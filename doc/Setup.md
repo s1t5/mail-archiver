@@ -33,13 +33,17 @@ services:
       - Authentication__CookieName=MailArchiverAuth
       - Authentication__CookieSameSite=Lax
 
-      # REST API Settings (read-only, disabled by default)
+      # REST API Settings (disabled by default; write endpoints need AllowWrites)
       - Api__Enabled=false
+      - Api__AllowWrites=false
+      - Api__AllowAccountDeletion=false
+      - Api__AllowEmailDeletion=false
       - Api__AllowAttachmentDownloads=true
       - Api__EnableSwaggerUi=true
       - Api__DefaultPageSize=20
       - Api__MaxPageSize=100
       - Api__RateLimitPerMinute=120
+      - Api__MaxImportBytes=25000000
 
       # MCP Server Settings (Model Context Protocol for AI agents, read-only, disabled by default)
       - Mcp__Enabled=false
@@ -251,13 +255,17 @@ docker compose restart
   - `None`: Cookies are sent with all requests. Requires HTTPS and the `Secure` attribute. Only use this if you have specific cross-site requirements and understand the security implications.
 
 ### 🔌 REST API Settings
-The optional read-only REST API is **disabled by default**. See the [REST API guide](API.md) for the full reference.
-- `Api__Enabled`: Master switch for the read-only REST API (default `false`). When `false`, all `/api/*` routes return `404`.
+The optional REST API is **disabled by default**. Read endpoints work with any active key; write endpoints additionally require `Api__AllowWrites=true` and a key created with the write scope. See the [REST API guide](API.md) for the full reference.
+- `Api__Enabled`: Master switch for the REST API (default `false`). When `false`, all `/api/*` routes return `404`.
+- `Api__AllowWrites`: Master switch for every non-GET endpoint (default `false`). When `false`, write calls return `403` even for a key that carries the `write` scope.
+- `Api__AllowAccountDeletion`: Allow `DELETE /api/v1/accounts/{id}`, which deletes the account and all messages archived for it (default `false`).
+- `Api__AllowEmailDeletion`: Allow `DELETE /api/v1/emails/{id}` (default `false`).
 - `Api__AllowAttachmentDownloads`: Allow downloading attachment bytes through the API (default `true`). When `false`, the attachment endpoint returns `403`.
 - `Api__EnableSwaggerUi`: Expose Swagger UI at `/apidocs` and the OpenAPI document at `/apidocs/spec/v1.json` (default `true`). Both require a logged-in browser session.
 - `Api__DefaultPageSize`: Default page size for list endpoints when not specified (default `20`).
 - `Api__MaxPageSize`: Maximum allowed page size; larger requests are clamped (default `100`).
 - `Api__RateLimitPerMinute`: Fixed-window request budget per API key per minute (default `120`).
+- `Api__MaxImportBytes`: Upper bound in bytes for the decoded message accepted by `POST /api/v1/emails` (default `25000000`, 25 MB). Larger payloads return `413`.
 
 ### 🤖 MCP Server Settings
 The optional MCP (Model Context Protocol) server exposes the same read-only mail access as the REST API to AI agents over the Streamable HTTP transport. It is **disabled by default**. See the [MCP guide](MCP.md) for the full reference. MCP reuses the exact same API keys as the REST API (`ma_...` bearer tokens) and the same per-user account-access scoping.

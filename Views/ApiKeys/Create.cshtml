@@ -35,6 +35,12 @@
                     </div>
                 </div>
 
+                <div class="mb-3 form-check">
+                    <input asp-for="WriteAccess" class="form-check-input" />
+                    <label asp-for="WriteAccess" class="form-check-label">@Localizer["ApiKeyWriteAccess"]</label>
+                    <div class="form-text">@Localizer["ApiKeyWriteAccessHelp"]</div>
+                </div>
+
                 <div class="d-flex justify-content-between">
                     <a asp-action="Index" class="btn btn-secondary">@Localizer["Cancel"]</a>
                     <button type="submit" class="btn btn-primary">

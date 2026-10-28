@@ -4,36 +4,38 @@ using MailArchiver.Models;
 using MailArchiver.Models.Api;
 using MailArchiver.Services;
 using MailArchiver.Services.Core;
+using MailArchiver.Services.Shared;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using MimeKit;
 
 namespace MailArchiver.Controllers.Api.V1;
 
 [Route("api/v1/emails")]
 public class EmailsApiController : ApiControllerBase
 {
+    private const int MaxFolderNameLength = 255;
+
     private readonly MailArchiverDbContext _context;
     private readonly EmailCoreService _emailCoreService;
+    private readonly MailImporter _mailImporter;
     private readonly ApiOptions _options;
     private readonly IAccessLogService _accessLogService;
-    private readonly IAuthenticationService _authService;
 
     public EmailsApiController(
         MailArchiverDbContext context,
         EmailCoreService emailCoreService,
+        MailImporter mailImporter,
         IOptions<ApiOptions> options,
-        IAccessLogService accessLogService,
-        IAuthenticationService authService)
+        IAccessLogService accessLogService)
     {
         _context = context;
         _emailCoreService = emailCoreService;
+        _mailImporter = mailImporter;
         _options = options.Value;
         _accessLogService = accessLogService;
-        _authService = authService;
     }
-
-    private string CurrentUsername => _authService.GetCurrentUserDisplayName(HttpContext);
 
     [HttpGet("")]
     public async Task<ActionResult<PagedResultDto<EmailSummaryDto>>> Search(
@@ -121,6 +123,228 @@ public class EmailsApiController : ApiControllerBase
             emailFrom: Truncate(email.From, 255));
 
         return Ok(EmailDetailDto.FromEntity(email));
+    }
+
+    /// <summary>
+    /// Imports a raw RFC 822 message into the archive of one account. The message
+    /// is only stored locally — nothing is written to the IMAP server.
+    /// </summary>
+    [HttpPost("")]
+    public async Task<ActionResult<ImportEmailResultDto>> ImportMessage([FromBody] ImportEmailRequest request)
+    {
+        if (RequireWriteAccess() is { } writeError) return writeError;
+
+        var errors = new Dictionary<string, string[]>();
+
+        if (request.AccountId <= 0)
+        {
+            errors["accountId"] = new[] { "A valid accountId is required." };
+        }
+
+        if (string.IsNullOrWhiteSpace(request.Content))
+        {
+            errors["content"] = new[] { "The raw message content is required." };
+        }
+
+        var encoding = (request.Encoding ?? "base64").Trim().ToLowerInvariant();
+        if (encoding is not ("base64" or "utf8"))
+        {
+            errors["encoding"] = new[] { "encoding must be 'base64' or 'utf8'." };
+        }
+
+        var folder = string.IsNullOrWhiteSpace(request.Folder) ? "INBOX" : request.Folder.Trim();
+        if (folder.Length > MaxFolderNameLength || folder.Any(char.IsControl))
+        {
+            errors["folder"] = new[] { $"folder must be 1-{MaxFolderNameLength} characters without control characters." };
+        }
+
+        if (errors.Count > 0)
+        {
+            return ValidationProblem(new ValidationProblemDetails(errors));
+        }
+
+        var allowed = await GetAllowedAccountIdsAsync();
+        if (allowed != null && !allowed.Contains(request.AccountId))
+        {
+            return NotFound();
+        }
+
+        var account = await _context.MailAccounts.FirstOrDefaultAsync(a => a.Id == request.AccountId);
+        if (account == null)
+        {
+            return NotFound();
+        }
+
+        if (!ImportPayloadDecoder.TryDecode(request.Content, request.Encoding, out var rawMessage, out var decodeError))
+        {
+            return Problem(
+                statusCode: StatusCodes.Status400BadRequest,
+                title: "Invalid content encoding.",
+                detail: decodeError);
+        }
+
+        if (rawMessage.Length > _options.MaxImportBytes)
+        {
+            return Problem(
+                statusCode: StatusCodes.Status413PayloadTooLarge,
+                title: "Message too large.",
+                detail: $"The decoded message exceeds the configured limit of {_options.MaxImportBytes} bytes (Api:MaxImportBytes).");
+        }
+
+        MimeMessage message;
+        try
+        {
+            message = MimeMessage.Load(new MemoryStream(rawMessage));
+        }
+        catch (Exception ex)
+        {
+            return Problem(
+                statusCode: StatusCodes.Status400BadRequest,
+                title: "Invalid message.",
+                detail: $"The content could not be parsed as an RFC 822 message: {ex.Message}");
+        }
+
+        var result = await _mailImporter.ImportEmailToDatabase(message, account, "api", folder);
+
+        if (result.AlreadyExists)
+        {
+            return Problem(
+                statusCode: StatusCodes.Status409Conflict,
+                title: "Message already archived.",
+                detail: "An identical message already exists in this account.",
+                extensions: new Dictionary<string, object?>
+                {
+                    ["existingId"] = result.EmailId
+                });
+        }
+
+        if (!result.Success)
+        {
+            return Problem(
+                statusCode: StatusCodes.Status422UnprocessableEntity,
+                title: "Import failed.",
+                detail: result.Error);
+        }
+
+        await _accessLogService.LogAccessAsync(
+            CurrentUsername,
+            AccessLogType.Account,
+            emailId: result.EmailId,
+            emailSubject: Truncate(message.Subject, 255),
+            emailFrom: Truncate(string.Join(", ", message.From.Mailboxes.Select(m => m.Address)), 255),
+            mailAccountId: account.Id);
+
+        var response = new ImportEmailResultDto
+        {
+            Id = result.EmailId ?? 0,
+            AccountId = account.Id,
+            Folder = folder,
+            MessageId = message.MessageId ?? string.Empty,
+            Subject = message.Subject ?? string.Empty
+        };
+
+        return CreatedAtAction(nameof(GetMessage), new { id = response.Id }, response);
+    }
+
+    /// <summary>
+    /// Moves an archived message to another folder inside the archive. Message
+    /// content is immutable (compliance), which is why the folder is the only
+    /// mutable field.
+    /// </summary>
+    [HttpPatch("{id:int}")]
+    public async Task<ActionResult<EmailSummaryDto>> MoveMessage(int id, [FromBody] MoveEmailRequest request)
+    {
+        if (RequireWriteAccess() is { } writeError) return writeError;
+
+        var folderName = request.FolderName?.Trim();
+        if (string.IsNullOrEmpty(folderName))
+        {
+            return ValidationProblem(new ValidationProblemDetails(new Dictionary<string, string[]>
+            {
+                ["folderName"] = new[] { "folderName is required." }
+            }));
+        }
+
+        if (folderName.Length > MaxFolderNameLength || folderName.Any(char.IsControl))
+        {
+            return ValidationProblem(new ValidationProblemDetails(new Dictionary<string, string[]>
+            {
+                ["folderName"] = new[] { $"folderName must be 1-{MaxFolderNameLength} characters without control characters." }
+            }));
+        }
+
+        var allowed = await GetAllowedAccountIdsAsync();
+        var email = await _context.ArchivedEmails.FirstOrDefaultAsync(e => e.Id == id);
+        if (email == null || (allowed != null && !allowed.Contains(email.MailAccountId)))
+        {
+            return NotFound();
+        }
+
+        var previousFolder = email.FolderName;
+        email.FolderName = folderName;
+        await _context.SaveChangesAsync();
+
+        await _accessLogService.LogAccessAsync(
+            CurrentUsername,
+            AccessLogType.Account,
+            emailId: email.Id,
+            emailSubject: Truncate(email.Subject, 255),
+            emailFrom: Truncate(email.From, 255),
+            searchParameters: Truncate($"Moved via API: '{previousFolder}' -> '{folderName}'", 255),
+            mailAccountId: email.MailAccountId);
+
+        return Ok(EmailSummaryDto.FromEntity(email));
+    }
+
+    /// <summary>
+    /// Deletes one archived message. Messages locked by the retention policy
+    /// (compliance) cannot be deleted and answer 409.
+    /// </summary>
+    [HttpDelete("{id:int}")]
+    public async Task<IActionResult> DeleteMessage(int id)
+    {
+        if (RequireWriteAccess() is { } writeError) return writeError;
+        if (RequireDeletionAllowed() is { } policyError) return policyError;
+
+        if (!_options.AllowEmailDeletion)
+        {
+            return Problem(
+                statusCode: StatusCodes.Status403Forbidden,
+                title: "E-mail deletion is disabled.",
+                detail: "Deleting archived messages through the API is disabled. Set Api:AllowEmailDeletion=true to enable it.");
+        }
+
+        var allowed = await GetAllowedAccountIdsAsync();
+        var email = await _context.ArchivedEmails.FirstOrDefaultAsync(e => e.Id == id);
+        if (email == null || (allowed != null && !allowed.Contains(email.MailAccountId)))
+        {
+            return NotFound();
+        }
+
+        if (email.IsLocked)
+        {
+            return Problem(
+                statusCode: StatusCodes.Status409Conflict,
+                title: "Message is locked.",
+                detail: "This message is locked by the retention policy (compliance) and cannot be deleted.");
+        }
+
+        var subject = email.Subject;
+        var from = email.From;
+        var accountId = email.MailAccountId;
+
+        _context.ArchivedEmails.Remove(email);
+        await _context.SaveChangesAsync();
+
+        await _accessLogService.LogAccessAsync(
+            CurrentUsername,
+            AccessLogType.Deletion,
+            emailId: id,
+            emailSubject: Truncate(subject, 255),
+            emailFrom: Truncate(from, 255),
+            mailAccountId: accountId);
+
+        return NoContent();
     }
 
     [HttpGet("{id:int}/attachments/{attachmentId:int}")]

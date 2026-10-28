@@ -29,7 +29,7 @@
 - Export accounts or selected emails as mbox / zipped EML
 
 ### 🔌 Programmatic & AI Agent Access
-- **Read-only REST API (v1)** for programmatic access to the archive via scoped per-user API keys — lets scripts read archived mail without ever exposing mailbox credentials ([REST API Guide](https://s1t5.github.io/mail-archiver/API/))
+- **REST API (v1)** for programmatic access to the archive via scoped per-user API keys — read endpoints for any key, plus opt-in write endpoints (create/update/delete accounts, import/move/delete messages) for keys with the `write` scope, without ever exposing mailbox credentials ([REST API Guide](https://s1t5.github.io/mail-archiver/API/))
 - **MCP Server (Model Context Protocol)** — optional Streamable HTTP endpoint at `/mcp` that exposes the same read-only archive to AI agents as discoverable tools (`search_emails`, `get_email`, `list_accounts`, `list_folders`, `get_attachment`) ([MCP Guide](https://s1t5.github.io/mail-archiver/MCP/))
 
 ### 👥 User Management

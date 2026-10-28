@@ -18,7 +18,9 @@ revoked instantly without touching the underlying mail account.
 
 The MCP server is **read-only by design**: it exposes tools to list accounts,
 list folders, search messages, read a message and download an attachment. It
-never creates, modifies or deletes data.
+never creates, modifies or deletes data — even when the [REST API](API.md) write
+endpoints are enabled for the same key. Write access is a REST-only capability;
+MCP keys keep working unchanged.
 
 ## Table of contents
 

@@ -3219,6 +3219,21 @@
   <data name="ApiKeyPrefix" xml:space="preserve">
     <value>Präfix</value>
   </data>
+  <data name="ApiKeyScopes" xml:space="preserve">
+    <value>Berechtigungen</value>
+  </data>
+  <data name="ApiKeyScopeRead" xml:space="preserve">
+    <value>Nur Lesen</value>
+  </data>
+  <data name="ApiKeyScopeReadWrite" xml:space="preserve">
+    <value>Lesen + Schreiben</value>
+  </data>
+  <data name="ApiKeyWriteAccess" xml:space="preserve">
+    <value>Schreibzugriff erlauben</value>
+  </data>
+  <data name="ApiKeyWriteAccessHelp" xml:space="preserve">
+    <value>Schreibzugriff erlaubt diesem Schlüssel, Konten anzulegen und zu ändern, Nachrichten zu importieren und zu verschieben sowie Schlüssel zu verwalten. Zum Löschen müssen zusätzlich die passenden Api-Einstellungen aktiviert sein.</value>
+  </data>
   <data name="ApiKeyCreatedColumn" xml:space="preserve">
     <value>Erstellt</value>
   </data>

@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace MailArchiver.Models
 {
     /// <summary>
-    /// A per-user API key for the read-only REST API. The plaintext key is shown
+    /// A per-user API key for the REST API. The plaintext key is shown
     /// to the user exactly once at creation; only a non-reversible SHA-256 hash
     /// (and a short plaintext prefix for identification) is persisted.
     /// </summary>
@@ -44,6 +44,15 @@ namespace MailArchiver.Models
 
         /// <summary>Set when the key is revoked. A revoked key is permanently rejected.</summary>
         public DateTime? RevokedAt { get; set; }
+
+        /// <summary>
+        /// Comma-separated scope list, e.g. <c>read</c> or <c>read,write</c>.
+        /// Keys created before scopes existed carry <c>read</c>, which keeps them
+        /// read-only. See <see cref="ApiKeyScopes"/>.
+        /// </summary>
+        [Required]
+        [StringLength(64)]
+        public string Scopes { get; set; } = ApiKeyScopes.Default;
 
         public virtual User User { get; set; } = null!;
 

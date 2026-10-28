@@ -3205,6 +3205,21 @@
   <data name="ApiKeyPrefix" xml:space="preserve">
     <value>Prefix</value>
   </data>
+  <data name="ApiKeyScopes" xml:space="preserve">
+    <value>Scopes</value>
+  </data>
+  <data name="ApiKeyScopeRead" xml:space="preserve">
+    <value>Read only</value>
+  </data>
+  <data name="ApiKeyScopeReadWrite" xml:space="preserve">
+    <value>Read + write</value>
+  </data>
+  <data name="ApiKeyWriteAccess" xml:space="preserve">
+    <value>Allow write access</value>
+  </data>
+  <data name="ApiKeyWriteAccessHelp" xml:space="preserve">
+    <value>Write access lets this key create and update accounts, import and move messages, and manage keys. Deleting data additionally requires the matching Api settings.</value>
+  </data>
   <data name="ApiKeyCreatedColumn" xml:space="preserve">
     <value>Created</value>
   </data>

@@ -27,7 +27,7 @@ Set it up once, keep every message, and find it again years later.
 
     ---
 
-    Read your archive from scripts and AI agents — read-only, scoped API keys.
+    Read and manage your archive from scripts and AI agents — scoped API keys.
 
     [:octicons-arrow-right-24: REST API](API.md) · [:octicons-arrow-right-24: MCP server](MCP.md)
 
@@ -328,7 +328,7 @@ Set it up once, keep every message, and find it again years later.
 
     ---
 
-    Read-only access to the archive with scoped per-user API keys.
+    Read and write access to the archive with scoped per-user API keys.
 
     [:octicons-arrow-right-24: Read](API.md)
 

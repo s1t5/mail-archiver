@@ -1,22 +1,32 @@
-# Read-Only REST API (v1)
+# REST API (v1)
 
-Mail Archiver ships an optional, **read-only** REST API for programmatic access
-to archived mail. It is designed for automation and integration use cases
-(reporting, e-discovery exports, monitoring) without going through the web UI.
+Mail Archiver ships an optional REST API for programmatic access to archived
+mail. It is designed for automation and integration use cases (reporting,
+e-discovery exports, monitoring, feeding an archive from a script) without going
+through the web UI.
 
-The point is to let a script or AI agent read archived mail **without ever
+The point is to let a script or AI agent work with archived mail **without ever
 exposing mailbox credentials or talking to the mail provider.** A scoped
-per-user API key is a capability to *read the archive*, not a credential to *be
-the mailbox* — it inherits only its owner's mailbox permissions, grants no write
-path, and can be revoked instantly without touching the underlying mail account.
+per-user API key is a capability on *the archive*, not a credential to *be the
+mailbox* — it inherits only its owner's mailbox permissions and can be revoked
+instantly without touching the underlying mail account.
 
 > ⚠️ **The API is disabled by default.** It must be explicitly enabled in
 > configuration (see [Enabling the API](#enabling-the-api)). When disabled,
 > every `/api/*` route returns `404 Not Found`.
 
-The API is **read-only by design**: it exposes accounts, folders, message
-search, message detail and attachment downloads. It never creates, modifies or
-deletes data.
+The API is **read-only unless you opt in to writes**:
+
+- **Read endpoints** (accounts, folders, message search, message detail,
+  attachment downloads, stats) work with any active key.
+- **Write endpoints** (create/update/delete accounts, import/move/delete
+  messages, manage keys) require **all** of: `Api:AllowWrites=true`, a key that
+  carries the `write` scope, and — for destructive calls — the matching
+  `Api:AllowAccountDeletion` / `Api:AllowEmailDeletion` switch. Deleting archived
+  mail is additionally blocked while `DeletionPolicy:DeletionAllowed` is `false`.
+
+Every key that existed before the write API was introduced is stored with the
+`read` scope only, so upgrading never widens what an existing key can do.
 
 ## Table of contents
 
@@ -25,19 +35,33 @@ deletes data.
   - [API key format](#api-key-format)
   - [Key lifecycle](#key-lifecycle)
   - [Permission model](#permission-model)
+  - [Scopes](#scopes)
   - [Security rationale](#security-rationale)
 - [Conventions](#conventions)
   - [Base URL and versioning](#base-url-and-versioning)
   - [Pagination](#pagination)
   - [Errors](#errors)
   - [Rate limiting](#rate-limiting)
-- [Endpoints](#endpoints)
+- [Read endpoints](#read-endpoints)
   - [List accounts](#list-accounts)
+  - [Get account](#get-account)
   - [List folders](#list-folders)
   - [Search messages](#search-messages)
   - [Get message](#get-message)
   - [Download attachment](#download-attachment)
   - [Stats](#stats)
+- [Write endpoints](#write-endpoints)
+  - [Create account](#create-account)
+  - [Update account (PUT)](#update-account-put)
+  - [Patch account (PATCH)](#patch-account-patch)
+  - [Delete account](#delete-account)
+  - [Account deletion status](#account-deletion-status)
+  - [Import message](#import-message)
+  - [Move message](#move-message)
+  - [Delete message](#delete-message)
+  - [List keys](#list-keys)
+  - [Create key](#create-key)
+  - [Revoke key](#revoke-key)
 - [Data types](#data-types)
 - [Access logging](#access-logging)
 - [OpenAPI and Swagger UI](#openapi-and-swagger-ui)
@@ -51,42 +75,32 @@ equivalent environment variables, e.g. `Api__Enabled=true`):
 ```json
 "Api": {
   "Enabled": false,
+  "AllowWrites": false,
+  "AllowAccountDeletion": false,
+  "AllowEmailDeletion": false,
   "AllowAttachmentDownloads": true,
   "EnableSwaggerUi": true,
   "DefaultPageSize": 20,
   "MaxPageSize": 100,
-  "RateLimitPerMinute": 120
+  "RateLimitPerMinute": 120,
+  "MaxImportBytes": 25000000
 }
 ```
 
-
-### Key lifecycle
-
-1. **Create** — a user creates a key with a descriptive `Name` and an optional
-   expiry. The response shows the plaintext key once.
-2. **Use** — send the key as a bearer token. Each accepted request refreshes the
-   key's `LastUsedAt` (writes are throttled to at most once every ~5 minutes to
-   avoid a write on every call).
-3. **Expire** — if `ExpiresAt` is set and in the past, the key is rejected.
-4. **Revoke** — the owning user or an administrator revokes the key
-   (`RevokedAt` is set); it is immediately and permanently rejected.
-
-A key is **active** when it is not revoked, not expired, **and** its owning user
-is still active. A key inactive for any of these reasons is rejected with `401`.
-
-### Permission model
-
-An API key inherits the exact permissions of the user who owns it. The
-authenticated principal carries the same claims a normal web login issues, so
-all existing authoriz
 | Setting | Default | Description |
 | --- | --- | --- |
 | `Enabled` | `false` | Master switch. When `false`, all `/api/*` routes return `404` and the OpenAPI document / Swagger UI are not mapped. |
+| `AllowWrites` | `false` | Master switch for every non-GET endpoint. When `false`, write calls return `403` even for a write-scoped key. |
+| `AllowAccountDeletion` | `false` | Allows `DELETE /api/v1/accounts/{id}`, which deletes the account **and every message archived for it**. |
+| `AllowEmailDeletion` | `false` | Allows `DELETE /api/v1/emails/{id}`. |
 | `AllowAttachmentDownloads` | `true` | When `false`, the attachment download endpoint returns `403`. Metadata about attachments is still returned by the message detail endpoint. |
 | `EnableSwaggerUi` | `true` | When `true` (and `Enabled` is `true`), mounts Swagger UI at `/apidocs` and the OpenAPI document at `/apidocs/spec/v1.json`. Both require an authenticated **web (cookie) session** — they are not part of `/api/` and are not reachable with an API key. |
 | `DefaultPageSize` | `20` | Page size used when a request omits `pageSize`. |
 | `MaxPageSize` | `100` | Upper bound; larger `pageSize` values are clamped to this. |
 | `RateLimitPerMinute` | `120` | Fixed-window request budget per API key per minute (see [Rate limiting](#rate-limiting)). |
+| `MaxImportBytes` | `25000000` | Upper bound for the decoded message accepted by `POST /api/v1/emails` (25 MB). Larger payloads return `413`. |
+
+
 
 ## Authentication
 
@@ -102,7 +116,8 @@ API has no CSRF surface. Authentication failures return `401` with a
 **never** redirects to the login page.
 
 Keys are managed self-service in the web UI under **API Keys** (each user
-manages their own keys; administrators can view and revoke any user's keys).
+manages their own keys; administrators can view and revoke any user's keys) or
+through the [key endpoints](#list-keys) with a write-scoped key.
 
 ### API key format
 
@@ -127,8 +142,8 @@ be retrieved afterwards; a lost key must be revoked and replaced.
 
 ### Key lifecycle
 
-1. **Create** — a user creates a key with a descriptive `Name` and an optional
-   expiry. The response shows the plaintext key once.
+1. **Create** — a user creates a key with a descriptive `Name`, an optional
+   expiry and an optional write scope. The response shows the plaintext key once.
 2. **Use** — send the key as a bearer token. Each accepted request refreshes the
    key's `LastUsedAt` (writes are throttled to at most once every ~5 minutes to
    avoid a write on every call).
@@ -150,6 +165,35 @@ all existing authorization logic applies unchanged:
   (`UserMailAccount`). Accounts and messages outside that set are treated as
   **non-existent**: requests for them return `404`, not `403`, so the API does
   not leak the existence of accounts a caller cannot see.
+- **Account management** (create, update, delete) additionally requires the
+  `Admin` or `SelfManager` role, mirroring the web UI. A self-manager's new
+  account is automatically assigned to them; administrators see every account.
+
+### Scopes
+
+A key carries a scope list, stored as a comma-separated value:
+
+| Scope | Grants |
+| --- | --- |
+| `read` | Every GET endpoint. This is the default and the only scope of keys created before the write API existed. |
+| `write` | Every non-GET endpoint (account create/update/delete, message import/move/delete, key management). |
+
+Write access is a **three-part** decision — all of these must be true:
+
+1. `Api:AllowWrites=true` in the deployment configuration,
+2. the key carries the `write` scope,
+3. for deletions, the matching `Api:AllowAccountDeletion` /
+   `Api:AllowEmailDeletion` switch is on and `DeletionPolicy:DeletionAllowed`
+   is `true`.
+
+A read-only key cannot escalate itself: creating a key through the API requires
+an existing write-scoped key. Set the scope when creating a key in the web UI
+with **Allow write access** (the checkbox is off by default).
+
+```
+read            # read-only (default)
+read,write      # full access, subject to the Api switches above
+```
 
 ### Security rationale
 
@@ -160,6 +204,10 @@ all existing authorization logic applies unchanged:
   access being recorded in the [access log](#access-logging).
 - **No cookies on `/api`.** Cookie authentication is not accepted on `/api`
   routes, eliminating CSRF concerns for the API.
+- **Least privilege for writes.** A key is read-only unless it was explicitly
+  created with the `write` scope, and writes stay disabled until the deployment
+  enables `Api:AllowWrites`. A leaked read-only key cannot modify or delete the
+  archive, and destructive endpoints need a second switch on top of the scope.
 - **Transport.** Always serve the API over HTTPS in production so bearer tokens
   are not exposed on the wire.
 
@@ -210,10 +258,13 @@ Errors use [RFC 7807](https://datatracker.ietf.org/doc/html/rfc7807)
 
 | Status | When |
 | --- | --- |
-| `400 Bad Request` | Malformed parameters (e.g. unparseable date, invalid `sortBy`). |
+| `400 Bad Request` | Malformed parameters (e.g. unparseable date, invalid `sortBy`), an unparsable message body, or a validation error. Validation failures carry an `errors` object keyed by field name. |
 | `401 Unauthorized` | Missing, malformed, expired, revoked or otherwise invalid key. Includes `WWW-Authenticate: Bearer`. |
-| `403 Forbidden` | Attachment downloads requested while `AllowAttachmentDownloads=false`. |
+| `403 Forbidden` | The call is understood but not permitted: attachment downloads disabled, write API disabled (`Api:AllowWrites=false`), a read-only key on a write endpoint, a destructive endpoint disabled by its `Api` switch, or a missing `Admin`/`SelfManager` role. |
 | `404 Not Found` | Resource does not exist **or** is outside the caller's permitted accounts. Also returned for every `/api/*` route when `Api:Enabled=false`. |
+| `409 Conflict` | The resource is in a state that forbids the call: duplicate account address, duplicate message on import, deletion blocked by `DeletionPolicy`, or a retention-locked message. |
+| `413 Payload Too Large` | Import payload exceeds `Api:MaxImportBytes`. |
+| `422 Unprocessable Entity` | The message parsed but could not be stored (importer failure); `detail` carries the reason. |
 | `429 Too Many Requests` | Rate limit exceeded. |
 | `500 Internal Server Error` | Unexpected server error (problem+json, never the HTML error page). |
 
@@ -223,7 +274,7 @@ Requests are limited by a fixed-window policy of `Api:RateLimitPerMinute`
 requests per minute (default `120`), partitioned by API key prefix (falling
 back to client IP when no key is present). Exceeding the budget returns `429`.
 
-## Endpoints
+## Read endpoints
 
 > All examples assume the API is enabled and `$KEY` holds a valid key.
 
@@ -252,6 +303,20 @@ curl -H "Authorization: Bearer $KEY" https://host/api/v1/accounts
   }
 ]
 ```
+
+### Get account
+
+```
+GET /api/v1/accounts/{id}
+```
+
+Returns the full configuration of one account — retention windows, sync
+intervals, excluded folders, IMAP host/port/username and OAuth ids. Secrets are
+never returned; `hasPassword` and `hasClientSecret` tell you whether a secret is
+stored. Returns `404` if the account does not exist or is not visible to the
+caller.
+
+Returns a [`MailAccountDetailDto`](#mailaccountdetaildto).
 
 ### List folders
 
@@ -395,6 +460,241 @@ curl -H "Authorization: Bearer $KEY" https://host/api/v1/stats
 | `attachments` | int | Attachments on those visible messages |
 | `databaseSizeInMB` | string | Whole PostgreSQL database size in MB; empty for non-admin keys |
 
+## Write endpoints
+
+> Every write endpoint requires `Api:AllowWrites=true` **and** a key with the
+> `write` scope. Without the scope the API answers `403` with
+> `"This API key is read-only."`; with the master switch off it answers `403`
+> with `"Write access is disabled."`. Deletions add the policy checks described
+> below.
+
+### Create account
+
+```
+POST /api/v1/accounts
+```
+
+Requires the `Admin` or `SelfManager` role. Creates a mail account with the same
+fields the web UI offers. `provider` is `IMAP` (default), `M365` or `MSA`;
+`IMPORT` accounts are created by the import pipeline and are rejected here.
+
+```bash
+curl -X POST -H "Authorization: Bearer $KEY" -H "Content-Type: application/json" \
+  -d '{
+        "name": "Support Mailbox",
+        "emailAddress": "support@example.com",
+        "provider": "IMAP",
+        "imapServer": "imap.example.com",
+        "imapPort": 993,
+        "username": "support@example.com",
+        "password": "app-password",
+        "useSsl": true
+      }' \
+  https://host/api/v1/accounts
+```
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `name` | string | required, max 200 characters |
+| `emailAddress` | string | required, must be unique (case-insensitive) |
+| `provider` | string | `IMAP` (default), `M365`, `MSA` |
+| `isEnabled` | bool | default `true` |
+| `imapServer`, `imapPort`, `username`, `password`, `useSsl` | | required for `IMAP`; port defaults to `993`, `useSsl` to `true` |
+| `clientId`, `clientSecret`, `tenantId` | string | required for `M365`; `clientId` required for `MSA` unless a default client id is configured |
+| `excludedFolders` | string[] | folder paths excluded from sync |
+| `deleteAfterDays` | int | server-side retention |
+| `localRetentionDays` | int | requires `deleteAfterDays` and must be ≥ it |
+| `syncIntervalMinutes`, `fullSyncIntervalHours` | int | per-account sync schedule |
+
+Returns `201 Created` with a `Location` header and the
+[`MailAccountDetailDto`](#mailaccountdetaildto). `400` carries an `errors`
+object keyed by field name; `409` means an account with that address already
+exists.
+
+!!! note "No connection test"
+    Unlike the web UI, the API does not open an IMAP connection while creating
+    the account — a REST call should not block on a foreign server. A wrong
+    password surfaces on the first sync and is reported in the sync log.
+
+### Update account (PUT)
+
+```
+PUT /api/v1/accounts/{id}
+```
+
+Replaces the mutable configuration of an account. The provider and the e-mail
+address are immutable. Omitted nullable settings are **cleared** — use this
+endpoint when you want to remove a retention window. Secrets are write-only:
+omit `password` / `clientSecret` to keep the stored value, send `""` to clear it.
+
+Returns `200` with the updated [`MailAccountDetailDto`](#mailaccountdetaildto).
+
+### Patch account (PATCH)
+
+```
+PATCH /api/v1/accounts/{id}
+```
+
+Partial update: only properties supplied with a non-null value are changed. Use
+this endpoint to disable an account or change a single setting without restating
+the whole configuration.
+
+```bash
+curl -X PATCH -H "Authorization: Bearer $KEY" -H "Content-Type: application/json" \
+  -d '{ "isEnabled": false }' https://host/api/v1/accounts/1
+```
+
+!!! note
+    Because `null` means "unchanged" here, PATCH cannot clear a nullable setting
+    (`deleteAfterDays`, `localRetentionDays`, …). Send a PUT for that.
+
+### Delete account
+
+```
+DELETE /api/v1/accounts/{id}
+```
+
+Deletes the account **and every message archived for it**. Requires
+`Api:AllowAccountDeletion=true`; when `DeletionPolicy:DeletionAllowed=false` the
+call is refused with `409`. The deletion runs as a background job (the same job
+the web UI uses), so the response is immediate:
+
+```json
+{
+  "jobId": "3f6c1b0e-9d2a-4a51-8f0e-6c1d2b7a9e44",
+  "accountId": 1,
+  "accountName": "Support Mailbox",
+  "status": "Queued",
+  "currentPhase": "Initializing",
+  "created": "2026-10-28T14:02:11Z",
+  "started": null,
+  "completed": null,
+  "deletedEmails": 0,
+  "totalEmails": 0,
+  "deletedAttachments": 0,
+  "totalAttachments": 0,
+  "errorMessage": null
+}
+```
+
+Returns `202 Accepted` with `Location: /api/v1/accounts/deletions/{jobId}`.
+
+### Account deletion status
+
+```
+GET /api/v1/accounts/deletions/{jobId}
+```
+
+Returns the [`AccountDeletionJobDto`](#accountdeletionjobdto) for a job started
+through the API: `status` (`Queued`, `Running`, `Completed`, `Failed`,
+`Cancelled`), `currentPhase`, `deletedEmails`/`totalEmails`,
+`deletedAttachments`/`totalAttachments` and `errorMessage`. Returns `404` when
+the job is unknown or belongs to an account outside the caller's permissions.
+
+### Import message
+
+```
+POST /api/v1/emails
+```
+
+Stores a raw RFC 822 message in the archive of one account. The message is only
+written to the archive — nothing is uploaded to the IMAP server.
+
+```bash
+# base64 (default)
+curl -X POST -H "Authorization: Bearer $KEY" -H "Content-Type: application/json" \
+  -d "{\"accountId\": 1, \"folder\": \"INBOX\", \"content\": \"$(base64 -w0 mail.eml)\"}" \
+  https://host/api/v1/emails
+
+# or plain text
+curl -X POST -H "Authorization: Bearer $KEY" -H "Content-Type: application/json" \
+  -d '{"accountId": 1, "content": "From: …", "encoding": "utf8"}' \
+  https://host/api/v1/emails
+```
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `accountId` | int | required, must be visible to the caller |
+| `folder` | string | archive folder, default `INBOX`, max 255 characters |
+| `content` | string | required, the raw message |
+| `encoding` | string | `base64` (default) or `utf8` |
+
+Returns `201 Created` with `{ id, accountId, folder, messageId, subject }` and a
+`Location` header pointing at the message detail endpoint.
+
+- `400` — malformed JSON/base64 or a message that cannot be parsed.
+- `409` — the same message is already archived; the body carries `existingId`.
+- `413` — the decoded message exceeds `Api:MaxImportBytes`.
+
+Attachments, body fallbacks, calendar parts and duplicate detection are handled
+by the same importer the EML/MBox import uses.
+
+### Move message
+
+```
+PATCH /api/v1/emails/{id}
+```
+
+```json
+{ "folderName": "Archiv/2026" }
+```
+
+Moves the message to another folder **inside the archive**. Message content is
+immutable (compliance), which is why the folder is the only mutable field — this
+also works for locked messages, because the database trigger explicitly allows
+`FolderName` changes. Returns `200` with the updated
+[`EmailSummaryDto`](#emailsummarydto).
+
+### Delete message
+
+```
+DELETE /api/v1/emails/{id}
+```
+
+Deletes one archived message. Requires `Api:AllowEmailDeletion=true` and
+`DeletionPolicy:DeletionAllowed=true`. A message locked by the retention policy
+cannot be deleted and returns `409`; it is unlocked only by retention expiry or
+by deleting the whole account.
+
+Returns `204 No Content`. The deletion is written to the access log
+(`Deletion`).
+
+### List keys
+
+```
+GET /api/v1/keys
+```
+
+Lists the caller's own keys (never another user's, even for an administrator):
+`id`, `name`, `keyPrefix`, `scopes`, `createdAt`, `lastUsedAt`, `expiresAt`,
+`revokedAt`, `isActive`. The key value itself is not recoverable.
+
+### Create key
+
+```
+POST /api/v1/keys
+```
+
+```json
+{ "name": "nightly export", "expiresAt": "2027-01-01T00:00:00Z", "scopes": ["read"] }
+```
+
+Creates a key for the caller. `scopes` defaults to `["read"]`;
+`["read","write"]` creates a key that may call the write endpoints. Creating a
+key requires a write-scoped key, so a read-only key cannot escalate itself.
+
+Returns `201 Created` with the plaintext `key` — **the only time it is ever
+returned**.
+
+### Revoke key
+
+```
+DELETE /api/v1/keys/{id}
+```
+
+Revokes one of the caller's keys (administrators may revoke any key). Returns
+`204 No Content`; an unknown or foreign key returns `404`.
+
 ## Data types
 
 ### MailAccountDto
@@ -409,6 +709,70 @@ curl -H "Authorization: Bearer $KEY" https://host/api/v1/stats
 | `lastSync` | datetime | UTC |
 
 No credential fields are ever serialized.
+
+### MailAccountDetailDto
+
+All of [`MailAccountDto`](#mailaccountdto) plus the account configuration:
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `lastFullSync` | datetime? | UTC |
+| `imapServer`, `imapPort`, `useSsl`, `username` | | IMAP settings |
+| `clientId`, `tenantId` | string | OAuth settings |
+| `hasPassword` | bool | true when an IMAP password is stored (value never returned) |
+| `hasClientSecret` | bool | true when an OAuth client secret is stored (value never returned) |
+| `excludedFolders` | string[] | Folder paths excluded from sync |
+| `deleteAfterDays` | int? | Server-side retention |
+| `localRetentionDays` | int? | Local archive retention |
+| `syncIntervalMinutes`, `fullSyncIntervalHours` | int? | Per-account schedule |
+
+### Write request bodies
+
+| Type | Used by | Fields |
+| --- | --- | --- |
+| `CreateMailAccountRequest` | `POST /api/v1/accounts` | `name`, `emailAddress`, `provider`, `isEnabled`, `imapServer`, `imapPort`, `username`, `password`, `useSsl`, `excludedFolders`, `deleteAfterDays`, `localRetentionDays`, `syncIntervalMinutes`, `fullSyncIntervalHours`, `clientId`, `clientSecret`, `tenantId` |
+| `UpdateMailAccountRequest` | `PUT` / `PATCH /api/v1/accounts/{id}` | same as create, without `emailAddress` and `provider` |
+| `ImportEmailRequest` | `POST /api/v1/emails` | `accountId`, `folder`, `content`, `encoding` |
+| `MoveEmailRequest` | `PATCH /api/v1/emails/{id}` | `folderName` |
+| `CreateApiKeyRequest` | `POST /api/v1/keys` | `name`, `expiresAt`, `scopes` |
+
+### ImportEmailResultDto
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `id` | int | Id of the archived message |
+| `accountId` | int | |
+| `folder` | string | Folder the message was stored in |
+| `messageId` | string | Message-Id header (or the deterministic fallback id) |
+| `subject` | string | |
+
+### ApiKeyDto
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `id` | int | |
+| `name` | string | |
+| `keyPrefix` | string | First characters of the key, not a secret |
+| `scopes` | string[] | `["read"]` or `["read","write"]` |
+| `createdAt`, `lastUsedAt`, `expiresAt`, `revokedAt` | datetime? | UTC |
+| `isActive` | bool | Not revoked and not expired |
+
+`CreatedApiKeyDto` adds `key` — the plaintext key, returned only by
+`POST /api/v1/keys`.
+
+### AccountDeletionJobDto
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `jobId` | string | |
+| `accountId` | int | |
+| `accountName` | string | |
+| `status` | string | `Queued`, `Running`, `Completed`, `Failed`, `Cancelled` |
+| `currentPhase` | string | Human-readable phase of the deletion |
+| `created`, `started`, `completed` | datetime? | UTC |
+| `deletedEmails`, `totalEmails` | int | Progress counters |
+| `deletedAttachments`, `totalAttachments` | int | Progress counters |
+| `errorMessage` | string? | Set when `status` is `Failed` |
 
 ### FolderNodeDto
 
@@ -470,6 +834,11 @@ web UI (visible under **Logs**), attributed to the key's owning user:
 | Search messages | `Search` |
 | Get message | `Open` |
 | Download attachment | `Download` |
+| Create / update / delete account | `Account` |
+| Import message | `Account` |
+| Move message | `Account` |
+| Delete message | `Deletion` |
+| Create / revoke API key | `Account` |
 
 ## OpenAPI and Swagger UI
 
