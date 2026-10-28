@@ -7,7 +7,6 @@
 *.sln.docstates
 *.userprefs
 .editorconfig
-nextrelease.md
 
 # Import
 uploads/*
@@ -305,9 +304,6 @@ update_resource_files.ps1
 /exports
 /obj
 /.clinerules
-nextrelease.md
-.gitignore
-AGENTS.md
 MailArchiver.sln
 tests/MailArchiver.Tests/appsettings.Test.json
 mail-archiver-review-*.md
