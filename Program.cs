@@ -121,6 +121,10 @@ builder.Services.Configure<OffloadOptions>(
 builder.Services.Configure<TenantManagementOptions>(
     builder.Configuration.GetSection(TenantManagementOptions.TenantManagement));
 
+// Add Mailcow Options
+builder.Services.Configure<MailcowOptions>(
+    builder.Configuration.GetSection(MailcowOptions.Mailcow));
+
 // Add Mail Sync Options
 builder.Services.Configure<MailSyncOptions>(
     builder.Configuration.GetSection(MailSyncOptions.MailSync));
@@ -202,6 +206,11 @@ builder.Services.AddScoped<MailArchiver.Utilities.DateTimeHelper>();
 // Add HTTP Client factory (used by VersionUpdateService for GitHub API calls)
 builder.Services.AddHttpClient("GitHubReleases");
 builder.Services.AddHttpClient("MsaOAuth");
+builder.Services.AddHttpClient<MailArchiver.Services.Mailcow.MailcowApiClient>(client =>
+    client.Timeout = TimeSpan.FromSeconds(30))
+    .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { AllowAutoRedirect = false })
+    .RedactLoggedHeaders(new[] { "X-API-Key" });
+builder.Services.AddScoped<MailArchiver.Services.Mailcow.MailcowProvisioningService>();
 
 // Register CSV import options for bulk IMAP account import
 builder.Services.Configure<CsvImportOptions>(builder.Configuration.GetSection(CsvImportOptions.CsvImport));

@@ -63,6 +63,10 @@ namespace MailArchiver.Models.ViewModels
 
         public int? CopyCredentialsFromAccountId { get; set; }
 
+        public bool MailcowSelected { get; set; }
+
+        public int? MailcowInstanceId { get; set; }
+
         [Display(Name = "Import from tenant")]
         public bool ImportEntireTenant { get; set; } = true;
 

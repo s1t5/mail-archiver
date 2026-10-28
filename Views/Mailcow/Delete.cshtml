@@ -1,0 +1,43 @@
+@model MailArchiver.ViewModels.DeleteMailcowInstanceViewModel
+@inject Microsoft.Extensions.Localization.IStringLocalizer<MailArchiver.SharedResource> L
+@{ ViewData["Title"] = L["MailcowDeleteInstance"]; }
+<div class="container">
+    <h1>@L["MailcowDeleteInstance"]</h1>
+
+    @if (TempData["ErrorMessage"] is string error)
+    {
+        <div class="alert alert-danger" role="alert"><i class="bi bi-exclamation-triangle"></i> @error</div>
+    }
+
+    <div class="card mb-3">
+        <div class="card-body">
+            <h5 class="card-title">@Model.Name</h5>
+            <dl class="row mb-0 small">
+                <dt class="col-sm-3">@L["MailcowUrl"]</dt><dd class="col-sm-9">@Model.ApiUrl</dd>
+                <dt class="col-sm-3">@L["MailcowImapHost"]</dt><dd class="col-sm-9">@Model.ImapHost:@Model.ImapPort</dd>
+                <dt class="col-sm-3">@L["MailcowMailboxes"]</dt><dd class="col-sm-9">@Model.BindingCount</dd>
+                <dt class="col-sm-3">@L["MailcowActive"]</dt><dd class="col-sm-9">@Model.ActiveBindingCount</dd>
+            </dl>
+        </div>
+    </div>
+
+    @if (Model.HasRemainingAccess)
+    {
+        <div class="alert alert-warning" role="alert">
+            <i class="bi bi-shield-exclamation"></i> @L["MailcowDeleteBlockedHelp"]
+        </div>
+        <a asp-action="Mailboxes" asp-route-id="@Model.Id" class="btn btn-primary">@L["MailcowManage"]</a>
+        <a asp-action="Index" class="btn btn-outline-secondary">@L["BackToList"]</a>
+    }
+    else
+    {
+        <div class="alert alert-info" role="alert">
+            <i class="bi bi-info-circle"></i> @L["MailcowDeleteHelp"]
+        </div>
+        <form asp-action="Delete" asp-route-id="@Model.Id" method="post">
+            <input type="hidden" asp-for="Id" />
+            <button type="submit" class="btn btn-danger">@L["MailcowDeleteConfirm"]</button>
+            <a asp-action="Index" class="btn btn-outline-secondary">@L["BackToList"]</a>
+        </form>
+    }
+</div>

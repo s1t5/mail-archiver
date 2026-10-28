@@ -133,6 +133,7 @@ nav:
   - Provider Guides:
       - Azure App Registration (M365): AZURE_APP_REGISTRATION_M365.md
       - M365 Tenant Mailbox Import: M365TenantImport.md
+      - Mailcow Instances: Mailcow.md
       - Personal Microsoft Accounts: MSA_Outlook_Setup.md
       - Gmail Best Practices: GmailBestPractices.md
       - Yahoo Mail Limitations: YahooMailExportLimitations.md
