@@ -97,7 +97,11 @@ To accept small clock differences, codes from the immediately preceding and
 following time step are also accepted.
 
 **"Remember me"** carries over from the login form: if you ticked it, you stay
-signed in across browser restarts after completing the 2FA step.
+signed in across browser restarts after completing the 2FA step. The selection
+is held in the server-side session while the 2FA step is pending, so it only
+survives if you enter the code within the session's **60-minute** idle timeout.
+Details and limits (7-day absolute lifetime, no effect for OIDC users) are in
+[User Management → Remember Me](UserManagement.md#staying-signed-in-the-remember-me-checkbox).
 
 ### Using a backup code
 

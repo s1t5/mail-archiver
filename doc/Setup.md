@@ -240,7 +240,7 @@ docker compose restart
 ### 🔐 Authentication Settings
 - `Authentication__Username`: The username for the admin account.
 - `Authentication__Password`: The password for the admin account.
-- `Authentication__SessionTimeoutMinutes`: The session timeout in minutes.
+- `Authentication__SessionTimeoutMinutes`: The session timeout in minutes. This applies to the non-persistent login cookie; users who tick **Remember Me** on the login form get a persistent cookie valid for a fixed 7 days instead. See [User Management → Remember Me](UserManagement.md#staying-signed-in-the-remember-me-checkbox).
 - `Authentication__CookieName`: The name of the authentication cookie.
 - `Authentication__CookieSameSite`: Configures the SameSite attribute for authentication, session, and CSRF protection cookies. Valid values are:
   - `Strict` (default): Maximum security. Cookies are only sent with same-site requests. This may cause issues when navigating to the application from external links (e.g., clicking a link from another website), as the existing session won't be recognized.

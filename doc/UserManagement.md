@@ -104,6 +104,67 @@ login forces a change:
 
 Once you have changed the default password, the forced change never appears again.
 
+## 🕒 Staying Signed In — the "Remember Me" Checkbox
+
+The login form has a checkbox labelled **Remember Me** (*angemeldet bleiben* in
+the German UI). It does exactly one thing: it decides whether the
+authentication cookie is a session cookie or a persistent one.
+
+| | Checkbox unticked | Checkbox ticked |
+|---|---|---|
+| Cookie lifetime | `Authentication__SessionTimeoutMinutes` (default **60 minutes**) | **7 days** |
+| Cookie type | Session cookie — discarded when the browser closes | Persistent cookie — stored on disk |
+| Browser restart | You must log in again | You stay signed in |
+| Idle timeout | Extended on every request (`SlidingExpiration`) | Extended on every request, up to the absolute 7-day limit |
+| Sign out | Ends the session immediately | Ends the session immediately |
+
+So the checkbox turns "signed in for this browser session, at most 60 minutes
+idle" into "signed in for up to 7 days, including browser and machine
+restarts".
+
+### Things the checkbox does not do
+
+- **It does not remember your password or username.** The login form is not
+  pre-filled on the next visit; only the session cookie is kept.
+- **The 7 days are a hard limit and cannot be configured.** The value is fixed
+  in the code (`Auth/Services/CookieAuthenticationService.cs`). Only the
+  non-persistent lifetime follows `Authentication__SessionTimeoutMinutes`.
+- **It is not an inactivity timer.** 7 days are counted from the login; once
+  they are up, a new login is required even if you used the archive a minute
+  ago.
+- **It does not survive a logout.** Clicking *Logout* deletes the cookie
+  regardless of the checkbox.
+
+### Interaction with 2FA
+
+With two-factor authentication enabled, the checkbox is remembered during the
+2FA step and applied only after the second factor succeeds. The 2FA hand-off
+lives in the server-side session, which has a **60-minute idle timeout** of its
+own: if the code is not entered within that window, the login is aborted and
+the checkbox selection is lost with it.
+
+### Interaction with the application session
+
+Mail Archiver keeps a second, separate server-side session for short-lived
+state — the 2FA hand-off, the batch-restore selection and the last search
+state. That session has a fixed **60-minute idle timeout** and is *not*
+persistent. After a browser restart with a valid "Remember Me" cookie you are
+signed in, but any pending operation held in that session starts over.
+
+### Interaction with OIDC / SSO
+
+Users who sign in through an external identity provider never get the
+persistent cookie: the OIDC callback always starts the session with
+`persistAuthentication: false`. For those accounts the checkbox has **no
+effect** — how long a session lasts is decided by the identity provider's
+session settings.
+
+> ⚠️ **Security note.** On a shared or unattended machine, leave the checkbox
+> unticked — a persistent cookie keeps the archive accessible for up to 7 days
+> without a password. In environments where that is unacceptable, shorten
+> `Authentication__SessionTimeoutMinutes` and require users not to use the
+> checkbox, or use OIDC where the provider enforces its own session policy.
+
 ## 🔒 Security Considerations
 
 1. Use strong passwords for all user accounts
