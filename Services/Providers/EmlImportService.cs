@@ -315,12 +315,17 @@ namespace MailArchiver.Services.Providers
                         continue;
                     }
 
+                    // The file content is the original message, also when headers had to be recovered
+                    var rawMessage = mailImporter.StoresRawMessages
+                        ? new RawMessageCapture(memoryStream.ToArray(), RawMessageSource.EmlFile)
+                        : null;
+
                     mailCleaner.PreCleanMessage(message);
 
                     job.CurrentEmailSubject = message.Subject;
                     job.ProcessedBytes = memoryStream.Position;
 
-                    var importResult = await mailImporter.ImportEmailToDatabase(message, targetAccount, job.JobId, targetFolder);
+                    var importResult = await mailImporter.ImportEmailToDatabase(message, targetAccount, job.JobId, targetFolder, rawMessage);
                     message?.Dispose();
 
                     if (importResult.Success) job.SuccessCount++;

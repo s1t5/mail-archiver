@@ -129,6 +129,10 @@ builder.Services.Configure<MailcowOptions>(
 builder.Services.Configure<MailSyncOptions>(
     builder.Configuration.GetSection(MailSyncOptions.MailSync));
 
+// Add Raw Message Options (storage of the original message, opt-in)
+builder.Services.Configure<RawMessageOptions>(
+    builder.Configuration.GetSection(RawMessageOptions.RawMessages));
+
 // Add Upload Options
 builder.Services.Configure<UploadOptions>(
     builder.Configuration.GetSection(UploadOptions.Upload));

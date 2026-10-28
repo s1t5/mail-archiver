@@ -37,6 +37,8 @@ deletes data.
   - [Search messages](#search-messages)
   - [Get message](#get-message)
   - [Download attachment](#download-attachment)
+  - [Download message (.eml)](#download-message-eml)
+  - [Download original message](#download-original-message)
   - [Stats](#stats)
 - [Data types](#data-types)
 - [Access logging](#access-logging)
@@ -52,6 +54,7 @@ equivalent environment variables, e.g. `Api__Enabled=true`):
 "Api": {
   "Enabled": false,
   "AllowAttachmentDownloads": true,
+  "AllowMessageDownloads": true,
   "EnableSwaggerUi": true,
   "DefaultPageSize": 20,
   "MaxPageSize": 100,
@@ -83,6 +86,7 @@ all existing authoriz
 | --- | --- | --- |
 | `Enabled` | `false` | Master switch. When `false`, all `/api/*` routes return `404` and the OpenAPI document / Swagger UI are not mapped. |
 | `AllowAttachmentDownloads` | `true` | When `false`, the attachment download endpoint returns `403`. Metadata about attachments is still returned by the message detail endpoint. |
+| `AllowMessageDownloads` | `true` | When `false`, the complete-message endpoints (`/eml` and `/raw`) return `403`. A complete message carries its attachments, so switch this off together with `AllowAttachmentDownloads`. |
 | `EnableSwaggerUi` | `true` | When `true` (and `Enabled` is `true`), mounts Swagger UI at `/apidocs` and the OpenAPI document at `/apidocs/spec/v1.json`. Both require an authenticated **web (cookie) session** — they are not part of `/api/` and are not reachable with an API key. |
 | `DefaultPageSize` | `20` | Page size used when a request omits `pageSize`. |
 | `MaxPageSize` | `100` | Upper bound; larger `pageSize` values are clamped to this. |
@@ -212,7 +216,7 @@ Errors use [RFC 7807](https://datatracker.ietf.org/doc/html/rfc7807)
 | --- | --- |
 | `400 Bad Request` | Malformed parameters (e.g. unparseable date, invalid `sortBy`). |
 | `401 Unauthorized` | Missing, malformed, expired, revoked or otherwise invalid key. Includes `WWW-Authenticate: Bearer`. |
-| `403 Forbidden` | Attachment downloads requested while `AllowAttachmentDownloads=false`. |
+| `403 Forbidden` | Attachment downloads requested while `AllowAttachmentDownloads=false`, or message downloads while `AllowMessageDownloads=false`. |
 | `404 Not Found` | Resource does not exist **or** is outside the caller's permitted accounts. Also returned for every `/api/*` route when `Api:Enabled=false`. |
 | `429 Too Many Requests` | Rate limit exceeded. |
 | `500 Internal Server Error` | Unexpected server error (problem+json, never the HTML error page). |
@@ -357,6 +361,58 @@ curl -H "Authorization: Bearer $KEY" -OJ \
   https://host/api/v1/emails/9876/attachments/12
 ```
 
+### Download message (.eml)
+
+```
+GET /api/v1/emails/{id}/eml
+```
+
+Returns the message as `message/rfc822`, rebuilt from the archived fields:
+addresses, the stored raw headers (`Received`, `Authentication-Results`,
+`X-Spam-*`, …), bodies and attachments. Works for every archived email. It is the
+same reconstruction the web UI's account export produces, so it is **not**
+byte-identical to what was received: DKIM signatures will not verify against it.
+Use [`/raw`](#download-original-message) for that.
+
+Returns `404` if the message does not exist or is not visible to the caller, and
+`403` (problem+json) when `Api:AllowMessageDownloads=false`. Logs an access log
+entry of type `Download`.
+
+```bash
+curl -H "Authorization: Bearer $KEY" -OJ \
+  https://host/api/v1/emails/9876/eml
+```
+
+### Download original message
+
+```
+GET /api/v1/emails/{id}/raw
+```
+
+Returns the original message as received (`message/rfc822`), for spam analysis,
+DKIM verification or forensic checks. The original is only stored when
+`RawMessages:Enabled` was set at the time the email was archived; see
+[Original Message Storage Settings](Setup.md#-original-message-storage-settings).
+Whether an email has one is shown by `hasRawMessage` in
+[`EmailDetailDto`](#emaildetaildto).
+
+| Response header | Meaning |
+| --- | --- |
+| `X-Raw-Message-Sha256` | SHA-256 of the returned bytes, recorded when the message was stored |
+| `X-Raw-Message-Source` | `imap`, `graph`, `eml-file` (exact copies) or `serialized` (re-written by the parser, line endings normalized to CRLF) |
+
+Returns `404` if the message does not exist or is not visible to the caller, and
+`404` with the problem title `No original message is stored for this email.`
+when it exists without an original. Returns `403` (problem+json) when
+`Api:AllowMessageDownloads=false`. Logs an access log entry of type `Download`.
+
+```bash
+curl -H "Authorization: Bearer $KEY" -o 9876.eml \
+  https://host/api/v1/emails/9876/raw
+sha256sum 9876.eml          # matches X-Raw-Message-Sha256
+spamassassin -t < 9876.eml  # or: rspamc < 9876.eml
+```
+
 ### Stats
 
 ```
@@ -447,6 +503,7 @@ All of [`EmailSummaryDto`](#emailsummarydto) plus:
 | `textBody` | string | Resolved via the body fallback chain |
 | `htmlBody` | string | Resolved via the body fallback chain |
 | `attachments` | AttachmentDto[] | Metadata only |
+| `hasRawMessage` | bool | `true` when the original message is stored and [`/raw`](#download-original-message) returns it |
 
 ### AttachmentDto
 
@@ -470,6 +527,8 @@ web UI (visible under **Logs**), attributed to the key's owning user:
 | Search messages | `Search` |
 | Get message | `Open` |
 | Download attachment | `Download` |
+| Download message (.eml) | `Download` |
+| Download original message | `Download` |
 
 ## OpenAPI and Swagger UI
 

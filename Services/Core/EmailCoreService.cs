@@ -26,6 +26,7 @@ namespace MailArchiver.Services.Core
         private readonly BatchOperationOptions _batchOptions;
         private readonly DashboardOptions _dashboardOptions;
         private readonly IMemoryCache _memoryCache;
+        private readonly RawMessageOptions _rawMessageOptions;
 
         public EmailCoreService(
             MailArchiverDbContext context,
@@ -33,7 +34,8 @@ namespace MailArchiver.Services.Core
             DateTimeHelper dateTimeHelper,
             IOptions<BatchOperationOptions> batchOptions,
             IOptions<DashboardOptions>? dashboardOptions = null,
-            IMemoryCache? memoryCache = null)
+            IMemoryCache? memoryCache = null,
+            IOptions<RawMessageOptions>? rawMessageOptions = null)
         {
             _context = context;
             _logger = logger;
@@ -41,7 +43,11 @@ namespace MailArchiver.Services.Core
             _batchOptions = batchOptions.Value;
             _dashboardOptions = dashboardOptions?.Value ?? new DashboardOptions();
             _memoryCache = memoryCache ?? new MemoryCache(new Microsoft.Extensions.Caching.Memory.MemoryCacheOptions());
+            _rawMessageOptions = rawMessageOptions?.Value ?? new RawMessageOptions();
         }
+
+        /// <summary>Whether callers should capture the original message bytes for ArchiveEmailAsync.</summary>
+        public bool StoresRawMessages => _rawMessageOptions.Enabled;
 
         #region Search Methods
 
@@ -1830,7 +1836,8 @@ namespace MailArchiver.Services.Core
 
         #region Archiving
 
-        public async Task<bool> ArchiveEmailAsync(MailAccount account, MimeMessage message, bool isOutgoing, string? folderName = null)
+        public async Task<bool> ArchiveEmailAsync(MailAccount account, MimeMessage message, bool isOutgoing, string? folderName = null,
+            RawMessageCapture? rawMessage = null)
         {
             // Extract date with fallback handling for malformed Date headers
             var emailDate = MailContentHelper.ExtractEmailDate(message.Date, message.Headers);
@@ -2202,6 +2209,8 @@ namespace MailArchiver.Services.Core
                     archivedEmail.Attachments.Add(icsAttachment);
                     archivedEmail.HasAttachments = true;
                 }
+
+                archivedEmail.RawMessage = RawMessageCodec.Create(rawMessage, _rawMessageOptions);
 
                 try
                 {

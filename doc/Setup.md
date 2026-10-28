@@ -36,6 +36,7 @@ services:
       # REST API Settings (read-only, disabled by default)
       - Api__Enabled=false
       - Api__AllowAttachmentDownloads=true
+      - Api__AllowMessageDownloads=true
       - Api__EnableSwaggerUi=true
       - Api__DefaultPageSize=20
       - Api__MaxPageSize=100
@@ -47,6 +48,8 @@ services:
       - Mcp__DefaultPageSize=20
       - Mcp__MaxResults=100
       - Mcp__MaxAttachmentBytes=10000000
+      - Mcp__AllowMessageDownloads=true
+      - Mcp__MaxMessageBytes=10000000
       - Mcp__RateLimitPerMinute=120
 
       # MailSync Settings
@@ -63,6 +66,11 @@ services:
       - MailSync__ExcludeSubfolders=false
       - MailSync__GlobalExcludedFolders__0=Calendar
       - MailSync__GlobalExcludedFolders__1=Contacts
+
+      # Original Message Storage (complete .eml per email, disabled by default)
+      - RawMessages__Enabled=false
+      - RawMessages__MaxMessageSizeMb=50
+      - RawMessages__IncludeGraph=true
 
       # BatchRestore Settings
       - BatchRestore__AsyncThreshold=50
@@ -254,6 +262,7 @@ docker compose restart
 The optional read-only REST API is **disabled by default**. See the [REST API guide](API.md) for the full reference.
 - `Api__Enabled`: Master switch for the read-only REST API (default `false`). When `false`, all `/api/*` routes return `404`.
 - `Api__AllowAttachmentDownloads`: Allow downloading attachment bytes through the API (default `true`). When `false`, the attachment endpoint returns `403`.
+- `Api__AllowMessageDownloads`: Allow downloading complete messages through the API, both the rebuilt `/eml` and the original `/raw` (default `true`). When `false`, both endpoints return `403`. A complete message carries its attachments, so switch this off together with `Api__AllowAttachmentDownloads`.
 - `Api__EnableSwaggerUi`: Expose Swagger UI at `/apidocs` and the OpenAPI document at `/apidocs/spec/v1.json` (default `true`). Both require a logged-in browser session.
 - `Api__DefaultPageSize`: Default page size for list endpoints when not specified (default `20`).
 - `Api__MaxPageSize`: Maximum allowed page size; larger requests are clamped (default `100`).
@@ -266,6 +275,8 @@ The optional MCP (Model Context Protocol) server exposes the same read-only mail
 - `Mcp__DefaultPageSize`: Default page size used by `search_emails` when the caller omits `pageSize` (default `20`).
 - `Mcp__MaxResults`: Upper bound for the page size of `search_emails`; larger values are clamped (default `100`).
 - `Mcp__MaxAttachmentBytes`: Maximum attachment size (in bytes) the `get_attachment` tool will return inline as base64; larger attachments are refused (default `10000000` ≈ 10 MB).
+- `Mcp__AllowMessageDownloads`: Allow the `get_email_eml` and `get_email_raw` tools to return complete messages (default `true`). When `false`, the tools return an error.
+- `Mcp__MaxMessageBytes`: Maximum message size (in bytes) the `get_email_eml` and `get_email_raw` tools will return inline; larger messages are refused (default `10000000` ≈ 10 MB).
 - `Mcp__RateLimitPerMinute`: Fixed-window request budget per API key per minute (default `120`).
 
 ### 📨 MailSync Settings
@@ -292,6 +303,21 @@ The optional MCP (Model Context Protocol) server exposes the same read-only mail
       - MailSync__GlobalExcludedFolders__8=Journal
   ```
 - `MailSync__ExcludeSubfolders`: Whether an exclusion entry also covers the folders below the one it names. Applies to the per-account list and the installation-wide one alike, and to both providers. Default `false`, matching the behaviour before the option existed: an entry `Deleted Items` matches only that folder, and a tree is kept out of the archive by naming its root and every folder below it. Set to `true` to have an entry take the tree underneath as well — an entry `Deleted Items` then also keeps `Deleted Items/2024` and the rest of that branch out of the archive. The rule anchors on the path separator, so it takes whole folders and never part of a name: `Archive` covers `Archive` and `Archive/Team`, and leaves a mail folder called `Team Archive Review` alone. A `.` counts as a separator too, the same way the path-suffix rule treats it.
+
+### 📧 Original Message Storage Settings
+By default the archive keeps the parsed parts of an email (headers, bodies, attachments), and an exported `.eml` is rebuilt from them. That is enough to read the headers, but it is not the message as received: transfer encodings, MIME boundaries and header folding differ, so DKIM signatures no longer verify and spam scanners score it differently. With this setting the original message is stored as well, and the API returns it from `GET /api/v1/emails/{id}/raw` (see the [REST API guide](API.md#download-original-message)).
+- `RawMessages__Enabled`: Store the original message of every newly archived email (default `false`). Emails archived before switching it on have no original. Storage grows by roughly the size of the mail including attachments (gzip-compressed, attachments are not deduplicated inside it), so plan for about twice the database size per email.
+- `RawMessages__MaxMessageSizeMb`: Messages larger than this are archived without their original (default `50`, `0` = no limit).
+- `RawMessages__IncludeGraph`: Also store the original for Microsoft 365 (Graph) accounts (default `true`). Costs one additional Graph request per message, which counts against the Graph throttling budget.
+
+The MCP server returns it from the `get_email_raw` tool (see the [MCP guide](MCP.md#get_email_raw)). How the original is obtained depends on where the mail comes from; the API reports it in the `X-Raw-Message-Source` header, MCP in the `source` field:
+
+| Source | Value | Exact copy |
+| --- | --- | --- |
+| IMAP sync | `imap` | yes, `BODY[]` as delivered by the server |
+| Microsoft 365 (Graph) | `graph` | yes, the MIME content Exchange returns |
+| EML import (ZIP) | `eml-file` | yes, the file content |
+| MBox import, IMAP recovery fetch | `serialized` | the parsed message written back out; identical except that line endings are CRLF |
 
 ### 📤 BatchRestore Settings
 - `BatchRestore__AsyncThreshold`: The number of emails that triggers async processing.

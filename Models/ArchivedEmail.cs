@@ -45,5 +45,8 @@ namespace MailArchiver.Models
 
         public virtual MailAccount MailAccount { get; set; }
         public virtual ICollection<EmailAttachment> Attachments { get; set; } = new List<EmailAttachment>();
+
+        // Original message bytes; only present when RawMessages:Enabled was set at archive time
+        public virtual RawMessage? RawMessage { get; set; }
     }
 }

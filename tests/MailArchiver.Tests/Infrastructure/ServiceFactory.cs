@@ -71,6 +71,18 @@ internal static class ServiceFactory
             }),
             memoryCache: null);
 
+    /// <summary>
+    /// Creates an EmailCoreService that stores the original message (RawMessages:Enabled).
+    /// </summary>
+    public static EmailCoreService CreateEmailCoreServiceWithRawMessages(MailArchiverDbContext ctx, RawMessageOptions? options = null) =>
+        new(ctx,
+            NullLogger<EmailCoreService>.Instance,
+            new DateTimeHelper(Options.Create(new TimeZoneOptions { DisplayTimeZoneId = "Europe/Berlin" })),
+            Options.Create(new BatchOperationOptions()),
+            Options.Create(new Models.DashboardOptions { CacheSeconds = 0 }),
+            memoryCache: null,
+            rawMessageOptions: Options.Create(options ?? new RawMessageOptions { Enabled = true }));
+
     public static BandwidthService CreateBandwidthService(MailArchiverDbContext ctx, BandwidthTrackingOptions? options = null) =>
         new(ctx,
             NullLogger<BandwidthService>.Instance,
