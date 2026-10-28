@@ -3502,4 +3502,73 @@
   <data name="CurrentPeriod" xml:space="preserve">
     <value>现在</value>
   </data>
+  <data name="MailcowInstances" xml:space="preserve"><value>Mailcow 实例</value></data>
+  <data name="MailcowIntroduction" xml:space="preserve"><value>无需个人密码即可归档所选的 Mailcow 邮箱。</value></data>
+  <data name="MailcowConnect" xml:space="preserve"><value>连接 Mailcow</value></data>
+  <data name="MailcowManage" xml:space="preserve"><value>管理邮箱</value></data>
+  <data name="MailcowConnectHelp" xml:space="preserve"><value>请使用具有邮箱列表和应用密码管理权限的 API 密钥。必须启用凭据加密。IMAP 使用已验证的 TLS。</value></data>
+  <data name="MailcowUrl" xml:space="preserve"><value>Mailcow URL</value></data>
+  <data name="MailcowApiKey" xml:space="preserve"><value>API 密钥</value></data>
+  <data name="MailcowImapHost" xml:space="preserve"><value>IMAP 主机</value></data>
+  <data name="MailcowImapPort" xml:space="preserve"><value>IMAP TLS 端口</value></data>
+  <data name="MailcowSelectionHelp" xml:space="preserve"><value>选择要为其创建专用 IMAP 应用密码的邮箱。待处理的邮箱可以重试。撤销访问将停止同步并保留归档。</value></data>
+  <data name="MailcowActivate" xml:space="preserve"><value>归档所选邮箱 / 重试</value></data>
+  <data name="MailcowActive" xml:space="preserve"><value>已启用归档</value></data>
+  <data name="MailcowRevoked" xml:space="preserve"><value>访问已撤销</value></data>
+  <data name="MailcowPending" xml:space="preserve"><value>待处理 — 重试或撤销</value></data>
+  <data name="MailcowDisabled" xml:space="preserve"><value>在 Mailcow 中已禁用</value></data>
+  <data name="MailcowExisting" xml:space="preserve"><value>归档账户已存在</value></data>
+  <data name="MailcowAvailable" xml:space="preserve"><value>可用</value></data>
+  <data name="MailcowRevoke" xml:space="preserve"><value>撤销应用密码</value></data>
+  <data name="MailcowRemainingAccess" xml:space="preserve"><value>剩余应用密码</value></data>
+  <data name="MailcowImapHostInvalid" xml:space="preserve"><value>请输入不含协议和端口的 IMAP 主机名。</value></data>
+  <data name="MailcowInstanceAlreadyConnected" xml:space="preserve"><value>此 Mailcow 实例已连接。</value></data>
+  <data name="MailcowInstanceSaveFailed" xml:space="preserve"><value>无法保存该实例。请检查它是否已连接。</value></data>
+  <data name="MailcowSelectMailboxCount" xml:space="preserve"><value>请选择 1 到 {0} 个邮箱。</value></data>
+  <data name="MailcowConcurrentChange" xml:space="preserve"><value>并发更改导致配置中止。请重新加载邮箱列表并重试。</value></data>
+  <data name="MailcowImportResult" xml:space="preserve"><value>{0} 个邮箱已就绪；{1} 个无法激活。待处理的访问可以重试或撤销。</value></data>
+  <data name="MailcowRevokedSuccess" xml:space="preserve"><value>应用密码已撤销。归档已保留，同步已禁用。</value></data>
+  <data name="MailcowEncryptionRequired" xml:space="preserve"><value>连接 Mailcow 前，请使用 Security__CredentialEncryptionKey 启用凭据加密。</value></data>
+  <data name="MailcowImapVerificationFailed" xml:space="preserve"><value>无法通过带 TLS 的 IMAP 验证应用密码。请检查 IMAP 主机、证书和邮箱状态，然后重试。</value></data>
+  <data name="MailcowMailboxUnavailable" xml:space="preserve"><value>此邮箱在 Mailcow 中不可用或已禁用。</value></data>
+  <data name="MailcowRevokePreviousPassword" xml:space="preserve"><value>再次添加此已删除的归档账户前，请先撤销之前的应用密码。</value></data>
+  <data name="MailcowImapAccountExists" xml:space="preserve"><value>此邮箱已存在 IMAP 归档账户。</value></data>
+  <data name="MailcowPasswordUndecryptable" xml:space="preserve"><value>无法解密已存储的应用密码。请恢复加密密钥或撤销此访问。</value></data>
+  <data name="MailcowAppPasswordIdMissing" xml:space="preserve"><value>Mailcow 未返回应用密码 ID。请重试以核对此访问。</value></data>
+  <data name="MailcowHttpsOriginRequired" xml:space="preserve"><value>请使用 Mailcow 实例的 HTTPS 源，例如 https://mail.example.com。</value></data>
+  <data name="MailcowApiKeyUnavailable" xml:space="preserve"><value>API 密钥不可用。请检查已配置的凭据加密密钥。</value></data>
+  <data name="MailcowApiRequestFailed" xml:space="preserve"><value>Mailcow API 请求失败（HTTP {0}）。请检查 API 权限和允许的源 IP。</value></data>
+  <data name="MailcowApiRejected" xml:space="preserve"><value>Mailcow 拒绝了该 API 请求。请检查实例配置和 API 权限。</value></data>
+  <data name="MailcowApiNotConfirmed" xml:space="preserve"><value>Mailcow 未确认该更改。</value></data>
+  <data name="MailcowApiUnreachable" xml:space="preserve"><value>无法访问 Mailcow 或其返回了无效响应。请重试以核对远程状态。</value></data>
+  <data name="MailcowNoInstances" xml:space="preserve"><value>尚未连接任何 Mailcow 实例。</value></data>
+  <data name="MailcowEditInstance" xml:space="preserve"><value>编辑 Mailcow 实例</value></data>
+  <data name="MailcowEditHelp" xml:space="preserve"><value>更改 URL 或 API 密钥后，保存前会针对 Mailcow 验证连接。</value></data>
+  <data name="MailcowApiKeyUnchanged" xml:space="preserve"><value>留空以保留当前密钥</value></data>
+  <data name="MailcowApiKeyKeepHelp" xml:space="preserve"><value>已存储的 API 密钥永不显示。仅在需要替换时输入新密钥。</value></data>
+  <data name="MailcowDeleteInstance" xml:space="preserve"><value>删除 Mailcow 实例</value></data>
+  <data name="MailcowDeleteHelp" xml:space="preserve"><value>删除实例会移除其 API 密钥和邮箱绑定。归档账户及其已归档邮件将被保留。</value></data>
+  <data name="MailcowDeleteConfirm" xml:space="preserve"><value>删除实例</value></data>
+  <data name="MailcowDeleteBlockedHelp" xml:space="preserve"><value>Mailcow 中仍存在有效的应用密码。请先在邮箱页面撤销它们 — 删除实例会移除撤销它们所需的 API 密钥。</value></data>
+  <data name="MailcowMailboxes" xml:space="preserve"><value>邮箱</value></data>
+  <data name="MailcowInstanceUpdated" xml:space="preserve"><value>Mailcow 实例已更新。</value></data>
+  <data name="MailcowInstanceDeleted" xml:space="preserve"><value>Mailcow 实例已删除。归档账户已保留。</value></data>
+  <data name="MailcowInstanceNotFound" xml:space="preserve"><value>该 Mailcow 实例已不存在。</value></data>
+  <data name="MailcowDeleteRequiresRevoke" xml:space="preserve"><value>删除此实例前，请撤销所有受管的应用密码。</value></data>
+  <data name="MailcowProviderLabel" xml:space="preserve"><value>Mailcow</value></data>
+  <data name="MailcowProviderHelp" xml:space="preserve"><value>通过已连接的 Mailcow 实例创建和管理账户。</value></data>
+  <data name="MailcowSelectInstance" xml:space="preserve"><value>Mailcow 实例</value></data>
+  <data name="MailcowManageInstances" xml:space="preserve"><value>管理 Mailcow 实例</value></data>
+  <data name="MailcowManageMailboxes" xml:space="preserve"><value>管理邮箱</value></data>
+  <data name="MailcowNoInstancesConnected" xml:space="preserve"><value>尚未连接任何 Mailcow 实例。</value></data>
+  <data name="MailcowLinkAccountHelp" xml:space="preserve"><value>将此 IMAP 账户关联到 Mailcow 实例。专用应用密码将替换当前密码。</value></data>
+  <data name="MailcowLinkedToInstance" xml:space="preserve"><value>由 Mailcow 实例 {0} 管理</value></data>
+  <data name="MailcowUnlinkHint" xml:space="preserve"><value>选择其他提供商并保存，以撤销 Mailcow 应用密码。</value></data>
+  <data name="MailcowAccountNotFound" xml:space="preserve"><value>未找到归档账户。</value></data>
+  <data name="MailcowOnlyImapAccounts" xml:space="preserve"><value>只有 IMAP 账户可以关联到 Mailcow。</value></data>
+  <data name="MailcowMailboxAlreadyLinked" xml:space="preserve"><value>此邮箱已关联到另一个归档账户。</value></data>
+  <data name="MailcowAccountAlreadyLinked" xml:space="preserve"><value>此账户已关联到另一个 Mailcow 实例。</value></data>
+  <data name="MailcowNewImapPasswordRequired" xml:space="preserve"><value>离开 Mailcow 后请输入新的 IMAP 密码。</value></data>
+  <data name="MailcowLinkSuccess" xml:space="preserve"><value>账户已关联到 Mailcow 实例 {0}。</value></data>
+  <data name="MailcowDetachSuccess" xml:space="preserve"><value>Mailcow 访问已撤销。请为所选提供商输入新凭据。</value></data>
 </root>
