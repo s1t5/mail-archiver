@@ -18,6 +18,15 @@
   <ItemGroup>
     <!-- Index DTD shipped inside every audit data export ZIP -->
     <EmbeddedResource Include="Resources\index.dtd" />
+    <InternalsVisibleTo Include="MailArchiver.Tests" />
+  </ItemGroup>
+
+  <!-- Test project lives in a subfolder; keep its sources out of the web build -->
+  <ItemGroup>
+    <Compile Remove="MailArchiver.Tests/**/*.cs" />
+    <Content Remove="MailArchiver.Tests/**/*" />
+    <EmbeddedResource Remove="MailArchiver.Tests/**/*" />
+    <None Remove="MailArchiver.Tests/**/*" />
   </ItemGroup>
 
   <ItemGroup>
