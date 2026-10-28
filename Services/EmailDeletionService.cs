@@ -225,30 +225,27 @@ namespace MailArchiver.Services
                     if (!emailsToDelete.Any())
                         break;
 
-                    // Log each deletion if access log service is available
+                    // Log each deletion if access log service is available. The entries are added
+                    // to the same context and saved together with the removal below: one round
+                    // trip per batch instead of one SaveChanges per email, and a deletion is never
+                    // committed without its log entry.
                     if (accessLogService != null)
                     {
-                        foreach (var email in emailsToDelete)
+                        var now = DateTime.UtcNow;
+                        context.AccessLogs.AddRange(emailsToDelete.Select(email => new AccessLog
                         {
-                            try
-                            {
-                                await accessLogService.LogAccessAsync(
-                                    job.UserId,
-                                    AccessLogType.Deletion,
-                                    emailId: email.Id,
-                                    emailSubject: email.Subject?.Length > 255 
-                                        ? email.Subject.Substring(0, 255) 
-                                        : email.Subject,
-                                    emailFrom: email.From?.Length > 255 
-                                        ? email.From.Substring(0, 255) 
-                                        : email.From,
-                                    mailAccountId: email.MailAccountId);
-                            }
-                            catch (Exception ex)
-                            {
-                                _logger.LogWarning(ex, "Failed to log deletion of email {EmailId}", email.Id);
-                            }
-                        }
+                            Username = job.UserId,
+                            Type = AccessLogType.Deletion,
+                            Timestamp = now,
+                            EmailId = email.Id,
+                            EmailSubject = email.Subject?.Length > 255
+                                ? email.Subject.Substring(0, 255)
+                                : email.Subject,
+                            EmailFrom = email.From?.Length > 255
+                                ? email.From.Substring(0, 255)
+                                : email.From,
+                            MailAccountId = email.MailAccountId
+                        }));
                     }
 
                     context.ArchivedEmails.RemoveRange(emailsToDelete);
