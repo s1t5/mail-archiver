@@ -91,9 +91,21 @@ plugins:
   # Shows "Last updated" / "Created" per page, taken from git history.
   # Requires a full clone: actions/checkout must use fetch-depth: 0, otherwise
   # every page silently falls back to the build date.
+  #
+  # enable_git_follow is off on purpose. The plugin walks history with
+  # `git log --follow`, and doc/index.md has a case-only rename behind it
+  # (doc/Index.md -> doc/index.md) that sits across a merge boundary. git 2.56
+  # changed how --follow traverses non-linear history, and on the runner that
+  # combination yields no log entry for index.md at all: the plugin falls back
+  # to the build timestamp, then aborts the --strict build because the "created"
+  # date ends up newer than the "last updated" date. Without follow, git reports
+  # the file's own history, which is unambiguous. The only cost is that pages
+  # renamed in the past date from their post-rename commit rather than their
+  # original creation.
   - git-revision-date-localized:
       type: date
       enable_creation_date: true
+      enable_git_follow: false
       locale: en
       fallback_to_build_date: false
 
