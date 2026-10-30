@@ -1,4 +1,5 @@
 ## ✨ New Features
+- **MP4 Attachment Preview** - MP4 and M4V attachments can be played in the attachment preview dialog, including seeking
 - **Mailcow Integration** - Connect Mailcow instances and provision dedicated IMAP app passwords for selected mailboxes, including retry and revocation.
 - **Chinese Language Support** - Complete Simplified Chinese translation with automatic `zh`/`zh-Hans` browser detection. Thanks to @wolfbolin
 - **Brazilian Portuguese Language Support** - Complete Brazilian Portuguese translation, selectable in the language menu. Thanks to @mvldebian

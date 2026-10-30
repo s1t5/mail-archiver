@@ -1,4 +1,5 @@
 ﻿@using Microsoft.AspNetCore.Http.Extensions
+@using MailArchiver.Services.Shared
 @inject Microsoft.Extensions.Localization.IStringLocalizer<MailArchiver.SharedResource> Localizer
 @model MailArchiver.Models.ViewModels.EmailDetailViewModel
 @{
@@ -160,12 +161,14 @@
                         <div class="d-md-none d-grid gap-2 mobile-attachments">
                             @foreach (var attachment in Model.Email.Attachments)
                             {
+                                var inlineVideoType = MailContentHelper.GetInlineVideoContentType(attachment.ContentType, attachment.FileName);
                                 <button type="button" 
                                     class="btn btn-outline-secondary btn-sm text-start d-flex justify-content-between align-items-center attachment-preview-btn"
                                     data-email-id="@Model.Email.Id"
                                     data-attachment-id="@attachment.Id"
                                     data-filename="@attachment.FileName"
                                     data-content-type="@attachment.ContentType"
+                                    data-video-content-type="@inlineVideoType"
                                     data-download-url="@Url.Action("Attachment", new { emailId = Model.Email.Id, attachmentId = attachment.Id })"
                                     data-preview-url="@Url.Action("AttachmentPreview", new { emailId = Model.Email.Id, attachmentId = attachment.Id })"
                                     data-calendar-preview-url="@Url.Action("AttachmentCalendarPreview", new { emailId = Model.Email.Id, attachmentId = attachment.Id })">
@@ -181,12 +184,14 @@
                             <div class="list-group">
                                 @foreach (var attachment in Model.Email.Attachments)
                                 {
+                                    var inlineVideoType = MailContentHelper.GetInlineVideoContentType(attachment.ContentType, attachment.FileName);
                                     <button type="button"
                                         class="list-group-item list-group-item-action d-flex justify-content-between align-items-center attachment-preview-btn"
                                         data-email-id="@Model.Email.Id"
                                         data-attachment-id="@attachment.Id"
                                         data-filename="@attachment.FileName"
                                         data-content-type="@attachment.ContentType"
+                                        data-video-content-type="@inlineVideoType"
                                         data-download-url="@Url.Action("Attachment", new { emailId = Model.Email.Id, attachmentId = attachment.Id })"
                                         data-preview-url="@Url.Action("AttachmentPreview", new { emailId = Model.Email.Id, attachmentId = attachment.Id })"
                                         data-calendar-preview-url="@Url.Action("AttachmentCalendarPreview", new { emailId = Model.Email.Id, attachmentId = attachment.Id })">
@@ -442,6 +447,7 @@
                 const attachmentId = this.getAttribute('data-attachment-id');
                 const fileName = this.getAttribute('data-filename');
                 const contentType = this.getAttribute('data-content-type');
+                const videoContentType = this.getAttribute('data-video-content-type');
                 const downloadUrl = this.getAttribute('data-download-url');
                 const previewUrl = this.getAttribute('data-preview-url');
                 const calendarPreviewUrl = this.getAttribute('data-calendar-preview-url');
@@ -480,6 +486,14 @@
                 } else if (contentType === 'application/pdf') {
                     // Display PDF using iframe
                     previewContent.innerHTML = `<iframe src="${previewUrl}" type="application/pdf" width="100%" height="600px" />`;
+                } else if (videoContentType) {
+                    // Display video with native HTML5 player (seeking requires HTTP range requests)
+                    previewContent.innerHTML = `<video controls preload="metadata" class="w-100" style="max-height: 70vh; background: #000;">
+                        <source src="${previewUrl}" type="${videoContentType}">
+                        <a href="${downloadUrl}" class="btn btn-primary m-3">
+                            <i class="bi bi-download"></i> ${escapeHtml(fileName)}
+                        </a>
+                    </video>`;
                 } else if (contentType.startsWith('text/')) {
                     // Display text files
                     fetch(previewUrl)
