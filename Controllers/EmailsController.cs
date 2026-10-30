@@ -4,6 +4,7 @@ using MailArchiver.Models;
 using MailArchiver.Models.ViewModels;
 using MailArchiver.Services;
 using MailArchiver.Services.Providers;
+using MailArchiver.Services.Shared;
 using MailArchiver.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -478,6 +479,16 @@ namespace MailArchiver.Controllers
                 // Add headers to ensure PDF can be displayed inline
                 Response.Headers.Add("Content-Disposition", "inline");
                 Response.Headers.Add("X-Content-Type-Options", "nosniff");
+            }
+
+            // Videos are streamed by the browser, which requests byte ranges for playback
+            // and seeking. Without range support some browsers refuse to play the file at all.
+            var videoContentType = MailContentHelper.GetInlineVideoContentType(attachment.ContentType, attachment.FileName);
+            if (videoContentType != null)
+            {
+                Response.Headers.Add("Content-Disposition", "inline");
+                Response.Headers.Add("X-Content-Type-Options", "nosniff");
+                return File(attachment.Content, videoContentType, enableRangeProcessing: true);
             }
 
             // Return the attachment content without forcing download

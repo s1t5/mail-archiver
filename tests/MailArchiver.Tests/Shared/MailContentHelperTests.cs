@@ -413,3 +413,35 @@ public class MailContentHelperApplyDisplayNamesTests
         Assert.Equal("", ((MailboxAddress)list[1]).Name);
     }
 }
+
+/// <summary>
+/// Unit tests for <see cref="MailContentHelper.GetInlineVideoContentType"/>.
+/// </summary>
+public class MailContentHelperInlineVideoTypeTests
+{
+    [Theory]
+    [InlineData("video/mp4", "clip.mp4", "video/mp4")]
+    [InlineData("VIDEO/MP4", "clip.mp4", "video/mp4")]
+    [InlineData("video/mp4; name=clip.mp4", "clip.mp4", "video/mp4")]
+    [InlineData("video/mp4", null, "video/mp4")]
+    [InlineData("application/octet-stream", "clip.mp4", "video/mp4")]
+    [InlineData("binary/octet-stream", "clip.MP4", "video/mp4")]
+    [InlineData(null, "clip.mp4", "video/mp4")]
+    [InlineData("", "clip.mp4", "video/mp4")]
+    [InlineData("application/octet-stream", "clip.m4v", "video/mp4")]
+    public void GetInlineVideoContentType_ReturnsMp4(string? contentType, string? fileName, string expected)
+        => Assert.Equal(expected, MailContentHelper.GetInlineVideoContentType(contentType, fileName));
+
+    [Theory]
+    [InlineData("application/pdf", "clip.mp4")]
+    [InlineData("image/png", "clip.mp4")]
+    [InlineData("text/plain", "clip.mp4")]
+    [InlineData("video/quicktime", "clip.mov")]
+    [InlineData("video/webm", "clip.webm")]
+    [InlineData("application/octet-stream", "clip.avi")]
+    [InlineData("application/octet-stream", "clip.mp4.txt")]
+    [InlineData("application/octet-stream", "clip")]
+    [InlineData(null, null)]
+    public void GetInlineVideoContentType_ReturnsNullForOtherTypes(string? contentType, string? fileName)
+        => Assert.Null(MailContentHelper.GetInlineVideoContentType(contentType, fileName));
+}
