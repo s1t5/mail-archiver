@@ -2104,6 +2104,9 @@
   <data name="MaxSelectionsReached" xml:space="preserve">
     <value>已达到最大选择数量（{0}）</value>
   </data>
+  <data name="SelectAllMatching" xml:space="preserve">
+    <value>选择全部 {0} 个匹配项</value>
+  </data>
   <data name="SelectAllOnPage" xml:space="preserve">
     <value>选择本页全部</value>
   </data>

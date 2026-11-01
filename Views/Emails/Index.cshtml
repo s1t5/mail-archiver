@@ -248,6 +248,13 @@
                                 <div class="d-flex flex-wrap gap-2 align-items-center">
                                     <button type="button" id="selectAllBtn" class="btn btn-sm btn-outline-primary">@Localizer["SelectAll"]</button>
                                     <button type="button" id="deselectAllBtn" class="btn btn-sm btn-outline-secondary">@Localizer["DeselectAll"]</button>
+                                    @if (Model.SearchResults != null && Model.TotalResults > Model.SearchResults.Count)
+                                    {
+                                        <button type="button" id="selectAllMatchingBtn" class="btn btn-sm btn-outline-primary"
+                                                data-url="@Url.Action("SelectAllMatchingIds", new { SearchTerm = Model.SearchTerm, FromDate = Model.FromDate?.ToString("yyyy-MM-dd"), ToDate = Model.ToDate?.ToString("yyyy-MM-dd"), SelectedAccountId = Model.SelectedAccountId, SelectedFolder = Model.SelectedFolder, IsOutgoing = Model.IsOutgoing, SortBy = Model.SortBy, SortOrder = Model.SortOrder })">
+                                            @string.Format(Localizer["SelectAllMatching"].Value, Model.TotalResults.ToString("N0"))
+                                        </button>
+                                    }
                                     <span id="selectionCounter" class="badge bg-primary">0 selected</span>
                                     <span id="operationMode" class="badge bg-info" style="display:none;"></span>
                                 </div>
@@ -961,7 +968,8 @@
             tooManyEmailsSelected: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["TooManyEmailsSelected"].Value)),
             continueWithOperation: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["ContinueWithOperation"].Value)),
             deleteSelectedEmailsConfirm: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["DeleteSelectedEmailsConfirm"].Value)),
-            loading: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["Loading"].Value))
+            loading: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["Loading"].Value)),
+            errorOccurred: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["ErrorOccurred"].Value))
         };
         
         const toggleSelectionMode = document.getElementById('toggleSelectionMode');
@@ -972,6 +980,7 @@
         const selectAllCheckbox = document.getElementById('selectAllCheckbox');
         const selectAllBtn = document.getElementById('selectAllBtn');
         const deselectAllBtn = document.getElementById('deselectAllBtn');
+        const selectAllMatchingBtn = document.getElementById('selectAllMatchingBtn');
         const selectionCounter = document.getElementById('selectionCounter');
         const selectionActions = document.getElementById('selectionActions');
         const batchRestoreBtn = document.getElementById('batchRestoreBtn');
@@ -1138,6 +1147,34 @@
                 clearStoredSelections();
                 document.querySelectorAll('.email-select-checkbox').forEach(cb => cb.checked = false);
                 updateSelectionCounter();
+            });
+        }
+
+        // Add all emails matching the current search (all pages) to the selection.
+        // The server returns at most maxSelectableEmails IDs.
+        if (selectAllMatchingBtn) {
+            selectAllMatchingBtn.addEventListener('click', async function() {
+                selectAllMatchingBtn.disabled = true;
+                try {
+                    const response = await fetch(selectAllMatchingBtn.dataset.url, { headers: { 'Accept': 'application/json' } });
+                    if (!response.ok) throw new Error(response.status);
+                    const result = await response.json();
+                    const stored = getStoredSelections();
+                    const combined = [...new Set([...stored, ...result.ids.map(String)])];
+                    const merged = combined.slice(0, maxSelectableEmails);
+                    saveStoredSelections(merged);
+                    const mergedSet = new Set(merged);
+                    document.querySelectorAll('.email-select-checkbox').forEach(cb => cb.checked = mergedSet.has(cb.value));
+                    updateSelectionCounter();
+                    if (result.truncated || combined.length > merged.length) {
+                        alert(i18n.maxSelectionsReached.replace('{0}', maxSelectableEmails));
+                    }
+                } catch (e) {
+                    console.error('Select all matching failed', e);
+                    alert(i18n.errorOccurred);
+                } finally {
+                    selectAllMatchingBtn.disabled = false;
+                }
             });
         }
 

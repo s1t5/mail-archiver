@@ -2060,6 +2060,9 @@
   <data name="MaxSelectionsReached" xml:space="preserve">
     <value>Maximális kijelölés elérve ({0})</value>
   </data>
+  <data name="SelectAllMatching" xml:space="preserve">
+    <value>Mind a(z) {0} találat kijelölése</value>
+  </data>
   <data name="SelectAllOnPage" xml:space="preserve">
     <value>Összes kijelölése az oldalon</value>
   </data>

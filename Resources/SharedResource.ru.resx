@@ -2065,6 +2065,9 @@
   <data name="MaxSelectionsReached" xml:space="preserve">
     <value>Достигнуто максимальное количество выборок ({0})</value>
   </data>
+  <data name="SelectAllMatching" xml:space="preserve">
+    <value>Выбрать все результаты ({0})</value>
+  </data>
   <data name="SelectAllOnPage" xml:space="preserve">
     <value>Выбрать все на странице</value>
   </data>

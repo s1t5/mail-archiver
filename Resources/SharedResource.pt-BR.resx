@@ -2264,6 +2264,9 @@
   <data name="MaxSelectionsReached" xml:space="preserve">
     <value>Máximo de seleções atingido ({0})</value>
   </data>
+  <data name="SelectAllMatching" xml:space="preserve">
+    <value>Selecionar todos os {0} resultados</value>
+  </data>
   <data name="SelectAllOnPage" xml:space="preserve">
     <value>Selecionar tudo na página</value>
   </data>
