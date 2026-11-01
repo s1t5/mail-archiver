@@ -1305,6 +1305,8 @@
             form.appendChild(createHiddenInput('returnUrl', '@Context.Request.Path@Context.Request.QueryString'));
             selectedIds.forEach(id => form.appendChild(createHiddenInput('ids', id)));
             document.body.appendChild(form);
+            // These emails are about to be deleted, so drop them from the selection.
+            clearStoredSelections();
             form.submit();
         }
 

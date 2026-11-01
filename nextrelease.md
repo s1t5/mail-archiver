@@ -9,3 +9,4 @@
 ## 🐛 Bug Fixes
 - **OIDC Login Failures Show a Readable Message** - A missing or unusable claim no longer ends in an HTTP 500. The user is returned to the login page with a localized explanation and the reason is logged at error level.
 - **OIDC Name Claim Fallback** - The display name is now also read from the `username` claim, which some providers return as the only name-like value. Empty or non-string claims no longer stop the fallback chain.
+- **Selection After Batch Delete** - The selection is cleared when a batch delete is submitted, so deleted emails no longer stay selected and inflate the counter.
