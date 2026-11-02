@@ -1005,6 +1005,10 @@ namespace MailArchiver.Controllers
                         return NotFound();
                     }
 
+                    // Read the provider that was stored before this edit: the branches below need it to
+                    // decide whether a credential left behind by the old provider has to be dropped.
+                    var previousProvider = account.Provider;
+
                     account.Name = model.Name;
                     account.EmailAddress = model.EmailAddress;
                     account.ImapServer = model.Provider == ProviderType.IMAP ? model.ImapServer
@@ -1071,7 +1075,18 @@ namespace MailArchiver.Controllers
                         // else: no override entered and no default configured → keep existing account.ClientId.
 
                         if (clientSecretChanged)
+                        {
                             account.ClientSecret = model.MsaClientSecret;
+                        }
+                        else if (_msaOptions.HasDefaultClientId || previousProvider != ProviderType.MSA)
+                        {
+                            // No new secret entered. The stored one must not survive this edit when
+                            //   - the shared default ClientId is used (a public client takes no secret), or
+                            //   - the account comes from another provider (e.g. an M365 secret never
+                            //     belongs to an MSA app registration).
+                            // Otherwise the old secret would be sent as client_secret on every refresh.
+                            account.ClientSecret = null;
+                        }
                         account.TenantId = null;
                     }
                     else
