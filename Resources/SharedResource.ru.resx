@@ -3539,4 +3539,73 @@
   <data name="CurrentPeriod" xml:space="preserve">
     <value>Сейчас</value>
   </data>
+  <data name="MailcowInstances" xml:space="preserve"><value>Экземпляры Mailcow</value></data>
+  <data name="MailcowIntroduction" xml:space="preserve"><value>Архивируйте выбранные почтовые ящики Mailcow без личных паролей.</value></data>
+  <data name="MailcowConnect" xml:space="preserve"><value>Подключить Mailcow</value></data>
+  <data name="MailcowManage" xml:space="preserve"><value>Управление ящиками</value></data>
+  <data name="MailcowConnectHelp" xml:space="preserve"><value>Используйте ключ API с правами на список ящиков и управление паролями приложений. Шифрование учётных данных должно быть включено. IMAP использует проверенный TLS.</value></data>
+  <data name="MailcowUrl" xml:space="preserve"><value>URL Mailcow</value></data>
+  <data name="MailcowApiKey" xml:space="preserve"><value>Ключ API</value></data>
+  <data name="MailcowImapHost" xml:space="preserve"><value>Хост IMAP</value></data>
+  <data name="MailcowImapPort" xml:space="preserve"><value>Порт TLS IMAP</value></data>
+  <data name="MailcowSelectionHelp" xml:space="preserve"><value>Выберите ящики для создания отдельных паролей приложений IMAP. Ожидающие ящики можно повторить. Отзыв доступа останавливает синхронизацию и сохраняет архив.</value></data>
+  <data name="MailcowActivate" xml:space="preserve"><value>Архивировать выбранные ящики / повторить</value></data>
+  <data name="MailcowActive" xml:space="preserve"><value>Архивация включена</value></data>
+  <data name="MailcowRevoked" xml:space="preserve"><value>Доступ отозван</value></data>
+  <data name="MailcowPending" xml:space="preserve"><value>Ожидает — повторить или отозвать</value></data>
+  <data name="MailcowDisabled" xml:space="preserve"><value>Отключено в Mailcow</value></data>
+  <data name="MailcowExisting" xml:space="preserve"><value>Учётная запись архива уже существует</value></data>
+  <data name="MailcowAvailable" xml:space="preserve"><value>Доступно</value></data>
+  <data name="MailcowRevoke" xml:space="preserve"><value>Отозвать пароль приложения</value></data>
+  <data name="MailcowRemainingAccess" xml:space="preserve"><value>Оставшиеся пароли приложений</value></data>
+  <data name="MailcowImapHostInvalid" xml:space="preserve"><value>Введите имя хоста IMAP без схемы и порта.</value></data>
+  <data name="MailcowInstanceAlreadyConnected" xml:space="preserve"><value>Этот экземпляр Mailcow уже подключён.</value></data>
+  <data name="MailcowInstanceSaveFailed" xml:space="preserve"><value>Не удалось сохранить экземпляр. Проверьте, не подключён ли он уже.</value></data>
+  <data name="MailcowSelectMailboxCount" xml:space="preserve"><value>Выберите от 1 до {0} ящиков.</value></data>
+  <data name="MailcowConcurrentChange" xml:space="preserve"><value>Одновременное изменение помешало настройке. Перезагрузите список ящиков и повторите попытку.</value></data>
+  <data name="MailcowImportResult" xml:space="preserve"><value>Готово ящиков: {0}; не удалось активировать: {1}. Ожидающий доступ можно повторить или отозвать.</value></data>
+  <data name="MailcowRevokedSuccess" xml:space="preserve"><value>Пароль приложения отозван. Архив сохранён, синхронизация отключена.</value></data>
+  <data name="MailcowEncryptionRequired" xml:space="preserve"><value>Включите шифрование учётных данных с помощью Security__CredentialEncryptionKey перед подключением Mailcow.</value></data>
+  <data name="MailcowImapVerificationFailed" xml:space="preserve"><value>Не удалось проверить пароль приложения через IMAP с TLS. Проверьте хост IMAP, сертификат и состояние ящика, затем повторите попытку.</value></data>
+  <data name="MailcowMailboxUnavailable" xml:space="preserve"><value>Этот ящик недоступен или отключён в Mailcow.</value></data>
+  <data name="MailcowRevokePreviousPassword" xml:space="preserve"><value>Отзовите предыдущий пароль приложения, прежде чем снова добавлять эту удалённую учётную запись архива.</value></data>
+  <data name="MailcowImapAccountExists" xml:space="preserve"><value>Для этого ящика уже существует учётная запись архива IMAP.</value></data>
+  <data name="MailcowPasswordUndecryptable" xml:space="preserve"><value>Не удалось расшифровать сохранённый пароль приложения. Восстановите ключ шифрования или отзовите этот доступ.</value></data>
+  <data name="MailcowAppPasswordIdMissing" xml:space="preserve"><value>Mailcow не вернул идентификатор пароля приложения. Повторите попытку, чтобы согласовать этот доступ.</value></data>
+  <data name="MailcowHttpsOriginRequired" xml:space="preserve"><value>Используйте HTTPS-origin вашего экземпляра Mailcow, например https://mail.example.com.</value></data>
+  <data name="MailcowApiKeyUnavailable" xml:space="preserve"><value>Ключ API недоступен. Проверьте настроенный ключ шифрования учётных данных.</value></data>
+  <data name="MailcowApiRequestFailed" xml:space="preserve"><value>Запрос к API Mailcow не удался (HTTP {0}). Проверьте права API и разрешённые исходные IP-адреса.</value></data>
+  <data name="MailcowApiRejected" xml:space="preserve"><value>Mailcow отклонил запрос API. Проверьте конфигурацию экземпляра и права API.</value></data>
+  <data name="MailcowApiNotConfirmed" xml:space="preserve"><value>Mailcow не подтвердил изменение.</value></data>
+  <data name="MailcowApiUnreachable" xml:space="preserve"><value>Не удалось связаться с Mailcow или получен недопустимый ответ. Повторите попытку, чтобы согласовать удалённое состояние.</value></data>
+  <data name="MailcowNoInstances" xml:space="preserve"><value>Ни один экземпляр Mailcow ещё не подключён.</value></data>
+  <data name="MailcowEditInstance" xml:space="preserve"><value>Изменить экземпляр Mailcow</value></data>
+  <data name="MailcowEditHelp" xml:space="preserve"><value>При изменении URL или ключа API соединение с Mailcow проверяется перед сохранением.</value></data>
+  <data name="MailcowApiKeyUnchanged" xml:space="preserve"><value>Оставьте пустым, чтобы сохранить текущий ключ</value></data>
+  <data name="MailcowApiKeyKeepHelp" xml:space="preserve"><value>Сохранённый ключ API никогда не отображается. Вводите новый ключ только для замены.</value></data>
+  <data name="MailcowDeleteInstance" xml:space="preserve"><value>Удалить экземпляр Mailcow</value></data>
+  <data name="MailcowDeleteHelp" xml:space="preserve"><value>Удаление экземпляра удаляет его ключ API и привязки почтовых ящиков. Архивные учётные записи и их архив сохраняются.</value></data>
+  <data name="MailcowDeleteConfirm" xml:space="preserve"><value>Удалить экземпляр</value></data>
+  <data name="MailcowDeleteBlockedHelp" xml:space="preserve"><value>В Mailcow ещё есть активные пароли приложений. Сначала отзовите их на странице почтовых ящиков — при удалении экземпляра будет удалён ключ API, необходимый для отзыва.</value></data>
+  <data name="MailcowMailboxes" xml:space="preserve"><value>Почтовые ящики</value></data>
+  <data name="MailcowInstanceUpdated" xml:space="preserve"><value>Экземпляр Mailcow обновлён.</value></data>
+  <data name="MailcowInstanceDeleted" xml:space="preserve"><value>Экземпляр Mailcow удалён. Архивные учётные записи сохранены.</value></data>
+  <data name="MailcowInstanceNotFound" xml:space="preserve"><value>Экземпляр Mailcow больше не существует.</value></data>
+  <data name="MailcowDeleteRequiresRevoke" xml:space="preserve"><value>Отзовите все управляемые пароли приложений перед удалением этого экземпляра.</value></data>
+  <data name="MailcowProviderLabel" xml:space="preserve"><value>Mailcow</value></data>
+  <data name="MailcowProviderHelp" xml:space="preserve"><value>Создавайте учётные записи и управляйте ими через подключённый экземпляр Mailcow.</value></data>
+  <data name="MailcowSelectInstance" xml:space="preserve"><value>Экземпляр Mailcow</value></data>
+  <data name="MailcowManageInstances" xml:space="preserve"><value>Управление экземплярами Mailcow</value></data>
+  <data name="MailcowManageMailboxes" xml:space="preserve"><value>Управление ящиками</value></data>
+  <data name="MailcowNoInstancesConnected" xml:space="preserve"><value>Пока не подключён ни один экземпляр Mailcow.</value></data>
+  <data name="MailcowLinkAccountHelp" xml:space="preserve"><value>Привяжите эту учётную запись IMAP к экземпляру Mailcow. Текущий пароль будет заменён отдельным паролем приложения.</value></data>
+  <data name="MailcowLinkedToInstance" xml:space="preserve"><value>Управляется экземпляром Mailcow {0}</value></data>
+  <data name="MailcowUnlinkHint" xml:space="preserve"><value>Выберите другого провайдера и сохраните, чтобы отозвать пароль приложения Mailcow.</value></data>
+  <data name="MailcowAccountNotFound" xml:space="preserve"><value>Учётная запись архива не найдена.</value></data>
+  <data name="MailcowOnlyImapAccounts" xml:space="preserve"><value>К Mailcow можно привязать только учётные записи IMAP.</value></data>
+  <data name="MailcowMailboxAlreadyLinked" xml:space="preserve"><value>Этот ящик уже привязан к другой учётной записи архива.</value></data>
+  <data name="MailcowAccountAlreadyLinked" xml:space="preserve"><value>Эта учётная запись уже привязана к другому экземпляру Mailcow.</value></data>
+  <data name="MailcowNewImapPasswordRequired" xml:space="preserve"><value>После выхода из Mailcow введите новый пароль IMAP.</value></data>
+  <data name="MailcowLinkSuccess" xml:space="preserve"><value>Учётная запись привязана к экземпляру Mailcow {0}.</value></data>
+  <data name="MailcowDetachSuccess" xml:space="preserve"><value>Доступ к Mailcow отозван. Введите новые учётные данные для выбранного провайдера.</value></data>
 </root>

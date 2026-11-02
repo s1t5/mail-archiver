@@ -82,6 +82,9 @@ services:
       # Tenant Management Settings
       - TenantManagement__MaxSelectedMailboxes=1000
 
+      # Mailcow Settings
+      - Mailcow__MaxSelectedMailboxes=1000
+
       # BatchOperation Settings
       - BatchOperation__BatchSize=50
       - BatchOperation__PauseBetweenEmailsMs=50
@@ -248,7 +251,7 @@ docker compose restart
 ### 🔐 Authentication Settings
 - `Authentication__Username`: The username for the admin account.
 - `Authentication__Password`: The password for the admin account.
-- `Authentication__SessionTimeoutMinutes`: The session timeout in minutes.
+- `Authentication__SessionTimeoutMinutes`: The session timeout in minutes. This applies to the non-persistent login cookie; users who tick **Remember Me** on the login form get a persistent cookie valid for a fixed 7 days instead. See [User Management → Remember Me](UserManagement.md#staying-signed-in-the-remember-me-checkbox).
 - `Authentication__CookieName`: The name of the authentication cookie.
 - `Authentication__CookieSameSite`: Configures the SameSite attribute for authentication, session, and CSRF protection cookies. Valid values are:
   - `Strict` (default): Maximum security. Cookies are only sent with same-site requests. This may cause issues when navigating to the application from external links (e.g., clicking a link from another website), as the existing session won't be recognized.
@@ -259,7 +262,7 @@ docker compose restart
 The optional read-only REST API is **disabled by default**. See the [REST API guide](API.md) for the full reference.
 - `Api__Enabled`: Master switch for the read-only REST API (default `false`). When `false`, all `/api/*` routes return `404`.
 - `Api__AllowAttachmentDownloads`: Allow downloading attachment bytes through the API (default `true`). When `false`, the attachment endpoint returns `403`.
-- `Api__AllowMessageDownloads`: Allow downloading complete messages through the API, both the rebuilt `/eml` and the original `/raw` (default `true`). When `false`, both endpoints return `403`. A complete message carries its attachments, so switch this off together with `Api__AllowAttachmentDownloads`.
+- `Api__AllowMessageDownloads`: Allow downloading complete messages through the API, both the rebuilt `/eml` and the original `/raw` (default `true`). When `false`, both endpoints return `403`. A complete message carries its attachments, so **both** this switch and `Api__AllowAttachmentDownloads` must be `true`; turning either one off disables both endpoints.
 - `Api__EnableSwaggerUi`: Expose Swagger UI at `/apidocs` and the OpenAPI document at `/apidocs/spec/v1.json` (default `true`). Both require a logged-in browser session.
 - `Api__DefaultPageSize`: Default page size for list endpoints when not specified (default `20`).
 - `Api__MaxPageSize`: Maximum allowed page size; larger requests are clamped (default `100`).
@@ -272,7 +275,7 @@ The optional MCP (Model Context Protocol) server exposes the same read-only mail
 - `Mcp__DefaultPageSize`: Default page size used by `search_emails` when the caller omits `pageSize` (default `20`).
 - `Mcp__MaxResults`: Upper bound for the page size of `search_emails`; larger values are clamped (default `100`).
 - `Mcp__MaxAttachmentBytes`: Maximum attachment size (in bytes) the `get_attachment` tool will return inline as base64; larger attachments are refused (default `10000000` ≈ 10 MB).
-- `Mcp__AllowMessageDownloads`: Allow the `get_email_eml` and `get_email_raw` tools to return complete messages (default `true`). When `false`, the tools return an error.
+- `Mcp__AllowMessageDownloads`: Allow the `get_email_eml` and `get_email_raw` tools to return complete messages (default `true`). When `false`, the tools return an error. A complete message carries its attachments, so **both** this switch and `Mcp__AllowAttachmentDownloads` must be `true`; turning either one off disables both tools.
 - `Mcp__MaxMessageBytes`: Maximum message size (in bytes) the `get_email_eml` and `get_email_raw` tools will return inline; larger messages are refused (default `10000000` ≈ 10 MB).
 - `Mcp__RateLimitPerMinute`: Fixed-window request budget per API key per minute (default `120`).
 
@@ -325,6 +328,11 @@ The MCP server returns it from the `get_email_raw` tool (see the [MCP guide](MCP
 
 ### 🏢 Tenant Management Settings
 - `TenantManagement__MaxSelectedMailboxes`: Maximum number of mailboxes that can be added in a single Tenant Management operation. Default is `1000`. Increase this for very large tenants, or lower it to prevent accidental mass imports. When the limit is exceeded, the operation is rejected with a validation error and no accounts are created. See [M365 Tenant Import Guide](M365TenantImport.md) for details.
+
+### 🐄 Mailcow Settings
+- `Mailcow__MaxSelectedMailboxes`: Maximum number of mailboxes that can be provisioned in a single Mailcow activation run. Default is `1000`. Lower it to prevent accidental mass provisioning, or increase it for large instances. When the limit is exceeded, no accounts are created. See [Mailcow Instances](Mailcow.md) for details.
+- Mailcow integration additionally requires `Security__CredentialEncryptionKey` (see [Security Settings](#-security-settings)). Connecting an instance and activating mailboxes are both refused while credential encryption is disabled, so the API key and generated app passwords can never be stored as plaintext.
+- Outbound access is required to the Mailcow HTTPS API and to the IMAP host over TLS (normally port `993`).
 
 ### 📦 BatchOperation Settings
 - `BatchOperation__BatchSize`: The batch size for email operations.

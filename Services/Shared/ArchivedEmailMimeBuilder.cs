@@ -36,7 +36,10 @@ namespace MailArchiver.Services.Shared
                 }
                 catch
                 {
-                    message.From.Add(new MailboxAddress("", email.From));
+                    // Parsing the stored value as a whole failed. Recover it entry by entry so a
+                    // single unusable value (e.g. an Exchange X.500 DN) neither throws nor drops
+                    // the valid addresses next to it.
+                    MailContentHelper.AddStoredAddresses(message, message.From, "From", email.From, email.FromDisplayName);
                 }
             }
 
@@ -50,7 +53,10 @@ namespace MailArchiver.Services.Shared
                 }
                 catch
                 {
-                    message.To.Add(new MailboxAddress("", email.To));
+                    // Parsing the stored value as a whole failed. Recover it entry by entry so a
+                    // single unusable value (e.g. an Exchange X.500 DN) neither throws nor drops
+                    // the valid addresses next to it.
+                    MailContentHelper.AddStoredAddresses(message, message.To, "To", email.To, email.ToDisplayNames);
                 }
             }
 
@@ -64,7 +70,10 @@ namespace MailArchiver.Services.Shared
                 }
                 catch
                 {
-                    message.Cc.Add(new MailboxAddress("", email.Cc));
+                    // Parsing the stored value as a whole failed. Recover it entry by entry so a
+                    // single unusable value (e.g. an Exchange X.500 DN) neither throws nor drops
+                    // the valid addresses next to it.
+                    MailContentHelper.AddStoredAddresses(message, message.Cc, "Cc", email.Cc, email.CcDisplayNames);
                 }
             }
 
@@ -78,7 +87,10 @@ namespace MailArchiver.Services.Shared
                 }
                 catch
                 {
-                    message.Bcc.Add(new MailboxAddress("", email.Bcc));
+                    // Parsing the stored value as a whole failed. Recover it entry by entry so a
+                    // single unusable value (e.g. an Exchange X.500 DN) neither throws nor drops
+                    // the valid addresses next to it.
+                    MailContentHelper.AddStoredAddresses(message, message.Bcc, "Bcc", email.Bcc, email.BccDisplayNames);
                 }
             }
 

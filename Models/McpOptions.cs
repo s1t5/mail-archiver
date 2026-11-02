@@ -28,6 +28,12 @@ namespace MailArchiver.Models
         /// <summary>When false, the get_email_eml and get_email_raw tools return an error instead of the message.</summary>
         public bool AllowMessageDownloads { get; set; } = true;
 
+        /// <summary>
+        /// Whether get_email_eml and get_email_raw may serve a message. A complete message
+        /// carries its attachments, so attachment downloads must be enabled as well.
+        /// </summary>
+        public bool MessageDownloadsEnabled => AllowMessageDownloads && AllowAttachmentDownloads;
+
         /// <summary>Maximum message size (in bytes) the get_email_eml and get_email_raw tools will return inline.</summary>
         public long MaxMessageBytes { get; set; } = 10_000_000;
 

@@ -136,7 +136,7 @@ public class EmailsApiController : ApiControllerBase
     [Produces("message/rfc822")]
     public async Task<IActionResult> DownloadEml(int id)
     {
-        if (!_options.AllowMessageDownloads)
+        if (!_options.MessageDownloadsEnabled)
         {
             return Problem(statusCode: 403, title: "Message downloads are disabled.");
         }
@@ -165,7 +165,7 @@ public class EmailsApiController : ApiControllerBase
     [Produces("message/rfc822")]
     public async Task<IActionResult> DownloadRaw(int id)
     {
-        if (!_options.AllowMessageDownloads)
+        if (!_options.MessageDownloadsEnabled)
         {
             return Problem(statusCode: 403, title: "Message downloads are disabled.");
         }

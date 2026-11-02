@@ -25,7 +25,7 @@
                     <i class="bi bi-envelope"></i> @Localizer["ExportEML"]
                 </a>
                 <a asp-action="Restore" asp-route-id="@Model.Email.Id"
-                    asp-route-returnUrl="@Context.Request.GetDisplayUrl()" class="btn btn-success btn-sm">
+                    asp-route-returnUrl="@returnUrl" class="btn btn-success btn-sm">
                     <i class="bi bi-envelope-arrow-up"></i> @Localizer["CopyToMailbox"]
                 </a>
                 @if (User.IsInRole("Admin") || User.IsInRole("SelfManager"))
@@ -50,7 +50,7 @@
                 <i class="bi bi-envelope"></i> @Localizer["ExportEML"]
             </a>
             <a asp-action="Restore" asp-route-id="@Model.Email.Id"
-                asp-route-returnUrl="@Context.Request.GetDisplayUrl()" class="btn btn-success">
+                asp-route-returnUrl="@returnUrl" class="btn btn-success">
                 <i class="bi bi-envelope-arrow-up"></i> @Localizer["CopyToMailbox"]
             </a>
             @if (User.IsInRole("Admin") || User.IsInRole("SelfManager"))

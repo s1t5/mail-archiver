@@ -63,7 +63,7 @@ the equivalent environment variables, e.g. `Mcp__Enabled=true`):
 | `DefaultPageSize` | `20` | Page size used by `search_emails` when the caller omits `pageSize`. |
 | `MaxResults` | `100` | Upper bound for the `search_emails` page size; larger values are clamped. |
 | `MaxAttachmentBytes` | `10000000` | Maximum attachment size (in bytes) `get_attachment` will return inline as base64; larger attachments are refused. |
-| `AllowMessageDownloads` | `true` | When `false`, `get_email_eml` and `get_email_raw` return an error instead of the message. A complete message carries its attachments, so switch this off together with `AllowAttachmentDownloads`. |
+| `AllowMessageDownloads` | `true` | When `false`, `get_email_eml` and `get_email_raw` return an error instead of the message. A complete message carries its attachments, so **both** this switch and `AllowAttachmentDownloads` must be `true`; turning either one off disables both tools. |
 | `MaxMessageBytes` | `10000000` | Maximum message size (in bytes) `get_email_eml` and `get_email_raw` will return inline; larger messages are refused. |
 | `RateLimitPerMinute` | `120` | Fixed-window request budget per API key per minute (see [Rate limiting](#rate-limiting)). |
 

@@ -3540,4 +3540,73 @@
   <data name="CurrentPeriod" xml:space="preserve">
     <value>Jetzt</value>
   </data>
+  <data name="MailcowInstances" xml:space="preserve"><value>Mailcow-Instanzen</value></data>
+  <data name="MailcowIntroduction" xml:space="preserve"><value>Ausgewählte Mailcow-Postfächer ohne persönliche Passwörter archivieren.</value></data>
+  <data name="MailcowConnect" xml:space="preserve"><value>Mailcow verbinden</value></data>
+  <data name="MailcowManage" xml:space="preserve"><value>Postfächer verwalten</value></data>
+  <data name="MailcowConnectHelp" xml:space="preserve"><value>Ein API-Schlüssel mit Zugriff auf Postfachlisten und App-Passwort-Verwaltung wird benötigt. Die Zugangsdatenverschlüsselung muss aktiviert sein. IMAP verwendet geprüftes TLS.</value></data>
+  <data name="MailcowUrl" xml:space="preserve"><value>Mailcow-URL</value></data>
+  <data name="MailcowApiKey" xml:space="preserve"><value>API-Schlüssel</value></data>
+  <data name="MailcowImapHost" xml:space="preserve"><value>IMAP-Server</value></data>
+  <data name="MailcowImapPort" xml:space="preserve"><value>IMAP-TLS-Port</value></data>
+  <data name="MailcowSelectionHelp" xml:space="preserve"><value>Postfächer auswählen, um eigene IMAP-App-Passwörter anzulegen. Ausstehende Einrichtungen können erneut versucht werden. Ein Widerruf beendet die Synchronisierung und erhält das Archiv.</value></data>
+  <data name="MailcowActivate" xml:space="preserve"><value>Ausgewählte Postfächer archivieren / erneut versuchen</value></data>
+  <data name="MailcowActive" xml:space="preserve"><value>Archivierung aktiv</value></data>
+  <data name="MailcowRevoked" xml:space="preserve"><value>Zugang widerrufen</value></data>
+  <data name="MailcowPending" xml:space="preserve"><value>Ausstehend – erneut versuchen oder widerrufen</value></data>
+  <data name="MailcowDisabled" xml:space="preserve"><value>In Mailcow deaktiviert</value></data>
+  <data name="MailcowExisting" xml:space="preserve"><value>Archivkonto bereits vorhanden</value></data>
+  <data name="MailcowAvailable" xml:space="preserve"><value>Verfügbar</value></data>
+  <data name="MailcowRevoke" xml:space="preserve"><value>App-Passwort widerrufen</value></data>
+  <data name="MailcowRemainingAccess" xml:space="preserve"><value>Verbliebene App-Passwörter</value></data>
+  <data name="MailcowImapHostInvalid" xml:space="preserve"><value>Geben Sie einen IMAP-Hostnamen ohne Schema oder Port ein.</value></data>
+  <data name="MailcowInstanceAlreadyConnected" xml:space="preserve"><value>Diese Mailcow-Instanz ist bereits verbunden.</value></data>
+  <data name="MailcowInstanceSaveFailed" xml:space="preserve"><value>Die Instanz konnte nicht gespeichert werden. Prüfen Sie, ob sie bereits verbunden ist.</value></data>
+  <data name="MailcowSelectMailboxCount" xml:space="preserve"><value>Wählen Sie zwischen 1 und {0} Postfächern aus.</value></data>
+  <data name="MailcowConcurrentChange" xml:space="preserve"><value>Eine gleichzeitige Änderung hat die Einrichtung verhindert. Laden Sie die Postfachliste neu und versuchen Sie es erneut.</value></data>
+  <data name="MailcowImportResult" xml:space="preserve"><value>{0} Postfach/Postfächer bereit; {1} konnten nicht aktiviert werden. Ausstehende Zugriffe können erneut versucht oder widerrufen werden.</value></data>
+  <data name="MailcowRevokedSuccess" xml:space="preserve"><value>App-Passwort widerrufen. Das Archiv bleibt erhalten und die Synchronisierung ist deaktiviert.</value></data>
+  <data name="MailcowEncryptionRequired" xml:space="preserve"><value>Aktivieren Sie die Zugangsdatenverschlüsselung mit Security__CredentialEncryptionKey, bevor Sie Mailcow verbinden.</value></data>
+  <data name="MailcowImapVerificationFailed" xml:space="preserve"><value>Das App-Passwort konnte nicht über IMAP mit TLS verifiziert werden. Prüfen Sie IMAP-Host, Zertifikat und Postfachstatus und versuchen Sie es erneut.</value></data>
+  <data name="MailcowMailboxUnavailable" xml:space="preserve"><value>Dieses Postfach ist in Mailcow nicht verfügbar oder deaktiviert.</value></data>
+  <data name="MailcowRevokePreviousPassword" xml:space="preserve"><value>Widerrufen Sie das vorherige App-Passwort, bevor Sie dieses gelöschte Archivkonto erneut hinzufügen.</value></data>
+  <data name="MailcowImapAccountExists" xml:space="preserve"><value>Für dieses Postfach existiert bereits ein IMAP-Archivkonto.</value></data>
+  <data name="MailcowPasswordUndecryptable" xml:space="preserve"><value>Das gespeicherte App-Passwort kann nicht entschlüsselt werden. Stellen Sie den Verschlüsselungsschlüssel wieder her oder widerrufen Sie diesen Zugriff.</value></data>
+  <data name="MailcowAppPasswordIdMissing" xml:space="preserve"><value>Mailcow hat keine App-Passwort-ID zurückgegeben. Versuchen Sie es erneut, um diesen Zugriff abzugleichen.</value></data>
+  <data name="MailcowHttpsOriginRequired" xml:space="preserve"><value>Verwenden Sie den HTTPS-Ursprung Ihrer Mailcow-Instanz, zum Beispiel https://mail.example.com.</value></data>
+  <data name="MailcowApiKeyUnavailable" xml:space="preserve"><value>Der API-Schlüssel ist nicht verfügbar. Prüfen Sie den konfigurierten Verschlüsselungsschlüssel für Zugangsdaten.</value></data>
+  <data name="MailcowApiRequestFailed" xml:space="preserve"><value>Mailcow-API-Anfrage fehlgeschlagen (HTTP {0}). Prüfen Sie API-Berechtigungen und die erlaubten Quell-IPs.</value></data>
+  <data name="MailcowApiRejected" xml:space="preserve"><value>Mailcow hat die API-Anfrage abgelehnt. Prüfen Sie die Instanzkonfiguration und die API-Berechtigungen.</value></data>
+  <data name="MailcowApiNotConfirmed" xml:space="preserve"><value>Mailcow hat die Änderung nicht bestätigt.</value></data>
+  <data name="MailcowApiUnreachable" xml:space="preserve"><value>Mailcow konnte nicht erreicht werden oder hat eine ungültige Antwort zurückgegeben. Versuchen Sie es erneut, um den Remote-Status abzugleichen.</value></data>
+  <data name="MailcowNoInstances" xml:space="preserve"><value>Es ist noch keine Mailcow-Instanz verbunden.</value></data>
+  <data name="MailcowEditInstance" xml:space="preserve"><value>Mailcow-Instanz bearbeiten</value></data>
+  <data name="MailcowEditHelp" xml:space="preserve"><value>Beim Ändern von URL oder API-Schlüssel wird die Verbindung vor dem Speichern gegen Mailcow geprüft.</value></data>
+  <data name="MailcowApiKeyUnchanged" xml:space="preserve"><value>Leer lassen, um den aktuellen Schlüssel zu behalten</value></data>
+  <data name="MailcowApiKeyKeepHelp" xml:space="preserve"><value>Der gespeicherte API-Schlüssel wird nie angezeigt. Nur zum Ersetzen einen neuen Schlüssel eingeben.</value></data>
+  <data name="MailcowDeleteInstance" xml:space="preserve"><value>Mailcow-Instanz löschen</value></data>
+  <data name="MailcowDeleteHelp" xml:space="preserve"><value>Beim Löschen der Instanz werden API-Schlüssel und Postfachzuordnungen entfernt. Archivkonten und ihr archiviertes E-Mail-Aufkommen bleiben erhalten.</value></data>
+  <data name="MailcowDeleteConfirm" xml:space="preserve"><value>Instanz löschen</value></data>
+  <data name="MailcowDeleteBlockedHelp" xml:space="preserve"><value>In Mailcow sind noch aktive App-Passwörter vorhanden. Widerrufen Sie diese zuerst auf der Postfachseite — beim Löschen der Instanz ginge der API-Schlüssel verloren, der zum Widerruf nötig ist.</value></data>
+  <data name="MailcowMailboxes" xml:space="preserve"><value>Postfächer</value></data>
+  <data name="MailcowInstanceUpdated" xml:space="preserve"><value>Mailcow-Instanz aktualisiert.</value></data>
+  <data name="MailcowInstanceDeleted" xml:space="preserve"><value>Mailcow-Instanz gelöscht. Archivkonten wurden behalten.</value></data>
+  <data name="MailcowInstanceNotFound" xml:space="preserve"><value>Die Mailcow-Instanz existiert nicht mehr.</value></data>
+  <data name="MailcowDeleteRequiresRevoke" xml:space="preserve"><value>Widerrufen Sie alle verwalteten App-Passwörter, bevor Sie diese Instanz löschen.</value></data>
+  <data name="MailcowProviderLabel" xml:space="preserve"><value>Mailcow</value></data>
+  <data name="MailcowProviderHelp" xml:space="preserve"><value>Konten über eine verbundene Mailcow-Instanz anlegen und verwalten.</value></data>
+  <data name="MailcowSelectInstance" xml:space="preserve"><value>Mailcow-Instanz</value></data>
+  <data name="MailcowManageInstances" xml:space="preserve"><value>Mailcow-Instanzen verwalten</value></data>
+  <data name="MailcowManageMailboxes" xml:space="preserve"><value>Postfächer verwalten</value></data>
+  <data name="MailcowNoInstancesConnected" xml:space="preserve"><value>Es ist noch keine Mailcow-Instanz verbunden.</value></data>
+  <data name="MailcowLinkAccountHelp" xml:space="preserve"><value>Verknüpfen Sie dieses IMAP-Konto mit einer Mailcow-Instanz. Ein eigenes App-Passwort ersetzt das aktuelle Passwort.</value></data>
+  <data name="MailcowLinkedToInstance" xml:space="preserve"><value>Verwaltet durch Mailcow-Instanz {0}</value></data>
+  <data name="MailcowUnlinkHint" xml:space="preserve"><value>Wählen Sie einen anderen Provider und speichern Sie, um das Mailcow-App-Passwort zu widerrufen.</value></data>
+  <data name="MailcowAccountNotFound" xml:space="preserve"><value>Das Archivkonto wurde nicht gefunden.</value></data>
+  <data name="MailcowOnlyImapAccounts" xml:space="preserve"><value>Nur IMAP-Konten können mit Mailcow verknüpft werden.</value></data>
+  <data name="MailcowMailboxAlreadyLinked" xml:space="preserve"><value>Dieses Postfach ist bereits mit einem anderen Archivkonto verknüpft.</value></data>
+  <data name="MailcowAccountAlreadyLinked" xml:space="preserve"><value>Dieses Konto ist bereits mit einer anderen Mailcow-Instanz verknüpft.</value></data>
+  <data name="MailcowNewImapPasswordRequired" xml:space="preserve"><value>Geben Sie nach dem Verlassen von Mailcow ein neues IMAP-Passwort ein.</value></data>
+  <data name="MailcowLinkSuccess" xml:space="preserve"><value>Konto mit Mailcow-Instanz {0} verknüpft.</value></data>
+  <data name="MailcowDetachSuccess" xml:space="preserve"><value>Mailcow-Zugriff widerrufen. Geben Sie neue Zugangsdaten für den ausgewählten Provider ein.</value></data>
 </root>

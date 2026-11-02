@@ -196,6 +196,10 @@ public class EmailsMcpTool : McpToolBase
             throw new KeyNotFoundException($"Email {id} was not found or is not accessible.");
         }
 
+        // Refuse before building: a message whose attachment payload alone exceeds the limit
+        // must not be materialized in memory first. The exact size is checked again below.
+        EnsureMessageSizeAllowed(id, AttachmentPayloadSize(email));
+
         var bytes = RawMessageCodec.Serialize(ArchivedEmailMimeBuilder.Build(email, _dateTimeHelper));
         EnsureMessageSizeAllowed(id, bytes.LongLength);
 
@@ -237,10 +241,27 @@ public class EmailsMcpTool : McpToolBase
 
     private void EnsureMessageDownloadsAllowed()
     {
-        if (!_options.AllowMessageDownloads)
+        if (!_options.MessageDownloadsEnabled)
         {
-            throw new InvalidOperationException("Message downloads are disabled (Mcp:AllowMessageDownloads=false).");
+            throw new InvalidOperationException(
+                "Message downloads are disabled (Mcp:AllowMessageDownloads or Mcp:AllowAttachmentDownloads is false).");
         }
+    }
+
+    /// <summary>
+    /// Size of the decoded attachment payloads, a lower bound of the serialized message.
+    /// Used to refuse clearly oversized messages before they are built in memory; the
+    /// exact size is checked again after serialization.
+    /// </summary>
+    private static long AttachmentPayloadSize(ArchivedEmail email)
+    {
+        long size = 0;
+        if (email.Attachments != null)
+        {
+            foreach (var attachment in email.Attachments)
+                size += attachment.Size;
+        }
+        return size;
     }
 
     private void EnsureMessageSizeAllowed(int id, long size)

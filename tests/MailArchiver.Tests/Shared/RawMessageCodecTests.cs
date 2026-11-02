@@ -95,6 +95,51 @@ public class RawMessageCodecTests
         Assert.Equal(SampleMessage, Encoding.ASCII.GetString(RawMessageCodec.Serialize(message)));
     }
 
+    private const string X500Dn =
+        "/O=EXCHANGELABS/OU=EXCHANGE ADMINISTRATIVE GROUP (FYDIBOHF23SPDLT)/CN=RECIPIENTS/CN=ABC123-user";
+
+    private static DateTimeHelper BerlinTime() =>
+        new(Options.Create(new TimeZoneOptions { DisplayTimeZoneId = "Europe/Berlin" }));
+
+    [Fact]
+    public void MimeBuilder_KeepsX500AddressInsteadOfThrowing()
+    {
+        var email = new ArchivedEmail
+        {
+            Subject = "X.500 sender",
+            From = X500Dn,
+            To = "b@example.com",
+            SentDate = new DateTime(2026, 10, 24, 10, 0, 0)
+        };
+
+        // Before #596 the fallback built a MailboxAddress from the same value, which threw
+        // again and dropped the message from the export.
+        var message = ArchivedEmailMimeBuilder.Build(email, BerlinTime());
+
+        Assert.Empty(message.From);
+        Assert.Equal(X500Dn, message.Headers["X-MailArchiver-Original-From"]);
+        Assert.Equal("b@example.com", ((MailboxAddress)message.To[0]).Address);
+    }
+
+    [Fact]
+    public void MimeBuilder_KeepsValidAddressesNextToAnUnparsableOne()
+    {
+        var email = new ArchivedEmail
+        {
+            Subject = "Mixed recipients",
+            From = "a@example.org",
+            To = $"b@example.com, {X500Dn}",
+            SentDate = new DateTime(2026, 10, 24, 10, 0, 0)
+        };
+
+        var message = ArchivedEmailMimeBuilder.Build(email, BerlinTime());
+
+        Assert.Equal("a@example.org", ((MailboxAddress)message.From[0]).Address);
+        Assert.Single(message.To);
+        Assert.Equal("b@example.com", ((MailboxAddress)message.To[0]).Address);
+        Assert.Equal(X500Dn, message.Headers["X-MailArchiver-Original-To"]);
+    }
+
     [Fact]
     public void MimeBuilder_RebuildsParsableMessageWithStoredHeaders()
     {

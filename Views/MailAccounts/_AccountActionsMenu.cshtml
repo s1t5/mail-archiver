@@ -62,6 +62,15 @@
                 </li>
             }
 
+            @if (isAdmin && Model.IsMailcowManaged)
+            {
+                <li>
+                    <a class="dropdown-item" asp-controller="Mailcow" asp-action="Mailboxes" asp-route-id="@Model.MailcowInstanceId">
+                        <i class="bi bi-server me-2" aria-hidden="true"></i>@Localizer["MailcowManageMailboxes"]
+                    </a>
+                </li>
+            }
+
             <li><hr class="dropdown-divider"></li>
 
             <li>

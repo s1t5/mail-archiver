@@ -86,7 +86,7 @@ all existing authoriz
 | --- | --- | --- |
 | `Enabled` | `false` | Master switch. When `false`, all `/api/*` routes return `404` and the OpenAPI document / Swagger UI are not mapped. |
 | `AllowAttachmentDownloads` | `true` | When `false`, the attachment download endpoint returns `403`. Metadata about attachments is still returned by the message detail endpoint. |
-| `AllowMessageDownloads` | `true` | When `false`, the complete-message endpoints (`/eml` and `/raw`) return `403`. A complete message carries its attachments, so switch this off together with `AllowAttachmentDownloads`. |
+| `AllowMessageDownloads` | `true` | When `false`, the complete-message endpoints (`/eml` and `/raw`) return `403`. A complete message carries its attachments, so **both** this switch and `AllowAttachmentDownloads` must be `true`; turning either one off disables both endpoints. |
 | `EnableSwaggerUi` | `true` | When `true` (and `Enabled` is `true`), mounts Swagger UI at `/apidocs` and the OpenAPI document at `/apidocs/spec/v1.json`. Both require an authenticated **web (cookie) session** — they are not part of `/api/` and are not reachable with an API key. |
 | `DefaultPageSize` | `20` | Page size used when a request omits `pageSize`. |
 | `MaxPageSize` | `100` | Upper bound; larger `pageSize` values are clamped to this. |

@@ -25,6 +25,9 @@ namespace MailArchiver.Models.ViewModels
         // For folder dropdown
         public List<SelectListItem> AvailableFolders { get; set; } = new List<SelectListItem>();
         
+        // Return URL of the list view the user came from (preserves search/filter state)
+        public string ReturnUrl { get; set; }
+
         public string EmailSubject { get; set; }
         public DateTime EmailDate { get; set; }
         public string EmailSender { get; set; }

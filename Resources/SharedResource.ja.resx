@@ -3526,4 +3526,73 @@
   <data name="CurrentPeriod" xml:space="preserve">
     <value>現在</value>
   </data>
+  <data name="MailcowInstances" xml:space="preserve"><value>Mailcow インスタンス</value></data>
+  <data name="MailcowIntroduction" xml:space="preserve"><value>個人パスワードなしで、選択した Mailcow メールボックスをアーカイブします。</value></data>
+  <data name="MailcowConnect" xml:space="preserve"><value>Mailcow に接続</value></data>
+  <data name="MailcowManage" xml:space="preserve"><value>メールボックスを管理</value></data>
+  <data name="MailcowConnectHelp" xml:space="preserve"><value>メールボックス一覧とアプリパスワード管理の権限を持つ API キーを使用してください。認証情報の暗号化が有効になっている必要があります。IMAP は検証済み TLS を使用します。</value></data>
+  <data name="MailcowUrl" xml:space="preserve"><value>Mailcow URL</value></data>
+  <data name="MailcowApiKey" xml:space="preserve"><value>API キー</value></data>
+  <data name="MailcowImapHost" xml:space="preserve"><value>IMAP ホスト</value></data>
+  <data name="MailcowImapPort" xml:space="preserve"><value>IMAP TLS ポート</value></data>
+  <data name="MailcowSelectionHelp" xml:space="preserve"><value>専用の IMAP アプリパスワードを作成するメールボックスを選択してください。保留中のメールボックスは再試行できます。アクセスを取り消すと同期は停止し、アーカイブは保持されます。</value></data>
+  <data name="MailcowActivate" xml:space="preserve"><value>選択したメールボックスをアーカイブ / 再試行</value></data>
+  <data name="MailcowActive" xml:space="preserve"><value>アーカイブ有効</value></data>
+  <data name="MailcowRevoked" xml:space="preserve"><value>アクセス取り消し済み</value></data>
+  <data name="MailcowPending" xml:space="preserve"><value>保留中 — 再試行または取り消し</value></data>
+  <data name="MailcowDisabled" xml:space="preserve"><value>Mailcow で無効</value></data>
+  <data name="MailcowExisting" xml:space="preserve"><value>アーカイブアカウントは既に存在します</value></data>
+  <data name="MailcowAvailable" xml:space="preserve"><value>利用可能</value></data>
+  <data name="MailcowRevoke" xml:space="preserve"><value>アプリパスワードを取り消す</value></data>
+  <data name="MailcowRemainingAccess" xml:space="preserve"><value>残りのアプリパスワード</value></data>
+  <data name="MailcowImapHostInvalid" xml:space="preserve"><value>スキームやポートを含めずに IMAP ホスト名を入力してください。</value></data>
+  <data name="MailcowInstanceAlreadyConnected" xml:space="preserve"><value>この Mailcow インスタンスは既に接続されています。</value></data>
+  <data name="MailcowInstanceSaveFailed" xml:space="preserve"><value>インスタンスを保存できませんでした。既に接続されていないか確認してください。</value></data>
+  <data name="MailcowSelectMailboxCount" xml:space="preserve"><value>1 ～ {0} 個のメールボックスを選択してください。</value></data>
+  <data name="MailcowConcurrentChange" xml:space="preserve"><value>同時変更によりプロビジョニングが中止されました。メールボックス一覧を再読み込みして再試行してください。</value></data>
+  <data name="MailcowImportResult" xml:space="preserve"><value>{0} 個のメールボックスを準備完了、{1} 個を有効化できませんでした。保留中のアクセスは再試行または取り消しできます。</value></data>
+  <data name="MailcowRevokedSuccess" xml:space="preserve"><value>アプリパスワードを取り消しました。アーカイブは保持され、同期は無効になります。</value></data>
+  <data name="MailcowEncryptionRequired" xml:space="preserve"><value>Mailcow に接続する前に、Security__CredentialEncryptionKey で認証情報の暗号化を有効にしてください。</value></data>
+  <data name="MailcowImapVerificationFailed" xml:space="preserve"><value>アプリパスワードを TLS 経由の IMAP で検証できませんでした。IMAP ホスト、証明書、メールボックスの状態を確認して再試行してください。</value></data>
+  <data name="MailcowMailboxUnavailable" xml:space="preserve"><value>このメールボックスは Mailcow で利用できないか無効です。</value></data>
+  <data name="MailcowRevokePreviousPassword" xml:space="preserve"><value>この削除済みアーカイブアカウントを再度追加する前に、以前のアプリパスワードを取り消してください。</value></data>
+  <data name="MailcowImapAccountExists" xml:space="preserve"><value>このメールボックスの IMAP アーカイブアカウントは既に存在します。</value></data>
+  <data name="MailcowPasswordUndecryptable" xml:space="preserve"><value>保存されたアプリパスワードを復号できません。暗号化キーを復元するか、このアクセスを取り消してください。</value></data>
+  <data name="MailcowAppPasswordIdMissing" xml:space="preserve"><value>Mailcow がアプリパスワード ID を返しませんでした。再試行してこのアクセスを調整してください。</value></data>
+  <data name="MailcowHttpsOriginRequired" xml:space="preserve"><value>Mailcow インスタンスの HTTPS オリジンを使用してください（例: https://mail.example.com）。</value></data>
+  <data name="MailcowApiKeyUnavailable" xml:space="preserve"><value>API キーを利用できません。設定された認証情報暗号化キーを確認してください。</value></data>
+  <data name="MailcowApiRequestFailed" xml:space="preserve"><value>Mailcow API リクエストが失敗しました（HTTP {0}）。API 権限と許可された送信元 IP を確認してください。</value></data>
+  <data name="MailcowApiRejected" xml:space="preserve"><value>Mailcow が API リクエストを拒否しました。インスタンス設定と API 権限を確認してください。</value></data>
+  <data name="MailcowApiNotConfirmed" xml:space="preserve"><value>Mailcow が変更を確認しませんでした。</value></data>
+  <data name="MailcowApiUnreachable" xml:space="preserve"><value>Mailcow に到達できないか、無効な応答が返されました。再試行してリモート状態を調整してください。</value></data>
+  <data name="MailcowNoInstances" xml:space="preserve"><value>Mailcow インスタンスはまだ接続されていません。</value></data>
+  <data name="MailcowEditInstance" xml:space="preserve"><value>Mailcow インスタンスを編集</value></data>
+  <data name="MailcowEditHelp" xml:space="preserve"><value>URL または API キーを変更すると、保存前に Mailcow に対して接続が検証されます。</value></data>
+  <data name="MailcowApiKeyUnchanged" xml:space="preserve"><value>現在のキーを保持するには空欄にしてください</value></data>
+  <data name="MailcowApiKeyKeepHelp" xml:space="preserve"><value>保存された API キーは表示されません。置き換える場合のみ新しいキーを入力してください。</value></data>
+  <data name="MailcowDeleteInstance" xml:space="preserve"><value>Mailcow インスタンスを削除</value></data>
+  <data name="MailcowDeleteHelp" xml:space="preserve"><value>インスタンスを削除すると、その API キーとメールボックスの紐付けが削除されます。アーカイブアカウントとアーカイブ済みメールは保持されます。</value></data>
+  <data name="MailcowDeleteConfirm" xml:space="preserve"><value>インスタンスを削除</value></data>
+  <data name="MailcowDeleteBlockedHelp" xml:space="preserve"><value>Mailcow に有効なアプリパスワードがまだ存在します。先にメールボックスページでそれらを取り消してください — インスタンスを削除すると、取り消しに必要な API キーが失われます。</value></data>
+  <data name="MailcowMailboxes" xml:space="preserve"><value>メールボックス</value></data>
+  <data name="MailcowInstanceUpdated" xml:space="preserve"><value>Mailcow インスタンスを更新しました。</value></data>
+  <data name="MailcowInstanceDeleted" xml:space="preserve"><value>Mailcow インスタンスを削除しました。アーカイブアカウントは保持されています。</value></data>
+  <data name="MailcowInstanceNotFound" xml:space="preserve"><value>Mailcow インスタンスはもう存在しません。</value></data>
+  <data name="MailcowDeleteRequiresRevoke" xml:space="preserve"><value>このインスタンスを削除する前に、管理対象のすべてのアプリパスワードを取り消してください。</value></data>
+  <data name="MailcowProviderLabel" xml:space="preserve"><value>Mailcow</value></data>
+  <data name="MailcowProviderHelp" xml:space="preserve"><value>接続された Mailcow インスタンスを通じてアカウントを作成・管理します。</value></data>
+  <data name="MailcowSelectInstance" xml:space="preserve"><value>Mailcow インスタンス</value></data>
+  <data name="MailcowManageInstances" xml:space="preserve"><value>Mailcow インスタンスを管理</value></data>
+  <data name="MailcowManageMailboxes" xml:space="preserve"><value>メールボックスを管理</value></data>
+  <data name="MailcowNoInstancesConnected" xml:space="preserve"><value>Mailcow インスタンスはまだ接続されていません。</value></data>
+  <data name="MailcowLinkAccountHelp" xml:space="preserve"><value>この IMAP アカウントを Mailcow インスタンスにリンクします。専用のアプリパスワードが現在のパスワードを置き換えます。</value></data>
+  <data name="MailcowLinkedToInstance" xml:space="preserve"><value>Mailcow インスタンス {0} により管理</value></data>
+  <data name="MailcowUnlinkHint" xml:space="preserve"><value>別のプロバイダーを選択して保存すると、Mailcow アプリパスワードが取り消されます。</value></data>
+  <data name="MailcowAccountNotFound" xml:space="preserve"><value>アーカイブアカウントが見つかりませんでした。</value></data>
+  <data name="MailcowOnlyImapAccounts" xml:space="preserve"><value>Mailcow にリンクできるのは IMAP アカウントのみです。</value></data>
+  <data name="MailcowMailboxAlreadyLinked" xml:space="preserve"><value>このメールボックスは既に別のアーカイブアカウントにリンクされています。</value></data>
+  <data name="MailcowAccountAlreadyLinked" xml:space="preserve"><value>このアカウントは既に別の Mailcow インスタンスにリンクされています。</value></data>
+  <data name="MailcowNewImapPasswordRequired" xml:space="preserve"><value>Mailcow から離れた後、新しい IMAP パスワードを入力してください。</value></data>
+  <data name="MailcowLinkSuccess" xml:space="preserve"><value>アカウントを Mailcow インスタンス {0} にリンクしました。</value></data>
+  <data name="MailcowDetachSuccess" xml:space="preserve"><value>Mailcow アクセスを取り消しました。選択したプロバイダーの新しい認証情報を入力してください。</value></data>
 </root>

@@ -21,6 +21,14 @@ namespace MailArchiver.Models
         /// </summary>
         public bool AllowMessageDownloads { get; set; } = true;
 
+        /// <summary>
+        /// Whether the complete-message endpoints may serve a message. A complete message
+        /// carries its attachments, so attachment downloads must be enabled as well —
+        /// otherwise disabling them would not stop attachment content from leaving the
+        /// archive through /eml or /raw.
+        /// </summary>
+        public bool MessageDownloadsEnabled => AllowMessageDownloads && AllowAttachmentDownloads;
+
         /// <summary>When true (and Enabled), mounts Swagger UI and the OpenAPI document.</summary>
         public bool EnableSwaggerUi { get; set; } = true;
 

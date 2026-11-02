@@ -1051,7 +1051,9 @@ namespace MailArchiver.Services.Providers.Imap
                 var message = new MimeMessage();
                 message.Subject = email.Subject;
 
-                // Set From address
+                // Set From address. An unusable stored value (e.g. an Exchange X.500 DN) is
+                // kept in a recovery header instead of being replaced by an invented sender:
+                // a restored message must not claim a sender it never had.
                 try
                 {
                     var fromAddresses = InternetAddressList.Parse(email.From);
@@ -1067,8 +1069,8 @@ namespace MailArchiver.Services.Providers.Imap
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogWarning(ex, "Error parsing From address: {From}, using fallback", email.From);
-                    message.From.Add(new MailboxAddress("Sender", "sender@example.com"));
+                    _logger.LogWarning(ex, "Error parsing From address: {From}, keeping the original value in a header", email.From);
+                    MailContentHelper.AddStoredAddresses(message, message.From, "From", email.From, email.FromDisplayName);
                 }
 
                 // Set To addresses
@@ -1085,8 +1087,8 @@ namespace MailArchiver.Services.Providers.Imap
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogWarning(ex, "Error parsing To addresses: {To}, using placeholder", email.To);
-                        message.To.Add(new MailboxAddress("Recipient", "recipient@example.com"));
+                        _logger.LogWarning(ex, "Error parsing To addresses: {To}, keeping the original value in a header", email.To);
+                        MailContentHelper.AddStoredAddresses(message, message.To, "To", email.To, email.ToDisplayNames);
                     }
                 }
                 else
@@ -1108,7 +1110,8 @@ namespace MailArchiver.Services.Providers.Imap
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogWarning(ex, "Error parsing Cc addresses: {Cc}, ignoring", email.Cc);
+                        _logger.LogWarning(ex, "Error parsing Cc addresses: {Cc}, keeping the original value in a header", email.Cc);
+                        MailContentHelper.AddStoredAddresses(message, message.Cc, "Cc", email.Cc, email.CcDisplayNames);
                     }
                 }
 
@@ -1126,7 +1129,8 @@ namespace MailArchiver.Services.Providers.Imap
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogWarning(ex, "Error parsing Bcc addresses: {Bcc}, ignoring", email.Bcc);
+                        _logger.LogWarning(ex, "Error parsing Bcc addresses: {Bcc}, keeping the original value in a header", email.Bcc);
+                        MailContentHelper.AddStoredAddresses(message, message.Bcc, "Bcc", email.Bcc, email.BccDisplayNames);
                     }
                 }
 

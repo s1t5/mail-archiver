@@ -76,6 +76,14 @@ namespace MailArchiver.Models.ViewModels
         
         [Display(Name = "Provider")]
         public ProviderType Provider { get; set; } = ProviderType.IMAP;
+
+        // Admin-only Mailcow adoption: the account stays an IMAP account and is
+        // linked to a Mailcow instance instead of changing its persisted provider.
+        public bool LinkToMailcow { get; set; }
+        public bool LeaveMailcow { get; set; }
+        public bool IsMailcowManaged { get; set; }
+        public int? MailcowInstanceId { get; set; }
+        public string? MailcowInstanceName { get; set; }
         
         [Display(Name = "Client ID")]
         [ConditionalRequired(nameof(Provider), ProviderType.M365, ErrorMessage = "Client ID is required for M365 accounts")]

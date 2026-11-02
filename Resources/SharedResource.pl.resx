@@ -3585,4 +3585,73 @@
   <data name="CurrentPeriod" xml:space="preserve">
     <value>Teraz</value>
   </data>
+  <data name="MailcowInstances" xml:space="preserve"><value>Instancje Mailcow</value></data>
+  <data name="MailcowIntroduction" xml:space="preserve"><value>Archiwizuj wybrane skrzynki Mailcow bez osobistych haseł.</value></data>
+  <data name="MailcowConnect" xml:space="preserve"><value>Połącz z Mailcow</value></data>
+  <data name="MailcowManage" xml:space="preserve"><value>Zarządzaj skrzynkami</value></data>
+  <data name="MailcowConnectHelp" xml:space="preserve"><value>Użyj klucza API z uprawnieniami do listowania skrzynek i zarządzania hasłami aplikacji. Szyfrowanie danych logowania musi być włączone. IMAP używa zweryfikowanego TLS.</value></data>
+  <data name="MailcowUrl" xml:space="preserve"><value>URL Mailcow</value></data>
+  <data name="MailcowApiKey" xml:space="preserve"><value>Klucz API</value></data>
+  <data name="MailcowImapHost" xml:space="preserve"><value>Host IMAP</value></data>
+  <data name="MailcowImapPort" xml:space="preserve"><value>Port TLS IMAP</value></data>
+  <data name="MailcowSelectionHelp" xml:space="preserve"><value>Wybierz skrzynki, aby utworzyć dedykowane hasła aplikacji IMAP. Oczekujące skrzynki można ponowić. Odwołanie dostępu zatrzymuje synchronizację i zachowuje archiwum.</value></data>
+  <data name="MailcowActivate" xml:space="preserve"><value>Archiwizuj wybrane skrzynki / ponów</value></data>
+  <data name="MailcowActive" xml:space="preserve"><value>Archiwizacja włączona</value></data>
+  <data name="MailcowRevoked" xml:space="preserve"><value>Dostęp odwołany</value></data>
+  <data name="MailcowPending" xml:space="preserve"><value>Oczekuje — ponów lub odwołaj</value></data>
+  <data name="MailcowDisabled" xml:space="preserve"><value>Wyłączona w Mailcow</value></data>
+  <data name="MailcowExisting" xml:space="preserve"><value>Konto archiwum już istnieje</value></data>
+  <data name="MailcowAvailable" xml:space="preserve"><value>Dostępna</value></data>
+  <data name="MailcowRevoke" xml:space="preserve"><value>Odwołaj hasło aplikacji</value></data>
+  <data name="MailcowRemainingAccess" xml:space="preserve"><value>Pozostałe hasła aplikacji</value></data>
+  <data name="MailcowImapHostInvalid" xml:space="preserve"><value>Wprowadź nazwę hosta IMAP bez schematu i portu.</value></data>
+  <data name="MailcowInstanceAlreadyConnected" xml:space="preserve"><value>Ta instancja Mailcow jest już połączona.</value></data>
+  <data name="MailcowInstanceSaveFailed" xml:space="preserve"><value>Nie udało się zapisać instancji. Sprawdź, czy nie jest już połączona.</value></data>
+  <data name="MailcowSelectMailboxCount" xml:space="preserve"><value>Wybierz od 1 do {0} skrzynek.</value></data>
+  <data name="MailcowConcurrentChange" xml:space="preserve"><value>Równoczesna zmiana uniemożliwiła udostępnienie. Odśwież listę skrzynek i spróbuj ponownie.</value></data>
+  <data name="MailcowImportResult" xml:space="preserve"><value>{0} skrzynek gotowych; {1} nie udało się aktywować. Oczekujący dostęp można ponowić lub odwołać.</value></data>
+  <data name="MailcowRevokedSuccess" xml:space="preserve"><value>Hasło aplikacji odwołane. Archiwum zostaje zachowane, a synchronizacja jest wyłączona.</value></data>
+  <data name="MailcowEncryptionRequired" xml:space="preserve"><value>Włącz szyfrowanie danych logowania za pomocą Security__CredentialEncryptionKey przed połączeniem z Mailcow.</value></data>
+  <data name="MailcowImapVerificationFailed" xml:space="preserve"><value>Nie udało się zweryfikować hasła aplikacji przez IMAP z TLS. Sprawdź host IMAP, certyfikat i stan skrzynki, a następnie spróbuj ponownie.</value></data>
+  <data name="MailcowMailboxUnavailable" xml:space="preserve"><value>Ta skrzynka jest niedostępna lub wyłączona w Mailcow.</value></data>
+  <data name="MailcowRevokePreviousPassword" xml:space="preserve"><value>Odwołaj poprzednie hasło aplikacji przed ponownym dodaniem tego usuniętego konta archiwum.</value></data>
+  <data name="MailcowImapAccountExists" xml:space="preserve"><value>Dla tej skrzynki istnieje już konto archiwum IMAP.</value></data>
+  <data name="MailcowPasswordUndecryptable" xml:space="preserve"><value>Nie można odszyfrować zapisanego hasła aplikacji. Przywróć klucz szyfrowania lub odwołaj ten dostęp.</value></data>
+  <data name="MailcowAppPasswordIdMissing" xml:space="preserve"><value>Mailcow nie zwrócił identyfikatora hasła aplikacji. Spróbuj ponownie, aby uzgodnić ten dostęp.</value></data>
+  <data name="MailcowHttpsOriginRequired" xml:space="preserve"><value>Użyj originu HTTPS swojej instancji Mailcow, na przykład https://mail.example.com.</value></data>
+  <data name="MailcowApiKeyUnavailable" xml:space="preserve"><value>Klucz API jest niedostępny. Sprawdź skonfigurowany klucz szyfrowania danych logowania.</value></data>
+  <data name="MailcowApiRequestFailed" xml:space="preserve"><value>Żądanie do API Mailcow nie powiodło się (HTTP {0}). Sprawdź uprawnienia API i dozwolone adresy IP źródła.</value></data>
+  <data name="MailcowApiRejected" xml:space="preserve"><value>Mailcow odrzucił żądanie API. Sprawdź konfigurację instancji i uprawnienia API.</value></data>
+  <data name="MailcowApiNotConfirmed" xml:space="preserve"><value>Mailcow nie potwierdził zmiany.</value></data>
+  <data name="MailcowApiUnreachable" xml:space="preserve"><value>Nie można połączyć się z Mailcow lub zwrócił on nieprawidłową odpowiedź. Spróbuj ponownie, aby uzgodnić stan zdalny.</value></data>
+  <data name="MailcowNoInstances" xml:space="preserve"><value>Nie podłączono jeszcze żadnej instancji Mailcow.</value></data>
+  <data name="MailcowEditInstance" xml:space="preserve"><value>Edytuj instancję Mailcow</value></data>
+  <data name="MailcowEditHelp" xml:space="preserve"><value>Zmiana adresu URL lub klucza API weryfikuje połączenie z Mailcow przed zapisaniem.</value></data>
+  <data name="MailcowApiKeyUnchanged" xml:space="preserve"><value>Pozostaw puste, aby zachować bieżący klucz</value></data>
+  <data name="MailcowApiKeyKeepHelp" xml:space="preserve"><value>Zapisany klucz API nigdy nie jest wyświetlany. Wpisz nowy klucz tylko, aby go zastąpić.</value></data>
+  <data name="MailcowDeleteInstance" xml:space="preserve"><value>Usuń instancję Mailcow</value></data>
+  <data name="MailcowDeleteHelp" xml:space="preserve"><value>Usunięcie instancji usuwa klucz API i powiązania skrzynek. Konta archiwum i zarchiwizowana poczta pozostają zachowane.</value></data>
+  <data name="MailcowDeleteConfirm" xml:space="preserve"><value>Usuń instancję</value></data>
+  <data name="MailcowDeleteBlockedHelp" xml:space="preserve"><value>W Mailcow nadal istnieją aktywne hasła aplikacji. Najpierw je unieważnij na stronie skrzynek — usunięcie instancji usunęłoby klucz API potrzebny do ich unieważnienia.</value></data>
+  <data name="MailcowMailboxes" xml:space="preserve"><value>Skrzynki</value></data>
+  <data name="MailcowInstanceUpdated" xml:space="preserve"><value>Zaktualizowano instancję Mailcow.</value></data>
+  <data name="MailcowInstanceDeleted" xml:space="preserve"><value>Usunięto instancję Mailcow. Konta archiwum zostały zachowane.</value></data>
+  <data name="MailcowInstanceNotFound" xml:space="preserve"><value>Instancja Mailcow już nie istnieje.</value></data>
+  <data name="MailcowDeleteRequiresRevoke" xml:space="preserve"><value>Unieważnij wszystkie zarządzane hasła aplikacji przed usunięciem tej instancji.</value></data>
+  <data name="MailcowProviderLabel" xml:space="preserve"><value>Mailcow</value></data>
+  <data name="MailcowProviderHelp" xml:space="preserve"><value>Twórz konta i zarządzaj nimi przez połączoną instancję Mailcow.</value></data>
+  <data name="MailcowSelectInstance" xml:space="preserve"><value>Instancja Mailcow</value></data>
+  <data name="MailcowManageInstances" xml:space="preserve"><value>Zarządzaj instancjami Mailcow</value></data>
+  <data name="MailcowManageMailboxes" xml:space="preserve"><value>Zarządzaj skrzynkami</value></data>
+  <data name="MailcowNoInstancesConnected" xml:space="preserve"><value>Nie połączono jeszcze żadnej instancji Mailcow.</value></data>
+  <data name="MailcowLinkAccountHelp" xml:space="preserve"><value>Połącz to konto IMAP z instancją Mailcow. Dedykowane hasło aplikacji zastąpi obecne hasło.</value></data>
+  <data name="MailcowLinkedToInstance" xml:space="preserve"><value>Zarządzane przez instancję Mailcow {0}</value></data>
+  <data name="MailcowUnlinkHint" xml:space="preserve"><value>Wybierz innego dostawcę i zapisz, aby odwołać hasło aplikacji Mailcow.</value></data>
+  <data name="MailcowAccountNotFound" xml:space="preserve"><value>Nie znaleziono konta archiwum.</value></data>
+  <data name="MailcowOnlyImapAccounts" xml:space="preserve"><value>Tylko konta IMAP można połączyć z Mailcow.</value></data>
+  <data name="MailcowMailboxAlreadyLinked" xml:space="preserve"><value>Ta skrzynka jest już połączona z innym kontem archiwum.</value></data>
+  <data name="MailcowAccountAlreadyLinked" xml:space="preserve"><value>To konto jest już połączone z inną instancją Mailcow.</value></data>
+  <data name="MailcowNewImapPasswordRequired" xml:space="preserve"><value>Po opuszczeniu Mailcow wprowadź nowe hasło IMAP.</value></data>
+  <data name="MailcowLinkSuccess" xml:space="preserve"><value>Konto połączone z instancją Mailcow {0}.</value></data>
+  <data name="MailcowDetachSuccess" xml:space="preserve"><value>Dostęp do Mailcow odwołany. Wprowadź nowe dane logowania dla wybranego dostawcy.</value></data>
 </root>

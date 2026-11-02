@@ -2,16 +2,20 @@
 @model MailArchiver.Models.ViewModels.CreateMailAccountViewModel
 @{
     ViewData["Title"] = @Localizer["CreateNewEmailAccount"];
-    var visualProvider = Model.Provider == ProviderType.M365 && Model.ImportEntireTenant ? "M365Tenant"
+    var isAdmin = ViewBag.IsAdmin as bool? ?? false;
+    var mailcowInstances = ViewBag.MailcowInstances as List<MailcowInstance> ?? new List<MailcowInstance>();
+    var visualProvider = Model.MailcowSelected ? "Mailcow"
+        : Model.Provider == ProviderType.M365 && Model.ImportEntireTenant ? "M365Tenant"
         : Model.Provider == ProviderType.M365 ? "M365Single"
         : Model.Provider == ProviderType.MSA ? "MSA"
         : Model.Provider.ToString();
-    var imapSettingsDisplay = Model.Provider == ProviderType.IMAP ? "block" : "none";
-    var microsoft365SettingsDisplay = Model.Provider == ProviderType.M365 ? "block" : "none";
-    var msaSettingsDisplay = Model.Provider == ProviderType.MSA ? "block" : "none";
-    var emailDeletionSettingsDisplay = Model.Provider == ProviderType.IMPORT ? "none" : "block";
-    var tenantImportControlsDisplay = Model.Provider == ProviderType.M365 && Model.ImportEntireTenant ? "block" : "none";
-    var tenantImportSettingsDisplay = Model.Provider == ProviderType.M365 && Model.ImportEntireTenant ? "block" : "none";
+    var imapSettingsDisplay = visualProvider == "IMAP" ? "block" : "none";
+    var microsoft365SettingsDisplay = visualProvider == "M365Single" || visualProvider == "M365Tenant" ? "block" : "none";
+    var msaSettingsDisplay = visualProvider == "MSA" ? "block" : "none";
+    var mailcowSettingsDisplay = visualProvider == "Mailcow" ? "block" : "none";
+    var emailDeletionSettingsDisplay = visualProvider == "IMPORT" || visualProvider == "Mailcow" ? "none" : "block";
+    var tenantImportControlsDisplay = visualProvider == "M365Tenant" ? "block" : "none";
+    var tenantImportSettingsDisplay = visualProvider == "M365Tenant" ? "block" : "none";
 }
 
 <div class="container">
@@ -47,9 +51,14 @@
                             <option value="M365Tenant" selected="@(visualProvider == "M365Tenant")">@Localizer["ProviderM365Tenant"]</option>
                             <option value="MSA" selected="@(visualProvider == "MSA")">@Localizer["MsaProviderLabel"]</option>
                             <option value="IMPORT" selected="@(visualProvider == "IMPORT")">Import Only</option>
+                            @if (isAdmin)
+                            {
+                                <option value="Mailcow" selected="@(visualProvider == "Mailcow")">@Localizer["MailcowProviderLabel"]</option>
+                            }
                         </select>
                         <input type="hidden" asp-for="Provider" id="Provider" disabled="disabled" />
                         <input type="hidden" asp-for="ImportEntireTenant" id="ImportEntireTenant" disabled="disabled" />
+                        <input type="hidden" asp-for="MailcowSelected" id="MailcowSelected" disabled="disabled" />
                         <span asp-validation-for="Provider" class="text-danger"></span>
 
                         <noscript>
@@ -74,6 +83,42 @@
                         </noscript>
                     </div>
                 </div>
+
+                @* Mailcow Section *@
+                @if (isAdmin)
+                {
+                    <div id="mailcowSettings" style="display: @mailcowSettingsDisplay;">
+                        <div class="form-section">
+                            <div class="form-section-header">
+                                <i class="bi bi-server me-1"></i> @Localizer["MailcowProviderLabel"]
+                            </div>
+                            <p class="text-muted">@Localizer["MailcowProviderHelp"]</p>
+                            @if (mailcowInstances.Count == 0)
+                            {
+                                <div class="alert alert-info">@Localizer["MailcowNoInstancesConnected"]</div>
+                            }
+                            else
+                            {
+                                <div class="mb-3">
+                                    <label asp-for="MailcowInstanceId" class="form-label">@Localizer["MailcowSelectInstance"]</label>
+                                    <select asp-for="MailcowInstanceId" class="form-select" id="MailcowInstanceId">
+                                        <option value="">@Localizer["SelectAccount"]</option>
+                                        @foreach (var instance in mailcowInstances)
+                                        {
+                                            <option value="@instance.Id">@instance.Name (@instance.ApiUrl)</option>
+                                        }
+                                    </select>
+                                </div>
+                                <a id="mailcowManageMailboxes" class="btn btn-primary disabled" href="#">
+                                    <i class="bi bi-envelope me-1"></i>@Localizer["MailcowManageMailboxes"]
+                                </a>
+                            }
+                            <a asp-controller="Mailcow" asp-action="Index" class="btn btn-outline-secondary">
+                                <i class="bi bi-gear me-1"></i>@Localizer["MailcowManageInstances"]
+                            </a>
+                        </div>
+                    </div>
+                }
 
                 @* IMAP Section *@
                 <div id="imapSettings" style="display: @imapSettingsDisplay;">
@@ -296,7 +341,7 @@
                 </div>
 
                 @* Advanced: Sync Scheduling (collapsible) *@
-                <details class="form-advanced mt-3">
+                <details class="form-advanced mt-3" id="syncSchedulingSettings">
                     <summary class="form-advanced-summary">
                         <i class="bi bi-clock-history me-1"></i> @Localizer["SyncScheduling"]
                     </summary>
@@ -350,6 +395,11 @@
             const providerDisplaySelect = document.getElementById('ProviderDisplay');
             const providerInput = document.getElementById('Provider');
             const importEntireTenantInput = document.getElementById('ImportEntireTenant');
+            const mailcowSelectedInput = document.getElementById('MailcowSelected');
+            const mailcowSettings = document.getElementById('mailcowSettings');
+            const mailcowInstanceSelect = document.getElementById('MailcowInstanceId');
+            const mailcowManageMailboxesLink = document.getElementById('mailcowManageMailboxes');
+            const syncSchedulingSettings = document.getElementById('syncSchedulingSettings');
             const imapSettings = document.getElementById('imapSettings');
             const microsoft365Settings = document.getElementById('microsoft365Settings');
             const msaSettings = document.getElementById('msaSettings');
@@ -391,12 +441,16 @@
 
             function syncProviderFields() {
                 const visualValue = providerDisplaySelect.value;
+                mailcowSelectedInput.value = visualValue === 'Mailcow' ? 'true' : 'false';
                 if (visualValue === 'M365Single') {
                     providerInput.value = '@ProviderType.M365';
                     importEntireTenantInput.value = 'false';
                 } else if (visualValue === 'M365Tenant') {
                     providerInput.value = '@ProviderType.M365';
                     importEntireTenantInput.value = 'true';
+                } else if (visualValue === 'Mailcow') {
+                    providerInput.value = '@ProviderType.IMAP';
+                    importEntireTenantInput.value = 'false';
                 } else {
                     providerInput.value = visualValue;
                     importEntireTenantInput.value = 'false';
@@ -414,20 +468,21 @@
             function toggleTenantImportFields() {
                 const isM365 = isM365Selected();
                 const isTenantImport = isTenantImportSelected();
+                const isMailcow = providerDisplaySelect.value === 'Mailcow';
 
-                if (isTenantImport) {
+                if (isTenantImport || isMailcow) {
                     emailAddressInput.value = '';
                     emailAddressInput.disabled = true;
                 } else {
                     emailAddressInput.disabled = false;
                 }
 
-                emailAddressField.style.display = isTenantImport ? 'none' : 'block';
-                nameField.style.display = 'block';
+                emailAddressField.style.display = (isTenantImport || isMailcow) ? 'none' : 'block';
+                nameField.style.display = isMailcow ? 'none' : 'block';
                 tenantImportControls.style.display = isTenantImport ? 'block' : 'none';
                 tenantImportSettings.style.display = isTenantImport ? 'block' : 'none';
                 tenantMailboxSelection.style.display = isTenantImport ? tenantMailboxSelection.style.display : 'none';
-                accountEnabledField.style.display = isTenantImport ? 'none' : 'block';
+                accountEnabledField.style.display = (isTenantImport || isMailcow) ? 'none' : 'block';
 
                 if (isTenantImport && isEnabledInput) {
                     isEnabledInput.checked = true;
@@ -439,14 +494,23 @@
                 const isImport = visualValue === 'IMPORT';
                 const isM365 = isM365Selected();
                 const isMsa = visualValue === 'MSA';
-                const isImap = !isImport && !isM365 && !isMsa;
+                const isMailcow = visualValue === 'Mailcow';
+                const isImap = !isImport && !isM365 && !isMsa && !isMailcow;
 
                 imapSettings.style.display = isImap ? 'block' : 'none';
                 microsoft365Settings.style.display = isM365 ? 'block' : 'none';
                 if (msaSettings) msaSettings.style.display = isMsa ? 'block' : 'none';
-                emailDeletionSettings.style.display = (isImport || isMsa) ? 'block' : 'block';
+                if (mailcowSettings) mailcowSettings.style.display = isMailcow ? 'block' : 'none';
+                emailDeletionSettings.style.display = isMailcow ? 'none' : 'block';
+                if (syncSchedulingSettings) syncSchedulingSettings.style.display = isMailcow ? 'none' : '';
                 setSectionEnabled(imapSettings, isImap);
                 setSectionEnabled(microsoft365Settings, isM365);
+                if (msaSettings) setSectionEnabled(msaSettings, isMsa);
+                if (mailcowSettings) setSectionEnabled(mailcowSettings, isMailcow);
+                if (saveBtn) {
+                    saveBtn.disabled = isMailcow;
+                    saveBtn.style.display = isMailcow ? 'none' : '';
+                }
 
                 if (!isM365) {
                     existingAccountSuggestion.style.display = 'none';
@@ -456,6 +520,18 @@
 
                 if (isM365 && !skipSuggestionCheck) {
                     checkForExistingAccounts();
+                }
+            }
+
+            function updateMailcowMailboxesLink() {
+                if (!mailcowManageMailboxesLink || !mailcowInstanceSelect) return;
+                const id = mailcowInstanceSelect.value;
+                if (id) {
+                    mailcowManageMailboxesLink.href = '@Url.Action("Mailboxes", "Mailcow")/' + id;
+                    mailcowManageMailboxesLink.classList.remove('disabled');
+                } else {
+                    mailcowManageMailboxesLink.href = '#';
+                    mailcowManageMailboxesLink.classList.add('disabled');
                 }
             }
 
@@ -703,7 +779,11 @@
             });
 
             // Save button loading state
-            createForm.addEventListener('submit', function() {
+            createForm.addEventListener('submit', function(e) {
+                if (providerDisplaySelect.value === 'Mailcow') {
+                    e.preventDefault();
+                    return;
+                }
                 if (typeof $ !== 'undefined' && !$(this).valid()) {
                     return;
                 }
@@ -716,16 +796,22 @@
             // Enable hidden provider fields for JavaScript-enabled browsers
             providerInput.disabled = false;
             importEntireTenantInput.disabled = false;
+            mailcowSelectedInput.disabled = false;
 
             // Initial check
             syncProviderFields();
             toggleSettings();
+            updateMailcowMailboxesLink();
 
             // Add event listeners
             providerDisplaySelect.addEventListener('change', function() {
                 syncProviderFields();
                 toggleSettings();
+                updateMailcowMailboxesLink();
             });
+            if (mailcowInstanceSelect) {
+                mailcowInstanceSelect.addEventListener('change', updateMailcowMailboxesLink);
+            }
 
             importAllTenantMailboxesInput.addEventListener('change', function() {
                 tenantMailboxList.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {

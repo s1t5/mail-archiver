@@ -286,6 +286,14 @@ Set it up once, keep every message, and find it again years later.
 
     [:octicons-arrow-right-24: Read](M365TenantImport.md)
 
+-   :material-email-multiple:{ .lg .middle } __Mailcow instances__
+
+    ---
+
+    Select mailboxes centrally and provision dedicated IMAP app passwords.
+
+    [:octicons-arrow-right-24: Read](Mailcow.md)
+
 -   :material-account-key:{ .lg .middle } __Personal Microsoft accounts__
 
     ---

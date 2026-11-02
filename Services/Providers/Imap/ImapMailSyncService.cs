@@ -643,13 +643,6 @@ namespace MailArchiver.Services.Providers.Imap
         }
 
         /// <summary>
-        /// Ensures the IMAP client is connected and authenticated, and the folder is
-        /// open, before issuing a command. Reconnects/re-authenticates and reopens the
-        /// folder as needed. Used both before the initial SEARCH and between fallback
-        /// SEARCH queries, because a parser-level <see cref="ImapProtocolException"/>
-        /// from a previous SEARCH can silently desynchronize and drop the session.
-        /// </summary>
-        /// <summary>
         /// Fetches BODY[] as a stream and parses it, keeping the original bytes. Used instead of
         /// GetMessageAsync when original messages are stored; parse failures surface as the same
         /// FormatException, and a missing body as the same MessageNotFoundException.
@@ -670,6 +663,13 @@ namespace MailArchiver.Services.Providers.Imap
             return (message, new RawMessageCapture(bytes, RawMessageSource.Imap));
         }
 
+        /// <summary>
+        /// Ensures the IMAP client is connected and authenticated, and the folder is
+        /// open, before issuing a command. Reconnects/re-authenticates and reopens the
+        /// folder as needed. Used both before the initial SEARCH and between fallback
+        /// SEARCH queries, because a parser-level <see cref="ImapProtocolException"/>
+        /// from a previous SEARCH can silently desynchronize and drop the session.
+        /// </summary>
         private async Task EnsureConnectedAsync(IMailFolder folder, ImapClient client, MailAccount account, CancellationToken ct = default)
         {
             if (!client.IsConnected)
