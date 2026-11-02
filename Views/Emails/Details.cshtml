@@ -487,13 +487,31 @@
                     // Display PDF using iframe
                     previewContent.innerHTML = `<iframe src="${previewUrl}" type="application/pdf" width="100%" height="600px" />`;
                 } else if (videoContentType) {
-                    // Display video with native HTML5 player (seeking requires HTTP range requests)
-                    previewContent.innerHTML = `<video controls preload="metadata" class="w-100" style="max-height: 70vh; background: #000;">
-                        <source src="${previewUrl}" type="${videoContentType}">
-                        <a href="${downloadUrl}" class="btn btn-primary m-3">
-                            <i class="bi bi-download"></i> ${escapeHtml(fileName)}
-                        </a>
-                    </video>`;
+                    // Display video with native HTML5 player (seeking requires HTTP range requests).
+                    // The download link lives next to the player, not inside <video>: children of a
+                    // <video> element other than <source>/<track> are never rendered, so a link there
+                    // would be invisible. It is revealed when playback fails, because a codec the
+                    // browser cannot decode (e.g. H.265 in an MP4) is the most likely failure mode.
+                    previewContent.innerHTML = `
+                        <div class="d-flex flex-column align-items-center w-100">
+                            <video id="attachmentVideoPlayer" controls preload="metadata" class="w-100" style="max-height: 70vh; background: #000;">
+                                <source src="${previewUrl}" type="${videoContentType}">
+                            </video>
+                            <div id="attachmentVideoFallback" class="alert alert-warning m-3 d-none">
+                                <span>${localizedStrings.previewNotAvailable}</span>
+                            </div>
+                            <a href="${downloadUrl}" class="btn btn-primary m-3">
+                                <i class="bi bi-download"></i> ${escapeHtml(fileName)}
+                            </a>
+                        </div>`;
+
+                    const videoPlayer = document.getElementById('attachmentVideoPlayer');
+                    const videoFallback = document.getElementById('attachmentVideoFallback');
+                    if (videoPlayer && videoFallback) {
+                        videoPlayer.addEventListener('error', function () {
+                            videoFallback.classList.remove('d-none');
+                        }, true);
+                    }
                 } else if (contentType.startsWith('text/')) {
                     // Display text files
                     fetch(previewUrl)
@@ -517,17 +535,21 @@
             });
         });
 
-        // Helper function to escape HTML
+        // Helper function to escape HTML. The replacement values must be entities, otherwise
+        // the function is a no-op and every interpolation below stays an injection vector.
         function escapeHtml(text) {
+            if (text === null || text === undefined) {
+                return '';
+            }
             const map = {
-                '&': '&',
-                '<': '<',
-                '>': '>',
-                '"': '"',
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
                 "'": '&#039;'
             };
-            
-            return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+
+            return String(text).replace(/[&<>"']/g, function(m) { return map[m]; });
         }
     });
 </script>

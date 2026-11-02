@@ -762,8 +762,18 @@ namespace MailArchiver.Services.Shared
         {
             var normalized = contentType?.Split(';')[0].Trim().ToLowerInvariant() ?? string.Empty;
 
-            if (normalized == "video/mp4")
-                return "video/mp4";
+            // Every MIME type of the MP4/QuickTime container family plays in the same
+            // HTML5 player, so they are all normalized to video/mp4. video/x-m4v is the
+            // type .m4v files usually carry; video/quicktime is what some clients use for
+            // H.264 in an MP4 container.
+            switch (normalized)
+            {
+                case "video/mp4":
+                case "video/x-m4v":
+                case "video/x-mp4":
+                case "video/quicktime":
+                    return "video/mp4";
+            }
 
             if (normalized.Length > 0
                 && normalized != "application/octet-stream"

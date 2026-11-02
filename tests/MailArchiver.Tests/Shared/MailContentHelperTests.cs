@@ -429,6 +429,12 @@ public class MailContentHelperInlineVideoTypeTests
     [InlineData(null, "clip.mp4", "video/mp4")]
     [InlineData("", "clip.mp4", "video/mp4")]
     [InlineData("application/octet-stream", "clip.m4v", "video/mp4")]
+    // The MP4/QuickTime container family is normalized to video/mp4 so the same
+    // <video> player handles it. video/x-m4v is what .m4v files usually carry.
+    [InlineData("video/x-m4v", "clip.m4v", "video/mp4")]
+    [InlineData("video/x-mp4", "clip.mp4", "video/mp4")]
+    [InlineData("video/quicktime", "clip.mp4", "video/mp4")]
+    [InlineData("video/quicktime", "clip.mov", "video/mp4")]
     public void GetInlineVideoContentType_ReturnsMp4(string? contentType, string? fileName, string expected)
         => Assert.Equal(expected, MailContentHelper.GetInlineVideoContentType(contentType, fileName));
 
@@ -436,7 +442,6 @@ public class MailContentHelperInlineVideoTypeTests
     [InlineData("application/pdf", "clip.mp4")]
     [InlineData("image/png", "clip.mp4")]
     [InlineData("text/plain", "clip.mp4")]
-    [InlineData("video/quicktime", "clip.mov")]
     [InlineData("video/webm", "clip.webm")]
     [InlineData("application/octet-stream", "clip.avi")]
     [InlineData("application/octet-stream", "clip.mp4.txt")]
