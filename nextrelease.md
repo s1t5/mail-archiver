@@ -1,4 +1,5 @@
 ## ✨ New Features
+- **Complete Message Download & Original Message Storage** - Download any archived email as a complete `.eml` through the REST API (`GET /emails/{id}/eml`) and the MCP server (`get_email_eml`). With `RawMessages:Enabled` (off by default) the original message is stored as received and returned byte for byte by `GET /emails/{id}/raw` and `get_email_raw`, including its SHA-256 and capture source — for spam analysis, DKIM/SPF/ARC checks and forensics.
 - **Mailcow Integration** - Connect Mailcow instances and provision dedicated IMAP app passwords for selected mailboxes, including retry and revocation.
 - **Chinese Language Support** - Complete Simplified Chinese translation with automatic `zh`/`zh-Hans` browser detection. Thanks to @wolfbolin
 - **Brazilian Portuguese Language Support** - Complete Brazilian Portuguese translation, selectable in the language menu. Thanks to @mvldebian

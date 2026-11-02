@@ -27,10 +27,11 @@
 - Advanced search with filters
 - Email preview with attachments
 - Export accounts or selected emails as mbox / zipped EML
+- Optional storage of the original message (complete .eml as received) for spam analysis, DKIM checks and forensics ([Setup Guide](https://s1t5.github.io/mail-archiver/Setup/))
 
 ### 🔌 Programmatic & AI Agent Access
 - **Read-only REST API (v1)** for programmatic access to the archive via scoped per-user API keys — lets scripts read archived mail without ever exposing mailbox credentials ([REST API Guide](https://s1t5.github.io/mail-archiver/API/))
-- **MCP Server (Model Context Protocol)** — optional Streamable HTTP endpoint at `/mcp` that exposes the same read-only archive to AI agents as discoverable tools (`search_emails`, `get_email`, `list_accounts`, `list_folders`, `get_attachment`) ([MCP Guide](https://s1t5.github.io/mail-archiver/MCP/))
+- **MCP Server (Model Context Protocol)** — optional Streamable HTTP endpoint at `/mcp` that exposes the same read-only archive to AI agents as discoverable tools (`search_emails`, `get_email`, `list_accounts`, `list_folders`, `get_attachment`, `get_email_eml`, `get_email_raw`) ([MCP Guide](https://s1t5.github.io/mail-archiver/MCP/))
 
 ### 👥 User Management
 - Multi-user support with account-specific permissions

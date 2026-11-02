@@ -303,6 +303,34 @@ namespace MailArchiver.Migrations
                     b.ToTable("EmailAttachments", "mail_archiver");
                 });
 
+            modelBuilder.Entity("MailArchiver.Models.RawMessage", b =>
+                {
+                    b.Property<int>("ArchivedEmailId")
+                        .HasColumnType("integer");
+
+                    b.Property<byte[]>("Content")
+                        .IsRequired()
+                        .HasColumnType("bytea");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<string>("Sha256")
+                        .IsRequired()
+                        .HasColumnType("varchar(64)");
+
+                    b.Property<long>("Size")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Source")
+                        .IsRequired()
+                        .HasColumnType("varchar(16)");
+
+                    b.HasKey("ArchivedEmailId");
+
+                    b.ToTable("RawMessages", "mail_archiver");
+                });
+
             modelBuilder.Entity("MailArchiver.Models.AttachmentContent", b =>
                 {
                     b.Property<int>("Id")
@@ -582,6 +610,17 @@ namespace MailArchiver.Migrations
                     b.Navigation("AttachmentContent");
                 });
 
+            modelBuilder.Entity("MailArchiver.Models.RawMessage", b =>
+                {
+                    b.HasOne("MailArchiver.Models.ArchivedEmail", "ArchivedEmail")
+                        .WithOne("RawMessage")
+                        .HasForeignKey("MailArchiver.Models.RawMessage", "ArchivedEmailId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ArchivedEmail");
+                });
+
 
             modelBuilder.Entity("MailArchiver.Models.UserMailAccount", b =>
                 {
@@ -623,6 +662,8 @@ namespace MailArchiver.Migrations
             modelBuilder.Entity("MailArchiver.Models.ArchivedEmail", b =>
                 {
                     b.Navigation("Attachments");
+
+                    b.Navigation("RawMessage");
                 });
 
             modelBuilder.Entity("MailArchiver.Models.AttachmentContent", b =>

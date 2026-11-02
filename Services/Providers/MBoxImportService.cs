@@ -237,8 +237,13 @@ private readonly IServiceProvider _serviceProvider;
 
                 await streamProcessor.ProcessMBoxFile(job, targetAccount, ct, async (message, folder) =>
                 {
+                    // mbox has no per-message bytes at hand; serialize before PreClean modifies the message
+                    var rawMessage = mailImporter.StoresRawMessages
+                        ? new RawMessageCapture(RawMessageCodec.Serialize(message), RawMessageSource.Serialized)
+                        : null;
+
                     mailCleaner.PreCleanMessage(message);
-                    var result = await mailImporter.ImportEmailToDatabase(message, targetAccount, job.JobId, folder);
+                    var result = await mailImporter.ImportEmailToDatabase(message, targetAccount, job.JobId, folder, rawMessage);
 
                     // Progress & memory management (shared with EML pattern)
                     if (job.ProcessedEmails % 50 == 0)

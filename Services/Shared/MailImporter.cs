@@ -14,16 +14,22 @@ namespace MailArchiver.Services.Shared
         private readonly IServiceProvider _serviceProvider;
         private readonly ILogger<MailImporter> _logger;
         private readonly EmlAttachmentCollector _attachmentCollector;
+        private readonly RawMessageOptions _rawMessageOptions;
 
         public MailImporter(IServiceProvider serviceProvider, ILogger<MailImporter> logger,
-            EmlAttachmentCollector attachmentCollector)
+            EmlAttachmentCollector attachmentCollector, IOptions<RawMessageOptions>? rawMessageOptions = null)
         {
             _serviceProvider = serviceProvider;
             _logger = logger;
             _attachmentCollector = attachmentCollector;
+            _rawMessageOptions = rawMessageOptions?.Value ?? new RawMessageOptions();
         }
 
-        public async Task<ImportResult> ImportEmailToDatabase(MimeMessage message, MailAccount account, string jobId, string targetFolder)
+        /// <summary>Whether callers should capture the original message bytes for ImportEmailToDatabase.</summary>
+        public bool StoresRawMessages => _rawMessageOptions.Enabled;
+
+        public async Task<ImportResult> ImportEmailToDatabase(MimeMessage message, MailAccount account, string jobId, string targetFolder,
+            RawMessageCapture? rawMessage = null)
         {
             try
             {
@@ -213,6 +219,8 @@ namespace MailArchiver.Services.Shared
                     });
                     archivedEmail.HasAttachments = true;
                 }
+
+                archivedEmail.RawMessage = RawMessageCodec.Create(rawMessage, _rawMessageOptions);
 
                 context.ArchivedEmails.Add(archivedEmail);
                 await context.SaveChangesAsync();

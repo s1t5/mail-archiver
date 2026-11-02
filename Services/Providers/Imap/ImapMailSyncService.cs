@@ -643,6 +643,27 @@ namespace MailArchiver.Services.Providers.Imap
         }
 
         /// <summary>
+        /// Fetches BODY[] as a stream and parses it, keeping the original bytes. Used instead of
+        /// GetMessageAsync when original messages are stored; parse failures surface as the same
+        /// FormatException, and a missing body as the same MessageNotFoundException.
+        /// </summary>
+        private static async Task<(MimeKit.MimeMessage Message, RawMessageCapture Raw)> FetchMessageWithRawAsync(
+            IMailFolder folder, UniqueId uid)
+        {
+            byte[] bytes;
+            using (var rawStream = await folder.GetStreamAsync(uid, CancellationToken.None, null))
+            using (var buffered = new MemoryStream())
+            {
+                await rawStream.CopyToAsync(buffered);
+                bytes = buffered.ToArray();
+            }
+
+            using var parseStream = new MemoryStream(bytes, writable: false);
+            var message = await MimeKit.MimeMessage.LoadAsync(parseStream);
+            return (message, new RawMessageCapture(bytes, RawMessageSource.Imap));
+        }
+
+        /// <summary>
         /// Ensures the IMAP client is connected and authenticated, and the folder is
         /// open, before issuing a command. Reconnects/re-authenticates and reopens the
         /// folder as needed. Used both before the initial SEARCH and between fallback
@@ -961,6 +982,7 @@ namespace MailArchiver.Services.Providers.Imap
                                 // Non-transient errors (malformed messages, UTF-8 issues, etc.) bubble
                                 // up immediately to the outer catch and are counted as FailedEmails.
                                 MimeKit.MimeMessage? message = null;
+                                RawMessageCapture? rawMessage = null;
                                 var maxAttempts = TransientFetchRetryDelaysMs.Length + 1;
                                 var mboxRecoveryAttempted = false;
                                 var notFoundRecoveryAttempted = false;
@@ -969,7 +991,14 @@ namespace MailArchiver.Services.Providers.Imap
                                 {
                                     try
                                     {
-                                        message = await folder.GetMessageAsync(uid);
+                                        if (_coreService.StoresRawMessages)
+                                        {
+                                            (message, rawMessage) = await FetchMessageWithRawAsync(folder, uid);
+                                        }
+                                        else
+                                        {
+                                            message = await folder.GetMessageAsync(uid);
+                                        }
                                         // Success - reset the consecutive throttling counter
                                         consecutiveTransientFailures = 0;
                                         break;
@@ -991,6 +1020,10 @@ namespace MailArchiver.Services.Providers.Imap
                                             using var rawStream = await folder.GetStreamAsync(uid, CancellationToken.None, null);
                                             using var buffered = new MemoryStream();
                                             await rawStream.CopyToAsync(buffered);
+                                            if (_coreService.StoresRawMessages)
+                                            {
+                                                rawMessage = new RawMessageCapture(buffered.ToArray(), RawMessageSource.Imap);
+                                            }
                                             buffered.Position = 0;
                                             var recovery = await _mailCleaner.TryRecoverHeadersAsync(buffered);
                                             message = recovery.Message;
@@ -1036,6 +1069,12 @@ namespace MailArchiver.Services.Providers.Imap
                                             // Nothing usable came back, so this stays a failure and keeps
                                             // its original exception for the outer handler to log.
                                             throw;
+                                        }
+
+                                        if (_coreService.StoresRawMessages)
+                                        {
+                                            rawMessage = new RawMessageCapture(
+                                                RawMessageCodec.Serialize(message), RawMessageSource.Serialized);
                                         }
 
                                         wasRecovered = true;
@@ -1181,7 +1220,7 @@ namespace MailArchiver.Services.Providers.Imap
                                     }
                                 }
 
-                                var isNew = await _coreService.ArchiveEmailAsync(account, message, isOutgoing, folder.FullName);
+                                var isNew = await _coreService.ArchiveEmailAsync(account, message, isOutgoing, folder.FullName, rawMessage);
                                 if (isNew)
                                 {
                                     result.NewEmails++;
