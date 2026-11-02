@@ -750,6 +750,47 @@ namespace MailArchiver.Services.Shared
         }
 
         /// <summary>
+        /// Returns the MIME type to use when playing an attachment inline in an HTML5
+        /// &lt;video&gt; element, or <c>null</c> when the attachment is not a video that
+        /// browsers can play.
+        /// Mail clients frequently label MP4 attachments as <c>application/octet-stream</c>
+        /// or leave the type empty, so the file extension is used as a fallback when the
+        /// declared type is missing or generic. A specific non-video type (e.g.
+        /// <c>text/plain</c>) is never overridden by the extension.
+        /// </summary>
+        public static string? GetInlineVideoContentType(string? contentType, string? fileName)
+        {
+            var normalized = contentType?.Split(';')[0].Trim().ToLowerInvariant() ?? string.Empty;
+
+            // Every MIME type of the MP4/QuickTime container family plays in the same
+            // HTML5 player, so they are all normalized to video/mp4. video/x-m4v is the
+            // type .m4v files usually carry; video/quicktime is what some clients use for
+            // H.264 in an MP4 container.
+            switch (normalized)
+            {
+                case "video/mp4":
+                case "video/x-m4v":
+                case "video/x-mp4":
+                case "video/quicktime":
+                    return "video/mp4";
+            }
+
+            if (normalized.Length > 0
+                && normalized != "application/octet-stream"
+                && normalized != "binary/octet-stream")
+            {
+                return null;
+            }
+
+            return Path.GetExtension(fileName ?? string.Empty).ToLowerInvariant() switch
+            {
+                ".mp4" => "video/mp4",
+                ".m4v" => "video/mp4",
+                _ => null
+            };
+        }
+
+        /// <summary>
         /// Resolves inline images in HTML by converting cid: references to data URLs.
         /// </summary>
         public static string ResolveInlineImagesInHtml(string htmlBody, List<Models.EmailAttachment> attachments)

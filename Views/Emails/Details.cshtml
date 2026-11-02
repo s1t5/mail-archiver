@@ -1,4 +1,5 @@
 ﻿@using Microsoft.AspNetCore.Http.Extensions
+@using MailArchiver.Services.Shared
 @inject Microsoft.Extensions.Localization.IStringLocalizer<MailArchiver.SharedResource> Localizer
 @model MailArchiver.Models.ViewModels.EmailDetailViewModel
 @{
@@ -160,12 +161,14 @@
                         <div class="d-md-none d-grid gap-2 mobile-attachments">
                             @foreach (var attachment in Model.Email.Attachments)
                             {
+                                var inlineVideoType = MailContentHelper.GetInlineVideoContentType(attachment.ContentType, attachment.FileName);
                                 <button type="button" 
                                     class="btn btn-outline-secondary btn-sm text-start d-flex justify-content-between align-items-center attachment-preview-btn"
                                     data-email-id="@Model.Email.Id"
                                     data-attachment-id="@attachment.Id"
                                     data-filename="@attachment.FileName"
                                     data-content-type="@attachment.ContentType"
+                                    data-video-content-type="@inlineVideoType"
                                     data-download-url="@Url.Action("Attachment", new { emailId = Model.Email.Id, attachmentId = attachment.Id })"
                                     data-preview-url="@Url.Action("AttachmentPreview", new { emailId = Model.Email.Id, attachmentId = attachment.Id })"
                                     data-calendar-preview-url="@Url.Action("AttachmentCalendarPreview", new { emailId = Model.Email.Id, attachmentId = attachment.Id })">
@@ -181,12 +184,14 @@
                             <div class="list-group">
                                 @foreach (var attachment in Model.Email.Attachments)
                                 {
+                                    var inlineVideoType = MailContentHelper.GetInlineVideoContentType(attachment.ContentType, attachment.FileName);
                                     <button type="button"
                                         class="list-group-item list-group-item-action d-flex justify-content-between align-items-center attachment-preview-btn"
                                         data-email-id="@Model.Email.Id"
                                         data-attachment-id="@attachment.Id"
                                         data-filename="@attachment.FileName"
                                         data-content-type="@attachment.ContentType"
+                                        data-video-content-type="@inlineVideoType"
                                         data-download-url="@Url.Action("Attachment", new { emailId = Model.Email.Id, attachmentId = attachment.Id })"
                                         data-preview-url="@Url.Action("AttachmentPreview", new { emailId = Model.Email.Id, attachmentId = attachment.Id })"
                                         data-calendar-preview-url="@Url.Action("AttachmentCalendarPreview", new { emailId = Model.Email.Id, attachmentId = attachment.Id })">
@@ -442,6 +447,7 @@
                 const attachmentId = this.getAttribute('data-attachment-id');
                 const fileName = this.getAttribute('data-filename');
                 const contentType = this.getAttribute('data-content-type');
+                const videoContentType = this.getAttribute('data-video-content-type');
                 const downloadUrl = this.getAttribute('data-download-url');
                 const previewUrl = this.getAttribute('data-preview-url');
                 const calendarPreviewUrl = this.getAttribute('data-calendar-preview-url');
@@ -480,6 +486,32 @@
                 } else if (contentType === 'application/pdf') {
                     // Display PDF using iframe
                     previewContent.innerHTML = `<iframe src="${previewUrl}" type="application/pdf" width="100%" height="600px" />`;
+                } else if (videoContentType) {
+                    // Display video with native HTML5 player (seeking requires HTTP range requests).
+                    // The download link lives next to the player, not inside <video>: children of a
+                    // <video> element other than <source>/<track> are never rendered, so a link there
+                    // would be invisible. It is revealed when playback fails, because a codec the
+                    // browser cannot decode (e.g. H.265 in an MP4) is the most likely failure mode.
+                    previewContent.innerHTML = `
+                        <div class="d-flex flex-column align-items-center w-100">
+                            <video id="attachmentVideoPlayer" controls preload="metadata" class="w-100" style="max-height: 70vh; background: #000;">
+                                <source src="${previewUrl}" type="${videoContentType}">
+                            </video>
+                            <div id="attachmentVideoFallback" class="alert alert-warning m-3 d-none">
+                                <span>${localizedStrings.previewNotAvailable}</span>
+                            </div>
+                            <a href="${downloadUrl}" class="btn btn-primary m-3">
+                                <i class="bi bi-download"></i> ${escapeHtml(fileName)}
+                            </a>
+                        </div>`;
+
+                    const videoPlayer = document.getElementById('attachmentVideoPlayer');
+                    const videoFallback = document.getElementById('attachmentVideoFallback');
+                    if (videoPlayer && videoFallback) {
+                        videoPlayer.addEventListener('error', function () {
+                            videoFallback.classList.remove('d-none');
+                        }, true);
+                    }
                 } else if (contentType.startsWith('text/')) {
                     // Display text files
                     fetch(previewUrl)
@@ -503,17 +535,21 @@
             });
         });
 
-        // Helper function to escape HTML
+        // Helper function to escape HTML. The replacement values must be entities, otherwise
+        // the function is a no-op and every interpolation below stays an injection vector.
         function escapeHtml(text) {
+            if (text === null || text === undefined) {
+                return '';
+            }
             const map = {
-                '&': '&',
-                '<': '<',
-                '>': '>',
-                '"': '"',
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
                 "'": '&#039;'
             };
-            
-            return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+
+            return String(text).replace(/[&<>"']/g, function(m) { return map[m]; });
         }
     });
 </script>
