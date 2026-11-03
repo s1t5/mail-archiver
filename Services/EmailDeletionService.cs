@@ -225,30 +225,31 @@ namespace MailArchiver.Services
                     if (!emailsToDelete.Any())
                         break;
 
-                    // Log each deletion if access log service is available
+                    // Log each deletion if access log service is available. The entries are added
+                    // to the same context and saved together with the removal below: one round
+                    // trip per batch instead of one SaveChanges per email, and a deletion is never
+                    // committed without its log entry.
+                    // Note the scope of that guarantee: it holds per batch. Batches that were
+                    // already committed stay committed when a later batch fails, so a job that
+                    // dies halfway leaves the earlier batches deleted and logged and the failed
+                    // batch untouched - the job as a whole is not rolled back.
                     if (accessLogService != null)
                     {
-                        foreach (var email in emailsToDelete)
+                        var now = DateTime.UtcNow;
+                        context.AccessLogs.AddRange(emailsToDelete.Select(email => new AccessLog
                         {
-                            try
-                            {
-                                await accessLogService.LogAccessAsync(
-                                    job.UserId,
-                                    AccessLogType.Deletion,
-                                    emailId: email.Id,
-                                    emailSubject: email.Subject?.Length > 255 
-                                        ? email.Subject.Substring(0, 255) 
-                                        : email.Subject,
-                                    emailFrom: email.From?.Length > 255 
-                                        ? email.From.Substring(0, 255) 
-                                        : email.From,
-                                    mailAccountId: email.MailAccountId);
-                            }
-                            catch (Exception ex)
-                            {
-                                _logger.LogWarning(ex, "Failed to log deletion of email {EmailId}", email.Id);
-                            }
-                        }
+                            Username = job.UserId,
+                            Type = AccessLogType.Deletion,
+                            Timestamp = now,
+                            EmailId = email.Id,
+                            EmailSubject = email.Subject?.Length > 255
+                                ? email.Subject.Substring(0, 255)
+                                : email.Subject,
+                            EmailFrom = email.From?.Length > 255
+                                ? email.From.Substring(0, 255)
+                                : email.From,
+                            MailAccountId = email.MailAccountId
+                        }));
                     }
 
                     context.ArchivedEmails.RemoveRange(emailsToDelete);
