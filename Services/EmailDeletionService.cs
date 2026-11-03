@@ -229,6 +229,10 @@ namespace MailArchiver.Services
                     // to the same context and saved together with the removal below: one round
                     // trip per batch instead of one SaveChanges per email, and a deletion is never
                     // committed without its log entry.
+                    // Note the scope of that guarantee: it holds per batch. Batches that were
+                    // already committed stay committed when a later batch fails, so a job that
+                    // dies halfway leaves the earlier batches deleted and logged and the failed
+                    // batch untouched - the job as a whole is not rolled back.
                     if (accessLogService != null)
                     {
                         var now = DateTime.UtcNow;
