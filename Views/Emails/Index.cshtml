@@ -1032,6 +1032,18 @@
         function clearStoredSelections() { localStorage.removeItem(STORAGE_KEY); }
         function getTotalSelectedCount() { return getStoredSelections().length; }
 
+        // Notice without a decision to make, using the same modal as the rest of the
+        // selection UI instead of a browser alert().
+        function showSelectionNotice(message) {
+            var noticeModal = document.getElementById('batchRestoreConfirmModal');
+            if (!noticeModal) { alert(message); return; }
+            document.getElementById('confirmMessage').textContent = message;
+            document.getElementById('confirmBatchRestoreBtn').style.display = 'none';
+            var modal = new bootstrap.Modal(noticeModal);
+            modal.show();
+            setTimeout(function () { modal.hide(); }, 5000);
+        }
+
         function updateSelectionCounter() {
             const totalSelected = getTotalSelectedCount();
             const emailCheckboxes = document.querySelectorAll('.email-select-checkbox');
@@ -1167,11 +1179,11 @@
                     document.querySelectorAll('.email-select-checkbox').forEach(cb => cb.checked = mergedSet.has(cb.value));
                     updateSelectionCounter();
                     if (result.truncated || combined.length > merged.length) {
-                        alert(i18n.maxSelectionsReached.replace('{0}', maxSelectableEmails));
+                        showSelectionNotice(i18n.maxSelectionsReached.replace('{0}', maxSelectableEmails));
                     }
                 } catch (e) {
                     console.error('Select all matching failed', e);
-                    alert(i18n.errorOccurred);
+                    showSelectionNotice(i18n.errorOccurred);
                 } finally {
                     selectAllMatchingBtn.disabled = false;
                 }

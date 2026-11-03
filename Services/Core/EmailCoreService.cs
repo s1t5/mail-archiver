@@ -195,6 +195,7 @@ namespace MailArchiver.Services.Core
 
             // Build ORDER BY clause
             var (orderByClause, sortColumn, isTimestampSort) = GetOrderByClause(sortBy, sortOrder);
+            var direction = sortOrder == "asc" ? "ASC" : "DESC";
 
             // Parametrize LIMIT/OFFSET rather than interpolating integers, so
             // the data query inherits the same SQL-injection defense as the
@@ -222,7 +223,7 @@ namespace MailArchiver.Services.Core
                     ""page"" AS (
                         SELECT m.""Id"", m.""{sortColumn}""
                         FROM ""matched"" m
-                        ORDER BY m.""{sortColumn}"" {(sortOrder?.ToLower() == "asc" ? "ASC" : "DESC")}
+                        ORDER BY m.""{sortColumn}"" {direction}, m.""Id"" {direction}
                         LIMIT {limitPlaceholder} OFFSET {offsetPlaceholder}
                     )
                     SELECT e.""Id"", e.""MailAccountId"", e.""MessageId"", e.""Subject"", e.""Body"", e.""HtmlBody"",
@@ -232,7 +233,7 @@ namespace MailArchiver.Services.Core
                     FROM ""page"" p
                     INNER JOIN mail_archiver.""ArchivedEmails"" e ON e.""Id"" = p.""Id""
                     INNER JOIN mail_archiver.""MailAccounts"" ma ON e.""MailAccountId"" = ma.""Id""
-                    ORDER BY p.""{sortColumn}"" {(sortOrder?.ToLower() == "asc" ? "ASC" : "DESC")}";
+                    ORDER BY p.""{sortColumn}"" {direction}, p.""Id"" {direction}";
             }
             else
             {
@@ -659,7 +660,11 @@ namespace MailArchiver.Services.Core
             };
 
             var direction = sortOrder == "asc" ? "ASC" : "DESC";
-            return ($@"ORDER BY e.""{columnName}"" {direction}", columnName, isTimestampSort);
+            // Id is the tiebreak in both the page query and the ID query for
+            // "select all matching", so a selection always covers the rows the
+            // user actually sees first when the sort column has duplicates
+            // (common for Subject/From/To and for same-day SentDate values).
+            return ($@"ORDER BY e.""{columnName}"" {direction}, e.""Id"" {direction}", columnName, isTimestampSort);
         }
 
         /// <summary>

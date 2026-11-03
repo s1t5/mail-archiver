@@ -541,6 +541,36 @@ public class EmailCoreServiceTests
     }
 
     [Fact]
+    public async Task SearchIds_TextSortWithDuplicatesSelectsTheFirstPage()
+    {
+        var ctx = _fixture.CreateContext();
+        try
+        {
+            var acct = await SeedAccountAsync(ctx);
+            // Many emails share the same subject, so Subject alone does not order them.
+            // "Select all matching" must still pick the same rows the first page shows.
+            for (var i = 0; i < 6; i++)
+                ctx.ArchivedEmails.Add(BuildEmail(acct, "same subject", "a@x.com", "b@x.com"));
+            ctx.ArchivedEmails.Add(BuildEmail(acct, "zzz later", "a@x.com", "b@x.com"));
+            await ctx.SaveChangesAsync();
+
+            var svc = ServiceFactory.CreateEmailCoreService(ctx);
+            var (page, _) = await svc.SearchEmailsAsync(null, null, null, acct.Id, null, null, 0, 3,
+                sortBy: "subject", sortOrder: "asc");
+            var (ids, total) = await svc.SearchEmailIdsAsync(null, null, null, acct.Id, null, null, 3,
+                sortBy: "subject", sortOrder: "asc");
+
+            Assert.Equal(7, total);
+            Assert.Equal(page.Select(e => e.Id), ids);
+        }
+        finally
+        {
+            await CleanupTestAccountAsync(ctx);
+            await ctx.DisposeAsync();
+        }
+    }
+
+    [Fact]
     public async Task SearchIds_RespectsAllowedAccounts()
     {
         var ctx = _fixture.CreateContext();
