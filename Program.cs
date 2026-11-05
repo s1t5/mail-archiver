@@ -65,7 +65,7 @@ async static Task EnsureMigrationsHistoryTableExists(MailArchiverDbContext conte
 }
 
 // Idempotently ensures the trigram GIN index (idx_archivedemails_trgm_search) exists
-// whenever pg_trgm is available. The migration MigrateV2607_3_TrgmSubstringSearch creates
+// whenever pg_trgm is available. The migration AddTrgmSubstringSearch creates
 // it best-effort — if pg_trgm was absent at migration time the migration is still marked
 // applied, so a later superuser installation of pg_trgm would otherwise never trigger
 // index creation. This startup-ensure closes that gap: it is a no-op when the index
@@ -76,26 +76,7 @@ static void EnsureTrgmIndex(MailArchiverDbContext context, IServiceProvider serv
     var logger = services.GetRequiredService<ILogger<Program>>();
     try
     {
-        context.Database.ExecuteSqlRaw(@"
-            DO $$
-            BEGIN
-                IF EXISTS (SELECT 1 FROM pg_extension WHERE extname = 'pg_trgm')
-                   AND NOT EXISTS (SELECT 1 FROM pg_indexes
-                                   WHERE schemaname = 'mail_archiver'
-                                     AND tablename  = 'ArchivedEmails'
-                                     AND indexname  = 'idx_archivedemails_trgm_search') THEN
-                    CREATE INDEX ""idx_archivedemails_trgm_search""
-                    ON mail_archiver.""ArchivedEmails""
-                    USING GIN (lower(
-                        COALESCE(""Subject"", '') || ' ' ||
-                        COALESCE(""Body"", '') || ' ' ||
-                        COALESCE(""From"", '') || ' ' ||
-                        COALESCE(""To"", '') || ' ' ||
-                        COALESCE(""Cc"", '') || ' ' ||
-                        COALESCE(""Bcc"", '')) gin_trgm_ops);
-                    RAISE NOTICE 'trigram GIN index created (pg_trgm was installed after the initial migration)';
-                END IF;
-            END $$;");
+        context.Database.ExecuteSqlRaw(TrgmSearchIndex.EnsureSql);
         logger.LogDebug("EnsureTrgmIndex: startup check complete (no-op if index or extension already present).");
     }
     catch (Exception ex)

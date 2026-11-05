@@ -3,17 +3,19 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using MailArchiver.Services.Core;
+using MailArchiver.Tests.Infrastructure;
 using Npgsql;
 using Xunit;
 
-namespace MailArchiver.Tests;
+namespace MailArchiver.Tests.Services;
 
 // DB-backed robustness test: every tsquery the parser produces for word clauses must be a
 // syntactically valid PostgreSQL tsquery (else the optimized search throws and falls back).
-// Runs only when MAILARCHIVER_TEST_DB is set (CI / opt-in).
-public class TsQueryValidityTests
+[Collection(TestDbFixture.CollectionName)]
+public class SearchTsQueryValidityTests
 {
-    private static string? Conn => Environment.GetEnvironmentVariable("MAILARCHIVER_TEST_DB");
+    private readonly TestDbFixture _fixture;
+    public SearchTsQueryValidityTests(TestDbFixture fixture) => _fixture = fixture;
 
     public static IEnumerable<object[]> Inputs => new[]
     {
@@ -28,7 +30,6 @@ public class TsQueryValidityTests
     [MemberData(nameof(Inputs))]
     public async Task Parser_tsqueries_are_accepted_by_postgres(string input)
     {
-        if (Conn == null) return; // integration test: only runs when MAILARCHIVER_TEST_DB is set (CI)
         var groups = EmailCoreService.ParseSearchClauses(input);
         var queries = new List<string>();
         if (groups.Count > 0 && groups.All(g => g.All(c => c.Kind == EmailCoreService.ClauseKind.Word)))
@@ -38,7 +39,7 @@ public class TsQueryValidityTests
                 .Where(c => c.Kind == EmailCoreService.ClauseKind.Word)
                 .Select(EmailCoreService.WordAtom));
 
-        await using var c = new NpgsqlConnection(Conn);
+        await using var c = new NpgsqlConnection(_fixture.ConnectionString);
         await c.OpenAsync();
         foreach (var q in queries.Where(q => !string.IsNullOrEmpty(q)))
         {

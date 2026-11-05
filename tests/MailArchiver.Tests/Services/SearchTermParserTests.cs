@@ -3,7 +3,7 @@ using System.Linq;
 using MailArchiver.Services.Core;
 using Xunit;
 
-namespace MailArchiver.Tests;
+namespace MailArchiver.Tests.Services;
 
 // Unit tests for the unified search-clause parser (words / phrases / fields / substrings,
 // with OR-groups and negation). Word tsquery composition is checked via BuildWordTsQuery.

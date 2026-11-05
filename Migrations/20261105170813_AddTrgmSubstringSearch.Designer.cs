@@ -8,8 +8,8 @@ using MailArchiver.Data;
 namespace MailArchiver.Migrations
 {
     [DbContext(typeof(MailArchiverDbContext))]
-    [Migration("20260710200715_MigrateV2607_3_TrgmSubstringSearch")]
-    partial class MigrateV2607_3_TrgmSubstringSearch
+    [Migration("20261105170813_AddTrgmSubstringSearch")]
+    partial class AddTrgmSubstringSearch
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace MailArchiver.Migrations
 {
     /// <inheritdoc />
-    public partial class MigrateV2607_3_TrgmSubstringSearch : Migration
+    public partial class AddTrgmSubstringSearch : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -46,6 +46,8 @@ namespace MailArchiver.Migrations
                             COALESCE(""To"", '') || ' ' ||
                             COALESCE(""Cc"", '') || ' ' ||
                             COALESCE(""Bcc"", '')) gin_trgm_ops);
+                        COMMENT ON INDEX mail_archiver.""idx_archivedemails_trgm_search"" IS
+                            'Trigram index for substring search (*term*); expression must match EmailCoreService.SearchEmailsOptimizedAsync';
                     END IF;
                 END $$;
             ");
