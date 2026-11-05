@@ -3659,4 +3659,7 @@
   <data name="AdvancedSearchInfo5" xml:space="preserve">
     <value>• Ricerca per sottostringa con asterischi: *fattur* trova anche "fatture"</value>
   </data>
+  <data name="AdvAddCondition" xml:space="preserve">
+    <value>Aggiungi condizione</value>
+  </data>
 </root>

@@ -3659,4 +3659,7 @@
   <data name="AdvancedSearchInfo5" xml:space="preserve">
     <value>• Поиск по части слова со звёздочками: *счёт* находит также "счета"</value>
   </data>
+  <data name="AdvAddCondition" xml:space="preserve">
+    <value>Добавить условие</value>
+  </data>
 </root>

@@ -3658,4 +3658,7 @@
   <data name="AdvancedSearchInfo5" xml:space="preserve">
     <value>• Búsqueda por subcadena con asteriscos: *factur* también encuentra "facturas"</value>
   </data>
+  <data name="AdvAddCondition" xml:space="preserve">
+    <value>Añadir condición</value>
+  </data>
 </root>

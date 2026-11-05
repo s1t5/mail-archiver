@@ -3659,4 +3659,7 @@
   <data name="AdvancedSearchInfo5" xml:space="preserve">
     <value>• Zoeken op deel van een woord met sterretjes: *factu* vindt ook "facturen"</value>
   </data>
+  <data name="AdvAddCondition" xml:space="preserve">
+    <value>Voorwaarde toevoegen</value>
+  </data>
 </root>

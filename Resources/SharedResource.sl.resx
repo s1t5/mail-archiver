@@ -3659,4 +3659,7 @@
   <data name="AdvancedSearchInfo5" xml:space="preserve">
     <value>• Iskanje dela besede z zvezdicami: *raču* najde tudi "računi"</value>
   </data>
+  <data name="AdvAddCondition" xml:space="preserve">
+    <value>Dodaj pogoj</value>
+  </data>
 </root>

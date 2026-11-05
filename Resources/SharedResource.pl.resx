@@ -3705,4 +3705,7 @@
   <data name="AdvancedSearchInfo5" xml:space="preserve">
     <value>• Wyszukiwanie części słowa gwiazdkami: *faktur* znajdzie też "faktury"</value>
   </data>
+  <data name="AdvAddCondition" xml:space="preserve">
+    <value>Dodaj warunek</value>
+  </data>
 </root>

@@ -3651,4 +3651,7 @@
   <data name="AdvancedSearchInfo5" xml:space="preserve">
     <value>• Részszavas keresés csillaggal: *száml* a "számlák" szót is megtalálja</value>
   </data>
+  <data name="AdvAddCondition" xml:space="preserve">
+    <value>Feltétel hozzáadása</value>
+  </data>
 </root>

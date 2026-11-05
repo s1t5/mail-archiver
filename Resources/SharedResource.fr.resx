@@ -3659,4 +3659,7 @@
   <data name="AdvancedSearchInfo5" xml:space="preserve">
     <value>• Recherche par sous-chaîne avec des astérisques : *factur* trouve aussi "factures"</value>
   </data>
+  <data name="AdvAddCondition" xml:space="preserve">
+    <value>Ajouter une condition</value>
+  </data>
 </root>
