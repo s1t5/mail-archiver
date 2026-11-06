@@ -3608,4 +3608,7 @@
   <data name="MailcowNewImapPasswordRequired" xml:space="preserve"><value>Voer een nieuw IMAP-wachtwoord in nadat u Mailcow hebt verlaten.</value></data>
   <data name="MailcowLinkSuccess" xml:space="preserve"><value>Account gekoppeld aan Mailcow-instantie {0}.</value></data>
   <data name="MailcowDetachSuccess" xml:space="preserve"><value>Mailcow-toegang ingetrokken. Voer nieuwe inloggegevens in voor de geselecteerde provider.</value></data>
+  <data name="PasswordLoginDisabledError" xml:space="preserve">
+    <value>Wachtwoordaanmelding is uitgeschakeld. Meld u aan via uw identiteitsprovider.</value>
+  </data>
 </root>

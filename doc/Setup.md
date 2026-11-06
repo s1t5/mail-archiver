@@ -555,7 +555,7 @@ For detailed setup instructions for OpenID Connect authentication, see [OIDC Imp
 - `OAuth__AdminEmails__0`, `OAuth__AdminEmails__1`, etc.: Email addresses that should be automatically provisioned as administrators. Users with these email addresses will be created as active admins on first OAuth login, bypassing the normal approval process. Email matching is case-insensitive.
 
 #### Passwordless Login Settings
-- `OAuth__DisablePasswordLogin`: Hide username/password fields on login page (true/false). Default is `false`. When enabled, only the OAuth login button is displayed.
+- `OAuth__DisablePasswordLogin`: Disable username/password login (true/false). Default is `false`. When enabled, the password form is hidden **and** the server rejects every password POST, so only the OAuth login is available. Requires `OAuth__Enabled=true`. If OAuth is disabled, this setting has no effect.
 - `OAuth__AutoRedirect`: Automatically redirect users to OAuth provider (true/false). Default is `false`. Requires `OAuth__DisablePasswordLogin` to be `true`. Users will see a brief loading screen before being redirected.
 
 #### Example: Full OIDC-First Configuration

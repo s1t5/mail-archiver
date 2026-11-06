@@ -3571,4 +3571,7 @@
   <data name="MailcowNewImapPasswordRequired" xml:space="preserve"><value>离开 Mailcow 后请输入新的 IMAP 密码。</value></data>
   <data name="MailcowLinkSuccess" xml:space="preserve"><value>账户已关联到 Mailcow 实例 {0}。</value></data>
   <data name="MailcowDetachSuccess" xml:space="preserve"><value>Mailcow 访问已撤销。请为所选提供商输入新凭据。</value></data>
+  <data name="PasswordLoginDisabledError" xml:space="preserve">
+    <value>密码登录已禁用。请通过您的身份提供商登录。</value>
+  </data>
 </root>

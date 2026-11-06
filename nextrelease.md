@@ -6,5 +6,6 @@
 - **Configurable OIDC Response Mode** - `OAuth__ResponseMode` accepts `query`, `fragment` or `form_post`. The default stays `form_post`; providers that do not support it, such as Synology SSO Server, work with `query`.
 
 ## 🐛 Bug Fixes
+- **OAuth-Only Mode Is Now Enforced Server-Side** - With `OAuth__DisablePasswordLogin=true` the server now rejects every password POST to `/Auth/Login` instead of only hiding the login form. Before this fix a direct POST with a valid local password still signed the user in and bypassed the configured sign-in policy.
 - **OIDC Login Failures Show a Readable Message** - A missing or unusable claim no longer ends in an HTTP 500. The user is returned to the login page with a localized explanation and the reason is logged at error level.
 - **OIDC Name Claim Fallback** - The display name is now also read from the `username` claim, which some providers return as the only name-like value. Empty or non-string claims no longer stop the fallback chain.

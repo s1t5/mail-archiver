@@ -3595,4 +3595,7 @@
   <data name="MailcowNewImapPasswordRequired" xml:space="preserve"><value>Mailcow から離れた後、新しい IMAP パスワードを入力してください。</value></data>
   <data name="MailcowLinkSuccess" xml:space="preserve"><value>アカウントを Mailcow インスタンス {0} にリンクしました。</value></data>
   <data name="MailcowDetachSuccess" xml:space="preserve"><value>Mailcow アクセスを取り消しました。選択したプロバイダーの新しい認証情報を入力してください。</value></data>
+  <data name="PasswordLoginDisabledError" xml:space="preserve">
+    <value>パスワードログインは無効になっています。ID プロバイダーでサインインしてください。</value>
+  </data>
 </root>

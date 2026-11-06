@@ -3607,4 +3607,7 @@
   <data name="MailcowNewImapPasswordRequired" xml:space="preserve"><value>Introduzca una nueva contraseña IMAP después de salir de Mailcow.</value></data>
   <data name="MailcowLinkSuccess" xml:space="preserve"><value>Cuenta vinculada a la instancia de Mailcow {0}.</value></data>
   <data name="MailcowDetachSuccess" xml:space="preserve"><value>Acceso a Mailcow revocado. Introduzca nuevas credenciales para el proveedor seleccionado.</value></data>
+  <data name="PasswordLoginDisabledError" xml:space="preserve">
+    <value>El inicio de sesión con contraseña está deshabilitado. Inicie sesión con su proveedor de identidad.</value>
+  </data>
 </root>

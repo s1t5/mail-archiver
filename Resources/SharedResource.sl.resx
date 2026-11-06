@@ -3608,4 +3608,7 @@
   <data name="MailcowNewImapPasswordRequired" xml:space="preserve"><value>Po zapustitvi Mailcow vnesite novo geslo IMAP.</value></data>
   <data name="MailcowLinkSuccess" xml:space="preserve"><value>Račun je povezan s primerkom Mailcow {0}.</value></data>
   <data name="MailcowDetachSuccess" xml:space="preserve"><value>Dostop do Mailcow je preklican. Vnesite nove poverilnice za izbranega ponudnika.</value></data>
+  <data name="PasswordLoginDisabledError" xml:space="preserve">
+    <value>Prijava z geslom je onemogočena. Prijavite se prek svojega ponudnika identitete.</value>
+  </data>
 </root>

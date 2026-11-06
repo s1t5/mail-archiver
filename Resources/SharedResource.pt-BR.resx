@@ -3595,4 +3595,7 @@
   <data name="MailcowNewImapPasswordRequired" xml:space="preserve"><value>Informe uma nova senha IMAP após sair do Mailcow.</value></data>
   <data name="MailcowLinkSuccess" xml:space="preserve"><value>Conta vinculada à instância do Mailcow {0}.</value></data>
   <data name="MailcowDetachSuccess" xml:space="preserve"><value>Acesso ao Mailcow revogado. Informe novas credenciais para o provedor selecionado.</value></data>
+  <data name="PasswordLoginDisabledError" xml:space="preserve">
+    <value>O login por senha está desativado. Entre com seu provedor de identidade.</value>
+  </data>
 </root>

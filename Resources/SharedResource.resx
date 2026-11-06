@@ -3602,4 +3602,7 @@
   <data name="MailcowNewImapPasswordRequired" xml:space="preserve"><value>Enter a new IMAP password after leaving Mailcow.</value></data>
   <data name="MailcowLinkSuccess" xml:space="preserve"><value>Account linked to Mailcow instance {0}.</value></data>
   <data name="MailcowDetachSuccess" xml:space="preserve"><value>Mailcow access revoked. Enter new credentials for the selected provider.</value></data>
+  <data name="PasswordLoginDisabledError" xml:space="preserve">
+    <value>Password login is disabled. Please sign in with your identity provider.</value>
+  </data>
 </root>

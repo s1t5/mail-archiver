@@ -3654,4 +3654,7 @@
   <data name="MailcowNewImapPasswordRequired" xml:space="preserve"><value>Po opuszczeniu Mailcow wprowadź nowe hasło IMAP.</value></data>
   <data name="MailcowLinkSuccess" xml:space="preserve"><value>Konto połączone z instancją Mailcow {0}.</value></data>
   <data name="MailcowDetachSuccess" xml:space="preserve"><value>Dostęp do Mailcow odwołany. Wprowadź nowe dane logowania dla wybranego dostawcy.</value></data>
+  <data name="PasswordLoginDisabledError" xml:space="preserve">
+    <value>Logowanie hasłem jest wyłączone. Zaloguj się przez swojego dostawcę tożsamości.</value>
+  </data>
 </root>

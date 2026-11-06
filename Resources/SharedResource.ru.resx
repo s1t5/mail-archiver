@@ -3608,4 +3608,7 @@
   <data name="MailcowNewImapPasswordRequired" xml:space="preserve"><value>После выхода из Mailcow введите новый пароль IMAP.</value></data>
   <data name="MailcowLinkSuccess" xml:space="preserve"><value>Учётная запись привязана к экземпляру Mailcow {0}.</value></data>
   <data name="MailcowDetachSuccess" xml:space="preserve"><value>Доступ к Mailcow отозван. Введите новые учётные данные для выбранного провайдера.</value></data>
+  <data name="PasswordLoginDisabledError" xml:space="preserve">
+    <value>Вход по паролю отключён. Войдите через своего поставщика удостоверений.</value>
+  </data>
 </root>
