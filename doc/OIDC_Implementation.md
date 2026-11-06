@@ -26,6 +26,7 @@ This guide provides comprehensive instructions for setting up OpenID Connect (OI
 8. [User Management with OIDC](#user-management-with-oidc)
 9. [Auto-Approve OIDC Users](#auto-approve-oidc-users)
 10. [Passwordless Login Configuration](#passwordless-login-configuration)
+11. [Provider Compatibility](#provider-compatibility)
 
 ## 🔄 How the Login Flow Works
 
@@ -159,6 +160,7 @@ environment:
 - **OAuth__ClientSecret**: The client secret assigned by your identity provider
 - **OAuth__DisplayName**: Optional display name for the OIDC login button (for example, `PocketID SSO` renders as `Login with PocketID SSO`)
 - **OAuth__ClientScopes**: Array of scopes requested from the identity provider
+- **OAuth__ResponseMode**: Response mode of the authorization request: `query`, `fragment` or `form_post`. Leave empty to keep the default (`form_post`). Providers that do not support `form_post` need `query`; see [Provider Compatibility](#provider-compatibility)
 - **OAuth__DisablePasswordLogin**: Set to `true` to disable traditional username/password login and enforce OAuth-only authentication (see Passwordless Login Configuration for more details)
 - **OAuth__AutoApproveUsers**: Set to `true` to automatically approve new OIDC users without requiring admin approval (default: `false`). See [Auto-Approve OIDC Users](#auto-approve-oidc-users) for details
 
@@ -497,6 +499,47 @@ Enable `AutoRedirect` to automatically redirect users to your OAuth provider:
 - **Emergency Access**: Consider keeping one password-based admin account for emergency access before fully disabling password login.
 - **Testing**: Thoroughly test OAuth authentication before disabling password login in production.
 - **SSO Environment**: Auto-redirect is best suited for single sign-on environments where all users authenticate via the same provider.
+
+## 🧩 Provider Compatibility
+
+Not every identity provider implements the full OIDC specification. Both settings
+below exist because of that, and both are needed for the Synology SSO Server.
+
+### Response Mode
+
+The authorization request is sent with the response mode `form_post`, the default of
+the underlying ASP.NET Core OpenID Connect handler. A provider that does not support
+it usually fails with a message of its own and nothing in the Mail Archiver log.
+
+Synology SSO Server behaves that way: its discovery document omits
+`response_modes_supported`, and the login stops with "Unable to sign in via SSO due
+to setting issues". Set the response mode explicitly:
+
+```env
+OAuth__ResponseMode=query
+```
+
+Valid values are `query`, `fragment` and `form_post`. Leave the setting empty to
+keep the default. When in doubt, `query` is the safest choice: it is the only
+response mode every OIDC provider is required to support.
+
+### Name and Email Claims
+
+The display name of a new user is taken from the user info response, in this order:
+
+1. `name`
+2. `preferred_username`
+3. `given_name`
+4. `username`
+
+Claims that are present but empty or not a string are skipped. `username` is not an
+OIDC standard claim, but some providers return it as the only name-like value
+(Synology SSO Server again). The email address is read from `email`, then `mail`,
+then `upn`, and falls back to the claims of the ID token.
+
+If none of the name claims is present the login fails. The user is returned to the
+login page with a readable message naming the claims that were looked for, and the
+reason is written to the log at error level.
 
 ---
 

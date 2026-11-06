@@ -2536,6 +2536,13 @@
   <data name="OidcClaimLengthExceeded" xml:space="preserve">
     <value>Claim values exceed maximum allowed length</value>
   </data>
+  <data name="OidcMissingClaim" xml:space="preserve">
+    <value>Your identity provider did not return a required claim ({0}). Please contact your administrator.</value>
+    <comment>{0} - list of claim names that were looked for</comment>
+  </data>
+  <data name="OidcLoginFailed" xml:space="preserve">
+    <value>Sign-in via single sign-on failed. Please try again or contact your administrator.</value>
+  </data>
   <data name="AccountDeletionQueued" xml:space="preserve">
     <value>Deletion of account '{0}' has been queued and will be processed in the background.</value>
     <comment>{0} - account name</comment>
