@@ -751,7 +751,7 @@ namespace MailArchiver.Controllers
                     EmailId = id
                 };
 
-                var fileBytes = await _emailCoreService.ExportEmailsAsync(exportParams, allowedAccountIds);
+                var result = await _emailCoreService.ExportEmailAsync(exportParams, allowedAccountIds);
 
                 string contentType;
                 string fileName;
@@ -760,7 +760,12 @@ namespace MailArchiver.Controllers
                 {
                     case ExportFormat.Eml:
                         contentType = "message/rfc822";
-                        fileName = $"email-{id}-{DateTime.Now:yyyyMMdd-HHmmss}.eml";
+                        // The suffix tells the recipient which of the two forms they got: the
+                        // stored original, or a reconstruction that no longer carries a valid
+                        // DKIM signature.
+                        fileName = result.IsOriginal
+                            ? $"email-{id}-original-{DateTime.Now:yyyyMMdd-HHmmss}.eml"
+                            : $"email-{id}-{DateTime.Now:yyyyMMdd-HHmmss}.eml";
                         break;
                     default:
                         contentType = "application/octet-stream";
@@ -768,8 +773,27 @@ namespace MailArchiver.Controllers
                         break;
                 }
 
+                if (result.IsOriginal)
+                {
+                    Response.Headers["X-Raw-Message-Sha256"] = result.Sha256;
+                    Response.Headers["X-Raw-Message-Source"] = result.Source;
+                    Response.Headers["X-Raw-Message-Storage"] = result.StorageType;
+                }
+                else
+                {
+                    Response.Headers["X-Raw-Message-Reconstructed"] = "true";
+                }
+
                 Response.Headers.Add("Content-Disposition", $"attachment; filename=\"{fileName}\"");
-                return File(fileBytes, contentType, fileName);
+                return File(result.Bytes, contentType, fileName);
+            }
+            catch (RawMessageIntegrityException ex)
+            {
+                // The stored original no longer matches the checksum taken at archive time.
+                // Serving the reconstruction instead would hide that the archive was altered.
+                _logger.LogError(ex, "Export of email {EmailId} refused: stored original failed its checksum", id);
+                TempData["ErrorMessage"] = $"Export failed: the stored original of this email does not match its recorded checksum. {ex.Message}";
+                return RedirectToAction("Details", new { id });
             }
             catch (Exception ex)
             {

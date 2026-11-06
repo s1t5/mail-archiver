@@ -766,6 +766,16 @@ namespace MailArchiver.Services.Core
         #region Export Methods
 
         public async Task<byte[]> ExportEmailsAsync(ExportViewModel parameters, List<int> allowedAccountIds = null)
+            => (await ExportEmailAsync(parameters, allowedAccountIds)).Bytes;
+
+        /// <summary>
+        /// Exports a single email and reports whether the bytes are the stored original or a
+        /// reconstruction. A stored original is preferred when one exists: it is the only form
+        /// that is byte-identical to what was received. A message whose stored content fails its
+        /// checksum throws <see cref="RawMessageIntegrityException"/> instead of falling back to
+        /// the reconstruction, so altered content is never silently replaced by a rebuilt one.
+        /// </summary>
+        public async Task<EmailExportResult> ExportEmailAsync(ExportViewModel parameters, List<int> allowedAccountIds = null)
         {
             using var ms = new MemoryStream();
 
@@ -782,11 +792,25 @@ namespace MailArchiver.Services.Core
                     throw new InvalidOperationException($"Email with ID {parameters.EmailId.Value} not found");
                 }
 
+                if (parameters.Format == ExportFormat.Eml)
+                {
+                    var original = await _rawMessageStore.ReadAsync(email.Id);
+                    if (original != null)
+                    {
+                        _logger.LogInformation(
+                            "Exporting email {EmailId} as its stored original (source {Source}, storage {Storage})",
+                            email.Id, original.Source, original.StorageType);
+
+                        return new EmailExportResult(
+                            original.Bytes, true, original.Source, original.Sha256, original.StorageType);
+                    }
+                }
+
                 await ExportSingleEmailAsEml(email, ms);
             }
 
             ms.Position = 0;
-            return ms.ToArray();
+            return new EmailExportResult(ms.ToArray(), false);
         }
 
         private async Task ExportSingleEmailAsEml(ArchivedEmail email, MemoryStream ms)

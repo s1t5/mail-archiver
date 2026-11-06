@@ -2090,6 +2090,119 @@ public class EmailCoreServiceTests
     }
 
     [Fact]
+    public async Task Export_PrefersStoredOriginal_OverReconstruction()
+    {
+        var ctx = _fixture.CreateContext();
+        try
+        {
+            var acct = await SeedAccountAsync(ctx);
+            var email = BuildEmail(acct, "Subject in the archive", "alice@x.com", "bob@y.com",
+                body: "body stored as a column");
+            ctx.ArchivedEmails.Add(email);
+            await ctx.SaveChangesAsync();
+
+            // Deliberately different from the archived fields in both body and headers: a
+            // reconstruction would rebuild the body and re-serialize the headers, so identical
+            // bytes prove the stored original was served.
+            var original = System.Text.Encoding.UTF8.GetBytes(
+                "Subject: Subject as received\r\n" +
+                "From: alice@x.com\r\n" +
+                "To: bob@y.com\r\n" +
+                "DKIM-Signature: v=1; a=rsa-sha256; b=abc\r\n" +
+                "\r\n" +
+                "body as received");
+
+            var row = RawMessageCodec.Create(
+                new RawMessageCapture(original, RawMessageSource.Imap),
+                new RawMessageOptions { Enabled = true });
+            Assert.NotNull(row);
+
+            email.RawMessage = row;
+            await ctx.SaveChangesAsync();
+
+            var svc = ServiceFactory.CreateEmailCoreService(ctx);
+            var result = await svc.ExportEmailAsync(new ExportViewModel { EmailId = email.Id });
+
+            Assert.True(result.IsOriginal);
+            Assert.Equal(RawMessageSource.Imap, result.Source);
+            Assert.Equal(row!.Sha256, result.Sha256);
+            Assert.Equal(original, result.Bytes);
+            Assert.Contains("DKIM-Signature", System.Text.Encoding.UTF8.GetString(result.Bytes));
+        }
+        finally
+        {
+            await CleanupTestAccountAsync(ctx);
+            await ctx.DisposeAsync();
+        }
+    }
+
+    [Fact]
+    public async Task Export_WithoutStoredOriginal_ReturnsReconstruction()
+    {
+        var ctx = _fixture.CreateContext();
+        try
+        {
+            var acct = await SeedAccountAsync(ctx);
+            var email = BuildEmail(acct, "Rebuilt", "alice@x.com", "bob@y.com", body: "archived body");
+            ctx.ArchivedEmails.Add(email);
+            await ctx.SaveChangesAsync();
+
+            var svc = ServiceFactory.CreateEmailCoreService(ctx);
+            var result = await svc.ExportEmailAsync(new ExportViewModel { EmailId = email.Id });
+
+            Assert.False(result.IsOriginal);
+            Assert.Null(result.Source);
+
+            using var ms = new MemoryStream(result.Bytes);
+            var parsed = await MimeMessage.LoadAsync(ms);
+            Assert.Equal("Rebuilt", parsed.Subject);
+            // The reconstruction ends the text part with a newline of its own.
+            Assert.StartsWith("archived body", parsed.TextBody);
+        }
+        finally
+        {
+            await CleanupTestAccountAsync(ctx);
+            await ctx.DisposeAsync();
+        }
+    }
+
+    [Fact]
+    public async Task Export_RefusesToServeOriginal_WhenChecksumDoesNotMatch()
+    {
+        var ctx = _fixture.CreateContext();
+        try
+        {
+            var acct = await SeedAccountAsync(ctx);
+            var email = BuildEmail(acct, "Tampered", "alice@x.com", "bob@y.com");
+            ctx.ArchivedEmails.Add(email);
+            await ctx.SaveChangesAsync();
+
+            var row = RawMessageCodec.Create(
+                new RawMessageCapture(
+                    System.Text.Encoding.UTF8.GetBytes("Subject: Tampered\r\n\r\nbody"),
+                    RawMessageSource.Imap),
+                new RawMessageOptions { Enabled = true });
+            Assert.NotNull(row);
+
+            // A row whose recorded checksum no longer describes its content. Falling back to the
+            // reconstruction here would hide that the archive was altered.
+            row!.Sha256 = new string('0', 64);
+            email.RawMessage = row;
+            await ctx.SaveChangesAsync();
+
+            var svc = ServiceFactory.CreateEmailCoreService(ctx);
+
+            await Assert.ThrowsAsync<RawMessageIntegrityException>(
+                () => svc.ExportEmailAsync(new ExportViewModel { EmailId = email.Id }));
+        }
+        finally
+        {
+            await CleanupTestAccountAsync(ctx);
+            await ctx.DisposeAsync();
+        }
+    }
+
+    [Fact]
     public async Task Export_PreservesDisplayNames()
     {
         var ctx = _fixture.CreateContext();

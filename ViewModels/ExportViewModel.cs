@@ -33,4 +33,17 @@ namespace MailArchiver.ViewModels
     {
         Eml
     }
+
+    /// <summary>
+    /// Outcome of exporting a single email. <see cref="IsOriginal"/> distinguishes the stored
+    /// original message, returned byte for byte, from a message rebuilt out of the archived
+    /// fields, which is not identical to what was received (headers are re-serialized, the body
+    /// is rebuilt, DKIM signatures no longer verify).
+    /// </summary>
+    public sealed record EmailExportResult(
+        byte[] Bytes,
+        bool IsOriginal,
+        string? Source = null,
+        string? Sha256 = null,
+        string? StorageType = null);
 }
