@@ -56,6 +56,15 @@ namespace MailArchiver.Services.Core
         /// <summary>Whether callers should capture the original message bytes for ArchiveEmailAsync.</summary>
         public bool StoresRawMessages => _rawMessageOptions.Enabled;
 
+        /// <summary>
+        /// Counts the emails matching a deletion filter. Used by the deletion preview
+        /// and by the filter-based deletion job; the query shares its WHERE clause
+        /// with <see cref="SearchEmailsAsync"/>.
+        /// </summary>
+        public Task<(int Deletable, int Locked, int? MaxId)> CountEmailsForDeletionAsync(
+            EmailDeletionFilter filter, CancellationToken cancellationToken = default)
+            => EmailFilterQuery.CountAsync(_context, filter, cancellationToken);
+
         #region Search Methods
 
         public async Task<(List<ArchivedEmail> Emails, int TotalCount)> SearchEmailsAsync(
