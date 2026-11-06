@@ -18,9 +18,9 @@ services:
       - ./appsettings.json:/app/appsettings.json
       - ./logs:/app/logs
       - ./data-protection-keys:/app/DataProtection-Keys
-      # Required when RawMessages.Storage=filesystem: the stored original messages live
+      # Uncomment when RawMessages.Storage=filesystem: the stored original messages live
       # here, and without this mount they are lost when the container is recreated.
-      - ./raw-messages:/app/RawMessages
+      # - ./raw-messages:/app/RawMessages
     depends_on:
       - postgres
 
