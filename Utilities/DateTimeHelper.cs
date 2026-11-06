@@ -5,6 +5,29 @@ namespace MailArchiver.Utilities
 {
     public class DateTimeHelper
     {
+        /// <summary>
+        /// Lower bound applied to every timestamp that is written to
+        /// <c>ArchivedEmail.SentDate</c> or used in a duplicate comparison.
+        /// </summary>
+        /// <remarks>
+        /// A mail server may emit a <c>Date:</c> header that MimeKit cannot represent, in which
+        /// case it yields <see cref="DateTimeOffset.MinValue"/> (year 1) instead of failing. Such
+        /// a value is not only implausible as a send date, it is also dangerous to compare: the
+        /// duplicate query subtracts the stored <c>SentDate</c> from the incoming one, and
+        /// PostgreSQL's <c>interval</c> type spans fewer years than <c>timestamp</c> does, so the
+        /// difference of two individually valid timestamps can raise
+        /// <c>22008: interval out of range</c> and abort the whole import job.
+        /// </remarks>
+        public static readonly DateTime MinimumPlausibleSentDate =
+            new(1970, 1, 1, 0, 0, 0, DateTimeKind.Unspecified);
+
+        /// <summary>
+        /// Upper bound applied to <c>ArchivedEmail.SentDate</c>; see
+        /// <see cref="MinimumPlausibleSentDate"/>.
+        /// </summary>
+        public static readonly DateTime MaximumPlausibleSentDate =
+            new(2100, 12, 31, 23, 59, 59, DateTimeKind.Unspecified);
+
         private readonly TimeZoneInfo _displayTimeZone;
 
         public DateTimeHelper(IOptions<TimeZoneOptions> timeZoneOptions)
@@ -20,7 +43,33 @@ namespace MailArchiver.Utilities
         /// <returns>DateTime in the configured display timezone</returns>
         public DateTime ConvertToDisplayTimeZone(DateTimeOffset dateTimeOffset)
         {
-            return TimeZoneInfo.ConvertTime(dateTimeOffset, _displayTimeZone).DateTime;
+            return ClampToPlausibleRange(
+                TimeZoneInfo.ConvertTime(dateTimeOffset, _displayTimeZone).DateTime);
+        }
+
+        /// <summary>
+        /// Restricts a stored-format timestamp to <see cref="MinimumPlausibleSentDate"/> through
+        /// <see cref="MaximumPlausibleSentDate"/>.
+        /// <para>
+        /// Applied on both sides of the duplicate comparison - the value about to be written and
+        /// the value read from the column - so the two remain comparable, and so that a
+        /// timestamp already sitting in the archive outside the range cannot push the
+        /// <c>SentDate</c> subtraction past the range of PostgreSQL's <c>interval</c> type.
+        /// </para>
+        /// </summary>
+        /// <param name="dateTime">A timestamp in the display timezone.</param>
+        /// <returns>
+        /// <paramref name="dateTime"/> when it lies inside the range, otherwise the nearest bound.
+        /// </returns>
+        public static DateTime ClampToPlausibleRange(DateTime dateTime)
+        {
+            if (dateTime < MinimumPlausibleSentDate)
+                return MinimumPlausibleSentDate;
+
+            if (dateTime > MaximumPlausibleSentDate)
+                return MaximumPlausibleSentDate;
+
+            return dateTime;
         }
 
         /// <summary>

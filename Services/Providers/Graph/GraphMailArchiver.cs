@@ -164,6 +164,12 @@ namespace MailArchiver.Services.Providers.Graph
                 // existing archives are still recognized as duplicates.
                 var messageIdCandidates = MailContentHelper.MessageIdMatchCandidates(messageId).ToList();
 
+                // Same range restriction on both sides as MailImporter applies: the incoming value
+                // was clamped inside ConvertToDisplayTimeZone, the column side is clamped here so
+                // that rows written before the clamp cannot overflow PostgreSQL's interval type.
+                var minSentDate = DateTimeHelper.MinimumPlausibleSentDate;
+                var maxSentDate = DateTimeHelper.MaximumPlausibleSentDate;
+
                 var existingInfo = await _context.ArchivedEmails
                     .AsNoTracking()
                     .Where(e => e.MailAccountId == accountId)
@@ -172,7 +178,9 @@ namespace MailArchiver.Services.Providers.Graph
                         (e.From == checkFrom &&
                          e.To == checkTo &&
                          e.Subject == checkSubject &&
-                         Math.Abs((e.SentDate - checkDate).TotalSeconds) < toleranceSeconds)
+                         Math.Abs(((e.SentDate < minSentDate ? minSentDate :
+                                     e.SentDate > maxSentDate ? maxSentDate : e.SentDate)
+                                   - checkDate).TotalSeconds) < toleranceSeconds)
                     )
                     .Select(e => new { e.Id, e.FolderName, e.Subject })
                     .FirstOrDefaultAsync();
