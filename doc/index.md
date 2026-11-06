@@ -119,7 +119,8 @@ Set it up once, keep every message, and find it again years later.
 
     ---
 
-    Import existing archives from the command line.
+    Import existing archives from the command line, and move stored original
+    messages between the database and the filesystem.
 
     [:octicons-arrow-right-24: Read](CLI-Local-Import.md)
 

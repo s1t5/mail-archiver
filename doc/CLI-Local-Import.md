@@ -1,4 +1,4 @@
-# 📥 CLI Local Import Guide
+# 📥 CLI Local Import & Maintenance Guide
 
 [← Back to Documentation Index](index.md)
 
@@ -166,8 +166,52 @@ Add more paths by incrementing the index (`__2`, `__3`, etc.).
 |----------|-------------|----------------------|--------------|------|
 | `--import-mbox` | MBox file | `.mbox`, `.mbx` | ❌ (always bulk) | ✅ |
 | `--import-eml` | ZIP archive of EMLs | `.zip` | ❌ (ZIP required) | ✅ |
+| `--migrate-raw-storage` | Stored original messages | — | — | ✅ |
 
 *Single `.eml` files are not directly supported. Use `zip` to wrap them, or import via the [web upload](Import-EML-MBox.md).*
+
+## 🔄 Moving Stored Original Messages
+
+When `RawMessages:Enabled` is on, the original message of each email is kept either in the database or in files, depending on `RawMessages:Storage`. This command moves the already-stored originals from one backend to the other; see [Storage Backend](Setup.md#storage-backend) for the configuration.
+
+```bash
+# database -> filesystem
+docker compose exec mailarchiver dotnet MailArchiver.dll \
+  --migrate-raw-storage --from postgres --to filesystem
+
+# filesystem -> database
+docker compose exec mailarchiver dotnet MailArchiver.dll \
+  --migrate-raw-storage --from filesystem --to postgres
+```
+
+| Argument | Default | Description |
+|----------|---------|-------------|
+| `--from` | configured `RawMessages:Storage` | Backend the messages are moved out of. |
+| `--to` | configured `RawMessages:Storage` | Backend the messages are moved into. |
+| `--batch` | `200` | Messages per database transaction. |
+
+Unlike the import commands this one is not restricted by `LocalImport:AllowedPaths`: it reads only the message files that the archive itself wrote under `RawMessages:FileSystem:BasePath`.
+
+**What it guarantees:**
+
+- Each message is verified against the checksum recorded at archive time before it is copied. A message that fails is left exactly where it is and reported — a corrupt original is never propagated and its only remaining copy is never deleted.
+- A file is deleted only after the database transaction that moved it has committed, so an interrupted run cannot lose the only copy.
+- The run is resumable: work is selected by the storage recorded on each message, so starting the command again continues with what is still outstanding.
+- One bad message does not abort the run. The exit code is `1` if any message failed, `0` otherwise.
+
+**Example output:**
+
+```text
+Batch: 200 moved, 0 skipped, 0 failed
+Batch: 200 moved, 0 skipped, 0 failed
+Batch: 42 moved, 0 skipped, 1 failed
+Done: 442 moved, 1 failed.
+  Email 12345: checksum mismatch (recorded 4f1c..., file has 9ab2...)
+```
+
+Reads always follow the backend recorded on each message, not the configured setting, so a download keeps working during and after a migration. Changing `RawMessages:Storage` only affects newly archived mail — run this command to move what is already stored.
+
+> **Backup:** with the filesystem backend the message files live outside the database. Back up `RawMessages:FileSystem:BasePath` together with the database dump; a restore without the files leaves originals that cannot be served.
 
 ## ❓ FAQ
 

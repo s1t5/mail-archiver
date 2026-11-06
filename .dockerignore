@@ -70,6 +70,7 @@ docker-volumes/
 .docker/data/
 postgres-data/
 logs/
+raw-messages/
 
 # Documentation & meta files (not needed in image)
 doc/

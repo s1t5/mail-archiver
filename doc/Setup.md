@@ -190,6 +190,9 @@ services:
       # (also configure LocalImport__AllowedPaths__0=/data/import in environment variables)
       # - /path/to/your/mbox/files:/data/import
       - ./data-protection-keys:/app/DataProtection-Keys
+      # Only with RawMessages__Storage=filesystem: keep the original messages outside the
+      # container, otherwise they are lost when the container is recreated.
+      # - ./raw-messages:/app/RawMessages
     depends_on:
       postgres:
         condition: service_healthy
@@ -321,6 +324,20 @@ By default the archive keeps the parsed parts of an email (headers, bodies, atta
 #### Storage Backend
 
 With `RawMessages__Storage=filesystem` the original messages no longer grow the database; they are written to `{BasePath}/{xx}/{yy}/{id}.eml.gz`, where `xx`/`yy` are derived from the email id. The `mail_archiver."RawMessages"` row keeps the checksum, size, capture source and the relative path, so the archive can still prove what a stored message should contain.
+
+!!! danger "Mount a volume in Docker"
+    The default `BasePath` (`RawMessages`) resolves to `/app/RawMessages` **inside the container**. Without a bind mount that directory belongs to the container's writable layer, so every recreated container - including `docker compose down && docker compose up -d`, an image update, or a host reboot with an ephemeral layer - takes every stored original with it while the database rows survive.
+
+    Always mount the directory to the host when using the filesystem backend:
+
+    ```yaml
+    services:
+      mailarchive-app:
+        volumes:
+          - ./raw-messages:/app/RawMessages
+    ```
+
+    The host path (`./raw-messages` here) is what you back up; the container path must match `RawMessages__FileSystem__BasePath` (or set `RawMessages__FileSystem__BasePath=/data/raw-messages` and mount to `/data/raw-messages` instead). If you move the mount, keep `BasePath` pointing at it - the stored `StoragePath` values are relative, so they keep resolving.
 
 Reads follow the storage recorded on each row, not the configured setting: after switching the backend, messages archived earlier stay downloadable from where they are. Changing the setting only affects newly archived mail. To move existing messages, run the storage migration:
 
