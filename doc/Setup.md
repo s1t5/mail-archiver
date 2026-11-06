@@ -545,6 +545,7 @@ For detailed setup instructions for OpenID Connect authentication, see [OIDC Imp
 - `OAuth__ClientScopes__0`: First scope requested from the identity provider (openid)
 - `OAuth__ClientScopes__1`: Second scope requested from the identity provider (profile)
 - `OAuth__ClientScopes__2`: Third scope requested from the identity provider (email)
+- `OAuth__ResponseMode`: Optional response mode of the authorization request (`query`, `fragment` or `form_post`). Default is `form_post`, the ASP.NET Core default. Set to `query` for providers that do not support `form_post`, such as Synology SSO Server. See [Provider Compatibility](OIDC_Implementation.md#provider-compatibility).
 - `OAuth__AutoApproveUsers`: Automatically approve new OIDC users without requiring manual admin approval (true/false). Default is `false`.
 
 #### User Provisioning Settings

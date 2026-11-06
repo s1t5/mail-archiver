@@ -2507,6 +2507,13 @@
   <data name="OidcClaimLengthExceeded" xml:space="preserve">
     <value>Claim-Werte überschreiten die maximal zulässige Länge</value>
   </data>
+  <data name="OidcMissingClaim" xml:space="preserve">
+    <value>Ihr Identitätsanbieter hat einen erforderlichen Claim ({0}) nicht geliefert. Bitte wenden Sie sich an Ihren Administrator.</value>
+    <comment>{0} - Liste der gesuchten Claim-Namen</comment>
+  </data>
+  <data name="OidcLoginFailed" xml:space="preserve">
+    <value>Die Anmeldung über Single Sign-on ist fehlgeschlagen. Bitte versuchen Sie es erneut oder wenden Sie sich an Ihren Administrator.</value>
+  </data>
   <data name="OidcInvalidEmailFormat" xml:space="preserve">
     <value>Ungültiges E-Mail-Format vom Identitätsanbieter erhalten</value>
   </data>
