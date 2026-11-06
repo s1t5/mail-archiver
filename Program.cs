@@ -64,6 +64,28 @@ async static Task EnsureMigrationsHistoryTableExists(MailArchiverDbContext conte
     }
 }
 
+// Idempotently ensures the trigram GIN index (idx_archivedemails_trgm_search) exists
+// whenever pg_trgm is available. The migration AddTrgmSubstringSearch creates
+// it best-effort — if pg_trgm was absent at migration time the migration is still marked
+// applied, so a later superuser installation of pg_trgm would otherwise never trigger
+// index creation. This startup-ensure closes that gap: it is a no-op when the index
+// already exists or pg_trgm is absent, and creates the index on the first startup after
+// pg_trgm becomes available.
+static void EnsureTrgmIndex(MailArchiverDbContext context, IServiceProvider services)
+{
+    var logger = services.GetRequiredService<ILogger<Program>>();
+    try
+    {
+        context.Database.ExecuteSqlRaw(TrgmSearchIndex.EnsureSql);
+        logger.LogDebug("EnsureTrgmIndex: startup check complete (no-op if index or extension already present).");
+    }
+    catch (Exception ex)
+    {
+        // Non-fatal: the trgm index is optional — *term* search falls back to a sequential scan.
+        logger.LogWarning(ex, "EnsureTrgmIndex: could not ensure trigram GIN index; substring search will use a sequential scan.");
+    }
+}
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Configure Forwarded Headers for reverse proxy support
@@ -987,6 +1009,7 @@ using (var scope = app.Services.CreateScope())
             context.Database.Migrate();
         }
         context.Database.ExecuteSqlRaw("CREATE EXTENSION IF NOT EXISTS citext;");
+        EnsureTrgmIndex(context, services); // idempotent: creates trgm GIN index if pg_trgm available but index missing
 
         // Create admin user if it doesn't exist
         var authOptions = services.GetRequiredService<IOptions<AuthenticationOptions>>().Value;

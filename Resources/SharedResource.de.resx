@@ -3609,4 +3609,58 @@
   <data name="MailcowNewImapPasswordRequired" xml:space="preserve"><value>Geben Sie nach dem Verlassen von Mailcow ein neues IMAP-Passwort ein.</value></data>
   <data name="MailcowLinkSuccess" xml:space="preserve"><value>Konto mit Mailcow-Instanz {0} verknüpft.</value></data>
   <data name="MailcowDetachSuccess" xml:space="preserve"><value>Mailcow-Zugriff widerrufen. Geben Sie neue Zugangsdaten für den ausgewählten Provider ein.</value></data>
+  <data name="AdvancedSearchInfo0" xml:space="preserve">
+    <value>• Wörter suchen als Wortstamm (Präfix): „rechnung“ findet auch „Rechnungen“</value>
+  </data>
+  <data name="AdvancedSearchInfo4" xml:space="preserve">
+    <value>• Begriffe ausschließen mit Minus, Alternativen mit OR: rechnung -mahnung, auto OR fahrrad</value>
+  </data>
+  <data name="AdvancedSearchInfo5" xml:space="preserve">
+    <value>• Teilwort-Suche mit Sternchen: *rechn* findet auch „Abrechnung“</value>
+  </data>
+  <data name="AdvBuilderSubject" xml:space="preserve">
+    <value>Betreff</value>
+  </data>
+  <data name="AdvBuilderFrom" xml:space="preserve">
+    <value>Von</value>
+  </data>
+  <data name="AdvBuilderTo" xml:space="preserve">
+    <value>An</value>
+  </data>
+  <data name="AdvAttachTitle" xml:space="preserve">
+    <value>Anhang</value>
+  </data>
+  <data name="AdvAttachAny" xml:space="preserve">
+    <value>Egal</value>
+  </data>
+  <data name="AdvAttachYes" xml:space="preserve">
+    <value>Ja</value>
+  </data>
+  <data name="AdvAttachNo" xml:space="preserve">
+    <value>Nein</value>
+  </data>
+  <data name="AdvBuilderQuoteHint" xml:space="preserve">
+    <value>Genauer Ausdruck: in Anführungszeichen setzen, z. B. "offene rechnung" - auch zum Ausschließen: -"offene rechnung".</value>
+  </data>
+  <data name="AdvScopeAll" xml:space="preserve">
+    <value>Alle Felder</value>
+  </data>
+  <data name="AdvScopeBody" xml:space="preserve">
+    <value>Text</value>
+  </data>
+  <data name="AdvAddCondition" xml:space="preserve">
+    <value>Weitere Bedingung</value>
+  </data>
+  <data name="AdvRemoveCondition" xml:space="preserve">
+    <value>Bedingung entfernen</value>
+  </data>
+  <data name="AdvBuilderCaseHint" xml:space="preserve">
+    <value>Groß-/Kleinschreibung wird nicht beachtet.</value>
+  </data>
+  <data name="AdvConnAnd" xml:space="preserve">
+    <value>UND</value>
+  </data>
+  <data name="AdvConnOr" xml:space="preserve">
+    <value>ODER</value>
+  </data>
 </root>
