@@ -19,17 +19,20 @@ namespace MailArchiver.Services.Providers.Graph
         private readonly MailArchiverDbContext _context;
         private readonly ILogger<GraphMailArchiver> _logger;
         private readonly DateTimeHelper _dateTimeHelper;
+        private readonly IRawMessageStore _rawMessageStore;
         private readonly RawMessageOptions _rawMessageOptions;
 
         public GraphMailArchiver(
             MailArchiverDbContext context,
             ILogger<GraphMailArchiver> logger,
             DateTimeHelper dateTimeHelper,
+            IRawMessageStore rawMessageStore,
             IOptions<RawMessageOptions>? rawMessageOptions = null)
         {
             _context = context;
             _logger = logger;
             _dateTimeHelper = dateTimeHelper;
+            _rawMessageStore = rawMessageStore;
             _rawMessageOptions = rawMessageOptions?.Value ?? new RawMessageOptions();
         }
 
@@ -69,10 +72,20 @@ namespace MailArchiver.Services.Providers.Graph
             {
                 _logger.LogDebug("Archiving new email {MessageId} for account {AccountName}", messageId, account.Name);
 
-                var archivedEmail = await BuildArchivedEmailAsync(graphClient, account, message, messageId, isOutgoing, folderName);
+                var (archivedEmail, rawCapture) = await BuildArchivedEmailAsync(graphClient, account, message, messageId, isOutgoing, folderName);
 
                 _context.ArchivedEmails.Add(archivedEmail);
                 await _context.SaveChangesAsync();
+
+                // The id exists now, so a filesystem-backed original can be written and its
+                // metadata row added.
+                var storedRaw = _rawMessageStore.CreateRow(archivedEmail.Id, rawCapture);
+                if (storedRaw != null)
+                {
+                    archivedEmail.RawMessage = storedRaw;
+                    await _rawMessageStore.PersistAsync(storedRaw, rawCapture);
+                    await _context.SaveChangesAsync();
+                }
 
                 var attachmentCount = archivedEmail.Attachments?.Count ?? 0;
 
@@ -219,7 +232,7 @@ namespace MailArchiver.Services.Providers.Graph
         /// <summary>
         /// Builds an ArchivedEmail entity from a Graph message, including attachments
         /// </summary>
-        private async Task<ArchivedEmail> BuildArchivedEmailAsync(
+        private async Task<(ArchivedEmail Email, RawMessageCapture? RawCapture)> BuildArchivedEmailAsync(
             GraphServiceClient graphClient,
             MailAccount account,
             Message message,
@@ -227,6 +240,8 @@ namespace MailArchiver.Services.Providers.Graph
             bool isOutgoing,
             string folderName)
         {
+            RawMessageCapture? rawCapture = null;
+
             var convertedSentDate = message.SentDateTime.HasValue
                 ? _dateTimeHelper.ConvertToDisplayTimeZone(message.SentDateTime.Value)
                 : _dateTimeHelper.ConvertToDisplayTimeZone(DateTime.UtcNow);
@@ -345,8 +360,7 @@ namespace MailArchiver.Services.Providers.Graph
 
             if (_rawMessageOptions.Enabled && _rawMessageOptions.IncludeGraph)
             {
-                var rawMessage = await LoadRawMessageAsync(graphClient, account.EmailAddress, message.Id);
-                archivedEmail.RawMessage = RawMessageCodec.Create(rawMessage, _rawMessageOptions);
+                rawCapture = await LoadRawMessageAsync(graphClient, account.EmailAddress, message.Id);
             }
 
             // Outlook/M365 meeting invitations: Graph exposes the iCalendar payload as a
@@ -379,7 +393,7 @@ namespace MailArchiver.Services.Providers.Graph
                 }
             }
 
-            return archivedEmail;
+            return (archivedEmail, rawCapture);
         }
 
         /// <summary>

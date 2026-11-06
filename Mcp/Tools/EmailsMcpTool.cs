@@ -25,6 +25,7 @@ namespace MailArchiver.Mcp.Tools;
 public class EmailsMcpTool : McpToolBase
 {
     private readonly MailArchiverDbContext _context;
+    private readonly IRawMessageStore _rawMessageStore;
     private readonly EmailCoreService _emailCoreService;
     private readonly McpOptions _options;
     private readonly IAccessLogService _accessLogService;
@@ -38,7 +39,8 @@ public class EmailsMcpTool : McpToolBase
         IOptions<McpOptions> options,
         IAccessLogService accessLogService,
         IHttpContextAccessor httpContextAccessor,
-        DateTimeHelper dateTimeHelper)
+        DateTimeHelper dateTimeHelper,
+        IRawMessageStore rawMessageStore)
         : base(httpContextAccessor)
     {
         _context = context;
@@ -46,6 +48,7 @@ public class EmailsMcpTool : McpToolBase
         _options = options.Value;
         _accessLogService = accessLogService;
         _dateTimeHelper = dateTimeHelper;
+        _rawMessageStore = rawMessageStore;
     }
 
     [McpServerTool(Name = "search_emails")]
@@ -226,17 +229,14 @@ public class EmailsMcpTool : McpToolBase
             throw new KeyNotFoundException($"Email {id} was not found or is not accessible.");
         }
 
-        var raw = await _context.RawMessages
-            .AsNoTracking()
-            .FirstOrDefaultAsync(r => r.ArchivedEmailId == id)
+        var content = await _rawMessageStore.ReadAsync(id)
             ?? throw new KeyNotFoundException($"No original message is stored for email {id}.");
 
-        EnsureMessageSizeAllowed(id, raw.Size);
-        var bytes = RawMessageCodec.Decompress(raw);
+        EnsureMessageSizeAllowed(id, content.Bytes.LongLength);
 
         await _accessLogService.LogAccessAsync(CurrentUsername, AccessLogType.Download, emailId: id);
 
-        return ToMessageDownload(id, "raw", raw.Source, raw.Sha256, bytes);
+        return ToMessageDownload(id, "raw", content.Source, content.Sha256, content.Bytes);
     }
 
     private void EnsureMessageDownloadsAllowed()

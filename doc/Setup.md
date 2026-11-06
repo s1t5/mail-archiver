@@ -69,8 +69,12 @@ services:
 
       # Original Message Storage (complete .eml per email, disabled by default)
       - RawMessages__Enabled=false
+      - RawMessages__Storage=postgres
       - RawMessages__MaxMessageSizeMb=50
       - RawMessages__IncludeGraph=true
+      - RawMessages__FileSystem__BasePath=RawMessages
+      - RawMessages__FileSystem__ShardDepth=2
+      - RawMessages__FileSystem__VerifyChecksumOnRead=true
 
       # BatchRestore Settings
       - BatchRestore__AsyncThreshold=50
@@ -309,6 +313,28 @@ By default the archive keeps the parsed parts of an email (headers, bodies, atta
 - `RawMessages__Enabled`: Store the original message of every newly archived email (default `false`). Emails archived before switching it on have no original. Storage grows by roughly the size of the mail including attachments (gzip-compressed, attachments are not deduplicated inside it), so plan for about twice the database size per email.
 - `RawMessages__MaxMessageSizeMb`: Messages larger than this are archived without their original (default `50`, `0` = no limit).
 - `RawMessages__IncludeGraph`: Also store the original for Microsoft 365 (Graph) accounts (default `true`). Costs one additional Graph request per message, which counts against the Graph throttling budget.
+- `RawMessages__Storage`: Where the message bytes are kept - `postgres` (default, in the database) or `filesystem` (a gzip file next to the archive). The metadata row with the SHA-256, size and capture source stays in the database either way, so every stored original can still be verified against it. See [Storage Backend](#storage-backend) below.
+- `RawMessages__FileSystem__BasePath`: Directory the message files are written to (default `RawMessages`, relative to the application's content root). Point this at a mounted volume in Docker.
+- `RawMessages__FileSystem__ShardDepth`: Number of two-character directory levels the email id is spread over (default `2`, giving 10,000 directories; `0` = flat). Keeps the per-directory file count low on large archives.
+- `RawMessages__FileSystem__VerifyChecksumOnRead`: Re-compute the SHA-256 of the file on every download and compare it with the checksum recorded at archive time (default `true`). A mismatch makes the download fail with HTTP 500 instead of serving altered bytes.
+
+#### Storage Backend
+
+With `RawMessages__Storage=filesystem` the original messages no longer grow the database; they are written to `{BasePath}/{xx}/{yy}/{id}.eml.gz`, where `xx`/`yy` are derived from the email id. The `mail_archiver."RawMessages"` row keeps the checksum, size, capture source and the relative path, so the archive can still prove what a stored message should contain.
+
+Reads follow the storage recorded on each row, not the configured setting: after switching the backend, messages archived earlier stay downloadable from where they are. Changing the setting only affects newly archived mail. To move existing messages, run the storage migration:
+
+```bash
+# move everything from the database to the filesystem
+docker compose exec mailarchiver dotnet MailArchiver.dll --migrate-raw-storage --from postgres --to filesystem
+
+# and back again
+docker compose exec mailarchiver dotnet MailArchiver.dll --migrate-raw-storage --from filesystem --to postgres
+```
+
+Options are `--from`, `--to` (both default to the configured backend) and `--batch` (messages per transaction, default `200`). The migration reads each message through its current backend, verifies it against the recorded checksum, writes it to the target and only then removes the source. A message whose content does not match its checksum is left untouched and reported - neither a corrupt original nor its only remaining copy is ever discarded. The run is resumable: it selects work by the `StorageType` column, so an interrupted migration continues where it stopped when started again. The exit code is non-zero if any message failed.
+
+Because the file now lives outside the database, back up the `BasePath` directory together with the database dump. A database restore without the files leaves the archive with rows whose content cannot be served; the download then answers HTTP 404 rather than returning something wrong.
 
 The MCP server returns it from the `get_email_raw` tool (see the [MCP guide](MCP.md#get_email_raw)). How the original is obtained depends on where the mail comes from; the API reports it in the `X-Raw-Message-Source` header, MCP in the `source` field:
 

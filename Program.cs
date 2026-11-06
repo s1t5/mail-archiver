@@ -465,6 +465,16 @@ builder.Services.AddSingleton<MBoxImportService>();
 builder.Services.AddSingleton<IMBoxImportService>(provider => provider.GetRequiredService<MBoxImportService>());
 builder.Services.AddHostedService<MBoxImportService>(provider => provider.GetRequiredService<MBoxImportService>());
 
+// Original message storage: one backend writes, reads follow the row's storage type.
+builder.Services.AddSingleton(provider => new MailArchiver.Services.Shared.RawMessagePathResolver(
+    provider.GetRequiredService<IOptions<RawMessageOptions>>().Value.FileSystem,
+    provider.GetRequiredService<IWebHostEnvironment>().ContentRootPath));
+builder.Services.AddScoped<MailArchiver.Services.Shared.PostgresRawMessageStore>();
+builder.Services.AddScoped<MailArchiver.Services.Shared.FileSystemRawMessageStore>();
+builder.Services.AddScoped<MailArchiver.Services.Shared.IRawMessageStore,
+    MailArchiver.Services.Shared.RawMessageStoreRouter>();
+builder.Services.AddScoped<MailArchiver.Services.Shared.RawMessageStorageMigrator>();
+
 // EML import services (refactored from monolithic EmlImportService)
 builder.Services.AddScoped<MailArchiver.Services.Providers.Eml.EmlMailCleaner>();
 builder.Services.AddScoped<MailArchiver.Services.Providers.Eml.EmlAttachmentCollector>();
@@ -614,6 +624,71 @@ _ = app.Services.GetRequiredService<ICredentialProtector>();
 
 // Handle CLI commands: S3 disaster recovery and local import
 var cliArgs = Environment.GetCommandLineArgs();
+
+// Move stored original messages between the Postgres and filesystem backends, then exit.
+// Usage: --migrate-raw-storage [--from postgres|filesystem] [--to postgres|filesystem] [--batch 200]
+if (cliArgs.Contains("--migrate-raw-storage"))
+{
+    using var migrateScope = app.Services.CreateScope();
+    var migrateLogger = migrateScope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+
+    string? OptionValue(string name)
+    {
+        var index = Array.IndexOf(cliArgs, name);
+        return index >= 0 && index + 1 < cliArgs.Length ? cliArgs[index + 1] : null;
+    }
+
+    var fromStorage = OptionValue("--from");
+    var toStorage = OptionValue("--to");
+    var batchOption = OptionValue("--batch");
+    var batchSize = int.TryParse(batchOption, out var parsedBatch) && parsedBatch > 0 ? parsedBatch : 200;
+
+    try
+    {
+        var migrator = migrateScope.ServiceProvider.GetRequiredService<MailArchiver.Services.Shared.RawMessageStorageMigrator>();
+
+        var moved = 0;
+        var failed = 0;
+        var errors = new List<string>();
+
+        // Loop until the source backend has no rows left, so one invocation drains the archive.
+        while (true)
+        {
+            var result = await migrator.MigrateAsync(fromStorage, toStorage, batchSize);
+            moved += result.Moved;
+            failed += result.Failed;
+            errors.AddRange(result.Errors);
+
+            Console.WriteLine($"Batch: {result.Moved} moved, {result.Skipped} skipped, {result.Failed} failed");
+
+            if (result.Moved == 0 && result.Failed == 0)
+            {
+                break;
+            }
+
+            // A batch that only produced failures would otherwise loop forever on the same rows.
+            if (result.Moved == 0 && result.Failed > 0)
+            {
+                break;
+            }
+        }
+
+        Console.WriteLine($"Done: {moved} moved, {failed} failed.");
+        foreach (var error in errors)
+        {
+            Console.WriteLine($"  {error}");
+        }
+
+        Environment.Exit(failed > 0 ? 1 : 0);
+    }
+    catch (Exception ex)
+    {
+        migrateLogger.LogError(ex, "Raw message storage migration failed");
+        Console.WriteLine($"ERROR: {ex.Message}");
+        Environment.Exit(1);
+    }
+}
+
 if (cliArgs.Any(a => a == "--import-mbox" || a == "--import-eml"))
 {
     using var cliScope = app.Services.CreateScope();
