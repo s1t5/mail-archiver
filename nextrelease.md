@@ -12,6 +12,7 @@
 - **Mailcow Delete Semantics** - Deleting a Mailcow instance keeps archive accounts and their state untouched; accounts of revoked bindings that were deliberately re-configured keep their working credentials.
 
 ## 🐛 Bug Fixes
+- **EML Import Failing with "interval out of range"** - Importing messages whose `Date:` header is malformed or out of range no longer aborts the job with a PostgreSQL `22008` error. The import now uses the shared date fallback chain (Date header, then the `Received` chain, then `Resent-Date`) instead of MimeKit's raw value, and every `SentDate` - written or compared - is restricted to a plausible range of 1970 to 2100. This also fixes duplicate detection against rows an earlier version wrote with a year-1 date.
 - **Leftover Client Secret on Provider Switch** - Switching an account to Microsoft Personal (MSA) now drops a stored client secret instead of sending it with every token refresh, e.g. after switching from Microsoft 365 or when falling back to the shared default client ID.
 - **Mailcow Link Retry** - A failed account link leaves the account in a pending (disabled) state and can be retried; previously a retry silently reported success while the account could not authenticate.
 - **Mailcow Instance Deletion** - Deleting an instance no longer wipes credentials and disables accounts of revoked bindings that an admin had re-configured manually.

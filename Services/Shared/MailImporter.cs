@@ -54,18 +54,35 @@ namespace MailArchiver.Services.Shared
                 // has to be converted the same way before the two-second window is applied.
                 // Comparing the raw value disabled the criterion outright anywhere the display
                 // timezone was not UTC.
-                var checkSentDate = scope.ServiceProvider.GetRequiredService<DateTimeHelper>()
-                    .ConvertToDisplayTimeZone(message.Date);
+                //
+                // The date comes from the shared fallback chain, not from message.Date directly:
+                // MimeKit collapses an unparsable or out-of-range Date header to
+                // DateTimeOffset.MinValue (year 1) instead of throwing, and year 1 next to a
+                // stored SentDate is what pushed this subtraction past the range of PostgreSQL's
+                // interval type (22008: interval out of range, aborting the import job).
+                var dateTimeHelper = scope.ServiceProvider.GetRequiredService<DateTimeHelper>();
+                var checkSentDate = dateTimeHelper.ConvertToDisplayTimeZone(
+                    MailContentHelper.ExtractEmailDate(message.Date, message.Headers));
                 var toleranceSeconds = MailMatchKey.TimestampToleranceSeconds;
 
                 var messageIdCandidates = MailContentHelper.MessageIdMatchCandidates(messageId).ToList();
+
+                // Both sides of the timestamp criterion are restricted to the plausible range.
+                // The incoming value already went through ClampToPlausibleRange inside
+                // ConvertToDisplayTimeZone; the column side is clamped here, because rows written
+                // by earlier versions may hold a year-1 SentDate from a malformed Date header and
+                // the unclamped subtraction overflows PostgreSQL's interval type.
+                var minSentDate = DateTimeHelper.MinimumPlausibleSentDate;
+                var maxSentDate = DateTimeHelper.MaximumPlausibleSentDate;
 
                 var existing = await context.ArchivedEmails
                     .Where(e => e.MailAccountId == account.Id)
                     .Where(e =>
                         messageIdCandidates.Contains(e.MessageId) ||
                         (e.From == checkFrom && e.To == checkTo && e.Subject == checkSubject &&
-                         Math.Abs((e.SentDate - checkSentDate).TotalSeconds) < toleranceSeconds))
+                         Math.Abs(((e.SentDate < minSentDate ? minSentDate :
+                                     e.SentDate > maxSentDate ? maxSentDate : e.SentDate)
+                                   - checkSentDate).TotalSeconds) < toleranceSeconds))
                     .FirstOrDefaultAsync();
 
                 if (existing != null)
@@ -112,8 +129,8 @@ namespace MailArchiver.Services.Shared
                 var allAttachments = new List<MimePart>();
                 _attachmentCollector.CollectAllAttachments(message.Body, allAttachments);
 
-                var dateTimeHelper = scope.ServiceProvider.GetRequiredService<DateTimeHelper>();
-                var convertedSentDate = dateTimeHelper.ConvertToDisplayTimeZone(message.Date);
+                var convertedSentDate = dateTimeHelper.ConvertToDisplayTimeZone(
+                    MailContentHelper.ExtractEmailDate(message.Date, message.Headers));
 
                 var subject = MailContentHelper.TruncateFieldForTsvector(
                     MailContentHelper.CleanText(message.Subject ?? "(No Subject)"), 50_000);
@@ -238,12 +255,14 @@ namespace MailArchiver.Services.Shared
             var messageId = message.MessageId;
             if (!string.IsNullOrEmpty(messageId)) return messageId;
 
-            // Shared deterministic fallback ID (same algorithm across IMAP, import and M365 pipelines)
+            // Shared deterministic fallback ID (same algorithm across IMAP, import and M365 pipelines).
+            // The date goes through the same fallback chain as the stored SentDate so that the key
+            // computed here and the one the sync pipeline computes for the same message agree.
             return MailContentHelper.GenerateFallbackMessageId(
                 string.Join(",", message.From.Mailboxes.Select(m => m.Address)),
                 string.Join(",", message.To.Mailboxes.Select(m => m.Address)),
                 message.Subject,
-                message.Date.Ticks);
+                MailContentHelper.ExtractEmailDate(message.Date, message.Headers).Ticks);
         }
 
         private static string GetAttachmentFileName(MimePart attachment)
