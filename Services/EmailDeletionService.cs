@@ -1,5 +1,6 @@
 using MailArchiver.Data;
 using MailArchiver.Models;
+using MailArchiver.Services.Core;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -22,14 +23,16 @@ namespace MailArchiver.Services
         private readonly SemaphoreSlim _jobSemaphore = new(1, 1);
         private readonly TimeSpan _cleanupInterval = TimeSpan.FromHours(1);
         private readonly TimeSpan _completedJobRetention = TimeSpan.FromDays(7);
-        private const int BatchSize = 1000;
+        private readonly int _batchSize;
 
         public EmailDeletionService(
             ILogger<EmailDeletionService> logger,
-            IServiceScopeFactory serviceScopeFactory)
+            IServiceScopeFactory serviceScopeFactory,
+            int batchSize = 1000)
         {
             _logger = logger;
             _serviceScopeFactory = serviceScopeFactory;
+            _batchSize = batchSize;
         }
 
         public string QueueJob(EmailDeletionJob job)
@@ -57,11 +60,14 @@ namespace MailArchiver.Services
             job.JobId = Guid.NewGuid().ToString();
             job.Status = EmailDeletionJobStatus.Queued;
             job.Created = DateTime.UtcNow;
-            job.TotalEmails = job.EmailIds.Count;
+            // Filter jobs bring their own count from the confirmation step; the
+            // service recounts against the frozen upper bound when the job starts.
+            if (job.Filter == null)
+                job.TotalEmails = job.EmailIds.Count;
 
             _jobs.TryAdd(job.JobId, job);
-            _logger.LogInformation("Email deletion job {JobId} queued with {Count} emails", 
-                job.JobId, job.EmailIds.Count);
+            _logger.LogInformation("Email deletion job {JobId} queued with {Count} emails (filter: {IsFilterJob})",
+                job.JobId, job.TotalEmails, job.Filter != null);
 
             return job.JobId;
         }
@@ -163,7 +169,7 @@ namespace MailArchiver.Services
                 job.CurrentPhase = "Starting deletion process";
 
                 _logger.LogInformation("Starting email deletion job {JobId} with {Count} emails",
-                    job.JobId, job.EmailIds.Count);
+                    job.JobId, job.IsFilterJob ? job.TotalEmails : job.EmailIds.Count);
 
                 using var scope = _serviceScopeFactory.CreateScope();
                 var context = scope.ServiceProvider.GetRequiredService<MailArchiverDbContext>();
@@ -173,99 +179,10 @@ namespace MailArchiver.Services
                     .CreateLinkedTokenSource(stoppingToken, job.CancellationTokenSource.Token)
                     .Token;
 
-                // Phase 1: Count attachments
-                job.CurrentPhase = "Counting attachments";
-                job.TotalAttachments = await context.EmailAttachments
-                    .Where(a => job.EmailIds.Contains(a.ArchivedEmailId))
-                    .CountAsync(combinedToken);
+                var affectedAccountIds = job.Filter != null
+                    ? await ProcessFilterJobAsync(job, context, accessLogService, combinedToken)
+                    : await ProcessIdJobAsync(job, context, accessLogService, combinedToken);
 
-                _logger.LogInformation("Job {JobId}: Found {Count} attachments to delete", 
-                    job.JobId, job.TotalAttachments);
-
-                // Phase 2: Delete attachments in batches
-                job.CurrentPhase = "Deleting attachments";
-                var remainingAttachments = job.TotalAttachments;
-                
-                while (remainingAttachments > 0)
-                {
-                    combinedToken.ThrowIfCancellationRequested();
-
-                    var attachmentsToDelete = await context.EmailAttachments
-                        .Where(a => job.EmailIds.Contains(a.ArchivedEmailId))
-                        .Take(BatchSize)
-                        .ToListAsync(combinedToken);
-
-                    if (!attachmentsToDelete.Any())
-                        break;
-
-                    context.EmailAttachments.RemoveRange(attachmentsToDelete);
-                    await context.SaveChangesAsync(combinedToken);
-
-                    job.DeletedAttachments += attachmentsToDelete.Count;
-                    remainingAttachments -= attachmentsToDelete.Count;
-
-                    _logger.LogDebug("Job {JobId}: Deleted {Count} attachments, {Remaining} remaining", 
-                        job.JobId, attachmentsToDelete.Count, remainingAttachments);
-                }
-
-                // Phase 3: Delete emails in batches
-                job.CurrentPhase = "Deleting emails";
-                var remainingEmails = job.EmailIds.Count;
-                var affectedAccountIds = new HashSet<int>();
-                
-                while (remainingEmails > 0)
-                {
-                    combinedToken.ThrowIfCancellationRequested();
-
-                    var emailsToDelete = await context.ArchivedEmails
-                        .Where(e => job.EmailIds.Contains(e.Id))
-                        .Take(BatchSize)
-                        .ToListAsync(combinedToken);
-
-                    if (!emailsToDelete.Any())
-                        break;
-
-                    // Log each deletion if access log service is available. The entries are added
-                    // to the same context and saved together with the removal below: one round
-                    // trip per batch instead of one SaveChanges per email, and a deletion is never
-                    // committed without its log entry.
-                    // Note the scope of that guarantee: it holds per batch. Batches that were
-                    // already committed stay committed when a later batch fails, so a job that
-                    // dies halfway leaves the earlier batches deleted and logged and the failed
-                    // batch untouched - the job as a whole is not rolled back.
-                    if (accessLogService != null)
-                    {
-                        var now = DateTime.UtcNow;
-                        context.AccessLogs.AddRange(emailsToDelete.Select(email => new AccessLog
-                        {
-                            Username = job.UserId,
-                            Type = AccessLogType.Deletion,
-                            Timestamp = now,
-                            EmailId = email.Id,
-                            EmailSubject = email.Subject?.Length > 255
-                                ? email.Subject.Substring(0, 255)
-                                : email.Subject,
-                            EmailFrom = email.From?.Length > 255
-                                ? email.From.Substring(0, 255)
-                                : email.From,
-                            MailAccountId = email.MailAccountId
-                        }));
-                    }
-
-                    context.ArchivedEmails.RemoveRange(emailsToDelete);
-                    await context.SaveChangesAsync(combinedToken);
-
-                    foreach (var email in emailsToDelete)
-                        affectedAccountIds.Add(email.MailAccountId);
-
-                    job.DeletedEmails += emailsToDelete.Count;
-                    remainingEmails -= emailsToDelete.Count;
-
-                    _logger.LogDebug("Job {JobId}: Deleted {Count} emails, {Remaining} remaining", 
-                        job.JobId, emailsToDelete.Count, remainingEmails);
-                }
-
-                // Phase 5: Complete successfully
                 job.CurrentPhase = "Completed";
                 job.Status = EmailDeletionJobStatus.Completed;
                 job.Completed = DateTime.UtcNow;
@@ -274,27 +191,7 @@ namespace MailArchiver.Services
                     "Email deletion job {JobId} completed successfully. Deleted {EmailCount} emails and {AttachmentCount} attachments",
                     job.JobId, job.DeletedEmails, job.DeletedAttachments);
 
-                // Sofort-Refresh des Speichercaches fuer betroffene Accounts
-                if (affectedAccountIds.Count > 0)
-                {
-                    try
-                    {
-                        using var storageScope = _serviceScopeFactory.CreateScope();
-                        var storageService = storageScope.ServiceProvider.GetRequiredService<IAccountStorageService>();
-                        foreach (var accountId in affectedAccountIds)
-                        {
-                            try { await storageService.RefreshAccountStorageAsync(accountId); }
-                            catch (Exception acctEx)
-                            {
-                                _logger.LogDebug(acctEx, "Storage cache refresh for account {AccountId} after deletion failed (non-fatal)", accountId);
-                            }
-                        }
-                    }
-                    catch (Exception storageEx)
-                    {
-                        _logger.LogDebug(storageEx, "Storage cache refresh after deletion failed (non-fatal)");
-                    }
-                }
+                await RefreshStorageCachesAsync(affectedAccountIds);
             }
             catch (OperationCanceledException)
             {
@@ -314,6 +211,240 @@ namespace MailArchiver.Services
             finally
             {
                 _jobSemaphore.Release();
+            }
+        }
+
+        /// <summary>
+        /// Deletes the explicit id list of a selection job and returns the accounts
+        /// whose storage cache has to be refreshed.
+        /// </summary>
+        private async Task<HashSet<int>> ProcessIdJobAsync(
+            EmailDeletionJob job,
+            MailArchiverDbContext context,
+            IAccessLogService? accessLogService,
+            CancellationToken combinedToken)
+        {
+            // Phase 1: Count attachments
+            job.CurrentPhase = "Counting attachments";
+            job.TotalAttachments = await context.EmailAttachments
+                .Where(a => job.EmailIds.Contains(a.ArchivedEmailId))
+                .CountAsync(combinedToken);
+
+            _logger.LogInformation("Job {JobId}: Found {Count} attachments to delete",
+                job.JobId, job.TotalAttachments);
+
+            // Phase 2: Delete attachments in batches
+            job.CurrentPhase = "Deleting attachments";
+            var remainingAttachments = job.TotalAttachments;
+
+            while (remainingAttachments > 0)
+            {
+                combinedToken.ThrowIfCancellationRequested();
+
+                var attachmentsToDelete = await context.EmailAttachments
+                    .Where(a => job.EmailIds.Contains(a.ArchivedEmailId))
+                    .Take(_batchSize)
+                    .ToListAsync(combinedToken);
+
+                if (!attachmentsToDelete.Any())
+                    break;
+
+                context.EmailAttachments.RemoveRange(attachmentsToDelete);
+                await context.SaveChangesAsync(combinedToken);
+
+                job.DeletedAttachments += attachmentsToDelete.Count;
+                remainingAttachments -= attachmentsToDelete.Count;
+
+                _logger.LogDebug("Job {JobId}: Deleted {Count} attachments, {Remaining} remaining",
+                    job.JobId, attachmentsToDelete.Count, remainingAttachments);
+            }
+
+            // Phase 3: Delete emails in batches
+            job.CurrentPhase = "Deleting emails";
+            var remainingEmails = job.EmailIds.Count;
+            var affectedAccountIds = new HashSet<int>();
+
+            while (remainingEmails > 0)
+            {
+                combinedToken.ThrowIfCancellationRequested();
+
+                var emailsToDelete = await context.ArchivedEmails
+                    .Where(e => job.EmailIds.Contains(e.Id))
+                    .Take(_batchSize)
+                    .ToListAsync(combinedToken);
+
+                if (!emailsToDelete.Any())
+                    break;
+
+                // Log each deletion if access log service is available. The entries are added
+                // to the same context and saved together with the removal below: one round
+                // trip per batch instead of one SaveChanges per email, and a deletion is never
+                // committed without its log entry.
+                // Note the scope of that guarantee: it holds per batch. Batches that were
+                // already committed stay committed when a later batch fails, so a job that
+                // dies halfway leaves the earlier batches deleted and logged and the failed
+                // batch untouched - the job as a whole is not rolled back.
+                if (accessLogService != null)
+                {
+                    var now = DateTime.UtcNow;
+                    context.AccessLogs.AddRange(emailsToDelete.Select(email => new AccessLog
+                    {
+                        Username = job.UserId,
+                        Type = AccessLogType.Deletion,
+                        Timestamp = now,
+                        EmailId = email.Id,
+                        EmailSubject = email.Subject?.Length > 255
+                            ? email.Subject.Substring(0, 255)
+                            : email.Subject,
+                        EmailFrom = email.From?.Length > 255
+                            ? email.From.Substring(0, 255)
+                            : email.From,
+                        MailAccountId = email.MailAccountId
+                    }));
+                }
+
+                context.ArchivedEmails.RemoveRange(emailsToDelete);
+                await context.SaveChangesAsync(combinedToken);
+
+                foreach (var email in emailsToDelete)
+                    affectedAccountIds.Add(email.MailAccountId);
+
+                job.DeletedEmails += emailsToDelete.Count;
+                remainingEmails -= emailsToDelete.Count;
+
+                _logger.LogDebug("Job {JobId}: Deleted {Count} emails, {Remaining} remaining",
+                    job.JobId, emailsToDelete.Count, remainingEmails);
+            }
+
+            return affectedAccountIds;
+        }
+
+        /// <summary>
+        /// Deletes every email matching the job's filter, batch by batch. The filter is
+        /// re-evaluated for each batch and capped at the id that existed when the job was
+        /// confirmed, so mail arriving during the job is not covered by that confirmation.
+        /// Attachments are removed by the ON DELETE CASCADE foreign key.
+        /// </summary>
+        private async Task<HashSet<int>> ProcessFilterJobAsync(
+            EmailDeletionJob job,
+            MailArchiverDbContext context,
+            IAccessLogService? accessLogService,
+            CancellationToken combinedToken)
+        {
+            var filter = job.Filter!;
+
+            // Freeze the set first (if the controller did not already do it), then count
+            // against that same bound. Otherwise a mail arriving between count and start
+            // would inflate the denominator without ever being deleted.
+            if (filter.UpperBoundId is null)
+            {
+                var (_, _, maxId) = await EmailFilterQuery.CountAsync(context, filter, combinedToken);
+                filter.UpperBoundId = maxId;
+            }
+
+            job.CurrentPhase = "Counting matching emails";
+            var (deletable, locked, _) = await EmailFilterQuery.CountAsync(context, filter, combinedToken);
+            job.SkippedLockedEmails = locked;
+            job.TotalEmails = deletable;
+
+            _logger.LogInformation(
+                "Job {JobId}: filter matches {Deletable} deletable emails, {Locked} locked (bound {Bound})",
+                job.JobId, deletable, locked, filter.UpperBoundId);
+
+            var affectedAccountIds = new HashSet<int>();
+            job.CurrentPhase = "Deleting emails";
+
+            while (true)
+            {
+                combinedToken.ThrowIfCancellationRequested();
+
+                var ids = await EmailFilterQuery.IdsBatchAsync(
+                    context, filter, job.LastProcessedId, _batchSize, combinedToken);
+                if (ids.Count == 0)
+                    break;
+
+                // Project only the fields the audit entry needs; loading Body/HtmlBody
+                // for thousands of emails would be pure waste.
+                var rows = await context.ArchivedEmails
+                    .Where(e => ids.Contains(e.Id))
+                    .Select(e => new { e.Id, e.Subject, e.From, e.MailAccountId })
+                    .ToListAsync(combinedToken);
+
+                if (rows.Count > 0)
+                {
+                    // The test fixture runs the job inside its own transaction; nesting
+                    // one would fail. Only own (and commit) a transaction when there is
+                    // none, so the audit rows and the deletes stay atomic.
+                    var ownsTransaction = context.Database.CurrentTransaction == null;
+                    await using var transaction = ownsTransaction
+                        ? await context.Database.BeginTransactionAsync(combinedToken)
+                        : null;
+
+                    if (accessLogService != null)
+                    {
+                        var now = DateTime.UtcNow;
+                        context.AccessLogs.AddRange(rows.Select(email => new AccessLog
+                        {
+                            Username = job.UserId,
+                            Type = AccessLogType.Deletion,
+                            Timestamp = now,
+                            EmailId = email.Id,
+                            EmailSubject = email.Subject?.Length > 255
+                                ? email.Subject.Substring(0, 255)
+                                : email.Subject,
+                            EmailFrom = email.From?.Length > 255
+                                ? email.From.Substring(0, 255)
+                                : email.From,
+                            MailAccountId = email.MailAccountId
+                        }));
+                        await context.SaveChangesAsync(combinedToken);
+                    }
+
+                    await context.ArchivedEmails
+                        .Where(e => ids.Contains(e.Id))
+                        .ExecuteDeleteAsync(combinedToken);
+
+                    if (transaction != null)
+                        await transaction.CommitAsync(combinedToken);
+
+                    foreach (var row in rows)
+                        affectedAccountIds.Add(row.MailAccountId);
+
+                    job.DeletedEmails += rows.Count;
+                }
+
+                context.ChangeTracker.Clear();
+                job.LastProcessedId = ids[^1];
+                job.CurrentPhase = $"Deleting emails ({job.DeletedEmails:N0} / {job.TotalEmails:N0})";
+
+                _logger.LogDebug("Job {JobId}: deleted {Count} emails, cursor {Cursor}",
+                    job.JobId, job.DeletedEmails, job.LastProcessedId);
+            }
+
+            return affectedAccountIds;
+        }
+
+        private async Task RefreshStorageCachesAsync(HashSet<int> affectedAccountIds)
+        {
+            if (affectedAccountIds.Count == 0)
+                return;
+
+            try
+            {
+                using var storageScope = _serviceScopeFactory.CreateScope();
+                var storageService = storageScope.ServiceProvider.GetRequiredService<IAccountStorageService>();
+                foreach (var accountId in affectedAccountIds)
+                {
+                    try { await storageService.RefreshAccountStorageAsync(accountId); }
+                    catch (Exception acctEx)
+                    {
+                        _logger.LogDebug(acctEx, "Storage cache refresh for account {AccountId} after deletion failed (non-fatal)", accountId);
+                    }
+                }
+            }
+            catch (Exception storageEx)
+            {
+                _logger.LogDebug(storageEx, "Storage cache refresh after deletion failed (non-fatal)");
             }
         }
 

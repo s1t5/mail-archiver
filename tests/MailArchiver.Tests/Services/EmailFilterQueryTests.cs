@@ -247,7 +247,7 @@ public class EmailFilterQueryTests
 
             Assert.Equal(1, deletable);
             Assert.Equal(1, lockedCount);
-            Assert.Equal(unlocked.Id, maxId);
+            Assert.Equal(Math.Max(unlocked.Id, locked.Id), maxId);
             Assert.Equal(new[] { unlocked.Id }, ids);
         }
         finally

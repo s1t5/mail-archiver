@@ -29,7 +29,7 @@ public class EmailDeletionServiceTests
     /// Builds a service whose scopes resolve the test's context and access log service, so
     /// every write the background job makes lands in the caller's transaction.
     /// </summary>
-    private static EmailDeletionService CreateService(MailArchiverDbContext sharedContext)
+    private static EmailDeletionService CreateService(MailArchiverDbContext sharedContext, int batchSize = 1000)
     {
         var services = new ServiceCollection();
         services.AddSingleton(sharedContext);
@@ -40,7 +40,8 @@ public class EmailDeletionServiceTests
 
         return new EmailDeletionService(
             NullLogger<EmailDeletionService>.Instance,
-            provider.GetRequiredService<IServiceScopeFactory>());
+            provider.GetRequiredService<IServiceScopeFactory>(),
+            batchSize);
     }
 
     private static async Task<MailAccount> SeedAccountAsync(MailArchiverDbContext ctx)
@@ -228,6 +229,202 @@ public class EmailDeletionServiceTests
 
             ctx.ChangeTracker.Clear();
             Assert.Equal(3, await ctx.ArchivedEmails.CountAsync(e => emailIds.Contains(e.Id)));
+            Assert.False(await ctx.AccessLogs.AnyAsync(l => l.Username == username));
+        }
+        finally
+        {
+            await scope.RollbackAsync();
+        }
+    }
+
+    // ============================================================
+    // Filter-based deletion
+    // ============================================================
+
+    [Fact]
+    public async Task FilterJob_DeletesOnlyMatches_AndLogsEach()
+    {
+        await using var scope = await _fixture.CreateTransactionalContextAsync();
+        var ctx = scope.Context;
+        try
+        {
+            var username = $"filtertest-{Guid.NewGuid():N}";
+            var account = await SeedAccountAsync(ctx);
+            var keep = NewEmail(account.Id, "newsletter");
+            var first = NewEmail(account.Id, "invoice 1");
+            var second = NewEmail(account.Id, "invoice 2");
+            ctx.ArchivedEmails.AddRange(keep, first, second);
+            await ctx.SaveChangesAsync();
+
+            var job = await RunJobAsync(CreateService(ctx), new EmailDeletionJob
+            {
+                UserId = username,
+                Filter = new EmailDeletionFilter { AccountId = account.Id, SearchTerm = "invoice" }
+            });
+
+            Assert.Equal(EmailDeletionJobStatus.Completed, job.Status);
+            Assert.Equal(2, job.TotalEmails);
+            Assert.Equal(2, job.DeletedEmails);
+
+            ctx.ChangeTracker.Clear();
+            Assert.True(await ctx.ArchivedEmails.AnyAsync(e => e.Id == keep.Id));
+            Assert.False(await ctx.ArchivedEmails.AnyAsync(e => e.Id == first.Id || e.Id == second.Id));
+
+            var logs = await ctx.AccessLogs.AsNoTracking()
+                .Where(l => l.Username == username)
+                .ToListAsync();
+            Assert.Equal(2, logs.Count);
+            Assert.All(logs, l => Assert.Equal(AccessLogType.Deletion, l.Type));
+            Assert.All(logs, l => Assert.Equal(account.Id, l.MailAccountId));
+        }
+        finally
+        {
+            await scope.RollbackAsync();
+        }
+    }
+
+    [Fact]
+    public async Task FilterJob_SkipsLocked_AndReportsThem()
+    {
+        await using var scope = await _fixture.CreateTransactionalContextAsync();
+        var ctx = scope.Context;
+        try
+        {
+            var username = $"filtertest-{Guid.NewGuid():N}";
+            var account = await SeedAccountAsync(ctx);
+            var open = NewEmail(account.Id, "invoice open");
+            var locked = NewEmail(account.Id, "invoice locked", isLocked: true);
+            ctx.ArchivedEmails.AddRange(open, locked);
+            await ctx.SaveChangesAsync();
+
+            var job = await RunJobAsync(CreateService(ctx), new EmailDeletionJob
+            {
+                UserId = username,
+                Filter = new EmailDeletionFilter { AccountId = account.Id, SearchTerm = "invoice" }
+            });
+
+            Assert.Equal(EmailDeletionJobStatus.Completed, job.Status);
+            Assert.Equal(1, job.TotalEmails);
+            Assert.Equal(1, job.DeletedEmails);
+            Assert.Equal(1, job.SkippedLockedEmails);
+
+            ctx.ChangeTracker.Clear();
+            Assert.False(await ctx.ArchivedEmails.AnyAsync(e => e.Id == open.Id));
+            Assert.True(await ctx.ArchivedEmails.AnyAsync(e => e.Id == locked.Id));
+        }
+        finally
+        {
+            await scope.RollbackAsync();
+        }
+    }
+
+    [Fact]
+    public async Task FilterJob_PaginatesAcrossBatches()
+    {
+        await using var scope = await _fixture.CreateTransactionalContextAsync();
+        var ctx = scope.Context;
+        try
+        {
+            var username = $"filtertest-{Guid.NewGuid():N}";
+            var account = await SeedAccountAsync(ctx);
+            var emails = Enumerable.Range(0, 5)
+                .Select(i => NewEmail(account.Id, $"invoice {i}"))
+                .ToList();
+            ctx.ArchivedEmails.AddRange(emails);
+            await ctx.SaveChangesAsync();
+
+            var job = await RunJobAsync(CreateService(ctx, batchSize: 2), new EmailDeletionJob
+            {
+                UserId = username,
+                Filter = new EmailDeletionFilter { AccountId = account.Id, SearchTerm = "invoice" }
+            });
+
+            Assert.Equal(EmailDeletionJobStatus.Completed, job.Status);
+            Assert.Equal(5, job.DeletedEmails);
+
+            ctx.ChangeTracker.Clear();
+            Assert.Equal(0, await ctx.ArchivedEmails.CountAsync(e => e.MailAccountId == account.Id));
+            Assert.Equal(5, await ctx.AccessLogs.CountAsync(l => l.Username == username));
+        }
+        finally
+        {
+            await scope.RollbackAsync();
+        }
+    }
+
+    [Fact]
+    public async Task FilterJob_StopsAtUpperBound()
+    {
+        await using var scope = await _fixture.CreateTransactionalContextAsync();
+        var ctx = scope.Context;
+        try
+        {
+            var username = $"filtertest-{Guid.NewGuid():N}";
+            var account = await SeedAccountAsync(ctx);
+            ctx.ArchivedEmails.AddRange(
+                NewEmail(account.Id, "invoice 1"),
+                NewEmail(account.Id, "invoice 2"),
+                NewEmail(account.Id, "invoice 3"));
+            await ctx.SaveChangesAsync();
+
+            var ordered = await ctx.ArchivedEmails.AsNoTracking()
+                .Where(e => e.MailAccountId == account.Id)
+                .OrderBy(e => e.Id)
+                .Select(e => e.Id)
+                .ToListAsync();
+
+            var job = await RunJobAsync(CreateService(ctx), new EmailDeletionJob
+            {
+                UserId = username,
+                Filter = new EmailDeletionFilter
+                {
+                    AccountId = account.Id,
+                    SearchTerm = "invoice",
+                    UpperBoundId = ordered[1]
+                }
+            });
+
+            Assert.Equal(EmailDeletionJobStatus.Completed, job.Status);
+            Assert.Equal(2, job.DeletedEmails);
+
+            ctx.ChangeTracker.Clear();
+            Assert.True(await ctx.ArchivedEmails.AnyAsync(e => e.Id == ordered[2]));
+            Assert.Equal(1, await ctx.ArchivedEmails.CountAsync(e => e.MailAccountId == account.Id));
+        }
+        finally
+        {
+            await scope.RollbackAsync();
+        }
+    }
+
+    [Fact]
+    public async Task FilterJob_CancelledBeforeStart_DeletesNothing()
+    {
+        await using var scope = await _fixture.CreateTransactionalContextAsync();
+        var ctx = scope.Context;
+        try
+        {
+            var username = $"filtertest-{Guid.NewGuid():N}";
+            var account = await SeedAccountAsync(ctx);
+            ctx.ArchivedEmails.AddRange(
+                NewEmail(account.Id, "invoice 1"),
+                NewEmail(account.Id, "invoice 2"));
+            await ctx.SaveChangesAsync();
+
+            var job = new EmailDeletionJob
+            {
+                UserId = username,
+                Filter = new EmailDeletionFilter { AccountId = account.Id, SearchTerm = "invoice" }
+            };
+            job.CancellationTokenSource.Cancel();
+
+            var result = await RunJobAsync(CreateService(ctx), job);
+
+            Assert.Equal(EmailDeletionJobStatus.Cancelled, result.Status);
+            Assert.Equal(0, result.DeletedEmails);
+
+            ctx.ChangeTracker.Clear();
+            Assert.Equal(2, await ctx.ArchivedEmails.CountAsync(e => e.MailAccountId == account.Id));
             Assert.False(await ctx.AccessLogs.AnyAsync(l => l.Username == username));
         }
         finally

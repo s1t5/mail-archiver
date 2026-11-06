@@ -36,7 +36,7 @@ namespace MailArchiver.Services.Core
             var sql = $@"
                 SELECT COUNT(*) FILTER (WHERE NOT ""IsLocked"")::int AS deletable,
                        COUNT(*) FILTER (WHERE ""IsLocked"")::int     AS locked,
-                       MAX(""Id"") FILTER (WHERE NOT ""IsLocked"")     AS max_id
+                       MAX(""Id"")                                  AS max_id
                 FROM mail_archiver.""ArchivedEmails""
                 {clause.WhereClause}{bound}";
 
