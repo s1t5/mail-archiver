@@ -964,7 +964,13 @@
                                         _ => "secondary"
                                     };
                                     <tr>
-                                        <td><code>@job.JobId.Substring(0, 8)...</code></td>
+                                        <td>
+                                            <code>@job.JobId.Substring(0, 8)...</code>
+                                            @if (job.Filter != null)
+                                            {
+                                                <span class="badge bg-info ms-1">@Localizer["FilterJob"]</span>
+                                            }
+                                        </td>
                                         <td><span class="badge bg-@cls">@Localizer[job.Status.ToString()]</span></td>
                                         <td>@job.DeletedEmails.ToString("N0") / @job.TotalEmails.ToString("N0")</td>
                                         <td><span class="utc-timestamp" data-utc-time="@job.Created.ToString("yyyy-MM-ddTHH:mm:ss")">@job.Created.ToString("g")</span></td>
@@ -982,7 +988,13 @@
                         {
                             <div class="border rounded p-2 mb-2">
                                 <div class="d-flex justify-content-between align-items-start">
-                                    <code>@job.JobId.Substring(0, 8)...</code>
+                                    <span>
+                                        <code>@job.JobId.Substring(0, 8)...</code>
+                                        @if (job.Filter != null)
+                                        {
+                                            <span class="badge bg-info ms-1">@Localizer["FilterJob"]</span>
+                                        }
+                                    </span>
                                     <span class="badge bg-secondary">@Localizer[job.Status.ToString()]</span>
                                 </div>
                                 <div class="small text-muted">

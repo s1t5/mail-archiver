@@ -3571,4 +3571,46 @@
   <data name="MailcowNewImapPasswordRequired" xml:space="preserve"><value>离开 Mailcow 后请输入新的 IMAP 密码。</value></data>
   <data name="MailcowLinkSuccess" xml:space="preserve"><value>账户已关联到 Mailcow 实例 {0}。</value></data>
   <data name="MailcowDetachSuccess" xml:space="preserve"><value>Mailcow 访问已撤销。请为所选提供商输入新凭据。</value></data>
+  <data name="DeleteAllMatches" xml:space="preserve">
+    <value>删除所有匹配项</value>
+  </data>
+  <data name="DeleteAllMatchesTitle" xml:space="preserve">
+    <value>删除所有匹配的邮件</value>
+  </data>
+  <data name="DeleteAllMatchesWarning" xml:space="preserve">
+    <value>这将永久删除与当前筛选条件匹配的 {0} 封邮件。此操作无法撤销；每次删除都会记录在案。</value>
+  </data>
+  <data name="DeleteAllMatchesLockedInfo" xml:space="preserve">
+    <value>有 {0} 封匹配的邮件被保留策略锁定，将被保留。</value>
+  </data>
+  <data name="DeleteAllMatchesConfirmLabel" xml:space="preserve">
+    <value>输入邮件数量以确认</value>
+  </data>
+  <data name="DeleteAllMatchesCountChanged" xml:space="preserve">
+    <value>结果集已更改（已确认：{0}，当前：{1}）。请检查筛选条件并重新确认。</value>
+  </data>
+  <data name="DeleteAllMatchesNoMatches" xml:space="preserve">
+    <value>没有可删除的邮件与此筛选条件匹配。</value>
+  </data>
+  <data name="DeleteAllMatchesNoMatchesLocked" xml:space="preserve">
+    <value>没有可删除的邮件与此筛选条件匹配；有 {0} 封匹配的邮件被保留策略锁定。</value>
+  </data>
+  <data name="DeleteAllMatchesFilterRequired" xml:space="preserve">
+    <value>请先缩小结果集（搜索词、日期、文件夹或账户）。</value>
+  </data>
+  <data name="DeleteAllMatchesCapExceeded" xml:space="preserve">
+    <value>{0} 个匹配项超过配置的上限 {1}。请缩小筛选范围。</value>
+  </data>
+  <data name="DeleteAllMatchesQueued" xml:space="preserve">
+    <value>已为 {0} 封邮件启动删除任务。任务 ID：{1}</value>
+  </data>
+  <data name="DeleteAllMatchesPreviewFailed" xml:space="preserve">
+    <value>无法确定匹配的邮件数量。请重试。</value>
+  </data>
+  <data name="SkippedLockedEmails" xml:space="preserve">
+    <value>已跳过（已锁定）</value>
+  </data>
+  <data name="FilterJob" xml:space="preserve">
+    <value>筛选条件</value>
+  </data>
 </root>

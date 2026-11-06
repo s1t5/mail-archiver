@@ -1,4 +1,5 @@
 ## ✨ New Features
+- **Bulk Delete by Filter** - Delete every email matching the current search filter in one background job. The confirmation requires the exact match count, locked emails are skipped, and `DeletionPolicy:MaxBulkDeleteEmails` caps a single job.
 - **Pluggable Storage for Original Messages** - `RawMessages:Storage` selects where the original `.eml` is kept: `postgres` (default, in the database) or `filesystem` (gzip files next to the archive, metadata and checksum stay in the database). A migration command moves existing messages between the two backends in either direction, verifying every checksum before it touches a copy.
 
 ## ⚙️ Improvements

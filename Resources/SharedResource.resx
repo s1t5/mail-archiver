@@ -3602,4 +3602,46 @@
   <data name="MailcowNewImapPasswordRequired" xml:space="preserve"><value>Enter a new IMAP password after leaving Mailcow.</value></data>
   <data name="MailcowLinkSuccess" xml:space="preserve"><value>Account linked to Mailcow instance {0}.</value></data>
   <data name="MailcowDetachSuccess" xml:space="preserve"><value>Mailcow access revoked. Enter new credentials for the selected provider.</value></data>
+  <data name="DeleteAllMatches" xml:space="preserve">
+    <value>Delete all matches</value>
+  </data>
+  <data name="DeleteAllMatchesTitle" xml:space="preserve">
+    <value>Delete all matching emails</value>
+  </data>
+  <data name="DeleteAllMatchesWarning" xml:space="preserve">
+    <value>This permanently deletes {0} email(s) matching the current filter. This cannot be undone; every deletion is logged.</value>
+  </data>
+  <data name="DeleteAllMatchesLockedInfo" xml:space="preserve">
+    <value>{0} matching email(s) are locked by the retention policy and will be kept.</value>
+  </data>
+  <data name="DeleteAllMatchesConfirmLabel" xml:space="preserve">
+    <value>Type the number of emails to confirm</value>
+  </data>
+  <data name="DeleteAllMatchesCountChanged" xml:space="preserve">
+    <value>The result set changed (confirmed: {0}, current: {1}). Review the filter and confirm again.</value>
+  </data>
+  <data name="DeleteAllMatchesNoMatches" xml:space="preserve">
+    <value>No deletable emails match this filter.</value>
+  </data>
+  <data name="DeleteAllMatchesNoMatchesLocked" xml:space="preserve">
+    <value>No deletable emails match this filter; {0} matching email(s) are locked by the retention policy.</value>
+  </data>
+  <data name="DeleteAllMatchesFilterRequired" xml:space="preserve">
+    <value>Narrow the result set first (search term, date, folder or account).</value>
+  </data>
+  <data name="DeleteAllMatchesCapExceeded" xml:space="preserve">
+    <value>{0} matches exceed the configured maximum of {1}. Narrow the filter.</value>
+  </data>
+  <data name="DeleteAllMatchesQueued" xml:space="preserve">
+    <value>Deletion job started for {0} emails. Job ID: {1}</value>
+  </data>
+  <data name="DeleteAllMatchesPreviewFailed" xml:space="preserve">
+    <value>Could not determine the number of matching emails. Please try again.</value>
+  </data>
+  <data name="SkippedLockedEmails" xml:space="preserve">
+    <value>Skipped (locked)</value>
+  </data>
+  <data name="FilterJob" xml:space="preserve">
+    <value>Filter</value>
+  </data>
 </root>

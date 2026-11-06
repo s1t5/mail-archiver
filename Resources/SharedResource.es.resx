@@ -3607,4 +3607,46 @@
   <data name="MailcowNewImapPasswordRequired" xml:space="preserve"><value>Introduzca una nueva contraseña IMAP después de salir de Mailcow.</value></data>
   <data name="MailcowLinkSuccess" xml:space="preserve"><value>Cuenta vinculada a la instancia de Mailcow {0}.</value></data>
   <data name="MailcowDetachSuccess" xml:space="preserve"><value>Acceso a Mailcow revocado. Introduzca nuevas credenciales para el proveedor seleccionado.</value></data>
+  <data name="DeleteAllMatches" xml:space="preserve">
+    <value>Eliminar todas las coincidencias</value>
+  </data>
+  <data name="DeleteAllMatchesTitle" xml:space="preserve">
+    <value>Eliminar todos los correos coincidentes</value>
+  </data>
+  <data name="DeleteAllMatchesWarning" xml:space="preserve">
+    <value>Esto elimina permanentemente {0} correo(s) que coinciden con el filtro actual. No se puede deshacer; cada eliminación queda registrada.</value>
+  </data>
+  <data name="DeleteAllMatchesLockedInfo" xml:space="preserve">
+    <value>{0} correo(s) coincidente(s) están bloqueados por la política de retención y se conservarán.</value>
+  </data>
+  <data name="DeleteAllMatchesConfirmLabel" xml:space="preserve">
+    <value>Escriba el número de correos para confirmar</value>
+  </data>
+  <data name="DeleteAllMatchesCountChanged" xml:space="preserve">
+    <value>El conjunto de resultados ha cambiado (confirmado: {0}, actual: {1}). Revise el filtro y confirme de nuevo.</value>
+  </data>
+  <data name="DeleteAllMatchesNoMatches" xml:space="preserve">
+    <value>Ningún correo eliminable coincide con este filtro.</value>
+  </data>
+  <data name="DeleteAllMatchesNoMatchesLocked" xml:space="preserve">
+    <value>Ningún correo eliminable coincide con este filtro; {0} correo(s) coincidente(s) están bloqueados por la política de retención.</value>
+  </data>
+  <data name="DeleteAllMatchesFilterRequired" xml:space="preserve">
+    <value>Restrinja primero el conjunto de resultados (término de búsqueda, fecha, carpeta o cuenta).</value>
+  </data>
+  <data name="DeleteAllMatchesCapExceeded" xml:space="preserve">
+    <value>{0} coincidencias superan el máximo configurado de {1}. Restrinja el filtro.</value>
+  </data>
+  <data name="DeleteAllMatchesQueued" xml:space="preserve">
+    <value>Tarea de eliminación iniciada para {0} correos. ID de tarea: {1}</value>
+  </data>
+  <data name="DeleteAllMatchesPreviewFailed" xml:space="preserve">
+    <value>No se pudo determinar el número de correos coincidentes. Inténtelo de nuevo.</value>
+  </data>
+  <data name="SkippedLockedEmails" xml:space="preserve">
+    <value>Omitidos (bloqueados)</value>
+  </data>
+  <data name="FilterJob" xml:space="preserve">
+    <value>Filtro</value>
+  </data>
 </root>

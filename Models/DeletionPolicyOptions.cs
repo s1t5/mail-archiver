@@ -16,5 +16,13 @@ namespace MailArchiver.Models
         /// Default: true (deletion allowed)
         /// </summary>
         public bool DeletionAllowed { get; set; } = true;
+
+        /// <summary>
+        /// Upper bound for one filter-based bulk deletion job. A filter that matches
+        /// more emails is rejected instead of silently truncated, so the user has to
+        /// narrow the filter and confirm the smaller set.
+        /// Default: 100000
+        /// </summary>
+        public int MaxBulkDeleteEmails { get; set; } = 100_000;
     }
 }

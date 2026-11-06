@@ -3608,4 +3608,46 @@
   <data name="MailcowNewImapPasswordRequired" xml:space="preserve"><value>Voer een nieuw IMAP-wachtwoord in nadat u Mailcow hebt verlaten.</value></data>
   <data name="MailcowLinkSuccess" xml:space="preserve"><value>Account gekoppeld aan Mailcow-instantie {0}.</value></data>
   <data name="MailcowDetachSuccess" xml:space="preserve"><value>Mailcow-toegang ingetrokken. Voer nieuwe inloggegevens in voor de geselecteerde provider.</value></data>
+  <data name="DeleteAllMatches" xml:space="preserve">
+    <value>Alle overeenkomsten verwijderen</value>
+  </data>
+  <data name="DeleteAllMatchesTitle" xml:space="preserve">
+    <value>Alle overeenkomende e-mails verwijderen</value>
+  </data>
+  <data name="DeleteAllMatchesWarning" xml:space="preserve">
+    <value>Dit verwijdert {0} e-mail(s) die aan het huidige filter voldoen definitief. Dit kan niet ongedaan worden gemaakt; elke verwijdering wordt gelogd.</value>
+  </data>
+  <data name="DeleteAllMatchesLockedInfo" xml:space="preserve">
+    <value>{0} overeenkomende e-mail(s) zijn vergrendeld door het bewaarbeleid en blijven behouden.</value>
+  </data>
+  <data name="DeleteAllMatchesConfirmLabel" xml:space="preserve">
+    <value>Voer het aantal e-mails in om te bevestigen</value>
+  </data>
+  <data name="DeleteAllMatchesCountChanged" xml:space="preserve">
+    <value>De resultatenset is gewijzigd (bevestigd: {0}, huidig: {1}). Controleer het filter en bevestig opnieuw.</value>
+  </data>
+  <data name="DeleteAllMatchesNoMatches" xml:space="preserve">
+    <value>Geen verwijderbare e-mails voldoen aan dit filter.</value>
+  </data>
+  <data name="DeleteAllMatchesNoMatchesLocked" xml:space="preserve">
+    <value>Geen verwijderbare e-mails voldoen aan dit filter; {0} overeenkomende e-mail(s) zijn vergrendeld door het bewaarbeleid.</value>
+  </data>
+  <data name="DeleteAllMatchesFilterRequired" xml:space="preserve">
+    <value>Beperk eerst de resultatenset (zoekterm, datum, map of account).</value>
+  </data>
+  <data name="DeleteAllMatchesCapExceeded" xml:space="preserve">
+    <value>{0} overeenkomsten overschrijden het geconfigureerde maximum van {1}. Beperk het filter.</value>
+  </data>
+  <data name="DeleteAllMatchesQueued" xml:space="preserve">
+    <value>Verwijderingstaak gestart voor {0} e-mails. Taak-ID: {1}</value>
+  </data>
+  <data name="DeleteAllMatchesPreviewFailed" xml:space="preserve">
+    <value>Het aantal overeenkomende e-mails kon niet worden bepaald. Probeer het opnieuw.</value>
+  </data>
+  <data name="SkippedLockedEmails" xml:space="preserve">
+    <value>Overgeslagen (vergrendeld)</value>
+  </data>
+  <data name="FilterJob" xml:space="preserve">
+    <value>Filter</value>
+  </data>
 </root>
