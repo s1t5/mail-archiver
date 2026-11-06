@@ -57,6 +57,13 @@ The Mail Archiver Docker environment consists of several important data volumes 
 - **Contains**: ASP.NET Core Data Protection keys for cookie encryption and authentication
 - **Importance**: ⭐⭐ Important - Required for existing user sessions and secure authentication
 
+### 2a. Original Message Files (only with `RawMessages.Storage=filesystem`)
+- **Volume**: `./raw-messages` (the host side of `/app/RawMessages`)
+- **Contains**: The original `.eml` of every email, gzip-compressed, written when `RawMessages:Enabled` is set and the storage backend is `filesystem`
+- **Importance**: ⭐⭐⭐ Critical **when in use** - the database keeps only the checksum, size and relative path, so a restore without this directory leaves originals that cannot be served
+- Back up this directory and the database dump **together**. Restoring the database without the files is not an error the archive can repair: the downloads answer `404` and the checksums cannot be re-derived from anything else. Restoring the files without the database is equally useless, because nothing references them.
+- If you use `RawMessages.Storage=postgres` (the default), this directory does not exist and the originals are inside `./postgres-data` as before.
+
 ### 3. Docker Compose Configuration
 - **File**: `docker-compose.yml`
 - **Contains**: Container configuration, environment variables, and settings

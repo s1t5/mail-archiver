@@ -27,6 +27,7 @@ namespace MailArchiver.Services.Core
         private readonly DashboardOptions _dashboardOptions;
         private readonly IMemoryCache _memoryCache;
         private readonly RawMessageOptions _rawMessageOptions;
+        private readonly IRawMessageStore? _rawMessageStore;
 
         public EmailCoreService(
             MailArchiverDbContext context,
@@ -35,7 +36,8 @@ namespace MailArchiver.Services.Core
             IOptions<BatchOperationOptions> batchOptions,
             IOptions<DashboardOptions>? dashboardOptions = null,
             IMemoryCache? memoryCache = null,
-            IOptions<RawMessageOptions>? rawMessageOptions = null)
+            IOptions<RawMessageOptions>? rawMessageOptions = null,
+            IRawMessageStore? rawMessageStore = null)
         {
             _context = context;
             _logger = logger;
@@ -44,6 +46,11 @@ namespace MailArchiver.Services.Core
             _dashboardOptions = dashboardOptions?.Value ?? new DashboardOptions();
             _memoryCache = memoryCache ?? new MemoryCache(new Microsoft.Extensions.Caching.Memory.MemoryCacheOptions());
             _rawMessageOptions = rawMessageOptions?.Value ?? new RawMessageOptions();
+
+            // Tests and the CLI construct this service without a store; fall back to the
+            // Postgres backend, which is what the archive did before storage was pluggable.
+            _rawMessageStore = rawMessageStore ?? new PostgresRawMessageStore(
+                context, Options.Create(_rawMessageOptions));
         }
 
         /// <summary>Whether callers should capture the original message bytes for ArchiveEmailAsync.</summary>
@@ -2210,12 +2217,22 @@ namespace MailArchiver.Services.Core
                     archivedEmail.HasAttachments = true;
                 }
 
-                archivedEmail.RawMessage = RawMessageCodec.Create(rawMessage, _rawMessageOptions);
+                archivedEmail.RawMessage = null;
 
                 try
                 {
                     _context.ArchivedEmails.Add(archivedEmail);
                     await _context.SaveChangesAsync();
+
+                    // The row is in place, so the id exists; a filesystem-backed original is
+                    // written now and its metadata row added in a second save.
+                    var storedRaw = _rawMessageStore.CreateRow(archivedEmail.Id, rawMessage);
+                    if (storedRaw != null)
+                    {
+                        archivedEmail.RawMessage = storedRaw;
+                        await _rawMessageStore.PersistAsync(storedRaw, rawMessage);
+                        await _context.SaveChangesAsync();
+                    }
 
                     // Attachments are already saved via EF relationship (cascade)
                     _logger.LogInformation("Successfully saved email with {Count} attachments", emailAttachments.Count);

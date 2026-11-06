@@ -229,6 +229,13 @@ or `serialized`, re-written by the parser with line endings normalized to CRLF)
 and `sha256` the checksum recorded at archive time. Returns the same errors as
 `get_email_eml`, and an error when no original is stored for the email.
 
+The bytes are read from wherever they were stored — the database or a file,
+depending on `RawMessages:Storage` at archive time (see
+[Storage Backend](Setup.md#storage-backend)). With
+`RawMessages:FileSystem:VerifyChecksumOnRead` (default `true`) the file is
+re-hashed before it is returned; a message whose content no longer matches the
+recorded checksum is refused with an error rather than returned.
+
 ## Rate limiting
 
 The MCP server has its own fixed-window rate-limit policy (`"Mcp"`), partitioned

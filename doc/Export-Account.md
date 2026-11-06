@@ -77,4 +77,4 @@ page. The same job is also listed on the [Jobs](BackgroundJobs.md) page.
 - [Mail search](Search.md) — exporting a selection of messages
 - [Background Jobs](BackgroundJobs.md) — job list, progress and cancelling
 - [Audit Data Export](AuditExport.md) — audit-ready export packages
-- [CLI Local Import](CLI-Local-Import.md) — importing from a mounted directory
+- [CLI commands](CLI.md) — importing from a mounted directory

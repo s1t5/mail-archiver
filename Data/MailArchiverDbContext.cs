@@ -232,8 +232,23 @@ namespace MailArchiver.Data
 
             modelBuilder.Entity<RawMessage>()
                 .Property(r => r.Content)
-                .HasColumnType("bytea")
-                .IsRequired();
+                .HasColumnType("bytea");
+
+            // Storage backend of the row. Content is null for filesystem-backed rows, so the
+            // two columns are the only thing that tells where the bytes are.
+            modelBuilder.Entity<RawMessage>()
+                .Property(r => r.StorageType)
+                .HasColumnType("varchar(16)")
+                .IsRequired()
+                .HasDefaultValue(RawMessageStorage.Postgres);
+
+            modelBuilder.Entity<RawMessage>()
+                .Property(r => r.StoragePath)
+                .HasColumnType("text");
+
+            modelBuilder.Entity<RawMessage>()
+                .HasIndex(r => r.StorageType)
+                .HasDatabaseName("IX_RawMessages_StorageType");
 
             modelBuilder.Entity<RawMessage>()
                 .Property(r => r.Sha256)

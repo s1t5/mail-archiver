@@ -4,7 +4,7 @@
 
 ## 📋 Overview
 
-Besides the [CLI local import](CLI-Local-Import.md) and the
+Besides the [command line interface](CLI.md) and the
 [CSV account import](Account-Import.md), Mail Archiver can import an existing
 mail archive **through the web interface**. There are two upload forms:
 
@@ -18,7 +18,7 @@ as **background jobs**, and both **skip duplicates automatically** — importing
 the same file twice does not create a second copy.
 
 > 💡 **Tip**: If your archive is already on the server as a file, prefer the
-> [CLI local import](CLI-Local-Import.md). It avoids the browser upload and is the
+> [CLI](CLI.md). It avoids the browser upload and is the
 > better choice for multi-gigabyte archives.
 
 ## 🧭 Access
@@ -119,7 +119,7 @@ job so you can see what was rejected.
 
 ## 🔗 Related Documentation
 
-- [CLI Local Import](CLI-Local-Import.md) — importing from a mounted directory
+- [CLI commands](CLI.md) — importing from a mounted directory
 - [Account Import (CSV)](Account-Import.md) — adding many accounts at once
 - [Background Jobs](BackgroundJobs.md) — monitoring and cancelling import jobs
 - [Exporting a Mail Account](Export-Account.md) — the opposite direction

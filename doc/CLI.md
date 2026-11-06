@@ -1,22 +1,26 @@
-# 📥 CLI Local Import Guide
+# 🖥️ CLI Commands
 
 [← Back to Documentation Index](index.md)
 
 ## 📋 Overview
 
-The Mail Archiver supports importing MBox files and ZIP archives containing EML files directly from the local filesystem via CLI commands. This is ideal for large files that are impractical to upload through the web interface.
+Some work does not belong in the web UI: importing an existing archive from the local filesystem, or moving stored original messages between storage backends. Mail Archiver accepts both as commands on the command line.
 
-**Key benefits:**
-- No file size limits imposed by HTTP uploads
-- No browser timeout issues
-- Direct access to files on the Docker host or mounted volumes
-- Same deduplication and processing logic as web uploads
+| Command | Purpose |
+|----------|---------|
+| `--import-mbox` | Import an MBox file from a mounted directory |
+| `--import-eml` | Import a ZIP archive of EML files from a mounted directory |
+| `--migrate-raw-storage` | Move stored original messages between the database and the filesystem |
+
+All commands are handled before the web pipeline starts and exit when they are done, so they are safe to run with `docker compose exec` while the archive is running.
 
 ## ⚠️ Security Model
 
-Local import is **CLI-only** – there is no web endpoint for browsing or importing local files. You must have Docker host access (`docker exec`) to run import commands.
+The import commands are **CLI-only** – there is no web endpoint for browsing or importing local files. You must have Docker host access (`docker exec`) to run them.
 
 A **path whitelist** (`LocalImport:AllowedPaths`) controls which directories the importer can read from. Files outside these paths are rejected.
+
+`--migrate-raw-storage` is not subject to that whitelist: it reads only the message files that the archive itself wrote under `RawMessages:FileSystem:BasePath`.
 
 ## 🛠️ Setup
 
@@ -166,8 +170,54 @@ Add more paths by incrementing the index (`__2`, `__3`, etc.).
 |----------|-------------|----------------------|--------------|------|
 | `--import-mbox` | MBox file | `.mbox`, `.mbx` | ❌ (always bulk) | ✅ |
 | `--import-eml` | ZIP archive of EMLs | `.zip` | ❌ (ZIP required) | ✅ |
+| `--migrate-raw-storage` | Stored original messages | — | — | ✅ |
 
 *Single `.eml` files are not directly supported. Use `zip` to wrap them, or import via the [web upload](Import-EML-MBox.md).*
+
+## 🔧 Maintenance Commands
+
+### Moving Stored Original Messages
+
+When `RawMessages:Enabled` is on, the original message of each email is kept either in the database or in files, depending on `RawMessages:Storage`. This command moves the already-stored originals from one backend to the other; see [Storage Backend](Setup.md#storage-backend) for the configuration.
+
+```bash
+# database -> filesystem
+docker compose exec mailarchiver dotnet MailArchiver.dll \
+  --migrate-raw-storage --from postgres --to filesystem
+
+# filesystem -> database
+docker compose exec mailarchiver dotnet MailArchiver.dll \
+  --migrate-raw-storage --from filesystem --to postgres
+```
+
+| Argument | Default | Description |
+|----------|---------|-------------|
+| `--from` | configured `RawMessages:Storage` | Backend the messages are moved out of. |
+| `--to` | configured `RawMessages:Storage` | Backend the messages are moved into. |
+| `--batch` | `200` | Messages per database transaction. |
+
+Unlike the import commands this one is not restricted by `LocalImport:AllowedPaths`: it reads only the message files that the archive itself wrote under `RawMessages:FileSystem:BasePath`.
+
+**What it guarantees:**
+
+- Each message is verified against the checksum recorded at archive time before it is copied. A message that fails is left exactly where it is and reported — a corrupt original is never propagated and its only remaining copy is never deleted.
+- A file is deleted only after the database transaction that moved it has committed, so an interrupted run cannot lose the only copy.
+- The run is resumable: work is selected by the storage recorded on each message, so starting the command again continues with what is still outstanding.
+- One bad message does not abort the run. The exit code is `1` if any message failed, `0` otherwise.
+
+**Example output:**
+
+```text
+Batch: 200 moved, 0 skipped, 0 failed
+Batch: 200 moved, 0 skipped, 0 failed
+Batch: 42 moved, 0 skipped, 1 failed
+Done: 442 moved, 1 failed.
+  Email 12345: checksum mismatch (recorded 4f1c..., file has 9ab2...)
+```
+
+Reads always follow the backend recorded on each message, not the configured setting, so a download keeps working during and after a migration. Changing `RawMessages:Storage` only affects newly archived mail — run this command to move what is already stored.
+
+> **Backup:** with the filesystem backend the message files live outside the database. Back up `RawMessages:FileSystem:BasePath` together with the database dump; a restore without the files leaves originals that cannot be served.
 
 ## ❓ FAQ
 

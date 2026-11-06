@@ -15,13 +15,16 @@ namespace MailArchiver.Services.Shared
         private readonly ILogger<MailImporter> _logger;
         private readonly EmlAttachmentCollector _attachmentCollector;
         private readonly RawMessageOptions _rawMessageOptions;
+        private readonly IRawMessageStore _rawMessageStore;
 
         public MailImporter(IServiceProvider serviceProvider, ILogger<MailImporter> logger,
-            EmlAttachmentCollector attachmentCollector, IOptions<RawMessageOptions>? rawMessageOptions = null)
+            EmlAttachmentCollector attachmentCollector, IRawMessageStore rawMessageStore,
+            IOptions<RawMessageOptions>? rawMessageOptions = null)
         {
             _serviceProvider = serviceProvider;
             _logger = logger;
             _attachmentCollector = attachmentCollector;
+            _rawMessageStore = rawMessageStore;
             _rawMessageOptions = rawMessageOptions?.Value ?? new RawMessageOptions();
         }
 
@@ -237,10 +240,19 @@ namespace MailArchiver.Services.Shared
                     archivedEmail.HasAttachments = true;
                 }
 
-                archivedEmail.RawMessage = RawMessageCodec.Create(rawMessage, _rawMessageOptions);
-
+                // The row goes in first: the filesystem backend keys its file by the email id,
+                // which the database assigns. A Postgres-backed row carries its bytes along.
                 context.ArchivedEmails.Add(archivedEmail);
                 await context.SaveChangesAsync();
+
+                var storedRaw = _rawMessageStore.CreateRow(archivedEmail.Id, rawMessage);
+                if (storedRaw != null)
+                {
+                    archivedEmail.RawMessage = storedRaw;
+                    await _rawMessageStore.PersistAsync(storedRaw, rawMessage);
+                    await context.SaveChangesAsync();
+                }
+
                 return ImportResult.CreateSuccess();
             }
             catch (Exception ex)

@@ -21,6 +21,7 @@ public class EmailsApiController : ApiControllerBase
     private readonly IAccessLogService _accessLogService;
     private readonly IAuthenticationService _authService;
     private readonly DateTimeHelper _dateTimeHelper;
+    private readonly IRawMessageStore _rawMessageStore;
 
     public EmailsApiController(
         MailArchiverDbContext context,
@@ -28,7 +29,8 @@ public class EmailsApiController : ApiControllerBase
         IOptions<ApiOptions> options,
         IAccessLogService accessLogService,
         IAuthenticationService authService,
-        DateTimeHelper dateTimeHelper)
+        DateTimeHelper dateTimeHelper,
+        IRawMessageStore rawMessageStore)
     {
         _context = context;
         _emailCoreService = emailCoreService;
@@ -36,6 +38,7 @@ public class EmailsApiController : ApiControllerBase
         _accessLogService = accessLogService;
         _authService = authService;
         _dateTimeHelper = dateTimeHelper;
+        _rawMessageStore = rawMessageStore;
     }
 
     private string CurrentUsername => _authService.GetCurrentUserDisplayName(HttpContext);
@@ -125,7 +128,7 @@ public class EmailsApiController : ApiControllerBase
             emailSubject: Truncate(email.Subject, 255),
             emailFrom: Truncate(email.From, 255));
 
-        var hasRawMessage = await _context.RawMessages.AnyAsync(r => r.ArchivedEmailId == email.Id);
+        var hasRawMessage = await _rawMessageStore.ExistsAsync(email.Id);
 
         return Ok(EmailDetailDto.FromEntity(email, hasRawMessage));
     }
@@ -161,6 +164,8 @@ public class EmailsApiController : ApiControllerBase
 
     // The original message as received, stored only when RawMessages:Enabled was set at
     // archive time. 404 with a problem title when the email exists but has no original.
+    // The bytes may live in the database or in a file; the store resolves that per row and
+    // verifies the recorded checksum before anything is served.
     [HttpGet("{id:int}/raw")]
     [Produces("message/rfc822")]
     public async Task<IActionResult> DownloadRaw(int id)
@@ -181,20 +186,29 @@ public class EmailsApiController : ApiControllerBase
             return NotFound();
         }
 
-        var raw = await _context.RawMessages
-            .AsNoTracking()
-            .FirstOrDefaultAsync(r => r.ArchivedEmailId == id);
+        RawMessageContent? content;
+        try
+        {
+            content = await _rawMessageStore.ReadAsync(id);
+        }
+        catch (RawMessageIntegrityException ex)
+        {
+            // The stored file no longer matches the checksum taken at archive time. Serving it
+            // would hand out content that the archive cannot vouch for.
+            return Problem(statusCode: 500, title: "Stored original message failed its checksum.", detail: ex.Message);
+        }
 
-        if (raw == null)
+        if (content == null)
         {
             return Problem(statusCode: 404, title: "No original message is stored for this email.");
         }
 
         await _accessLogService.LogAccessAsync(CurrentUsername, AccessLogType.Download, emailId: id);
 
-        Response.Headers["X-Raw-Message-Sha256"] = raw.Sha256;
-        Response.Headers["X-Raw-Message-Source"] = raw.Source;
-        return File(RawMessageCodec.Decompress(raw), "message/rfc822", $"email-{id}-original.eml");
+        Response.Headers["X-Raw-Message-Sha256"] = content.Sha256;
+        Response.Headers["X-Raw-Message-Source"] = content.Source;
+        Response.Headers["X-Raw-Message-Storage"] = content.StorageType;
+        return File(content.Bytes, "message/rfc822", $"email-{id}-original.eml");
     }
 
     [HttpGet("{id:int}/attachments/{attachmentId:int}")]

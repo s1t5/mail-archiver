@@ -400,10 +400,20 @@ Whether an email has one is shown by `hasRawMessage` in
 | --- | --- |
 | `X-Raw-Message-Sha256` | SHA-256 of the returned bytes, recorded when the message was stored |
 | `X-Raw-Message-Source` | `imap`, `graph`, `eml-file` (exact copies) or `serialized` (re-written by the parser, line endings normalized to CRLF) |
+| `X-Raw-Message-Storage` | `postgres` or `filesystem` — where the bytes were read from (see [Storage Backend](Setup.md#storage-backend)) |
 
-Returns `404` if the message does not exist or is not visible to the caller, and
+The bytes may live in the database or in a file, depending on
+`RawMessages:Storage` at the time the message was archived; the endpoint
+resolves that per message, so both kinds are served the same way. With
+`RawMessages:FileSystem:VerifyChecksumOnRead` (default `true`) the file is
+re-hashed before it is sent, and a message whose content no longer matches the
+recorded checksum is **not** served.
+
+Returns `404` if the message does not exist or is not visible to the caller,
 `404` with the problem title `No original message is stored for this email.`
-when it exists without an original. Returns `403` (problem+json) when
+when it exists without an original, and `500` with the title
+`Stored original message failed its checksum.` when the stored content no longer
+matches the checksum recorded at archive time. Returns `403` (problem+json) when
 `Api:AllowMessageDownloads=false`. Logs an access log entry of type `Download`.
 
 ```bash

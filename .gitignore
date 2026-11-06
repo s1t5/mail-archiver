@@ -18,6 +18,9 @@ data-protection-keys/
 # Local Postgres data volume (docker-compose)
 postgres-data/
 
+# Original message files (RawMessages.Storage=filesystem, docker-compose mount)
+raw-messages/
+
 # Build-Ergebnisse
 [Dd]ebug/
 [Dd]ebugPublic/
