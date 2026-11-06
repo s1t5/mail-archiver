@@ -31,7 +31,7 @@ get pushed out of sight by newer ones.
 | **Batch Restore Jobs** | Copying selected emails back to a mailbox | Archive → select emails → Batch Restore |
 | **Account Export Jobs** | Exporting a whole account (mbox / EML) | Mail Accounts → [Export](Export-Account.md) |
 | **Selected Emails Export Jobs** | Exporting a hand-picked set of emails | Archive → select emails → Export |
-| **Email Deletion Jobs** | Deleting emails from server or archive | Retention policy, or manual deletion |
+| **Email Deletion Jobs** | Deleting emails from server or archive, including filter-based bulk deletion | Retention policy, manual deletion, or Archive → *Delete all matches* |
 | **Account Deletion Jobs** | Removing an entire mail account | Mail Accounts → Delete |
 | **Offload** | Moving date-windowed mail to another account | Mail Accounts → Offload |
 

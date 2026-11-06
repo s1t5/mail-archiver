@@ -3608,4 +3608,46 @@
   <data name="MailcowNewImapPasswordRequired" xml:space="preserve"><value>Po zapustitvi Mailcow vnesite novo geslo IMAP.</value></data>
   <data name="MailcowLinkSuccess" xml:space="preserve"><value>Račun je povezan s primerkom Mailcow {0}.</value></data>
   <data name="MailcowDetachSuccess" xml:space="preserve"><value>Dostop do Mailcow je preklican. Vnesite nove poverilnice za izbranega ponudnika.</value></data>
+  <data name="DeleteAllMatches" xml:space="preserve">
+    <value>Izbriši vse zadetke</value>
+  </data>
+  <data name="DeleteAllMatchesTitle" xml:space="preserve">
+    <value>Izbriši vsa ustrezna e-poštna sporočila</value>
+  </data>
+  <data name="DeleteAllMatchesWarning" xml:space="preserve">
+    <value>To trajno izbriše {0} e-poštnih sporočil, ki ustrezajo trenutnemu filtru. Tega ni mogoče razveljaviti; vsak izbris se zabeleži.</value>
+  </data>
+  <data name="DeleteAllMatchesLockedInfo" xml:space="preserve">
+    <value>{0} ustreznih sporočil je zaklenjenih s pravilnikom o hrambi in bodo ohranjena.</value>
+  </data>
+  <data name="DeleteAllMatchesConfirmLabel" xml:space="preserve">
+    <value>Za potrditev vnesite število e-poštnih sporočil</value>
+  </data>
+  <data name="DeleteAllMatchesCountChanged" xml:space="preserve">
+    <value>Nabor rezultatov se je spremenil (potrjeno: {0}, trenutno: {1}). Preverite filter in znova potrdite.</value>
+  </data>
+  <data name="DeleteAllMatchesNoMatches" xml:space="preserve">
+    <value>Nobeno sporočilo, ki ga je mogoče izbrisati, ne ustreza temu filtru.</value>
+  </data>
+  <data name="DeleteAllMatchesNoMatchesLocked" xml:space="preserve">
+    <value>Nobeno sporočilo, ki ga je mogoče izbrisati, ne ustreza temu filtru; {0} ustreznih sporočil je zaklenjenih s pravilnikom o hrambi.</value>
+  </data>
+  <data name="DeleteAllMatchesFilterRequired" xml:space="preserve">
+    <value>Najprej zožite nabor rezultatov (iskalni niz, datum, mapa ali račun).</value>
+  </data>
+  <data name="DeleteAllMatchesCapExceeded" xml:space="preserve">
+    <value>{0} zadetkov presega nastavljeno največjo vrednost {1}. Zožite filter.</value>
+  </data>
+  <data name="DeleteAllMatchesQueued" xml:space="preserve">
+    <value>Opravilo brisanja se je začelo za {0} sporočil. ID opravila: {1}</value>
+  </data>
+  <data name="DeleteAllMatchesPreviewFailed" xml:space="preserve">
+    <value>Števila ustreznih sporočil ni bilo mogoče določiti. Poskusite znova.</value>
+  </data>
+  <data name="SkippedLockedEmails" xml:space="preserve">
+    <value>Preskočeno (zaklenjeno)</value>
+  </data>
+  <data name="FilterJob" xml:space="preserve">
+    <value>Filter</value>
+  </data>
 </root>
