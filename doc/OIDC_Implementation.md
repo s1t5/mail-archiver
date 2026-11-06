@@ -512,8 +512,9 @@ the underlying ASP.NET Core OpenID Connect handler. A provider that does not sup
 it usually fails with a message of its own and nothing in the Mail Archiver log.
 
 Synology SSO Server behaves that way: its discovery document omits
-`response_modes_supported`, and the login stops with "Unable to sign in via SSO due
-to setting issues". Set the response mode explicitly:
+`response_modes_supported`, which the OIDC Discovery specification defaults to
+`query` and `fragment` — `form_post` is not covered by it. The login stops with
+"Unable to sign in via SSO due to setting issues". Set the response mode explicitly:
 
 ```env
 OAuth__ResponseMode=query
