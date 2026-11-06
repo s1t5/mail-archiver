@@ -115,14 +115,14 @@ Set it up once, keep every message, and find it again years later.
 
     [:octicons-arrow-right-24: Read](Synchronization.md)
 
--   :material-file-import:{ .lg .middle } __CLI local import__
+-   :material-console:{ .lg .middle } __CLI commands__
 
     ---
 
     Import existing archives from the command line, and move stored original
     messages between the database and the filesystem.
 
-    [:octicons-arrow-right-24: Read](CLI-Local-Import.md)
+    [:octicons-arrow-right-24: Read](CLI.md)
 
 -   :material-upload:{ .lg .middle } __Web import (EML / MBox)__
 

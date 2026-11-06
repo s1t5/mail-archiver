@@ -88,6 +88,11 @@ markdown_extensions:
 
 plugins:
   - search
+  # Keeps the published URLs of renamed pages working: GitHub Pages serves static
+  # files only, so without an entry here a rename breaks every external link.
+  - redirects:
+      redirect_maps:
+        CLI-Local-Import.md: CLI.md
   # Shows "Last updated" / "Created" per page, taken from git history.
   # Requires a full clone: actions/checkout must use fetch-depth: 0, otherwise
   # every page silently falls back to the build date.
@@ -123,7 +128,7 @@ nav:
   - Getting Mail In:
       - Account Import: Account-Import.md
       - Mail Synchronization: Synchronization.md
-      - CLI Local Import: CLI-Local-Import.md
+      - CLI Commands: CLI.md
       - Web Import (EML / MBox): Import-EML-MBox.md
       - Rate Limit Handling: RateLimitHandling.md
   - Working with the Archive:

@@ -447,7 +447,7 @@ Both folder settings ship empty on purpose: rewriting or dropping folders withou
   - When using `docker exec` to run the import command, the file path provided via `--file` must be within one of these allowed paths.
   - This security measure prevents arbitrary file system access from CLI commands.
   - Multiple paths can be configured for different import sources.
-  - See [CLI Local Import Guide](CLI-Local-Import.md) for detailed usage instructions.
+  - See [CLI commands](CLI.md) for detailed usage instructions.
 
 ### 📄 CSV Import Settings
 - `CsvImport__MaxRows`: Maximum number of CSV rows (mailboxes) processed in a single bulk import. Default is `5000`. Increase this value for large deployments; lower it to limit the impact of a single import run on database load.

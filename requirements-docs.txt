@@ -5,4 +5,5 @@
 # cache the download, which needs a dependency file to hash.
 mkdocs-material==9.7.7
 mkdocs-git-revision-date-localized-plugin==1.6.0
+mkdocs-redirects==1.2.2
 pymdown-extensions>=10.0

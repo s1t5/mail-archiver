@@ -1,22 +1,26 @@
-# 📥 CLI Local Import & Maintenance Guide
+# 🖥️ CLI Commands
 
 [← Back to Documentation Index](index.md)
 
 ## 📋 Overview
 
-The Mail Archiver supports importing MBox files and ZIP archives containing EML files directly from the local filesystem via CLI commands. This is ideal for large files that are impractical to upload through the web interface.
+Some work does not belong in the web UI: importing an existing archive from the local filesystem, or moving stored original messages between storage backends. Mail Archiver accepts both as commands on the command line.
 
-**Key benefits:**
-- No file size limits imposed by HTTP uploads
-- No browser timeout issues
-- Direct access to files on the Docker host or mounted volumes
-- Same deduplication and processing logic as web uploads
+| Command | Purpose |
+|----------|---------|
+| `--import-mbox` | Import an MBox file from a mounted directory |
+| `--import-eml` | Import a ZIP archive of EML files from a mounted directory |
+| `--migrate-raw-storage` | Move stored original messages between the database and the filesystem |
+
+All commands are handled before the web pipeline starts and exit when they are done, so they are safe to run with `docker compose exec` while the archive is running.
 
 ## ⚠️ Security Model
 
-Local import is **CLI-only** – there is no web endpoint for browsing or importing local files. You must have Docker host access (`docker exec`) to run import commands.
+The import commands are **CLI-only** – there is no web endpoint for browsing or importing local files. You must have Docker host access (`docker exec`) to run them.
 
 A **path whitelist** (`LocalImport:AllowedPaths`) controls which directories the importer can read from. Files outside these paths are rejected.
+
+`--migrate-raw-storage` is not subject to that whitelist: it reads only the message files that the archive itself wrote under `RawMessages:FileSystem:BasePath`.
 
 ## 🛠️ Setup
 
@@ -170,7 +174,9 @@ Add more paths by incrementing the index (`__2`, `__3`, etc.).
 
 *Single `.eml` files are not directly supported. Use `zip` to wrap them, or import via the [web upload](Import-EML-MBox.md).*
 
-## 🔄 Moving Stored Original Messages
+## 🔧 Maintenance Commands
+
+### Moving Stored Original Messages
 
 When `RawMessages:Enabled` is on, the original message of each email is kept either in the database or in files, depending on `RawMessages:Storage`. This command moves the already-stored originals from one backend to the other; see [Storage Backend](Setup.md#storage-backend) for the configuration.
 
