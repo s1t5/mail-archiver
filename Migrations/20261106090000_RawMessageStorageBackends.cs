@@ -1,3 +1,6 @@
+using MailArchiver.Data;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -9,6 +12,12 @@ namespace MailArchiver.Migrations
     /// outside the database. Existing rows are Postgres rows and are backfilled as such, so an
     /// upgrade changes nothing until a storage migration is run explicitly.
     /// </summary>
+    /// <remarks>
+    /// The attributes below are what registers the migration with EF Core. Without them the
+    /// class is never discovered, so it is silently skipped and the columns never appear.
+    /// </remarks>
+    [DbContext(typeof(MailArchiverDbContext))]
+    [Migration("20261106090000_RawMessageStorageBackends")]
     public partial class RawMessageStorageBackends : Migration
     {
         /// <inheritdoc />

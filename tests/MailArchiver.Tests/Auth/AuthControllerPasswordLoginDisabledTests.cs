@@ -50,9 +50,6 @@ public class AuthControllerPasswordLoginDisabledTests
         // RedirectToAction, which needs an IUrlHelper to build the target URL.
         var services = new ServiceCollection();
         services.AddSingleton<IConfiguration>(new ConfigurationBuilder().Build());
-        services.AddLogging();
-        services.AddRouting();
-        services.AddControllersWithViews();
         httpContext.RequestServices = services.BuildServiceProvider();
 
         var localizer = new Mock<IStringLocalizer<SharedResource>>();
