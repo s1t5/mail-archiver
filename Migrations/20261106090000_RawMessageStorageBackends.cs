@@ -1,6 +1,3 @@
-using MailArchiver.Data;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -13,11 +10,11 @@ namespace MailArchiver.Migrations
     /// upgrade changes nothing until a storage migration is run explicitly.
     /// </summary>
     /// <remarks>
-    /// The attributes below are what registers the migration with EF Core. Without them the
-    /// class is never discovered, so it is silently skipped and the columns never appear.
+    /// The <c>[DbContext]</c> and <c>[Migration]</c> attributes that register this class with
+    /// EF Core live in the companion <c>.Designer.cs</c> file, as they do for every other
+    /// migration in this folder. Without them EF never discovers the migration and silently
+    /// skips it, so the columns would never be created.
     /// </remarks>
-    [DbContext(typeof(MailArchiverDbContext))]
-    [Migration("20261106090000_RawMessageStorageBackends")]
     public partial class RawMessageStorageBackends : Migration
     {
         /// <inheritdoc />
