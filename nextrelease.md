@@ -1,5 +1,6 @@
 ## ✨ New Features
 - **Pluggable Storage for Original Messages** - `RawMessages:Storage` selects where the original `.eml` is kept: `postgres` (default, in the database) or `filesystem` (gzip files next to the archive, metadata and checksum stay in the database). A migration command moves existing messages between the two backends in either direction, verifying every checksum before it touches a copy.
+- **Select All Matching** - Selection mode can select every email matching the current search across all pages, up to the selection limit, instead of one page at a time.
 
 ## ⚙️ Improvements
 - **Original Message Storage Has Its Own Documentation Page** - The feature now has a dedicated page (`doc/RawMessages.md`) covering where the stored original is served, the postgres and filesystem backends, moving existing messages between them with `--migrate-raw-storage`, verification and backup. `Setup.md` keeps only the parameter table and links to it.
@@ -13,3 +14,5 @@
 - **Build Output No Longer Nests Recursively** - The test project's `bin`/`obj` output was copied into the web app's output directory on every build, nesting one level deeper each time. The output tree grew to tens of gigabytes and made builds and test runs slow or memory-starved.
 - **OIDC Login Failures Show a Readable Message** - A missing or unusable claim no longer ends in an HTTP 500. The user is returned to the login page with a localized explanation and the reason is logged at error level.
 - **OIDC Name Claim Fallback** - The display name is now also read from the `username` claim, which some providers return as the only name-like value. Empty or non-string claims no longer stop the fallback chain.
+- **Selection After Batch Delete** - The selection is cleared when a batch delete is submitted, so deleted emails no longer stay selected and inflate the counter.
+- **Stable Sort Order in the Email List** - Rows that share a sort value (same subject, sender, or day) now fall back to the email id, so paging and "Select all matching" always agree on which emails come first.

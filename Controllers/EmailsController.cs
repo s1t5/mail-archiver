@@ -120,30 +120,7 @@ namespace MailArchiver.Controllers
             StoreSearchState(model);
 
             // Get current user's allowed accounts
-            List<int> allowedAccountIds = null;
-            var authService = HttpContext.RequestServices.GetService<MailArchiver.Services.IAuthenticationService>();
-            var userService = HttpContext.RequestServices.GetService<IUserService>();
-            
-            if (authService != null && userService != null && !authService.IsCurrentUserAdmin(HttpContext))
-            {
-                var username = authService.GetCurrentUserDisplayName(HttpContext);
-                var user = await userService.GetUserByUsernameAsync(username);
-                if (user != null)
-                {
-                    var userAccounts = await userService.GetUserMailAccountsAsync(user.Id);
-                    allowedAccountIds = userAccounts.Select(a => a.Id).ToList();
-                    
-                    // Log for debugging
-                    _logger.LogInformation("User {Username} has access to {Count} accounts: {AccountIds}", 
-                        username, allowedAccountIds.Count, string.Join(", ", allowedAccountIds));
-                }
-                else
-                {
-                    // If user not found, set empty list to prevent access to any emails
-                    allowedAccountIds = new List<int>();
-                    _logger.LogWarning("User {Username} not found in database", username);
-                }
-            }
+            var allowedAccountIds = await GetAllowedAccountIdsAsync();
 
             // Konten für die Dropdown-Liste laden (nur erlaubte Konten für Nicht-Admins)
             var accountsQuery = _context.MailAccounts.AsQueryable();
@@ -288,6 +265,64 @@ namespace MailArchiver.Controllers
             }
 
             return View(model);
+        }
+
+        // GET: Emails/SelectAllMatchingIds
+        // IDs of every email matching the current search, for "select all matching" in
+        // selection mode. Capped at Selection:MaxSelectableEmails, the same limit the page
+        // enforces when selecting by hand.
+        [HttpGet]
+        public async Task<JsonResult> SelectAllMatchingIds(SearchViewModel model)
+        {
+            model ??= new SearchViewModel();
+            var allowedAccountIds = await GetAllowedAccountIdsAsync();
+
+            var (ids, totalCount) = await _emailCoreService.SearchEmailIdsAsync(
+                model.SearchTerm,
+                model.FromDate,
+                model.ToDate,
+                model.SelectedAccountId,
+                model.SelectedFolder,
+                model.IsOutgoing,
+                _selectionOptions.MaxSelectableEmails,
+                allowedAccountIds,
+                model.SortBy ?? "SentDate",
+                model.SortOrder ?? "desc");
+
+            return Json(new { ids, totalCount, truncated = totalCount > ids.Count });
+        }
+
+        /// <summary>
+        /// Account IDs the current user may see, or null for admins (no restriction).
+        /// An empty list means the user may see no emails at all.
+        /// </summary>
+        private async Task<List<int>?> GetAllowedAccountIdsAsync()
+        {
+            List<int>? allowedAccountIds = null;
+            var authService = HttpContext.RequestServices.GetService<MailArchiver.Services.IAuthenticationService>();
+            var userService = HttpContext.RequestServices.GetService<IUserService>();
+            
+            if (authService != null && userService != null && !authService.IsCurrentUserAdmin(HttpContext))
+            {
+                var username = authService.GetCurrentUserDisplayName(HttpContext);
+                var user = await userService.GetUserByUsernameAsync(username);
+                if (user != null)
+                {
+                    var userAccounts = await userService.GetUserMailAccountsAsync(user.Id);
+                    allowedAccountIds = userAccounts.Select(a => a.Id).ToList();
+                    
+                    // Log for debugging
+                    _logger.LogInformation("User {Username} has access to {Count} accounts: {AccountIds}", 
+                        username, allowedAccountIds.Count, string.Join(", ", allowedAccountIds));
+                }
+                else
+                {
+                    // If user not found, set empty list to prevent access to any emails
+                    allowedAccountIds = new List<int>();
+                    _logger.LogWarning("User {Username} not found in database", username);
+                }
+            }
+            return allowedAccountIds;
         }
 
         // GET: Emails/Details/5

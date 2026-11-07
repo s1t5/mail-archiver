@@ -2264,6 +2264,9 @@
   <data name="MaxSelectionsReached" xml:space="preserve">
     <value>選択制限数（{0} 件）に達しました</value>
   </data>
+  <data name="SelectAllMatching" xml:space="preserve">
+    <value>一致する{0}件をすべて選択</value>
+  </data>
   <data name="SelectAllOnPage" xml:space="preserve">
     <value>このページのすべてを選択</value>
   </data>
