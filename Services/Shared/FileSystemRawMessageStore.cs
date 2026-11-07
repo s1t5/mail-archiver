@@ -147,5 +147,45 @@ namespace MailArchiver.Services.Shared
         private string ResolvePath(RawMessage row)
             => _paths.GetAbsolutePath(
                 string.IsNullOrEmpty(row.StoragePath) ? _paths.GetRelativePath(row.ArchivedEmailId) : row.StoragePath);
+
+        /// <summary>
+        /// Deletes the file, then the row. File first: an interruption between the two leaves a
+        /// row pointing at nothing, which <see cref="ExistsAsync"/> reports as absent and which
+        /// a repeated call cleans up. The other order would leave a file no row can find.
+        /// </summary>
+        public async Task DeleteAsync(int emailId)
+        {
+            var row = await _context.RawMessages
+                .FirstOrDefaultAsync(r => r.ArchivedEmailId == emailId);
+
+            if (row == null)
+            {
+                return;
+            }
+
+            if (row.IsFileSystemBacked)
+            {
+                var absolute = ResolvePath(row);
+                try
+                {
+                    if (File.Exists(absolute))
+                    {
+                        File.Delete(absolute);
+                    }
+                }
+                catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+                {
+                    // Leave the row in place: the file still exists, and the orphan collector
+                    // picks both up later. Deleting the row here would strand the bytes for good.
+                    _logger.LogWarning(ex,
+                        "Could not delete original message file for email {EmailId} at {Path}; " +
+                        "keeping its row so the file stays traceable", emailId, absolute);
+                    return;
+                }
+            }
+
+            _context.RawMessages.Remove(row);
+            await _context.SaveChangesAsync();
+        }
     }
 }

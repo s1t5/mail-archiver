@@ -73,5 +73,23 @@ namespace MailArchiver.Services.Shared
                 ? null
                 : $"checksum mismatch (recorded {row.Sha256}, row has {actual})";
         }
+
+        /// <summary>
+        /// Removes the row; the bytes live inside it. Filesystem-backed rows are left alone,
+        /// their bytes are not reachable from here.
+        /// </summary>
+        public async Task DeleteAsync(int emailId)
+        {
+            var row = await _context.RawMessages
+                .FirstOrDefaultAsync(r => r.ArchivedEmailId == emailId);
+
+            if (row == null || row.IsFileSystemBacked)
+            {
+                return;
+            }
+
+            _context.RawMessages.Remove(row);
+            await _context.SaveChangesAsync();
+        }
     }
 }

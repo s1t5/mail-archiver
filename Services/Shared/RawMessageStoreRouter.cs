@@ -59,6 +59,21 @@ namespace MailArchiver.Services.Shared
             return row == null ? null : await WriterFor(row).VerifyAsync(emailId);
         }
 
+        /// <summary>
+        /// Deletes the original through the backend the row records, so a mixed archive cleans
+        /// up correctly in both directions.
+        /// </summary>
+        public async Task DeleteAsync(int emailId)
+        {
+            var row = await FindRowAsync(emailId);
+            if (row == null)
+            {
+                return;
+            }
+
+            await WriterFor(row).DeleteAsync(emailId);
+        }
+
         private IRawMessageStore WriterFor(RawMessage row)
             => row.IsFileSystemBacked ? _fileSystem : _postgres;
 

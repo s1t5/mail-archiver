@@ -2960,6 +2960,8 @@ namespace MailArchiver.Controllers
             
             try
             {
+                await DeleteStoredOriginalAsync(id);
+
                 _context.ArchivedEmails.Remove(email);
                 await _context.SaveChangesAsync();
                 
@@ -3101,6 +3103,8 @@ namespace MailArchiver.Controllers
                     
                     try
                     {
+                        await DeleteStoredOriginalAsync(id);
+
                         _context.ArchivedEmails.Remove(email);
                         await _context.SaveChangesAsync();
                         deletedCount++;
@@ -3303,5 +3307,29 @@ namespace MailArchiver.Controllers
                 return Redirect(returnUrl ?? Url.Action("Index"));
             }
         }
+    /// <summary>
+    /// Removes the stored original of an email before its row is deleted. A cascade removes
+    /// the metadata row, but a filesystem-backed original is a file outside the database that
+    /// no cascade can reach, so it would survive as an orphan.
+    /// </summary>
+    private async Task DeleteStoredOriginalAsync(int emailId)
+    {
+        var rawMessageStore = HttpContext.RequestServices.GetService<IRawMessageStore>();
+        if (rawMessageStore == null)
+        {
+            return;
+        }
+
+        try
+        {
+            await rawMessageStore.DeleteAsync(emailId);
+        }
+        catch (Exception ex)
+        {
+            // The email deletion must not fail because of this; the orphan collector
+            // removes the leftover file on its next run.
+            _logger.LogError(ex, "Could not delete the stored original of email {EmailId}", emailId);
+        }
     }
+}
 }

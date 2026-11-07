@@ -168,6 +168,35 @@ bytes to the other backend.
     cannot be served. The download then answers HTTP 404 rather than returning something
     wrong, and the emails themselves remain readable from their parsed fields.
 
+## 🗑️ Deleting an email
+
+Deleting an email removes its original with it: retention rules, the manual single and
+bulk deletion, and the deletion of a whole mail account all remove the file first and the
+row second. With the `postgres` backend there is nothing extra to do, because the bytes
+travel inside the row the cascade already removes.
+
+The two steps cannot be committed together, because a file is not part of the database
+transaction. A run that dies between them leaves a row without a file, which reads as "no
+original stored" and which a repeated deletion cleans up. The opposite order would leave a
+file no row points at, so it is never used.
+
+**Orphaned files are collected.** Anything that slipped through, including files left by
+deletions from before this cleanup existed, is removed by a periodic sweep of `BasePath`
+that compares every file against the rows and deletes the ones no email refers to:
+
+| Setting | Default | Meaning |
+| --- | --- | --- |
+| `RawMessages__FileSystem__OrphanCleanupEnabled` | `true` | Turn the sweep on or off |
+| `RawMessages__FileSystem__OrphanCleanupIntervalHours` | `24` | How often it runs |
+| `RawMessages__FileSystem__OrphanCleanupGraceHours` | `24` | Files younger than this are never touched |
+| `RawMessages__FileSystem__OrphanCleanupStartupDelaySeconds` | `300` | Delay before the first run, so a pending storage migration finishes first |
+
+The grace period is what makes the sweep safe: an import writes a file before it commits
+the row that points at it, and a file written moments ago must not be mistaken for an
+orphan. Half-written `.tmp` files from an interrupted write are collected under the same
+rule. With the `postgres` backend the sweep does nothing and does not even walk the
+directory.
+
 ## 🔍 Verifying an archive
 
 The checksum recorded at archive time is what makes verification possible.
@@ -193,6 +222,9 @@ comparison is the only way to notice that a file was changed outside the applica
   against silent alteration on disk.
 - **The stored original is not deduplicated.** An attachment that appears in many emails
   is stored once in the attachment store, but once per email inside the original.
+- **Deleting removes the original, too.** An email deleted by retention or by hand takes
+  its stored original with it, file and row. Nothing is retained that the archive no
+  longer lists.
 
 ## 🔗 See also
 

@@ -327,6 +327,9 @@ complete original is stored as well.
 | `RawMessages__FileSystem__BasePath` | `RawMessages` | Directory for the message files. Must point at a mounted volume in Docker. |
 | `RawMessages__FileSystem__ShardDepth` | `2` | Directory levels the email id is spread over. |
 | `RawMessages__FileSystem__VerifyChecksumOnRead` | `true` | Verify the SHA-256 on every download. |
+| `RawMessages__FileSystem__OrphanCleanupEnabled` | `true` | Remove message files that no email refers to. |
+| `RawMessages__FileSystem__OrphanCleanupIntervalHours` | `24` | How often that sweep runs. |
+| `RawMessages__FileSystem__OrphanCleanupGraceHours` | `24` | Files younger than this are never removed. |
 
 !!! warning "Filesystem backend needs a mounted volume"
     With `RawMessages__Storage=filesystem` the message files live outside the database.

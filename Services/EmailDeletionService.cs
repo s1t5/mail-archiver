@@ -1,5 +1,6 @@
 using MailArchiver.Data;
 using MailArchiver.Models;
+using MailArchiver.Services.Shared;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -168,6 +169,7 @@ namespace MailArchiver.Services
                 using var scope = _serviceScopeFactory.CreateScope();
                 var context = scope.ServiceProvider.GetRequiredService<MailArchiverDbContext>();
                 var accessLogService = scope.ServiceProvider.GetService<IAccessLogService>();
+                var rawMessageStore = scope.ServiceProvider.GetService<IRawMessageStore>();
 
                 var combinedToken = CancellationTokenSource
                     .CreateLinkedTokenSource(stoppingToken, job.CancellationTokenSource.Token)
@@ -250,6 +252,26 @@ namespace MailArchiver.Services
                                 : email.From,
                             MailAccountId = email.MailAccountId
                         }));
+                    }
+
+                    // Remove the stored originals before the email rows. The cascade removes
+                    // their metadata rows, but a filesystem-backed original is a file the
+                    // database cannot reach.
+                    if (rawMessageStore != null)
+                    {
+                        foreach (var email in emailsToDelete)
+                        {
+                            try
+                            {
+                                await rawMessageStore.DeleteAsync(email.Id);
+                            }
+                            catch (Exception rawEx)
+                            {
+                                _logger.LogError(rawEx,
+                                    "Job {JobId}: could not delete the stored original of email {EmailId}",
+                                    job.JobId, email.Id);
+                            }
+                        }
                     }
 
                     context.ArchivedEmails.RemoveRange(emailsToDelete);

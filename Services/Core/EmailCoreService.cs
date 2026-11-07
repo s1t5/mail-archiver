@@ -2666,6 +2666,24 @@ namespace MailArchiver.Services.Core
 
                     try
                     {
+                        // Delete the stored originals first. A cascade would remove their rows
+                        // with the emails, but a filesystem-backed original is a file outside
+                        // the database that no cascade can reach.
+                        foreach (var emailId in batchIds)
+                        {
+                            try
+                            {
+                                await _rawMessageStore!.DeleteAsync(emailId);
+                            }
+                            catch (Exception rawEx)
+                            {
+                                // Never let an original stop the retention run: the orphan
+                                // collector picks the leftover file up later.
+                                _logger.LogError(rawEx,
+                                    "Could not delete the stored original of email {EmailId} during retention", emailId);
+                            }
+                        }
+
                         // Delete attachments first (cascade delete should handle this, but being explicit)
                         var attachmentsDeleted = await _context.EmailAttachments
                             .Where(a => batchIds.Contains(a.ArchivedEmailId))

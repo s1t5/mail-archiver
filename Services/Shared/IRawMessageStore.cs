@@ -67,5 +67,16 @@ namespace MailArchiver.Services.Shared
         /// Returns the mismatch description, or null when the content is intact or absent.
         /// </summary>
         Task<string?> VerifyAsync(int emailId);
+
+        /// <summary>
+        /// Removes the original of an email: the stored bytes and the metadata row. Called
+        /// before the email row is deleted, because a cascade removes the metadata row but
+        /// cannot reach bytes kept outside the database.
+        /// <para>
+        /// A missing file is not an error; it is logged and the row is removed anyway, so a
+        /// half-deleted original can always be cleaned up by calling this again.
+        /// </para>
+        /// </summary>
+        Task DeleteAsync(int emailId);
     }
 }
