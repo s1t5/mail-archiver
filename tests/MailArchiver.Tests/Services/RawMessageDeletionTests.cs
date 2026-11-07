@@ -87,8 +87,8 @@ public class RawMessageDeletionTests : IDisposable
         FolderName = "INBOX"
     };
 
-    /// <summary>Archives one email with an original in the given backend; returns its id.</summary>
-    private async Task<(int EmailId, string Path)> SeedAsync(
+    /// <summary>Archives one email with an original; returns the email and its file path.</summary>
+    private async Task<(ArchivedEmail Email, string Path)> SeedAsync(
         MailArchiverDbContext ctx, RawMessageOptions options, RawMessagePathResolver resolver)
     {
         var account = NewAccount();
@@ -111,131 +111,186 @@ public class RawMessageDeletionTests : IDisposable
         email.RawMessage = row;
         await ctx.SaveChangesAsync();
 
-        return (email.Id, resolver.GetAbsolutePath(email.Id));
+        return (email, resolver.GetAbsolutePath(email.Id));
     }
 
     [Fact]
-    public async Task FileSystemBackend_DeleteAsync_RemovesFileAndRow()
+    public async Task FileSystemBackend_DeletesTheFileAfterTheEmailRowIsGone()
     {
         await using var scope = await _fixture.CreateTransactionalContextAsync();
         var ctx = scope.Context;
         var options = BuildOptions(RawMessageStorage.FileSystem);
         var resolver = new RawMessagePathResolver(options.FileSystem, _basePath);
 
-        var (emailId, path) = await SeedAsync(ctx, options, resolver);
+        var (email, path) = await SeedAsync(ctx, options, resolver);
+        var emailId = email.Id;
         Assert.True(File.Exists(path));
 
-        var store = new FileSystemRawMessageStore(
-            ctx, Options.Create(options), resolver, NullLogger<FileSystemRawMessageStore>.Instance);
-
-        await store.DeleteAsync(emailId);
-
-        Assert.False(File.Exists(path));
-        Assert.False(await ctx.RawMessages.AsNoTracking().AnyAsync(r => r.ArchivedEmailId == emailId));
-
-        await scope.RollbackAsync();
-    }
-
-    [Fact]
-    public async Task FileSystemBackend_DeleteAsync_IsIdempotent()
-    {
-        await using var scope = await _fixture.CreateTransactionalContextAsync();
-        var ctx = scope.Context;
-        var options = BuildOptions(RawMessageStorage.FileSystem);
-        var resolver = new RawMessagePathResolver(options.FileSystem, _basePath);
-
-        var (emailId, _) = await SeedAsync(ctx, options, resolver);
-        var store = new FileSystemRawMessageStore(
-            ctx, Options.Create(options), resolver, NullLogger<FileSystemRawMessageStore>.Instance);
-
-        await store.DeleteAsync(emailId);
-        // A second call must not throw; the original is simply gone.
-        await store.DeleteAsync(emailId);
-
-        Assert.False(await ctx.RawMessages.AsNoTracking().AnyAsync(r => r.ArchivedEmailId == emailId));
-
-        await scope.RollbackAsync();
-    }
-
-    [Fact]
-    public async Task FileSystemBackend_DeleteAsync_WithMissingFileStillRemovesRow()
-    {
-        await using var scope = await _fixture.CreateTransactionalContextAsync();
-        var ctx = scope.Context;
-        var options = BuildOptions(RawMessageStorage.FileSystem);
-        var resolver = new RawMessagePathResolver(options.FileSystem, _basePath);
-
-        var (emailId, path) = await SeedAsync(ctx, options, resolver);
-
-        // The file vanished (restored backup, manual cleanup); the row must still go.
-        File.Delete(path);
-
-        var store = new FileSystemRawMessageStore(
-            ctx, Options.Create(options), resolver, NullLogger<FileSystemRawMessageStore>.Instance);
-
-        await store.DeleteAsync(emailId);
-
-        Assert.False(await ctx.RawMessages.AsNoTracking().AnyAsync(r => r.ArchivedEmailId == emailId));
-
-        await scope.RollbackAsync();
-    }
-
-    [Fact]
-    public async Task PostgresBackend_DeleteAsync_RemovesRow()
-    {
-        await using var scope = await _fixture.CreateTransactionalContextAsync();
-        var ctx = scope.Context;
-        var options = BuildOptions(RawMessageStorage.Postgres);
-        var resolver = new RawMessagePathResolver(options.FileSystem, _basePath);
-
-        var (emailId, _) = await SeedAsync(ctx, options, resolver);
-        Assert.True(await ctx.RawMessages.AsNoTracking().AnyAsync(r => r.ArchivedEmailId == emailId));
-
-        var store = new PostgresRawMessageStore(ctx, Options.Create(options));
-        await store.DeleteAsync(emailId);
-
-        Assert.False(await ctx.RawMessages.AsNoTracking().AnyAsync(r => r.ArchivedEmailId == emailId));
-
-        await scope.RollbackAsync();
-    }
-
-    [Fact]
-    public async Task Router_DeletesThroughTheBackendTheRowRecords()
-    {
-        await using var scope = await _fixture.CreateTransactionalContextAsync();
-        var ctx = scope.Context;
-
-        // Rows are filesystem-backed while the configured writer is Postgres: the state after
-        // a switch that has not been migrated yet. The router must follow the row.
-        var options = BuildOptions(RawMessageStorage.Postgres);
-        var resolver = new RawMessagePathResolver(options.FileSystem, _basePath);
-
-        var (emailId, path) = await SeedAsync(ctx, options, resolver);
-
-        // Turn the seeded row into a filesystem-backed one, file included.
-        var fsOptions = BuildOptions(RawMessageStorage.FileSystem);
-        var capture = new RawMessageCapture(SampleMessage("router"), RawMessageSource.Imap);
-        var fs = new FileSystemRawMessageStore(
-            ctx, Options.Create(fsOptions), resolver, NullLogger<FileSystemRawMessageStore>.Instance);
-        var fsRow = fs.CreateRow(emailId, capture);
-        await fs.PersistAsync(fsRow!, capture);
-
-        var existing = await ctx.RawMessages.SingleAsync(r => r.ArchivedEmailId == emailId);
-        existing.StorageType = RawMessageStorage.FileSystem;
-        existing.Content = null;
-        existing.StoragePath = fsRow!.StoragePath;
+        // The order every delete path uses: row first, then the bytes.
+        ctx.ArchivedEmails.Remove(email);
         await ctx.SaveChangesAsync();
 
-        Assert.True(File.Exists(path));
-
-        var router = new RawMessageStoreRouter(
-            ctx, Options.Create(options),
-            new PostgresRawMessageStore(ctx, Options.Create(options)), fs);
-
-        await router.DeleteAsync(emailId);
+        var store = new FileSystemRawMessageStore(
+            ctx, Options.Create(options), resolver, NullLogger<FileSystemRawMessageStore>.Instance);
+        await store.DeleteAsync(new[] { emailId });
 
         Assert.False(File.Exists(path));
         Assert.False(await ctx.RawMessages.AsNoTracking().AnyAsync(r => r.ArchivedEmailId == emailId));
+
+        await scope.RollbackAsync();
+    }
+
+    [Fact]
+    public async Task FileSystemBackend_KeepsTheFileWhileTheEmailRowStillExists()
+    {
+        await using var scope = await _fixture.CreateTransactionalContextAsync();
+        var ctx = scope.Context;
+        var options = BuildOptions(RawMessageStorage.FileSystem);
+        var resolver = new RawMessagePathResolver(options.FileSystem, _basePath);
+
+        // Nothing was deleted, so nothing may be removed: a caller must not lose an original
+        // because the deletion it attempted failed.
+        var (email, path) = await SeedAsync(ctx, options, resolver);
+
+        var store = new FileSystemRawMessageStore(
+            ctx, Options.Create(options), resolver, NullLogger<FileSystemRawMessageStore>.Instance);
+        await store.DeleteAsync(new[] { email.Id });
+
+        Assert.True(File.Exists(path));
+        Assert.True(await store.ExistsAsync(email.Id));
+
+        await scope.RollbackAsync();
+    }
+
+    [Fact]
+    public async Task FileSystemBackend_IsIdempotentAfterTheRowIsGone()
+    {
+        await using var scope = await _fixture.CreateTransactionalContextAsync();
+        var ctx = scope.Context;
+        var options = BuildOptions(RawMessageStorage.FileSystem);
+        var resolver = new RawMessagePathResolver(options.FileSystem, _basePath);
+
+        var (email, path) = await SeedAsync(ctx, options, resolver);
+        var emailId = email.Id;
+
+        ctx.ArchivedEmails.Remove(email);
+        await ctx.SaveChangesAsync();
+        Assert.True(File.Exists(path));
+
+        var store = new FileSystemRawMessageStore(
+            ctx, Options.Create(options), resolver, NullLogger<FileSystemRawMessageStore>.Instance);
+
+        // Called twice: a retry after a crash must still find the file by its derived path.
+        await store.DeleteAsync(new[] { emailId });
+        await store.DeleteAsync(new[] { emailId });
+
+        Assert.False(File.Exists(path));
+
+        await scope.RollbackAsync();
+    }
+
+    [Fact]
+    public async Task FileSystemBackend_DeletesAWholeBatch()
+    {
+        await using var scope = await _fixture.CreateTransactionalContextAsync();
+        var ctx = scope.Context;
+        var options = BuildOptions(RawMessageStorage.FileSystem);
+        var resolver = new RawMessagePathResolver(options.FileSystem, _basePath);
+
+        var (first, firstPath) = await SeedAsync(ctx, options, resolver);
+        var (second, secondPath) = await SeedAsync(ctx, options, resolver);
+        var ids = new[] { first.Id, second.Id };
+
+        ctx.ArchivedEmails.RemoveRange(first, second);
+        await ctx.SaveChangesAsync();
+
+        var store = new FileSystemRawMessageStore(
+            ctx, Options.Create(options), resolver, NullLogger<FileSystemRawMessageStore>.Instance);
+        await store.DeleteAsync(ids);
+
+        Assert.False(File.Exists(firstPath));
+        Assert.False(File.Exists(secondPath));
+
+        await scope.RollbackAsync();
+    }
+
+    [Fact]
+    public async Task FileSystemBackend_MissingFileIsNotAnError()
+    {
+        await using var scope = await _fixture.CreateTransactionalContextAsync();
+        var ctx = scope.Context;
+        var options = BuildOptions(RawMessageStorage.FileSystem);
+        var resolver = new RawMessagePathResolver(options.FileSystem, _basePath);
+
+        var (email, path) = await SeedAsync(ctx, options, resolver);
+        var emailId = email.Id;
+
+        // The file vanished (restored backup, manual cleanup); deleting must still succeed.
+        File.Delete(path);
+
+        ctx.ArchivedEmails.Remove(email);
+        await ctx.SaveChangesAsync();
+
+        var store = new FileSystemRawMessageStore(
+            ctx, Options.Create(options), resolver, NullLogger<FileSystemRawMessageStore>.Instance);
+        await store.DeleteAsync(new[] { emailId });
+
+        Assert.False(await ctx.RawMessages.AsNoTracking().AnyAsync(r => r.ArchivedEmailId == emailId));
+
+        await scope.RollbackAsync();
+    }
+
+    [Fact]
+    public async Task PostgresBackend_DeleteAsyncDoesNothing()
+    {
+        await using var scope = await _fixture.CreateTransactionalContextAsync();
+        var ctx = scope.Context;
+        var options = BuildOptions(RawMessageStorage.Postgres);
+        var resolver = new RawMessagePathResolver(options.FileSystem, _basePath);
+
+        var (email, _) = await SeedAsync(ctx, options, resolver);
+        var emailId = email.Id;
+
+        ctx.ArchivedEmails.Remove(email);
+        await ctx.SaveChangesAsync();
+
+        var store = new PostgresRawMessageStore(ctx, Options.Create(options));
+        await store.DeleteAsync(new[] { emailId });
+
+        // The row went with the cascade; the store has nothing left to do.
+        Assert.False(await ctx.RawMessages.AsNoTracking().AnyAsync(r => r.ArchivedEmailId == emailId));
+
+        await scope.RollbackAsync();
+    }
+
+    [Fact]
+    public async Task Router_DeletesFilesEvenWhenTheWriterIsPostgres()
+    {
+        await using var scope = await _fixture.CreateTransactionalContextAsync();
+        var ctx = scope.Context;
+
+        // Rows written while the filesystem backend was configured, now the writer is Postgres.
+        // After the email is gone there is no storage type left to read, so the router must
+        // still remove the file.
+        var fsOptions = BuildOptions(RawMessageStorage.FileSystem);
+        var resolver = new RawMessagePathResolver(fsOptions.FileSystem, _basePath);
+        var (email, path) = await SeedAsync(ctx, fsOptions, resolver);
+        var emailId = email.Id;
+
+        ctx.ArchivedEmails.Remove(email);
+        await ctx.SaveChangesAsync();
+        Assert.True(File.Exists(path));
+
+        var pgOptions = BuildOptions(RawMessageStorage.Postgres);
+        var router = new RawMessageStoreRouter(
+            ctx, Options.Create(pgOptions),
+            new PostgresRawMessageStore(ctx, Options.Create(pgOptions)),
+            new FileSystemRawMessageStore(
+                ctx, Options.Create(fsOptions), resolver, NullLogger<FileSystemRawMessageStore>.Instance));
+
+        await router.DeleteAsync(new[] { emailId });
+
+        Assert.False(File.Exists(path));
 
         await scope.RollbackAsync();
     }

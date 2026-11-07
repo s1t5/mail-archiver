@@ -333,26 +333,24 @@ namespace MailArchiver.Services
                 if (!batch.Any())
                     break;
 
-                // Remove the stored originals before the email rows; see EmailDeletionService.
-                if (rawMessageStore != null)
-                {
-                    foreach (var email in batch)
-                    {
-                        try
-                        {
-                            await rawMessageStore.DeleteAsync(email.Id);
-                        }
-                        catch (Exception rawEx)
-                        {
-                            _logger.LogError(rawEx,
-                                "Job {JobId}: could not delete the stored original of email {EmailId}",
-                                job.JobId, email.Id);
-                        }
-                    }
-                }
+                var batchIds = batch.Select(e => e.Id).ToList();
 
                 context.ArchivedEmails.RemoveRange(batch);
                 await context.SaveChangesAsync(cancellationToken);
+
+                // The original files go after the rows are gone; see IRawMessageStore.DeleteAsync.
+                if (rawMessageStore != null)
+                {
+                    try
+                    {
+                        await rawMessageStore.DeleteAsync(batchIds, cancellationToken);
+                    }
+                    catch (Exception rawEx)
+                    {
+                        _logger.LogError(rawEx,
+                            "Job {JobId}: could not delete the stored originals of a batch", job.JobId);
+                    }
+                }
 
                 job.DeletedEmails += batch.Count;
                 processedCount += batch.Count;

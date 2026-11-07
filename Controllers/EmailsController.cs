@@ -2960,10 +2960,10 @@ namespace MailArchiver.Controllers
             
             try
             {
-                await DeleteStoredOriginalAsync(id);
-
                 _context.ArchivedEmails.Remove(email);
                 await _context.SaveChangesAsync();
+
+                await DeleteStoredOriginalAsync(id);
                 
                 _logger.LogInformation("Email with ID {EmailId} successfully deleted by admin", id);
                 
@@ -3103,11 +3103,11 @@ namespace MailArchiver.Controllers
                     
                     try
                     {
-                        await DeleteStoredOriginalAsync(id);
-
                         _context.ArchivedEmails.Remove(email);
                         await _context.SaveChangesAsync();
                         deletedCount++;
+
+                        await DeleteStoredOriginalAsync(id);
                         
                         _logger.LogInformation("Email with ID {EmailId} successfully deleted by admin", id);
                         
@@ -3307,10 +3307,12 @@ namespace MailArchiver.Controllers
                 return Redirect(returnUrl ?? Url.Action("Index"));
             }
         }
+
     /// <summary>
-    /// Removes the stored original of an email before its row is deleted. A cascade removes
-    /// the metadata row, but a filesystem-backed original is a file outside the database that
-    /// no cascade can reach, so it would survive as an orphan.
+    /// Removes the stored original of an email. Called <b>after</b> its row has been deleted:
+    /// the metadata row goes with the email through the cascade, but a filesystem-backed
+    /// original is a file outside the database that no cascade can reach. Deleting the bytes
+    /// first would lose the original if the email deletion failed.
     /// </summary>
     private async Task DeleteStoredOriginalAsync(int emailId)
     {
@@ -3322,7 +3324,7 @@ namespace MailArchiver.Controllers
 
         try
         {
-            await rawMessageStore.DeleteAsync(emailId);
+            await rawMessageStore.DeleteAsync(new[] { emailId });
         }
         catch (Exception ex)
         {

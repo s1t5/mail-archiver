@@ -1412,26 +1412,6 @@ namespace MailArchiver.Controllers
 
             _context.EmailAttachments.RemoveRange(attachments);
 
-            // Remove the stored originals before the email rows. A filesystem-backed original
-            // is a file outside the database, which the cascade cannot reach.
-            var rawMessageStore = HttpContext.RequestServices.GetService<IRawMessageStore>();
-            if (rawMessageStore != null)
-            {
-                foreach (var emailId in emailIds)
-                {
-                    try
-                    {
-                        await rawMessageStore.DeleteAsync(emailId);
-                    }
-                    catch (Exception rawEx)
-                    {
-                        _logger.LogError(rawEx,
-                            "Could not delete the stored original of email {EmailId} while deleting account {AccountId}",
-                            emailId, id);
-                    }
-                }
-            }
-
             // Then delete emails
             var emails = await _context.ArchivedEmails
                 .Where(e => e.MailAccountId == id)
@@ -1443,6 +1423,21 @@ namespace MailArchiver.Controllers
             _context.MailAccounts.Remove(account);
 
             await _context.SaveChangesAsync();
+
+            // The original files go after the rows are gone; see IRawMessageStore.DeleteAsync.
+            var rawMessageStore = HttpContext.RequestServices.GetService<IRawMessageStore>();
+            if (rawMessageStore != null)
+            {
+                try
+                {
+                    await rawMessageStore.DeleteAsync(emailIds);
+                }
+                catch (Exception rawEx)
+                {
+                    _logger.LogError(rawEx,
+                        "Could not delete the stored originals of account {AccountId}", id);
+                }
+            }
 
             // Log the account deletion action
             if (!string.IsNullOrEmpty(currentUsername))

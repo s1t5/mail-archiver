@@ -69,14 +69,16 @@ namespace MailArchiver.Services.Shared
         Task<string?> VerifyAsync(int emailId);
 
         /// <summary>
-        /// Removes the original of an email: the stored bytes and the metadata row. Called
-        /// before the email row is deleted, because a cascade removes the metadata row but
-        /// cannot reach bytes kept outside the database.
+        /// Removes the stored bytes of emails whose rows are gone. Call this <b>after</b> the
+        /// email rows have been committed, never before: deleting the bytes first would lose the
+        /// original whenever the email deletion fails or rolls back, for example on a locked
+        /// record. This way a failure leaves an unreferenced file, which the orphan collector
+        /// reclaims, instead of an email whose original is silently missing.
         /// <para>
-        /// A missing file is not an error; it is logged and the row is removed anyway, so a
-        /// half-deleted original can always be cleaned up by calling this again.
+        /// The metadata rows disappear with the email through the foreign key cascade; this
+        /// method only has to deal with bytes kept outside the database.
         /// </para>
         /// </summary>
-        Task DeleteAsync(int emailId);
+        Task DeleteAsync(IReadOnlyCollection<int> emailIds, CancellationToken cancellationToken = default);
     }
 }

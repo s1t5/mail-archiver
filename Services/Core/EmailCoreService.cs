@@ -2666,24 +2666,6 @@ namespace MailArchiver.Services.Core
 
                     try
                     {
-                        // Delete the stored originals first. A cascade would remove their rows
-                        // with the emails, but a filesystem-backed original is a file outside
-                        // the database that no cascade can reach.
-                        foreach (var emailId in batchIds)
-                        {
-                            try
-                            {
-                                await _rawMessageStore!.DeleteAsync(emailId);
-                            }
-                            catch (Exception rawEx)
-                            {
-                                // Never let an original stop the retention run: the orphan
-                                // collector picks the leftover file up later.
-                                _logger.LogError(rawEx,
-                                    "Could not delete the stored original of email {EmailId} during retention", emailId);
-                            }
-                        }
-
                         // Delete attachments first (cascade delete should handle this, but being explicit)
                         var attachmentsDeleted = await _context.EmailAttachments
                             .Where(a => batchIds.Contains(a.ArchivedEmailId))
@@ -2700,6 +2682,24 @@ namespace MailArchiver.Services.Core
                             emailsDeleted, attachmentsDeleted);
 
                         await _context.SaveChangesAsync();
+
+                        // The original files go after the rows are gone: deleting them first would
+                        // lose the original if this deletion fails.
+                        if (emailsDeleted > 0)
+                        {
+                            try
+                            {
+                                await _rawMessageStore!.DeleteAsync(batchIds);
+                            }
+                            catch (Exception rawEx)
+                            {
+                                // Never let an original stop the retention run: the orphan
+                                // collector picks the leftover file up later.
+                                _logger.LogError(rawEx,
+                                    "Could not delete the stored originals of a retention batch of account {AccountName}",
+                                    account.Name);
+                            }
+                        }
                     }
                     catch (Exception ex)
                     {

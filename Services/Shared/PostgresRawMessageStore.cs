@@ -75,21 +75,10 @@ namespace MailArchiver.Services.Shared
         }
 
         /// <summary>
-        /// Removes the row; the bytes live inside it. Filesystem-backed rows are left alone,
-        /// their bytes are not reachable from here.
+        /// Nothing to do. The bytes live inside the row, and the row goes with the email through
+        /// the foreign key cascade.
         /// </summary>
-        public async Task DeleteAsync(int emailId)
-        {
-            var row = await _context.RawMessages
-                .FirstOrDefaultAsync(r => r.ArchivedEmailId == emailId);
-
-            if (row == null || row.IsFileSystemBacked)
-            {
-                return;
-            }
-
-            _context.RawMessages.Remove(row);
-            await _context.SaveChangesAsync();
-        }
+        public Task DeleteAsync(IReadOnlyCollection<int> emailIds, CancellationToken cancellationToken = default)
+            => Task.CompletedTask;
     }
 }

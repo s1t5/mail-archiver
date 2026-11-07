@@ -60,19 +60,12 @@ namespace MailArchiver.Services.Shared
         }
 
         /// <summary>
-        /// Deletes the original through the backend the row records, so a mixed archive cleans
-        /// up correctly in both directions.
+        /// Deletes the files of the given emails. Always the filesystem store: after the email
+        /// rows are gone there is no storage type left to read, and asking for a file that does
+        /// not exist is a no-op, so a Postgres-only archive is unaffected.
         /// </summary>
-        public async Task DeleteAsync(int emailId)
-        {
-            var row = await FindRowAsync(emailId);
-            if (row == null)
-            {
-                return;
-            }
-
-            await WriterFor(row).DeleteAsync(emailId);
-        }
+        public Task DeleteAsync(IReadOnlyCollection<int> emailIds, CancellationToken cancellationToken = default)
+            => _fileSystem.DeleteAsync(emailIds, cancellationToken);
 
         private IRawMessageStore WriterFor(RawMessage row)
             => row.IsFileSystemBacked ? _fileSystem : _postgres;

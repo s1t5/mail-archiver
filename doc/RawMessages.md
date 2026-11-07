@@ -171,14 +171,16 @@ bytes to the other backend.
 ## 🗑️ Deleting an email
 
 Deleting an email removes its original with it: retention rules, the manual single and
-bulk deletion, and the deletion of a whole mail account all remove the file first and the
-row second. With the `postgres` backend there is nothing extra to do, because the bytes
+bulk deletion, and the deletion of a whole mail account all remove the file as part of the
+same operation. With the `postgres` backend there is nothing extra to do, because the bytes
 travel inside the row the cascade already removes.
 
-The two steps cannot be committed together, because a file is not part of the database
-transaction. A run that dies between them leaves a row without a file, which reads as "no
-original stored" and which a repeated deletion cleans up. The opposite order would leave a
-file no row points at, so it is never used.
+The file is deleted **after** the email row is committed, never before. The two steps cannot
+be one transaction, because a file is not part of the database transaction, so one of them
+has to come second. This order is the safe one: a deletion that fails or rolls back, for
+example on a locked record, leaves the original untouched, and a crash between the two steps
+leaves a file without a row, which the sweep below reclaims. The other order would destroy
+the original of an email that still exists.
 
 **Orphaned files are collected.** Anything that slipped through, including files left by
 deletions from before this cleanup existed, is removed by a periodic sweep of `BasePath`
