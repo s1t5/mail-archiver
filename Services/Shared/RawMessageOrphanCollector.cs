@@ -53,67 +53,83 @@ namespace MailArchiver.Services.Shared
                 return new Result(0, 0, 0);
             }
 
-            // Every path the database still expects, normalised the way the writer stored it.
-            var referenced = await _context.RawMessages
-                .AsNoTracking()
-                .Where(r => r.StorageType == RawMessageStorage.FileSystem)
-                .Select(r => new { r.StoragePath, r.ArchivedEmailId })
-                .ToListAsync(cancellationToken);
-
-            var known = new HashSet<string>(StringComparer.Ordinal);
-            foreach (var row in referenced)
-            {
-                var relative = string.IsNullOrEmpty(row.StoragePath)
-                    ? _paths.GetRelativePath(row.ArchivedEmailId)
-                    : row.StoragePath;
-                known.Add(relative);
-            }
-
+            // Files are checked against the database by email id, not by loading every row: an
+            // archive with a million messages would otherwise hold a million paths in memory for
+            // a walk that only needs to answer "does this id still have an original?".
             var cutoff = DateTime.UtcNow - grace;
             var scanned = 0;
             var removed = 0;
             var kept = 0;
+
+            // Ids of the candidates in the current batch, checked in one query.
+            const int batchSize = 5000;
+            var pending = new List<(int EmailId, string Path)>(batchSize);
+
+            async Task FlushAsync()
+            {
+                if (pending.Count == 0)
+                {
+                    return;
+                }
+
+                var ids = pending.Select(p => p.EmailId).Distinct().ToList();
+                var alive = await _context.RawMessages
+                    .AsNoTracking()
+                    .Where(r => r.StorageType == RawMessageStorage.FileSystem && ids.Contains(r.ArchivedEmailId))
+                    .Select(r => r.ArchivedEmailId)
+                    .ToListAsync(cancellationToken);
+
+                var stillReferenced = new HashSet<int>(alive);
+                foreach (var (emailId, path) in pending)
+                {
+                    if (stillReferenced.Contains(emailId))
+                    {
+                        kept++;
+                        continue;
+                    }
+
+                    try
+                    {
+                        File.Delete(path);
+                        removed++;
+                    }
+                    catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+                    {
+                        _logger.LogWarning(ex, "Could not remove orphaned original message file {Path}", path);
+                    }
+                }
+
+                pending.Clear();
+            }
 
             foreach (var file in Directory.EnumerateFiles(basePath, "*", SearchOption.AllDirectories))
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 scanned++;
 
-                var relative = Path.GetRelativePath(basePath, file).Replace('\\', '/');
-
-                // A file written moments ago may belong to an import that has not committed
-                // its row yet; a .tmp file is a write in progress.
-                if (known.Contains(relative))
+                // A file written moments ago may belong to an import that has not committed its
+                // row yet; a .tmp file is a write in progress and follows the same rule.
+                if (File.GetLastWriteTimeUtc(file) > cutoff)
                 {
                     kept++;
                     continue;
                 }
 
-                if (relative.EndsWith(".tmp", StringComparison.OrdinalIgnoreCase))
+                if (!TryReadEmailId(file, out var emailId))
                 {
-                    // Half-written leftovers are only touched once they are clearly abandoned.
-                    if (File.GetLastWriteTimeUtc(file) > cutoff)
-                    {
-                        kept++;
-                        continue;
-                    }
-                }
-                else if (File.GetLastWriteTimeUtc(file) > cutoff)
-                {
+                    // Not a file this feature wrote; leave it alone rather than guess.
                     kept++;
                     continue;
                 }
 
-                try
+                pending.Add((emailId, file));
+                if (pending.Count >= batchSize)
                 {
-                    File.Delete(file);
-                    removed++;
-                }
-                catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
-                {
-                    _logger.LogWarning(ex, "Could not remove orphaned original message file {Path}", file);
+                    await FlushAsync();
                 }
             }
+
+            await FlushAsync();
 
             if (removed > 0)
             {
@@ -123,6 +139,28 @@ namespace MailArchiver.Services.Shared
             }
 
             return new Result(scanned, removed, kept);
+        }
+
+        /// <summary>
+        /// Reads the email id out of a stored file name (<c>1234.eml.gz</c>). Matching on the id
+        /// rather than on the full path keeps the check correct after the shard depth changed.
+        /// </summary>
+        private static bool TryReadEmailId(string path, out int emailId)
+        {
+            emailId = 0;
+
+            var name = Path.GetFileName(path);
+            if (name.EndsWith(".tmp", StringComparison.OrdinalIgnoreCase))
+            {
+                name = name[..^4];
+            }
+
+            if (!name.EndsWith(".eml.gz", StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+
+            return int.TryParse(name[..^7], out emailId);
         }
     }
 }

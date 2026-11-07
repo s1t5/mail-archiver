@@ -2671,6 +2671,20 @@ public class EmailCoreServiceTests
         if (accountIds.Count == 0) return;
 
         var emails = await ctx.ArchivedEmails.Where(e => accountIds.Contains(e.MailAccountId)).ToListAsync();
+
+        // The compliance trigger refuses to delete a locked email, which would leave the test
+        // rows - and their RawMessages - in the database for good. Unlock first, the same way
+        // the retention path does.
+        if (emails.Any(e => e.IsLocked))
+        {
+            await ctx.Database.ExecuteSqlInterpolatedAsync(
+                $"UPDATE mail_archiver.\"ArchivedEmails\" SET \"IsLocked\" = false WHERE \"MailAccountId\" = ANY({accountIds.ToArray()})");
+            foreach (var email in emails)
+            {
+                email.IsLocked = false;
+            }
+        }
+
         ctx.ArchivedEmails.RemoveRange(emails);
 
         var caches = await ctx.AccountStorageCaches.Where(c => accountIds.Contains(c.MailAccountId)).ToListAsync();
