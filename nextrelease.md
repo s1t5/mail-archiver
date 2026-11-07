@@ -2,6 +2,7 @@
 - **Pluggable Storage for Original Messages** - `RawMessages:Storage` selects where the original `.eml` is kept: `postgres` (default, in the database) or `filesystem` (gzip files next to the archive, metadata and checksum stay in the database). A migration command moves existing messages between the two backends in either direction, verifying every checksum before it touches a copy.
 
 ## ⚙️ Improvements
+- **Original Message Storage Has Its Own Documentation Page** - The feature now has a dedicated page (`doc/RawMessages.md`) covering where the stored original is served, the postgres and filesystem backends, moving existing messages between them with `--migrate-raw-storage`, verification and backup. `Setup.md` keeps only the parameter table and links to it.
 - **EML Export Serves the Stored Original** - The Export EML button on the email detail page returns the original message byte for byte when one is stored, instead of always rebuilding it from the archived fields. Emails without an original still export as before, and the filename and response headers say which of the two forms was served. A checksum mismatch aborts the export rather than quietly returning the reconstruction.
 - **Configurable OIDC Response Mode** - `OAuth__ResponseMode` accepts `query`, `fragment` or `form_post`. The default stays `form_post`; providers that do not support it, such as Synology SSO Server, work with `query`.
 

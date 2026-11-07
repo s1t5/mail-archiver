@@ -400,7 +400,7 @@ Whether an email has one is shown by `hasRawMessage` in
 | --- | --- |
 | `X-Raw-Message-Sha256` | SHA-256 of the returned bytes, recorded when the message was stored |
 | `X-Raw-Message-Source` | `imap`, `graph`, `eml-file` (exact copies) or `serialized` (re-written by the parser, line endings normalized to CRLF) |
-| `X-Raw-Message-Storage` | `postgres` or `filesystem` — where the bytes were read from (see [Storage Backend](Setup.md#storage-backend)) |
+| `X-Raw-Message-Storage` | `postgres` or `filesystem` — where the bytes were read from (see [Storage backend](RawMessages.md#storage-backend)) |
 
 The bytes may live in the database or in a file, depending on
 `RawMessages:Storage` at the time the message was archived; the endpoint

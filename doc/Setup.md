@@ -312,57 +312,31 @@ The optional MCP (Model Context Protocol) server exposes the same read-only mail
 - `MailSync__ExcludeSubfolders`: Whether an exclusion entry also covers the folders below the one it names. Applies to the per-account list and the installation-wide one alike, and to both providers. Default `false`, matching the behaviour before the option existed: an entry `Deleted Items` matches only that folder, and a tree is kept out of the archive by naming its root and every folder below it. Set to `true` to have an entry take the tree underneath as well — an entry `Deleted Items` then also keeps `Deleted Items/2024` and the rest of that branch out of the archive. The rule anchors on the path separator, so it takes whole folders and never part of a name: `Archive` covers `Archive` and `Archive/Team`, and leaves a mail folder called `Team Archive Review` alone. A `.` counts as a separator too, the same way the path-suffix rule treats it.
 
 ### 📧 Original Message Storage Settings
-By default the archive keeps the parsed parts of an email (headers, bodies, attachments), and an exported `.eml` is rebuilt from them. That is enough to read the headers, but it is not the message as received: transfer encodings, MIME boundaries and header folding differ, so DKIM signatures no longer verify and spam scanners score it differently. With this setting the original message is stored as well. The API returns it from `GET /api/v1/emails/{id}/raw` (see the [REST API guide](API.md#download-original-message)), and the **Export EML** button on the email's detail page serves the stored original when one exists, falling back to the reconstruction for emails that were archived without one.
-- `RawMessages__Enabled`: Store the original message of every newly archived email (default `false`). Emails archived before switching it on have no original. Storage grows by roughly the size of the mail including attachments (gzip-compressed, attachments are not deduplicated inside it), so plan for about twice the database size per email.
-- `RawMessages__MaxMessageSizeMb`: Messages larger than this are archived without their original (default `50`, `0` = no limit).
-- `RawMessages__IncludeGraph`: Also store the original for Microsoft 365 (Graph) accounts (default `true`). Costs one additional Graph request per message, which counts against the Graph throttling budget.
-- `RawMessages__Storage`: Where the message bytes are kept - `postgres` (default, in the database) or `filesystem` (a gzip file next to the archive). The metadata row with the SHA-256, size and capture source stays in the database either way, so every stored original can still be verified against it. See [Storage Backend](#storage-backend) below.
-- `RawMessages__FileSystem__BasePath`: Directory the message files are written to (default `RawMessages`, relative to the application's content root). Point this at a mounted volume in Docker.
-- `RawMessages__FileSystem__ShardDepth`: Number of two-character directory levels the email id is spread over (default `2`, giving 10,000 directories; `0` = flat). Keeps the per-directory file count low on large archives.
-- `RawMessages__FileSystem__VerifyChecksumOnRead`: Re-compute the SHA-256 of the file on every download and compare it with the checksum recorded at archive time (default `true`). A mismatch makes the download fail with HTTP 500 instead of serving altered bytes.
 
-The download reports which form it served: `X-Raw-Message-Source` names the capture source and `X-Raw-Message-Sha256` the checksum of the stored original, while a rebuilt message carries `X-Raw-Message-Reconstructed: true` and no checksum. The filename says it too, `email-{id}-original-...eml` against `email-{id}-...eml`. When a stored original fails its checksum the export is refused with an error message instead of silently returning the reconstruction, because the reconstruction would hide that the archived copy was altered.
+By default the archive keeps only the parsed parts of an email, so an exported `.eml` is
+a reconstruction: transfer encodings, MIME boundaries and header folding differ from the
+message as received, and DKIM signatures no longer verify. With `RawMessages:Enabled` the
+complete original is stored as well.
 
-#### Storage Backend
+| Parameter | Default | Purpose |
+|-----------|---------|---------|
+| `RawMessages__Enabled` | `false` | Store the original of every newly archived email. |
+| `RawMessages__Storage` | `postgres` | Where the bytes live: `postgres` or `filesystem`. |
+| `RawMessages__MaxMessageSizeMb` | `50` | Larger messages are archived without their original. `0` = no limit. |
+| `RawMessages__IncludeGraph` | `true` | Also store originals for Microsoft 365 (Graph) accounts. |
+| `RawMessages__FileSystem__BasePath` | `RawMessages` | Directory for the message files. Must point at a mounted volume in Docker. |
+| `RawMessages__FileSystem__ShardDepth` | `2` | Directory levels the email id is spread over. |
+| `RawMessages__FileSystem__VerifyChecksumOnRead` | `true` | Verify the SHA-256 on every download. |
 
-With `RawMessages__Storage=filesystem` the original messages no longer grow the database; they are written to `{BasePath}/{xx}/{yy}/{id}.eml.gz`, where `xx`/`yy` are derived from the email id. The `mail_archiver."RawMessages"` row keeps the checksum, size, capture source and the relative path, so the archive can still prove what a stored message should contain.
+!!! warning "Filesystem backend needs a mounted volume"
+    With `RawMessages__Storage=filesystem` the message files live outside the database.
+    Without a bind mount they sit in the container's writable layer and are lost on the
+    next container recreation while the database rows survive. Back up the directory
+    together with the database dump.
 
-!!! danger "Mount a volume in Docker"
-    The default `BasePath` (`RawMessages`) resolves to `/app/RawMessages` **inside the container**. Without a bind mount that directory belongs to the container's writable layer, so every recreated container - including `docker compose down && docker compose up -d`, an image update, or a host reboot with an ephemeral layer - takes every stored original with it while the database rows survive.
-
-    Always mount the directory to the host when using the filesystem backend:
-
-    ```yaml
-    services:
-      mailarchive-app:
-        volumes:
-          - ./raw-messages:/app/RawMessages
-    ```
-
-    The host path (`./raw-messages` here) is what you back up; the container path must match `RawMessages__FileSystem__BasePath` (or set `RawMessages__FileSystem__BasePath=/data/raw-messages` and mount to `/data/raw-messages` instead). If you move the mount, keep `BasePath` pointing at it - the stored `StoragePath` values are relative, so they keep resolving.
-
-Reads follow the storage recorded on each row, not the configured setting: after switching the backend, messages archived earlier stay downloadable from where they are. Changing the setting only affects newly archived mail. To move existing messages, run the storage migration:
-
-```bash
-# move everything from the database to the filesystem
-docker compose exec mailarchiver dotnet MailArchiver.dll --migrate-raw-storage --from postgres --to filesystem
-
-# and back again
-docker compose exec mailarchiver dotnet MailArchiver.dll --migrate-raw-storage --from filesystem --to postgres
-```
-
-Options are `--from`, `--to` (both default to the configured backend) and `--batch` (messages per transaction, default `200`). The migration reads each message through its current backend, verifies it against the recorded checksum, writes it to the target and only then removes the source. A message whose content does not match its checksum is left untouched and reported - neither a corrupt original nor its only remaining copy is ever discarded. The run is resumable: it selects work by the `StorageType` column, so an interrupted migration continues where it stopped when started again. The exit code is non-zero if any message failed.
-
-Because the file now lives outside the database, back up the `BasePath` directory together with the database dump. A database restore without the files leaves the archive with rows whose content cannot be served; the download then answers HTTP 404 rather than returning something wrong.
-
-The MCP server returns it from the `get_email_raw` tool (see the [MCP guide](MCP.md#get_email_raw)). How the original is obtained depends on where the mail comes from; the API reports it in the `X-Raw-Message-Source` header, MCP in the `source` field:
-
-| Source | Value | Exact copy |
-| --- | --- | --- |
-| IMAP sync | `imap` | yes, `BODY[]` as delivered by the server |
-| Microsoft 365 (Graph) | `graph` | yes, the MIME content Exchange returns |
-| EML import (ZIP) | `eml-file` | yes, the file content |
-| MBox import, IMAP recovery fetch | `serialized` | the parsed message written back out; identical except that line endings are CRLF |
+See **[Original Message Storage](RawMessages.md)** for the full description: where the
+original is served, the storage backends, how to move existing messages between them with
+`--migrate-raw-storage`, and what to back up.
 
 ### 📤 BatchRestore Settings
 - `BatchRestore__AsyncThreshold`: The number of emails that triggers async processing.
