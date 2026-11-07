@@ -1,4 +1,5 @@
 ## ⚙️ Improvements
+- **Restore Uses the Stored Original** - Restoring an email to a mailbox now appends the stored original when one exists, the same cascade as the single-email export. Only emails archived without an original are rebuilt from the archived fields. A stored original that fails its checksum aborts the restore instead of falling back to the rebuild.
 - **Original Message Storage Has Its Own Documentation Page** - The feature now has a dedicated page (`doc/RawMessages.md`) covering where the stored original is served, the postgres and filesystem backends, moving existing messages between them with `--migrate-raw-storage`, verification and backup. `Setup.md` keeps only the parameter table and links to it.
 
 ## 🐛 Bug Fixes

@@ -24,6 +24,7 @@ namespace MailArchiver.Services.Providers.Imap
         private readonly BatchOperationOptions _batchOptions;
         private readonly OffloadOptions _offloadOptions;
         private readonly IImapFolderService _folderService;
+        private readonly IRawMessageStore? _rawMessageStore;
 
         public ImapMailRestorer(
             MailArchiverDbContext context,
@@ -32,7 +33,8 @@ namespace MailArchiver.Services.Providers.Imap
             DateTimeHelper dateTimeHelper,
             IOptions<BatchOperationOptions> batchOptions,
             IOptions<OffloadOptions> offloadOptions,
-            IImapFolderService folderService)
+            IImapFolderService folderService,
+            IRawMessageStore? rawMessageStore = null)
         {
             _context = context;
             _logger = logger;
@@ -41,6 +43,7 @@ namespace MailArchiver.Services.Providers.Imap
             _batchOptions = batchOptions.Value;
             _offloadOptions = offloadOptions.Value;
             _folderService = folderService;
+            _rawMessageStore = rawMessageStore;
         }
 
         /// <summary>
@@ -87,7 +90,7 @@ namespace MailArchiver.Services.Providers.Imap
                 _logger.LogInformation("Found target account: {AccountName}, {EmailAddress}",
                     targetAccount.Name, targetAccount.EmailAddress);
 
-                var message = await CreateMimeMessageFromArchivedEmailAsync(email, targetAccount.Name);
+                var message = await CreateRestoreMessageAsync(email, targetAccount.Name);
                 if (message == null)
                     return false;
 
@@ -1021,7 +1024,7 @@ namespace MailArchiver.Services.Providers.Imap
         {
             try
             {
-                var message = await CreateMimeMessageFromArchivedEmailAsync(email, accountName);
+                var message = await CreateRestoreMessageAsync(email, accountName);
                 if (message == null)
                 {
                     return false;
@@ -1039,6 +1042,36 @@ namespace MailArchiver.Services.Providers.Imap
                 _logger.LogError(ex, "Error restoring email {EmailId} with shared connection: {Message}", email.Id, ex.Message);
                 return false;
             }
+        }
+
+        /// <summary>
+        /// Builds the message that is appended on restore. A stored original is preferred when
+        /// one exists, the same cascade the single-email export uses: it carries the headers and
+        /// the MIME structure that arrived, which a rebuild from the archived fields cannot
+        /// reproduce. Only when no original was stored is the message rebuilt. A stored original
+        /// that fails its checksum throws <see cref="RawMessageIntegrityException"/> instead of
+        /// falling back to the rebuild, so altered content never leaves the archive as if it were
+        /// the untouched message.
+        /// </summary>
+        public async Task<MimeMessage> CreateRestoreMessageAsync(ArchivedEmail email, string accountName)
+        {
+            if (_rawMessageStore != null)
+            {
+                var original = await _rawMessageStore.ReadAsync(email.Id);
+                if (original != null)
+                {
+                    using var stream = new MemoryStream(original.Bytes, writable: false);
+                    var message = await MimeMessage.LoadAsync(stream);
+
+                    _logger.LogInformation(
+                        "Restoring email {EmailId} from its stored original (source {Source}, storage {Storage})",
+                        email.Id, original.Source, original.StorageType);
+
+                    return message;
+                }
+            }
+
+            return await CreateMimeMessageFromArchivedEmailAsync(email, accountName);
         }
 
         /// <summary>

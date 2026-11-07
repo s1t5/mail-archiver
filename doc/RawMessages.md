@@ -29,6 +29,7 @@ Once stored, the original is returned wherever a complete message is expected:
 | Place | What happens |
 | --- | --- |
 | **Export EML** button on the email detail page | Serves the stored original when one exists, falls back to the reconstruction for emails archived without one. |
+| **Restore to a mailbox** | Appends the stored original when one exists, falls back to the reconstruction for emails archived without one. |
 | `GET /api/v1/emails/{id}/raw` | REST API download, see the [REST API guide](API.md#download-original-message). |
 | `get_email_raw` | MCP tool, see the [MCP guide](MCP.md#get_email_raw). |
 
@@ -48,9 +49,14 @@ a reconstruction without inspecting the bytes:
 The filename says it too: `email-{id}-original-...eml` for a stored original,
 `email-{id}-...eml` for a reconstruction.
 
-When a stored original **fails its checksum**, the export is refused with an error
-message. Returning the reconstruction instead would hide that the archived copy was
-altered, which is exactly what an archive must never do.
+When a stored original **fails its checksum**, the export and the restore are refused
+with an error message. Returning the reconstruction instead would hide that the archived
+copy was altered, which is exactly what an archive must never do.
+
+A restore reads the stored original and appends it through the provider's client, so the
+mailbox receives the original headers and MIME structure. The exact byte stream is not
+guaranteed on the wire because the client serializes the message again; the archived
+copy itself is unchanged.
 
 ## ⚙️ Settings
 
