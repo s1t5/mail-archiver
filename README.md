@@ -2,8 +2,6 @@
 
 **A comprehensive solution for archiving, searching, and exporting emails**
 
-**Documentation:** English is the authoritative version. Other languages are translated automatically from the English pages and may contain errors.
-
 🌐 **Website:** [mail-archiver.org](https://mail-archiver.org)
 
 <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px;">
