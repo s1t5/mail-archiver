@@ -176,13 +176,22 @@ namespace MailArchiver.Services
                 var context = scope.ServiceProvider.GetRequiredService<MailArchiverDbContext>();
                 var accessLogService = scope.ServiceProvider.GetService<IAccessLogService>();
                 var rawMessageStore = scope.ServiceProvider.GetService<IRawMessageStore>();
+                var deletionPolicy = scope.ServiceProvider.GetService<IOptions<DeletionPolicyOptions>>()?.Value;
+
+                // A job can wait in the queue while an administrator changes the policy.
+                // Re-check at start so a queued job cannot outlive the setting that allowed it.
+                if (deletionPolicy is { DeletionAllowed: false })
+                {
+                    throw new InvalidOperationException(
+                        "Email deletion is disabled by configuration (DeletionPolicy:DeletionAllowed=false).");
+                }
 
                 var combinedToken = CancellationTokenSource
                     .CreateLinkedTokenSource(stoppingToken, job.CancellationTokenSource.Token)
                     .Token;
 
                 var affectedAccountIds = job.Filter != null
-                    ? await ProcessFilterJobAsync(job, context, accessLogService, rawMessageStore, combinedToken)
+                    ? await ProcessFilterJobAsync(job, context, accessLogService, rawMessageStore, deletionPolicy, combinedToken)
                     : await ProcessIdJobAsync(job, context, accessLogService, rawMessageStore, combinedToken);
 
                 job.CurrentPhase = "Completed";
@@ -348,6 +357,7 @@ namespace MailArchiver.Services
             MailArchiverDbContext context,
             IAccessLogService? accessLogService,
             IRawMessageStore? rawMessageStore,
+            DeletionPolicyOptions? deletionPolicy,
             CancellationToken combinedToken)
         {
             var filter = job.Filter!;
@@ -365,6 +375,15 @@ namespace MailArchiver.Services
             var (deletable, locked, _) = await EmailFilterQuery.CountAsync(context, filter, combinedToken);
             job.SkippedLockedEmails = locked;
             job.TotalEmails = deletable;
+
+            // The controller checks the cap before queueing. Count again here: emails can be
+            // unlocked while the job waits, so the confirmed set is not necessarily the set
+            // this job is about to delete.
+            if (deletionPolicy != null && deletable > deletionPolicy.MaxBulkDeleteEmails)
+            {
+                throw new InvalidOperationException(
+                    $"The filter matches {deletable:N0} emails, more than DeletionPolicy:MaxBulkDeleteEmails allows ({deletionPolicy.MaxBulkDeleteEmails:N0}). Narrow the filter.");
+            }
 
             _logger.LogInformation(
                 "Job {JobId}: filter matches {Deletable} deletable emails, {Locked} locked (bound {Bound})",

@@ -539,7 +539,7 @@
                     <p id="deleteAllMatchesWarning" class="mb-2"></p>
                     <p id="deleteAllMatchesLocked" class="text-warning small mb-2" style="display:none;"></p>
                     <label for="deleteAllMatchesConfirmInput" class="form-label small">@Localizer["DeleteAllMatchesConfirmLabel"]</label>
-                    <input type="number" min="1" class="form-control form-control-sm" id="deleteAllMatchesConfirmInput" autocomplete="off" />
+                    <input type="text" inputmode="numeric" class="form-control form-control-sm" id="deleteAllMatchesConfirmInput" autocomplete="off" />
                 </div>
                 <div id="deleteAllMatchesError" class="alert alert-danger small mt-3" style="display:none;"></div>
             </div>
@@ -1454,8 +1454,11 @@
             });
 
             deleteAllMatchesInput.addEventListener('input', function () {
+                // The dialog shows the count with thousands separators ("1.234" in de,
+                // "1,234" in en), so compare the digits instead of the raw string.
+                const typed = parseInt(this.value.replace(/[^0-9]/g, ''), 10);
                 deleteAllMatchesConfirmBtn.disabled =
-                    deleteAllMatchesCount === 0 || parseInt(this.value, 10) !== deleteAllMatchesCount;
+                    deleteAllMatchesCount === 0 || typed !== deleteAllMatchesCount;
             });
         }
 

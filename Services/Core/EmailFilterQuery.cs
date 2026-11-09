@@ -122,7 +122,8 @@ namespace MailArchiver.Services.Core
 
             var command = context.Database.GetDbConnection().CreateCommand();
             command.CommandText = sql;
-            command.CommandTimeout = 120;
+            // Follow the configured Npgsql:CommandTimeout instead of a second, hidden value.
+            command.CommandTimeout = context.Database.GetCommandTimeout() ?? 120;
 
             if (context.Database.CurrentTransaction != null)
                 command.Transaction = context.Database.CurrentTransaction.GetDbTransaction();
