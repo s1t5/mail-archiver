@@ -346,18 +346,29 @@ body {
   max-width: 100%;
 }
 
-/* Desktop: Dropdowns in der Account-Tabelle dürfen überlappen (nicht clippen),
-   aber die Tabelle muss bei schmalen Viewports scrollbar bleiben.
-   Diese Regeln bewusst NACH der Basisregel und mit höherer Spezifität,
-   damit sie auch Bootstrap .table-responsive überschreiben. */
-@media (min-width: 992px) {
-  .card.card-dropdown-overflow {
-    overflow: visible;
-  }
+/* Die Aktionsspalte bleibt beim horizontalen Scrollen sichtbar. Der Zellhintergrund
+   muss deckend sein, sonst scheint der scrollende Inhalt durch. Die Theme-Regeln
+   (dark-mode.css) setzen halbtransparente Zebra-Hintergründe mit höherer Spezifität,
+   deshalb hier !important; der Hover-Zustand wird separat gesetzt, damit die
+   Zeilen-Hervorhebung nicht an der Aktionsspalte endet. */
+.table-responsive-dropdown table thead th:last-child,
+.table-responsive-dropdown table tbody td:last-child {
+  position: sticky;
+  right: 0;
+  border-left: 1px solid var(--bs-table-border-color, #dee2e6);
+}
 
-  .table-responsive.table-responsive-dropdown {
-    overflow: visible;
-  }
+.table-responsive-dropdown table thead th:last-child {
+  z-index: 2;
+}
+
+.table-responsive-dropdown table tbody td:last-child {
+  z-index: 1;
+  background-color: var(--card-bg, #fff) !important;
+}
+
+.table-responsive-dropdown table tbody tr:hover td:last-child {
+  background-color: var(--table-hover-bg, #f5f5f5) !important;
 }
 
 /* Verhindert, dass breite Tabellen den Container aus der Seite schieben */

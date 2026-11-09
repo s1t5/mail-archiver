@@ -63,6 +63,15 @@ document.addEventListener('DOMContentLoaded', function() {
             this.innerHTML = newTheme === 'dark' ? '<i class="bi bi-sun"></i>' : '<i class="bi bi-moon"></i>';
         });
     }
+
+    // Dropdowns in horizontal scrollenden Tabellen (z.B. Postfachübersicht) würden
+    // sonst vom Scroll-Container abgeschnitten. Die feste Popper-Strategie löst das
+    // Menü aus dem Container, ohne das Scrollen der Tabelle zu beeinträchtigen.
+    document.querySelectorAll('.table-responsive [data-bs-toggle="dropdown"]').forEach(function(toggle) {
+        bootstrap.Dropdown.getOrCreateInstance(toggle, {
+            popperConfig: { strategy: 'fixed' }
+        });
+    });
 });
 
 // Funktion zum Formatieren von Dateigröße
