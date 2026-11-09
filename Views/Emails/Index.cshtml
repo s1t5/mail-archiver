@@ -82,6 +82,12 @@
                                     <span id="searchSubmitText">@Localizer["Search"]</span>
                                 </button>
                                 <a asp-action="Index" class="btn btn-outline-secondary btn-sm">@Localizer["Reset"]</a>
+                                @if (User.IsInRole("Admin") || User.IsInRole("SelfManager"))
+                                {
+                                    <button type="button" id="deleteAllMatchesBtn" class="btn btn-outline-danger btn-sm">
+                                        <i class="bi bi-trash3"></i> @Localizer["DeleteAllMatches"]
+                                    </button>
+                                }
                                 <div class="form-check d-flex align-items-center ms-2">
                                     <input class="form-check-input me-2" type="checkbox" id="toggleSelectionMode" name="ShowSelectionControls" value="true"
                                            @(Model.ShowSelectionControls ? "checked" : "")>
@@ -513,6 +519,46 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">@Localizer["Cancel"]</button>
                 <button type="button" class="btn btn-primary" id="confirmBatchRestoreBtn">@Localizer["Continue"]</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Delete All Matches Confirmation Modal -->
+<div class="modal fade" id="deleteAllMatchesModal" tabindex="-1" aria-labelledby="deleteAllMatchesModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteAllMatchesModalLabel">@Localizer["DeleteAllMatchesTitle"]</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="deleteAllMatchesLoading" class="text-muted small">@Localizer["Loading"]</div>
+                <div id="deleteAllMatchesContent" style="display:none;">
+                    <p id="deleteAllMatchesWarning" class="mb-2"></p>
+                    <p id="deleteAllMatchesLocked" class="text-warning small mb-2" style="display:none;"></p>
+                    <label for="deleteAllMatchesConfirmInput" class="form-label small">@Localizer["DeleteAllMatchesConfirmLabel"]</label>
+                    <input type="text" inputmode="numeric" class="form-control form-control-sm" id="deleteAllMatchesConfirmInput" autocomplete="off" />
+                </div>
+                <div id="deleteAllMatchesError" class="alert alert-danger small mt-3" style="display:none;"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">@Localizer["Cancel"]</button>
+                <form asp-action="DeleteByFilter" method="post" id="deleteAllMatchesForm" class="d-inline">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="SearchTerm" id="deleteAllMatchesSearchTerm" />
+                    <input type="hidden" name="FromDate" id="deleteAllMatchesFromDate" />
+                    <input type="hidden" name="ToDate" id="deleteAllMatchesToDate" />
+                    <input type="hidden" name="SelectedAccountId" id="deleteAllMatchesAccountId" />
+                    <input type="hidden" name="SelectedFolder" id="deleteAllMatchesFolder" />
+                    <input type="hidden" name="IsOutgoing" id="deleteAllMatchesIsOutgoing" />
+                    <input type="hidden" name="confirmCount" id="deleteAllMatchesConfirmCount" />
+                    <input type="hidden" name="returnUrl" value="@(Context.Request.Path + Context.Request.QueryString)" />
+                    <button type="submit" class="btn btn-danger" id="deleteAllMatchesConfirmBtn" disabled>
+                        @Localizer["DeleteAllMatches"]
+                    </button>
+                </form>
             </div>
         </div>
     </div>
@@ -968,6 +1014,11 @@
             tooManyEmailsSelected: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["TooManyEmailsSelected"].Value)),
             continueWithOperation: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["ContinueWithOperation"].Value)),
             deleteSelectedEmailsConfirm: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["DeleteSelectedEmailsConfirm"].Value)),
+            deleteAllMatchesWarning: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["DeleteAllMatchesWarning"].Value)),
+            deleteAllMatchesLockedInfo: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["DeleteAllMatchesLockedInfo"].Value)),
+            deleteAllMatchesNoMatches: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["DeleteAllMatchesNoMatches"].Value)),
+            deleteAllMatchesCapExceeded: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["DeleteAllMatchesCapExceeded"].Value)),
+            deleteAllMatchesPreviewFailed: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["DeleteAllMatchesPreviewFailed"].Value)),
             loading: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["Loading"].Value)),
             errorOccurred: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["ErrorOccurred"].Value)),
             info: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["Info"].Value))
@@ -1324,6 +1375,91 @@
             // These emails are about to be deleted, so drop them from the selection.
             clearStoredSelections();
             form.submit();
+        }
+
+
+        // Delete all matches of the current filter
+        const deleteAllMatchesBtn = document.getElementById('deleteAllMatchesBtn');
+        if (deleteAllMatchesBtn) {
+            const deleteAllMatchesModalEl = document.getElementById('deleteAllMatchesModal');
+            const deleteAllMatchesModal = new bootstrap.Modal(deleteAllMatchesModalEl);
+            const deleteAllMatchesLoading = document.getElementById('deleteAllMatchesLoading');
+            const deleteAllMatchesContent = document.getElementById('deleteAllMatchesContent');
+            const deleteAllMatchesWarning = document.getElementById('deleteAllMatchesWarning');
+            const deleteAllMatchesLocked = document.getElementById('deleteAllMatchesLocked');
+            const deleteAllMatchesError = document.getElementById('deleteAllMatchesError');
+            const deleteAllMatchesInput = document.getElementById('deleteAllMatchesConfirmInput');
+            const deleteAllMatchesConfirmBtn = document.getElementById('deleteAllMatchesConfirmBtn');
+            let deleteAllMatchesCount = 0;
+
+            const filterValue = (name) => {
+                const field = searchForm.elements[name];
+                return field ? field.value : '';
+            };
+            const setHidden = (id, value) => {
+                document.getElementById(id).value = value;
+            };
+
+            deleteAllMatchesBtn.addEventListener('click', async function () {
+                deleteAllMatchesLoading.style.display = '';
+                deleteAllMatchesContent.style.display = 'none';
+                deleteAllMatchesError.style.display = 'none';
+                deleteAllMatchesInput.value = '';
+                deleteAllMatchesConfirmBtn.disabled = true;
+                deleteAllMatchesModal.show();
+
+                const params = new URLSearchParams();
+                ['SearchTerm', 'FromDate', 'ToDate', 'SelectedAccountId', 'SelectedFolder', 'IsOutgoing']
+                    .forEach(name => params.set(name, filterValue(name)));
+
+                try {
+                    const response = await fetch('@Url.Action("DeletionPreview", "Emails")?' + params.toString());
+                    if (!response.ok) throw new Error('preview failed');
+                    const data = await response.json();
+
+                    deleteAllMatchesCount = data.deletable;
+                    setHidden('deleteAllMatchesSearchTerm', filterValue('SearchTerm'));
+                    setHidden('deleteAllMatchesFromDate', filterValue('FromDate'));
+                    setHidden('deleteAllMatchesToDate', filterValue('ToDate'));
+                    setHidden('deleteAllMatchesAccountId', filterValue('SelectedAccountId'));
+                    setHidden('deleteAllMatchesFolder', filterValue('SelectedFolder'));
+                    setHidden('deleteAllMatchesIsOutgoing', filterValue('IsOutgoing'));
+                    setHidden('deleteAllMatchesConfirmCount', data.deletable);
+
+                    deleteAllMatchesWarning.textContent = i18n.deleteAllMatchesWarning
+                        .replace('{0}', data.deletable.toLocaleString());
+                    deleteAllMatchesLocked.style.display = data.locked > 0 ? '' : 'none';
+                    deleteAllMatchesLocked.textContent = i18n.deleteAllMatchesLockedInfo
+                        .replace('{0}', data.locked.toLocaleString());
+
+                    if (data.deletable === 0) {
+                        deleteAllMatchesContent.style.display = 'none';
+                        deleteAllMatchesError.textContent = i18n.deleteAllMatchesNoMatches;
+                        deleteAllMatchesError.style.display = '';
+                    } else if (data.deletable > data.max) {
+                        deleteAllMatchesContent.style.display = 'none';
+                        deleteAllMatchesError.textContent = i18n.deleteAllMatchesCapExceeded
+                            .replace('{0}', data.deletable.toLocaleString())
+                            .replace('{1}', data.max.toLocaleString());
+                        deleteAllMatchesError.style.display = '';
+                    } else {
+                        deleteAllMatchesContent.style.display = '';
+                    }
+                } catch (e) {
+                    deleteAllMatchesError.textContent = i18n.deleteAllMatchesPreviewFailed;
+                    deleteAllMatchesError.style.display = '';
+                } finally {
+                    deleteAllMatchesLoading.style.display = 'none';
+                }
+            });
+
+            deleteAllMatchesInput.addEventListener('input', function () {
+                // The dialog shows the count with thousands separators ("1.234" in de,
+                // "1,234" in en), so compare the digits instead of the raw string.
+                const typed = parseInt(this.value.replace(/[^0-9]/g, ''), 10);
+                deleteAllMatchesConfirmBtn.disabled =
+                    deleteAllMatchesCount === 0 || typed !== deleteAllMatchesCount;
+            });
         }
 
         @if (Model.ShowSelectionControls)

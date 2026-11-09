@@ -117,7 +117,11 @@ All retention policy deletions regarding the local archive are logged in the Acc
    - Regular log analysis
    - Export logs for external audits
 
-3. **Documentation**: 
+3. **Bulk deletion:** Filter-based bulk deletion skips locked emails and reports
+   them as skipped in the job status. Locking a message is therefore an
+   effective protection against accidental mass deletion.
+
+4. **Documentation**: 
    - Maintain retention policy documentation
    - Regular policy reviews
    - Stakeholder approvals

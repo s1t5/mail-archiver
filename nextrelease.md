@@ -1,4 +1,5 @@
 ## ✨ New Features
+- **Bulk Delete by Filter** - Delete every email matching the current search filter in one background job. The confirmation requires the exact match count, locked emails are skipped, and `DeletionPolicy:MaxBulkDeleteEmails` caps a single job.
 - **Select All Matching** - Selection mode can select every email matching the current search across all pages, up to the selection limit, instead of one page at a time.
 
 ## ⚙️ Improvements

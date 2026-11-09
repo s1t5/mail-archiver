@@ -256,6 +256,7 @@ namespace MailArchiver.Controllers
             
             // Selection-Optionen für die View verfügbar machen
             ViewBag.MaxSelectableEmails = _selectionOptions.MaxSelectableEmails;
+            ViewBag.MaxBulkDeleteEmails = _deletionPolicy.MaxBulkDeleteEmails;
 
             // Aktive Jobs für die View
             if (_batchRestoreService != null)
@@ -298,30 +299,29 @@ namespace MailArchiver.Controllers
         /// </summary>
         private async Task<List<int>?> GetAllowedAccountIdsAsync()
         {
-            List<int>? allowedAccountIds = null;
-            var authService = HttpContext.RequestServices.GetService<MailArchiver.Services.IAuthenticationService>();
+            // Admins are unrestricted. A user we cannot resolve gets an empty list,
+            // not null: null would silently widen the query to the whole archive.
+            if (_authService == null || _authService.IsCurrentUserAdmin(HttpContext))
+                return null;
+
             var userService = HttpContext.RequestServices.GetService<IUserService>();
-            
-            if (authService != null && userService != null && !authService.IsCurrentUserAdmin(HttpContext))
+            var username = _authService.GetCurrentUserDisplayName(HttpContext);
+            if (userService == null || string.IsNullOrEmpty(username))
+                return new List<int>();
+
+            var user = await userService.GetUserByUsernameAsync(username);
+            if (user == null)
             {
-                var username = authService.GetCurrentUserDisplayName(HttpContext);
-                var user = await userService.GetUserByUsernameAsync(username);
-                if (user != null)
-                {
-                    var userAccounts = await userService.GetUserMailAccountsAsync(user.Id);
-                    allowedAccountIds = userAccounts.Select(a => a.Id).ToList();
-                    
-                    // Log for debugging
-                    _logger.LogInformation("User {Username} has access to {Count} accounts: {AccountIds}", 
-                        username, allowedAccountIds.Count, string.Join(", ", allowedAccountIds));
-                }
-                else
-                {
-                    // If user not found, set empty list to prevent access to any emails
-                    allowedAccountIds = new List<int>();
-                    _logger.LogWarning("User {Username} not found in database", username);
-                }
+                _logger.LogWarning("User {Username} not found in database", username);
+                return new List<int>();
             }
+
+            var userAccounts = await userService.GetUserMailAccountsAsync(user.Id);
+            var allowedAccountIds = userAccounts.Select(a => a.Id).ToList();
+
+            _logger.LogInformation("User {Username} has access to {Count} accounts: {AccountIds}",
+                username, allowedAccountIds.Count, string.Join(", ", allowedAccountIds));
+
             return allowedAccountIds;
         }
 
@@ -3186,6 +3186,149 @@ namespace MailArchiver.Controllers
             return Redirect(returnUrl ?? Url.Action("Index"));
         }
         
+        // GET: Emails/DeletionPreview
+        [HttpGet]
+        [SelfManagerRequired]
+        public async Task<IActionResult> DeletionPreview(SearchViewModel model)
+        {
+            var filter = BuildDeletionFilter(model, await GetAllowedAccountIdsAsync());
+            var (deletable, locked, _) = await _emailCoreService.CountEmailsForDeletionAsync(filter);
+
+            return Json(new
+            {
+                deletable,
+                locked,
+                max = _deletionPolicy.MaxBulkDeleteEmails
+            });
+        }
+
+        // POST: Emails/DeleteByFilter
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [SelfManagerRequired]
+        public async Task<IActionResult> DeleteByFilter(SearchViewModel model, int confirmCount, string returnUrl = null)
+        {
+            if (!_deletionPolicy.DeletionAllowed)
+            {
+                _logger.LogWarning("Bulk email deletion by filter blocked by policy (DeletionPolicy:DeletionAllowed=false).");
+                TempData["ErrorMessage"] = _localizer?["DeletionDisabledMessage"] ?? "Email deletion is disabled by configuration.";
+                return Redirect(returnUrl ?? Url.Action("Index"));
+            }
+
+            if (!HasDeletionFilter(model))
+            {
+                TempData["ErrorMessage"] = _localizer?["DeleteAllMatchesFilterRequired"]
+                    ?? "Narrow the result set first (search term, date, folder or account).";
+                return Redirect(returnUrl ?? Url.Action("Index"));
+            }
+
+            if (_emailDeletionService == null)
+            {
+                TempData["ErrorMessage"] = "Email deletion service is not available.";
+                return Redirect(returnUrl ?? Url.Action("Index"));
+            }
+
+            var filter = BuildDeletionFilter(model, await GetAllowedAccountIdsAsync());
+            var (deletable, locked, maxId) = await _emailCoreService.CountEmailsForDeletionAsync(filter);
+
+            if (deletable == 0)
+            {
+                TempData["ErrorMessage"] = locked > 0
+                    ? _localizer["DeleteAllMatchesNoMatchesLocked", locked].Value
+                    : _localizer["DeleteAllMatchesNoMatches"].Value;
+                return Redirect(returnUrl ?? Url.Action("Index"));
+            }
+
+            if (deletable > _deletionPolicy.MaxBulkDeleteEmails)
+            {
+                TempData["ErrorMessage"] = _localizer["DeleteAllMatchesCapExceeded",
+                    deletable, _deletionPolicy.MaxBulkDeleteEmails].Value;
+                return Redirect(returnUrl ?? Url.Action("Index"));
+            }
+
+            // The confirmation is the number the user typed. A mismatch means the
+            // result set changed since the preview (for example a running sync), so
+            // the user has to look at it again instead of deleting a different set.
+            if (deletable != confirmCount)
+            {
+                _logger.LogWarning(
+                    "Bulk deletion by filter aborted: confirmed {Confirmed}, current {Current}",
+                    confirmCount, deletable);
+                TempData["ErrorMessage"] = _localizer["DeleteAllMatchesCountChanged", confirmCount, deletable].Value;
+                return Redirect(returnUrl ?? Url.Action("Index"));
+            }
+
+            filter.UpperBoundId = maxId;
+            filter.Description = DescribeFilter(model);
+
+            var username = _authService?.GetCurrentUserDisplayName(HttpContext);
+            var job = new EmailDeletionJob
+            {
+                Filter = filter,
+                TotalEmails = deletable,
+                UserId = username ?? "Anonymous"
+            };
+
+            var jobId = _emailDeletionService.QueueJob(job);
+
+            if (_accessLogService != null && !string.IsNullOrEmpty(username))
+            {
+                await _accessLogService.LogAccessAsync(username, AccessLogType.Deletion,
+                    searchParameters: Truncate($"Queued bulk deletion by filter ({deletable:N0} emails): {filter.Description}", 255));
+            }
+
+            _logger.LogInformation(
+                "Queued bulk deletion by filter for {Count} emails (job {JobId})", deletable, jobId);
+
+            TempData["SuccessMessage"] = _localizer["DeleteAllMatchesQueued", deletable, jobId].Value;
+
+            return RedirectToAction("EmailDeletionStatus", new { jobId });
+        }
+
+        /// <summary>
+        /// An empty filter would mean "every email in the archive". Require at least
+        /// one narrowing criterion so a forgotten filter cannot turn into a full wipe.
+        /// </summary>
+        private static bool HasDeletionFilter(SearchViewModel model)
+            => !string.IsNullOrWhiteSpace(model.SearchTerm)
+               || model.FromDate.HasValue
+               || model.ToDate.HasValue
+               || model.SelectedAccountId.HasValue
+               || !string.IsNullOrWhiteSpace(model.SelectedFolder);
+
+        private static EmailDeletionFilter BuildDeletionFilter(SearchViewModel model, List<int>? allowedAccountIds)
+            => new()
+            {
+                SearchTerm = string.IsNullOrWhiteSpace(model.SearchTerm) ? null : model.SearchTerm.Trim(),
+                FromDate = model.FromDate,
+                ToDate = model.ToDate,
+                AccountId = model.SelectedAccountId,
+                FolderName = string.IsNullOrWhiteSpace(model.SelectedFolder) ? null : model.SelectedFolder,
+                IsOutgoing = model.IsOutgoing,
+                AllowedAccountIds = allowedAccountIds
+            };
+
+        private static string DescribeFilter(SearchViewModel model)
+        {
+            var parts = new List<string>();
+            if (!string.IsNullOrWhiteSpace(model.SearchTerm))
+                parts.Add($"term:{model.SearchTerm.Trim()}");
+            if (model.FromDate.HasValue)
+                parts.Add($"from:{model.FromDate:yyyy-MM-dd}");
+            if (model.ToDate.HasValue)
+                parts.Add($"to:{model.ToDate:yyyy-MM-dd}");
+            if (model.SelectedAccountId.HasValue)
+                parts.Add($"account:{model.SelectedAccountId}");
+            if (!string.IsNullOrWhiteSpace(model.SelectedFolder))
+                parts.Add($"folder:{model.SelectedFolder}");
+            if (model.IsOutgoing.HasValue)
+                parts.Add($"direction:{(model.IsOutgoing.Value ? "out" : "in")}");
+            return string.Join(", ", parts);
+        }
+
+        private static string Truncate(string value, int maxLength)
+            => value.Length <= maxLength ? value : value.Substring(0, maxLength);
+
         // GET: Emails/EmailDeletionStatus
         [HttpGet]
         [SelfManagerRequired]

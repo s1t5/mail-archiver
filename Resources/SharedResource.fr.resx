@@ -3617,6 +3617,48 @@
   <data name="MailcowNewImapPasswordRequired" xml:space="preserve"><value>Saisissez un nouveau mot de passe IMAP après avoir quitté Mailcow.</value></data>
   <data name="MailcowLinkSuccess" xml:space="preserve"><value>Compte lié à l'instance Mailcow {0}.</value></data>
   <data name="MailcowDetachSuccess" xml:space="preserve"><value>Accès Mailcow révoqué. Saisissez de nouveaux identifiants pour le fournisseur sélectionné.</value></data>
+  <data name="DeleteAllMatches" xml:space="preserve">
+    <value>Supprimer toutes les correspondances</value>
+  </data>
+  <data name="DeleteAllMatchesTitle" xml:space="preserve">
+    <value>Supprimer tous les e-mails correspondants</value>
+  </data>
+  <data name="DeleteAllMatchesWarning" xml:space="preserve">
+    <value>Cette action supprime définitivement {0} e-mail(s) correspondant au filtre actuel. Elle est irréversible ; chaque suppression est journalisée.</value>
+  </data>
+  <data name="DeleteAllMatchesLockedInfo" xml:space="preserve">
+    <value>{0} e-mail(s) correspondant(s) sont verrouillés par la politique de rétention et seront conservés.</value>
+  </data>
+  <data name="DeleteAllMatchesConfirmLabel" xml:space="preserve">
+    <value>Saisissez le nombre d'e-mails pour confirmer</value>
+  </data>
+  <data name="DeleteAllMatchesCountChanged" xml:space="preserve">
+    <value>L'ensemble des résultats a changé (confirmé : {0}, actuel : {1}). Vérifiez le filtre et confirmez à nouveau.</value>
+  </data>
+  <data name="DeleteAllMatchesNoMatches" xml:space="preserve">
+    <value>Aucun e-mail supprimable ne correspond à ce filtre.</value>
+  </data>
+  <data name="DeleteAllMatchesNoMatchesLocked" xml:space="preserve">
+    <value>Aucun e-mail supprimable ne correspond à ce filtre ; {0} e-mail(s) correspondant(s) sont verrouillés par la politique de rétention.</value>
+  </data>
+  <data name="DeleteAllMatchesFilterRequired" xml:space="preserve">
+    <value>Restreignez d'abord les résultats (terme de recherche, date, dossier ou compte).</value>
+  </data>
+  <data name="DeleteAllMatchesCapExceeded" xml:space="preserve">
+    <value>{0} correspondances dépassent le maximum configuré de {1}. Restreignez le filtre.</value>
+  </data>
+  <data name="DeleteAllMatchesQueued" xml:space="preserve">
+    <value>Tâche de suppression démarrée pour {0} e-mails. ID de tâche : {1}</value>
+  </data>
+  <data name="DeleteAllMatchesPreviewFailed" xml:space="preserve">
+    <value>Impossible de déterminer le nombre d'e-mails correspondants. Veuillez réessayer.</value>
+  </data>
+  <data name="SkippedLockedEmails" xml:space="preserve">
+    <value>Ignorés (verrouillés)</value>
+  </data>
+  <data name="FilterJob" xml:space="preserve">
+    <value>Filtre</value>
+  </data>
   <data name="PasswordLoginDisabledError" xml:space="preserve">
     <value>La connexion par mot de passe est désactivée. Veuillez vous connecter via votre fournisseur d'identité.</value>
   </data>

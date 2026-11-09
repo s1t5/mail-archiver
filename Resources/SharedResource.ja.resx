@@ -3604,6 +3604,48 @@
   <data name="MailcowNewImapPasswordRequired" xml:space="preserve"><value>Mailcow から離れた後、新しい IMAP パスワードを入力してください。</value></data>
   <data name="MailcowLinkSuccess" xml:space="preserve"><value>アカウントを Mailcow インスタンス {0} にリンクしました。</value></data>
   <data name="MailcowDetachSuccess" xml:space="preserve"><value>Mailcow アクセスを取り消しました。選択したプロバイダーの新しい認証情報を入力してください。</value></data>
+  <data name="DeleteAllMatches" xml:space="preserve">
+    <value>一致するすべてを削除</value>
+  </data>
+  <data name="DeleteAllMatchesTitle" xml:space="preserve">
+    <value>一致するメールをすべて削除</value>
+  </data>
+  <data name="DeleteAllMatchesWarning" xml:space="preserve">
+    <value>現在のフィルターに一致する {0} 件のメールを完全に削除します。元に戻すことはできません。削除はすべて記録されます。</value>
+  </data>
+  <data name="DeleteAllMatchesLockedInfo" xml:space="preserve">
+    <value>一致する {0} 件のメールは保存ポリシーによりロックされているため、保持されます。</value>
+  </data>
+  <data name="DeleteAllMatchesConfirmLabel" xml:space="preserve">
+    <value>確認のためメール件数を入力してください</value>
+  </data>
+  <data name="DeleteAllMatchesCountChanged" xml:space="preserve">
+    <value>結果セットが変更されました（確認済み: {0}、現在: {1}）。フィルターを確認して再度確定してください。</value>
+  </data>
+  <data name="DeleteAllMatchesNoMatches" xml:space="preserve">
+    <value>このフィルターに一致する削除可能なメールはありません。</value>
+  </data>
+  <data name="DeleteAllMatchesNoMatchesLocked" xml:space="preserve">
+    <value>このフィルターに一致する削除可能なメールはありません。一致する {0} 件のメールは保存ポリシーによりロックされています。</value>
+  </data>
+  <data name="DeleteAllMatchesFilterRequired" xml:space="preserve">
+    <value>先に結果セットを絞り込んでください（検索語、日付、フォルダー、アカウント）。</value>
+  </data>
+  <data name="DeleteAllMatchesCapExceeded" xml:space="preserve">
+    <value>{0} 件の一致は設定された上限 {1} 件を超えています。フィルターを絞り込んでください。</value>
+  </data>
+  <data name="DeleteAllMatchesQueued" xml:space="preserve">
+    <value>{0} 件のメールの削除ジョブを開始しました。ジョブ ID: {1}</value>
+  </data>
+  <data name="DeleteAllMatchesPreviewFailed" xml:space="preserve">
+    <value>一致するメールの件数を取得できませんでした。もう一度お試しください。</value>
+  </data>
+  <data name="SkippedLockedEmails" xml:space="preserve">
+    <value>スキップ（ロック済み）</value>
+  </data>
+  <data name="FilterJob" xml:space="preserve">
+    <value>フィルター</value>
+  </data>
   <data name="PasswordLoginDisabledError" xml:space="preserve">
     <value>パスワードログインは無効になっています。ID プロバイダーでサインインしてください。</value>
   </data>

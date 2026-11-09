@@ -213,6 +213,25 @@ range, folder, account) to target the rest.
 Attempting to exceed it shows: *"Too many emails selected. Maximum allowed is
 250 emails. Please reduce your selection or split into multiple operations."*
 
+### Deleting every match of a filter
+
+The **Delete all matches** button next to *Reset* deletes every email that
+matches the current search, not just the current page or selection. It is
+available to administrators and self-managers and runs as a background job, so
+the 250-email selection limit does not apply.
+
+The confirmation dialog shows how many emails are deletable and how many are
+locked by the retention policy. You have to type that number to enable the
+confirmation. The server counts again and aborts if the result set changed in
+the meantime, for example because a sync added mail.
+
+Locked emails are never deleted by this action; they are reported as skipped in
+the job status. `DeletionPolicy:MaxBulkDeleteEmails` (default 100,000) caps one
+job. A filter that matches more emails is rejected with a request to narrow it.
+
+The job appears on the [Background Jobs](BackgroundJobs.md) page and can be
+cancelled there.
+
 ### Direct processing vs. background job
 
 For **Copy** and **Export** you choose how the work runs:

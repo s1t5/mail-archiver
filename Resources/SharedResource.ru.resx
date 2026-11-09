@@ -3617,6 +3617,48 @@
   <data name="MailcowNewImapPasswordRequired" xml:space="preserve"><value>После выхода из Mailcow введите новый пароль IMAP.</value></data>
   <data name="MailcowLinkSuccess" xml:space="preserve"><value>Учётная запись привязана к экземпляру Mailcow {0}.</value></data>
   <data name="MailcowDetachSuccess" xml:space="preserve"><value>Доступ к Mailcow отозван. Введите новые учётные данные для выбранного провайдера.</value></data>
+  <data name="DeleteAllMatches" xml:space="preserve">
+    <value>Удалить все совпадения</value>
+  </data>
+  <data name="DeleteAllMatchesTitle" xml:space="preserve">
+    <value>Удалить все подходящие письма</value>
+  </data>
+  <data name="DeleteAllMatchesWarning" xml:space="preserve">
+    <value>Будут безвозвратно удалены {0} письма, соответствующие текущему фильтру. Действие нельзя отменить; каждое удаление записывается в журнал.</value>
+  </data>
+  <data name="DeleteAllMatchesLockedInfo" xml:space="preserve">
+    <value>{0} подходящих писем заблокированы политикой хранения и будут сохранены.</value>
+  </data>
+  <data name="DeleteAllMatchesConfirmLabel" xml:space="preserve">
+    <value>Введите количество писем для подтверждения</value>
+  </data>
+  <data name="DeleteAllMatchesCountChanged" xml:space="preserve">
+    <value>Набор результатов изменился (подтверждено: {0}, сейчас: {1}). Проверьте фильтр и подтвердите снова.</value>
+  </data>
+  <data name="DeleteAllMatchesNoMatches" xml:space="preserve">
+    <value>Ни одно удаляемое письмо не соответствует этому фильтру.</value>
+  </data>
+  <data name="DeleteAllMatchesNoMatchesLocked" xml:space="preserve">
+    <value>Ни одно удаляемое письмо не соответствует этому фильтру; {0} подходящих писем заблокированы политикой хранения.</value>
+  </data>
+  <data name="DeleteAllMatchesFilterRequired" xml:space="preserve">
+    <value>Сначала сузьте набор результатов (поисковый запрос, дата, папка или учётная запись).</value>
+  </data>
+  <data name="DeleteAllMatchesCapExceeded" xml:space="preserve">
+    <value>{0} совпадений превышают настроенный максимум {1}. Сузьте фильтр.</value>
+  </data>
+  <data name="DeleteAllMatchesQueued" xml:space="preserve">
+    <value>Задание на удаление запущено для {0} писем. ID задания: {1}</value>
+  </data>
+  <data name="DeleteAllMatchesPreviewFailed" xml:space="preserve">
+    <value>Не удалось определить количество подходящих писем. Повторите попытку.</value>
+  </data>
+  <data name="SkippedLockedEmails" xml:space="preserve">
+    <value>Пропущено (заблокировано)</value>
+  </data>
+  <data name="FilterJob" xml:space="preserve">
+    <value>Фильтр</value>
+  </data>
   <data name="PasswordLoginDisabledError" xml:space="preserve">
     <value>Вход по паролю отключён. Войдите через своего поставщика удостоверений.</value>
   </data>
