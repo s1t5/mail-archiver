@@ -969,7 +969,8 @@
             continueWithOperation: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["ContinueWithOperation"].Value)),
             deleteSelectedEmailsConfirm: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["DeleteSelectedEmailsConfirm"].Value)),
             loading: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["Loading"].Value)),
-            errorOccurred: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["ErrorOccurred"].Value))
+            errorOccurred: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["ErrorOccurred"].Value)),
+            info: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["Info"].Value))
         };
         
         const toggleSelectionMode = document.getElementById('toggleSelectionMode');
@@ -1037,6 +1038,9 @@
         function showSelectionNotice(message) {
             var noticeModal = document.getElementById('batchRestoreConfirmModal');
             if (!noticeModal) { alert(message); return; }
+            // The modal is shared with the restore/delete confirmations, whose title
+            // would otherwise stay on screen above a plain notice.
+            document.getElementById('batchRestoreConfirmModalLabel').textContent = i18n.info;
             document.getElementById('confirmMessage').textContent = message;
             document.getElementById('confirmBatchRestoreBtn').style.display = 'none';
             var modal = new bootstrap.Modal(noticeModal);
