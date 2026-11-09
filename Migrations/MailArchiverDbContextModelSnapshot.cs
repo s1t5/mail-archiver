@@ -831,6 +831,11 @@ namespace MailArchiver.Migrations
                     b.Property<bool>("RequiresApproval")
                         .HasColumnType("boolean");
 
+                    b.Property<string>("SecurityStamp")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
                     b.Property<string>("TwoFactorBackupCodes")
                         .HasColumnType("text");
 

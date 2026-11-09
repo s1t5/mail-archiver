@@ -410,6 +410,48 @@ public class UserServiceTests
     }
 
     [Fact]
+    public async Task SetUserActiveStatusAsync_RotatesSecurityStamp()
+    {
+        await using var scope = await _fixture.CreateTransactionalContextAsync();
+        var ctx = scope.Context;
+        try
+        {
+            var user = await SeedUserAsync(ctx, isActive: true);
+            var stampBefore = user.SecurityStamp;
+            var svc = ServiceFactory.CreateUserService(ctx);
+
+            Assert.True(await svc.SetUserActiveStatusAsync(user.Id, false));
+
+            var refreshed = await ctx.Users.AsNoTracking().FirstAsync(u => u.Id == user.Id);
+            Assert.NotEqual(stampBefore, refreshed.SecurityStamp);
+            Assert.Equal(32, refreshed.SecurityStamp.Length);
+        }
+        finally { await scope.RollbackAsync(); }
+    }
+
+    [Fact]
+    public async Task UpdateUserAsync_DoesNotRotateSecurityStamp()
+    {
+        // UpdateUserAsync runs on every login (LastLoginAt). Rotating there would
+        // invalidate the cookie that was just issued.
+        await using var scope = await _fixture.CreateTransactionalContextAsync();
+        var ctx = scope.Context;
+        try
+        {
+            var user = await SeedUserAsync(ctx);
+            var stampBefore = user.SecurityStamp;
+            var svc = ServiceFactory.CreateUserService(ctx);
+
+            user.LastLoginAt = DateTime.UtcNow;
+            Assert.True(await svc.UpdateUserAsync(user));
+
+            var refreshed = await ctx.Users.AsNoTracking().FirstAsync(u => u.Id == user.Id);
+            Assert.Equal(stampBefore, refreshed.SecurityStamp);
+        }
+        finally { await scope.RollbackAsync(); }
+    }
+
+    [Fact]
     public async Task IsUserAdminAsync_Admin_True()
     {
         await using var scope = await _fixture.CreateTransactionalContextAsync();

@@ -1,3 +1,4 @@
+using MailArchiver.Auth.Helpers;
 using MailArchiver.Data;
 using MailArchiver.Models;
 using MailArchiver.Services;
@@ -52,12 +53,53 @@ namespace MailArchiver.Auth.Services
                 return;
             }
 
+            await SignInAsync(user, rememberMe);
+
+            _logger.LogInformation("User '{Username}' signed in successfully", user.Username);
+        }
+
+        /// <summary>
+        /// Re-issues the current browser's cookie after its security stamp was rotated
+        /// (self-service password change). Other sessions keep the old stamp and are
+        /// rejected on their next request.
+        /// </summary>
+        public async Task RefreshSessionAsync(User user)
+        {
+            if (user == null)
+            {
+                return;
+            }
+
+            var context = _httpContextAccessor.HttpContext;
+            if (context == null)
+            {
+                return;
+            }
+
+            // Preserve the lifetime the caller already chose (remember-me or session cookie).
+            // Read it from the principal that was validated at the start of this request;
+            // re-authenticating here would run the stamp check against the value that was
+            // just rotated and reject the very cookie we are about to replace.
+            var rememberMe = string.Equals(
+                context.User?.FindFirst(AuthClaimTypes.RememberMe)?.Value,
+                bool.TrueString,
+                StringComparison.OrdinalIgnoreCase);
+
+            await SignInAsync(user, rememberMe);
+
+            _logger.LogInformation("Session for user '{Username}' re-issued after security stamp rotation", user.Username);
+        }
+
+        private async Task SignInAsync(User user, bool rememberMe)
+        {
             // Create claims for the user
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.Name, user.Username),
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-                new Claim("UserId", user.Id.ToString())
+                new Claim(AuthClaimTypes.UserId, user.Id.ToString()),
+                new Claim(AuthClaimTypes.SecurityStamp, user.SecurityStamp),
+                new Claim(AuthClaimTypes.RememberMe, rememberMe.ToString())
             };
 
             // Add role claims
@@ -83,9 +125,7 @@ namespace MailArchiver.Auth.Services
             };
 
             // Sign in the user using ASP.NET Core authentication
-            _httpContextAccessor.HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, claimsPrincipal, authProperties).Wait();
-
-            _logger.LogInformation("User '{Username}' signed in successfully", user.Username);
+            await _httpContextAccessor.HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, claimsPrincipal, authProperties);
         }
 
         public void SignOut(HttpContext context)
@@ -125,7 +165,7 @@ namespace MailArchiver.Auth.Services
         public int? GetCurrentUserId(HttpContext context)
         {
             // Get UserId from claims
-            var userIdClaim = context.User?.FindFirst("UserId")?.Value;
+            var userIdClaim = context.User?.FindFirst(AuthClaimTypes.UserId)?.Value;
             
             if (string.IsNullOrEmpty(userIdClaim))
                 return null;
