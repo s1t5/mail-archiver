@@ -159,6 +159,8 @@ services:
 
       # ReleaseNotes Settings (Version Update Splash Screen)
       - ReleaseNotes__Enabled=true
+      - ReleaseNotes__UpdateHintEnabled=true
+      - ReleaseNotes__UpdateCheckIntervalHours=6
 
       # Logging Settings (Optional - defaults to Information level)
       - Logging__LogLevel__Default=Information
@@ -457,7 +459,10 @@ Settings for the audit data export page (admin only, reachable from the Logs pag
 - `TimeZone__DisplayTimeZoneId`: The time zone used for displaying email timestamps in the UI. Uses IANA time zone identifiers (e.g., "Europe/Berlin", "Asia/Tokyo"). Default is "Etc/UCT" for backward compatibility. When importing emails timestamps will be converted to this time zone for display purposes.
 
 ### 🎉 ReleaseNotes Settings (Version Update Splash Screen)
-- `ReleaseNotes__Enabled`: Enable or disable the version update splash screen (true/false). Default is `true`. When enabled, administrators will see a one-time changelog modal after an application update, showing the release notes fetched from GitHub Releases for the current version. Each administrator can dismiss the modal, and it will only reappear for a new version. Set to `false` to completely disable this feature.
+- `ReleaseNotes__AppVersion`: The version string this instance reports. It is matched against GitHub release tags and decides whether a newer release exists. When empty, the changelog falls back to the compiled assembly version and the update hint stays off.
+- `ReleaseNotes__Enabled`: Enable or disable the version update splash screen (true/false). Default is `true`. When enabled, administrators will see a one-time changelog modal after an application update, showing the release notes fetched from GitHub Releases for the current version. Each administrator can dismiss the modal, and it will only reappear for a new version. Set to `false` to completely disable this feature, including the update hint.
+- `ReleaseNotes__UpdateHintEnabled`: Show administrators a small toast in the lower right corner when GitHub publishes a newer stable release than the installed version (true/false). Default is `true`. The toast links to that release and is dismissed per version in the browser. Drafts and prereleases are ignored. Requires `ReleaseNotes__AppVersion`; without it no hint is shown.
+- `ReleaseNotes__UpdateCheckIntervalHours`: How often the GitHub release list is refreshed, in hours. Default is `6`. A shorter interval makes a new release visible sooner in a long-running instance, a longer one reduces GitHub API calls. Minimum is `1`.
 
 ### 🔧 Database Maintenance Settings
 - `DatabaseMaintenance__Enabled`: Enable or disable automatic daily database maintenance (true/false). Default is `false`. When enabled, the system will automatically run VACUUM ANALYZE operations to optimize database performance and prevent bloat. See [Database Maintenance Guide](DatabaseMaintenance.md) for more details.

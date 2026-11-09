@@ -22,6 +22,32 @@ namespace MailArchiver.Services
     }
 
     /// <summary>
+    /// Result of the update check against the latest GitHub release.
+    /// </summary>
+    public class UpdateStatusResult
+    {
+        /// <summary>
+        /// The installed version the check was made for.
+        /// </summary>
+        public string? CurrentVersion { get; set; }
+
+        /// <summary>
+        /// The newest stable release tag on GitHub, when one was found.
+        /// </summary>
+        public string? LatestVersion { get; set; }
+
+        /// <summary>
+        /// True when the newest stable release is newer than the installed version.
+        /// </summary>
+        public bool UpdateAvailable { get; set; }
+
+        /// <summary>
+        /// Browser URL of the newest release, used as the hint's link target.
+        /// </summary>
+        public string? ReleaseUrl { get; set; }
+    }
+
+    /// <summary>
     /// Fetches GitHub release notes for the current application version and
     /// determines whether the current admin user has already seen them.
     /// </summary>
@@ -34,6 +60,12 @@ namespace MailArchiver.Services
         /// <param name="userId">The ID of the current admin user.</param>
         /// <returns>A <see cref="ReleaseNotesResult"/> with the version, markdown body, and whether to show.</returns>
         Task<ReleaseNotesResult> GetReleaseNotesForCurrentVersionAsync(int userId);
+
+        /// <summary>
+        /// Checks whether GitHub publishes a newer stable release than the installed version.
+        /// Returns an empty result when the check is disabled or the installed version is unknown.
+        /// </summary>
+        Task<UpdateStatusResult> GetUpdateStatusAsync();
 
         /// <summary>
         /// Marks the changelog for the currently-installed version as seen by the given user.

@@ -712,6 +712,35 @@ body {
   }
 }
 
+/* Update available toast for administrators, above the fixed footer but
+   below an open modal and its backdrop, so the splash screen stays readable. */
+.update-toast-container {
+  bottom: 2.75rem !important;
+  z-index: 1030;
+}
+
+.update-toast {
+  width: 22rem;
+  max-width: calc(100vw - 2rem);
+  background-color: #fff;
+  border: 1px solid #dee2e6;
+  box-shadow: var(--card-shadow);
+}
+
+.update-toast .toast-header {
+  background-color: transparent;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.update-toast .toast-body a {
+  color: var(--primary-color);
+  text-decoration: none;
+}
+
+.update-toast .toast-body a:hover {
+  text-decoration: underline;
+}
+
 /* Two-Factor Authentication Setup Styles */
 .twofa-setup-container {
   max-width: 800px;

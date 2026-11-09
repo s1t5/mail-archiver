@@ -162,6 +162,22 @@
   color: var(--text-color);
 }
 
+[data-theme="dark"] .update-toast {
+  background-color: var(--card-bg);
+  color: var(--text-color);
+  border-color: var(--border-color);
+}
+
+[data-theme="dark"] .update-toast .toast-header {
+  background-color: transparent;
+  color: var(--text-color);
+  border-bottom-color: var(--border-color);
+}
+
+[data-theme="dark"] .update-toast .btn-close {
+  filter: invert(1) grayscale(100%) brightness(200%);
+}
+
 [data-theme="dark"] .alert-success {
   background-color: var(--alert-success-bg);
   border: 1px solid var(--alert-success-border);

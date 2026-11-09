@@ -2653,6 +2653,15 @@
   <data name="GotIt" xml:space="preserve">
     <value>Begrepen!</value>
   </data>
+  <data name="UpdateAvailableTitle" xml:space="preserve">
+    <value>Update beschikbaar</value>
+  </data>
+  <data name="UpdateAvailableBody" xml:space="preserve">
+    <value>Versie {0} is beschikbaar op GitHub.</value>
+  </data>
+  <data name="ViewRelease" xml:space="preserve">
+    <value>Bekijk release</value>
+  </data>
 
   <!-- MSA (personal Microsoft account) OAuth2 device code flow -->
   <data name="MsaAuthorizeTitle" xml:space="preserve">

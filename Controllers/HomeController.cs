@@ -215,6 +215,27 @@ namespace MailArchiver.Controllers
             return Ok();
         }
 
+        /// <summary>
+        /// Returns whether a newer stable release exists on GitHub.
+        /// Admin only, and deliberately without <see cref="MailArchiver.Attributes.EmailAccessRequired"/>:
+        /// updating the instance is an administrative task that does not depend on archive access.
+        /// </summary>
+        [HttpGet]
+        [MailArchiver.Attributes.AdminRequired]
+        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
+        public async Task<IActionResult> GetUpdateStatus()
+        {
+            var result = await _versionUpdateService.GetUpdateStatusAsync();
+
+            return Json(new
+            {
+                updateAvailable = result.UpdateAvailable,
+                currentVersion = result.CurrentVersion,
+                latestVersion = result.LatestVersion,
+                releaseUrl = result.ReleaseUrl
+            });
+        }
+
         private async Task<DashboardViewModel> CreateCustomDashboardStatisticsAsync(List<int> accountIds)
         {
             // Cache per unique account assignment so repeated dashboard loads by the

@@ -1,17 +1,18 @@
 using System.Reflection;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using MailArchiver.Data;
 using MailArchiver.Models;
+using MailArchiver.Services.Shared;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
 namespace MailArchiver.Services
 {
     /// <summary>
-    /// Fetches release notes from GitHub once per application lifetime and
-    /// checks if the current admin user has already seen them.
-    /// Since no new releases appear while the app is running, the GitHub API
-    /// is called at most once — on the first admin login after startup.
+    /// Fetches the GitHub release list at most once per cache interval and serves two
+    /// consumers from it: the release notes for the installed version and the update
+    /// hint that tells administrators a newer stable release exists.
     /// </summary>
     public class VersionUpdateService : IVersionUpdateService
     {
@@ -20,10 +21,12 @@ namespace MailArchiver.Services
         private readonly ReleaseNotesOptions _options;
         private readonly ILogger<VersionUpdateService> _logger;
 
-        // Thread-safe, one-time lazy initialisation
-        private volatile string? _cachedReleaseNotes;
-        private readonly SemaphoreSlim _initLock = new(1, 1);
-        private bool _initialized;
+        // The release list changes rarely, so it is cached for a configurable interval
+        // instead of once per application lifetime: a container that runs for months
+        // would otherwise never notice a new release.
+        private IReadOnlyList<GitHubRelease>? _cachedReleases;
+        private DateTime _cacheFetchedUtc;
+        private readonly SemaphoreSlim _fetchLock = new(1, 1);
 
         public VersionUpdateService(
             IHttpClientFactory httpClientFactory,
@@ -46,7 +49,8 @@ namespace MailArchiver.Services
             var version = ResolveAppVersion();
 
             // Fetch release notes from cache or GitHub
-            var body = await GetOrFetchReleaseNotesAsync(version);
+            var releases = await GetReleasesAsync();
+            var body = FindReleaseForVersion(releases, version)?.Body;
 
             if (string.IsNullOrWhiteSpace(body))
                 return new ReleaseNotesResult { Version = version, ShouldShow = false };
@@ -59,6 +63,43 @@ namespace MailArchiver.Services
                 Version = version,
                 Body = body,
                 ShouldShow = !hasSeen
+            };
+        }
+
+        /// <inheritdoc />
+        public async Task<UpdateStatusResult> GetUpdateStatusAsync()
+        {
+            // The update hint needs a configured version. Without one the footer shows
+            // "dev" and the assembly falls back to 1.0.0, which would rank below every
+            // release and produce a permanent false hint.
+            var currentVersion = _options.AppVersion?.Trim();
+
+            if (!_options.Enabled || !_options.UpdateHintEnabled || string.IsNullOrWhiteSpace(currentVersion))
+                return new UpdateStatusResult { CurrentVersion = currentVersion, UpdateAvailable = false };
+
+            var releases = await GetReleasesAsync();
+            var latest = releases
+                .Where(r => !r.Draft && !r.Prerelease && !string.IsNullOrWhiteSpace(r.TagName))
+                .OrderByDescending(r => r.PublishedAt ?? DateTimeOffset.MinValue)
+                .FirstOrDefault();
+
+            if (latest?.TagName == null)
+                return new UpdateStatusResult { CurrentVersion = currentVersion, UpdateAvailable = false };
+
+            if (!AppVersionComparer.TryCompare(currentVersion, latest.TagName, out var comparison))
+            {
+                _logger.LogDebug(
+                    "Update check skipped: cannot compare installed version {Current} with release tag {Latest}",
+                    currentVersion, latest.TagName);
+                return new UpdateStatusResult { CurrentVersion = currentVersion, UpdateAvailable = false };
+            }
+
+            return new UpdateStatusResult
+            {
+                CurrentVersion = currentVersion,
+                LatestVersion = latest.TagName,
+                UpdateAvailable = comparison < 0,
+                ReleaseUrl = latest.HtmlUrl
             };
         }
 
@@ -87,6 +128,8 @@ namespace MailArchiver.Services
         // Private helpers
         // -----------------------------------------------------------------------
 
+        private TimeSpan CacheLifetime => TimeSpan.FromHours(Math.Max(1, _options.UpdateCheckIntervalHours));
+
         private string ResolveAppVersion()
         {
             // Prefer configured override, otherwise read from assembly
@@ -98,38 +141,50 @@ namespace MailArchiver.Services
             return attr?.InformationalVersion ?? asm.GetName().Version?.ToString() ?? "0.0.0";
         }
 
-        private async Task<string?> GetOrFetchReleaseNotesAsync(string version)
+        private static GitHubRelease? FindReleaseForVersion(IReadOnlyList<GitHubRelease> releases, string version)
         {
-            // Double-check locking: fetch once per application lifetime
-            if (_initialized)
-                return _cachedReleaseNotes;
+            // Exact tag first (e.g. "2611.2"), then fall back to a prefix match so a
+            // version like "2611.2+abc123" still finds its release.
+            return releases.FirstOrDefault(r =>
+                       r.TagName?.Equals(version, StringComparison.OrdinalIgnoreCase) == true)
+                   ?? releases.FirstOrDefault(r =>
+                       r.TagName?.StartsWith(version, StringComparison.OrdinalIgnoreCase) == true);
+        }
 
-            await _initLock.WaitAsync();
+        private async Task<IReadOnlyList<GitHubRelease>> GetReleasesAsync()
+        {
+            var cached = _cachedReleases;
+            if (cached != null && DateTime.UtcNow - _cacheFetchedUtc < CacheLifetime)
+                return cached;
+
+            await _fetchLock.WaitAsync();
             try
             {
-                if (_initialized)
-                    return _cachedReleaseNotes;
+                cached = _cachedReleases;
+                if (cached != null && DateTime.UtcNow - _cacheFetchedUtc < CacheLifetime)
+                    return cached;
 
                 try
                 {
-                    _cachedReleaseNotes = await FetchReleaseNotesFromGitHubAsync(version);
+                    _cachedReleases = await FetchReleasesFromGitHubAsync();
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Failed to fetch release notes from GitHub for version {Version}", version);
-                    _cachedReleaseNotes = null;
+                    _logger.LogError(ex, "Failed to fetch releases from GitHub");
+                    // A stale list is still better than none: keep it and retry after the
+                    // interval instead of calling GitHub on every page load.
                 }
 
-                _initialized = true;
-                return _cachedReleaseNotes;
+                _cacheFetchedUtc = DateTime.UtcNow;
+                return _cachedReleases ?? Array.Empty<GitHubRelease>();
             }
             finally
             {
-                _initLock.Release();
+                _fetchLock.Release();
             }
         }
 
-        private async Task<string?> FetchReleaseNotesFromGitHubAsync(string version)
+        private async Task<IReadOnlyList<GitHubRelease>> FetchReleasesFromGitHubAsync()
         {
             // Hardcoded — release notes are always fetched from the public repository
             const string owner = "s1t5";
@@ -146,17 +201,7 @@ namespace MailArchiver.Services
             response.EnsureSuccessStatusCode();
 
             var json = await response.Content.ReadAsStringAsync();
-            var releases = JsonSerializer.Deserialize<List<GitHubRelease>>(json);
-
-            if (releases == null || releases.Count == 0)
-                return null;
-
-            // Try exact tag match first (e.g. "v2606.2"), then fallback to prefix match
-            var match = releases.FirstOrDefault(r =>
-                r.TagName?.Equals(version, StringComparison.OrdinalIgnoreCase) == true ||
-                r.TagName?.StartsWith(version, StringComparison.OrdinalIgnoreCase) == true);
-
-            return match?.Body;
+            return JsonSerializer.Deserialize<List<GitHubRelease>>(json) ?? new List<GitHubRelease>();
         }
 
         private async Task<bool> HasUserSeenVersionAsync(int userId, string version)
@@ -179,11 +224,23 @@ namespace MailArchiver.Services
 
         private class GitHubRelease
         {
-            [System.Text.Json.Serialization.JsonPropertyName("tag_name")]
+            [JsonPropertyName("tag_name")]
             public string? TagName { get; set; }
 
-            [System.Text.Json.Serialization.JsonPropertyName("body")]
+            [JsonPropertyName("body")]
             public string? Body { get; set; }
+
+            [JsonPropertyName("draft")]
+            public bool Draft { get; set; }
+
+            [JsonPropertyName("prerelease")]
+            public bool Prerelease { get; set; }
+
+            [JsonPropertyName("published_at")]
+            public DateTimeOffset? PublishedAt { get; set; }
+
+            [JsonPropertyName("html_url")]
+            public string? HtmlUrl { get; set; }
         }
     }
 }

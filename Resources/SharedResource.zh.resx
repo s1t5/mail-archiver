@@ -2656,6 +2656,15 @@
   <data name="GotIt" xml:space="preserve">
     <value>知道了！</value>
   </data>
+  <data name="UpdateAvailableTitle" xml:space="preserve">
+    <value>有可用更新</value>
+  </data>
+  <data name="UpdateAvailableBody" xml:space="preserve">
+    <value>版本 {0} 已在 GitHub 上发布。</value>
+  </data>
+  <data name="ViewRelease" xml:space="preserve">
+    <value>查看版本</value>
+  </data>
   <data name="MsaAuthorizeTitle" xml:space="preserve">
     <value>授权 Microsoft 账户</value>
   </data>

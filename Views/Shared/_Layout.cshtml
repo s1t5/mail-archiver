@@ -186,6 +186,33 @@
         </div>
     </div>
 
+    <!-- =============================================================== -->
+    <!--        Update Available Toast (administrators only)             -->
+    <!-- =============================================================== -->
+    @if (AuthService.IsCurrentUserAdmin(Context)
+         && ReleaseNotesOptions.Value.Enabled
+         && ReleaseNotesOptions.Value.UpdateHintEnabled
+         && !string.IsNullOrWhiteSpace(ReleaseNotesOptions.Value.AppVersion))
+    {
+        <div class="toast-container position-fixed end-0 p-3 update-toast-container">
+            <div id="updateToast" class="toast update-toast" role="status" aria-live="polite" aria-atomic="true"
+                 data-bs-autohide="false" data-bs-animation="false" data-template="@Localizer["UpdateAvailableBody"]">
+                <div class="toast-header">
+                    <i class="bi bi-arrow-up-circle me-2 text-warning"></i>
+                    <strong class="me-auto">@Localizer["UpdateAvailableTitle"]</strong>
+                    <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="@Localizer["Close"]"></button>
+                </div>
+                <div class="toast-body">
+                    <span id="updateToastText"></span>
+                    <a id="updateToastLink" href="https://github.com/s1t5/mail-archiver/releases"
+                       target="_blank" rel="noopener" class="d-inline-block mt-2">
+                        @Localizer["ViewRelease"] <i class="bi bi-box-arrow-up-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    }
+
     <script src="~/lib/jquery/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
@@ -332,6 +359,45 @@
                             // Silently ignore - GitHub API may be unreachable
                         });
                 });
+
+                // Update hint: small toast in the lower right corner, shown once per release
+                var UPDATE_HINT_KEY = 'updateHintDismissedVersion';
+                var updateToastEl = document.getElementById('updateToast');
+
+                if (updateToastEl) {
+                    updateToastEl.addEventListener('hidden.bs.toast', function () {
+                        var version = updateToastEl.getAttribute('data-version');
+                        if (!version) return;
+                        try { localStorage.setItem(UPDATE_HINT_KEY, version); } catch (e) { }
+                    });
+
+                    document.addEventListener('DOMContentLoaded', function () {
+                        fetch('/Home/GetUpdateStatus')
+                            .then(function (r) { return r.ok ? r.json() : null; })
+                            .then(function (data) {
+                                if (!data || !data.updateAvailable || !data.latestVersion) return;
+
+                                try {
+                                    if (localStorage.getItem(UPDATE_HINT_KEY) === data.latestVersion) return;
+                                } catch (e) {
+                                    // Storage blocked: show the hint anyway
+                                }
+
+                                var textEl = document.getElementById('updateToastText');
+                                var template = updateToastEl.getAttribute('data-template') || 'Version {0} is available.';
+                                if (textEl) textEl.textContent = template.replace('{0}', data.latestVersion);
+
+                                var linkEl = document.getElementById('updateToastLink');
+                                if (linkEl && data.releaseUrl) linkEl.href = data.releaseUrl;
+
+                                updateToastEl.setAttribute('data-version', data.latestVersion);
+                                new bootstrap.Toast(updateToastEl, { autohide: false, animation: false }).show();
+                            })
+                            .catch(function () {
+                                // Silently ignore - GitHub API may be unreachable
+                            });
+                    });
+                }
             })();
         </script>
     }

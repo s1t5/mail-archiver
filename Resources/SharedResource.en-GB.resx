@@ -881,4 +881,7 @@
   <data name="PasswordLoginDisabledError" xml:space="preserve">
     <value>Password login is disabled. Please sign in with your identity provider.</value>
   </data>
+  <data name="UpdateAvailableTitle" xml:space="preserve"><value>Update available</value></data>
+  <data name="UpdateAvailableBody" xml:space="preserve"><value>Version {0} is available on GitHub.</value></data>
+  <data name="ViewRelease" xml:space="preserve"><value>View release</value></data>
 </root>
