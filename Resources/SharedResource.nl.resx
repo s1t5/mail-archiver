@@ -2368,6 +2368,12 @@
   <data name="OidcClaimLengthExceeded" xml:space="preserve">
     <value>Claimwaarden overschrijden de maximale toegestane lengte</value>
   </data>
+  <data name="OidcMissingClaim" xml:space="preserve">
+    <value>Uw identiteitsprovider heeft geen vereiste claim ({0}) teruggegeven. Neem contact op met uw beheerder.</value>
+  </data>
+  <data name="OidcLoginFailed" xml:space="preserve">
+    <value>Aanmelden via single sign-on is mislukt. Probeer het opnieuw of neem contact op met uw beheerder.</value>
+  </data>
   <data name="OidcInvalidEmailFormat" xml:space="preserve">
     <value>Ongeldig e-mailformaat ontvangen van de identity provider</value>
   </data>

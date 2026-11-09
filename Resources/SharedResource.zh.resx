@@ -2338,6 +2338,12 @@
   <data name="OidcClaimLengthExceeded" xml:space="preserve">
     <value>声明值超过最大允许长度</value>
   </data>
+  <data name="OidcMissingClaim" xml:space="preserve">
+    <value>您的身份提供商未返回必需的声明 ({0})。请联系管理员。</value>
+  </data>
+  <data name="OidcLoginFailed" xml:space="preserve">
+    <value>通过单点登录登录失败。请重试或联系管理员。</value>
+  </data>
   <data name="AccountDeletionQueued" xml:space="preserve">
     <value>账户 '{0}' 的删除已排队，将在后台处理。</value>
   </data>

@@ -2368,6 +2368,12 @@
   <data name="OidcClaimLengthExceeded" xml:space="preserve">
     <value>I valori della richiesta superano la lunghezza massima consentita</value>
   </data>
+  <data name="OidcMissingClaim" xml:space="preserve">
+    <value>Il tuo provider di identità non ha restituito un'attestazione obbligatoria ({0}). Contatta il tuo amministratore.</value>
+  </data>
+  <data name="OidcLoginFailed" xml:space="preserve">
+    <value>Accesso tramite single sign-on non riuscito. Riprova o contatta il tuo amministratore.</value>
+  </data>
   <data name="OidcInvalidEmailFormat" xml:space="preserve">
     <value>Formato email non valido ricevuto dal provider di identità</value>
   </data>

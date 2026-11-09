@@ -2368,6 +2368,12 @@
   <data name="OidcClaimLengthExceeded" xml:space="preserve">
     <value>Les valeurs de la revendication dépassent la longueur maximale autorisée</value>
   </data>
+  <data name="OidcMissingClaim" xml:space="preserve">
+    <value>Votre fournisseur d'identité n'a pas renvoyé une revendication obligatoire ({0}). Veuillez contacter votre administrateur.</value>
+  </data>
+  <data name="OidcLoginFailed" xml:space="preserve">
+    <value>La connexion via authentification unique a échoué. Veuillez réessayer ou contacter votre administrateur.</value>
+  </data>
   <data name="OidcInvalidEmailFormat" xml:space="preserve">
     <value>Format d'e-mail invalide reçu du fournisseur d'identité</value>
   </data>

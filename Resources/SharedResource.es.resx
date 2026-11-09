@@ -2367,6 +2367,12 @@
   <data name="OidcClaimLengthExceeded" xml:space="preserve">
     <value>Los valores de la reclamación exceden la longitud máxima permitida</value>
   </data>
+  <data name="OidcMissingClaim" xml:space="preserve">
+    <value>Su proveedor de identidad no ha devuelto una reclamación obligatoria ({0}). Póngase en contacto con su administrador.</value>
+  </data>
+  <data name="OidcLoginFailed" xml:space="preserve">
+    <value>El inicio de sesión único (SSO) ha fallado. Inténtelo de nuevo o póngase en contacto con su administrador.</value>
+  </data>
   <data name="OidcInvalidEmailFormat" xml:space="preserve">
     <value>Formato de correo electrónico no válido recibido del proveedor de identidad</value>
   </data>

@@ -2368,6 +2368,12 @@
   <data name="OidcClaimLengthExceeded" xml:space="preserve">
     <value>Значения заявок превышают максимально допустимую длину</value>
   </data>
+  <data name="OidcMissingClaim" xml:space="preserve">
+    <value>Поставщик удостоверений не вернул обязательное утверждение ({0}). Обратитесь к администратору.</value>
+  </data>
+  <data name="OidcLoginFailed" xml:space="preserve">
+    <value>Не удалось войти через единый вход. Повторите попытку или обратитесь к администратору.</value>
+  </data>
   <data name="OidcInvalidEmailFormat" xml:space="preserve">
     <value>Неверный формат электронной почты, полученный от провайдера идентификации</value>
   </data>

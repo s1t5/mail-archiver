@@ -2539,6 +2539,12 @@
   <data name="OidcClaimLengthExceeded" xml:space="preserve">
     <value>クレームの値が許可されている最大長を超えています</value>
   </data>
+  <data name="OidcMissingClaim" xml:space="preserve">
+    <value>ID プロバイダーが必要なクレーム ({0}) を返しませんでした。管理者にお問い合わせください。</value>
+  </data>
+  <data name="OidcLoginFailed" xml:space="preserve">
+    <value>シングルサインオンでのサインインに失敗しました。もう一度お試しいただくか、管理者にお問い合わせください。</value>
+  </data>
   <data name="AccountDeletionQueued" xml:space="preserve">
     <value>アカウント '{0}' の削除がキューに登録されました。バックグラウンドで処理されます。</value>
     <comment>{0} - account name</comment>

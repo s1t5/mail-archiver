@@ -2360,6 +2360,12 @@
   <data name="OidcClaimLengthExceeded" xml:space="preserve">
     <value>Az igény értékei meghaladják a maximálisan engedélyezett hosszúságot</value>
   </data>
+  <data name="OidcMissingClaim" xml:space="preserve">
+    <value>Az identitásszolgáltató nem adott vissza egy kötelező állítást ({0}). Kérem forduljon a rendszergazdához.</value>
+  </data>
+  <data name="OidcLoginFailed" xml:space="preserve">
+    <value>A bejelentkezés egyszeri bejelentkezéssel nem sikerült. Kérem próbálja újra, vagy forduljon a rendszergazdához.</value>
+  </data>
   <data name="OidcInvalidEmailFormat" xml:space="preserve">
     <value>Érvénytelen e-mail formátumot kapott az azonosító szolgáltatótól</value>
   </data>
