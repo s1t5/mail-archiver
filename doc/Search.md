@@ -187,6 +187,8 @@ Results can be selected and processed in bulk. Turn on **Selection Mode** to get
 checkboxes, then:
 
 - **Select All** / **Deselect All** for the current page
+- **Select all {n} matching** — every result of the current search across all
+  pages (shown when the results span more than one page)
 - **Copy Selected** — restore to a mailbox
 - **Export Selected** — as MBOX or EML
 - **Delete Selected** — from the archive
@@ -202,6 +204,11 @@ The counter shows *"{selected} of {total} selected"* as you work.
 That limit exists because each operation has to hold the affected messages. The
 prompt *"Split larger operations into multiple batches"* is the intended
 workaround: work through the results in groups of 250 or fewer.
+
+**Select all {n} matching** respects the same limit. When the search matches more
+emails than the limit allows, it selects the first ones in the current sort order
+and shows the *"Maximum selections reached"* notice. Narrow the search (date
+range, folder, account) to target the rest.
 
 Attempting to exceed it shows: *"Too many emails selected. Maximum allowed is
 250 emails. Please reduce your selection or split into multiple operations."*

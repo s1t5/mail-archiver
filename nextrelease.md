@@ -1,3 +1,6 @@
+## ✨ New Features
+- **Select All Matching** - Selection mode can select every email matching the current search across all pages, up to the selection limit, instead of one page at a time.
+
 ## ⚙️ Improvements
 - **Restore Uses the Stored Original** - Restoring an email to a mailbox now appends the stored original when one exists, the same cascade as the single-email export. Only emails archived without an original are rebuilt from the archived fields. A stored original that fails its checksum aborts the restore instead of falling back to the rebuild.
 - **Original Message Storage Has Its Own Documentation Page** - The feature now has a dedicated page (`doc/RawMessages.md`) covering where the stored original is served, the postgres and filesystem backends, moving existing messages between them with `--migrate-raw-storage`, verification and backup. `Setup.md` keeps only the parameter table and links to it.
@@ -5,3 +8,5 @@
 ## 🐛 Bug Fixes
 - **Sessions End When the Account Changes** - Auth cookies were self-contained, so a password change, an administrator password reset, a deactivation or a role change left every other session valid until the cookie expired, up to seven days with "remember me". Cookies now carry a security stamp that is checked against the user on every request and rotated on those events. The browser that changes its own password is re-issued and stays signed in.
 - **Deleting an Email Removes Its Stored Original** - With the `filesystem` backend the original message file survived every deletion. The metadata row went with the email through the foreign key cascade, but the file lives outside the database where no cascade can reach it. Retention rules, manual single and bulk deletion, and mail account deletion now remove the file as part of the same operation, after the email row is committed so a failed deletion cannot destroy an original. Files already orphaned by earlier deletions are reclaimed by a new periodic cleanup, so the disk space comes back.
+- **Selection After Batch Delete** - The selection is cleared when a batch delete is submitted, so deleted emails no longer stay selected and inflate the counter.
+- **Stable Sort Order in the Email List** - Rows that share a sort value (same subject, sender, or day) now fall back to the email id, so paging and "Select all matching" always agree on which emails come first.
