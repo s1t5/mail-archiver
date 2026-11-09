@@ -2065,6 +2065,9 @@
   <data name="MaxSelectionsReached" xml:space="preserve">
     <value>Massimo selezioni raggiunto ({0})</value>
   </data>
+  <data name="SelectAllMatching" xml:space="preserve">
+    <value>Seleziona tutti i {0} risultati</value>
+  </data>
   <data name="SelectAllOnPage" xml:space="preserve">
     <value>Seleziona tutto nella pagina</value>
   </data>
@@ -2364,6 +2367,12 @@
   </data>
   <data name="OidcClaimLengthExceeded" xml:space="preserve">
     <value>I valori della richiesta superano la lunghezza massima consentita</value>
+  </data>
+  <data name="OidcMissingClaim" xml:space="preserve">
+    <value>Il tuo provider di identità non ha restituito un'attestazione obbligatoria ({0}). Contatta il tuo amministratore.</value>
+  </data>
+  <data name="OidcLoginFailed" xml:space="preserve">
+    <value>Accesso tramite single sign-on non riuscito. Riprova o contatta il tuo amministratore.</value>
   </data>
   <data name="OidcInvalidEmailFormat" xml:space="preserve">
     <value>Formato email non valido ricevuto dal provider di identità</value>
@@ -3649,5 +3658,8 @@
   </data>
   <data name="FilterJob" xml:space="preserve">
     <value>Filtro</value>
+  </data>
+  <data name="PasswordLoginDisabledError" xml:space="preserve">
+    <value>L'accesso con password è disabilitato. Accedi tramite il tuo provider di identità.</value>
   </data>
 </root>

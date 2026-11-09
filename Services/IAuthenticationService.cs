@@ -5,6 +5,7 @@ namespace MailArchiver.Services
     {
         bool ValidateCredentials(string username, string password);
         Task StartUserSessionAsync(User user, bool rememberMe = false);
+        Task RefreshSessionAsync(User user);
         void SignOut(HttpContext context);
         bool IsAuthenticated(HttpContext context);
         string GetCurrentUserDisplayName(HttpContext context);

@@ -63,6 +63,7 @@ The Mail Archiver Docker environment consists of several important data volumes 
 - **Importance**: ⭐⭐⭐ Critical **when in use** - the database keeps only the checksum, size and relative path, so a restore without this directory leaves originals that cannot be served
 - Back up this directory and the database dump **together**. Restoring the database without the files is not an error the archive can repair: the downloads answer `404` and the checksums cannot be re-derived from anything else. Restoring the files without the database is equally useless, because nothing references them.
 - If you use `RawMessages.Storage=postgres` (the default), this directory does not exist and the originals are inside `./postgres-data` as before.
+- See [Original Message Storage](RawMessages.md) for the feature itself and how to switch backends.
 
 ### 3. Docker Compose Configuration
 - **File**: `docker-compose.yml`

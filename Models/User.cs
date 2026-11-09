@@ -15,6 +15,15 @@ namespace MailArchiver.Models
         public string Email { get; set; }
         
         public string? PasswordHash { get; set; }
+
+        /// <summary>
+        /// Rotated whenever the account's security state changes (password change or
+        /// reset, activation status, role change). Every auth cookie carries the value
+        /// it was issued with; a mismatch ends the session on the next request.
+        /// </summary>
+        [Required]
+        [StringLength(32)]
+        public string SecurityStamp { get; set; } = Guid.NewGuid().ToString("N");
         
         [Required]
         public bool IsAdmin { get; set; } = false;

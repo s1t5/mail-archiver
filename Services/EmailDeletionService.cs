@@ -1,6 +1,7 @@
 using MailArchiver.Data;
 using MailArchiver.Models;
 using MailArchiver.Services.Core;
+using MailArchiver.Services.Shared;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -174,14 +175,15 @@ namespace MailArchiver.Services
                 using var scope = _serviceScopeFactory.CreateScope();
                 var context = scope.ServiceProvider.GetRequiredService<MailArchiverDbContext>();
                 var accessLogService = scope.ServiceProvider.GetService<IAccessLogService>();
+                var rawMessageStore = scope.ServiceProvider.GetService<IRawMessageStore>();
 
                 var combinedToken = CancellationTokenSource
                     .CreateLinkedTokenSource(stoppingToken, job.CancellationTokenSource.Token)
                     .Token;
 
                 var affectedAccountIds = job.Filter != null
-                    ? await ProcessFilterJobAsync(job, context, accessLogService, combinedToken)
-                    : await ProcessIdJobAsync(job, context, accessLogService, combinedToken);
+                    ? await ProcessFilterJobAsync(job, context, accessLogService, rawMessageStore, combinedToken)
+                    : await ProcessIdJobAsync(job, context, accessLogService, rawMessageStore, combinedToken);
 
                 job.CurrentPhase = "Completed";
                 job.Status = EmailDeletionJobStatus.Completed;
@@ -222,6 +224,7 @@ namespace MailArchiver.Services
             EmailDeletionJob job,
             MailArchiverDbContext context,
             IAccessLogService? accessLogService,
+            IRawMessageStore? rawMessageStore,
             CancellationToken combinedToken)
         {
             // Phase 1: Count attachments
@@ -306,6 +309,21 @@ namespace MailArchiver.Services
                 context.ArchivedEmails.RemoveRange(emailsToDelete);
                 await context.SaveChangesAsync(combinedToken);
 
+                // The original files go after the rows are gone; see IRawMessageStore.DeleteAsync.
+                if (rawMessageStore != null)
+                {
+                    try
+                    {
+                        await rawMessageStore.DeleteAsync(
+                            emailsToDelete.Select(e => e.Id).ToList(), combinedToken);
+                    }
+                    catch (Exception rawEx)
+                    {
+                        _logger.LogError(rawEx,
+                            "Job {JobId}: could not delete the stored originals of a batch", job.JobId);
+                    }
+                }
+
                 foreach (var email in emailsToDelete)
                     affectedAccountIds.Add(email.MailAccountId);
 
@@ -329,6 +347,7 @@ namespace MailArchiver.Services
             EmailDeletionJob job,
             MailArchiverDbContext context,
             IAccessLogService? accessLogService,
+            IRawMessageStore? rawMessageStore,
             CancellationToken combinedToken)
         {
             var filter = job.Filter!;
@@ -406,6 +425,20 @@ namespace MailArchiver.Services
 
                     if (transaction != null)
                         await transaction.CommitAsync(combinedToken);
+
+                    // The original files go after the rows are gone; see IRawMessageStore.DeleteAsync.
+                    if (rawMessageStore != null)
+                    {
+                        try
+                        {
+                            await rawMessageStore.DeleteAsync(ids, combinedToken);
+                        }
+                        catch (Exception rawEx)
+                        {
+                            _logger.LogError(rawEx,
+                                "Job {JobId}: could not delete the stored originals of a batch", job.JobId);
+                        }
+                    }
 
                     foreach (var row in rows)
                         affectedAccountIds.Add(row.MailAccountId);

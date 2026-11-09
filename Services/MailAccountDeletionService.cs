@@ -1,5 +1,6 @@
 using MailArchiver.Data;
 using MailArchiver.Models;
+using MailArchiver.Services.Shared;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using System.Collections.Concurrent;
@@ -173,6 +174,7 @@ namespace MailArchiver.Services
 
                 using var scope = _serviceProvider.CreateScope();
                 var context = scope.ServiceProvider.GetRequiredService<MailArchiverDbContext>();
+                var rawMessageStore = scope.ServiceProvider.GetService<IRawMessageStore>();
 
                 // Phase 1: Cancel any running sync jobs
                 job.CurrentPhase = "Cancelling sync jobs";
@@ -219,7 +221,7 @@ namespace MailArchiver.Services
 
                 // Phase 5: Delete emails in batches
                 job.CurrentPhase = "Deleting emails";
-                await DeleteEmailsInBatches(job, context, emailIds, cancellationToken);
+                await DeleteEmailsInBatches(job, context, emailIds, cancellationToken, rawMessageStore);
 
                 // Phase 6: Delete the mail account
                 job.CurrentPhase = "Deleting account";
@@ -313,7 +315,8 @@ namespace MailArchiver.Services
             MailAccountDeletionJob job, 
             MailArchiverDbContext context, 
             List<int> emailIds, 
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken,
+            IRawMessageStore? rawMessageStore = null)
         {
             const int batchSize = 1000;
             var processedCount = 0;
@@ -330,8 +333,24 @@ namespace MailArchiver.Services
                 if (!batch.Any())
                     break;
 
+                var batchIds = batch.Select(e => e.Id).ToList();
+
                 context.ArchivedEmails.RemoveRange(batch);
                 await context.SaveChangesAsync(cancellationToken);
+
+                // The original files go after the rows are gone; see IRawMessageStore.DeleteAsync.
+                if (rawMessageStore != null)
+                {
+                    try
+                    {
+                        await rawMessageStore.DeleteAsync(batchIds, cancellationToken);
+                    }
+                    catch (Exception rawEx)
+                    {
+                        _logger.LogError(rawEx,
+                            "Job {JobId}: could not delete the stored originals of a batch", job.JobId);
+                    }
+                }
 
                 job.DeletedEmails += batch.Count;
                 processedCount += batch.Count;

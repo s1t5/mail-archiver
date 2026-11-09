@@ -315,6 +315,10 @@ namespace MailArchiver.Services
                 return false;
 
             user.IsActive = isActive;
+
+            // SECURITY: an activation change ends every existing session for the user.
+            // Without this a deactivated account kept working until its cookie expired.
+            user.SecurityStamp = Guid.NewGuid().ToString("N");
             
             // SECURITY: When activating an OIDC user, also clear the RequiresApproval flag
             if (isActive && user.RequiresApproval)

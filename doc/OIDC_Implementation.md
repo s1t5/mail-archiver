@@ -436,7 +436,7 @@ For organizations that want to enforce OAuth-only authentication, the applicatio
 
 ### Disabling Password Login
 
-Set `DisablePasswordLogin` to `true` to hide username/password fields:
+Set `DisablePasswordLogin` to `true` to disable username/password login:
 
 ```json
 {
@@ -450,7 +450,7 @@ Set `DisablePasswordLogin` to `true` to hide username/password fields:
 }
 ```
 
-**Result**: Login page displays only the OAuth login button. If `DisplayName` is configured, the button uses that value (for example, `Login with PocketID SSO`).
+**Result**: The login page displays only the OAuth login button, and the server rejects every password POST (`/Auth/Login`) with a redirect back to the login page. Local passwords stay stored in the database but can no longer be used to sign in while OAuth-only mode is active. If `DisplayName` is configured, the button uses that value (for example, `Login with PocketID SSO`).
 
 ### Auto-Redirect to OAuth Provider
 
@@ -496,7 +496,7 @@ Enable `AutoRedirect` to automatically redirect users to your OAuth provider:
 ### Security Considerations
 
 - **Admin Email Provisioning**: The OAuth provider is trusted to verify email addresses. Only add trusted addresses to AdminEmails.
-- **Emergency Access**: Consider keeping one password-based admin account for emergency access before fully disabling password login.
+- **Emergency Access**: With `DisablePasswordLogin=true` no local password can be used to sign in, including the bootstrap admin account. Make sure at least one OAuth identity is provisioned as admin (see `AdminEmails`) before enabling this setting, otherwise you lock yourself out. To regain access, set `OAuth__DisablePasswordLogin=false`, restart, sign in with the local admin password, and re-enable it afterwards.
 - **Testing**: Thoroughly test OAuth authentication before disabling password login in production.
 - **SSO Environment**: Auto-redirect is best suited for single sign-on environments where all users authenticate via the same provider.
 

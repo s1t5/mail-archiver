@@ -17,8 +17,14 @@
 
             @if (!string.IsNullOrEmpty(Context.Request.Query["error"]))
             {
+                @* The error query value is either an OIDC provider error or one of our own
+                   flags. Our own flags are translated; anything else is shown verbatim. *@
+                var errorValue = Context.Request.Query["error"].ToString();
+                var errorText = errorValue == "PasswordLoginDisabled"
+                    ? Localizer["PasswordLoginDisabledError"].Value
+                    : errorValue;
                 <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                    @Context.Request.Query["error"]
+                    @errorText
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
             }

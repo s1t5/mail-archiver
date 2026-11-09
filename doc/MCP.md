@@ -231,7 +231,7 @@ and `sha256` the checksum recorded at archive time. Returns the same errors as
 
 The bytes are read from wherever they were stored — the database or a file,
 depending on `RawMessages:Storage` at archive time (see
-[Storage Backend](Setup.md#storage-backend)). With
+[Storage backend](RawMessages.md#storage-backend)). With
 `RawMessages:FileSystem:VerifyChecksumOnRead` (default `true`) the file is
 re-hashed before it is returned; a message whose content no longer matches the
 recorded checksum is refused with an error rather than returned.

@@ -9,6 +9,12 @@ namespace MailArchiver.Migrations
     /// outside the database. Existing rows are Postgres rows and are backfilled as such, so an
     /// upgrade changes nothing until a storage migration is run explicitly.
     /// </summary>
+    /// <remarks>
+    /// The <c>[DbContext]</c> and <c>[Migration]</c> attributes that register this class with
+    /// EF Core live in the companion <c>.Designer.cs</c> file, as they do for every other
+    /// migration in this folder. Without them EF never discovers the migration and silently
+    /// skips it, so the columns would never be created.
+    /// </remarks>
     public partial class RawMessageStorageBackends : Migration
     {
         /// <inheritdoc />

@@ -2264,6 +2264,9 @@
   <data name="MaxSelectionsReached" xml:space="preserve">
     <value>Máximo de seleções atingido ({0})</value>
   </data>
+  <data name="SelectAllMatching" xml:space="preserve">
+    <value>Selecionar todos os {0} resultados</value>
+  </data>
   <data name="SelectAllOnPage" xml:space="preserve">
     <value>Selecionar tudo na página</value>
   </data>
@@ -2535,6 +2538,12 @@
   </data>
   <data name="OidcClaimLengthExceeded" xml:space="preserve">
     <value>Os valores das declarações excedem o comprimento máximo permitido</value>
+  </data>
+  <data name="OidcMissingClaim" xml:space="preserve">
+    <value>Seu provedor de identidade não retornou uma declaração obrigatória ({0}). Entre em contato com o administrador.</value>
+  </data>
+  <data name="OidcLoginFailed" xml:space="preserve">
+    <value>Falha ao entrar com logon único. Tente novamente ou entre em contato com o administrador.</value>
   </data>
   <data name="AccountDeletionQueued" xml:space="preserve">
     <value>A exclusão da conta '{0}' foi enfileirada e será processada em segundo plano.</value>
@@ -3636,5 +3645,8 @@
   </data>
   <data name="FilterJob" xml:space="preserve">
     <value>Filtro</value>
+  </data>
+  <data name="PasswordLoginDisabledError" xml:space="preserve">
+    <value>O login por senha está desativado. Entre com seu provedor de identidade.</value>
   </data>
 </root>

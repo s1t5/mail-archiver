@@ -2065,6 +2065,9 @@
   <data name="MaxSelectionsReached" xml:space="preserve">
     <value>Doseženo največje število izbir ({0})</value>
   </data>
+  <data name="SelectAllMatching" xml:space="preserve">
+    <value>Izberi vse zadetke ({0})</value>
+  </data>
   <data name="SelectAllOnPage" xml:space="preserve">
     <value>Izberi vse na strani</value>
   </data>
@@ -2364,6 +2367,12 @@
   </data>
   <data name="OidcClaimLengthExceeded" xml:space="preserve">
     <value>Vrednosti zahtevka prečkajo maksimalno dovoljeno dolžino</value>
+  </data>
+  <data name="OidcMissingClaim" xml:space="preserve">
+    <value>Ponudnik identitete ni vrnil zahtevane trditve ({0}). Obrnite se na skrbnika.</value>
+  </data>
+  <data name="OidcLoginFailed" xml:space="preserve">
+    <value>Prijava z enotno prijavo ni uspela. Poskusite znova ali se obrnite na skrbnika.</value>
   </data>
   <data name="OidcInvalidEmailFormat" xml:space="preserve">
     <value>Neveljaven format e-pošte, prejet od ponudnika identitete</value>
@@ -3649,5 +3658,8 @@
   </data>
   <data name="FilterJob" xml:space="preserve">
     <value>Filter</value>
+  </data>
+  <data name="PasswordLoginDisabledError" xml:space="preserve">
+    <value>Prijava z geslom je onemogočena. Prijavite se prek svojega ponudnika identitete.</value>
   </data>
 </root>

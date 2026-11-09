@@ -73,5 +73,12 @@ namespace MailArchiver.Services.Shared
                 ? null
                 : $"checksum mismatch (recorded {row.Sha256}, row has {actual})";
         }
+
+        /// <summary>
+        /// Nothing to do. The bytes live inside the row, and the row goes with the email through
+        /// the foreign key cascade.
+        /// </summary>
+        public Task DeleteAsync(IReadOnlyCollection<int> emailIds, CancellationToken cancellationToken = default)
+            => Task.CompletedTask;
     }
 }

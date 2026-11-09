@@ -1424,6 +1424,21 @@ namespace MailArchiver.Controllers
 
             await _context.SaveChangesAsync();
 
+            // The original files go after the rows are gone; see IRawMessageStore.DeleteAsync.
+            var rawMessageStore = HttpContext.RequestServices.GetService<IRawMessageStore>();
+            if (rawMessageStore != null)
+            {
+                try
+                {
+                    await rawMessageStore.DeleteAsync(emailIds);
+                }
+                catch (Exception rawEx)
+                {
+                    _logger.LogError(rawEx,
+                        "Could not delete the stored originals of account {AccountId}", id);
+                }
+            }
+
             // Log the account deletion action
             if (!string.IsNullOrEmpty(currentUsername))
             {

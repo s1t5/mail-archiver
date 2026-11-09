@@ -9,6 +9,15 @@
 
   <ItemGroup>
     <Compile Remove="tests\**" />
+    <!-- The test project's sources must not be compiled into the web app, but excluding
+         them from Compile alone still copies their bin/obj output into our output
+         directory. Each build then nests the previous output one level deeper
+         (bin/Debug/net10.0/tests/MailArchiver.Tests/bin/Debug/net10.0/...), which grows
+         the output tree without bound and eventually makes builds and test runs exhaust
+         memory. Exclude the whole directory from the default item globs. -->
+    <Content Remove="tests\**" />
+    <None Remove="tests\**" />
+    <EmbeddedResource Remove="tests\**" />
   </ItemGroup>
 
   <ItemGroup>

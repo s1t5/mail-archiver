@@ -59,6 +59,14 @@ namespace MailArchiver.Services.Shared
             return row == null ? null : await WriterFor(row).VerifyAsync(emailId);
         }
 
+        /// <summary>
+        /// Deletes the files of the given emails. Always the filesystem store: after the email
+        /// rows are gone there is no storage type left to read, and asking for a file that does
+        /// not exist is a no-op, so a Postgres-only archive is unaffected.
+        /// </summary>
+        public Task DeleteAsync(IReadOnlyCollection<int> emailIds, CancellationToken cancellationToken = default)
+            => _fileSystem.DeleteAsync(emailIds, cancellationToken);
+
         private IRawMessageStore WriterFor(RawMessage row)
             => row.IsFileSystemBacked ? _fileSystem : _postgres;
 

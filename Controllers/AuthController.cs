@@ -114,6 +114,24 @@ namespace MailArchiver.Controllers
         {
             ViewData["ReturnUrl"] = returnUrl;
 
+            // SECURITY: OAuth-only mode must be enforced on the server, not only by hiding
+            // the password form. A direct POST with valid local credentials would otherwise
+            // still issue an auth cookie and bypass the configured sign-in policy.
+            // This check deliberately ignores the login view, AutoRedirect and the "error"
+            // query value so that no request path can reach the password validation below.
+            var oAuthOptions = _oAuthOptions.Value;
+            if ((oAuthOptions?.Enabled ?? false) && (oAuthOptions?.DisablePasswordLogin ?? false))
+            {
+                _logger.LogWarning(
+                    "Rejected password login attempt for username {Username} from IP {IP}: password login is disabled (OAuth-only mode)",
+                    model?.Username, HttpContext.Connection.RemoteIpAddress);
+
+                // No auth cookie is issued and no credential check happens. Send the user
+                // to the login page with an explicit error flag so the view can explain
+                // the policy instead of silently discarding the POST.
+                return LocalRedirect($"/Auth/Login?error=PasswordLoginDisabled");
+            }
+
             if (ModelState.IsValid)
             {
                 if (_authService.ValidateCredentials(model.Username, model.Password))
@@ -137,25 +155,20 @@ namespace MailArchiver.Controllers
                         , model.Username
                         , model.RememberMe);
                     
-                    // Check if this is initial setup (no mail accounts + default credentials)
+                    // Force a password change while the account still uses the bootstrap
+                    // password from appsettings.json. This used to require an empty archive
+                    // (mailAccountCount == 0), which meant an existing installation kept a
+                    // working admin login with the shipped default password forever.
                     var configuration = HttpContext.RequestServices.GetRequiredService<IConfiguration>();
                     var defaultUsername = configuration["Authentication:Username"];
                     var defaultPassword = configuration["Authentication:Password"];
-                    var dbContext = HttpContext.RequestServices.GetRequiredService<MailArchiverDbContext>();
-                    var mailAccountCount = await dbContext.MailAccounts.CountAsync();
-                    
-                    if (mailAccountCount == 0 && 
-                        model.Username == defaultUsername)
+
+                    if (model.Username == defaultUsername &&
+                        user != null && _userService.VerifyPassword(defaultPassword, user.PasswordHash ?? ""))
                     {
-                        // Compare stored password hash against the default password
-                        // to determine if the user has actually changed their password
-                        if (user != null && _userService.VerifyPassword(defaultPassword, user.PasswordHash ?? ""))
-                        {
-                            // Force password change for initial setup
-                            HttpContext.Session.SetString("MustChangePassword", "true");
-                            _logger.LogWarning("User {Username} logged in with default credentials on initial setup - forcing password change", model.Username);
-                        }
-                    }                    
+                        HttpContext.Session.SetString("MustChangePassword", "true");
+                        _logger.LogWarning("User {Username} logged in with the configured bootstrap password - forcing password change", model.Username);
+                    }
                     
                     return RedirectToLocal(returnUrl);
                 }

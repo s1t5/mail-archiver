@@ -178,6 +178,14 @@ Set it up once, keep every message, and find it again years later.
 
     [:octicons-arrow-right-24: Read](Export-Account.md)
 
+-   :material-email-lock:{ .lg .middle } __Original message storage__
+
+    ---
+
+    Keep the message as received, so DKIM still verifies and exports are byte-exact.
+
+    [:octicons-arrow-right-24: Read](RawMessages.md)
+
 -   :material-content-duplicate:{ .lg .middle } __Attachment deduplication__
 
     ---

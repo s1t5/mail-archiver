@@ -2065,6 +2065,9 @@
   <data name="MaxSelectionsReached" xml:space="preserve">
     <value>Maximum selecties bereikt ({0})</value>
   </data>
+  <data name="SelectAllMatching" xml:space="preserve">
+    <value>Alle {0} resultaten selecteren</value>
+  </data>
   <data name="SelectAllOnPage" xml:space="preserve">
     <value>Alles op pagina selecteren</value>
   </data>
@@ -2364,6 +2367,12 @@
   </data>
   <data name="OidcClaimLengthExceeded" xml:space="preserve">
     <value>Claimwaarden overschrijden de maximale toegestane lengte</value>
+  </data>
+  <data name="OidcMissingClaim" xml:space="preserve">
+    <value>Uw identiteitsprovider heeft geen vereiste claim ({0}) teruggegeven. Neem contact op met uw beheerder.</value>
+  </data>
+  <data name="OidcLoginFailed" xml:space="preserve">
+    <value>Aanmelden via single sign-on is mislukt. Probeer het opnieuw of neem contact op met uw beheerder.</value>
   </data>
   <data name="OidcInvalidEmailFormat" xml:space="preserve">
     <value>Ongeldig e-mailformaat ontvangen van de identity provider</value>
@@ -3649,5 +3658,8 @@
   </data>
   <data name="FilterJob" xml:space="preserve">
     <value>Filter</value>
+  </data>
+  <data name="PasswordLoginDisabledError" xml:space="preserve">
+    <value>Wachtwoordaanmelding is uitgeschakeld. Meld u aan via uw identiteitsprovider.</value>
   </data>
 </root>

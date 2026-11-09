@@ -254,6 +254,13 @@
                                 <div class="d-flex flex-wrap gap-2 align-items-center">
                                     <button type="button" id="selectAllBtn" class="btn btn-sm btn-outline-primary">@Localizer["SelectAll"]</button>
                                     <button type="button" id="deselectAllBtn" class="btn btn-sm btn-outline-secondary">@Localizer["DeselectAll"]</button>
+                                    @if (Model.SearchResults != null && Model.TotalResults > Model.SearchResults.Count)
+                                    {
+                                        <button type="button" id="selectAllMatchingBtn" class="btn btn-sm btn-outline-primary"
+                                                data-url="@Url.Action("SelectAllMatchingIds", new { SearchTerm = Model.SearchTerm, FromDate = Model.FromDate?.ToString("yyyy-MM-dd"), ToDate = Model.ToDate?.ToString("yyyy-MM-dd"), SelectedAccountId = Model.SelectedAccountId, SelectedFolder = Model.SelectedFolder, IsOutgoing = Model.IsOutgoing, SortBy = Model.SortBy, SortOrder = Model.SortOrder })">
+                                            @string.Format(Localizer["SelectAllMatching"].Value, Model.TotalResults.ToString("N0"))
+                                        </button>
+                                    }
                                     <span id="selectionCounter" class="badge bg-primary">0 selected</span>
                                     <span id="operationMode" class="badge bg-info" style="display:none;"></span>
                                 </div>
@@ -1012,7 +1019,9 @@
             deleteAllMatchesNoMatches: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["DeleteAllMatchesNoMatches"].Value)),
             deleteAllMatchesCapExceeded: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["DeleteAllMatchesCapExceeded"].Value)),
             deleteAllMatchesPreviewFailed: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["DeleteAllMatchesPreviewFailed"].Value)),
-            loading: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["Loading"].Value))
+            loading: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["Loading"].Value)),
+            errorOccurred: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["ErrorOccurred"].Value)),
+            info: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["Info"].Value))
         };
         
         const toggleSelectionMode = document.getElementById('toggleSelectionMode');
@@ -1023,6 +1032,7 @@
         const selectAllCheckbox = document.getElementById('selectAllCheckbox');
         const selectAllBtn = document.getElementById('selectAllBtn');
         const deselectAllBtn = document.getElementById('deselectAllBtn');
+        const selectAllMatchingBtn = document.getElementById('selectAllMatchingBtn');
         const selectionCounter = document.getElementById('selectionCounter');
         const selectionActions = document.getElementById('selectionActions');
         const batchRestoreBtn = document.getElementById('batchRestoreBtn');
@@ -1073,6 +1083,21 @@
 
         function clearStoredSelections() { localStorage.removeItem(STORAGE_KEY); }
         function getTotalSelectedCount() { return getStoredSelections().length; }
+
+        // Notice without a decision to make, using the same modal as the rest of the
+        // selection UI instead of a browser alert().
+        function showSelectionNotice(message) {
+            var noticeModal = document.getElementById('batchRestoreConfirmModal');
+            if (!noticeModal) { alert(message); return; }
+            // The modal is shared with the restore/delete confirmations, whose title
+            // would otherwise stay on screen above a plain notice.
+            document.getElementById('batchRestoreConfirmModalLabel').textContent = i18n.info;
+            document.getElementById('confirmMessage').textContent = message;
+            document.getElementById('confirmBatchRestoreBtn').style.display = 'none';
+            var modal = new bootstrap.Modal(noticeModal);
+            modal.show();
+            setTimeout(function () { modal.hide(); }, 5000);
+        }
 
         function updateSelectionCounter() {
             const totalSelected = getTotalSelectedCount();
@@ -1189,6 +1214,34 @@
                 clearStoredSelections();
                 document.querySelectorAll('.email-select-checkbox').forEach(cb => cb.checked = false);
                 updateSelectionCounter();
+            });
+        }
+
+        // Add all emails matching the current search (all pages) to the selection.
+        // The server returns at most maxSelectableEmails IDs.
+        if (selectAllMatchingBtn) {
+            selectAllMatchingBtn.addEventListener('click', async function() {
+                selectAllMatchingBtn.disabled = true;
+                try {
+                    const response = await fetch(selectAllMatchingBtn.dataset.url, { headers: { 'Accept': 'application/json' } });
+                    if (!response.ok) throw new Error(response.status);
+                    const result = await response.json();
+                    const stored = getStoredSelections();
+                    const combined = [...new Set([...stored, ...result.ids.map(String)])];
+                    const merged = combined.slice(0, maxSelectableEmails);
+                    saveStoredSelections(merged);
+                    const mergedSet = new Set(merged);
+                    document.querySelectorAll('.email-select-checkbox').forEach(cb => cb.checked = mergedSet.has(cb.value));
+                    updateSelectionCounter();
+                    if (result.truncated || combined.length > merged.length) {
+                        showSelectionNotice(i18n.maxSelectionsReached.replace('{0}', maxSelectableEmails));
+                    }
+                } catch (e) {
+                    console.error('Select all matching failed', e);
+                    showSelectionNotice(i18n.errorOccurred);
+                } finally {
+                    selectAllMatchingBtn.disabled = false;
+                }
             });
         }
 
@@ -1319,6 +1372,8 @@
             form.appendChild(createHiddenInput('returnUrl', '@Context.Request.Path@Context.Request.QueryString'));
             selectedIds.forEach(id => form.appendChild(createHiddenInput('ids', id)));
             document.body.appendChild(form);
+            // These emails are about to be deleted, so drop them from the selection.
+            clearStoredSelections();
             form.submit();
         }
 

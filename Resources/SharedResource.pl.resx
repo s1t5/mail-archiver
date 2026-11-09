@@ -2205,6 +2205,9 @@
   <data name="MaxSelectionsReached" xml:space="preserve">
     <value>Osiągnięto maksymalną liczbę zaznaczeń ({0})</value>
   </data>
+  <data name="SelectAllMatching" xml:space="preserve">
+    <value>Zaznacz wszystkie wyniki ({0})</value>
+  </data>
   <data name="SelectAllOnPage" xml:space="preserve">
     <value>Wybierz wszystko na stronie</value>
   </data>
@@ -2459,6 +2462,12 @@
   </data>
   <data name="OidcClaimLengthExceeded" xml:space="preserve">
     <value>Wartości reklamacji przekraczają maksymalną dozwoloną długość</value>
+  </data>
+  <data name="OidcMissingClaim" xml:space="preserve">
+    <value>Twój dostawca tożsamości nie zwrócił wymaganego oświadczenia ({0}). Skontaktuj się z administratorem.</value>
+  </data>
+  <data name="OidcLoginFailed" xml:space="preserve">
+    <value>Logowanie jednokrotne (SSO) nie powiodło się. Spróbuj ponownie lub skontaktuj się z administratorem.</value>
   </data>
   <data name="AccountDeletionQueued" xml:space="preserve">
     <value>Usunięcie konta &apos;{0}&apos; zostało umieszczone w kolejce i zostanie przetworzone w tle.</value>
@@ -3695,5 +3704,8 @@
   </data>
   <data name="FilterJob" xml:space="preserve">
     <value>Filtr</value>
+  </data>
+  <data name="PasswordLoginDisabledError" xml:space="preserve">
+    <value>Logowanie hasłem jest wyłączone. Zaloguj się przez swojego dostawcę tożsamości.</value>
   </data>
 </root>

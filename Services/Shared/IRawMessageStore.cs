@@ -67,5 +67,18 @@ namespace MailArchiver.Services.Shared
         /// Returns the mismatch description, or null when the content is intact or absent.
         /// </summary>
         Task<string?> VerifyAsync(int emailId);
+
+        /// <summary>
+        /// Removes the stored bytes of emails whose rows are gone. Call this <b>after</b> the
+        /// email rows have been committed, never before: deleting the bytes first would lose the
+        /// original whenever the email deletion fails or rolls back, for example on a locked
+        /// record. This way a failure leaves an unreferenced file, which the orphan collector
+        /// reclaims, instead of an email whose original is silently missing.
+        /// <para>
+        /// The metadata rows disappear with the email through the foreign key cascade; this
+        /// method only has to deal with bytes kept outside the database.
+        /// </para>
+        /// </summary>
+        Task DeleteAsync(IReadOnlyCollection<int> emailIds, CancellationToken cancellationToken = default);
     }
 }

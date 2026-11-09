@@ -47,6 +47,36 @@ namespace MailArchiver.Auth.Extensions
                 options.Cookie.SameSite = cookieSameSiteMode;
                 options.ExpireTimeSpan = TimeSpan.FromMinutes(authOptionsConfig.SessionTimeoutMinutes);
                 options.SlidingExpiration = true;
+
+                // Cookie authentication is self-contained by default: the ticket stays
+                // valid until it expires, no matter what happens to the user row. Validate
+                // it against the stored security stamp so a password change, password
+                // reset, deactivation, role change or deletion ends existing sessions.
+                options.Events = new CookieAuthenticationEvents
+                {
+                    OnValidatePrincipal = async context =>
+                    {
+                        var dbContext = context.HttpContext.RequestServices
+                            .GetRequiredService<MailArchiver.Data.MailArchiverDbContext>();
+
+                        if (await MailArchiver.Auth.Services.SecurityStampValidator
+                                .IsSessionValidAsync(context.Principal, dbContext))
+                        {
+                            return;
+                        }
+
+                        var logger = context.HttpContext.RequestServices
+                            .GetRequiredService<ILoggerFactory>()
+                            .CreateLogger("MailArchiver.Auth.SecurityStamp");
+                        logger.LogInformation(
+                            "Rejected auth cookie for user {Username}: security stamp changed, account inactive or deleted",
+                            context.Principal?.Identity?.Name);
+
+                        context.RejectPrincipal();
+                        await Microsoft.AspNetCore.Authentication.AuthenticationHttpContextExtensions
+                            .SignOutAsync(context.HttpContext, CookieAuthenticationDefaults.AuthenticationScheme);
+                    }
+                };
             });
 
             // Read-only REST API: bearer API-key scheme (validated by the /api/

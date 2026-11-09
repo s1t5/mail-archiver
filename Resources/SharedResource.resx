@@ -2264,6 +2264,9 @@
   <data name="MaxSelectionsReached" xml:space="preserve">
     <value>Maximum selections reached ({0})</value>
   </data>
+  <data name="SelectAllMatching" xml:space="preserve">
+    <value>Select all {0} matching</value>
+  </data>
   <data name="SelectAllOnPage" xml:space="preserve">
     <value>Select all on page</value>
   </data>
@@ -3643,5 +3646,8 @@
   </data>
   <data name="FilterJob" xml:space="preserve">
     <value>Filter</value>
+  </data>
+  <data name="PasswordLoginDisabledError" xml:space="preserve">
+    <value>Password login is disabled. Please sign in with your identity provider.</value>
   </data>
 </root>

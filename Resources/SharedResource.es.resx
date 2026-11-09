@@ -2067,6 +2067,9 @@
   <data name="MaxSelectionsReached" xml:space="preserve">
     <value>Selecciones máximas alcanzadas ({0})</value>
   </data>
+  <data name="SelectAllMatching" xml:space="preserve">
+    <value>Seleccionar los {0} resultados</value>
+  </data>
   <data name="SelectAllOnPage" xml:space="preserve">
     <value>Seleccionar todo en la página</value>
   </data>
@@ -2363,6 +2366,12 @@
   </data>
   <data name="OidcClaimLengthExceeded" xml:space="preserve">
     <value>Los valores de la reclamación exceden la longitud máxima permitida</value>
+  </data>
+  <data name="OidcMissingClaim" xml:space="preserve">
+    <value>Su proveedor de identidad no ha devuelto una reclamación obligatoria ({0}). Póngase en contacto con su administrador.</value>
+  </data>
+  <data name="OidcLoginFailed" xml:space="preserve">
+    <value>El inicio de sesión único (SSO) ha fallado. Inténtelo de nuevo o póngase en contacto con su administrador.</value>
   </data>
   <data name="OidcInvalidEmailFormat" xml:space="preserve">
     <value>Formato de correo electrónico no válido recibido del proveedor de identidad</value>
@@ -3648,5 +3657,8 @@
   </data>
   <data name="FilterJob" xml:space="preserve">
     <value>Filtro</value>
+  </data>
+  <data name="PasswordLoginDisabledError" xml:space="preserve">
+    <value>El inicio de sesión con contraseña está deshabilitado. Inicie sesión con su proveedor de identidad.</value>
   </data>
 </root>

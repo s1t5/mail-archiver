@@ -178,7 +178,7 @@ Add more paths by incrementing the index (`__2`, `__3`, etc.).
 
 ### Moving Stored Original Messages
 
-When `RawMessages:Enabled` is on, the original message of each email is kept either in the database or in files, depending on `RawMessages:Storage`. This command moves the already-stored originals from one backend to the other; see [Storage Backend](Setup.md#storage-backend) for the configuration.
+When `RawMessages:Enabled` is on, the original message of each email is kept either in the database or in files, depending on `RawMessages:Storage`. This command moves the already-stored originals from one backend to the other; see [Original Message Storage](RawMessages.md#storage-backend) for the configuration.
 
 ```bash
 # database -> filesystem

@@ -72,5 +72,27 @@ namespace MailArchiver.Models
         /// of serving altered bytes.
         /// </summary>
         public bool VerifyChecksumOnRead { get; set; } = true;
+
+        /// <summary>
+        /// Whether files that no email refers to are removed periodically. On by default: a
+        /// deletion removes the file and the row, but not atomically, so an interrupted pair or
+        /// an older archive can leave files behind that nothing will ever read again.
+        /// </summary>
+        public bool OrphanCleanupEnabled { get; set; } = true;
+
+        /// <summary>How often the orphan cleanup runs, in hours.</summary>
+        public int OrphanCleanupIntervalHours { get; set; } = 24;
+
+        /// <summary>
+        /// Files younger than this are never collected, in hours. Protects a file whose row has
+        /// not been committed yet.
+        /// </summary>
+        public int OrphanCleanupGraceHours { get; set; } = 24;
+
+        /// <summary>
+        /// Delay before the first orphan cleanup run, in seconds, so startup and a pending
+        /// storage migration finish first.
+        /// </summary>
+        public int OrphanCleanupStartupDelaySeconds { get; set; } = 300;
     }
 }

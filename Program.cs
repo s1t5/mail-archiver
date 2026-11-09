@@ -474,6 +474,8 @@ builder.Services.AddScoped<MailArchiver.Services.Shared.FileSystemRawMessageStor
 builder.Services.AddScoped<MailArchiver.Services.Shared.IRawMessageStore,
     MailArchiver.Services.Shared.RawMessageStoreRouter>();
 builder.Services.AddScoped<MailArchiver.Services.Shared.RawMessageStorageMigrator>();
+builder.Services.AddScoped<MailArchiver.Services.Shared.RawMessageOrphanCollector>();
+builder.Services.AddHostedService<MailArchiver.Services.RawMessageOrphanCleanupService>();
 
 // EML import services (refactored from monolithic EmlImportService)
 builder.Services.AddScoped<MailArchiver.Services.Providers.Eml.EmlMailCleaner>();
