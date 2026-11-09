@@ -1,0 +1,105 @@
+# Notice shown on machine-translated documentation pages.
+#
+# {link} is replaced at build time with a Markdown link to the English
+# original. Keep the placeholder in every body. The English source page never
+# shows a notice, so there is no "en" entry here.
+
+translated:
+  de:
+    title: "Maschinelle Übersetzung"
+    body: "Diese Seite wurde automatisch aus dem englischen Original übersetzt. Maßgeblich ist die {link}."
+    link_text: "englische Fassung"
+  es:
+    title: "Traducción automática"
+    body: "Esta página se tradujo automáticamente del original en inglés. La {link} es la fuente autorizada."
+    link_text: "versión en inglés"
+  fr:
+    title: "Traduction automatique"
+    body: "Cette page a été traduite automatiquement depuis l'original anglais. La {link} fait foi."
+    link_text: "version anglaise"
+  hu:
+    title: "Gépi fordítás"
+    body: "Ez az oldal automatikusan készült az angol eredetiből. A hiteles változat a {link}."
+    link_text: "angol változat"
+  it:
+    title: "Traduzione automatica"
+    body: "Questa pagina è stata tradotta automaticamente dall'originale inglese. La {link} è quella autorevole."
+    link_text: "versione inglese"
+  ja:
+    title: "機械翻訳"
+    body: "このページは英語の原文から自動翻訳されました。正式な情報は{link}を参照してください。"
+    link_text: "英語版"
+  nl:
+    title: "Automatische vertaling"
+    body: "Deze pagina is automatisch vertaald uit het Engelse origineel. De {link} is de gezaghebbende bron."
+    link_text: "Engelse versie"
+  pl:
+    title: "Tłumaczenie maszynowe"
+    body: "Ta strona została przetłumaczona automatycznie z oryginału angielskiego. {link} jest źródłem nadrzędnym."
+    link_text: "Wersja angielska"
+  pt-BR:
+    title: "Tradução automática"
+    body: "Esta página foi traduzida automaticamente do original em inglês. A {link} é a fonte autoritativa."
+    link_text: "versão em inglês"
+  ru:
+    title: "Машинный перевод"
+    body: "Эта страница переведена автоматически с английского оригинала. Авторитетным источником является {link}."
+    link_text: "английская версия"
+  sl:
+    title: "Strojni prevod"
+    body: "Ta stran je bila samodejno prevedena iz angleškega izvirnika. Merodajna je {link}."
+    link_text: "angleška različica"
+  zh:
+    title: "机器翻译"
+    body: "本页由英文原文自动翻译而成。{link}为权威版本。"
+    link_text: "英文版本"
+
+fallback:
+  de:
+    title: "Noch nicht übersetzt"
+    body: "Diese Seite ist noch nicht übersetzt. Angezeigt wird die {link}."
+    link_text: "englische Fassung"
+  es:
+    title: "Aún no traducida"
+    body: "Esta página aún no se ha traducido. Se muestra la {link}."
+    link_text: "versión en inglés"
+  fr:
+    title: "Pas encore traduite"
+    body: "Cette page n'est pas encore traduite. La {link} est affichée."
+    link_text: "version anglaise"
+  hu:
+    title: "Még nincs lefordítva"
+    body: "Ez az oldal még nincs lefordítva. A {link} látható."
+    link_text: "angol változat"
+  it:
+    title: "Non ancora tradotta"
+    body: "Questa pagina non è ancora tradotta. Viene mostrata la {link}."
+    link_text: "versione inglese"
+  ja:
+    title: "未翻訳"
+    body: "このページはまだ翻訳されていません。{link}を表示しています。"
+    link_text: "英語版"
+  nl:
+    title: "Nog niet vertaald"
+    body: "Deze pagina is nog niet vertaald. De {link} wordt getoond."
+    link_text: "Engelse versie"
+  pl:
+    title: "Jeszcze nieprzetłumaczona"
+    body: "Ta strona nie została jeszcze przetłumaczona. Wyświetlana jest {link}."
+    link_text: "wersja angielska"
+  pt-BR:
+    title: "Ainda não traduzida"
+    body: "Esta página ainda não foi traduzida. O original em inglês está sendo exibido."
+    link_text: "versão em inglês"
+  ru:
+    title: "Ещё не переведена"
+    body: "Эта страница ещё не переведена. Показана {link}."
+    link_text: "английская версия"
+  sl:
+    title: "Še ni prevedena"
+    body: "Ta stran še ni prevedena. Prikazan je {link}."
+    link_text: "angleški izvirnik"
+  zh:
+    title: "尚未翻译"
+    body: "本页尚未翻译，当前显示{link}。"
+    link_text: "英文原文"

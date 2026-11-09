@@ -1,0 +1,103 @@
+# Glossary for the documentation translation.
+#
+# Only terms listed here are forced onto the model. A term without an entry
+# for a locale is left to the model, which is better than a wrong forced term.
+# Add terms as reviewers find inconsistent wording.
+
+terms:
+  archive:
+    de: Archiv
+    es: Archivo
+    fr: Archive
+    it: Archivio
+    nl: Archief
+    pl: Archiwum
+    pt-BR: Arquivo
+  mailbox:
+    de: Postfach
+    es: Buzón
+    fr: Boîte aux lettres
+    it: Casella di posta
+    nl: Postbus
+    pl: Skrzynka pocztowa
+    pt-BR: Caixa de correio
+  attachment:
+    de: Anhang
+    es: Adjunto
+    fr: Pièce jointe
+    it: Allegato
+    nl: Bijlage
+    pl: Załącznik
+    pt-BR: Anexo
+  retention:
+    de: Aufbewahrung
+    es: Retención
+    fr: Conservation
+    it: Conservazione
+    nl: Bewaring
+    pl: Przechowywanie
+    pt-BR: Retenção
+  deduplication:
+    de: Deduplizierung
+    es: Deduplicación
+    fr: Déduplication
+    it: Deduplicazione
+    nl: Deduplicatie
+    pl: Deduplikacja
+    pt-BR: Deduplicação
+  synchronization:
+    de: Synchronisierung
+    es: Sincronización
+    fr: Synchronisation
+    it: Sincronizzazione
+    nl: Synchronisatie
+    pl: Synchronizacja
+    pt-BR: Sincronização
+  account:
+    de: Konto
+    es: Cuenta
+    fr: Compte
+    it: Account
+    nl: Account
+    pl: Konto
+    pt-BR: Conta
+  folder:
+    de: Ordner
+    es: Carpeta
+    fr: Dossier
+    it: Cartella
+    nl: Map
+    pl: Folder
+    pt-BR: Pasta
+  backup:
+    de: Sicherung
+    es: Copia de seguridad
+    fr: Sauvegarde
+    it: Backup
+    nl: Back-up
+    pl: Kopia zapasowa
+    pt-BR: Backup
+  restore:
+    de: Wiederherstellung
+    es: Restauración
+    fr: Restauration
+    it: Ripristino
+    nl: Herstel
+    pl: Przywracanie
+    pt-BR: Restauração
+  permission:
+    de: Berechtigung
+    es: Permiso
+    fr: Autorisation
+    it: Autorizzazione
+    nl: Machtiging
+    pl: Uprawnienie
+    pt-BR: Permissão
+  audit log:
+    de: Audit-Protokoll
+    es: Registro de auditoría
+    fr: Journal d'audit
+    it: Registro di controllo
+    nl: Auditlogboek
+    pl: Dziennik audytu
+    pt-BR: Registro de auditoria

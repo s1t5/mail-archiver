@@ -1,0 +1,50 @@
+# Navigation labels per locale. The hook injects these into the i18n plugin.
+# Missing titles fall back to the English label, so a partial file is safe.
+
+de:
+  Home: Start
+  Installation & Maintenance: Installation und Wartung
+  Setup and Parameters: Einrichtung und Parameter
+  Reverse Proxy: Reverse Proxy
+  PostgreSQL Major Upgrade: PostgreSQL-Hauptversion aktualisieren
+  Database Maintenance: Datenbankwartung
+  Backup and Restore: Sicherung und Wiederherstellung
+  Local Test Environment: Lokale Testumgebung
+  Getting Mail In: E-Mail importieren
+  Account Import: Kontoimport
+  Mail Synchronization: E-Mail-Synchronisierung
+  CLI Commands: CLI-Befehle
+  Web Import (EML / MBox): Webimport (EML / MBox)
+  Rate Limit Handling: Umgang mit Ratenlimits
+  Working with the Archive: Mit dem Archiv arbeiten
+  Mail Search: E-Mail-Suche
+  Background Jobs: Hintergrundjobs
+  Mailbox Migration: Postfachmigration
+  Account Export (EML / MBox): Kontoexport (EML / MBox)
+  Original Message Storage: Speicherung der Originalnachrichten
+  Attachment Deduplication: Anhang-Deduplizierung
+  Date-Windowed Offload: Zeitfenster-Auslagerung
+  Per-Account Storage: Speicher pro Konto
+  Administration & Security: Administration und Sicherheit
+  User Management & Permissions: Benutzerverwaltung und Berechtigungen
+  Two-Factor Authentication: Zwei-Faktor-Authentifizierung
+  OIDC / SSO: OIDC / SSO
+  Access Logging: Zugriffsprotokollierung
+  Audit Data Export: Audit-Datenexport
+  Emergency Account Recovery: Notfall-Wiederherstellung von Konten
+  Retention Policies: Aufbewahrungsrichtlinien
+  Provider Guides: Anbieteranleitungen
+  Azure App Registration (M365): Azure-App-Registrierung (M365)
+  M365 Tenant Mailbox Import: M365-Tenant-Postfachimport
+  Mailcow Instances: Mailcow-Instanzen
+  Personal Microsoft Accounts: Persönliche Microsoft-Konten
+  Gmail Best Practices: Gmail-Best Practices
+  Yahoo Mail Limitations: Yahoo-Mail-Einschränkungen
+  Programmatic Access: Programmatischer Zugriff
+  REST API: REST-API
+  API Reference: API-Referenz
+  MCP Server: MCP-Server
+  Operations & Development: Betrieb und Entwicklung
+  Language and Localization: Sprache und Lokalisierung
+  Docker Compose Logs: Docker-Compose-Logs
+  Dev Tag (Development Versions): Dev-Tag (Entwicklungsversionen)

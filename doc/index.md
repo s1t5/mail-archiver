@@ -5,6 +5,9 @@
 Set it up once, keep every message, and find it again years later.
 </div>
 
+!!! note "Translations"
+    The English documentation is the authoritative source. Every other language is translated automatically from these pages and may contain errors. Use the language switcher in the header to change the language.
+
 <div class="grid cards" markdown>
 
 -   :material-rocket-launch:{ .lg .middle } __Getting started__
