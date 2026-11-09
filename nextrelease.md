@@ -3,6 +3,7 @@
 - **Select All Matching** - Selection mode can select every email matching the current search across all pages, up to the selection limit, instead of one page at a time.
 
 ## ⚙️ Improvements
+- **Resizable Table Columns** - The email list and the account overview let you drag a column edge to change its width, so a long sender address no longer squeezes the subject. The widths are not stored; a reload restores the natural layout.
 - **Update Hint for Administrators** - When GitHub publishes a newer stable release than the installed version, administrators see a small toast in the lower right corner linking to that release. The toast is dismissed per version in the browser, drafts and prereleases are ignored, and the release list is refreshed every six hours instead of once per application lifetime.
 - **Restore Uses the Stored Original** - Restoring an email to a mailbox now appends the stored original when one exists, the same cascade as the single-email export. Only emails archived without an original are rebuilt from the archived fields. A stored original that fails its checksum aborts the restore instead of falling back to the rebuild.
 - **Original Message Storage Has Its Own Documentation Page** - The feature now has a dedicated page (`doc/RawMessages.md`) covering where the stored original is served, the postgres and filesystem backends, moving existing messages between them with `--migrate-raw-storage`, verification and backup. `Setup.md` keeps only the parameter table and links to it.

@@ -377,6 +377,56 @@ body {
   min-width: 0;
 }
 
+/* Tabellen mit per Drag anpassbaren Spalten (E-Mail-Liste, Postfachübersicht).
+   Die Breiten setzt wwwroot/js/column-resize.js; sie werden bewusst nicht
+   gespeichert und sind nach einem Neuladen wieder in natürlicher Breite. */
+table.column-resize-enabled {
+  table-layout: fixed;
+  min-width: 100%;
+}
+
+table.column-resize-enabled thead th {
+  position: relative;
+}
+
+table.column-resize-enabled tbody td {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.col-resize-handle {
+  position: absolute;
+  top: 0;
+  right: -3px;
+  width: 7px;
+  height: 100%;
+  cursor: col-resize;
+  touch-action: none;
+  z-index: 3;
+}
+
+.col-resize-handle::after {
+  content: "";
+  position: absolute;
+  top: 20%;
+  bottom: 20%;
+  left: 50%;
+  width: 1px;
+  background-color: rgba(255, 255, 255, 0.35);
+}
+
+.col-resize-handle:hover::after,
+.col-resize-handle.is-active::after {
+  width: 2px;
+  background-color: var(--bs-primary, #0d6efd);
+}
+
+body.col-resizing {
+  cursor: col-resize;
+  user-select: none;
+}
+
 /* Pagination */
 .pagination {
   margin-bottom: 0;
