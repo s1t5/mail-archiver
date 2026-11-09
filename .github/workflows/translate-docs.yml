@@ -15,6 +15,11 @@ name: Translate documentation
 
 on:
   workflow_dispatch:
+    inputs:
+      language:
+        description: "Translate one locale only, for example de. Leave empty for all locales."
+        required: false
+        default: ""
   push:
     branches: [main]
     paths:
@@ -57,7 +62,13 @@ jobs:
           LLM_BASE_URL: ${{ vars.LLM_BASE_URL }}
           LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
           LLM_MODEL: ${{ vars.LLM_MODEL }}
-        run: python tools/translate_docs.py --all --nav
+          LANGUAGE: ${{ inputs.language }}
+        run: |
+          if [ -n "$LANGUAGE" ]; then
+            python tools/translate_docs.py --lang "$LANGUAGE" --nav
+          else
+            python tools/translate_docs.py --all --nav
+          fi
 
       - name: Commit translations
         id: commit
