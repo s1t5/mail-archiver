@@ -2060,6 +2060,9 @@
   <data name="MaxSelectionsReached" xml:space="preserve">
     <value>Maximális kijelölés elérve ({0})</value>
   </data>
+  <data name="SelectAllMatching" xml:space="preserve">
+    <value>Mind a(z) {0} találat kijelölése</value>
+  </data>
   <data name="SelectAllOnPage" xml:space="preserve">
     <value>Összes kijelölése az oldalon</value>
   </data>
@@ -2356,6 +2359,12 @@
   </data>
   <data name="OidcClaimLengthExceeded" xml:space="preserve">
     <value>Az igény értékei meghaladják a maximálisan engedélyezett hosszúságot</value>
+  </data>
+  <data name="OidcMissingClaim" xml:space="preserve">
+    <value>Az identitásszolgáltató nem adott vissza egy kötelező állítást ({0}). Kérem forduljon a rendszergazdához.</value>
+  </data>
+  <data name="OidcLoginFailed" xml:space="preserve">
+    <value>A bejelentkezés egyszeri bejelentkezéssel nem sikerült. Kérem próbálja újra, vagy forduljon a rendszergazdához.</value>
   </data>
   <data name="OidcInvalidEmailFormat" xml:space="preserve">
     <value>Érvénytelen e-mail formátumot kapott az azonosító szolgáltatótól</value>
@@ -3609,6 +3618,48 @@
   <data name="MailcowNewImapPasswordRequired" xml:space="preserve"><value>A Mailcow elhagyása után adjon meg új IMAP-jelszót.</value></data>
   <data name="MailcowLinkSuccess" xml:space="preserve"><value>A fiók a(z) {0} Mailcow-példányhoz kapcsolva.</value></data>
   <data name="MailcowDetachSuccess" xml:space="preserve"><value>A Mailcow-hozzáférés visszavonva. Adjon meg új hitelesítő adatokat a kiválasztott szolgáltatóhoz.</value></data>
+  <data name="DeleteAllMatches" xml:space="preserve">
+    <value>Minden találat törlése</value>
+  </data>
+  <data name="DeleteAllMatchesTitle" xml:space="preserve">
+    <value>Minden egyező e-mail törlése</value>
+  </data>
+  <data name="DeleteAllMatchesWarning" xml:space="preserve">
+    <value>Ez véglegesen töröl {0} e-mailt, amely megfelel a jelenlegi szűrőnek. Nem vonható vissza; minden törlés naplózásra kerül.</value>
+  </data>
+  <data name="DeleteAllMatchesLockedInfo" xml:space="preserve">
+    <value>{0} egyező e-mailt a megőrzési szabályzat zárol, ezért megmarad.</value>
+  </data>
+  <data name="DeleteAllMatchesConfirmLabel" xml:space="preserve">
+    <value>A megerősítéshez írja be az e-mailek számát</value>
+  </data>
+  <data name="DeleteAllMatchesCountChanged" xml:space="preserve">
+    <value>Az eredményhalmaz megváltozott (megerősítve: {0}, jelenleg: {1}). Ellenőrizze a szűrőt, és erősítse meg újra.</value>
+  </data>
+  <data name="DeleteAllMatchesNoMatches" xml:space="preserve">
+    <value>Egyetlen törölhető e-mail sem felel meg ennek a szűrőnek.</value>
+  </data>
+  <data name="DeleteAllMatchesNoMatchesLocked" xml:space="preserve">
+    <value>Egyetlen törölhető e-mail sem felel meg ennek a szűrőnek; {0} egyező e-mailt a megőrzési szabályzat zárol.</value>
+  </data>
+  <data name="DeleteAllMatchesFilterRequired" xml:space="preserve">
+    <value>Először szűkítse az eredményhalmazt (keresőkifejezés, dátum, mappa vagy fiók).</value>
+  </data>
+  <data name="DeleteAllMatchesCapExceeded" xml:space="preserve">
+    <value>{0} találat meghaladja a beállított maximumot ({1}). Szűkítse a szűrőt.</value>
+  </data>
+  <data name="DeleteAllMatchesQueued" xml:space="preserve">
+    <value>Törlési feladat elindítva {0} e-mailhez. Feladatazonosító: {1}</value>
+  </data>
+  <data name="DeleteAllMatchesPreviewFailed" xml:space="preserve">
+    <value>Nem sikerült meghatározni az egyező e-mailek számát. Próbálja újra.</value>
+  </data>
+  <data name="SkippedLockedEmails" xml:space="preserve">
+    <value>Kihagyva (zárolva)</value>
+  </data>
+  <data name="FilterJob" xml:space="preserve">
+    <value>Szűrő</value>
+  </data>
   <data name="PasswordLoginDisabledError" xml:space="preserve">
     <value>A jelszavas bejelentkezés le van tiltva. Kérjük, jelentkezzen be az identitásszolgáltatóján keresztül.</value>
   </data>

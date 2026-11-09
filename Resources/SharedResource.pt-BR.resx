@@ -2264,6 +2264,9 @@
   <data name="MaxSelectionsReached" xml:space="preserve">
     <value>Máximo de seleções atingido ({0})</value>
   </data>
+  <data name="SelectAllMatching" xml:space="preserve">
+    <value>Selecionar todos os {0} resultados</value>
+  </data>
   <data name="SelectAllOnPage" xml:space="preserve">
     <value>Selecionar tudo na página</value>
   </data>
@@ -2535,6 +2538,12 @@
   </data>
   <data name="OidcClaimLengthExceeded" xml:space="preserve">
     <value>Os valores das declarações excedem o comprimento máximo permitido</value>
+  </data>
+  <data name="OidcMissingClaim" xml:space="preserve">
+    <value>Seu provedor de identidade não retornou uma declaração obrigatória ({0}). Entre em contato com o administrador.</value>
+  </data>
+  <data name="OidcLoginFailed" xml:space="preserve">
+    <value>Falha ao entrar com logon único. Tente novamente ou entre em contato com o administrador.</value>
   </data>
   <data name="AccountDeletionQueued" xml:space="preserve">
     <value>A exclusão da conta '{0}' foi enfileirada e será processada em segundo plano.</value>
@@ -3604,6 +3613,48 @@
   <data name="MailcowNewImapPasswordRequired" xml:space="preserve"><value>Informe uma nova senha IMAP após sair do Mailcow.</value></data>
   <data name="MailcowLinkSuccess" xml:space="preserve"><value>Conta vinculada à instância do Mailcow {0}.</value></data>
   <data name="MailcowDetachSuccess" xml:space="preserve"><value>Acesso ao Mailcow revogado. Informe novas credenciais para o provedor selecionado.</value></data>
+  <data name="DeleteAllMatches" xml:space="preserve">
+    <value>Excluir todas as correspondências</value>
+  </data>
+  <data name="DeleteAllMatchesTitle" xml:space="preserve">
+    <value>Excluir todos os e-mails correspondentes</value>
+  </data>
+  <data name="DeleteAllMatchesWarning" xml:space="preserve">
+    <value>Isso exclui permanentemente {0} e-mail(s) correspondente(s) ao filtro atual. Não pode ser desfeito; cada exclusão é registrada.</value>
+  </data>
+  <data name="DeleteAllMatchesLockedInfo" xml:space="preserve">
+    <value>{0} e-mail(s) correspondente(s) estão bloqueados pela política de retenção e serão mantidos.</value>
+  </data>
+  <data name="DeleteAllMatchesConfirmLabel" xml:space="preserve">
+    <value>Digite o número de e-mails para confirmar</value>
+  </data>
+  <data name="DeleteAllMatchesCountChanged" xml:space="preserve">
+    <value>O conjunto de resultados mudou (confirmado: {0}, atual: {1}). Revise o filtro e confirme novamente.</value>
+  </data>
+  <data name="DeleteAllMatchesNoMatches" xml:space="preserve">
+    <value>Nenhum e-mail excluível corresponde a este filtro.</value>
+  </data>
+  <data name="DeleteAllMatchesNoMatchesLocked" xml:space="preserve">
+    <value>Nenhum e-mail excluível corresponde a este filtro; {0} e-mail(s) correspondente(s) estão bloqueados pela política de retenção.</value>
+  </data>
+  <data name="DeleteAllMatchesFilterRequired" xml:space="preserve">
+    <value>Restrinja primeiro o conjunto de resultados (termo de pesquisa, data, pasta ou conta).</value>
+  </data>
+  <data name="DeleteAllMatchesCapExceeded" xml:space="preserve">
+    <value>{0} correspondências excedem o máximo configurado de {1}. Restrinja o filtro.</value>
+  </data>
+  <data name="DeleteAllMatchesQueued" xml:space="preserve">
+    <value>Tarefa de exclusão iniciada para {0} e-mails. ID da tarefa: {1}</value>
+  </data>
+  <data name="DeleteAllMatchesPreviewFailed" xml:space="preserve">
+    <value>Não foi possível determinar o número de e-mails correspondentes. Tente novamente.</value>
+  </data>
+  <data name="SkippedLockedEmails" xml:space="preserve">
+    <value>Ignorados (bloqueados)</value>
+  </data>
+  <data name="FilterJob" xml:space="preserve">
+    <value>Filtro</value>
+  </data>
   <data name="PasswordLoginDisabledError" xml:space="preserve">
     <value>O login por senha está desativado. Entre com seu provedor de identidade.</value>
   </data>

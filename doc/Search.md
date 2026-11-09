@@ -187,6 +187,8 @@ Results can be selected and processed in bulk. Turn on **Selection Mode** to get
 checkboxes, then:
 
 - **Select All** / **Deselect All** for the current page
+- **Select all {n} matching** — every result of the current search across all
+  pages (shown when the results span more than one page)
 - **Copy Selected** — restore to a mailbox
 - **Export Selected** — as MBOX or EML
 - **Delete Selected** — from the archive
@@ -203,8 +205,32 @@ That limit exists because each operation has to hold the affected messages. The
 prompt *"Split larger operations into multiple batches"* is the intended
 workaround: work through the results in groups of 250 or fewer.
 
+**Select all {n} matching** respects the same limit. When the search matches more
+emails than the limit allows, it selects the first ones in the current sort order
+and shows the *"Maximum selections reached"* notice. Narrow the search (date
+range, folder, account) to target the rest.
+
 Attempting to exceed it shows: *"Too many emails selected. Maximum allowed is
 250 emails. Please reduce your selection or split into multiple operations."*
+
+### Deleting every match of a filter
+
+The **Delete all matches** button next to *Reset* deletes every email that
+matches the current search, not just the current page or selection. It is
+available to administrators and self-managers and runs as a background job, so
+the 250-email selection limit does not apply.
+
+The confirmation dialog shows how many emails are deletable and how many are
+locked by the retention policy. You have to type that number to enable the
+confirmation. The server counts again and aborts if the result set changed in
+the meantime, for example because a sync added mail.
+
+Locked emails are never deleted by this action; they are reported as skipped in
+the job status. `DeletionPolicy:MaxBulkDeleteEmails` (default 100,000) caps one
+job. A filter that matches more emails is rejected with a request to narrow it.
+
+The job appears on the [Background Jobs](BackgroundJobs.md) page and can be
+cancelled there.
 
 ### Direct processing vs. background job
 

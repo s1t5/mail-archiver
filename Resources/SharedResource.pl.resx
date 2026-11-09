@@ -2205,6 +2205,9 @@
   <data name="MaxSelectionsReached" xml:space="preserve">
     <value>Osiągnięto maksymalną liczbę zaznaczeń ({0})</value>
   </data>
+  <data name="SelectAllMatching" xml:space="preserve">
+    <value>Zaznacz wszystkie wyniki ({0})</value>
+  </data>
   <data name="SelectAllOnPage" xml:space="preserve">
     <value>Wybierz wszystko na stronie</value>
   </data>
@@ -2459,6 +2462,12 @@
   </data>
   <data name="OidcClaimLengthExceeded" xml:space="preserve">
     <value>Wartości reklamacji przekraczają maksymalną dozwoloną długość</value>
+  </data>
+  <data name="OidcMissingClaim" xml:space="preserve">
+    <value>Twój dostawca tożsamości nie zwrócił wymaganego oświadczenia ({0}). Skontaktuj się z administratorem.</value>
+  </data>
+  <data name="OidcLoginFailed" xml:space="preserve">
+    <value>Logowanie jednokrotne (SSO) nie powiodło się. Spróbuj ponownie lub skontaktuj się z administratorem.</value>
   </data>
   <data name="AccountDeletionQueued" xml:space="preserve">
     <value>Usunięcie konta &apos;{0}&apos; zostało umieszczone w kolejce i zostanie przetworzone w tle.</value>
@@ -3663,6 +3672,48 @@
   <data name="MailcowNewImapPasswordRequired" xml:space="preserve"><value>Po opuszczeniu Mailcow wprowadź nowe hasło IMAP.</value></data>
   <data name="MailcowLinkSuccess" xml:space="preserve"><value>Konto połączone z instancją Mailcow {0}.</value></data>
   <data name="MailcowDetachSuccess" xml:space="preserve"><value>Dostęp do Mailcow odwołany. Wprowadź nowe dane logowania dla wybranego dostawcy.</value></data>
+  <data name="DeleteAllMatches" xml:space="preserve">
+    <value>Usuń wszystkie dopasowania</value>
+  </data>
+  <data name="DeleteAllMatchesTitle" xml:space="preserve">
+    <value>Usuń wszystkie pasujące wiadomości</value>
+  </data>
+  <data name="DeleteAllMatchesWarning" xml:space="preserve">
+    <value>Spowoduje to trwałe usunięcie {0} wiadomości pasujących do bieżącego filtra. Tej operacji nie można cofnąć; każde usunięcie jest rejestrowane.</value>
+  </data>
+  <data name="DeleteAllMatchesLockedInfo" xml:space="preserve">
+    <value>{0} pasujących wiadomości jest zablokowanych przez politykę przechowywania i zostanie zachowanych.</value>
+  </data>
+  <data name="DeleteAllMatchesConfirmLabel" xml:space="preserve">
+    <value>Wpisz liczbę wiadomości, aby potwierdzić</value>
+  </data>
+  <data name="DeleteAllMatchesCountChanged" xml:space="preserve">
+    <value>Zestaw wyników uległ zmianie (potwierdzono: {0}, obecnie: {1}). Sprawdź filtr i potwierdź ponownie.</value>
+  </data>
+  <data name="DeleteAllMatchesNoMatches" xml:space="preserve">
+    <value>Żadne wiadomości możliwe do usunięcia nie pasują do tego filtra.</value>
+  </data>
+  <data name="DeleteAllMatchesNoMatchesLocked" xml:space="preserve">
+    <value>Żadne wiadomości możliwe do usunięcia nie pasują do tego filtra; {0} pasujących wiadomości jest zablokowanych przez politykę przechowywania.</value>
+  </data>
+  <data name="DeleteAllMatchesFilterRequired" xml:space="preserve">
+    <value>Najpierw zawęź zestaw wyników (fraza wyszukiwania, data, folder lub konto).</value>
+  </data>
+  <data name="DeleteAllMatchesCapExceeded" xml:space="preserve">
+    <value>{0} dopasowań przekracza skonfigurowany limit {1}. Zawęź filtr.</value>
+  </data>
+  <data name="DeleteAllMatchesQueued" xml:space="preserve">
+    <value>Zadanie usuwania uruchomione dla {0} wiadomości. ID zadania: {1}</value>
+  </data>
+  <data name="DeleteAllMatchesPreviewFailed" xml:space="preserve">
+    <value>Nie można ustalić liczby pasujących wiadomości. Spróbuj ponownie.</value>
+  </data>
+  <data name="SkippedLockedEmails" xml:space="preserve">
+    <value>Pominięto (zablokowane)</value>
+  </data>
+  <data name="FilterJob" xml:space="preserve">
+    <value>Filtr</value>
+  </data>
   <data name="PasswordLoginDisabledError" xml:space="preserve">
     <value>Logowanie hasłem jest wyłączone. Zaloguj się przez swojego dostawcę tożsamości.</value>
   </data>

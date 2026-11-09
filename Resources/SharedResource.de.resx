@@ -2234,6 +2234,9 @@
   <data name="MaxSelectionsReached" xml:space="preserve">
     <value>Maximale Auswahl erreicht ({0})</value>
   </data>
+  <data name="SelectAllMatching" xml:space="preserve">
+    <value>Alle {0} Treffer auswählen</value>
+  </data>
   <data name="SelectAllOnPage" xml:space="preserve">
     <value>alle auf der Seite auswählen</value>
   </data>
@@ -3625,6 +3628,48 @@
   <data name="MailcowNewImapPasswordRequired" xml:space="preserve"><value>Geben Sie nach dem Verlassen von Mailcow ein neues IMAP-Passwort ein.</value></data>
   <data name="MailcowLinkSuccess" xml:space="preserve"><value>Konto mit Mailcow-Instanz {0} verknüpft.</value></data>
   <data name="MailcowDetachSuccess" xml:space="preserve"><value>Mailcow-Zugriff widerrufen. Geben Sie neue Zugangsdaten für den ausgewählten Provider ein.</value></data>
+  <data name="DeleteAllMatches" xml:space="preserve">
+    <value>Alle Treffer löschen</value>
+  </data>
+  <data name="DeleteAllMatchesTitle" xml:space="preserve">
+    <value>Alle passenden E-Mails löschen</value>
+  </data>
+  <data name="DeleteAllMatchesWarning" xml:space="preserve">
+    <value>Dies löscht {0} E-Mail(s) dauerhaft, die dem aktuellen Filter entsprechen. Das kann nicht rückgängig gemacht werden; jede Löschung wird protokolliert.</value>
+  </data>
+  <data name="DeleteAllMatchesLockedInfo" xml:space="preserve">
+    <value>{0} passende E-Mail(s) sind durch die Aufbewahrungsrichtlinie gesperrt und bleiben erhalten.</value>
+  </data>
+  <data name="DeleteAllMatchesConfirmLabel" xml:space="preserve">
+    <value>Anzahl der E-Mails zur Bestätigung eingeben</value>
+  </data>
+  <data name="DeleteAllMatchesCountChanged" xml:space="preserve">
+    <value>Die Treffermenge hat sich geändert (bestätigt: {0}, aktuell: {1}). Filter prüfen und erneut bestätigen.</value>
+  </data>
+  <data name="DeleteAllMatchesNoMatches" xml:space="preserve">
+    <value>Keine löschbaren E-Mails entsprechen diesem Filter.</value>
+  </data>
+  <data name="DeleteAllMatchesNoMatchesLocked" xml:space="preserve">
+    <value>Keine löschbaren E-Mails entsprechen diesem Filter; {0} passende E-Mail(s) sind durch die Aufbewahrungsrichtlinie gesperrt.</value>
+  </data>
+  <data name="DeleteAllMatchesFilterRequired" xml:space="preserve">
+    <value>Die Treffermenge muss zuerst eingeschränkt werden (Suchbegriff, Datum, Ordner oder Konto).</value>
+  </data>
+  <data name="DeleteAllMatchesCapExceeded" xml:space="preserve">
+    <value>{0} Treffer überschreiten das konfigurierte Maximum von {1}. Filter weiter einschränken.</value>
+  </data>
+  <data name="DeleteAllMatchesQueued" xml:space="preserve">
+    <value>Löschjob für {0} E-Mails gestartet. Job-ID: {1}</value>
+  </data>
+  <data name="DeleteAllMatchesPreviewFailed" xml:space="preserve">
+    <value>Die Anzahl der passenden E-Mails konnte nicht ermittelt werden. Bitte erneut versuchen.</value>
+  </data>
+  <data name="SkippedLockedEmails" xml:space="preserve">
+    <value>Übersprungen (gesperrt)</value>
+  </data>
+  <data name="FilterJob" xml:space="preserve">
+    <value>Filter</value>
+  </data>
   <data name="PasswordLoginDisabledError" xml:space="preserve">
     <value>Die Passwort-Anmeldung ist deaktiviert. Bitte melden Sie sich über Ihren Identity Provider an.</value>
   </data>
