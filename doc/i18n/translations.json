@@ -1,4 +1,187 @@
 {
-  "version": 1,
-  "languages": {}
+  "languages": {
+    "de": {
+      "API.md": {
+        "model": "google/gemma-4-26b-a4b-it",
+        "source_sha256": "ff326b5522accdee54f96a4e849e38e799f55ee88b5fc58673abb1f6ee3c40d3",
+        "translated_at": "2026-11-10T13:00:04Z"
+      },
+      "AZURE_APP_REGISTRATION_M365.md": {
+        "model": "google/gemma-4-26b-a4b-it",
+        "source_sha256": "3f2b42b418100b13b2ba09ade265bbbbe726cea305bd121e69fc19b4d7d8eac1",
+        "translated_at": "2026-11-10T13:00:29Z"
+      },
+      "Account-Import.md": {
+        "model": "google/gemma-4-26b-a4b-it",
+        "source_sha256": "868e78d0bd63159a2ee6c14ef9becd5f0c65bc2f15db0a4e6ba6091d6b5b5229",
+        "translated_at": "2026-11-10T13:01:05Z"
+      },
+      "AccountStorage.md": {
+        "model": "google/gemma-4-26b-a4b-it",
+        "source_sha256": "b32517fcdaf2297dcc4ad1d2b15829cbb00588caa214cb8fc1312bb313bce0bf",
+        "translated_at": "2026-11-10T13:01:16Z"
+      },
+      "AttachmentDeduplication.md": {
+        "model": "google/gemma-4-26b-a4b-it",
+        "source_sha256": "d75be1069f6b8ab807194d164910481f713c6f186f64f9bf1045127ada806bd8",
+        "translated_at": "2026-11-10T13:01:35Z"
+      },
+      "AuditExport.md": {
+        "model": "google/gemma-4-26b-a4b-it",
+        "source_sha256": "2bb88a3e2cb2975a7844ad59e1a4b81d9e3dd6947adb9868a9d917e53d3686da",
+        "translated_at": "2026-11-10T13:01:56Z"
+      },
+      "BackgroundJobs.md": {
+        "model": "google/gemma-4-26b-a4b-it",
+        "source_sha256": "45942a91c00015c1a30efcc85300470f6b6674bd491518f74edf4b40758fc1f2",
+        "translated_at": "2026-11-10T13:02:36Z"
+      },
+      "BackupRestore.md": {
+        "model": "google/gemma-4-26b-a4b-it",
+        "source_sha256": "6bdc832e6a3ac8af457f90d3ca8d23edce002b8d1c3870d1a247b835f9bc81a4",
+        "translated_at": "2026-11-10T13:03:45Z"
+      },
+      "CLI.md": {
+        "model": "google/gemma-4-26b-a4b-it",
+        "source_sha256": "17aef96dc2791f5a0b9bbd03340ca5a44f239a1cbf3dc3740003448a35746df9",
+        "translated_at": "2026-11-10T13:05:34Z"
+      },
+      "DatabaseMaintenance.md": {
+        "model": "google/gemma-4-26b-a4b-it",
+        "source_sha256": "f9898ce1055ae16d5389ab31e694914171b3358570b470ec73c91bc44f2b4b38",
+        "translated_at": "2026-11-10T13:06:17Z"
+      },
+      "DevTag.md": {
+        "model": "google/gemma-4-26b-a4b-it",
+        "source_sha256": "d5f48a247ce5f2334433e8a7bd03b8419d127564249aa283300251a226820c29",
+        "translated_at": "2026-11-10T13:07:25Z"
+      },
+      "DockerComposeLogs.md": {
+        "model": "google/gemma-4-26b-a4b-it",
+        "source_sha256": "97da2495bdd4cad14f6107ff5e251bbd6cf6dc55f87b37f894ae9dc13b9df613",
+        "translated_at": "2026-11-10T13:08:02Z"
+      },
+      "EmergencyAccountRecovery.md": {
+        "model": "google/gemma-4-26b-a4b-it",
+        "source_sha256": "7b3081acb22e278131ca3f124e1c60a909f3ea8bb78a05ba25423624572771b4",
+        "translated_at": "2026-11-10T13:09:40Z"
+      },
+      "Export-Account.md": {
+        "model": "google/gemma-4-26b-a4b-it",
+        "source_sha256": "ff36e86cbe7cb20bfaa395b3285da18c03f5c26f458f5050f26c0d974c5317c7",
+        "translated_at": "2026-11-10T13:10:48Z"
+      },
+      "GmailBestPractices.md": {
+        "model": "google/gemma-4-26b-a4b-it",
+        "source_sha256": "05f91b89b1b695833d082e8ef818c47146aa6155e7d41933148a863a01626f47",
+        "translated_at": "2026-11-10T13:11:41Z"
+      },
+      "Import-EML-MBox.md": {
+        "model": "google/gemma-4-26b-a4b-it",
+        "source_sha256": "8bbadc6a7f6024169dd85bf4cb53c614c7692163f6a67562424ff395e99720ca",
+        "translated_at": "2026-11-10T13:12:17Z"
+      },
+      "LocalTestEnvironment.md": {
+        "model": "google/gemma-4-26b-a4b-it",
+        "source_sha256": "ae0d36d48121428b00b5770656da688466d42bad1db581827722d0bca18e9f4d",
+        "translated_at": "2026-11-10T13:13:55Z"
+      },
+      "Localization.md": {
+        "model": "google/gemma-4-26b-a4b-it",
+        "source_sha256": "d4b47cde7a2208450c1605209e8d818f1b97228a2c7f68f351c370670eb25e95",
+        "translated_at": "2026-11-10T13:14:14Z"
+      },
+      "Logs.md": {
+        "model": "google/gemma-4-26b-a4b-it",
+        "source_sha256": "59ff91b291e73d2ec55bfa96292cf5b9a72131c638b5b33fdd4116b9e9881a51",
+        "translated_at": "2026-11-10T13:14:24Z"
+      },
+      "M365TenantImport.md": {
+        "model": "google/gemma-4-26b-a4b-it",
+        "source_sha256": "7883ae164dc2d93cc6a88c23fdc0684ea257b32b5411a7e44448360d158902dc",
+        "translated_at": "2026-11-10T13:15:49Z"
+      },
+      "MCP.md": {
+        "model": "google/gemma-4-26b-a4b-it",
+        "source_sha256": "8c9228f0534a5470bfaec9ae3a045be5a7e2c4e6eb0ebb1df7bd7526a65d732c",
+        "translated_at": "2026-11-10T13:17:16Z"
+      },
+      "MSA_Outlook_Setup.md": {
+        "model": "google/gemma-4-26b-a4b-it",
+        "source_sha256": "a096b83c90d48e9257a45be86b9fbafc007d0509646cc3ba60b65e0b78fd4543",
+        "translated_at": "2026-11-10T13:18:32Z"
+      },
+      "MailboxMigration.md": {
+        "model": "google/gemma-4-26b-a4b-it",
+        "source_sha256": "5c6e09e017e0dd2286f9b1aa399978bced3de9287515e2875ffac794966c87ec",
+        "translated_at": "2026-11-10T13:19:01Z"
+      },
+      "Mailcow.md": {
+        "model": "google/gemma-4-26b-a4b-it",
+        "source_sha256": "2839ede9f4760b8b18b160570e6830a11b5aa266240ba342f280ff82047ccc80",
+        "translated_at": "2026-11-10T13:19:38Z"
+      },
+      "OIDC_Implementation.md": {
+        "model": "google/gemma-4-26b-a4b-it",
+        "source_sha256": "d4face58ac10ec71584967e8f428e757d3568cbb2f35a4a55675fcbf7e2c1007",
+        "translated_at": "2026-11-10T13:20:54Z"
+      },
+      "Offload.md": {
+        "model": "google/gemma-4-26b-a4b-it",
+        "source_sha256": "e850d6283b25604c571b78094610353329c5770746a1960389c3b67bb5ff6aa4",
+        "translated_at": "2026-11-10T13:21:28Z"
+      },
+      "PostgreSQLUpgrade.md": {
+        "model": "google/gemma-4-26b-a4b-it",
+        "source_sha256": "a200db5cf46ffd5074fa3ef49b5eb0a950ee4c00a10e5ec710972c974f40ee36",
+        "translated_at": "2026-11-10T13:21:45Z"
+      },
+      "RateLimitHandling.md": {
+        "model": "google/gemma-4-26b-a4b-it",
+        "source_sha256": "5fdbe1c4b44b3be812b7149f64332a7ccdc3b108fd13f7cb2b815607a4a6631a",
+        "translated_at": "2026-11-10T13:22:08Z"
+      },
+      "RawMessages.md": {
+        "model": "google/gemma-4-26b-a4b-it",
+        "source_sha256": "37394fd91f2ad34a4bcf732de7b4d35e6306481899d4265a7d7ad1c7a4f6341d",
+        "translated_at": "2026-11-10T13:22:43Z"
+      },
+      "RetentionPolicies.md": {
+        "model": "google/gemma-4-26b-a4b-it",
+        "source_sha256": "bdf5ab76a13458d0cac1516411d115af63da8f85c8d01c0596226e72732d45a9",
+        "translated_at": "2026-11-10T13:22:58Z"
+      },
+      "ReverseProxy.md": {
+        "model": "google/gemma-4-26b-a4b-it",
+        "source_sha256": "2582f02d5a2fd30e344b8f492b6ef7e813b49d3aaa544e47fab9f171a580b582",
+        "translated_at": "2026-11-10T13:23:05Z"
+      },
+      "Search.md": {
+        "model": "google/gemma-4-26b-a4b-it",
+        "source_sha256": "622528a20203d55410c00e8a9474f84f194d84aff7829a502b336301aeb3df1c",
+        "translated_at": "2026-11-10T13:23:37Z"
+      },
+      "TwoFactor.md": {
+        "model": "google/gemma-4-26b-a4b-it",
+        "source_sha256": "e85a5479d1d74dff939cfe2367a5d2d559a51b690b9990c0f57a34d29759fac1",
+        "translated_at": "2026-11-10T13:25:48Z"
+      },
+      "UserManagement.md": {
+        "model": "google/gemma-4-26b-a4b-it",
+        "source_sha256": "36369678c16d53a719ac40caddb15adfc37dc2f39aeed4559f516019bf3d8bd7",
+        "translated_at": "2026-11-10T13:26:18Z"
+      },
+      "YahooMailExportLimitations.md": {
+        "model": "google/gemma-4-26b-a4b-it",
+        "source_sha256": "1f2ce82da792766310bbe861263789980b59eb1af9a35c015060a8bd5c86c6d4",
+        "translated_at": "2026-11-10T13:26:21Z"
+      },
+      "index.md": {
+        "model": "google/gemma-4-26b-a4b-it",
+        "source_sha256": "ad323f603a02d139ba2307b90f350168551188477814e2b6d84a7024c1eaf82c",
+        "translated_at": "2026-11-10T13:26:54Z"
+      }
+    }
+  },
+  "version": 1
 }
