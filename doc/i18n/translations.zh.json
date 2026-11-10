@@ -166,6 +166,11 @@
         "source_sha256": "875b6b5801a4599b0e734d137e08eba417294d5a3f15703d314d6e46c224e530",
         "translated_at": "2026-11-10T14:42:07Z"
       },
+      "Synchronization.md": {
+        "model": "google/gemma-4-26b-a4b-it",
+        "source_sha256": "d05e5fa875d29b73a50fb7e37e0e6c88a0324946537c0fac55e63bcb07de24e9",
+        "translated_at": "2026-11-10T14:50:11Z"
+      },
       "TwoFactor.md": {
         "model": "google/gemma-4-26b-a4b-it",
         "source_sha256": "e85a5479d1d74dff939cfe2367a5d2d559a51b690b9990c0f57a34d29759fac1",
