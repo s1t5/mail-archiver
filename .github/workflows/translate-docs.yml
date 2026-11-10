@@ -111,7 +111,6 @@ jobs:
 
           python tools/translate_docs.py \
             --lang "${{ matrix.language }}" \
-            --nav \
             --max-seconds 18000
 
           git add doc
@@ -159,6 +158,27 @@ jobs:
 
       - name: Install documentation dependencies
         run: python -m pip install -r requirements-docs.txt
+
+      - name: Translate navigation labels
+        env:
+          LLM_BASE_URL: ${{ vars.LLM_BASE_URL }}
+          LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
+          LLM_MODEL: ${{ vars.LLM_MODEL }}
+        run: python tools/translate_docs.py --nav
+
+      - name: Commit navigation labels
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add doc/i18n/nav.yml
+          if git diff --cached --quiet; then
+            echo "Navigation labels are current."
+            exit 0
+          fi
+          git commit -m "docs: update navigation labels"
+          git pull --rebase origin main
+          git push origin main
 
       - name: Build site
         # --strict turns a broken link or a missing revision date into a failure.

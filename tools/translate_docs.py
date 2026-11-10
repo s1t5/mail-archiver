@@ -382,7 +382,9 @@ def count_headings(text: str, level: int) -> int:
 
 
 def count_tables(text: str) -> int:
-    return len(re.findall(r"(?m)^\s*\|?[\s:-]*-[\s:|-]*\|?\s*$", text))
+    # A table separator needs at least one pipe. A bare "---" is a horizontal
+    # rule, not a table, and must not be counted.
+    return len(re.findall(r"(?m)^\s*\|?(?:\s*:?-+:?\s*\|)+(?:\s*:?-+:?\s*)?$", text))
 
 
 def count_admonitions(text: str) -> int:
