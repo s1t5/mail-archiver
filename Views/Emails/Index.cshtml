@@ -246,6 +246,15 @@
                             </div>
                         </div>
                     </div>
+
+                    @* Also at the top: with a long result list the way back to the navigation
+                       is a scroll to the bottom, one page forward and another scroll up. *@
+                    @if (Model.TotalPages > 1)
+                    {
+                        <div class="px-3 py-2 border-bottom">
+                            @await Html.PartialAsync("_Pagination", Model)
+                        </div>
+                    }
                     
                     @if (Model.ShowSelectionControls)
                     {
@@ -424,34 +433,12 @@
                     </div>
 
                     <!-- Pagination -->
-                    <div class="card-footer">
-                        <nav>
-                            <ul class="pagination pagination-sm justify-content-center mb-0">
-                                @if (Model.PageNumber > 1)
-                                {
-                                    <li class="page-item">
-                                        <a class="page-link" href="@Url.Action("Index", new { SearchTerm = Model.SearchTerm, FromDate = Model.FromDate?.ToString("yyyy-MM-dd"), ToDate = Model.ToDate?.ToString("yyyy-MM-dd"), SelectedAccountId = Model.SelectedAccountId, SelectedFolder = Model.SelectedFolder, IsOutgoing = Model.IsOutgoing, PageNumber = Model.PageNumber - 1, PageSize = Model.PageSize, ShowSelectionControls = Model.ShowSelectionControls, SortBy = Model.SortBy, SortOrder = Model.SortOrder })">@Localizer["Previous"]</a>
-                                    </li>
-                                }
-                                @{
-                                    var startPage = Math.Max(1, Model.PageNumber - 1);
-                                    var endPage = Math.Min(Model.TotalPages, Model.PageNumber + 1);
-                                }
-                                @for (int i = startPage; i <= endPage; i++)
-                                {
-                                    <li class="page-item @(i == Model.PageNumber ? "active" : "")">
-                                        <a class="page-link" href="@Url.Action("Index", new { SearchTerm = Model.SearchTerm, FromDate = Model.FromDate?.ToString("yyyy-MM-dd"), ToDate = Model.ToDate?.ToString("yyyy-MM-dd"), SelectedAccountId = Model.SelectedAccountId, SelectedFolder = Model.SelectedFolder, IsOutgoing = Model.IsOutgoing, PageNumber = i, PageSize = Model.PageSize, ShowSelectionControls = Model.ShowSelectionControls, SortBy = Model.SortBy, SortOrder = Model.SortOrder })">@i</a>
-                                    </li>
-                                }
-                                @if (Model.PageNumber < Model.TotalPages)
-                                {
-                                    <li class="page-item">
-                                        <a class="page-link" href="@Url.Action("Index", new { SearchTerm = Model.SearchTerm, FromDate = Model.FromDate?.ToString("yyyy-MM-dd"), ToDate = Model.ToDate?.ToString("yyyy-MM-dd"), SelectedAccountId = Model.SelectedAccountId, SelectedFolder = Model.SelectedFolder, IsOutgoing = Model.IsOutgoing, PageNumber = Model.PageNumber + 1, PageSize = Model.PageSize, ShowSelectionControls = Model.ShowSelectionControls, SortBy = Model.SortBy, SortOrder = Model.SortOrder })">@Localizer["Next"]</a>
-                                    </li>
-                                }
-                            </ul>
-                        </nav>
-                    </div>
+                    @if (Model.TotalPages > 1)
+                    {
+                        <div class="card-footer">
+                            @await Html.PartialAsync("_Pagination", Model)
+                        </div>
+                    }
                 </div>
             }
             else if (Model.SearchResults != null)

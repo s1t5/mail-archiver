@@ -116,9 +116,6 @@ namespace MailArchiver.Controllers
                 model.DirectionOptions[2].Text = _localizer["Outgoing"];
             }
 
-            // Store search state for return navigation
-            StoreSearchState(model);
-
             // Get current user's allowed accounts
             var allowedAccountIds = await GetAllowedAccountIdsAsync();
 
@@ -179,29 +176,47 @@ namespace MailArchiver.Controllers
             // Load folder tree for the selected account (or all accounts if none selected)
             model.FolderTree = await _emailCoreService.GetFolderTreeAsync(model.SelectedAccountId, allowedAccountIds);
 
-            // Berechnen der Anzahl zu überspringender Elemente für die Paginierung
-            int skip = (model.PageNumber - 1) * model.PageSize;
-
             // For non-admin users, we need to ensure they only see emails from their assigned accounts
             // If they haven't selected a specific account, we still need to filter by their allowed accounts
             int? accountIdForSearch = model.SelectedAccountId;
-            
+
+            async Task<(List<ArchivedEmail> Emails, int TotalCount)> SearchPageAsync(int pageNumber)
+            {
+                return await _emailCoreService.SearchEmailsAsync(
+                    model.SearchTerm,
+                    model.FromDate,
+                    model.ToDate,
+                    accountIdForSearch,
+                    model.SelectedFolder,
+                    model.IsOutgoing,
+                    (pageNumber - 1) * model.PageSize,
+                    model.PageSize,
+                    allowedAccountIds,
+                    model.SortBy ?? "SentDate",
+                    model.SortOrder ?? "desc");
+            }
+
             // Suche durchführen
-            var (emails, totalCount) = await _emailCoreService.SearchEmailsAsync(
-                model.SearchTerm,
-                model.FromDate,
-                model.ToDate,
-                accountIdForSearch,
-                model.SelectedFolder,
-                model.IsOutgoing,
-                skip,
-                model.PageSize,
-                allowedAccountIds,
-                model.SortBy ?? "SentDate",
-                model.SortOrder ?? "desc");
+            var (emails, totalCount) = await SearchPageAsync(model.PageNumber);
 
             model.SearchResults = emails;
             model.TotalResults = totalCount;
+
+            // A page number past the end (typed into the jump box, or a stale link after
+            // the archive changed) would render an empty list although results exist.
+            // Land on the last page instead.
+            var lastPage = Math.Max(1, (int)Math.Ceiling(totalCount / (double)model.PageSize));
+            if (totalCount > 0 && model.PageNumber > lastPage)
+            {
+                model.PageNumber = lastPage;
+                (emails, totalCount) = await SearchPageAsync(lastPage);
+                model.SearchResults = emails;
+                model.TotalResults = totalCount;
+            }
+
+            // Store search state for return navigation, after the page number has been
+            // clamped, so "back to the list" does not return to an empty page.
+            StoreSearchState(model);
 
                     // Log the search action
                     if (_accessLogService != null && _serviceScopeFactory != null)

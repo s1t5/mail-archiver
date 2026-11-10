@@ -147,6 +147,12 @@
   <data name="PageOf" xml:space="preserve">
     <value>{0}. oldal / {1}</value>
   </data>
+  <data name="GoToPage" xml:space="preserve">
+    <value>Ugrás az oldalra</value>
+  </data>
+  <data name="Go" xml:space="preserve">
+    <value>Ugrás</value>
+  </data>
   <data name="SelectAll" xml:space="preserve">
     <value>Összes Kijelölése</value>
   </data>

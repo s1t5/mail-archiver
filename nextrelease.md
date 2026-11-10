@@ -3,6 +3,7 @@
 - **Select All Matching** - Selection mode can select every email matching the current search across all pages, up to the selection limit, instead of one page at a time.
 
 ## ⚙️ Improvements
+- **Pagination With Page Jump** - The email list now shows its navigation above and below the results, offers the first and last page plus a window around the current one, and has a field to jump directly to a page. A page number past the end lands on the last page instead of an empty list.
 - **Resizable Table Columns** - The email list and the account overview let you drag a column edge to change its width, so a long sender address no longer squeezes the subject. The widths are not stored; a reload restores the natural layout.
 - **Update Hint for Administrators** - When GitHub publishes a newer stable release than the installed version, administrators see a small toast in the lower right corner linking to that release. The toast is dismissed per version in the browser, drafts and prereleases are ignored, and the release list is refreshed every six hours instead of once per application lifetime.
 - **Restore Uses the Stored Original** - Restoring an email to a mailbox now appends the stored original when one exists, the same cascade as the single-email export. Only emails archived without an original are rebuilt from the archived fields. A stored original that fails its checksum aborts the restore instead of falling back to the rebuild.

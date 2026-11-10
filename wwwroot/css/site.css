@@ -452,6 +452,27 @@ body.col-resizing {
   border-color: var(--primary-color);
 }
 
+/* Own classes, not d-flex/align-items-center: the global rule for that pair below
+   1024px stretches it to full width and spreads its children apart. */
+.pagination-bar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.pagination-jump {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+/* Jump-to-page field next to the pagination; a form-control is full width by default */
+.pagination-jump-input {
+  width: 5.5rem;
+}
+
 /* Footer */
 .footer {
   position: absolute;
