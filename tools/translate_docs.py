@@ -728,6 +728,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--check", action="store_true", help="report stale translations")
     parser.add_argument("--nav", action="store_true", help="translate navigation labels")
     parser.add_argument("--selftest", action="store_true", help="run offline checks")
+    parser.add_argument(
+        "--max-seconds",
+        type=int,
+        default=0,
+        help="stop before the next page after this many seconds (0 means no limit)",
+    )
     return parser.parse_args()
 
 
@@ -774,8 +780,10 @@ def main() -> int:
     if not (args.all or args.lang or args.nav):
         args.all = True
 
+    started = time.monotonic()
     changed = 0
     failures: list[str] = []
+    stopped_early = False
     if args.all or args.lang:
         removed = remove_orphans(languages, sources, manifest)
         if removed:
@@ -784,6 +792,14 @@ def main() -> int:
         for locale in languages:
             print(f"[{locale}]")
             for source in sources:
+                if args.max_seconds and time.monotonic() - started >= args.max_seconds:
+                    print(
+                        f"Time budget of {args.max_seconds}s reached, "
+                        f"stopping before {source.name}.",
+                        file=sys.stderr,
+                    )
+                    stopped_early = True
+                    break
                 try:
                     state = translate_file(
                         source, locale, manifest, model, base_url, api_key, timeout, args.force
@@ -791,10 +807,14 @@ def main() -> int:
                 except RuntimeError as exc:
                     failures.append(f"{locale}/{source.name}: {exc}")
                     print(f"  FAILED {source.name} [{locale}]: {exc}", file=sys.stderr)
+                    save_manifest(manifest)
                     continue
                 if state == "translated":
                     changed += 1
+                save_manifest(manifest)
             save_manifest(manifest)
+            if stopped_early:
+                break
 
     if args.nav:
         print("[navigation]")

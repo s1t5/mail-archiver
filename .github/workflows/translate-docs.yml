@@ -28,6 +28,11 @@ on:
       - 'doc/i18n/**'
       - 'mkdocs.yml'
       - 'requirements-docs.txt'
+  # The first full run covers 38 pages in 12 locales and does not fit into a
+  # single job. The script stops at its time budget, commits the progress, and
+  # this schedule picks the remaining pages up on the next run.
+  schedule:
+    - cron: '0 */2 * * *'
 
 permissions:
   contents: write
@@ -58,6 +63,9 @@ jobs:
         run: python -m pip install -r requirements-docs.txt
 
       - name: Translate changed pages
+        # Stops before the six hour job limit and leaves the remaining pages to
+        # the next scheduled run.
+        timeout-minutes: 350
         env:
           LLM_BASE_URL: ${{ vars.LLM_BASE_URL }}
           LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
@@ -65,9 +73,9 @@ jobs:
           LANGUAGE: ${{ inputs.language }}
         run: |
           if [ -n "$LANGUAGE" ]; then
-            python tools/translate_docs.py --lang "$LANGUAGE" --nav
+            python tools/translate_docs.py --lang "$LANGUAGE" --nav --max-seconds 18000
           else
-            python tools/translate_docs.py --all --nav
+            python tools/translate_docs.py --all --nav --max-seconds 18000
           fi
 
       - name: Commit translations
