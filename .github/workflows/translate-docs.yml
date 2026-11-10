@@ -28,6 +28,7 @@ on:
       - 'doc/i18n/**'
       - 'mkdocs.yml'
       - 'requirements-docs.txt'
+      - '.github/workflows/translate-docs.yml'
   # The first full run covers 38 pages in 12 locales and does not fit into a
   # single job. Each locale is committed separately, so an interrupted run keeps
   # everything it finished and this schedule continues with the rest.
