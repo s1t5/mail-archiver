@@ -1,9 +1,9 @@
 name: Translate documentation
 
 # Translates changed English pages into every locale that exists in
-# Resources/SharedResource.*.resx and opens or updates a pull request with the
-# result. English stays the source of truth; the translated files are plain
-# Markdown next to their source and are reviewed like any other change.
+# Resources/SharedResource.*.resx and commits the result directly to main.
+# English stays the source of truth; the translated files are plain Markdown
+# next to their source.
 #
 # Each locale runs in its own matrix job. The files are disjoint per locale
 # (Page.de.md, Page.es.md) and every locale writes its own manifest
@@ -15,7 +15,7 @@ name: Translate documentation
 #   variable LLM_MODEL      model name, for example openai/gpt-4o-mini
 #
 # When LLM_API_KEY is absent the job still builds the site and exits without a
-# translation PR, so forks and fresh checkouts stay green.
+# translation commit, so forks and fresh checkouts stay green.
 
 on:
   workflow_dispatch:
@@ -40,7 +40,6 @@ on:
 
 permissions:
   contents: write
-  pull-requests: write
 
 concurrency:
   group: docs-translations
@@ -48,6 +47,9 @@ concurrency:
 
 jobs:
   languages:
+    # The translation commits themselves touch doc/**, which matches the push
+    # filter. Skip those runs so the workflow does not trigger itself.
+    if: github.event_name != 'push' || github.event.head_commit.author.name != 'github-actions[bot]'
     runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.set.outputs.matrix }}
@@ -83,6 +85,7 @@ jobs:
         with:
           # The revision-date plugin needs the full history.
           fetch-depth: 0
+          ref: main
 
       - name: Set up Python
         uses: actions/setup-python@v7
@@ -106,17 +109,6 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          if git ls-remote --exit-code --heads origin docs/translations >/dev/null 2>&1; then
-            git fetch origin docs/translations
-            git checkout -B docs/translations origin/docs/translations
-          else
-            git checkout -B docs/translations
-          fi
-
-          # The branch may predate fixes in main. Run the current script so
-          # every job uses the same chunking and validation logic.
-          git checkout origin/main -- tools/translate_docs.py
-
           python tools/translate_docs.py \
             --lang "${{ matrix.language }}" \
             --nav \
@@ -131,49 +123,20 @@ jobs:
           git commit -m "docs: update ${{ matrix.language }} translations"
 
           # Several locale jobs push at the same time. Rebase onto the latest
-          # branch state and retry; the files and manifests are disjoint.
+          # main and retry; the files and manifests are disjoint.
           for attempt in 1 2 3 4 5; do
-            if git ls-remote --exit-code --heads origin docs/translations >/dev/null 2>&1; then
-              git pull --rebase origin docs/translations || {
-                git rebase --abort || true
-                sleep 5
-                continue
-              }
-            fi
-            if git push origin docs/translations; then
+            git pull --rebase origin main || {
+              git rebase --abort || true
+              sleep 5
+              continue
+            }
+            if git push origin main; then
               exit 0
             fi
             sleep $((attempt * 5))
           done
           echo "::error::Could not push the translations for ${{ matrix.language }}."
           exit 1
-
-  pull-request:
-    needs: translate
-    if: always() && needs.translate.result != 'cancelled'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v7
-      - name: Open the translation pull request
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          set -euo pipefail
-          if ! git ls-remote --exit-code --heads origin docs/translations >/dev/null 2>&1; then
-            echo "No translation branch, nothing to open."
-            exit 0
-          fi
-          if gh pr view docs/translations >/dev/null 2>&1; then
-            echo "The pull request already exists."
-            exit 0
-          fi
-          gh pr create \
-            --base main \
-            --head docs/translations \
-            --title "docs: update translations" \
-            --body "Automated translation update. English remains the source of truth; review the generated pages before merging." \
-            || echo "::warning::Could not create the pull request. Enable 'Allow GitHub Actions to create and approve pull requests' under Settings > Actions > General. The branch docs/translations was pushed and can be opened manually."
 
   build:
     needs: translate
@@ -185,6 +148,7 @@ jobs:
         with:
           # git-revision-date-localized needs the full history.
           fetch-depth: 0
+          ref: main
 
       - name: Set up Python
         uses: actions/setup-python@v7
@@ -195,14 +159,6 @@ jobs:
 
       - name: Install documentation dependencies
         run: python -m pip install -r requirements-docs.txt
-
-      - name: Check out the translation branch
-        run: |
-          set -euo pipefail
-          if git ls-remote --exit-code --heads origin docs/translations >/dev/null 2>&1; then
-            git fetch origin docs/translations
-            git checkout docs/translations
-          fi
 
       - name: Build site
         # --strict turns a broken link or a missing revision date into a failure.
