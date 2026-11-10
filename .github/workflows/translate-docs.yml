@@ -113,6 +113,10 @@ jobs:
             git checkout -B docs/translations
           fi
 
+          # The branch may predate fixes in main. Run the current script so
+          # every job uses the same chunking and validation logic.
+          git checkout origin/main -- tools/translate_docs.py
+
           python tools/translate_docs.py \
             --lang "${{ matrix.language }}" \
             --nav \

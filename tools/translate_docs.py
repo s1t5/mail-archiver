@@ -590,7 +590,9 @@ def translate_chunk(
         feedback = (
             "The previous answer changed the Markdown structure ("
             + "; ".join(problems)
-            + "). Repeat the translation without changing the structure."
+            + "). Repeat the translation and keep every table row, list item, "
+            "link and code fence exactly as in the source. Do not add code "
+            "fences that the source does not contain."
         )
     raise RuntimeError(
         f"translation failed validation after {MAX_VALIDATION_RETRIES} attempts: {last_problem}"
