@@ -1,12 +1,9 @@
-# 📧 Dokumentacja Mail Archiver {#mail-archiver-documentation}
+# 📧 Mail Archiver Documentation {#mail-archiver-documentation}
 
 <div class="docs-lead" markdown>
-**Samodzielne hostowanie archiwizacji poczty e-mail — archiwizuj, przeszukuj i eksportuj pocztę od dowolnego dostawcy.**
+**Samodzielne hostowanie archiwizacji e-mail — Archiwum, wyszukiwanie i eksport poczty od dowolnego dostawcy.**
 Skonfiguruj raz, zachowaj każdą wiadomość i znajdź ją ponownie po latach.
 </div>
-
-!!! note "Tłumaczenia"
-    Angielska dokumentacja jest źródłem nadrzędnym. Każdy inny język jest automatycznie tłumaczony z tych stron i może zawierać błędy. Aby zmienić język, użyj przełącznika języka w nagłówku.
 
 <div class="grid cards" markdown>
 
@@ -22,7 +19,7 @@ Skonfiguruj raz, zachowaj każdą wiadomość i znajdź ją ponownie po latach.
 
     ---
 
-    Pełnotekstowe wyszukiwanie we wszystkich Kontach, z filtrami, sortowaniem i działaniami masowymi.
+    Wyszukiwanie pełnotekstowe we wszystkich Kontach, z filtrami, sortowaniem i działaniami masowymi.
 
     [:octicons-arrow-right-24: Wyszukiwanie poczty](Search.md)
 
@@ -30,11 +27,11 @@ Skonfiguruj raz, zachowaj każdą wiadomość i znajdź ją ponownie po latach.
 
     ---
 
-    Odczytuj swoje Archiwum za pomocą skryptów i agentów AI — klucze API w trybie tylko do odczytu z ograniczonym zakresem.
+    Odczytuj swoje Archiwum za pomocą skryptów i agentów AI — klucze API tylko do odczytu, o ograniczonym zakresie.
 
-    [:octicons-arrow-right-24: REST API](API.md) · [:octicons-arrow-right-24: serwer MCP](MCP.md)
+    [:octicons-arrow-right-24: REST API](API.md) · [:octicons-arrow-right-24: MCP server](MCP.md)
 
--   :material-shield-lock:{ .lg .middle } __Bezpieczeństwo__
+-   :material-shield-lock:{ .lg .middle } __Zabezpieczanie__
 
     ---
 
@@ -76,7 +73,7 @@ Skonfiguruj raz, zachowaj każdą wiadomość i znajdź ją ponownie po latach.
 
     ---
 
-    VACUUM, ANALYZE i utrzymanie responsywności Archiwum w czasie.
+    VACUUM, ANALYZE i utrzymywanie responsywności Archiwum w czasie.
 
     [:octicons-arrow-right-24: Czytaj](DatabaseMaintenance.md)
 
@@ -114,7 +111,7 @@ Skonfiguruj raz, zachowaj każdą wiadomość i znajdź ją ponownie po latach.
 
     ---
 
-    Szybka vs pełna Synchronizacja, punkty kontrolne i co się dzieje, gdy synchronizacja zakończy się niepowodzeniem.
+    Szybka vs. pełna Synchronizacja, punkty kontrolne i to, co dzieje się, gdy Synchronizacja zawiedzie.
 
     [:octicons-arrow-right-24: Czytaj](Synchronization.md)
 
@@ -122,7 +119,7 @@ Skonfiguruj raz, zachowaj każdą wiadomość i znajdź ją ponownie po latach.
 
     ---
 
-    Importuj istniejące archiwa z linii poleceń i przenoś przechowywane oryginalne wiadomości między bazą danych a systemem plików.
+    Importuj istniejące Archiwa z linii komend i przenoś przechowywane oryginalne wiadomości między bazą danych a systemem plików.
 
     [:octicons-arrow-right-24: Czytaj](CLI.md)
 
@@ -138,7 +135,7 @@ Skonfiguruj raz, zachowaj każdą wiadomość i znajdź ją ponownie po latach.
 
     ---
 
-    Śledzenie przepustowości i to, jak wstrzymane synchronizacje wznawiają się automatycznie.
+    Śledzenie przepustowości i to, jak wstrzymane Synchronizacje wznawiają się automatycznie.
 
     [:octicons-arrow-right-24: Czytaj](RateLimitHandling.md)
 
@@ -160,7 +157,7 @@ Skonfiguruj raz, zachowaj każdą wiadomość i znajdź ją ponownie po latach.
 
     ---
 
-    Monitoruj synchronizacje, importy, przywracanie i eksporty — i bezpiecznie je anuluj.
+<|"|>Obserwuj Synchronizacje, importy, Przywracanie i eksporty — i bezpiecznie je anuluj.
 
     [:octicons-arrow-right-24: Czytaj](BackgroundJobs.md)
 
@@ -176,19 +173,19 @@ Skonfiguruj raz, zachowaj każdą wiadomość i znajdź ją ponownie po latach.
 
     ---
 
-    Wyeksportuj całe Konto z powrotem jako przenośne Archiwum EML lub MBox.
+    Wyeksportuj całe Konto jako przenośne Archiwum EML lub MBox.
 
     [:octicons-arrow-right-24: Czytaj](Export-Account.md)
 
--   :material-email-lock:{ .lg . middle } __Przechowywanie oryginalnych wiadomości__
+-   :material-email-lock:{ .lg .middle } __Przechowywanie oryginalnych wiadomości__
 
     ---
 
-    Zachowaj wiadomość w formie odebranej, aby DKIM nadal weryfikował dane, a eksporty były identyczne co do bajtów.
+    Zachowaj wiadomość w formie otrzymanej, aby DKIM nadal działał poprawnie, a eksporty były identyczne co do bajtu.
 
     [:octicons-arrow-right-24: Czytaj](RawMessages.md)
 
--   :material-content-duplicate:{ .lg . middle } __Deduplikacja Załączników__
+-   :material-content-duplicate:{ .lg .middle } __Deduplikacja Załączników__
 
     ---
 
@@ -196,37 +193,37 @@ Skonfiguruj raz, zachowaj każdą wiadomość i znajdź ją ponownie po latach.
 
     [:octicons-arrow-right-24: Czytaj](AttachmentDeduplication.md)
 
--   :material-calendar-arrow-right:{ .lg . middle } __Przenoszenie danych w oknach czasowych__
+-   :material-calendar-arrow-right:{ .lg .middle } __Przenoszenie danych w oknach czasowych__
 
     ---
 
-    Przenoszenie starszej poczty do innego Konta, okno po oknie.
+    Przenoś starszą pocztę do innego Konta, okno po oknie.
 
     [:octicons-arrow-right-24: Czytaj](Offload.md)
 
--   :material-harddisk:{ .lg . middle } __Przechowywanie na każde Konto__
+-   :material-harddisk:{ .lg .middle } __Przechowywanie na każde Konto__
 
     ---
 
-    Sprawdź, ile miejsca zajmuje każda Skrzynka pocztowa.
+    Zobacz, ile miejsca zajmuje każda Skrzynka pocztowa.
 
     [:octicons-arrow-right-24: Czytaj](AccountStorage.md)
 
 </div>
 
-## 🔐 Administracja i Bezpieczeństwo {#administration-security}
+## 🔐 Administracja i bezpieczeństwo {#administration-security}
 
 <div class="grid cards" markdown>
 
--   :material-account-group:{ .lg . middle } __Zarządzanie użytkownikami__
+-   :material-account-group:{ .lg .middle } __Zarządzanie użytkownikami__
 
     ---
 
-    Twórz użytkowników, nadawaj uprawnienia administratora, przydzielaj Uprawnienia do Skrzynki pocztowej i zmieniaj własne hasło.
+    Twórz użytkowników, nadawaj uprawnienia administratora, przypisuj Uprawnienia do Skrzynki pocztowej i zmieniaj własne hasło.
 
     [:octicons-arrow-right-24: Czytaj](UserManagement.md)
 
--   :material-two-factor-authentication:{ .lg . middle } __Uwierzytelnianie dwuskładnikowe__
+-   :material-two-factor-authentication:{ .lg .middle } __Uwierzytelnianie dwuskładnikowe__
 
     ---
 
@@ -234,7 +231,7 @@ Skonfiguruj raz, zachowaj każdą wiadomość i znajdź ją ponownie po latach.
 
     [:octicons-arrow-right-24: Czytaj](TwoFactor.md)
 
--   :material-key-chain:{ .lg . middle } __OIDC / SSO__
+-   :material-key-chain:{ .lg .middle } __OIDC / SSO__
 
     ---
 
@@ -242,23 +239,23 @@ Skonfiguruj raz, zachowaj każdą wiadomość i znajdź ją ponownie po latach.
 
     [:octicons-arrow-right-24: Czytaj](OIDC_Implementation.md)
 
--   :material-text-box-search:{ .lg . middle } __Logowanie dostępu__
+-   :material-text-box-search:{ .lg .middle } __Logowanie dostępu__
 
     ---
 
-    Kto otworzył, przeszukiwał, wyeksportował lub usunął i co.
+    Kto otworzył, przeszukiwał, wyeksportował lub usunął co.
 
     [:octicons-arrow-right-24: Czytaj](Logs.md)
 
--   :material-file-export:{ .lg . middle } __Eksport danych audytowych__
+-   :material-file-export:{ .lg .middle } __Eksport danych audytowych__
 
     ---
 
-    Eksportuj ścieżkę audytu do przeglądów zgodności.
+    Eksportuj ścieżkę audytu na potrzeby przeglądów zgodności.
 
     [:octicons-arrow-right-24: Czytaj](AuditExport.md)
 
--   :material-lifebuoy:{ .lg . middle } __Awaryjne odzyskiwanie Konta__
+-   :material-lifebuoy:{ .lg .middle } __Awaryjne odzyskiwanie Konta__
 
     ---
 
@@ -266,7 +263,7 @@ Skonfiguruj raz, zachowaj każdą wiadomość i znajdź ją ponownie po latach.
 
     [:octicons-arrow-right-24: Czytaj](EmergencyAccountRecovery.md)
 
--   :material-delete-sweep:{ .lg . middle } __Polityki Przechowywania__
+-   :material-delete-sweep:{ .lg .middle } __Polityki Przechowywania__
 
     ---
 
@@ -276,11 +273,11 @@ Skonfiguruj raz, zachowaj każdą wiadomość i znajdź ją ponownie po latach.
 
 </div>
 
-## ☁️ Przewodniki Dostawców {#provider-guides}
+## ☁️ Przewodniki dostawców {#provider-guides}
 
 <div class="grid cards" markdown>
 
--   :material-microsoft:{ .lg . middle } __Rejestracja aplikacji Azure (M365)__
+-   :material-microsoft:{ .lg .middle } __Rejestracja aplikacji Azure (M365)__
 
     ---
 
@@ -288,15 +285,15 @@ Skonfiguruj raz, zachowaj każdą wiadomość i znajdź ją ponownie po latach.
 
     [:octicons-arrow-right-24: Czytaj](AZURE_APP_REGISTRATION_M365.md)
 
--   :material-domain:{ .lg . middle } __Import Skrzynki pocztowej dla dzierżawy M365__
+-   :material-domain:{ .lg .middle } __Import Skrzynki pocztowej z dzierżawy M365__
 
     ---
 
-    Masowy import wszystkich Skrzynek pocztowych dzierżawy z jednego formularza.
+    Masowy import każdej Skrzynki pocztowej z dzierżawy za pomocą jednego formularza.
 
     [:octicons-arrow-right-24: Czytaj](M365TenantImport.md)
 
--   :material-email-multiple:{ .lg . middle } __Instancje Mailcow__
+-   :material-email-multiple:{ .lg .middle } __Instancje Mailcow__
 
     ---
 
@@ -304,15 +301,15 @@ Skonfiguruj raz, zachowaj każdą wiadomość i znajdź ją ponownie po latach.
 
     [:octicons-arrow-right-24: Czytaj](Mailcow.md)
 
--   :material-account-key:{ .lg . middle } __Osobiste Konta Microsoft__
+-   :material-account-key:{ .lg .middle } __Osobiste Konta Microsoft__
 
     ---
 
-    Outlook.com, Hotmail i M365 Family przez przepływ kodu urządzenia.
+    Outlook.com, Hotmail i M365 Family przez device code flow.
 
     [:octicons-arrow-right-24: Czytaj](MSA_Outlook_Setup.md)
 
--   :material-google:{ .lg . middle } __Dobre praktyki Gmail__
+-   :material-google:{ .lg .middle } __Dobre praktyki Gmail__
 
     ---
 
@@ -320,7 +317,7 @@ Skonfiguruj raz, zachowaj każdą wiadomość i znajdź ją ponownie po latach.
 
     [:octicons-arrow-right-24: Czytaj](GmailBestPractices.md)
 
--   :material-email-off:{ .lg . middle } __Ograniczenia Yahoo mail__
+-   :material-email-off:{ .lg .middle } __Ograniczenia Yahoo mail__
 
     ---
 
@@ -330,41 +327,41 @@ Skonfiguruj raz, zachowaj każdą wiadomość i znajdź ją ponownie po latach.
 
 </div>
 
-## 🔌 Dostęp Programistyczny {#programmatic-access}
+## 🔌 Dostęp programowy {#programmatic-access}
 
 <div class="grid cards" markdown>
 
--   :material-api:{ .lg . middle } __REST API__
+-   :material-api:{ .lg .middle } __REST API__
 
     ---
 
-    Dostęp tylko do odczytu do Archiwum z ograniczonymi kluczami API dla użytkownika.
+    Dostęp tylko do odczytu do Archiwum z kluczami API o ograniczonym zakresie dla każdego użytkownika.
 
-    [:octicons-arrow-right-24: Czyrad](API.md)
+    [:octicons-arrow-right-24: Czytaj](API.md)
 
--   :material-robot:{ .lg . middle } __serwer MCP__
+-   :material-robot:{ .lg .middle } __MCP server__
 
     ---
 
-    Udostępnij Archiwum agentom AI jako narzędzia możliwe do wykrycia.
+    Udostępnij Archiwum agentom AI jako wykrywalne narzędzia.
 
     [:octicons-arrow-right-24: Czytaj](MCP.md)
 
 </div>
 
-## 🧰 Operacje i Rozwój {#operations-development}
+## 🧰 Operacje i rozwój {#operations-development}
 
 <div class="grid cards" markdown>
 
--   :material-translate:{ .lg . middle } __Język i lokalizacja__
+-   :material-translate:{ .lg .middle } __Język i lokalizacja__
 
     ---
 
-    Zmień język interfejsu oraz dowiedz się, jak dodać tłumaczenie.
+    Zmień język interfejsu i dowiedz się, jak dodać tłumaczenie.
 
     [:octicons-arrow-right-24: Czytaj](Localization.md)
 
--   :material-docker:{ .lg . middle } __Logi Docker Compose__
+-   :material-docker:{ .lg .middle } __Logi Docker Compose__
 
     ---
 
@@ -372,11 +369,11 @@ Skonfiguruj raz, zachowaj każdą wiadomość i znajdź ją ponownie po latach.
 
     [:octicons-arrow-right-24: Czytaj](DockerComposeLogs.md)
 
--   :material-tag:{ .lg . middle } __Wersje rozwojowe__
+-   :material-tag:{ .lg .middle } __Wersje rozwojowe__
 
     ---
 
-    Przełącz się na tag deweloperski, aby przetestować nadchodzące zmiany.
+    Przełącz się na tag dev, aby przetestować nadchodzące zmiany.
 
     [:octicons-arrow-right-24: Czytaj](DevTag.md)
 
@@ -385,7 +382,7 @@ Skonfiguruj raz, zachowaj każdą wiadomość i znajdź ją ponownie po latach.
 ---
 
 <div class="docs-footer-note" markdown>
-:material-pencil: **Ta dokumentacja jest stale rozszerzana.**
+:material-pencil: **Ta dokumentacja jest stale rozbudowywana.**
 Jeśli zauważysz błąd lub masz sugestię, prosimy o
 [otwarcie zgłoszenia](https://github.com/s1t5/mail-archiver/issues) lub przesłanie pull requesta.
 </div>
