@@ -91,3 +91,4 @@ docker compose up -d
 - You can check which version is currently running by looking at the container's image information:
   ```bash
   docker compose images
+  ```

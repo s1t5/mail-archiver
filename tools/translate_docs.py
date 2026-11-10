@@ -513,12 +513,14 @@ def translate_chunk(
     masked, store = mask(chunk)
     user = f"Page: {page_title}\n\n<source>\n{masked}\n</source>"
     feedback = ""
+    last_problem = "unknown"
     for attempt in range(MAX_VALIDATION_RETRIES):
         prompt = user if not feedback else f"{user}\n\n{feedback}"
         raw = request_with_retry(system, prompt, model, base_url, api_key, timeout)
         raw = normalize_placeholders(raw)
         missing = set(store) - placeholders(raw)
         if missing:
+            last_problem = "missing placeholders: " + ", ".join(sorted(missing))
             feedback = (
                 "The previous answer dropped or changed these placeholders: "
                 + ", ".join(sorted(missing))
@@ -529,13 +531,14 @@ def translate_chunk(
         problems = validate(chunk, translated)
         if not problems:
             return translated
+        last_problem = "; ".join(problems)
         feedback = (
             "The previous answer changed the Markdown structure ("
             + "; ".join(problems)
             + "). Repeat the translation without changing the structure."
         )
     raise RuntimeError(
-        f"translation failed validation after {MAX_VALIDATION_RETRIES} attempts"
+        f"translation failed validation after {MAX_VALIDATION_RETRIES} attempts: {last_problem}"
     )
 
 
@@ -772,6 +775,7 @@ def main() -> int:
         args.all = True
 
     changed = 0
+    failures: list[str] = []
     if args.all or args.lang:
         removed = remove_orphans(languages, sources, manifest)
         if removed:
@@ -780,9 +784,14 @@ def main() -> int:
         for locale in languages:
             print(f"[{locale}]")
             for source in sources:
-                state = translate_file(
-                    source, locale, manifest, model, base_url, api_key, timeout, args.force
-                )
+                try:
+                    state = translate_file(
+                        source, locale, manifest, model, base_url, api_key, timeout, args.force
+                    )
+                except RuntimeError as exc:
+                    failures.append(f"{locale}/{source.name}: {exc}")
+                    print(f"  FAILED {source.name} [{locale}]: {exc}", file=sys.stderr)
+                    continue
                 if state == "translated":
                     changed += 1
             save_manifest(manifest)
@@ -792,6 +801,13 @@ def main() -> int:
         translate_nav(languages, model, base_url, api_key, timeout)
 
     save_manifest(manifest)
+    if failures:
+        print(
+            f"{len(failures)} page(s) failed and stay untranslated:",
+            file=sys.stderr,
+        )
+        for failure in failures:
+            print(f"  {failure}", file=sys.stderr)
     print(f"Done. {changed} file translations written.")
     return 0
 
