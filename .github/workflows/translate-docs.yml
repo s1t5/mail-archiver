@@ -29,8 +29,8 @@ on:
       - 'mkdocs.yml'
       - 'requirements-docs.txt'
   # The first full run covers 38 pages in 12 locales and does not fit into a
-  # single job. The script stops at its time budget, commits the progress, and
-  # this schedule picks the remaining pages up on the next run.
+  # single job. Each locale is committed separately, so an interrupted run keeps
+  # everything it finished and this schedule continues with the rest.
   schedule:
     - cron: '0 */2 * * *'
 
@@ -62,56 +62,71 @@ jobs:
       - name: Install documentation dependencies
         run: python -m pip install -r requirements-docs.txt
 
-      - name: Translate changed pages
-        # Stops before the six hour job limit and leaves the remaining pages to
-        # the next scheduled run.
+      - name: Translate and commit each locale
+        # Stops before the six hour job limit. A locale is committed as soon as
+        # it is finished, so the next run continues instead of starting over.
         timeout-minutes: 350
         env:
           LLM_BASE_URL: ${{ vars.LLM_BASE_URL }}
           LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
           LLM_MODEL: ${{ vars.LLM_MODEL }}
           LANGUAGE: ${{ inputs.language }}
-        run: |
-          if [ -n "$LANGUAGE" ]; then
-            python tools/translate_docs.py --lang "$LANGUAGE" --nav --max-seconds 18000
-          else
-            python tools/translate_docs.py --all --nav --max-seconds 18000
-          fi
-
-      - name: Commit translations
-        id: commit
-        run: |
-          set -euo pipefail
-          git add doc
-          if git diff --cached --quiet; then
-            echo "No translation changes."
-            echo "changed=false" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit -m "docs: update translations"
-          echo "changed=true" >> "$GITHUB_OUTPUT"
-
-      - name: Build site
-        # Runs after the commit: git-revision-date-localized needs a commit for
-        # every new page, and --strict turns a missing date into a failure.
-        run: mkdocs build --strict
-
-      - name: Open or update translation pull request
-        if: steps.commit.outputs.changed == 'true'
-        env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
-          git checkout -B docs/translations
-          git push --force origin docs/translations
-          if ! gh pr view docs/translations >/dev/null 2>&1; then
-            gh pr create \
-              --base main \
-              --head docs/translations \
-              --title "docs: update translations" \
-              --body "Automated translation update. English remains the source of truth; review the generated pages before merging."
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          # Continue on the existing translation branch so a second run does
+          # not throw away the locales the first one already committed.
+          if git ls-remote --exit-code --heads origin docs/translations >/dev/null 2>&1; then
+            git fetch origin docs/translations
+            git checkout -B docs/translations origin/docs/translations
           else
-            echo "Translation pull request already exists and was updated by the push."
+            git checkout -B docs/translations
           fi
+
+          if [ -n "${LANGUAGE:-}" ]; then
+            LANGS="$LANGUAGE"
+          else
+            LANGS=$(ls Resources/SharedResource.*.resx \
+              | sed -E 's/.*SharedResource\.(.*)\.resx/\1/' \
+              | grep -v '^en-GB$' \
+              | sort)
+          fi
+
+          DEADLINE=$((SECONDS + 18000))
+          for lang in $LANGS; do
+            REMAINING=$((DEADLINE - SECONDS))
+            if [ "$REMAINING" -le 120 ]; then
+              echo "Time budget reached before $lang."
+              break
+            fi
+
+            echo "::group::Translate $lang"
+            python tools/translate_docs.py --lang "$lang" --nav --max-seconds "$REMAINING"
+            echo "::endgroup::"
+
+            git add doc
+            if git diff --cached --quiet; then
+              echo "No changes for $lang."
+              continue
+            fi
+
+            git commit -m "docs: update $lang translations"
+            git push origin docs/translations
+
+            if ! gh pr view docs/translations >/dev/null 2>&1; then
+              gh pr create \
+                --base main \
+                --head docs/translations \
+                --title "docs: update translations" \
+                --body "Automated translation update. English remains the source of truth; review the generated pages before merging."
+            fi
+          done
+
+      - name: Build site
+        # Runs after the commits: git-revision-date-localized needs a commit for
+        # every new page, and --strict turns a missing date into a failure.
+        run: mkdocs build --strict
