@@ -123,7 +123,8 @@ jobs:
                 --base main \
                 --head docs/translations \
                 --title "docs: update translations" \
-                --body "Automated translation update. English remains the source of truth; review the generated pages before merging."
+                --body "Automated translation update. English remains the source of truth; review the generated pages before merging." \
+                || echo "::warning::Could not create the pull request. Enable 'Allow GitHub Actions to create and approve pull requests' under Settings > Actions > General. The branch docs/translations was pushed and can be opened manually."
             fi
           done
 
