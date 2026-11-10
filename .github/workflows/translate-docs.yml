@@ -5,10 +5,14 @@ name: Translate documentation
 # result. English stays the source of truth; the translated files are plain
 # Markdown next to their source and are reviewed like any other change.
 #
+# Each locale runs in its own matrix job. The files are disjoint per locale
+# (Page.de.md, Page.es.md) and every locale writes its own manifest
+# (translations.de.json), so the jobs can commit and push without conflicts.
+#
 # Required repository configuration:
 #   secret   LLM_API_KEY    key for the chat-completions endpoint
-#   variable LLM_BASE_URL   base URL, for example https://api.example.com/v1
-#   variable LLM_MODEL      model name, for example gpt-4o-mini
+#   variable LLM_BASE_URL   base URL, for example https://openrouter.ai/api/v1
+#   variable LLM_MODEL      model name, for example openai/gpt-4o-mini
 #
 # When LLM_API_KEY is absent the job still builds the site and exits without a
 # translation PR, so forks and fresh checkouts stay green.
@@ -29,9 +33,8 @@ on:
       - 'mkdocs.yml'
       - 'requirements-docs.txt'
       - '.github/workflows/translate-docs.yml'
-  # The first full run covers 38 pages in 12 locales and does not fit into a
-  # single job. Each locale is committed separately, so an interrupted run keeps
-  # everything it finished and this schedule continues with the rest.
+  # A safety net for interrupted runs. Each locale commits on its own, so the
+  # next run continues with whatever is still missing.
   schedule:
     - cron: '0 */2 * * *'
 
@@ -44,8 +47,36 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  translate:
+  languages:
     runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v7
+      - name: Build the locale matrix
+        id: set
+        env:
+          LANGUAGE: ${{ inputs.language }}
+        run: |
+          set -euo pipefail
+          if [ -n "${LANGUAGE:-}" ]; then
+            MATRIX=$(printf '["%s"]' "$LANGUAGE")
+          else
+            MATRIX=$(ls Resources/SharedResource.*.resx \
+              | sed -E 's/.*SharedResource\.(.*)\.resx/\1/' \
+              | grep -v '^en-GB$' \
+              | sort \
+              | jq -R -s -c 'split("\n") | map(select(length > 0))')
+          fi
+          echo "matrix={\"language\":$MATRIX}" >> "$GITHUB_OUTPUT"
+
+  translate:
+    needs: languages
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      max-parallel: 12
+      matrix: ${{ fromJson(needs.languages.outputs.matrix) }}
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -63,24 +94,18 @@ jobs:
       - name: Install documentation dependencies
         run: python -m pip install -r requirements-docs.txt
 
-      - name: Translate and commit each locale
-        # Stops before the six hour job limit. A locale is committed as soon as
-        # it is finished, so the next run continues instead of starting over.
+      - name: Translate ${{ matrix.language }}
         timeout-minutes: 350
         env:
           LLM_BASE_URL: ${{ vars.LLM_BASE_URL }}
           LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
           LLM_MODEL: ${{ vars.LLM_MODEL }}
-          LANGUAGE: ${{ inputs.language }}
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
 
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          # Continue on the existing translation branch so a second run does
-          # not throw away the locales the first one already committed.
           if git ls-remote --exit-code --heads origin docs/translations >/dev/null 2>&1; then
             git fetch origin docs/translations
             git checkout -B docs/translations origin/docs/translations
@@ -88,47 +113,93 @@ jobs:
             git checkout -B docs/translations
           fi
 
-          if [ -n "${LANGUAGE:-}" ]; then
-            LANGS="$LANGUAGE"
-          else
-            LANGS=$(ls Resources/SharedResource.*.resx \
-              | sed -E 's/.*SharedResource\.(.*)\.resx/\1/' \
-              | grep -v '^en-GB$' \
-              | sort)
+          python tools/translate_docs.py \
+            --lang "${{ matrix.language }}" \
+            --nav \
+            --max-seconds 18000
+
+          git add doc
+          if git diff --cached --quiet; then
+            echo "No changes for ${{ matrix.language }}."
+            exit 0
           fi
 
-          DEADLINE=$((SECONDS + 18000))
-          for lang in $LANGS; do
-            REMAINING=$((DEADLINE - SECONDS))
-            if [ "$REMAINING" -le 120 ]; then
-              echo "Time budget reached before $lang."
-              break
+          git commit -m "docs: update ${{ matrix.language }} translations"
+
+          # Several locale jobs push at the same time. Rebase onto the latest
+          # branch state and retry; the files and manifests are disjoint.
+          for attempt in 1 2 3 4 5; do
+            if git ls-remote --exit-code --heads origin docs/translations >/dev/null 2>&1; then
+              git pull --rebase origin docs/translations || {
+                git rebase --abort || true
+                sleep 5
+                continue
+              }
             fi
-
-            echo "::group::Translate $lang"
-            python tools/translate_docs.py --lang "$lang" --nav --max-seconds "$REMAINING"
-            echo "::endgroup::"
-
-            git add doc
-            if git diff --cached --quiet; then
-              echo "No changes for $lang."
-              continue
+            if git push origin docs/translations; then
+              exit 0
             fi
-
-            git commit -m "docs: update $lang translations"
-            git push origin docs/translations
-
-            if ! gh pr view docs/translations >/dev/null 2>&1; then
-              gh pr create \
-                --base main \
-                --head docs/translations \
-                --title "docs: update translations" \
-                --body "Automated translation update. English remains the source of truth; review the generated pages before merging." \
-                || echo "::warning::Could not create the pull request. Enable 'Allow GitHub Actions to create and approve pull requests' under Settings > Actions > General. The branch docs/translations was pushed and can be opened manually."
-            fi
+            sleep $((attempt * 5))
           done
+          echo "::error::Could not push the translations for ${{ matrix.language }}."
+          exit 1
+
+  pull-request:
+    needs: translate
+    if: always() && needs.translate.result != 'cancelled'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+      - name: Open the translation pull request
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          if ! git ls-remote --exit-code --heads origin docs/translations >/dev/null 2>&1; then
+            echo "No translation branch, nothing to open."
+            exit 0
+          fi
+          if gh pr view docs/translations >/dev/null 2>&1; then
+            echo "The pull request already exists."
+            exit 0
+          fi
+          gh pr create \
+            --base main \
+            --head docs/translations \
+            --title "docs: update translations" \
+            --body "Automated translation update. English remains the source of truth; review the generated pages before merging." \
+            || echo "::warning::Could not create the pull request. Enable 'Allow GitHub Actions to create and approve pull requests' under Settings > Actions > General. The branch docs/translations was pushed and can be opened manually."
+
+  build:
+    needs: translate
+    if: always() && needs.translate.result != 'cancelled'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          # git-revision-date-localized needs the full history.
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: requirements-docs.txt
+
+      - name: Install documentation dependencies
+        run: python -m pip install -r requirements-docs.txt
+
+      - name: Check out the translation branch
+        run: |
+          set -euo pipefail
+          if git ls-remote --exit-code --heads origin docs/translations >/dev/null 2>&1; then
+            git fetch origin docs/translations
+            git checkout docs/translations
+          fi
 
       - name: Build site
-        # Runs after the commits: git-revision-date-localized needs a commit for
-        # every new page, and --strict turns a missing date into a failure.
+        # --strict turns a broken link or a missing revision date into a failure.
         run: mkdocs build --strict
