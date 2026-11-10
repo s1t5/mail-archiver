@@ -61,6 +61,7 @@ EXCLUDED_SOURCES = {"API-Reference.md"}
 DEFAULT_BASE_URL = "https://api.openai.com/v1"
 DEFAULT_MODEL = "gpt-4o-mini"
 MAX_CHUNK_CHARS = 6000
+MIN_CHUNK_CHARS = 300
 MAX_RETRIES = 4
 MAX_VALIDATION_RETRIES = 3
 
@@ -117,21 +118,38 @@ def target_path(source: Path, locale: str) -> Path:
 # Manifest
 # --------------------------------------------------------------------------
 
-def load_manifest() -> dict[str, Any]:
-    if not MANIFEST.exists():
-        return {"version": 1, "languages": {}}
-    try:
-        data = json.loads(MANIFEST.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError):
-        return {"version": 1, "languages": {}}
+def manifest_path(locale: str) -> Path:
+    return MANIFEST.with_name(f"translations.{locale}.json")
+
+
+def load_manifest(locale: str) -> dict[str, Any]:
+    path = manifest_path(locale)
+    data: dict[str, Any] = {}
+    if path.exists():
+        try:
+            data = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            data = {}
+    elif MANIFEST.exists():
+        # Migration: the first runs stored every locale in one shared file.
+        try:
+            shared = json.loads(MANIFEST.read_text(encoding="utf-8"))
+            data = {
+                "version": 1,
+                "languages": {locale: shared.get("languages", {}).get(locale, {})},
+            }
+        except (OSError, json.JSONDecodeError):
+            data = {}
     data.setdefault("version", 1)
     data.setdefault("languages", {})
+    data["languages"].setdefault(locale, {})
     return data
 
 
-def save_manifest(data: dict[str, Any]) -> None:
-    MANIFEST.parent.mkdir(parents=True, exist_ok=True)
-    MANIFEST.write_text(
+def save_manifest(locale: str, data: dict[str, Any]) -> None:
+    path = manifest_path(locale)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(
         json.dumps(data, indent=2, ensure_ascii=False, sort_keys=True) + "\n",
         encoding="utf-8",
     )
@@ -214,8 +232,29 @@ def split_chunks(text: str) -> list[str]:
     if current:
         chunks.append("".join(current))
 
-    result: list[str] = []
+    # A chunk with only a heading and one line gives the model too little
+    # context and invites it to wrap the answer in a code fence. Merge such
+    # fragments into the next chunk, or into the previous one at the end.
+    merged: list[str] = []
+    buffer = ""
     for chunk in chunks:
+        if buffer:
+            buffer += chunk
+            if len(buffer) >= MIN_CHUNK_CHARS:
+                merged.append(buffer)
+                buffer = ""
+        elif len(chunk) < MIN_CHUNK_CHARS:
+            buffer = chunk
+        else:
+            merged.append(chunk)
+    if buffer:
+        if merged:
+            merged[-1] += buffer
+        else:
+            merged.append(buffer)
+
+    result: list[str] = []
+    for chunk in merged:
         if len(chunk) <= MAX_CHUNK_CHARS:
             result.append(chunk)
         else:
@@ -499,6 +538,21 @@ def request_with_retry(
 # Translation
 # --------------------------------------------------------------------------
 
+def strip_wrapper_fence(source: str, translated: str) -> str:
+    """Remove a code fence the model wrapped around the whole answer.
+
+    Some models ignore the instruction to return bare Markdown. When the
+    source has no fence and the answer is a single fenced block, the fence is
+    a wrapper, not content.
+    """
+    if count_fences(source) != 0:
+        return translated
+    lines = translated.strip().splitlines()
+    if len(lines) >= 2 and lines[0].lstrip().startswith("```") and lines[-1].lstrip().startswith("```"):
+        return "\n".join(lines[1:-1]).strip("\n")
+    return translated
+
+
 def translate_chunk(
     chunk: str,
     locale: str,
@@ -528,6 +582,7 @@ def translate_chunk(
             )
             continue
         translated = unmask(raw, store)
+        translated = strip_wrapper_fence(chunk, translated)
         problems = validate(chunk, translated)
         if not problems:
             return translated
@@ -535,7 +590,9 @@ def translate_chunk(
         feedback = (
             "The previous answer changed the Markdown structure ("
             + "; ".join(problems)
-            + "). Repeat the translation without changing the structure."
+            + "). Repeat the translation and keep every table row, list item, "
+            "link and code fence exactly as in the source. Do not add code "
+            "fences that the source does not contain."
         )
     raise RuntimeError(
         f"translation failed validation after {MAX_VALIDATION_RETRIES} attempts: {last_problem}"
@@ -685,11 +742,17 @@ def translate_nav(
 def selftest() -> None:
     sample = """# Title
 
-Intro with `code` and [a link](Setup.md#-overview).
+Intro with `code` and [a link](Setup.md#-overview). This paragraph is long
+enough to keep the first chunk above the merge threshold, so the splitter
+does not fold it into the next section. It describes the purpose of the page
+and gives the reader enough context to follow the sections below.
 
 ## Section one
 
-Text.
+Text. This section also carries enough prose to stand on its own. The splitter
+keeps it separate because it is larger than the minimum chunk size. It
+contains a fenced block, a heading and a short explanation of the command
+that follows, which is exactly the shape the translator has to preserve.
 
 ```bash
 echo hi
@@ -700,9 +763,19 @@ echo hi
 | A | B |
 |---|---|
 | 1 | 2 |
+
+The table above is small, so this paragraph adds the length the section needs
+to stay a chunk of its own. It also gives the validator a table and a heading
+to compare after the translation, which catches models that drop rows.
 """
+    global MIN_CHUNK_CHARS
+    original_min = MIN_CHUNK_CHARS
+    MIN_CHUNK_CHARS = 0
     chunks = split_chunks(sample)
     assert len(chunks) == 3, chunks
+    MIN_CHUNK_CHARS = 10000
+    assert len(split_chunks(sample)) == 1
+    MIN_CHUNK_CHARS = original_min
     masked, store = mask(sample)
     assert "⟦X" in masked
     assert unmask(masked, store) == sample
@@ -745,11 +818,11 @@ def main() -> int:
 
     sources = discover_sources()
     languages = [args.lang] if args.lang else discover_languages()
-    manifest = load_manifest()
 
     if args.check:
         stale = []
         for locale in languages:
+            manifest = load_manifest(locale)
             for source in sources:
                 digest = sha256(source.read_text(encoding="utf-8"))
                 entry = manifest["languages"].get(locale, {}).get(source.name)
@@ -785,12 +858,13 @@ def main() -> int:
     failures: list[str] = []
     stopped_early = False
     if args.all or args.lang:
-        removed = remove_orphans(languages, sources, manifest)
-        if removed:
-            print(f"Removed {removed} orphaned translation files.")
-
         for locale in languages:
             print(f"[{locale}]")
+            manifest = load_manifest(locale)
+            removed = remove_orphans([locale], sources, manifest)
+            if removed:
+                print(f"Removed {removed} orphaned translation files.")
+
             for source in sources:
                 if args.max_seconds and time.monotonic() - started >= args.max_seconds:
                     print(
@@ -807,12 +881,12 @@ def main() -> int:
                 except RuntimeError as exc:
                     failures.append(f"{locale}/{source.name}: {exc}")
                     print(f"  FAILED {source.name} [{locale}]: {exc}", file=sys.stderr)
-                    save_manifest(manifest)
+                    save_manifest(locale, manifest)
                     continue
                 if state == "translated":
                     changed += 1
-                save_manifest(manifest)
-            save_manifest(manifest)
+                save_manifest(locale, manifest)
+            save_manifest(locale, manifest)
             if stopped_early:
                 break
 
@@ -820,7 +894,6 @@ def main() -> int:
         print("[navigation]")
         translate_nav(languages, model, base_url, api_key, timeout)
 
-    save_manifest(manifest)
     if failures:
         print(
             f"{len(failures)} page(s) failed and stay untranslated:",
