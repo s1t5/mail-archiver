@@ -22,10 +22,14 @@ the slug MkDocs actually emits. Files on disk are never modified, so the same
 Markdown keeps working on GitHub *and* on the generated site.
 """
 
+import json
 import pathlib
 import posixpath
 import re
 import unicodedata
+from copy import deepcopy
+
+from mkdocs.plugins import event_priority
 
 # An anchor link: `(Setup.md#-some-anchor)` or `(#-some-anchor)`.
 ANCHOR_LINK_RE = re.compile(r"\]\((?P<path>[^)\s]*?)#(?P<anchor>[^)\s]+)\)")
@@ -233,3 +237,85 @@ def on_page_markdown(markdown: str, page, config, files, **kwargs) -> str:
 
     markdown = ANCHOR_LINK_RE.sub(replace, markdown)
     return _inject_notice(markdown, page, config)
+
+
+# --------------------------------------------------------------------------
+# Per-language search index
+# --------------------------------------------------------------------------
+
+def _lunr_language(locale: str) -> str:
+    """Lunr knows base languages, not full locales such as pt-BR."""
+    return locale.split("-", 1)[0].lower()
+
+
+@event_priority(-100)
+def on_post_build(config, **kwargs) -> None:
+    """Split the shared search index into one index per language.
+
+    ``mkdocs-static-i18n`` builds a single ``search/search_index.json`` that
+    contains every language. Material loads the index relative to the current
+    page, so a page under ``/de/`` asks for ``/de/search/search_index.json``.
+    Writing one index per language there keeps every search inside its own
+    locale.
+    """
+    site_dir = pathlib.Path(config["site_dir"])
+    index_path = site_dir / "search" / "search_index.json"
+    if not index_path.exists():
+        return
+    try:
+        data = json.loads(index_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return
+
+    try:
+        languages = config.plugins["i18n"].config.languages
+    except (KeyError, TypeError):
+        return
+    build = [language.locale for language in languages if language.build]
+    if len(build) < 2:
+        return
+    try:
+        default = next(
+            language.locale for language in languages if language.default
+        )
+    except StopIteration:
+        return
+
+    docs = data.get("docs", [])
+    prefixes = {
+        f"{locale}/": locale for locale in build if locale != default
+    }
+
+    for prefix, locale in prefixes.items():
+        localized = []
+        for doc in docs:
+            location = doc.get("location", "")
+            if location.startswith(prefix):
+                copy = deepcopy(doc)
+                copy["location"] = location[len(prefix):]
+                localized.append(copy)
+        if not localized:
+            continue
+        index_config = deepcopy(data.get("config", {}))
+        index_config["lang"] = [_lunr_language(locale)]
+        target = site_dir / locale / "search" / "search_index.json"
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(
+            json.dumps(
+                {"config": index_config, "docs": localized},
+                ensure_ascii=False,
+            ),
+            encoding="utf-8",
+        )
+
+    # The root index keeps only the default language.
+    data["docs"] = [
+        doc
+        for doc in docs
+        if not any(doc.get("location", "").startswith(prefix) for prefix in prefixes)
+    ]
+    data.setdefault("config", {})["lang"] = [_lunr_language(default)]
+    index_path.write_text(
+        json.dumps(data, ensure_ascii=False),
+        encoding="utf-8",
+    )
