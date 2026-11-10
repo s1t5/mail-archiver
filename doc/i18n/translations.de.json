@@ -188,8 +188,8 @@
       },
       "index.md": {
         "model": "google/gemma-4-26b-a4b-it",
-        "source_sha256": "ad323f603a02d139ba2307b90f350168551188477814e2b6d84a7024c1eaf82c",
-        "translated_at": "2026-11-10T15:05:20Z"
+        "source_sha256": "746a3fa4cd98082acb729edc4ce5667ff6592822d1aec7a855b35c63deb8be13",
+        "translated_at": "2026-11-10T20:10:40Z"
       }
     }
   },

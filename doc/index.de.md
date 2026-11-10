@@ -5,9 +5,6 @@
 Einmal einrichten, jede Nachricht behalten und sie Jahre später wiederfinden.
 </div>
 
-!!! note "Übersetzungen"
-    Die englische Dokumentation ist die maßgebliche Quelle. Jede andere Sprache wird automatisch von diesen Seiten übersetzt und kann Fehler enthalten. Verwenden Sie den Sprachumschalter im Header, um die Sprache zu ändern.
-
 <div class="grid cards" markdown>
 
 -   :material-rocket-launch:{ .lg .middle } __Erste Schritte__
@@ -30,7 +27,7 @@ Einmal einrichten, jede Nachricht behalten und sie Jahre später wiederfinden.
 
     ---
 
-    Lesen Sie Ihr Archiv über Skripte und KI-Agenten aus — schreibgeschützte, eingeschränkte API-Keys.
+    Lesen Sie Ihr Archiv über Skripte und KI-Agenten aus — schreibgeschützte, eingeschränkte API-Schlüssel.
 
     [:octicons-arrow-right-24: REST API](API.md) · [:octicons-arrow-right-24: MCP server](MCP.md)
 
@@ -60,7 +57,7 @@ Einmal einrichten, jede Nachricht behalten und sie Jahre später wiederfinden.
 
     ---
 
-    Schalten Sie Mail Archiver mit TLS-Terminierung vor nginx oder Caddy.
+    Platzieren Sie Mail Archiver hinter nginx oder Caddy mit TLS-Terminierung.
 
     [:octicons-arrow-right-24: Lesen](ReverseProxy.md)
 
@@ -72,7 +69,7 @@ Einmal einrichten, jede Nachricht behalten und sie Jahre später wiederfinden.
 
     [:octicons-arrow-right-24: Lesen](PostgreSQLUpgrade.md)
 
--   :material-database-cog:{ .lg .middle } __Datenbankwartung__
+-   :material-database-cog:{ .lg .middle } __Datenbank-Wartung__
 
     ---
 
@@ -84,7 +81,7 @@ Einmal einrichten, jede Nachricht behalten und sie Jahre später wiederfinden.
 
     ---
 
-    Sichern Sie die Datenbank und stellen Sie sie wieder her — einschließlich Proxmox-Setups.
+    Sichern Sie die Datenbank und führen Sie eine Wiederherstellung durch — einschließlich Proxmox-Setups.
 
     [:octicons-arrow-right-24: Lesen](BackupRestore.md)
 
@@ -134,7 +131,7 @@ Einmal einrichten, jede Nachricht behalten und sie Jahre später wiederfinden.
 
     [:octicons-arrow-right-24: Lesen](Import-EML-MBox.md)
 
--   :material-timer-sand:{ .lg .middle } __Rate Limit Handling__
+-   :material-timer-sand:{ .lg .middle } __Rate-Limit-Handhabung__
 
     ---
 
@@ -156,7 +153,7 @@ Einmal einrichten, jede Nachricht behalten und sie Jahre später wiederfinden.
 
     [:octicons-arrow-right-24: Lesen](Search.md)
 
--   :material-progress-clock:{ .lg .middle } __Hintergrundjobs__
+-   :material-progress-clock:{ .lg .middle } __Hintergrund-Jobs__
 
     ---
 
@@ -254,7 +251,7 @@ Einmal einrichten, jede Nachricht behalten und sie Jahre später wiederfinden.
 
     ---
 
-    Exportieren Sie das Audit-Protokoll für Compliance-Prüfungen.
+    Exportieren Sie den Audit-Pfad für Compliance-Prüfungen.
 
     [:octicons-arrow-right-24: Lesen](AuditExport.md)
 
@@ -270,7 +267,7 @@ Einmal einrichten, jede Nachricht behalten und sie Jahre später wiederfinden.
 
     ---
 
-    Automatische Löschung vom Mailserver oder dem lokalen Archiv.
+    Automatisches Löschen vom E-Mail-Server oder dem lokalen Archiv.
 
     [:octicons-arrow-right-24: Lesen](RetentionPolicies.md)
 
@@ -308,7 +305,7 @@ Einmal einrichten, jede Nachricht behalten und sie Jahre später wiederfinden.
 
     ---
 
-    Outlook.com, Hotmail und M365 Family über Device Code Flow.
+    Outlook.com, Hotmail und M365 Family über den Device Code Flow.
 
     [:octicons-arrow-right-24: Lesen](MSA_Outlook_Setup.md)
 
@@ -316,7 +313,7 @@ Einmal einrichten, jede Nachricht behalten und sie Jahre später wiederfinden.
 
     ---
 
-    App-Passwörter, Labels, Expunge und Gmails Rate Limits.
+    App-Passwörter, Labels, Expunge und Gmails Rate-Limits.
 
     [:octicons-arrow-right-24: Lesen](GmailBestPractices.md)
 
@@ -338,7 +335,7 @@ Einmal einrichten, jede Nachricht behalten und sie Jahre später wiederfinden.
 
     ---
 
-    Schreibgeschützter Zugriff auf das Archiv mit eingeschränkten API-Keys pro Benutzer.
+    Schreibgeschützter Zugriff auf das Archiv mit eingeschränkten API-Schlüsseln pro Benutzer.
 
     [:octicons-arrow-right-24: Lesen](API.md)
 
@@ -346,7 +343,7 @@ Einmal einrichten, jede Nachricht behalten und sie Jahre später wiederfinden.
 
     ---
 
-    Stellen Sie das Archiv KI-Agenten als entdeckbare Tools zur Verfügung.
+    Stellen Sie das Archiv KI-Agenten als auffindbare Tools zur Verfügung.
 
     [:octicons-arrow-right-24: Lesen](MCP.md)
 
@@ -360,7 +357,7 @@ Einmal einrichten, jede Nachricht behalten und sie Jahre später wiederfinden.
 
     ---
 
-    Die Interface-Sprache ändern und wie man eine Übersetzung hinzufügt.
+    Wechseln Sie die Interface-Sprache und erfahren Sie, wie Sie eine Übersetzung hinzufügen.
 
     [:octicons-arrow-right-24: Lesen](Localization.md)
 
@@ -368,7 +365,7 @@ Einmal einrichten, jede Nachricht behalten und sie Jahre später wiederfinden.
 
     ---
 
-    Container-Logs lesen und das Log-Level ändern.
+    Lesen Sie Container-Logs und ändern Sie das Log-Level.
 
     [:octicons-arrow-right-24: Lesen](DockerComposeLogs.md)
 
@@ -376,7 +373,7 @@ Einmal einrichten, jede Nachricht behalten und sie Jahre später wiederfinden.
 
     ---
 
-    Zu einem Dev-Tag wechseln, um kommende Änderungen zu testen.
+    Wechseln Sie zu einem Dev-Tag, um kommende Änderungen zu testen.
 
     [:octicons-arrow-right-24: Lesen](DevTag.md)
 
