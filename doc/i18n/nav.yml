@@ -1,50 +1,94 @@
-# Navigation labels per locale. The hook injects these into the i18n plugin.
-# Missing titles fall back to the English label, so a partial file is safe.
-
 de:
+  API Reference: API-Referenz
+  Access Logging: Zugriffsprotokollierung
+  Account Export (EML / MBox): Kontoexport (EML / MBox)
+  Account Import: Kontoimport
+  Administration & Security: Administration und Sicherheit
+  Attachment Deduplication: Anhang-Deduplizierung
+  Audit Data Export: Audit-Datenexport
+  Azure App Registration (M365): Azure-App-Registrierung (M365)
+  Background Jobs: Hintergrundjobs
+  Backup and Restore: Sicherung und Wiederherstellung
+  CLI Commands: CLI-Befehle
+  Database Maintenance: Datenbankwartung
+  Date-Windowed Offload: Zeitfenster-Auslagerung
+  Dev Tag (Development Versions): Dev-Tag (Entwicklungsversionen)
+  Docker Compose Logs: Docker-Compose-Logs
+  Emergency Account Recovery: Notfall-Wiederherstellung von Konten
+  Getting Mail In: E-Mail importieren
+  Gmail Best Practices: Gmail-Best Practices
   Home: Start
   Installation & Maintenance: Installation und Wartung
-  Setup and Parameters: Einrichtung und Parameter
-  Reverse Proxy: Reverse Proxy
-  PostgreSQL Major Upgrade: PostgreSQL-Hauptversion aktualisieren
-  Database Maintenance: Datenbankwartung
-  Backup and Restore: Sicherung und Wiederherstellung
-  Local Test Environment: Lokale Testumgebung
-  Getting Mail In: E-Mail importieren
-  Account Import: Kontoimport
-  Mail Synchronization: E-Mail-Synchronisierung
-  CLI Commands: CLI-Befehle
-  Web Import (EML / MBox): Webimport (EML / MBox)
-  Rate Limit Handling: Umgang mit Ratenlimits
-  Working with the Archive: Mit dem Archiv arbeiten
-  Mail Search: E-Mail-Suche
-  Background Jobs: Hintergrundjobs
-  Mailbox Migration: Postfachmigration
-  Account Export (EML / MBox): Kontoexport (EML / MBox)
-  Original Message Storage: Speicherung der Originalnachrichten
-  Attachment Deduplication: Anhang-Deduplizierung
-  Date-Windowed Offload: Zeitfenster-Auslagerung
-  Per-Account Storage: Speicher pro Konto
-  Administration & Security: Administration und Sicherheit
-  User Management & Permissions: Benutzerverwaltung und Berechtigungen
-  Two-Factor Authentication: Zwei-Faktor-Authentifizierung
-  OIDC / SSO: OIDC / SSO
-  Access Logging: Zugriffsprotokollierung
-  Audit Data Export: Audit-Datenexport
-  Emergency Account Recovery: Notfall-Wiederherstellung von Konten
-  Retention Policies: Aufbewahrungsrichtlinien
-  Provider Guides: Anbieteranleitungen
-  Azure App Registration (M365): Azure-App-Registrierung (M365)
-  M365 Tenant Mailbox Import: M365-Tenant-Postfachimport
-  Mailcow Instances: Mailcow-Instanzen
-  Personal Microsoft Accounts: Persönliche Microsoft-Konten
-  Gmail Best Practices: Gmail-Best Practices
-  Yahoo Mail Limitations: Yahoo-Mail-Einschränkungen
-  Programmatic Access: Programmatischer Zugriff
-  REST API: REST-API
-  API Reference: API-Referenz
-  MCP Server: MCP-Server
-  Operations & Development: Betrieb und Entwicklung
   Language and Localization: Sprache und Lokalisierung
-  Docker Compose Logs: Docker-Compose-Logs
-  Dev Tag (Development Versions): Dev-Tag (Entwicklungsversionen)
+  Local Test Environment: Lokale Testumgebung
+  M365 Tenant Mailbox Import: M365-Tenant-Postfachimport
+  MCP Server: MCP-Server
+  Mail Search: E-Mail-Suche
+  Mail Synchronization: E-Mail-Synchronisierung
+  Mailbox Migration: Postfachmigration
+  Mailcow Instances: Mailcow-Instanzen
+  OIDC / SSO: OIDC / SSO
+  Operations & Development: Betrieb und Entwicklung
+  Original Message Storage: Speicherung der Originalnachrichten
+  Per-Account Storage: Speicher pro Konto
+  Personal Microsoft Accounts: Persönliche Microsoft-Konten
+  PostgreSQL Major Upgrade: PostgreSQL-Hauptversion aktualisieren
+  Programmatic Access: Programmatischer Zugriff
+  Provider Guides: Anbieteranleitungen
+  REST API: REST-API
+  Rate Limit Handling: Umgang mit Ratenlimits
+  Retention Policies: Aufbewahrungsrichtlinien
+  Reverse Proxy: Reverse Proxy
+  Setup and Parameters: Einrichtung und Parameter
+  Two-Factor Authentication: Zwei-Faktor-Authentifizierung
+  User Management & Permissions: Benutzerverwaltung und Berechtigungen
+  Web Import (EML / MBox): Webimport (EML / MBox)
+  Working with the Archive: Mit dem Archiv arbeiten
+  Yahoo Mail Limitations: Yahoo-Mail-Einschränkungen
+zh:
+  API Reference: API 参考
+  Access Logging: 访问日志
+  Account Export (EML / MBox): 账户导出 (EML / MBox)
+  Account Import: 账户导入
+  Administration & Security: 管理与安全
+  Attachment Deduplication: 附件去重
+  Audit Data Export: 审计数据导出
+  Azure App Registration (M365): Azure 应用注册 (M365)
+  Background Jobs: 后台任务
+  Backup and Restore: 备份与恢复
+  CLI Commands: CLI 命令
+  Database Maintenance: 数据库维护
+  Date-Windowed Offload: 基于日期窗口的卸载
+  Dev Tag (Development Versions): 开发标签 (开发版本)
+  Docker Compose Logs: Docker Compose 日志
+  Emergency Account Recovery: 紧急账户恢复
+  Getting Mail In: 接收邮件
+  Gmail Best Practices: Gmail 最佳实践
+  Home: 首页
+  Installation & Maintenance: 安装与维护
+  Language and Localization: 语言与本地化
+  Local Test Environment: 本地测试环境
+  M365 Tenant Mailbox Import: M365 租户邮箱导入
+  MCP Server: MCP 服务器
+  Mail Search: 邮件搜索
+  Mail Synchronization: 邮件同步
+  Mailbox Migration: 邮箱迁移
+  Mailcow Instances: Mailcow 实例
+  OIDC / SSO: OIDC / SSO 单点登录
+  Operations & Development: 运维与开发
+  Original Message Storage: 原始邮件存储
+  Per-Account Storage: 单账户存储
+  Personal Microsoft Accounts: 个人 Microsoft 账户
+  PostgreSQL Major Upgrade: PostgreSQL 大版本升级
+  Programmatic Access: 程序化访问
+  Provider Guides: 服务商指南
+  REST API: REST API
+  Rate Limit Handling: 速率限制处理
+  Retention Policies: 保留策略
+  Reverse Proxy: 反向代理
+  Setup and Parameters: 设置与参数
+  Two-Factor Authentication: 双重身份验证
+  User Management & Permissions: 用户管理与权限
+  Web Import (EML / MBox): 网页导入 (EML / MBox)
+  Working with the Archive: 归档管理
+  Yahoo Mail Limitations: Yahoo 邮箱限制
