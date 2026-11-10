@@ -61,6 +61,7 @@ EXCLUDED_SOURCES = {"API-Reference.md"}
 DEFAULT_BASE_URL = "https://api.openai.com/v1"
 DEFAULT_MODEL = "gpt-4o-mini"
 MAX_CHUNK_CHARS = 6000
+MIN_CHUNK_CHARS = 300
 MAX_RETRIES = 4
 MAX_VALIDATION_RETRIES = 3
 
@@ -214,8 +215,29 @@ def split_chunks(text: str) -> list[str]:
     if current:
         chunks.append("".join(current))
 
-    result: list[str] = []
+    # A chunk with only a heading and one line gives the model too little
+    # context and invites it to wrap the answer in a code fence. Merge such
+    # fragments into the next chunk, or into the previous one at the end.
+    merged: list[str] = []
+    buffer = ""
     for chunk in chunks:
+        if buffer:
+            buffer += chunk
+            if len(buffer) >= MIN_CHUNK_CHARS:
+                merged.append(buffer)
+                buffer = ""
+        elif len(chunk) < MIN_CHUNK_CHARS:
+            buffer = chunk
+        else:
+            merged.append(chunk)
+    if buffer:
+        if merged:
+            merged[-1] += buffer
+        else:
+            merged.append(buffer)
+
+    result: list[str] = []
+    for chunk in merged:
         if len(chunk) <= MAX_CHUNK_CHARS:
             result.append(chunk)
         else:
@@ -499,6 +521,21 @@ def request_with_retry(
 # Translation
 # --------------------------------------------------------------------------
 
+def strip_wrapper_fence(source: str, translated: str) -> str:
+    """Remove a code fence the model wrapped around the whole answer.
+
+    Some models ignore the instruction to return bare Markdown. When the
+    source has no fence and the answer is a single fenced block, the fence is
+    a wrapper, not content.
+    """
+    if count_fences(source) != 0:
+        return translated
+    lines = translated.strip().splitlines()
+    if len(lines) >= 2 and lines[0].lstrip().startswith("```") and lines[-1].lstrip().startswith("```"):
+        return "\n".join(lines[1:-1]).strip("\n")
+    return translated
+
+
 def translate_chunk(
     chunk: str,
     locale: str,
@@ -528,6 +565,7 @@ def translate_chunk(
             )
             continue
         translated = unmask(raw, store)
+        translated = strip_wrapper_fence(chunk, translated)
         problems = validate(chunk, translated)
         if not problems:
             return translated
@@ -685,11 +723,17 @@ def translate_nav(
 def selftest() -> None:
     sample = """# Title
 
-Intro with `code` and [a link](Setup.md#-overview).
+Intro with `code` and [a link](Setup.md#-overview). This paragraph is long
+enough to keep the first chunk above the merge threshold, so the splitter
+does not fold it into the next section. It describes the purpose of the page
+and gives the reader enough context to follow the sections below.
 
 ## Section one
 
-Text.
+Text. This section also carries enough prose to stand on its own. The splitter
+keeps it separate because it is larger than the minimum chunk size. It
+contains a fenced block, a heading and a short explanation of the command
+that follows, which is exactly the shape the translator has to preserve.
 
 ```bash
 echo hi
@@ -700,9 +744,19 @@ echo hi
 | A | B |
 |---|---|
 | 1 | 2 |
+
+The table above is small, so this paragraph adds the length the section needs
+to stay a chunk of its own. It also gives the validator a table and a heading
+to compare after the translation, which catches models that drop rows.
 """
+    global MIN_CHUNK_CHARS
+    original_min = MIN_CHUNK_CHARS
+    MIN_CHUNK_CHARS = 0
     chunks = split_chunks(sample)
     assert len(chunks) == 3, chunks
+    MIN_CHUNK_CHARS = 10000
+    assert len(split_chunks(sample)) == 1
+    MIN_CHUNK_CHARS = original_min
     masked, store = mask(sample)
     assert "⟦X" in masked
     assert unmask(masked, store) == sample
