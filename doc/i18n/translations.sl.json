@@ -96,6 +96,11 @@
         "source_sha256": "59ff91b291e73d2ec55bfa96292cf5b9a72131c638b5b33fdd4116b9e9881a51",
         "translated_at": "2026-11-10T14:59:36Z"
       },
+      "M365TenantImport.md": {
+        "model": "google/gemma-4-26b-a4b-it",
+        "source_sha256": "7883ae164dc2d93cc6a88c23fdc0684ea257b32b5411a7e44448360d158902dc",
+        "translated_at": "2026-11-10T15:23:35Z"
+      },
       "MCP.md": {
         "model": "google/gemma-4-26b-a4b-it",
         "source_sha256": "8c9228f0534a5470bfaec9ae3a045be5a7e2c4e6eb0ebb1df7bd7526a65d732c",
