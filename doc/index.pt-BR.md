@@ -5,9 +5,6 @@
 Configure uma vez, mantenha cada mensagem e encontre-a novamente anos depois.
 </div>
 
-!!! note "Traduções"
-    A documentação em inglês é a fonte autoritativa. Todos os outros idiomas são traduzidos automaticamente a partir destas páginas e podem conter erros. Use o seletor de idioma no cabeçalho para alterar o idioma.
-
 <div class="grid cards" markdown>
 
 -   :material-rocket-launch:{ .lg .middle } __Primeiros passos__
@@ -68,7 +65,7 @@ Configure uma vez, mantenha cada mensagem e encontre-a novamente anos depois.
 
     ---
 
-    Mova para uma nova versão principal do PostgreSQL sem perder dados.
+    Mude para uma nova versão principal do PostgreSQL sem perder dados.
 
     [:octicons-arrow-right-24: Read](PostgreSQLUpgrade.md)
 
@@ -238,7 +235,7 @@ Configure uma vez, mantenha cada mensagem e encontre-a novamente anos depois.
 
     ---
 
-    Faça login através de Entra ID, Authelia ou outro provedor de identidade.
+    Faça login através do Entra ID, Authelia ou outro provedor de identidade.
 
     [:octicons-arrow-right-24: Read](OIDC_Implementation.md)
 
@@ -254,7 +251,7 @@ Configure uma vez, mantenha cada mensagem e encontre-a novamente anos depois.
 
     ---
 
-    Exporte o rastro de auditoria para revisões de conformidade.
+    Exporte a trilha de auditoria para revisões de conformidade.
 
     [:octicons-arrow-right-24: Read](AuditExport.md)
 
@@ -316,7 +313,7 @@ Configure uma vez, mantenha cada mensagem e encontre-a novamente anos depois.
 
     ---
 
-    Senhas de app, rótulos, expunge e os limites de taxa do Gmail.
+    Senhas de app, labels, expunge e os limites de taxa do Gmail.
 
     [:octicons-arrow-right-24: Read](GmailBestPractices.md)
 
@@ -346,7 +343,7 @@ Configure uma vez, mantenha cada mensagem e encontre-a novamente anos depois.
 
     ---
 
-    Exponha o Arquivo para agentes de IA como ferramentas de descoberta.
+    Exponha o Arquivo para agentes de IA como ferramentas descobertas.
 
     [:octicons-arrow-right-24: Read](MCP.md)
 
@@ -360,7 +357,7 @@ Configure uma vez, mantenha cada mensagem e encontre-a novamente anos depois.
 
     ---
 
-    Altere o idioma da interface e como adicionar uma tradução.
+    Alterne o idioma da interface e como adicionar uma tradução.
 
     [:octicons-arrow-right-24: Read](Localization.md)
 
@@ -376,7 +373,7 @@ Configure uma vez, mantenha cada mensagem e encontre-a novamente anos depois.
 
     ---
 
-    Mude para uma tag de dev para testar mudanças futuras.
+    Alterne para uma tag de dev para testar mudanças futuras.
 
     [:octicons-arrow-right-24: Read](DevTag.md)
 
