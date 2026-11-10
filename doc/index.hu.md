@@ -1,12 +1,9 @@
 # 📧 Mail Archiver Dokumentáció {#mail-archiver-documentation}
 
 <div class="docs-lead" markdown>
-**Saját hosted e-mail archiválás — archiváljon, keressen és exportáljon e-maileket bármely szolgáltatótól.**
-Állítsa be egyszer, őrizze meg minden üzenetet, és találja meg újra évekkel később is.
+**Saját tárhelyű e-mail archiválás — archiváljon, keressen és exportáljon e-maileket bármely szolgáltatótól.**
+Állítsa be egyszer, őrizze meg minden üzenetet, és találja meg újra évekkel később.
 </div>
-
-!!! note "Fordítások"
-    Az angol nyelvű dokumentáció a hiteles forrás. Minden más nyelv automatikusan ezekről a oldalakról kerül fordítva, és hibákat tartalmazhat. A nyelv megváltoztatásához használja a fejlécben található nyelvválasztót.
 
 <div class="grid cards" markdown>
 
@@ -14,11 +11,11 @@
 
     ---
 
-    Telepítse a Mail Archivert Docker Compose segítségével, és csatlakoztassa első e-mail fiókját.
+    Telepítse a Mail Archivert Docker Compose segítségével, és csatolja az első postafiókját.
 
     [:octicons-arrow-right-24: Beállítások és paraméterek](Setup.md)
 
--   :material-magnify:{ .lg .middle } __Keressen bármit__
+-   :material-magnify:{ .lg .middle } __Találjon meg bármit__
 
     ---
 
@@ -30,11 +27,11 @@
 
     ---
 
-    Olvasson az archívumból szkriptek és AI ügynökök segítségével — csak olvasható, korlátozott jogosultságú API kulcsokkal.
+    Olvassa el az archívumot szkriptekből és AI ügynökökből — olvasható, korlátozott API kulcsokkal.
 
     [:octicons-arrow-right-24: REST API](API.md) · [:octicons-arrow-right-24: MCP server](MCP.md)
 
--   :material-shield-lock:{ .lg .middle } __Biztonságos kezelés__
+-   :material-shield-lock:{ .lg .middle } __Biztonságosítsa__
 
     ---
 
@@ -52,13 +49,15 @@
 
     ---
 
-    Minden környezeti változó, Kestrel HTTPS és titkosítási kezelés.
+    Minden környezeti változó, Kestrel HTTPS és titkosítás kezelés.
 
     [:octicons-arrow-right-24: Olvasás](Setup.md)
 
 -   :material-server-network:{ .lg .middle } __Reverse proxy__
 
-    ---    Helyezze a Mail Archivert egy nginx vagy Caddy mögé TLS terminációval.
+    ---
+
+    Helyezze a Mail Archivert egy nginx vagy Caddy mögé TLS terminálással.
 
     [:octicons-arrow-right-24: Olvasás](ReverseProxy.md)
 
@@ -66,7 +65,7 @@
 
     ---
 
-    Váltson új, fő verziós PostgreSQL verzióra adatvesztés nélkül.
+\\Átállás egy új fő PostgreSQL verzióra adatvesztés nélkül.
 
     [:octicons-arrow-right-24: Olvasás](PostgreSQLUpgrade.md)
 
@@ -74,7 +73,7 @@
 
     ---
 
-    VACUUM, ANALYZE és az archívum gyorsaságának fenntartása idő:])
+    VACUUM, ANALYZE és az archívum válaszkészségének fenntartása idő:])
 
     [:octicons-arrow-right-24: Olvasás](DatabaseMaintenance.md)
 
@@ -86,17 +85,17 @@
 
     [:octicons-arrow-right-24: Olvasás](BackupRestore.md)
 
--   :material-flask:{ .lg .middle } __Helyi teszt környezet__
+-   :material-flask:{ .lg .middle } __Helyi tesztkörnyezet__
 
     ---
 
-    Futtasson egy ideiglenes példányt helyileg, mielőtt a term production környezettel dolgozna.
+    Futtasson egy ideiglenes példányt helyileg, mielőtt a term production környezettel foglalkozna.
 
     [:octicons-arrow-right-24: Olvasás](LocalTestEnvironment.md)
 
 </div>
 
-## 📥 E-mailek bevezetése {#getting-mail-in}
+## 📥 E-mailek bevitele {#getting-mail-in}
 
 <div class="grid cards" markdown>
 
@@ -104,7 +103,7 @@
 
     ---
 
-    Több fiókot egyszerre adjon hozzá egy CSV fájlból.
+    Több fiókot egyszerre hozzáadása egy CSV fájlból.
 
     [:octicons-arrow-right-24: Olvasás](Account-Import.md)
 
@@ -112,7 +111,7 @@
 
     ---
 
-    Gyors vs. teljes szinkronizálás, ellenőrző pontok (checkpoints), és mi történik, ha a szinkronizálás megszakad.
+    Gyors vs. teljes szinkronizálás, ellenőrzőpontok, és mi történik, ha a szinkron megszakad.
 
     [:octicons-arrow-right-24: Olvasás](Synchronization.md)
 
@@ -120,7 +119,7 @@
 
     ---
 
-    Létező architektúrák importálása parancssorból, és a tárolt eredeti üzenetek mozgatása az adatbázis és a fájlrendszer között.
+    Létező archívumok importálása parancssorból, és a tárolt eredeti üzenetek mozgatása az adatbázis és a fájlrendszer között.
 
     [:octicons-arrow-right-24: Olvasás](CLI.md)
 
@@ -136,13 +135,13 @@
 
     ---
 
-    Sávszélesség figyelés, és hogyan folytatódnak meg a szüneteltetett szinkronizálások automatikusan.
+    Sávszélesség nyomon követése, és a szüneteltetett szinkronizálások automatikus folytatása.
 
     [:octicons-arrow-right-24: Olvasás](RateLimitHandling.md)
 
 </div>
 
-## 🔍 Archívum kezelése {#working-with-the-archive}
+## 🔍 Archívummal való munka {#working-with-the-archive}
 
 <div class="grid cards" markdown>
 
@@ -150,7 +149,7 @@
 
     ---
 
-    Keresési szintaxis, szűrők, rendezés, oldaltörlés (paging) és tömeges műveletek.
+    Keresési szintaxis, szűrők, rendezés, oldaltörlés és tömeges műveletek.
 
     [:octicons-arrow-right-24: Olvasás](Search.md)
 
@@ -162,11 +161,11 @@
 
     [:octicons-arrow-right-24: Olvasás](BackgroundJobs.md)
 
--   :material-swap-horizontal:{ .lg .middle } __E-mail fiók migráció__
+-   :material-swap-horizontal:{ .lg .middle } __Postafiók migráció__
 
     ---
 
-    E-mailek másolása e-mail fiókok között a mappastruktúra megőrzésével.
+    E-mailek másolása postafiókok között a mappastruktúra megőrzésével.
 
     [:octicons-arrow-right-24: Olvasás](MailboxMigration.md)
 
@@ -174,31 +173,31 @@
 
     ---
 
-    Egy teljes fiókot exportáljon vissza portálható EML vagy MBox archívumként.
+    Egy teljes fiók kiírása portábil EML vagy MBox archívumként.
 
     [:octicons-arrow-right-24: Olvasás](Export-Account.md)
 
--   :material-email-lock:{ .lg .middle } __Eredeti üzenet tárolása__
+-   :material-email-lock:{ .lg .middle } __Eredeti üzenetek tárolása__
 
     ---
 
-    Tartsa meg az üzenetet úgy, ahogy megérkezett, hogy a DKIM továbbra is érvényesítsen, és az exportok byte-szinten pontosak legyenek.
+    Az üzenet megőrzése úgy, ahogy megérkezett, hogy a DKIM továbbra is érvényesítsen, és az exportok byte-szintűen pontosak legyenek.
 
     [:octicons-arrow-right-24: Olvasás](RawMessages.md)
 
--   :material-content-duplicate:{ .lg .middle } __Melléklet de-duplikáció__
+-   :material-content-duplicate:{ .lg .middle } __Melléklet de-duplikációja__
 
     ---
 
-    Hogyan tárolódnak az azonos mellékletek egyszer ahelyett, hogy többször.
+    Hogyan tárolódnak az azonos mellékletek egyszer, ahelyett, hogy többször tárolódnának.
 
     [:octicons-arrow-right-24: Olvasás](AttachmentDeduplication.md)
 
--   :material-calendar-arrow-right:{ .lg .middle } __Időintervallum alapú elhelyezés (offload)__
+-   :material-calendar-arrow-right:{ .lg .middle } __Dátumal alapozott leültetés__
 
     ---
 
-    Régebbi e-mailek mozgatása egy másik fiókba, időintervallumonként.
+    Régebbi e-mailek mozgatása másik fiókba, időszakosan.
 
     [:octicons-arrow-right-24: Olvasás](Offload.md)
 
@@ -206,13 +205,13 @@
 
     ---
 
-    Láthatja, mennyi helyet foglal el minden egyes e-mail fiók.
+    Láthatja, mennyi helyet foglal elfoglal minden postafiók.
 
     [:octicons-arrow-right-24: Olvasás](AccountStorage.md)
 
 </div>
 
-## 🔐 Adminisztráció és Biztonság {#administration-security}
+## 🔐 Adminisztráció és biztonság {#administration-security}
 
 <div class="grid cards" markdown>
 
@@ -220,7 +219,7 @@
 
     ---
 
-    Felhasználók létrehozása, adminisztrátori jogok megadása, e-mail fiók jogosultságok kiosztása és a saját jelszó megváltoztatása.
+    Felhasználók létrehozása, admin jogok megadása, postafiók jogosultságok kiosztása és a saját jelszó megváltoztatása.
 
     [:octicons-arrow-right-24: Olvasás](UserManagement.md)
 
@@ -228,7 +227,7 @@
 
     ---
 
-    TOTP beállítás, biztonsági kódok és teendők, ha egy eszköz elveszett.
+    TOTP beállítás, mentőkódok, és teendők, ha egy eszköz elveszik.
 
     [:octicons-arrow-right-24: Olvasás](TwoFactor.md)
 
@@ -236,15 +235,15 @@
 
     ---
 
-    Bejelentkezés Entra ID, Authelia vagy más identitásmegelőzően keresztül.
+    Bejelentkezés Entra ID, Authelia vagy más azonosító szolgáltatón keresztül.
 
     [:octicons-arrow-right-24: Olvasás](OIDC_Implementation.md)
 
--   :material-text-box-search:{ .lg .middle } __Hozzáférés naplózása__
+-   :material-text-box-search:{ .lg .middle } __Hozzáférési naplózás__
 
     ---
 
-    Ki nyitott meg, keresett, exportált vagy törölt mit.
+Ki nyitott, keresett, exportált vagy törölt mit.
 
     [:octicons-arrow-right-24: Olvasás](Logs.md)
 
@@ -252,7 +251,7 @@
 
     ---
 
-    Exportálja az audit nyomfolapot a megfelelőségi vizsgálatokhoz.
+    Az audit nyomvonal exportálása a megfelelőségi ellenőrzésekhez.
 
     [:octicons-arrow-right-24: Olvasás](AuditExport.md)
 
@@ -260,7 +259,7 @@
 
     ---
 
-    Hozzáférés visszaszerzése, ha egy fiók kitiltásra került.
+    Hozzáférés visszaszerzése, ha egy fiók kitiltva lett.
 
     [:octicons-arrow-right-24: Olvasás](EmergencyAccountRecovery.md)
 
@@ -278,19 +277,19 @@
 
 <div class="grid cards" markdown>
 
--   :material-microsoft:{ .lg .middle } __Azure alkalmazás regisztráció (M365)__
+-   :material-microsoft:{ .lg .middle } __Azure app regisztráció (M365)__
 
     ---
 
-    Regisztráljon egy alkalmazást és konfigurálja a megőrzést a Microsoft 365 számára.
+    Alkalmazás regisztrálása és a Microsoft 365 megőrzési beállításainak konfigurálása.
 
     [:octicons-arrow-right-24: Olvasás](AZURE_APP_REGISTRATION_M365.md)
 
--   :material-domain:{ .lg .middle } __M365 tenant e-mail fiók importálás__
+-   :material-domain:{ .lg .middle } __M365 tenant postafiók importálás__
 
     ---
 
-    Egyetlen űrlapon keresztül egy tenant minden e-mail fiókját tömegesen importálja be.
+    Egy tenant összes postafiókjának tömeges importálása egyetlen űrlapból.
 
     [:octicons-arrow-right-24: Olvasás](M365TenantImport.md)
 
@@ -298,7 +297,7 @@
 
     ---
 
-    Válasszon e-mail fiókat központilag, és biztosítson dedikált IMAP alkalmazási jelszavakat.
+    Postafiókok központi kiválasztása és dedikált IMAP alkalmazási jelszavak biztosítása.
 
     [:octicons-arrow-right-24: Olvasás](Mailcow.md)
 
@@ -306,7 +305,7 @@
 
     ---
 
-    Outlook.com, Hotmail és M365 Family a device code flow segítségével.
+    Outlook.com, Hotmail és M365 Family eszközkód-folyamon keresztül.
 
     [:octicons-arrow-right-24: Olvasás](MSA_Outlook_Setup.md)
 
@@ -314,7 +313,7 @@
 
     ---
 
-    Alkalmazási jelszavak, címkék, expunge és a Gmail sebességhatárai.
+    Alkalmazási jelszavak, címkék, expunge és a Gmail sebességkorlátozásai.
 
     [:octicons-arrow-right-24: Olvasás](GmailBestPractices.md)
 
@@ -322,7 +321,7 @@
 
     ---
 
-    Amit a Yahoo IMAP és export végpontjai nem tesznek meg.
+Amit a Yahoo IMAP és export végpontjai nem tesznek meg.
 
     [:octicons-arrow-right-24: Olvasás](YahooMailExportLimitations.md)
 
@@ -344,7 +343,7 @@
 
     ---
 
-    Tegye az archívumot elérhető eszközként az AI ügynökök számára.
+    Az archívum megjelenítése az AI ügynökök számára felfedezhető eszközökként.
 
     [:octicons-arrow-right-24: Olvasás](MCP.md)
 
@@ -358,15 +357,15 @@
 
     ---
 
-    A felület nyelvének váltása, és hogyan adjon hozzá egy fordítást.
+    A felület nyelvének váltása, és hogyan adjon hozzá fordítást.
 
     [:octicons-arrow-right-24: Olvasás](Localization.md)
 
--   :material-docker:{ .lg .middle } __Docker Compose logok__
+-   :material-docker:{ .lg .middle } __Docker Compose naplók__
 
     ---
 
-    Olvasson konténer logokat, és változtassa meg a log szintet.
+    Conténer naplók olvasása és a naplózási szint megváltoztatása.
 
     [:octicons-arrow-right-24: Olvasás](DockerComposeLogs.md)
 
@@ -374,7 +373,7 @@
 
     ---
 
-    Váltson fejlesztői tagre a közelgő változások teszteléséhez.
+    Váltás fejlesztői (dev) tagre a közelgő változások teszteléséhez.
 
     [:octicons-arrow-right-24: Olvasás](DevTag.md)
 
@@ -383,7 +382,7 @@
 ---
 
 <div class="docs-footer-note" markdown>
-:material-pencil: **Ez a dokumentáció folyamatosan bővül.**
+:material-pencil: **Ezt a dokumentációt folyamatosan bővítjük.**
 Ha hibát talál, vagy van javaslata, kérjük
-[nyisson meg egy issue-t](https://github.com/s1t5/mail-archiver/issues) vagy küldjön egy pull request-et.
+[nyisson egy issue-t](https://github.com/s1t5/mail-archiver/issues) vagy küldjön egy pull requestet.
 </div>
