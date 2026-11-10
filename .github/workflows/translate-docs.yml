@@ -40,6 +40,9 @@ on:
 
 permissions:
   contents: write
+  # Needed to start docs.yml after a translation run: commits pushed with the
+  # GITHUB_TOKEN do not trigger other workflows on their own.
+  actions: write
 
 concurrency:
   group: docs-translations
@@ -183,3 +186,10 @@ jobs:
       - name: Build site
         # --strict turns a broken link or a missing revision date into a failure.
         run: mkdocs build --strict
+
+      - name: Trigger the documentation deployment
+        # docs.yml does not run for commits pushed with the GITHUB_TOKEN, so
+        # start it explicitly after the translations are on main.
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh workflow run docs.yml --repo ${{ github.repository }} --ref main
