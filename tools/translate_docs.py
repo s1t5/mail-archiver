@@ -208,29 +208,7 @@ def extract_headings(text: str) -> list[tuple[int, str]]:
 
 def split_chunks(text: str) -> list[str]:
     """Split a page at level-2 headings, never inside a code fence."""
-    lines = text.splitlines(keepends=True)
-    chunks: list[str] = []
-    current: list[str] = []
-    in_fence = False
-    fence_marker = ""
-
-    for line in lines:
-        fence = FENCE_RE.match(line)
-        if fence:
-            marker = fence.group(2)[:3]
-            if not in_fence:
-                in_fence = True
-                fence_marker = marker
-            elif marker == fence_marker:
-                in_fence = False
-                fence_marker = ""
-        if not in_fence and re.match(r"^##\s+", line) and current:
-            chunks.append("".join(current))
-            current = [line]
-        else:
-            current.append(line)
-    if current:
-        chunks.append("".join(current))
+    chunks = _split_outside_fences(text, r"^##\s+")
 
     # A chunk with only a heading and one line gives the model too little
     # context and invites it to wrap the answer in a code fence. Merge such
@@ -262,9 +240,37 @@ def split_chunks(text: str) -> list[str]:
     return result
 
 
+def _split_outside_fences(text: str, pattern: str) -> list[str]:
+    """Split at lines matching pattern, but never inside a fenced block."""
+    lines = text.splitlines(keepends=True)
+    parts: list[str] = []
+    current: list[str] = []
+    in_fence = False
+    fence_marker = ""
+
+    for line in lines:
+        fence = FENCE_RE.match(line)
+        if fence:
+            marker = fence.group(2)[:3]
+            if not in_fence:
+                in_fence = True
+                fence_marker = marker
+            elif marker == fence_marker:
+                in_fence = False
+                fence_marker = ""
+        if not in_fence and re.match(pattern, line) and current:
+            parts.append("".join(current))
+            current = [line]
+        else:
+            current.append(line)
+    if current:
+        parts.append("".join(current))
+    return parts
+
+
 def _split_large(text: str) -> list[str]:
     """Split an oversized chunk at level-3 headings, then at blank lines."""
-    parts = re.split(r"(?m)(?=^###\s+)", text)
+    parts = _split_outside_fences(text, r"^###\s+")
     if len(parts) > 1:
         result: list[str] = []
         for part in parts:
@@ -277,26 +283,43 @@ def _split_large(text: str) -> list[str]:
 
 
 def _split_paragraphs(text: str) -> list[str]:
-    paragraphs = re.split(r"(?m)(?=\n\s*\n)", text)
+    """Split at blank lines outside fences. A fenced block stays intact."""
+    lines = text.splitlines(keepends=True)
+    blocks: list[str] = []
+    current: list[str] = []
+    in_fence = False
+    fence_marker = ""
+
+    for line in lines:
+        fence = FENCE_RE.match(line)
+        if fence:
+            marker = fence.group(2)[:3]
+            if not in_fence:
+                in_fence = True
+                fence_marker = marker
+            elif marker == fence_marker:
+                in_fence = False
+                fence_marker = ""
+        if not in_fence and line.strip() == "" and current:
+            blocks.append("".join(current))
+            current = []
+            blocks.append(line)
+        else:
+            current.append(line)
+    if current:
+        blocks.append("".join(current))
+
     result: list[str] = []
     buffer = ""
-    for paragraph in paragraphs:
-        if buffer and len(buffer) + len(paragraph) > MAX_CHUNK_CHARS:
+    for block in blocks:
+        if buffer and len(buffer) + len(block) > MAX_CHUNK_CHARS:
             result.append(buffer)
-            buffer = paragraph
+            buffer = block
         else:
-            buffer += paragraph
+            buffer += block
     if buffer:
         result.append(buffer)
-    # Hard split anything that is still too large.
-    final: list[str] = []
-    for part in result:
-        while len(part) > MAX_CHUNK_CHARS:
-            final.append(part[:MAX_CHUNK_CHARS])
-            part = part[MAX_CHUNK_CHARS:]
-        if part:
-            final.append(part)
-    return final
+    return result
 
 
 def mask(text: str) -> tuple[str, dict[str, str]]:
