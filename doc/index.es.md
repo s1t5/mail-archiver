@@ -1,12 +1,9 @@
 # 📧 Mail Archiver Documentation {#mail-archiver-documentation}
 
 <div class="docs-lead" markdown>
-**Archivo de correo electrónico auto-alojado — archive, search and export mail from any provider.**
-Configúrelo una vez, conserve cada mensaje y encuéntrelo de nuevo años después.
+**Archivo de correo electrónico auto-alojado — archiva, busca y exporta correo de cualquier proveedor.**
+Configúralo una vez, conserva cada mensaje y encuéntralo de nuevo años después.
 </div>
-
-!!! note "Traducciones"
-    La documentación en inglés es la fuente autorizada. Cualquier otro idioma se traduce automáticamente desde estas páginas y puede contener errores. Utilice el selector de idioma en el encabezado para cambiar el idioma.
 
 <div class="grid cards" markdown>
 
@@ -14,27 +11,27 @@ Configúrelo una vez, conserve cada mensaje y encuéntrelo de nuevo años despu�
 
     ---
 
-    Instale Mail Archiver con Docker Compose y conecte su primer Buzón.
+    Instala Mail Archiver con Docker Compose y conecta tu primer Buzón.
 
     [:octicons-arrow-right-24: Setup and parameters](Setup.md)
 
--   :material-magnify:{ .lg .middle } __Encuentre cualquier cosa__
+-   :material-magnify:{ .lg .middle } __Encuentra cualquier cosa__
 
     ---
 
-    Búsqueda de texto completo en cada Cuenta, con filtros, ordenación y acciones en lote.
+    Búsqueda de texto completo en cada Cuenta, con filtros, ordenación y acciones masivas.
 
     [:octicons-arrow-right-24: Mail search](Search.md)
 
--   :material-api:{ .lg .middle } __Automatícelo__
+-   :material-api:{ .lg .middle } __Automatízalo__
 
     ---
 
-    Lea su Archivo desde scripts y agentes de IA — claves de API de solo lectura y con alcance limitado.
+    Lee tu Archivo desde scripts y agentes de IA — claves de API de solo lectura y con alcance limitado.
 
     [:octicons-arrow-right-24: REST API](API.md) · [:octicons-arrow-right-24: MCP server](MCP.md)
 
--   :material-shield-lock:{ .lg .middle } __Asegúrelo__
+-   :material-shield-lock:{ .lg .middle } __Asegúralo__
 
     ---
 
@@ -60,7 +57,7 @@ Configúrelo una vez, conserve cada mensaje y encuéntrelo de nuevo años despu�
 
     ---
 
-    Coloque Mail Archiver detrás de nginx o Caddy con terminación TLS.
+    Coloca Mail Archiver detrás de nginx o Caddy con terminación TLS.
 
     [:octicons-arrow-right-24: Read](ReverseProxy.md)
 
@@ -68,7 +65,7 @@ Configúrelo una vez, conserve cada mensaje y encuéntrelo de nuevo años despu�
 
     ---
 
-    Pase a una nueva versión principal de PostgreSQL sin perder datos.
+    Pasa a una nueva versión principal de PostgreSQL sin perder datos.
 
     [:octicons-arrow-right-24: Read](PostgreSQLUpgrade.md)
 
@@ -76,7 +73,7 @@ Configúrelo una vez, conserve cada mensaje y encuéntrelo de nuevo años despu�
 
     ---
 
-    VACUUM, ANALYZE y mantener el Archivo con capacidad de respuesta a lo largo del tiempo.
+    VACUUM, ANALYZE y mantener el Archivo con buen rendimiento a lo largo del tiempo.
 
     [:octicons-arrow-right-24: Read](DatabaseMaintenance.md)
 
@@ -84,7 +81,7 @@ Configúrelo una vez, conserve cada mensaje y encuéntrelo de nuevo años despu�
 
     ---
 
-    Realice una Copia de seguridad de la base de datos y su Restauración — incluyendo configuraciones de Proxmox.
+    Realiza una Copia de seguridad de la base de datos y su Restauración — incluyendo configuraciones de Proxmox.
 
     [:octicons-arrow-right-24: Read](BackupRestore.md)
 
@@ -92,7 +89,7 @@ Configúrelo una vez, conserve cada mensaje y encuéntrelo de nuevo años despu�
 
     ---
 
-    Ejecute una instancia temporal localmente antes de tocar producción.
+    Ejecuta una instancia temporal localmente antes de tocar producción.
 
     [:octicons-arrow-right-24: Read](LocalTestEnvironment.md)
 
@@ -106,7 +103,7 @@ Configúrelo una vez, conserve cada mensaje y encuéntrelo de nuevo años despu�
 
     ---
 
-    Añada muchas Cuentas a la vez desde un archivo CSV.
+    Añade muchas Cuentas a la vez desde un archivo CSV.
 
     [:octicons-arrow-right-24: Read](Account-Import.md)
 
@@ -122,7 +119,7 @@ Configúrelo una vez, conserve cada mensaje y encuéntrelo de nuevo años despu�
 
     ---
 
-    Importe Archivos existentes desde la línea de comandos y mueva mensajes originales almacenados entre la base de datos y el sistema de archivos.
+    Importa Archivos existentes desde la línea de comandos y mueve los mensajes originales almacenados entre la base de datos y el sistema de archivos.
 
     [:octicons-arrow-right-24: Read](CLI.md)
 
@@ -130,7 +127,7 @@ Configúrelo una vez, conserve cada mensaje y encuéntrelo de nuevo años despu�
 
     ---
 
-    Suba un archivo MBox o un ZIP de archivos EML a través del navegador.
+    Sube un archivo MBox o un ZIP de archivos EML a través del navegador.
 
     [:octicons-arrow-right-24: Read](Import-EML-MBox.md)
 
@@ -144,7 +141,7 @@ Configúrelo una vez, conserve cada mensaje y encuéntrelo de nuevo años despu�
 
 </div>
 
-## 🔍 Trabajo con el Archivo {#working-with-the-archive}
+## 🔍 Trabajando con el Archivo {#working-with-the-archive}
 
 <div class="grid cards" markdown>
 
@@ -152,7 +149,7 @@ Configúrelo una vez, conserve cada mensaje y encuéntrelo de nuevo años despu�
 
     ---
 
-    Sintaxis de consulta, filtros, ordenación, paginación y acciones en lote.
+    Sintaxis de consulta, filtros, ordenación, paginación y acciones masivas.
 
     [:octicons-arrow-right-24: Read](Search.md)
 
@@ -160,7 +157,7 @@ Configúrelo una vez, conserve cada mensaje y encuéntrelo de nuevo años despu�
 
     ---
 
-    Vigile las sincronizaciones, importaciones, Restauraciones y exportaciones — y cancélelas de forma segura.
+    Observa sincronizaciones, importaciones, Restauraciones y exportaciones — y cancélalas de forma segura.
 
     [:octicons-arrow-right-24: Read](BackgroundJobs.md)
 
@@ -168,7 +165,7 @@ Configúrelo una vez, conserve cada mensaje y encuéntrelo de nuevo años despu�
 
     ---
 
-    Copie correos entre Buzones preservando la estructura de la Carpeta.
+    Copia correo entre Buzones preservando la estructura de la Carpeta.
 
     [:octicons-arrow-right-24: Read](MailboxMigration.md)
 
@@ -176,7 +173,7 @@ Configúrelo una vez, conserve cada mensaje y encuéntrelo de nuevo años despu�
 
     ---
 
-    Escriba una Cuenta completa como un Archivo EML o MBox portable.
+    Exporta una Cuenta completa como un Archivo EML o MBox portátil.
 
     [:octicons-arrow-right-24: Read](Export-Account.md)
 
@@ -184,7 +181,7 @@ Configúrelo una vez, conserve cada mensaje y encuéntrelo de nuevo años despu�
 
     ---
 
-    Mantenga el mensaje tal como se recibió, para que DKIM siga verificando y las exportaciones sean exactas en bytes.
+    Mantén el mensaje tal como se recibió, para que DKIM siga verificando y las exportaciones sean exactas a nivel de bytes.
 
     [:octicons-arrow-right-24: Read](RawMessages.md)
 
@@ -192,7 +189,7 @@ Configúrelo una vez, conserve cada mensaje y encuéntrelo de nuevo años despu�
 
     ---
 
-    Cómo los Adjuntos idénticos se almacenan una vez en lugar de muchas veces.
+    Cómo los Adjuntos idénticos se almacenan una sola vez en lugar de muchas veces.
 
     [:octicons-arrow-right-24: Read](AttachmentDeduplication.md)
 
@@ -200,7 +197,7 @@ Configúrelo una vez, conserve cada mensaje y encuéntrelo de nuevo años despu�
 
     ---
 
-    Mueva el correo más antiguo a otra Cuenta, ventana por ventana.
+    Mueve el correo más antiguo a otra Cuenta, ventana por ventana.
 
     [:octicons-arrow-right-24: Read](Offload.md)
 
@@ -208,7 +205,7 @@ Configúrelo una vez, conserve cada mensaje y encuéntrelo de nuevo años despu�
 
     ---
 
-    Vea cuánto espacio ocupa cada Buzón.
+    Mira cuánto espacio ocupa cada Buzón.
 
     [:octicons-arrow-right-24: Read](AccountStorage.md)
 
@@ -222,7 +219,7 @@ Configúrelo una vez, conserve cada mensaje y encuéntrelo de nuevo años despu�
 
     ---
 
-    Cree usuarios, otorgue derechos de administrador, asigne Permisos de Buzón y cambie su propia contraseña.
+    Crea usuarios, otorga derechos de administrador, asigna Permisos de Buzón y cambia tu propia contraseña.
 
     [:octicons-arrow-right-24: Read](UserManagement.md)
 
@@ -238,7 +235,7 @@ Configúrelo una vez, conserve cada mensaje y encuéntrelo de nuevo años despu�
 
     ---
 
-    Inicie sesión a través de Entra ID, Authelia u otro proveedor de identidad.
+    Inicia sesión a través de Entra ID, Authelia u otro proveedor de identidad.
 
     [:octicons-arrow-right-24: Read](OIDC_Implementation.md)
 
@@ -254,7 +251,7 @@ Configúrelo una vez, conserve cada mensaje y encuéntrelo de nuevo años despu�
 
     ---
 
-    Exporte el rastro de auditoría para revisiones de cumplimiento.
+    Exporta el rastro de auditoría para revisiones de cumplimiento.
 
     [:octicons-arrow-right-24: Read](AuditExport.md)
 
@@ -262,7 +259,7 @@ Configúrelo una vez, conserve cada mensaje y encuéntrelo de nuevo años despu�
 
     ---
 
-    Recupere el acceso cuando una Cuenta esté bloqueada.
+    Recupera el acceso cuando una Cuenta ha sido bloqueada.
 
     [:octicons-arrow-right-24: Read](EmergencyAccountRecovery.md)
 
@@ -284,7 +281,7 @@ Configúrelo una vez, conserve cada mensaje y encuéntrelo de nuevo años despu�
 
     ---
 
-    Registre una aplicación y configure la Retención para Microsoft 365.
+    Registra una aplicación y configura la Retención para Microsoft 365.
 
     [:octicons-arrow-right-24: Read](AZURE_APP_REGISTRATION_M365.md)
 
@@ -300,7 +297,7 @@ Configúrelo una vez, conserve cada mensaje y encuéntrelo de nuevo años despu�
 
     ---
 
-    Seleccione Buzones centralmente y proporcione contraseñas de aplicación IMAP dedicadas.
+    Selecciona Buzones de forma centralizada y provisiona contraseñas de aplicación IMAP dedicadas.
 
     [:octicons-arrow-right-24: Read](Mailcow.md)
 
@@ -308,7 +305,7 @@ Configúrelo una vez, conserve cada mensaje y encuéntrelo de nuevo años despu�
 
     ---
 
-    Outlook.com, Hotmail y M365 Family mediante el flujo de código de dispositivo.
+    Outlook.com, Hotmail y M365 Family mediante flujo de código de dispositivo.
 
     [:octicons-arrow-right-24: Read](MSA_Outlook_Setup.md)
 
@@ -346,7 +343,7 @@ Configúrelo una vez, conserve cada mensaje y encuéntrelo de nuevo años despu�
 
     ---
 
-    Exponga el Archivo a agentes de IA como herramientas descubribles.
+    Expón el Archivo a agentes de IA como herramientas descubribles.
 
     [:octicons-arrow-right-24: Read](MCP.md)
 
@@ -360,7 +357,7 @@ Configúrelo una vez, conserve cada mensaje y encuéntrelo de nuevo años despu�
 
     ---
 
-    Cambie el idioma de la interfaz y cómo añadir una traducción.
+    Cambia el idioma de la interfaz y cómo añadir una traducción.
 
     [:octicons-arrow-right-24: Read](Localization.md)
 
@@ -368,7 +365,7 @@ Configúrelo una vez, conserve cada mensaje y encuéntrelo de nuevo años despu�
 
     ---
 
-    Lea los logs del contenedor y cambie el nivel de log.
+    Lee los logs de los contenedores y cambia el nivel de log.
 
     [:octicons-arrow-right-24: Read](DockerComposeLogs.md)
 
@@ -376,7 +373,7 @@ Configúrelo una vez, conserve cada mensaje y encuéntrelo de nuevo años despu�
 
     ---
 
-    Cambie a una etiqueta de desarrollo para probar los próximos cambios.
+    Cambia a una etiqueta de desarrollo para probar cambios próximos.
 
     [:octicons-arrow-right-24: Read](DevTag.md)
 
@@ -386,6 +383,6 @@ Configúrelo una vez, conserve cada mensaje y encuéntrelo de nuevo años despu�
 
 <div class="docs-footer-note" markdown>
 :material-pencil: **Esta documentación se está expandiendo continuamente.**
-Si detecta un error o tiene una sugerencia, por favor
-[open an issue](https://github.com/s1t5/mail-archiver/issues) o envíe un pull request.
+Si detectas un error o tienes una sugerencia, por favor
+[open an issue](https://github.com/s1t5/mail-archiver/issues) o envía un pull request.
 </div>
