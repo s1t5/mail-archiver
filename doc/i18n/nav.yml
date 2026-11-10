@@ -25,18 +25,18 @@ de:
   MCP Server: MCP-Server
   Mail Search: E-Mail-Suche
   Mail Synchronization: E-Mail-Synchronisierung
-  Mailbox Migration: Postfachmigration
+  Mailbox Migration: Postfach-Migration
   Mailcow Instances: Mailcow-Instanzen
   OIDC / SSO: OIDC / SSO
   Operations & Development: Betrieb & Entwicklung
-  Original Message Storage: Speicherung der Originalnachrichten
-  Per-Account Storage: Speicher pro Konto
+  Original Message Storage: Originalnachrichten-Speicherung
+  Per-Account Storage: Kontospezifische Speicherung
   Personal Microsoft Accounts: Persönliche Microsoft-Konten
   PostgreSQL Major Upgrade: PostgreSQL Major Upgrade
   Programmatic Access: Programmatischer Zugriff
-  Provider Guides: Anbieter-Leitfäden
+  Provider Guides: Anbieter-Anleitungen
   REST API: REST-API
-  Rate Limit Handling: Umgang mit Ratenbegrenzungen
+  Rate Limit Handling: Rate-Limit-Handhabung
   Retention Policies: Aufbewahrungsrichtlinien
   Reverse Proxy: Reverse Proxy
   Setup and Parameters: Einrichtung und Parameter
