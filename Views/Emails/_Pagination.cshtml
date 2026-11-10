@@ -1,0 +1,132 @@
+@model MailArchiver.Models.ViewModels.SearchViewModel
+@inject Microsoft.Extensions.Localization.IStringLocalizer<MailArchiver.SharedResource> Localizer
+@*
+    Page navigation for the email archive. Rendered above and below the result list,
+    so it must not use element ids and must carry every filter the list is using.
+    Shows the first and last page, a window around the current page and a jump box;
+    with thousands of pages a plain "previous/next" forces one click per page.
+*@
+@{
+    var totalPages = Math.Max(1, Model.TotalPages);
+    var currentPage = Math.Min(Math.Max(1, Model.PageNumber), totalPages);
+
+    var routeValues = new Dictionary<string, string>
+    {
+        ["SearchTerm"] = Model.SearchTerm ?? string.Empty,
+        ["FromDate"] = Model.FromDate?.ToString("yyyy-MM-dd") ?? string.Empty,
+        ["ToDate"] = Model.ToDate?.ToString("yyyy-MM-dd") ?? string.Empty,
+        ["SelectedAccountId"] = Model.SelectedAccountId?.ToString() ?? string.Empty,
+        ["SelectedFolder"] = Model.SelectedFolder ?? string.Empty,
+        ["IsOutgoing"] = Model.IsOutgoing?.ToString() ?? string.Empty,
+        ["PageSize"] = Model.PageSize.ToString(),
+        ["ShowSelectionControls"] = Model.ShowSelectionControls ? "true" : "false",
+        ["SortBy"] = Model.SortBy ?? "SentDate",
+        ["SortOrder"] = Model.SortOrder ?? "desc",
+        ["UserTimezone"] = Model.UserTimezone ?? "UTC"
+    };
+
+    string PageUrl(int pageNumber)
+    {
+        var values = new RouteValueDictionary(routeValues) { ["PageNumber"] = pageNumber };
+        return Url.Action("Index", values) ?? "#";
+    }
+
+    // First page, the pages around the current one and the last page. A zero marks
+    // an omitted range and is rendered as an ellipsis.
+    var pages = new List<int>();
+    if (totalPages <= 9)
+    {
+        for (var pageNumber = 1; pageNumber <= totalPages; pageNumber++)
+        {
+            pages.Add(pageNumber);
+        }
+    }
+    else
+    {
+        pages.Add(1);
+        var windowStart = Math.Max(2, currentPage - 2);
+        var windowEnd = Math.Min(totalPages - 1, currentPage + 2);
+        if (windowStart > 2)
+        {
+            // A single hidden page is shown directly instead of as an ellipsis.
+            if (windowStart == 3)
+            {
+                pages.Add(2);
+            }
+            else
+            {
+                pages.Add(0);
+            }
+        }
+        for (var pageNumber = windowStart; pageNumber <= windowEnd; pageNumber++)
+        {
+            pages.Add(pageNumber);
+        }
+        if (windowEnd < totalPages - 1)
+        {
+            if (windowEnd == totalPages - 2)
+            {
+                pages.Add(totalPages - 1);
+            }
+            else
+            {
+                pages.Add(0);
+            }
+        }
+        pages.Add(totalPages);
+    }
+}
+@if (totalPages > 1)
+{
+    <div class="pagination-bar">
+        <nav aria-label="@Localizer["PageOf", currentPage, totalPages]">
+            <ul class="pagination pagination-sm flex-wrap justify-content-center mb-0">
+                @if (currentPage == 1)
+                {
+                    <li class="page-item disabled"><span class="page-link">@Localizer["Previous"]</span></li>
+                }
+                else
+                {
+                    <li class="page-item">
+                        <a class="page-link" href="@PageUrl(currentPage - 1)" rel="prev">@Localizer["Previous"]</a>
+                    </li>
+                }
+                @foreach (var pageNumber in pages)
+                {
+                    if (pageNumber == 0)
+                    {
+                        <li class="page-item disabled"><span class="page-link">…</span></li>
+                    }
+                    else if (pageNumber == currentPage)
+                    {
+                        <li class="page-item active"><span class="page-link" aria-current="page">@pageNumber</span></li>
+                    }
+                    else
+                    {
+                        <li class="page-item"><a class="page-link" href="@PageUrl(pageNumber)">@pageNumber</a></li>
+                    }
+                }
+                @if (currentPage == totalPages)
+                {
+                    <li class="page-item disabled"><span class="page-link">@Localizer["Next"]</span></li>
+                }
+                else
+                {
+                    <li class="page-item">
+                        <a class="page-link" href="@PageUrl(currentPage + 1)" rel="next">@Localizer["Next"]</a>
+                    </li>
+                }
+            </ul>
+        </nav>
+        <form method="get" asp-action="Index" class="pagination-jump">
+            @foreach (var value in routeValues.Where(v => !string.IsNullOrEmpty(v.Value)))
+            {
+                <input type="hidden" name="@value.Key" value="@value.Value" />
+            }
+            <input type="number" name="PageNumber" min="1" max="@totalPages" value="@currentPage"
+                   class="form-control form-control-sm pagination-jump-input"
+                   aria-label="@Localizer["GoToPage"]" title="@Localizer["GoToPage"]" />
+            <button type="submit" class="btn btn-sm btn-outline-secondary">@Localizer["Go"]</button>
+        </form>
+    </div>
+}

@@ -145,6 +145,12 @@
   <data name="PageOf" xml:space="preserve">
     <value>Stran {0} od {1}</value>
   </data>
+  <data name="GoToPage" xml:space="preserve">
+    <value>Pojdi na stran</value>
+  </data>
+  <data name="Go" xml:space="preserve">
+    <value>Pojdi</value>
+  </data>
   <data name="SelectAll" xml:space="preserve">
     <value>Izberi vse</value>
   </data>

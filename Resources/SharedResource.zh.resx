@@ -145,6 +145,12 @@
   <data name="PageOf" xml:space="preserve">
     <value>第 {0} 页，共 {1} 页</value>
   </data>
+  <data name="GoToPage" xml:space="preserve">
+    <value>跳转到页面</value>
+  </data>
+  <data name="Go" xml:space="preserve">
+    <value>跳转</value>
+  </data>
   <data name="SelectAll" xml:space="preserve">
     <value>全选</value>
   </data>

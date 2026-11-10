@@ -139,6 +139,12 @@
   <data name="PageOf" xml:space="preserve">
     <value>{0} / {1} ページ</value>
   </data>
+  <data name="GoToPage" xml:space="preserve">
+    <value>ページへ移動</value>
+  </data>
+  <data name="Go" xml:space="preserve">
+    <value>移動</value>
+  </data>
   <data name="SelectAll" xml:space="preserve">
     <value>すべて選択</value>
   </data>

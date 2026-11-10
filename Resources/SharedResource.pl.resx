@@ -198,6 +198,12 @@
   <data name="PageOf" xml:space="preserve">
     <value>Strona {0} z {1}</value>
   </data>
+  <data name="GoToPage" xml:space="preserve">
+    <value>Przejdź do strony</value>
+  </data>
+  <data name="Go" xml:space="preserve">
+    <value>Przejdź</value>
+  </data>
   <data name="SelectAll" xml:space="preserve">
     <value>Zaznacz wszystko</value>
   </data>
