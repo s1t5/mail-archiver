@@ -71,6 +71,23 @@ namespace MailArchiver.Controllers
             var totalPages = (int)Math.Ceiling((double)totalLogs / pageSize);
             var paginatedLogs = logs.Skip((page - 1) * pageSize).Take(pageSize).ToList();
 
+            // Resolve the mailbox name for every entry that references an account. The log
+            // rows store only the id, so without this the view cannot tell which mailbox a
+            // deletion or retention entry belongs to (issue #605). Accounts that were deleted
+            // in the meantime are absent from the map; the view then falls back to the id.
+            var mailAccountIds = paginatedLogs
+                .Where(l => l.MailAccountId.HasValue)
+                .Select(l => l.MailAccountId!.Value)
+                .Distinct()
+                .ToList();
+
+            ViewBag.MailAccountNames = mailAccountIds.Count == 0
+                ? new Dictionary<int, string>()
+                : await _context.MailAccounts
+                    .Where(a => mailAccountIds.Contains(a.Id))
+                    .Select(a => new { a.Id, a.Name })
+                    .ToDictionaryAsync(a => a.Id, a => a.Name);
+
             // For admin users, get all usernames for the filter dropdown
             if (isAdmin)
             {

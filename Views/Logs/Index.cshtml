@@ -10,6 +10,21 @@
     var pageSize = ViewBag.PageSize as int? ?? 50;
     var fromDate = ViewBag.FromDate as DateTime?;
     var toDate = ViewBag.ToDate as DateTime?;
+    var mailAccountNames = ViewBag.MailAccountNames as Dictionary<int, string> ?? new Dictionary<int, string>();
+
+    // The log row stores only the account id. Accounts that were deleted in the meantime
+    // have no name left, so the id is shown instead of hiding the reference entirely.
+    string? MailboxName(AccessLog log)
+    {
+        if (!log.MailAccountId.HasValue)
+        {
+            return null;
+        }
+
+        return mailAccountNames.TryGetValue(log.MailAccountId.Value, out var name)
+            ? name
+            : $"#{log.MailAccountId.Value}";
+    }
 }
 
 <div class="container-fluid">
@@ -87,10 +102,11 @@
                 <table class="table table-striped table-hover table-sm mb-0">
                     <thead class="table-dark">
                         <tr>
-                            <th style="width: 15%;">@Localizer["Timestamp"]</th>
-                            <th style="width: 15%;">@Localizer["Username"]</th>
-                            <th style="width: 10%;">@Localizer["Type"]</th>
-                            <th style="width: 60%;">@Localizer["Info"]</th>
+                            <th style="width: 12%;">@Localizer["Timestamp"]</th>
+                            <th style="width: 12%;">@Localizer["Username"]</th>
+                            <th style="width: 9%;">@Localizer["Type"]</th>
+                            <th style="width: 18%;">@Localizer["Mailbox"]</th>
+                            <th style="width: 49%;">@Localizer["Info"]</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -123,6 +139,17 @@
                                         };
                                     }
                                     <span class="badge @badgeClass">@Localizer[log.Type.ToString()]</span>
+                                </td>
+                                <td>
+                                    @{ var mailboxName = MailboxName(log); }
+                                    @if (mailboxName != null)
+                                    {
+                                        <span class="text-nowrap">@mailboxName</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">-</span>
+                                    }
                                 </td>
                                 <td>
                                     @if (log.EmailId.HasValue)
@@ -225,6 +252,10 @@
                         <span class="badge @badgeClass">@Localizer[log.Type.ToString()]</span>
                     </div>
                     <p class="card-text small text-muted mb-1">@Localizer["Username"]: @log.Username</p>
+                    @if (MailboxName(log) is string mailboxLabel)
+                    {
+                        <p class="card-text small text-muted mb-1">@Localizer["Mailbox"]: @mailboxLabel</p>
+                    }
                     <div class="card-text small">
                         <strong>@Localizer["Info"]:</strong>
                         @if (log.EmailId.HasValue)
