@@ -1,50 +1,47 @@
-# Navigation labels per locale. The hook injects these into the i18n plugin.
-# Missing titles fall back to the English label, so a partial file is safe.
-
 de:
-  Home: Start
-  Installation & Maintenance: Installation und Wartung
-  Setup and Parameters: Einrichtung und Parameter
-  Reverse Proxy: Reverse Proxy
-  PostgreSQL Major Upgrade: PostgreSQL-Hauptversion aktualisieren
-  Database Maintenance: Datenbankwartung
-  Backup and Restore: Sicherung und Wiederherstellung
-  Local Test Environment: Lokale Testumgebung
-  Getting Mail In: E-Mail importieren
-  Account Import: Kontoimport
-  Mail Synchronization: E-Mail-Synchronisierung
-  CLI Commands: CLI-Befehle
-  Web Import (EML / MBox): Webimport (EML / MBox)
-  Rate Limit Handling: Umgang mit Ratenlimits
-  Working with the Archive: Mit dem Archiv arbeiten
-  Mail Search: E-Mail-Suche
-  Background Jobs: Hintergrundjobs
-  Mailbox Migration: Postfachmigration
-  Account Export (EML / MBox): Kontoexport (EML / MBox)
-  Original Message Storage: Speicherung der Originalnachrichten
-  Attachment Deduplication: Anhang-Deduplizierung
-  Date-Windowed Offload: Zeitfenster-Auslagerung
-  Per-Account Storage: Speicher pro Konto
-  Administration & Security: Administration und Sicherheit
-  User Management & Permissions: Benutzerverwaltung und Berechtigungen
-  Two-Factor Authentication: Zwei-Faktor-Authentifizierung
-  OIDC / SSO: OIDC / SSO
-  Access Logging: Zugriffsprotokollierung
-  Audit Data Export: Audit-Datenexport
-  Emergency Account Recovery: Notfall-Wiederherstellung von Konten
-  Retention Policies: Aufbewahrungsrichtlinien
-  Provider Guides: Anbieteranleitungen
-  Azure App Registration (M365): Azure-App-Registrierung (M365)
-  M365 Tenant Mailbox Import: M365-Tenant-Postfachimport
-  Mailcow Instances: Mailcow-Instanzen
-  Personal Microsoft Accounts: Persönliche Microsoft-Konten
-  Gmail Best Practices: Gmail-Best Practices
-  Yahoo Mail Limitations: Yahoo-Mail-Einschränkungen
-  Programmatic Access: Programmatischer Zugriff
-  REST API: REST-API
   API Reference: API-Referenz
-  MCP Server: MCP-Server
-  Operations & Development: Betrieb und Entwicklung
-  Language and Localization: Sprache und Lokalisierung
-  Docker Compose Logs: Docker-Compose-Logs
+  Access Logging: Zugriffsprotokollierung
+  Account Export (EML / MBox): Kontenexport (EML / MBox)
+  Account Import: Kontenimport
+  Administration & Security: Administration & Sicherheit
+  Attachment Deduplication: Anhang-Deduplizierung
+  Audit Data Export: Audit-Datenexport
+  Azure App Registration (M365): Azure App-Registrierung (M365)
+  Background Jobs: Hintergrundprozesse
+  Backup and Restore: Backup und Wiederherstellung
+  CLI Commands: CLI-Befehle
+  Database Maintenance: Datenbankwartung
+  Date-Windowed Offload: Zeitfensterbasiertes Auslagern
   Dev Tag (Development Versions): Dev-Tag (Entwicklungsversionen)
+  Docker Compose Logs: Docker Compose Logs
+  Emergency Account Recovery: Notfall-Kontowiederherstellung
+  Getting Mail In: E-Mail-Empfang
+  Gmail Best Practices: Gmail Best Practices
+  Home: Startseite
+  Installation & Maintenance: Installation & Wartung
+  Language and Localization: Sprache und Lokalisierung
+  Local Test Environment: Lokale Testumgebung
+  M365 Tenant Mailbox Import: M365 Tenant Postfachimport
+  MCP Server: MCP-Server
+  Mail Search: E-Mail-Suche
+  Mail Synchronization: E-Mail-Synchronisierung
+  Mailbox Migration: Postfach-Migration
+  Mailcow Instances: Mailcow-Instanzen
+  OIDC / SSO: OIDC / SSO
+  Operations & Development: Betrieb & Entwicklung
+  Original Message Storage: Originalnachrichten-Speicherung
+  Per-Account Storage: Kontospezifische Speicherung
+  Personal Microsoft Accounts: Persönliche Microsoft-Konten
+  PostgreSQL Major Upgrade: PostgreSQL Major Upgrade
+  Programmatic Access: Programmatischer Zugriff
+  Provider Guides: Anbieter-Anleitungen
+  REST API: REST-API
+  Rate Limit Handling: Rate-Limit-Handhabung
+  Retention Policies: Aufbewahrungsrichtlinien
+  Reverse Proxy: Reverse Proxy
+  Setup and Parameters: Einrichtung und Parameter
+  Two-Factor Authentication: Zwei-Faktor-Authentifizierung
+  User Management & Permissions: Benutzerverwaltung & Berechtigungen
+  Web Import (EML / MBox): Web-Import (EML / MBox)
+  Working with the Archive: Arbeiten mit dem Archiv
+  Yahoo Mail Limitations: Yahoo Mail Einschränkungen
