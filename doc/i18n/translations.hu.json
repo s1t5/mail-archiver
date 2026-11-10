@@ -1,6 +1,11 @@
 {
   "languages": {
     "hu": {
+      "API.md": {
+        "model": "google/gemma-4-26b-a4b-it",
+        "source_sha256": "ff326b5522accdee54f96a4e849e38e799f55ee88b5fc58673abb1f6ee3c40d3",
+        "translated_at": "2026-11-10T15:25:10Z"
+      },
       "AZURE_APP_REGISTRATION_M365.md": {
         "model": "google/gemma-4-26b-a4b-it",
         "source_sha256": "3f2b42b418100b13b2ba09ade265bbbbe726cea305bd121e69fc19b4d7d8eac1",
