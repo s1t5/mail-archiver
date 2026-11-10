@@ -60,7 +60,7 @@ RESOURCES = ROOT / "Resources"
 EXCLUDED_SOURCES = {"API-Reference.md"}
 DEFAULT_BASE_URL = "https://api.openai.com/v1"
 DEFAULT_MODEL = "gpt-4o-mini"
-MAX_CHUNK_CHARS = 6000
+MAX_CHUNK_CHARS = 60000
 MIN_CHUNK_CHARS = 300
 MAX_RETRIES = 4
 MAX_VALIDATION_RETRIES = 3
@@ -208,6 +208,11 @@ def extract_headings(text: str) -> list[tuple[int, str]]:
 
 def split_chunks(text: str) -> list[str]:
     """Split a page at level-2 headings, never inside a code fence."""
+    # A page that fits into one request is sent as a whole. That keeps the
+    # structure intact and avoids paying for per-section round trips.
+    if len(text) <= MAX_CHUNK_CHARS:
+        return [text]
+
     chunks = _split_outside_fences(text, r"^##\s+")
 
     # A chunk with only a heading and one line gives the model too little
@@ -479,6 +484,10 @@ def call_chat_completion(
         "model": model,
         "temperature": 0,
         "stream": False,
+        # Whole pages are sent in one request now, so the answer can be long.
+        # The default is generous for a 262K context model; override it with
+        # LLM_MAX_TOKENS when the model has a smaller output budget.
+        "max_tokens": int(os.environ.get("LLM_MAX_TOKENS", "32000")),
         "messages": [
             {"role": "system", "content": system},
             {"role": "user", "content": user},
@@ -791,14 +800,9 @@ The table above is small, so this paragraph adds the length the section needs
 to stay a chunk of its own. It also gives the validator a table and a heading
 to compare after the translation, which catches models that drop rows.
 """
-    global MIN_CHUNK_CHARS
-    original_min = MIN_CHUNK_CHARS
-    MIN_CHUNK_CHARS = 0
-    chunks = split_chunks(sample)
-    assert len(chunks) == 3, chunks
-    MIN_CHUNK_CHARS = 10000
+    parts = _split_outside_fences(sample, r"^##\s+")
+    assert len(parts) == 3, parts
     assert len(split_chunks(sample)) == 1
-    MIN_CHUNK_CHARS = original_min
     masked, store = mask(sample)
     assert "⟦X" in masked
     assert unmask(masked, store) == sample
