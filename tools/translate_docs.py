@@ -62,6 +62,7 @@ DEFAULT_BASE_URL = "https://api.openai.com/v1"
 DEFAULT_MODEL = "gpt-4o-mini"
 MAX_CHUNK_CHARS = 60000
 MIN_CHUNK_CHARS = 300
+MAX_PLACEHOLDERS = 80
 MAX_RETRIES = 4
 MAX_VALIDATION_RETRIES = 3
 
@@ -206,11 +207,23 @@ def extract_headings(text: str) -> list[tuple[int, str]]:
     return headings
 
 
+def count_masked(text: str) -> int:
+    """Number of placeholders mask() would create for this text."""
+    return (
+        len(re.findall(r"(?ms)^(`{3,}|~{3,}).*?^\1\s*$", text))
+        + len(re.findall(r"`[^`\n]+`", text))
+        + len(re.findall(r"\]\(([^)\s]+)\)", text))
+        + len(re.findall(r"<[^>\n]+>", text))
+    )
+
+
 def split_chunks(text: str) -> list[str]:
     """Split a page at level-2 headings, never inside a code fence."""
     # A page that fits into one request is sent as a whole. That keeps the
-    # structure intact and avoids paying for per-section round trips.
-    if len(text) <= MAX_CHUNK_CHARS:
+    # structure intact and avoids paying for per-section round trips. Pages
+    # with many placeholders are split anyway: a model that has to reproduce
+    # hundreds of ⟦X…⟧ tokens tends to drop some of them.
+    if len(text) <= MAX_CHUNK_CHARS and count_masked(text) <= MAX_PLACEHOLDERS:
         return [text]
 
     chunks = _split_outside_fences(text, r"^##\s+")
@@ -238,7 +251,7 @@ def split_chunks(text: str) -> list[str]:
 
     result: list[str] = []
     for chunk in merged:
-        if len(chunk) <= MAX_CHUNK_CHARS:
+        if len(chunk) <= MAX_CHUNK_CHARS and count_masked(chunk) <= MAX_PLACEHOLDERS:
             result.append(chunk)
         else:
             result.extend(_split_large(chunk))
@@ -317,7 +330,10 @@ def _split_paragraphs(text: str) -> list[str]:
     result: list[str] = []
     buffer = ""
     for block in blocks:
-        if buffer and len(buffer) + len(block) > MAX_CHUNK_CHARS:
+        if buffer and (
+            len(buffer) + len(block) > MAX_CHUNK_CHARS
+            or count_masked(buffer + block) > MAX_PLACEHOLDERS
+        ):
             result.append(buffer)
             buffer = block
         else:
