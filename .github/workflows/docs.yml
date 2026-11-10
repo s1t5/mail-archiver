@@ -19,11 +19,12 @@ permissions:
   pages: write
   id-token: write
 
-# Allow one concurrent deployment, cancelling in-progress runs of the same
-# ref so a fast sequence of pushes does not queue up stale builds.
+# Allow one concurrent deployment. Do not cancel a running deploy: a Pages
+# deployment cancelled mid-flight can stay locked on GitHub's side and block
+# every later deploy until it times out.
 concurrency:
   group: pages-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   build:
