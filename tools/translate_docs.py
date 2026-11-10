@@ -401,6 +401,10 @@ def load_glossary(locale: str) -> dict[str, str]:
     return result
 
 
+class TransientError(RuntimeError):
+    """A response worth retrying, for example a non-JSON body from a proxy."""
+
+
 def call_chat_completion(
     system: str,
     user: str,
@@ -412,6 +416,7 @@ def call_chat_completion(
     payload = {
         "model": model,
         "temperature": 0,
+        "stream": False,
         "messages": [
             {"role": "system", "content": system},
             {"role": "user", "content": user},
@@ -422,12 +427,22 @@ def call_chat_completion(
         data=json.dumps(payload).encode("utf-8"),
         headers={
             "Content-Type": "application/json",
+            "Accept": "application/json",
             "Authorization": f"Bearer {api_key}",
         },
         method="POST",
     )
     with urllib.request.urlopen(request, timeout=timeout) as response:
-        body = json.load(response)
+        raw = response.read().decode("utf-8", errors="replace")
+        status = response.status
+        content_type = response.headers.get("Content-Type", "")
+    try:
+        body = json.loads(raw)
+    except json.JSONDecodeError as exc:
+        preview = " ".join(raw.split())[:300]
+        raise TransientError(
+            f"non-JSON response (HTTP {status}, {content_type}): {preview!r}"
+        ) from exc
     try:
         content = body["choices"][0]["message"]["content"]
     except (KeyError, IndexError, TypeError) as exc:
@@ -455,7 +470,22 @@ def request_with_retry(
                 raise
             retry_after = exc.headers.get("Retry-After") if exc.headers else None
             delay = int(retry_after) if retry_after and retry_after.isdigit() else 2 ** attempt
-            print(f"  HTTP {exc.code}, retrying in {delay}s", file=sys.stderr)
+            preview = ""
+            try:
+                preview = " ".join(
+                    exc.read().decode("utf-8", errors="replace").split()
+                )[:200]
+            except Exception:
+                pass
+            print(
+                f"  HTTP {exc.code} {preview!r}, retrying in {delay}s",
+                file=sys.stderr,
+            )
+            time.sleep(delay)
+        except TransientError as exc:
+            last_error = exc
+            delay = 2 ** attempt
+            print(f"  {exc}, retrying in {delay}s", file=sys.stderr)
             time.sleep(delay)
         except (urllib.error.URLError, TimeoutError, OSError) as exc:
             last_error = exc
