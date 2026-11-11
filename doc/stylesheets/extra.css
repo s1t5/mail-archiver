@@ -76,3 +76,10 @@
 .md-typeset .docs-footer-note p {
   margin: 0;
 }
+
+/* The header logo is a black PNG. Invert it on the dark scheme so it stays
+   visible; the white check inside the badge becomes dark, which is correct. */
+[data-md-color-scheme="slate"] .md-header__button.md-logo img,
+[data-md-color-scheme="slate"] .md-nav__button.md-logo img {
+  filter: invert(1);
+}
