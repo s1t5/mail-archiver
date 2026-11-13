@@ -15,7 +15,7 @@ de:
   Dev Tag (Development Versions): Dev-Tag (Entwicklungsversionen)
   Docker Compose Logs: Docker Compose Logs
   Emergency Account Recovery: Notfall-Kontowiederherstellung
-  Getting Mail In: E-Mail-Import
+  Getting Mail In: E-Mail-Empfang
   Gmail Best Practices: Gmail Best Practices
   Home: Startseite
   Installation & Maintenance: Installation & Wartung
@@ -36,7 +36,7 @@ de:
   Programmatic Access: Programmatischer Zugriff
   Provider Guides: Anbieter-Leitfäden
   REST API: REST API
-  Rate Limit Handling: Umgang mit Ratenbegrenzungen
+  Rate Limit Handling: Umgang mit Rate-Limits
   Retention Policies: Aufbewahrungsrichtlinien
   Reverse Proxy: Reverse Proxy
   Setup and Parameters: Einrichtung und Parameter
@@ -59,7 +59,7 @@ es:
   CLI Commands: Comandos de CLI
   Database Maintenance: Mantenimiento de la base de datos
   Date-Windowed Offload: Descarga por ventana de fechas
-  Dev Tag (Development Versions): Etiqueta de desarrollo (Versiones de desarrollo)
+  Dev Tag (Development Versions): Etiqueta Dev (Versiones de desarrollo)
   Docker Compose Logs: Logs de Docker Compose
   Emergency Account Recovery: Recuperación de cuenta de emergencia
   Getting Mail In: Recepción de correo
@@ -95,7 +95,7 @@ es:
 fr:
   API Reference: Référence de l'API
   Access Logging: Journalisation des accès
-  Account Export (EML / MBox): Exportation de comptes (EML / MBox)
+  Account Export (EML / MBox): Exportation de compte (EML / MBox)
   Account Import: Importation de comptes
   Administration & Security: Administration et sécurité
   Attachment Deduplication: Déduplication des pièces jointes
@@ -147,12 +147,12 @@ hu:
   Administration & Security: Adminisztráció és biztonság
   Attachment Deduplication: Csatolmányok duplikációmentesítése
   Audit Data Export: Audit adatok exportálása
-  Azure App Registration (M365): Azure alkalmazás regisztráció (M365)
+  Azure App Registration (M365): Azure alkalmazásregisztráció (M365)
   Background Jobs: Háttérfolyamatok
   Backup and Restore: Mentés és visszaállítás
   CLI Commands: CLI parancsok
   Database Maintenance: Adatbázis karbantartás
-  Date-Windowed Offload: Időalapú adatátvitel
+  Date-Windowed Offload: Időalapú archiválás/átrakás
   Dev Tag (Development Versions): Dev Tag (fejlesztői verziók)
   Docker Compose Logs: Docker Compose naplók
   Emergency Account Recovery: Sürgős fiókhelyreállítás
@@ -161,7 +161,7 @@ hu:
   Home: Kezdőlap
   Installation & Maintenance: Telepítés és karbantartás
   Language and Localization: Nyelv és lokalizáció
-  Local Test Environment: Helyi tesztkörnyezet
+  Local Test Environment: Lokális tesztkörnyezet
   M365 Tenant Mailbox Import: M365 Tenant levélbázis importálás
   MCP Server: MCP szerver
   Mail Search: Levélkeresés
@@ -169,9 +169,9 @@ hu:
   Mailbox Migration: Levélbázis migráció
   Mailcow Instances: Mailcow példányok
   OIDC / SSO: OIDC / SSO
-  Operations & Development: Üzemeltetés és fejlesztés
+  Operations & Development: Operáció és fejlesztés
   Original Message Storage: Eredeti üzenetek tárolása
-  Per-Account Storage: Fiólonkénti tárolás
+  Per-Account Storage: Fiókonkénti tárolás
   Personal Microsoft Accounts: Személyes Microsoft fiókok
   PostgreSQL Major Upgrade: PostgreSQL főverzió frissítés
   Programmatic Access: Programatikus hozzáférés
@@ -188,20 +188,20 @@ hu:
   Yahoo Mail Limitations: Yahoo Mail korlátozások
 it:
   API Reference: Riferimento API
-  Access Logging: Log di accesso
+  Access Logging: Log degli accessi
   Account Export (EML / MBox): Esportazione account (EML / MBox)
   Account Import: Importazione account
   Administration & Security: Amministrazione e sicurezza
   Attachment Deduplication: Dedubblicazione allegati
   Audit Data Export: Esportazione dati di audit
   Azure App Registration (M365): Registrazione app Azure (M365)
-  Background Jobs: Job in background
+  Background Jobs: Lavori in background
   Backup and Restore: Backup e ripristino
   CLI Commands: Comandi CLI
   Database Maintenance: Manutenzione del database
   Date-Windowed Offload: Offload basato su intervallo di date
   Dev Tag (Development Versions): Tag Dev (Versioni di sviluppo)
-  Docker Compose Logs: Log di Docker Compose
+  Docker Compose Logs: Log Docker Compose
   Emergency Account Recovery: Recupero account di emergenza
   Getting Mail In: Ricezione della posta
   Gmail Best Practices: Best practice Gmail
@@ -222,7 +222,7 @@ it:
   Personal Microsoft Accounts: Account Microsoft personali
   PostgreSQL Major Upgrade: Aggiornamento maggiore di PostgreSQL
   Programmatic Access: Accesso programmatico
-  Provider Guides: Guide ai provider
+  Provider Guides: Guide dei provider
   REST API: REST API
   Rate Limit Handling: Gestione dei limiti di frequenza
   Retention Policies: Politiche di conservazione
@@ -231,7 +231,7 @@ it:
   Two-Factor Authentication: Autenticazione a due fattori
   User Management & Permissions: Gestione utenti e permessi
   Web Import (EML / MBox): Importazione Web (EML / MBox)
-  Working with the Archive: Lavorare con l'archivio
+  Working with the Archive: Gestione dell'archivio
   Yahoo Mail Limitations: Limitazioni Yahoo Mail
 ja:
   API Reference: APIリファレンス
@@ -245,28 +245,28 @@ ja:
   Background Jobs: バックグラウンドジョブ
   Backup and Restore: バックアップと復元
   CLI Commands: CLIコマンド
-  Database Maintenance: データベースメンテナンス
+  Database Maintenance: データベースのメンテナンス
   Date-Windowed Offload: 日付範囲指定によるオフロード
-  Dev Tag (Development Versions): Devタグ (開発バージョン)
+  Dev Tag (Development Versions): Dev タグ (開発用バージョン)
   Docker Compose Logs: Docker Compose ログ
   Emergency Account Recovery: 緊急アカウント復旧
   Getting Mail In: メールの取り込み
-  Gmail Best Practices: Gmailのベストプラクティス
+  Gmail Best Practices: Gmail のベストプラクティス
   Home: ホーム
   Installation & Maintenance: インストールとメンテナンス
   Language and Localization: 言語とローカライズ
   Local Test Environment: ローカルテスト環境
   M365 Tenant Mailbox Import: M365 テナントのメールボックスインポート
-  MCP Server: MCPサーバー
+  MCP Server: MCP サーバー
   Mail Search: メール検索
-  Mail Synchronization: メール同期
-  Mailbox Migration: メールボックス移行
+  Mail Synchronization: メールの同期
+  Mailbox Migration: メールボックスの移行
   Mailcow Instances: Mailcow インスタンス
   OIDC / SSO: OIDC / SSO
   Operations & Development: 運用と開発
   Original Message Storage: オリジナルメッセージの保存
   Per-Account Storage: アカウントごとのストレージ
-  Personal Microsoft Accounts: 個人のMicrosoftアカウント
+  Personal Microsoft Accounts: 個人用 Microsoft アカウント
   PostgreSQL Major Upgrade: PostgreSQLのメジャーアップグレード
   Programmatic Access: プログラムによるアクセス
   Provider Guides: プロバイダーガイド
@@ -279,7 +279,7 @@ ja:
   User Management & Permissions: ユーザー管理と権限
   Web Import (EML / MBox): Webインポート (EML / MBox)
   Working with the Archive: アーカイブの操作
-  Yahoo Mail Limitations: Yahooメールの制限事項
+  Yahoo Mail Limitations: Yahoo Mail の制限事項
 nl:
   API Reference: API-referentie
   Access Logging: Toegangslogging
@@ -287,7 +287,7 @@ nl:
   Account Import: Accountimport
   Administration & Security: Administratie & Beveiliging
   Attachment Deduplication: Deduplicatie van Bijlagen
-  Audit Data Export: Auditgegevens Export
+  Audit Data Export: Audit Data Export
   Azure App Registration (M365): Azure App Registratie (M365)
   Background Jobs: Achtergrondtaken
   Backup and Restore: Back-up en Herstel
@@ -303,11 +303,11 @@ nl:
   Installation & Maintenance: Installatie & Onderhoud
   Language and Localization: Taal en Lokalisatie
   Local Test Environment: Lokale Testomgeving
-  M365 Tenant Mailbox Import: M365 Tenant Mailboximport
+  M365 Tenant Mailbox Import: M365 Tenant Postvakimport
   MCP Server: MCP Server
   Mail Search: E-mail zoeken
   Mail Synchronization: E-mailsynchronisatie
-  Mailbox Migration: Mailboxmigratie
+  Mailbox Migration: Postvakmigratie
   Mailcow Instances: Mailcow Instanties
   OIDC / SSO: OIDC / SSO
   Operations & Development: Operations & Ontwikkeling
@@ -322,16 +322,16 @@ nl:
   Retention Policies: Bewaartermijnen
   Reverse Proxy: Reverse Proxy
   Setup and Parameters: Instellingen en Parameters
-  Two-Factor Authentication: Tweestapsverificatie
+  Two-Factor Authentication: Twee-factor-authenticatie
   User Management & Permissions: Gebruikersbeheer & Rechten
   Web Import (EML / MBox): Webimport (EML / MBox)
   Working with the Archive: Werken met het Archief
-  Yahoo Mail Limitations: Yahoo Mail Beperkingen
+  Yahoo Mail Limitations: Beperkingen van Yahoo Mail
 pl:
   API Reference: Dokumentacja API
   Access Logging: Logowanie dostępu
   Account Export (EML / MBox): Eksport kont (EML / MBox)
-  Account Import: Import kont
+  Account Import: Importowanie kont
   Administration & Security: Administracja i bezpieczeństwo
   Attachment Deduplication: Deduplikacja załączników
   Audit Data Export: Eksport danych audytowych
@@ -340,11 +340,11 @@ pl:
   Backup and Restore: Kopia zapasowa i przywracanie
   CLI Commands: Polecenia CLI
   Database Maintenance: Konserwacja bazy danych
-  Date-Windowed Offload: Przenoszenie danych w oparciu o daty
+  Date-Windowed Offload: Przenoszenie danych według zakresu dat
   Dev Tag (Development Versions): Tag Dev (Wersje rozwojowe)
   Docker Compose Logs: Logi Docker Compose
   Emergency Account Recovery: Awaryjne odzyskiwanie konta
-  Getting Mail In: Pobieranie poczty
+  Getting Mail In: Odbieranie poczty
   Gmail Best Practices: Dobre praktyki Gmail
   Home: Strona główna
   Installation & Maintenance: Instalacja i konserwacja
@@ -444,7 +444,7 @@ ru:
   Installation & Maintenance: Установка и обслуживание
   Language and Localization: Язык и локализация
   Local Test Environment: Локальная тестовая среда
-  M365 Tenant Mailbox Import: Импорт почтовых ящиков тенанта M365
+  M365 Tenant Mailbox Import: Импорт почтовых ящиков M365 Tenant
   MCP Server: MCP-сервер
   Mail Search: Поиск почты
   Mail Synchronization: Синхронизация почты
@@ -477,15 +477,15 @@ sl:
   Attachment Deduplication: Odpravljanje podvojenih prilog
   Audit Data Export: Izvoz revizijskih podatkov
   Azure App Registration (M365): Registracija aplikacije Azure (M365)
-  Background Jobs: Zadnja opravila
-  Backup and Restore: Zaslona in obnavljanje
+  Background Jobs: Zadaje v ozadju
+  Backup and Restore: Zaslona kopija in obnavljanje
   CLI Commands: CLI ukazi
   Database Maintenance: Vzdrževanje baze podatkov
-  Date-Windowed Offload: Prenos z določenim časovnim oknom
+  Date-Windowed Offload: Prenos podatkov glede na časovni okvir
   Dev Tag (Development Versions): Dev oznaka (razvojne različice)
-  Docker Compose Logs: Dnevniki Docker Compose
+  Docker Compose Logs: Dnevnik Docker Compose
   Emergency Account Recovery: Nujno obnavljanje računa
-  Getting Mail In: Privzib avtomatskega prejemanja pošte
+  Getting Mail In: Prejem pošte
   Gmail Best Practices: Najboljše prakse za Gmail
   Home: Domov
   Installation & Maintenance: Namestitev in vzdrževanje
@@ -502,24 +502,24 @@ sl:
   Original Message Storage: Shranjevanje originalnih sporočil
   Per-Account Storage: Shranjevanje na račun
   Personal Microsoft Accounts: Osebni Microsoft računi
-  PostgreSQL Major Upgrade: Glavni nadgradnja PostgreSQL
+  PostgreSQL Major Upgrade: Glavna nadgradnja PostgreSQL
   Programmatic Access: Programski dostop
   Provider Guides: Navodila ponudnikov
   REST API: REST API
-  Rate Limit Handling: Obdelava omejitev števila zahtev
-  Retention Policies: Politike shranjevanja
+  Rate Limit Handling: Obvladovanje omejitev števila zahtev
+  Retention Policies: Politike zadržanja podatkov
   Reverse Proxy: Reverse proxy
   Setup and Parameters: Nastavitev in parametri
-  Two-Factor Authentication: Dvodelna avtentikacija
-  User Management & Permissions: Upravljanje uporabnikov in dovoljenj
+  Two-Factor Authentication: Dvoslojno avtentikacija
+  User Management & Permissions: Upravljanje uporabnikov in pravic
   Web Import (EML / MBox): Spletni uvoz (EML / MBox)
   Working with the Archive: Delo z arhivom
-  Yahoo Mail Limitations: Omejitve Yahoo Maila
+  Yahoo Mail Limitations: Omejitve Yahoo pošte
 zh:
   API Reference: API 参考
   Access Logging: 访问日志
-  Account Export (EML / MBox): 账号导出 (EML / MBox)
-  Account Import: 账号导入
+  Account Export (EML / MBox): 账户导出 (EML / MBox)
+  Account Import: 账户导入
   Administration & Security: 管理与安全
   Attachment Deduplication: 附件去重
   Audit Data Export: 审计数据导出
@@ -531,7 +531,7 @@ zh:
   Date-Windowed Offload: 按日期窗口卸载
   Dev Tag (Development Versions): 开发标签 (开发版本)
   Docker Compose Logs: Docker Compose 日志
-  Emergency Account Recovery: 紧急账号恢复
+  Emergency Account Recovery: 紧急账户恢复
   Getting Mail In: 邮件导入
   Gmail Best Practices: Gmail 最佳实践
   Home: 首页
@@ -547,8 +547,8 @@ zh:
   OIDC / SSO: OIDC / 单点登录
   Operations & Development: 运维与开发
   Original Message Storage: 原始邮件存储
-  Per-Account Storage: 按账号存储
-  Personal Microsoft Accounts: 个人 Microsoft 账号
+  Per-Account Storage: 按账户存储
+  Personal Microsoft Accounts: 个人 Microsoft 账户
   PostgreSQL Major Upgrade: PostgreSQL 大版本升级
   Programmatic Access: 程序化访问
   Provider Guides: 服务商指南
@@ -560,5 +560,5 @@ zh:
   Two-Factor Authentication: 双重身份验证
   User Management & Permissions: 用户管理与权限
   Web Import (EML / MBox): 网页导入 (EML / MBox)
-  Working with the Archive: 归档操作
+  Working with the Archive: 归档管理
   Yahoo Mail Limitations: Yahoo Mail 限制
