@@ -98,7 +98,8 @@ namespace MailArchiver.Services.Providers.Graph
                 else
                 {
                     RawMessageLogging.LogNotStored(
-                        _logger, archivedEmail.Id, archivedEmail.Subject, rawCapture, _rawMessageOptions);
+                        _logger, archivedEmail.Id, archivedEmail.Subject, rawCapture,
+                        _rawMessageOptions, _rawMessageOptions.IncludeGraph);
                 }
 
                 var attachmentCount = archivedEmail.Attachments?.Count ?? 0;

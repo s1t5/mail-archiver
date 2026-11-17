@@ -21,9 +21,12 @@ namespace MailArchiver.Services.Shared
             int emailId,
             string? subject,
             RawMessageCapture? capture,
-            RawMessageOptions options)
+            RawMessageOptions options,
+            bool captureExpected = true)
         {
-            if (!options.Enabled)
+            // Graph accounts can deliberately opt out of the capture (IncludeGraph=false);
+            // that is a configuration, not a missing original.
+            if (!options.Enabled || !captureExpected)
             {
                 return;
             }
