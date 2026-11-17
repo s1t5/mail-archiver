@@ -7,7 +7,7 @@ Configuralo una volta, conserva ogni messaggio e ritrovalo anche anni dopo.
 
 <div class="grid cards" markdown>
 
--   :material-rocket-launch:{ .lg .middle } __Iniziare__
+-   :material-rocket-launch:{ .lg .middle } __Inizia qui__
 
     ---
 
@@ -23,15 +23,15 @@ Configuralo una volta, conserva ogni messaggio e ritrovalo anche anni dopo.
 
     [:octicons-arrow-right-24: Mail search](Search.md)
 
--   :material-api:{ .lg .middle } __Automatizzalo__
+-   :material-api:{ .lg .middle } __Automatizza tutto__
 
     ---
 
-    Leggi il tuo Archivio da script e agenti AI — chiavi API in sola lettura e con scope limitato.
+    Leggi il tuo Archivio tramite script e agenti AI — chiavi API con permessi di sola lettura e limitate allo scopo.
 
     [:octicons-arrow-right-24: REST API](API.md) · [:octicons-arrow-right-24: MCP server](MCP.md)
 
--   :material-shield-lock:{ .lg .middle } __Proteggilo__
+-   :material-shield-lock:{ .lg .middle } __Proteggi tutto__
 
     ---
 
@@ -41,7 +41,7 @@ Configuralo una volta, conserva ogni messaggio e ritrovalo anche anni dopo.
 
 </div>
 
-## 🛠️ Installazione e Manutenzione {#installation-maintenance}
+## 🛠️ Installazione & Manutenzione {#installation-maintenance}
 
 <div class="grid cards" markdown>
 
@@ -95,7 +95,7 @@ Configuralo una volta, conserva ogni messaggio e ritrovalo anche anni dopo.
 
 </div>
 
-## 📥 Importare le Email {#getting-mail-in}
+## 📥 Importazione Email {#getting-mail-in}
 
 <div class="grid cards" markdown>
 
@@ -111,7 +111,7 @@ Configuralo una volta, conserva ogni messaggio e ritrovalo anche anni dopo.
 
     ---
 
-    Sincronizzazione rapida vs completa, checkpoint e cosa succede quando una sincronizzazione fallisce.
+    Sincronizzazione rapida vs completa, checkpoint e cosa succede quando una Sincronizzazione fallisce.
 
     [:octicons-arrow-right-24: Read](Synchronization.md)
 
@@ -119,7 +119,7 @@ Configuralo una volta, conserva ogni messaggio e ritrovalo anche anni dopo.
 
     ---
 
-    Importa Archivio esistenti dalla riga di comando e sposta i messaggi originali memorizzati tra il database e il file system.
+    Importa Archivio esistenti dalla riga di comando e sposta i messaggi originali memorizzati tra il database e il filesystem.
 
     [:octicons-arrow-right-24: Read](CLI.md)
 
@@ -135,7 +135,7 @@ Configuralo una volta, conserva ogni messaggio e ritrovalo anche anni dopo.
 
     ---
 
-    Monitoraggio della larghezza di banda e come le sincronizzazioni in pausa riprendono autonomamente.
+    Monitoraggio della larghezza di banda e come le Sincronizzazioni in pausa riprendono autonomamente.
 
     [:octicons-arrow-right-24: Read](RateLimitHandling.md)
 
@@ -157,7 +157,7 @@ Configuralo una volta, conserva ogni messaggio e ritrovalo anche anni dopo.
 
     ---
 
-    Monitora sincronizzazioni, importazioni, ripristini ed esportazioni — e cancellali in sicurezza.
+    Monitora Sincronizzazioni, importazioni, Ripristini ed esportazioni — e cancellali in sicurezza.
 
     [:octicons-arrow-right-24: Read](BackgroundJobs.md)
 
@@ -165,7 +165,7 @@ Configuralo una volta, conserva ogni messaggio e ritrovalo anche anni dopo.
 
     ---
 
-    Copia email tra Caselle di posta preservando la struttura delle Cartelle.
+    Copia email tra Caselle di posta preservando la struttura delle Cartella.
 
     [:octicons-arrow-right-24: Read](MailboxMigration.md)
 
@@ -181,7 +181,7 @@ Configuralo una volta, conserva ogni messaggio e ritrovalo anche anni dopo.
 
     ---
 
-    Conserva il messaggio così come ricevuto, in modo che DKIM sia ancora verificabile ed esportazioni siano identiche a livello di byte.
+    Conserva il messaggio così come ricevuto, in modo che DKIM sia ancora verificabile ed le esportazioni siano identiche byte per byte.
 
     [:octicons-arrow-right-24: Read](RawMessages.md)
 
@@ -211,7 +211,7 @@ Configuralo una volta, conserva ogni messaggio e ritrovalo anche anni dopo.
 
 </div>
 
-## 🔐 Amministrazione e Sicurezza {#administration-security}
+## 🔐 Amministrazione & Sicurezza {#administration-security}
 
 <div class="grid cards" markdown>
 
@@ -219,7 +219,7 @@ Configuralo una volta, conserva ogni messaggio e ritrovalo anche anni dopo.
 
     ---
 
-    Crea utenti, concedi diritti di admin, assegna Autorizzazioni alle Caselle di posta e cambia la tua password.
+    Crea utenti, concedi diritti di admin, assegna Autorizzazione alle Caselle di posta e cambia la tua password.
 
     [:octicons-arrow-right-24: Read](UserManagement.md)
 
@@ -235,7 +235,7 @@ Configuralo una volta, conserva ogni messaggio e ritrovalo anche anni dopo.
 
     ---
 
-    Accedi tramite Entra ID, Authelia o un altro provider di identità.
+    Accedi tramite Entra ID, Authelia o un altro identity provider.
 
     [:octicons-arrow-right-24: Read](OIDC_Implementation.md)
 
@@ -321,7 +321,7 @@ Configuralo una volta, conserva ogni messaggio e ritrovalo anche anni dopo.
 
     ---
 
-    Cosa non faranno gli endpoint IMAP ed export di Yahoo.
+    Cosa non faranno gli endpoint IMAP ed esportazione di Yahoo.
 
     [:octicons-arrow-right-24: Read](YahooMailExportLimitations.md)
 
@@ -335,7 +335,7 @@ Configuralo una volta, conserva ogni messaggio e ritrovalo anche anni dopo.
 
     ---
 
-    Accesso in sola lettura all'Archivio con chiavi API per utente con scope limitato.
+    Accesso di sola lettura all'Archivio con chiavi API limitate per utente.
 
     [:octicons-arrow-right-24: Read](API.md)
 
@@ -349,7 +349,7 @@ Configuralo una volta, conserva ogni messaggio e ritrovalo anche anni dopo.
 
 </div>
 
-## 🧰 Operazioni e Sviluppo {#operations-development}
+## 🧰 Operazioni & Sviluppo {#operations-development}
 
 <div class="grid cards" markdown>
 
@@ -369,6 +369,14 @@ Configuralo una volta, conserva ogni messaggio e ritrovalo anche anni dopo.
 
     [:octicons-arrow-right-24: Read](DockerComposeLogs.md)
 
+-   :material-heart-pulse:{ .lg .middle } __Health and metrics__
+
+    ---
+
+    Monitora liveness, readiness e le metriche dell'Archivio da Prometheus o un altro sistema di monitoraggio.
+
+    [:octicons-arrow-right-24: Read](Monitoring.md)
+
 -   :material-tag:{ .lg .middle } __Development versions__
 
     ---
@@ -382,7 +390,7 @@ Configuralo una volta, conserva ogni messaggio e ritrovalo anche anni dopo.
 ---
 
 <div class="docs-footer-note" markdown>
-:material-pencil: **Questa documentazione viene continuamente ampliata.**
+:material-pencil: **Questa documentazione è in continua espansione.**
 Se noti un errore o hai un suggerimento, per favore
 [apri un issue](https://github.com/s1t5/mail-archiver/issues) o invia una pull request.
 </div>
