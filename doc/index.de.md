@@ -27,7 +27,7 @@ Einmal einrichten, jede Nachricht behalten und sie Jahre später wiederfinden.
 
     ---
 
-    Lesen Sie Ihr Archiv über Skripte und KI-Agenten aus — schreibgeschützte, eingeschränkte API-Schlüssel.
+    Lesen Sie Ihr Archiv über Skripte und KI-Agenten — schreibgeschützte, eingeschränkte API-Keys.
 
     [:octicons-arrow-right-24: REST API](API.md) · [:octicons-arrow-right-24: MCP server](MCP.md)
 
@@ -57,7 +57,7 @@ Einmal einrichten, jede Nachricht behalten und sie Jahre später wiederfinden.
 
     ---
 
-    Platzieren Sie Mail Archiver hinter nginx oder Caddy mit TLS-Terminierung.
+    Schalten Sie Mail Archiver mit TLS-Terminierung hinter nginx oder Caddy.
 
     [:octicons-arrow-right-24: Lesen](ReverseProxy.md)
 
@@ -131,11 +131,11 @@ Einmal einrichten, jede Nachricht behalten und sie Jahre später wiederfinden.
 
     [:octicons-arrow-right-24: Lesen](Import-EML-MBox.md)
 
--   :material-timer-sand:{ .lg .middle } __Rate-Limit-Handhabung__
+-   :material-timer-sand:{ .lg .middle } __Rate Limit Handling__
 
     ---
 
-    Bandbreitenverfolgung und wie pausierte Synchronisierungen von selbst fortgesetzt werden.
+    Bandbreiten-Tracking und wie pausierte Synchronisierungen von selbst fortgesetzt werden.
 
     [:octicons-arrow-right-24: Lesen](RateLimitHandling.md)
 
@@ -267,7 +267,7 @@ Einmal einrichten, jede Nachricht behalten und sie Jahre später wiederfinden.
 
     ---
 
-    Automatisches Löschen vom E-Mail-Server oder dem lokalen Archiv.
+    Automatisches Löschen vom Mailserver oder aus dem lokalen Archiv.
 
     [:octicons-arrow-right-24: Lesen](RetentionPolicies.md)
 
@@ -289,7 +289,7 @@ Einmal einrichten, jede Nachricht behalten und sie Jahre später wiederfinden.
 
     ---
 
-    Massimport aller Postfächer eines Tenants über ein einziges Formular.
+    Massenimport jedes Postfachs eines Tenants über ein einziges Formular.
 
     [:octicons-arrow-right-24: Lesen](M365TenantImport.md)
 
@@ -305,7 +305,7 @@ Einmal einrichten, jede Nachricht behalten und sie Jahre später wiederfinden.
 
     ---
 
-    Outlook.com, Hotmail und M365 Family über den Device Code Flow.
+    Outlook.com, Hotmail und M365 Family über Device Code Flow.
 
     [:octicons-arrow-right-24: Lesen](MSA_Outlook_Setup.md)
 
@@ -313,7 +313,7 @@ Einmal einrichten, jede Nachricht behalten und sie Jahre später wiederfinden.
 
     ---
 
-    App-Passwörter, Labels, Expunge und Gmails Rate-Limits.
+    App-Passwörter, Labels, Expunge und Gmails Rate Limits.
 
     [:octicons-arrow-right-24: Lesen](GmailBestPractices.md)
 
@@ -335,7 +335,7 @@ Einmal einrichten, jede Nachricht behalten und sie Jahre später wiederfinden.
 
     ---
 
-    Schreibgeschützter Zugriff auf das Archiv mit eingeschränkten API-Schlüsseln pro Benutzer.
+    Schreibgeschützter Zugriff auf das Archiv mit eingeschränkten API-Keys pro Benutzer.
 
     [:octicons-arrow-right-24: Lesen](API.md)
 
@@ -368,6 +368,14 @@ Einmal einrichten, jede Nachricht behalten und sie Jahre später wiederfinden.
     Lesen Sie Container-Logs und ändern Sie das Log-Level.
 
     [:octicons-arrow-right-24: Lesen](DockerComposeLogs.md)
+
+-   :material-heart-pulse:{ .lg .middle } __Health und Metriken__
+
+    ---
+
+    Überwachen Sie Liveness, Readiness und Archiv-Metriken von Prometheus oder einem anderen Monitoring-System.
+
+    [:octicons-arrow-right-24: Lesen](Monitoring.md)
 
 -   :material-tag:{ .lg .middle } __Entwicklungsversionen__
 
