@@ -1,12 +1,12 @@
 # 📧 Original Message Storage {#original-message-storage}
 
-[← Terug naar de Documentatie-index](index.md)
+[← Terug naar de documentatie-index](index.md)
 
 ## 📋 Overzicht {#overview}
 
 Standaard bewaart het Archief de **geanalyseerde onderdelen** van een e-mail: headers, tekst- en HTML-body's, Bijlagen. Een geëxporteerde `.eml` wordt opgebouwd uit deze velden.
 
-Dat is voldoende om een e-mail te lezen, maar het is niet het bericht **zoals ontvangen**. Transfer-encodings, MIME-grenzen en header folding verschillen van het origineel, waardoor een opnieuw opgebouwd bericht de DKIM-handtekening niet meer verifieert en spamscanners het anders beoordelen.
+Dat is voldoende om een e-mail te lezen, maar het is niet het bericht **zoals ontvangen**. Transfer-encodings, MIME-grenzen en header folding verschillen van het origineel, waardoor een opnieuw opgebouwd bericht de DKIM-handtekening niet langer verifieert en spamscanners het anders beoordelen.
 
 Wanneer de opslag van het originele bericht is ingeschakeld, bewaart het Archief het volledige bericht zoals het is aangekomen, naast de geanalyseerde velden. Het opgeslagen origineel is wat het Archief kan bewijzen dat is afgeleverd.
 
@@ -14,12 +14,12 @@ Wanneer de opslag van het originele bericht is ingeschakeld, bewaart het Archief
 | --- | --- | --- |
 | Headers, body, Bijlagen | ✅ | ✅ |
 | Byte-exact bericht | ❌ | ✅ |
-| DKIM-handtekening verifieert | ❌ | ✅ |
+| DKIM-handtekening wordt geverifieerd | ❌ | ✅ |
 | Forensisch gebruik (rechtbank, audit) | beperkt | ✅ |
 
 ## 🎯 Waar het origineel wordt geserveerd {#where-the-original-is-served}
 
-Zodra het is opgeslagen, wordt het origineel geretourneerd waar een volledig bericht wordt verwacht:
+Eenmaal opgeslagen, wordt het origineel geretourneerd waar een volledig bericht wordt verwacht:
 
 | Plaats | Wat er gebeurt |
 | --- | --- |
@@ -43,7 +43,7 @@ De respons vertelt je welke vorm je hebt ontvangen, zodat een aanroeper een echt
 De bestandsnaam zegt het ook: `email-{id}-original-...eml` voor een opgeslagen origineel,
 `email-{id}-...eml` voor een reconstructie.
 
-Wanneer een opgeslagen origineel **faalt bij de checksum**, worden de export en de restore geweigerd
+Wanneer een opgeslagen origineel **faalt op de checksum**, worden de export en de restore geweigerd
 met een foutmelding. Het retourneren van de reconstructie in plaats daarvan zou verbergen dat de gearchiveerde
 kopie is gewijzigd, wat precies is wat een Archief nooit mag doen.
 
@@ -59,16 +59,16 @@ Alle instellingen bevinden zich in de `RawMessages`-sectie, of als omgevingsvari
 | Instelling | Standaard | Beschrijving |
 | --- | --- | --- |
 | `RawMessages:Enabled` | `false` | Sla het originele bericht op van elke nieuw gearchiveerde e-mail. E-mails die zijn gearchiveerd voordat deze functie is ingeschakeld, hebben geen origineel. |
-| `RawMessages:MaxMessageSizeMb` | `50` | Berichten groter dan deze waarde worden gearchiveerd zonder hun origineel. `0` = geen limiet. |
-| `RawMessages:IncludeGraph` | `true` | Sla ook het origineel op voor Microsoft 365 (Graph) accounts. Dit kost één extra Graph-verzoek per bericht, wat meetelt voor het throttling-budget. |
+| `RawMessages:MaxMessageSizeMb` | `50` | Berichten die groter zijn dan deze waarde worden gearchiveerd zonder hun origineel. `0` = geen limiet. |
+| `RawMessages:IncludeGraph` | `true` | Sla ook het origineel op voor Microsoft 365 (Graph) Accounts. Dit kost één extra Graph-verzoek per bericht, wat meetelt voor het throttling-budget. |
 | `RawMessages:Storage` | `postgres` | Waar de berichtbytes worden bewaard: `postgres` (in de database) of `filesystem` (gzip-bestand naast het Archief). Zie [Storage backend](#storage-backend). |
-| `RawMessages:FileSystem:BasePath` | `RawMessages` | Directory waarnaar de berichtbestanden worden geschreven, relatief aan de content root van de applicatie. Wijs dit naar een gemounte volume in Docker. |
+| `RawMessages:FileSystem:BasePath` | `RawMessages` | Directory waarin de berichtbestanden worden geschreven, relatief aan de content root van de applicatie. Wijs dit naar een gemounte volume in Docker. |
 | `RawMessages:FileSystem:ShardDepth` | `2` | Aantal directory-niveaus van twee tekens waarover de e-mail-id wordt verspreid. `2` geeft 10.000 directory's, `0` is plat. Houdt het aantal bestanden per directory laag bij grote Archieven. |
-| `RawMessages:FileSystem:VerifyChecksumOnRead` | `true` | Bereken bij elke download de SHA-256 van het bestand opnieuw en vergelijk deze met de checksum die tijdens het archiveren is vastgelegd. Bij een mismatch mislukt de download met HTTP 500 in plaats van gewijzigde bytes te serveren. |
+| `RawMessages:FileSystem:VerifyChecksumOnRead` | `true` | Bereken bij elke download opnieuw de SHA-256 van het bestand en vergelijk deze met de checksum die tijdens het Archiveren is opgenomen. Bij een mismatch mislukt de download met HTTP 500 in plaats van gewijzigde bytes te serveren. |
 
-### Dimensionering {#sizing}
+### Omvang bepalen {#sizing}
 
-Opslag groeit met ongeveer de grootte van elke e-mail inclusief de Bijlagen, gzip-gecomprimeerd. Bijlagen worden **niet** onderworpen aan Deduplicatie binnen het opgeslagen origineel, dus een e-mail met een grote Bijlage kost die Bijlage dubbel: één keer in de gededupliceerde Bijlage-opslag en één keer in het origineel. Plan voor ongeveer **twee keer** de databasegrootte van een Archief zonder originelen.
+De opslag groeit met ongeveer de grootte van elke e-mail inclusief de Bijlagen, gzip-gecomprimeerd. Bijlagen worden **niet** onderworpen aan Deduplicatie binnen het opgeslagen origineel, dus een e-mail met een grote Bijlage kost die Bijlage twee keer: één keer in de gededupliceerde Bijlage-opslag en één keer in het origineel. Reken op ongeveer **twee keer** de databasegrootte van een Archief zonder originelen.
 
 Het inschakelen van de instelling vult bestaande e-mail niet bij. Alleen nieuw gearchiveerde e-mails krijgen een origineel.
 
@@ -84,16 +84,16 @@ opgeslagen bericht moet bevatten.
 Het gecomprimeerde bericht staat in de `Content`-kolom van `mail_archiver."RawMessages"`.
 Dit is het gedrag dat het Archief altijd heeft gehad en heeft geen extra volume nodig.
 
-Kies dit wanneer de database al je Back-up unit is en je één ding wilt
+Kies dit wanneer de database al uw Back-up-eenheid is en u één ding wilt
 back-uppen en herstellen.
 
 ### filesystem {#filesystem}
 
 Het bericht wordt geschreven naar `{BasePath}/{xx}/{yy}/{id}.eml.gz`, waarbij `xx`/`yy` worden afgeleid
-van de e-mail id. De database-rij houdt alleen de metadata bij.
+van de e-mail-id. De database-rij houdt alleen de metadata bij.
 
 Kies dit wanneer het Archief groot genoeg is dat originelen de databasegrootte zouden domineren,
-of wanneer je de berichtbestanden op goedkopere of aparte opslag wilt plaatsen.
+of wanneer u de berichtbestanden op goedkopere of aparte opslag wilt plaatsen.
 
 !!! danger "Mount een volume in Docker"
     De standaard `BasePath` (`RawMessages`) wordt opgelost naar `/app/RawMessages` **binnen
@@ -102,7 +102,7 @@ of wanneer je de berichtbestanden op goedkopere of aparte opslag wilt plaatsen.
     up -d`, een image-update, of een host-reboot met een efemere laag - neemt elk opgeslagen
     origineel mee, terwijl de database-rijen blijven bestaan.
 
-    Mount de directory altijd naar de host wanneer je de filesystem backend gebruikt:
+    Mount de directory altijd naar de host wanneer u de filesystem backend gebruikt:
 
     ```yaml
     services:
@@ -111,18 +111,18 @@ of wanneer je de berichtbestanden op goedkopere of aparte opslag wilt plaatsen.
           - ./raw-messages:/app/RawMessages
     ```
 
-    Het host-pad (`./raw-messages` hier) is wat je back-upt. Het container-pad moet
+    Het host-pad (`./raw-messages` hier) is wat u back-uppt. Het container-pad moet
     overeenkomen met `RawMessages:FileSystem:BasePath`, of stel `RawMessages:FileSystem:BasePath` in op
-    het mountpunt dat je hebt gekozen. Als je de mount verplaatst, zorg dan dat `BasePath` ernaar blijft wijzen: de
-    opgeslagen `StoragePath`-waarden zijn relatief, dus ze blijven correct worden opgezocht.
+    het mount point dat u heeft gekozen. Als u de mount verplaatst, zorg dan dat `BasePath` ernaar blijft wijzen: de
+    opgeslagen `StoragePath`-waarden zijn relatief, dus ze blijven correct worden opgelost.
 
-### Switching backends {#switching-backends}
+### Wisselen van backends {#switching-backends}
 
-Lezingen volgen de opslag die op elke rij is vastgelegd, niet de geconfigureerde instelling. Nadat je
-`Storage` hebt gewijzigd, blijven eerder gearchiveerde berichten downloadbaar vanaf de plek waar ze staan.
+Lezingen volgen de opslag die op elke rij is vastgelegd, niet de geconfigureerde instelling. Nadat u
+`Storage` wijzigt, blijven eerder gearchiveerde berichten downloadbaar vanaf de plek waar ze staan.
 De instelling heeft alleen invloed op **nieuw** gearchiveerde e-mail.
 
-Om te verplaatsen wat al is opgeslagen, voer je de storage migratie uit. Zie de
+Om te verplaatsen wat al is opgeslagen, voert u de storage migratie uit. Zie de
 [CLI commands](CLI.md#moving-stored-original-messages) voor de volledige referentie:
 
 ```bash
@@ -137,12 +137,12 @@ docker compose exec mailarchiver dotnet MailArchiver.dll \
 
 Wat de migratie garandeert:
 
-- Elk bericht wordt geverifieerd tegen de opgenomen checksum voordat het wordt gekopieerd. Een bericht
-  dat faalt, blijft staan waar het is en wordt gerapporteerd: een corrupt origineel wordt nooit doorgegeven en
+- Elk bericht wordt gecontroleerd tegen de vastgelegde checksum voordat het wordt gekopieerd. Een bericht
+  dat faalt, blijft staan waar het staat en wordt gerapporteerd: een corrupt origineel wordt nooit doorgegeven en
   de enige resterende kopie wordt nooit verwijderd.
 - Een bestand wordt pas verwijderd nadat de database-transactie die het heeft verplaatst is bevestigd (committed), zodat een
-  onderbroken run de enige kopie niet kan verliezen.
-- De run is hervatbaar. Werk wordt geselecteerd door de `StorageType`-kolom, dus het opnieuw starten van de
+  onderbroken uitvoering de enige kopie niet kan verliezen.
+- De uitvoering is hervatbaar. Werk wordt geselecteerd door de `StorageType`-kolom, dus het opnieuw starten van de
   opdracht gaat verder met wat nog openstaat.
 - De exit code is `1` als een bericht is mislukt, `0` anders.
 
@@ -160,13 +160,13 @@ bytes naar de andere backend te verplaatsen.
 
     Een database herstel zonder de bestanden laat het Archief achter met rijen waarvan de inhoud
     niet kan worden geleverd. De download geeft dan een HTTP 404 in plaats van iets
-    foutiefs terug, en de e-mails zelf blijven leesbaar via hun geparseerde velden.
+    foutiefs terug, en de e-mails zelf blijven leesbaar vanuit hun geparseerde velden.
 
 ## 🗑️ Een e-mail verwijderen {#deleting-an-email}
 
-Het verwijderen van een e-mail verwijdert ook het origineel: de Bewaring-regels, de handmatige individuele en bulkverwijdering, en het verwijderen van een heel mail Account verwijderen het bestand als onderdeel van dezelfde operatie. Met de `postgres` backend is er niets extra's te doen, omdat de bytes meereizen binnen de rij die de cascade al verwijdert.
+Het verwijderen van een e-mail verwijdert ook het origineel ervan: Bewaring-regels, de handmatige individuele en bulkverwijdering, en het verwijderen van een heel e-mail Account verwijderen het bestand als onderdeel van dezelfde operatie. Met de `postgres` backend is er niets extra's te doen, omdat de bytes meereizen binnen de rij die de cascade al verwijdert.
 
-Het bestand wordt verwijderd **nadat** de e-mailrij is gecommit, nooit daarvoor. De twee stappen kunnen niet één transactie zijn, omdat een bestand geen deel uitmaakt van de database-transactie, dus moet een van de twee als tweede komen. Deze volgorde is de veilige: een verwijdering die mislukt of wordt teruggedraaid, bijvoorbeeld bij een vergrendeld record, laat het origineel ongemoeid, en een crash tussen de twee stappen laat een bestand zonder rij achter, wat de sweep hieronder terugwint. De andere volgorde zou het origineel van een e-mail vernietigen die nog wel bestaat.
+Het bestand wordt verwijderd **nadat** de e-mailrij is gecommit, nooit daarvoor. De twee stappen kunnen niet één transactie zijn, omdat een bestand geen deel uitmaakt van de database-transactie, dus moet een van de twee als tweede komen. Deze volgorde is de veilige: een verwijdering die mislukt of terugrolt, bijvoorbeeld bij een vergrendeld record, laat het origineel ongemoeid, en een crash tussen de twee stappen laat een bestand zonder rij achter, die de sweep hieronder terugwint. De andere volgorde zou het origineel van een e-mail vernietigen die nog wel bestaat.
 
 **Verweesde bestanden worden verzameld.** Alles wat erdoorheen is geglipt, inclusief bestanden die zijn achtergelaten door verwijderingen van voordat deze opschoning bestond, wordt verwijderd door een periodieke sweep van `BasePath` die elk bestand vergelijkt met de rijen en de bestanden verwijdert waar geen enkele e-mail naar verwijst:
 
@@ -177,11 +177,11 @@ Het bestand wordt verwijderd **nadat** de e-mailrij is gecommit, nooit daarvoor.
 | `RawMessages__FileSystem__OrphanCleanupGraceHours` | `24` | Bestanden jonger dan dit worden nooit aangeraakt |
 | `RawMessages__FileSystem__OrphanCleanupStartupDelaySeconds` | `300` | Vertraging voor de eerste uitvoering, zodat een lopende opslagmigratie eerst wordt afgerond |
 
-De coulanceperiode is wat de sweep veilig maakt: een import schrijft een bestand voordat de rij die ernaar verwijst wordt gecommit, en een bestand dat enkele momenten geleden is geschreven, mag niet worden aangezien voor een weeskind. Half geschreven `.tmp` bestanden van een onderbroken schrijfactie worden onder dezelfde regel verzameld. Met de `postgres` backend doet de sweep niets en doorloopt zelfs niet de directory.
+De coulanceperiode is wat de sweep veilig maakt: een import schrijft een bestand voordat de rij die ernaar verwijst wordt gecommit, en een bestand dat enkele momenten geleden is geschreven, mag niet worden aangezien voor een weeskind. Half geschreven `.tmp` bestanden van een onderbroken schrijfactie worden onder dezelfde regel verzameld. Met de `postgres` backend doet de sweep niets en doorloopt deze zelfs niet de directory.
 
 ## 🔍 Het verifiëren van een Archief {#verifying-an-archive}
 
-De checksum die op het moment van archiveren is vastgelegd, maakt verificatie mogelijk.
+De checksum die op het moment van het maken van het Archief is vastgelegd, maakt verificatie mogelijk.
 
 - **Bij download** (`VerifyChecksumOnRead=true`, de standaardinstelling) wordt het bestand gehasht en
   vergeleken. Bij een mismatch wordt de download geweigerd met HTTP 500.
@@ -191,22 +191,15 @@ De checksum die op het moment van archiveren is vastgelegd, maakt verificatie mo
 Omdat de metadataregel in de database staat en de bytes op de schijf kunnen staan, is een checksum-
 vergelijking de enige manier om te merken dat een bestand buiten de applicatie om is gewijzigd.
 
-## ⚠️ Het is belangrijk om te weten {#things-to-know}
+## ⚠️ Zaken om te weten {#things-to-know}
 
-- **Inschakelen zorgt niet voor een backfill.** Alleen e-mails die na de overschakeling worden gearchiveerd, krijgen een origineel.
-- **De reconstructie is niet het bericht zelf.** Voor e-mails zonder opgeslagen origineel geeft elke
-  downloadpath een opgebouwd bericht terug en geeft dit aan via
-  `X-Raw-Message-Reconstructed: true`.
-- **Filesystem betekent twee back-up eenheden.** Database en message directory moeten samen worden hersteld,
-  anders blijven de rijen bestaan zonder hun inhoud.
-- **`VerifyChecksumOnRead` kost CPU.** Elke download van een groot bericht wordt gedecodeerd
-  en gehasht. Laat het aan staan, tenzij u een probleem heeft vastgesteld; het is de enige bescherming
-  tegen stille wijzigingen op de schijf.
-- **Het opgeslagen origineel wordt niet onderworpen aan deduplicatie.** Een bijlage die in veel e-mails voorkomt,
-  wordt één keer opgeslagen in de attachment store, maar één keer per e-mail binnen het origineel.
-- **Verwijderen verwijdert ook het origineel.** Een e-mail die wordt verwijderd door bewaring of handmatig, neemt
-  het opgeslagen origineel mee, zowel het bestand als de rij. Niets wordt bewaard dat het Archief niet
-  meer vermeldt.
+- **Inschakelen zorgt niet voor backfill.** Alleen e-mail die na de overschakeling wordt gearchiveerd, krijgt een origineel.
+- **Een ontbrekend origineel wordt als fout gelogd.** Wanneer de capture wordt geweigerd (zie bovenstaande bericht `MaxMessageSizeMb`, geen bruikbare capture) of wanneer het schrijven naar de geconfigureerde backend mislukt, bevat het logboek een fout met de e-mail id en de reden. De e-mail blijft in het Archief zonder het origineel; er is geen automatische backfill en geen retry.
+- **De reconstructie is niet het bericht.** Voor e-mails zonder opgeslagen origineel geeft elke downloadpad een herbouwd bericht terug en geeft dit aan via `X-Raw-Message-Reconstructed: true`.
+- **Filesystem betekent twee back-up eenheden.** Database en message directory moeten samen worden hersteld, anders overleven de rijen zonder hun inhoud.
+- **`VerifyChecksumOnRead` kost CPU.** Elke download van een groot bericht wordt gedecomprimeerd en gehasht. Laat het aan staan, tenzij u een probleem heeft gemeten; het is de enige bescherming tegen stille wijzigingen op de schijf.
+- **Het opgeslagen origineel wordt niet onderworpen aan deduplicatie.** Een bijlage die in veel e-mails voorkomt, wordt één keer opgeslagen in de attachment store, maar één keer per e-mail binnen het origineel.
+- **Verwijderen verwijdert ook het origineel.** Een e-mail die door bewaring of handmatig wordt verwijderd, neemt het opgeslagen origineel mee, zowel het bestand als de rij. Niets wordt bewaard dat het Archief niet langer vermeldt.
 
 ## 🔗 Zie ook {#see-also}
 
