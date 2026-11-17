@@ -58,6 +58,12 @@ namespace MailArchiver.Models.ViewModels
         // Suchergebnisse
         public List<ArchivedEmail> SearchResults { get; set; }
         public int TotalResults { get; set; }
+
+        /// <summary>
+        /// Whether RawMessages is enabled. The list only flags missing originals when it is,
+        /// because without the option no email has one and the badge would be noise.
+        /// </summary>
+        public bool RawMessagesEnabled { get; set; }
         public int TotalPages => (int)Math.Ceiling(TotalResults / (double)PageSize);
 
         // Für die Batch-Operationen

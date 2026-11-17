@@ -3703,4 +3703,10 @@
   <data name="SelectFolder" xml:space="preserve">
     <value>Ordner auswählen</value>
   </data>
+  <data name="OriginalMissing" xml:space="preserve">
+    <value>Original fehlt</value>
+  </data>
+  <data name="OriginalMissingHint" xml:space="preserve">
+    <value>Für diese E-Mail wurde kein Original gespeichert. Das Archiv kann nur eine Rekonstruktion liefern.</value>
+  </data>
 </root>

@@ -3695,4 +3695,10 @@
   <data name="SelectFolder" xml:space="preserve">
     <value>Izberi mapo</value>
   </data>
+  <data name="OriginalMissing" xml:space="preserve">
+    <value>Original manjka</value>
+  </data>
+  <data name="OriginalMissingHint" xml:space="preserve">
+    <value>Za to e-poštno sporočilo izvirnik ni shranjen. Arhiv lahko ponudi le rekonstrukcijo.</value>
+  </data>
 </root>

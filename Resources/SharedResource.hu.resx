@@ -3687,4 +3687,10 @@
   <data name="SelectFolder" xml:space="preserve">
     <value>Mappa kiválasztása</value>
   </data>
+  <data name="OriginalMissing" xml:space="preserve">
+    <value>Hiányzik az eredeti</value>
+  </data>
+  <data name="OriginalMissingHint" xml:space="preserve">
+    <value>Ehhez az e-mailhez nem mentettük el az eredeti üzenetet. Az archívum csak rekonstrukciót tud szolgáltatni.</value>
+  </data>
 </root>

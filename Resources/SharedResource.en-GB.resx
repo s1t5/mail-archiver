@@ -884,4 +884,10 @@
   <data name="UpdateAvailableTitle" xml:space="preserve"><value>Update available</value></data>
   <data name="UpdateAvailableBody" xml:space="preserve"><value>Version {0} is available on GitHub.</value></data>
   <data name="ViewRelease" xml:space="preserve"><value>View release</value></data>
+  <data name="OriginalMissing" xml:space="preserve">
+    <value>Original missing</value>
+  </data>
+  <data name="OriginalMissingHint" xml:space="preserve">
+    <value>No original message was stored for this email. The archive can only serve a reconstruction.</value>
+  </data>
 </root>

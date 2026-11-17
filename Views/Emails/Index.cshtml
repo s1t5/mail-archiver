@@ -364,6 +364,12 @@
                                                     <span class="badge bg-secondary">@Localizer["In"]</span>
                                                 }
                                                 @email.Subject
+                                                @if (Model.RawMessagesEnabled && !email.HasRawMessage)
+                                                {
+                                                    <span class="badge bg-warning text-dark ms-1" title="@Localizer["OriginalMissingHint"]">
+                                                        <i class="bi bi-exclamation-triangle"></i> @Localizer["OriginalMissing"]
+                                                    </span>
+                                                }
                                             </td>
                                             <td>@email.From</td>
                                             <td>@email.To</td>
@@ -413,6 +419,12 @@
                                             @if (email.HasAttachments)
                                             {
                                                 <i class="bi bi-paperclip text-warning ms-1" title="@Localizer["HasAttachments"]"></i>
+                                            }
+                                            @if (Model.RawMessagesEnabled && !email.HasRawMessage)
+                                            {
+                                                <span class="badge bg-warning text-dark ms-1" title="@Localizer["OriginalMissingHint"]">
+                                                    <i class="bi bi-exclamation-triangle"></i> @Localizer["OriginalMissing"]
+                                                </span>
                                             }
                                         </div>
                                     </div>

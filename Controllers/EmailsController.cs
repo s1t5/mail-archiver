@@ -39,6 +39,8 @@ namespace MailArchiver.Controllers
         private readonly IEmailDeletionService? _emailDeletionService;
         private readonly ViewOptions _viewOptions;
         private readonly DeletionPolicyOptions _deletionPolicy;
+        private readonly RawMessageOptions _rawMessageOptions;
+        private readonly IRawMessageStore? _rawMessageStore;
 
         public EmailsController(
             MailArchiverDbContext context,
@@ -58,7 +60,9 @@ namespace MailArchiver.Controllers
             IAccessLogService? accessLogService = null,
             IServiceScopeFactory? serviceScopeFactory = null,
             MailArchiver.Services.IAuthenticationService? authService = null,
-            IEmailDeletionService? emailDeletionService = null)
+            IEmailDeletionService? emailDeletionService = null,
+            IOptions<RawMessageOptions>? rawMessageOptions = null,
+            IRawMessageStore? rawMessageStore = null)
 
         {
             _context = context;
@@ -79,6 +83,8 @@ namespace MailArchiver.Controllers
             _serviceScopeFactory = serviceScopeFactory;
             _authService = authService;
             _emailDeletionService = emailDeletionService;
+            _rawMessageOptions = rawMessageOptions?.Value ?? new RawMessageOptions();
+            _rawMessageStore = rawMessageStore;
         }
 
         // GET: Emails
@@ -90,6 +96,9 @@ namespace MailArchiver.Controllers
                 model = new SearchViewModel();
             }
             if (model.PageNumber <= 0) model.PageNumber = 1;
+
+            // The list only flags missing originals when the option is on.
+            model.RawMessagesEnabled = _rawMessageOptions.Enabled;
             
             // Validate and set page size to allowed values
             var allowedPageSizes = new[] { 20, 50, 75, 100, 150 };
@@ -380,6 +389,10 @@ namespace MailArchiver.Controllers
             {
                 Email = email,
                 AccountName = email.MailAccount?.Name ?? "Unknown account",
+                HasRawMessage = _rawMessageStore != null
+                    ? await _rawMessageStore.ExistsAsync(id)
+                    : await _context.RawMessages.AnyAsync(r => r.ArchivedEmailId == id),
+                RawMessagesEnabled = _rawMessageOptions.Enabled,
                 FormattedHtmlBody = !string.IsNullOrEmpty(htmlBodyToDisplay) 
                     ? ResolveInlineImagesInHtml(SanitizeHtml(htmlBodyToDisplay, _viewOptions.BlockExternalResources), email.Attachments) 
                     : string.Empty,

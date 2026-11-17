@@ -3695,4 +3695,10 @@
   <data name="SelectFolder" xml:space="preserve">
     <value>Sélectionner un dossier</value>
   </data>
+  <data name="OriginalMissing" xml:space="preserve">
+    <value>Original manquant</value>
+  </data>
+  <data name="OriginalMissingHint" xml:space="preserve">
+    <value>Le message d'origine n'a pas été enregistré pour cet e-mail. L'archive ne peut fournir qu'une reconstruction.</value>
+  </data>
 </root>

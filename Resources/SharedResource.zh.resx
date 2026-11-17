@@ -3664,4 +3664,10 @@
   <data name="SelectFolder" xml:space="preserve">
     <value>选择文件夹</value>
   </data>
+  <data name="OriginalMissing" xml:space="preserve">
+    <value>缺少原件</value>
+  </data>
+  <data name="OriginalMissingHint" xml:space="preserve">
+    <value>此邮件未保存原始邮件。归档只能提供重建版本。</value>
+  </data>
 </root>

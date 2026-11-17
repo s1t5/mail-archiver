@@ -3695,4 +3695,10 @@
   <data name="SelectFolder" xml:space="preserve">
     <value>Map selecteren</value>
   </data>
+  <data name="OriginalMissing" xml:space="preserve">
+    <value>Origineel ontbreekt</value>
+  </data>
+  <data name="OriginalMissingHint" xml:space="preserve">
+    <value>Voor deze e-mail is geen origineel bericht opgeslagen. Het archief kan alleen een reconstructie leveren.</value>
+  </data>
 </root>

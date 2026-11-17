@@ -3688,4 +3688,10 @@
   <data name="SelectFolder" xml:space="preserve">
     <value>Selecionar pasta</value>
   </data>
+  <data name="OriginalMissing" xml:space="preserve">
+    <value>Original ausente</value>
+  </data>
+  <data name="OriginalMissingHint" xml:space="preserve">
+    <value>Nenhuma mensagem original foi armazenada para este e-mail. O arquivo só pode fornecer uma reconstrução.</value>
+  </data>
 </root>

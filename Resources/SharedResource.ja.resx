@@ -3688,4 +3688,10 @@
   <data name="SelectFolder" xml:space="preserve">
     <value>フォルダーを選択</value>
   </data>
+  <data name="OriginalMissing" xml:space="preserve">
+    <value>原本がありません</value>
+  </data>
+  <data name="OriginalMissingHint" xml:space="preserve">
+    <value>このメールの原本は保存されていません。アーカイブは再構築版のみを提供できます。</value>
+  </data>
 </root>

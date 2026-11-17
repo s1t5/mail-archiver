@@ -89,6 +89,17 @@
 
         <!-- Rest of the email content display remains unchanged -->
         <div class="card-body">
+            @if (Model.RawMessagesEnabled && !Model.HasRawMessage)
+            {
+                <div class="alert alert-warning d-flex align-items-start gap-2 mb-3" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill fs-5"></i>
+                    <div>
+                        <strong>@Localizer["OriginalMissing"]</strong><br />
+                        @Localizer["OriginalMissingHint"]
+                    </div>
+                </div>
+            }
+
             <!-- Email Meta Information in Mobile-friendly format -->
             <div class="row g-2 mb-2">
                 <div class="col-12 col-md-2">

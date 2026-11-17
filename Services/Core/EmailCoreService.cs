@@ -277,6 +277,8 @@ namespace MailArchiver.Services.Core
 
             var emails = await ExecuteDataQueryAsync(dataSql, CloneParameters(parameters));
 
+            await PopulateRawMessageFlagsAsync(emails);
+
             return (emails, totalCount);
         }
 
@@ -545,7 +547,35 @@ namespace MailArchiver.Services.Core
                 .Take(take)
                 .ToListAsync();
 
+            await PopulateRawMessageFlagsAsync(emails);
+
             return (emails, totalCount);
+        }
+
+        /// <summary>
+        /// Marks one page of emails with whether a stored original exists. One query for the
+        /// whole page, not one per row. Skipped when RawMessages is disabled, because the
+        /// indicator is not shown then and the answer would be false for every email anyway.
+        /// </summary>
+        private async Task PopulateRawMessageFlagsAsync(List<ArchivedEmail> emails)
+        {
+            if (!_rawMessageOptions.Enabled || emails.Count == 0)
+            {
+                return;
+            }
+
+            var ids = emails.Select(e => e.Id).ToList();
+            var storedIds = await _context.RawMessages
+                .AsNoTracking()
+                .Where(r => ids.Contains(r.ArchivedEmailId))
+                .Select(r => r.ArchivedEmailId)
+                .ToListAsync();
+
+            var stored = storedIds.ToHashSet();
+            foreach (var email in emails)
+            {
+                email.HasRawMessage = stored.Contains(email.Id);
+            }
         }
 
         #endregion

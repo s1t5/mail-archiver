@@ -3700,4 +3700,10 @@
   <data name="SelectFolder" xml:space="preserve">
     <value>Seleccionar carpeta</value>
   </data>
+  <data name="OriginalMissing" xml:space="preserve">
+    <value>Falta el original</value>
+  </data>
+  <data name="OriginalMissingHint" xml:space="preserve">
+    <value>No se guardó el mensaje original de este correo. El archivo solo puede entregar una reconstrucción.</value>
+  </data>
 </root>
