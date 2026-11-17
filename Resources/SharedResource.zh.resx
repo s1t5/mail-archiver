@@ -3640,4 +3640,28 @@
   <data name="PasswordLoginDisabledError" xml:space="preserve">
     <value>密码登录已禁用。请通过您的身份提供商登录。</value>
   </data>
+  <data name="ConfirmCancelDeletion" xml:space="preserve">
+    <value>取消删除?</value>
+  </data>
+  <data name="DeleteItemUserConfig" xml:space="preserve">
+    <value>用户配置和设置</value>
+  </data>
+  <data name="ExportDownloadError" xml:space="preserve">
+    <value>无法下载导出文件。请重试。</value>
+  </data>
+  <data name="Format" xml:space="preserve">
+    <value>格式</value>
+  </data>
+  <data name="ImportFromTenant" xml:space="preserve">
+    <value>导入整个租户</value>
+  </data>
+  <data name="Of" xml:space="preserve">
+    <value>/</value>
+  </data>
+  <data name="SelectAccountFirst" xml:space="preserve">
+    <value>请先选择账户</value>
+  </data>
+  <data name="SelectFolder" xml:space="preserve">
+    <value>选择文件夹</value>
+  </data>
 </root>

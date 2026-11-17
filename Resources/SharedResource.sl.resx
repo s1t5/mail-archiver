@@ -745,9 +745,6 @@
   <data name="DangerZoneInfo" xml:space="preserve">
     <value>Naslednja dejanja so nepovratna in trajno izbrišejo podatke.</value>
   </data>
-  <data name="DeleteAccountAllEmailsButton" xml:space="preserve">
-    <value>Izbriši račun in vso pošto ({0})</value>
-  </data>
   <data name="DeleteAccountWithEmailsConfirm" xml:space="preserve">
     <value>Res želite izbrisati ta račun in VSO ({0}) arhivirano e-pošto? Dejanja ni mogoče razveljaviti!</value>
   </data>
@@ -1245,9 +1242,6 @@
   </data>
   <data name="ChangePassword" xml:space="preserve">
     <value>Zamenjaj geslo</value>
-  </data>
-  <data name="Sign Out" xml:space="preserve">
-    <value>Odjava</value>
   </data>
   <data name="PasswordHint" xml:space="preserve">
     <value>Geslo mora imeti vsaj 6 znakov.</value>
@@ -3676,5 +3670,29 @@
   </data>
   <data name="PasswordLoginDisabledError" xml:space="preserve">
     <value>Prijava z geslom je onemogočena. Prijavite se prek svojega ponudnika identitete.</value>
+  </data>
+  <data name="ConfirmCancelDeletion" xml:space="preserve">
+    <value>Preklicati brisanje?</value>
+  </data>
+  <data name="DeleteItemUserConfig" xml:space="preserve">
+    <value>Uporabniška konfiguracija in nastavitve</value>
+  </data>
+  <data name="ExportDownloadError" xml:space="preserve">
+    <value>Izvoza ni bilo mogoče prenesti. Poskusite znova.</value>
+  </data>
+  <data name="Format" xml:space="preserve">
+    <value>Format</value>
+  </data>
+  <data name="ImportFromTenant" xml:space="preserve">
+    <value>Uvozi celotnega najemnika</value>
+  </data>
+  <data name="Of" xml:space="preserve">
+    <value>od</value>
+  </data>
+  <data name="SelectAccountFirst" xml:space="preserve">
+    <value>Najprej izberite račun</value>
+  </data>
+  <data name="SelectFolder" xml:space="preserve">
+    <value>Izberi mapo</value>
   </data>
 </root>

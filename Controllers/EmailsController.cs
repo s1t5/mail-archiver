@@ -3501,14 +3501,14 @@ namespace MailArchiver.Controllers
             }
         }
 
-    /// <summary>
-    /// Removes the stored original of an email. Called <b>after</b> its row has been deleted:
-    /// the metadata row goes with the email through the cascade, but a filesystem-backed
-    /// original is a file outside the database that no cascade can reach. Deleting the bytes
-    /// first would lose the original if the email deletion failed.
-    /// </summary>
-    private async Task DeleteStoredOriginalAsync(int emailId)
-    {
+        /// <summary>
+        /// Removes the stored original of an email. Called <b>after</b> its row has been deleted:
+        /// the metadata row goes with the email through the cascade, but a filesystem-backed
+        /// original is a file outside the database that no cascade can reach. Deleting the bytes
+        /// first would lose the original if the email deletion failed.
+        /// </summary>
+        private async Task DeleteStoredOriginalAsync(int emailId)
+        {
         var rawMessageStore = HttpContext.RequestServices.GetService<IRawMessageStore>();
         if (rawMessageStore == null)
         {

@@ -3676,4 +3676,28 @@
   <data name="PasswordLoginDisabledError" xml:space="preserve">
     <value>El inicio de sesión con contraseña está deshabilitado. Inicie sesión con su proveedor de identidad.</value>
   </data>
+  <data name="ConfirmCancelDeletion" xml:space="preserve">
+    <value>¿Cancelar la eliminación?</value>
+  </data>
+  <data name="DeleteItemUserConfig" xml:space="preserve">
+    <value>Configuración y ajustes del usuario</value>
+  </data>
+  <data name="ExportDownloadError" xml:space="preserve">
+    <value>No se pudo descargar la exportación. Inténtalo de nuevo.</value>
+  </data>
+  <data name="Format" xml:space="preserve">
+    <value>Formato</value>
+  </data>
+  <data name="ImportFromTenant" xml:space="preserve">
+    <value>Importar todo el tenant</value>
+  </data>
+  <data name="Of" xml:space="preserve">
+    <value>de</value>
+  </data>
+  <data name="SelectAccountFirst" xml:space="preserve">
+    <value>Selecciona primero una cuenta</value>
+  </data>
+  <data name="SelectFolder" xml:space="preserve">
+    <value>Seleccionar carpeta</value>
+  </data>
 </root>

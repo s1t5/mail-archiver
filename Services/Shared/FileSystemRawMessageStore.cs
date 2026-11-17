@@ -186,8 +186,11 @@ namespace MailArchiver.Services.Shared
                 return;
             }
 
-            // Rows that still exist tell us the exact path; a migrated row can differ from the
-            // derived one if the shard depth changed since it was written.
+            // A row that still exists wins over the derived path, because a migrated row can
+            // carry a path that differs from the one the current shard depth produces. In the
+            // normal delete flow the row is already gone: RawMessages cascades with
+            // ArchivedEmails. This lookup therefore only helps for an orphaned metadata row,
+            // and the derived path covers every file this installation wrote.
             var recorded = await _context.RawMessages
                 .AsNoTracking()
                 .Where(r => ids.Contains(r.ArchivedEmailId) && r.StorageType == RawMessageStorage.FileSystem)

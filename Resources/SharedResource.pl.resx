@@ -3723,4 +3723,28 @@
   <data name="PasswordLoginDisabledError" xml:space="preserve">
     <value>Logowanie hasłem jest wyłączone. Zaloguj się przez swojego dostawcę tożsamości.</value>
   </data>
+  <data name="ConfirmCancelDeletion" xml:space="preserve">
+    <value>Anulować usuwanie?</value>
+  </data>
+  <data name="DeleteItemUserConfig" xml:space="preserve">
+    <value>Konfiguracja i ustawienia użytkownika</value>
+  </data>
+  <data name="ExportDownloadError" xml:space="preserve">
+    <value>Nie udało się pobrać eksportu. Spróbuj ponownie.</value>
+  </data>
+  <data name="Format" xml:space="preserve">
+    <value>Format</value>
+  </data>
+  <data name="ImportFromTenant" xml:space="preserve">
+    <value>Importuj całą dzierżawę</value>
+  </data>
+  <data name="Of" xml:space="preserve">
+    <value>z</value>
+  </data>
+  <data name="SelectAccountFirst" xml:space="preserve">
+    <value>Najpierw wybierz konto</value>
+  </data>
+  <data name="SelectFolder" xml:space="preserve">
+    <value>Wybierz folder</value>
+  </data>
 </root>

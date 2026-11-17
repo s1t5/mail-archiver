@@ -745,9 +745,6 @@
   <data name="DangerZoneInfo" xml:space="preserve">
     <value>De volgende acties zijn onomkeerbaar en verwijderen permanent gegevens.</value>
   </data>
-  <data name="DeleteAccountAllEmailsButton" xml:space="preserve">
-    <value>Account en alle e-mails verwijderen ({0})</value>
-  </data>
   <data name="DeleteAccountWithEmailsConfirm" xml:space="preserve">
     <value>Weet u zeker dat u dit account en ALLE {0} gearchiveerde e-mails wilt verwijderen? Deze actie kan niet ongedaan gemaakt worden!</value>
   </data>
@@ -1245,9 +1242,6 @@
   </data>
   <data name="ChangePassword" xml:space="preserve">
     <value>Wachtwoord wijzigen</value>
-  </data>
-  <data name="Sign Out" xml:space="preserve">
-    <value>Uitloggen</value>
   </data>
   <data name="PasswordHint" xml:space="preserve">
     <value>Het wachtwoord moet ten minste 6 tekens bevatten.</value>
@@ -3676,5 +3670,29 @@
   </data>
   <data name="PasswordLoginDisabledError" xml:space="preserve">
     <value>Wachtwoordaanmelding is uitgeschakeld. Meld u aan via uw identiteitsprovider.</value>
+  </data>
+  <data name="ConfirmCancelDeletion" xml:space="preserve">
+    <value>Verwijdering annuleren?</value>
+  </data>
+  <data name="DeleteItemUserConfig" xml:space="preserve">
+    <value>Gebruikersconfiguratie en instellingen</value>
+  </data>
+  <data name="ExportDownloadError" xml:space="preserve">
+    <value>De export kon niet worden gedownload. Probeer het opnieuw.</value>
+  </data>
+  <data name="Format" xml:space="preserve">
+    <value>Formaat</value>
+  </data>
+  <data name="ImportFromTenant" xml:space="preserve">
+    <value>Volledige tenant importeren</value>
+  </data>
+  <data name="Of" xml:space="preserve">
+    <value>van</value>
+  </data>
+  <data name="SelectAccountFirst" xml:space="preserve">
+    <value>Selecteer eerst een account</value>
+  </data>
+  <data name="SelectFolder" xml:space="preserve">
+    <value>Map selecteren</value>
   </data>
 </root>

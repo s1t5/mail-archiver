@@ -3665,4 +3665,28 @@
   <data name="PasswordLoginDisabledError" xml:space="preserve">
     <value>Password login is disabled. Please sign in with your identity provider.</value>
   </data>
+  <data name="ConfirmCancelDeletion" xml:space="preserve">
+    <value>Cancel the deletion?</value>
+  </data>
+  <data name="DeleteItemUserConfig" xml:space="preserve">
+    <value>User configuration and settings</value>
+  </data>
+  <data name="ExportDownloadError" xml:space="preserve">
+    <value>The export could not be downloaded. Please try again.</value>
+  </data>
+  <data name="Format" xml:space="preserve">
+    <value>Format</value>
+  </data>
+  <data name="ImportFromTenant" xml:space="preserve">
+    <value>Import the entire tenant</value>
+  </data>
+  <data name="Of" xml:space="preserve">
+    <value>of</value>
+  </data>
+  <data name="SelectAccountFirst" xml:space="preserve">
+    <value>Select Account First</value>
+  </data>
+  <data name="SelectFolder" xml:space="preserve">
+    <value>Select Folder</value>
+  </data>
 </root>

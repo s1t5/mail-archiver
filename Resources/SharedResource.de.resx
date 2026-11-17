@@ -3679,4 +3679,28 @@
   <data name="PasswordLoginDisabledError" xml:space="preserve">
     <value>Die Passwort-Anmeldung ist deaktiviert. Bitte melden Sie sich über Ihren Identity Provider an.</value>
   </data>
+  <data name="ConfirmCancelDeletion" xml:space="preserve">
+    <value>Löschvorgang abbrechen?</value>
+  </data>
+  <data name="DeleteItemUserConfig" xml:space="preserve">
+    <value>Benutzerkonfiguration und Einstellungen</value>
+  </data>
+  <data name="ExportDownloadError" xml:space="preserve">
+    <value>Der Export konnte nicht heruntergeladen werden. Bitte erneut versuchen.</value>
+  </data>
+  <data name="Format" xml:space="preserve">
+    <value>Format</value>
+  </data>
+  <data name="ImportFromTenant" xml:space="preserve">
+    <value>Gesamten Tenant importieren</value>
+  </data>
+  <data name="Of" xml:space="preserve">
+    <value>von</value>
+  </data>
+  <data name="SelectAccountFirst" xml:space="preserve">
+    <value>Zuerst Konto auswählen</value>
+  </data>
+  <data name="SelectFolder" xml:space="preserve">
+    <value>Ordner auswählen</value>
+  </data>
 </root>

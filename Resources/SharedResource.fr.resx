@@ -745,9 +745,6 @@
   <data name="DangerZoneInfo" xml:space="preserve">
     <value>Les actions suivantes sont irréversibles et supprimeront définitivement les données.</value>
   </data>
-  <data name="DeleteAccountAllEmailsButton" xml:space="preserve">
-    <value>Supprimer le compte et tous les emails ({0})</value>
-  </data>
   <data name="DeleteAccountWithEmailsConfirm" xml:space="preserve">
     <value>Êtes-vous sûr de vouloir supprimer ce compte et TOUS les {0} emails archivés ? Cette action ne peut pas être annulée !</value>
   </data>
@@ -1239,9 +1236,6 @@
   </data>
   <data name="ChangePassword" xml:space="preserve">
     <value>Changer le mot de passe</value>
-  </data>
-  <data name="Sign Out" xml:space="preserve">
-    <value>Se déconnecter</value>
   </data>
   <data name="PasswordHint" xml:space="preserve">
     <value>Le mot de passe doit comporter au moins 6 caractères.</value>
@@ -3676,5 +3670,29 @@
   </data>
   <data name="PasswordLoginDisabledError" xml:space="preserve">
     <value>La connexion par mot de passe est désactivée. Veuillez vous connecter via votre fournisseur d'identité.</value>
+  </data>
+  <data name="ConfirmCancelDeletion" xml:space="preserve">
+    <value>Annuler la suppression ?</value>
+  </data>
+  <data name="DeleteItemUserConfig" xml:space="preserve">
+    <value>Configuration et paramètres de l'utilisateur</value>
+  </data>
+  <data name="ExportDownloadError" xml:space="preserve">
+    <value>L'export n'a pas pu être téléchargé. Veuillez réessayer.</value>
+  </data>
+  <data name="Format" xml:space="preserve">
+    <value>Format</value>
+  </data>
+  <data name="ImportFromTenant" xml:space="preserve">
+    <value>Importer tout le tenant</value>
+  </data>
+  <data name="Of" xml:space="preserve">
+    <value>sur</value>
+  </data>
+  <data name="SelectAccountFirst" xml:space="preserve">
+    <value>Sélectionnez d'abord un compte</value>
+  </data>
+  <data name="SelectFolder" xml:space="preserve">
+    <value>Sélectionner un dossier</value>
   </data>
 </root>

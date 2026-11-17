@@ -745,9 +745,6 @@
   <data name="DangerZoneInfo" xml:space="preserve">
     <value>Следующие действия необратимы и окончательно удалят данные.</value>
   </data>
-  <data name="DeleteAccountAllEmailsButton" xml:space="preserve">
-    <value>Удалить аккаунт и все письма ({0})</value>
-  </data>
   <data name="DeleteAccountWithEmailsConfirm" xml:space="preserve">
     <value>Вы уверены, что хотите удалить этот аккаунт и ВСЕ {0} архивированных писем? Это действие нельзя отменить!</value>
   </data>
@@ -1245,9 +1242,6 @@
   </data>
   <data name="ChangePassword" xml:space="preserve">
     <value>Изменить пароль</value>
-  </data>
-  <data name="Sign Out" xml:space="preserve">
-    <value>Выйти</value>
   </data>
   <data name="PasswordHint" xml:space="preserve">
     <value>Пароль должен содержать не менее 6 символов.</value>
@@ -3676,5 +3670,29 @@
   </data>
   <data name="PasswordLoginDisabledError" xml:space="preserve">
     <value>Вход по паролю отключён. Войдите через своего поставщика удостоверений.</value>
+  </data>
+  <data name="ConfirmCancelDeletion" xml:space="preserve">
+    <value>Отменить удаление?</value>
+  </data>
+  <data name="DeleteItemUserConfig" xml:space="preserve">
+    <value>Конфигурация и настройки пользователя</value>
+  </data>
+  <data name="ExportDownloadError" xml:space="preserve">
+    <value>Не удалось скачать экспорт. Повторите попытку.</value>
+  </data>
+  <data name="Format" xml:space="preserve">
+    <value>Формат</value>
+  </data>
+  <data name="ImportFromTenant" xml:space="preserve">
+    <value>Импортировать весь тенант</value>
+  </data>
+  <data name="Of" xml:space="preserve">
+    <value>из</value>
+  </data>
+  <data name="SelectAccountFirst" xml:space="preserve">
+    <value>Сначала выберите учётную запись</value>
+  </data>
+  <data name="SelectFolder" xml:space="preserve">
+    <value>Выбрать папку</value>
   </data>
 </root>

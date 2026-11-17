@@ -748,9 +748,6 @@
   <data name="DangerZoneInfo" xml:space="preserve">
     <value>A következő műveletek visszafordíthatatlanok és véglegesen törlik az adatokat.</value>
   </data>
-  <data name="DeleteAccountAllEmailsButton" xml:space="preserve">
-    <value>Fiók és összes e-mail törlése ({0})</value>
-  </data>
   <data name="DeleteAccountWithEmailsButton" xml:space="preserve">
     <value>Fiók és Összes E-mail Törlése ({0})</value>
   </data>
@@ -977,9 +974,6 @@
     <value>Vezérlőpultra</value>
   </data>
   <data name="SignOut" xml:space="preserve">
-    <value>Kijelentkezés</value>
-  </data>
-  <data name="Sign Out" xml:space="preserve">
     <value>Kijelentkezés</value>
   </data>
   <data name="RestoreEmailTitle" xml:space="preserve">
@@ -3668,5 +3662,29 @@
   </data>
   <data name="PasswordLoginDisabledError" xml:space="preserve">
     <value>A jelszavas bejelentkezés le van tiltva. Kérjük, jelentkezzen be az identitásszolgáltatóján keresztül.</value>
+  </data>
+  <data name="ConfirmCancelDeletion" xml:space="preserve">
+    <value>Megszakítja a törlést?</value>
+  </data>
+  <data name="DeleteItemUserConfig" xml:space="preserve">
+    <value>Felhasználói beállítások és konfiguráció</value>
+  </data>
+  <data name="ExportDownloadError" xml:space="preserve">
+    <value>Az exportálás nem tölthető le. Próbálja újra.</value>
+  </data>
+  <data name="Format" xml:space="preserve">
+    <value>Formátum</value>
+  </data>
+  <data name="ImportFromTenant" xml:space="preserve">
+    <value>A teljes bérlő importálása</value>
+  </data>
+  <data name="Of" xml:space="preserve">
+    <value>/</value>
+  </data>
+  <data name="SelectAccountFirst" xml:space="preserve">
+    <value>Először válasszon fiókot</value>
+  </data>
+  <data name="SelectFolder" xml:space="preserve">
+    <value>Mappa kiválasztása</value>
   </data>
 </root>

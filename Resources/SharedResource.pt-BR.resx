@@ -3664,4 +3664,28 @@
   <data name="PasswordLoginDisabledError" xml:space="preserve">
     <value>O login por senha está desativado. Entre com seu provedor de identidade.</value>
   </data>
+  <data name="ConfirmCancelDeletion" xml:space="preserve">
+    <value>Cancelar a exclusão?</value>
+  </data>
+  <data name="DeleteItemUserConfig" xml:space="preserve">
+    <value>Configuração e ajustes do usuário</value>
+  </data>
+  <data name="ExportDownloadError" xml:space="preserve">
+    <value>Não foi possível baixar a exportação. Tente novamente.</value>
+  </data>
+  <data name="Format" xml:space="preserve">
+    <value>Formato</value>
+  </data>
+  <data name="ImportFromTenant" xml:space="preserve">
+    <value>Importar todo o tenant</value>
+  </data>
+  <data name="Of" xml:space="preserve">
+    <value>de</value>
+  </data>
+  <data name="SelectAccountFirst" xml:space="preserve">
+    <value>Selecione uma conta primeiro</value>
+  </data>
+  <data name="SelectFolder" xml:space="preserve">
+    <value>Selecionar pasta</value>
+  </data>
 </root>

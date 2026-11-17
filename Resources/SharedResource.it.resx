@@ -745,9 +745,6 @@
   <data name="DangerZoneInfo" xml:space="preserve">
     <value>Le seguenti azioni sono irreversibili ed elimineranno definitivamente i dati.</value>
   </data>
-  <data name="DeleteAccountAllEmailsButton" xml:space="preserve">
-    <value>Elimina account e tutte le email ({0})</value>
-  </data>
   <data name="DeleteAccountWithEmailsConfirm" xml:space="preserve">
     <value>Sei sicuro di voler eliminare questo account e TUTTE le {0} email archiviate? Questa azione non può essere annullata!</value>
   </data>
@@ -1245,9 +1242,6 @@
   </data>
   <data name="ChangePassword" xml:space="preserve">
     <value>Cambia password</value>
-  </data>
-  <data name="Sign Out" xml:space="preserve">
-    <value>Disconnetti</value>
   </data>
   <data name="PasswordHint" xml:space="preserve">
     <value>La password deve essere di almeno 6 caratteri.</value>
@@ -3676,5 +3670,29 @@
   </data>
   <data name="PasswordLoginDisabledError" xml:space="preserve">
     <value>L'accesso con password è disabilitato. Accedi tramite il tuo provider di identità.</value>
+  </data>
+  <data name="ConfirmCancelDeletion" xml:space="preserve">
+    <value>Annullare l'eliminazione?</value>
+  </data>
+  <data name="DeleteItemUserConfig" xml:space="preserve">
+    <value>Configurazione e impostazioni utente</value>
+  </data>
+  <data name="ExportDownloadError" xml:space="preserve">
+    <value>Impossibile scaricare l'esportazione. Riprova.</value>
+  </data>
+  <data name="Format" xml:space="preserve">
+    <value>Formato</value>
+  </data>
+  <data name="ImportFromTenant" xml:space="preserve">
+    <value>Importa l'intero tenant</value>
+  </data>
+  <data name="Of" xml:space="preserve">
+    <value>di</value>
+  </data>
+  <data name="SelectAccountFirst" xml:space="preserve">
+    <value>Seleziona prima un account</value>
+  </data>
+  <data name="SelectFolder" xml:space="preserve">
+    <value>Seleziona cartella</value>
   </data>
 </root>

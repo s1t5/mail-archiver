@@ -1223,6 +1223,15 @@ var localizationOptions = new RequestLocalizationOptions()
     .AddSupportedUICultures(supportedCultures);
 
 app.UseRequestLocalization(localizationOptions);
+
+// Authentication is registered explicitly so it sits after UseStaticFiles: the cookie
+// handler validates the security stamp against the database on every request, and static
+// assets (CSS, JS, icons) need no identity. Without this call WebApplication inserts the
+// middleware at the very start of the pipeline, which costs one Users query per asset.
+// It also runs after UseForwardedHeaders now, so the OIDC callback sees the real scheme
+// and client IP, and after the localization middleware, so a rejected login is localized.
+app.UseAuthentication();
+
 app.UseRouting();
 app.UseSession();
 
