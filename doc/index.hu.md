@@ -1,8 +1,8 @@
 # 📧 Mail Archiver Dokumentáció {#mail-archiver-documentation}
 
 <div class="docs-lead" markdown>
-**Saját tárhelyű e-mail archiválás — archiváljon, keressen és exportáljon e-maileket bármely szolgáltatótól.**
-Állítsa be egyszer, őrizze meg minden üzenetet, és találja meg újra évekkel később.
+**Sajátুপ্তálású e-mail archiválás — archiváljon, keressen és exportáljon e-maileket bármely szolgáltatótól.**
+Állítsa be egyszer, őrizze meg minden üzenetet, és találja meg újra évek később is.
 </div>
 
 <div class="grid cards" markdown>
@@ -15,11 +15,11 @@
 
     [:octicons-arrow-right-24: Beállítások és paraméterek](Setup.md)
 
--   :material-magnify:{ .lg .middle } __Találjon meg bármit__
+-   :material-magnify:{ .lg .middle } __Bármit megtaláljon__
 
     ---
 
-    Teljes szöveges keresés minden fiókban, szűrőkkel, rendezéssel és tömeges műveletekkel.
+    Teljes szövegkeresés minden fiókban, szűrőkkel, rendezéssel és tömeges műveletekkel.
 
     [:octicons-arrow-right-24: E-mail keresés](Search.md)
 
@@ -27,7 +27,7 @@
 
     ---
 
-    Olvassa el az archívumot szkriptekből és AI ügynökökből — olvasható, korlátozott API kulcsokkal.
+    Olvassa el az archívumot szkriptekből és AI ügynökökből — csak olvasási jogú, korlátozott API kulcsokkal.
 
     [:octicons-arrow-right-24: REST API](API.md) · [:octicons-arrow-right-24: MCP server](MCP.md)
 
@@ -65,7 +65,7 @@
 
     ---
 
-\\Átállás egy új fő PostgreSQL verzióra adatvesztés nélkül.
+    Áll transition egy újabb fő PostgreSQL verzióra adatvesztés nélkül.
 
     [:octicons-arrow-right-24: Olvasás](PostgreSQLUpgrade.md)
 
@@ -73,7 +73,7 @@
 
     ---
 
-    VACUUM, ANALYZE és az archívum válaszkészségének fenntartása idő:])
+    VACUUM, ANALYZE és az archívum válaszkészségének fenntartása idővel.
 
     [:octicons-arrow-right-24: Olvasás](DatabaseMaintenance.md)
 
@@ -81,7 +81,7 @@
 
     ---
 
-    Adatbázis mentése és visszaállítása — Proxmox beállításokkal együtt is.
+    Adatbázis mentése és visszaállítása — beleértve a Proxmox beállításokat is.
 
     [:octicons-arrow-right-24: Olvasás](BackupRestore.md)
 
@@ -89,7 +89,7 @@
 
     ---
 
-    Futtasson egy ideiglenes példányt helyileg, mielőtt a term production környezettel foglalkozna.
+    Futtasson egy ideiglenes példányt helyileg, mielőtt a termeléshez nyúlna.
 
     [:octicons-arrow-right-24: Olvasás](LocalTestEnvironment.md)
 
@@ -103,7 +103,7 @@
 
     ---
 
-    Több fiókot egyszerre hozzáadása egy CSV fájlból.
+    Több fiókot egyszerre egy CSV fájlból.
 
     [:octicons-arrow-right-24: Olvasás](Account-Import.md)
 
@@ -119,7 +119,7 @@
 
     ---
 
-    Létező archívumok importálása parancssorból, és a tárolt eredeti üzenetek mozgatása az adatbázis és a fájlrendszer között.
+    Már meglévő archívumok importálása parancssorból, és a tárolt eredeti üzenetek mozgatása az adatbázis és a fájlrendszer között.
 
     [:octicons-arrow-right-24: Olvasás](CLI.md)
 
@@ -131,17 +131,17 @@
 
     [:octicons-arrow-right-24: Olvasás](Import-EML-MBox.md)
 
--   :material-timer-sand:{ .lg .middle } __Sebességkorlátozás kezelése__
+-   :material-timer-sand:{ .lg .middle } __Rate limit kezelés__
 
     ---
 
-    Sávszélesség nyomon követése, és a szüneteltetett szinkronizálások automatikus folytatása.
+    Sávszélesség nyomon követése, és a szüneteltetett szinkronok automatikus folytatása.
 
     [:octicons-arrow-right-24: Olvasás](RateLimitHandling.md)
 
 </div>
 
-## 🔍 Archívummal való munka {#working-with-the-archive}
+## 🔍 Az archívummal való munka {#working-with-the-archive}
 
 <div class="grid cards" markdown>
 
@@ -157,7 +157,7 @@
 
     ---
 
-    Szinkronizálások, importálások, visszaállítások és exportok figyelése — és azok biztonságos leállítása.
+    Szinkronizálás, importálás, visszaállítás és exportálás figyelése — és azok biztonságos leállítása.
 
     [:octicons-arrow-right-24: Olvasás](BackgroundJobs.md)
 
@@ -173,7 +173,7 @@
 
     ---
 
-    Egy teljes fiók kiírása portábil EML vagy MBox archívumként.
+Egy teljes fiók kiírása hordozható EML vagy MBox archívumként.
 
     [:octicons-arrow-right-24: Olvasás](Export-Account.md)
 
@@ -181,23 +181,23 @@
 
     ---
 
-    Az üzenet megőrzése úgy, ahogy megérkezett, hogy a DKIM továbbra is érvényesítsen, és az exportok byte-szintűen pontosak legyenek.
+Az üzenet megmarad úgy, ahogy megérkezett, így a DKIM továbbra is hitelesíti, az exportok pedig byte-pontosak maradnak.
 
     [:octicons-arrow-right-24: Olvasás](RawMessages.md)
 
--   :material-content-duplicate:{ .lg .middle } __Melléklet de-duplikációja__
+-   :material-content-duplicate:{ .lg .middle } __Melléklet de-duplikáció__
 
     ---
 
-    Hogyan tárolódnak az azonos mellékletek egyszer, ahelyett, hogy többször tárolódnának.
+Hogyan tárolódnak az azonos mellékletek egyszer, ahelyett, hogy többször tárolódnának.
 
     [:octicons-arrow-right-24: Olvasás](AttachmentDeduplication.md)
 
--   :material-calendar-arrow-right:{ .lg .middle } __Dátumal alapozott leültetés__
+-   :material-calendar-arrow-right:{ .lg .middle } __Dátumal alapozott archiválás lecsökkentése__
 
     ---
 
-    Régebbi e-mailek mozgatása másik fiókba, időszakosan.
+    Régebbi e-mailek mozgatása egy másik fiókba, időszakosan.
 
     [:octicons-arrow-right-24: Olvasás](Offload.md)
 
@@ -205,7 +205,7 @@
 
     ---
 
-    Láthatja, mennyi helyet foglal elfoglal minden postafiók.
+    Nézze meg, mennyi helyet foglal elfoglal minden postafiók.
 
     [:octicons-arrow-right-24: Olvasás](AccountStorage.md)
 
@@ -215,11 +215,11 @@
 
 <div class="grid cards" markdown>
 
--   :material-account-group:{ .lg .middle } __Felhasználói kezelés__
+-   :material-account-group:{ .lg .middle } __Felhasználók kezelése__
 
     ---
 
-    Felhasználók létrehozása, admin jogok megadása, postafiók jogosultságok kiosztása és a saját jelszó megváltoztatása.
+    Felhasználók létrehozása, admin jogok engedélyezése, postafiók jogosultságok kiosztása és a saját jelszó megváltoztatása.
 
     [:octicons-arrow-right-24: Olvasás](UserManagement.md)
 
@@ -227,7 +227,7 @@
 
     ---
 
-    TOTP beállítás, mentőkódok, és teendők, ha egy eszköz elveszik.
+    TOTP beállítás, mentési kódok, és mi a teendő, ha egy eszköz elveszik.
 
     [:octicons-arrow-right-24: Olvasás](TwoFactor.md)
 
@@ -235,7 +235,7 @@
 
     ---
 
-    Bejelentkezés Entra ID, Authelia vagy más azonosító szolgáltatón keresztül.
+    Bejelentkezés Entra ID, Authelia vagy más azonosítót sağlayón keresztül.
 
     [:octicons-arrow-right-24: Olvasás](OIDC_Implementation.md)
 
@@ -243,7 +243,7 @@
 
     ---
 
-Ki nyitott, keresett, exportált vagy törölt mit.
+    Ki nyitott, keresett, exportált vagy törölt mit.
 
     [:octicons-arrow-right-24: Olvasás](Logs.md)
 
@@ -251,15 +251,15 @@ Ki nyitott, keresett, exportált vagy törölt mit.
 
     ---
 
-    Az audit nyomvonal exportálása a megfelelőségi ellenőrzésekhez.
+    Az audit ny迹 (audit trail) exportálása a megfelelőségi ellenőrzésekhez.
 
     [:octicons-arrow-right-24: Olvasás](AuditExport.md)
 
--   :material-lifebuoy:{ .lg .middle } __Vészhelyzeti fiók helyreállítása__
+-   :material-lifebuoy:{ .lg .middle } __Vészhelyzeti fiókhelyreállítás__
 
     ---
 
-    Hozzáférés visszaszerzése, ha egy fiók kitiltva lett.
+    Hozzáférés visszaszerzése, ha egy fiók kitiltódott.
 
     [:octicons-arrow-right-24: Olvasás](EmergencyAccountRecovery.md)
 
@@ -277,7 +277,7 @@ Ki nyitott, keresett, exportált vagy törölt mit.
 
 <div class="grid cards" markdown>
 
--   :material-microsoft:{ .lg .middle } __Azure app regisztráció (M365)__
+-   :material-microsoft:{ .lg .middle } __Azure alkalmazásregisztráció (M365)__
 
     ---
 
@@ -289,7 +289,7 @@ Ki nyitott, keresett, exportált vagy törölt mit.
 
     ---
 
-    Egy tenant összes postafiókjának tömeges importálása egyetlen űrlapból.
+    Egy single formon keresztül egy tenant minden postafiókjának tömeges importálása.
 
     [:octicons-arrow-right-24: Olvasás](M365TenantImport.md)
 
@@ -297,7 +297,7 @@ Ki nyitott, keresett, exportált vagy törölt mit.
 
     ---
 
-    Postafiókok központi kiválasztása és dedikált IMAP alkalmazási jelszavak biztosítása.
+    Postafiókok központilag kiválasztása és dedikált IMAP alkalmazási jelszavak biztosítása.
 
     [:octicons-arrow-right-24: Olvasás](Mailcow.md)
 
@@ -305,7 +305,7 @@ Ki nyitott, keresett, exportált vagy törölt mit.
 
     ---
 
-    Outlook.com, Hotmail és M365 Family eszközkód-folyamon keresztül.
+    Outlook.com, Hotmail és M365 Family a device code flow segítségével.
 
     [:octicons-arrow-right-24: Olvasás](MSA_Outlook_Setup.md)
 
@@ -313,7 +313,7 @@ Ki nyitott, keresett, exportált vagy törölt mit.
 
     ---
 
-    Alkalmazási jelszavak, címkék, expunge és a Gmail sebességkorlátozásai.
+    Alkalmazási jelszavak, címkék, expunge és a Gmail sebességi korlátai.
 
     [:octicons-arrow-right-24: Olvasás](GmailBestPractices.md)
 
@@ -327,7 +327,7 @@ Amit a Yahoo IMAP és export végpontjai nem tesznek meg.
 
 </div>
 
-## 🔌 Programozható hozzáférés {#programmatic-access}
+## 🔌 Programprogramozható hozzáférés {#programmatic-access}
 
 <div class="grid cards" markdown>
 
@@ -335,7 +335,7 @@ Amit a Yahoo IMAP és export végpontjai nem tesznek meg.
 
     ---
 
-    Csak olvasható hozzáférés az archívumhoz, felhasználónként korlátozott API kulcsokkal.
+    Csak olvasási jogú hozzáférés az archívumhoz, felhasználónként korlátozott API kulcsokkal.
 
     [:octicons-arrow-right-24: Olvasás](API.md)
 
@@ -343,7 +343,7 @@ Amit a Yahoo IMAP és export végpontjai nem tesznek meg.
 
     ---
 
-    Az archívum megjelenítése az AI ügynökök számára felfedezhető eszközökként.
+    Az archívum tesztelhető eszközként (discoverable tools) való bemutatása az AI ügynökök számára.
 
     [:octicons-arrow-right-24: Olvasás](MCP.md)
 
@@ -357,7 +357,7 @@ Amit a Yahoo IMAP és export végpontjai nem tesznek meg.
 
     ---
 
-    A felület nyelvének váltása, és hogyan adjon hozzá fordítást.
+    A felület nyelvének váltása, és hogyan lehet fordítást hozzáadni.
 
     [:octicons-arrow-right-24: Olvasás](Localization.md)
 
@@ -365,15 +365,23 @@ Amit a Yahoo IMAP és export végpontjai nem tesznek meg.
 
     ---
 
-    Conténer naplók olvasása és a naplózási szint megváltoztatása.
+    Konténer naplók olvasása és a naplózási szint megváltoztatása.
 
     [:octicons-arrow-right-24: Olvasás](DockerComposeLogs.md)
+
+-   :material-heart-pulse:{ .lg .middle } __Egészségállapot és metrikák__
+
+    ---
+
+    Liveness, readiness és archívum metrikák figyelése Prometheus-ból vagy más monitorozó rendszerből.
+
+    [:octicons-arrow-right-24: Olvasás](Monitoring.md)
 
 -   :material-tag:{ .lg .middle } __Fejlesztői verziók__
 
     ---
 
-    Váltás fejlesztői (dev) tagre a közelgő változások teszteléséhez.
+    Váltás fejlesztői (dev) tagre az közelgő változások tesztelése érdekében.
 
     [:octicons-arrow-right-24: Olvasás](DevTag.md)
 
@@ -383,6 +391,6 @@ Amit a Yahoo IMAP és export végpontjai nem tesznek meg.
 
 <div class="docs-footer-note" markdown>
 :material-pencil: **Ezt a dokumentációt folyamatosan bővítjük.**
-Ha hibát talál, vagy van javaslata, kérjük
-[nyisson egy issue-t](https://github.com/s1t5/mail-archiver/issues) vagy küldjön egy pull requestet.
+Ha hibát talál, vagy javaslatot szeretne tenni, kérjük
+[nyisson meg egy issue-t](https://github.com/s1t5/mail-archiver/issues) vagy küldjön pull request-et.
 </div>
