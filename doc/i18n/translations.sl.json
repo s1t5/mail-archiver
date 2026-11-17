@@ -3,8 +3,8 @@
     "sl": {
       "API.md": {
         "model": "google/gemma-4-26b-a4b-it",
-        "source_sha256": "ff326b5522accdee54f96a4e849e38e799f55ee88b5fc58673abb1f6ee3c40d3",
-        "translated_at": "2026-11-10T14:49:54Z"
+        "source_sha256": "0d351d3cb4210e67c0aeb1ac689daacfa16f6ffb9367bd5c696dc9ef88087801",
+        "translated_at": "2026-11-17T18:33:51Z"
       },
       "AZURE_APP_REGISTRATION_M365.md": {
         "model": "google/gemma-4-26b-a4b-it",
@@ -121,6 +121,11 @@
         "source_sha256": "2839ede9f4760b8b18b160570e6830a11b5aa266240ba342f280ff82047ccc80",
         "translated_at": "2026-11-10T15:05:59Z"
       },
+      "Monitoring.md": {
+        "model": "google/gemma-4-26b-a4b-it",
+        "source_sha256": "8c5d26440ee5d64b36a22a0d7485e26fde36b0832f9e0b7404c8c16a51cf9934",
+        "translated_at": "2026-11-17T18:34:29Z"
+      },
       "OIDC_Implementation.md": {
         "model": "google/gemma-4-26b-a4b-it",
         "source_sha256": "d4face58ac10ec71584967e8f428e757d3568cbb2f35a4a55675fcbf7e2c1007",
@@ -163,8 +168,8 @@
       },
       "Setup.md": {
         "model": "google/gemma-4-26b-a4b-it",
-        "source_sha256": "875b6b5801a4599b0e734d137e08eba417294d5a3f15703d314d6e46c224e530",
-        "translated_at": "2026-11-10T15:11:57Z"
+        "source_sha256": "76d5f5f97721d52d78edfa01999334a1209d8e087d599bebc644c65e61e336c4",
+        "translated_at": "2026-11-17T18:37:03Z"
       },
       "Synchronization.md": {
         "model": "google/gemma-4-26b-a4b-it",
@@ -188,8 +193,8 @@
       },
       "index.md": {
         "model": "google/gemma-4-26b-a4b-it",
-        "source_sha256": "746a3fa4cd98082acb729edc4ce5667ff6592822d1aec7a855b35c63deb8be13",
-        "translated_at": "2026-11-10T20:10:40Z"
+        "source_sha256": "2b25ea068605272f849c258653856aa405480114985261003dc1341a89ff7cd0",
+        "translated_at": "2026-11-17T18:37:19Z"
       }
     }
   },
