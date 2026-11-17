@@ -4,13 +4,13 @@
 
 ## 📋 Panoramica {#overview}
 
-Per impostazione predefinita, l'Archivio conserva le **parti analizzate** di un'e-mail: intestazioni, corpi testuali e HTML, Allegati. Un `.eml` esportato viene ricostruito a partire da tali campi.
+Per impostazione predefinita, l'Archivio conserva le **parti analizzate** di un'e-mail: intestazioni, corpi di testo e HTML, Allegati. Un `.eml` esportato viene ricostruito a partire da tali campi.
 
 Questo è sufficiente per leggere un'e-mail, ma non è il messaggio **così come ricevuto**. Le codifiche di trasferimento, i delimitatori MIME e il folding delle intestazioni differiscono dall'originale, pertanto un messaggio ricostruito non verifica più la sua firma DKIM e gli scanner antispam lo valutano in modo diverso.
 
-Con l'archiviazione del messaggio originale abilitata, l'Archivio conserva il messaggio completo così come è arrivato, insieme ai campi analizzati. L'originale archiviato è ciò che l'Archivio può dimostrare essere stato consegnato.
+Con l'archiviazione del messaggio originale abilitata, l'Archivio conserva il messaggio completo così come è arrivato, insieme ai campi analizzati. L'originale memorizzato è ciò che l'Archivio può dimostrare essere stato consegnato.
 
-| | Solo campi analizzati | Con originale archiviato |
+| | Solo campi analizzati | Con originale memorizzato |
 | --- | --- | --- |
 | Intestazioni, corpo, Allegati | ✅ | ✅ |
 | Messaggio byte-exact | ❌ | ✅ |
@@ -19,23 +19,23 @@ Con l'archiviazione del messaggio originale abilitata, l'Archivio conserva il me
 
 ## 🎯 Dove viene servito l'originale {#where-the-original-is-served}
 
-Una volta archiviato, l'originale viene restituito ovunque sia richiesto un messaggio completo:
+Una volta archiviato, l'originale viene restituito ovunque sia previsto un messaggio completo:
 
 | Luogo | Cosa succede |
 | --- | --- |
-| pulsante **Export EML** nella pagina dei dettagli dell'email | Serve l'originale archiviato se presente, altrimenti ricorre alla ricostruzione per le email archiviate senza di esso. |
-| **Ripristino in una Casella di posta** | Aggiunge l'originale archiviato se presente, altrimenti ricorre alla ricostruzione per le email archiviate senza di esso. |
+| pulsante **Export EML** sulla pagina dei dettagli dell'email | Serve l'originale archiviato quando presente, altrimenti ricorre alla ricostruzione per le email archiviate senza di esso. |
+| **Ripristino in una Casella di posta** | Aggiunge l'originale archiviato quando presente, altrimenti ricorre alla ricostruzione per le email archiviate senza di esso. |
 | `GET /api/v1/emails/{id}/raw` | Download tramite REST API, vedi la [guida REST API](API.md#download-original-message). |
 | `get_email_raw` | Strumento MCP, vedi la [guida MCP](MCP.md#get_email_raw). |
 
-La risposta indica quale versione hai ricevuto, consentendo al chiamante di distinguere un originale autentico da una ricostruzione senza ispezionare i byte:
+La risposta indica quale versione hai ricevuto, in modo che un chiamante possa distinguere un originale autentico da una ricostruzione senza ispezionare i byte:
 
 | Segnale | Significato |
 | --- | --- |
 | `X-Raw-Message-Source: imap` | Copia esatta dal server IMAP (`BODY[]` come consegnato). |
 | `X-Raw-Message-Source: graph` | Copia esatta, il contenuto MIME restituito da Exchange. |
 | `X-Raw-Message-Source: eml-file` | Copia esatta, il contenuto del file `.eml` importato. |
-| `X-Raw-Message-Source: serialized` | Messaggio analizzato e riscritto. Identico tranne per la fine delle righe che è CRLF (importazione MBox, recupero IMAP fetch). |
+| `X-Raw-Message-Source: serialized` | Messaggio analizzato e riscritto. Identico eccetto per la fine riga che è CRLF (importazione MBox, recupero IMAP). |
 | `X-Raw-Message-Sha256` | SHA-256 dell'originale archiviato. |
 | `X-Raw-Message-Reconstructed: true` | Nessun originale archiviato; il messaggio è stato ricostruito. Nessun header di checksum. |
 | `X-Raw-Message-Storage` | Backend da cui è stato letto l'originale (`postgres` o `filesystem`). |
@@ -44,20 +44,20 @@ Anche il nome del file lo indica: `email-{id}-original-...eml` per un originale 
 
 Quando un originale archiviato **fallisce il checksum**, l'export e il ripristino vengono rifiutati con un messaggio di errore. Restituire la ricostruzione al suo posto nasconderebbe il fatto che la copia archiviata è stata alterata, che è esattamente ciò che un Archivio non deve mai fare.
 
-Un ripristino legge l'originale archiviato e lo aggiunge tramite il client del provider, in modo che la Casella di posta riceva gli header e la struttura MIME originali. Il flusso di byte esatto non è garantito durante la trasmissione perché il client serializza nuovamente il messaggio; la copia archiviata stessa rimane invariata.
+Un ripristino legge l'originale archiviato e lo aggiunge tramite il client del provider, in modo che la Casella di posta riceva gli header e la struttura MIME originali. Lo stream di byte esatto non è garantito durante il trasferimento perché il client serializza nuovamente il messaggio; la copia archiviata stessa rimane invariata.
 
 ## ⚙️ Impostazioni {#settings}
 
-Tutte le impostazioni si trovano nella sezione `RawMessages`, o come variabili d'ambiente con il prefisso `RawMessages__`.
+Tutte le impostazioni risiedono nella sezione `RawMessages`, o come variabili d'ambiente con il prefisso `RawMessages__`.
 
 | Impostazione | Predefinito | Descrizione |
 | --- | --- | --- |
-| `RawMessages:Enabled` | `false` | Archivia il messaggio originale di ogni email appena archiviata. Le email archiviate prima dell'attivazione non hanno un originale. |
+| `RawMessages:Enabled` | `false` | Archivia il messaggio originale di ogni email appena archiviata. Le email archiviate prima dell'attivazione non hanno l'originale. |
 | `RawMessages:MaxMessageSizeMb` | `50` | I messaggi più grandi di questo valore vengono archiviati senza il loro originale. `0` = nessun limite. |
 | `RawMessages:IncludeGraph` | `true` | Archivia anche l'originale per gli Account Microsoft 365 (Graph). Costa una richiesta Graph aggiuntiva per messaggio, che incide sul budget di throttling. |
-| `RawMessages:Storage` | `postgres` | Dove vengono conservati i byte del messaggio: `postgres` (nel database) o `filesystem` (file gzip accanto all'Archivio). Vedi [Storage backend](#storage-backend). |
+| `RawMessages:Storage` | `postgres` | Dove vengono conservati i byte del messaggio: `postgres` (nel database) o `filesystem` (file gzip accanto all'Archivio). Vedere [Storage backend](#storage-backend). |
 | `RawMessages:FileSystem:BasePath` | `RawMessages` | Directory in cui vengono scritti i file dei messaggi, relativa alla root dei contenuti dell'applicazione. Puntare questa impostazione a un volume montato in Docker. |
-| `RawMessages:FileSystem:ShardDepth` | `2` | Numero di livelli di directory a due caratteri su cui è distribuito l'id dell'email. `2` fornisce 10.000 directory, `0` è piatta. Mantiene basso il numero di file per directory negli Archivio di grandi dimensioni. |
+| `RawMessages:FileSystem:ShardDepth` | `2` | Numero di livelli di directory a due caratteri su cui è distribuito l'id dell'email. `2` genera 10.000 directory, `0` è piatta. Mantiene basso il numero di file per directory negli Archivio di grandi dimensioni. |
 | `RawMessages:FileSystem:VerifyChecksumOnRead` | `true` | Ricalcola lo SHA-256 del file ad ogni download e lo confronta con il checksum registrato al momento dell'archiviazione. Un disallineamento interrompe il download con HTTP 500 invece di servire byte alterati. |
 
 ### Dimensionamento {#sizing}
@@ -75,10 +75,10 @@ dimostrare cosa dovrebbe contenere un messaggio memorizzato.
 
 ### postgres (default) {#postgres-default}
 
-Il messaggio compresso si trova nella colonna `Content` di `mail_archiver."RawMessages"`.
+Il messaggio compresso risiede nella colonna `Content` di `mail_archiver."RawMessages"`.
 Questo è il comportamento che l'Archivio ha sempre avuto e non richiede volumi extra.
 
-Scegli questa opzione quando il database è già la tua unità di Backup e desideri un'unica
+Scegli questa opzione quando il database è già la tua unità di Backup e desideri avere un'unica
 entità da eseguire il Backup e il Ripristino.
 
 ### filesystem {#filesystem}
@@ -91,7 +91,7 @@ dimensione del database, o quando desideri posizionare i file dei messaggi su un
 più economica o separata.
 
 !!! danger "Montare un volume in Docker"
-    Il valore predefinito `BasePath` (`RawMessages`) si risolve in `/app/RawMessages` **all'interno del
+    Il `BasePath` predefinito (`RawMessages`) si risolve in `/app/RawMessages` **all'interno del
     container**. Senza un bind mount, quella directory appartiene allo strato scrivibile del
     container, quindi ogni container ricreato - inclusi `docker compose down && docker compose
     up -d`, un aggiornamento dell'immagine o un riavvio dell'host con uno strato effimero - porta
@@ -114,8 +114,8 @@ più economica o separata.
 ### Switching backends {#switching-backends}
 
 Le letture seguono l'archiviazione registrata su ogni riga, non l'impostazione configurata. Dopo che
-hai cambiato `Storage`, i messaggi archiviati in precedenza rimangono scaricabili da qualunque luogo
-si trovino.
+hai cambiato `Storage`, i messaggi archiviati in precedenza rimangono scaricabili da qualunque
+posto si trovino.
 L'impostazione influisce solo sulla posta **nuovamente** archiviata.
 
 Per spostare ciò che è già memorizzato, esegui la migrazione dello storage. Consulta i
@@ -133,7 +133,7 @@ docker compose exec mailarchiver dotnet MailArchiver.dll \
 
 Cosa garantisce la migrazione:
 
-- Ogni messaggio viene verificato rispetto al proprio checksum registrato prima di essere copiato. Un messaggio
+- Ogni messaggio viene verificato rispetto al suo checksum registrato prima di essere copiato. Un messaggio
   che fallisce viene lasciato dove si trova e segnalato: un originale corrotto non viene mai propagato e
   la sua unica copia rimanente non viene mai eliminata.
 - Un file viene eliminato solo dopo che la transazione del database che lo ha spostato è stata confermata, quindi un
@@ -155,8 +155,8 @@ esistenti verso l'altro backend.
     Esegui il Backup della directory `BasePath` **insieme al** dump del database.
 
     Un ripristino del database senza i file lascia l'Archivio con righe il cui contenuto
-    non può essere servito. Il download risponderà quindi con HTTP 404 invece di restituire qualcosa di
-    errato, e le email stesse rimangono leggibili dai loro campi analizzati.
+    non può essere servito. Il download risponderà quindi con HTTP 404 invece di restituire qualcosa
+    di errato, e le email stesse rimarranno leggibili dai loro campi analizzati.
 
 ## 🗑️ Eliminazione di un'e-mail {#deleting-an-email}
 
@@ -164,7 +164,7 @@ L'eliminazione di un'e-mail rimuove anche il suo originale: le regole di Conserv
 
 Il file viene eliminato **dopo** che la riga dell'e-mail è stata confermata, mai prima. I due passaggi non possono essere un'unica transazione, perché un file non fa parte della transazione del database, quindi uno dei due deve venire per secondo. Questo ordine è quello sicuro: un'eliminazione che fallisce o viene annullata, ad esempio su un record bloccato, lascia l'originale intatto, e un crash tra i due passaggi lascia un file senza una riga, che il sweep sottostante recupera. L'altro ordine distruggerebbe l'originale di un'e-mail che esiste ancora.
 
-**I file orfani vengono raccolti.** Tutto ciò che è sfuggito, inclusi i file lasciati da eliminazioni precedenti a questa pulizia, viene rimosso da un periodic sweep di `BasePath` che confronta ogni file con le righe e cancella quelli a cui nessuna e-mail fa riferimento:
+**I file orfani vengono raccolti.** Qualsiasi cosa sia sfuggita, inclusi i file lasciati da eliminazioni precedenti all'esistenza di questa pulizia, viene rimosso da un sweep periodico di `BasePath` che confronta ogni file con le righe e cancella quelli a cui nessuna e-mail fa riferimento:
 
 | Setting | Default | Meaning |
 | --- | --- | --- |
@@ -179,28 +179,28 @@ Il periodo di grazia è ciò che rende sicuro lo sweep: un import scrive un file
 
 Il checksum registrato al momento dell'Archivio è ciò che rende possibile la verifica.
 
-- **Al download** (`VerifyChecksumOnRead=true`, il predefinito) il file viene sottoposto a hashing e
-  confrontato. Un disallineamento rifiuta il download con HTTP 500.
+- **Al download** (`VerifyChecksumOnRead=true`, l'impostazione predefinita) il file viene sottoposto a hashing e
+  confrontato. Un disallineamento rifiuta il download con errore HTTP 500.
 - **Nella migrazione dello storage** ogni messaggio viene verificato prima di essere copiato, in entrambe
   le direzioni.
 
-Poiché la riga dei metadati si trova nel database e i byte possono trovarsi su disco, un confronto del checksum
-è l'unico modo per accorgersi che un file è stato modificato al di fuori dell'applicazione.
+Poiché la riga dei metadati si trova nel database e i byte possono trovarsi su disco, un confronto
+del checksum è l'unico modo per accorgersi che un file è stato modificato al di fuori dell'applicazione.
 
 ## ⚠️ Cose da sapere {#things-to-know}
 
-- **L'abilitazione non effettua il backfill.** Solo le email archiviate dopo l'attivazione ricevono un originale.
-- **Un originale mancante viene registrato come errore.** Quando la cattura viene rifiutata (messaggio sopra `MaxMessageSizeMb`, nessuna cattura utilizzabile) o la scrittura nel backend configurato fallisce, il registro di controllo riporta un errore con l'id dell'email e il motivo. L'email rimane nell'Archivio senza il suo originale; non è previsto alcun backfill automatico né tentativi di ripristino.
-- **L'interfaccia utente segnala un originale mancante.** Con `RawMessages:Enabled`, l'elenco delle email mostra un badge di avviso su ogni messaggio senza un originale memorizzato, e la pagina dei dettagli mostra un avviso sopra gli header. L'elenco risolve il flag con una query per pagina; la pagina dei dettagli interroga il backend di archiviazione, quindi viene segnalato anche un file del filesystem che è scomparso.
+- **L'abilitazione non effettua il backfill.** Solo le email archiviate dopo l'attivazione riceveranno un originale.
+- **Un originale mancante viene registrato come errore.** Quando la cattura viene rifiutata (messaggio sopra `MaxMessageSizeMb`, nessuna cattura utilizzabile) o la scrittura nel backend configurato fallisce, il Registro di controllo riporta un errore con l'id dell'email e il motivo. L'email rimane nell'Archivio senza il suo originale; non c'è alcun backfill automatico né un nuovo tentativo.
+- **La pagina dei dettagli segnala un originale mancante.** Con `RawMessages:Enabled`, la pagina dei dettagli mostra un avviso sopra gli header. Interroga il backend di archiviazione, quindi viene segnalato anche un file del filesystem scomparso. L'elenco delle email non ha un badge per riga; occuperebbe troppo spazio nella colonna di stato.
 - **La ricostruzione non è il messaggio.** Per le email senza un originale memorizzato, ogni percorso di download restituisce un messaggio ricostruito e lo dichiara tramite `X-Raw-Message-Reconstructed: true`.
-- **Filesystem significa due unità di backup.** Il database e la directory dei messaggi devono essere sottoposti a ripristino insieme, altrimenti le righe sopravvivono senza il loro contenuto.
+- **Filesystem significa due unità di Backup.** Il database e la directory dei messaggi devono essere sottoposti a Ripristino insieme, altrimenti le righe sopravvivono senza il loro contenuto.
 - **`VerifyChecksumOnRead` consuma CPU.** Ogni download di un messaggio di grandi dimensioni viene decompresso e sottoposto a hash. Lascialo attivo a meno che tu non abbia riscontrato un problema; è l'unica protezione contro l'alterazione silenziosa su disco.
-- **L'originale memorizzato non è sottoposto a deduplicazione.** Un allegato che appare in molte email viene memorizzato una sola volta nel repository degli allegati, ma una volta per ogni email all'interno dell'originale.
-- **L'eliminazione rimuove anche l'originale.** Un'email eliminata tramite conservazione o manualmente porta con sé il suo originale memorizzato, file e riga. Nulla viene mantenuto che l'Archivio non elenchi più.
+- **L'originale memorizzato non è sottoposto a Deduplicazione.** Un Allegato che appare in molte email viene memorizzato una volta nel repository degli allegati, ma una volta per ogni email all'interno dell'originale.
+- **L'eliminazione rimuove anche l'originale.** Un'email eliminata tramite Conservazione o manualmente porta con sé il suo originale memorizzato, file e riga. Nulla viene conservato che l'Archivio non elenca più.
 
 ## 🔗 Vedi anche {#see-also}
 
-- [CLI Commands](CLI.md#moving-stored-original-messages) - la migrazione dell'Archivio completa
+- [CLI Commands](CLI.md#moving-stored-original-messages) - la migrazione dello storage completa
 - [Setup and Parameters](Setup.md) - tutti i parametri di configurazione
 - [REST API](API.md#download-original-message) - l'endpoint `/raw`
 - [MCP Server](MCP.md#get_email_raw) - lo strumento `get_email_raw`
