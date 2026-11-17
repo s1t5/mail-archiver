@@ -111,7 +111,7 @@ Configure uma vez, mantenha cada mensagem e encontre-a novamente anos depois.
 
     ---
 
-    Sincronização rápida vs. completa, checkpoints e o que acontece quando uma sincronização falha.
+    Sincronização rápida vs. completa, checkpoints e o que acontece quando uma Sincronização falha.
 
     [:octicons-arrow-right-24: Read](Synchronization.md)
 
@@ -135,7 +135,7 @@ Configure uma vez, mantenha cada mensagem e encontre-a novamente anos depois.
 
     ---
 
-    Rastreamento de largura de banda e como as sincronizações pausadas retomam por conta própria.
+    Rastreamento de largura de banda e como as Sincronizações pausadas retomam por conta própria.
 
     [:octicons-arrow-right-24: Read](RateLimitHandling.md)
 
@@ -157,7 +157,7 @@ Configure uma vez, mantenha cada mensagem e encontre-a novamente anos depois.
 
     ---
 
-    Monitore sincronizações, importações, restaurações e exportações — e cancele-as com segurança.
+    Monitore Sincronizações, importações, Restaurações e exportações — e cancele-as com segurança.
 
     [:octicons-arrow-right-24: Read](BackgroundJobs.md)
 
@@ -227,7 +227,7 @@ Configure uma vez, mantenha cada mensagem e encontre-a novamente anos depois.
 
     ---
 
-    Configuração de TOTP, códigos de backup e o que fazer quando um dispositivo é perdido.
+    Configuração de TOTP, códigos de Backup e o que fazer quando um dispositivo é perdido.
 
     [:octicons-arrow-right-24: Read](TwoFactor.md)
 
@@ -251,7 +251,7 @@ Configure uma vez, mantenha cada mensagem e encontre-a novamente anos depois.
 
     ---
 
-    Exporte a trilha de auditoria para revisões de conformidade.
+    Exporte o rastro de auditoria para revisões de conformidade.
 
     [:octicons-arrow-right-24: Read](AuditExport.md)
 
@@ -343,7 +343,7 @@ Configure uma vez, mantenha cada mensagem e encontre-a novamente anos depois.
 
     ---
 
-    Exponha o Arquivo para agentes de IA como ferramentas descobertas.
+    Exponha o Arquivo para agentes de IA como ferramentas de descoberta.
 
     [:octicons-arrow-right-24: Read](MCP.md)
 
@@ -357,7 +357,7 @@ Configure uma vez, mantenha cada mensagem e encontre-a novamente anos depois.
 
     ---
 
-    Alterne o idioma da interface e como adicionar uma tradução.
+    Altere o idioma da interface e como adicionar uma tradução.
 
     [:octicons-arrow-right-24: Read](Localization.md)
 
@@ -369,11 +369,19 @@ Configure uma vez, mantenha cada mensagem e encontre-a novamente anos depois.
 
     [:octicons-arrow-right-24: Read](DockerComposeLogs.md)
 
+-   :material-heart-pulse:{ .lg .middle } __Health and metrics__
+
+    ---
+
+    Monitore liveness, readiness e métricas do Arquivo via Prometheus ou outro sistema de monitoramento.
+
+    [:octicons-arrow-right-24: Read](Monitoring.md)
+
 -   :material-tag:{ .lg .middle } __Development versions__
 
     ---
 
-    Alterne para uma tag de dev para testar mudanças futuras.
+    Mude para uma tag de dev para testar mudanças futuras.
 
     [:octicons-arrow-right-24: Read](DevTag.md)
 

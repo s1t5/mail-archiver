@@ -1,12 +1,12 @@
-# API REST Somente Leitura (v1) {#read-only-rest-api-v1}
+# Read-Only REST API (v1) {#read-only-rest-api-v1}
 
-O Mail Archiver fornece uma API REST opcional, de **somente leitura**, para acesso programático ao e-mail arquivado. Ela é projetada para casos de uso de automação e integração (relatórios, exportações de e-discovery, monitoramento) sem passar pela interface web.
+O Mail Archiver fornece uma API REST opcional de **apenas leitura** para acesso programático ao e-mail arquivado. Ela é projetada para casos de uso de automação e integração (relatórios, exportações de e-discovery, monitoramento) sem passar pela interface web.
 
-O objetivo é permitir que um script ou agente de IA leia o e-mail arquivado **sem nunca expor as credenciais da Caixa de correio ou falar com o provedor de e-mail.** Uma chave de API com escopo por usuário é uma capacidade para *ler o Arquivo*, não uma credencial para *ser a Caixa de correio* — ela herda apenas as permissões de Caixa de correio do proprietário, não concede caminho de escrita e pode ser revogada instantaneamente sem tocar na Conta de e-mail subjacente.
+O objetivo é permitir que um script ou agente de IA leia e-mails arquivados **sem nunca expor credenciais da Caixa de correio ou falar com o provedor de e-mail.** Uma chave de API com escopo por usuário é uma capacidade para *ler o Arquivo*, não uma credencial para *ser a Caixa de correio* — ela herda apenas as permissões de Caixa de correio de seu proprietário, não concede nenhum caminho de escrita e pode ser revogada instantaneamente sem tocar na Conta de e-mail subjacente.
 
-> ⚠️ **A API é desativada por padrão.** Ela deve ser explicitamente habilitada na configuração (veja [Habilitando a API](#enabling-the-api)). Quando desativada, cada rota `/api/*` retorna `404 Not Found`.
+> ⚠️ **A API é desativada por padrão.** Ela deve ser explicitamente habilitada na configuração (veja [Enabling the API](#enabling-the-api)). Quando desativada, cada rota `/api/*` retorna `404 Not Found`.
 
-A API é **somente leitura por design**: ela expõe contas, pastas, busca de mensagens, detalhes de mensagens e downloads de Anexo. Ela nunca cria, modifica ou exclui dados.
+A API é **apenas leitura por design**: ela expõe contas, pastas, busca de mensagens, detalhes de mensagens e downloads de Anexo. Ela nunca cria, modifica ou deleta dados.
 
 ## Sumário {#table-of-contents}
 
@@ -17,7 +17,7 @@ A API é **somente leitura por design**: ela expõe contas, pastas, busca de men
   - [Modelo de Permissão](#permission-model)
   - [Racional de segurança](#security-rationale)
 - [Convenções](#conventions)
-  - [URL base e versionamento](#base-url-and-versioning)
+  - [Base URL e versionamento](#base-url-and-versioning)
   - [Paginação](#pagination)
   - [Erros](#errors)
   - [Limitação de taxa](#rate-limiting)
@@ -29,7 +29,9 @@ A API é **somente leitura por design**: ela expõe contas, pastas, busca de men
   - [Baixar anexo](#download-attachment)
   - [Baixar mensagem (.eml)](#download-message-eml)
   - [Baixar mensagem original](#download-original-message)
-  - [Estatísticas](#stats)
+  - [Stats](#stats)
+  - [Health](#health)
+  - [Metrics](#metrics)
 - [Tipos de dados](#data-types)
 - [Registro de acesso](#access-logging)
 - [OpenAPI e Swagger UI](#openapi-and-swagger-ui)
@@ -37,8 +39,7 @@ A API é **somente leitura por design**: ela expõe contas, pastas, busca de men
 
 ## Habilitando a API {#enabling-the-api}
 
-A API é configurada sob a seção `Api` de `appsettings.json` (ou as
-variáveis de ambiente equivalentes, por exemplo, `Api__Enabled=true`):
+A API é configurada sob a seção `Api` de `appsettings.json` (ou as variáveis de ambiente equivalentes, ex: `Api__Enabled=true`):
 
 ```json
 "Api": {
@@ -55,37 +56,30 @@ variáveis de ambiente equivalentes, por exemplo, `Api__Enabled=true`):
 
 ### Ciclo de vida da chave {#key-lifecycle}
 
-1. **Criar** — um usuário cria uma chave com um `Name` descritivo e uma expiração opcional.
-   A resposta mostra a chave em texto simples uma única vez.
-2. **Usar** — envie a chave como um bearer token. Cada requisição aceita atualiza o `LastUsedAt`
-   da chave (as gravações são limitadas a no máximo uma vez a cada ~5 minutos para
-   evitar uma gravação em cada chamada).
+1. **Criar** — um usuário cria uma chave com um `Name` descritivo e uma expiração opcional. A resposta mostra a chave em texto simples uma única vez.
+2. **Usar** — envie a chave como um bearer token. Cada requisição aceita atualiza o `LastUsedAt` da chave (as gravações são limitadas a no máximo uma vez a cada ~5 minutos para evitar uma gravação em cada chamada).
 3. **Expirar** — se `ExpiresAt` estiver definido e no passado, a chave é rejeitada.
-4. **Revogar** — o usuário proprietário ou um administrador revoga a chave
-   (`RevokedAt` está definido); ela é imediatamente e permanentemente rejeitada.
+4. **Revogar** — o usuário proprietário ou um administrador revoga a chave (`RevokedAt` é definido); ela é imediatamente e permanentemente rejeitada.
 
-Uma chave é **ativa** quando não é revogada, não está expirada **e** seu usuário
-proprietário ainda está ativo. Uma chave inativa por qualquer um desses motivos é rejeitada com `401`.
+Uma chave é **ativa** quando não foi revogada, não expirou **e** seu usuário proprietário ainda está ativo. Uma chave inativa por qualquer um desses motivos é rejeitada com `401`.
 
 ### Modelo de Permissão {#permission-model}
 
-Uma chave de API herda as permissões exatas do usuário que a possui. O
-principal autenticado carrega as mesmas claims que um login web normal emite, portanto,
-todas as autorizações existentes
+Uma chave de API herda as permissões exatas do usuário que a possui. O principal autenticado carrega as mesmas reivindicações que um login web normal emite, portanto, todas as autorizações existentes...
 
 | Configuração | Padrão | Descrição |
 | --- | --- | --- |
 | `Enabled` | `false` | Interruptor mestre. Quando `false`, todas as rotas `/api/*` retornam `404` e o documento OpenAPI / Swagger UI não são mapeados. |
 | `AllowAttachmentDownloads` | `true` | Quando `false`, o endpoint de download de Anexo retorna `403`. Metadados sobre Anexos ainda são retornados pelo endpoint de detalhes da mensagem. |
-| `AllowMessageDownloads` | `true` | Quando `false`, os endpoints de mensagem completa (`/eml` e `/raw`) retornam `403`. Uma mensagem completa carrega seus Anexos, portanto, **tanto** este interruptor quanto `AllowAttachmentDownloads` devem ser `true`; desativar qualquer um deles desativa ambos os endpoints. |
-| `EnableSwaggerUi` | `true` | Quando `true` (e `Enabled` é `true`), monta o Swagger UI em `/apidocs` e o documento OpenAPI em `/apidocs/spec/v1.json`. Ambos requerem uma **sessão web (cookie)** autenticada — eles não fazem parte de `/api/` e não são alcançáveis com uma chave de API. |
+| `AllowMessageDownloads` | `true` | Quando `false`, os endpoints de mensagem completa (`/eml` e `/raw`) retornam `403`. Uma mensagem completa carrega seus Anexos, portanto, **tanto** este interruptor quanto `AllowAttachmentDownloads` devem estar em `true`; desativar qualquer um deles desativa ambos os endpoints. |
+| `EnableSwaggerUi` | `true` | Quando `true` (e `Enabled` é `true`), monta o Swagger UI em `/apidocs` e o documento OpenAPI em `/apidocs/spec/v1.json`. Ambos requerem uma **sessão web (cookie)** autenticada — eles não fazem parte de `/api/` e não são acessíveis com uma chave de API. |
 | `DefaultPageSize` | `20` | Tamanho da página usado quando uma requisição omite `pageSize`. |
 | `MaxPageSize` | `100` | Limite superior; valores de `pageSize` maiores são limitados a este. |
 | `RateLimitPerMinute` | `120` | Orçamento de requisição de janela fixa por chave de API por minuto (veja [Rate limiting](#rate-limiting)). |
 
 ## Autenticação {#authentication}
 
-A API autentica com **chaves de API por usuário** enviadas como um bearer token:
+A API autentica-se com **chaves de API por usuário** enviadas como um bearer token:
 
 ```
 Authorization: Bearer ma_<43 url-safe base64 characters>
@@ -113,26 +107,26 @@ prefix          43 chars base64url(32 random bytes)
 Armazenamento:
 
 - **`KeyPrefix`** — os primeiros ~11 caracteres (ex: `ma_8Kf3pQ2`), armazenados em
-  texto simples. Usado para identificar uma chave na interface do usuário e nos logs. Não é um segredo.
+  texto simples. Usados para identificar uma chave na interface e nos logs. Não é um segredo.
 - **`KeyHash`** — o SHA-256 codificado em hex da chave completa, armazenado sob um
   **índice único**. A chave em texto simples nunca é armazenada.
 
-A chave completa é mostrada ao usuário **exatamente uma vez**, no momento da criação. Ela não pode
+A chave completa é exibida ao usuário **exatamente uma vez**, no momento da criação. Ela não pode
 ser recuperada posteriormente; uma chave perdida deve ser revogada e substituída.
 
 ### Ciclo de vida da chave {#key-lifecycle}
 
-1. **Criar** — um usuário cria uma chave com um `Name` descritivo e uma expiração opcional.
-   A resposta mostra a chave em texto simples uma vez.
-2. **Usar** — envie a chave como um bearer token. Cada requisição aceita atualiza o `LastUsedAt`
-   da chave (as gravações são limitadas a no máximo uma vez a cada ~5 minutos para
-   evitar uma gravação em cada chamada).
+1. **Criar** — um usuário cria uma chave com um `Name` descritivo e uma expiração
+   opcional. A resposta mostra a chave em texto simples uma única vez.
+2. **Usar** — envie a chave como um bearer token. Cada requisição aceita atualiza o
+   `LastUsedAt` da chave (escritas são limitadas a no máximo uma vez a cada ~5 minutos para
+   evitar uma escrita em cada chamada).
 3. **Expirar** — se `ExpiresAt` estiver definido e no passado, a chave é rejeitada.
 4. **Revogar** — o usuário proprietário ou um administrador revoga a chave
    (`RevokedAt` é definido); ela é imediatamente e permanentemente rejeitada.
 
-Uma chave está **ativa** quando não está revogada, não está expirada **e** seu usuário proprietário
-ainda está ativo. Uma chave inativa por qualquer um desses motivos é rejeitada com `401`.
+Uma chave está **ativa** quando não está revogada, não está expirada, **e** seu usuário
+proprietário ainda está ativo. Uma chave inativa por qualquer um desses motivos é rejeitada com `401`.
 
 ### Modelo de Permissão {#permission-model}
 
@@ -151,22 +145,22 @@ toda a lógica de autorização existente se aplica sem alterações:
 - **Bypass de 2FA.** Chaves de API ignoram a autenticação de dois fatores por design — isso é
   inerente a tokens não interativos (o mesmo ocorre com tokens de acesso pessoal
   no GitHub/GitLab). Isso é mitigado por: chaves estarem **desativadas por padrão**,
-  revogáveis, opcionalmente expiráveis, limitadas às permissões do usuário e cada
+  revogáveis, opcionalmente expiráveis, limitadas às permissões do usuário, e cada
   acesso ser registrado no [access log](#access-logging).
 - **Sem cookies em `/api`.** A autenticação por cookie não é aceita em rotas `/api`,
   eliminando preocupações de CSRF para a API.
 - **Transporte.** Sempre sirva a API via HTTPS em produção para que os bearer tokens
-  não sejam expostos no cabo.
+  não sejam expostos na rede.
 
 ## Convenções {#conventions}
 
 ### Base URL e versionamento {#base-url-and-versioning}
 
 Todos os endpoints estão sob `/api/v1`. A versão está no caminho para que futuras
-alterações disruptivas possam ser lançadas como `/api/v2` sem perturbar os clientes existentes.
+alterações de quebra possam ser lançadas como `/api/v2` sem perturbar os clientes existentes.
 
-As respostas são `application/json`, a menos que indicado (downloads de anexo retornam o
-content type do próprio anexo). Todos os timestamps são UTC, ISO 8601
+As respostas são `application/json` a menos que indicado (downloads de Anexo retornam o
+próprio content type do Anexo). Todos os timestamps são UTC, ISO 8601
 (`2026-06-11T09:30:00Z`).
 
 ### Paginação {#pagination}
@@ -205,10 +199,10 @@ Erros usam [RFC 7807](https://datatracker.ietf.org/doc/html/rfc7807)
 
 | Status | Quando |
 | --- | --- |
-| `400 Bad Request` | Parâmetros malformados (ex: data impossível de processar, `sortBy` inválido). |
+| `400 Bad Request` | Parâmetros malformados (ex: data impossível de analisar, `sortBy` inválido). |
 | `401 Unauthorized` | Chave ausente, malformada, expirada, revogada ou de outra forma inválida. Inclui `WWW-Authenticate: Bearer`. |
-| `403 Forbidden` | Downloads de anexo solicitados enquanto `AllowAttachmentDownloads=false`, ou downloads de mensagem enquanto `AllowMessageDownloads=false`. |
-| `404 Not Found` | O recurso não existe **ou** está fora das contas permitidas do chamador. Também retornado para cada rota `/api/*` quando `Api:Enabled=false`. |
+| `403 Forbidden` | Downloads de Anexo solicitados enquanto `AllowAttachmentDownloads=false`, ou downloads de mensagem enquanto `AllowMessageDownloads=false`. |
+| `404 Not Found` | O recurso não existe **ou** está fora das Contas permitidas do chamador. Também retornado para cada rota `/api/*` quando `Api:Enabled=false`. |
 | `429 Too Many Requests` | Limite de taxa excedido. |
 | `500 Internal Server Error` | Erro inesperado do servidor (problem+json, nunca a página de erro HTML). |
 
@@ -219,7 +213,7 @@ solicitações por minuto (padrão `120`), particionadas pelo prefixo da chave d
 
 ## Endpoints {#endpoints}
 
-> Todos os exemplos assumem que a API está habilitada e que `$KEY` possui uma chave válida.
+> Todos os exemplos assumem que a API está habilitada e `$KEY` contém uma chave válida.
 
 ### List accounts {#list-accounts}
 
@@ -283,7 +277,7 @@ Pesquisa mensagens arquivadas com as mesmas capacidades da interface web.
 | `from` | date | Data de envio mais antiga (inclusive), `YYYY-MM-DD`. |
 | `to` | date | Data de envio mais recente (inclusive), `YYYY-MM-DD`. |
 | `accountId` | int | Restringir a uma Conta (deve estar visível para o chamador). |
-| `folder` | string | Restringir a uma Pasta pelo caminho completo. |
+| `folder` | string | Restringir a uma Pasta por caminho completo. |
 | `direction` | string | `incoming` ou `outgoing`. |
 | `page` | int | Número da página baseado em 1 (padrão `1`). |
 | `pageSize` | int | Resultados por página (padrão `Api:DefaultPageSize`, limitado a `Api:MaxPageSize`). |
@@ -328,18 +322,18 @@ GET /api/v1/emails/{id}
 
 Retorna a mensagem completa, incluindo os corpos. O corpo utiliza a mesma cadeia de fallback da interface web: `OriginalBodyHtml` (bytes brutos) → `BodyUntruncatedHtml` →
 `HtmlBody`, e o equivalente para o corpo de texto. Retorna `404` se a mensagem
-não existir ou pertencer a uma Conta fora das Permissões do chamador. Registra uma entrada de log de acesso do tipo `Open`.
+não existir ou pertencer a uma Conta fora das permissões do solicitante. Registra uma entrada no Registro de auditoria do tipo `Open`.
 
 Retorna um [`EmailDetailDto`](#emaildetaildto).
 
-### Download anexo {#download-attachment}
+### Download attachment {#download-attachment}
 
 ```
 GET /api/v1/emails/{id}/attachments/{attachmentId}
 ```
 
-Realiza o streaming dos bytes do anexo com seu tipo de conteúdo e nome de arquivo armazenados. Retorna
-`404` se a mensagem ou o anexo não existirem ou não forem visíveis para o
+Transmite os bytes do anexo com seu tipo de conteúdo e nome de arquivo armazenados. Retorna
+`404` se a mensagem ou o anexo não existirem ou não estiverem visíveis para o
 chamador. Retorna `403` (problem+json) quando `Api:AllowAttachmentDownloads=false`.
 Registra uma entrada de registro de auditoria do tipo `Download`.
 
@@ -355,14 +349,14 @@ GET /api/v1/emails/{id}/eml
 ```
 
 Retorna a mensagem como `message/rfc822`, reconstruída a partir dos campos arquivados:
-endereços, os cabeçalhos brutos armazenados (`Received`, `Authentication-Results`,
-`X-Spam-*`, …), corpos e anexos. Funciona para cada e-mail arquivado. É a
-mesma reconstrução que a exportação de Conta da interface web produz, portanto, **não** é
-byte-idêntica ao que foi recebido: assinaturas DKIM não serão verificadas contra ela.
+addresses, os raw headers armazenados (`Received`, `Authentication-Results`,
+`X-Spam-*`, …), bodies e attachments. Funciona para cada e-mail arquivado. É a
+mesma reconstrução que a exportação de Conta da interface web produz, portanto, **não**
+é byte-idêntica ao que foi recebido: as assinaturas DKIM não serão verificadas contra ela.
 Use [`/raw`](#download-original-message) para isso.
 
-Retorna `404` se a mensagem não existir ou não for visível para o solicitante, e
-`403` (problem+json) quando `Api:AllowMessageDownloads=false`. Registra uma entrada de log de acesso
+Retorna `404` se a mensagem não existir ou não estiver visível para o chamador, e
+`403` (problem+json) quando `Api:AllowMessageDownloads=false`. Registra uma entrada no Registro de auditoria
 do tipo `Download`.
 
 ```bash
@@ -378,12 +372,12 @@ GET /api/v1/emails/{id}/raw
 
 Retorna a mensagem original conforme recebida (`message/rfc822`), para análise de spam,
 verificação de DKIM ou verificações forenses. O original só é armazenado quando
-`RawMessages:Enabled` foi definido no momento em que o e-mail foi arquivado; veja
-[Configurações de Armazenamento de Mensagem Original](Setup.md#-original-message-storage-settings).
-Se um e-mail possui um, isso é indicado por `hasRawMessage` em
+`RawMessages:Enabled` estava configurado no momento em que o e-mail foi arquivado; veja
+[Original Message Storage Settings](Setup.md#-original-message-storage-settings).
+Se um e-mail possui um é mostrado por `hasRawMessage` em
 [`EmailDetailDto`](#emaildetaildto).
 
-| Cabeçalho de resposta | Significado |
+| Response header | Significado |
 | --- | --- |
 | `X-Raw-Message-Sha256` | SHA-256 dos bytes retornados, registrado quando a mensagem foi armazenada |
 | `X-Raw-Message-Source` | `imap`, `graph`, `eml-file` (cópias exatas) ou `serialized` (reescrito pelo parser, finais de linha normalizados para CRLF) |
@@ -391,8 +385,8 @@ Se um e-mail possui um, isso é indicado por `hasRawMessage` em
 
 Os bytes podem residir no banco de dados ou em um arquivo, dependendo de
 `RawMessages:Storage` no momento em que a mensagem foi arquivada; o endpoint
-resolve isso por mensagem, portanto, ambos os tipos são servidos da mesma forma. Com
-`RawMessages:FileSystem:VerifyChecksumOnRead` (padrão `true`), o arquivo é
+resolve isso por mensagem, portanto ambos os tipos são servidos da mesma maneira. Com
+`RawMessages:FileSystem:VerifyChecksumOnRead` (padrão `true`) o arquivo é
 re-hasheado antes de ser enviado, e uma mensagem cujo conteúdo não corresponde mais ao
 checksum registrado **não** é servida.
 
@@ -400,7 +394,7 @@ Retorna `404` se a mensagem não existir ou não estiver visível para o chamado
 `404` com o título do problema `No original message is stored for this email.`
 quando ela existe sem um original, e `500` com o título
 `Stored original message failed its checksum.` quando o conteúdo armazenado não corresponde mais ao
-checksum registrado no momento do arquivamento. Retorna `403` (problem+json) quando
+checksum registrado no momento do Arquivo. Retorna `403` (problem+json) quando
 `Api:AllowMessageDownloads=false`. Registra uma entrada de log de acesso do tipo `Download`.
 
 ```bash
@@ -416,7 +410,7 @@ spamassassin -t < 9876.eml  # or: rspamc < 9876.eml
 GET /api/v1/stats
 ```
 
-Retorna estatísticas agregadas de Arquivo visíveis ao chamador: total de e-mails arquivados, contas de e-mail visíveis, anexos nesses e-mails e o tamanho total do banco de dados PostgreSQL em megabytes. Para usuários que não são administradores, as contagens são limitadas às contas de e-mail atribuídas a eles (o mesmo escopo que o painel web aplica); administradores veem totais globais.
+Retorna estatísticas agregadas de Arquivo visíveis para o chamador: total de e-mails arquivados, Contas de correio visíveis, Anexos nesses e-mails e o tamanho total do banco de dados PostgreSQL em megabytes. Para usuários que não são administradores, as contagens são limitadas às Contas de correio atribuídas a eles (o mesmo escopo que o painel web aplica); administradores veem totais globais.
 
 Para chaves de API que não são de administrador, `databaseSizeInMB` é uma string vazia: o tamanho do banco de dados descreve toda a instância, não o escopo da chave. E-mails, Contas e Anexos são sempre limitados às contas que a chave pode acessar.
 
@@ -438,9 +432,38 @@ curl -H "Authorization: Bearer $KEY" https://host/api/v1/stats
 | Campo | Tipo | Notas |
 | --- | --- | --- |
 | `emails` | int | Mensagens arquivadas visíveis para o chamador |
-| `accounts` | int | Contas de Caixa de correio visíveis para o chamador |
-| `attachments` | int | Anexos nessas mensagens visíveis |
+| `accounts` | int | Contas de e-mail visíveis para o chamador |
+| `attachments` | int | Anexos nas mensagens visíveis |
 | `databaseSizeInMB` | string | Tamanho total do banco de dados PostgreSQL em MB; vazio para chaves que não são de administrador |
+
+### Health {#health}
+
+```
+GET /api/v1/health/live
+GET /api/v1/health/ready
+GET /api/v1/health
+```
+
+Todos os três exigem uma chave de API de administrador. `health/live` responde 200 sem tocar em qualquer
+dependência. `health/ready` verifica o PostgreSQL e o esquema do Arquivo e retorna 503 quando
+qualquer um deles estiver indisponível. `health` também executa a verificação de atualidade da
+Sincronização e retorna `Degraded`
+(HTTP 200) quando uma Conta habilitada não realizou a sincronização dentro de `Health:SyncStaleMinutes`.
+
+```json
+{"status":"Healthy","checks":{"database":"Healthy","sync":"Healthy"}}
+```
+
+A descrição completa, incluindo o comportamento 401/403/404 e o health check do Docker, está em
+**[Health and Metrics](Monitoring.md)**.
+
+### Métricas {#metrics}
+
+```
+GET /api/v1/metrics
+```
+
+Retorna o formato de exposição de texto do Prometheus. Requer uma chave de API de administrador e `Metrics:Enabled=true`; caso contrário, o endpoint retorna 404. Os nomes das métricas, rótulos e exemplos de alertas estão em **[Health and Metrics](Monitoring.md)**.
 
 ## Tipos de dados {#data-types}
 
@@ -461,11 +484,11 @@ Nenhum campo de credencial é serializado.
 
 | Campo | Tipo | Notas |
 | --- | --- | --- |
-| `name` | string | Nome da folha |
-| `fullPath` | string | Caminho completo |
-| `totalCount` | int | Mensagens na Pasta |
-| `level` | int | Profundidade de aninhamento (0 = raiz) |
-| `children` | FolderNodeDto[] | Sub-pastas |
+| `name` | string | Leaf name |
+| `fullPath` | string | Full path |
+| `totalCount` | int | Messages in folder |
+| `level` | int | Nesting depth (0 = root) |
+| `children` | FolderNodeDto[] | Sub-folders |
 
 ### EmailSummaryDto {#emailsummarydto}
 
@@ -491,10 +514,10 @@ Tudo de [`EmailSummaryDto`](#emailsummarydto) mais:
 | `bcc` | string | |
 | `receivedDate` | datetime | |
 | `messageId` | string | |
-| `textBody` | string | Resolvido via cadeia de fallback do corpo |
-| `htmlBody` | string | Resolvido via cadeia de fallback do corpo |
-| `attachments` | AttachmentDto[] | Apenas metadados |
-| `hasRawMessage` | bool | `true` quando a mensagem original é armazenada e [`/raw`](#download-original-message) a retorna |
+| `textBody` | string | Resolved via the body fallback chain |
+| `htmlBody` | string | Resolved via the body fallback chain |
+| `attachments` | AttachmentDto[] | Metadata only |
+| `hasRawMessage` | bool | `true` when the original message is stored and [`/raw`](#download-original-message) returns it |
 
 ### AttachmentDto {#attachmentdto}
 
@@ -505,12 +528,12 @@ Tudo de [`EmailSummaryDto`](#emailsummarydto) mais:
 | `contentType` | string | |
 | `size` | long | Bytes |
 
-Os bytes do Anexo são obtidos a partir do [download endpoint](#download-attachment),
+Os bytes do Anexo são obtidos através do [download endpoint](#download-attachment),
 não deste DTO.
 
 ## Registro de acesso {#access-logging}
 
-Todo acesso a dados através da API é registrado no mesmo registro de acesso usado pela interface web (visível em **Logs**), atribuído ao usuário proprietário da chave:
+Cada acesso a dados por meio da API é registrado no mesmo registro de acesso usado pela interface web (visível em **Logs**), atribuído ao usuário proprietário da chave:
 
 | Endpoint | Tipo registrado |
 | --- | --- |
@@ -527,14 +550,16 @@ Quando a API está habilitada e `Api:EnableSwaggerUi=true`:
 - O documento OpenAPI v1 é servido em **`/apidocs/spec/v1.json`**.
 - O Swagger UI é servido em **`/apidocs`**.
 
-Ambos os caminhos estão fora de `/api/` e, portanto, são protegidos pela autenticação normal da web (cookie) — uma sessão de navegador logada é necessária para visualizá-los, e eles não podem ser acessados com uma chave de API.
+Ambos os caminhos estão fora de `/api/` e, portanto, são protegidos pela autenticação web (cookie) normal — uma sessão de navegador conectada é necessária para visualizá-los, e eles não podem ser acessados com uma chave de API.
 
 ### Referência de endpoint neste site {#endpoint-reference-on-this-site}
 
 Os endpoints e tipos de dados também são publicados aqui como uma página gerada:
-**[API Reference](API-Reference.md)**. Ela é renderizada a partir do mesmo documento OpenAPI — uma cópia é mantida em `doc/assets/openapi-v1.json` — pelo `tools/gen_api_reference.py`. O CI falha quando a página e a especificação perdem a Sincronização, portanto, a referência sempre descreve a API que realmente é enviada.
+**[API Reference](API-Reference.md)**. Ela é renderizada a partir do mesmo documento OpenAPI — uma cópia é mantida em `doc/assets/openapi-v1.json` — pelo `tools/gen_api_reference.py`. O CI falha quando a página e a especificação perdem a Sincronização, portanto, a referência sempre descreve a API que é realmente enviada.
 
 !!! note "Regenerando"
-    A página é um output gerado. Altere a API (ou o gerador), então execute `python3 tools/gen_api_reference.py` e faça o commit do resultado.
+    A página é um resultado gerado. Altere a API (ou o gerador), execute
+    `python3 tools/gen_api_reference.py` e faça o commit do resultado.
 
-    Atualizar a própria especificação fornecida significa executar novamente a geração de documento em tempo de build descrita em `tools/README.md`.
+    Atualizar a própria especificação fornecida significa executar novamente a geração
+    de documentos em tempo de compilação descrita em `tools/README.md`.
