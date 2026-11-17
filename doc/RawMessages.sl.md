@@ -1,103 +1,102 @@
-# 📧 Shranjevanje originalnih sporočil {#original-message-storage}
+# 📧 Shranjevanje originalnega sporočila {#original-message-storage}
 
 [← Nazaj na indeks dokumentacije](index.md)
 
 ## 📋 Pregled {#overview}
 
-Arhiv po privzetih nastavitvah shranjuje **razčlenjene dele** e-poštnega sporočila: glave, besedilno in HTML vsebino ter priloge. Iz teh polj je znova sestavljeno `.eml`.
+Privzeto arhiv ohranja **razčlenjene dele** e-poštnega sporočila: glave, besedilno in HTML vsebino ter priloge. Izvoženi `.eml` je znotraj teh polj znova sestavljen.
 
-To je dovolj za branje e-poštnega sporočila, vendar sporočilo ni isto kot **prejeto**. Kodiranje prenosa, MIME meje in upogibanje glav (header folding) se razlikujejo od originala, zato znova sestavljeno sporočilo ne potrjuje več svoje DKIM podpisa in ga spam skenerji ocenjujejo drugače.
+To je dovolj za branje e-poštnega sporočila, vendar sporočilo ni tisto, **kot je bilo prejeto**. Prenosni kodiranja, MIME meje in prepogibanje glav se razlikujejo od originala, zato ponovno sestavljeno sporočilo ne potrdi več svoje DKIM podpisa in ga filtri za spam ocenijo drugače.
 
-Ko je shranjevanje originalnih sporočil omogočeno, arhiv poleg razčlenjenih pol shrani celotno sporočilo, kot je prišlo. Shranjeno originalno sporočilo je tisto, kar lahko arhiv dokaže kot dostavljeno.
+Z vklopljenim shranjevanjem originalnega sporočila arhiv poleg razčlenjenih polj ohranja celotno sporočilo, kot je prišlo. Shranjeni original je tisto, kar lahko arhiv dokaže, da je bilo dostavljeno.
 
 | | Le razčlenjena polja | S shranjenim originalom |
 | --- | --- | --- |
 | Glave, vsebina, priloge | ✅ | ✅ |
-| Bajt po bajtu enoto sporočilo | ❌ | ✅ |
-| DKIM podpis je veljavno | ❌ | ✅ |
-| Forenzična uporaba (sodišče, revizija) | omejeno | ✅ |
+| Bitno natančno sporočilo | ❌ | ✅ |
+| DKIM podpis se potrdi | ❌ | ✅ |
+| Forenzična uporaba (sod, revizija) | omejena | ✅ |
 
-## 🎯 Kje je na voljo original {#where-the-original-is-served}
+## 🎯 Kje se posluži original {#where-the-original-is-served}
 
-Ko je original shranjen, se vrne kadar koli se pričakuje celotno sporočilo:
+Ko je original shranjen, se vrne kjerkoli se pričakuje celotno sporočilo:
 
-| Krain | Kaj se zgodi |
+| Kraj | Kaj se zgodi |
 | --- | --- |
-| gumb **Export EML** na strani s podrobnostmi e-pošte | Če je original shranjen, ga posluži; če ga ni (pri arhiviranih e-poštnih sporočilih), se uporabi rekonstrukcija. |
-| **Restore to a mailbox** | Če je original shranjen, ga doda; če ga ni (pri arhiviranih e-poštnih sporočilih), se uporabi rekonstrukcija. |
-| `GET /api/v1/emails/{id}/raw` | Prenos prek REST API, poglejte [vodnik REST API](API.md#download-original-message). |
-| `get_email_raw` | MCP orodje, poglejte [vodnik MCP](MCP.md#get_email_raw). |
+| gumb **Export EML** na strani s podrobnostmi e-pošte | Posluži shranjeni original, če obstaja; če e-pošte ni shranjena s tem, se uporabi rekonstrukcija. |
+| **Restore to a mailbox** | Dodaja shranjeni original, če obstaja; če e-pošte ni shranjena s tem, se uporabi rekonstrukcija. |
+| `GET /api/v1/emails/{id}/raw` | Prenos prek REST API, poglejte [REST API guide](API.md#download-original-message). |
+| `get_email_raw` | MCP orodje, poglejte [MCP guide](MCP.md#get_email_raw). |
 
-Odgovor vam pove, katero obliko ste prejeli, tako da lahko klicatelj brez pregledovanja bajt razlikuje dejanski original od rekonstrukcije:
+Odgovor vam pove, katero obliko ste prejeli, zato lahko klicatelj prepozna pravi original od rekonstrukcije brez pregledovanja bajtov:
 
-| Signal | Pomen |
+| Signal | Pom meaning |
 | --- | --- |
-| `X-Raw-Message-Source: imap` | Natančna kopija z IMAP strežnika (`BODY[]` kot je bila dostavljena). |
-| `X-Raw-Message-Source: graph` | Natančna kopija, ki jo je vrnil Exchange MIME vsebine. |
-| `X-Raw-Message-Source: eml-file` | Natančna kopija vsebine uvožene datoteke `.eml`. |
-| `X-Raw-Message-Source: serialized` | Parsirano sporočilo, ponovno zapisano. Identično, razen v tem, da so končnice vrstic CRLF (uvoz MBox, pridobitev pri IMAP obnovi). |
+| `X-Raw-Message-Source: imap` | Natančna kopija z IMAP strežnika (`BODY[]`, kot je bila dostavljena). |
+| `X-Raw-Message-Source: graph` | Natančna kopija, ki jo je vrnil Exchange z MIME vsebino. |
+| `X-Raw-Message-Source: eml-file` | Natančna kopija, vsebina uvozbene datoteke `.eml`. |
+| `X-Raw-Message-Source: serialized` | Parsirano sporočilo, ki je bilo ponovno zapisano. Identično, razen ker so končnice vrnic CRLF (uvoz MBox, pridobitev pri IMAP obnovi). |
 | `X-Raw-Message-Sha256` | SHA-256 shranjenega originala. |
-| `X-Raw-Message-Reconstructed: true` | Original ni shranjen; sporočilo je bilo zgrajeno ponovno. Brez glave s kontrolo vsota. |
-| `X-Raw-Message-Storage` | Nazadnje (backend), iz katerega je bil original prebran (`postgres` ali `filesystem`). |
+| `X-Raw-Message-Reconstructed: true` | Original ni shranjen; sporočilo je bilo zgrajeno ponovno. Brez kontrolne vrednosti (checksum). |
+| `X-Raw-Message-Storage` | Backend, iz katerega je bil original prebran (`postgres` ali `filesystem`). |
 
-Imenovska datoteka to pove tudi: `email-{id}-original-...eml` za shranjen original, `email-{id}-...eml` za rekonstrukcijo.
+Tudi ime datoteke to pove: `email-{id}-original-...eml` za shranjen original, `email-{id}-...eml` za rekonstrukcijo.
 
-Ko **shranjeni original ne opravi kontrole vsote**, se izvoz in obnavljanje zavrnejo z besedilom o napaki. Če bi namesto tega vrnili rekonstrukcijo, bi to prikrilo dejstvo, da je bila arhivirana kopija spremenjena, kar je nekaj, česar arhiv nikoli ne sme storiti.
+Ko shranjeni original **ne ustreza svoji kontrolni vrednosti (checksum)**, sta izvoz in obnovitev zavrbljena z napako. Namesto tega bi vrnitev rekonstrukcije prikrila dejstvo, da je bila arhivirana kopija spremenjena, kar je ravno tisto, česar arhiv nikoli ne sme storiti.
 
-Ob obnavi (restore) se shranjeni original prebere in doda prek odjemnikov clove (provider's client), zato e-poštni predal prejme originalne glave in MIME strukturo. Natančen tok bajtov na omrežju ni zagotovljen, ker stranka sporočilo ponovno serializira; sama arhivirana kopija pa ostane nespremenjena.
+Obnovitev (restore) prebere shranjeni original in ga doda prek ponudnikovega odjemalca, zato poštni predal prejme originalne glavice in MIME strukturo. Natančen tok bajtov v omrežju ni zagotovljen, ker odjemalec sporočilo ponovno serializira; sama arhivirana kopija pa ostane nespremenjena.
 
 ## ⚙️ Nastavitve {#settings}
 
-Vse nastavitve se nahajajo v razdelku `RawMessages` ali pa kot okoljske spremenljivke z predponom `RawMessages__`.
+Vse nastavitve se nahajajo v razdelku `RawMessages` ali pa so na voljo kot spremenljivke okolja z prefixedom `RawMessages__`.
 
-| Nastavitev | Privzeto | Opis |
+| Nastavitev | Z умолчанию | Opis |
 | --- | --- | --- |
-| `RawMessages:Enabled` | `false` | Shranite originalno sporočilo vsakega novo arhiviranega e-poštnega sporočila. Sporočila, arhivirana pred vklitvijo te nastavitve, nimajo originala. |
-| `RawMessages:MaxMessageSizeMb` | `50` | Sporočila, večja od te vrednosti, se arhivirajo brez svojega originala. `0` = brez omejitve. |
-| `RawMessages:IncludeGraph` | `true` | Prav tako shranite original za Microsoft 365 (Graph) račune. To zahteva en dodatni Graph zahtevek na sporočilo, kar vpliva na omejitev (throttling budget). |
-| `RawMessages:Storage` | `postgres` | Kje se shranjeni bajti sporočila hranijo: `postgres` (v bazi podatkov) ali `filesystem` (gzip datoteka poleg arhive). Poglejte [Storage backend](#storage-backend). |
-| `RawMessages:FileSystem:BasePath` | `RawMessages` | Mesto (directory), kamor se pišejo datoteke sporočil, v odnosu na korenino vsebine aplikacije. To usmerite na montiran volumen v Dockerju. |
-| `RawMessages:FileSystem:ShardDepth` | `2` | Število ravni direktorijev z dvema znakoma, na katere je raztrebljen id e-poštnega sporočila. `2` zagotavlja 10.000 direktorijev, `0` je ravna struktura. To ohranja nizko število datotek na direktorij pri velikih arhivih. |
-| `RawMessages:FileSystem:VerifyChecksumOnRead` | `true` | Ponovno izračunaj SHA-256 datoteke ob vsem prenosu in ga primerjaj s kontrolo vrednosti (checksum), zabeleženo ob arhiviranju. Če se vrednosti ne ujemata, prenos ne uspe zaradi napake HTTP 500 namesto serviranja spremenjenih bajtov. |
+| `RawMessages:Enabled` | `false` | Shranite originalno sporočilo vsakega novega arhiviranega e-poštnega sporočila. E-poštna sporočila, arhivirana pred vklopljitvijo te nastavitve, nimajo originala. |
+| `RawMessages:MaxMessageSizeMb` | `50` | Sporočila, večja od te vrednosti, se arhivirajo brez originala. `0` = brez omejitve. |
+| `RawMessages:IncludeGraph` | `true` | Shranite tudi original za Microsoft 365 (Graph) račune. To zahteva en dodatni Graph zahtev na sporočilo, kar vpliva na omejitev hitrosti (throttling budget). |
+| `RawMessages:Storage` | `postgres` | Kje se shranijo bajti sporočila: `postgres` (v bazi podatkov) ali `filesystem` (gzip datoteka poleg arhive). Poglejte [Storage backend](#storage-backend). |
+| `RawMessages:FileSystem:BasePath` | `RawMessages` | Direktorij, kamor se pišejo datoteke sporočil, relativno do korenine vsebine aplikacije. To usmerite na montiran volumen v Dockerju. |
+| `RawMessages:FileSystem:ShardDepth` | `2` | Število ravni direktorijev z dvema znakoma, na katere je razporedil ID e-poštnega sporočila. `2` zagotavlja 10.000 direktorijev, `0` je ravna struktura. To ohranja nizko število datotek na direktorij pri velikih arhivih. |
+| `RawMessages:FileSystem:VerifyChecksumOnRead` | `true` | Ponovno izračunaj SHA-256 datoteke ob vsakem prenosu in ga primerjaj s kontrolo vrednosti (checksum), zabeleženo ob arhiviranju. Neujemanje povzroči napako pri prenosu z HTTP 500 namesto serviranja spremenjenih bajtov. |
 
 ### Velikost {#sizing}
 
-Shranišče raste približno toliko, kolika je velikost vsakega e-poštnega sporočila vključno z njegovimi prilogami, v gzip obliki. Priloge **niso** deduplicirane znotraj shranjenega originala, zato e-poštno sporočilo z veliko prilogo obravnava to prilogo dvakrat: enkrat v dedupliciranem skladišču prilog in enkrat znotraj originala. Planirajte približno **dvakrat** večjo velikost baze podatkov kot pri arhivu brez originalov.
+Shramba raste približno za velikost vsakega e-poštnega sporočila, vključno z njegovimi prilogami, v gzip-komprimirani obliki. Priloge **niso** deduplicirane znotraj shranjenega originala, zato e-poštno sporočilo z veliko prilogo stane to prilogo dvakrat: enkrat v deduplicirani shrambi prilog in enkrat znotraj originala. Planirajte približno **dvakrat** večjo velikost baze podatkov kot pri arhivu brez originalov.
 
-Omogočanje nastavitve ne popolni obstoječih sporočil. Le nove arhivirana e-poštna sporočila dobijo original.
+Omogočanje nastavitve ne popravi obstoječe pošte. Le nove arhivirane e-poštne sporočilo dobijo original.
 
-## 💾 Shranilni pogon {#storage-backend}
+## 💾 Shranilni način (Storage backend) {#storage-backend}
 
 Nastavitev `Storage` določa, kje se nahajajo bajti. **Metadata vrstica vedno ostane v
-bazi podatkov**, ne glede na to, kateri pogon je konfiguriran, in vsebuje SHA-256, velikost, vir
-vzorčevanja in (za datoteke) relativno pot. Ta vrstica omogoča arhivu, da dokaže,서 kaj bi
-hranjeno sporočilo moralo vsebovati.
+bazi podatkov**, ne glede na to, kateri backend je konfiguriran, in vsežuje SHA-256, velikost,
+vir zajema in (za datoteke) relativno pot. Prav ta vrstica omogoča arhivu, da dokaže,
+kaj bi arhivirana sporočilo morala vsebovati.
 
 ### postgres (default) {#postgres-default}
 
 Komprimirano sporočilo se nahaja v stolpcu `Content` v `mail_archiver."RawMessages"`.
-To je vedenje, ki ga je arhiv vedno imel in ne potrebuje dodatne volumenske enote.
+To je vedenje, ki ga je arhiv vedno imel, in ne zahteva dodatnega volumena.
 
-Izberite to, če je baza podatkov že vaša enota za varnostno kopiranje in želite imeti eno stvar
-za varnostno kopiranje in obnavljanje.
+Izberite to, ko je baza podatkov že vaša enota za varnostno kopiranje in želite imeti
+eno stvar, ki jo boste kopirali in obnovili.
 
 ### filesystem {#filesystem}
 
 Sporočilo je zapisano v `{BasePath}/{xx}/{yy}/{id}.eml.gz`, kjer sta `xx`/`yy` izvedena
-iz id sporočila. Vrstica v bazi podatkov shrani le metapodatke.
+iz e-poštnega id. Vrstica v bazi podatkov ohranja le metapodatke.
 
-Izberite to, ko je arhiv dovolj velik, da bi originali prevladovali nad velikostjo baze podatkov,
-ali ko želite postaviti datoteke sporočil na cenejš trženjski nosilnik ali ločen shrambni prostor.
+Izberite to, ko je arhiv dovolj velik, da bi originali prevladovali nad velikostjo
+baze podatkov, ali ko želite datoteke sporočil postaviti na cenejš ali ločen shranjevalni prostor.
 
-!!! danger "Montirajte volumen v Docker"
-    Privzeti `BasePath` (`RawMessages`) se razrešuje na `/app/RawMessages` **znotraj
-    kontejnerja**. Brez vezanega montaža (bind mount) ta direktorij pripada zapisovalnemu
-    slojini kontejnerja, zato vsak ponovno ustvarjeni kontejner - vključno s
-    `docker compose down && docker compose up -d`, posodobitev slike ali ponastavitev gostitelja
-    z prolazno plastjo - odnese vse shranjeno originalno datoteko, medtem ko vrstice v bazi
-    podatkov preživejo.
+!!! danger "Mount a volume in Docker"
+    Privzeto `BasePath` (`RawMessages`) se razreši v `/app/RawMessages` **znotraj
+    kontejnerja**. Brez bind mounta ta direktorij pripada zapisljivemu sloju kontejnerja,
+    tako da vsak ponovno ustvarjen kontejner - vključno s `docker compose down && docker compose
+    up -d`, posodobitvijo slike ali ponovnim zagonom gostitelja z začasnim slojem -
+    vzame vse shranjene originale s seboj, medtem ko vrstice v bazi podatkov preživijo.
 
-    Direktorij vedno montirajte na gostitelja, ko uporabljate pogon filesystem:
+    Pri uporabi filesystem backenda vedno povežite direktorij na gostitelja:
 
     ```yaml
     services:
@@ -106,19 +105,19 @@ ali ko želite postaviti datoteke sporočil na cenejš trženjski nosilnik ali l
           - ./raw-messages:/app/RawMessages
     ```
 
-    Gostiteljska pot (`./raw-messages` tukaj) je tisto, ki varnostno kopirate. Pot v kontejnerju mora
-    ustrezati `RawMessages:FileSystem:BasePath`, ali pa nastavite `RawMessages:FileSystem:BasePath` na
-    izbrani točko montaže. Če premaknete montažo, ohranite `BasePath`, da kaže nanj: shranjene
-    vrednosti `StoragePath` so relativne, zato se bodo še naprej pravilno razreševale.
+    Pot na gostitelju (tukaj `./raw-messages`) je tisto, kar kopirate. Pot v kontejnerju mora
+    ustrezati `RawMessages:FileSystem:BasePath` ali pa nastavite `RawMessages:FileSystem:BasePath` na
+    točko povezave (mount point), ki ste jo izbrali. Če premaknete mount, ohranite `BasePath`,
+    ki kaže nanj: shranjene vrednosti `StoragePath` so relativne, zato ostanejo razrešljive.
 
-### Sprostitev pogona (Switching backends) {#switching-backends}
+### Preklop backenda {#switching-backends}
 
-Brreadenje sledi shranjenju, zabeleženem na vsaki vrstici, ne pa konfigurirani nastavitvi.
-Po spremembi `Storage` ostanejo arhivirana sporočila, ki so bila arhivirana prej, prejemna za prenos
-od koli zanje. Nastavitev vpliva le na **novo** arhivirano pošto.
+Brandenje sledi shranjevanju, zabeleženemu v vsaki vrstici, ne pa konfigurirani nastavitvi.
+Ko spremenite `Storage`, bodo prej arhivirane sporočila ostala prenosljiva od koderkoli so.
+Nastavitev vpliva le na **novo** arhivirano pošto.
 
-Za premikanje tistega, kar je že shranjeno, zomejite migracijo shrambe. Za celovitoreferenco
-preverite [ukaz CLI](CLI.md#moving-stored-original-messages):
+Za premikanje že shranjenih podatkov zaženite migracijo shranjev}}. Za celoten pregled
+poglejte [CLI commands](CLI.md#moving-stored-original-messages):
 
 ```bash
 # database -> filesystem
@@ -132,72 +131,72 @@ docker compose exec mailarchiver dotnet MailArchiver.dll \
 
 Kaj migracija zagotavlja:
 
-- Vsako sporočilo je preverjeno glede na svojo zabeleženo kontrolno vrednost (checksum), preden se
-  kopira. Sporočilo, ki ne uspe, ostane tam, kjer je, in je prijavljeno: okvarjen original nikoli ne
-  propagira in njegova edina preostala kopija nikoli ne biti izbrisan.
-- Datoteka je izbrisana šele po tem, ko je transakcija baze podatkov, ki jo je premaknila, potrjena (committed),
-  tako da prekinjena izvedba ne lahko izgubi edine kopije.
-- Proces je lahko nadaljeval (resumable). Delo je izbrano s stolpcem `StorageType`, zato z ponovnim zagonom
-  ukaza nadaljuje s tistim, kar še ni bilo obdelovano.
-- Izhodna koda je `1`, če katero sporočilo ni uspelo, sicer `0`.
+- Vsako sporočilo se pred kopiranjem preveri glede na njegov zabeležen kontrolni zmisl (checksum).
+  Sporočilo, ki ne uspe, ostane tam, kjer je, in je prijavljeno: poškodovan original nikoli ne
+  propagira in njegova edina preostala kopija nikoli ne biti izbrisana.
+- Datoteka se izbriše šele po tem, ko je transakcija baze podatkov, ki jo je premaknila,
+  potrdljena (committed), tako da prekinjen proces ne more izgubiti edine kopije.
+- Proces je lahko nadalčeval. Delo je izbrano s stolpcem `StorageType`, zato z ponovnim zagonom
+  ukazov nadaljuje s tistim, kar še ni bilo opravljeno.
+- Izstopna koda je `1`, če katero sporočilo ne uspe, sicer `0`.
 
-Migracija ni zahtevna za delovanje arhiviranja. Potrebna je le za prenašanje obstoječih
-bajt na drug pogon.
+Migracija ni obvezna za delovanje arhiva. Potrebna je le za premikanje obstoječih
+bajt na drugi backend.
 
-## 🛟 Varnovni backup in obnavljanje {#backup-and-restore}
+## 🛟 Varnovanje in obnovitev {#backup-and-restore}
 
 === "postgres backend"
-    Nič dodatnega. Originali so del baze podatkov in so zajeti s standardnim
-    izvozom (dump), glejte [Backup and Restore](BackupRestore.md).
+    Ni dodatnothing. Originali so del baze podatkov in so zajeti s standardnim
+    izvozom (dump), poglejte [Backup and Restore](BackupRestore.md).
 
 === "filesystem backend"
-    Izvozite direktorij `BasePath` **skupaj z** izvozom baze podatkov.
+    Zaradi varnosti izvezite direktorij `BasePath` **skupaj z** izvozom baze podatkov.
 
-    Obnova baze podatkov brez datotek povzroči, da arhiv vsebuje vrstice,
-    s katerimi ni mogoče delovati. Prenos nato odgovori z HTTP 404 namesto
-    tega, da bi vrnil napačno vsebino, e-poštni sporočili pa ostanejo berljiva
-    iz svojih razčlenjenih polj.
+    Obnovitev baze podatkov brez datotek povzroči, da arhiv vsebuje vrstice, čwartor
+    vsebina katerih ni na voljo. Prenos bo v tem primeru vrnil napako HTTP 404 namesto
+    napačnih podatkov, samo e-poštna sporočila pa bodo ostala berljiva iz svojih razčlenjenih polj.
 
-## 🗑️ Brisanje e-poštne sporočil {#deleting-an-email}
+## 🗑️ Brisanje e-pošte {#deleting-an-email}
 
-Brisanje e-poštnega sporočila odstrani tudi njegovo izvirno datoteko: pravila o zadrževanju, ročno pojednično in množinsko brisanje ter brisanje celotnega e-poštnega računa vsi odstranijo datoteko kot del iste operacije. S pomočjo `postgres` backend ne treba počela ničesar dodatnega, saj bajti potujejo znotraj vrstice, ki jo kaskadno že odstrani.
+Brisanje e-pošte z njenim izbrisanjem odstrani tudi original: pravila o shranjevanju, ročno brisanje posameznih sporočil in brisanje v množini ter brisanje celotnega e-poštnega računa vsi odstranijo datoteko kot del iste operacije. S `postgres` backendom ni treba početi nič dodatnega, saj bajti potujejo znotraj vrstice, ki jo kaskadna brisanje že odstrani.
 
-Datoteka je izbrisan **po tem**, ko je vrstica e-poštnega sporočila zapišana (committed), nikoli pa pred tem. V obeh korakih ne more biti eno transakcijo, saj datoteka ni del transakcije baze podatkov, zato mora priti eden od njima kasneje. Ta redosled je varen: brisanje, ki ne uspe ali se vrača (rollback), na primer pri zaklenjeni zapisu, pusti izvirnik nedotikojen, medtem ko nesreča med obema korakoma pusti datoteko brez vrstice, ki jo spodaj povrne proces sweep. Drugi red bi uničil izvirnik e-poštnega sporočila, ki še vedno obstaja.
+Datoteka je izbrisana **šele po** potrditvi (commit) vrstice e-pošte, nikoli prej. Ta dva koraka ne moreta biti del ene transakcije, ker datoteka ni del baze podatkov, zato mora eden od njima priti drug v redu. Ta vrteno red je varen: brisanje, ki ne uspe ali se prekiné (roll back), na primer pri zakleni zapisu, pusti original neobdelanega, če pa pride do okvare med obema korakoma, ostane datoteka brez vrstice, ki jo spodnji proces čiščenja (sweep) spet osvobodi. Nasprotni red bi uničil original e-pošte, ki še vedno obstaja.
 
-**Zlatovate datoteke se zberejo.** Vse, kar je ušlo, vključno z datotekami, ki jih je pustilo brisanje pred nastavitvijo tega čiščenja, odstrani periodični sweep `BasePath`, ki primerja vsako datoteko z vrsticami in izbriše tiste, na katere se nobeno e-poštno sporočilo ne nanaša:
+**Osamljene datoteke so zbrane.** Vse, kar je ušlo, vključno s datotekami, ki so jih pustila brisanja pred uvedbo tega čiščenja, odstrani periodično čiščenje `BasePath`, ki primerja vsako datoteko z vrsticami in izbriše tiste, na katere se nobena e-pošta ne nanaša:
 
-| Nastavitev | Privzeto | Pomen |
+| Nastavitev | Z умолчанию | Pomen |
 | --- | --- | --- |
-| `RawMessages__FileSystem__OrphanCleanupEnabled` | `true` | Vklopi ali izklopi sweep |
+| `RawMessages__FileSystem__OrphanCleanupEnabled` | `true` | Vklopi ali izklopi čiščenje |
 | `RawMessages__FileSystem__OrphanCleanupIntervalHours` | `24` | Kako pogosto se izvaja |
-| `RawMessages__FileSystem__OrphanCleanupGraceHours` | `24` | Datoteke, mlajše od tega, se nikoli ne dotikajo |
-| `RawMessages__FileSystem__OrphanCleanupStartupDelaySeconds` | `300` | Odložitev pred prvim zagonom, da se najprej zaključi prek moving storage migracija |
+| `RawMessages__FileSystem__OrphanCleanupGraceHours` | `24` | Datotek, mlajših od tega, se nikoli ne dotikajo |
+| `RawMessages__FileSystem__OrphanCleanupStartupDelaySeconds` | `300` | Zamika pred prvim zagonom, da se najprej zaključi tekoča migracija shranjevanja |
 
-Čas grace period je tisti, ki naredi sweep varnim: uvoz zapiše datoteko, preden zapiše vrstico, ki na njo kaže, in datoteko, ki je bila zapisana pred trenutkom, ne sme zamenjati za zlatovato datoteko. Polovičen zapisano `.tmp` datoteke iz prekinjenega zapisa se zberejo pod istim pravilom. S `postgres` backend sweep nič ne naredi in celo ne preišče direktorija.
+Čas grace period naredi čiščenje varnega: uvoz zapiše datoteko, preden potrdi vrstico, ki na njo kaže, datoteka, zapisana pred nekaj trenutki, pa ne sme biti zamenjana za osamljeno. Polovičeno zapisane `.tmp` datoteke zaradi prekinjenega zapisa se zberejo po istem pravilu. S `postgres` backendom čiščenje nič ne naredi in celo ne pregleduje direktorija.
 
 ## 🔍 Preverjanje arhive {#verifying-an-archive}
 
-Kontrolna vrednost (checksum), zabeležena ob času arhiviranja, omogoča preverjanje.
+Kontrolna vrednost (checksum), zabeležena ob ustvarjanju arhive, omogoča preverjanje.
 
-- **Ob prenosu** (`VerifyChecksumOnRead=true`, privzeto) se datoteka izračuna (hashed) in primerja. Če se vrednosti ne skladajo, se prenos zavrne z napako HTTP 500.
-- **Pri migraciji shrambe** se vsaka sporočilo preveri pred kopiranjem, v obeh smerih.
+- **Ob prenosu** (`VerifyChecksumOnRead=true`, privzeto) se datoteka izračuna njezina hash vrednost in primerja. Če se vrednosti ne ujemajo, se prenos zavrne z napako HTTP 500.
+- **Pri migraciji shrambe** se vsako sporočilo preveri, preden se kopira, v obeh smerih.
 
-Ker se vrstica metapodatkov nahaja v bazi podatkov, byte pa so lahko na disku, je primerjava kontrolnih vrednosti edini način, da se opazi, če je bila datoteka spremenjena zunaj aplikacije.
+Ker se vrstica metapodatkov nahaja v bazi podatkov, byte pa lahko so na disku, je primerjava kontrolnih vrednosti edini način, da ugotovimo, da je bila datoteka spremenjena zunaj aplikacije.
 
-## ⚠️ Vesжно obvestilo {#things-to-know}
+## ⚠️ Te stvari morate vedeti {#things-to-know}
 
-- **Omemba ne popolnjuje preteklih podatkov.** Le pošiljatelji, ki so arhivirani po preklopitvi, bodo imeli original.
-- **Rekonstrukcija ni sporočilo.** Za e-poštna sporočila brez shranjenega originala vsaka pot prenosavanja vrne rekonstruirano sporočilo in to navede prek `X-Raw-Message-Reconstructed: true`.
-- **Datoteka pomeni dve enoti varnega shranjevanja.** Baza podatkov in direktorij s sporočili morata biti obnovljena skupaj, sicer zapiši preživijo brez vsebine.
-- **`VerifyChecksumOnRead` porablja CPU.** Vsak prenos velikega sporočila je dekomprimiran in izračunan njegov hash. Funkcijo pustite vklopljeno, razen če ste izmerili težavo; to je edina zaščita pred tiho spremenbo na disku.
-- **Shranjeni original ni dedupliciran.** Priloga, ki se pojavi v številnih e-poštnih sporočilih, je shranjena enkrat v shrambi prilog, vendar enkrat za vsako e-poštno sporočilo znotraj originala.
-- **Brisanje odstrani tudi original.** E-poštno sporočilo, ki je izbrisan zaradi politike zadrževanja ali ročno, odvzame tudi svoj shranjeni original, datoteko in zapis. Nič ne ostane shranjeno, če ga arhiv ne vseže na seznamu.
+- **Omogočanje ne vključuje nazajjšanja podatkov (backfill).** Le poštni sporočilo, arhivirano po preklopu, dobi original.
+- **Manjka original se zabeleži kot napaka.** Ko je zajem zavrnjen (spodnje sporočilo `MaxMessageSizeMb`, zajem ni uporaben) ali ko zapis v konfigurirano pomembno enoto (backend) ne uspe, log vsebuje napako z identifikatorjem e-pošte in razlogom. E-pošta ostane v arhivu brez svojega originala; ni samodejnega nazajšanja in ni ponovnih poskusov.
+- **Rekonstrukcija ni sporočilo.** Za e-poštna sporočila brez shranjenega originala vsaka pot prenosu vrne znova zgrajeno sporočilo in to navede prek `X-Raw-Message-Reconstructed: true`.
+- **Datoteka (filesystem) pomeni dve enoti za varnostno kopiranje.** Baza podatkov in direktorij s sporočili morata biti obnovljena skupaj, sicer vrstice preživijo brez vsebine.
+- **`VerifyChecksumOnRead` porabi CPU.** Vsak prenos velike e-poštne sporočilo se dekomprimira in zhashira. Funkcijo pustite vklopljeno, razen če ste izmerili težavo; to je edina zaščita pred tiho spremembo na disku.
+- **Shranjeni original ni dedupliciran.** Priloga, ki se pojavi v številnih e-poštnih sporočilih, se v shrambi prilog shrani enkrat, vendar enkrat za vsako e-poštno sporočilo znotraj originala.
+- **Izbrisanje odstrani tudi original.** E-poštno sporočilo, ki ga izbriše politika zadržanja podatkov ali ročno, odvzame tudi svoj shranjeni original, datoteko in vrstico. Nič ne ostane v arhivu, če ga arhiv ne vsebuje več na seznamu.
 
-## 🔗 Poglejte tudi {#see-also}
+## 🔗 Poglej tudi {#see-also}
 
 - [CLI Commands](CLI.md#moving-stored-original-messages) - celotna migracija shrambe
-- [Setup and Parameters](Setup.md) - vse konfiguracijske parametre
+- [Setup and Parameters](Setup.md) - vse parametre konfiguracije
 - [REST API](API.md#download-original-message) - `/raw` končališče
 - [MCP Server](MCP.md#get_email_raw) - orodje `get_email_raw`
-- [Backup and Restore](BackupRestore.md) - kaj varnostno kopirati
+- [Backup and Restore](BackupRestore.md) - kaj z amounts za varnostno kopiranje
 - [Attachment Deduplication](AttachmentDeduplication.md) - kako so shranjene priloge
