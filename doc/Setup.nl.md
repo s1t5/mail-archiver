@@ -1,10 +1,10 @@
 # 🛠️ Mail Archiver Setup Guide {#mail-archiver-setup-guide}
 
-[← Terug naar Documentatie Index](index.md)
+[← Terug naar de Documentatie-index](index.md)
 
 ## 📋 Overzicht {#overview}
 
-Deze gids biedt gedetailleerde instructies voor het instellen van de Mail Archiver applicatie met behulp van Docker Compose.
+Deze gids biedt gedetailleerde instructies voor het instellen van de Mail Archiver-applicatie met behulp van Docker Compose.
 
 ## 🛠️ Vereisten {#prerequisites}
 
@@ -223,7 +223,7 @@ networks:
 
 3. Bewerk de databaseconfiguratie in de `docker-compose.yml` en stel een veilig wachtwoord in in de `POSTGRES_PASSWORD` variabele en de `ConnectionString`.
 
-4. Als u authenticatie wilt gebruiken (wat ten zeerste wordt aanbevolen), definieer dan een `Authentication__Username` en `Authentication__Password` die wordt gebruikt voor de admin user.
+4. Als u authenticatie wilt gebruiken (wat ten zeerste wordt aanbevolen), definieer dan een `Authentication__Username` en `Authentication__Password` die wordt gebruikt voor de admin gebruiker.
 
 5. Pas de `TimeZone__DisplayTimeZoneId` omgevingsvariabele aan zodat deze overeenkomt met uw voorkeurstijdzone (standaard is "Etc/UCT"). U kunt elke IANA-tijdzone-identifier gebruiken (bijv. "Europe/Berlin", "Asia/Tokyo").
 
@@ -249,13 +249,13 @@ docker compose restart
    - Navigeer naar de sectie "Email Accounts"
    - Klik op "New Account"
    - Voer uw servergegevens en inloggegevens in
-   - Sla op en start met archiveren!
+   - Opslaan en beginnen met archiveren!
    - Als u wilt, kunt u andere gebruikers aanmaken en accounts toewijzen.
 
 ## 📚 Uitleg van omgevingsvariabelen {#environment-variable-explanations}
 
 ### 🗄️ Databaseverbinding {#database-connection}
-- `ConnectionStrings__DefaultConnection`: De verbindingsstring naar de PostgreSQL-database. Pas de waarden `Host`, `Database`, `Username` en `Password` aan indien nodig.
+- `ConnectionStrings__DefaultConnection`: De connection string naar de PostgreSQL database. Pas de `Host`, `Database`, `Username` en `Password` waarden aan indien nodig.
 
 ### 🔐 Authenticatie-instellingen {#authentication-settings}
 - `Authentication__Username`: De gebruikersnaam voor het admin Account.
@@ -269,37 +269,37 @@ docker compose restart
 
 ### 🔌 REST API Settings {#rest-api-settings}
 De optionele read-only REST API is **standaard uitgeschakeld**. Raadpleeg de [REST API guide](API.md) voor de volledige referentie.
-- `Api__Enabled`: Hoofdschakelaar voor de read-only REST API (standaard `false`). Wanneer `false`, geven alle `/api/*` routes `404` terug.
-- `Api__AllowAttachmentDownloads`: Sta het downloaden van attachment bytes toe via de API (standaard `true`). Wanneer `false`, geeft het attachment endpoint `403` terug.
-- `Api__AllowMessageDownloads`: Sta het downloaden van volledige berichten toe via de API, zowel de herbouwde `/eml` als het originele `/raw` (standaard `true`). Wanneer `false`, geven beide endpoints `403` terug. Een volledig bericht bevat de bijlagen, dus **zowel** deze schakelaar als `Api__AllowAttachmentDownloads` moeten `true` zijn; het uitschakelen van een van beide schakelaars schakelt beide endpoints uit.
-- `Api__EnableSwaggerUi`: Stel Swagger UI bloot op `/apidocs` en het OpenAPI-document op `/apidocs/spec/v1.json` (standaard `true`). Beide vereisen een ingelogde browsersessie.
+- `Api__Enabled`: Hoofdschakelaar voor de read-only REST API (standaard `false`). Wanneer `false`, retourneren alle `/api/*` routes `404`.
+- `Api__AllowAttachmentDownloads`: Sta het downloaden van attachment bytes toe via de API (standaard `true`). Wanneer `false`, retourneert het attachment endpoint `403`.
+- `Api__AllowMessageDownloads`: Sta het downloaden van volledige berichten toe via de API, zowel de herbouwde `/eml` als het originele `/raw` (standaard `true`). Wanneer `false`, retourneren beide endpoints `403`. Een volledig bericht bevat de bijlagen, dus **zowel** deze schakelaar als `Api__AllowAttachmentDownloads` moeten `true` zijn; het uitschakelen van een van beide schakelaars schakelt beide endpoints uit.
+- `Api__EnableSwaggerUi`: Stel Swagger UI beschikbaar op `/apidocs` en het OpenAPI-document op `/apidocs/spec/v1.json` (standaard `true`). Beide vereisen een actieve browser-sessie.
 - `Api__DefaultPageSize`: Standaard paginagrootte voor list endpoints wanneer niet gespecificeerd (standaard `20`).
 - `Api__MaxPageSize`: Maximale toegestane paginagrootte; grotere verzoeken worden beperkt (standaard `100`).
-- `Api__RateLimitPerMinute`: Fixed-window request budget per API key per minuut (standaard `120`).
+- `Api__RateLimitPerMinute`: Vast venster request budget per API-sleutel per minuut (standaard `120`).
 
-### 🤖 MCP Server Settings {#mcp-server-settings}
-De optionele MCP (Model Context Protocol) server biedt AI-agenten via de Streamable HTTP-transport dezelfde read-only mailtoegang als de REST API. Het staat **standaard uit**. Raadpleeg de [MCP guide](MCP.md) voor de volledige referentie. MCP maakt exact dezelfde API-sleutels als de REST API (`ma_...` bearer tokens) en dezelfde per-gebruiker account-toegang scoping.
+### 🤖 MCP Server Instellingen {#mcp-server-settings}
+De optionele MCP (Model Context Protocol) server biedt AI-agenten via de Streamable HTTP-transport dezelfde read-only mailtoegang als de REST API. Het is **standaard uitgeschakeld**. Raadpleeg de [MCP guide](MCP.md) voor de volledige referentie. MCP hergebruikt exact dezelfde API-sleutels als de REST API (`ma_...` bearer tokens) en dezelfde per-gebruiker account-toegang scoping.
 - `Mcp__Enabled`: Hoofdschakelaar voor de MCP server (standaard `false`). Wanneer `false`, geeft het `/mcp` endpoint `404` terug.
-- `Mcp__AllowAttachmentDownloads`: Sta toe dat de `get_attachment` tool bijlagenbytes teruggeeft (standaard `true`). Wanneer `false`, geeft de tool een foutmelding terug.
+- `Mcp__AllowAttachmentDownloads`: Sta toe dat de `get_attachment` tool bijlagen bytes teruggeeft (standaard `true`). Wanneer `false`, geeft de tool een foutmelding terug.
 - `Mcp__DefaultPageSize`: Standaard paginagrootte gebruikt door `search_emails` wanneer de aanroeper `pageSize` weglaat (standaard `20`).
-- `Mcp__MaxResults`: Bovengrens voor de paginagrootte van `search_emails`; grotere waarden worden afgekapt (standaard `100`).
-- `Mcp__MaxAttachmentBytes`: Maximale bijlagegrootte (in bytes) die de `get_attachment` tool inline als base64 zal teruggeven; grotere bijlagen worden geweigerd (standaard `10000000` ≈ 10 MB).
+- `Mcp__MaxResults`: Bovengrens voor de paginagrootte van `search_emails`; grotere waarden worden begrensd (standaard `100`).
+- `Mcp__MaxAttachmentBytes`: Maximale bijlage grootte (in bytes) die de `get_attachment` tool inline als base64 zal teruggeven; grotere bijlagen worden geweigerd (standaard `10000000` ≈ 10 MB).
 - `Mcp__AllowMessageDownloads`: Sta toe dat de `get_email_eml` en `get_email_raw` tools volledige berichten teruggeven (standaard `true`). Wanneer `false`, geven de tools een foutmelding terug. Een volledig bericht bevat de bijlagen, dus **zowel** deze schakelaar als `Mcp__AllowAttachmentDownloads` moeten `true` zijn; het uitschakelen van een van beide schakelaars schakelt beide tools uit.
 - `Mcp__MaxMessageBytes`: Maximale berichtgrootte (in bytes) die de `get_email_eml` en `get_email_raw` tools inline zullen teruggeven; grotere berichten worden geweigerd (standaard `10000000` ≈ 10 MB).
-- `Mcp__RateLimitPerMinute`: Vast venster aan request budget per API-sleutel per minuut (standaard `120`).
+- `Mcp__RateLimitPerMinute`: Vast venster aanvraagbudget per API-sleutel per minuut (standaard `120`).
 
 ### 📨 MailSync Instellingen {#mailsync-settings}
-- `MailSync__IntervalMinutes`: Het interval in minuten tussen e-mail synchronisatie. Dit is de globale standaard; elk account kan dit individueel overschrijven vanaf de Create/Edit pagina (leeg laten om deze standaard te gebruiken).
+- `MailSync__IntervalMinutes`: Het interval in minuten tussen e-mail Synchronisatie. Dit is de globale standaard; elk Account kan dit individueel overschrijven op de Create/Edit pagina (laat dit leeg om deze standaardwaarde te gebruiken).
 - `MailSync__FullSyncIntervalHours`: Optionele globale standaard voor automatische volledige resyncs, in uren. Wanneer niet ingesteld (de standaard), wordt er geen automatische volledige sync uitgevoerd, tenzij een per-account `FullSyncIntervalHours` waarde is ingesteld op de Create/Edit pagina. Per-account waarden overschrijven deze globale standaard.
-- `MailSync__TimeoutMinutes`: Per-account sync timeout in minuten. Een sync die langer loopt stopt bij de volgende berichtgrens, behoudt zijn checkpoints en hervat bij de volgende run; de taak wordt gemeld als `Timed Out` en `LastSync` wordt niet geavanceerd. Geldt alleen voor geplande syncs; een sync gestart vanuit de UI (handmatige sync of volledige resync) draait zonder timeout. `0` (de standaard) of elke niet-positieve waarde betekent geen timeout. Controleer de waarde voor het upgraden als u grote postboxen synchroniseert. Zie [Synchronization.md](Synchronization.md#-stopping-a-sync-early).
-- `MailSync__ConnectionTimeoutSeconds`: De verbindings-timeout voor IMAP-verbindingen in seconden.
-- `MailSync__CommandTimeoutSeconds`: De command timeout voor IMAP-commando's in seconden.
+- `MailSync__TimeoutMinutes`: Per-account sync timeout in minuten. Een sync die langer doorloopt, stopt bij de volgende berichtgrens, behoudt zijn checkpoints en hervat bij de volgende run; de taak wordt gerapporteerd als `Timed Out` en `LastSync` wordt niet geavanceerd. Geldt alleen voor geplande syncs; een sync die vanuit de UI wordt gestart (handmatige sync of volledige resync) wordt uitgevoerd zonder timeout. `0` (de standaard) of elke niet-positieve waarde betekent geen timeout. Controleer de waarde voordat u upgradet als u grote Postbus volumes synchroniseert. Zie [Synchronization.md](Synchronization.md#-stopping-a-sync-early).
+- `MailSync__ConnectionTimeoutSeconds`: De verbinding-timeout voor IMAP-verbindingen in seconden.
+- `MailSync__CommandTimeoutSeconds`: De command-timeout voor IMAP-commando's in seconden.
 - `MailSync__AlwaysForceFullSync`: Of er altijd een volledige sync moet worden afgedwongen (true/false).
-- `MailSync__IgnoreSelfSignedCert`: Of zelf ondertekende certificaten moeten worden genegeerd (true/false).
-- `MailSync__MaxConcurrentSyncs`: Hoeveel account syncs er tegelijkertijd mogen draaien. Standaard `1` (sequentieel, achterwaarts compatibel). De scheduler vult slots aan zodra ze vrijkomen in plaats van te wachten op een hele batch, zodat één trage postbus de anderen niet langer ophoudt. Verhoog dit om meerdere accounts gelijktijdig te synchroniseren — houd rekening met de rate limits van de provider en het lokale resourcegebruik. Zie [Synchronization.md](Synchronization.md#-how-accounts-are-scheduled).
-- `MailSync__InterAccountDelaySeconds`: Optionele stagger delay in seconden toegepast aan het einde van elke account sync taak. Standaard `0` (geen delay). Nuttig om burst-starts te voorkomen wanneer `MaxConcurrentSyncs > 1`.
-- `MailSync__MaxIssuesPerKind`: Hoeveel problemen van elk type een sync job onthoudt voor de accountpagina. Gefaalde mappen, ontbrekende mappen en gefaalde berichten worden apart begroot, zodat een vloedgolf van het ene type de andere niet uit het zicht kan duwen; alles buiten het budget wordt geteld in plaats van bewaard. Standaard `20`. `0` schakelt de details uit en laat alleen de tellers over. Zie [Synchronization.md](Synchronization.md#-observing-the-sync).
-- `MailSync__GlobalExcludedFolders__<n>`: Mappen uitgesloten van synchronisatie voor **elk** account, bovenop de eigen uitgesloten-mappen lijst van elk account. Leeg standaard, dus bestaande setups worden niet beïnvloed. De twee lijsten zijn **additief** — een map wordt overgeslagen als deze overeenkomt met een van beide — en beide gebruiken dezelfde matchingsregels: exacte match op het volledige pad, exacte match op de mapnaam, een pad-suffix match (zodat `Drafts` ook `INBOX/Drafts` en `INBOX.Drafts` matcht), en alles onder de map die een entry benoemt wanneer `MailSync__ExcludeSubfolders` is ingeschakeld. Matching is niet hoofdlettergevoelig. Nuttig bij het importeren van veel postboxen van dezelfde server, waarbij het alternatief is om op elk account een identieke uitsluitingslijst te onderhouden. Geen enkele map is standaard uitgesloten; welke namen het waard zijn om te vermelden hangt af van de server en de taal daarvan. Voorbeeld voor een postbus boom die ook kalender- en contactmappen bevat:
+- `MailSync__IgnoreSelfSignedCert`: Of zelfondertekende certificaten moeten worden genegeerd (true/false).
+- `MailSync__MaxConcurrentSyncs`: Hoeveel Account syncs tegelijkertijd mogen draaien. Standaard `1` (sequentieel, backwards-compatible). De scheduler vult slots aan zodra ze vrijkomen in plaats van te wachten op een volledige batch, waardoor één trage Postbus de anderen niet langer ophoudt. Verhoog dit om meerdere Accounts gelijktijdig te synchroniseren — houd rekening met de rate limits van de provider en het lokale resourcegebruik. Zie [Synchronization.md](Synchronization.md#-how-accounts-are-scheduled).
+- `MailSync__InterAccountDelaySeconds`: Optionele stagger delay in seconden toegepast aan het einde van elke account sync taak. Standaard `0` (geen vertraging). Nuttig om burst-starts te voorkomen wanneer `MaxConcurrentSyncs > 1`.
+- `MailSync__MaxIssuesPerKind`: Hoeveel problemen van elk type een sync-taak onthoudt voor de accountpagina. Mislukte mappen, ontbrekende mappen en mislukte berichten worden apart begroot, zodat een vloedgolf van het ene type de andere niet uit het zicht kan duwen; alles voorbij het budget wordt geteld in plaats van bewaard. Standaard `20`. `0` schakelt de details uit en laat alleen de tellers over. Zie [Synchronization.md](Synchronization.md#-observing-the-sync).
+- `MailSync__GlobalExcludedFolders__<n>`: Mappen uitgesloten van Synchronisatie voor **elk** Account, bovenop de eigen uitgesloten-mappenlijst van elk Account. Leeg per standaard, zodat bestaande installaties niet worden beïnvloed. De twee lijsten zijn **additief** — een map wordt overgeslagen als deze aan een van beide voldoet — en beide gebruiken dezelfde matchingregels: exacte match op het volledige pad, exacte match op de mapnaam, een path-suffix match (zodat `Drafts` ook `INBOX/Drafts` en `INBOX.Drafts` matcht), en alles onder de map die een item benoemt wanneer `MailSync__ExcludeSubfolders` is ingeschakeld. Matching is niet hoofdlettergevoelig. Nuttig bij het importeren van veel Postbus volumes van dezelfde server, waarbij het alternatief is om een identieke uitsluitingslijst op elk Account bij te houden. Geen enkele map is standaard uitgesloten; welke namen het waard zijn om op te sommen hangt af van de server en de taal ervan. Voorbeeld voor een Postbus boomstructuur die ook kalender- en contactmappen bevat:
   ```yaml
       - MailSync__GlobalExcludedFolders__0=Calendar
       - MailSync__GlobalExcludedFolders__1=Calendars
@@ -311,79 +311,88 @@ De optionele MCP (Model Context Protocol) server biedt AI-agenten via de Streama
       - MailSync__GlobalExcludedFolders__7=NoteList
       - MailSync__GlobalExcludedFolders__8=Journal
   ```
-- `MailSync__ExcludeSubfolders`: Of een uitsluitingsentry ook de mappen onder de benoemde map omvat. Geldt zowel voor de per-account lijst als de installatie-brede lijst, en voor beide providers. Standaard `false`, wat overeenkomt met het gedrag voordat de optie bestond: een entry `Deleted Items` matcht alleen die map, en een boom wordt uit het Archief gehouden door de root en elke map eronder te benoemen. Stel in op `true` om een entry de boom eronder ook te laten omvatten — een entry `Deleted Items` houdt dan ook `Deleted Items/2024` en de rest van die tak uit het Archief. De regel verankert op de padscheider, dus het neemt hele mappen en nooit een deel van een naam: `Archive` dekt `Archive` en `Archive/Team` af, en laat een mail map genaamd `Team Archive Review` met rust. Een `.` telt ook als een scheider, op dezelfde manier als de pad-suffix regel dit behandelt.
+- `MailSync__ExcludeSubfolders`: Of een uitsluitingsitem ook de mappen onder de benoemde map dekt. Geldt zowel voor de per-account lijst als de installatiebrede lijst, en voor beide providers. Standaard `false`, wat overeenkomt met het gedrag voordat de optie bestond: een item `Deleted Items` matcht alleen die map, en een boomstructuur wordt uit het Archief gehouden door de root en elke map eronder te benoemen. Stel in op `true` om een item de onderliggende boomstructuur te laten meenemen — een item `Deleted Items` houdt dan ook `Deleted Items/2024` en de rest van die tak uit het Archief. De regel verankert op de padscheider, dus het neemt volledige mappen en nooit een deel van een naam: `Archive` dekt `Archive` en `Archive/Team`, en laat een map genaamd `Team Archive Review` ongemoeid. Een `.` telt ook als scheider, op dezelfde manier als de path-suffix regel deze behandelt.
 
 ### 📧 Instellingen voor opslag van originele berichten {#original-message-storage-settings}
 
-Standaard bewaart het Archief alleen de geparseerde delen van een e-mail, dus een geëxporteerde `.eml` is
-een reconstructie: transfer encodings, MIME boundaries en header folding verschillen van de
-ontvangen berichten, en DKIM-handtekeningen zijn niet langer geldig. Met `RawMessages:Enabled` wordt ook het
-volledige origineel opgeslagen.
+Standaard bewaart het Archief alleen de geparseerde delen van een e-mail, waardoor een geëxporteerde `.eml` een reconstructie is: transfer encodings, MIME boundaries en header folding verschillen van het ontvangen bericht, en DKIM-handtekeningen zijn niet langer geldig. Met `RawMessages:Enabled` wordt ook het volledige origineel opgeslagen.
 
 | Parameter | Standaard | Doel |
 |-----------|---------|---------|
 | `RawMessages__Enabled` | `false` | Sla het origineel van elke nieuw gearchiveerde e-mail op. |
 | `RawMessages__Storage` | `postgres` | Waar de bytes staan: `postgres` of `filesystem`. |
 | `RawMessages__MaxMessageSizeMb` | `50` | Grotere berichten worden gearchiveerd zonder hun origineel. `0` = geen limiet. |
-| `RawMessages__IncludeGraph` | `true` | Sla ook originelen op voor Microsoft 365 (Graph) Accounts. |
-| `RawMessages__FileSystem__BasePath` | `RawMessages` | Map voor de berichtbestanden. Moet wijzen naar een gemounte volume in Docker. |
-| `RawMessages__FileSystem__ShardDepth` | `2` | Mapniveaus waarop de e-mail id is verspreid. |
+| `RawMessages__IncludeGraph` | `true` | Sla ook originelen op voor Microsoft 365 (Graph) accounts. |
+| `RawMessages__FileSystem__BasePath` | `RawMessages` | Map voor de berichtbestanden. Moet naar een gemounte volume in Docker verwijzen. |
+| `RawMessages__FileSystem__ShardDepth` | `2` | Mapniveaus waarlangs de e-mail id is verspreid. |
 | `RawMessages__FileSystem__VerifyChecksumOnRead` | `true` | Verifieer de SHA-256 bij elke download. |
-| `RawMessages__FileSystem__OrphanCleanupEnabled` | `true` | Verwijder berichtbestanden waar geen e-mail naar verwijst. |
+| `RawMessages__FileSystem__OrphanCleanupEnabled` | `true` | Verwijder berichtbestanden waar geen enkele e-mail naar verwijst. |
 | `RawMessages__FileSystem__OrphanCleanupIntervalHours` | `24` | Hoe vaak die sweep wordt uitgevoerd. |
 | `RawMessages__FileSystem__OrphanCleanupGraceHours` | `24` | Bestanden die jonger zijn dan dit worden nooit verwijderd. |
 
-!!! warning "Filesystem backend heeft een gemount volume nodig"
+!!! warning "Filesystem backend heeft een gemounte volume nodig"
     Met `RawMessages__Storage=filesystem` staan de berichtbestanden buiten de database.
     Zonder een bind mount staan ze in de writable layer van de container en gaan ze verloren bij de
-    volgende containerrecreatie, terwijl de database-rijen wel blijven bestaan. Maak een Back-up van de map
+    volgende container recreatie, terwijl de database rijen wel blijven bestaan. Maak een Back-up van de map
     samen met de database dump.
 
 Zie **[Original Message Storage](RawMessages.md)** voor de volledige beschrijving: waar het
-origineel wordt geserveerd, de storage backends, hoe u bestaande berichten tussen deze verplaatst met
+origineel wordt geserveerd, de storage backends, hoe u bestaande berichten hiertussen verplaatst met
 `--migrate-raw-storage`, en wat u moet back-uppen.
 
+### 📈 Monitoring Instellingen {#monitoring-settings}
+
+| Parameter | Standaard | Doel |
+|-----------|---------|---------|
+| `Health__SyncStaleMinutes` | `0` | Ingeschakelde accounts ouder dan dit maken dat `/api/v1/health` rapport `Degraded` maakt. `0` schakelt de controle uit. |
+| `Metrics__Enabled` | `false` | Schakel het Prometheus metrics endpoint en de bijbehorende refresh loop in. |
+| `Metrics__RefreshMinutes` | `5` | Hoe vaak de metrics snapshot wordt opnieuw opgebouwd. Waarden onder de 1 worden verhoogd naar 1. |
+
+De health en metrics endpoints vereisen een admin API key en `Api__Enabled=true`. Zie
+**[Health and Metrics](Monitoring.md)** voor de endpoints, metric namen, Prometheus
+configuratie en de Docker health check.
+
 ### 📤 BatchRestore Instellingen {#batchrestore-settings}
-- `BatchRestore__AsyncThreshold`: Het aantal e-mails dat asynchrone verwerking activeert.
+- `BatchRestore__AsyncThreshold`: Het aantal e-mails dat asynchrone verwerking triggert.
 - `BatchRestore__MaxSyncEmails`: Het maximale aantal e-mails voor synchrone verwerking.
 - `BatchRestore__MaxAsyncEmails`: Het maximale aantal e-mails voor asynchrone verwerking.
 - `BatchRestore__SessionTimeoutMinutes`: De sessie-timeout voor batch herstel in minuten.
 - `BatchRestore__DefaultBatchSize`: De standaard batchgrootte voor e-mailbewerkingen.
 
 ### 🏢 Tenant Management Settings {#tenant-management-settings}
-- `TenantManagement__MaxSelectedMailboxes`: Maximaal aantal Postbussen dat in één Tenant Management-operatie kan worden toegevoegd. Standaard is `1000`. Verhoog dit voor zeer grote tenants, of verlaag het om accidentele massale imports te voorkomen. Wanneer de limiet wordt overschreden, wordt de operatie geweigerd met een validatiefout en worden er geen Accounts aangemaakt. Zie de [M365 Tenant Import Guide](M365TenantImport.md) voor details.
+- `TenantManagement__MaxSelectedMailboxes`: Maximaal aantal Postbussen dat in één Tenant Management-operatie kan worden toegevoegd. Standaard is `1000`. Verhoog dit voor zeer grote tenants, of verlaag het om onbedoelde massale importen te voorkomen. Wanneer de limiet wordt overschreden, wordt de operatie geweigerd met een validatiefout en worden er geen Accounts aangemaakt. Zie [M365 Tenant Import Guide](M365TenantImport.md) voor details.
 
 ### 🐄 Mailcow Instellingen {#mailcow-settings}
 - `Mailcow__MaxSelectedMailboxes`: Maximaal aantal postbussen dat in een enkele Mailcow-activatierun kan worden aangemaakt. Standaard is `1000`. Verlaag dit om onbedoelde massale provisioning te voorkomen, of verhoog het voor grote instanties. Wanneer de limiet wordt overschreden, worden er geen accounts aangemaakt. Zie [Mailcow Instances](Mailcow.md) voor details.
-- Mailcow-integratie vereist daarnaast `Security__CredentialEncryptionKey` (zie [Security Settings](#-security-settings)). Het verbinden van een instantie en het activeren van postbussen worden beide geweigerd zolang de versleuteling van inloggegevens is uitgeschakeld, zodat de API-sleutel en gegenereerde app-wachtwoorden nooit als platte tekst kunnen worden opgeslagen.
+- Mailcow-integratie vereist daarnaast `Security__CredentialEncryptionKey` (zie [Security Settings](#-security-settings)). Het verbinden van een instantie en het activeren van postbussen worden beide geweigerd zolang de versleuteling van inloggegevens is uitgeschakeld, zodat de API-sleutel en gegenereerde app-wachtwoorden nooit als plaintext kunnen worden opgeslagen.
 - Uitgaande toegang is vereist tot de Mailcow HTTPS API en tot de IMAP-host via TLS (normaal gesproken poort `993`).
 
-### 📦 BatchOperation Settings {#batchoperation-settings}
+### 📦 BatchOperation Instellingen {#batchoperation-settings}
 - `BatchOperation__BatchSize`: De batchgrootte voor e-mailbewerkingen.
 - `BatchOperation__PauseBetweenEmailsMs`: De pauze tussen individuele e-mails in milliseconden.
 - `BatchOperation__PauseBetweenBatchesMs`: De pauze tussen batches in milliseconden.
 
 ### 📤 Offload-instellingen {#offload-settings}
-Instellingen voor de [date-windowed offload](Offload.md). Alle standaardinstellingen reproduceren het gedrag dat de applicatie had voordat deze functie bestond, dus een installatie die dit gedeelte niet configureert, wordt niet beïnvloed.
+Instellingen voor de [date-windowed offload](Offload.md). Alle standaardwaarden reproduceren het gedrag dat de applicatie had voordat deze functie bestond, dus een installatie die dit gedeelte niet configureert, blijft ongewijzigd.
 - `Offload__MaxConcurrentJobs`: Hoeveel herstel- of offload-taken tegelijkertijd mogen draaien. De standaardwaarde is `1`, wat de strikt seriële verwerking behoudt die de taakwachtrij altijd heeft gebruikt. Er wordt maximaal één taak per doel-Postbus uitgevoerd, ongeacht deze waarde.
-- `Offload__PrefetchMaxMessages`: Bovengrens voor het aantal berichten dat vanuit een doel-Postbus wordt geïndexeerd voor duplicatiedetectie. De standaardwaarde is `500000`. Daarboven wordt de controle beperkt tot één enkele Map en wordt er gelogd dat de reikwijdte is verkleind.
-- `Offload__ExcludedSourceFolders__0`, `__1`, ...: Bronmappen die nooit worden geoffload, die worden vergeleken vóór het hernoemen en die submappen omvatten. Standaard leeg.
-- `Offload__FolderRenameMap__<SourceFolder>`: Overschrijft de voorgaande segmenten van een bronmappad, bijvoorbeeld `Offload__FolderRenameMap__Sent Items=Sent`. Standaard leeg.
-- `Offload__MarkAsSeen`: Of toegevoegde e-mail als gelezen wordt gemarkeerd. De standaardwaarde is `true`, wat overeenkomt met het bestaande herstelgedrag.
+- `Offload__PrefetchMaxMessages`: Bovengrens voor het aantal berichten dat wordt geïndexeerd uit een doel-Postbus voor duplicatiedetectie. De standaardwaarde is `500000`. Daarboven wordt de controle beperkt tot een enkele Map en wordt gelogd dat de omvang is verkleind.
+- `Offload__ExcludedSourceFolders__0`, `__1`, ...: Bronmappen die nooit worden geoffload, die worden gematcht vóór het hernoemen en het dekken van submappen. Standaard leeg.
+- `Offload__FolderRenameMap__<SourceFolder>`: Overschrijft de voorliggende segmenten van een bronmappad, bijvoorbeeld `Offload__FolderRenameMap__Sent Items=Sent`. Standaard leeg.
+- `Offload__MarkAsSeen`: Of bijgevoegde e-mail wordt gemarkeerd als gelezen. De standaardwaarde is `true`, wat overeenkomt met het bestaande herstelgedrag.
 
-Beide Map-instellingen zijn opzettelijk leeg geleverd: het herschrijven of verwijderen van mappen zonder dat daarom is gevraagd, zou iedereen die al gebruikmaakt van het herstelpad verrassen. Een uitvoering zonder configuratie migreert daarom alles, inclusief spammappen, en maakt een tweede set speciale mappen aan naast de eigen mappen van het doel.
+Beide Map-instellingen zijn opzettelijk leeg geleverd: het herschrijven of verwijderen van mappen zonder dat daarom is gevraagd, zou iedereen die al gebruikmaakt van het herstelpad verrassen. Een uitvoering zonder configuratie migreert daarom alles, inclusief spammappen, en maakt een tweede set speciale mappen aan naast die van het doel.
 
 ### 📊 Bandwidth Tracking Settings {#bandwidth-tracking-settings}
-- `BandwidthTracking__Enabled`: Schakel bandbreedte-tracking in of uit voor IMAP rate limit handling (true/false). Standaard is `false`. Wanneer ingeschakeld, houdt het systeem het bandbreedtegebruik per Account bij en kan de Synchronisatie pauzeren wanneer de limieten van de provider zijn bereikt. Zie [Rate Limit Handling](RateLimitHandling.md) voor gedetailleerde informatie.
+- `BandwidthTracking__Enabled`: Schakel bandbreedte-tracking in of uit voor IMAP rate limit handling (true/false). Standaard is `false`. Wanneer ingeschakeld, houdt het systeem het bandbreedtegebruik per Account bij en kan het de Synchronisatie pauzeren wanneer limieten van de provider worden bereikt. Zie [Rate Limit Handling](RateLimitHandling.md) voor gedetailleerde informatie.
 - `BandwidthTracking__DailyLimitMb`: Dagelijkse downloadlimiet in megabytes per Account. Standaard is `25000` (25 GB). Stel dit voor providers met bandbreedtebeperkingen in om overeen te komen met hun rate limit (bijv. `2500` voor providers met ~2500 MB dagelijkse limieten). Het systeem pauzeert de synchronisatie wanneer deze limiet is bereikt.
 - `BandwidthTracking__WarningThresholdPercent`: Percentage van de dagelijkse limiet waarbij waarschuwingsberichten worden gelogd. Standaard is `80`. Wanneer het bandbreedtegebruik dit percentage bereikt, worden waarschuwingen gelogd om het naderen van limieten te monitoren.
 - `BandwidthTracking__PauseHoursOnLimit`: Aantal uren om de Synchronisatie te pauzeren wanneer de dagelijkse limiet is bereikt. Standaard is `24`. Na deze periode wordt de limietvlag automatisch gewist en wordt de synchronisatie hervat.
-- `BandwidthTracking__TrackUploadBytes`: Of ook de uploadbandbreedte moet worden bijgehouden (true/false). Standaard is `false`. De meeste IMAP-providers beperken alleen downloads, dus dit is doorgaans niet nodig.
+- `BandwidthTracking__TrackUploadBytes`: Of ook de upload-bandbreedte moet worden bijgehouden (true/false). Standaard is `false`. De meeste IMAP-providers beperken alleen downloads, dus dit is doorgaans niet nodig.
 
 ### 🎯 Selectie-instellingen {#selection-settings}
 - `Selection__MaxSelectableEmails`: Het maximale aantal e-mails dat tegelijkertijd kan worden geselecteerd.
 
-### 👁️ Weergave-instellingen (Privacy & Weergave) {#view-settings-privacy-display}
+### 👁️ Instellingen bekijken (Privacy & Weergave) {#view-settings-privacy-display}
 - `View__DefaultToPlainText`: Regelt de standaard e-mailweergavemodus voor privacy en het voorkomen van tracking (true/false). Standaard is `false`.
   - Wanneer ingesteld op `true`: E-mails worden standaard geopend in tekstweergave, wat het automatisch laden van tracking pixels, externe afbeeldingen en web beacons voorkomt. Dit wordt aanbevolen voor gebruikers die bezorgd zijn over e-mailtracking en privacy.
   - Wanneer ingesteld op `false`: E-mails worden standaard geopend in HTML-weergave, waarbij de geformatteerde e-mail met afbeeldingen en styling wordt weergegeven.
@@ -391,9 +400,9 @@ Beide Map-instellingen zijn opzettelijk leeg geleverd: het herschrijven of verwi
   - De "Full View"-link houdt rekening met de momenteel geselecteerde weergavemodus.
 
 - `View__BlockExternalResources`: Blokkeert externe bronnen (remote afbeeldingen, externe CSS, externe scripts, webfonts, etc.) in HTML-e-mailweergaven om tracking te voorkomen en de privacy te verbeteren (true/false). Standaard is `false`.
-  - Wanneer ingesteld op `true`: Externe bronnen worden weggefilterd bij het weergeven van HTML-e-mails. Alleen inline-inhoud en data URIs (inclusief inline bijlagen via `cid:`-verwijzingen) worden weergegeven.
-  - Wanneer ingesteld op `false`: HTML-e-mails worden weergegeven met al hun originele externe bronnen.
-  - **Belangrijk**: Deze instelling heeft alleen invloed op de **weergave** van e-mails. Gearchiveerde e-mails worden volledig ongewijzigd in de database opgeslagen, waarbij alle originele inhoud behouden blijft.
+  - Wanneer ingesteld op `true`: Externe bronnen worden gefilterd bij het weergeven van HTML-e-mails. Alleen inline inhoud en data URIs (inclusief inline bijlagen via `cid:`-verwijzingen) worden weergegeven.
+  - Wanneer ingesteld op `false`: HTML-e-mails worden weergegeven met al hun oorspronkelijke externe bronnen.
+  - **Belangrijk**: Deze instelling heeft alleen invloed op de **weergave** van e-mails. Gearchiveerde e-mails worden volledig ongewijzigd in de database opgeslagen, waarbij alle oorspronkelijke inhoud behouden blijft.
   - Geblokkeerde bronnen omvatten:
     - Remote afbeeldingen (tracking pixels, externe afbeeldingen die op servers worden gehost)
     - Externe CSS-stylesheets
@@ -403,22 +412,22 @@ Beide Map-instellingen zijn opzettelijk leeg geleverd: het herschrijven of verwi
   - Toegestane bronnen:
     - Inline afbeeldingen ingebed als data: URIs
     - Inline bijlagen die worden aangeroepen via cid: URIs
-    - Inline CSS-stijlen en style-tags
+    - Inline CSS-stijlen en style tags
   - Deze instelling werkt onafhankelijk van `DefaultToPlainText` en biedt een extra laag privacybescherming bij het bekijken van HTML-e-mails.
 
 ### 📊 Dashboard Instellingen {#dashboard-settings}
-- `Dashboard__ShowDirectionSplits`: Of de tellerkaarten hun inkomende en uitgaande delen bevatten, en of de Account-kaart het aantal afzonderlijke domeinen bevat. Standaard is `true`. Stel in op `false` en die getallen worden niet berekend maar verborgen: de tellers lezen een gewone telling, en de Bijlage-telling stopt met het koppelen aan de mail waaraan deze hangt, wat de enige query is die deze delen toevoegen.
-- `Dashboard__SelectablePeriods`: Of de dashboardgrafieken een resolutie, een periode en pijlen bieden om deze te verplaatsen. Standaard is `true`. Stel in op `false` en de grafieken tonen de laatste twaalf maanden per maand en de verzenders van het gehele Archief; het grafiek-endpoint antwoordt alsof deze niet bestaat, en de oudste verzenddatum wordt niet opgezocht.
+- `Dashboard__ShowDirectionSplits`: Of de tellerkaarten hun inkomende en uitgaande delen bevatten, en de Account-kaart het aantal afzonderlijke domeinen. Standaard is `true`. Stel in op `false` en die getallen worden niet berekend maar verborgen: de tellers lezen een gewone telling, en het aantal Bijlagen stopt met het koppelen aan de mail waar het aan hangt, wat de enige query is die deze delen toevoegen.
+- `Dashboard__SelectablePeriods`: Of de dashboardgrafieken een resolutie, een periode en pijlen bieden om deze te verplaatsen. Standaard is `true`. Stel in op `false` en de grafieken tonen de laatste twaalf maanden per maand en de verzenders van het gehele Archief; het chart-endpoint antwoordt alsof het niet bestaat, en de oudste verzenddatum wordt niet opgezocht.
 - `Dashboard__CacheSeconds`: Hoe lang berekende dashboardstatistieken (totalen met hun inkomende en uitgaande splitsingen, tellingen per Account, de grafiekseries, topverzenders, recente e-mails, databasegrootte) in de in-memory cache van de server worden bewaard. Standaard is `60` seconden. Stel in op `0` om caching uit te schakelen en de statistieken altijd opnieuw te berekenen. Elke grafiekselectie van resolutie en periode wordt afzonderlijk gecached, dus een dashboard dat tussen selecties wordt gewisseld, bevat één vermelding per selectie. Hogere waarden verminderen de databasebelasting in grote omgevingen ten koste van meer verouderde getallen. Sync status badges, opslagwaarden en de lijst met recente e-mails worden altijd live opgehaald en worden niet beïnvloed door deze cache.
-- `Dashboard__RefreshIntervalMinutes`: Hoe vaak de `DashboardStatsRefreshService` achtergrondservice de kostbare dashboardaggregaties (totale tellingen met hun inkomende en uitgaande splitsingen, tellingen per Account, het aantal Account-domeinen, de standaard grafiekserie met de topverzenders, databasegrootte) berekent in de `DashboardStatsCache` databasetabel. Bij installaties met enkele miljoenen mails leest het dashboard deze voorbereide waarden in plaats van het gehele Archief te aggregeren in het verzoekspad, wat een eerste laadtijd van ~10 seconden omzet in milliseconden. Het grafiek-endpoint beantwoordt de standaardselectie (maanden over één jaar, inkomende verzenders, de huidige periode) vanuit dezelfde rij, zodat terugkeren naar deze selectie de getallen van de eerste paint toont; elke andere selectie wordt op aanvraag berekend en bewaard in de hierboven genoemde in-memory cache. Standaard is `15` minuten. Stel in op `0` om de achtergrondverversing uit te schakelen; het dashboard berekent dan de statistieken opnieuw live (waarbij de hierboven genoemde in-memory cache nog steeds van toepassing is). De getoonde waarden kunnen tot het geconfigureerde interval achterlopen op de werkelijke Archief-status. Een rij die is berekend met andere `ShowDirectionSplits` of `SelectablePeriods` waarden dan de huidige, wordt niet gebruikt; het dashboard berekent live totdat de volgende verversing plaatsvindt.
+- `Dashboard__RefreshIntervalMinutes`: Hoe vaak de `DashboardStatsRefreshService` achtergrondservice de kostbare dashboardaggregaties (totale tellingen met hun inkomende en uitgaande splitsingen, tellingen per Account, het aantal Account-domeinen, de standaard grafiekserie met de topverzenders, databasegrootte) berekent in de `DashboardStatsCache` databasetabel. Bij installaties met enkele miljoenen e-mails leest het dashboard deze voorbereide waarden in plaats van het gehele Archief te aggregeren in het verzoekspad, wat een eerste laadtijd van ~10 seconden verandert in milliseconden. Het chart-endpoint beantwoordt de standaardselectie (maanden over één jaar, inkomende verzenders, de huidige periode) vanuit dezelfde rij, zodat terugkeren naar deze selectie de getallen van de eerste paint laat zien; elke andere selectie wordt op aanvraag berekend en behouden in de hierboven genoemde in-memory cache. Standaard is `15` minuten. Stel in op `0` om de achtergrondverversing uit te schakelen; het dashboard berekent dan de statistieken weer live (waarbij de in-memory cache hierboven nog steeds van toepassing is). De getoonde waarden kunnen tot het geconfigureerde interval achterlopen op de werkelijke Archief-status. Een rij die is berekend met andere `ShowDirectionSplits` of `SelectablePeriods` waarden dan de huidige, wordt niet gebruikt; het dashboard berekent live tot de volgende verversing.
 
 ### 🔄 Jobs Settings {#jobs-settings}
-- `Jobs__RefreshSeconds`: Hoe vaak de achtergrondtakenpagina zichzelf ververst terwijl een browsertabblad deze open heeft staan. De standaardwaarde is `30` seconden. Stel in op `0` om de automatische verversing uit te schakelen en handmatig te verversen. Elke verversing bouwt de pagina opnieuw op vanuit alle acht de taakbronnen, dus bij installaties met veel accounts houdt een langer interval de belasting laag, vermenigvuldigd met elk tabblad dat op de pagina open staat.
+- `Jobs__RefreshSeconds`: Hoe vaak de pagina met achtergrondtaken zichzelf ververst terwijl een browsertabblad deze open heeft staan. De standaardwaarde is `30` seconden. Stel dit in op `0` om de automatische verversing uit te schakelen en handmatig te verversen. Elke verversing bouwt de pagina opnieuw op vanuit alle acht jobbronnen, dus bij installaties met veel accounts houdt een langer interval de belasting laag, vermenigvuldigd met elk tabblad dat de pagina open heeft staan.
 
 ### 🗃️ Npgsql Instellingen {#npgsql-settings}
 - `Npgsql__CommandTimeout`: De timeout voor databasecommando's in seconden.
 
-### 📥 Uploadinstellingen {#upload-settings}
+### 📥 Upload-instellingen {#upload-settings}
 - `Upload__MaxFileSizeGB`: De maximale bestandsgrootte voor uploads in GB.
 - `Upload__KeepAliveTimeoutHours`: De keep alive timeout voor uploads in uren.
 - `Upload__RequestHeadersTimeoutHours`: De timeout voor request headers in uren.
@@ -426,19 +435,19 @@ Beide Map-instellingen zijn opzettelijk leeg geleverd: het herschrijven of verwi
 ### 📂 Lokale Importinstellingen {#local-import-settings}
 - `LocalImport__AllowedPaths__0`, `LocalImport__AllowedPaths__1`, etc.: Whitelist van lokale mappen waaruit de CLI import-commando's (`--import-mbox`, `--import-eml`) bestanden mogen lezen. Elke vermelding is een pad binnen de container. U moet uw importbestanden in een van deze mappen mounten met behulp van Docker volumes. Standaard: `/data/import` (automatisch ingesteld op `/app/uploads` als fallback).
   - Wanneer u `docker exec` gebruikt om het import-commando uit te voeren, moet het via `--file` opgegeven bestandspad binnen een van deze toegestane paden vallen.
-  - Deze beveiligingsmaatregel voorkomt willekeurige toegang tot het bestandssysteem via CLI-commando's.
+  - Deze beveiligingsmaatregel voorkomt willekeurige toegang tot het bestandssysteem vanuit CLI-commando's.
   - Er kunnen meerdere paden worden geconfigureerd voor verschillende importbronnen.
   - Zie [CLI commands](CLI.md) voor gedetailleerde instructies voor gebruik.
 
 ### 📄 CSV Import Instellingen {#csv-import-settings}
-- `CsvImport__MaxRows`: Maximaal aantal CSV-regels (postbussen) dat in een enkele bulkimport wordt verwerkt. Standaard is `5000`. Verhoog deze waarde voor grootschalige implementaties; verlaag deze om de impact van een enkele importrun op de databasebelasting te beperken.
-- `CsvImport__MaxFileSizeBytes`: Maximale toegestane grootte (in bytes) van het geüploade CSV-bestand. Standaard is `10000000` (10 MB). Pas deze waarde aan om overeen te komen met uw uploadlimieten indien nodig.
+- `CsvImport__MaxRows`: Maximaal aantal CSV-rijen (postbussen) dat in een enkele bulkimport wordt verwerkt. De standaardwaarde is `5000`. Verhoog deze waarde voor grootschalige implementaties; verlaag deze om de impact van een enkele importrun op de databasebelasting te beperken.
+- `CsvImport__MaxFileSizeBytes`: Maximale toegestane grootte (in bytes) van het geüploade CSV-bestand. De standaardwaarde is `10000000` (10 MB). Pas deze waarde aan om overeen te komen met uw uploadlimieten indien nodig.
 - Raadpleeg de [Account Import Guide](Account-Import.md) voor gedetailleerde instructies over bulk IMAP account import via CSV.
 
 ### 📤 Audit Export Instellingen {#audit-export-settings}
-Instellingen voor de auditgegevens exportpagina (alleen voor beheerders, bereikbaar vanaf de Logs pagina). De export genereert een ZIP-pakket met tabulaire massadata (INDEX.XML + CSV-tabellen + DTD) uit het bestaande Archief voor externe audittools. Raadpleeg de [Audit Data Export Guide](AuditExport.md) voor details over het gebruik.
+Instellingen voor de pagina voor de export van auditgegevens (alleen voor beheerders, bereikbaar vanaf de Logs pagina). De export genereert een ZIP-pakket met tabulaire massadata (INDEX.XML + CSV-tabellen + DTD) uit het bestaande Archief voor externe audittools. Raadpleeg de [Audit Data Export Guide](AuditExport.md) voor details over het gebruik.
 - `AuditExport__DataSupplierName`: Standaardwaarde voor het formulierveld "Data supplier name" dat uw organisatie identificeert in het geëxporteerde indexbestand. Standaard: leeg.
-- `AuditExport__DataSupplierLocation`: Standaardwaarde voor het formulierveld "Data supplier location" (bijv. vestigingsplaats). Standaard: leeg.
+- `AuditExport__DataSupplierLocation`: Standaardwaarde voor het formulierveld "Data supplier location" (bijv. vestigingsplaats van het bedrijf). Standaard: leeg.
 - `AuditExport__Comment`: Standaardwaarde voor het formulierveld "Comment", opgenomen als vrije tekst in het geëxporteerde indexbestand. Standaard: leeg.
 - `AuditExport__OutputDirectory`: Directory waar de gegenereerde ZIP-bestanden worden opgeslagen. Relatieve paden worden opgelost ten opzichte van de app content root. Standaard: `exports/audit`.
 - `AuditExport__RetentionDays`: Aantal dagen waarna voltooide exportbestanden worden verwijderd door de dagelijkse opschoning. Standaard: `30`.
@@ -446,79 +455,80 @@ Instellingen voor de auditgegevens exportpagina (alleen voor beheerders, bereikb
 - De formuliervelden worden vooraf ingevuld met deze standaardwaarden, maar kunnen per export worden bewerkt.
 - Elke export schrijft een startvermelding en een resultaatvermelding naar het toegangsprotocol (type "Audit Data Export"), zodat de geschiedenis revisiebestendig is zonder wijzigingen in het DB-schema.
 
-### 🔒 Instellingen voor het Verwijderingsbeleid {#deletion-policy-settings}
-- `DeletionPolicy__DeletionAllowed`: Bepaalt of handmatige verwijdering van gearchiveerde e-mails is toegestaan (true/false). De standaardwaarde is `true`. Wanneer ingesteld op `false`:
-  - Alle gearchiveerde e-mails worden bij het opstarten vergrendeld (`IsLocked = true`) via de database compliance trigger, wat elke wijziging of verwijdering op database-niveau voorkomt.
-  - Handmatige verwijdering (individueel en in bulk) wordt op applicatieniveau geblokkeerd met een foutmelding.
-  - De kolomstandaardwaarde wordt aangepast zodat nieuw geïmporteerde e-mails ook vergrendeld worden.
-  - De huidige status van het beleid wordt bij elke opstart naar de AccessLogs-tabel gelogd (zichtbaar op de Logs-pagina als "Deletion Policy"-vermeldingen) voor controleerbaarheid.
-  - Lokale verwijdering op basis van Bewaring is vrijgesteld: e-mails die onder een geconfigureerde Bewaringstermijn vallen, worden nog steeds verwijderd (deze worden onmiddellijk voor verwijdering binnen het Bewaring-proces ontgrendeld).
-- `DeletionPolicy__MaxBulkDeleteEmails`: Bovengrens voor één filtergebaseerde bulkverwijdering (*Delete all matches*). De standaardwaarde is `100000`. Een filter die meer e-mails vindt, wordt geweigerd met een melding waarin wordt gevraagd de zoekopdracht te verfijnen; de taak wordt nooit stilzwijgend afgekort. E-mails die vergrendeld zijn door het Bewaring-beleid worden overgeslagen en gerapporteerd in de status van de taak, zonder ze te ontgrendelen. De taak controleert deze limiet en `DeletionPolicy__DeletionAllowed` opnieuw wanneer deze start, zodat een taak die in de wachtrij stond vóór een beleidswijziging stopt in plaats van te draaien met de oude instelling.
-- **Onveranderlijkheidsbescherming:** Wanneer `IsLocked = true`, blokkeert de database compliance trigger (`prevent_locked_email_changes`) ELKE wijziging aan de e-mailrij — alle kolommen zijn beschermd, niet alleen een vaste lijst met velden. De enige vrijgestelde kolommen zijn `IsLocked` zelf (zodat ontgrendeling voor verwijdering op basis van Bewaring en het toepassen van het beleid bij het opstarten mogelijk blijft) en `FolderName` (zodat IMAP synchronisatie de Map kan bijwerken wanneer een e-mail serverzijdig wordt verplaatst). De bescherming is kolom-agnostisch (gebaseerd op JSONB-vergelijking) en dekt automatisch toekomstige toevoegingen aan het schema.
+### 🔒 Deletion Policy Settings {#deletion-policy-settings}
+- `DeletionPolicy__DeletionAllowed`: Bepaalt of handmatige verwijdering van gearchiveerde e-mails is toegestaan (true/false). De standaardinstelling is `true`. Wanneer ingesteld op `false`:
+  - Alle gearchiveerde e-mails worden bij het opstarten vergrendeld (`IsLocked = true`) via de database compliance trigger, waardoor elke wijziging of verwijdering op database-niveau wordt voorkomen.
+  - Handmatige verwijdering (enkelvoudig en in bulk) wordt op applicatieniveau geblokkeerd met een foutmelding.
+  - De kolomstandaardwaarde wordt aangepast zodat nieuw geïmporteerde e-mails ook worden vergrendeld.
+  - De huidige status van het beleid wordt bij elke opstarting gelogd in de AccessLogs tabel (zichtbaar op de Logs pagina als "Deletion Policy" vermeldingen) voor controleerbaarheid.
+  - Lokale verwijdering op basis van Bewaring is vrijgesteld: e-mails die onder een geconfigureerde Bewaringstermijn vallen, worden nog steeds verwijderd (ze worden onmiddellijk voor verwijdering binnen het Bewaring-proces ontgrendeld).
+- `DeletionPolicy__MaxBulkDeleteEmails`: Bovengrens voor één filtergebaseerde bulkverwijdering (*Delete all matches*). Standaard is `100000`. Een filter die meer e-mails vindt, wordt geweigerd met een melding waarin wordt gevraagd de zoekopdracht te verfijnen; de taak wordt nooit stilzwijgend afgekort. E-mails die zijn vergrendeld door het Bewaring-beleid worden overgeslagen en gerapporteerd in de status van de taak, zonder ze te ontgrendelen. De taak controleert deze limiet en `DeletionPolicy__DeletionAllowed` opnieuw wanneer deze start, zodat een taak die is ingepland vóór een beleidswijziging stopt in plaats van te draaien met de oude instelling.
+- **Immutability protection:** Wanneer `IsLocked = true`, blokkeert de database compliance trigger (`prevent_locked_email_changes`) ELKE wijziging aan de e-mailrij — alle kolommen zijn beschermd, niet alleen een vaste lijst met velden. De enige vrijgestelde kolommen zijn `IsLocked` zelf (zodat ontgrendeling voor Bewaring-verwijdering en het toepassen van het beleid bij het opstarten mogelijk blijft) en `FolderName` (zodat IMAP sync de Map kan bijwerken wanneer een e-mail aan de serverzijde wordt verplaatst). De bescherming is kolom-agnostisch (gebaseerd op JSONB-vergelijking) en dekt automatisch toekomstige schema-toevoegingen af.
 
 ### 🕐 TimeZone Settings {#timezone-settings}
-- `TimeZone__DisplayTimeZoneId`: De tijdzone die wordt gebruikt voor het weergeven van e-mail tijdstempels in de UI. Gebruikt IANA tijdzone-identificatoren (bijv. "Europe/Berlin", "Asia/Tokyo"). De standaardinstelling is "Etc/UCT" voor backward compatibility. Bij het importeren van e-mails worden de tijdstempels naar deze tijdzone omgezet voor weergatsdoeleinden.
+- `TimeZone__DisplayTimeZoneId`: De tijdzone die wordt gebruikt voor het weergeven van e-mail tijdstempels in de UI. Gebruikt IANA tijdzone-identificatoren (bijv. "Europe/Berlin", "Asia/Tokyo"). De standaardinstelling is "Etc/UCT" voor backward compatibility. Bij het importeren van e-mails worden de tijdstempels naar deze tijdzone geconverteerd voor weergatsdoeleinden.
 
 ### 🎉 ReleaseNotes Settings (Version Update Splash Screen) {#releasenotes-settings-version-update-splash-screen}
-- `ReleaseNotes__AppVersion`: De versiestring die deze instantie rapporteert. Deze wordt vergeleken met GitHub release tags en bepaalt of er een nieuwere release bestaat. Wanneer leeg, valt de changelog terug op de versie van de gecompileerde assembly en blijft de update hint uitgeschakeld.
+- `ReleaseNotes__AppVersion`: De versiestring die deze instantie rapporteert. Deze wordt vergeleken met GitHub release tags en bepaalt of er een nieuwere release bestaat. Wanneer dit leeg is, valt de changelog terug op de versie van de gecompileerde assembly en blijft de update hint uitgeschakeld.
 - `ReleaseNotes__Enabled`: Schakel het versie-update splash scherm in of uit (true/false). Standaard is `true`. Wanneer ingeschakeld, zien beheerders na een applicatie-update een eenmalige changelog modal, met de release notes die zijn opgehaald uit GitHub Releases voor de huidige versie. Elke beheerder kan de modal sluiten, en deze verschijnt alleen opnieuw voor een nieuwe versie. Stel in op `false` om deze functie volledig uit te schakelen, inclusief de update hint.
 - `ReleaseNotes__UpdateHintEnabled`: Toon beheerders een kleine toast in de rechterbenedenhoek wanneer GitHub een nieuwere stabiele release publiceert dan de geïnstalleerde versie (true/false). Standaard is `true`. De toast linkt naar die release en wordt per versie in de browser gesloten. Drafts en prereleases worden genegeerd. Vereist `ReleaseNotes__AppVersion`; zonder dit wordt er geen hint getoond.
 - `ReleaseNotes__UpdateCheckIntervalHours`: Hoe vaak de GitHub release lijst wordt ververst, in uren. Standaard is `6`. Een korter interval maakt een nieuwe release sneller zichtbaar in een langlopende instantie, een langer interval vermindert het aantal GitHub API-aanroepen. Minimum is `1`.
 
 ### 🔧 Database Maintenance Settings {#database-maintenance-settings}
 - `DatabaseMaintenance__Enabled`: Schakel automatische dagelijkse database-onderhoud in of uit (true/false). Standaard is `false`. Wanneer ingeschakeld, voert het systeem automatisch VACUUM ANALYZE-bewerkingen uit om de databaseprestaties te optimaliseren en bloat te voorkomen. Zie [Database Maintenance Guide](DatabaseMaintenance.md) voor meer details.
-- `DatabaseMaintenance__DailyExecutionTime`: De tijd van de dag waarop database-onderhoud moet worden uitgevoerd, in 24-uursformaat (HH:mm). Standaard is `02:00`. Kies een tijdstip tijdens lage systeemactiviteit.
+- `DatabaseMaintenance__DailyExecutionTime`: De tijd van de dag waarop database-onderhoud moet worden uitgevoerd, in 24-uursformaat (HH:mm). Standaard is `02:00`. Kies een tijdstip tijdens perioden met lage systeemactiviteit.
 - `DatabaseMaintenance__TimeoutMinutes`: Maximale tijd toegestaan voor onderhoudsbewerkingen in minuten. Standaard is `30`. Verhoog deze waarde voor grotere databases.
 
 ### 🧬 Attachment Deduplication Settings {#attachment-deduplication-settings}
-Attachment Deduplicatie slaat elke unieke bijlage-payload slechts één keer op (content-addressed via SHA-256) en is een **kernfunctie die altijd is ingeschakeld** – er is opzettelijk geen aan/uit-schakelaar. Alleen de onderstaande batch/scheduling-parameters kunnen worden aangepast. Raadpleeg de [Attachment Deduplication Guide](AttachmentDeduplication.md) voor volledige details.
+Bijlage Deduplicatie slaat elke unieke bijlage-payload slechts één keer op (content-addressed via SHA-256) en is een **kernfunctie die altijd is ingeschakeld** – er is opzettelijk geen aan/uit-schakelaar. Alleen de onderstaande batch/scheduling-parameters kunnen worden aangepast. Raadpleeg de [Attachment Deduplication Guide](AttachmentDeduplication.md) voor volledige details.
 
-- `AttachmentDeduplication__BatchSize`: Aantal bestaande bijlagen dat per transactie wordt gemigreerd tijdens de eenmalige achtergrondmigratie van bestaande gegevens. Standaard is `200`. Grotere waarden migreren sneller maar gebruiken meer geheugen/DB-belasting per batch.
+- `AttachmentDeduplication__BatchSize`: Aantal bestaande bijlagen dat per transactie wordt gemigreerd tijdens de eenmalige achtergrondmigratie van bestaande gegevens. Standaard is `200`. Grotere waarden migreren sneller, maar verbruiken meer geheugen/DB-belasting per batch.
 - `AttachmentDeduplication__DelayBetweenBatchesMs`: Optionele pauze (in milliseconden) tussen migratiebatches om de databasebelasting op drukke systemen te beperken. Standaard is `0` (geen pauze).
 - `AttachmentDeduplication__StartupDelaySeconds`: Vertraging (in seconden) na het opstarten van de applicatie voordat de achtergrondmigratie begint, zodat de schema-migratie de tijd heeft om te voltooien. Standaard is `20`.
 - `AttachmentDeduplication__OrphanCleanupIntervalHours`: Interval (in uren) van de altijd actieve garbage collection die bijlage-payloads verwijdert die niet langer worden gerefereerd door een e-mail. Standaard is `12`. Dit draait onafhankelijk van `DatabaseMaintenance__Enabled`.
-- `AttachmentDeduplication__CommandTimeoutSeconds`: Database command timeout (in seconden) voor de migratiebatch-operaties (INSERT met SHA-256 hashing en UPDATE). Standaard is `300` (5 minuten). Verhoog deze waarde voor zeer grote databases of bijlagen, of verlaag deze als u snellere foutdetectie wilt. Als een batch nog steeds een timeout krijgt, probeert de service het automatisch opnieuw met de helft van de batchgrootte.
+- `AttachmentDeduplication__CommandTimeoutSeconds`: Database command timeout (in seconden) voor de migratiebatch-operaties (INSERT met SHA-256 hashing en UPDATE). Standaard is `300` (5 minuten). Verhoog deze waarde voor zeer grote databases of bijlagen, of verlaag deze als u snellere foutdetectie wilt. Als een batch nog steeds een timeout geeft, probeert de service het automatisch opnieuw met de helft van de batchgrootte.
 
-### 💾 Account Storage Instellingen {#account-storage-settings}
-De opslagweergave per Account toont het database-opslaggebruik (alle mailvelden + bijlagen) voor elk Account in de Dashboard "Account Overview" tabel en de MailAccounts "Show All" tabel. Een autark achtergrondservice (`AccountStorageRefreshService`) berekent de waarden door PostgreSQL `pg_column_size` per kolom op te tellen (waarbij alle velden van een mail worden gedekt zonder de mailbodies te lezen) en cachet deze in de `AccountStorageCache` tabel. Deze service draait onafhankelijk van `DatabaseMaintenance__Enabled`.
+### 💾 Account Storage Settings {#account-storage-settings}
 
-- `AccountStorage__Enabled`: Schakel de opslagverversingsservice in of uit (true/false). Standaard is `true`. Wanneer ingeschakeld, voert de service bij het opstarten een hervatbare backfill uit van openstaande Accounts (crash-veilig via `AccountStorageBackfillState`) en daarna een dagelijkse volledige verversing. Wanneer uitgeschakeld, worden opslagwaarden alleen bijgewerkt wanneer e-mails worden gesynchroniseerd, geïmporteerd of verwijderd, maar de weergegeven waarden kunnen na verloop van tijd verouderen.
+De opslagweergave per Account toont het database-opslaggebruik (alle mailvelden + Bijlagen) voor elk Account in de Dashboard "Account Overview" tabel en de MailAccounts "Show All" tabel. Een autarkische achtergrondservice (`AccountStorageRefreshService`) berekent de waarden door de PostgreSQL `pg_column_size` per kolom op te tellen (waarbij alle velden van een mail worden gedekt zonder de mailbodies te lezen) en cachet deze in de `AccountStorageCache` tabel. Deze service draait onafhankelijk van `DatabaseMaintenance__Enabled`.
+
+- `AccountStorage__Enabled`: Schakel de opslagverversingsservice in of uit (true/false). Standaard is `true`. Wanneer ingeschakeld, voert de service bij het opstarten een hervatbare backfill uit van openstaande Accounts (crash-safe via `AccountStorageBackfillState`) en daarna een dagelijkse volledige verversing. Wanneer uitgeschakeld, worden de opslagwaarden alleen bijgewerkt wanneer e-mails worden gesynchroniseerd, geïmporteerd of verwijderd, maar de weergegeven waarden kunnen na verloop van tijd verouderd raken.
 - `AccountStorage__DailyExecutionTime`: Tijdstip (24-uursformaat `HH:mm`) voor de dagelijkse volledige verversing van alle Accounts. Standaard is `02:30`. Kies een tijdstip tijdens lage systeemactiviteit.
 - `AccountStorage__BackfillDelayMs`: Vertraging (in milliseconden) tussen Accounts tijdens de initiële backfill bij het opstarten. Standaard is `5000`. Lagere waarden versnellen de backfill maar verhogen de databasebelasting; verhoog deze waarde voor zeer grote Archiefbestanden om overbelasting van de database te voorkomen.
 - `AccountStorage__RefreshBatchDelayMs`: Vertraging (in milliseconden) tussen Accounts tijdens de dagelijkse volledige verversing. Standaard is `1000`. Lagere waarden versnellen de verversing maar verhogen de databasebelasting; verhoog deze waarde voor zeer grote Archiefbestanden.
-- `AccountStorage__CommandTimeoutSeconds`: Database command timeout (in seconden) voor de opslagberekening per Account (`pg_column_size` over alle rijen van een Account). Standaard is `300` (5 minuten). De berekening leest elke mailrij inclusief TOAST-gegevens, wat bij zeer grote Archiefbestanden (250k+ e-mails) ruim een minuut kan duren; de vorige Npgsql-standaard van 30 seconden zorgde ervoor dat de verversing zonder foutmelding mislukte en het dashboard verouderde waarden bleef tonen. Verhoog deze waarde als de berekening nog steeds een timeout geeft op uw Archiefbestand.
+- `AccountStorage__CommandTimeoutSeconds`: Database command timeout (in seconden) voor de opslagberekening per Account (`pg_column_size` over alle rijen van een Account). Standaard is `300` (5 minuten). De berekening leest elke mailrij inclusief TOAST-gegevens, wat bij zeer grote Archiefbestanden (250k+ e-mails) ruim een minuut kan duren; de eerdere Npgsql-standaard van 30 seconden zorgde ervoor dat de verversing zonder foutmelding mislukte en het dashboard verouderde waarden bleef tonen. Verhoog deze waarde als de berekening nog steeds een timeout geeft op uw Archiefbestand.
 
-> 💡 **Opmerking**: Opslagwaarden worden onmiddellijk ververst na elke mail synchronisatie, import of Bewaring verwijdering, zodat de weergegeven waarden actueel blijven, zelfs zonder de dagelijkse verversing. De dagelijkse verversing is een vangnet voor uitzonderlijke gevallen (bijv. directe databasewijzigingen).
+> 💡 **Opmerking**: Opslagwaarden worden onmiddellijk ververst na elke mail synchronisatie, import of Bewaring-verwijdering, zodat de weergegeven waarden actueel blijven, zelfs zonder de dagelijkse verversing. De dagelijkse verversing is een vangnet voor uitzonderlijke gevallen (bijv. directe databasewijzigingen).
 
-### 📝 Logging Settings {#logging-settings}
+### 📝 Logging-instellingen {#logging-settings}
 - `Logging__LogLevel__Default`: Het standaard logniveau voor de applicatie. Beschikbare niveaus zijn: `Trace`, `Debug`, `Information`, `Warning`, `Error`, `Critical`, `None`. Standaard is `Information`.
 - `Logging__LogLevel__Microsoft_AspNetCore`: Logniveau voor ASP.NET Core framework berichten. Standaard is `Warning`.
 - `Logging__LogLevel__Microsoft_EntityFrameworkCore_Database_Command`: Logniveau voor Entity Framework database commando's. Standaard is `Warning`.
 
 ### 🛡️ Beveiligingsinstellingen {#security-settings}
-- `AllowedHosts`: Een met puntkomma's gescheiden lijst met hostnamen die de applicatie mag bedienen. Dit helpt HTTP Host header-aanvallen te voorkomen. Voorbeeld: `AllowedHosts=mailarchiver.example.com;www.mailarchiver.example.com`. **Belangrijk**: Gebruik `*` niet in productieomgevingen, omdat dit de validatie van de host header uitschakelt.
+- `AllowedHosts`: Een met puntkomma gescheiden lijst van hostnamen die de applicatie mag bedienen. Dit helpt HTTP Host header-aanvallen te voorkomen. Voorbeeld: `AllowedHosts=mailarchiver.example.com;www.mailarchiver.example.com`. **Belangrijk**: Gebruik `*` niet in productieomgevingen, omdat dit de validatie van de host header uitschakelt.
 
-#### 🔐 Versleuteling van gegevens in rust voor inloggegevens {#credential-encryption-at-rest}
-Inloggegevens van het Mail Account (IMAP-wachtwoord, M365 client secret en MSA OAuth-tokens) kunnen in de database worden versleuteld. De versleutelingssleutel wordt **buiten** de database bewaard (omgevingsvariabele / Docker secret), waardoor een database-dump alleen niet voldoende is om de inloggegevens te lezen.
+#### 🔐 Versleuteling van inloggegevens bij opslag {#credential-encryption-at-rest}
+Inloggegevens van het Mail Account (IMAP-wachtwoord, M365 client secret en MSA OAuth-tokens) kunnen in de database worden versleuteld. De versleutelingssleutel wordt **buiten** de database bewaard (omgevingsvariabele / Docker secret), zodat een database-dump alleen niet voldoende is om de inloggegevens te lezen.
 
 - `Security__CredentialEncryptionKey`: Base64-gecodeerde 256-bits (32 byte) sleutel voor versleuteling. Genereer er een met:
   ```bash
   openssl rand -base64 32
   ```
-  Stel de waarde in als een omgevingsvariabele (aanbevolen: `Security__CredentialEncryptionKey` in uw compose-bestand of containeromgeving). De applicatie ondersteunt geen Docker secrets in `_FILE`-stijl — als u een Docker secret gebruikt, monteer deze dan en laad de inhoud ervan in de omgevingsvariabele in uw entrypoint. Commit de sleutel nooit naar `appsettings.json`. Wanneer een sleutel is geconfigureerd, worden inloggegevens versleuteld bij het wegschrijven, en versleutelt een achtergrondservice eenmalig bestaande inloggegevens in platte tekst.
-- `Security__EncryptAccountCredentials`: Schakel de versleuteling van nieuwe/bijgewerkte inloggegevens in of uit (true/false). De standaardwaarde is `true`. Wanneer er geen sleutel is geconfigureerd, worden inloggegevens als platte tekst opgeslagen en wordt er bij het opstarten een waarschuwing in het Auditlogboek bijgehouden — bestaande installaties worden niet beïnvloed totdat er een sleutel wordt verstrekt.
+  Stel de waarde in als een omgevingsvariabele (aanbevolen: `Security__CredentialEncryptionKey` in uw compose-bestand of containeromgeving). De applicatie ondersteunt geen Docker secrets in `_FILE`-stijl — als u een Docker secret gebruikt, monteer deze dan en laad de inhoud ervan in de omgevingsvariabele in uw entrypoint. Commit de sleutel nooit naar `appsettings.json`. Wanneer een sleutel is geconfigureerd, worden inloggegevens versleuteld bij het schrijven, en een achtergrondservice versleutelt bestaande inloggegevens in platte tekst eenmalig.
+- `Security__EncryptAccountCredentials`: Schakel de versleuteling van nieuwe/bijgewerkte inloggegevens in of uit (true/false). De standaardwaarde is `true`. Wanneer er geen sleutel is geconfigureerd, worden inloggegevens als platte tekst opgeslagen en wordt er bij het opstarten een waarschuwing gelogd — bestaande installaties worden niet beïnvloed totdat een sleutel wordt verstrekt.
 - `Security__CredentialEncryptionBackfill`: Of de achtergrondservice bestaande inloggegevens in platte tekst bij het opstarten moet versleutelen (true/false). De standaardwaarde is `true`. Geen actie zonder geconfigureerde sleutel.
 - `Security__CredentialEncryptionKeyPrevious`: Optionele vorige sleutel, wordt alleen gebruikt om waarden te ontsleutelen die ermee zijn versleuteld (voor sleutelrotatie). Nieuwe waarden worden altijd versleuteld met `Security__CredentialEncryptionKey`.
 
-  > ⚠️ **Sleutelrotatie**: bewaar `Security__CredentialEncryptionKeyPrevious` na rotatie geconfigureerd **totdat elk inloggegevens opnieuw is weggeschreven** (bijv. door het Account te bewerken of een automatische OAuth-tokenverversing) — bestaande waarden die met de oude sleutel zijn versleuteld, worden *niet* automatisch opnieuw versleuteld met de nieuwe sleutel. Zodra u de vorige sleutel verwijdert, worden alle inloggegevens die nog met deze sleutel zijn versleuteld onleesbaar en moeten ze opnieuw worden ingevoerd. Zolang deze is geconfigureerd, moet deze net zo veilig worden bewaard als de huidige sleutel.
+  > ⚠️ **Sleutelrotatie**: bewaar `Security__CredentialEncryptionKeyPrevious` na rotatie geconfigureerd **totdat elk inlogmiddel opnieuw is geschreven** (bijv. door het Account te bewerken of een automatische OAuth-tokenvernieuwing) — bestaande waarden die met de oude sleutel zijn versleuteld, worden *niet* automatisch opnieuw versleuteld met de nieuwe sleutel. Zodra u de vorige sleutel verwijdert, worden alle inloggegevens die nog met deze zijn versleuteld onleesbaar en moeten ze opnieuw worden ingevoerd. Zolang deze is geconfigureerd, moet deze net zo veilig worden bewaard als de huidige sleutel.
 
-> ⚠️ **Houd de sleutel veilig**: Zonder de sleutel kunnen versleutelde inloggegevens niet worden hersteld en moeten ze opnieuw worden ingevoerd. Maak een Back-up van de sleutel samen met (maar apart van) uw database Back-ups.
+> ⚠️ **Houd de sleutel veilig**: Zonder de sleutel kunnen versleutelde inloggegevens niet worden hersteld en moeten ze opnieuw worden ingevoerd. Maak een Back-up van de sleutel samen met (maar gescheiden van) uw database Back-ups.
 >
 > 💡 **Bestaande installaties**: Upgrade veilig — zolang er geen `Security__CredentialEncryptionKey` is ingesteld, verandert er niets. Stel de sleutel in wanneer u er klaar voor bent; bestaande inloggegevens in platte tekst blijven leesbaar en worden op de achtergrond versleuteld.
 
-### 🔐 OIDC-configuratie {#oidc-configuration}
+### 🔐 OIDC Configuratie {#oidc-configuration}
 
-Raadpleeg de [OIDC Implementation Guide](OIDC_Implementation.md) voor gedetailleerde instructies voor de installatie van OpenID Connect-authenticatie.
+Voor gedetailleerde instructies voor de installatie van OpenID Connect-authenticatie, zie [OIDC Implementation Guide](OIDC_Implementation.md).
 
 #### Basis OIDC-instellingen {#basic-oidc-settings}
 - `OAuth__Enabled`: Schakel OIDC-authenticatie in of uit (true/false)
@@ -530,17 +540,17 @@ Raadpleeg de [OIDC Implementation Guide](OIDC_Implementation.md) voor gedetaille
 - `OAuth__ClientScopes__1`: Tweede scope aangevraagd bij de identity provider (profile)
 - `OAuth__ClientScopes__2`: Derde scope aangevraagd bij de identity provider (email)
 - `OAuth__ResponseMode`: Optionele response mode van de autorisatieaanvraag (`query`, `fragment` of `form_post`). Standaard is `form_post`, de ASP.NET Core standaard. Stel in op `query` voor providers die `form_post` niet ondersteunen, zoals Synology SSO Server. Zie [Provider Compatibility](OIDC_Implementation.md#provider-compatibility).
-- `OAuth__AutoApproveUsers`: Nieuwe OIDC-gebruikers automatisch goedkeuren zonder dat handmatige goedkeuring door een admin vereist is (true/false). Standaard is `false`.
+- `OAuth__AutoApproveUsers`: Keur nieuwe OIDC-gebruikers automatisch goed zonder dat handmatige goedkeuring door een admin vereist is (true/false). Standaard is `false`.
 
-#### Gebruikersprovisioneringsinstellingen {#user-provisioning-settings}
-- `OAuth__AutoApproveUsers`: Nieuwe OIDC-gebruikers automatisch goedkeuren zonder dat handmatige goedkeuring door een admin vereist is (true/false). Standaard is `false`. Wanneer ingeschakeld, worden gebruikers die authenticeren via de OIDC-provider onmiddellijk geactiveerd en kunnen zij toegang krijgen tot de applicatie. Wanneer uitgeschakeld (standaard), worden nieuwe OIDC-gebruikers als inactief aangemaakt en is handmatige activering door een administrator vereist. Zie [Auto-Approve OIDC Users](OIDC_Implementation.md#auto-approve-oidc-users) voor gedetailleerde informatie.
-- `OAuth__AdminEmails__0`, `OAuth__AdminEmails__1`, enz.: E-mailadressen die automatisch als administrators moeten worden geprovisioneerd. Gebruikers met deze e-mailadressen worden bij de eerste OAuth-login aangemaakt als actieve admins, waarbij het normale goedkeuringsproces wordt omzeild. E-mailkoppeling is niet hoofdlettergevoelig.
+#### User Provisioning Instellingen {#user-provisioning-settings}
+- `OAuth__AutoApproveUsers`: Keur nieuwe OIDC-gebruikers automatisch goed zonder dat handmatige goedkeuring door een admin vereist is (true/false). Standaard is `false`. Wanneer ingeschakeld, worden gebruikers die authenticeren via de OIDC-provider onmiddellijk geactiveerd en kunnen zij toegang krijgen tot de applicatie. Wanneer uitgeschakeld (standaard), worden nieuwe OIDC-gebruikers als inactief aangemaakt en is handmatige activering door een administrator vereist. Zie [Auto-Approve OIDC Users](OIDC_Implementation.md#auto-approve-oidc-users) voor gedetailleerde informatie.
+- `OAuth__AdminEmails__0`, `OAuth__AdminEmails__1`, etc.: E-mailadressen die automatisch als administrators moeten worden aangemaakt. Gebruikers met deze e-mailadressen worden bij de eerste OAuth-login aangemaakt als actieve admins, waarbij het normale goedkeuringsproces wordt omzeild. E-mailkoppeling is niet hoofdlettergevoelig.
 
-#### Instellingen voor wachtwoordloze login {#passwordless-login-settings}
-- `OAuth__DisablePasswordLogin`: Schakel de gebruikersnaam/wachtwoord-login uit (true/false). Standaard is `false`. Wanneer ingeschakeld, wordt het wachtwoordformulier verborgen **en** wijst de server elke wachtwoord POST af, zodat alleen de OAuth-login beschikbaar is. Vereist `OAuth__Enabled=true`. Als OAuth is uitgeschakeld, heeft deze instelling geen effect.
-- `OAuth__AutoRedirect`: Gebruikers automatisch doorsturen naar de OAuth-provider (true/false). Standaard is `false`. Vereist dat `OAuth__DisablePasswordLogin` op `true` staat. Gebruikers zien een kort laadscherm voordat ze worden doorverwezen.
+#### Passwordless Login Instellingen {#passwordless-login-settings}
+- `OAuth__DisablePasswordLogin`: Schakel gebruikersnaam/wachtwoord login uit (true/false). Standaard is `false`. Wanneer ingeschakeld, wordt het wachtwoordformulier verborgen **en** wijst de server elke wachtwoord POST af, zodat alleen de OAuth-login beschikbaar is. Vereist `OAuth__Enabled=true`. Als OAuth is uitgeschakeld, heeft deze instelling geen effect.
+- `OAuth__AutoRedirect`: Leid gebruikers automatisch door naar de OAuth-provider (true/false). Standaard is `false`. Vereist dat `OAuth__DisablePasswordLogin` op `true` staat. Gebruikers zien een kort laadscherm voordat ze worden doorgeleid.
 
-#### Voorbeeld: Volledige OIDC-First-configuratie {#example-full-oidc-first-configuration}
+#### Voorbeeld: Volledige OIDC-First Configuratie {#example-full-oidc-first-configuration}
 ```yaml
 environment:
   - OAuth__Enabled=true
@@ -558,9 +568,9 @@ environment:
   - OAuth__AdminEmails__1=manager@example.com
 ```
 
-## 🔐 Kestrel HTTPS-configuratie (Optioneel) {#kestrel-https-configuration-optional}
+## 🔐 Kestrel HTTPS Configuratie (Optioneel) {#kestrel-https-configuration-optional}
 
-Hoewel de applicatie bedoeld is om via een reverse proxy met HTTPS te worden benaderd, kunt u de Kestrel webserver ook configureren om SSL/TLS-certificaten te gebruiken. Dit biedt end-to-end encryptie tussen de reverse proxy en de applicatiecontainer.
+Hoewel de applicatie bedoeld is om via een reverse proxy met HTTPS te worden benaderd, kunt u ook de Kestrel webserver configureren om SSL/TLS-certificaten te gebruiken. Dit biedt end-to-end encryptie tussen de reverse proxy en de applicatiecontainer.
 
 ### Configuratiestappen {#configuration-steps}
 
@@ -602,15 +612,15 @@ volumes:
 - `Kestrel__Endpoints__Https__Certificate__Path`: Pad naar het PFX-certificaatbestand binnen de container
 - `Kestrel__Endpoints__Https__Certificate__Password`: Wachtwoord voor het PFX-certificaatbestand
 
-> 💡 **Opmerking**: Deze configuratie is optioneel. Als u een reverse proxy met HTTPS gebruikt (aanbevolen), kan de communicatie tussen de reverse proxy en de applicatie HTTP blijven. Voor maximale beveiliging in gevoelige omgevingen wilt u echter mogelijk ook HTTPS op Kestrel inschakelen om het volledige communicatiepad te versleutelen.
+> 💡 **Opmerking**: Deze configuratie is optioneel. Als u een reverse proxy met HTTPS gebruikt (aanbevolen), kan de communicatie tussen de reverse proxy en de applicatie via HTTP blijven. Voor maximale beveiliging in gevoelige omgevingen wilt u echter mogelijk ook HTTPS op Kestrel inschakelen om het volledige communicatiepad te versleutelen.
 
 ## 🔑 Secrets Management voor Productie {#secrets-management-for-production}
 
-Het hardcoderen van gevoelige gegevens zoals database wachtwoorden, admin-gegevens en OAuth client secrets direct in `docker-compose.yml` is een beveiligingsrisico, vooral wanneer het bestand wordt toegevoegd aan versiebeheer. De aanbevolen aanpak is om deze waarden te externaliseren naar een `.env` bestand dat Docker Compose automatisch laadt.
+Het hardcoderen van gevoelige gegevens zoals databasewachtwoorden, admin-inloggegevens en OAuth client secrets rechtstreeks in `docker-compose.yml` is een beveiligingsrisico, vooral wanneer het bestand wordt toegevoegd aan versiebeheer. De aanbevolen aanpak is om deze waarden te externaliseren naar een `.env` bestand dat Docker Compose automatisch laadt.
 
 ### 📄 Het `.env` Bestand {#the-env-file}
 
-Maak een `.env` bestand aan in dezelfde directory als je `docker-compose.yml` met de volgende inhoud:
+Maak een `.env` bestand aan in dezelfde map als uw `docker-compose.yml` met de volgende inhoud:
 
 ```env
 # Database
@@ -630,7 +640,7 @@ CREDENTIAL_ENCRYPTION_KEY=YourBase64Encoded32ByteKey
 KESTREL_CERT_PASSWORD=YourCertPassword
 ```
 
-**Belangrijk**: Docker Compose leest automatisch het `.env` bestand uit dezelfde directory — je hoeft dit **niet** handmatig te refereren. Alle variabelen die zijn gedefinieerd in `.env` zijn beschikbaar in `docker-compose.yml` via de `${VARIABLE_NAME}` syntaxis.
+**Belangrijk**: Docker Compose leest automatisch het `.env` bestand uit dezelfde map — u hoeft dit **niet** handmatig te refereren. Alle variabelen die zijn gedefinieerd in `.env` zijn beschikbaar in `docker-compose.yml` via de `${VARIABLE_NAME}` syntaxis.
 
 ### 🐳 Aangepaste `docker-compose.yml` {#adapted-docker-composeyml}
 
@@ -669,7 +679,7 @@ services:
 
 ### 📋 `.env.example` Sjabloon voor Beheerders {#envexample-template-for-administrators}
 
-Maak een `.env.example` bestand aan in je repository dat dient als sjabloon voor andere beheerders. Het bevat placeholder-waarden en documentatie, maar **geen echte secrets**:
+Maak een `.env.example` bestand aan in uw repository dat dient als sjabloon voor andere beheerders. Het bevat placeholder-waarden en documentatie, maar **geen echte secrets**:
 
 ```env
 # ============================================
@@ -698,15 +708,15 @@ CREDENTIAL_ENCRYPTION_KEY=change_me_base64_32_byte_key
 ### ✅ Best Practices {#best-practices}
 
 - **Gebruik `.env.example` als sjabloon**
-- **Stel strikte bestand-machtigingen in** — Beperk de toegang tot het `.env` bestand:
+- **Stel strikte bestandsmachtigingen in** — Beperk de toegang tot het `.env` bestand:
   ```bash
   chmod 600 .env
   ```
 - **Gebruik sterke wachtwoorden** — Genereer lange, willekeurige wachtwoorden (minimaal 16 tekens) met een mix van letters, cijfers en speciale tekens.
-- **Beperk toegang tot het `.env` bestand** — Alleen de gebruiker die Docker Compose uitvoert, mag leesrechten hebben op het `.env` bestand.
+- **Beperk de toegang tot het `.env` bestand** — Alleen de gebruiker die Docker Compose uitvoert, mag leesrechten hebben voor het `.env` bestand.
 
 ## 🔒 Beveiligingsnotities {#security-notes}
 
 - Gebruik sterke wachtwoorden en wijzig standaard inloggegevens. Wachtwoorden moeten ten minste 12 tekens lang zijn en een mix bevatten van hoofdletters, kleine letters, cijfers en speciale tekens. Vermijd het gebruik van veelvoorkomende woorden of gemakkelijk te raden informatie.
 - Overweeg het implementeren van HTTPS met een reverse proxy in productie
-- Regelmatige Back-ups van de PostgreSQL-database worden aanbevolen. Raadpleeg voor gedetailleerde Back-up en Herstel procedures de [Backup and Restore Guide](BackupRestore.md).
+- Regelmatige Back-ups van de PostgreSQL database worden aanbevolen. Raadpleeg voor gedetailleerde Back-up en Herstel procedures de [Backup and Restore Guide](BackupRestore.md).

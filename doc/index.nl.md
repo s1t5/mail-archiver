@@ -2,7 +2,7 @@
 
 <div class="docs-lead" markdown>
 **Zelf-gehost e-mailarchiveren — archiveer, zoek en exporteer e-mail van elke provider.**
-Stel het eenmaal in, bewaar elk bericht en vind het jaren later weer terug.
+Stel het eenmalig in, bewaar elk bericht en vind het jaren later weer terug.
 </div>
 
 <div class="grid cards" markdown>
@@ -19,7 +19,7 @@ Stel het eenmaal in, bewaar elk bericht en vind het jaren later weer terug.
 
     ---
 
-    Volledige tekstzoekopdrachten over elk Account, met filters, sortering en bulkacties.
+    Full-text zoekopdrachten over elk Account, met filters, sortering en bulkacties.
 
     [:octicons-arrow-right-24: Mail search](Search.md)
 
@@ -57,7 +57,7 @@ Stel het eenmaal in, bewaar elk bericht en vind het jaren later weer terug.
 
     ---
 
-    Plaats Mail Archiver achter nginx of Caddy met TLS termination.
+    Plaats Mail Archiver achter nginx of Caddy met TLS-terminatie.
 
     [:octicons-arrow-right-24: Read](ReverseProxy.md)
 
@@ -158,7 +158,7 @@ Stel het eenmaal in, bewaar elk bericht en vind het jaren later weer terug.
 
     ---
 
-    Houd synchronisaties, imports, herstels en exports in de gaten — en annuleer ze veilig.
+    Houd synchronisaties, imports, herstelacties en exports in de gaten — en annuleer ze veilig.
 
     [:octicons-arrow-right-24: Read](BackgroundJobs.md)
 
@@ -166,7 +166,7 @@ Stel het eenmaal in, bewaar elk bericht en vind het jaren later weer terug.
 
     ---
 
-    Kopieer e-mail tussen Postbussen terwijl de Mapstructuur behouden blijft.
+    Kopieer e-mail tussen Postbussen terwijl de Map-structuur behouden blijft.
 
     [:octicons-arrow-right-24: Read](MailboxMigration.md)
 
@@ -220,7 +220,7 @@ Stel het eenmaal in, bewaar elk bericht en vind het jaren later weer terug.
 
     ---
 
-    Maak gebruikers aan, verleen admin-rechten, wijs Postbus machtigingen toe en wijzig je
+    Maak gebruikers aan, verleen admin-rechten, wijs Postbus Machtigingen toe en wijzig je
     eigen wachtwoord.
 
     [:octicons-arrow-right-24: Read](UserManagement.md)
@@ -229,7 +229,7 @@ Stel het eenmaal in, bewaar elk bericht en vind het jaren later weer terug.
 
     ---
 
-    TOTP-instelling, backup codes, en wat te doen als een apparaat verloren gaat.
+    TOTP-instelling, backup codes, en wat te doen als een apparaat verloren is gegaan.
 
     [:octicons-arrow-right-24: Read](TwoFactor.md)
 
@@ -261,11 +261,11 @@ Stel het eenmaal in, bewaar elk bericht en vind het jaren later weer terug.
 
     ---
 
-    Krijg weer toegang wanneer een Account is buitengesloten.
+    Herstel de toegang wanneer een Account is buitengesloten.
 
     [:octicons-arrow-right-24: Read](EmergencyAccountRecovery.md)
 
--   :material-delete-sweep:{ .lg .middle } __Retention policies__
+-   :material-delete-sweep:{ .lg .middle } __Bewaring-beleid__
 
     ---
 
@@ -351,11 +351,11 @@ Stel het eenmaal in, bewaar elk bericht en vind het jaren later weer terug.
 
 </div>
 
-## 🧰 Operations & Ontwikkeling {#operations-development}
+## 🧰 Operations & Development {#operations-development}
 
 <div class="grid cards" markdown>
 
--   :material-translate:{ .lg .middle } __Language and localization__
+-   :material-translate:{ .lg .middle } __Taal en lokalisatie__
 
     ---
 
@@ -371,6 +371,14 @@ Stel het eenmaal in, bewaar elk bericht en vind het jaren later weer terug.
 
     [:octicons-arrow-right-24: Read](DockerComposeLogs.md)
 
+-   :material-heart-pulse:{ .lg .middle } __Health and metrics__
+
+    ---
+
+    Houd liveness, readiness en Archief-metrieken in de gaten via Prometheus of een ander monitoring-systeem.
+
+    [:octicons-arrow-right-24: Read](Monitoring.md)
+
 -   :material-tag:{ .lg .middle } __Development versions__
 
     ---
@@ -385,5 +393,5 @@ Stel het eenmaal in, bewaar elk bericht en vind het jaren later weer terug.
 
 <div class="docs-footer-note" markdown>
 :material-pencil: **Deze documentatie wordt continu uitgebreid.**
-Als je een fout ziet of een suggestie hebt, [open dan een issue](https://github.com/s1t5/mail-archiver/issues) of dien een pull request in.
+Als je een fout vindt of een suggestie hebt, [open dan een issue](https://github.com/s1t5/mail-archiver/issues) of dien een pull request in.
 </div>
