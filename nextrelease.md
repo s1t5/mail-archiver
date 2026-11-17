@@ -9,6 +9,7 @@
 - **Restore Uses the Stored Original** - Restoring an email to a mailbox now appends the stored original when one exists, the same cascade as the single-email export. Only emails archived without an original are rebuilt from the archived fields. A stored original that fails its checksum aborts the restore instead of falling back to the rebuild.
 - **Original Message Storage Has Its Own Documentation Page** - The feature now has a dedicated page (`doc/RawMessages.md`) covering where the stored original is served, the postgres and filesystem backends, moving existing messages between them with `--migrate-raw-storage`, verification and backup. `Setup.md` keeps only the parameter table and links to it.
 - **Multilingual Documentation** - The documentation is now published in every language the application supports. English stays the authoritative source; the other locales are translated automatically by an LLM through the new `translate-docs` workflow and carry a visible machine-translation notice.
+- **Working Cross-References in Translated Pages** - A link to a heading inside a translated page pointed at an anchor that did not exist, because the anchor rewrite ignored the explicit `{#id}` target of a translated heading. The links now resolve to the same anchor as the English page.
 
 ## 🐛 Bug Fixes
 - **Mailbox in the Access Log** - Deletion and retention entries now show which mailbox they belong to. The log view resolves the stored account id to the account name, so older entries are covered as well.

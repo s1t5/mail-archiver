@@ -37,6 +37,11 @@ ANCHOR_LINK_RE = re.compile(r"\]\((?P<path>[^)\s]*?)#(?P<anchor>[^)\s]+)\)")
 # ATX heading: `## Some heading`.
 HEADING_RE = re.compile(r"^#{1,6}\s+(?P<text>.+?)\s*#*\s*$", re.MULTILINE)
 
+# An explicit heading anchor, `## Title {#custom-id}`. Translated pages carry these so
+# inbound links keep working across languages; the id is what the page renders, not
+# the slug of the translated title.
+EXPLICIT_ANCHOR_RE = re.compile(r"\s*\{#(?P<id>[^}\s]+)\}\s*$")
+
 # MkDocs/pymdownx drops anything that is not a word char, space or dash.
 INVALID_SLUG_CHAR_RE = re.compile(r"[^\w\- ]", re.UNICODE)
 SPACE_RE = re.compile(r" ", re.UNICODE)
@@ -63,6 +68,7 @@ def _mkdocs_slug(heading: str) -> str:
     `markdown.extensions.toc.slugify_unicode` (emoji are dropped, spaces become
     dashes, no leading dash is left behind).
     """
+    heading = EXPLICIT_ANCHOR_RE.sub("", heading)
     try:
         from markdown.extensions.toc import slugify_unicode
     except ImportError:  # pragma: no cover
@@ -104,6 +110,15 @@ def _collect_ids() -> None:
             continue
 
         ids = {_mkdocs_slug(m.group("text")) for m in HEADING_RE.finditer(text)}
+        # A heading with an explicit anchor renders that id, not the slug of its text.
+        # Without this, a translated heading (`## Titel {#english-anchor}`) records only
+        # `titel-english-anchor`, and every inbound link to the English anchor stays
+        # broken.
+        ids |= {
+            m.group("id")
+            for m in (EXPLICIT_ANCHOR_RE.search(h.group("text")) for h in HEADING_RE.finditer(text))
+            if m
+        }
         ids.discard("")
         if not ids:
             continue
