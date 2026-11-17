@@ -111,7 +111,7 @@ Configúralo una vez, conserva cada mensaje y encuéntralo de nuevo años despu�
 
     ---
 
-    Sincronización rápida vs. completa, puntos de control y qué sucede cuando una sincronización falla.
+    Sincronización rápida vs. completa, puntos de control y qué sucede cuando una Sincronización falla.
 
     [:octicons-arrow-right-24: Read](Synchronization.md)
 
@@ -135,13 +135,13 @@ Configúralo una vez, conserva cada mensaje y encuéntralo de nuevo años despu�
 
     ---
 
-    Seguimiento de ancho de banda y cómo las sincronizaciones pausadas se reanudan por sí solas.
+    Seguimiento de ancho de banda y cómo las Sincronizaciones pausadas se reanudan por sí solas.
 
     [:octicons-arrow-right-24: Read](RateLimitHandling.md)
 
 </div>
 
-## 🔍 Trabajando con el Archivo {#working-with-the-archive}
+## 🔍 Trabajo con el Archivo {#working-with-the-archive}
 
 <div class="grid cards" markdown>
 
@@ -157,7 +157,7 @@ Configúralo una vez, conserva cada mensaje y encuéntralo de nuevo años despu�
 
     ---
 
-    Observa sincronizaciones, importaciones, Restauraciones y exportaciones — y cancélalas de forma segura.
+    Vigila las Sincronizaciones, importaciones, Restauraciones y exportaciones — y cancélalas de forma segura.
 
     [:octicons-arrow-right-24: Read](BackgroundJobs.md)
 
@@ -173,7 +173,7 @@ Configúralo una vez, conserva cada mensaje y encuéntralo de nuevo años despu�
 
     ---
 
-    Exporta una Cuenta completa como un Archivo EML o MBox portátil.
+    Exporta una Cuenta completa como un Archivo EML o MBox portable.
 
     [:octicons-arrow-right-24: Read](Export-Account.md)
 
@@ -181,7 +181,7 @@ Configúralo una vez, conserva cada mensaje y encuéntralo de nuevo años despu�
 
     ---
 
-    Mantén el mensaje tal como se recibió, para que DKIM siga verificando y las exportaciones sean exactas a nivel de bytes.
+    Mantén el mensaje tal como se recibió, para que DKIM siga verificándose y las exportaciones sean idénticas a nivel de bytes.
 
     [:octicons-arrow-right-24: Read](RawMessages.md)
 
@@ -189,7 +189,7 @@ Configúralo una vez, conserva cada mensaje y encuéntralo de nuevo años despu�
 
     ---
 
-    Cómo los Adjuntos idénticos se almacenan una sola vez en lugar de muchas veces.
+    Cómo los Adjuntos idénticos se almacenan una vez en lugar de muchas veces.
 
     [:octicons-arrow-right-24: Read](AttachmentDeduplication.md)
 
@@ -321,7 +321,7 @@ Configúralo una vez, conserva cada mensaje y encuéntralo de nuevo años despu�
 
     ---
 
-    Lo que los endpoints de IMAP y exportación de Yahoo no harán.
+    Qué es lo que los endpoints de IMAP y exportación de Yahoo no harán.
 
     [:octicons-arrow-right-24: Read](YahooMailExportLimitations.md)
 
@@ -365,9 +365,17 @@ Configúralo una vez, conserva cada mensaje y encuéntralo de nuevo años despu�
 
     ---
 
-    Lee los logs de los contenedores y cambia el nivel de log.
+    Lee los logs del contenedor y cambia el nivel de log.
 
     [:octicons-arrow-right-24: Read](DockerComposeLogs.md)
+
+-   :material-heart-pulse:{ .lg .middle } __Health and metrics__
+
+    ---
+
+    Vigila liveness, readiness y métricas del Archivo desde Prometheus u otro sistema de monitorización.
+
+    [:octicons-arrow-right-24: Read](Monitoring.md)
 
 -   :material-tag:{ .lg .middle } __Development versions__
 
