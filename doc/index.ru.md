@@ -1,13 +1,13 @@
 # 📧 Mail Archiver Documentation {#mail-archiver-documentation}
 
 <div class="docs-lead" markdown>
-**Self-hosted email archiving — archive, search and export mail from any provider.**
-Настройте один раз, сохраняйте каждое сообщение и находите его снова спустя годы.
+**Self-hosted архивация электронной почты — архивируйте, ищите и экспортируйте почту от любого провайдера.**
+Настройте один раз, сохраните каждое сообщение и найдите его снова спустя годы.
 </div>
 
 <div class="grid cards" markdown>
 
--   :material-rocket-launch:{ .lg .middle } __Getting started__
+-   :material-rocket-launch:{ .lg .middle } __Начало работы__
 
     ---
 
@@ -15,7 +15,7 @@
 
     [:octicons-arrow-right-24: Setup and parameters](Setup.md)
 
--   :material-magnify:{ .lg .middle } __Find anything__
+-   :material-magnify:{ .lg .middle } __Найти что угодно__
 
     ---
 
@@ -23,15 +23,15 @@
 
     [:octicons-arrow-right-24: Mail search](Search.md)
 
--   :material-api:{ .lg .middle } __Automate it__
+-   :material-api:{ .lg .middle } __Автоматизация__
 
     ---
 
-    Читайте свой архив с помощью скриптов и AI-агентов — API-ключи только для чтения с ограниченной областью доступа.
+    Читайте свой архив с помощью скриптов и ИИ-агентов — API-ключи только для чтения с ограниченной областью доступа.
 
     [:octicons-arrow-right-24: REST API](API.md) · [:octicons-arrow-right-24: MCP server](MCP.md)
 
--   :material-shield-lock:{ .lg .middle } __Secure it__
+-   :material-shield-lock:{ .lg .middle } __Безопасность__
 
     ---
 
@@ -49,7 +49,7 @@
 
     ---
 
-    Каждая переменная окружения, Kestrel HTTPS и управление секретами.
+    Все переменные окружения, Kestrel HTTPS и управление секретами.
 
     [:octicons-arrow-right-24: Read](Setup.md)
 
@@ -73,7 +73,7 @@
 
     ---
 
-    VACUUM, ANALYZE и поддержание быстродействия архива с течением времени.
+    VACUUM, ANALYZE и поддержание производительности архива с течением времени.
 
     [:octicons-arrow-right-24: Read](DatabaseMaintenance.md)
 
@@ -89,7 +89,7 @@
 
     ---
 
-    Запустите временный экземпляр локально, прежде чем вносить изменения в продакшн.
+    Запустите временный экземпляр локально, прежде чем переходить к продакшену.
 
     [:octicons-arrow-right-24: Read](LocalTestEnvironment.md)
 
@@ -166,7 +166,7 @@
 
     ---
 
-    Копируйте почту между ящиками с сохранением структуры папок.
+    Копирование почты между ящиками с сохранением структуры папок.
 
     [:octicons-arrow-right-24: Read](MailboxMigration.md)
 
@@ -174,7 +174,7 @@
 
     ---
 
-    Выгрузите весь аккаунт обратно в виде переносимого архива EML или MBox.
+    Выгрузка всего аккаунта обратно в переносимый архив EML или MBox.
 
     [:octicons-arrow-right-24: Read](Export-Account.md)
 
@@ -182,7 +182,7 @@
 
     ---
 
-    Сохраняйте сообщение в том виде, в котором оно было получено, чтобы DKIM по-прежнему проходил проверку, а экспорты были байт-в-байт точными.
+    Хранение сообщения в том виде, в котором оно было получено, чтобы DKIM по-прежнему проходил проверку, а экспорты были байт-в-байт точными.
 
     [:octicons-arrow-right-24: Read](RawMessages.md)
 
@@ -190,7 +190,7 @@
 
     ---
 
-    Как идентичные вложения хранятся один раз вместо множества.
+    Как идентичные вложения хранятся один раз вместо множества копий.
 
     [:octicons-arrow-right-24: Read](AttachmentDeduplication.md)
 
@@ -198,7 +198,7 @@
 
     ---
 
-    Перемещайте старую почту в другой аккаунт по временным интервалам.
+    Перемещение старой почты в другой аккаунт по временным интервалам.
 
     [:octicons-arrow-right-24: Read](Offload.md)
 
@@ -220,8 +220,7 @@
 
     ---
 
-    Создавайте пользователей, предоставляйте права администратора, назначайте разрешения для почтовых ящиков и меняйте свой
-    собственный пароль.
+    Создавайте пользователей, предоставляйте права администратора, назначайте разрешения для ящиков и меняйте свой собственный пароль.
 
     [:octicons-arrow-right-24: Read](UserManagement.md)
 
@@ -245,7 +244,7 @@
 
     ---
 
-    Кто открывал, искал, экспортировал или удалял и что именно.
+    Кто открывал, искал, экспортировал или удалял данные.
 
     [:octicons-arrow-right-24: Read](Logs.md)
 
@@ -261,7 +260,7 @@
 
     ---
 
-    Восстановление доступа, если аккаунт заблокирован.
+    Восстановление доступа при блокировке аккаунта.
 
     [:octicons-arrow-right-24: Read](EmergencyAccountRecovery.md)
 
@@ -283,7 +282,7 @@
 
     ---
 
-    Зарегистрируйте приложение и настройте политику хранения для Microsoft 365.
+    Регистрация приложения и настройка политик хранения для Microsoft 365.
 
     [:octicons-arrow-right-24: Read](AZURE_APP_REGISTRATION_M365.md)
 
@@ -299,7 +298,7 @@
 
     ---
 
-    Выбирайте почтовые ящики централизованно и создавайте выделенные пароли приложений IMAP.
+    Централизованный выбор ящиков и создание выделенных паролей приложений IMAP.
 
     [:octicons-arrow-right-24: Read](Mailcow.md)
 
@@ -323,7 +322,7 @@
 
     ---
 
-    Что не смогут сделать IMAP и эндпоинты экспорта Yahoo.
+    Что не умеют делать IMAP и эндпоинты экспорта Yahoo.
 
     [:octicons-arrow-right-24: Read](YahooMailExportLimitations.md)
 
@@ -345,7 +344,7 @@
 
     ---
 
-    Предоставьте архив AI-агентам в качестве обнаруживаемых инструментов.
+    Предоставление доступа к архиву для ИИ-агентов в качестве обнаруживаемых инструментов.
 
     [:octicons-arrow-right-24: Read](MCP.md)
 
@@ -371,6 +370,14 @@
 
     [:octicons-arrow-right-24: Read](DockerComposeLogs.md)
 
+-   :material-heart-pulse:{ .lg .middle } __Health and metrics__
+
+    ---
+
+    Отслеживание liveness, readiness и метрик архива из Prometheus или другой системы мониторинга.
+
+    [:octicons-arrow-right-24: Read](Monitoring.md)
+
 -   :material-tag:{ .lg .middle } __Development versions__
 
     ---
@@ -384,7 +391,7 @@
 ---
 
 <div class="docs-footer-note" markdown>
-:material-pencil: **Эта документация постоянно дополняется.**
+:material-pencil: **Эта документация постоянно расширяется.**
 Если вы заметили ошибку или у вас есть предложение, пожалуйста,
-[откройте issue](https://github.com/s1t5/mail-archiver/issues) или отправьте pull request.
+[open an issue](https://github.com/s1t5/mail-archiver/issues) или отправьте pull request.
 </div>
