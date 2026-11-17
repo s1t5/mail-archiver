@@ -2,6 +2,7 @@ using MailArchiver.Data;
 using MailArchiver.Models;
 using MailArchiver.Services;
 using MailArchiver.Tests.Infrastructure;
+using MailArchiver.Tests.Shared;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using System.Security.Cryptography;
@@ -128,9 +129,11 @@ public class AccountStorageServiceTests
     public async Task RefreshAccountStorageAsync_UpsertsCache()
     {
         var ctx = _fixture.CreateContext();
+        var accountIds = new List<int>();
         try
         {
             var acct = await SeedAccountAsync(ctx);
+            accountIds.Add(acct.Id);
             ctx.ArchivedEmails.Add(new ArchivedEmail
             {
                 MailAccountId = acct.Id,
@@ -161,7 +164,7 @@ public class AccountStorageServiceTests
         }
         finally
         {
-            await CleanupAccountAsync(ctx);
+            await TestAccountCleanup.DeleteAccountsAsync(ctx, accountIds.ToArray());
             await ctx.DisposeAsync();
         }
     }
@@ -170,9 +173,11 @@ public class AccountStorageServiceTests
     public async Task RefreshAccountStorageAsync_NoEmails_UpsertsZeroCache()
     {
         var ctx = _fixture.CreateContext();
+        var accountIds = new List<int>();
         try
         {
             var acct = await SeedAccountAsync(ctx);
+            accountIds.Add(acct.Id);
             var svc = ServiceFactory.CreateAccountStorageService(ctx);
             Assert.True(await svc.RefreshAccountStorageAsync(acct.Id));
 
@@ -183,7 +188,7 @@ public class AccountStorageServiceTests
         }
         finally
         {
-            await CleanupAccountAsync(ctx);
+            await TestAccountCleanup.DeleteAccountsAsync(ctx, accountIds.ToArray());
             await ctx.DisposeAsync();
         }
     }
@@ -192,9 +197,11 @@ public class AccountStorageServiceTests
     public async Task RefreshAccountStorageAsync_CreatesBackfillStateDone()
     {
         var ctx = _fixture.CreateContext();
+        var accountIds = new List<int>();
         try
         {
             var acct = await SeedAccountAsync(ctx);
+            accountIds.Add(acct.Id);
             var svc = ServiceFactory.CreateAccountStorageService(ctx);
             Assert.True(await svc.RefreshAccountStorageAsync(acct.Id));
 
@@ -206,7 +213,7 @@ public class AccountStorageServiceTests
         }
         finally
         {
-            await CleanupAccountAsync(ctx);
+            await TestAccountCleanup.DeleteAccountsAsync(ctx, accountIds.ToArray());
             await ctx.DisposeAsync();
         }
     }
@@ -215,9 +222,11 @@ public class AccountStorageServiceTests
     public async Task RefreshAccountStorageAsync_MailBytesMatchesWholeRowSize()
     {
         var ctx = _fixture.CreateContext();
+        var accountIds = new List<int>();
         try
         {
             var acct = await SeedAccountAsync(ctx);
+            accountIds.Add(acct.Id);
             var email = NewEmailWithLargeContent(acct.Id);
             ctx.ArchivedEmails.Add(email);
             await ctx.SaveChangesAsync();
@@ -240,7 +249,7 @@ public class AccountStorageServiceTests
         }
         finally
         {
-            await CleanupAccountAsync(ctx);
+            await TestAccountCleanup.DeleteAccountsAsync(ctx, accountIds.ToArray());
             await ctx.DisposeAsync();
         }
     }
@@ -249,9 +258,11 @@ public class AccountStorageServiceTests
     public async Task BuildStorageSql_DoesNotReadToastedContent()
     {
         var ctx = _fixture.CreateContext();
+        var accountIds = new List<int>();
         try
         {
             var acct = await SeedAccountAsync(ctx);
+            accountIds.Add(acct.Id);
             ctx.ArchivedEmails.Add(NewEmailWithLargeContent(acct.Id));
             await ctx.SaveChangesAsync();
 
@@ -270,7 +281,7 @@ public class AccountStorageServiceTests
         }
         finally
         {
-            await CleanupAccountAsync(ctx);
+            await TestAccountCleanup.DeleteAccountsAsync(ctx, accountIds.ToArray());
             await ctx.DisposeAsync();
         }
     }
@@ -308,37 +319,6 @@ public class AccountStorageServiceTests
         FolderName = "INBOX"
     };
 
-    /// <summary>
-    /// Removes all test rows for accounts created in the given context (emails, caches,
-    /// backfill states, user-mail-account links, and the account itself).
-    /// </summary>
-    private static async Task CleanupAccountAsync(MailArchiverDbContext ctx)
-    {
-        var accountIds = await ctx.MailAccounts.AsNoTracking()
-            .Where(a => a.EmailAddress.EndsWith("@test.local"))
-            .Select(a => a.Id)
-            .ToListAsync();
-
-        if (accountIds.Count == 0) return;
-
-        var emails = await ctx.ArchivedEmails.Where(e => accountIds.Contains(e.MailAccountId)).ToListAsync();
-        ctx.ArchivedEmails.RemoveRange(emails);
-
-        var caches = await ctx.AccountStorageCaches.Where(c => accountIds.Contains(c.MailAccountId)).ToListAsync();
-        ctx.AccountStorageCaches.RemoveRange(caches);
-
-        var states = await ctx.AccountStorageBackfillStates.Where(s => accountIds.Contains(s.MailAccountId)).ToListAsync();
-        ctx.AccountStorageBackfillStates.RemoveRange(states);
-
-        var umas = await ctx.UserMailAccounts.Where(uma => accountIds.Contains(uma.MailAccountId)).ToListAsync();
-        ctx.UserMailAccounts.RemoveRange(umas);
-
-        var accts = await ctx.MailAccounts.Where(a => accountIds.Contains(a.Id)).ToListAsync();
-        ctx.MailAccounts.RemoveRange(accts);
-
-        try { await ctx.SaveChangesAsync(); }
-        catch { /* best-effort cleanup */ }
-    }
 
     // ============================================================
     // EnsureBackfillStatesAsync
@@ -415,10 +395,13 @@ public class AccountStorageServiceTests
     public async Task RefreshAllAccountStorageAsync_RefreshsAllAccounts()
     {
         var ctx = _fixture.CreateContext();
+        var accountIds = new List<int>();
         try
         {
             var a1 = await SeedAccountAsync(ctx);
+            accountIds.Add(a1.Id);
             var a2 = await SeedAccountAsync(ctx);
+            accountIds.Add(a2.Id);
             var svc = ServiceFactory.CreateAccountStorageService(ctx);
             await svc.RefreshAllAccountStorageAsync(CancellationToken.None);
 
@@ -428,7 +411,7 @@ public class AccountStorageServiceTests
         }
         finally
         {
-            await CleanupAccountAsync(ctx);
+            await TestAccountCleanup.DeleteAccountsAsync(ctx, accountIds.ToArray());
             await ctx.DisposeAsync();
         }
     }

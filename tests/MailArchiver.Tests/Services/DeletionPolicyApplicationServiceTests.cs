@@ -2,6 +2,7 @@ using MailArchiver.Data;
 using MailArchiver.Models;
 using MailArchiver.Services;
 using MailArchiver.Tests.Infrastructure;
+using MailArchiver.Tests.Shared;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -111,9 +112,11 @@ public class DeletionPolicyApplicationServiceTests
     public async Task ExecuteAsync_DeletionAllowedTrue_SetsIsLockedFalse()
     {
         var ctx = _fixture.CreateContext();
+        var accountId = 0;
         try
         {
             var acct = await SeedAccountAsync(ctx);
+            accountId = acct.Id;
             var email = BuildEmail(acct, isLocked: true);
             ctx.ArchivedEmails.Add(email);
             await ctx.SaveChangesAsync();
@@ -125,7 +128,7 @@ public class DeletionPolicyApplicationServiceTests
         }
         finally
         {
-            await CleanupTestAccountAsync(ctx);
+            await TestAccountCleanup.DeleteAccountsAsync(ctx, accountId);
             await ctx.DisposeAsync();
         }
     }
@@ -134,9 +137,11 @@ public class DeletionPolicyApplicationServiceTests
     public async Task ExecuteAsync_DeletionAllowedFalse_SetsIsLockedTrue()
     {
         var ctx = _fixture.CreateContext();
+        var accountId = 0;
         try
         {
             var acct = await SeedAccountAsync(ctx);
+            accountId = acct.Id;
             var email = BuildEmail(acct, isLocked: false);
             ctx.ArchivedEmails.Add(email);
             await ctx.SaveChangesAsync();
@@ -148,7 +153,7 @@ public class DeletionPolicyApplicationServiceTests
         }
         finally
         {
-            await CleanupTestAccountAsync(ctx);
+            await TestAccountCleanup.DeleteAccountsAsync(ctx, accountId);
             await ctx.DisposeAsync();
         }
     }
@@ -157,9 +162,11 @@ public class DeletionPolicyApplicationServiceTests
     public async Task ExecuteAsync_AlreadyCorrect_NoChange()
     {
         var ctx = _fixture.CreateContext();
+        var accountId = 0;
         try
         {
             var acct = await SeedAccountAsync(ctx);
+            accountId = acct.Id;
             // The Dev-DB enforces IsLocked=true on insert (DEFAULT true + compliance trigger),
             // so we can only seed locked emails. With deletionAllowed=false the target is
             // IsLocked=true, meaning the email is already correct and the service should not
@@ -175,39 +182,9 @@ public class DeletionPolicyApplicationServiceTests
         }
         finally
         {
-            await CleanupTestAccountAsync(ctx);
+            await TestAccountCleanup.DeleteAccountsAsync(ctx, accountId);
             await ctx.DisposeAsync();
         }
     }
 
-    /// <summary>
-    /// Removes all test rows for accounts created in the given context.
-    /// </summary>
-    private static async Task CleanupTestAccountAsync(MailArchiverDbContext ctx)
-    {
-        var accountIds = await ctx.MailAccounts.AsNoTracking()
-            .Where(a => a.EmailAddress.EndsWith("@test.local"))
-            .Select(a => a.Id)
-            .ToListAsync();
-
-        if (accountIds.Count == 0) return;
-
-        var emails = await ctx.ArchivedEmails.Where(e => accountIds.Contains(e.MailAccountId)).ToListAsync();
-        ctx.ArchivedEmails.RemoveRange(emails);
-
-        var caches = await ctx.AccountStorageCaches.Where(c => accountIds.Contains(c.MailAccountId)).ToListAsync();
-        ctx.AccountStorageCaches.RemoveRange(caches);
-
-        var states = await ctx.AccountStorageBackfillStates.Where(s => accountIds.Contains(s.MailAccountId)).ToListAsync();
-        ctx.AccountStorageBackfillStates.RemoveRange(states);
-
-        var umas = await ctx.UserMailAccounts.Where(uma => accountIds.Contains(uma.MailAccountId)).ToListAsync();
-        ctx.UserMailAccounts.RemoveRange(umas);
-
-        var accts = await ctx.MailAccounts.Where(a => accountIds.Contains(a.Id)).ToListAsync();
-        ctx.MailAccounts.RemoveRange(accts);
-
-        try { await ctx.SaveChangesAsync(); }
-        catch { /* best-effort cleanup */ }
-    }
 }
