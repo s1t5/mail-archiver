@@ -133,6 +133,12 @@ builder.Services.Configure<MailSyncOptions>(
 builder.Services.Configure<RawMessageOptions>(
     builder.Configuration.GetSection(RawMessageOptions.RawMessages));
 
+// Add Monitoring Options (health endpoints and Prometheus metrics, opt-in)
+builder.Services.Configure<HealthOptions>(
+    builder.Configuration.GetSection(HealthOptions.Health));
+builder.Services.Configure<MetricsOptions>(
+    builder.Configuration.GetSection(MetricsOptions.Metrics));
+
 // Add Upload Options
 builder.Services.Configure<UploadOptions>(
     builder.Configuration.GetSection(UploadOptions.Upload));
@@ -451,6 +457,22 @@ builder.Services.AddScoped<IUserService, UserService>();
 // REST API (ApiControllerBase) and the MCP server (McpToolBase).
 builder.Services.AddScoped<IAccountAccessResolver, AccountAccessResolver>();
 builder.Services.AddSingleton<ISyncJobService, SyncJobService>(); // NEUE SERVICE
+
+// Monitoring: process-local counters, the last metrics snapshot, and the refresh loop.
+// The endpoint only reads the snapshot, so a scrape never scans the archive.
+builder.Services.AddSingleton<MailArchiver.Services.Monitoring.MetricsRecorder>();
+builder.Services.AddSingleton<MailArchiver.Services.Monitoring.IMetricsRecorder>(
+    provider => provider.GetRequiredService<MailArchiver.Services.Monitoring.MetricsRecorder>());
+builder.Services.AddSingleton<MailArchiver.Services.Monitoring.MetricsStore>();
+builder.Services.AddHostedService<MailArchiver.Services.Monitoring.MetricsRefreshService>();
+
+// Health checks are executed by MonitoringApiController, not mapped as public endpoints:
+// every /api/v1/health path goes through the existing API key authentication and AdminOnly.
+builder.Services.AddHealthChecks()
+    .AddCheck<MailArchiver.Services.Monitoring.DatabaseHealthCheck>(
+        "database", tags: new[] { "ready" })
+    .AddCheck<MailArchiver.Services.Monitoring.SyncFreshnessHealthCheck>(
+        "sync", tags: new[] { "sync" });
 
 // Register BatchRestoreService as singleton and hosted service - MUST be the same instance
 builder.Services.AddSingleton<BatchRestoreService>();

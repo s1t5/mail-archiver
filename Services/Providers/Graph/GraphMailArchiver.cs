@@ -1,5 +1,6 @@
 using MailArchiver.Data;
 using MailArchiver.Models;
+using MailArchiver.Services.Monitoring;
 using MailArchiver.Services.Shared;
 using MailArchiver.Utilities;
 using Microsoft.EntityFrameworkCore;
@@ -21,19 +22,22 @@ namespace MailArchiver.Services.Providers.Graph
         private readonly DateTimeHelper _dateTimeHelper;
         private readonly IRawMessageStore _rawMessageStore;
         private readonly RawMessageOptions _rawMessageOptions;
+        private readonly IMetricsRecorder? _metricsRecorder;
 
         public GraphMailArchiver(
             MailArchiverDbContext context,
             ILogger<GraphMailArchiver> logger,
             DateTimeHelper dateTimeHelper,
             IRawMessageStore rawMessageStore,
-            IOptions<RawMessageOptions>? rawMessageOptions = null)
+            IOptions<RawMessageOptions>? rawMessageOptions = null,
+            IMetricsRecorder? metricsRecorder = null)
         {
             _context = context;
             _logger = logger;
             _dateTimeHelper = dateTimeHelper;
             _rawMessageStore = rawMessageStore;
             _rawMessageOptions = rawMessageOptions?.Value ?? new RawMessageOptions();
+            _metricsRecorder = metricsRecorder;
         }
 
         /// <summary>
@@ -91,7 +95,8 @@ namespace MailArchiver.Services.Providers.Graph
                     catch (Exception rawEx)
                     {
                         RawMessageLogging.LogPersistFailure(
-                            _logger, rawEx, archivedEmail.Id, archivedEmail.Subject, storedRaw.StorageType);
+                            _logger, rawEx, archivedEmail.Id, archivedEmail.Subject, storedRaw.StorageType,
+                            _metricsRecorder);
                         throw;
                     }
                 }
@@ -99,7 +104,7 @@ namespace MailArchiver.Services.Providers.Graph
                 {
                     RawMessageLogging.LogNotStored(
                         _logger, archivedEmail.Id, archivedEmail.Subject, rawCapture,
-                        _rawMessageOptions, _rawMessageOptions.IncludeGraph);
+                        _rawMessageOptions, _rawMessageOptions.IncludeGraph, _metricsRecorder);
                 }
 
                 var attachmentCount = archivedEmail.Attachments?.Count ?? 0;

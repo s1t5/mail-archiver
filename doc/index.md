@@ -371,6 +371,14 @@ Set it up once, keep every message, and find it again years later.
 
     [:octicons-arrow-right-24: Read](DockerComposeLogs.md)
 
+-   :material-heart-pulse:{ .lg .middle } __Health and metrics__
+
+    ---
+
+    Watch liveness, readiness and archive metrics from Prometheus or another monitoring system.
+
+    [:octicons-arrow-right-24: Read](Monitoring.md)
+
 -   :material-tag:{ .lg .middle } __Development versions__
 
     ---

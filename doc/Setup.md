@@ -343,6 +343,18 @@ See **[Original Message Storage](RawMessages.md)** for the full description: whe
 original is served, the storage backends, how to move existing messages between them with
 `--migrate-raw-storage`, and what to back up.
 
+### 📈 Monitoring Settings
+
+| Parameter | Default | Purpose |
+|-----------|---------|---------|
+| `Health__SyncStaleMinutes` | `0` | Enabled accounts older than this make `/api/v1/health` report `Degraded`. `0` disables the check. |
+| `Metrics__Enabled` | `false` | Enable the Prometheus metrics endpoint and its refresh loop. |
+| `Metrics__RefreshMinutes` | `5` | How often the metrics snapshot is rebuilt. Values below 1 are raised to 1. |
+
+The health and metrics endpoints require an admin API key and `Api__Enabled=true`. See
+**[Health and Metrics](Monitoring.md)** for the endpoints, metric names, Prometheus
+configuration and the Docker health check.
+
 ### 📤 BatchRestore Settings
 - `BatchRestore__AsyncThreshold`: The number of emails that triggers async processing.
 - `BatchRestore__MaxSyncEmails`: The maximum number of emails for sync processing.

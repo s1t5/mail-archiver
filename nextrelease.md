@@ -1,4 +1,5 @@
 ## ✨ New Features
+- **Health and Metrics for External Monitoring** - Authenticated endpoints under `/api/v1` expose liveness, readiness, aggregate health and a Prometheus-compatible metrics endpoint. All require an existing API key whose user is an administrator; a non-admin key gets 403. Metrics cover archived emails, accounts, missing originals, sync age and failure counters, and are built by a background snapshot so a scrape never scans the archive. The metrics endpoint is disabled by default with `Metrics:Enabled=false`.
 - **Bulk Delete by Filter** - Delete every email matching the current search filter in one background job. The confirmation requires the exact match count, locked emails are skipped, and `DeletionPolicy:MaxBulkDeleteEmails` caps a single job.
 - **Select All Matching** - Selection mode can select every email matching the current search across all pages, up to the selection limit, instead of one page at a time.
 

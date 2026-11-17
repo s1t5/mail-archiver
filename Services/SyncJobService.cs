@@ -1,5 +1,6 @@
 using MailArchiver.Models;
 using MailArchiver.Data;
+using MailArchiver.Services.Monitoring;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Concurrent;
 
@@ -17,16 +18,19 @@ namespace MailArchiver.Services
         private readonly ILogger<SyncJobService> _logger;
         private readonly Timer _cleanupTimer;
         private readonly IServiceProvider _serviceProvider;
+        private readonly IMetricsRecorder? _metricsRecorder;
 
         private readonly int _maxIssuesPerKind;
 
         public SyncJobService(
             ILogger<SyncJobService> logger,
             IServiceProvider serviceProvider,
-            Microsoft.Extensions.Options.IOptions<MailSyncOptions> mailSyncOptions)
+            Microsoft.Extensions.Options.IOptions<MailSyncOptions> mailSyncOptions,
+            IMetricsRecorder? metricsRecorder = null)
         {
             _logger = logger;
             _serviceProvider = serviceProvider;
+            _metricsRecorder = metricsRecorder;
             _maxIssuesPerKind = mailSyncOptions.Value.MaxIssuesPerKind;
             
             // Cleanup-Timer: Jeden Stunde alte Jobs entfernen
@@ -134,6 +138,11 @@ namespace MailArchiver.Services
                 job.Status = success ? SyncJobStatus.Completed : SyncJobStatus.Failed;
                 job.Completed = DateTime.UtcNow;
                 job.ErrorMessage = errorMessage;
+
+                if (!success)
+                {
+                    _metricsRecorder?.SyncFailed(MetricsReasons.Failed);
+                }
                 
                 // Remove from active account jobs
                 _activeAccountJobs.TryRemove(job.MailAccountId, out _);
@@ -151,6 +160,7 @@ namespace MailArchiver.Services
                 job.Status = SyncJobStatus.RateLimited;
                 job.Completed = DateTime.UtcNow;
                 job.ErrorMessage = errorMessage;
+                _metricsRecorder?.SyncFailed(MetricsReasons.RateLimited);
                 
                 // Remove from active account jobs
                 _activeAccountJobs.TryRemove(job.MailAccountId, out _);
@@ -167,6 +177,7 @@ namespace MailArchiver.Services
                 job.Status = SyncJobStatus.TimedOut;
                 job.Completed = DateTime.UtcNow;
                 job.ErrorMessage = errorMessage;
+                _metricsRecorder?.SyncFailed(MetricsReasons.Timeout);
 
                 // Remove from active account jobs
                 _activeAccountJobs.TryRemove(job.MailAccountId, out _);

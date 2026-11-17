@@ -1,6 +1,7 @@
 using MailArchiver.Data;
 using MailArchiver.Models;
 using MailArchiver.Models.ViewModels;
+using MailArchiver.Services.Monitoring;
 using MailArchiver.Services.Shared;
 using MailArchiver.Utilities;
 using MailArchiver.ViewModels;
@@ -28,6 +29,7 @@ namespace MailArchiver.Services.Core
         private readonly IMemoryCache _memoryCache;
         private readonly RawMessageOptions _rawMessageOptions;
         private readonly IRawMessageStore? _rawMessageStore;
+        private readonly IMetricsRecorder? _metricsRecorder;
 
         public EmailCoreService(
             MailArchiverDbContext context,
@@ -37,7 +39,8 @@ namespace MailArchiver.Services.Core
             IOptions<DashboardOptions>? dashboardOptions = null,
             IMemoryCache? memoryCache = null,
             IOptions<RawMessageOptions>? rawMessageOptions = null,
-            IRawMessageStore? rawMessageStore = null)
+            IRawMessageStore? rawMessageStore = null,
+            IMetricsRecorder? metricsRecorder = null)
         {
             _context = context;
             _logger = logger;
@@ -46,6 +49,7 @@ namespace MailArchiver.Services.Core
             _dashboardOptions = dashboardOptions?.Value ?? new DashboardOptions();
             _memoryCache = memoryCache ?? new MemoryCache(new Microsoft.Extensions.Caching.Memory.MemoryCacheOptions());
             _rawMessageOptions = rawMessageOptions?.Value ?? new RawMessageOptions();
+            _metricsRecorder = metricsRecorder;
 
             // Tests and the CLI construct this service without a store; fall back to the
             // Postgres backend, which is what the archive did before storage was pluggable.
@@ -2054,14 +2058,16 @@ namespace MailArchiver.Services.Core
                         catch (Exception rawEx)
                         {
                             RawMessageLogging.LogPersistFailure(
-                                _logger, rawEx, archivedEmail.Id, subject, storedRaw.StorageType);
+                                _logger, rawEx, archivedEmail.Id, subject, storedRaw.StorageType,
+                                _metricsRecorder);
                             throw;
                         }
                     }
                     else
                     {
                         RawMessageLogging.LogNotStored(
-                            _logger, archivedEmail.Id, subject, rawMessage, _rawMessageOptions);
+                            _logger, archivedEmail.Id, subject, rawMessage, _rawMessageOptions,
+                            metrics: _metricsRecorder);
                     }
 
                     // Attachments are already saved via EF relationship (cascade)
