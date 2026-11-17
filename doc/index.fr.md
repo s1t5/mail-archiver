@@ -15,7 +15,7 @@ Configurez-le une fois, conservez chaque message, et retrouvez-le des années pl
 
     [:octicons-arrow-right-24: Configuration et paramètres](Setup.md)
 
--   :material-magnify:{ .lg .middle } __Trouvez n'importe quoi__
+-   :material-magnify:{ .lg .middle } __Trouver n'importe quoi__
 
     ---
 
@@ -27,7 +27,7 @@ Configurez-le une fois, conservez chaque message, et retrouvez-le des années pl
 
     ---
 
-    Lisez votre Archive depuis des scripts et des agents IA — clés API en lecture seule et avec portée limitée.
+    Lisez votre Archive depuis des scripts et des agents IA — clés API en lecture seule et limitées.
 
     [:octicons-arrow-right-24: REST API](API.md) · [:octicons-arrow-right-24: MCP server](MCP.md)
 
@@ -35,7 +35,7 @@ Configurez-le une fois, conservez chaque message, et retrouvez-le des années pl
 
     ---
 
-    Authentification à deux facteurs, SSO, journalisation des accès et politiques de Conservation.
+    Authentification à deux facteurs, SSO, journal d'accès et politiques de Conservation.
 
     [:octicons-arrow-right-24: Authentification à deux facteurs](TwoFactor.md) · [:octicons-arrow-right-24: OIDC / SSO](OIDC_Implementation.md)
 
@@ -77,11 +77,11 @@ Configurez-le une fois, conservez chaque message, et retrouvez-le des années pl
 
     [:octicons-arrow-right-24: Lire](DatabaseMaintenance.md)
 
--   :material-backup-restore:{ .lg .middle } __Sauvegarde et restauration__
+-   :material-backup-restore:{ .lg .middle } __Sauvegarde et Restauration__
 
     ---
 
-    Sauvegardez la base de données et effectuez une Restauration — y compris les configurations Proxmox.
+    Sauvegardez la base de données et restaurez-la — y compris les configurations Proxmox.
 
     [:octicons-arrow-right-24: Lire](BackupRestore.md)
 
@@ -99,7 +99,7 @@ Configurez-le une fois, conservez chaque message, et retrouvez-le des années pl
 
 <div class="grid cards" markdown>
 
--   :material-account-plus:{ .lg .middle } __Importation de Compte__
+-   :material-account-plus:{ .lg .middle } __Import de Compte__
 
     ---
 
@@ -111,7 +111,7 @@ Configurez-le une fois, conservez chaque message, et retrouvez-le des années pl
 
     ---
 
-    Synchronisation rapide vs complète, points de contrôle, et ce qui se passe lorsqu'une synchronisation échoue.
+    Synchronisation rapide vs complète, points de contrôle, et ce qui se passe en cas d'échec de Synchronisation.
 
     [:octicons-arrow-right-24: Lire](Synchronization.md)
 
@@ -123,7 +123,7 @@ Configurez-le une fois, conservez chaque message, et retrouvez-le des années pl
 
     [:octicons-arrow-right-24: Lire](CLI.md)
 
--   :material-upload:{ .lg .middle } __Importation Web (EML / MBox)__
+-   :material-upload:{ .lg .middle } __Import Web (EML / MBox)__
 
     ---
 
@@ -135,7 +135,7 @@ Configurez-le une fois, conservez chaque message, et retrouvez-le des années pl
 
     ---
 
-    Suivi de la bande passante, et comment les synchronisations en pause reprennent d'elles-mêmes.
+    Suivi de la bande passante, et comment les Synchronisations en pause reprennent d'elles-mêmes.
 
     [:octicons-arrow-right-24: Lire](RateLimitHandling.md)
 
@@ -157,7 +157,7 @@ Configurez-le une fois, conservez chaque message, et retrouvez-le des années pl
 
     ---
 
-    Surveillez les synchronisations, importations, restaurations et exportations — et annulez-les en toute sécurité.
+    Surveillez les Synchronisations, imports, Restaurations et exports — et annulez-les en toute sécurité.
 
     [:octicons-arrow-right-24: Lire](BackgroundJobs.md)
 
@@ -169,11 +169,11 @@ Configurez-le une fois, conservez chaque message, et retrouvez-le des années pl
 
     [:octicons-arrow-right-24: Lire](MailboxMigration.md)
 
--   :material-download:{ .lg .middle } __Exportation de Compte (EML / MBox)__
+-   :material-download:{ .lg .middle } __Export de Compte (EML / MBox)__
 
     ---
 
-    Réexportez un Compte entier sous forme d'Archive EML ou MBox portable.
+    Réécrivez un Compte entier sous forme d'Archive EML ou MBox portable.
 
     [:octicons-arrow-right-24: Lire](Export-Account.md)
 
@@ -181,7 +181,7 @@ Configurez-le une fois, conservez chaque message, et retrouvez-le des années pl
 
     ---
 
-    Conservez le message tel qu'il a été reçu, afin que le DKIM soit toujours vérifiable et que les exports soient identiques au bit près.
+    Conservez le message tel qu'il a été reçu, pour que le DKIM soit toujours vérifié et que les exports soient identiques au bit près.
 
     [:octicons-arrow-right-24: Lire](RawMessages.md)
 
@@ -205,7 +205,7 @@ Configurez-le une fois, conservez chaque message, et retrouvez-le des années pl
 
     ---
 
-    Consultez l'espace occupé par chaque Boîte aux lettres.
+    Voyez l'espace occupé par chaque Boîte aux lettres.
 
     [:octicons-arrow-right-24: Lire](AccountStorage.md)
 
@@ -227,7 +227,7 @@ Configurez-le une fois, conservez chaque message, et retrouvez-le des années pl
 
     ---
 
-    Configuration TOTP, codes de secours, et que faire en cas de perte d'un appareil.
+    Configuration TOTP, codes de secours, et quoi faire en cas de perte d'un appareil.
 
     [:octicons-arrow-right-24: Lire](TwoFactor.md)
 
@@ -239,7 +239,7 @@ Configurez-le une fois, conservez chaque message, et retrouvez-le des années pl
 
     [:octicons-arrow-right-24: Lire](OIDC_Implementation.md)
 
--   :material-text-box-search:{ .lg .middle } __Journalisation des accès__
+-   :material-text-box-search:{ .lg .middle } __Journal d'accès__
 
     ---
 
@@ -247,7 +247,7 @@ Configurez-le une fois, conservez chaque message, et retrouvez-le des années pl
 
     [:octicons-arrow-right-24: Lire](Logs.md)
 
--   :material-file-export:{ .lg .middle } __Exportation des données d'audit__
+-   :material-file-export:{ .lg .middle } __Export de données d'audit__
 
     ---
 
@@ -257,9 +257,7 @@ Configurez-le une fois, conservez chaque message, et retrouvez-le des années pl
 
 -   :material-lifebuoy:{ .lg .middle } __Récupération de Compte d'urgence__
 
-    ---
-
-    Retrouvez l'accès lorsqu'un Compte est verrouillé.
+    ---    Regagnez l'accès lorsqu'un Compte est verrouillé.
 
     [:octicons-arrow-right-24: Lire](EmergencyAccountRecovery.md)
 
@@ -285,7 +283,7 @@ Configurez-le une fois, conservez chaque message, et retrouvez-le des années pl
 
     [:octicons-arrow-right-24: Lire](AZURE_APP_REGISTRATION_M365.md)
 
--   :material-domain:{ .lg .middle } __Importation de Boîte aux lettres de tenant M365__
+-   :material-domain:{ .lg .middle } __Import de Boîte aux lettres de tenant M365__
 
     ---
 
@@ -317,11 +315,11 @@ Configurez-le une fois, conservez chaque message, et retrouvez-le des années pl
 
     [:octicons-arrow-right-24: Lire](GmailBestPractices.md)
 
--   :material-email-off:{ .lg .middle } __Limitations Yahoo mail__
+-   :material-email-off:{ .lg .middle } __Limitations de Yahoo mail__
 
     ---
 
-    Ce que les points de terminaison IMAP et d'exportation de Yahoo ne feront pas.
+    Ce que les points de terminaison IMAP et d'export de Yahoo ne feront pas.
 
     [:octicons-arrow-right-24: Lire](YahooMailExportLimitations.md)
 
@@ -335,7 +333,7 @@ Configurez-le une fois, conservez chaque message, et retrouvez-le des années pl
 
     ---
 
-    Accès en lecture seule à l'Archive avec des clés API par utilisateur et à portée limitée.
+    Accès en lecture seule à l'Archive avec des clés API limitées par utilisateur.
 
     [:octicons-arrow-right-24: Lire](API.md)
 
@@ -369,11 +367,19 @@ Configurez-le une fois, conservez chaque message, et retrouvez-le des années pl
 
     [:octicons-arrow-right-24: Lire](DockerComposeLogs.md)
 
+-   :material-heart-pulse:{ .lg .middle } __Santé et métriques__
+
+    ---
+
+    Surveillez la liveness, la readiness et les métriques de l'Archive depuis Prometheus ou un autre système de surveillance.
+
+    [:octicons-arrow-right-24: Lire](Monitoring.md)
+
 -   :material-tag:{ .lg .middle } __Versions de développement__
 
     ---
 
-    Passez à un tag de développement pour tester les changements à venir.
+    Passez à un tag de dev pour tester les changements à venir.
 
     [:octicons-arrow-right-24: Lire](DevTag.md)
 
