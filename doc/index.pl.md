@@ -1,7 +1,7 @@
 # 📧 Mail Archiver Documentation {#mail-archiver-documentation}
 
 <div class="docs-lead" markdown>
-**Samodzielne hostowanie archiwizacji e-mail — Archiwum, wyszukiwanie i eksport poczty od dowolnego dostawcy.**
+**Samodzielne hostowanie archiwizacji e-mail — archiwizuj, przeszukuj i eksportuj pocztę od dowolnego dostawcy.**
 Skonfiguruj raz, zachowaj każdą wiadomość i znajdź ją ponownie po latach.
 </div>
 
@@ -31,7 +31,7 @@ Skonfiguruj raz, zachowaj każdą wiadomość i znajdź ją ponownie po latach.
 
     [:octicons-arrow-right-24: REST API](API.md) · [:octicons-arrow-right-24: MCP server](MCP.md)
 
--   :material-shield-lock:{ .lg .middle } __Zabezpieczanie__
+-   :material-shield-lock:{ .lg .middle } __Zabezpiecz to__
 
     ---
 
@@ -73,7 +73,7 @@ Skonfiguruj raz, zachowaj każdą wiadomość i znajdź ją ponownie po latach.
 
     ---
 
-    VACUUM, ANALYZE i utrzymywanie responsywności Archiwum w czasie.
+    VACUUM, ANALYZE i utrzymanie responsywności Archiwum w czasie.
 
     [:octicons-arrow-right-24: Czytaj](DatabaseMaintenance.md)
 
@@ -111,7 +111,7 @@ Skonfiguruj raz, zachowaj każdą wiadomość i znajdź ją ponownie po latach.
 
     ---
 
-    Szybka vs. pełna Synchronizacja, punkty kontrolne i to, co dzieje się, gdy Synchronizacja zawiedzie.
+    Szybka vs pełna Synchronizacja, punkty kontrolne i to, co się dzieje, gdy Synchronizacja zawiedzie.
 
     [:octicons-arrow-right-24: Czytaj](Synchronization.md)
 
@@ -119,7 +119,7 @@ Skonfiguruj raz, zachowaj każdą wiadomość i znajdź ją ponownie po latach.
 
     ---
 
-    Importuj istniejące Archiwa z linii komend i przenoś przechowywane oryginalne wiadomości między bazą danych a systemem plików.
+    Importuj istniejące Archiwa z linii komend i przenosź przechowywane oryginalne wiadomości między bazą danych a systemem plików.
 
     [:octicons-arrow-right-24: Czytaj](CLI.md)
 
@@ -127,7 +127,7 @@ Skonfiguruj raz, zachowaj każdą wiadomość i znajdź ją ponownie po latach.
 
     ---
 
-    Prześlij plik MBox lub plik ZIP z plikami EML przez przeglądarkę.
+    Prześlij plik MBox lub ZIP z plikami EML przez przeglądarkę.
 
     [:octicons-arrow-right-24: Czytaj](Import-EML-MBox.md)
 
@@ -135,7 +135,7 @@ Skonfiguruj raz, zachowaj każdą wiadomość i znajdź ją ponownie po latach.
 
     ---
 
-    Śledzenie przepustowości i to, jak wstrzymane Synchronizacje wznawiają się automatycznie.
+    Monitorowanie przepustowości i to, jak wstrzymane Synchronizacje wznawiają się automatycznie.
 
     [:octicons-arrow-right-24: Czytaj](RateLimitHandling.md)
 
@@ -157,7 +157,7 @@ Skonfiguruj raz, zachowaj każdą wiadomość i znajdź ją ponownie po latach.
 
     ---
 
-<|"|>Obserwuj Synchronizacje, importy, Przywracanie i eksporty — i bezpiecznie je anuluj.
+    Monitoruj Synchronizacje, importy, Przywracanie i eksporty — i bezpiecznie je anuluj.
 
     [:octicons-arrow-right-24: Czytaj](BackgroundJobs.md)
 
@@ -173,7 +173,7 @@ Skonfiguruj raz, zachowaj każdą wiadomość i znajdź ją ponownie po latach.
 
     ---
 
-    Wyeksportuj całe Konto jako przenośne Archiwum EML lub MBox.
+    Zapisz całe Konto z powrotem jako przenośne Archiwum EML lub MBox.
 
     [:octicons-arrow-right-24: Czytaj](Export-Account.md)
 
@@ -181,7 +181,7 @@ Skonfiguruj raz, zachowaj każdą wiadomość i znajdź ją ponownie po latach.
 
     ---
 
-    Zachowaj wiadomość w formie otrzymanej, aby DKIM nadal działał poprawnie, a eksporty były identyczne co do bajtu.
+    Zachowaj wiadomość w formie otrzymanej, aby DKIM nadal działał weryfikację, a eksporty były identyczne bajt po bajcie.
 
     [:octicons-arrow-right-24: Czytaj](RawMessages.md)
 
@@ -193,15 +193,15 @@ Skonfiguruj raz, zachowaj każdą wiadomość i znajdź ją ponownie po latach.
 
     [:octicons-arrow-right-24: Czytaj](AttachmentDeduplication.md)
 
--   :material-calendar-arrow-right:{ .lg .middle } __Przenoszenie danych w oknach czasowych__
+-   :material-calendar-arrow-right:{ .lg .middle } __Przenoszenie oparte na oknie dat__
 
     ---
 
-    Przenoś starszą pocztę do innego Konta, okno po oknie.
+    Przenoszenie starszej poczty do innego Konta, okno po oknie.
 
     [:octicons-arrow-right-24: Czytaj](Offload.md)
 
--   :material-harddisk:{ .lg .middle } __Przechowywanie na każde Konto__
+-   :material-harddisk:{ .lg .middle } __Przechowywanie na Konto__
 
     ---
 
@@ -243,11 +243,11 @@ Skonfiguruj raz, zachowaj każdą wiadomość i znajdź ją ponownie po latach.
 
     ---
 
-    Kto otworzył, przeszukiwał, wyeksportował lub usunął co.
+    Kto otworzył, przeszukiwał, eksportował lub usunął co.
 
     [:octicons-arrow-right-24: Czytaj](Logs.md)
 
--   :material-file-export:{ .lg .middle } __Eksport danych audytowych__
+-   :material-file-export:{ .lg .middle } __Eksport danych audytu__
 
     ---
 
@@ -305,11 +305,11 @@ Skonfiguruj raz, zachowaj każdą wiadomość i znajdź ją ponownie po latach.
 
     ---
 
-    Outlook.com, Hotmail i M365 Family przez device code flow.
+    Outlook.com, Hotmail i M365 Family za pomocą przepływu kodu urządzenia.
 
     [:octicons-arrow-right-24: Czytaj](MSA_Outlook_Setup.md)
 
--   :material-google:{ .lg .middle } __Dobre praktyki Gmail__
+-   :material-google:{ .lg .middle } __Najlepsze praktyki Gmail__
 
     ---
 
@@ -321,7 +321,7 @@ Skonfiguruj raz, zachowaj każdą wiadomość i znajdź ją ponownie po latach.
 
     ---
 
-    Czego nie zrobią punkty końcowe IMAP i eksportu Yahoo.
+    Czego nie będą robić punkty końcowe IMAP i eksportu Yahoo.
 
     [:octicons-arrow-right-24: Czytaj](YahooMailExportLimitations.md)
 
@@ -335,7 +335,7 @@ Skonfiguruj raz, zachowaj każdą wiadomość i znajdź ją ponownie po latach.
 
     ---
 
-    Dostęp tylko do odczytu do Archiwum z kluczami API o ograniczonym zakresie dla każdego użytkownika.
+    Dostęp tylko do odczytu do Archiwum z ograniczonymi kluczami API dla użytkownika.
 
     [:octicons-arrow-right-24: Czytaj](API.md)
 
@@ -368,6 +368,14 @@ Skonfiguruj raz, zachowaj każdą wiadomość i znajdź ją ponownie po latach.
     Czytaj logi kontenerów i zmieniaj poziom logowania.
 
     [:octicons-arrow-right-24: Czytaj](DockerComposeLogs.md)
+
+-   :material-heart-pulse:{ .lg .middle } __Zdrowie i metryki__
+
+    ---
+
+    Monitoruj liveness, readiness i metryki Archiwum z Prometheus lub innego systemu monitorowania.
+
+    [:octicons-arrow-right-24: Czytaj](Monitoring.md)
 
 -   :material-tag:{ .lg .middle } __Wersje rozwojowe__
 
