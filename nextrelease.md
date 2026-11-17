@@ -3,6 +3,7 @@
 - **Select All Matching** - Selection mode can select every email matching the current search across all pages, up to the selection limit, instead of one page at a time.
 
 ## ⚙️ Improvements
+- **Missing Original Messages Are Logged as Errors** - When an email is archived without its original, the log now carries an error with the email id and the reason: a message above `RawMessages:MaxMessageSizeMb`, a write failure in the configured backend, or a provider that delivered no usable capture. Previously the size case was silent and a write failure only surfaced as a generic "error saving archived email to database" line.
 - **Pagination With Page Jump** - The email list now shows its navigation above and below the results, offers the first and last page plus a window around the current one, and has a field to jump directly to a page. A page number past the end lands on the last page instead of an empty list.
 - **Resizable Table Columns** - The email list and the account overview let you drag a column edge to change its width, so a long sender address no longer squeezes the subject. The widths are not stored; a reload restores the natural layout.
 - **Update Hint for Administrators** - When GitHub publishes a newer stable release than the installed version, administrators see a small toast in the lower right corner linking to that release. The toast is dismissed per version in the browser, drafts and prereleases are ignored, and the release list is refreshed every six hours instead of once per application lifetime.

@@ -2046,8 +2046,22 @@ namespace MailArchiver.Services.Core
                     if (storedRaw != null)
                     {
                         archivedEmail.RawMessage = storedRaw;
-                        await _rawMessageStore.PersistAsync(storedRaw, rawMessage);
-                        await _context.SaveChangesAsync();
+                        try
+                        {
+                            await _rawMessageStore.PersistAsync(storedRaw, rawMessage);
+                            await _context.SaveChangesAsync();
+                        }
+                        catch (Exception rawEx)
+                        {
+                            RawMessageLogging.LogPersistFailure(
+                                _logger, rawEx, archivedEmail.Id, subject, storedRaw.StorageType);
+                            throw;
+                        }
+                    }
+                    else
+                    {
+                        RawMessageLogging.LogNotStored(
+                            _logger, archivedEmail.Id, subject, rawMessage, _rawMessageOptions);
                     }
 
                     // Attachments are already saved via EF relationship (cascade)

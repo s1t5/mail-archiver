@@ -83,8 +83,22 @@ namespace MailArchiver.Services.Providers.Graph
                 if (storedRaw != null)
                 {
                     archivedEmail.RawMessage = storedRaw;
-                    await _rawMessageStore.PersistAsync(storedRaw, rawCapture);
-                    await _context.SaveChangesAsync();
+                    try
+                    {
+                        await _rawMessageStore.PersistAsync(storedRaw, rawCapture);
+                        await _context.SaveChangesAsync();
+                    }
+                    catch (Exception rawEx)
+                    {
+                        RawMessageLogging.LogPersistFailure(
+                            _logger, rawEx, archivedEmail.Id, archivedEmail.Subject, storedRaw.StorageType);
+                        throw;
+                    }
+                }
+                else
+                {
+                    RawMessageLogging.LogNotStored(
+                        _logger, archivedEmail.Id, archivedEmail.Subject, rawCapture, _rawMessageOptions);
                 }
 
                 var attachmentCount = archivedEmail.Attachments?.Count ?? 0;

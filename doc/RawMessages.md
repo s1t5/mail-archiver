@@ -220,6 +220,10 @@ comparison is the only way to notice that a file was changed outside the applica
 ## ⚠️ Things to know
 
 - **Enabling does not backfill.** Only mail archived after the switch gets an original.
+- **A missing original is logged as an error.** When the capture is refused (message above
+  `MaxMessageSizeMb`, no usable capture) or the write to the configured backend fails, the
+  log carries an error with the email id and the reason. The email stays in the archive
+  without its original; there is no automatic backfill and no retry.
 - **The reconstruction is not the message.** For emails without a stored original, every
   download path returns a rebuilt message and says so via
   `X-Raw-Message-Reconstructed: true`.

@@ -1,8 +1,11 @@
 using MailArchiver.Data;
 using MailArchiver.Models;
+using MailArchiver.Services.Core;
 using MailArchiver.Services.Shared;
 using MailArchiver.Tests.Infrastructure;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using MimeKit;
 using System.Text;
 using Xunit;
@@ -132,5 +135,125 @@ public class RawMessageStorageTests
             await CleanupAsync(ctx);
             await ctx.DisposeAsync();
         }
+    }
+
+    [Fact]
+    public async Task Archive_MessageAboveSizeLimit_LogsErrorAndStoresNoOriginal()
+    {
+        var ctx = _fixture.CreateContext();
+        try
+        {
+            var acct = await SeedAccountAsync(ctx);
+            var (msg, _) = BuildMessage();
+            var capture = new RawMessageCapture(new byte[2 * 1024 * 1024], RawMessageSource.Imap);
+            var logger = new CapturingLogger<EmailCoreService>();
+
+            var svc = ServiceFactory.CreateEmailCoreServiceWithRawMessages(
+                ctx,
+                new RawMessageOptions { Enabled = true, MaxMessageSizeMb = 1 },
+                logger);
+
+            Assert.True(await svc.ArchiveEmailAsync(acct, msg, false, "INBOX", capture));
+
+            var emailId = await ctx.ArchivedEmails
+                .Where(e => e.MailAccountId == acct.Id)
+                .Select(e => e.Id)
+                .SingleAsync();
+
+            Assert.False(await ctx.RawMessages.AnyAsync(r => r.ArchivedEmailId == emailId));
+
+            var entry = Assert.Single(logger.Entries, e =>
+                e.Level == LogLevel.Error && e.Message.Contains("MaxMessageSizeMb"));
+            Assert.Contains(emailId.ToString(), entry.Message);
+            Assert.Contains("exceeds", entry.Message);
+        }
+        finally
+        {
+            await CleanupAsync(ctx);
+            await ctx.DisposeAsync();
+        }
+    }
+
+    [Fact]
+    public async Task Archive_OriginalWriteFails_LogsErrorAndLeavesEmailWithoutOriginal()
+    {
+        var ctx = _fixture.CreateContext();
+        try
+        {
+            var acct = await SeedAccountAsync(ctx);
+            var (msg, bytes) = BuildMessage();
+            var options = new RawMessageOptions { Enabled = true };
+            var logger = new CapturingLogger<EmailCoreService>();
+            var store = new FailingPersistStore(
+                new PostgresRawMessageStore(ctx, Options.Create(options)));
+
+            var svc = ServiceFactory.CreateEmailCoreServiceWithRawMessages(ctx, options, logger, store);
+
+            Assert.False(await svc.ArchiveEmailAsync(acct, msg, false, "INBOX",
+                new RawMessageCapture(bytes, RawMessageSource.Imap)));
+
+            var emailId = await ctx.ArchivedEmails
+                .Where(e => e.MailAccountId == acct.Id)
+                .Select(e => e.Id)
+                .SingleAsync();
+
+            Assert.False(await ctx.RawMessages.AnyAsync(r => r.ArchivedEmailId == emailId));
+
+            var entry = Assert.Single(logger.Entries, e =>
+                e.Level == LogLevel.Error && e.Message.Contains("backend failed"));
+            Assert.Contains(emailId.ToString(), entry.Message);
+            Assert.NotNull(entry.Exception);
+        }
+        finally
+        {
+            ctx.ChangeTracker.Clear();
+            await CleanupAsync(ctx);
+            await ctx.DisposeAsync();
+        }
+    }
+
+    private sealed class CapturingLogger<T> : ILogger<T>
+    {
+        public List<(LogLevel Level, string Message, Exception? Exception)> Entries { get; } = new();
+
+        public IDisposable? BeginScope<TState>(TState state) where TState : notnull => null;
+
+        public bool IsEnabled(LogLevel logLevel) => true;
+
+        public void Log<TState>(
+            LogLevel logLevel,
+            EventId eventId,
+            TState state,
+            Exception? exception,
+            Func<TState, Exception?, string> formatter)
+            => Entries.Add((logLevel, formatter(state, exception), exception));
+    }
+
+    /// <summary>
+    /// Store whose CreateRow succeeds but whose write fails, the shape of a full disk or an
+    /// unwritable filesystem backend after the email row has already been committed.
+    /// </summary>
+    private sealed class FailingPersistStore : IRawMessageStore
+    {
+        private readonly IRawMessageStore _inner;
+
+        public FailingPersistStore(IRawMessageStore inner) => _inner = inner;
+
+        public string StorageType => _inner.StorageType;
+
+        public RawMessage? CreateRow(int emailId, RawMessageCapture? capture)
+            => _inner.CreateRow(emailId, capture);
+
+        public Task PersistAsync(RawMessage row, RawMessageCapture? capture)
+            => throw new IOException("simulated write failure");
+
+        public Task<bool> ExistsAsync(int emailId) => _inner.ExistsAsync(emailId);
+
+        public Task<RawMessageContent?> ReadAsync(int emailId) => _inner.ReadAsync(emailId);
+
+        public Task<string?> VerifyAsync(int emailId) => _inner.VerifyAsync(emailId);
+
+        public Task DeleteAsync(IReadOnlyCollection<int> emailIds, CancellationToken cancellationToken = default)
+            => Task.CompletedTask;
     }
 }

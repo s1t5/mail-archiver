@@ -3,10 +3,12 @@ using MailArchiver.Data;
 using MailArchiver.Models;
 using MailArchiver.Services;
 using MailArchiver.Services.Core;
+using MailArchiver.Services.Shared;
 using MailArchiver.Utilities;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Localization;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 
@@ -74,14 +76,19 @@ internal static class ServiceFactory
     /// <summary>
     /// Creates an EmailCoreService that stores the original message (RawMessages:Enabled).
     /// </summary>
-    public static EmailCoreService CreateEmailCoreServiceWithRawMessages(MailArchiverDbContext ctx, RawMessageOptions? options = null) =>
+    public static EmailCoreService CreateEmailCoreServiceWithRawMessages(
+        MailArchiverDbContext ctx,
+        RawMessageOptions? options = null,
+        ILogger<EmailCoreService>? logger = null,
+        IRawMessageStore? rawMessageStore = null) =>
         new(ctx,
-            NullLogger<EmailCoreService>.Instance,
+            logger ?? NullLogger<EmailCoreService>.Instance,
             new DateTimeHelper(Options.Create(new TimeZoneOptions { DisplayTimeZoneId = "Europe/Berlin" })),
             Options.Create(new BatchOperationOptions()),
             Options.Create(new Models.DashboardOptions { CacheSeconds = 0 }),
             memoryCache: null,
-            rawMessageOptions: Options.Create(options ?? new RawMessageOptions { Enabled = true }));
+            rawMessageOptions: Options.Create(options ?? new RawMessageOptions { Enabled = true }),
+            rawMessageStore: rawMessageStore);
 
     public static BandwidthService CreateBandwidthService(MailArchiverDbContext ctx, BandwidthTrackingOptions? options = null) =>
         new(ctx,
