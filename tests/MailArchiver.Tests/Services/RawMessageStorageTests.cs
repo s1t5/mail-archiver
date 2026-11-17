@@ -212,54 +212,6 @@ public class RawMessageStorageTests
         }
     }
 
-    [Fact]
-    public async Task Search_MarksEmailWithStoredOriginal()
-    {
-        var ctx = _fixture.CreateContext();
-        try
-        {
-            var acct = await SeedAccountAsync(ctx);
-            var (msg, bytes) = BuildMessage();
-
-            var svc = ServiceFactory.CreateEmailCoreServiceWithRawMessages(ctx);
-            await svc.ArchiveEmailAsync(acct, msg, false, "INBOX",
-                new RawMessageCapture(bytes, RawMessageSource.Imap));
-
-            var (emails, _) = await svc.SearchEmailsAsync("", null, null, acct.Id, null, null, 0, 10);
-
-            Assert.True(Assert.Single(emails).HasRawMessage);
-        }
-        finally
-        {
-            await CleanupAsync(ctx);
-            await ctx.DisposeAsync();
-        }
-    }
-
-    [Fact]
-    public async Task Search_LeavesFlagFalseWhenRawMessagesDisabled()
-    {
-        var ctx = _fixture.CreateContext();
-        try
-        {
-            var acct = await SeedAccountAsync(ctx);
-            var (msg, bytes) = BuildMessage();
-
-            var svc = ServiceFactory.CreateEmailCoreService(ctx);
-            await svc.ArchiveEmailAsync(acct, msg, false, "INBOX",
-                new RawMessageCapture(bytes, RawMessageSource.Imap));
-
-            var (emails, _) = await svc.SearchEmailsAsync("", null, null, acct.Id, null, null, 0, 10);
-
-            Assert.False(Assert.Single(emails).HasRawMessage);
-        }
-        finally
-        {
-            await CleanupAsync(ctx);
-            await ctx.DisposeAsync();
-        }
-    }
-
     private sealed class CapturingLogger<T> : ILogger<T>
     {
         public List<(LogLevel Level, string Message, Exception? Exception)> Entries { get; } = new();

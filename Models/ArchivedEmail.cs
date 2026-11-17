@@ -1,5 +1,3 @@
-using System.ComponentModel.DataAnnotations.Schema;
-
 namespace MailArchiver.Models
 {
     public class ArchivedEmail
@@ -50,14 +48,5 @@ namespace MailArchiver.Models
 
         // Original message bytes; only present when RawMessages:Enabled was set at archive time
         public virtual RawMessage? RawMessage { get; set; }
-
-        /// <summary>
-        /// Whether a stored original exists for this email. Filled by the list query so the
-        /// list can flag missing originals without one query per row; not a column. The
-        /// details page resolves it through IRawMessageStore, which also notices a missing
-        /// file in the filesystem backend.
-        /// </summary>
-        [NotMapped]
-        public bool HasRawMessage { get; set; }
     }
 }

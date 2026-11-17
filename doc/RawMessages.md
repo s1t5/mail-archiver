@@ -224,10 +224,10 @@ comparison is the only way to notice that a file was changed outside the applica
   `MaxMessageSizeMb`, no usable capture) or the write to the configured backend fails, the
   log carries an error with the email id and the reason. The email stays in the archive
   without its original; there is no automatic backfill and no retry.
-- **The UI flags a missing original.** With `RawMessages:Enabled`, the email list shows a
-  warning badge on every message without a stored original, and the details page shows a
-  notice above the headers. The list resolves the flag with one query per page; the details
-  page asks the storage backend, so a filesystem file that vanished is flagged as well.
+- **The details page flags a missing original.** With `RawMessages:Enabled`, the details page
+  shows a notice above the headers. It asks the storage backend, so a filesystem file that
+  vanished is flagged as well. The email list has no per-row badge; it would take too much
+  room in the status column.
 - **The reconstruction is not the message.** For emails without a stored original, every
   download path returns a rebuilt message and says so via
   `X-Raw-Message-Reconstructed: true`.

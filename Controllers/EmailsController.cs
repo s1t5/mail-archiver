@@ -97,8 +97,6 @@ namespace MailArchiver.Controllers
             }
             if (model.PageNumber <= 0) model.PageNumber = 1;
 
-            // The list only flags missing originals when the option is on.
-            model.RawMessagesEnabled = _rawMessageOptions.Enabled;
             
             // Validate and set page size to allowed values
             var allowedPageSizes = new[] { 20, 50, 75, 100, 150 };
