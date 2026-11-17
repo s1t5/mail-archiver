@@ -337,7 +337,7 @@
                                             }
                                         </th>
                                         <th>@Localizer["Account"]</th>
-                                        <th>@Localizer["Status"]</th>
+                                        <th style="min-width: 170px;">@Localizer["Status"]</th>
                                         <th></th>
                                     </tr>
                                 </thead>
@@ -364,18 +364,18 @@
                                                     <span class="badge bg-secondary">@Localizer["In"]</span>
                                                 }
                                                 @email.Subject
-                                                @if (Model.RawMessagesEnabled && !email.HasRawMessage)
-                                                {
-                                                    <span class="badge bg-warning text-dark ms-1" title="@Localizer["OriginalMissingHint"]">
-                                                        <i class="bi bi-exclamation-triangle"></i> @Localizer["OriginalMissing"]
-                                                    </span>
-                                                }
                                             </td>
                                             <td>@email.From</td>
                                             <td>@email.To</td>
                                             <td>@email.SentDate.ToString("g")</td>
                                             <td>@email.MailAccount.Name</td>
-                                            <td>
+                                            <td style="white-space: normal;">
+                                                @if (Model.RawMessagesEnabled && !email.HasRawMessage)
+                                                {
+                                                    <span class="badge bg-warning text-dark me-1" title="@Localizer["OriginalMissingHint"]">
+                                                        <i class="bi bi-exclamation-triangle"></i> @Localizer["OriginalMissing"]
+                                                    </span>
+                                                }
                                                 @if (email.HasAttachments)
                                                 {
                                                     <i class="bi bi-paperclip text-warning" title="@Localizer["HasAttachments"]"></i>
