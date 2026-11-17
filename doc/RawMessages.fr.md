@@ -40,17 +40,11 @@ La réponse vous indique quelle forme vous avez reçue, de sorte qu'un appelant 
 | `X-Raw-Message-Reconstructed: true` | Aucun original stocké ; le message a été reconstruit. Pas d'en-tête de checksum. |
 | `X-Raw-Message-Storage` | Backend duquel l'original a été lu (`postgres` ou `filesystem`). |
 
-Le nom de fichier l'indique également : `email-{id}-original-...eml` pour un original stocké,
-`email-{id}-...eml` pour une reconstruction.
+Le nom de fichier l'indique également : `email-{id}-original-...eml` pour un original stocké, `email-{id}-...eml` pour une reconstruction.
 
-Lorsqu'un original stocké **échoue à son checksum**, l'export et la restauration sont refusés
-avec un message d'erreur. Renvoyer la reconstruction à la place masquerait le fait que la
-copie archivée a été altérée, ce qui est précisément ce qu'une Archive ne doit jamais faire.
+Lorsqu'un original stocké **échoue à son checksum**, l'export et la restauration sont refusés avec un message d'erreur. Renvoyer la reconstruction à la place masquerait le fait que la copie archivée a été altérée, ce qui est précisément ce qu'une Archive ne doit jamais faire.
 
-Une restauration lit l'original stocké et l'ajoute via le client du fournisseur, de sorte que la
-Boîte aux lettres reçoit les en-têtes et la structure MIME originaux. Le flux d'octets exact n'est pas
-garanti sur le réseau car le client sérialise à nouveau le message ; la copie archivée
-elle-même reste inchangée.
+Une restauration lit l'original stocké et l'ajoute via le client du fournisseur, de sorte que la Boîte aux lettres reçoit les en-têtes et la structure MIME originaux. Le flux d'octets exact n'est pas garanti sur le réseau car le client sérialise à nouveau le message ; la copie archivée elle-même reste inchangée.
 
 ## ⚙️ Paramètres {#settings}
 
@@ -63,43 +57,43 @@ Tous les paramètres se trouvent dans la section `RawMessages`, ou sous forme de
 | `RawMessages:IncludeGraph` | `true` | Stocke également l'original pour les Compte Microsoft 365 (Graph). Cela coûte une requête Graph supplémentaire par message, ce qui compte dans le budget de limitation de débit (throttling). |
 | `RawMessages:Storage` | `postgres` | Lieu où les octets du message sont conservés : `postgres` (dans la base de données) ou `filesystem` (fichier gzip à côté de l'Archive). Voir [Storage backend](#storage-backend). |
 | `RawMessages:FileSystem:BasePath` | `RawMessages` | Répertoire dans lequel les fichiers de messages sont écrits, relatif à la racine du contenu de l'application. Pointez ceci vers un volume monté dans Docker. |
-| `RawMessages:FileSystem:ShardDepth` | `2` | Nombre de niveaux de répertoires à deux caractères sur lesquels l'identifiant de l'e-mail est réparti. `2` donne 10 000 répertoires, `0` est plat. Permet de maintenir un nombre de fichiers par répertoire faible sur les grandes Archives. |
-| `RawMessages:FileSystem:VerifyChecksumOnRead` | `true` | Re-calcule le SHA-256 du fichier à chaque téléchargement et le compare avec la somme de contrôle enregistrée lors de l'Archive. Une discordance fait échouer le téléchargement avec une erreur HTTP 500 au lieu de servir des octets altérés. |
+| `RawMessages:FileSystem:ShardDepth` | `2` | Nombre de niveaux de répertoires à deux caractères sur lesquels l'ID de l'e-mail est réparti. `2` donne 10 000 répertoires, `0` est plat. Permet de maintenir un nombre de fichiers par répertoire faible sur les grandes Archives. |
+| `RawMessages:FileSystem:VerifyChecksumOnRead` | `true` | Recalcule le SHA-256 du fichier à chaque téléchargement et le compare avec la somme de contrôle enregistrée lors de l'Archive. Une discordance fait échouer le téléchargement avec une erreur HTTP 500 au lieu de servir des octets altérés. |
 
 ### Dimensionnement {#sizing}
 
-Le stockage augmente approximativement de la taille de chaque e-mail, y compris ses Pièce jointe, compressé en gzip. Les Pièce jointe ne sont **pas** soumises à la Déduplication à l'intérieur de l'original stocké ; ainsi, un e-mail avec une grande Pièce jointe coûte cette Pièce jointe deux fois : une fois dans le magasin de Pièce jointe dédupliqué et une fois à l'intérieur de l'original. Prévoyez environ **deux fois** la taille de la base de données d'une Archive sans originaux.
+Le stockage augmente approximativement de la taille de chaque e-mail, y compris ses Pièce jointe, compressé en gzip. Les Pièce jointe ne sont **pas** soumises à la Déduplication à l'intérieur de l'original stocké, donc un e-mail avec une grande Pièce jointe coûte cette Pièce jointe deux fois : une fois dans le magasin de Pièce jointe dédupliqué et une fois à l'intérieur de l'original. Prévoyez environ **deux fois** la taille de la base de données d'une Archive sans originaux.
 
-L'activation du paramètre ne rétroagit pas sur les e-mails existants. Seuls les e-mails nouvellement archivés reçoivent un original.
+L'activation du paramètre ne traite pas rétroactivement les e-mails existants. Seuls les e-mails nouvellement archivés reçoivent un original.
 
 ## 💾 Backend de stockage {#storage-backend}
 
-Le paramètre `Storage` décide de l'endroit où résident les octets. La **ligne de métadonnées reste toujours dans
+Le paramètre `Storage` décide de l'emplacement des octets. La **ligne de métadonnées reste toujours dans
 la base de données**, quel que soit le backend configuré, et contient le SHA-256, la taille, la
 source de capture et (pour les fichiers) le chemin relatif. Cette ligne est ce qui permet à l'Archive de prouver ce qu'un
 message stocké doit contenir.
 
-### postgres (par défaut) {#postgres-default}
+### postgres (default) {#postgres-default}
 
 Le message compressé se trouve dans la colonne `Content` de `mail_archiver."RawMessages"`.
 C'est le comportement que l'Archive a toujours eu et qui ne nécessite pas de volume supplémentaire.
 
 Choisissez cette option lorsque la base de données est déjà votre unité de Sauvegarde et que vous voulez une seule chose à
-sauvegarder et à restaurer.
+Sauvegarder et à Restaurer.
 
 ### filesystem {#filesystem}
 
 Le message est écrit dans `{BasePath}/{xx}/{yy}/{id}.eml.gz`, où `xx`/`yy` sont dérivés
-de l'id de l'e-mail. La ligne de la base de données ne conserve que les métadonnées.
+de l'ID de l'e-mail. La ligne de la base de données ne conserve que les métadonnées.
 
 Choisissez cette option lorsque l'Archive est suffisamment volumineuse pour que les originaux dominent la taille de la base de données,
 ou lorsque vous souhaitez placer les fichiers de messages sur un stockage moins coûteux ou séparé.
 
 !!! danger "Monter un volume dans Docker"
     Le `BasePath` par défaut (`RawMessages`) se résout en `/app/RawMessages` **à l'intérieur du
-    conteneur**. Sans un bind mount, ce répertoire appartient à la couche d'écriture du conteneur, de sorte que chaque conteneur recréé - y compris `docker compose down && docker compose
-    up -d`, une mise à jour d'image, ou un redémarrage de l'hôte avec une couche éphémère - emporte avec lui chaque original stocké
-    tandis que les lignes de la base de données survivent.
+    conteneur**. Sans un bind mount, ce répertoire appartient à la couche d'écriture du conteneur, de sorte que chaque recréation de conteneur - y compris `docker compose down && docker compose
+    up -d`, une mise à jour d'image, ou un redémarrage de l'hôte avec une couche éphémère - emporte chaque original stocké
+    avec lui, alors que les lignes de la base de données survivent.
 
     Montez toujours le répertoire sur l'hôte lorsque vous utilisez le backend filesystem :
 
@@ -110,15 +104,15 @@ ou lorsque vous souhaitez placer les fichiers de messages sur un stockage moins 
           - ./raw-messages:/app/RawMessages
     ```
 
-    Le chemin de l'hôte (`./raw-messages` ici) est ce que vous sauvegardez. Le chemin du conteneur doit
+    Le chemin de l'hôte (`./raw-messages` ici) est ce que vous Sauvegardez. Le chemin du conteneur doit
     correspondre à `RawMessages:FileSystem:BasePath`, ou définissez `RawMessages:FileSystem:BasePath` sur
-    le point de montage que vous avez choisi. Si vous déplacez le montage, gardez `BasePath` pointant vers lui : les
-    valeurs `StoragePath` stockées sont relatives, elles continuent donc de se résoudre.
+    le point de montage que vous avez choisi. Si vous déplacez le montage, assurez-vous que `BasePath` pointe toujours vers lui : les
+    valeurs `StoragePath` stockées sont relatives, elles continuent donc d'être résolues.
 
 ### Changement de backend {#switching-backends}
 
-Les lectures suivent le stockage enregistré sur chaque ligne, et non le paramètre configuré. Après que vous
-avez modifié `Storage`, les messages archivés précédemment restent téléchargeables de partout où ils se trouvent.
+Les lectures suivent le stockage enregistré sur chaque ligne, et non le paramètre configuré. Après avoir
+modifié `Storage`, les messages archivés précédemment restent téléchargeables depuis leur emplacement actuel.
 Le paramètre n'affecte que les e-mails **nouvellement** archivés.
 
 Pour déplacer ce qui est déjà stocké, lancez la migration de stockage. Consultez les
@@ -140,9 +134,9 @@ Ce que la migration garantit :
   qui échoue est laissé là où il est et signalé : un original corrompu n'est jamais propagé et
   sa seule copie restante n'est jamais supprimée.
 - Un fichier n'est supprimé qu'après la validation de la transaction de la base de données qui l'a déplacé, de sorte qu'une
-  exécution interrompue ne peut pas perdre la seule copie.
-- L'exécution est reprise. Le travail est sélectionné par la colonne `StorageType`, donc relancer la
-  commande permet de continuer avec ce qui est encore en attente.
+  exécution interrompue ne peut pas perdre l'unique copie.
+- L'exécution est reprise possible. Le travail est sélectionné par la colonne `StorageType`, donc relancer la
+  commande permet de continuer avec ce qui reste à faire.
 - Le code de sortie est `1` si un message a échoué, `0` sinon.
 
 Une migration n'est pas requise pour que l'Archive fonctionne. Elle est seulement nécessaire pour déplacer les octets
@@ -151,22 +145,21 @@ existants vers l'autre backend.
 ## 🛟 Sauvegarde et restauration {#backup-and-restore}
 
 === "postgres backend"
-    Rien de plus. Les originaux font partie de la base de données et sont couverts par le
+    Rien de particulier. Les originaux font partie de la base de données et sont couverts par le
     dump normal, voir [Backup and Restore](BackupRestore.md).
 
 === "filesystem backend"
     Sauvegardez le répertoire `BasePath` **en même temps que** le dump de la base de données.
 
-    Une restauration de base de données sans les fichiers laisse l'Archive avec des lignes
-    dont le contenu ne peut pas être servi. Le téléchargement répond alors par une erreur HTTP 404
-    plutôt que de renvoyer quelque chose de faux, et les e-mails eux-mêmes restent lisibles
-    via leurs champs analysés.
+    Une restauration de base de données sans les fichiers laisse l'Archive avec des lignes dont le contenu
+    ne peut pas être servi. Le téléchargement répond alors par une erreur HTTP 404 plutôt que de renvoyer quelque chose
+    d'erroné, et les e-mails eux-mêmes restent lisibles via leurs champs analysés.
 
-## 🗑️ Suppression d'un e-mail {#deleting-an-email}
+## 🗑️ Supprimer un e-mail {#deleting-an-email}
 
-La suppression d'un e-mail supprime également son original : les règles de Conservation, la suppression manuelle individuelle ou groupée, ainsi que la suppression d'un Compte de messagerie complet suppriment tous le fichier dans le cadre de la même opération. Avec le backend `postgres`, il n'y a rien de plus à faire, car les octets voyagent à l'intérieur de la ligne que la cascade supprime déjà.
+La suppression d'un e-mail supprime également son original : les règles de Conservation, la suppression manuelle individuelle ou groupée, ainsi que la suppression d'un Compte de messagerie complet suppriment le fichier dans le cadre de la même opération. Avec le backend `postgres`, il n'y a rien de plus à faire, car les octets voyagent à l'intérieur de la ligne que la cascade supprime déjà.
 
-Le fichier est supprimé **après** que la ligne de l'e-mail a été validée, jamais avant. Les deux étapes ne peuvent pas faire partie d'une seule transaction, car un fichier ne fait pas partie de la transaction de la base de données, l'une d'elles doit donc intervenir en second. Cet ordre est le plus sûr : une suppression qui échoue ou qui subit un rollback, par exemple sur un enregistrement verrouillé, laisse l'original intact, et un plantage entre les deux étapes laisse un fichier sans ligne, que le nettoyage ci-dessous récupère. L'autre ordre détruirait l'original d'un e-mail qui existe encore.
+Le fichier est supprimé **après** que la ligne de l'e-mail a été validée, jamais avant. Les deux étapes ne peuvent pas faire partie d'une seule transaction, car un fichier ne fait pas partie de la transaction de la base de données, l'une d'elles doit donc intervenir en second. Cet ordre est le plus sûr : une suppression qui échoue ou qui subit un rollback, par exemple sur un enregistrement verrouillé, laisse l'original intact, et un plantage entre les deux étapes laisse un fichier sans ligne, que le balayage ci-dessous récupère. L'autre ordre détruirait l'original d'un e-mail qui existe encore.
 
 **Les fichiers orphelins sont collectés.** Tout ce qui aurait pu échapper au processus, y compris les fichiers laissés par des suppressions antérieures à l'existence de ce nettoyage, est supprimé par un balayage périodique de `BasePath` qui compare chaque fichier aux lignes et supprime ceux auxquels aucun e-mail ne se réfère :
 
@@ -177,33 +170,48 @@ Le fichier est supprimé **après** que la ligne de l'e-mail a été validée, j
 | `RawMessages__FileSystem__OrphanCleanupGraceHours` | `24` | Les fichiers plus récents que cette valeur ne sont jamais touchés |
 | `RawMessages__FileSystem__OrphanCleanupStartupDelaySeconds` | `300` | Délai avant la première exécution, afin qu'une migration de stockage en attente se termine d'abord |
 
-La période de grâce est ce qui rend le balayage sûr : un import écrit un fichier avant de valider la ligne qui pointe vers lui, et un fichier écrit il y a quelques instants ne doit pas être confondu avec un orphelin. Les fichiers `.tmp` semi-écrits suite à une écriture interrompue sont collectés selon la même règle. Avec le backend `postgres`, le balayage ne fait rien et ne parcourt même pas le répertoire.
+La période de grâce est ce qui rend le balayage sûr : un import écrit un fichier avant de valider la ligne qui pointe vers lui, et un fichier écrit il y a quelques instants ne doit pas être confondu avec un orphelin. Les fichiers `.tmp` semi-écrits provenant d'une écriture interrompue sont collectés selon la même règle. Avec le backend `postgres`, le balayage ne fait rien et ne parcourt même pas le répertoire.
 
 ## 🔍 Vérification d'une Archive {#verifying-an-archive}
 
 La somme de contrôle enregistrée lors de la création de l'Archive est ce qui rend la vérification possible.
 
-- **Lors du téléchargement** (`VerifyChecksumOnRead=true`, par défaut), le fichier est haché et
+- **Au téléchargement** (`VerifyChecksumOnRead=true`, par défaut) le fichier est haché et
   comparé. Une discordance refuse le téléchargement avec une erreur HTTP 500.
 - **Lors de la migration de stockage**, chaque message est vérifié avant d'être copié, dans les
   deux sens.
 
-Comme la ligne de métadonnées se trouve dans la base de données et que les octets peuvent être sur le disque, une comparaison de somme de contrôle est le seul moyen de remarquer qu'un fichier a été modifié en dehors de l'application.
+Comme la ligne de métadonnées se trouve dans la base de données et que les octets peuvent être sur le disque, une comparaison de somme de contrôle
+est le seul moyen de remarquer qu'un fichier a été modifié en dehors de l'application.
 
 ## ⚠️ Choses à savoir {#things-to-know}
 
 - **L'activation ne permet pas de remplissage rétroactif.** Seuls les e-mails archivés après le basculement bénéficient d'un original.
-- **L'absence d'original est enregistrée comme une erreur.** Lorsque la capture est refusée (message ci-dessus `MaxMessageSizeMb`, aucune capture utilisable) ou que l'écriture vers le backend configuré échoue, le journal d'audit contient une erreur avec l'id de l'e-mail et la raison. L'e-mail reste dans l'Archive sans son original ; il n'y a pas de remplissage rétroactif automatique ni de nouvelle tentative.
-- **L'interface utilisateur signale l'absence d'original.** Avec `RawMessages:Enabled`, la liste des e-mails affiche un badge d'avertissement sur chaque message sans original stocké, et la page de détails affiche un avis au-dessus des en-têtes. La liste résout le signalement avec une requête par page ; la page de détails interroge le backend de stockage, ainsi qu'un fichier système ayant disparu est également signalé.
-- **La reconstruction n'est pas le message.** Pour les e-mails sans original stocké, chaque chemin de téléchargement renvoie un message reconstruit et l'indique via `X-Raw-Message-Reconstructed: true`.
-- **Le système de fichiers signifie deux unités de Sauvegarde.** La base de données et le répertoire des messages doivent être restaurés ensemble, sinon les lignes survivent sans leur contenu.
-- **`VerifyChecksumOnRead` consomme du CPU.** Chaque téléchargement d'un message volumineux est décompressé et haché. Laissez cette option activée à moins d'avoir mesuré un problème ; c'est la seule protection contre l'altération silencieuse sur le disque.
-- **L'original stocké n'est pas dédupliqué.** Une pièce jointe qui apparaît dans de nombreux e-mails est stockée une seule fois dans le magasin de pièces jointes, mais une fois par e-mail à l'intérieur de l'original.
-- **La suppression supprime également l'original.** Un e-mail supprimé par la Conservation ou manuellement emporte son original stocké, fichier et ligne compris. Rien n'est conservé si l'Archive ne le liste plus.
+- **L'absence d'original est enregistrée comme une erreur.** Lorsque la capture est refusée (message ci-dessus
+  `MaxMessageSizeMb`, aucune capture utilisable) ou que l'écriture vers le backend configuré échoue, le
+  journal contient une erreur avec l'id de l'e-mail et la raison. L'e-mail reste dans l'Archive
+  sans son original ; il n'y a pas de remplissage rétroactif automatique ni de nouvelle tentative.
+- **La page de détails signale un original manquant.** Avec `RawMessages:Enabled`, la page de détails
+  affiche un avis au-dessus des en-têtes. Elle interroge le backend de stockage, de sorte qu'un fichier de système de fichiers qui
+  a disparu est également signalé. La liste des e-mails n'a pas de badge par ligne ; cela prendrait trop de
+  place dans la colonne de statut.
+- **La reconstruction n'est pas le message.** Pour les e-mails sans original stocké, chaque
+  chemin de téléchargement renvoie un message reconstruit et l'indique via
+  `X-Raw-Message-Reconstructed: true`.
+- **Le système de fichiers signifie deux unités de Sauvegarde.** La base de données et le répertoire des messages doivent être restaurés
+  ensemble, sinon les lignes survivent sans leur contenu.
+- **`VerifyChecksumOnRead` consomme du CPU.** Chaque téléchargement d'un message volumineux est décompressé
+  et haché. Laissez cette option activée à moins d'avoir mesuré un problème ; c'est la seule protection
+  contre l'altération silencieuse sur le disque.
+- **L'original stocké n'est pas soumis à la Déduplication.** Une Pièce jointe qui apparaît dans de nombreux e-mails
+  est stockée une fois dans le magasin de pièces jointes, mais une fois par e-mail à l'intérieur de l'original.
+- **La suppression supprime également l'original.** Un e-mail supprimé par la Conservation ou manuellement emporte
+  son original stocké avec lui, le fichier et la ligne. Rien n'est conservé que l'Archive ne
+  répertorie plus.
 
 ## 🔗 Voir aussi {#see-also}
 
-- [CLI Commands](CLI.md#moving-stored-original-messages) - la migration du stockage complète
+- [CLI Commands](CLI.md#moving-stored-original-messages) - la migration de stockage complète
 - [Setup and Parameters](Setup.md) - tous les paramètres de configuration
 - [REST API](API.md#download-original-message) - le point de terminaison `/raw`
 - [MCP Server](MCP.md#get_email_raw) - l'outil `get_email_raw`
