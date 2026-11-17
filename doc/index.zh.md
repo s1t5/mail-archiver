@@ -1,8 +1,8 @@
-# 📧 Mail Archiver Documentation {#mail-archiver-documentation}
+# 📧 Mail Archiver 文档 {#mail-archiver-documentation}
 
 <div class="docs-lead" markdown>
-**自托管邮件归档 — 归档、搜索并导出来自任何提供商的邮件。**
-只需设置一次，保留每一条消息，并在多年后再次找到它。
+**自托管邮件归档 —— 归档、搜索并导出任何提供商的邮件。**
+只需一次设置，即可保留每条消息，并在多年后再次找到它们。
 </div>
 
 <div class="grid cards" markdown>
@@ -27,7 +27,7 @@
 
     ---
 
-    通过脚本和 AI 代理读取您的归档内容 — 只读、范围受限的 API 密钥。
+    通过脚本和 AI agent 读取您的归档 —— 只读、范围受限的 API 密钥。
 
     [:octicons-arrow-right-24: REST API](API.md) · [:octicons-arrow-right-24: MCP server](MCP.md)
 
@@ -73,7 +73,7 @@
 
     ---
 
-    VACUUM、ANALYZE 以及随着时间的推移保持归档的响应能力。
+    VACUUM、ANALYZE 以及保持归档随时间推移仍保持响应能力。
 
     [:octicons-arrow-right-24: 阅读](DatabaseMaintenance.md)
 
@@ -81,7 +81,7 @@
 
     ---
 
-    备份数据库并进行恢复 — 包括 Proxmox 设置。
+    备份数据库并进行恢复 —— 包括 Proxmox 设置。
 
     [:octicons-arrow-right-24: 阅读](BackupRestore.md)
 
@@ -111,7 +111,7 @@
 
     ---
 
-    快速同步 vs. 全量同步、检查点，以及同步失败时会发生什么。
+    快速同步 vs 全量同步、检查点，以及同步失败时会发生什么。
 
     [:octicons-arrow-right-24: 阅读](Synchronization.md)
 
@@ -119,7 +119,7 @@
 
     ---
 
-    通过命令行导入现有归档，并在数据库与文件系统之间移动存储的原始消息。
+    通过命令行导入现有归档，并在数据库和文件系统之间移动存储的原始消息。
 
     [:octicons-arrow-right-24: 阅读](CLI.md)
 
@@ -157,7 +157,7 @@
 
     ---
 
-    监控同步、导入、恢复和导出 — 并安全地取消它们。
+    监控同步、导入、恢复和导出 —— 并安全地取消它们。
 
     [:octicons-arrow-right-24: 阅读](BackgroundJobs.md)
 
@@ -197,11 +197,11 @@
 
     ---
 
-    按时间窗口将较旧的邮件移动到另一个账户。
+    按时间窗口将旧邮件移动到另一个账户。
 
     [:octicons-arrow-right-24: 阅读](Offload.md)
 
--   :material-harddisk:{ .lg .middle } __按账户存储统计__
+-   :material-harddisk:{ .lg .middle } __单账户存储占用__
 
     ---
 
@@ -227,7 +227,7 @@
 
     ---
 
-    TOTP 设置、备份代码，以及设备丢失时的应对措施。
+    TOTP 设置、备份代码，以及设备丢失时的处理方法。
 
     [:octicons-arrow-right-24: 阅读](TwoFactor.md)
 
@@ -313,7 +313,7 @@
 
     ---
 
-    应用密码、标签、清除 (expunge) 以及 Gmail 的速率限制。
+    应用密码、标签、expunge 以及 Gmail 的速率限制。
 
     [:octicons-arrow-right-24: 阅读](GmailBestPractices.md)
 
@@ -335,7 +335,7 @@
 
     ---
 
-    通过范围受限的每用户 API 密钥实现对归档的只读访问。
+    通过范围受限的单用户 API 密钥实现对归档的只读访问。
 
     [:octicons-arrow-right-24: 阅读](API.md)
 
@@ -343,7 +343,7 @@
 
     ---
 
-    将归档作为可发现的工具暴露给 AI 代理。
+    将归档作为可发现的工具暴露给 AI agent。
 
     [:octicons-arrow-right-24: 阅读](MCP.md)
 
@@ -369,11 +369,19 @@
 
     [:octicons-arrow-right-24: 阅读](DockerComposeLogs.md)
 
+-   :material-heart-pulse:{ .lg .middle } __健康检查与指标__
+
+    ---
+
+    通过 Prometheus 或其他监控系统观察 liveness、readiness 和归档指标。
+
+    [:octicons-arrow-right-24: 阅读](Monitoring.md)
+
 -   :material-tag:{ .lg .middle } __开发版本__
 
     ---
 
-    切换到开发标签以测试即将推出的更改。
+    切换到 dev 标签以测试即将到来的更改。
 
     [:octicons-arrow-right-24: 阅读](DevTag.md)
 
