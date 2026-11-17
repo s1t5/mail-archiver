@@ -452,6 +452,69 @@ public class UserServiceTests
     }
 
     [Fact]
+    public async Task UpdateUserAsync_RotatesSecurityStampOnRoleChange()
+    {
+        // The rotation lives in the service, not in the controller, so a caller that
+        // changes a role cannot leave the old cookies valid.
+        await using var scope = await _fixture.CreateTransactionalContextAsync();
+        var ctx = scope.Context;
+        try
+        {
+            var user = await SeedUserAsync(ctx);
+            var stampBefore = user.SecurityStamp;
+            var svc = ServiceFactory.CreateUserService(ctx);
+
+            user.IsAdmin = true;
+            Assert.True(await svc.UpdateUserAsync(user));
+
+            var refreshed = await ctx.Users.AsNoTracking().FirstAsync(u => u.Id == user.Id);
+            Assert.NotEqual(stampBefore, refreshed.SecurityStamp);
+            Assert.Equal(32, refreshed.SecurityStamp.Length);
+        }
+        finally { await scope.RollbackAsync(); }
+    }
+
+    [Fact]
+    public async Task UpdateUserAsync_RotatesSecurityStampOnActivationChange()
+    {
+        await using var scope = await _fixture.CreateTransactionalContextAsync();
+        var ctx = scope.Context;
+        try
+        {
+            var user = await SeedUserAsync(ctx);
+            var stampBefore = user.SecurityStamp;
+            var svc = ServiceFactory.CreateUserService(ctx);
+
+            user.IsActive = false;
+            Assert.True(await svc.UpdateUserAsync(user));
+
+            var refreshed = await ctx.Users.AsNoTracking().FirstAsync(u => u.Id == user.Id);
+            Assert.NotEqual(stampBefore, refreshed.SecurityStamp);
+        }
+        finally { await scope.RollbackAsync(); }
+    }
+
+    [Fact]
+    public async Task UpdateUserAsync_RotatesSecurityStampOnPasswordChange()
+    {
+        await using var scope = await _fixture.CreateTransactionalContextAsync();
+        var ctx = scope.Context;
+        try
+        {
+            var user = await SeedUserAsync(ctx);
+            var stampBefore = user.SecurityStamp;
+            var svc = ServiceFactory.CreateUserService(ctx);
+
+            user.PasswordHash = svc.HashPassword("a-new-password");
+            Assert.True(await svc.UpdateUserAsync(user));
+
+            var refreshed = await ctx.Users.AsNoTracking().FirstAsync(u => u.Id == user.Id);
+            Assert.NotEqual(stampBefore, refreshed.SecurityStamp);
+        }
+        finally { await scope.RollbackAsync(); }
+    }
+
+    [Fact]
     public async Task IsUserAdminAsync_Admin_True()
     {
         await using var scope = await _fixture.CreateTransactionalContextAsync();

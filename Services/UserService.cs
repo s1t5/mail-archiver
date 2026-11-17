@@ -212,6 +212,30 @@ namespace MailArchiver.Services
 
         public async Task<bool> UpdateUserAsync(User user)
         {
+            // SECURITY: a changed role, activation status or password ends every existing
+            // session for the user. The rotation belongs here, in the one method that writes
+            // the row, not in a controller: a future caller that widens a role through the
+            // service would otherwise leave the cookies issued under the old role valid.
+            // Comparing against the stored row keeps the login path (LastLoginAt) from
+            // rotating, which would invalidate the cookie that was just issued.
+            var stored = await _context.Users
+                .AsNoTracking()
+                .Where(u => u.Id == user.Id)
+                .Select(u => new { u.IsAdmin, u.IsSelfManager, u.IsActive, u.PasswordHash })
+                .FirstOrDefaultAsync();
+
+            if (stored != null &&
+                (stored.IsAdmin != user.IsAdmin ||
+                 stored.IsSelfManager != user.IsSelfManager ||
+                 stored.IsActive != user.IsActive ||
+                 !string.Equals(stored.PasswordHash, user.PasswordHash, StringComparison.Ordinal)))
+            {
+                user.SecurityStamp = Guid.NewGuid().ToString("N");
+                _logger.LogInformation(
+                    "Security state of user {Username} (ID: {UserId}) changed; rotated the security stamp",
+                    user.Username, user.Id);
+            }
+
             _context.Users.Update(user);
             try
             {

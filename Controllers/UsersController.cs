@@ -268,14 +268,9 @@ namespace MailArchiver.Controllers
                     // Update user properties
                     _logger.LogInformation("Updating user properties for user: {Username}", existingUser.Username);
 
-                    // SECURITY: a changed role, activation status or password invalidates
-                    // the user's existing sessions. Rotate the stamp before saving so the
+                    // A changed role, activation status or password is detected by
+                    // UserService.UpdateUserAsync, which rotates the security stamp so the
                     // cookies issued for the old state stop working.
-                    var securityStateChanged =
-                        existingUser.IsAdmin != model.IsAdmin ||
-                        existingUser.IsSelfManager != model.IsSelfManager ||
-                        existingUser.IsActive != model.IsActive ||
-                        !string.IsNullOrWhiteSpace(newPassword);
 
                     existingUser.Username = model.Username;
                     existingUser.Email = model.Email;
@@ -296,11 +291,6 @@ namespace MailArchiver.Controllers
                     {
                         _logger.LogInformation("Updating password for user: {Username}", existingUser.Username);
                         existingUser.PasswordHash = _userService.HashPassword(newPassword);
-                    }
-
-                    if (securityStateChanged)
-                    {
-                        existingUser.SecurityStamp = Guid.NewGuid().ToString("N");
                     }
 
                     _logger.LogInformation("Attempting to update user: {Username}", existingUser.Username);
@@ -621,10 +611,10 @@ namespace MailArchiver.Controllers
                         // Update password
                         try
                         {
-                            // SECURITY: rotate the stamp so every other session for this
-                            // user is rejected on its next request. The current session is
-                            // re-issued below and stays signed in.
-                            currentUser.SecurityStamp = Guid.NewGuid().ToString("N");
+                            // SECURITY: UpdateUserAsync rotates the security stamp because the
+                            // password hash changed, so every other session for this user is
+                            // rejected on its next request. The current session is re-issued
+                            // below with the new stamp and stays signed in.
                             currentUser.PasswordHash = _userService.HashPassword(newPassword);
                             var result = await _userService.UpdateUserAsync(currentUser);
 
