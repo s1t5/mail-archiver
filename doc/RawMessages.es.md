@@ -1,6 +1,6 @@
 # 📧 Original Message Storage {#original-message-storage}
 
-[← Volver al índice de la documentación](index.md)
+[← Volver al Índice de Documentación](index.md)
 
 ## 📋 Resumen {#overview}
 
@@ -8,12 +8,12 @@ Por defecto, el Archivo conserva las **partes analizadas** de un correo electró
 
 Eso es suficiente para leer un correo electrónico, pero no es el mensaje **tal como se recibió**. Las codificaciones de transferencia, los límites MIME y el plegado de encabezados difieren del original, por lo que un mensaje reconstruido ya no verifica su firma DKIM y los escáneres de spam lo califican de forma diferente.
 
-Con el almacenamiento del mensaje original habilitado, el Archivo conserva el mensaje completo tal como llegó, junto con los campos analizados. El original almacenado es lo que el Archivo puede demostrar que fue entregado.
+Con el almacenamiento de mensajes originales habilitado, el Archivo conserva el mensaje completo tal como llegó, junto con los campos analizados. El original almacenado es lo que el Archivo puede demostrar que fue entregado.
 
-| | Solo campos analizados | Con el original almacenado |
+| | Solo campos analizados | Con original almacenado |
 | --- | --- | --- |
 | Encabezados, cuerpo, Adjuntos | ✅ | ✅ |
-| Mensaje exacto en bytes | ❌ | ✅ |
+| Mensaje byte a byte exacto | ❌ | ✅ |
 | La firma DKIM se verifica | ❌ | ✅ |
 | Uso forense (tribunal, auditoría) | limitado | ✅ |
 
@@ -23,9 +23,9 @@ Una vez almacenado, el original se devuelve dondequiera que se espere un mensaje
 
 | Lugar | Qué sucede |
 | --- | --- |
-| Botón **Export EML** en la página de detalles del correo electrónico | Sirve el original almacenado cuando existe; si no, recurre a la reconstrucción para los correos electrónicos archivados sin uno. |
-| **Restore to a mailbox** | Anexa el original almacenado cuando existe; si no, recurre a la reconstrucción para los correos electrónicos archivados sin uno. |
-| `GET /api/v1/emails/{id}/raw` | Descarga mediante REST API, consulte la [REST API guide](API.md#download-original-message). |
+| Botón **Export EML** en la página de detalles del correo electrónico | Sirve el original almacenado cuando existe, recurre a la reconstrucción para los correos electrónicos archivados sin uno. |
+| **Restore to a mailbox** | Anexa el original almacenado cuando existe, recurre a la reconstrucción para los correos electrónicos archivados sin uno. |
+| `GET /api/v1/emails/{id}/raw` | Descarga de REST API, consulte la [REST API guide](API.md#download-original-message). |
 | `get_email_raw` | Herramienta MCP, consulte la [MCP guide](MCP.md#get_email_raw). |
 
 La respuesta le indica qué forma ha recibido, de modo que el llamador puede distinguir un original genuino de una reconstrucción sin inspeccionar los bytes:
@@ -35,16 +35,22 @@ La respuesta le indica qué forma ha recibido, de modo que el llamador puede dis
 | `X-Raw-Message-Source: imap` | Copia exacta del servidor IMAP (`BODY[]` tal como se entregó). |
 | `X-Raw-Message-Source: graph` | Copia exacta, el contenido MIME que devolvió Exchange. |
 | `X-Raw-Message-Source: eml-file` | Copia exacta, el contenido del archivo `.eml` importado. |
-| `X-Raw-Message-Source: serialized` | Mensaje analizado y vuelto a escribir. Idéntico excepto que los finales de línea son CRLF (importación MBox, recuperación de fetch IMAP). |
+| `X-Raw-Message-Source: serialized` | Mensaje analizado y vuelto a escribir. Idéntico excepto que los finales de línea son CRLF (importación de MBox, recuperación de fetch de IMAP). |
 | `X-Raw-Message-Sha256` | SHA-256 del original almacenado. |
 | `X-Raw-Message-Reconstructed: true` | No hay original almacenado; el mensaje fue reconstruido. Sin encabezado de suma de comprobación. |
 | `X-Raw-Message-Storage` | Backend desde el cual se leyó el original (`postgres` o `filesystem`). |
 
-El nombre del archivo también lo indica: `email-{id}-original-...eml` para un original almacenado, `email-{id}-...eml` para una reconstrucción.
+El nombre del archivo también lo indica: `email-{id}-original-...eml` para un original almacenado,
+`email-{id}-...eml` para una reconstrucción.
 
-Cuando un original almacenado **falla su suma de comprobación**, la exportación y la restauración son rechazadas con un mensaje de error. Devolver la reconstrucción en su lugar ocultaría que la copia archivada fue alterada, que es exactamente lo que un Archivo nunca debe hacer.
+Cuando un original almacenado **falla su suma de comprobación**, la exportación y la restauración son rechazadas
+con un mensaje de error. Devolver la reconstrucción en su lugar ocultaría que la
+copia archivada fue alterada, que es exactamente lo que un Archivo nunca debe hacer.
 
-Una restauración lee el original almacenado y lo anexa a través del cliente del proveedor, de modo que el Buzón recibe los encabezados y la estructura MIME originales. No se garantiza el flujo de bytes exacto en el cable porque el cliente vuelve a serializar el mensaje; la copia archivada en sí permanece inalterada.
+Una restauración lee el original almacenado y lo anexa a través del cliente del proveedor, de modo que el
+Buzón recibe los encabezados originales y la estructura MIME. El flujo de bytes exacto no se
+garantiza en el cable porque el cliente serializa el mensaje nuevamente; la
+copia archivada en sí permanece sin cambios.
 
 ## ⚙️ Settings {#settings}
 
@@ -54,15 +60,15 @@ Todos los ajustes residen en la sección `RawMessages`, o como variables de ento
 | --- | --- | --- |
 | `RawMessages:Enabled` | `false` | Almacena el mensaje original de cada correo electrónico recién archivado. Los correos archivados antes de activar esta opción no tienen original. |
 | `RawMessages:MaxMessageSizeMb` | `50` | Los mensajes de mayor tamaño que este se archivan sin su original. `0` = sin límite. |
-| `RawMessages:IncludeGraph` | `true` | También almacena el original para las Cuentas de Microsoft 365 (Graph). Consume una solicitud Graph adicional por mensaje, lo que cuenta contra el presupuesto de throttling. |
+| `RawMessages:IncludeGraph` | `true` | También almacena el original para las Cuentas de Microsoft 365 (Graph). Cuesta una solicitud Graph adicional por mensaje, lo que cuenta contra el presupuesto de throttling. |
 | `RawMessages:Storage` | `postgres` | Dónde se guardan los bytes del mensaje: `postgres` (en la base de datos) o `filesystem` (archivo gzip junto al Archivo). Ver [Storage backend](#storage-backend). |
-| `RawMessages:FileSystem:BasePath` | `RawMessages` | Directorio donde se escriben los archivos de mensaje, relativo a la raíz de contenido de la aplicación. Apunte esto a un volumen montado en Docker. |
-| `RawMessages:FileSystem:ShardDepth` | `2` | Número de niveles de directorio de dos caracteres en los que se distribuye el id del correo electrónico. `2` genera 10.000 directorios, `0` es plano. Mantiene bajo el recuento de archivos por directorio en Archivos grandes. |
+| `RawMessages:FileSystem:BasePath` | `RawMessages` | Directorio donde se escriben los archivos de mensajes, relativo a la raíz de contenido de la aplicación. Apunte esto a un volumen montado en Docker. |
+| `RawMessages:FileSystem:ShardDepth` | `2` | Número de niveles de directorio de dos caracteres en los que se distribuye el id del correo electrónico. `2` genera 10,000 directorios, `0` es plano. Mantiene bajo el recuento de archivos por directorio en Archivos grandes. |
 | `RawMessages:FileSystem:VerifyChecksumOnRead` | `true` | Vuelve a calcular el SHA-256 del archivo en cada descarga y lo compara con la suma de comprobación registrada en el momento del Archivo. Un desajuste hace que la descarga falle con HTTP 500 en lugar de servir bytes alterados. |
 
 ### Sizing {#sizing}
 
-El almacenamiento crece aproximadamente con el tamaño de cada correo, incluyendo sus Adjuntos, comprimidos en gzip. Los Adjuntos **no** pasan por Deduplicación dentro del original almacenado, por lo que un correo electrónico con un Adjunto grande cuesta ese Adjunto dos veces: una vez en el almacén de Adjuntos con Deduplicación y otra vez dentro del original. Planifique para aproximadamente el **doble** del tamaño de la base de datos de un Archivo sin originales.
+El almacenamiento crece aproximadamente por el tamaño de cada correo, incluyendo sus Adjuntos, comprimidos con gzip. Los Adjuntos **no** se someten a Deduplicación dentro del original almacenado, por lo que un correo electrónico con un Adjunto grande cuesta ese Adjunto dos veces: una vez en el almacén de Adjuntos con Deduplicación y otra vez dentro del original. Planifique para aproximadamente el **doble** del tamaño de la base de datos de un Archivo sin originales.
 
 Habilitar el ajuste no rellena el correo existente. Solo los correos electrónicos recién archivados obtienen un original.
 
@@ -70,7 +76,7 @@ Habilitar el ajuste no rellena el correo existente. Solo los correos electrónic
 
 El ajuste `Storage` decide dónde residen los bytes. La **fila de metadatos siempre permanece en
 la base de datos**, independientemente del backend configurado, y contiene el SHA-256, el tamaño, la
-fuente de captura y (para archivos) la ruta relativa. Esa fila es lo que permite al Archivo probar lo que un
+fuente de captura y (para archivos) la ruta relativa. Esa fila es lo que permite al Archivo demostrar lo que un
 mensaje almacenado debe contener.
 
 ### postgres (default) {#postgres-default}
@@ -78,7 +84,8 @@ mensaje almacenado debe contener.
 El mensaje comprimido se encuentra en la columna `Content` de `mail_archiver."RawMessages"`.
 Este es el comportamiento que el Archivo siempre ha tenido y no requiere un volumen adicional.
 
-Elija esto cuando la base de datos sea ya su unidad de Copia de seguridad y desee tener una sola cosa para realizar la Copia de seguridad y la Restauración.
+Elija esto cuando la base de datos ya sea su unidad de Copia de seguridad y desee tener una sola cosa que
+realizar la Copia de seguridad y la Restauración.
 
 ### filesystem {#filesystem}
 
@@ -108,9 +115,9 @@ Elija esto cuando el Archivo sea lo suficientemente grande como para que los ori
 
 ### Cambio de backends {#switching-backends}
 
-Las lecturas siguen el almacenamiento registrado en cada fila, no el ajuste configurado. Después de
-cambiar `Storage`, los mensajes archivados anteriormente permanecen descargables desde dondequiera que estén.
-El ajuste solo afecta al correo archivado **recientemente**.
+Las lecturas siguen el almacenamiento registrado en cada fila, no el ajuste configurado. Después de que
+cambie `Storage`, los mensajes archivados anteriormente siguen siendo descargables desde dondequiera que estén.
+El ajuste solo afecta al correo **recién** archivado.
 
 Para mover lo que ya está almacenado, ejecute la migración de almacenamiento. Consulte los
 [CLI commands](CLI.md#moving-stored-original-messages) para obtener la referencia completa:
@@ -130,10 +137,10 @@ Lo que la migración garantiza:
 - Cada mensaje se verifica contra su checksum registrado antes de ser copiado. Un mensaje
   que falle se deja donde está y se informa: un original corrupto nunca se propaga y
   su única copia restante nunca se elimina.
-- Un archivo se elimina solo después de que la transacción de la base de datos que lo movió se haya confirmado, por lo que una ejecución
-  interrumpida no puede perder la única copia.
-- La ejecución se puede reanudar. El trabajo se selecciona mediante la columna `StorageType`, por lo que al iniciar
-  el comando de nuevo se continúa con lo que aún está pendiente.
+- Un archivo se elimina solo después de que la transacción de la base de datos que lo movió se haya confirmado, por lo que una
+  ejecución interrumpida no puede perder la única copia.
+- La ejecución se puede reanudar. El trabajo se selecciona mediante la columna `StorageType`, por lo que iniciar
+  el comando de nuevo continúa con lo que aún está pendiente.
 - El código de salida es `1` si algún mensaje falló, `0` de lo contrario.
 
 No se requiere una migración para que el Archivo funcione. Solo es necesaria para mover los bytes existentes
@@ -143,22 +150,22 @@ al otro backend.
 
 === "postgres backend"
     Nada extra. Los originales forman parte de la base de datos y están cubiertos por el
-    dump normal, consulte [Backup and Restore](BackupRestore.md).
+    dump normal, ver [Backup and Restore](BackupRestore.md).
 
 === "filesystem backend"
-    Realice una Copia de seguridad del directorio `BasePath` **junto con** el dump de la base de datos.
+    Realice la Copia de seguridad del directorio `BasePath` **junto con** el dump de la base de datos.
 
     Una Restauración de la base de datos sin los archivos deja el Archivo con filas cuyo contenido
     no se puede servir. La descarga entonces responde con un HTTP 404 en lugar de devolver algo
-    incorrecto, y los correos electrónicos en sí permanecen legibles desde sus campos analizados.
+    incorrecto, y los correos electrónicos en sí mismos permanecen legibles desde sus campos analizados.
 
 ## 🗑️ Eliminar un correo electrónico {#deleting-an-email}
 
-Eliminar un correo electrónico elimina su original con él: las reglas de Retención, la eliminación manual individual y por lotes, y la eliminación de una Cuenta de correo completa, eliminan el archivo como parte de la misma operación. Con el backend `postgres` no hay nada extra que hacer, porque los bytes viajan dentro de la fila que la cascada ya elimina.
+Eliminar un correo electrónico elimina también su original: las reglas de Retención, la eliminación manual individual y masiva, y la eliminación de una Cuenta de correo completa, eliminan el archivo como parte de la misma operación. Con el backend `postgres` no hay nada extra que hacer, porque los bytes viajan dentro de la fila que la cascada ya elimina.
 
 El archivo se elimina **después** de que se confirma la fila del correo electrónico, nunca antes. Los dos pasos no pueden ser una sola transacción, porque un archivo no es parte de la transacción de la base de datos, por lo que uno de ellos tiene que ser el segundo. Este orden es el seguro: una eliminación que falla o se revierte, por ejemplo, en un registro bloqueado, deja el original intacto, y un error entre los dos pasos deja un archivo sin una fila, que el barrido de abajo reclama. El otro orden destruiría el original de un correo electrónico que aún existe.
 
-**Los archivos huérfanos se recolectan.** Cualquier cosa que se haya escapado, incluidos los archivos dejados por eliminaciones de antes de que existiera esta limpieza, es eliminado por un barrido periódico de `BasePath` que compara cada archivo con las filas y elimina aquellos a los que ningún correo electrónico hace referencia:
+**Los archivos huérfanos se recolectan.** Cualquier cosa que se haya escapado, incluidos los archivos dejados por eliminaciones anteriores a la existencia de esta limpieza, es eliminado por un barrido periódico de `BasePath` que compara cada archivo con las filas y elimina aquellos a los que ningún correo electrónico hace referencia:
 
 | Setting | Default | Meaning |
 | --- | --- | --- |
@@ -167,13 +174,13 @@ El archivo se elimina **después** de que se confirma la fila del correo electr�
 | `RawMessages__FileSystem__OrphanCleanupGraceHours` | `24` | Los archivos más jóvenes que esto nunca se tocan |
 | `RawMessages__FileSystem__OrphanCleanupStartupDelaySeconds` | `300` | Retraso antes de la primera ejecución, para que una migración de almacenamiento pendiente termine primero |
 
-El periodo de gracia es lo que hace que el barrido sea seguro: una importación escribe un archivo antes de confirmar la fila que apunta a él, y un archivo escrito hace unos momentos no debe confundirse con un huérfano. Los archivos `.tmp` escritos a medias debido a una escritura interrumpida se recolectan bajo la misma regla. Con el backend `postgres` el barrido no hace nada y ni siquiera recorre el directorio.
+El periodo de gracia es lo que hace que el barrido sea seguro: una importación escribe un archivo antes de confirmar la fila que apunta a él, y un archivo escrito hace unos momentos no debe confundirse con un huérfano. Los archivos `.tmp` escritos a medias debido a una escritura interrumpida se recolectan bajo la misma regla. Con el backend `postgres` el barrido no hace nada e incluso no recorre el directorio.
 
 ## 🔍 Verificando un Archivo {#verifying-an-archive}
 
 La suma de comprobación (checksum) registrada en el momento del Archivo es lo que hace posible la verificación.
 
-- **Al descargar** (`VerifyChecksumOnRead=true`, el predeterminado) el archivo se procesa mediante hash y se compara. Una discrepancia rechaza la descarga con un error HTTP 500.
+- **Al descargar** (`VerifyChecksumOnRead=true`, el predeterminado) el archivo se somete a un hash y se compara. Una discrepancia rechaza la descarga con un error HTTP 500.
 - **En la migración de almacenamiento** cada mensaje se verifica antes de ser copiado, en ambas direcciones.
 
 Debido a que la fila de metadatos está en la base de datos y los bytes pueden estar en el disco, una comparación de suma de comprobación es la única forma de notar que un archivo fue cambiado fuera de la aplicación.
@@ -181,23 +188,13 @@ Debido a que la fila de metadatos está en la base de datos y los bytes pueden e
 ## ⚠️ Cosas que debe saber {#things-to-know}
 
 - **La activación no realiza un backfill.** Solo el correo archivado después del cambio obtiene un original.
-- **La falta de un original se registra como un error.** Cuando la captura es rechazada (mensaje arriba
-  `MaxMessageSizeMb`, captura no utilizable) o la escritura en el backend configurado falla, el
-  registro lleva un error con el id del correo electrónico y el motivo. El correo electrónico permanece en el Archivo
-  sin su original; no hay backfill automático ni reintentos.
-- **La reconstrucción no es el mensaje.** Para los correos electrónicos sin un original almacenado, cada
-  ruta de descarga devuelve un mensaje reconstruido y lo indica a través de
-  `X-Raw-Message-Reconstructed: true`.
-- **Filesystem significa dos unidades de Copia de seguridad.** La base de datos y el directorio de mensajes deben restaurarse
-  juntos; de lo contrario, las filas sobreviven sin su contenido.
-- **`VerifyChecksumOnRead` consume CPU.** Cada descarga de un mensaje grande se descomprime
-  y se le aplica un hash. Déjelo activado a menos que haya medido un problema; es la única protección
-  contra la alteración silenciosa en el disco.
-- **El original almacenado no tiene Deduplicación.** Un Adjunto que aparece en muchos correos electrónicos
-  se almacena una vez en el almacén de Adjuntos, pero una vez por correo electrónico dentro del original.
-- **Eliminar también elimina el original.** Un correo electrónico eliminado por Retención o manualmente se lleva
-  su original almacenado, archivo y fila. No se conserva nada que el Archivo ya no
-  enumere.
+- **La falta de un original se registra como un error.** Cuando la captura es rechazada (mensaje anterior a `MaxMessageSizeMb`, sin captura utilizable) o la escritura en el backend configurado falla, el registro lleva un error con el id del correo electrónico y el motivo. El correo electrónico permanece en el Archivo sin su original; no hay backfill automático ni reintentos.
+- **La interfaz de usuario señala la falta de un original.** Con `RawMessages:Enabled`, la lista de correos electrónicos muestra un distintivo de advertencia en cada mensaje sin un original almacenado, y la página de detalles muestra un aviso sobre los encabezados. La lista resuelve el distintivo con una consulta por página; la página de detalles consulta al backend de almacenamiento, por lo que un archivo de sistema de archivos que haya desaparecido también se señala.
+- **La reconstrucción no es el mensaje.** Para los correos electrónicos sin un original almacenado, cada ruta de descarga devuelve un mensaje reconstruido y lo indica mediante `X-Raw-Message-Reconstructed: true`.
+- **Filesystem significa dos unidades de Copia de seguridad.** La base de datos y el directorio de mensajes deben restaurarse juntos; de lo contrario, las filas sobreviven sin su contenido.
+- **`VerifyChecksumOnRead` consume CPU.** Cada descarga de un mensaje grande se descomprime y se le aplica un hash. Déjelo activado a menos que haya medido un problema; es la única protección contra la alteración silenciosa en el disco.
+- **El original almacenado no tiene Deduplicación.** Un Adjunto que aparece en muchos correos electrónicos se almacena una vez en el almacén de Adjuntos, pero una vez por correo electrónico dentro del original.
+- **Al eliminar, también se elimina el original.** Un correo electrónico eliminado por Retención o manualmente se lleva consigo su original almacenado, archivo y fila. No se conserva nada que el Archivo ya no enumere.
 
 ## 🔗 Ver también {#see-also}
 
@@ -206,4 +203,4 @@ Debido a que la fila de metadatos está en la base de datos y los bytes pueden e
 - [REST API](API.md#download-original-message) - el endpoint `/raw`
 - [MCP Server](MCP.md#get_email_raw) - la herramienta `get_email_raw`
 - [Backup and Restore](BackupRestore.md) - qué realizar en la Copia de seguridad y Restauración
-- [Attachment Deduplication](AttachmentDeduplication.md) - cómo se almacenan los Adjuntos
+- [Attachment Deduplication](AttachmentDeduplication.md) - cómo se almacenan los Adjuntos mediante Deduplicación
