@@ -1103,6 +1103,8 @@
                 @:const refreshInterval = setInterval(function() {
                 @:    refreshSeconds--;
                 @:    if (refreshSeconds <= 0) {
+                @:        // Postpone while a modal (e.g. the release notes) is open
+                @:        if (document.querySelector('.modal.show')) { refreshSeconds = 30; return; }
                 @:        clearInterval(refreshInterval);
                 @:        location.reload();
                 @:    }
