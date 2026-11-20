@@ -347,6 +347,36 @@ namespace MailArchiver.Controllers
             return allowedAccountIds;
         }
 
+        /// <summary>
+        /// True when the email belongs to an account the caller may access. Admins keep
+        /// unrestricted access. Every copy/restore path must check the SOURCE email with
+        /// this, not only the target account: without it a restricted user can restore any
+        /// archived email into a mailbox they control.
+        /// </summary>
+        private async Task<bool> CanAccessEmailAsync(int emailId, List<int>? allowedAccountIds)
+        {
+            if (allowedAccountIds == null)
+                return true;
+
+            return await _context.ArchivedEmails
+                .AnyAsync(e => e.Id == emailId && allowedAccountIds.Contains(e.MailAccountId));
+        }
+
+        /// <summary>
+        /// Restricts a set of email ids to those in accounts the caller may access. Admins
+        /// keep every id; an empty result means none of the requested ids is accessible.
+        /// </summary>
+        private async Task<List<int>> FilterAccessibleEmailIdsAsync(List<int> emailIds, List<int>? allowedAccountIds)
+        {
+            if (allowedAccountIds == null || emailIds.Count == 0)
+                return emailIds;
+
+            return await _context.ArchivedEmails
+                .Where(e => emailIds.Contains(e.Id) && allowedAccountIds.Contains(e.MailAccountId))
+                .Select(e => e.Id)
+                .ToListAsync();
+        }
+
         // GET: Emails/Details/5
         [EmailAccessRequired]
         public async Task<IActionResult> Details(int id, string returnUrl = null)
@@ -1039,29 +1069,27 @@ namespace MailArchiver.Controllers
             if (ModelState.ContainsKey("EmailSubject"))
                 ModelState.Remove("EmailSubject");
 
-            // Get current user's allowed accounts
-            List<int> allowedAccountIds = null;
-            var authService = HttpContext.RequestServices.GetService<MailArchiver.Services.IAuthenticationService>();
-            var userService = HttpContext.RequestServices.GetService<IUserService>();
-            
-            if (authService != null && userService != null && !authService.IsCurrentUserAdmin(HttpContext))
-            {
-                var username = authService.GetCurrentUserDisplayName(HttpContext);
-                var user = await userService.GetUserByUsernameAsync(username);
-                if (user != null)
-                {
-                    var userAccounts = await userService.GetUserMailAccountsAsync(user.Id);
-                    allowedAccountIds = userAccounts.Select(a => a.Id).ToList();
-                }
-            }
+            // Accounts the caller may use. Null means admin (no restriction), an empty
+            // list means the caller may access no account at all.
+            var allowedAccountIds = await GetAllowedAccountIdsAsync();
 
             // Check if user is allowed to access the target account
             if (allowedAccountIds != null && !allowedAccountIds.Contains(model.TargetAccountId))
             {
                 _logger.LogWarning("User {Username} attempted to restore email to account {AccountId} which they don't have access to", 
-                    authService?.GetCurrentUserDisplayName(HttpContext), model.TargetAccountId);
+                    _authService?.GetCurrentUserDisplayName(HttpContext), model.TargetAccountId);
                 TempData["ErrorMessage"] = "You do not have access to the selected account.";
                 return RedirectToAction(nameof(Details), new { id = model.EmailId });
+            }
+
+            // SECURITY: the SOURCE email must also be in scope. Checking only the target
+            // account let a restricted user copy any archived email into a mailbox they
+            // control, which is a full archive exfiltration path (IDOR).
+            if (!await CanAccessEmailAsync(model.EmailId, allowedAccountIds))
+            {
+                _logger.LogWarning("User {Username} attempted to restore email {EmailId} from an account they don't have access to",
+                    _authService?.GetCurrentUserDisplayName(HttpContext), model.EmailId);
+                return NotFound();
             }
 
             if (!ModelState.IsValid)
@@ -1246,6 +1274,18 @@ namespace MailArchiver.Controllers
             if (ids == null || !ids.Any())
             {
                 TempData["ErrorMessage"] = "No emails selected for batch operation.";
+                return Redirect(returnUrl ?? Url.Action("Index"));
+            }
+
+            // SECURITY: the ids come straight from the request. Restrict them to the
+            // caller's account scope before they reach the session or a background job.
+            var allowedAccountIds = await GetAllowedAccountIdsAsync();
+            ids = await FilterAccessibleEmailIdsAsync(ids, allowedAccountIds);
+            if (!ids.Any())
+            {
+                _logger.LogWarning("User {Username} attempted a batch restore of emails outside their account scope",
+                    _authService?.GetCurrentUserDisplayName(HttpContext));
+                TempData["ErrorMessage"] = "You do not have access to any of the selected emails.";
                 return Redirect(returnUrl ?? Url.Action("Index"));
             }
 
@@ -1531,27 +1571,15 @@ namespace MailArchiver.Controllers
             _logger.LogInformation("BatchRestore POST method called with {Count} emails, Target Account ID: {AccountId}, Target Folder: {Folder}",
                 model.SelectedEmailIds.Count, model.TargetAccountId, model.TargetFolder);
 
-            // Get current user's allowed accounts
-            List<int> allowedAccountIds = null;
-            var authService = HttpContext.RequestServices.GetService<MailArchiver.Services.IAuthenticationService>();
-            var userService = HttpContext.RequestServices.GetService<IUserService>();
-            
-            if (authService != null && userService != null && !authService.IsCurrentUserAdmin(HttpContext))
-            {
-                var username = authService.GetCurrentUserDisplayName(HttpContext);
-                var user = await userService.GetUserByUsernameAsync(username);
-                if (user != null)
-                {
-                    var userAccounts = await userService.GetUserMailAccountsAsync(user.Id);
-                    allowedAccountIds = userAccounts.Select(a => a.Id).ToList();
-                }
-            }
+            // Accounts the caller may use. Null means admin (no restriction), an empty
+            // list means the caller may access no account at all.
+            var allowedAccountIds = await GetAllowedAccountIdsAsync();
 
             // Check if user is allowed to access the target account
             if (allowedAccountIds != null && !allowedAccountIds.Contains(model.TargetAccountId))
             {
                 _logger.LogWarning("User {Username} attempted to restore emails to account {AccountId} which they don't have access to", 
-                    authService?.GetCurrentUserDisplayName(HttpContext), model.TargetAccountId);
+                    _authService?.GetCurrentUserDisplayName(HttpContext), model.TargetAccountId);
                 TempData["ErrorMessage"] = "You do not have access to the selected account.";
                 return Redirect(model.ReturnUrl ?? Url.Action("Index"));
             }
@@ -1564,6 +1592,18 @@ namespace MailArchiver.Controllers
                 {
                     model.SelectedEmailIds = idsString.Split(',').Select(int.Parse).ToList();
                 }
+            }
+
+            // SECURITY: only copy emails the caller may read. The target check above
+            // protects the destination, not the source; without this filter a restricted
+            // user could post arbitrary email ids and exfiltrate them.
+            model.SelectedEmailIds = await FilterAccessibleEmailIdsAsync(model.SelectedEmailIds, allowedAccountIds);
+            if (!model.SelectedEmailIds.Any())
+            {
+                _logger.LogWarning("User {Username} attempted a batch restore of emails outside their account scope",
+                    _authService?.GetCurrentUserDisplayName(HttpContext));
+                TempData["ErrorMessage"] = "You do not have access to any of the selected emails.";
+                return Redirect(model.ReturnUrl ?? Url.Action("Index"));
             }
 
             if (!ModelState.IsValid)
@@ -1721,6 +1761,17 @@ namespace MailArchiver.Controllers
         [HttpGet]
         public async Task<IActionResult> StartAsyncBatchRestoreFromAccount(int accountId, string returnUrl = null, bool preserveFolders = false)
         {
+            // SECURITY: this action loads every email id of the account into the session
+            // and is the source side of the restore flow. Without the account check a
+            // restricted user could select an account they cannot read.
+            var allowedAccountIds = await GetAllowedAccountIdsAsync();
+            if (allowedAccountIds != null && !allowedAccountIds.Contains(accountId))
+            {
+                _logger.LogWarning("User {Username} attempted an account restore for account {AccountId} outside their scope",
+                    _authService?.GetCurrentUserDisplayName(HttpContext), accountId);
+                return NotFound();
+            }
+
             var account = await _context.MailAccounts.FindAsync(accountId);
             if (account == null)
             {
@@ -2021,28 +2072,27 @@ namespace MailArchiver.Controllers
             var emailIds = idsString.Split(',').Select(int.Parse).ToList();
             _logger.LogInformation("Retrieved {Count} email IDs from session for async batch restore", emailIds.Count);
 
-            // Get current user's allowed accounts
-            List<int> allowedAccountIds = null;
-            var authService = HttpContext.RequestServices.GetService<MailArchiver.Services.IAuthenticationService>();
-            var userService = HttpContext.RequestServices.GetService<IUserService>();
-            
-            if (authService != null && userService != null && !authService.IsCurrentUserAdmin(HttpContext))
-            {
-                var username = authService.GetCurrentUserDisplayName(HttpContext);
-                var user = await userService.GetUserByUsernameAsync(username);
-                if (user != null)
-                {
-                    var userAccounts = await userService.GetUserMailAccountsAsync(user.Id);
-                    allowedAccountIds = userAccounts.Select(a => a.Id).ToList();
-                }
-            }
+            // Accounts the caller may use. Null means admin (no restriction), an empty
+            // list means the caller may access no account at all.
+            var allowedAccountIds = await GetAllowedAccountIdsAsync();
 
             // Check if user is allowed to access the target account
             if (allowedAccountIds != null && !allowedAccountIds.Contains(model.TargetAccountId))
             {
                 _logger.LogWarning("User {Username} attempted to restore emails to account {AccountId} which they don't have access to", 
-                    authService?.GetCurrentUserDisplayName(HttpContext), model.TargetAccountId);
+                    _authService?.GetCurrentUserDisplayName(HttpContext), model.TargetAccountId);
                 TempData["ErrorMessage"] = "You do not have access to the selected account.";
+                return Redirect(model.ReturnUrl ?? Url.Action("Index"));
+            }
+
+            // SECURITY: the session can carry ids that were planted before this action
+            // (or by a caller that skipped the earlier filter). Restrict them again.
+            emailIds = await FilterAccessibleEmailIdsAsync(emailIds, allowedAccountIds);
+            if (emailIds.Count == 0)
+            {
+                _logger.LogWarning("User {Username} attempted an async batch restore of emails outside their account scope",
+                    _authService?.GetCurrentUserDisplayName(HttpContext));
+                TempData["ErrorMessage"] = "You do not have access to any of the selected emails.";
                 return Redirect(model.ReturnUrl ?? Url.Action("Index"));
             }
 

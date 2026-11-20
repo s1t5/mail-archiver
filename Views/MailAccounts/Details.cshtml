@@ -86,10 +86,28 @@
                 @if (Model.Provider == ProviderType.IMAP)
                 {
                     <dt class="col-sm-3">@Localizer["IMAPServer"]</dt>
-                    <dd class="col-sm-9">@(string.IsNullOrWhiteSpace(Model.ImapServer) ? Html.Raw($"<span class=\"text-muted\">—</span>") : Html.Raw($"{Model.ImapServer}:{Model.ImapPort}"))</dd>
+                    <dd class="col-sm-9">
+                        @if (string.IsNullOrWhiteSpace(Model.ImapServer))
+                        {
+                            <span class="text-muted">—</span>
+                        }
+                        else
+                        {
+                            @($"{Model.ImapServer}:{Model.ImapPort}")
+                        }
+                    </dd>
 
                     <dt class="col-sm-3">@Localizer["Username"]</dt>
-                    <dd class="col-sm-9">@(string.IsNullOrWhiteSpace(Model.Username) ? Html.Raw($"<span class=\"text-muted\">—</span>") : Html.Raw(Model.Username))</dd>
+                    <dd class="col-sm-9">
+                        @if (string.IsNullOrWhiteSpace(Model.Username))
+                        {
+                            <span class="text-muted">—</span>
+                        }
+                        else
+                        {
+                            @Model.Username
+                        }
+                    </dd>
 
                     <dt class="col-sm-3">SSL</dt>
                     <dd class="col-sm-9">@(Model.UseSSL ? Localizer["Enabled"] : Localizer["Disabled"])</dd>
@@ -97,12 +115,30 @@
                 else if (Model.Provider == ProviderType.M365)
                 {
                     <dt class="col-sm-3">@Localizer["TenantId"]</dt>
-                    <dd class="col-sm-9">@(string.IsNullOrWhiteSpace(Model.TenantId) ? Html.Raw($"<span class=\"text-muted\">—</span>") : Html.Raw(Model.TenantId))</dd>
+                    <dd class="col-sm-9">
+                        @if (string.IsNullOrWhiteSpace(Model.TenantId))
+                        {
+                            <span class="text-muted">—</span>
+                        }
+                        else
+                        {
+                            @Model.TenantId
+                        }
+                    </dd>
                 }
                 else if (Model.Provider == ProviderType.MSA)
                 {
                     <dt class="col-sm-3">@Localizer["ClientId"]</dt>
-                    <dd class="col-sm-9">@(string.IsNullOrWhiteSpace(Model.MsaClientId) ? Html.Raw($"<span class=\"text-muted\">—</span>") : Html.Raw(Model.MsaClientId))</dd>
+                    <dd class="col-sm-9">
+                        @if (string.IsNullOrWhiteSpace(Model.MsaClientId))
+                        {
+                            <span class="text-muted">—</span>
+                        }
+                        else
+                        {
+                            @Model.MsaClientId
+                        }
+                    </dd>
 
                     <dt class="col-sm-3">@Localizer["Status"]</dt>
                     <dd class="col-sm-9">

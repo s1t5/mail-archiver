@@ -125,6 +125,20 @@ namespace MailArchiver.Controllers
         private string LocalizeMailcow(MailcowException e)
             => _localizer[e.ResourceKey, e.ResourceArgs].Value;
 
+        /// <summary>
+        /// True when the caller may add a mail account. The documented role model
+        /// (doc/UserManagement.md) grants this to admins and self-managers only.
+        /// Fails closed when the authentication service is unavailable.
+        /// </summary>
+        private bool MayCreateMailAccount(IAuthenticationService? authService)
+        {
+            if (authService == null)
+                return false;
+
+            return authService.IsCurrentUserAdmin(HttpContext)
+                || authService.IsCurrentUserSelfManager(HttpContext);
+        }
+
         private async Task<bool> HasAccessToAccountAsync(int accountId)
         {
             // Use the authentication service to get user info properly
@@ -334,6 +348,15 @@ namespace MailArchiver.Controllers
         // GET: MailAccounts/Create
         public async Task<IActionResult> Create()
         {
+            // SECURITY: only administrators and self-managers may add mail accounts.
+            var authService = HttpContext.RequestServices.GetService<IAuthenticationService>();
+            if (!MayCreateMailAccount(authService))
+            {
+                _logger.LogWarning("User {Username} attempted to open the mail account form without the required role",
+                    authService?.GetCurrentUserDisplayName(HttpContext));
+                return Forbid();
+            }
+
             await PopulateMailcowViewDataAsync();
             ViewBag.MsaHasDefaultClientId = _msaOptions.HasDefaultClientId;
             var model = new CreateMailAccountViewModel
@@ -353,6 +376,17 @@ namespace MailArchiver.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(CreateMailAccountViewModel model)
         {
+            // SECURITY: the POST used to rely on the view hiding the button. A standard
+            // user could post directly and create an account with an arbitrary IMAP
+            // server, which also gives an outbound connection primitive.
+            var roleAuthService = HttpContext.RequestServices.GetService<IAuthenticationService>();
+            if (!MayCreateMailAccount(roleAuthService))
+            {
+                _logger.LogWarning("User {Username} attempted to create a mail account without the required role",
+                    roleAuthService?.GetCurrentUserDisplayName(HttpContext));
+                return Forbid();
+            }
+
             if (model.MailcowSelected)
             {
                 var mailcowAuth = HttpContext.RequestServices.GetService<IAuthenticationService>();
@@ -2041,6 +2075,17 @@ namespace MailArchiver.Controllers
                 return View(model);
             }
 
+            // SECURITY: the target account must be one the caller may use. Without this
+            // check any authenticated user could import forged mail into another account,
+            // which corrupts that mailbox's archive.
+            if (!await HasAccessToAccountAsync(model.TargetAccountId))
+            {
+                _logger.LogWarning("User {Username} attempted an import into account {AccountId} without access",
+                    HttpContext.RequestServices.GetService<IAuthenticationService>()?.GetCurrentUserDisplayName(HttpContext),
+                    model.TargetAccountId);
+                return NotFound();
+            }
+
             try
             {
                 // Save uploaded file
@@ -2336,6 +2381,17 @@ namespace MailArchiver.Controllers
             {
                 ModelState.AddModelError("TargetAccountId", _localizer["SelectedAccountNotFound"]);
                 return View(model);
+            }
+
+            // SECURITY: the target account must be one the caller may use. Without this
+            // check any authenticated user could import forged mail into another account,
+            // which corrupts that mailbox's archive.
+            if (!await HasAccessToAccountAsync(model.TargetAccountId))
+            {
+                _logger.LogWarning("User {Username} attempted an import into account {AccountId} without access",
+                    HttpContext.RequestServices.GetService<IAuthenticationService>()?.GetCurrentUserDisplayName(HttpContext),
+                    model.TargetAccountId);
+                return NotFound();
             }
 
             try
