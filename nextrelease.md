@@ -4,6 +4,7 @@
 - **Select All Matching** - Selection mode can select every email matching the current search across all pages, up to the selection limit, instead of one page at a time.
 
 ## ⚙️ Improvements
+- **No Duplicate Archive Button on the Dashboard** - The header button led to the same email list as the archive search in the quick actions, so the dashboard title row no longer carries it.
 - **Missing Originals Are Flagged on the Details Page** - With `RawMessages:Enabled`, the details page shows a notice above the headers for a message without a stored original. It asks the storage backend, so a filesystem file that vanished is flagged too.
 - **Missing Original Messages Are Logged as Errors** - When an email is archived without its original, the log now carries an error with the email id and the reason: a message above `RawMessages:MaxMessageSizeMb`, a write failure in the configured backend, or a provider that delivered no usable capture. Previously the size case was silent and a write failure only surfaced as a generic "error saving archived email to database" line.
 - **Pagination With Page Jump** - The email list now shows its navigation above and below the results, offers the first and last page plus a window around the current one, and has a field to jump directly to a page. A page number past the end lands on the last page instead of an empty list.

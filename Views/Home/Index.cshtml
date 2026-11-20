@@ -75,11 +75,6 @@
                 <div class="hero-subtitle">@string.Format(Localizer["WelcomeBack"].Value, currentUsername)</div>
             }
         </div>
-        <div>
-            <a asp-controller="Emails" asp-action="Index" class="btn btn-primary btn-sm">
-                <i class="bi bi-search"></i> <span class="d-none d-sm-inline">@Localizer["Search"]</span> @Localizer["Archive"]
-            </a>
-        </div>
     </div>
 
     @if (AuthService.IsCurrentUserAdmin(Context) && ViewBag.ActiveJobsCount != null && ViewBag.ActiveJobsCount > 0)
