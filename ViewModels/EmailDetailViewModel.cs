@@ -42,5 +42,11 @@ namespace MailArchiver.Models.ViewModels
         /// notice when it is.
         /// </summary>
         public bool RawMessagesEnabled { get; set; }
+
+        /// <summary>
+        /// Attachment IDs whose XML content was detected as an XRechnung. The details
+        /// page shows the XRechnung badge and links the PDF preview for these.
+        /// </summary>
+        public HashSet<int> XRechnungAttachmentIds { get; set; } = new();
     }
 }

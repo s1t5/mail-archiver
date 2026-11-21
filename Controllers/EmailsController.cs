@@ -5,6 +5,7 @@ using MailArchiver.Models.ViewModels;
 using MailArchiver.Services;
 using MailArchiver.Services.Providers;
 using MailArchiver.Services.Shared;
+using MailArchiver.Services.EInvoicing;
 using MailArchiver.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -430,6 +431,19 @@ namespace MailArchiver.Controllers
                 HasHtmlBody = !string.IsNullOrEmpty(htmlBodyToDisplay),
                 HasPlainTextBody = !string.IsNullOrEmpty(textBodyToDisplay),
             };
+
+            foreach (var attachment in email.Attachments)
+            {
+                if (!XRechnungDetector.LooksLikeXml(attachment.FileName, attachment.ContentType))
+                    continue;
+
+                var content = attachment.Content;
+                if (content.Length == 0 || content.Length > XRechnungDetector.MaxBytes)
+                    continue;
+
+                if (XRechnungDetector.Detect(content) != null)
+                    model.XRechnungAttachmentIds.Add(attachment.Id);
+            }
 
             // Store return URL in ViewBag
             ViewBag.ReturnUrl = returnUrl ?? Url.Action("Index");
