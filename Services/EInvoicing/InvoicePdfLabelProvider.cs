@@ -12,6 +12,6 @@ public sealed class InvoicePdfLabelProvider
     {
         var values = InvoicePdfLabelKeys.All
             .ToDictionary(k => k, k => Resources.GetString(k, culture) ?? k);
-        return new InvoicePdfLabels(values);
+        return new InvoicePdfLabels(values, culture);
     }
 }

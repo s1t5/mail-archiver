@@ -1,10 +1,18 @@
+using System.Globalization;
+
 namespace MailArchiver.Services.EInvoicing;
 
 public sealed class InvoicePdfLabels
 {
     private readonly IReadOnlyDictionary<string, string> _values;
 
-    public InvoicePdfLabels(IReadOnlyDictionary<string, string> values) => _values = values;
+    public InvoicePdfLabels(IReadOnlyDictionary<string, string> values, CultureInfo culture)
+    {
+        _values = values;
+        Culture = culture;
+    }
+
+    public CultureInfo Culture { get; }
 
     public string this[string key] => _values.TryGetValue(key, out var value) ? value : key;
 

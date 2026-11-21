@@ -23,6 +23,7 @@
     <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="10.0.11" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.0" />
     <PackageReference Include="Moq" Version="4.20.72" />
+    <PackageReference Include="PdfPig" Version="0.1.16" />
   </ItemGroup>
 
   <ItemGroup>
@@ -37,6 +38,7 @@
 
   <ItemGroup>
     <Content Include="Fixtures\EInvoicing\*.xml" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\..\wwwroot\fonts\*" Link="fonts\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>
