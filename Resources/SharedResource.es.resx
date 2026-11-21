@@ -3706,4 +3706,196 @@
   <data name="OriginalMissingHint" xml:space="preserve">
     <value>No se guardó el mensaje original de este correo. El archivo solo puede entregar una reconstrucción.</value>
   </data>
+  <data name="InvoicePdf.Invoice" xml:space="preserve">
+    <value>Factura</value>
+  </data>
+  <data name="InvoicePdf.CreditNote" xml:space="preserve">
+    <value>Abono</value>
+  </data>
+  <data name="InvoicePdf.InvoiceNumber" xml:space="preserve">
+    <value>Número de factura</value>
+  </data>
+  <data name="InvoicePdf.InvoiceDate" xml:space="preserve">
+    <value>Fecha de factura</value>
+  </data>
+  <data name="InvoicePdf.DueShort" xml:space="preserve">
+    <value>Vence</value>
+  </data>
+  <data name="InvoicePdf.Seller" xml:space="preserve">
+    <value>Emisor</value>
+  </data>
+  <data name="InvoicePdf.Buyer" xml:space="preserve">
+    <value>Receptor</value>
+  </data>
+  <data name="InvoicePdf.PayeeDifferent" xml:space="preserve">
+    <value>Beneficiario (distinto)</value>
+  </data>
+  <data name="InvoicePdf.ShipTo" xml:space="preserve">
+    <value>Dirección de entrega</value>
+  </data>
+  <data name="InvoicePdf.TaxRepresentative" xml:space="preserve">
+    <value>Representante fiscal</value>
+  </data>
+  <data name="InvoicePdf.Contact" xml:space="preserve">
+    <value>Contacto</value>
+  </data>
+  <data name="InvoicePdf.VatId" xml:space="preserve">
+    <value>NIF-IVA</value>
+  </data>
+  <data name="InvoicePdf.TaxNumber" xml:space="preserve">
+    <value>Número fiscal</value>
+  </data>
+  <data name="InvoicePdf.Register" xml:space="preserve">
+    <value>Registro</value>
+  </data>
+  <data name="InvoicePdf.Details" xml:space="preserve">
+    <value>Datos de la factura</value>
+  </data>
+  <data name="InvoicePdf.BuyerReference" xml:space="preserve">
+    <value>Referencia del comprador</value>
+  </data>
+  <data name="InvoicePdf.Currency" xml:space="preserve">
+    <value>Moneda</value>
+  </data>
+  <data name="InvoicePdf.DueDate" xml:space="preserve">
+    <value>Fecha de vencimiento</value>
+  </data>
+  <data name="InvoicePdf.DeliveryDate" xml:space="preserve">
+    <value>Fecha de entrega</value>
+  </data>
+  <data name="InvoicePdf.BillingPeriod" xml:space="preserve">
+    <value>Periodo de facturación</value>
+  </data>
+  <data name="InvoicePdf.BuyerOrder" xml:space="preserve">
+    <value>Referencia de pedido del comprador</value>
+  </data>
+  <data name="InvoicePdf.SalesOrder" xml:space="preserve">
+    <value>Referencia de pedido del vendedor</value>
+  </data>
+  <data name="InvoicePdf.Contract" xml:space="preserve">
+    <value>Referencia del contrato</value>
+  </data>
+  <data name="InvoicePdf.Project" xml:space="preserve">
+    <value>Referencia del proyecto</value>
+  </data>
+  <data name="InvoicePdf.DespatchAdvice" xml:space="preserve">
+    <value>Albarán</value>
+  </data>
+  <data name="InvoicePdf.BuyerAccount" xml:space="preserve">
+    <value>Referencia contable del comprador</value>
+  </data>
+  <data name="InvoicePdf.SellerVatId" xml:space="preserve">
+    <value>NIF-IVA del emisor</value>
+  </data>
+  <data name="InvoicePdf.BuyerVatId" xml:space="preserve">
+    <value>NIF-IVA del receptor</value>
+  </data>
+  <data name="InvoicePdf.Lines" xml:space="preserve">
+    <value>Líneas de factura</value>
+  </data>
+  <data name="InvoicePdf.Description" xml:space="preserve">
+    <value>Descripción</value>
+  </data>
+  <data name="InvoicePdf.Quantity" xml:space="preserve">
+    <value>Cantidad</value>
+  </data>
+  <data name="InvoicePdf.Unit" xml:space="preserve">
+    <value>Unidad</value>
+  </data>
+  <data name="InvoicePdf.UnitPrice" xml:space="preserve">
+    <value>Precio unitario</value>
+  </data>
+  <data name="InvoicePdf.TaxRate" xml:space="preserve">
+    <value>IVA</value>
+  </data>
+  <data name="InvoicePdf.Amount" xml:space="preserve">
+    <value>Importe</value>
+  </data>
+  <data name="InvoicePdf.NoLines" xml:space="preserve">
+    <value>No se han enviado líneas de factura.</value>
+  </data>
+  <data name="InvoicePdf.AllowancesCharges" xml:space="preserve">
+    <value>Descuentos y recargos</value>
+  </data>
+  <data name="InvoicePdf.Allowance" xml:space="preserve">
+    <value>Descuento</value>
+  </data>
+  <data name="InvoicePdf.Charge" xml:space="preserve">
+    <value>Recargo</value>
+  </data>
+  <data name="InvoicePdf.SumLines" xml:space="preserve">
+    <value>Suma de líneas (neto)</value>
+  </data>
+  <data name="InvoicePdf.Charges" xml:space="preserve">
+    <value>Recargos</value>
+  </data>
+  <data name="InvoicePdf.Allowances" xml:space="preserve">
+    <value>Descuentos</value>
+  </data>
+  <data name="InvoicePdf.TaxBasis" xml:space="preserve">
+    <value>Base imponible</value>
+  </data>
+  <data name="InvoicePdf.GrandTotal" xml:space="preserve">
+    <value>Total factura (bruto)</value>
+  </data>
+  <data name="InvoicePdf.Prepaid" xml:space="preserve">
+    <value>Ya pagado</value>
+  </data>
+  <data name="InvoicePdf.Rounding" xml:space="preserve">
+    <value>Redondeo</value>
+  </data>
+  <data name="InvoicePdf.Payable" xml:space="preserve">
+    <value>Importe a pagar</value>
+  </data>
+  <data name="InvoicePdf.PaymentMeans" xml:space="preserve">
+    <value>Forma de pago</value>
+  </data>
+  <data name="InvoicePdf.Iban" xml:space="preserve">
+    <value>IBAN</value>
+  </data>
+  <data name="InvoicePdf.Bic" xml:space="preserve">
+    <value>BIC</value>
+  </data>
+  <data name="InvoicePdf.AccountHolder" xml:space="preserve">
+    <value>Titular de la cuenta</value>
+  </data>
+  <data name="InvoicePdf.PaymentReference" xml:space="preserve">
+    <value>Referencia de pago</value>
+  </data>
+  <data name="InvoicePdf.MandateReference" xml:space="preserve">
+    <value>Referencia del mandato</value>
+  </data>
+  <data name="InvoicePdf.PaymentTerms" xml:space="preserve">
+    <value>Condiciones de pago</value>
+  </data>
+  <data name="InvoicePdf.PaymentInfo" xml:space="preserve">
+    <value>Datos de pago</value>
+  </data>
+  <data name="InvoicePdf.Notes" xml:space="preserve">
+    <value>Notas</value>
+  </data>
+  <data name="InvoicePdf.PageOf" xml:space="preserve">
+    <value>Página {0} de {1}</value>
+  </data>
+  <data name="InvoicePdf.MoreLines" xml:space="preserve">
+    <value>{0} líneas más solo están en el XML.</value>
+  </data>
+  <data name="InvoicePdf.Disclaimer" xml:space="preserve">
+    <value>Vista interna, no es el original legalmente vinculante. El archivo XML enviado es el documento vinculante.</value>
+  </data>
+  <data name="InvoicePdf.NotStated" xml:space="preserve">
+    <value>no indicado</value>
+  </data>
+  <data name="XRechnung" xml:space="preserve">
+    <value>XRechnung</value>
+  </data>
+  <data name="DownloadPdf" xml:space="preserve">
+    <value>Descargar PDF</value>
+  </data>
+  <data name="DownloadOriginalXml" xml:space="preserve">
+    <value>Descargar XML original</value>
+  </data>
+  <data name="InvoicePreviewNotice" xml:space="preserve">
+    <value>Vista interna en PDF, no es el original legalmente vinculante. El archivo XML enviado es el documento vinculante.</value>
+  </data>
 </root>

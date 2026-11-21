@@ -3670,4 +3670,196 @@
   <data name="OriginalMissingHint" xml:space="preserve">
     <value>此邮件未保存原始邮件。归档只能提供重建版本。</value>
   </data>
+  <data name="InvoicePdf.Invoice" xml:space="preserve">
+    <value>发票</value>
+  </data>
+  <data name="InvoicePdf.CreditNote" xml:space="preserve">
+    <value>贷项通知单</value>
+  </data>
+  <data name="InvoicePdf.InvoiceNumber" xml:space="preserve">
+    <value>发票号码</value>
+  </data>
+  <data name="InvoicePdf.InvoiceDate" xml:space="preserve">
+    <value>发票日期</value>
+  </data>
+  <data name="InvoicePdf.DueShort" xml:space="preserve">
+    <value>到期日</value>
+  </data>
+  <data name="InvoicePdf.Seller" xml:space="preserve">
+    <value>销售方</value>
+  </data>
+  <data name="InvoicePdf.Buyer" xml:space="preserve">
+    <value>购买方</value>
+  </data>
+  <data name="InvoicePdf.PayeeDifferent" xml:space="preserve">
+    <value>收款方（不同）</value>
+  </data>
+  <data name="InvoicePdf.ShipTo" xml:space="preserve">
+    <value>收货地址</value>
+  </data>
+  <data name="InvoicePdf.TaxRepresentative" xml:space="preserve">
+    <value>税务代表</value>
+  </data>
+  <data name="InvoicePdf.Contact" xml:space="preserve">
+    <value>联系人</value>
+  </data>
+  <data name="InvoicePdf.VatId" xml:space="preserve">
+    <value>增值税号</value>
+  </data>
+  <data name="InvoicePdf.TaxNumber" xml:space="preserve">
+    <value>税号</value>
+  </data>
+  <data name="InvoicePdf.Register" xml:space="preserve">
+    <value>注册号</value>
+  </data>
+  <data name="InvoicePdf.Details" xml:space="preserve">
+    <value>发票信息</value>
+  </data>
+  <data name="InvoicePdf.BuyerReference" xml:space="preserve">
+    <value>买方参考号</value>
+  </data>
+  <data name="InvoicePdf.Currency" xml:space="preserve">
+    <value>币种</value>
+  </data>
+  <data name="InvoicePdf.DueDate" xml:space="preserve">
+    <value>到期日期</value>
+  </data>
+  <data name="InvoicePdf.DeliveryDate" xml:space="preserve">
+    <value>交付日期</value>
+  </data>
+  <data name="InvoicePdf.BillingPeriod" xml:space="preserve">
+    <value>计费期间</value>
+  </data>
+  <data name="InvoicePdf.BuyerOrder" xml:space="preserve">
+    <value>买方订单参考</value>
+  </data>
+  <data name="InvoicePdf.SalesOrder" xml:space="preserve">
+    <value>卖方订单参考</value>
+  </data>
+  <data name="InvoicePdf.Contract" xml:space="preserve">
+    <value>合同参考</value>
+  </data>
+  <data name="InvoicePdf.Project" xml:space="preserve">
+    <value>项目参考</value>
+  </data>
+  <data name="InvoicePdf.DespatchAdvice" xml:space="preserve">
+    <value>发货通知</value>
+  </data>
+  <data name="InvoicePdf.BuyerAccount" xml:space="preserve">
+    <value>买方账户参考</value>
+  </data>
+  <data name="InvoicePdf.SellerVatId" xml:space="preserve">
+    <value>销售方增值税号</value>
+  </data>
+  <data name="InvoicePdf.BuyerVatId" xml:space="preserve">
+    <value>购买方增值税号</value>
+  </data>
+  <data name="InvoicePdf.Lines" xml:space="preserve">
+    <value>发票行</value>
+  </data>
+  <data name="InvoicePdf.Description" xml:space="preserve">
+    <value>描述</value>
+  </data>
+  <data name="InvoicePdf.Quantity" xml:space="preserve">
+    <value>数量</value>
+  </data>
+  <data name="InvoicePdf.Unit" xml:space="preserve">
+    <value>单位</value>
+  </data>
+  <data name="InvoicePdf.UnitPrice" xml:space="preserve">
+    <value>单价</value>
+  </data>
+  <data name="InvoicePdf.TaxRate" xml:space="preserve">
+    <value>增值税</value>
+  </data>
+  <data name="InvoicePdf.Amount" xml:space="preserve">
+    <value>金额</value>
+  </data>
+  <data name="InvoicePdf.NoLines" xml:space="preserve">
+    <value>未提交发票行。</value>
+  </data>
+  <data name="InvoicePdf.AllowancesCharges" xml:space="preserve">
+    <value>折扣和附加费</value>
+  </data>
+  <data name="InvoicePdf.Allowance" xml:space="preserve">
+    <value>折扣</value>
+  </data>
+  <data name="InvoicePdf.Charge" xml:space="preserve">
+    <value>附加费</value>
+  </data>
+  <data name="InvoicePdf.SumLines" xml:space="preserve">
+    <value>行合计（净额）</value>
+  </data>
+  <data name="InvoicePdf.Charges" xml:space="preserve">
+    <value>附加费</value>
+  </data>
+  <data name="InvoicePdf.Allowances" xml:space="preserve">
+    <value>折扣</value>
+  </data>
+  <data name="InvoicePdf.TaxBasis" xml:space="preserve">
+    <value>计税基础</value>
+  </data>
+  <data name="InvoicePdf.GrandTotal" xml:space="preserve">
+    <value>发票总额（含税）</value>
+  </data>
+  <data name="InvoicePdf.Prepaid" xml:space="preserve">
+    <value>已支付</value>
+  </data>
+  <data name="InvoicePdf.Rounding" xml:space="preserve">
+    <value>舍入</value>
+  </data>
+  <data name="InvoicePdf.Payable" xml:space="preserve">
+    <value>应付金额</value>
+  </data>
+  <data name="InvoicePdf.PaymentMeans" xml:space="preserve">
+    <value>付款方式</value>
+  </data>
+  <data name="InvoicePdf.Iban" xml:space="preserve">
+    <value>IBAN</value>
+  </data>
+  <data name="InvoicePdf.Bic" xml:space="preserve">
+    <value>BIC</value>
+  </data>
+  <data name="InvoicePdf.AccountHolder" xml:space="preserve">
+    <value>账户持有人</value>
+  </data>
+  <data name="InvoicePdf.PaymentReference" xml:space="preserve">
+    <value>付款参考</value>
+  </data>
+  <data name="InvoicePdf.MandateReference" xml:space="preserve">
+    <value>授权参考</value>
+  </data>
+  <data name="InvoicePdf.PaymentTerms" xml:space="preserve">
+    <value>付款条件</value>
+  </data>
+  <data name="InvoicePdf.PaymentInfo" xml:space="preserve">
+    <value>付款信息</value>
+  </data>
+  <data name="InvoicePdf.Notes" xml:space="preserve">
+    <value>备注</value>
+  </data>
+  <data name="InvoicePdf.PageOf" xml:space="preserve">
+    <value>第 {0} 页，共 {1} 页</value>
+  </data>
+  <data name="InvoicePdf.MoreLines" xml:space="preserve">
+    <value>另有 {0} 行仅存在于 XML 中。</value>
+  </data>
+  <data name="InvoicePdf.Disclaimer" xml:space="preserve">
+    <value>内部视图，不是具有法律效力的原始文件。以提交的 XML 文件为准。</value>
+  </data>
+  <data name="InvoicePdf.NotStated" xml:space="preserve">
+    <value>未提供</value>
+  </data>
+  <data name="XRechnung" xml:space="preserve">
+    <value>XRechnung</value>
+  </data>
+  <data name="DownloadPdf" xml:space="preserve">
+    <value>下载 PDF</value>
+  </data>
+  <data name="DownloadOriginalXml" xml:space="preserve">
+    <value>下载原始 XML</value>
+  </data>
+  <data name="InvoicePreviewNotice" xml:space="preserve">
+    <value>内部 PDF 视图，不是具有法律效力的原始文件。以提交的 XML 文件为准。</value>
+  </data>
 </root>

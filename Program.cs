@@ -212,6 +212,7 @@ if (mcpEnabled)
 
 // Add DateTimeHelper
 builder.Services.AddScoped<MailArchiver.Utilities.DateTimeHelper>();
+builder.Services.AddSingleton<MailArchiver.Services.EInvoicing.InvoicePdfLabelProvider>();
 
 // Add HTTP Client factory (used by VersionUpdateService for GitHub API calls)
 builder.Services.AddHttpClient("GitHubReleases");
