@@ -36,6 +36,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Content Include="Fixtures\EInvoicing\*.xml" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Using Include="Xunit" />
   </ItemGroup>
 
