@@ -158,7 +158,7 @@ hu:
   Date-Windowed Offload: Időintervallum alapú lementés
   Dev Tag (Development Versions): Dev Tag (Fejlesztői verziók)
   Docker Compose Logs: Docker Compose naplók
-  Emergency Account Recovery: Sürgős fiók helyreállítás
+  Emergency Account Recovery: Sürgős fiókhelyreállítás
   Getting Mail In: Bejövő levelek kezelése
   Gmail Best Practices: Gmail legjobb gyakorlatok
   Health and Metrics: Állapot és métriák
@@ -181,7 +181,7 @@ hu:
   Programmatic Access: Programozható hozzáférés
   Provider Guides: Szolgáltatói útmutatók
   REST API: REST API
-  Rate Limit Handling: Sebességkorlát kezelése
+  Rate Limit Handling: Sebességkorlátozás kezelése
   Retention Policies: Megőrzési irányelvek
   Reverse Proxy: Reverse Proxy
   Setup and Parameters: Beállítások és paraméterek
@@ -189,7 +189,7 @@ hu:
   User Management & Permissions: Felhasználói kezelés és jogosultságok
   Web Import (EML / MBox): Webes importálás (EML / MBox)
   Working with the Archive: Archívumkezelés
-  Yahoo Mail Limitations: Yahoo Mail korlátok
+  Yahoo Mail Limitations: Yahoo Mail korlátozások
 it:
   API Reference: Riferimento API
   Access Logging: Log degli accessi
@@ -208,7 +208,7 @@ it:
   Docker Compose Logs: Log di Docker Compose
   Emergency Account Recovery: Recupero account di emergenza
   Getting Mail In: Ricezione della posta
-  Gmail Best Practices: Best practice per Gmail
+  Gmail Best Practices: Best practice Gmail
   Health and Metrics: Stato del sistema e metriche
   Home: Home
   Installation & Maintenance: Installazione e manutenzione
@@ -277,7 +277,7 @@ ja:
   Programmatic Access: プログラムによるアクセス
   Provider Guides: プロバイダーガイド
   REST API: REST API
-  Rate Limit Handling: レート制限の処理
+  Rate Limit Handling: レート制限への対応
   Retention Policies: 保持ポリシー
   Reverse Proxy: リバースプロキシ
   Setup and Parameters: セットアップとパラメータ
@@ -300,7 +300,7 @@ nl:
   CLI Commands: CLI-opdrachten
   Database Maintenance: Databaseonderhoud
   Date-Windowed Offload: Offload op basis van Datumbereik
-  Dev Tag (Development Versions): Dev Tag (Ontwikkelversies)
+  Dev Tag (Development Versions): Dev Tag (Ontwikkelingsversies)
   Docker Compose Logs: Docker Compose Logs
   Emergency Account Recovery: Noodherstel van Accounts
   Getting Mail In: E-mail Ontvangen
@@ -486,12 +486,12 @@ sl:
   Administration & Security: Administracija in varnost
   Attachment Deduplication: Odstranjevanje podvojenih prilog
   Audit Data Export: Izvoz revizijskih podatkov
-  Azure App Registration (M365): Registracija aplikacije Azure (M365)
+  Azure App Registration (M365): Registracija Azure aplikacije (M365)
   Background Jobs: Zadanja v ozadju
   Backup and Restore: Zaslona in obnavljanje
   CLI Commands: CLI ukazi
   Database Maintenance: Vzdrževanje baze podatkov
-  Date-Windowed Offload: Prenos glede na časovni okvir
+  Date-Windowed Offload: Prenos po datumu
   Dev Tag (Development Versions): Dev oznaka (razvojne različice)
   Docker Compose Logs: Docker Compose dnevniki
   Emergency Account Recovery: Nujno obnavljanje računa
@@ -502,7 +502,7 @@ sl:
   Installation & Maintenance: Namestitev in vzdrževanje
   Language and Localization: Jezik in lokalizacija
   Local Test Environment: Lokalno testno okolje
-  M365 Tenant Mailbox Import: Uvoz poštovnih predalov M365 ponudnika
+  M365 Tenant Mailbox Import: Uvoz poštovnih predalov M365 tenantov
   MCP Server: MCP strežnik
   Mail Search: Iskanje pošte
   Mail Synchronization: Sinhronizacija pošte
