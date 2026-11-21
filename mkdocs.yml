@@ -188,6 +188,7 @@ nav:
       - Account Export (EML / MBox): Export-Account.md
       - Original Message Storage: RawMessages.md
       - Attachment Deduplication: AttachmentDeduplication.md
+      - XRechnung Invoice Preview: EInvoicing.md
       - Date-Windowed Offload: Offload.md
       - Per-Account Storage: AccountStorage.md
   - Administration & Security:
