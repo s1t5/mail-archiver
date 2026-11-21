@@ -33,10 +33,6 @@ on:
       - 'mkdocs.yml'
       - 'requirements-docs.txt'
       - '.github/workflows/translate-docs.yml'
-  # A safety net for interrupted runs. Each locale commits on its own, so the
-  # next run continues with whatever is still missing.
-  schedule:
-    - cron: '0 */2 * * *'
 
 permissions:
   contents: write
