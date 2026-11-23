@@ -63,8 +63,8 @@
       },
       "EInvoicing.md": {
         "model": "google/gemma-4-26b-a4b-it",
-        "source_sha256": "2e3d60cf7e40366bead618dade20ae67f90c3f6d8a4d9eea3e087b2a172761d1",
-        "translated_at": "2026-11-23T13:44:56Z"
+        "source_sha256": "1886513398523fa85bb909a8810ad14a347d06e769c7e7e1837b3fdafb0a26d2",
+        "translated_at": "2026-11-23T14:54:16Z"
       },
       "EmergencyAccountRecovery.md": {
         "model": "google/gemma-4-26b-a4b-it",
