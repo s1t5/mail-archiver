@@ -1,8 +1,8 @@
-# 📧 Mail Archiver 文档 {#mail-archiver-documentation}
+# 📧 Mail Archiver Documentation {#mail-archiver-documentation}
 
 <div class="docs-lead" markdown>
-**自托管邮件归档 —— 归档、搜索并导出任何提供商的邮件。**
-只需一次设置，即可保留每条消息，并在多年后再次找到它们。
+**自托管电子邮件归档 — 归档、搜索并导出来自任何提供商的邮件。**
+只需一次设置，即可保留每条消息，并在数年后再次找到它。
 </div>
 
 <div class="grid cards" markdown>
@@ -27,7 +27,7 @@
 
     ---
 
-    通过脚本和 AI agent 读取您的归档 —— 只读、范围受限的 API 密钥。
+    通过脚本和 AI Agent 读取您的归档内容 — 提供只读、受限范围的 API 密钥。
 
     [:octicons-arrow-right-24: REST API](API.md) · [:octicons-arrow-right-24: MCP server](MCP.md)
 
@@ -35,7 +35,7 @@
 
     ---
 
-    双重身份验证、SSO、访问日志和保留策略。
+    双重身份验证、SSO、访问日志记录和保留策略。
 
     [:octicons-arrow-right-24: 双重身份验证](TwoFactor.md) · [:octicons-arrow-right-24: OIDC / SSO](OIDC_Implementation.md)
 
@@ -65,7 +65,7 @@
 
     ---
 
-    在不丢失数据的情况下迁移到新的 PostgreSQL 主要版本。
+    在不丢失数据的情况下迁移到新的 PostgreSQL 主版本。
 
     [:octicons-arrow-right-24: 阅读](PostgreSQLUpgrade.md)
 
@@ -73,7 +73,7 @@
 
     ---
 
-    VACUUM、ANALYZE 以及保持归档随时间推移仍保持响应能力。
+    VACUUM、ANALYZE 以及如何随着时间的推移保持归档的响应速度。
 
     [:octicons-arrow-right-24: 阅读](DatabaseMaintenance.md)
 
@@ -81,7 +81,7 @@
 
     ---
 
-    备份数据库并进行恢复 —— 包括 Proxmox 设置。
+    备份数据库并进行恢复 — 包括 Proxmox 设置。
 
     [:octicons-arrow-right-24: 阅读](BackupRestore.md)
 
@@ -111,7 +111,7 @@
 
     ---
 
-    快速同步 vs 全量同步、检查点，以及同步失败时会发生什么。
+    快速同步 vs 全量同步、检查点，以及同步失败时的处理机制。
 
     [:octicons-arrow-right-24: 阅读](Synchronization.md)
 
@@ -119,7 +119,7 @@
 
     ---
 
-    通过命令行导入现有归档，并在数据库和文件系统之间移动存储的原始消息。
+    通过命令行导入现有归档，并在数据库与文件系统之间移动存储的原始消息。
 
     [:octicons-arrow-right-24: 阅读](CLI.md)
 
@@ -157,7 +157,7 @@
 
     ---
 
-    监控同步、导入、恢复和导出 —— 并安全地取消它们。
+    监控同步、导入、恢复和导出 — 并安全地取消它们。
 
     [:octicons-arrow-right-24: 阅读](BackgroundJobs.md)
 
@@ -189,15 +189,23 @@
 
     ---
 
-    相同的附件如何仅存储一次而不是多次。
+    如何将相同的附件仅存储一次而非多次。
 
     [:octicons-arrow-right-24: 阅读](AttachmentDeduplication.md)
+
+-   :material-file-pdf-box:{ .lg .middle } __XRechnung 发票预览__
+
+    ---
+
+    直接在归档中将 XRechnung XML 附件作为 PDF 读取。
+
+    [:octicons-arrow-right-24: 阅读](EInvoicing.md)
 
 -   :material-calendar-arrow-right:{ .lg .middle } __按日期窗口卸载__
 
     ---
 
-    按时间窗口将旧邮件移动到另一个账户。
+    按时间窗口将较旧的邮件移动到另一个账户。
 
     [:octicons-arrow-right-24: 阅读](Offload.md)
 
@@ -227,7 +235,7 @@
 
     ---
 
-    TOTP 设置、备份代码，以及设备丢失时的处理方法。
+    TOTP 设置、备份代码，以及设备丢失时的应对措施。
 
     [:octicons-arrow-right-24: 阅读](TwoFactor.md)
 
@@ -239,7 +247,7 @@
 
     [:octicons-arrow-right-24: 阅读](OIDC_Implementation.md)
 
--   :material-text-box-search:{ .lg .middle } __访问日志__
+-   :material-text-box-search:{ .lg .middle } __访问日志记录__
 
     ---
 
@@ -335,7 +343,7 @@
 
     ---
 
-    通过范围受限的单用户 API 密钥实现对归档的只读访问。
+    通过受限的单用户 API 密钥实现对归档的只读访问。
 
     [:octicons-arrow-right-24: 阅读](API.md)
 
@@ -343,7 +351,7 @@
 
     ---
 
-    将归档作为可发现的工具暴露给 AI agent。
+    将归档作为可发现的工具暴露给 AI Agent。
 
     [:octicons-arrow-right-24: 阅读](MCP.md)
 
@@ -359,7 +367,7 @@
 
     切换界面语言，以及如何添加翻译。
 
-    [:octicons-arrow-right-24: 阅读](Localization.md)
+    [:octicons-arrow--right-24: 阅读](Localization.md)
 
 -   :material-docker:{ .lg .middle } __Docker Compose 日志__
 
@@ -373,7 +381,7 @@
 
     ---
 
-    通过 Prometheus 或其他监控系统观察 liveness、readiness 和归档指标。
+    通过 Prometheus 或其他监控系统观察存活检查 (liveness)、就绪检查 (readiness) 和归档指标。
 
     [:octicons-arrow-right-24: 阅读](Monitoring.md)
 
@@ -381,7 +389,7 @@
 
     ---
 
-    切换到 dev 标签以测试即将到来的更改。
+    切换到开发标签以测试即将发布的更改。
 
     [:octicons-arrow-right-24: 阅读](DevTag.md)
 
