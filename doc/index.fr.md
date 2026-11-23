@@ -1,4 +1,4 @@
-# 📧 Mail Archiver Documentation {#mail-archiver-documentation}
+# 📧 Documentation de Mail Archiver {#mail-archiver-documentation}
 
 <div class="docs-lead" markdown>
 **Archivage d'e-mails auto-hébergé — archivez, recherchez et exportez des e-mails de n'importe quel fournisseur.**
@@ -7,7 +7,7 @@ Configurez-le une fois, conservez chaque message, et retrouvez-le des années pl
 
 <div class="grid cards" markdown>
 
--   :material-rocket-launch:{ .lg .middle } __Démarrage rapide__
+-   :material-rocket-launch:{ .lg .middle } __Mise en route__
 
     ---
 
@@ -21,21 +21,21 @@ Configurez-le une fois, conservez chaque message, et retrouvez-le des années pl
 
     Recherche plein texte sur chaque Compte, avec filtres, tri et actions groupées.
 
-    [:octicons-arrow-right-24: Recherche d'e-mails](Search.md)
+    [:octicons-arrow-right-24: Recherche de mails](Search.md)
 
--   :material-api:{ .lg .middle } __Automatisez__
+-   :material-api:{ .lg .middle } __Automatisez-le__
 
     ---
 
-    Lisez votre Archive depuis des scripts et des agents IA — clés API en lecture seule et limitées.
+    Lisez votre Archive depuis des scripts et des agents IA — clés API en lecture seule et à portée limitée.
 
     [:octicons-arrow-right-24: REST API](API.md) · [:octicons-arrow-right-24: MCP server](MCP.md)
 
--   :material-shield-lock:{ .lg .middle } __Sécurisez__
+-   :material-shield-lock:{ .lg .middle } __Sécurisez-le__
 
     ---
 
-    Authentification à deux facteurs, SSO, journal d'accès et politiques de Conservation.
+    Authentification à deux facteurs, SSO, journalisation des accès et politiques de Conservation.
 
     [:octicons-arrow-right-24: Authentification à deux facteurs](TwoFactor.md) · [:octicons-arrow-right-24: OIDC / SSO](OIDC_Implementation.md)
 
@@ -49,7 +49,7 @@ Configurez-le une fois, conservez chaque message, et retrouvez-le des années pl
 
     ---
 
-    Chaque variable d'environnement, Kestrel HTTPS et gestion des secrets.
+    Chaque variable d'environnement, la gestion HTTPS de Kestrel et des secrets.
 
     [:octicons-arrow-right-24: Lire](Setup.md)
 
@@ -95,7 +95,7 @@ Configurez-le une fois, conservez chaque message, et retrouvez-le des années pl
 
 </div>
 
-## 📥 Réception des e-mails {#getting-mail-in}
+## 📥 Réception des mails {#getting-mail-in}
 
 <div class="grid cards" markdown>
 
@@ -111,7 +111,7 @@ Configurez-le une fois, conservez chaque message, et retrouvez-le des années pl
 
     ---
 
-    Synchronisation rapide vs complète, points de contrôle, et ce qui se passe en cas d'échec de Synchronisation.
+    Synchronisation rapide vs complète, points de contrôle, et ce qui se passe lorsqu'une synchronisation échoue.
 
     [:octicons-arrow-right-24: Lire](Synchronization.md)
 
@@ -119,7 +119,7 @@ Configurez-le une fois, conservez chaque message, et retrouvez-le des années pl
 
     ---
 
-    Importez des Archives existantes depuis la ligne de commande, et déplacez les messages originaux stockés entre la base de données et le système de fichiers.
+    Importez des archives existantes depuis la ligne de commande, et déplacez les messages originaux stockés entre la base de données et le système de fichiers.
 
     [:octicons-arrow-right-24: Lire](CLI.md)
 
@@ -135,7 +135,7 @@ Configurez-le une fois, conservez chaque message, et retrouvez-le des années pl
 
     ---
 
-    Suivi de la bande passante, et comment les Synchronisations en pause reprennent d'elles-mêmes.
+    Suivi de la bande passante, et comment les synchronisations en pause reprennent d'elles-mêmes.
 
     [:octicons-arrow-right-24: Lire](RateLimitHandling.md)
 
@@ -145,7 +145,7 @@ Configurez-le une fois, conservez chaque message, et retrouvez-le des années pl
 
 <div class="grid cards" markdown>
 
--   :material-magnify:{ .lg .middle } __Recherche d'e-mails__
+-   :material-magnify:{ .lg .middle } __Recherche de mails__
 
     ---
 
@@ -157,7 +157,7 @@ Configurez-le une fois, conservez chaque message, et retrouvez-le des années pl
 
     ---
 
-    Surveillez les Synchronisations, imports, Restaurations et exports — et annulez-les en toute sécurité.
+    Surveillez les synchronisations, imports, Restauration et exports — et annulez-les en toute sécurité.
 
     [:octicons-arrow-right-24: Lire](BackgroundJobs.md)
 
@@ -165,7 +165,7 @@ Configurez-le une fois, conservez chaque message, et retrouvez-le des années pl
 
     ---
 
-    Copiez des e-mails entre les Boîtes aux lettres tout en préservant la structure des Dossiers.
+    Copiez les mails entre les Boîtes aux lettres tout en préservant la structure des Dossiers.
 
     [:octicons-arrow-right-24: Lire](MailboxMigration.md)
 
@@ -173,15 +173,15 @@ Configurez-le une fois, conservez chaque message, et retrouvez-le des années pl
 
     ---
 
-    Réécrivez un Compte entier sous forme d'Archive EML ou MBox portable.
+    Réexportez un Compte entier sous forme d'Archive EML ou MBox portable.
 
     [:octicons-arrow-right-24: Lire](Export-Account.md)
 
--   :material-email-lock:{ .lg .middle } __Stockage des messages originaux__
+-   :material-email-lock:{ .lg .middle } __Stockage du message original__
 
     ---
 
-    Conservez le message tel qu'il a été reçu, pour que le DKIM soit toujours vérifié et que les exports soient identiques au bit près.
+    Conservez le message tel qu'il a été reçu, afin que le DKIM soit toujours vérifié et que les exports soient strictement identiques au niveau des octets.
 
     [:octicons-arrow-right-24: Lire](RawMessages.md)
 
@@ -193,11 +193,19 @@ Configurez-le une fois, conservez chaque message, et retrouvez-le des années pl
 
     [:octicons-arrow-right-24: Lire](AttachmentDeduplication.md)
 
+-   :material-file-pdf-box:{ .lg .middle } __Aperçu de facture XRechnung__
+
+    ---
+
+    Lisez les Pièces jointes XML XRechnung en tant que PDF directement dans l'Archive.
+
+    [:octicons-arrow-right-24: Lire](EInvoicing.md)
+
 -   :material-calendar-arrow-right:{ .lg .middle } __Déchargement par fenêtre de date__
 
     ---
 
-    Déplacez les e-mails plus anciens vers un autre Compte, fenêtre par fenêtre.
+    Déplacez les anciens mails vers un autre Compte, fenêtre par fenêtre.
 
     [:octicons-arrow-right-24: Lire](Offload.md)
 
@@ -205,7 +213,7 @@ Configurez-le une fois, conservez chaque message, et retrouvez-le des années pl
 
     ---
 
-    Voyez l'espace occupé par chaque Boîte aux lettres.
+    Voyez l'espace que prend chaque Boîte aux lettres.
 
     [:octicons-arrow-right-24: Lire](AccountStorage.md)
 
@@ -227,7 +235,7 @@ Configurez-le une fois, conservez chaque message, et retrouvez-le des années pl
 
     ---
 
-    Configuration TOTP, codes de secours, et quoi faire en cas de perte d'un appareil.
+    Configuration TOTP, codes de secours, et que faire en cas de perte d'un appareil.
 
     [:octicons-arrow-right-24: Lire](TwoFactor.md)
 
@@ -239,7 +247,7 @@ Configurez-le une fois, conservez chaque message, et retrouvez-le des années pl
 
     [:octicons-arrow-right-24: Lire](OIDC_Implementation.md)
 
--   :material-text-box-search:{ .lg .middle } __Journal d'accès__
+-   :material-text-box-search:{ .lg .middle } __Journalisation des accès__
 
     ---
 
@@ -247,7 +255,7 @@ Configurez-le une fois, conservez chaque message, et retrouvez-le des années pl
 
     [:octicons-arrow-right-24: Lire](Logs.md)
 
--   :material-file-export:{ .lg .middle } __Export de données d'audit__
+-   :material-file-export:{ .lg .middle } __Export des données d'audit__
 
     ---
 
@@ -265,7 +273,7 @@ Configurez-le une fois, conservez chaque message, et retrouvez-le des années pl
 
     ---
 
-    Suppression automatique du serveur de messagerie ou de l'Archive locale.
+    Suppression automatique du serveur de mail ou de l'Archive locale.
 
     [:octicons-arrow-right-24: Lire](RetentionPolicies.md)
 
@@ -287,7 +295,7 @@ Configurez-le une fois, conservez chaque message, et retrouvez-le des années pl
 
     ---
 
-    Importez en masse chaque Boîte aux lettres d'un tenant à partir d'un seul formulaire.
+    Importez en masse chaque Boîte aux lettres d'un tenant à partir d'un formulaire unique.
 
     [:octicons-arrow-right-24: Lire](M365TenantImport.md)
 
@@ -333,7 +341,7 @@ Configurez-le une fois, conservez chaque message, et retrouvez-le des années pl
 
     ---
 
-    Accès en lecture seule à l'Archive avec des clés API limitées par utilisateur.
+    Accès en lecture seule à l'Archive avec des clés API par utilisateur à portée limitée.
 
     [:octicons-arrow-right-24: Lire](API.md)
 
@@ -355,7 +363,7 @@ Configurez-le une fois, conservez chaque message, et retrouvez-le des années pl
 
     ---
 
-    Changez la langue de l'interface et apprenez comment ajouter une traduction.
+    Changer la langue de l'interface, et comment ajouter une traduction.
 
     [:octicons-arrow-right-24: Lire](Localization.md)
 
@@ -363,7 +371,7 @@ Configurez-le une fois, conservez chaque message, et retrouvez-le des années pl
 
     ---
 
-    Lisez les logs des conteneurs et changez le niveau de log.
+    Lire les logs des conteneurs et changer le niveau de log.
 
     [:octicons-arrow-right-24: Lire](DockerComposeLogs.md)
 
@@ -388,7 +396,7 @@ Configurez-le une fois, conservez chaque message, et retrouvez-le des années pl
 ---
 
 <div class="docs-footer-note" markdown>
-:material-pencil: **Cette documentation est continuellement enrichie.**
+:material-pencil: **Cette documentation est continuellement étendue.**
 Si vous remarquez une erreur ou avez une suggestion, veuillez
 [ouvrir un issue](https://github.com/s1t5/mail-archiver/issues) ou soumettre une pull request.
 </div>
