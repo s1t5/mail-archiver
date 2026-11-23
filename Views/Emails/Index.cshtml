@@ -247,15 +247,6 @@
                         </div>
                     </div>
 
-                    @* Also at the top: with a long result list the way back to the navigation
-                       is a scroll to the bottom, one page forward and another scroll up. *@
-                    @if (Model.TotalPages > 1)
-                    {
-                        <div class="px-3 py-2 border-bottom">
-                            @await Html.PartialAsync("_Pagination", Model)
-                        </div>
-                    }
-                    
                     @if (Model.ShowSelectionControls)
                     {
                         <div class="p-2 bg-light border-bottom">
