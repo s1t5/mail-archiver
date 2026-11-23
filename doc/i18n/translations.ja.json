@@ -61,6 +61,11 @@
         "source_sha256": "97da2495bdd4cad14f6107ff5e251bbd6cf6dc55f87b37f894ae9dc13b9df613",
         "translated_at": "2026-11-10T14:53:32Z"
       },
+      "EInvoicing.md": {
+        "model": "google/gemma-4-26b-a4b-it",
+        "source_sha256": "2e3d60cf7e40366bead618dade20ae67f90c3f6d8a4d9eea3e087b2a172761d1",
+        "translated_at": "2026-11-23T13:44:55Z"
+      },
       "EmergencyAccountRecovery.md": {
         "model": "google/gemma-4-26b-a4b-it",
         "source_sha256": "7b3081acb22e278131ca3f124e1c60a909f3ea8bb78a05ba25423624572771b4",
@@ -193,8 +198,8 @@
       },
       "index.md": {
         "model": "google/gemma-4-26b-a4b-it",
-        "source_sha256": "2b25ea068605272f849c258653856aa405480114985261003dc1341a89ff7cd0",
-        "translated_at": "2026-11-17T18:35:24Z"
+        "source_sha256": "d62404936ffa672b99dbf10bbef12b6bc0298c486b67cdb4f3efa980cdce7282",
+        "translated_at": "2026-11-23T13:45:08Z"
       }
     }
   },
