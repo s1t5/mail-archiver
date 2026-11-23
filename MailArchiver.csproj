@@ -45,6 +45,9 @@
     <PackageReference Include="Microsoft.Identity.Client" Version="4.88.0" />
     <PackageReference Include="MimeKit" Version="4.17.0" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.3" />
+    <!-- Pkcs 10.0.0 (transitiv) hat zwei bekannte DoS-Schwachstellen.
+         10.0.13 ist die erste gepatchte Version im .NET-10-Band. -->
+    <PackageReference Include="System.Security.Cryptography.Pkcs" Version="10.0.13" />
     <PackageReference Include="Otp.NET" Version="1.4.1" />
     <PackageReference Include="QRCoder" Version="1.8.0" />
     <PackageReference Include="Azure.Identity" Version="1.21.0" />
@@ -52,5 +55,27 @@
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.11" />
     <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="10.2.3" />
     <PackageReference Include="ModelContextProtocol.AspNetCore" Version="2.2.0" />
+    <!-- XRechnung-Vorschau. SkiaSharp ist MIT, aktiv gepflegt und hat ein
+         net10.0-Target. Die NoDependencies-Variante bringt libSkiaSharp.so für
+         linux-x64 und linux-arm64 mit und braucht kein fontconfig im Image. -->
+    <PackageReference Include="SkiaSharp" Version="4.157.0" />
+    <PackageReference Include="SkiaSharp.NativeAssets.Linux.NoDependencies" Version="4.157.0"
+                      GeneratePathProperty="true" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Die Lizenzhinweise müssen mit den ausgelieferten Binärdateien gehen, sonst
+         erfüllen weder MIT/BSD/Apache noch die OFL ihre Bedingungen im Docker-Image.
+         Das native SkiaSharp-Paket bringt für die statisch gelinkten Bibliotheken in
+         libSkiaSharp.so eine eigene Notices-Datei mit; die wird aus dem Paket kopiert
+         statt im Repository dupliziert. -->
+    <None Update="THIRD-PARTY-NOTICES.md"
+          CopyToOutputDirectory="PreserveNewest"
+          CopyToPublishDirectory="PreserveNewest" />
+    <None Include="$(PkgSkiaSharp_NativeAssets_Linux_NoDependencies)/THIRD-PARTY-NOTICES.txt"
+          Link="THIRD-PARTY-NOTICES-SkiaSharp.txt"
+          CopyToOutputDirectory="PreserveNewest"
+          CopyToPublishDirectory="PreserveNewest"
+          Condition="'$(PkgSkiaSharp_NativeAssets_Linux_NoDependencies)' != ''" />
   </ItemGroup>
 </Project>

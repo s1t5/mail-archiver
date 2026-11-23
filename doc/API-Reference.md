@@ -21,6 +21,7 @@ For authentication, pagination, error handling and rate limiting see
 | `GET` | [`/api/v1/emails`](#apiv1emails) |
 | `GET` | [`/api/v1/emails/{id}`](#apiv1emailsid) |
 | `GET` | [`/api/v1/emails/{id}/attachments/{attachmentId}`](#apiv1emailsidattachmentsattachmentid) |
+| `GET` | [`/api/v1/emails/{id}/attachments/{attachmentId}/invoice-pdf`](#apiv1emailsidattachmentsattachmentidinvoice-pdf) |
 | `GET` | [`/api/v1/emails/{id}/eml`](#apiv1emailsideml) |
 | `GET` | [`/api/v1/emails/{id}/raw`](#apiv1emailsidraw) |
 | `GET` | [`/api/v1/stats`](#apiv1stats) |
@@ -80,6 +81,19 @@ For authentication, pagination, error handling and rate limiting see
 | Status | Content type | Schema |
 | ------ | ------------ | ------ |
 | 200 | — | no body |
+
+### `GET` /api/v1/emails/{id}/attachments/{attachmentId}/invoice-pdf { #apiv1emailsidattachmentsattachmentidinvoice-pdf }
+
+| Name | In | Type | Required | Default |
+| ---- | -- | ---- | -------- | ------- |
+| `id` | path | integer (int32) | yes | — |
+| `attachmentId` | path | integer (int32) | yes | — |
+
+| Status | Content type | Schema |
+| ------ | ------------ | ------ |
+| 200 | `application/pdf` | any |
+| 403 | — | no body |
+| 404 | — | no body |
 
 ### `GET` /api/v1/emails/{id}/eml { #apiv1emailsideml }
 

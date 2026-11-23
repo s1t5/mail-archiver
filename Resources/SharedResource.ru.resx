@@ -3701,4 +3701,196 @@
   <data name="OriginalMissingHint" xml:space="preserve">
     <value>Для этого письма оригинал не сохранён. Архив может предоставить только реконструкцию.</value>
   </data>
+  <data name="InvoicePdf.Invoice" xml:space="preserve">
+    <value>Счёт</value>
+  </data>
+  <data name="InvoicePdf.CreditNote" xml:space="preserve">
+    <value>Кредит-нота</value>
+  </data>
+  <data name="InvoicePdf.InvoiceNumber" xml:space="preserve">
+    <value>Номер счёта</value>
+  </data>
+  <data name="InvoicePdf.InvoiceDate" xml:space="preserve">
+    <value>Дата счёта</value>
+  </data>
+  <data name="InvoicePdf.DueShort" xml:space="preserve">
+    <value>Срок оплаты</value>
+  </data>
+  <data name="InvoicePdf.Seller" xml:space="preserve">
+    <value>Продавец</value>
+  </data>
+  <data name="InvoicePdf.Buyer" xml:space="preserve">
+    <value>Покупатель</value>
+  </data>
+  <data name="InvoicePdf.PayeeDifferent" xml:space="preserve">
+    <value>Получатель (другой)</value>
+  </data>
+  <data name="InvoicePdf.ShipTo" xml:space="preserve">
+    <value>Адрес доставки</value>
+  </data>
+  <data name="InvoicePdf.TaxRepresentative" xml:space="preserve">
+    <value>Налоговый представитель</value>
+  </data>
+  <data name="InvoicePdf.Contact" xml:space="preserve">
+    <value>Контакт</value>
+  </data>
+  <data name="InvoicePdf.VatId" xml:space="preserve">
+    <value>Номер НДС</value>
+  </data>
+  <data name="InvoicePdf.TaxNumber" xml:space="preserve">
+    <value>Налоговый номер</value>
+  </data>
+  <data name="InvoicePdf.Register" xml:space="preserve">
+    <value>Реестр</value>
+  </data>
+  <data name="InvoicePdf.Details" xml:space="preserve">
+    <value>Данные счёта</value>
+  </data>
+  <data name="InvoicePdf.BuyerReference" xml:space="preserve">
+    <value>Ссылка покупателя</value>
+  </data>
+  <data name="InvoicePdf.Currency" xml:space="preserve">
+    <value>Валюта</value>
+  </data>
+  <data name="InvoicePdf.DueDate" xml:space="preserve">
+    <value>Срок оплаты</value>
+  </data>
+  <data name="InvoicePdf.DeliveryDate" xml:space="preserve">
+    <value>Дата поставки</value>
+  </data>
+  <data name="InvoicePdf.BillingPeriod" xml:space="preserve">
+    <value>Период выставления счёта</value>
+  </data>
+  <data name="InvoicePdf.BuyerOrder" xml:space="preserve">
+    <value>Ссылка на заказ покупателя</value>
+  </data>
+  <data name="InvoicePdf.SalesOrder" xml:space="preserve">
+    <value>Ссылка на заказ продавца</value>
+  </data>
+  <data name="InvoicePdf.Contract" xml:space="preserve">
+    <value>Ссылка на договор</value>
+  </data>
+  <data name="InvoicePdf.Project" xml:space="preserve">
+    <value>Ссылка на проект</value>
+  </data>
+  <data name="InvoicePdf.DespatchAdvice" xml:space="preserve">
+    <value>Товарная накладная</value>
+  </data>
+  <data name="InvoicePdf.BuyerAccount" xml:space="preserve">
+    <value>Учётная ссылка покупателя</value>
+  </data>
+  <data name="InvoicePdf.SellerVatId" xml:space="preserve">
+    <value>Номер НДС продавца</value>
+  </data>
+  <data name="InvoicePdf.BuyerVatId" xml:space="preserve">
+    <value>Номер НДС покупателя</value>
+  </data>
+  <data name="InvoicePdf.Lines" xml:space="preserve">
+    <value>Позиции счёта</value>
+  </data>
+  <data name="InvoicePdf.Description" xml:space="preserve">
+    <value>Наименование</value>
+  </data>
+  <data name="InvoicePdf.Quantity" xml:space="preserve">
+    <value>Количество</value>
+  </data>
+  <data name="InvoicePdf.Unit" xml:space="preserve">
+    <value>Единица</value>
+  </data>
+  <data name="InvoicePdf.UnitPrice" xml:space="preserve">
+    <value>Цена за единицу</value>
+  </data>
+  <data name="InvoicePdf.TaxRate" xml:space="preserve">
+    <value>НДС</value>
+  </data>
+  <data name="InvoicePdf.Amount" xml:space="preserve">
+    <value>Сумма</value>
+  </data>
+  <data name="InvoicePdf.NoLines" xml:space="preserve">
+    <value>Позиции счёта не переданы.</value>
+  </data>
+  <data name="InvoicePdf.AllowancesCharges" xml:space="preserve">
+    <value>Скидки и надбавки</value>
+  </data>
+  <data name="InvoicePdf.Allowance" xml:space="preserve">
+    <value>Скидка</value>
+  </data>
+  <data name="InvoicePdf.Charge" xml:space="preserve">
+    <value>Надбавка</value>
+  </data>
+  <data name="InvoicePdf.SumLines" xml:space="preserve">
+    <value>Сумма позиций (нетто)</value>
+  </data>
+  <data name="InvoicePdf.Charges" xml:space="preserve">
+    <value>Надбавки</value>
+  </data>
+  <data name="InvoicePdf.Allowances" xml:space="preserve">
+    <value>Скидки</value>
+  </data>
+  <data name="InvoicePdf.TaxBasis" xml:space="preserve">
+    <value>Налоговая база</value>
+  </data>
+  <data name="InvoicePdf.GrandTotal" xml:space="preserve">
+    <value>Итого по счёту (брутто)</value>
+  </data>
+  <data name="InvoicePdf.Prepaid" xml:space="preserve">
+    <value>Уже оплачено</value>
+  </data>
+  <data name="InvoicePdf.Rounding" xml:space="preserve">
+    <value>Округление</value>
+  </data>
+  <data name="InvoicePdf.Payable" xml:space="preserve">
+    <value>Сумма к оплате</value>
+  </data>
+  <data name="InvoicePdf.PaymentMeans" xml:space="preserve">
+    <value>Способ оплаты</value>
+  </data>
+  <data name="InvoicePdf.Iban" xml:space="preserve">
+    <value>IBAN</value>
+  </data>
+  <data name="InvoicePdf.Bic" xml:space="preserve">
+    <value>BIC</value>
+  </data>
+  <data name="InvoicePdf.AccountHolder" xml:space="preserve">
+    <value>Владелец счёта</value>
+  </data>
+  <data name="InvoicePdf.PaymentReference" xml:space="preserve">
+    <value>Ссылка на платёж</value>
+  </data>
+  <data name="InvoicePdf.MandateReference" xml:space="preserve">
+    <value>Ссылка на мандат</value>
+  </data>
+  <data name="InvoicePdf.PaymentTerms" xml:space="preserve">
+    <value>Условия оплаты</value>
+  </data>
+  <data name="InvoicePdf.PaymentInfo" xml:space="preserve">
+    <value>Платёжная информация</value>
+  </data>
+  <data name="InvoicePdf.Notes" xml:space="preserve">
+    <value>Примечания</value>
+  </data>
+  <data name="InvoicePdf.PageOf" xml:space="preserve">
+    <value>Страница {0} из {1}</value>
+  </data>
+  <data name="InvoicePdf.MoreLines" xml:space="preserve">
+    <value>Ещё {0} позиций есть только в XML.</value>
+  </data>
+  <data name="InvoicePdf.Disclaimer" xml:space="preserve">
+    <value>Внутренний просмотр, не является юридически значимым оригиналом. Юридическую силу имеет переданный XML-файл.</value>
+  </data>
+  <data name="InvoicePdf.NotStated" xml:space="preserve">
+    <value>не указано</value>
+  </data>
+  <data name="XRechnung" xml:space="preserve">
+    <value>XRechnung</value>
+  </data>
+  <data name="DownloadPdf" xml:space="preserve">
+    <value>Скачать PDF</value>
+  </data>
+  <data name="DownloadOriginalXml" xml:space="preserve">
+    <value>Скачать исходный XML</value>
+  </data>
+  <data name="InvoicePreviewNotice" xml:space="preserve">
+    <value>Внутренний просмотр PDF, не является юридически значимым оригиналом. Юридическую силу имеет переданный XML-файл.</value>
+  </data>
 </root>

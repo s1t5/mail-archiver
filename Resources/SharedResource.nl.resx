@@ -3701,4 +3701,196 @@
   <data name="OriginalMissingHint" xml:space="preserve">
     <value>Voor deze e-mail is geen origineel bericht opgeslagen. Het archief kan alleen een reconstructie leveren.</value>
   </data>
+  <data name="InvoicePdf.Invoice" xml:space="preserve">
+    <value>Factuur</value>
+  </data>
+  <data name="InvoicePdf.CreditNote" xml:space="preserve">
+    <value>Creditnota</value>
+  </data>
+  <data name="InvoicePdf.InvoiceNumber" xml:space="preserve">
+    <value>Factuurnummer</value>
+  </data>
+  <data name="InvoicePdf.InvoiceDate" xml:space="preserve">
+    <value>Factuurdatum</value>
+  </data>
+  <data name="InvoicePdf.DueShort" xml:space="preserve">
+    <value>Vervaldatum</value>
+  </data>
+  <data name="InvoicePdf.Seller" xml:space="preserve">
+    <value>Verkoper</value>
+  </data>
+  <data name="InvoicePdf.Buyer" xml:space="preserve">
+    <value>Koper</value>
+  </data>
+  <data name="InvoicePdf.PayeeDifferent" xml:space="preserve">
+    <value>Begunstigde (afwijkend)</value>
+  </data>
+  <data name="InvoicePdf.ShipTo" xml:space="preserve">
+    <value>Leveradres</value>
+  </data>
+  <data name="InvoicePdf.TaxRepresentative" xml:space="preserve">
+    <value>Belastingvertegenwoordiger</value>
+  </data>
+  <data name="InvoicePdf.Contact" xml:space="preserve">
+    <value>Contact</value>
+  </data>
+  <data name="InvoicePdf.VatId" xml:space="preserve">
+    <value>Btw-nummer</value>
+  </data>
+  <data name="InvoicePdf.TaxNumber" xml:space="preserve">
+    <value>Belastingnummer</value>
+  </data>
+  <data name="InvoicePdf.Register" xml:space="preserve">
+    <value>Register</value>
+  </data>
+  <data name="InvoicePdf.Details" xml:space="preserve">
+    <value>Factuurgegevens</value>
+  </data>
+  <data name="InvoicePdf.BuyerReference" xml:space="preserve">
+    <value>Referentie koper</value>
+  </data>
+  <data name="InvoicePdf.Currency" xml:space="preserve">
+    <value>Valuta</value>
+  </data>
+  <data name="InvoicePdf.DueDate" xml:space="preserve">
+    <value>Vervaldatum</value>
+  </data>
+  <data name="InvoicePdf.DeliveryDate" xml:space="preserve">
+    <value>Leverdatum</value>
+  </data>
+  <data name="InvoicePdf.BillingPeriod" xml:space="preserve">
+    <value>Factuurperiode</value>
+  </data>
+  <data name="InvoicePdf.BuyerOrder" xml:space="preserve">
+    <value>Inkoopordernummer</value>
+  </data>
+  <data name="InvoicePdf.SalesOrder" xml:space="preserve">
+    <value>Verkoopordernummer</value>
+  </data>
+  <data name="InvoicePdf.Contract" xml:space="preserve">
+    <value>Contractreferentie</value>
+  </data>
+  <data name="InvoicePdf.Project" xml:space="preserve">
+    <value>Projectreferentie</value>
+  </data>
+  <data name="InvoicePdf.DespatchAdvice" xml:space="preserve">
+    <value>Vrachtbrief</value>
+  </data>
+  <data name="InvoicePdf.BuyerAccount" xml:space="preserve">
+    <value>Kostenplaats koper</value>
+  </data>
+  <data name="InvoicePdf.SellerVatId" xml:space="preserve">
+    <value>Btw-nummer verkoper</value>
+  </data>
+  <data name="InvoicePdf.BuyerVatId" xml:space="preserve">
+    <value>Btw-nummer koper</value>
+  </data>
+  <data name="InvoicePdf.Lines" xml:space="preserve">
+    <value>Factuurregels</value>
+  </data>
+  <data name="InvoicePdf.Description" xml:space="preserve">
+    <value>Omschrijving</value>
+  </data>
+  <data name="InvoicePdf.Quantity" xml:space="preserve">
+    <value>Aantal</value>
+  </data>
+  <data name="InvoicePdf.Unit" xml:space="preserve">
+    <value>Eenheid</value>
+  </data>
+  <data name="InvoicePdf.UnitPrice" xml:space="preserve">
+    <value>Eenheidsprijs</value>
+  </data>
+  <data name="InvoicePdf.TaxRate" xml:space="preserve">
+    <value>Btw</value>
+  </data>
+  <data name="InvoicePdf.Amount" xml:space="preserve">
+    <value>Bedrag</value>
+  </data>
+  <data name="InvoicePdf.NoLines" xml:space="preserve">
+    <value>Geen factuurregels ontvangen.</value>
+  </data>
+  <data name="InvoicePdf.AllowancesCharges" xml:space="preserve">
+    <value>Kortingen en toeslagen</value>
+  </data>
+  <data name="InvoicePdf.Allowance" xml:space="preserve">
+    <value>Korting</value>
+  </data>
+  <data name="InvoicePdf.Charge" xml:space="preserve">
+    <value>Toeslag</value>
+  </data>
+  <data name="InvoicePdf.SumLines" xml:space="preserve">
+    <value>Som regels (netto)</value>
+  </data>
+  <data name="InvoicePdf.Charges" xml:space="preserve">
+    <value>Toeslagen</value>
+  </data>
+  <data name="InvoicePdf.Allowances" xml:space="preserve">
+    <value>Kortingen</value>
+  </data>
+  <data name="InvoicePdf.TaxBasis" xml:space="preserve">
+    <value>Belastinggrondslag</value>
+  </data>
+  <data name="InvoicePdf.GrandTotal" xml:space="preserve">
+    <value>Factuurtotaal (bruto)</value>
+  </data>
+  <data name="InvoicePdf.Prepaid" xml:space="preserve">
+    <value>Al betaald</value>
+  </data>
+  <data name="InvoicePdf.Rounding" xml:space="preserve">
+    <value>Afronding</value>
+  </data>
+  <data name="InvoicePdf.Payable" xml:space="preserve">
+    <value>Te betalen bedrag</value>
+  </data>
+  <data name="InvoicePdf.PaymentMeans" xml:space="preserve">
+    <value>Betaalmethode</value>
+  </data>
+  <data name="InvoicePdf.Iban" xml:space="preserve">
+    <value>IBAN</value>
+  </data>
+  <data name="InvoicePdf.Bic" xml:space="preserve">
+    <value>BIC</value>
+  </data>
+  <data name="InvoicePdf.AccountHolder" xml:space="preserve">
+    <value>Rekeninghouder</value>
+  </data>
+  <data name="InvoicePdf.PaymentReference" xml:space="preserve">
+    <value>Betalingsreferentie</value>
+  </data>
+  <data name="InvoicePdf.MandateReference" xml:space="preserve">
+    <value>Mandaatreferentie</value>
+  </data>
+  <data name="InvoicePdf.PaymentTerms" xml:space="preserve">
+    <value>Betalingsvoorwaarden</value>
+  </data>
+  <data name="InvoicePdf.PaymentInfo" xml:space="preserve">
+    <value>Betalingsinformatie</value>
+  </data>
+  <data name="InvoicePdf.Notes" xml:space="preserve">
+    <value>Opmerkingen</value>
+  </data>
+  <data name="InvoicePdf.PageOf" xml:space="preserve">
+    <value>Pagina {0} van {1}</value>
+  </data>
+  <data name="InvoicePdf.MoreLines" xml:space="preserve">
+    <value>Nog {0} regels staan alleen in de XML.</value>
+  </data>
+  <data name="InvoicePdf.Disclaimer" xml:space="preserve">
+    <value>Interne weergave, niet het juridisch bindende origineel. Het verzonden XML-bestand is bindend.</value>
+  </data>
+  <data name="InvoicePdf.NotStated" xml:space="preserve">
+    <value>niet opgegeven</value>
+  </data>
+  <data name="XRechnung" xml:space="preserve">
+    <value>XRechnung</value>
+  </data>
+  <data name="DownloadPdf" xml:space="preserve">
+    <value>PDF downloaden</value>
+  </data>
+  <data name="DownloadOriginalXml" xml:space="preserve">
+    <value>Originele XML downloaden</value>
+  </data>
+  <data name="InvoicePreviewNotice" xml:space="preserve">
+    <value>Interne PDF-weergave, niet het juridisch bindende origineel. Het verzonden XML-bestand is bindend.</value>
+  </data>
 </root>

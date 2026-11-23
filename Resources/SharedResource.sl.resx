@@ -3701,4 +3701,196 @@
   <data name="OriginalMissingHint" xml:space="preserve">
     <value>Za to e-poštno sporočilo izvirnik ni shranjen. Arhiv lahko ponudi le rekonstrukcijo.</value>
   </data>
+  <data name="InvoicePdf.Invoice" xml:space="preserve">
+    <value>Račun</value>
+  </data>
+  <data name="InvoicePdf.CreditNote" xml:space="preserve">
+    <value>Dobropis</value>
+  </data>
+  <data name="InvoicePdf.InvoiceNumber" xml:space="preserve">
+    <value>Številka računa</value>
+  </data>
+  <data name="InvoicePdf.InvoiceDate" xml:space="preserve">
+    <value>Datum računa</value>
+  </data>
+  <data name="InvoicePdf.DueShort" xml:space="preserve">
+    <value>Zapadlost</value>
+  </data>
+  <data name="InvoicePdf.Seller" xml:space="preserve">
+    <value>Prodajalec</value>
+  </data>
+  <data name="InvoicePdf.Buyer" xml:space="preserve">
+    <value>Kupec</value>
+  </data>
+  <data name="InvoicePdf.PayeeDifferent" xml:space="preserve">
+    <value>Prejemnik (drug)</value>
+  </data>
+  <data name="InvoicePdf.ShipTo" xml:space="preserve">
+    <value>Naslov dostave</value>
+  </data>
+  <data name="InvoicePdf.TaxRepresentative" xml:space="preserve">
+    <value>Davčni zastopnik</value>
+  </data>
+  <data name="InvoicePdf.Contact" xml:space="preserve">
+    <value>Kontakt</value>
+  </data>
+  <data name="InvoicePdf.VatId" xml:space="preserve">
+    <value>ID za DDV</value>
+  </data>
+  <data name="InvoicePdf.TaxNumber" xml:space="preserve">
+    <value>Davčna številka</value>
+  </data>
+  <data name="InvoicePdf.Register" xml:space="preserve">
+    <value>Register</value>
+  </data>
+  <data name="InvoicePdf.Details" xml:space="preserve">
+    <value>Podatki o računu</value>
+  </data>
+  <data name="InvoicePdf.BuyerReference" xml:space="preserve">
+    <value>Referenca kupca</value>
+  </data>
+  <data name="InvoicePdf.Currency" xml:space="preserve">
+    <value>Valuta</value>
+  </data>
+  <data name="InvoicePdf.DueDate" xml:space="preserve">
+    <value>Datum zapadlosti</value>
+  </data>
+  <data name="InvoicePdf.DeliveryDate" xml:space="preserve">
+    <value>Datum dobave</value>
+  </data>
+  <data name="InvoicePdf.BillingPeriod" xml:space="preserve">
+    <value>Obračunsko obdobje</value>
+  </data>
+  <data name="InvoicePdf.BuyerOrder" xml:space="preserve">
+    <value>Referenca naročila kupca</value>
+  </data>
+  <data name="InvoicePdf.SalesOrder" xml:space="preserve">
+    <value>Referenca naročila prodajalca</value>
+  </data>
+  <data name="InvoicePdf.Contract" xml:space="preserve">
+    <value>Referenca pogodbe</value>
+  </data>
+  <data name="InvoicePdf.Project" xml:space="preserve">
+    <value>Referenca projekta</value>
+  </data>
+  <data name="InvoicePdf.DespatchAdvice" xml:space="preserve">
+    <value>Dobavnica</value>
+  </data>
+  <data name="InvoicePdf.BuyerAccount" xml:space="preserve">
+    <value>Knjigovodska referenca kupca</value>
+  </data>
+  <data name="InvoicePdf.SellerVatId" xml:space="preserve">
+    <value>ID za DDV prodajalca</value>
+  </data>
+  <data name="InvoicePdf.BuyerVatId" xml:space="preserve">
+    <value>ID za DDV kupca</value>
+  </data>
+  <data name="InvoicePdf.Lines" xml:space="preserve">
+    <value>Postavke računa</value>
+  </data>
+  <data name="InvoicePdf.Description" xml:space="preserve">
+    <value>Opis</value>
+  </data>
+  <data name="InvoicePdf.Quantity" xml:space="preserve">
+    <value>Količina</value>
+  </data>
+  <data name="InvoicePdf.Unit" xml:space="preserve">
+    <value>Enota</value>
+  </data>
+  <data name="InvoicePdf.UnitPrice" xml:space="preserve">
+    <value>Cena na enoto</value>
+  </data>
+  <data name="InvoicePdf.TaxRate" xml:space="preserve">
+    <value>DDV</value>
+  </data>
+  <data name="InvoicePdf.Amount" xml:space="preserve">
+    <value>Znesek</value>
+  </data>
+  <data name="InvoicePdf.NoLines" xml:space="preserve">
+    <value>Postavke računa niso bile poslane.</value>
+  </data>
+  <data name="InvoicePdf.AllowancesCharges" xml:space="preserve">
+    <value>Popusti in pribitki</value>
+  </data>
+  <data name="InvoicePdf.Allowance" xml:space="preserve">
+    <value>Popust</value>
+  </data>
+  <data name="InvoicePdf.Charge" xml:space="preserve">
+    <value>Pribitek</value>
+  </data>
+  <data name="InvoicePdf.SumLines" xml:space="preserve">
+    <value>Vsota postavk (neto)</value>
+  </data>
+  <data name="InvoicePdf.Charges" xml:space="preserve">
+    <value>Pribitki</value>
+  </data>
+  <data name="InvoicePdf.Allowances" xml:space="preserve">
+    <value>Popusti</value>
+  </data>
+  <data name="InvoicePdf.TaxBasis" xml:space="preserve">
+    <value>Davčna osnova</value>
+  </data>
+  <data name="InvoicePdf.GrandTotal" xml:space="preserve">
+    <value>Skupaj račun (bruto)</value>
+  </data>
+  <data name="InvoicePdf.Prepaid" xml:space="preserve">
+    <value>Že plačano</value>
+  </data>
+  <data name="InvoicePdf.Rounding" xml:space="preserve">
+    <value>Zaokroževanje</value>
+  </data>
+  <data name="InvoicePdf.Payable" xml:space="preserve">
+    <value>Znesek za plačilo</value>
+  </data>
+  <data name="InvoicePdf.PaymentMeans" xml:space="preserve">
+    <value>Način plačila</value>
+  </data>
+  <data name="InvoicePdf.Iban" xml:space="preserve">
+    <value>IBAN</value>
+  </data>
+  <data name="InvoicePdf.Bic" xml:space="preserve">
+    <value>BIC</value>
+  </data>
+  <data name="InvoicePdf.AccountHolder" xml:space="preserve">
+    <value>Imetnik računa</value>
+  </data>
+  <data name="InvoicePdf.PaymentReference" xml:space="preserve">
+    <value>Referenca plačila</value>
+  </data>
+  <data name="InvoicePdf.MandateReference" xml:space="preserve">
+    <value>Referenca mandata</value>
+  </data>
+  <data name="InvoicePdf.PaymentTerms" xml:space="preserve">
+    <value>Plačilni pogoji</value>
+  </data>
+  <data name="InvoicePdf.PaymentInfo" xml:space="preserve">
+    <value>Podatki o plačilu</value>
+  </data>
+  <data name="InvoicePdf.Notes" xml:space="preserve">
+    <value>Opombe</value>
+  </data>
+  <data name="InvoicePdf.PageOf" xml:space="preserve">
+    <value>Stran {0} od {1}</value>
+  </data>
+  <data name="InvoicePdf.MoreLines" xml:space="preserve">
+    <value>Še {0} postavk je samo v XML.</value>
+  </data>
+  <data name="InvoicePdf.Disclaimer" xml:space="preserve">
+    <value>Interni pogled, ni pravno zavezujoč izvirnik. Zavezujoča je poslana datoteka XML.</value>
+  </data>
+  <data name="InvoicePdf.NotStated" xml:space="preserve">
+    <value>ni navedeno</value>
+  </data>
+  <data name="XRechnung" xml:space="preserve">
+    <value>XRechnung</value>
+  </data>
+  <data name="DownloadPdf" xml:space="preserve">
+    <value>Prenesi PDF</value>
+  </data>
+  <data name="DownloadOriginalXml" xml:space="preserve">
+    <value>Prenesi izvirni XML</value>
+  </data>
+  <data name="InvoicePreviewNotice" xml:space="preserve">
+    <value>Interni pogled PDF, ni pravno zavezujoč izvirnik. Zavezujoča je poslana datoteka XML.</value>
+  </data>
 </root>

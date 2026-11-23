@@ -194,6 +194,14 @@ Set it up once, keep every message, and find it again years later.
 
     [:octicons-arrow-right-24: Read](AttachmentDeduplication.md)
 
+-   :material-file-pdf-box:{ .lg .middle } __XRechnung invoice preview__
+
+    ---
+
+    Read XRechnung XML attachments as a PDF directly in the archive.
+
+    [:octicons-arrow-right-24: Read](EInvoicing.md)
+
 -   :material-calendar-arrow-right:{ .lg .middle } __Date-windowed offload__
 
     ---

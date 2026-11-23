@@ -1,9 +1,11 @@
+using System.Globalization;
 using MailArchiver.Controllers.Api;
 using MailArchiver.Data;
 using MailArchiver.Models;
 using MailArchiver.Models.Api;
 using MailArchiver.Services;
 using MailArchiver.Services.Core;
+using MailArchiver.Services.EInvoicing;
 using MailArchiver.Services.Shared;
 using MailArchiver.Utilities;
 using Microsoft.AspNetCore.Mvc;
@@ -22,6 +24,7 @@ public class EmailsApiController : ApiControllerBase
     private readonly IAuthenticationService _authService;
     private readonly DateTimeHelper _dateTimeHelper;
     private readonly IRawMessageStore _rawMessageStore;
+    private readonly InvoicePdfService _invoicePdf;
 
     public EmailsApiController(
         MailArchiverDbContext context,
@@ -30,7 +33,8 @@ public class EmailsApiController : ApiControllerBase
         IAccessLogService accessLogService,
         IAuthenticationService authService,
         DateTimeHelper dateTimeHelper,
-        IRawMessageStore rawMessageStore)
+        IRawMessageStore rawMessageStore,
+        InvoicePdfService invoicePdf)
     {
         _context = context;
         _emailCoreService = emailCoreService;
@@ -39,6 +43,7 @@ public class EmailsApiController : ApiControllerBase
         _authService = authService;
         _dateTimeHelper = dateTimeHelper;
         _rawMessageStore = rawMessageStore;
+        _invoicePdf = invoicePdf;
     }
 
     private string CurrentUsername => _authService.GetCurrentUserDisplayName(HttpContext);
@@ -233,6 +238,36 @@ public class EmailsApiController : ApiControllerBase
         await _accessLogService.LogAccessAsync(CurrentUsername, AccessLogType.Download, emailId: id);
 
         return File(att.Content, att.ContentType, att.FileName);
+    }
+
+    [HttpGet("{id:int}/attachments/{attachmentId:int}/invoice-pdf")]
+    public async Task<IActionResult> DownloadInvoicePdf(int id, int attachmentId)
+    {
+        if (!_options.AllowAttachmentDownloads)
+        {
+            return Problem(statusCode: 403, title: "Attachment downloads are disabled.");
+        }
+
+        var allowed = await GetAllowedAccountIdsAsync();
+        var accountId = await _context.ArchivedEmails
+            .Where(e => e.Id == id)
+            .Select(e => (int?)e.MailAccountId)
+            .FirstOrDefaultAsync();
+
+        if (accountId == null || (allowed != null && !allowed.Contains(accountId.Value)))
+        {
+            return NotFound();
+        }
+
+        var result = await _invoicePdf.RenderAsync(id, attachmentId, CultureInfo.CurrentUICulture);
+        if (result == null)
+        {
+            return NotFound();
+        }
+
+        await _accessLogService.LogAccessAsync(CurrentUsername, AccessLogType.Download, emailId: id);
+
+        return File(result.Content, "application/pdf", result.FileName);
     }
 
     private static DirectionParseResult ParseDirection(string? direction)

@@ -3694,4 +3694,196 @@
   <data name="OriginalMissingHint" xml:space="preserve">
     <value>このメールの原本は保存されていません。アーカイブは再構築版のみを提供できます。</value>
   </data>
+  <data name="InvoicePdf.Invoice" xml:space="preserve">
+    <value>請求書</value>
+  </data>
+  <data name="InvoicePdf.CreditNote" xml:space="preserve">
+    <value>クレジットノート</value>
+  </data>
+  <data name="InvoicePdf.InvoiceNumber" xml:space="preserve">
+    <value>請求書番号</value>
+  </data>
+  <data name="InvoicePdf.InvoiceDate" xml:space="preserve">
+    <value>請求日</value>
+  </data>
+  <data name="InvoicePdf.DueShort" xml:space="preserve">
+    <value>支払期限</value>
+  </data>
+  <data name="InvoicePdf.Seller" xml:space="preserve">
+    <value>売り手</value>
+  </data>
+  <data name="InvoicePdf.Buyer" xml:space="preserve">
+    <value>買い手</value>
+  </data>
+  <data name="InvoicePdf.PayeeDifferent" xml:space="preserve">
+    <value>受取人（別途）</value>
+  </data>
+  <data name="InvoicePdf.ShipTo" xml:space="preserve">
+    <value>配送先</value>
+  </data>
+  <data name="InvoicePdf.TaxRepresentative" xml:space="preserve">
+    <value>税務代理人</value>
+  </data>
+  <data name="InvoicePdf.Contact" xml:space="preserve">
+    <value>連絡先</value>
+  </data>
+  <data name="InvoicePdf.VatId" xml:space="preserve">
+    <value>VAT番号</value>
+  </data>
+  <data name="InvoicePdf.TaxNumber" xml:space="preserve">
+    <value>税番号</value>
+  </data>
+  <data name="InvoicePdf.Register" xml:space="preserve">
+    <value>登録</value>
+  </data>
+  <data name="InvoicePdf.Details" xml:space="preserve">
+    <value>請求書の詳細</value>
+  </data>
+  <data name="InvoicePdf.BuyerReference" xml:space="preserve">
+    <value>買い手参照</value>
+  </data>
+  <data name="InvoicePdf.Currency" xml:space="preserve">
+    <value>通貨</value>
+  </data>
+  <data name="InvoicePdf.DueDate" xml:space="preserve">
+    <value>支払期限日</value>
+  </data>
+  <data name="InvoicePdf.DeliveryDate" xml:space="preserve">
+    <value>納品日</value>
+  </data>
+  <data name="InvoicePdf.BillingPeriod" xml:space="preserve">
+    <value>請求期間</value>
+  </data>
+  <data name="InvoicePdf.BuyerOrder" xml:space="preserve">
+    <value>買い手注文参照</value>
+  </data>
+  <data name="InvoicePdf.SalesOrder" xml:space="preserve">
+    <value>売り手注文参照</value>
+  </data>
+  <data name="InvoicePdf.Contract" xml:space="preserve">
+    <value>契約参照</value>
+  </data>
+  <data name="InvoicePdf.Project" xml:space="preserve">
+    <value>プロジェクト参照</value>
+  </data>
+  <data name="InvoicePdf.DespatchAdvice" xml:space="preserve">
+    <value>納品書</value>
+  </data>
+  <data name="InvoicePdf.BuyerAccount" xml:space="preserve">
+    <value>買い手勘定参照</value>
+  </data>
+  <data name="InvoicePdf.SellerVatId" xml:space="preserve">
+    <value>売り手VAT番号</value>
+  </data>
+  <data name="InvoicePdf.BuyerVatId" xml:space="preserve">
+    <value>買い手VAT番号</value>
+  </data>
+  <data name="InvoicePdf.Lines" xml:space="preserve">
+    <value>請求明細</value>
+  </data>
+  <data name="InvoicePdf.Description" xml:space="preserve">
+    <value>品名</value>
+  </data>
+  <data name="InvoicePdf.Quantity" xml:space="preserve">
+    <value>数量</value>
+  </data>
+  <data name="InvoicePdf.Unit" xml:space="preserve">
+    <value>単位</value>
+  </data>
+  <data name="InvoicePdf.UnitPrice" xml:space="preserve">
+    <value>単価</value>
+  </data>
+  <data name="InvoicePdf.TaxRate" xml:space="preserve">
+    <value>VAT</value>
+  </data>
+  <data name="InvoicePdf.Amount" xml:space="preserve">
+    <value>金額</value>
+  </data>
+  <data name="InvoicePdf.NoLines" xml:space="preserve">
+    <value>請求明細は送信されていません。</value>
+  </data>
+  <data name="InvoicePdf.AllowancesCharges" xml:space="preserve">
+    <value>値引きと追加料金</value>
+  </data>
+  <data name="InvoicePdf.Allowance" xml:space="preserve">
+    <value>値引き</value>
+  </data>
+  <data name="InvoicePdf.Charge" xml:space="preserve">
+    <value>追加料金</value>
+  </data>
+  <data name="InvoicePdf.SumLines" xml:space="preserve">
+    <value>明細合計（純額）</value>
+  </data>
+  <data name="InvoicePdf.Charges" xml:space="preserve">
+    <value>追加料金</value>
+  </data>
+  <data name="InvoicePdf.Allowances" xml:space="preserve">
+    <value>値引き</value>
+  </data>
+  <data name="InvoicePdf.TaxBasis" xml:space="preserve">
+    <value>課税標準</value>
+  </data>
+  <data name="InvoicePdf.GrandTotal" xml:space="preserve">
+    <value>請求総額（税込）</value>
+  </data>
+  <data name="InvoicePdf.Prepaid" xml:space="preserve">
+    <value>支払済み</value>
+  </data>
+  <data name="InvoicePdf.Rounding" xml:space="preserve">
+    <value>端数処理</value>
+  </data>
+  <data name="InvoicePdf.Payable" xml:space="preserve">
+    <value>支払金額</value>
+  </data>
+  <data name="InvoicePdf.PaymentMeans" xml:space="preserve">
+    <value>支払方法</value>
+  </data>
+  <data name="InvoicePdf.Iban" xml:space="preserve">
+    <value>IBAN</value>
+  </data>
+  <data name="InvoicePdf.Bic" xml:space="preserve">
+    <value>BIC</value>
+  </data>
+  <data name="InvoicePdf.AccountHolder" xml:space="preserve">
+    <value>口座名義</value>
+  </data>
+  <data name="InvoicePdf.PaymentReference" xml:space="preserve">
+    <value>支払参照</value>
+  </data>
+  <data name="InvoicePdf.MandateReference" xml:space="preserve">
+    <value>委任参照</value>
+  </data>
+  <data name="InvoicePdf.PaymentTerms" xml:space="preserve">
+    <value>支払条件</value>
+  </data>
+  <data name="InvoicePdf.PaymentInfo" xml:space="preserve">
+    <value>支払情報</value>
+  </data>
+  <data name="InvoicePdf.Notes" xml:space="preserve">
+    <value>備考</value>
+  </data>
+  <data name="InvoicePdf.PageOf" xml:space="preserve">
+    <value>{0} / {1} ページ</value>
+  </data>
+  <data name="InvoicePdf.MoreLines" xml:space="preserve">
+    <value>残り {0} 明細は XML にのみ含まれています。</value>
+  </data>
+  <data name="InvoicePdf.Disclaimer" xml:space="preserve">
+    <value>内部表示であり、法的に有効な原本ではありません。送信された XML ファイルが原本です。</value>
+  </data>
+  <data name="InvoicePdf.NotStated" xml:space="preserve">
+    <value>未記載</value>
+  </data>
+  <data name="XRechnung" xml:space="preserve">
+    <value>XRechnung</value>
+  </data>
+  <data name="DownloadPdf" xml:space="preserve">
+    <value>PDFをダウンロード</value>
+  </data>
+  <data name="DownloadOriginalXml" xml:space="preserve">
+    <value>元のXMLをダウンロード</value>
+  </data>
+  <data name="InvoicePreviewNotice" xml:space="preserve">
+    <value>内部PDF表示であり、法的に有効な原本ではありません。送信された XML ファイルが原本です。</value>
+  </data>
 </root>

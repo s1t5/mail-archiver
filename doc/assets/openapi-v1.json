@@ -275,7 +275,7 @@
           "200": {
             "description": "OK",
             "content": {
-              "message/rfc822": { }
+              "message/rfc822": {}
             }
           }
         }
@@ -302,7 +302,7 @@
           "200": {
             "description": "OK",
             "content": {
-              "message/rfc822": { }
+              "message/rfc822": {}
             }
           }
         }
@@ -338,6 +338,49 @@
         "responses": {
           "200": {
             "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/emails/{id}/attachments/{attachmentId}/invoice-pdf": {
+      "get": {
+        "tags": [
+          "EmailsApi"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "attachmentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/pdf": {}
+            }
+          },
+          "403": {
+            "description": "Attachment downloads are disabled."
+          },
+          "404": {
+            "description": "Email, attachment or XRechnung not found."
           }
         }
       }
@@ -669,7 +712,7 @@
   },
   "security": [
     {
-      "Bearer": [ ]
+      "Bearer": []
     }
   ],
   "tags": [

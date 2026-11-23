@@ -3693,4 +3693,196 @@
   <data name="OriginalMissingHint" xml:space="preserve">
     <value>Ehhez az e-mailhez nem mentettük el az eredeti üzenetet. Az archívum csak rekonstrukciót tud szolgáltatni.</value>
   </data>
+  <data name="InvoicePdf.Invoice" xml:space="preserve">
+    <value>Számla</value>
+  </data>
+  <data name="InvoicePdf.CreditNote" xml:space="preserve">
+    <value>Jóváírás</value>
+  </data>
+  <data name="InvoicePdf.InvoiceNumber" xml:space="preserve">
+    <value>Számlaszám</value>
+  </data>
+  <data name="InvoicePdf.InvoiceDate" xml:space="preserve">
+    <value>Számla kelte</value>
+  </data>
+  <data name="InvoicePdf.DueShort" xml:space="preserve">
+    <value>Esedékesség</value>
+  </data>
+  <data name="InvoicePdf.Seller" xml:space="preserve">
+    <value>Eladó</value>
+  </data>
+  <data name="InvoicePdf.Buyer" xml:space="preserve">
+    <value>Vevő</value>
+  </data>
+  <data name="InvoicePdf.PayeeDifferent" xml:space="preserve">
+    <value>Kedvezményezett (eltérő)</value>
+  </data>
+  <data name="InvoicePdf.ShipTo" xml:space="preserve">
+    <value>Szállítási cím</value>
+  </data>
+  <data name="InvoicePdf.TaxRepresentative" xml:space="preserve">
+    <value>Adóképviselő</value>
+  </data>
+  <data name="InvoicePdf.Contact" xml:space="preserve">
+    <value>Kapcsolat</value>
+  </data>
+  <data name="InvoicePdf.VatId" xml:space="preserve">
+    <value>ÁFA-szám</value>
+  </data>
+  <data name="InvoicePdf.TaxNumber" xml:space="preserve">
+    <value>Adószám</value>
+  </data>
+  <data name="InvoicePdf.Register" xml:space="preserve">
+    <value>Nyilvántartás</value>
+  </data>
+  <data name="InvoicePdf.Details" xml:space="preserve">
+    <value>Számla adatai</value>
+  </data>
+  <data name="InvoicePdf.BuyerReference" xml:space="preserve">
+    <value>Vevői hivatkozás</value>
+  </data>
+  <data name="InvoicePdf.Currency" xml:space="preserve">
+    <value>Pénznem</value>
+  </data>
+  <data name="InvoicePdf.DueDate" xml:space="preserve">
+    <value>Esedékesség dátuma</value>
+  </data>
+  <data name="InvoicePdf.DeliveryDate" xml:space="preserve">
+    <value>Teljesítés dátuma</value>
+  </data>
+  <data name="InvoicePdf.BillingPeriod" xml:space="preserve">
+    <value>Számlázási időszak</value>
+  </data>
+  <data name="InvoicePdf.BuyerOrder" xml:space="preserve">
+    <value>Vevői rendelésszám</value>
+  </data>
+  <data name="InvoicePdf.SalesOrder" xml:space="preserve">
+    <value>Eladói rendelésszám</value>
+  </data>
+  <data name="InvoicePdf.Contract" xml:space="preserve">
+    <value>Szerződésszám</value>
+  </data>
+  <data name="InvoicePdf.Project" xml:space="preserve">
+    <value>Projekthivatkozás</value>
+  </data>
+  <data name="InvoicePdf.DespatchAdvice" xml:space="preserve">
+    <value>Szállítólevél</value>
+  </data>
+  <data name="InvoicePdf.BuyerAccount" xml:space="preserve">
+    <value>Vevői költséghely</value>
+  </data>
+  <data name="InvoicePdf.SellerVatId" xml:space="preserve">
+    <value>Eladó ÁFA-száma</value>
+  </data>
+  <data name="InvoicePdf.BuyerVatId" xml:space="preserve">
+    <value>Vevő ÁFA-száma</value>
+  </data>
+  <data name="InvoicePdf.Lines" xml:space="preserve">
+    <value>Számlatételek</value>
+  </data>
+  <data name="InvoicePdf.Description" xml:space="preserve">
+    <value>Megnevezés</value>
+  </data>
+  <data name="InvoicePdf.Quantity" xml:space="preserve">
+    <value>Mennyiség</value>
+  </data>
+  <data name="InvoicePdf.Unit" xml:space="preserve">
+    <value>Egység</value>
+  </data>
+  <data name="InvoicePdf.UnitPrice" xml:space="preserve">
+    <value>Egységár</value>
+  </data>
+  <data name="InvoicePdf.TaxRate" xml:space="preserve">
+    <value>ÁFA</value>
+  </data>
+  <data name="InvoicePdf.Amount" xml:space="preserve">
+    <value>Összeg</value>
+  </data>
+  <data name="InvoicePdf.NoLines" xml:space="preserve">
+    <value>Nem érkezett számlatétel.</value>
+  </data>
+  <data name="InvoicePdf.AllowancesCharges" xml:space="preserve">
+    <value>Engedmények és felárak</value>
+  </data>
+  <data name="InvoicePdf.Allowance" xml:space="preserve">
+    <value>Engedmény</value>
+  </data>
+  <data name="InvoicePdf.Charge" xml:space="preserve">
+    <value>Felár</value>
+  </data>
+  <data name="InvoicePdf.SumLines" xml:space="preserve">
+    <value>Tételek összege (nettó)</value>
+  </data>
+  <data name="InvoicePdf.Charges" xml:space="preserve">
+    <value>Felárak</value>
+  </data>
+  <data name="InvoicePdf.Allowances" xml:space="preserve">
+    <value>Engedmények</value>
+  </data>
+  <data name="InvoicePdf.TaxBasis" xml:space="preserve">
+    <value>Adóalap</value>
+  </data>
+  <data name="InvoicePdf.GrandTotal" xml:space="preserve">
+    <value>Számla végösszege (bruttó)</value>
+  </data>
+  <data name="InvoicePdf.Prepaid" xml:space="preserve">
+    <value>Már kifizetve</value>
+  </data>
+  <data name="InvoicePdf.Rounding" xml:space="preserve">
+    <value>Kerekítés</value>
+  </data>
+  <data name="InvoicePdf.Payable" xml:space="preserve">
+    <value>Fizetendő összeg</value>
+  </data>
+  <data name="InvoicePdf.PaymentMeans" xml:space="preserve">
+    <value>Fizetési mód</value>
+  </data>
+  <data name="InvoicePdf.Iban" xml:space="preserve">
+    <value>IBAN</value>
+  </data>
+  <data name="InvoicePdf.Bic" xml:space="preserve">
+    <value>BIC</value>
+  </data>
+  <data name="InvoicePdf.AccountHolder" xml:space="preserve">
+    <value>Számlatulajdonos</value>
+  </data>
+  <data name="InvoicePdf.PaymentReference" xml:space="preserve">
+    <value>Fizetési hivatkozás</value>
+  </data>
+  <data name="InvoicePdf.MandateReference" xml:space="preserve">
+    <value>Megbízási hivatkozás</value>
+  </data>
+  <data name="InvoicePdf.PaymentTerms" xml:space="preserve">
+    <value>Fizetési feltételek</value>
+  </data>
+  <data name="InvoicePdf.PaymentInfo" xml:space="preserve">
+    <value>Fizetési információk</value>
+  </data>
+  <data name="InvoicePdf.Notes" xml:space="preserve">
+    <value>Megjegyzések</value>
+  </data>
+  <data name="InvoicePdf.PageOf" xml:space="preserve">
+    <value>{0}. oldal / {1}</value>
+  </data>
+  <data name="InvoicePdf.MoreLines" xml:space="preserve">
+    <value>További {0} tétel csak az XML-ben található.</value>
+  </data>
+  <data name="InvoicePdf.Disclaimer" xml:space="preserve">
+    <value>Belső nézet, nem a jogilag irányadó eredeti. Kizárólag a beküldött XML-fájl irányadó.</value>
+  </data>
+  <data name="InvoicePdf.NotStated" xml:space="preserve">
+    <value>nincs megadva</value>
+  </data>
+  <data name="XRechnung" xml:space="preserve">
+    <value>XRechnung</value>
+  </data>
+  <data name="DownloadPdf" xml:space="preserve">
+    <value>PDF letöltése</value>
+  </data>
+  <data name="DownloadOriginalXml" xml:space="preserve">
+    <value>Eredeti XML letöltése</value>
+  </data>
+  <data name="InvoicePreviewNotice" xml:space="preserve">
+    <value>Belső PDF-nézet, nem a jogilag irányadó eredeti. Kizárólag a beküldött XML-fájl irányadó.</value>
+  </data>
 </root>
