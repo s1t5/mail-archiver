@@ -22,6 +22,9 @@
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="10.0.11" />
     <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="10.0.11" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.0" />
+    <!-- EF Core Sqlite 10.0.0 zieht SQLitePCLRaw 2.1.11 mit einer bekannten
+         SQLite-Schwachstelle. 2.1.14 ist die gepatchte Version im 2.1-Zweig. -->
+    <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="2.1.14" />
     <PackageReference Include="Moq" Version="4.20.72" />
     <PackageReference Include="PdfPig" Version="0.1.16" />
   </ItemGroup>
