@@ -85,6 +85,16 @@ Example:
 - **Dark Mode for Folder Panel**
 ```
 
+## Third-Party Notices
+
+`THIRD-PARTY-NOTICES.md` lists every third-party component that ships with the published application, with its license, copyright notice and the full license text. `MailArchiver.csproj` copies the file and the native SkiaSharp notice bundle to the build and publish output, so they end up in the Docker image.
+
+- A package change (add, remove, update) includes the matching change to `THIRD-PARTY-NOTICES.md`.
+- Build the list from what a publish actually contains, not from the `PackageReference` entries: transitive packages ship too. Filter `obj/project.assets.json` by the assemblies in `dotnet publish -o out`.
+- Read the license and copyright from the package nuspec, not from the project website.
+- A package that carries its own notice bundle (for example `SkiaSharp.NativeAssets.*`) is copied from the package, not paraphrased into the file.
+- Fonts are third-party components as well: they live in `wwwroot/fonts` with their OFL text and need an entry.
+
 ## CI / Automation
 
 - GitHub Actions only publish Docker images to Docker Hub and GHCR (`push-to-github-packages.yaml`, `push-dev-to-registries.yaml`). There is no CI build, test, or lint step.
