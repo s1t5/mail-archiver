@@ -2,7 +2,7 @@
 
 Mail-Archiver riconosce gli Allegati XML XRechnung e li renderizza come un
 PDF A4 leggibile direttamente nell'anteprima dell'Allegato. Il PDF viene generato su
-domanda e non viene memorizzato nell'Archivio.
+richiesta e non viene memorizzato nell'Archivio.
 
 ## Cosa viene riconosciuto {#what-is-recognised}
 
@@ -16,7 +16,7 @@ ZUGFeRD/Factur-X PDF vengono lasciati invariati; il loro XML viene mostrato come
 
 ## Dove trovarlo {#where-to-find-it}
 
-1. Apri un'e-mail con un Allegato XML XRechnung. L'elenco degli Allegati mostra un
+1. Apri un'email con un Allegato XML XRechnung. L'elenco degli Allegati mostra un
    badge **XRechnung**.
 2. Clicca sull'Allegato. La finestra modale di anteprima renderizza il PDF generato inline.
 3. **Download PDF** salva il PDF generato. **Download original XML** salva l'
@@ -32,8 +32,8 @@ file XML inviato rimane l'originale autorevole.
 GET /api/v1/emails/{id}/attachments/{attachmentId}/invoice-pdf
 ```
 
-L'endpoint utilizza la stessa autenticazione e lo stesso scoping dell'Account degli altri
-endpoint degli Allegati. È disponibile solo quando `Api:AllowAttachmentDownloads`
+L'endpoint utilizza la stessa autenticazione e lo stesso scoping dell'Account come gli altri
+[endpoint attachment](API.md#download-attachment). È disponibile solo quando `Api:AllowAttachmentDownloads`
 è abilitato. Un Allegato non XRechnung restituisce `404`.
 
 ```bash
@@ -53,6 +53,6 @@ curl -H "Authorization: Bearer <api-key>" \
 
 L'anteprima non valida la fattura rispetto a XRechnung, EN 16931 o qualsiasi
 altro set di regole. Estrae solo i campi che visualizza. Un file XML malformato o
-incompleto che contiene comunque un identificatore XRechnung può produrre un
-PDF parziale o nessun PDF affatto. Utilizza un validatore dedicato quando hai bisogno di una
+incompleto che contiene ancora un identificatore XRechnung può produrre un PDF
+parziale o nessun PDF affatto. Utilizza un validatore dedicato quando hai bisogno di una
 dichiarazione di conformità.
