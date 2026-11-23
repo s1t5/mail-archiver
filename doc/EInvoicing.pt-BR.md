@@ -9,7 +9,7 @@ O Mail-Archiver reconhece Anexos XML XRechnung e os renderiza como um PDF A4 leg
   `GuidelineSpecifiedDocumentContextParameter` contém `xrechnung`.
 - Tanto faturas quanto notas de crédito.
 
-Apenas o XRechnung é renderizado. Documentos Peppol BIS, EN 16931 simples e PDFs ZUGFeRD/Factur-X são ignorados; seu XML é exibido como antes.
+Apenas o XRechnung é renderizado. Documentos Peppol BIS, EN 16931 simples e PDFs ZUGFeRD/Factur-X são ignorados; o XML deles é exibido como antes.
 
 ## Onde encontrar {#where-to-find-it}
 
@@ -26,8 +26,7 @@ O PDF é um auxílio de leitura interno, não o original legalmente autoritativo
 GET /api/v1/emails/{id}/attachments/{attachmentId}/invoice-pdf
 ```
 
-O endpoint utiliza a mesma autenticação e escopo de Conta que os outros endpoints de Anexo. Ele só está disponível quando `Api:AllowAttachmentDownloads`
-está habilitado. Um Anexo que não seja XRechnung retorna `404`.
+O endpoint utiliza a mesma autenticação e escopo de Conta que os outros [endpoints de Anexo](API.md#download-attachment). Ele está disponível apenas quando `Api:AllowAttachmentDownloads` está habilitado. Um Anexo que não seja XRechnung retorna `404`.
 
 ```bash
 curl -H "Authorization: Bearer <api-key>" \
@@ -38,13 +37,9 @@ curl -H "Authorization: Bearer <api-key>" \
 ## Limites {#limits}
 
 - Apenas Anexos XML são considerados, até 5 MiB.
-- No máximo 1000 linhas de fatura são renderizadas. Se a fatura tiver mais, o PDF
-  informa quantas linhas estão presentes apenas no XML.
-- O PDF é gerado por requisição. Não há cache nem job em segundo plano.
+- No máximo 1000 linhas de fatura são renderizadas. Se a fatura tiver mais, o PDF informa quantas linhas estão presentes apenas no XML.
+- O PDF é gerado por requisição. Não há cache e não há job de segundo plano.
 
 ## Sem validação {#no-validation}
 
-A visualização não valida a fatura em relação ao XRechnung, EN 16931 ou qualquer
-outro conjunto de regras. Ela apenas extrai os campos que exibe. Um arquivo XML malformado ou
-incompleto que ainda carregue um identificador XRechnung pode produzir um PDF esparso ou nenhum PDF. Use um validador dedicado quando precisar de uma
-declaração de conformidade.
+A visualização não valida a fatura em relação ao XRechnung, EN 16931 ou qualquer outro conjunto de regras. Ela apenas extrai os campos que exibe. Um arquivo XML malformado ou incompleto que ainda carregue um identificador XRechnung pode produzir um PDF esparso ou nenhum PDF. Use um validador dedicado quando precisar de uma declaração de conformidade.
