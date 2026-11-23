@@ -30,7 +30,7 @@ GET /api/v1/emails/{id}/attachments/{attachmentId}/invoice-pdf
 ```
 
 Der Endpunkt verwendet dieselbe Authentifizierung und Konto-Scope wie die anderen
-Anhang-Endpunkte. Er ist nur verfügbar, wenn `Api:AllowAttachmentDownloads`
+[Anhang-Endpunkte](API.md#download-attachment). Er ist nur verfügbar, wenn `Api:AllowAttachmentDownloads`
 aktiviert ist. Ein Nicht-XRechnung Anhang gibt `404` zurück.
 
 ```bash

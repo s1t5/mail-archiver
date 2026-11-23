@@ -33,7 +33,7 @@ GET /api/v1/emails/{id}/attachments/{attachmentId}/invoice-pdf
 ```
 
 The endpoint uses the same authentication and account scoping as the other
-attachment endpoints. It is only available when `Api:AllowAttachmentDownloads`
+[attachment endpoints](API.md#download-attachment). It is only available when `Api:AllowAttachmentDownloads`
 is enabled. A non-XRechnung attachment returns `404`.
 
 ```bash
