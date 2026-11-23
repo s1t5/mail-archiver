@@ -1,8 +1,8 @@
-# 📧 Mail Archiver Documentation {#mail-archiver-documentation}
+# 📧 Dokumentacja Mail Archiver {#mail-archiver-documentation}
 
 <div class="docs-lead" markdown>
-**Samodzielne hostowanie archiwizacji e-mail — archiwizuj, przeszukuj i eksportuj pocztę od dowolnego dostawcy.**
-Skonfiguruj raz, zachowaj każdą wiadomość i znajdź ją ponownie po latach.
+**Samodzielne hostowanie archiwizacji poczty e-mail — archiwizuj, przeszukuj i eksportuj pocztę z dowolnego dostawcy.**
+Skonfiguruj raz, przechowuj każdą wiadomość i odnajduj ją ponownie po latach.
 </div>
 
 <div class="grid cards" markdown>
@@ -27,11 +27,11 @@ Skonfiguruj raz, zachowaj każdą wiadomość i znajdź ją ponownie po latach.
 
     ---
 
-    Odczytuj swoje Archiwum za pomocą skryptów i agentów AI — klucze API tylko do odczytu, o ograniczonym zakresie.
+    Odczytuj swoje Archiwum za pomocą skryptów i agentów AI — klucze API w trybie tylko do odczytu, o ograniczonym zakresie.
 
     [:octicons-arrow-right-24: REST API](API.md) · [:octicons-arrow-right-24: MCP server](MCP.md)
 
--   :material-shield-lock:{ .lg .middle } __Zabezpiecz to__
+-   :material-shield-lock:{ .lg .middle } __Zabezpiecz je__
 
     ---
 
@@ -73,7 +73,7 @@ Skonfiguruj raz, zachowaj każdą wiadomość i znajdź ją ponownie po latach.
 
     ---
 
-    VACUUM, ANALYZE i utrzymanie responsywności Archiwum w czasie.
+    VACUUM, ANALYZE i utrzymywanie responsywności Archiwum w czasie.
 
     [:octicons-arrow-right-24: Czytaj](DatabaseMaintenance.md)
 
@@ -89,13 +89,13 @@ Skonfiguruj raz, zachowaj każdą wiadomość i znajdź ją ponownie po latach.
 
     ---
 
-    Uruchom tymczasową instancję lokalnie przed dotknięciem produkcji.
+    Uruchom tymczasową instancję lokalnie przed dotknięciem środowiska produkcyjnego.
 
     [:octicons-arrow-right-24: Czytaj](LocalTestEnvironment.md)
 
 </div>
 
-## 📥 Importowanie poczty {#getting-mail-in}
+## 📥 Pobieranie poczty {#getting-mail-in}
 
 <div class="grid cards" markdown>
 
@@ -111,7 +111,7 @@ Skonfiguruj raz, zachowaj każdą wiadomość i znajdź ją ponownie po latach.
 
     ---
 
-    Szybka vs pełna Synchronizacja, punkty kontrolne i to, co się dzieje, gdy Synchronizacja zawiedzie.
+    Szybka vs pełna Synchronizacja, punkty kontrolne i to, co dzieje się, gdy Synchronizacja się nie powiedzie.
 
     [:octicons-arrow-right-24: Czytaj](Synchronization.md)
 
@@ -123,7 +123,7 @@ Skonfiguruj raz, zachowaj każdą wiadomość i znajdź ją ponownie po latach.
 
     [:octicons-arrow-right-24: Czytaj](CLI.md)
 
--   :material-upload:{ .lg .middle } __Import przez WWW (EML / MBox)__
+-   :material-upload:{ .lg .middle } __Import przez przeglądarkę (EML / MBox)__
 
     ---
 
@@ -135,7 +135,7 @@ Skonfiguruj raz, zachowaj każdą wiadomość i znajdź ją ponownie po latach.
 
     ---
 
-    Monitorowanie przepustowości i to, jak wstrzymane Synchronizacje wznawiają się automatycznie.
+    Śledzenie przepustowości i to, jak wstrzymane procesy Synchronizacji wznawiają się automatycznie.
 
     [:octicons-arrow-right-24: Czytaj](RateLimitHandling.md)
 
@@ -157,7 +157,7 @@ Skonfiguruj raz, zachowaj każdą wiadomość i znajdź ją ponownie po latach.
 
     ---
 
-    Monitoruj Synchronizacje, importy, Przywracanie i eksporty — i bezpiecznie je anuluj.
+Obserwuj Synchronizacje, importy, Przywracanie i eksporty — oraz bezpiecznie je anuluj.
 
     [:octicons-arrow-right-24: Czytaj](BackgroundJobs.md)
 
@@ -181,7 +181,7 @@ Skonfiguruj raz, zachowaj każdą wiadomość i znajdź ją ponownie po latach.
 
     ---
 
-    Zachowaj wiadomość w formie otrzymanej, aby DKIM nadal działał weryfikację, a eksporty były identyczne bajt po bajcie.
+    Przechowuj wiadomość w formie otrzymanej, aby DKIM nadal weryfikował, a eksporty były identyczne co do bajtu.
 
     [:octicons-arrow-right-24: Czytaj](RawMessages.md)
 
@@ -193,25 +193,33 @@ Skonfiguruj raz, zachowaj każdą wiadomość i znajdź ją ponownie po latach.
 
     [:octicons-arrow-right-24: Czytaj](AttachmentDeduplication.md)
 
+-   :material-file-pdf-box:{ .lg .middle } __Podgląd faktur XRechnung__
+
+    ---
+
+    Czytaj Załączniki XML XRechnung jako PDF bezpośrednio w Archiwum.
+
+    [:octicons-arrow-right-24: Czytaj](EInvoicing.md)
+
 -   :material-calendar-arrow-right:{ .lg .middle } __Przenoszenie oparte na oknie dat__
 
     ---
 
-    Przenoszenie starszej poczty do innego Konta, okno po oknie.
+    Przenoś starszą pocztę do innego Konta, okno po oknie.
 
     [:octicons-arrow-right-24: Czytaj](Offload.md)
 
--   :material-harddisk:{ .lg .middle } __Przechowywanie na Konto__
+-   :material-harddisk:{ .lg .middle } __Przechowywanie na każde Konto__
 
     ---
 
-    Zobacz, ile miejsca zajmuje każda Skrzynka pocztowa.
+    Sprawdź, ile miejsca zajmuje każda Skrzynka pocztowa.
 
     [:octicons-arrow-right-24: Czytaj](AccountStorage.md)
 
 </div>
 
-## 🔐 Administracja i bezpieczeństwo {#administration-security}
+## 🔐 Administracja i Bezpieczeństwo {#administration-security}
 
 <div class="grid cards" markdown>
 
@@ -247,7 +255,7 @@ Skonfiguruj raz, zachowaj każdą wiadomość i znajdź ją ponownie po latach.
 
     [:octicons-arrow-right-24: Czytaj](Logs.md)
 
--   :material-file-export:{ .lg .middle } __Eksport danych audytu__
+-   :material-file-export:{ .lg .middle } __Eksport danych audytowych__
 
     ---
 
@@ -273,7 +281,7 @@ Skonfiguruj raz, zachowaj każdą wiadomość i znajdź ją ponownie po latach.
 
 </div>
 
-## ☁️ Przewodniki dostawców {#provider-guides}
+## ☁️ Przewodniki po dostawcach {#provider-guides}
 
 <div class="grid cards" markdown>
 
@@ -285,11 +293,11 @@ Skonfiguruj raz, zachowaj każdą wiadomość i znajdź ją ponownie po latach.
 
     [:octicons-arrow-right-24: Czytaj](AZURE_APP_REGISTRATION_M365.md)
 
--   :material-domain:{ .lg .middle } __Import Skrzynki pocztowej z dzierżawy M365__
+-   :material-domain:{ .lg .middle } __Import Skrzynki pocztowej dzierżawcy M365__
 
     ---
 
-    Masowy import każdej Skrzynki pocztowej z dzierżawy za pomocą jednego formularza.
+    Importuj masowo każdą Skrzynkę pocztową dzierżawcy z jednego formularza.
 
     [:octicons-arrow-right-24: Czytaj](M365TenantImport.md)
 
@@ -309,7 +317,7 @@ Skonfiguruj raz, zachowaj każdą wiadomość i znajdź ją ponownie po latach.
 
     [:octicons-arrow-right-24: Czytaj](MSA_Outlook_Setup.md)
 
--   :material-google:{ .lg .middle } __Najlepsze praktyki Gmail__
+-   :material-google:{ .lg .middle } __Dobre praktyki Gmail__
 
     ---
 
@@ -335,7 +343,7 @@ Skonfiguruj raz, zachowaj każdą wiadomość i znajdź ją ponownie po latach.
 
     ---
 
-    Dostęp tylko do odczytu do Archiwum z ograniczonymi kluczami API dla użytkownika.
+    Dostęp tylko do odczytu do Archiwum z kluczami API o ograniczonym zakresie dla każdego użytkownika.
 
     [:octicons-arrow-right-24: Czytaj](API.md)
 
@@ -357,7 +365,7 @@ Skonfiguruj raz, zachowaj każdą wiadomość i znajdź ją ponownie po latach.
 
     ---
 
-    Zmień język interfejsu i dowiedz się, jak dodać tłumaczenie.
+    Zmiana języka interfejsu i sposób dodawania tłumaczenia.
 
     [:octicons-arrow-right-24: Czytaj](Localization.md)
 
@@ -365,19 +373,19 @@ Skonfiguruj raz, zachowaj każdą wiadomość i znajdź ją ponownie po latach.
 
     ---
 
-    Czytaj logi kontenerów i zmieniaj poziom logowania.
+    Odczytuj logi kontenerów i zmieniaj poziom logowania.
 
     [:octicons-arrow-right-24: Czytaj](DockerComposeLogs.md)
 
--   :material-heart-pulse:{ .lg .middle } __Zdrowie i metryki__
+-   :material-heart-pulse:{ .lg . middle } __Stan i metryki__
 
     ---
 
-    Monitoruj liveness, readiness i metryki Archiwum z Prometheus lub innego systemu monitorowania.
+    Monitoruj liveness, readiness oraz metryki Archiwum z Prometheus lub innego systemu monitorowania.
 
     [:octicons-arrow-right-24: Czytaj](Monitoring.md)
 
--   :material-tag:{ .lg .middle } __Wersje rozwojowe__
+-   :material-tag:{ .lg . middle } __Wersje rozwojowe__
 
     ---
 
@@ -391,6 +399,6 @@ Skonfiguruj raz, zachowaj każdą wiadomość i znajdź ją ponownie po latach.
 
 <div class="docs-footer-note" markdown>
 :material-pencil: **Ta dokumentacja jest stale rozbudowywana.**
-Jeśli zauważysz błąd lub masz sugestię, prosimy o
-[otwarcie zgłoszenia](https://github.com/s1t5/mail-archiver/issues) lub przesłanie pull requesta.
+Jeśli zauważysz błąd lub masz sugestię, prosimy
+[otwórz zgłoszenie](https://github.com/s1t5/mail-archiver/issues) lub prześlij pull request.
 </div>
