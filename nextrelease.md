@@ -15,6 +15,10 @@
 - **Original Message Storage Has Its Own Documentation Page** - The feature now has a dedicated page (`doc/RawMessages.md`) covering where the stored original is served, the postgres and filesystem backends, moving existing messages between them with `--migrate-raw-storage`, verification and backup. `Setup.md` keeps only the parameter table and links to it.
 - **Multilingual Documentation** - The documentation is now published in every language the application supports. English stays the authoritative source; the other locales are translated automatically by an LLM through the new `translate-docs` workflow and carry a visible machine-translation notice.
 - **Working Cross-References in Translated Pages** - A link to a heading inside a translated page pointed at an anchor that did not exist, because the anchor rewrite ignored the explicit `{#id}` target of a translated heading. The links now resolve to the same anchor as the English page.
+- **Compact Footer** - The footer carries the version and the documentation link only. The copyright year and the separate website link repeated what the version already says.
+- **Email List Fits the Window** - The archive table now distributes its column widths over the available space instead of overflowing sideways, so the list needs no horizontal scrolling from 1280 pixels upwards. The date keeps its full width, and the direction badge became the same arrow icon the mobile list uses.
+- **Quiet Bulk Delete** - The delete-all-matches action is a plain red link instead of an outlined danger button, so it no longer competes with the search button.
+- **Dashboard Cards Without Hover Lift** - The four counter cards no longer lift and cast a shadow when the pointer is over them.
 
 ## 🐛 Bug Fixes
 - **Mailbox in the Access Log** - Deletion and retention entries now show which mailbox they belong to. The log view resolves the stored account id to the account name, so older entries are covered as well.

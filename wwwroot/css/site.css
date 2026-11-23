@@ -775,6 +775,12 @@ body {
   z-index: 1020;
 }
 
+/* Trennpunkt zwischen Version und Dokumentationslink. */
+.footer-sep {
+  margin: 0 0.5rem;
+  opacity: 0.6;
+}
+
 @media (max-width: 768px) {
   .footer {
       font-size: 0.8rem;
@@ -1604,8 +1610,7 @@ body.resizing-folder-tree {
   border-radius: 10px;
   border: none;
   border-top: 3px solid rgba(255, 255, 255, 0.25);
-  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1),
-              box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: none;
 }
 
 .stat-card-modern .card-body {
@@ -1754,11 +1759,6 @@ body.resizing-folder-tree {
 
 .stat-card-modern .stat-split i {
   opacity: 0.85;
-}
-
-.stat-card-modern:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
 }
 
 /* Gradient backgrounds per color */
@@ -1933,7 +1933,6 @@ body.resizing-folder-tree {
     transition: none !important;
   }
 
-  .stat-card-modern:hover,
   .action-card:hover {
     transform: none !important;
   }

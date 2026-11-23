@@ -84,7 +84,7 @@
                                 <a asp-action="Index" class="btn btn-outline-secondary btn-sm">@Localizer["Reset"]</a>
                                 @if (User.IsInRole("Admin") || User.IsInRole("SelfManager"))
                                 {
-                                    <button type="button" id="deleteAllMatchesBtn" class="btn btn-outline-danger btn-sm">
+                                    <button type="button" id="deleteAllMatchesBtn" class="btn btn-link btn-sm text-danger text-decoration-none">
                                         <i class="bi bi-trash3"></i> @Localizer["DeleteAllMatches"]
                                     </button>
                                 }
@@ -288,7 +288,7 @@
                     <!-- Desktop Table -->
                     <div class="card-body p-0 d-none d-lg-block">
                         <div class="table-responsive">
-                            <table class="table table-hover table-striped table-sm mb-0" data-resizable-columns>
+                            <table class="table table-hover table-striped table-sm mb-0" data-resizable-columns data-fit-columns="true">
                                 <thead class="table-dark">
                                     <tr>
                                         @if (Model.ShowSelectionControls)
@@ -299,21 +299,21 @@
                                                 </div>
                                             </th>
                                         }
-                                        <th style="cursor: pointer;" onclick="window.location.href='@Url.Action("Index", new { SearchTerm = Model.SearchTerm, FromDate = Model.FromDate?.ToString("yyyy-MM-dd"), ToDate = Model.ToDate?.ToString("yyyy-MM-dd"), SelectedAccountId = Model.SelectedAccountId, SelectedFolder = Model.SelectedFolder, IsOutgoing = Model.IsOutgoing, PageNumber = 1, PageSize = Model.PageSize, ShowSelectionControls = Model.ShowSelectionControls, SortBy = "Subject", SortOrder = (Model.SortBy == "Subject" && Model.SortOrder == "asc") ? "desc" : "asc" })'">
+                                        <th style="cursor: pointer;" onclick="window.location.href='@Url.Action("Index", new { SearchTerm = Model.SearchTerm, FromDate = Model.FromDate?.ToString("yyyy-MM-dd"), ToDate = Model.ToDate?.ToString("yyyy-MM-dd"), SelectedAccountId = Model.SelectedAccountId, SelectedFolder = Model.SelectedFolder, IsOutgoing = Model.IsOutgoing, PageNumber = 1, PageSize = Model.PageSize, ShowSelectionControls = Model.ShowSelectionControls, SortBy = "Subject", SortOrder = (Model.SortBy == "Subject" && Model.SortOrder == "asc") ? "desc" : "asc" })'" data-col-flex="1.6">
                                             @Localizer["Subject"]
                                             @if (Model.SortBy == "Subject")
                                             {
                                                 <i class="bi bi-@(Model.SortOrder == "asc" ? "arrow-up" : "arrow-down")"></i>
                                             }
                                         </th>
-                                        <th style="cursor: pointer;" onclick="window.location.href='@Url.Action("Index", new { SearchTerm = Model.SearchTerm, FromDate = Model.FromDate?.ToString("yyyy-MM-dd"), ToDate = Model.ToDate?.ToString("yyyy-MM-dd"), SelectedAccountId = Model.SelectedAccountId, SelectedFolder = Model.SelectedFolder, IsOutgoing = Model.IsOutgoing, PageNumber = 1, PageSize = Model.PageSize, ShowSelectionControls = Model.ShowSelectionControls, SortBy = "From", SortOrder = (Model.SortBy == "From" && Model.SortOrder == "asc") ? "desc" : "asc" })'">
+                                        <th style="cursor: pointer;" onclick="window.location.href='@Url.Action("Index", new { SearchTerm = Model.SearchTerm, FromDate = Model.FromDate?.ToString("yyyy-MM-dd"), ToDate = Model.ToDate?.ToString("yyyy-MM-dd"), SelectedAccountId = Model.SelectedAccountId, SelectedFolder = Model.SelectedFolder, IsOutgoing = Model.IsOutgoing, PageNumber = 1, PageSize = Model.PageSize, ShowSelectionControls = Model.ShowSelectionControls, SortBy = "From", SortOrder = (Model.SortBy == "From" && Model.SortOrder == "asc") ? "desc" : "asc" })'" data-col-flex="1.15">
                                             @Localizer["From"]
                                             @if (Model.SortBy == "From")
                                             {
                                                 <i class="bi bi-@(Model.SortOrder == "asc" ? "arrow-up" : "arrow-down")"></i>
                                             }
                                         </th>
-                                        <th style="cursor: pointer;" onclick="window.location.href='@Url.Action("Index", new { SearchTerm = Model.SearchTerm, FromDate = Model.FromDate?.ToString("yyyy-MM-dd"), ToDate = Model.ToDate?.ToString("yyyy-MM-dd"), SelectedAccountId = Model.SelectedAccountId, SelectedFolder = Model.SelectedFolder, IsOutgoing = Model.IsOutgoing, PageNumber = 1, PageSize = Model.PageSize, ShowSelectionControls = Model.ShowSelectionControls, SortBy = "To", SortOrder = (Model.SortBy == "To" && Model.SortOrder == "asc") ? "desc" : "asc" })'">
+                                        <th style="cursor: pointer;" onclick="window.location.href='@Url.Action("Index", new { SearchTerm = Model.SearchTerm, FromDate = Model.FromDate?.ToString("yyyy-MM-dd"), ToDate = Model.ToDate?.ToString("yyyy-MM-dd"), SelectedAccountId = Model.SelectedAccountId, SelectedFolder = Model.SelectedFolder, IsOutgoing = Model.IsOutgoing, PageNumber = 1, PageSize = Model.PageSize, ShowSelectionControls = Model.ShowSelectionControls, SortBy = "To", SortOrder = (Model.SortBy == "To" && Model.SortOrder == "asc") ? "desc" : "asc" })'" data-col-flex="1">
                                             @Localizer["To"]
                                             @if (Model.SortBy == "To")
                                             {
@@ -327,7 +327,7 @@
                                                 <i class="bi bi-@(Model.SortOrder == "asc" ? "arrow-up" : "arrow-down")"></i>
                                             }
                                         </th>
-                                        <th>@Localizer["Account"]</th>
+                                        <th data-col-flex="0.95">@Localizer["Account"]</th>
                                         <th>@Localizer["Status"]</th>
                                         <th></th>
                                     </tr>
@@ -345,21 +345,21 @@
                                                     </div>
                                                 </td>
                                             }
-                                            <td>
+                                            <td title="@email.Subject">
                                                 @if (email.IsOutgoing)
                                                 {
-                                                    <span class="badge bg-info">@Localizer["Out"]</span>
+                                                    <i class="bi bi-arrow-up-right text-primary me-1" title="@Localizer["Out"]"></i>
                                                 }
                                                 else
                                                 {
-                                                    <span class="badge bg-secondary">@Localizer["In"]</span>
+                                                    <i class="bi bi-arrow-down-left text-success me-1" title="@Localizer["In"]"></i>
                                                 }
                                                 @email.Subject
                                             </td>
-                                            <td>@email.From</td>
-                                            <td>@email.To</td>
+                                            <td title="@email.From">@email.From</td>
+                                            <td title="@email.To">@email.To</td>
                                             <td>@email.SentDate.ToString("g")</td>
-                                            <td>@email.MailAccount.Name</td>
+                                            <td title="@email.MailAccount.Name">@email.MailAccount.Name</td>
                                             <td>
                                                 @if (email.HasAttachments)
                                                 {
