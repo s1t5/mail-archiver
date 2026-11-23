@@ -1,42 +1,37 @@
-# XRechnung-Rechnungsvorschau
+# XRechnung Rechnungsvorschau {#xrechnung-invoice-preview}
 
-Mail-Archiver erkennt XRechnung-XML-Anhänge und stellt sie als lesbares
-A4-PDF direkt in der Anhangs-Vorschau dar. Das PDF wird bei Bedarf erzeugt und
-nicht im Archiv gespeichert.
+Mail-Archiver erkennt XRechnung XML Anhänge und stellt diese als lesbares A4 PDF direkt in der Anhangsvorschau dar. Das PDF wird bei Bedarf generiert und nicht im Archiv gespeichert.
 
-## Was erkannt wird
+## Was erkannt wird {#what-is-recognised}
 
-- UBL `Invoice` und `CreditNote`, deren `CustomizationID` den Wert `xrechnung`
-  enthält.
+- UBL `Invoice` und `CreditNote`, deren `CustomizationID` `xrechnung` enthält.
 - CII `CrossIndustryInvoice`, dessen
-  `GuidelineSpecifiedDocumentContextParameter` den Wert `xrechnung` enthält.
-- Rechnungen und Gutschriften.
+  `GuidelineSpecifiedDocumentContextParameter` `xrechnung` enthält.
+- Sowohl Rechnungen als auch Gutschriften.
 
-Nur XRechnung wird dargestellt. Peppol BIS, reine EN-16931-Dokumente und
-ZUGFeRD-/Factur-X-PDFs bleiben unverändert; deren XML wird wie bisher angezeigt.
+Es wird nur XRechnung gerendert. Peppol BIS, einfache EN 16931 Dokumente und ZUGFeRD/Factur-X PDFs bleiben unberührt; deren XML wird wie bisher angezeigt.
 
-## Wo die Vorschau zu finden ist
+## Wo Sie es finden {#where-to-find-it}
 
-1. Eine E-Mail mit einem XRechnung-XML-Anhang öffnen. In der Anhangsliste steht
-   der Badge **XRechnung**.
-2. Den Anhang anklicken. Das Vorschaufenster zeigt das erzeugte PDF inline.
-3. **PDF herunterladen** speichert das erzeugte PDF. **Original-XML
-   herunterladen** speichert den archivierten Anhang.
-4. Dasselbe PDF ist über die REST-API abrufbar.
+1. Öffnen Sie eine E-Mail mit einem XRechnung XML Anhang. Die Anhangsliste zeigt ein
+   **XRechnung** Badge an.
+2. Klicken Sie auf den Anhang. Das Vorschau-Modal rendert das generierte PDF inline.
+3. **Download PDF** speichert das generierte PDF. **Download original XML** speichert den
+   Anhang, der archiviert wurde.
+4. Dasselbe PDF ist über die REST API verfügbar.
 
-Das PDF ist eine interne Lesehilfe, nicht das rechtlich maßgebliche Original.
-Maßgeblich bleibt die übermittelte XML-Datei.
+Das PDF ist eine interne Lesehilfe, nicht das rechtlich verbindliche Original. Die
+eingereichte XML-Datei bleibt maßgeblich.
 
-## REST-API
+## REST API {#rest-api}
 
 ```
 GET /api/v1/emails/{id}/attachments/{attachmentId}/invoice-pdf
 ```
 
-Der Endpunkt nutzt dieselbe Authentifizierung und Kontozuordnung wie die
-übrigen Anhangs-Endpunkte. Er ist nur verfügbar, wenn
-`Api:AllowAttachmentDownloads` aktiviert ist. Bei einem Anhang ohne XRechnung
-liefert er `404`.
+Der Endpunkt verwendet dieselbe Authentifizierung und Konto-Scope wie die anderen
+Anhang-Endpunkte. Er ist nur verfügbar, wenn `Api:AllowAttachmentDownloads`
+aktiviert ist. Ein Nicht-XRechnung Anhang gibt `404` zurück.
 
 ```bash
 curl -H "Authorization: Bearer <api-key>" \
@@ -44,18 +39,17 @@ curl -H "Authorization: Bearer <api-key>" \
      "https://archive.example.org/api/v1/emails/123/attachments/456/invoice-pdf"
 ```
 
-## Grenzen
+## Limits {#limits}
 
-- Es werden nur XML-Anhänge bis 5 MiB betrachtet.
-- Höchstens 1000 Rechnungspositionen werden dargestellt. Bei mehr Positionen
-  nennt das PDF die Anzahl der Positionen, die nur im XML enthalten sind.
-- Das PDF wird pro Anfrage erzeugt. Es gibt keinen Cache und keinen
-  Hintergrundjob.
+- Es werden nur XML Anhänge bis zu 5 MiB berücksichtigt.
+- Es werden maximal 1000 Rechnungspositionen gerendert. Wenn die Rechnung mehr hat,
+  gibt das PDF an, wie viele Positionen nur in der XML vorhanden sind.
+- Das PDF wird pro Anfrage generiert. Es gibt keinen Cache und keinen Hintergrundjob.
 
-## Keine Validierung
+## Keine Validierung {#no-validation}
 
-Die Vorschau prüft die Rechnung nicht gegen XRechnung, EN 16931 oder ein
-anderes Regelwerk. Sie extrahiert nur die Felder, die sie anzeigt. Eine
-fehlerhafte oder unvollständige XML-Datei mit XRechnung-Kennung kann zu einem
-lückenhaften PDF oder gar keinem PDF führen. Für eine Konformitätsaussage ist
-ein eigener Validator nötig.
+Die Vorschau validiert die Rechnung nicht gegen XRechnung, EN 16931 oder andere
+Regelwerke. Sie extrahiert lediglich die Felder, die sie anzeigt. Eine fehlerhafte oder
+unvollständige XML-Datei, die dennoch eine XRechnung-Kennung trägt, kann ein lückenhaftes
+PDF oder gar kein PDF erzeugen. Verwenden Sie einen dedizierten Validator, wenn Sie eine
+Konformitätserklärung benötigen.

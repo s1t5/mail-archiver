@@ -1,7 +1,7 @@
 # 📧 Mail Archiver Dokumentation {#mail-archiver-documentation}
 
 <div class="docs-lead" markdown>
-**Selbst gehostetes E-Mail-Archivierung — Archivieren, Suchen und Exportieren von E-Mails von jedem Anbieter.**
+**Selbst gehostetes E-Mail-Archivieren — archivieren, suchen und E-Mails von jedem Anbieter exportieren.**
 Einmal einrichten, jede Nachricht behalten und sie Jahre später wiederfinden.
 </div>
 
@@ -27,7 +27,7 @@ Einmal einrichten, jede Nachricht behalten und sie Jahre später wiederfinden.
 
     ---
 
-    Lesen Sie Ihr Archiv über Skripte und KI-Agenten — schreibgeschützte, eingeschränkte API-Keys.
+    Lesen Sie Ihr Archiv über Skripte und KI-Agenten aus — schreibgeschützte, eingeschränkte API-Schlüssel.
 
     [:octicons-arrow-right-24: REST API](API.md) · [:octicons-arrow-right-24: MCP server](MCP.md)
 
@@ -73,7 +73,7 @@ Einmal einrichten, jede Nachricht behalten und sie Jahre später wiederfinden.
 
     ---
 
-    VACUUM, ANALYZE und die Aufrechterhaltung der Reaktionsfähigkeit des Archivs über die Zeit.
+    VACUUM, ANALYZE und das Archiv über die Zeit hinweg reaktionsschnell halten.
 
     [:octicons-arrow-right-24: Lesen](DatabaseMaintenance.md)
 
@@ -89,7 +89,7 @@ Einmal einrichten, jede Nachricht behalten und sie Jahre später wiederfinden.
 
     ---
 
-    Führen Sie lokal eine temporäre Instanz aus, bevor Sie die Produktion berühren.
+    Betreiben Sie lokal eine temporäre Instanz, bevor Sie die Produktion anfassen.
 
     [:octicons-arrow-right-24: Lesen](LocalTestEnvironment.md)
 
@@ -135,7 +135,7 @@ Einmal einrichten, jede Nachricht behalten und sie Jahre später wiederfinden.
 
     ---
 
-    Bandbreiten-Tracking und wie pausierte Synchronisierungen von selbst fortgesetzt werden.
+    Bandbreitenverfolgung und wie pausierte Synchronisierungen automatisch fortgesetzt werden.
 
     [:octicons-arrow-right-24: Lesen](RateLimitHandling.md)
 
@@ -173,7 +173,7 @@ Einmal einrichten, jede Nachricht behalten und sie Jahre später wiederfinden.
 
     ---
 
-    Schreiben Sie ein ganzes Konto als portables EML- oder MBox-Archiv zurück.
+    Exportieren Sie ein ganzes Konto als portables EML- oder MBox-Archiv.
 
     [:octicons-arrow-right-24: Lesen](Export-Account.md)
 
@@ -192,6 +192,14 @@ Einmal einrichten, jede Nachricht behalten und sie Jahre später wiederfinden.
     Wie identische Anhänge nur einmal statt mehrfach gespeichert werden.
 
     [:octicons-arrow-right-24: Lesen](AttachmentDeduplication.md)
+
+-   :material-file-pdf-box:{ .lg .middle } __XRechnung Rechnungsvorschau__
+
+    ---
+
+    Lesen Sie XRechnung XML-Anhänge direkt im Archiv als PDF.
+
+    [:octicons-arrow-right-24: Lesen](EInvoicing.md)
 
 -   :material-calendar-arrow-right:{ .lg .middle } __Zeitfenster-Auslagerung__
 
@@ -247,11 +255,11 @@ Einmal einrichten, jede Nachricht behalten und sie Jahre später wiederfinden.
 
     [:octicons-arrow-right-24: Lesen](Logs.md)
 
--   :material-file-export:{ .lg .middle } __Audit-Daten-Export__
+-   :material-file-export:{ .lg .middle } __Audit-Datenexport__
 
     ---
 
-    Exportieren Sie den Audit-Pfad für Compliance-Prüfungen.
+    Exportieren Sie das Audit-Protokoll für Compliance-Prüfungen.
 
     [:octicons-arrow-right-24: Lesen](AuditExport.md)
 
@@ -267,7 +275,7 @@ Einmal einrichten, jede Nachricht behalten und sie Jahre später wiederfinden.
 
     ---
 
-    Automatisches Löschen vom Mailserver oder aus dem lokalen Archiv.
+    Automatische Löschung vom Mailserver oder dem lokalen Archiv.
 
     [:octicons-arrow-right-24: Lesen](RetentionPolicies.md)
 
@@ -289,7 +297,7 @@ Einmal einrichten, jede Nachricht behalten und sie Jahre später wiederfinden.
 
     ---
 
-    Massenimport jedes Postfachs eines Tenants über ein einziges Formular.
+    Massimport aller Postfächer eines Tenants über ein einziges Formular.
 
     [:octicons-arrow-right-24: Lesen](M365TenantImport.md)
 
@@ -305,7 +313,7 @@ Einmal einrichten, jede Nachricht behalten und sie Jahre später wiederfinden.
 
     ---
 
-    Outlook.com, Hotmail und M365 Family über Device Code Flow.
+    Outlook.com, Hotmail und M365 Family via Device Code Flow.
 
     [:octicons-arrow-right-24: Lesen](MSA_Outlook_Setup.md)
 
@@ -321,7 +329,7 @@ Einmal einrichten, jede Nachricht behalten und sie Jahre später wiederfinden.
 
     ---
 
-    Was Yahoo's IMAP- und Export-Endpunkte nicht leisten können.
+    Was die IMAP- und Export-Endpunkte von Yahoo nicht leisten werden.
 
     [:octicons-arrow-right-24: Lesen](YahooMailExportLimitations.md)
 
@@ -335,7 +343,7 @@ Einmal einrichten, jede Nachricht behalten und sie Jahre später wiederfinden.
 
     ---
 
-    Schreibgeschützter Zugriff auf das Archiv mit eingeschränkten API-Keys pro Benutzer.
+    Schreibgeschützter Zugriff auf das Archiv mit eingeschränkten pro Benutzer zugewiesenen API-Schlüsseln.
 
     [:octicons-arrow-right-24: Lesen](API.md)
 
@@ -343,7 +351,7 @@ Einmal einrichten, jede Nachricht behalten und sie Jahre später wiederfinden.
 
     ---
 
-    Stellen Sie das Archiv KI-Agenten als auffindbare Tools zur Verfügung.
+    Stellen Sie das Archiv KI-Agenten als entdeckbare Tools zur Verfügung.
 
     [:octicons-arrow-right-24: Lesen](MCP.md)
 
@@ -357,7 +365,7 @@ Einmal einrichten, jede Nachricht behalten und sie Jahre später wiederfinden.
 
     ---
 
-    Wechseln Sie die Interface-Sprache und erfahren Sie, wie Sie eine Übersetzung hinzufügen.
+    Die Sprache der Benutzeroberfläche ändern und wie man eine Übersetzung hinzufügt.
 
     [:octicons-arrow-right-24: Lesen](Localization.md)
 
@@ -365,7 +373,7 @@ Einmal einrichten, jede Nachricht behalten und sie Jahre später wiederfinden.
 
     ---
 
-    Lesen Sie Container-Logs und ändern Sie das Log-Level.
+    Container-Logs lesen und das Log-Level ändern.
 
     [:octicons-arrow-right-24: Lesen](DockerComposeLogs.md)
 
@@ -377,7 +385,7 @@ Einmal einrichten, jede Nachricht behalten und sie Jahre später wiederfinden.
 
     [:octicons-arrow-right-24: Lesen](Monitoring.md)
 
--   :material-tag:{ .lg .middle } __Entwicklungsversionen__
+-   :material-tag:{ .lg .middle } __Entwicklerversionen__
 
     ---
 
