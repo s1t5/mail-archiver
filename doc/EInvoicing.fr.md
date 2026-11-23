@@ -9,7 +9,7 @@ Mail-Archiver reconnaît les Pièces jointes XML XRechnung et les affiche sous l
   `GuidelineSpecifiedDocumentContextParameter` contient `xrechnung`.
 - Les factures et les avoirs.
 
-Seul XRechnung est rendu. Les documents Peppol BIS, EN 16931 simple et ZUGFeRD/Factur-X PDF ne sont pas affectés ; leur XML est affiché comme auparavant.
+Seules les XRechnung sont affichées. Les documents Peppol BIS, EN 16931 simple et ZUGFeRD/Factur-X PDF ne sont pas traités ; leur XML est affiché comme auparavant.
 
 ## Où le trouver {#where-to-find-it}
 
@@ -18,7 +18,7 @@ Seul XRechnung est rendu. Les documents Peppol BIS, EN 16931 simple et ZUGFeRD/F
 3. **Download PDF** enregistre le PDF généré. **Download original XML** enregistre la Pièce jointe qui a été archivée.
 4. Le même PDF est disponible via l'API REST.
 
-Le PDF est une aide à la lecture interne, et non l'original juridiquement faisant foi. Le fichier XML soumis reste l'élément de référence.
+Le PDF est une aide à la lecture interne, pas l'original juridiquement faisant foi. Le fichier XML soumis reste l'élément faisant foi.
 
 ## REST API {#rest-api}
 
@@ -26,7 +26,7 @@ Le PDF est une aide à la lecture interne, et non l'original juridiquement faisa
 GET /api/v1/emails/{id}/attachments/{attachmentId}/invoice-pdf
 ```
 
-Le point de terminaison utilise la même authentification et le même périmètre de Compte que les autres points de terminaison de Pièce jointe. Il n'est disponible que lorsque `Api:AllowAttachmentDownloads`
+Le point de terminaison utilise la même authentification et le même périmètre de Compte que les autres [points de terminaison de Pièce jointe](API.md#download-attachment). Il n'est disponible que lorsque `Api:AllowAttachmentDownloads`
 est activé. Une Pièce jointe non-XRechnung renvoie `404`.
 
 ```bash
@@ -38,7 +38,7 @@ curl -H "Authorization: Bearer <api-key>" \
 ## Limites {#limits}
 
 - Seules les Pièces jointes XML sont prises en compte, jusqu'à 5 MiB.
-- Au plus 1000 lignes de facture sont rendues. Si la facture en contient plus, le PDF indique combien de lignes ne sont présentes que dans le XML.
+- Au plus 1000 lignes de facture sont affichées. Si la facture en contient davantage, le PDF indique combien de lignes ne sont présentes que dans le XML.
 - Le PDF est généré par requête. Il n'y a pas de cache ni de tâche de fond.
 
 ## Pas de validation {#no-validation}
