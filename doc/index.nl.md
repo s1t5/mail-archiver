@@ -1,27 +1,27 @@
 # 📧 Mail Archiver Documentatie {#mail-archiver-documentation}
 
 <div class="docs-lead" markdown>
-**Zelf-gehost e-mailarchiveren — archiveer, zoek en exporteer e-mail van elke provider.**
-Stel het eenmalig in, bewaar elk bericht en vind het jaren later weer terug.
+**Zelfgehost e-mailarchiveren — archiveer, zoek en exporteer e-mail van elke provider.**
+Stel het eenmalig in, bewaar elke berichten en vind ze jaren later terug.
 </div>
 
 <div class="grid cards" markdown>
 
--   :material-rocket-launch:{ .lg .middle } __Aan de slag__
+-   :material-rocket-launch:{ .lg .middle } __Aan de slag maken__
 
     ---
 
     Installeer Mail Archiver met Docker Compose en verbind je eerste Postbus.
 
-    [:octicons-arrow-right-24: Setup and parameters](Setup.md)
+    [:octicons-arrow-right-24: Setup en parameters](Setup.md)
 
--   :material-magnify:{ .lg .middle } __Vind alles__
+-   :material-magnify:{ .lg .middle } __Alles vinden__
 
     ---
 
-    Full-text zoekopdrachten over elk Account, met filters, sortering en bulkacties.
+    Volledige tekstzoekopdrachten over elk Account, met filters, sortering en bulkacties.
 
-    [:octicons-arrow-right-24: Mail search](Search.md)
+    [:octicons-arrow-right-24: Mail zoeken](Search.md)
 
 -   :material-api:{ .lg .middle } __Automatiseer het__
 
@@ -35,9 +35,9 @@ Stel het eenmalig in, bewaar elk bericht en vind het jaren later weer terug.
 
     ---
 
-    Twee-factor authenticatie, SSO, toegang-logging en Bewaring-beleid.
+    Twee-factor authenticatie, SSO, toegangslogging en Bewaring-beleid.
 
-    [:octicons-arrow-right-24: Two-factor auth](TwoFactor.md) · [:octicons-arrow-right-24: OIDC / SSO](OIDC_Implementation.md)
+    [:octicons-arrow-right-24: Twee-factor auth](TwoFactor.md) · [:octicons-arrow-right-24: OIDC / SSO](OIDC_Implementation.md)
 
 </div>
 
@@ -45,13 +45,13 @@ Stel het eenmalig in, bewaar elk bericht en vind het jaren later weer terug.
 
 <div class="grid cards" markdown>
 
--   :material-cog:{ .lg .middle } __Setup and parameters__
+-   :material-cog:{ .lg .middle } __Setup en parameters__
 
     ---
 
-    Elke omgevingsvariabele, Kestrel HTTPS en secrets management.
+    Elke omgevingsvariabele, Kestrel HTTPS en beheer van secrets.
 
-    [:octicons-arrow-right-24: Read](Setup.md)
+    [:octicons-arrow-right-24: Lees](Setup.md)
 
 -   :material-server-network:{ .lg .middle } __Reverse proxy__
 
@@ -59,23 +59,23 @@ Stel het eenmalig in, bewaar elk bericht en vind het jaren later weer terug.
 
     Plaats Mail Archiver achter nginx of Caddy met TLS-terminatie.
 
-    [:octicons-arrow-right-24: Read](ReverseProxy.md)
+    [:octicons-arrow-right-24: Lees](ReverseProxy.md)
 
 -   :material-database-arrow-up:{ .lg .middle } __PostgreSQL upgrade__
 
     ---
 
-    Ga over naar een nieuwe belangrijke PostgreSQL-versie zonder gegevens te verliezen.
+    Verplaats naar een nieuwe belangrijke PostgreSQL-versie zonder gegevens te verliezen.
 
-    [:octicons-arrow-right-24: Read](PostgreSQLUpgrade.md)
+    [:octicons-arrow-right-24: Lees](PostgreSQLUpgrade.md)
 
--   :material-database-cog:{ .lg .middle } __Database maintenance__
+-   :material-database-cog:{ .lg .middle } __Database onderhoud__
 
     ---
 
-    VACUUM, ANALYZE en het Archief responsief houden over de tijd.
+    VACUUM, ANALYZE en het Archief op de lange termijn responsief houden.
 
-    [:octicons-arrow-right-24: Read](DatabaseMaintenance.md)
+    [:octicons-arrow-right-24: Lees](DatabaseMaintenance.md)
 
 -   :material-backup-restore:{ .lg .middle } __Back-up en herstel__
 
@@ -83,7 +83,7 @@ Stel het eenmalig in, bewaar elk bericht en vind het jaren later weer terug.
 
     Maak een Back-up van de database en voer een Herstel uit — inclusief Proxmox-opstellingen.
 
-    [:octicons-arrow-right-24: Read](BackupRestore.md)
+    [:octicons-arrow-right-24: Lees](BackupRestore.md)
 
 -   :material-flask:{ .lg .middle } __Lokale testomgeving__
 
@@ -91,7 +91,7 @@ Stel het eenmalig in, bewaar elk bericht en vind het jaren later weer terug.
 
     Draai lokaal een tijdelijke instantie voordat je de productie aanraakt.
 
-    [:octicons-arrow-right-24: Read](LocalTestEnvironment.md)
+    [:octicons-arrow-right-24: Lees](LocalTestEnvironment.md)
 
 </div>
 
@@ -105,24 +105,24 @@ Stel het eenmalig in, bewaar elk bericht en vind het jaren later weer terug.
 
     Voeg veel Accounts tegelijk toe vanuit een CSV-bestand.
 
-    [:octicons-arrow-right-24: Read](Account-Import.md)
+    [:octicons-arrow-right-24: Lees](Account-Import.md)
 
 -   :material-email-sync:{ .lg .middle } __Synchronisatie__
 
     ---
 
-    Snelle vs. volledige synchronisatie, checkpoints, en wat er gebeurt als een synchronisatie mislukt.
+    Snelle vs. volledige Synchronisatie, checkpoints, en wat er gebeurt als een Synchronisatie mislukt.
 
-    [:octicons-arrow-right-24: Read](Synchronization.md)
+    [:octicons-arrow-right-24: Lees](Synchronization.md)
 
--   :material-console:{ .lg .middle } __CLI commands__
+-   :material-console:{ .lg .middle } __CLI commando's__
 
     ---
 
-    Importeer bestaande Archieven via de command line, en verplaats opgeslagen originele
+    Importeer bestaande archieven via de command line, en verplaats opgeslagen originele
     berichten tussen de database en het bestandssysteem.
 
-    [:octicons-arrow-right-24: Read](CLI.md)
+    [:octicons-arrow-right-24: Lees](CLI.md)
 
 -   :material-upload:{ .lg .middle } __Web import (EML / MBox)__
 
@@ -130,15 +130,15 @@ Stel het eenmalig in, bewaar elk bericht en vind het jaren later weer terug.
 
     Upload een MBox-bestand of een ZIP met EML-bestanden via de browser.
 
-    [:octicons-arrow-right-24: Read](Import-EML-MBox.md)
+    [:octicons-arrow-right-24: Lees](Import-EML-MBox.md)
 
--   :material-timer-sand:{ .lg .middle } __Rate limit handling__
+-   :material-timer-sand:{ .lg .middle } __Rate limit afhandeling__
 
     ---
 
-    Bandbreedte-tracking, en hoe gepauzeerde synchronisaties automatisch hervatten.
+    Bandbreedte tracking, en hoe gepauzeerde Synchronisaties vanzelf hervatten.
 
-    [:octicons-arrow-right-24: Read](RateLimitHandling.md)
+    [:octicons-arrow-right-24: Lees](RateLimitHandling.md)
 
 </div>
 
@@ -146,69 +146,77 @@ Stel het eenmalig in, bewaar elk bericht en vind het jaren later weer terug.
 
 <div class="grid cards" markdown>
 
--   :material-magnify:{ .lg .middle } __Mail search__
+-   :material-magnify:{ .lg .middle } __Mail zoeken__
 
     ---
 
     Query-syntaxis, filters, sortering, paginering en bulkacties.
 
-    [:octicons-arrow-right-24: Read](Search.md)
+    [:octicons-arrow-right-24: Lees](Search.md)
 
 -   :material-progress-clock:{ .lg .middle } __Background jobs__
 
     ---
 
-    Houd synchronisaties, imports, herstelacties en exports in de gaten — en annuleer ze veilig.
+    Volg Synchronisaties, imports, herstelacties en exports — en annuleer ze veilig.
 
-    [:octicons-arrow-right-24: Read](BackgroundJobs.md)
+    [:octicons-arrow-right-24: Lees](BackgroundJobs.md)
 
 -   :material-swap-horizontal:{ .lg .middle } __Postbus migratie__
 
     ---
 
-    Kopieer e-mail tussen Postbussen terwijl de Map-structuur behouden blijft.
+    Kopieer mail tussen Postbussen terwijl de Map-structuur behouden blijft.
 
-    [:octicons-arrow-right-24: Read](MailboxMigration.md)
+    [:octicons-arrow-right-24: Lees](MailboxMigration.md)
 
 -   :material-download:{ .lg .middle } __Account export (EML / MBox)__
 
     ---
 
-    Schrijf een heel Account weg als een draagbaar EML- of MBox-Archief.
+    Schrijf een heel Account terug als een draagbaar EML of MBox Archief.
 
-    [:octicons-arrow-right-24: Read](Export-Account.md)
+    [:octicons-arrow-right-24: Lees](Export-Account.md)
 
--   :material-email-lock:{ .lg .middle } __Original message storage__
+-   :material-email-lock:{ .lg .middle } __Originele bericht opslag__
 
     ---
 
     Bewaar het bericht zoals ontvangen, zodat DKIM nog steeds valideert en exports byte-exact zijn.
 
-    [:octicons-arrow-right-24: Read](RawMessages.md)
+    [:octicons-arrow-right-24: Lees](RawMessages.md)
 
--   :material-content-duplicate:{ .lg .middle } __Bijlage deduplicatie__
+-   :material-content-duplicate:{ .lg .middle } __Bijlage Deduplicatie__
 
     ---
 
     Hoe identieke Bijlagen één keer in plaats van meerdere keren worden opgeslagen.
 
-    [:octicons-arrow-right-24: Read](AttachmentDeduplication.md)
+    [:octicons-arrow-right-24: Lees](AttachmentDeduplication.md)
+
+-   :material-file-pdf-box:{ .lg .middle } __XRechnung factuur preview__
+
+    ---
+
+    Lees XRechnung XML Bijlagen als een PDF direct in het Archief.
+
+    [:octicons-arrow-right-24: Lees](EInvoicing.md)
 
 -   :material-calendar-arrow-right:{ .lg .middle } __Date-windowed offload__
 
     ---
 
-    Verplaats oudere e-mail naar een ander Account, venster voor venster.
+    Verplaats oudere mail naar een ander Account, venster voor venster.
 
-    [:octicons-arrow-right-24: Read](Offload.md)
+    [:octicons-arrow-right-24: Lees](Offload.md)
 
--   :material-harddisk:{ .lg .middle } __Per-account storage__
+-   :material-harddisk:{ .lg .middle } __Opslag per Account__
 
     ---
 
     Zie hoeveel ruimte elke Postbus inneemt.
 
-    [:octicons-arrow-right-24: Read](AccountStorage.md)
+    [:octicons-arrow-right-24: Lees](AccountStorage.md)
 
 </div>
 
@@ -216,22 +224,22 @@ Stel het eenmalig in, bewaar elk bericht en vind het jaren later weer terug.
 
 <div class="grid cards" markdown>
 
--   :material-account-group:{ .lg .middle } __User management__
+-   :material-account-group:{ .lg .middle } __Gebruikersbeheer__
 
     ---
 
-    Maak gebruikers aan, verleen admin-rechten, wijs Postbus Machtigingen toe en wijzig je
+    Maak gebruikers aan, verleen admin-rechten, wijs Postbus machtigingen toe en wijzig je
     eigen wachtwoord.
 
-    [:octicons-arrow-right-24: Read](UserManagement.md)
+    [:octicons-arrow-right-24: Lees](UserManagement.md)
 
--   :material-two-factor-authentication:{ .lg .middle } __Two-factor authentication__
+-   :material-two-factor-authentication:{ .lg .middle } __Twee-factor authenticatie__
 
     ---
 
-    TOTP-instelling, backup codes, en wat te doen als een apparaat verloren is gegaan.
+    TOTP setup, herstelcodes, en wat te doen als een apparaat verloren is.
 
-    [:octicons-arrow-right-24: Read](TwoFactor.md)
+    [:octicons-arrow-right-24: Lees](TwoFactor.md)
 
 -   :material-key-chain:{ .lg .middle } __OIDC / SSO__
 
@@ -239,39 +247,39 @@ Stel het eenmalig in, bewaar elk bericht en vind het jaren later weer terug.
 
     Inloggen via Entra ID, Authelia of een andere identity provider.
 
-    [:octicons-arrow-right-24: Read](OIDC_Implementation.md)
+    [:octicons-arrow-right-24: Lees](OIDC_Implementation.md)
 
--   :material-text-box-search:{ .lg .middle } __Access logging__
+-   :material-text-box-search:{ .lg .middle } __Toegangslogging__
 
     ---
 
     Wie heeft wat geopend, gezocht, geëxporteerd of verwijderd.
 
-    [:octicons-arrow-right-24: Read](Logs.md)
+    [:octicons-arrow-right-24: Lees](Logs.md)
 
--   :material-file-export:{ .lg .middle } __Audit data export__
-
-    ---
-
-    Exporteer het auditspoor voor compliance-beoordelingen.
-
-    [:octicons-arrow-right-24: Read](AuditExport.md)
-
--   :material-lifebuoy:{ .lg .middle } __Emergency account recovery__
+-   :material-file-export:{ .lg .middle } __Auditdata export__
 
     ---
 
-    Herstel de toegang wanneer een Account is buitengesloten.
+    Exporteer het auditspoor voor compliance reviews.
 
-    [:octicons-arrow-right-24: Read](EmergencyAccountRecovery.md)
+    [:octicons-arrow-right-24: Lees](AuditExport.md)
+
+-   :material-lifebuoy:{ .lg .middle } __Noodgeval Account herstel__
+
+    ---
+
+    Toegang herwinnen wanneer een Account is geblokkeerd.
+
+    [:octicons-arrow-right-24: Lees](EmergencyAccountRecovery.md)
 
 -   :material-delete-sweep:{ .lg .middle } __Bewaring-beleid__
 
     ---
 
-    Automatische verwijdering van de e-mailserver of het lokale Archief.
+    Automatische verwijdering van de mailserver of het lokale Archief.
 
-    [:octicons-arrow-right-24: Read](RetentionPolicies.md)
+    [:octicons-arrow-right-24: Lees](RetentionPolicies.md)
 
 </div>
 
@@ -279,37 +287,37 @@ Stel het eenmalig in, bewaar elk bericht en vind het jaren later weer terug.
 
 <div class="grid cards" markdown>
 
--   :material-microsoft:{ .lg .middle } __Azure app registration (M365)__
+-   :material-microsoft:{ .lg .middle } __Azure app registratie (M365)__
 
     ---
 
     Registreer een app en configureer Bewaring voor Microsoft 365.
 
-    [:octicons-arrow-right-24: Read](AZURE_APP_REGISTRATION_M365.md)
+    [:octicons-arrow-right-24: Lees](AZURE_APP_REGISTRATION_M365.md)
 
--   :material-domain:{ .lg .middle } __M365 tenant mailbox import__
-
-    ---
-
-    Bulk-import van elke Postbus van een tenant via een enkel formulier.
-
-    [:octicons-arrow-right-24: Read](M365TenantImport.md)
-
--   :material-email-multiple:{ .lg .middle } __Mailcow instances__
+-   :material-domain:{ .lg .middle } __M365 tenant Postbus import__
 
     ---
 
-    Selecteer Postbussen centraal en bereid dedicated IMAP app-wachtwoorden voor.
+    Bulk-importeer elke Postbus van een tenant vanuit één enkel formulier.
 
-    [:octicons-arrow-right-24: Read](Mailcow.md)
+    [:octicons-arrow-right-24: Lees](M365TenantImport.md)
 
--   :material-account-key:{ .lg .middle } __Personal Microsoft accounts__
+-   :material-email-multiple:{ .lg .middle } __Mailcow instanties__
+
+    ---
+
+    Selecteer Postbussen centraal en provisioneer toegewezen IMAP app-wachtwoorden.
+
+    [:octicons-arrow-right-24: Lees](Mailcow.md)
+
+-   :material-account-key:{ .lg .middle } __Persoonlijke Microsoft Accounts__
 
     ---
 
     Outlook.com, Hotmail en M365 Family via device code flow.
 
-    [:octicons-arrow-right-24: Read](MSA_Outlook_Setup.md)
+    [:octicons-arrow-right-24: Lees](MSA_Outlook_Setup.md)
 
 -   :material-google:{ .lg .middle } __Gmail best practices__
 
@@ -317,19 +325,19 @@ Stel het eenmalig in, bewaar elk bericht en vind het jaren later weer terug.
 
     App-wachtwoorden, labels, expunge en de rate limits van Gmail.
 
-    [:octicons-arrow-right-24: Read](GmailBestPractices.md)
+    [:octicons-arrow-right-24: Lees](GmailBestPractices.md)
 
--   :material-email-off:{ .lg .middle } __Yahoo mail limitations__
+-   :material-email-off:{ .lg .middle } __Yahoo mail beperkingen__
 
     ---
 
-    Wat de IMAP- en export-endpoints van Yahoo niet zullen doen.
+    Wat de IMAP en export endpoints van Yahoo niet zullen doen.
 
-    [:octicons-arrow-right-24: Read](YahooMailExportLimitations.md)
+    [:octicons-arrow-right-24: Lees](YahooMailExportLimitations.md)
 
 </div>
 
-## 🔌 Programmatische Toegang {#programmatic-access}
+## 🔌 Programmeerbare Toegang {#programmatic-access}
 
 <div class="grid cards" markdown>
 
@@ -339,19 +347,19 @@ Stel het eenmalig in, bewaar elk bericht en vind het jaren later weer terug.
 
     Read-only toegang tot het Archief met scoped per-user API-sleutels.
 
-    [:octicons-arrow-right-24: Read](API.md)
+    [:octicons-arrow-right-24: Lees](API.md)
 
 -   :material-robot:{ .lg .middle } __MCP server__
 
     ---
 
-    Stel het Archief beschikbaar voor AI-agenten als ontdekbare tools.
+    Exposeer het Archief aan AI-agenten als ontdekbare tools.
 
-    [:octicons-arrow-right-24: Read](MCP.md)
+    [:octicons-arrow-right-24: Lees](MCP.md)
 
 </div>
 
-## 🧰 Operations & Development {#operations-development}
+## 🧰 Operations & Ontwikkeling {#operations-development}
 
 <div class="grid cards" markdown>
 
@@ -359,33 +367,33 @@ Stel het eenmalig in, bewaar elk bericht en vind het jaren later weer terug.
 
     ---
 
-    Schakel de taal van de interface en hoe je een vertaling toevoegt.
+    De interface taal wijzigen, en hoe je een vertaling toevoegt.
 
-    [:octicons-arrow-right-24: Read](Localization.md)
+    [:octicons-arrow-right-24: Lees](Localization.md)
 
 -   :material-docker:{ .lg .middle } __Docker Compose logs__
 
     ---
 
-    Lees container logs en wijzig het log-niveau.
+    Container logs lezen en het logniveau wijzigen.
 
-    [:octicons-arrow-right-24: Read](DockerComposeLogs.md)
+    [:octicons-arrow-right-24: Lees](DockerComposeLogs.md)
 
--   :material-heart-pulse:{ .lg .middle } __Health and metrics__
-
-    ---
-
-    Houd liveness, readiness en Archief-metrieken in de gaten via Prometheus of een ander monitoring-systeem.
-
-    [:octicons-arrow-right-24: Read](Monitoring.md)
-
--   :material-tag:{ .lg .middle } __Development versions__
+-   :material-heart-pulse:{ .lg . middle } __Health en metrics__
 
     ---
 
-    Schakel over naar een dev tag om aankomende wijzigingen te testen.
+    Houd liveness, readiness en Archief metrics in de gaten van Prometheus of een ander monitoringsysteem.
 
-    [:octicons-arrow-right-24: Read](DevTag.md)
+    [:octicons-arrow-right-24: Lees](Monitoring.md)
+
+-   :material-tag:{ .lg . middle } __Development versies__
+
+    ---
+
+    Schakel naar een dev tag om aankomende wijzigingen te testen.
+
+    [:octicons-arrow-right-24: Lees](DevTag.md)
 
 </div>
 
@@ -393,5 +401,5 @@ Stel het eenmalig in, bewaar elk bericht en vind het jaren later weer terug.
 
 <div class="docs-footer-note" markdown>
 :material-pencil: **Deze documentatie wordt continu uitgebreid.**
-Als je een fout vindt of een suggestie hebt, [open dan een issue](https://github.com/s1t5/mail-archiver/issues) of dien een pull request in.
+Als je een fout ziet of een suggestie hebt, [open dan een issue](https://github.com/s1t5/mail-archiver/issues) of dien een pull request in.
 </div>
