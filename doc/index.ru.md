@@ -1,8 +1,8 @@
-# 📧 Mail Archiver Documentation {#mail-archiver-documentation}
+# 📧 Документация Mail Archiver {#mail-archiver-documentation}
 
 <div class="docs-lead" markdown>
 **Self-hosted архивация электронной почты — архивируйте, ищите и экспортируйте почту от любого провайдера.**
-Настройте один раз, сохраните каждое сообщение и найдите его снова спустя годы.
+Настройте один раз, сохраняйте каждое сообщение и находите его спустя годы.
 </div>
 
 <div class="grid cards" markdown>
@@ -13,7 +13,7 @@
 
     Установите Mail Archiver с помощью Docker Compose и подключите свой первый почтовый ящик.
 
-    [:octicons-arrow-right-24: Setup and parameters](Setup.md)
+    [:octicons-arrow-right-24: Настройка и параметры](Setup.md)
 
 -   :material-magnify:{ .lg .middle } __Найти что угодно__
 
@@ -21,13 +21,13 @@
 
     Полнотекстовый поиск по всем аккаунтам с фильтрами, сортировкой и массовыми действиями.
 
-    [:octicons-arrow-right-24: Mail search](Search.md)
+    [:octicons-arrow-right-24: Поиск почты](Search.md)
 
 -   :material-api:{ .lg .middle } __Автоматизация__
 
     ---
 
-    Читайте свой архив с помощью скриптов и ИИ-агентов — API-ключи только для чтения с ограниченной областью доступа.
+    Читайте свой архив с помощью скриптов и AI-агентов — API-ключи только для чтения с ограниченной областью доступа.
 
     [:octicons-arrow-right-24: REST API](API.md) · [:octicons-arrow-right-24: MCP server](MCP.md)
 
@@ -37,200 +37,207 @@
 
     Двухфакторная аутентификация, SSO, логирование доступа и политики хранения данных.
 
-    [:octicons-arrow-right-24: Two-factor auth](TwoFactor.md) · [:octicons-arrow-right-24: OIDC / SSO](OIDC_Implementation.md)
+    [:octicons-arrow-right-24: Двухфакторная аутентификация](TwoFactor.md) · [:octicons-arrow-right-24: OIDC / SSO](OIDC_Implementation.md)
 
 </div>
 
-## 🛠️ Installation & Maintenance {#installation-maintenance}
+## 🛠️ Установка и обслуживание {#installation-maintenance}
 
 <div class="grid cards" markdown>
 
--   :material-cog:{ .lg .middle } __Setup and parameters__
+-   :material-cog:{ .lg .middle } __Настройка и параметры__
 
     ---
 
-    Все переменные окружения, Kestrel HTTPS и управление секретами.
+    Каждая переменная окружения, Kestrel HTTPS и управление секретами.
 
-    [:octicons-arrow-right-24: Read](Setup.md)
+    [:octicons-arrow-right-24: Читать](Setup.md)
 
--   :material-server-network:{ .lg .middle } __Reverse proxy__
+-   :material-server-network:{ .lg .middle } __Обратный прокси__
 
     ---
 
     Разместите Mail Archiver за nginx или Caddy с терминацией TLS.
 
-    [:octicons-arrow-right-24: Read](ReverseProxy.md)
+    [:octicons-arrow-right-24: Читать](ReverseProxy.md)
 
--   :material-database-arrow-up:{ .lg .middle } __PostgreSQL upgrade__
+-   :material-database-arrow-up:{ .lg .middle } __Обновление PostgreSQL__
 
     ---
 
     Переход на новую мажорную версию PostgreSQL без потери данных.
 
-    [:octicons-arrow-right-24: Read](PostgreSQLUpgrade.md)
+    [:octicons-arrow-right-24: Читать](PostgreSQLUpgrade.md)
 
--   :material-database-cog:{ .lg .middle } __Database maintenance__
-
-    ---
-
-    VACUUM, ANALYZE и поддержание производительности архива с течением времени.
-
-    [:octicons-arrow-right-24: Read](DatabaseMaintenance.md)
-
--   :material-backup-restore:{ .lg .middle } __Backup and restore__
+-   :material-database-cog:{ .lg .middle } __Обслуживание базы данных__
 
     ---
 
-    Резервное копирование базы данных и её восстановление — включая настройки Proxmox.
+    VACUUM, ANALYZE и поддержание отзывчивости архива с течением времени.
 
-    [:octicons-arrow-right-24: Read](BackupRestore.md)
+    [:octicons-arrow-right-24: Читать](DatabaseMaintenance.md)
 
--   :material-flask:{ .lg .middle } __Local test environment__
+-   :material-backup-restore:{ .lg .middle } __Резервное копирование и восстановление__
 
     ---
 
-    Запустите временный экземпляр локально, прежде чем переходить к продакшену.
+    Создание резервной копии базы данных и её восстановление — включая конфигурации Proxmox.
 
-    [:octicons-arrow-right-24: Read](LocalTestEnvironment.md)
+    [:octicons-arrow-right-24: Читать](BackupRestore.md)
+
+-   :material-flask:{ .lg .middle } __Локальная тестовая среда__
+
+    ---
+
+    Запустите временный экземпляр локально, прежде чем вносить изменения в продакшн.
+
+    [:octicons-arrow-right-24: Читать](LocalTestEnvironment.md)
 
 </div>
 
-## 📥 Getting Mail In {#getting-mail-in}
+## 📥 Импорт почты {#getting-mail-in}
 
 <div class="grid cards" markdown>
 
--   :material-account-plus:{ .lg .middle } __Account import__
+-   :material-account-plus:{ .lg .middle } __Импорт аккаунтов__
 
     ---
 
     Добавьте множество аккаунтов одновременно из CSV-файла.
 
-    [:octicons-arrow-right-24: Read](Account-Import.md)
+    [:octicons-arrow-right-24: Читать](Account-Import.md)
 
--   :material-email-sync:{ .lg .middle } __Synchronization__
-
-    ---
-
-    Быстрая vs полная синхронизация, контрольные точки и что происходит при сбое синхронизации.
-
-    [:octicons-arrow-right-24: Read](Synchronization.md)
-
--   :material-console:{ .lg .middle } __CLI commands__
+-   :material-email-sync:{ .lg .middle } __Синхронизация__
 
     ---
 
-    Импорт существующих архивов из командной строки и перемещение сохраненных оригинальных
-    сообщений между базой данных и файловой системой.
+    Быстрая против полной синхронизации, контрольные точки и что происходит при сбое синхронизации.
 
-    [:octicons-arrow-right-24: Read](CLI.md)
+    [:octicons-arrow-right-24: Читать](Synchronization.md)
 
--   :material-upload:{ .lg .middle } __Web import (EML / MBox)__
+-   :material-console:{ .lg .middle } __Команды CLI__
+
+    ---
+
+    Импорт существующих архивов из командной строки и перемещение сохраненных оригинальных сообщений между базой данных и файловой системой.
+
+    [:octicons-arrow-right-24: Читать](CLI.md)
+
+-   :material-upload:{ .lg .middle } __Веб-импорт (EML / MBox)__
 
     ---
 
     Загрузите файл MBox или ZIP с файлами EML через браузер.
 
-    [:octicons-arrow-right-24: Read](Import-EML-MBox.md)
+    [:octicons-arrow-right-24: Читать](Import-EML-MBox.md)
 
--   :material-timer-sand:{ .lg .middle } __Rate limit handling__
+-   :material-timer-sand:{ .lg .middle } __Обработка ограничений скорости (Rate limit)__
 
     ---
 
     Отслеживание пропускной способности и то, как приостановленные синхронизации возобновляются автоматически.
 
-    [:octicons-arrow-right-24: Read](RateLimitHandling.md)
+    [:octicons-arrow-right-24: Читать](RateLimitHandling.md)
 
 </div>
 
-## 🔍 Working with the Archive {#working-with-the-archive}
+## 🔍 Работа с архивом {#working-with-the-archive}
 
 <div class="grid cards" markdown>
 
--   :material-magnify:{ .lg .middle } __Mail search__
+-   :material-magnify:{ .lg .middle } __Поиск почты__
 
     ---
 
     Синтаксис запросов, фильтры, сортировка, пагинация и массовые действия.
 
-    [:octicons-arrow-right-24: Read](Search.md)
+    [:octicons-arrow-right-24: Читать](Search.md)
 
--   :material-progress-clock:{ .lg .middle } __Background jobs__
+-   :material-progress-clock:{ .lg .middle } __Фоновые задачи__
 
     ---
 
-    Отслеживайте синхронизации, импорты, восстановления и экспорты — и безопасно отменяйте их.
+    Отслеживание синхронизаций, импортов, восстановлений и экспортов — и их безопасная отмена.
 
-    [:octicons-arrow-right-24: Read](BackgroundJobs.md)
+    [:octicons-arrow-right-24: Читать](BackgroundJobs.md)
 
--   :material-swap-horizontal:{ .lg .middle } __Mailbox migration__
+-   :material-swap-horizontal:{ .lg .middle } __Миграция почтовых ящиков__
 
     ---
 
     Копирование почты между ящиками с сохранением структуры папок.
 
-    [:octicons-arrow-right-24: Read](MailboxMigration.md)
+    [:octicons-arrow-right-24: Читать](MailboxMigration.md)
 
--   :material-download:{ .lg .middle } __Account export (EML / MBox)__
-
-    ---
-
-    Выгрузка всего аккаунта обратно в переносимый архив EML или MBox.
-
-    [:octicons-arrow-right-24: Read](Export-Account.md)
-
--   :material-email-lock:{ .lg .middle } __Original message storage__
+-   :material-download:{ .lg .middle } __Экспорт аккаунта (EML / MBox)__
 
     ---
 
-    Хранение сообщения в том виде, в котором оно было получено, чтобы DKIM по-прежнему проходил проверку, а экспорты были байт-в-байт точными.
+    Экспорт всего аккаунта обратно в переносимый архив EML или MBox.
 
-    [:octicons-arrow-right-24: Read](RawMessages.md)
+    [:octicons-arrow-right-24: Читать](Export-Account.md)
 
--   :material-content-duplicate:{ .lg .middle } __Attachment deduplication__
-
-    ---
-
-    Как идентичные вложения хранятся один раз вместо множества копий.
-
-    [:octicons-arrow-right-24: Read](AttachmentDeduplication.md)
-
--   :material-calendar-arrow-right:{ .lg .middle } __Date-windowed offload__
+-   :material-email-lock:{ .lg .middle } __Хранение оригинальных сообщений__
 
     ---
 
-    Перемещение старой почты в другой аккаунт по временным интервалам.
+    Сохранение сообщения в полученном виде, чтобы DKIM по-прежнему проходил проверку, а экспорты были байт-в-байт идентичными.
 
-    [:octicons-arrow-right-24: Read](Offload.md)
+    [:octicons-arrow-right-24: Читать](RawMessages.md)
 
--   :material-harddisk:{ .lg .middle } __Per-account storage__
+-   :material-content-duplicate:{ .lg .middle } __Дедупликация вложений__
 
     ---
 
-    Узнайте, сколько места занимает каждый почтовый ящик.
+    Как идентичные вложения хранятся один раз вместо множества.
 
-    [:octicons-arrow-right-24: Read](AccountStorage.md)
+    [:octicons-arrow-right-24: Читать](AttachmentDeduplication.md)
+
+-   :material-file-pdf-box:{ .lg .middle } __Предпросмотр счетов XRechnung__
+
+    ---
+
+    Чтение XML-вложений XRechnung как PDF непосредственно в архиве.
+
+    [:octicons-arrow-right-24: Читать](EInvoicing.md)
+
+-   :material-calendar-arrow-right:{ .lg .middle } __Выгрузка по временным окнам__
+
+    ---
+
+    Перемещение старой почты в другой аккаунт, окно за окном.
+
+    [:octicons-arrow-right-24: Читать](Offload.md)
+
+-   :material-harddisk:{ .lg .middle } __Хранилище для каждого аккаунта__
+
+    ---
+
+    Посмотрите, сколько места занимает каждый почтовый ящик.
+
+    [:octicons-arrow-right-24: Читать](AccountStorage.md)
 
 </div>
 
-## 🔐 Administration & Security {#administration-security}
+## 🔐 Администрирование и безопасность {#administration-security}
 
 <div class="grid cards" markdown>
 
--   :material-account-group:{ .lg .middle } __User management__
+-   :material-account-group:{ .lg .middle } __Управление пользователями__
 
     ---
 
-    Создавайте пользователей, предоставляйте права администратора, назначайте разрешения для ящиков и меняйте свой собственный пароль.
+    Создание пользователей, предоставление прав администратора, назначение разрешений на почтовые ящики и смена собственного пароля.
 
-    [:octicons-arrow-right-24: Read](UserManagement.md)
+    [:octicons-arrow-right-24: Читать](UserManagement.md)
 
--   :material-two-factor-authentication:{ .lg .middle } __Two-factor authentication__
+-   :material-two-factor-authentication:{ .lg .middle } __Двухфакторная аутентификация__
 
     ---
 
     Настройка TOTP, резервные коды и что делать при потере устройства.
 
-    [:octicons-arrow-right-24: Read](TwoFactor.md)
+    [:octicons-arrow-right-24: Читать](TwoFactor.md)
 
 -   :material-key-chain:{ .lg .middle } __OIDC / SSO__
 
@@ -238,97 +245,97 @@
 
     Вход через Entra ID, Authelia или другой провайдер идентификации.
 
-    [:octicons-arrow-right-24: Read](OIDC_Implementation.md)
+    [:octicons-arrow-right-24: Читать](OIDC_Implementation.md)
 
--   :material-text-box-search:{ .lg .middle } __Access logging__
+-   :material-text-box-search:{ .lg .middle } __Логирование доступа__
 
     ---
 
-    Кто открывал, искал, экспортировал или удалял данные.
+    Кто открыл, искал, экспортировал или удалил.
 
-    [:octicons-arrow-right-24: Read](Logs.md)
+    [:octicons-arrow-right-24: Читать](Logs.md)
 
--   :material-file-export:{ .lg .middle } __Audit data export__
+-   :material-file-export:{ .lg .middle } __Экспорт данных аудита__
 
     ---
 
     Экспорт журнала аудита для проверок на соответствие требованиям.
 
-    [:octicons-arrow-right-24: Read](AuditExport.md)
+    [:octicons-arrow-right-24: Читать](AuditExport.md)
 
--   :material-lifebuoy:{ .lg .middle } __Emergency account recovery__
+-   :material-lifebuoy:{ .lg .middle } __Экстренное восстановление аккаунта__
 
     ---
 
-    Восстановление доступа при блокировке аккаунта.
+    Восстановление доступа, если аккаунт заблокирован.
 
-    [:octicons-arrow-right-24: Read](EmergencyAccountRecovery.md)
+    [:octicons-arrow-right-24: Читать](EmergencyAccountRecovery.md)
 
--   :material-delete-sweep:{ .lg .middle } __Retention policies__
+-   :material-delete-sweep:{ .lg .middle } __Политики хранения__
 
     ---
 
     Автоматическое удаление с почтового сервера или из локального архива.
 
-    [:octicons-arrow-right-24: Read](RetentionPolicies.md)
+    [:octicons-arrow-right-24: Читать](RetentionPolicies.md)
 
 </div>
 
-## ☁️ Provider Guides {#provider-guides}
+## ☁️ Руководства по провайдерам {#provider-guides}
 
 <div class="grid cards" markdown>
 
--   :material-microsoft:{ .lg .middle } __Azure app registration (M365)__
+-   :material-microsoft:{ .lg .middle } __Регистрация приложения Azure (M365)__
 
     ---
 
     Регистрация приложения и настройка политик хранения для Microsoft 365.
 
-    [:octicons-arrow-right-24: Read](AZURE_APP_REGISTRATION_M365.md)
+    [:octicons-arrow-right-24: Читать](AZURE_APP_REGISTRATION_M365.md)
 
--   :material-domain:{ .lg .middle } __M365 tenant mailbox import__
-
-    ---
-
-    Массовый импорт всех почтовых ящиков тенанта через одну форму.
-
-    [:octicons-arrow-right-24: Read](M365TenantImport.md)
-
--   :material-email-multiple:{ .lg .middle } __Mailcow instances__
+-   :material-domain:{ .lg .middle } __Импорт почтовых ящиков тенанта M365__
 
     ---
 
-    Централизованный выбор ящиков и создание выделенных паролей приложений IMAP.
+    Массовый импорт всех почтовых ящиков тенанта из одной формы.
 
-    [:octicons-arrow-right-24: Read](Mailcow.md)
+    [:octicons-arrow-right-24: Читать](M365TenantImport.md)
 
--   :material-account-key:{ .lg .middle } __Personal Microsoft accounts__
+-   :material-email-multiple:{ .lg .middle } __Экземпляры Mailcow__
+
+    ---
+
+    Централизованный выбор почтовых ящиков и создание выделенных паролей приложений IMAP.
+
+    [:octicons-arrow-right-24: Читать](Mailcow.md)
+
+-   :material-account-key:{ .lg .middle } __Личные аккаунты Microsoft__
 
     ---
 
     Outlook.com, Hotmail и M365 Family через device code flow.
 
-    [:octicons-arrow-right-24: Read](MSA_Outlook_Setup.md)
+    [:octicons-arrow-right-24: Читать](MSA_Outlook_Setup.md)
 
--   :material-google:{ .lg .middle } __Gmail best practices__
-
-    ---
-
-    Пароли приложений, метки, expunge и ограничения скорости Gmail.
-
-    [:octicons-arrow-right-24: Read](GmailBestPractices.md)
-
--   :material-email-off:{ .lg .middle } __Yahoo mail limitations__
+-   :material-google:{ .lg .middle } __Лучшие практики Gmail__
 
     ---
 
-    Что не умеют делать IMAP и эндпоинты экспорта Yahoo.
+    Пароли приложений, ярлыки, expunge и ограничения скорости Gmail.
 
-    [:octicons-arrow-right-24: Read](YahooMailExportLimitations.md)
+    [:octicons-arrow-right-24: Читать](GmailBestPractices.md)
+
+-   :material-email-off:{ .lg .middle } __Ограничения Yahoo mail__
+
+    ---
+
+    Что не смогут делать IMAP и эндпоинты экспорта Yahoo.
+
+    [:octicons-arrow-right-24: Читать](YahooMailExportLimitations.md)
 
 </div>
 
-## 🔌 Programmatic Access {#programmatic-access}
+## 🔌 Программный доступ {#programmatic-access}
 
 <div class="grid cards" markdown>
 
@@ -338,60 +345,60 @@
 
     Доступ к архиву только для чтения с ограниченными API-ключами для каждого пользователя.
 
-    [:octicons-arrow-right-24: Read](API.md)
+    [:octicons-arrow-right-24: Читать](API.md)
 
 -   :material-robot:{ .lg .middle } __MCP server__
 
     ---
 
-    Предоставление доступа к архиву для ИИ-агентов в качестве обнаруживаемых инструментов.
+    Предоставление архива AI-агентам в качестве обнаруживаемых инструментов.
 
-    [:octicons-arrow-right-24: Read](MCP.md)
+    [:octicons-arrow-right-24: Читать](MCP.md)
 
 </div>
 
-## 🧰 Operations & Development {#operations-development}
+## 🧰 Эксплуатация и разработка {#operations-development}
 
 <div class="grid cards" markdown>
 
--   :material-translate:{ .lg .middle } __Language and localization__
+-   :material-translate:{ .lg .middle } __Язык и локализация__
 
     ---
 
     Смена языка интерфейса и способы добавления перевода.
 
-    [:octicons-arrow-right-24: Read](Localization.md)
+    [:octicons-arrow-right-24: Читать](Localization.md)
 
--   :material-docker:{ .lg .middle } __Docker Compose logs__
+-   :material-docker:{ .lg .middle } __Логи Docker Compose__
 
     ---
 
-    Чтение логов контейнеров и изменение уровня логирования.
+    Чтение логов контейнера и изменение уровня логирования.
 
-    [:octicons-arrow-right-24: Read](DockerComposeLogs.md)
+    [:octicons-arrow-right-24: Читать](DockerComposeLogs.md)
 
--   :material-heart-pulse:{ .lg .middle } __Health and metrics__
+-   :material-heart-pulse:{ .lg .middle } __Здоровье и метрики__
 
     ---
 
     Отслеживание liveness, readiness и метрик архива из Prometheus или другой системы мониторинга.
 
-    [:octicons-arrow-right-24: Read](Monitoring.md)
+    [:octicons-arrow-right-24: Читать](Monitoring.md)
 
--   :material-tag:{ .lg .middle } __Development versions__
+-   :material-tag:{ .lg .middle } __Разрабатываемые версии__
 
     ---
 
     Переключение на dev-тег для тестирования предстоящих изменений.
 
-    [:octicons-arrow-right-24: Read](DevTag.md)
+    [:octicons-arrow-right-24: Читать](DevTag.md)
 
 </div>
 
 ---
 
 <div class="docs-footer-note" markdown>
-:material-pencil: **Эта документация постоянно расширяется.**
+:material-pencil: **Эта документация постоянно дополняется.**
 Если вы заметили ошибку или у вас есть предложение, пожалуйста,
-[open an issue](https://github.com/s1t5/mail-archiver/issues) или отправьте pull request.
+[откройте issue](https://github.com/s1t5/mail-archiver/issues) или отправьте pull request.
 </div>
