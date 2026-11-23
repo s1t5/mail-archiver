@@ -1,8 +1,8 @@
-# 📧 Mail Archiver Dokumentacija {#mail-archiver-documentation}
+# 📧 Dokumentacija Mail Archiver {#mail-archiver-documentation}
 
 <div class="docs-lead" markdown>
-**Samostojno arhiviranje e-pošte — arhivirajte, iščite in izvozite pošto iz katerega koli ponudnika.**
-Namestite enkrat, shranite vsako sporočilo in ga ponovno najdite čez leta.
+**Arhiviranje e-pošte na lastni infrastrukturi — arhivirajte, iščite in izvozi pošto iz katerega koli ponudnika.**
+Namestite enkrat, shranite vsako sporočilo in ga najdete ponovno čez leta.
 </div>
 
 <div class="grid cards" markdown>
@@ -15,29 +15,29 @@ Namestite enkrat, shranite vsako sporočilo in ga ponovno najdite čez leta.
 
     [:octicons-arrow-right-24: Nastavitev in parametri](Setup.md)
 
--   :material-magnify:{ .lg .middle } __Išči karkoli__
+-   :material-magnify:{ .lg .middle } __Najdi karkoli__
 
     ---
 
-    Iskanje polnega besedila čez vsa računa, s filtri, razvrščanjem in množičnimi dejanji.
+    Iskanje po celotnem besedilu skozi vse račune, s filtri, sortiranjem in množinskimi dejanji.
 
     [:octicons-arrow-right-24: Iskanje pošte](Search.md)
 
--   :material-api:{ .lg .middle } __Avtomatizirajte__
+-   :material-api:{ .lg .middle } __Avtomatizacija__
 
     ---
 
-    Prebirajte svoj arhiv s skriptami in AI agenti — API ključi z lesenimi pravicami in omejenim obsegom.
+    Preberite svoj arhiv s skripti in AI agenti — API ključi z omejenimi pravicami samo za branje.
 
     [:octicons-arrow-right-24: REST API](API.md) · [:octicons-arrow-right-24: MCP server](MCP.md)
 
--   :material-shield-lock:{ .lg .middle } __Zagotovite varnost__
+-   :material-shield-lock:{ .lg .middle } __Varnost__
 
     ---
 
-    Vsakotna avtentikacija, SSO, beleženje dostopa in politike zadrževanja podatkov.
+    Dvoslojna avtentikacija, SSO, beleženje dostopa in politike zadrževanja podatkov.
 
-    [:octicons-arrow-right-24: Vsakotna avtentikacija](TwoFactor.md) · [:octicons-arrow-right-24: OIDC / SSO](OIDC_Implementation.md)
+    [:octicons-arrow-right-24: Dvoslojna avtentikacija](TwoFactor.md) · [:octicons-arrow-right-24: OIDC / SSO](OIDC_Implementation.md)
 
 </div>
 
@@ -49,7 +49,7 @@ Namestite enkrat, shranite vsako sporočilo in ga ponovno najdite čez leta.
 
     ---
 
-    Vsaka okoljska spremenljivka, Kestrel HTTPS in upravljanje tajnosti.
+    Vsaka okoljska spremenljivka, Kestrel HTTPS in upravljanje tajnosti (secrets).
 
     [:octicons-arrow-right-24: Preberi](Setup.md)
 
@@ -57,11 +57,11 @@ Namestite enkrat, shranite vsako sporočilo in ga ponovno najdite čez leta.
 
     ---
 
-    Postavite Mail Archiver za nginx ali Caddy s TLS terminacijo.
+    Postavite Mail Archiver za nginx ali Caddy z TLS terminacijo.
 
     [:octicons-arrow-right-24: Preberi](ReverseProxy.md)
 
--   :material-database-arrow-up:{ .lg .middle } __PostgreSQL nadgradnja__
+-   :material-database-arrow-up:{ .lg .middle } __Nadgradnja PostgreSQL__
 
     ---
 
@@ -73,15 +73,15 @@ Namestite enkrat, shranite vsako sporočilo in ga ponovno najdite čez leta.
 
     ---
 
-    VACUUM, ANALYZE in ohranjanje odzivnosti arhiva čez čas.
+    VACUUM, ANALYZE in ohranjanje odzivnosti arhiviranja čez čas.
 
     [:octicons-arrow-right-24: Preberi](DatabaseMaintenance.md)
 
--   :material-backup-restore:{ .lg .middle } __Zaslona in obnavljanje__
+-   :material-backup-restore:{ .lg .middle } __Privzibavanje in obnavljanje__
 
     ---
 
-    Zasloni bazo podatkov in jo obnovite — vključno z Proxmox nastavitvami.
+    Privzibakujte bazo podatkov in jo obnovite — vključno s Proxmox nastavitvami.
 
     [:octicons-arrow-right-24: Preberi](BackupRestore.md)
 
@@ -89,13 +89,13 @@ Namestite enkrat, shranite vsako sporočilo in ga ponovno najdite čez leta.
 
     ---
 
-    Zagnajte začasno različico lokalno, preden začnete z uporabo v produkciji.
+    Zaženite začasno instanco lokalno, preden posežete za produkcijo.
 
     [:octicons-arrow-right-24: Preberi](LocalTestEnvironment.md)
 
 </div>
 
-## 📥 Uvoz pošte {#getting-mail-in}
+## 📥 Uvozi pošte {#getting-mail-in}
 
 <div class="grid cards" markdown>
 
@@ -115,11 +115,12 @@ Namestite enkrat, shranite vsako sporočilo in ga ponovno najdite čez leta.
 
     [:octicons-arrow-right-24: Preberi](Synchronization.md)
 
--   :material-console:{ .lg .middle } __CLI ukledi__
+-   :material-console:{ .lg .middle } __CLI ukazi__
 
     ---
 
-    Uvozite obstoječe arhive iz ukazne vrstice in premikajte shranjena izvorna sporočila med bazo podatkov in datoteko.
+    Uvozite obstoječe arhive iz vrstičnega konzole in premikajte shranjena izvorna
+    sporočila med bazo podatkov in datoteko.
 
     [:octicons-arrow-right-24: Preberi](CLI.md)
 
@@ -135,7 +136,7 @@ Namestite enkrat, shranite vsako sporočilo in ga ponovno najdite čez leta.
 
     ---
 
-    Sledenje širini hapa in način, kako se prekinjene sinhronizacije same nadaljujejo.
+    Spremljanje pasovnega obsega in način, kako se ustavljene sinhronizacije same nadaljujejo.
 
     [:octicons-arrow-right-24: Preberi](RateLimitHandling.md)
 
@@ -149,15 +150,15 @@ Namestite enkrat, shranite vsako sporočilo in ga ponovno najdite čez leta.
 
     ---
 
-    Sintaksa poizvedb, filtri, razvrščanje, straničenje in množična deja.
+    Sintaksa za poizvedbe, filtri, sortiranje, straničenje in množinska dejanja.
 
     [:octicons-arrow-right-24: Preberi](Search.md)
 
--   :material-progress-clock:{ .lg .middle } __Zadnje naloge__
+-   :material-progress-clock:{ .lg .middle } __Stižna opravila__
 
     ---
 
-    Spremljajte sinhronizacije, uvoze, obnavitve in izvoze — in jih varno prekličite.
+    Spremljajte sinhronizacije, uvoze, obnavlave in izvoze — ter jih varno prekličite.
 
     [:octicons-arrow-right-24: Preberi](BackgroundJobs.md)
 
@@ -165,7 +166,7 @@ Namestite enkrat, shranite vsako sporočilo in ga ponovno najdite čez leta.
 
     ---
 
-    Kopirajte pošto med poštne predale ob ohranjanju strukture map.
+    Kopirajte pošto med poštna predala ob ohranjanju strukture map.
 
     [:octicons-arrow-right-24: Preberi](MailboxMigration.md)
 
@@ -173,7 +174,7 @@ Namestite enkrat, shranite vsako sporočilo in ga ponovno najdite čez leta.
 
     ---
 
-    Izvozite celoten račun kot prenosljiv EML ali MBox arhiv.
+    Izvozite celoten račun nazaj kot prenosljiv EML ali MBox arhiv.
 
     [:octicons-arrow-right-24: Preberi](Export-Account.md)
 
@@ -181,11 +182,11 @@ Namestite enkrat, shranite vsako sporočilo in ga ponovno najdite čez leta.
 
     ---
 
-    Sporočilo shranite tako, kot je bilo prejeto, da DKIM še vedno deluje in so izvozi natančni do bajta.
+    Sporočilo shranite tako, kot je bilo prejeto, da DKIM še vedno potrjuje in so izvozi byte-točno identični.
 
     [:octicons-arrow-right-24: Preberi](RawMessages.md)
 
--   :material-content-duplicate:{ .lg .middle } __Dedupikacija prilog__
+-   :material-content-duplicate:{ .lg .middle } __Odpravljanje podvojkov prilog__
 
     ---
 
@@ -193,11 +194,19 @@ Namestite enkrat, shranite vsako sporočilo in ga ponovno najdite čez leta.
 
     [:octicons-arrow-right-24: Preberi](AttachmentDeduplication.md)
 
--   :material-calendar-arrow-right:{ .lg .middle } __Preusmerjanje po datumu__
+-   :material-file-pdf-box:{ .lg .middle } __Predogled XRechnung računov__
 
     ---
 
-    Premiknite starejšo pošto na drug račun, razdelek po razdelek.
+    Preberite XRechnung XML priloge kot PDF neposredno v arhivu.
+
+    [:octicons-arrow-right-24: Preberi](EInvoicing.md)
+
+-   :material-calendar-arrow-right:{ .lg .middle } __Preuslanjanje po časovnih oknih__
+
+    ---
+
+    Premikajte starejšo pošto na drug račun, okno po okno.
 
     [:octicons-arrow-right-24: Preberi](Offload.md)
 
@@ -219,15 +228,16 @@ Namestite enkrat, shranite vsako sporočilo in ga ponovno najdite čez leta.
 
     ---
 
-    Ustvarite uporabnike, podelite admin pravice, dodelite dovoljenja za poštne predale in spremenite svojo geslo.
+    Ustvarite uporabnike, dodelite administrativne pravice, dodelite dovoljenja za poštne predale in spremenite svojo
+    geslo.
 
     [:octicons-arrow-right-24: Preberi](UserManagement.md)
 
--   :material-two-factor-authentication:{ .lg .middle } __Vsakotna avtentikacija__
+-   :material-two-factor-authentication:{ .lg .middle } __Dvoslojna avtentikacija__
 
     ---
 
-    Nastavitev TOTP, rezervne kode in kaj storiti, če izgubite napravo.
+    Nastavitev TOTP, nadgraditvene kode in kaj storiti, če izgubite napravo.
 
     [:octicons-arrow-right-24: Preberi](TwoFactor.md)
 
@@ -243,7 +253,7 @@ Namestite enkrat, shranite vsako sporočilo in ga ponovno najdite čez leta.
 
     ---
 
-    Kdo je odprl, iskal, izvozil ali izbrisal kaj.
+    Kdo je odprl, iskal, izvoзил ali izbrisal kaj.
 
     [:octicons-arrow-right-24: Preberi](Logs.md)
 
@@ -251,29 +261,27 @@ Namestite enkrat, shranite vsako sporočilo in ga ponovno najdite čez leta.
 
     ---
 
-    Izvozite revizijsko sled za revizijske pregledov.
+    Izvozite revizijsko sled za preglede skladnosti.
 
     [:octicons-arrow-right-24: Preberi](AuditExport.md)
 
--   :material-lifebuoy:{ .lg .middle } __Nujno okrevanje računa__
+-   :material-lifebuoy:{ .lg .middle } __Nujna obnova računa__
 
     ---
 
-    Pridobite dostop, ko je račun blokiran.
+    Povrazite dostop, ko je račun blokiran.
 
     [:octicons-arrow-right-24: Preberi](EmergencyAccountRecovery.md)
 
 -   :material-delete-sweep:{ .lg .middle } __Politike zadrževanja__
 
-    ---
-
-    Samodejno brisanje s poštnih strežnikov ali iz lokalnega arhiva.
+    ---    Avtomatsko brisanje s poštnega strežnika ali iz lokalnega arhiva.
 
     [:octicons-arrow-right-24: Preberi](RetentionPolicies.md)
 
 </div>
 
-## ☁️ Vodniki za ponudnike {#provider-guides}
+## ☁️ Navodila za ponudnike {#provider-guides}
 
 <div class="grid cards" markdown>
 
@@ -289,7 +297,7 @@ Namestite enkrat, shranite vsako sporočilo in ga ponovno najdite čez leta.
 
     ---
 
-    Množični uvoz vseh poštnih predal tenantov prek enega obrazca.
+    Mass-import vsakega poštnega predala tenanta iz enega obrazca.
 
     [:octicons-arrow-right-24: Preberi](M365TenantImport.md)
 
@@ -297,7 +305,7 @@ Namestite enkrat, shranite vsako sporočilo in ga ponovno najdite čez leta.
 
     ---
 
-    Izberite poštne predale centralno in zagotovite namenska IMAP gesla za aplikacije.
+    Izberite poštne predale centralno in zagotovite namenske IMAP gesla za aplikacije.
 
     [:octicons-arrow-right-24: Preberi](Mailcow.md)
 
@@ -305,7 +313,7 @@ Namestite enkrat, shranite vsako sporočilo in ga ponovno najdite čez leta.
 
     ---
 
-    Outlook.com, Hotmail in M365 Family prek device code flow.
+    Outlook.com, Hotmail in M365 Family prek postopka device code flow.
 
     [:octicons-arrow-right-24: Preberi](MSA_Outlook_Setup.md)
 
@@ -313,7 +321,7 @@ Namestite enkrat, shranite vsako sporočilo in ga ponovno najdite čez leta.
 
     ---
 
-    Gesla za aplikacije, oznake, expunge in Gmailove omejitve hitrosti.
+    Gesla za aplikacije, oznake, expunge in omejitve hitrosti Gmaila.
 
     [:octicons-arrow-right-24: Preberi](GmailBestPractices.md)
 
@@ -321,7 +329,7 @@ Namestite enkrat, shranite vsako sporočilo in ga ponovno najdite čez leta.
 
     ---
 
-    Kaj Yahoo-jev IMAP in izvozni endpoint ne bodo naredili.
+    Kaj Yahoo-jevi IMAP in izvozni kontejner ne bodo naredili.
 
     [:octicons-arrow-right-24: Preberi](YahooMailExportLimitations.md)
 
@@ -335,7 +343,7 @@ Namestite enkrat, shranite vsako sporočilo in ga ponovno najdite čez leta.
 
     ---
 
-    Dostop z lesenimi pravicami do arhiva s specifičnimi API klji za uporabnika.
+    Dostop samo za branje do arhiva s skopiranimi API klipi za posameznega uporabnika.
 
     [:octicons-arrow-right-24: Preberi](API.md)
 
@@ -343,13 +351,13 @@ Namestite enkrat, shranite vsako sporočilo in ga ponovno najdite čez leta.
 
     ---
 
-    Raz暴露 arhiv AI agentom kot ugotavljiva orodja.
+    Razpoložite arhiv za AI agente kot ugotavljive orodje.
 
     [:octicons-arrow-right-24: Preberi](MCP.md)
 
 </div>
 
-## 🧰 Delovanje in razvoj {#operations-development}
+## 🧰 Operacije in razvoj {#operations-development}
 
 <div class="grid cards" markdown>
 
@@ -357,15 +365,15 @@ Namestite enkrat, shranite vsako sporočilo in ga ponovno najdite čez leta.
 
     ---
 
-    Sprememba jezika v vmesniku in način dodajanja prevoda.
+    Spremenite jezik v vmesniku in kako dodati prevod.
 
     [:octicons-arrow-right-24: Preberi](Localization.md)
 
--   :material-docker:{ .lg .middle } __Docker Compose dnevniki__
+-   :material-docker:{ .lg .middle } __Docker Compose logi__
 
     ---
 
-    Prebiranje dnevnikov kontejnerjev in sprememba ravni beleženja.
+    Preberite loge kontejnerjev in spremenite raven logiranja.
 
     [:octicons-arrow-right-24: Preberi](DockerComposeLogs.md)
 
@@ -373,7 +381,7 @@ Namestite enkrat, shranite vsako sporočilo in ga ponovno najdite čez leta.
 
     ---
 
-    Spremljanje liveness, readiness in metrik arhiva iz Prometheus ali drugega sistema za spremljanje.
+    Spremljajte liveness, readiness in metrike arhiva iz Prometheus ali drugega sistema za spremljanje.
 
     [:octicons-arrow-right-24: Preberi](Monitoring.md)
 
@@ -381,7 +389,7 @@ Namestite enkrat, shranite vsako sporočilo in ga ponovno najdite čez leta.
 
     ---
 
-    Prehod na dev tag za testiranje prihajajočih sprememb.
+    Preklopite na razvojno oznako (dev tag) za testiranje prihajajočih sprememb.
 
     [:octicons-arrow-right-24: Preberi](DevTag.md)
 
@@ -391,6 +399,6 @@ Namestite enkrat, shranite vsako sporočilo in ga ponovno najdite čez leta.
 
 <div class="docs-footer-note" markdown>
 :material-pencil: **Ta dokumentacija se nenehno širi.**
-Če opazite napako ali imate predlog, prosimo
-[odprite težavo](https://github.com/s1t5/mail-archiver/issues) ali pošljite pull request.
+Če opazite napako ali imate predlog, prosim
+[odprite težavo (issue)](https://github.com/s1t5/mail-archiver/issues) ali pošljite pull request.
 </div>
