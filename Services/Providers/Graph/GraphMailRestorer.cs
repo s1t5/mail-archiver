@@ -5,6 +5,8 @@ using MailArchiver.Utilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Graph;
 using Microsoft.Graph.Models;
+using Microsoft.Kiota.Abstractions;
+using System.Text;
 
 namespace MailArchiver.Services.Providers.Graph
 {
@@ -19,19 +21,22 @@ namespace MailArchiver.Services.Providers.Graph
         private readonly MailArchiverDbContext _context;
         private readonly ILogger<GraphMailRestorer> _logger;
         private readonly DateTimeHelper _dateTimeHelper;
+        private readonly IRawMessageStore? _rawMessageStore;
 
         public GraphMailRestorer(
             GraphAuthClientFactory authFactory,
             IGraphFolderService folderService,
             MailArchiverDbContext context,
             ILogger<GraphMailRestorer> logger,
-            DateTimeHelper dateTimeHelper)
+            DateTimeHelper dateTimeHelper,
+            IRawMessageStore? rawMessageStore = null)
         {
             _authFactory = authFactory;
             _folderService = folderService;
             _context = context;
             _logger = logger;
             _dateTimeHelper = dateTimeHelper;
+            _rawMessageStore = rawMessageStore;
         }
 
         /// <summary>
@@ -113,6 +118,19 @@ namespace MailArchiver.Services.Providers.Graph
                         return false;
                     }
                     _logger.LogWarning("Target folder {FolderName} not found, using Inbox instead", targetFolderPath);
+                }
+
+                // A stored original is appended as-is when one exists, the same cascade the
+                // single-email export and the IMAP restore use: it carries the headers and the
+                // MIME structure that arrived, which a rebuild from the archived fields cannot
+                // reproduce. ReadAsync throws RawMessageIntegrityException when the bytes no
+                // longer match their checksum; the outer catch then fails this email instead of
+                // silently replacing the original with a reconstruction.
+                var original = _rawMessageStore == null ? null : await _rawMessageStore.ReadAsync(email.Id);
+                if (original != null &&
+                    await TryCreateFromMimeAsync(graphClient, targetAccount, targetFolder, email, original))
+                {
+                    return true;
                 }
 
                 // Process the HTML body to ensure inline images are properly referenced
@@ -201,6 +219,67 @@ namespace MailArchiver.Services.Providers.Graph
             {
                 _logger.LogError(ex, "Error restoring email {EmailId} to folder {FolderName} via Graph API: {Message}",
                     email.Id, folderName, ex.Message);
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Creates the message in the target folder from the stored RFC 5322 bytes. Graph takes
+        /// MIME on the same endpoint as the JSON form: <c>Content-Type: text/plain</c> with the
+        /// base64 encoded message as the body. Headers, body, attachments and inline images all
+        /// travel inside the MIME, so nothing is restored a second time.
+        /// <para>
+        /// Returns false when Graph rejects the request for a reason other than message
+        /// integrity, so the caller can fall back to a rebuild from the archived fields. That
+        /// keeps a restore working when, for example, the MIME exceeds a mailbox limit.
+        /// </para>
+        /// </summary>
+        internal async Task<bool> TryCreateFromMimeAsync(
+            GraphServiceClient graphClient,
+            MailAccount targetAccount,
+            MailFolder targetFolder,
+            ArchivedEmail email,
+            RawMessageContent original)
+        {
+            try
+            {
+                var request = graphClient.Users[targetAccount.EmailAddress]
+                    .MailFolders[targetFolder.Id]
+                    .Messages
+                    .ToPostRequestInformation(new Message());
+
+                // ToPostRequestInformation presets a JSON body. The MIME form needs the raw
+                // payload and its own content type, so the preset headers are dropped first.
+                request.Headers.Clear();
+
+                var encoded = Convert.ToBase64String(original.Bytes);
+                request.SetStreamContent(
+                    new MemoryStream(Encoding.ASCII.GetBytes(encoded), writable: false),
+                    "text/plain");
+
+                var created = await graphClient.RequestAdapter.SendAsync(
+                    request, Message.CreateFromDiscriminatorValue);
+
+                if (created == null)
+                {
+                    _logger.LogWarning(
+                        "Graph returned no message when restoring email {EmailId} from its stored original; " +
+                        "rebuilding it from the archived fields instead", email.Id);
+                    return false;
+                }
+
+                _logger.LogInformation(
+                    "Restored email {EmailId} from its stored original (source {Source}, storage {Storage}), " +
+                    "message id {MessageId}",
+                    email.Id, original.Source, original.StorageType, created.Id);
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex,
+                    "Restoring email {EmailId} from its stored original failed; rebuilding it from the " +
+                    "archived fields instead", email.Id);
                 return false;
             }
         }

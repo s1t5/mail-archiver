@@ -12,6 +12,13 @@ namespace MailArchiver.Services.Shared
         int Failed,
         IReadOnlyList<string> Errors)
     {
+        /// <summary>
+        /// The emails that failed in this batch. They stay on the source backend, so a caller
+        /// that loops over batches can exclude them from the next selection instead of retrying
+        /// them (and reporting them again) until the source is drained.
+        /// </summary>
+        public IReadOnlyList<int> FailedEmailIds { get; init; } = Array.Empty<int>();
+
         public bool Success => Failed == 0;
     }
 
@@ -51,12 +58,14 @@ namespace MailArchiver.Services.Shared
         /// <summary>
         /// Moves up to <paramref name="batchSize"/> messages from <paramref name="from"/> to
         /// <paramref name="to"/>. Pass null for either to use the configured backend.
+        /// <paramref name="excludeEmailIds"/> skips rows a previous batch already failed on.
         /// </summary>
         public async Task<RawMessageMigrationResult> MigrateAsync(
             string? from = null,
             string? to = null,
             int batchSize = 200,
-            CancellationToken cancellationToken = default)
+            CancellationToken cancellationToken = default,
+            IReadOnlyCollection<int>? excludeEmailIds = null)
         {
             var source = RawMessageStorage.Normalize(from ?? _options.EffectiveStorage);
             var target = RawMessageStorage.Normalize(to ?? _options.EffectiveStorage);
@@ -69,9 +78,16 @@ namespace MailArchiver.Services.Shared
             var moved = 0;
             var failed = 0;
             var errors = new List<string>();
+            var failedEmailIds = new List<int>();
 
-            var candidates = await _context.RawMessages
-                .Where(r => r.StorageType == source)
+            var query = _context.RawMessages.Where(r => r.StorageType == source);
+            if (excludeEmailIds is { Count: > 0 })
+            {
+                var excluded = excludeEmailIds.ToList();
+                query = query.Where(r => !excluded.Contains(r.ArchivedEmailId));
+            }
+
+            var candidates = await query
                 .OrderBy(r => r.ArchivedEmailId)
                 .Take(batchSize)
                 .ToListAsync(cancellationToken);
@@ -99,6 +115,7 @@ namespace MailArchiver.Services.Shared
                     or UnauthorizedAccessException or InvalidDataException)
                 {
                     failed++;
+                    failedEmailIds.Add(row.ArchivedEmailId);
                     errors.Add($"Email {row.ArchivedEmailId}: {ex.Message}");
                     _logger.LogError(ex,
                         "Raw message storage migration failed for email {EmailId}", row.ArchivedEmailId);
@@ -119,7 +136,10 @@ namespace MailArchiver.Services.Shared
                 "Raw message storage migration {From} -> {To}: {Moved} moved, {Skipped} skipped, {Failed} failed",
                 source, target, moved, skipped, failed);
 
-            return new RawMessageMigrationResult(moved, skipped, failed, errors);
+            return new RawMessageMigrationResult(moved, skipped, failed, errors)
+            {
+                FailedEmailIds = failedEmailIds
+            };
         }
 
         /// <summary>

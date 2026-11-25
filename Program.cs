@@ -674,16 +674,22 @@ if (cliArgs.Contains("--migrate-raw-storage"))
         var migrator = migrateScope.ServiceProvider.GetRequiredService<MailArchiver.Services.Shared.RawMessageStorageMigrator>();
 
         var moved = 0;
-        var failed = 0;
+        var failedIds = new HashSet<int>();
         var errors = new List<string>();
 
         // Loop until the source backend has no rows left, so one invocation drains the archive.
+        // Rows that failed stay on the source; they are passed back as an exclusion list so a
+        // corrupt message is reported once instead of once per remaining batch.
         while (true)
         {
-            var result = await migrator.MigrateAsync(fromStorage, toStorage, batchSize);
+            var result = await migrator.MigrateAsync(
+                fromStorage, toStorage, batchSize, excludeEmailIds: failedIds);
             moved += result.Moved;
-            failed += result.Failed;
             errors.AddRange(result.Errors);
+            foreach (var emailId in result.FailedEmailIds)
+            {
+                failedIds.Add(emailId);
+            }
 
             Console.WriteLine($"Batch: {result.Moved} moved, {result.Skipped} skipped, {result.Failed} failed");
 
@@ -699,13 +705,13 @@ if (cliArgs.Contains("--migrate-raw-storage"))
             }
         }
 
-        Console.WriteLine($"Done: {moved} moved, {failed} failed.");
+        Console.WriteLine($"Done: {moved} moved, {failedIds.Count} failed.");
         foreach (var error in errors)
         {
             Console.WriteLine($"  {error}");
         }
 
-        Environment.Exit(failed > 0 ? 1 : 0);
+        Environment.Exit(failedIds.Count > 0 ? 1 : 0);
     }
     catch (Exception ex)
     {

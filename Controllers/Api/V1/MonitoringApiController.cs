@@ -36,10 +36,15 @@ public class MonitoringApiController : ApiControllerBase
 
     /// <summary>Liveness: the process accepts requests. No dependency is touched.</summary>
     [HttpGet("health/live")]
+    [Produces("application/json")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public IActionResult Live() => Ok(new { status = "Healthy" });
 
     /// <summary>Readiness: PostgreSQL is reachable and the archive schema exists.</summary>
     [HttpGet("health/ready")]
+    [Produces("application/json")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status503ServiceUnavailable)]
     public async Task<IActionResult> Ready()
     {
         var report = await _healthChecks.CheckHealthAsync(
@@ -51,6 +56,9 @@ public class MonitoringApiController : ApiControllerBase
 
     /// <summary>Aggregate health, including sync freshness. Degraded stays HTTP 200.</summary>
     [HttpGet("health")]
+    [Produces("application/json")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status503ServiceUnavailable)]
     public async Task<IActionResult> Health()
     {
         var report = await _healthChecks.CheckHealthAsync(HttpContext.RequestAborted);

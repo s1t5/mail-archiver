@@ -57,9 +57,16 @@ instance, using the ASP.NET Core OpenAPI build task:
 4. Revert the `MailArchiver.csproj` changes — they exist only to produce the
    snapshot and are not meant to be committed.
 
+Refresh the snapshot in the same change whenever an endpoint, its status codes or
+its content types change. `gen_api_reference.py --check` only compares the page
+against the snapshot, so a stale snapshot passes CI while the published API
+reference drifts. Response attributes (`ProducesResponseType`, `Produces`) on the
+action are what the generator sees, so annotate the action instead of editing the
+JSON by hand.
+
 ### Note on endpoint descriptions
 
-The controllers currently carry no XML documentation comments, so the generated
+Most controllers carry no XML documentation comments, so the generated
 specification has no `summary` or `description` fields and the reference is
 type-only. Adding `///` comments to the actions in `Controllers/Api/V1/` and
 enabling XML documentation in the project would enrich the page automatically.

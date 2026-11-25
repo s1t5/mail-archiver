@@ -18,6 +18,12 @@
     <Content Remove="tests\**" />
     <None Remove="tests\**" />
     <EmbeddedResource Remove="tests\**" />
+    <!-- `site/` is the local MkDocs output (gitignored). The default Content glob picks it
+         up, so a docs build in the repository root would ship ~7 MB of static site into the
+         app output and the Docker image. It is never part of the application. -->
+    <Content Remove="site\**" />
+    <None Remove="site\**" />
+    <EmbeddedResource Remove="site\**" />
   </ItemGroup>
 
   <ItemGroup>

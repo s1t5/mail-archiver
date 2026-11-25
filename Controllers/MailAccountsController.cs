@@ -143,6 +143,16 @@ namespace MailArchiver.Controllers
         {
             // Use the authentication service to get user info properly
             var authService = HttpContext.RequestServices.GetService<MailArchiver.Services.IAuthenticationService>();
+            if (authService == null)
+            {
+                // Fails closed: without the authentication service the role of the caller is
+                // unknown, so no account may be touched.
+                _logger.LogWarning(
+                    "Account access check without an authentication service; denying access to account {AccountId}",
+                    accountId);
+                return false;
+            }
+
             var currentUsername = authService.GetCurrentUserDisplayName(HttpContext);
             var isAdmin = authService.IsCurrentUserAdmin(HttpContext);
             var isSelfManager = authService.IsCurrentUserSelfManager(HttpContext);

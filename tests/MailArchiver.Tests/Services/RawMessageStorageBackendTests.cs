@@ -367,6 +367,72 @@ public class RawMessageStorageBackendTests : IDisposable
         Assert.Equal(RawMessageStorage.FileSystem, unchanged.StorageType);
         Assert.True(File.Exists(resolver.GetAbsolutePath(email.Id)));
 
+        // The CLI loop needs the id to exclude the row from the next batch.
+        Assert.Contains(email.Id, result.FailedEmailIds);
+
+        await scope.RollbackAsync();
+    }
+
+    [Fact]
+    public async Task MigrateAsync_ExcludedRow_IsSkippedAndNotReportedAgain()
+    {
+        await using var scope = await _fixture.CreateTransactionalContextAsync();
+        var ctx = scope.Context;
+
+        var account = NewAccount();
+        ctx.MailAccounts.Add(account);
+        await ctx.SaveChangesAsync();
+
+        var options = BuildOptions(RawMessageStorage.FileSystem);
+        var resolver = Resolver(options);
+        var fileSystem = new FileSystemRawMessageStore(
+            ctx, Options.Create(options), resolver, NullLogger<FileSystemRawMessageStore>.Instance);
+        var migrator = new RawMessageStorageMigrator(
+            ctx, Options.Create(options), resolver, NullLogger<RawMessageStorageMigrator>.Instance);
+
+        async Task<ArchivedEmail> SeedAsync(string marker)
+        {
+            var email = NewEmail(account.Id);
+            ctx.ArchivedEmails.Add(email);
+            await ctx.SaveChangesAsync();
+
+            var capture = new RawMessageCapture(SampleMessage(marker), RawMessageSource.Imap);
+            var row = fileSystem.CreateRow(email.Id, capture)!;
+            await fileSystem.PersistAsync(row, capture);
+            email.RawMessage = row;
+            await ctx.SaveChangesAsync();
+            return email;
+        }
+
+        var corrupt = await SeedAsync("corrupt");
+        await SeedAsync("healthy");
+
+        await File.WriteAllBytesAsync(
+            resolver.GetAbsolutePath(corrupt.Id),
+            RawMessageCodec.Compress(SampleMessage("different")));
+
+        // First pass: the corrupt row is excluded, so only the healthy one moves and nothing fails.
+        var first = await migrator.MigrateAsync(
+            RawMessageStorage.FileSystem, RawMessageStorage.Postgres,
+            batchSize: 10, excludeEmailIds: new[] { corrupt.Id });
+
+        Assert.Equal(1, first.Moved);
+        Assert.Equal(0, first.Failed);
+        Assert.Empty(first.Errors);
+
+        var stillOnSource = await ctx.RawMessages.AsNoTracking()
+            .SingleAsync(r => r.ArchivedEmailId == corrupt.Id);
+        Assert.Equal(RawMessageStorage.FileSystem, stillOnSource.StorageType);
+
+        // Second pass without the exclusion: the row is picked up again and reported once.
+        var second = await migrator.MigrateAsync(
+            RawMessageStorage.FileSystem, RawMessageStorage.Postgres, batchSize: 10);
+
+        Assert.Equal(0, second.Moved);
+        Assert.Equal(1, second.Failed);
+        Assert.Equal(new[] { corrupt.Id }, second.FailedEmailIds);
+        Assert.Single(second.Errors);
+
         await scope.RollbackAsync();
     }
 }

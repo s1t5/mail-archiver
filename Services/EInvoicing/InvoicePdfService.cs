@@ -76,11 +76,25 @@ public sealed class InvoicePdfService
             "fonts");
 
         var labels = _labels.For(culture);
-        using var fonts = new InvoiceFonts(fontDir);
-        using var renderer = new InvoicePdfRenderer(fonts, labels);
-        byte[] pdf = renderer.Render(invoice);
+        try
+        {
+            using var fonts = new InvoiceFonts(fontDir);
+            using var renderer = new InvoicePdfRenderer(fonts, labels);
+            byte[] pdf = renderer.Render(invoice);
 
-        return new InvoicePdfResult(pdf, BuildFileName(invoice, attachment.FileName), info);
+            return new InvoicePdfResult(pdf, BuildFileName(invoice, attachment.FileName), info);
+        }
+        catch (Exception ex)
+        {
+            // A missing font or a renderer fault is a server-side problem, not a client
+            // error. Log the cause with the attachment and the font directory so the
+            // operator can fix it, and let it surface as 500 rather than pretending the
+            // invoice does not exist.
+            _logger.LogError(ex,
+                "XRechnung PDF for attachment {AttachmentId} of email {EmailId} could not be rendered (fonts: {FontDir})",
+                attachmentId, emailId, fontDir);
+            throw;
+        }
     }
 
     private static string BuildFileName(ExtractedInvoice invoice, string? attachmentFileName)

@@ -54,9 +54,10 @@ with an error message. Returning the reconstruction instead would hide that the 
 copy was altered, which is exactly what an archive must never do.
 
 A restore reads the stored original and appends it through the provider's client, so the
-mailbox receives the original headers and MIME structure. The exact byte stream is not
-guaranteed on the wire because the client serializes the message again; the archived
-copy itself is unchanged.
+mailbox receives the original headers and MIME structure. On IMAP the client serializes the
+message again, so the exact byte stream is not guaranteed on the wire. On Microsoft 365 the
+archived bytes travel unchanged, because Graph accepts the message in MIME form. The
+archived copy itself is never modified.
 
 ## ⚙️ Settings
 

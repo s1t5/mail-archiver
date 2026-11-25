@@ -75,6 +75,7 @@ services:
       - RawMessages__FileSystem__BasePath=RawMessages
       - RawMessages__FileSystem__ShardDepth=2
       - RawMessages__FileSystem__VerifyChecksumOnRead=true
+      - RawMessages__FileSystem__OrphanCleanupStartupDelaySeconds=300
 
       # BatchRestore Settings
       - BatchRestore__AsyncThreshold=50
@@ -161,6 +162,7 @@ services:
       - ReleaseNotes__Enabled=true
       - ReleaseNotes__UpdateHintEnabled=true
       - ReleaseNotes__UpdateCheckIntervalHours=6
+      - ReleaseNotes__RequestTimeoutSeconds=10
 
       # Logging Settings (Optional - defaults to Information level)
       - Logging__LogLevel__Default=Information
@@ -332,6 +334,7 @@ complete original is stored as well.
 | `RawMessages__FileSystem__OrphanCleanupEnabled` | `true` | Remove message files that no email refers to. |
 | `RawMessages__FileSystem__OrphanCleanupIntervalHours` | `24` | How often that sweep runs. |
 | `RawMessages__FileSystem__OrphanCleanupGraceHours` | `24` | Files younger than this are never removed. |
+| `RawMessages__FileSystem__OrphanCleanupStartupDelaySeconds` | `300` | Delay before the first sweep after start, so an import that is still writing is not collected. |
 
 !!! warning "Filesystem backend needs a mounted volume"
     With `RawMessages__Storage=filesystem` the message files live outside the database.
@@ -476,6 +479,7 @@ Settings for the audit data export page (admin only, reachable from the Logs pag
 - `ReleaseNotes__Enabled`: Enable or disable the version update splash screen (true/false). Default is `true`. When enabled, administrators will see a one-time changelog modal after an application update, showing the release notes fetched from GitHub Releases for the current version. Each administrator can dismiss the modal, and it will only reappear for a new version. Set to `false` to completely disable this feature, including the update hint.
 - `ReleaseNotes__UpdateHintEnabled`: Show administrators a small toast in the lower right corner when GitHub publishes a newer stable release than the installed version (true/false). Default is `true`. The toast links to that release and is dismissed per version in the browser. Drafts and prereleases are ignored. Requires `ReleaseNotes__AppVersion`; without it no hint is shown.
 - `ReleaseNotes__UpdateCheckIntervalHours`: How often the GitHub release list is refreshed, in hours. Default is `6`. A shorter interval makes a new release visible sooner in a long-running instance, a longer one reduces GitHub API calls. Minimum is `1`.
+- `ReleaseNotes__RequestTimeoutSeconds`: Timeout for one GitHub API request, in seconds. Default is `10`. When it elapses the changelog and the update hint stay off for that attempt instead of holding the request open; the next check retries.
 
 ### 🔧 Database Maintenance Settings
 - `DatabaseMaintenance__Enabled`: Enable or disable automatic daily database maintenance (true/false). Default is `false`. When enabled, the system will automatically run VACUUM ANALYZE operations to optimize database performance and prevent bloat. See [Database Maintenance Guide](DatabaseMaintenance.md) for more details.

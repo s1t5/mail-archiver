@@ -24,6 +24,9 @@ For authentication, pagination, error handling and rate limiting see
 | `GET` | [`/api/v1/emails/{id}/attachments/{attachmentId}/invoice-pdf`](#apiv1emailsidattachmentsattachmentidinvoice-pdf) |
 | `GET` | [`/api/v1/emails/{id}/eml`](#apiv1emailsideml) |
 | `GET` | [`/api/v1/emails/{id}/raw`](#apiv1emailsidraw) |
+| `GET` | [`/api/v1/health`](#apiv1health) |
+| `GET` | [`/api/v1/health/live`](#apiv1healthlive) |
+| `GET` | [`/api/v1/health/ready`](#apiv1healthready) |
 | `GET` | [`/api/v1/stats`](#apiv1stats) |
 
 ### `GET` /api/v1/accounts { #apiv1accounts }
@@ -91,9 +94,9 @@ For authentication, pagination, error handling and rate limiting see
 
 | Status | Content type | Schema |
 | ------ | ------------ | ------ |
-| 200 | `application/pdf` | any |
-| 403 | — | no body |
-| 404 | — | no body |
+| 200 | `application/pdf` | [FileContentResult](#filecontentresult) |
+| 403 | `application/problem+json` | [ProblemDetails](#problemdetails) |
+| 404 | `application/problem+json` | [ProblemDetails](#problemdetails) |
 
 ### `GET` /api/v1/emails/{id}/eml { #apiv1emailsideml }
 
@@ -114,6 +117,26 @@ For authentication, pagination, error handling and rate limiting see
 | Status | Content type | Schema |
 | ------ | ------------ | ------ |
 | 200 | `message/rfc822` | any |
+
+### `GET` /api/v1/health { #apiv1health }
+
+| Status | Content type | Schema |
+| ------ | ------------ | ------ |
+| 200 | `application/json` | any |
+| 503 | `application/json` | any |
+
+### `GET` /api/v1/health/live { #apiv1healthlive }
+
+| Status | Content type | Schema |
+| ------ | ------------ | ------ |
+| 200 | `application/json` | any |
+
+### `GET` /api/v1/health/ready { #apiv1healthready }
+
+| Status | Content type | Schema |
+| ------ | ------------ | ------ |
+| 200 | `application/json` | any |
+| 503 | `application/json` | any |
 
 ### `GET` /api/v1/stats { #apiv1stats }
 
@@ -168,6 +191,24 @@ For authentication, pagination, error handling and rate limiting see
 | `subject` | string | no |
 | `to` | string | no |
 
+### EntityTagHeaderValue { #entitytagheadervalue }
+
+| Property | Type | Required |
+| -------- | ---- | -------- |
+| `isWeak` | boolean | no |
+| `tag` | [StringSegment](#stringsegment) | no |
+
+### FileContentResult { #filecontentresult }
+
+| Property | Type | Required |
+| -------- | ---- | -------- |
+| `contentType` | null | no |
+| `enableRangeProcessing` | boolean | no |
+| `entityTag` | any | no |
+| `fileContents` | string (byte) | no |
+| `fileDownloadName` | null | no |
+| `lastModified` | null (date-time) | no |
+
 ### FolderNodeDto { #foldernodedto }
 
 | Property | Type | Required |
@@ -199,6 +240,16 @@ For authentication, pagination, error handling and rate limiting see
 | `totalItems` | integer (int32) | no |
 | `totalPages` | integer (int32) | no |
 
+### ProblemDetails { #problemdetails }
+
+| Property | Type | Required |
+| -------- | ---- | -------- |
+| `detail` | null | no |
+| `instance` | null | no |
+| `status` | null (int32) | no |
+| `title` | null | no |
+| `type` | null | no |
+
 ### StatsDto { #statsdto }
 
 | Property | Type | Required |
@@ -207,3 +258,13 @@ For authentication, pagination, error handling and rate limiting see
 | `attachments` | integer (int32) | no |
 | `databaseSizeInMB` | string | no |
 | `emails` | integer (int32) | no |
+
+### StringSegment { #stringsegment }
+
+| Property | Type | Required |
+| -------- | ---- | -------- |
+| `buffer` | null | no |
+| `hasValue` | boolean | no |
+| `length` | integer (int32) | no |
+| `offset` | integer (int32) | no |
+| `value` | null | no |

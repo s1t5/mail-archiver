@@ -459,6 +459,7 @@ def build_system_prompt(locale: str, glossary: dict[str, str]) -> str:
     lines = [
         f"You translate technical documentation from English into {language}.",
         "Preserve the Markdown structure exactly: headings, lists, tables, admonitions, blockquotes and code fences.",
+        "Translate the text of every heading as well. Keep the heading level, any leading emoji and an explicit {#anchor} attribute unchanged.",
         "Placeholders such as ⟦X0⟧ are opaque. Keep every placeholder unchanged and in place.",
         "Never translate link targets, anchor fragments, product names, CLI flags, configuration keys, code identifiers or file paths.",
         "Do not add, remove or reorder sections, links, table rows or code blocks.",

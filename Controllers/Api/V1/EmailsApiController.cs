@@ -241,6 +241,9 @@ public class EmailsApiController : ApiControllerBase
     }
 
     [HttpGet("{id:int}/attachments/{attachmentId:int}/invoice-pdf")]
+    [ProducesResponseType(typeof(FileContentResult), StatusCodes.Status200OK, "application/pdf")]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden, "application/problem+json")]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound, "application/problem+json")]
     public async Task<IActionResult> DownloadInvoicePdf(int id, int attachmentId)
     {
         if (!_options.AllowAttachmentDownloads)
