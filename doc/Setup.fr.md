@@ -75,6 +75,7 @@ services:
       - RawMessages__FileSystem__BasePath=RawMessages
       - RawMessages__FileSystem__ShardDepth=2
       - RawMessages__FileSystem__VerifyChecksumOnRead=true
+      - RawMessages__FileSystem__OrphanCleanupStartupDelaySeconds=300
 
       # BatchRestore Settings
       - BatchRestore__AsyncThreshold=50
@@ -161,6 +162,7 @@ services:
       - ReleaseNotes__Enabled=true
       - ReleaseNotes__UpdateHintEnabled=true
       - ReleaseNotes__UpdateCheckIntervalHours=6
+      - ReleaseNotes__RequestTimeoutSeconds=10
 
       # Logging Settings (Optional - defaults to Information level)
       - Logging__LogLevel__Default=Information
@@ -225,7 +227,7 @@ networks:
 
 4. Si vous souhaitez utiliser l'authentification (ce qui est fortement recommandé), définissez un `Authentication__Username` et `Authentication__Password` qui est utilisé pour l'utilisateur admin.
 
-5. Ajustez la variable d'environnement `TimeZone__DisplayTimeZoneId` pour correspondre à votre fuseau horaire préféré (par défaut "Etc/UCT"). Vous pouvez utiliser n'importe quel identifiant de fuseau horaire IANA (par exemple, "Europe/Berlin", "Asia/Tokyo").
+5. Ajustez la variable d'environnement `TimeZone__DisplayTimeZoneId` pour correspondre à votre fuseau horaire préféré (par défaut est "Etc/UCT"). Vous pouvez utiliser n'importe quel identifiant de fuseau horaire IANA (par exemple, "Europe/Berlin", "Asia/Tokyo").
 
 6. Configurez optionnellement les variables d'environnement `Logging__LogLevel` pour contrôler la verbosité des journaux de l'application. Consultez la section Paramètres de journalisation ci-dessous pour les options disponibles.
 
@@ -255,7 +257,7 @@ docker compose restart
 ## 📚 Explications des variables d'environnement {#environment-variable-explanations}
 
 ### 🗄️ Connexion à la base de données {#database-connection}
-- `ConnectionStrings__DefaultConnection`: La chaîne de connexion à la base de données PostgreSQL. Modifiez les valeurs `Host`, `Database`, `Username` et `Password` selon vos besoins.
+- `ConnectionStrings__DefaultConnection`: La chaîne de connexion à la base de données PostgreSQL. Modifiez les valeurs `Host`, `Database`, `Username` et `Password` si nécessaire.
 
 ### 🔐 Paramètres d'authentification {#authentication-settings}
 - `Authentication__Username`: Le nom d'utilisateur pour le Compte admin.
@@ -263,43 +265,45 @@ docker compose restart
 - `Authentication__SessionTimeoutMinutes`: Le délai d'expiration de la session en minutes. Cela s'applique au cookie de connexion non persistant ; les utilisateurs qui cochent **Remember Me** sur le formulaire de connexion reçoivent un cookie persistant valide pour une durée fixe de 7 jours à la place. Voir [User Management → Remember Me](UserManagement.md#staying-signed-in-the-remember-me-checkbox).
 - `Authentication__CookieName`: Le nom du cookie d'authentification.
 - `Authentication__CookieSameSite`: Configure l'attribut SameSite pour les cookies d'authentification, de session et de protection CSRF. Les valeurs valides sont :
-  - `Strict` (par défaut) : Sécurité maximale. Les cookies ne sont envoyés qu'avec les requêtes de même site. Cela peut causer des problèmes lors de la navigation vers l'application à partir de liens externes (par exemple, en cliquant sur un lien depuis un autre site web), car la session existante ne sera pas reconnue.
-  - `Lax` : Recommandé lors de l'utilisation d'un reverse proxy. Les cookies sont envoyés avec les navigations de haut niveau et les requêtes de même site, permettant aux utilisateurs de suivre des liens externes vers l'application tout en maintenant la protection CSRF pour les requêtes POST.
+  - `Strict` (par défaut) : Sécurité maximale. Les cookies ne sont envoyés qu'avec les requêtes same-site. Cela peut causer des problèmes lors de la navigation vers l'application à partir de liens externes (par exemple, en cliquant sur un lien depuis un autre site web), car la session existante ne sera pas reconnue.
+  - `Lax` : Recommandé lors de l'utilisation d'un reverse proxy. Les cookies sont envoyés avec les navigations de haut niveau et les requêtes same-site, permettant aux utilisateurs de suivre des liens externes vers l'application tout en maintenant la protection CSRF pour les requêtes POST.
   - `None` : Les cookies sont envoyés avec toutes les requêtes. Nécessite HTTPS et l'attribut `Secure`. N'utilisez ceci que si vous avez des exigences cross-site spécifiques et que vous comprenez les implications en matière de sécurité.
 
 ### 🔌 Paramètres de l'API REST {#rest-api-settings}
-L'API REST en lecture seule optionnelle est **désactivée par défaut**. Consultez le [guide de l'API REST](API.md) pour la référence complète.
+L'API REST optionnelle en lecture seule est **désactivée par défaut**. Consultez le [guide de l'API REST](API.md) pour la référence complète.
 - `Api__Enabled`: Commutateur principal pour l'API REST en lecture seule (par défaut `false`). Lorsque `false`, toutes les routes `/api/*` renvoient `404`.
-- `Api__AllowAttachmentDownloads`: Autoriser le téléchargement des octets de la pièce jointe via l'API (par défaut `true`). Lorsque `false`, le point de terminaison de la pièce jointe renvoie `403`.
-- `Api__AllowMessageDownloads`: Autoriser le téléchargement de messages complets via l'API, à la fois le `/eml` reconstruit et l'`/raw` original (par défaut `true`). Lorsque `false`, les deux points de terminaison renvoient `403`. Un message complet contient ses pièces jointes, donc ce commutateur **et** `Api__AllowAttachmentDownloads` doivent être `true` ; désactiver l'un ou l'autre désactive les deux points de terminaison.
-- `Api__EnableSwaggerUi`: Exposer l'interface Swagger UI à `/apidocs` et le document OpenAPI à `/apidocs/spec/v1.json` (par défaut `true`). Les deux nécessitent une session de navigateur connectée.
+- `Api__AllowAttachmentDownloads`: Autoriser le téléchargement des octets de la Pièce jointe via l'API (par défaut `true`). Lorsque `false`, le point de terminaison de la Pièce jointe renvoie `403`.
+- `Api__AllowMessageDownloads`: Autoriser le téléchargement de messages complets via l'API, à la fois le `/eml` reconstruit et l'original `/raw` (par défaut `true`). Lorsque `false`, les deux points de terminaison renvoient `403`. Un message complet transporte ses Pièces jointes, donc **les deux**, ce commutateur et `Api__AllowAttachmentDownloads`, doivent être `true` ; désactiver l'un ou l'autre désactive les deux points de terminaison.
+- `Api__EnableSwaggerUi`: Exposer Swagger UI à `/apidocs` et le document OpenAPI à `/apidocs/spec/v1.json` (par défaut `true`). Les deux nécessitent une session de navigateur connectée.
 - `Api__DefaultPageSize`: Taille de page par défaut pour les points de terminaison de liste lorsqu'elle n'est pas spécifiée (par défaut `20`).
-- `Api__MaxPageSize`: Taille de page maximale autorisée ; les requêtes plus grandes sont limitées (par défaut `100`).
-- `Api__RateLimitPerMinute`: Budget de requête par fenêtre fixe par clé API par minute (par défaut `120`).
+- `Api__MaxPageSize`: Taille de page maximale autorisée ; les requêtes plus grandes sont plafonnées (par défaut `100`).
+- `Api__RateLimitPerMinute`: Budget de requête à fenêtre fixe par clé API par minute (par défaut `120`).
 
 ### 🤖 Paramètres du serveur MCP {#mcp-server-settings}
-Le serveur MCP (Model Context Protocol) optionnel expose le même accès en lecture seule aux e-mails que l'API REST aux agents IA via le transport HTTP Streamable. Il est **désactivé par défaut**. Consultez le [guide MCP](MCP.md) pour la référence complète. MCP réutilise exactement les mêmes clés API que l'API REST (jetons bearer `ma_...`) et le même périmètre d'accès au Compte par utilisateur.
+
+Le serveur MCP (Model Context Protocol) optionnel expose le même accès aux e-mails en lecture seule que l'API REST aux agents IA via le transport HTTP Streamable. Il est **désactivé par défaut**. Consultez le [guide MCP](MCP.md) pour la référence complète. MCP réutilise exactement les mêmes clés API que l'API REST (jetons bearer `ma_...`) et le même périmètre d'accès par Compte utilisateur.
 - `Mcp__Enabled`: Commutateur principal pour le serveur MCP (par défaut `false`). Lorsque `false`, le point de terminaison `/mcp` renvoie `404`.
-- `Mcp__AllowAttachmentDownloads`: Autorise l'outil `get_attachment` à renvoyer les octets de la Pièce jointe (par défaut `true`). Lorsque `false`, l'outil renvoie une erreur.
+- `Mcp__AllowAttachmentDownloads`: Autoriser l'outil `get_attachment` à renvoyer les octets de la Pièce jointe (par défaut `true`). Lorsque `false`, l'outil renvoie une erreur.
 - `Mcp__DefaultPageSize`: Taille de page par défaut utilisée par `search_emails` lorsque l'appelant omet `pageSize` (par défaut `20`).
 - `Mcp__MaxResults`: Limite supérieure pour la taille de page de `search_emails` ; les valeurs plus grandes sont plafonnées (par défaut `100`).
-- `Mcp__MaxAttachmentBytes`: Taille maximale de la Pièce jointe (en octets) que l'outil `get_attachment` renverra en ligne au format base64 ; les Pièces jointes plus volumineuses sont refusées (par défaut `10000000` ≈ 10 MB).
-- `Mcp__AllowMessageDownloads`: Autorise les outils `get_email_eml` et `get_email_raw` à renvoyer des messages complets (par défaut `true`). Lorsque `false`, les outils renvoient une erreur. Un message complet transporte ses Pièces jointes, donc **à la fois** ce commutateur et `Mcp__AllowAttachmentDownloads` doivent être `true` ; désactiver l'un ou l'autre désactive les deux outils.
+- `Mcp__MaxAttachmentBytes`: Taille maximale de la Pièce jointe (en octets) que l'outil `get_attachment` renverra en ligne sous forme de base64 ; les Pièces jointes plus volumineuses sont refusées (par défaut `10000000` ≈ 10 MB).
+- `Mcp__AllowMessageDownloads`: Autoriser les outils `get_email_eml` et `get_email_raw` à renvoyer des messages complets (par défaut `true`). Lorsque `false`, les outils renvoient une erreur. Un message complet transporte ses Pièces jointes, donc **les deux**, ce commutateur et `Mcp__AllowAttachmentDownloads`, doivent être `true` ; désactiver l'un ou l'autre désactive les deux outils.
 - `Mcp__MaxMessageBytes`: Taille maximale du message (en octets) que les outils `get_email_eml` et `get_email_raw` renverront en ligne ; les messages plus volumineux sont refusés (par défaut `10000000` ≈ 10 MB).
-- `Mcp__RateLimitPerMinute`: Budget de requête par fenêtre fixe par clé API par minute (par défaut `120`).
+- `Mcp__RateLimitPerMinute`: Budget de requête à fenêtre fixe par clé API par minute (par défaut `120`).
 
 ### 📨 Paramètres MailSync {#mailsync-settings}
-- `MailSync__IntervalMinutes`: L'intervalle en minutes entre chaque Synchronisation d'e-mails. Il s'agit de la valeur par défaut globale ; chaque Compte peut la modifier individuellement depuis la page Créer/Modifier (laisser vide pour utiliser cette valeur par défaut).
-- `MailSync__FullSyncIntervalHours`: Valeur par défaut globale optionnelle pour les resynchronisations complètes automatiques, en heures. Lorsqu'elle n'est pas définie (par défaut), aucune synchronisation complète automatique ne s'exécute, à moins qu'une valeur `FullSyncIntervalHours` par Compte ne soit définie sur la page Créer/Modifier. Les valeurs par Compte remplacent cette valeur par défaut globale.
-- `MailSync__TimeoutMinutes`: Délai d'expiration de la synchronisation par Compte en minutes. Une synchronisation qui dure trop longtemps s'arrête à la limite du message suivant, conserve ses points de contrôle et reprend lors de l'exécution suivante ; la tâche est signalée comme `Timed Out` et `LastSync` n'est pas avancé. S'applique uniquement aux synchronisations programmées ; une synchronisation lancée depuis l'interface utilisateur (synchronisation manuelle ou resynchronisation complète) s'exécute sans délai d'expiration. `0` (par défaut) ou toute valeur non positive signifie aucun délai d'expiration. Vérifiez la valeur avant la mise à niveau si vous synchronisez de grandes Boîtes aux lettres. Voir [Synchronization.md](Synchronization.md#-stopping-a-sync-early).
+
+- `MailSync__IntervalMinutes`: L'intervalle en minutes entre chaque Synchronisation d'e-mails. Il s'agit de la valeur par défaut globale ; chaque Compte peut la remplacer individuellement depuis la page Créer/Modifier (laisser vide pour utiliser cette valeur par défaut).
+- `MailSync__FullSyncIntervalHours`: Valeur par défaut globale optionnelle pour les resynchronisations complètes automatiques, en heures. Lorsqu'elle n'est pas définie (par défaut), aucune resynchronisation complète automatique ne s'exécute, à moins qu'une valeur `FullSyncIntervalHours` par Compte ne soit définie sur la page Créer/Modifier. Les valeurs par Compte remplacent cette valeur par défaut globale.
+- `MailSync__TimeoutMinutes`: Délai d'expiration de la synchronisation par Compte en minutes. Une synchronisation qui dure trop longtemps s'arrête à la prochaine limite de message, conserve ses points de contrôle et reprend lors de l'exécution suivante ; la tâche est signalée comme `Timed Out` et `LastSync` n'est pas avancé. S'applique uniquement aux synchronisations planifiées ; une synchronisation lancée depuis l'interface utilisateur (synchronisation manuelle ou resynchronisation complète) s'exécute sans délai d'expiration. `0` (par défaut) ou toute valeur non positive signifie l'absence de délai d'expiration. Vérifiez la valeur avant la mise à niveau si vous synchronisez de grandes Boîtes aux lettres. Voir [Synchronization.md](Synchronization.md#-stopping-a-sync-early).
 - `MailSync__ConnectionTimeoutSeconds`: Le délai d'expiration de la connexion pour les connexions IMAP en secondes.
 - `MailSync__CommandTimeoutSeconds`: Le délai d'expiration de la commande pour les commandes IMAP en secondes.
-- `MailSync__AlwaysForceFullSync`: S'il faut toujours forcer une synchronisation complète (true/false).
-- `MailSync__IgnoreSelfSignedCert`: S'il faut ignorer les certificats auto-signés (true/false).
-- `MailSync__MaxConcurrentSyncs`: Nombre de synchronisations de Compte pouvant s'exécuter simultanément. Par défaut `1` (séquentiel, rétrocompatible). L'ordonnanceur remplit les créneaux dès qu'ils se libèrent plutôt que d'attendre un lot complet, ainsi une Boîte aux lettres lente ne bloque plus les autres. Augmentez ce nombre pour synchroniser plusieurs Comptes simultanément — gardez à l'esprit les limites de débit du fournisseur et l'utilisation des ressources locales. Voir [Synchronization.md](Synchronization.md#-how-accounts-are-scheduled).
-- `MailSync__InterAccountDelaySeconds`: Délai de décalage optionnel en secondes appliqué à la fin de chaque tâche de synchronisation de Compte. Par défaut `0` (aucun délai). Utile pour éviter les démarrages en rafale lorsque `MaxConcurrentSyncs > 1`.
-- `MailSync__MaxIssuesPerKind`: Nombre de problèmes de chaque type qu'une tâche de synchronisation mémorise pour la page du Compte. Les Dossiers échoués, les Dossiers manquants et les messages échoués sont budgétés séparément, de sorte qu'une inondation d'un type ne peut pas évincer les autres ; tout ce qui dépasse le budget est comptabilisé plutôt que conservé. Par défaut `20`. `0` désactive le détail et ne laisse que les compteurs. Voir [Synchronization.md](Synchronization.md#-observing-the-sync).
-- `MailSync__GlobalExcludedFolders__<n>`: Dossiers exclus de la Synchronisation pour **chaque** Compte, en plus de la propre liste de dossiers exclus de chaque Compte. Vide par défaut, les configurations existantes ne sont donc pas affectées. Les deux listes sont **additives** — un Dossier est ignoré s'il correspond à l'une ou l'autre — et les deux utilisent les mêmes règles de correspondance : correspondance exacte sur le chemin complet, correspondance exacte sur le nom du Dossier, une correspondance de suffixe de chemin (ainsi `Drafts` correspond aussi à `INBOX/Drafts` et `INBOX.Drafts`), et tout ce qui se trouve sous le Dossier nommé lorsque `MailSync__ExcludeSubfolders` est activé. La correspondance ne tient pas compte de la casse. Utile lors de l'importation de nombreuses Boîtes aux lettres provenant du même serveur, où l'alternative consiste à maintenir une liste d'exclusion identique sur chaque Compte. Aucun Dossier n'est exclu par défaut ; les noms qui méritent d'être listés dépendent du serveur et de sa langue. Exemple pour un arbre de Boîte aux lettres qui contient également des dossiers de calendrier et de contacts :
+- `MailSync__AlwaysForceFullSync`: Si l'on doit toujours forcer une synchronisation complète (true/false).
+- `MailSync__IgnoreSelfSignedCert`: Si l'on doit ignorer les certificats auto-signés (true/false).
+- `MailSync__MaxConcurrentSyncs`: Le nombre de synchronisations de comptes pouvant s'exécuter simultanément. Par défaut `1` (séquentiel, rétrocompatible). L'ordonnanceur remplit les créneaux au fur et à mesure qu'ils se libèrent plutôt que d'attendre un lot complet, de sorte qu'une Boîte aux lettres lente ne bloque plus les autres. Augmentez ce nombre pour synchroniser plusieurs comptes simultanément — gardez à l'esprit les limites de débit des fournisseurs et l'utilisation des ressources locales. Voir [Synchronization.md](Synchronization.md#-how-accounts-are-scheduled).
+- `MailSync__InterAccountDelaySeconds`: Délai de décalage optionnel en secondes appliqué à la fin de chaque tâche de synchronisation de compte. Par défaut `0` (aucun délai). Utile pour éviter les démarrages en rafale lorsque `MaxConcurrentSyncs > 1`.
+- `MailSync__MaxIssuesPerKind`: Le nombre de problèmes de chaque type qu'une tâche de synchronisation mémorise pour la page du Compte. Les Dossiers échoués, les Dossiers manquants et les messages échoués sont budgétisés séparément, de sorte qu'un flux d'un type ne peut pas faire sortir les autres de la vue ; tout ce qui dépasse le budget est compté plutôt que conservé. Par défaut `20`. `0` désactive le détail et ne laisse que les compteurs. Voir [Synchronization.md](Synchronization.md#-observing-the-sync).
+- `MailSync__GlobalExcludedFolders__<n>`: Dossiers exclus de la synchronisation pour **chaque** Compte, en plus de la propre liste de dossiers exclus de chaque Compte. Vide par défaut, donc les configurations existantes ne sont pas affectées. Les deux listes sont **additives** — un dossier est ignoré s'il correspond à l'une ou l'autre — et les deux utilisent les mêmes règles de correspondance : correspondance exacte sur le chemin complet, correspondance exacte sur le nom du Dossier, une correspondance de suffixe de chemin (ainsi `Drafts` correspond aussi à `INBOX/Drafts` et `INBOX.Drafts`), et tout ce qui se trouve sous le dossier nommé lorsqu'`MailSync__ExcludeSubfolders` est activé. La correspondance est insensible à la casse. Utile lors de l'importation de nombreuses Boîtes aux lettres provenant du même serveur, où l'alternative est de maintenir une liste d'exclusion identique sur chaque Compte. Aucun Dossier n'est exclu par défaut ; quels noms valent la peine d'être listés dépend du serveur et de sa langue. Exemple pour un arbre de Boîte aux lettres qui contient également des dossiers de calendrier et de contacts :
   ```yaml
       - MailSync__GlobalExcludedFolders__0=Calendar
       - MailSync__GlobalExcludedFolders__1=Calendars
@@ -311,48 +315,50 @@ Le serveur MCP (Model Context Protocol) optionnel expose le même accès en lect
       - MailSync__GlobalExcludedFolders__7=NoteList
       - MailSync__GlobalExcludedFolders__8=Journal
   ```
-- `MailSync__ExcludeSubfolders`: Si une entrée d'exclusion couvre également les Dossiers situés sous celui qu'elle nomme. S'applique aussi bien à la liste par Compte qu'à la liste globale de l'installation, et aux deux fournisseurs. Par défaut `false`, correspondant au comportement avant l'existence de l'option : une entrée `Deleted Items` ne correspond qu'à ce Dossier, et un arbre est exclu de l'Archive en nommant sa racine et chaque Dossier en dessous. Réglez sur `true` pour qu'une entrée englobe également l'arbre en dessous — une entrée `Deleted Items` conserve alors aussi `Deleted Items/2024` et le reste de cette branche hors de l'Archive. La règle s'ancre sur le séparateur de chemin, elle prend donc des Dossiers entiers et jamais une partie d'un nom : `Archive` couvre `Archive` et `Archive/Team`, et laisse tranquille un dossier de messagerie nommé `Team Archive Review`. Un `.` compte également comme un séparateur, de la même manière que la règle de suffixe de chemin le traite.
+- `MailSync__ExcludeSubfolders`: Si une entrée d'exclusion couvre également les dossiers situés sous celui qu'elle nomme. S'applique aussi bien à la liste par Compte qu'à celle de l'installation, et aux deux fournisseurs. Par défaut `false`, correspondant au comportement avant l'existence de l'option : une entrée `Deleted Items` correspond uniquement à ce Dossier, et un arbre est maintenu hors de l'Archive en nommant sa racine et chaque Dossier en dessous. Définissez sur `true` pour qu'une entrée prenne également l'arbre en dessous — une entrée `Deleted Items` maintient alors aussi `Deleted Items/2024` et le reste de cette branche hors de l'Archive. La règle s'ancre sur le séparateur de chemin, elle prend donc des Dossiers entiers et jamais une partie d'un nom : `Archive` couvre `Archive` et `Archive/Team`, et laisse intact un dossier de messagerie appelé `Team Archive Review`. Un `.` compte aussi comme un séparateur, de la même manière que la règle de suffixe de chemin le traite.
 
 ### 📧 Paramètres de stockage du message original {#original-message-storage-settings}
 
-Par défaut, l'Archive ne conserve que les parties analysées d'un e-mail, de sorte qu'un `.eml` exporté est une reconstruction : les encodages de transfert, les délimitations MIME et le pliage des en-têtes diffèrent du message tel qu'il a été reçu, et les signatures DKIM ne sont plus valides. Avec `RawMessages:Enabled`, l'original complet est également stocké.
+Par défaut, l'Archive ne conserve que les parties analysées d'un e-mail, de sorte qu'un `.eml` exporté est une reconstruction : les encodages de transfert, les délimitations MIME et le repliement des en-têtes diffèrent du message tel que reçu, et les signatures DKIM ne sont plus vérifiables. Avec `RawMessages:Enabled`, l'original complet est également stocké.
 
-| Paramètre | Valeur par défaut | Utilité |
-|-----------|---------|---------|
+| Paramètre | Valeur par défaut | Objectif |
+|-----------|------------------|----------|
 | `RawMessages__Enabled` | `false` | Stocker l'original de chaque e-mail nouvellement archivé. |
 | `RawMessages__Storage` | `postgres` | Lieu de stockage des octets : `postgres` ou `filesystem`. |
 | `RawMessages__MaxMessageSizeMb` | `50` | Les messages plus volumineux sont archivés sans leur original. `0` = pas de limite. |
 | `RawMessages__IncludeGraph` | `true` | Stocker également les originaux pour les Compte Microsoft 365 (Graph). |
-| `RawMessages__FileSystem__BasePath` | `RawMessages` | Dossier pour les fichiers de messages. Doit pointer vers un volume monté dans Docker. |
-| `RawMessages__FileSystem__ShardDepth` | `2` | Niveaux de Dossier sur lesquels l'identifiant de l'e-mail est réparti. |
+| `RawMessages__FileSystem__BasePath` | `RawMessages` | Répertoire pour les fichiers de messages. Doit pointer vers un volume monté dans Docker. |
+| `RawMessages__FileSystem__ShardDepth` | `2` | Niveaux de répertoire sur lesquels l'ID de l'e-mail est réparti. |
 | `RawMessages__FileSystem__VerifyChecksumOnRead` | `true` | Vérifier le SHA-256 lors de chaque téléchargement. |
 | `RawMessages__FileSystem__OrphanCleanupEnabled` | `true` | Supprimer les fichiers de messages auxquels aucun e-mail ne fait référence. |
 | `RawMessages__FileSystem__OrphanCleanupIntervalHours` | `24` | Fréquence de passage de ce nettoyage. |
 | `RawMessages__FileSystem__OrphanCleanupGraceHours` | `24` | Les fichiers plus récents que cette valeur ne sont jamais supprimés. |
+| `RawMessages__FileSystem__OrphanCleanupStartupDelaySeconds` | `300` | Délai avant le premier nettoyage après le démarrage, afin qu'un import en cours d'écriture ne soit pas collecté. |
 
 !!! warning "Le backend du système de fichiers nécessite un volume monté"
     Avec `RawMessages__Storage=filesystem`, les fichiers de messages résident en dehors de la base de données.
     Sans un bind mount, ils se trouvent dans la couche d'écriture du conteneur et sont perdus lors de la
-    prochaine recréation du conteneur, alors que les lignes de la base de données survivent. Effectuez une Sauvegarde du dossier
+    prochaine recréation du conteneur, alors que les lignes de la base de données survivent. Effectuez une Sauvegarde du répertoire
     en même temps que le dump de la base de données.
 
-Consultez **[Original Message Storage](RawMessages.md)** pour la description complète : où l'original est
-servi, les backends de stockage, comment déplacer les messages existants entre eux avec
+Consultez **[Original Message Storage](RawMessages.md)** pour la description complète : où l'original
+est servi, les backends de stockage, comment déplacer les messages existants entre eux avec
 `--migrate-raw-storage`, et ce qu'il faut sauvegarder.
 
 ### 📈 Paramètres de surveillance {#monitoring-settings}
 
-| Paramètre | Par défaut | Utilité |
+| Paramètre | Par défaut | Objectif |
 |-----------|---------|---------|
-| `Health__SyncStaleMinutes` | `0` | Les comptes activés plus anciens que cette valeur génèrent un rapport `Degraded` pour `/api/v1/health`. `0` désactive la vérification. |
+| `Health__SyncStaleMinutes` | `0` | Les comptes activés plus anciens que cela font que le rapport `/api/v1/health` affiche `Degraded`. `0` désactive la vérification. |
 | `Metrics__Enabled` | `false` | Active le point de terminaison des métriques Prometheus et sa boucle de rafraîchissement. |
-| `Metrics__RefreshMinutes` | `5` | Fréquence à laquelle l'instantané des métriques est reconstruit. Les valeurs inférieures à 1 sont portées à 1. |
+| `Metrics__RefreshMinutes` | `5` | Fréquence à laquelle le snapshot des métriques est reconstruit. Les valeurs inférieures à 1 sont relevées à 1. |
 
 Les points de terminaison de santé et de métriques nécessitent une clé API admin et `Api__Enabled=true`. Consultez
-**[Health and Metrics](Monitoring.md)** pour les points de terminaison, les noms de métriques, la configuration
-Prometheus et le health check Docker.
+**[Health and Metrics](Monitoring.md)** pour les points de terminaison, les noms de métriques, la configuration Prometheus
+et le health check Docker.
 
 ### 📤 Paramètres BatchRestore {#batchrestore-settings}
+
 - `BatchRestore__AsyncThreshold`: Le nombre d'e-mails qui déclenche le traitement asynchrone.
 - `BatchRestore__MaxSyncEmails`: Le nombre maximum d'e-mails pour le traitement synchrone.
 - `BatchRestore__MaxAsyncEmails`: Le nombre maximum d'e-mails pour le traitement asynchrone.
@@ -360,152 +366,161 @@ Prometheus et le health check Docker.
 - `BatchRestore__DefaultBatchSize`: La taille de lot par défaut pour les opérations d'e-mails.
 
 ### 🏢 Paramètres de gestion du Tenant {#tenant-management-settings}
-- `TenantManagement__MaxSelectedMailboxes`: Nombre maximum de Boîtes aux lettres pouvant être ajoutées lors d'une seule opération de gestion du Tenant. La valeur par défaut est `1000`. Augmentez cette valeur pour les tenants très volumineux, ou diminuez-la pour éviter les importations massives accidentelles. Lorsque la limite est dépassée, l'opération est rejetée avec une erreur de validation et aucun Compte n'est créé. Consultez le [M365 Tenant Import Guide](M365TenantImport.md) pour plus de détails.
+- `TenantManagement__MaxSelectedMailboxes`: Nombre maximal de Boîtes aux lettres pouvant être ajoutées lors d'une seule opération de gestion du Tenant. La valeur par défaut est `1000`. Augmentez cette valeur pour les tenants très volumineux, ou diminuez-la pour empêcher les imports de masse accidentels. Lorsque la limite est dépassée, l'opération est rejetée avec une erreur de validation et aucun Compte n'est créé. Consultez le [M365 Tenant Import Guide](M365TenantImport.md) pour plus de détails.
 
 ### 🐄 Paramètres Mailcow {#mailcow-settings}
-- `Mailcow__MaxSelectedMailboxes` : Nombre maximum de Boîtes aux lettres pouvant être provisionnées lors d'une seule exécution d'activation Mailcow. La valeur par défaut est `1000`. Réduisez-la pour éviter un provisionnement de masse accidentel, ou augmentez-la pour les instances de grande taille. Lorsque la limite est dépassée, aucun Compte n'est créé. Consultez [Mailcow Instances](Mailcow.md) pour plus de détails.
-- L'intégration Mailcow nécessite également `Security__CredentialEncryptionKey` (voir [Security Settings](#-security-settings)). La connexion d'une instance et l'activation des Boîtes aux lettres sont toutes deux refusées tant que le chiffrement des identifiants est désactivé, afin que la clé API et les mots de passe d'application générés ne puissent jamais être stockés en clair.
+
+- `Mailcow__MaxSelectedMailboxes`: Nombre maximum de Boîtes aux lettres pouvant être provisionnées lors d'une seule exécution d'activation Mailcow. La valeur par défaut est `1000`. Réduisez-la pour empêcher un provisionnement de masse accidentel, ou augmentez-la pour les instances de grande taille. Lorsque la limite est dépassée, aucun Compte n'est créé. Consultez [Mailcow Instances](Mailcow.md) pour plus de détails.
+- L'intégration Mailcow nécessite également `Security__CredentialEncryptionKey` (voir [Security Settings](#-security-settings)). La connexion d'une instance et l'activation des Boîtes aux lettres sont toutes deux refusées tant que le chiffrement des identifiants est désactivé, de sorte que la clé API et les mots de passe d'application générés ne peuvent jamais être stockés en texte clair.
 - Un accès sortant est requis vers l'API HTTPS de Mailcow et vers l'hôte IMAP via TLS (normalement le port `993`).
 
 ### 📦 Paramètres de BatchOperation {#batchoperation-settings}
-- `BatchOperation__BatchSize`: La taille du lot pour les opérations d'e-mails.
+- `BatchOperation__BatchSize`: La taille du lot pour les opérations d'e-mail.
 - `BatchOperation__PauseBetweenEmailsMs`: La pause entre les e-mails individuels en millisecondes.
 - `BatchOperation__PauseBetweenBatchesMs`: La pause entre les lots en millisecondes.
 
-### 📤 Paramètres d'Offload {#offload-settings}
-Paramètres pour l'[offload par fenêtre de date](Offload.md). Toutes les valeurs par défaut reproduisent le comportement que l'application avait avant l'existence de cette fonctionnalité, de sorte qu'une installation qui ne configure pas cette section n'est pas affectée.
-- `Offload__MaxConcurrentJobs`: Nombre de tâches de Restauration ou d'offload pouvant s'exécuter simultanément. La valeur par défaut est `1`, ce qui maintient le traitement strictement séquentiel que la file d'attente des tâches a toujours utilisé. Au maximum, une tâche par Boîte aux lettres cible s'exécute, quelle que soit cette valeur.
-- `Offload__PrefetchMaxMessages`: Limite supérieure du nombre de messages indexés à partir d'une Boîte aux lettres cible pour la détection de doublons. La valeur par défaut est `500000`. Au-delà, la vérification se limite à un seul Dossier et enregistre que la portée a été réduite.
-- `Offload__ExcludedSourceFolders__0`, `__1`, ...: Dossiers sources qui ne sont jamais déchargés (offload), correspondants avant le renommage et couvrant les sous-dossiers. Vide par défaut.
-- `Offload__FolderRenameMap__<SourceFolder>`: Réécrit les segments de tête d'un chemin de Dossier source, par exemple `Offload__FolderRenameMap__Sent Items=Sent`. Vide par défaut.
-- `Offload__MarkAsSeen`: Indique si les e-mails ajoutés sont marqués comme lus. La valeur par défaut est `true`, correspondant au comportement de Restauration existant.
+### 📤 Paramètres de déchargement {#offload-settings}
 
-Les deux paramètres de Dossier sont livrés vides intentionnellement : réécrire ou supprimer des Dossiers sans y être invité surprendrait quiconque utilise déjà le chemin de Restauration. Une exécution sans configuration migre donc tout, y compris les Dossiers de spam, et crée un second ensemble de dossiers spéciaux à côté de ceux de la cible.
+Paramètres pour le [date-windowed offload](Offload.md). Toutes les valeurs par défaut reproduisent le comportement que l'application avait avant l'existence de cette fonctionnalité, de sorte qu'une installation qui ne configure pas cette section n'est pas affectée.
+- `Offload__MaxConcurrentJobs`: Nombre de jobs de Restauration ou de déchargement pouvant s'exécuter simultanément. La valeur par défaut est `1`, ce qui maintient le traitement strictement séquentiel que la file d'attente des jobs a toujours utilisé. Au plus un job par Boîte aux lettres cible s'exécute, quelle que soit cette valeur.
+- `Offload__PrefetchMaxMessages`: Limite supérieure du nombre de messages indexés depuis une Boîte aux lettres cible pour la détection de doublons. La valeur par défaut est `500000`. Au-delà, la vérification se restreint à un seul Dossier et enregistre que la portée a été réduite.
+- `Offload__ExcludedSourceFolders__0`, `__1`, ...: Dossiers sources qui ne sont jamais déchargés, correspondants avant le renommage et couvrant les sous-dossiers. Vide par défaut.
+- `Offload__FolderRenameMap__<SourceFolder>`: Réécrit les segments initiaux d'un chemin de Dossier source, par exemple `Offload__FolderRenameMap__Sent Items=Sent`. Vide par défaut.
+- `Offload__MarkAsSeen`: Si les e-mails ajoutés sont marqués comme lus. La valeur par défaut est `true`, correspondant au comportement de Restauration existant.
 
-### 📊 Bandwidth Tracking Settings {#bandwidth-tracking-settings}
-- `BandwidthTracking__Enabled`: Activer ou désactiver le suivi de la bande passante pour la gestion de la limite de débit IMAP (true/false). La valeur par défaut est `false`. Lorsqu'il est activé, le système suit l'utilisation de la bande passante par Compte et peut mettre en pause la Synchronisation lorsque les limites du fournisseur sont atteintes. Consultez [Rate Limit Handling](RateLimitHandling.md) pour des informations détaillées.
+Les deux paramètres de Dossier sont volontairement vides : réécrire ou supprimer des Dossiers sans y être sollicité surprendrait toute personne utilisant déjà le chemin de Restauration. Un exécution sans configuration migre donc tout, dossiers de spam inclus, et crée un second ensemble de dossiers spéciaux à côté de ceux de la cible.
+
+### 📊 Paramètres de suivi de la bande passante {#bandwidth-tracking-settings}
+
+- `BandwidthTracking__Enabled`: Activer ou désactiver le suivi de la bande passante pour la gestion des limites de débit IMAP (true/false). La valeur par défaut est `false`. Lorsqu'il est activé, le système suit l'utilisation de la bande passante par Compte et peut mettre en pause la Synchronisation lorsque les limites du fournisseur sont atteintes. Consultez [Rate Limit Handling](RateLimitHandling.md) pour des informations détaillées.
 - `BandwidthTracking__DailyLimitMb`: Limite de téléchargement quotidienne en mégaoctets par Compte. La valeur par défaut est `25000` (25 GB). Pour les fournisseurs avec des limites de bande passante, réglez cette valeur pour qu'elle corresponde à leur limite de débit (par exemple, `2500` pour les fournisseurs avec des limites quotidiennes d'environ 2500 MB). Le système mettra en pause la synchronisation lorsque cette limite sera atteinte.
-- `BandwidthTracking__WarningThresholdPercent`: Pourcentage de la limite quotidienne auquel les messages d'avertissement sont enregistrés. La valeur par défaut est `80`. Lorsque l'utilisation de la bande passante atteint ce pourcentage, des avertissements sont enregistrés pour aider à surveiller l'approche des limites.
+- `BandwidthTracking__WarningThresholdPercent`: Pourcentage de la limite quotidienne à partir duquel des messages d'avertissement sont enregistrés. La valeur par défaut est `80`. Lorsque l'utilisation de la bande passante atteint ce pourcentage, des avertissements sont enregistrés pour aider à surveiller l'approche des limites.
 - `BandwidthTracking__PauseHoursOnLimit`: Nombre d'heures pour mettre en pause la Synchronisation lorsque la limite quotidienne est atteinte. La valeur par défaut est `24`. Après cette période, le drapeau de limite est automatiquement effacé et la synchronisation reprend.
-- `BandwidthTracking__TrackUploadBytes`: Indique s'il faut également suivre la bande passante de téléchargement (true/false). La valeur par défaut est `false`. La plupart des fournisseurs IMAP limitent uniquement les téléchargements, cela n'est donc généralement pas nécessaire.
+- `BandwidthTracking__TrackUploadBytes`: Si l'on doit également suivre la bande passante d'upload (true/false). La valeur par défaut est `false`. La plupart des fournisseurs IMAP limitent uniquement les téléchargements, cela n'est donc généralement pas nécessaire.
 
 ### 🎯 Paramètres de sélection {#selection-settings}
-- `Selection__MaxSelectableEmails`: Le nombre maximum d'e-mails pouvant être sélectionnés en une seule fois.
+- `Selection__MaxSelectableEmails`: Le nombre maximum d'e-mails pouvant être sélectionnés à la fois.
 
 ### 👁️ Paramètres de vue (Confidentialité et Affichage) {#view-settings-privacy-display}
-- `View__DefaultToPlainText`: Contrôle le mode de vue par défaut des e-mails pour la confidentialité et la prévention du pistage (true/false). La valeur par défaut est `false`.
-  - Lorsque défini sur `true` : Les e-mails s'ouvrent par défaut en mode texte brut, empêchant le chargement automatique des pixels de pistage, des images externes et des balises web. Cela est recommandé pour les utilisateurs soucieux du pistage des e-mails et de la confidentialité.
-  - Lorsque défini sur `false` : Les e-mails s'ouvrent par défaut en mode HTML, affichant l'e-mail formaté avec images et styles.
+- `View__DefaultToPlainText`: Contrôle le mode de vue d'e-mail par défaut pour la confidentialité et la prévention du suivi (true/false). La valeur par défaut est `false`.
+  - Lorsque défini sur `true` : Les e-mails s'ouvrent par défaut en mode texte brut, empêchant le chargement automatique des pixels de suivi, des images externes et des balises web. Cela est recommandé pour les utilisateurs soucieux du suivi des e-mails et de la confidentialité.
+  - Lorsque défini sur `false` : Les e-mails s'ouvrent par défaut en mode HTML, affichant l'e-mail formaté avec les images et le style.
   - Les utilisateurs peuvent basculer entre les vues HTML et texte brut à l'aide d'un bouton sur la page de détails de l'e-mail (visible uniquement lorsque les deux formats sont disponibles).
   - Le lien "Full View" respecte le mode de vue actuellement sélectionné.
 
-- `View__BlockExternalResources`: Bloque les ressources externes (images distantes, CSS externes, scripts externes, polices web, etc.) dans les vues d'e-mails HTML pour empêcher le pistage et améliorer la confidentialité (true/false). La valeur par défaut est `false`.
-  - Lorsque défini sur `true` : Les ressources externes sont filtrées lors de l'affichage des e-mails HTML. Seuls le contenu en ligne et les URI de données (y compris les pièces jointes en ligne via les références `cid:`) sont affichés.
+- `View__BlockExternalResources`: Bloque les ressources externes (images distantes, CSS externes, scripts externes, polices web, etc.) dans les vues d'e-mails HTML pour empêcher le suivi et améliorer la confidentialité (true/false). La valeur par défaut est `false`.
+  - Lorsque défini sur `true` : Les ressources externes sont filtrées lors de l'affichage des e-mails HTML. Seuls le contenu en ligne et les URI de données (y compris les Pièces jointes en ligne via les références `cid:`) sont affichés.
   - Lorsque défini sur `false` : Les e-mails HTML sont affichés avec toutes leurs ressources externes d'origine.
-  - **Important** : Ce paramètre n'affecte que l'**affichage** des e-mails. Les e-mails archivés sont stockés de manière totalement inchangée dans la base de données, avec tout le contenu d'origine préservé.
+  - **Important** : Ce paramètre n'affecte que l'**affichage** de l'e-mail. Les e-mails archivés sont stockés de manière totalement inchangée dans la base de données, avec tout le contenu d'origine préservé.
   - Les ressources bloquées incluent :
-    - Les images distantes (pixels de pistage, images externes hébergées sur des serveurs)
+    - Les images distantes (pixels de suivi, images externes hébergées sur des serveurs)
     - Les feuilles de style CSS externes
     - Les polices externes via @font-face
     - Les imports CSS externes via @import
     - Les images d'arrière-plan externes
-  - Les ressources autorisées :
+  - Ressources autorisées :
     - Les images en ligne intégrées en tant que data: URIs
-    - Les pièces jointes en ligne référencées via des URI cid:
+    - Les Pièces jointes en ligne référencées via les URI cid:
     - Les styles CSS en ligne et les balises style
   - Ce paramètre fonctionne indépendamment de `DefaultToPlainText` et fournit une couche supplémentaire de protection de la confidentialité lors de la consultation d'e-mails HTML.
 
-### 📊 Paramètres du Tableau de bord {#dashboard-settings}
-- `Dashboard__ShowDirectionSplits`: Indique si les cartes de compteur incluent leurs parties entrantes et sortantes, et si la carte de Compte affiche le nombre de domaines distincts. La valeur par défaut est `true`. Réglez sur `false` pour que ces nombres ne soient pas calculés plutôt que calculés puis masqués : les compteurs affichent un simple décompte, et le décompte des Pièces jointes cesse de faire une jointure avec l'e-mail auquel elle est rattachée, ce qui constitue la requête ajoutée par ces parties.
-- `Dashboard__SelectablePeriods`: Indique si les graphiques du tableau de bord proposent une résolution, une période et des flèches pour les modifier. La valeur par défaut est `true`. Réglez sur `false` pour que les graphiques affichent les douze derniers mois par mois et les expéditeurs de l'ensemble de l'Archive, que le point de terminaison du graphique réponde comme s'il n'existait pas, et que la date d'envoi la plus ancienne ne soit pas recherchée.
-- `Dashboard__CacheSeconds`: Durée pendant laquelle les statistiques calculées du tableau de bord (totaux avec leurs répartitions entrantes et sortantes, décomptes par Compte, séries de graphiques, principaux expéditeurs, e-mails récents, taille de la base de données) sont conservées dans le cache en mémoire du serveur. La valeur par défaut est `60` secondes. Réglez sur `0` pour désactiver la mise en cache et toujours recalculer les statistiques. Chaque sélection de résolution et de période pour les graphiques est mise en cache individuellement, de sorte qu'un tableau de bord basculant entre des sélections conserve une entrée par sélection. Des valeurs plus élevées réduisent la charge de la base de données dans les environnements de grande taille au prix de chiffres plus obsolètes. Les badges de statut de Synchronisation, les valeurs de stockage et la liste des e-mails récents sont toujours récupérés en direct et ne sont pas affectés par ce cache.
-- `Dashboard__RefreshIntervalMinutes`: Fréquence à laquelle le service d'arrière-plan `DashboardStatsRefreshService` recalcule les agrégats coûteux du tableau de bord (comptages totaux avec leurs répartitions entrantes et sortantes, décomptes par Compte, nombre de domaines de Compte, la série de graphiques par défaut avec ses principaux expéditeurs, taille de la base de données) dans la table de la base de données `DashboardStatsCache`. Sur les installations comprenant plusieurs millions d'e-mails, le tableau de bord lit ces valeurs préparées au lieu d'agréger l'ensemble de l'Archive dans le chemin de la requête, ce qui transforme un premier chargement d'environ 10 secondes en quelques millisecondes. Le point de terminaison du graphique répond à la sélection par défaut (mois sur un an, expéditeurs entrants, période actuelle) à partir de la même ligne, de sorte que le retour à celle-ci affiche les chiffres du premier affichage ; chaque autre sélection est calculée à la demande et conservée dans le cache en mémoire mentionné ci-dessus. La valeur par défaut est `15` minutes. Réglez sur `0` pour désactiver l'actualisation en arrière-plan ; le tableau de bord calcule alors à nouveau les statistiques en direct (avec l'application du cache en mémoire ci-dessus). Les valeurs affichées peuvent accuser un retard allant jusqu'à l'intervalle configuré par rapport à l'état réel de l'Archive. Une ligne calculée avec des valeurs `ShowDirectionSplits` ou `SelectablePeriods` différentes des valeurs actuelles n'est pas utilisée ; le tableau de bord calcule en direct jusqu'à la prochaine actualisation.
+### 📊 Paramètres du Dashboard {#dashboard-settings}
+- `Dashboard__ShowDirectionSplits`: Indique si les cartes de compteurs incluent leurs parties entrantes et sortantes, et si la carte de Compte affiche le nombre de domaines distincts. La valeur par défaut est `true`. Si réglé sur `false`, ces nombres ne sont pas calculés mais masqués : les compteurs effectuent un simple comptage, et le nombre de Pièce jointe cesse de s'associer au mail auquel elle est liée, ce qui constitue la requête ajoutée par ces parties.
+- `Dashboard__SelectablePeriods`: Indique si les graphiques du dashboard proposent une résolution, une période et des flèches pour la modifier. La valeur par défaut est `true`. Si réglé sur `false`, les graphiques affichent les douze derniers mois par mois et les expéditeurs de l'ensemble de l'Archive, le point de terminaison du graphique répond comme s'il n'existait pas, et la date d'envoi la plus ancienne n'est pas recherchée.
+- `Dashboard__CacheSeconds`: Définit la durée pendant laquelle les statistiques calculées du dashboard (totaux avec leurs répartitions entrantes et sortantes, décomptes par Compte, séries de graphiques, principaux expéditeurs, emails récents, taille de la base de données) sont conservées dans le cache en mémoire du serveur. La valeur par défaut est `60` secondes. Réglez sur `0` pour désactiver la mise en cache et toujours recalculer les statistiques. Chaque sélection de résolution et de période pour un graphique est mise en cache individuellement, de sorte qu'un dashboard basculant entre des sélections conserve une entrée par sélection. Des valeurs plus élevées réduisent la charge de la base de données dans les environnements de grande taille au prix de chiffres plus obsolètes. Les badges de statut de Synchronisation, les valeurs de stockage et la liste des emails récents sont toujours récupérés en direct et ne sont pas affectés par ce cache.
+- `Dashboard__RefreshIntervalMinutes`: Définit la fréquence à laquelle le service d'arrière-plan `DashboardStatsRefreshService` recalcule les agrégats coûteux du dashboard (comptages totaux avec leurs répartitions entrantes et sortantes, décomptes par Compte, nombre de domaines de Compte, la série de graphiques par défaut avec ses principaux expéditeurs, taille de la base de données) dans la table de la base de données `DashboardStatsCache`. Sur les installations de plusieurs millions de mails, le dashboard lit ces valeurs préparées au lieu d'agréger toute l'Archive dans le chemin de la requête, ce qui transforme un premier chargement de ~10 secondes en quelques millisecondes. Le point de terminaison du graphique répond à la sélection par défaut (mois sur un an, expéditeurs entrants, période actuelle) à partir de la même ligne, de sorte que le retour à celle-ci affiche les chiffres du premier affichage ; toute autre sélection est calculée à la demande et conservée dans le cache en mémoire mentionné ci-dessus. La valeur par défaut est `15` minutes. Réglez sur `0` pour désactiver le rafraîchissement en arrière-plan ; le dashboard calcule alors à nouveau les statistiques en direct (avec l'application du cache en mémoire ci-dessus). Les valeurs affichées peuvent accuser un retard allant jusqu'à l'intervalle configuré par rapport à l'état réel de l'Archive. Une ligne calculée avec d'autres valeurs `ShowDirectionSplits` ou `SelectablePeriods` que les valeurs actuelles n'est pas utilisée ; le dashboard calcule en direct jusqu'au prochain rafraîchissement.
 
 ### 🔄 Paramètres des Jobs {#jobs-settings}
-- `Jobs__RefreshSeconds`: Fréquence à laquelle la page des jobs en arrière-plan se recharge elle-même lorsqu'un onglet de navigateur est ouvert. La valeur par défaut est `30` secondes. Réglez sur `0` pour désactiver le rechargement automatique et rafraîchir manuellement. Chaque rechargement reconstruit la page à partir des huit sources de jobs, ainsi, sur les installations avec de nombreux comptes, un intervalle plus long réduit la charge, multipliée par chaque onglet ouvert sur la page.
+- `Jobs__RefreshSeconds`: La fréquence à laquelle la page des jobs en arrière-plan se recharge elle-même lorsqu'un onglet de navigateur est ouvert. La valeur par défaut est `30` secondes. Réglez sur `0` pour désactiver le rechargement automatique et rafraîchir manuellement. Chaque rechargement reconstruit la page à partir des huit sources de jobs, ainsi, sur les installations avec de nombreux comptes, un intervalle plus long limite la charge, multipliée par chaque onglet ouvert sur la page.
 
 ### 🗃️ Paramètres Npgsql {#npgsql-settings}
 - `Npgsql__CommandTimeout`: Le délai d'expiration pour les commandes de base de données en secondes.
 
 ### 📥 Paramètres de téléchargement {#upload-settings}
-- `Upload__MaxFileSizeGB`: La taille maximale des fichiers pour les téléchargements en Go.
-- `Upload__KeepAliveTimeoutHours`: Le délai d'expiration keep alive pour les téléchargements en heures.
+- `Upload__MaxFileSizeGB`: La taille maximale des fichiers pour les téléchargements en GB.
+- `Upload__KeepAliveTimeoutHours`: Le délai d'expiration de maintien de la connexion pour les téléchargements en heures.
 - `Upload__RequestHeadersTimeoutHours`: Le délai d'expiration pour les en-têtes de requête en heures.
 
 ### 📂 Paramètres d'importation locale {#local-import-settings}
-- `LocalImport__AllowedPaths__0`, `LocalImport__AllowedPaths__1`, etc. : Liste blanche de répertoires locaux à partir desquels les commandes d'importation CLI (`--import-mbox`, `--import-eml`) sont autorisées à lire des fichiers. Chaque entrée est un chemin à l'intérieur du conteneur. Vous devez monter vos fichiers d'importation dans l'un de ces répertoires en utilisant des volumes Docker. Par défaut : `/data/import` (configuré automatiquement sur `/app/uploads` par défaut).
-  - Lors de l'utilisation de `docker exec` pour exécuter la commande d'importation, le chemin du fichier fourni via `--file` doit se trouver dans l'un de ces chemins autorisés.
+
+- `LocalImport__AllowedPaths__0`, `LocalImport__AllowedPaths__1`, etc. : Liste blanche des répertoires locaux à partir desquels les commandes d'importation CLI (`--import-mbox`, `--import-eml`) sont autorisées à lire des fichiers. Chaque entrée est un chemin à l'intérieur du conteneur. Vous devez monter vos fichiers d'importation dans l'un de ces répertoires en utilisant des volumes Docker. Par défaut : `/data/import` (automatiquement défini sur `/app/uploads` en cas de repli).
+  - Lorsque vous utilisez `docker exec` pour exécuter la commande d'importation, le chemin du fichier fourni via `--file` doit se trouver dans l'un de ces chemins autorisés.
   - Cette mesure de sécurité empêche l'accès arbitraire au système de fichiers à partir des commandes CLI.
   - Plusieurs chemins peuvent être configurés pour différentes sources d'importation.
-  - Consultez les [CLI commands](CLI.md) pour des instructions d'utilisation détaillées.
+  - Consultez les [commandes CLI](CLI.md) pour des instructions d'utilisation détaillées.
 
 ### 📄 Paramètres d'importation CSV {#csv-import-settings}
 - `CsvImport__MaxRows`: Nombre maximum de lignes CSV (Boîtes aux lettres) traitées lors d'une seule importation groupée. La valeur par défaut est `5000`. Augmentez cette valeur pour les déploiements de grande envergure ; diminuez-la pour limiter l'impact d'une seule exécution d'importation sur la charge de la base de données.
-- `CsvImport__MaxFileSizeBytes`: Taille maximale autorisée (en octets) du fichier CSV téléchargé. La valeur par défaut est `10000000` (10 MB). Ajustez cette valeur pour qu'elle corresponde à vos limites de téléchargement si nécessaire.
+- `CsvImport__MaxFileSizeBytes`: Taille maximale autorisée (en octets) du fichier CSV téléchargé. La valeur par défaut est `10000000` (10 MB). Ajustez cette valeur pour correspondre à vos limites de téléchargement si nécessaire.
 - Consultez le [Account Import Guide](Account-Import.md) pour des instructions d'utilisation détaillées sur l'importation groupée de Compte IMAP via CSV.
 
-### 📤 Paramètres d'exportation du Journal d'audit {#audit-export-settings}
-Paramètres pour la page d'exportation des données d'audit (administrateur uniquement, accessible depuis la page Logs). L'exportation génère un package ZIP contenant des données de masse tabulaires (INDEX.XML + tables CSV + DTD) à partir de l'Archive existante pour des outils d'audit externes. Consultez le [Audit Data Export Guide](AuditExport.md) pour les détails d'utilisation.
-- `AuditExport__DataSupplierName` : Valeur par défaut pour le champ de formulaire "Data supplier name" qui identifie votre organisation dans le fichier d'index exporté. Par défaut : vide.
-- `AuditExport__DataSupplierLocation` : Valeur par défaut pour le champ de formulaire "Data supplier location" (ex: siège social). Par défaut : vide.
-- `AuditExport__Comment` : Valeur par défaut pour le champ de formulaire "Comment", inclus sous forme de texte libre dans le fichier d'index exporté. Par défaut : vide.
-- `AuditExport__OutputDirectory` : Répertoire où les fichiers ZIP générés sont stockés. Les chemins relatifs sont résolus par rapport à la racine du contenu de l'application. Par défaut : `exports/audit`.
-- `AuditExport__RetentionDays` : Nombre de jours après lesquels les fichiers d'exportation terminés sont supprimés par le nettoyage quotidien. Par défaut : `30`.
-- `AuditExport__MaxRangeYears` : Étendue maximale autorisée entre la date de début et la date de fin de la période d'exportation. Par défaut : `10`.
-- Les champs du formulaire sont pré-remplis à partir de ces valeurs par défaut mais peuvent être modifiés par exportation.
-- Chaque exportation écrit une entrée de début et une entrée de résultat dans le journal d'accès (type "Audit Data Export"), de sorte que l'historique est protégé contre les révisions sans aucun changement de schéma de base de données.
+### 📤 Paramètres d'exportation de l'audit {#audit-export-settings}
+
+Paramètres pour la page d'exportation des données d'audit (administrateur uniquement, accessible depuis la page Logs). L'exportation génère un package ZIP contenant des données de masse tabulaires (INDEX.XML + tables CSV + DTD) à partir de l'Archive existante pour les outils d'audit externes. Voir le [Guide d'exportation des données d'audit](AuditExport.md) pour les détails d'utilisation.
+- `AuditExport__DataSupplierName`: Valeur par défaut pour le champ de formulaire "Data supplier name" qui identifie votre organisation dans le fichier d'index exporté. Par défaut : vide.
+- `AuditExport__DataSupplierLocation`: Valeur par défaut pour le champ de formulaire "Data supplier location" (ex: siège de l'entreprise). Par défaut : vide.
+- `AuditExport__Comment`: Valeur par défaut pour le champ de formulaire "Comment", inclus sous forme de texte libre dans le fichier d'index exporté. Par défaut : vide.
+- `AuditExport__OutputDirectory`: Répertoire où les fichiers ZIP générés sont stockés. Les chemins relatifs sont résolus par rapport à la racine du contenu de l'application. Par défaut : `exports/audit`.
+- `AuditExport__RetentionDays`: Nombre de jours après lesquels les fichiers d'exportation terminés sont supprimés par le nettoyage quotidien. Par défaut : `30`.
+- `AuditExport__MaxRangeYears`: Éventail maximal autorisé entre la date de début et la date de fin de la période d'exportation. Par défaut : `10`.
+- Les champs de formulaire sont pré-remplis à partir de ces valeurs par défaut mais peuvent être modifiés pour chaque exportation.
+- Chaque exportation écrit une entrée de début et une entrée de résultat dans le journal d'audit (type "Audit Data Export"), de sorte que l'historique est protégé contre les révisions sans aucun changement de schéma de base de données.
 
 ### 🔒 Paramètres de la politique de suppression {#deletion-policy-settings}
-- `DeletionPolicy__DeletionAllowed`: Contrôle si la suppression manuelle des e-mails archivés est autorisée (true/false). La valeur par défaut est `true`. Lorsqu'il est défini sur `false` :
+- `DeletionPolicy__DeletionAllowed`: Contrôle si la suppression manuelle des e-mails archivés est autorisée (true/false). La valeur par défaut est `true`. Lorsqu'elle est définie sur `false` :
   - Tous les e-mails archivés sont verrouillés (`IsLocked = true`) au démarrage via le déclencheur de conformité de la base de données, empêchant toute modification ou suppression au niveau de la base de données.
-  - La suppression manuelle (individuelle et en masse) est bloquée au niveau de l'application avec un message d'erreur.
-  - La valeur par défaut de la colonne est ajustée afin que les nouveaux e-mails importés soient également verrouillés.
+  - La suppression manuelle (individuelle et groupée) est bloquée au niveau de l'application avec un message d'erreur.
+  - La valeur par défaut de la colonne est ajustée de sorte que les e-mails nouvellement importés soient également verrouillés.
   - L'état actuel de la politique est consigné dans la table AccessLogs à chaque démarrage (visible sur la page Logs sous forme d'entrées "Deletion Policy") pour l'auditabilité.
-  - La suppression liée à la Conservation locale est exemptée : les e-mails qui tombent sous une période de Conservation configurée sont toujours supprimés (ils sont déverrouillés immédiatement avant la suppression au sein du processus de Conservation).
-- `DeletionPolicy__MaxBulkDeleteEmails`: Limite supérieure pour une suppression en masse basée sur un filtre (*Delete all matches*). La valeur par défaut est `100000`. Un filtre qui correspond à trop d'e-mails est rejeté avec un message demandant de l'affiner ; le travail ne tronque jamais silencieusement. Les e-mails verrouillés par la politique de Conservation sont ignorés et signalés dans le statut du travail, sans être déverrouillés. Le travail vérifie à nouveau cette limite et `DeletionPolicy__DeletionAllowed` lorsqu'il démarre, de sorte qu'un travail mis en file d'attente avant un changement de politique s'arrête au lieu de s'exécuter avec l'ancien paramètre.
-- **Protection d'immutabilité :** Lorsque `IsLocked = true`, le déclencheur de conformité de la base de données (`prevent_locked_email_changes`) bloque TOUTE modification de la ligne de l'e-mail — toutes les colonnes sont protégées, pas seulement une liste de champs fixes. Les seules colonnes exemptées sont `IsLocked` elle-même (afin que le déverrouillage pour la suppression liée à la Conservation et l'application de la politique au démarrage reste possible) et `FolderName` (afin que la Synchronisation IMAP puisse mettre à jour le Dossier lorsqu'un e-mail est déplacé côté serveur). La protection est indépendante des colonnes (comparaison basée sur JSONB) et couvre automatiquement les futurs ajouts au schéma.
+  - La suppression liée à la Conservation locale est exemptée : les e-mails qui tombent sous une période de Conservation configurée sont toujours supprimés (ils sont déverrouillés immédiatement avant la suppression dans le processus de Conservation).
+- `DeletionPolicy__MaxBulkDeleteEmails`: Limite supérieure pour une suppression groupée basée sur un filtre (*Delete all matches*). La valeur par défaut est `100000`. Un filtre qui correspond à plus d'e-mails est rejeté avec un message demandant de l'affiner ; le job ne tronque jamais silencieusement. Les e-mails verrouillés par la politique de Conservation sont ignorés et signalés dans le statut du job, sans être déverrouillés. Le job vérifie à nouveau cette limite et `DeletionPolicy__DeletionAllowed` lorsqu'il démarre, de sorte qu'un job mis en file d'attente avant un changement de politique s'arrête au lieu de s'exécuter avec l'ancien paramètre.
+- **Protection d'immuabilité :** Lorsque `IsLocked = true`, le déclencheur de conformité de la base de données (`prevent_locked_email_changes`) bloque TOUTE modification de la ligne de l'e-mail — toutes les colonnes sont protégées, pas seulement une liste de champs fixes. Les seules colonnes exemptées sont `IsLocked` elle-même (pour que le déverrouillage pour la suppression liée à la Conservation et l'application de la politique au démarrage reste possible) et `FolderName` (pour que la Synchronisation IMAP puisse mettre à jour le Dossier lorsqu'un e-mail est déplacé côté serveur). La protection est agnostique de la colonne (comparaison basée sur JSONB) et couvre automatiquement les futurs ajouts au schéma.
 
-### 🕐 Paramètres de TimeZone {#timezone-settings}
-- `TimeZone__DisplayTimeZoneId` : La zone horaire utilisée pour l'affichage des horodatages des e-mails dans l'interface utilisateur. Utilise les identifiants de zone horaire IANA (par exemple, "Europe/Berlin", "Asia/Tokyo"). La valeur par défaut est "Etc/UCT" pour la compatibilité ascendante. Lors de l'importation, les horodatages des e-mails seront convertis dans cette zone horaire à des fins d'affichage.
+### 🕐 Paramètres de fuseau horaire {#timezone-settings}
+- `TimeZone__DisplayTimeZoneId`: Le fuseau horaire utilisé pour l'affichage des horodatages d'e-mails dans l'interface utilisateur. Utilise les identifiants de fuseau horaire IANA (par ex. "Europe/Berlin", "Asia/Tokyo"). La valeur par défaut est "Etc/UCT" pour la compatibilité ascendante. Lors de l'importation, les horodatages des e-mails seront convertis vers ce fuseau horaire à des fins d'affichage.
 
-### 🎉 Paramètres ReleaseNotes (Écran d'accueil de mise à jour de version) {#releasenotes-settings-version-update-splash-screen}
-- `ReleaseNotes__AppVersion`: La chaîne de version que cette instance rapporte. Elle est comparée aux tags de release GitHub et permet de décider si une version plus récente existe. Lorsqu'elle est vide, le journal des modifications utilise la version de l'assembly compilée et l'indice de mise à jour reste désactivé.
-- `ReleaseNotes__Enabled`: Activer ou désactiver l'écran d'accueil de mise à jour de version (true/false). La valeur par défaut est `true`. Lorsqu'il est activé, les administrateurs verront une fenêtre modale de journal des modifications unique après une mise à jour de l'application, affichant les notes de version récupérées depuis GitHub Releases pour la version actuelle. Chaque administrateur peut fermer la modale, et elle ne réapparaîtra que pour une nouvelle version. Définissez sur `false` pour désactiver complètement cette fonctionnalité, y compris l'indice de mise à jour.
-- `ReleaseNotes__UpdateHintEnabled`: Afficher aux administrateurs un petit toast dans le coin inférieur droit lorsque GitHub publie une version stable plus récente que la version installée (true/false). La valeur par défaut est `true`. Le toast contient un lien vers cette release et est ignoré par version dans le navigateur. Les brouillons et les pré-releases sont ignorés. Nécessite `ReleaseNotes__AppVersion` ; sans cela, aucun indice ne sera affiché.
-- `ReleaseNotes__UpdateCheckIntervalHours`: Fréquence de rafraîchissement de la liste des releases GitHub, en heures. La valeur par défaut est `6`. Un intervalle plus court rend une nouvelle release visible plus tôt dans une instance de longue durée, un intervalle plus long réduit les appels à l'API GitHub. Le minimum est `1`.
+### 🎉 Paramètres ReleaseNotes (Écran de démarrage de mise à jour de version) {#releasenotes-settings-version-update-splash-screen}
+
+- `ReleaseNotes__AppVersion`: La chaîne de version que cette instance rapporte. Elle est comparée aux tags de release GitHub et détermine si une version plus récente existe. Lorsqu'elle est vide, le changelog utilise la version de l'assembly compilé et l'indice de mise à jour reste désactivé.
+- `ReleaseNotes__Enabled`: Activer ou désactiver l'écran de démarrage de mise à jour de version (true/false). La valeur par défaut est `true`. Lorsqu'il est activé, les administrateurs verront une fenêtre modale de changelog unique après une mise à jour de l'application, affichant les notes de version récupérées depuis GitHub Releases pour la version actuelle. Chaque administrateur peut fermer la modale, et elle ne réapparaîtra que pour une nouvelle version. Définissez sur `false` pour désactiver complètement cette fonctionnalité, y compris l'indice de mise à jour.
+- `ReleaseNotes__UpdateHintEnabled`: Afficher aux administrateurs un petit toast dans le coin inférieur droit lorsque GitHub publie une version stable plus récente que la version installée (true/false). La valeur par défaut est `true`. Le toast est lié à cette version et est ignoré par version dans le navigateur. Les brouillons et les pré-versions sont ignorés. Nécessite `ReleaseNotes__AppVersion` ; sans cela, aucun indice n'est affiché.
+- `ReleaseNotes__UpdateCheckIntervalHours`: Fréquence de rafraîchissement de la liste des releases GitHub, en heures. La valeur par défaut est `6`. Un intervalle plus court rend une nouvelle version visible plus tôt dans une instance de longue durée, un intervalle plus long réduit les appels à l'API GitHub. Le minimum est `1`.
+- `ReleaseNotes__RequestTimeoutSeconds`: Délai d'expiration pour une requête API GitHub, en secondes. La valeur par défaut est `10`. Lorsqu'il s'écoule, le changelog et l'indice de mise à jour restent désactivés pour cette tentative au lieu de maintenir la requête ouverte ; la vérification suivante réessaie.
 
 ### 🔧 Paramètres de maintenance de la base de données {#database-maintenance-settings}
 - `DatabaseMaintenance__Enabled`: Activer ou désactiver la maintenance automatique quotidienne de la base de données (true/false). La valeur par défaut est `false`. Lorsqu'elle est activée, le système exécutera automatiquement des opérations VACUUM ANALYZE pour optimiser les performances de la base de données et éviter l'encombrement. Consultez le [Database Maintenance Guide](DatabaseMaintenance.md) pour plus de détails.
-- `DatabaseMaintenance__DailyExecutionTime`: L'heure de la journée à laquelle la maintenance de la base de données doit s'exécuter, au format 24 heures (HH:mm). La valeur par défaut est `02:00`. Choisissez un créneau durant une période de faible activité du système.
+- `DatabaseMaintenance__DailyExecutionTime`: L'heure de la journée à laquelle la maintenance de la base de données doit s'exécuter, au format 24 heures (HH:mm). La valeur par défaut est `02:00`. Choisissez un moment de faible activité du système.
 - `DatabaseMaintenance__TimeoutMinutes`: Temps maximum autorisé pour les opérations de maintenance en minutes. La valeur par défaut est `30`. Augmentez cette valeur pour les bases de données plus volumineuses.
 
 ### 🧬 Paramètres de Déduplication des Pièces jointes {#attachment-deduplication-settings}
-La déduplication des Pièces jointes stocke chaque charge utile de Pièce jointe unique une seule fois (adressée par contenu via SHA-256) et est une **fonctionnalité de base qui est toujours activée** – il n'y a intentionnellement pas d'interrupteur on/off. Seuls les paramètres de lot/planification ci-dessous peuvent être ajustés. Consultez le [Attachment Deduplication Guide](AttachmentDeduplication.md) pour plus de détails.
 
-- `AttachmentDeduplication__BatchSize`: Nombre de Pièces jointes existantes migrées par transaction lors de la migration en arrière-plan unique des données préexistantes. La valeur par défaut est `200`. Des valeurs plus élevées permettent une migration plus rapide mais utilisent plus de mémoire/charge de la base de données par lot.
+La Déduplication des Pièces jointes stocke chaque charge utile de Pièce jointe unique une seule fois (adressée par contenu via SHA-256) et est une **fonctionnalité de base qui est toujours activée** – il n'y a intentionnellement pas d'interrupteur on/off. Seuls les paramètres de lot/planification ci-dessous peuvent être ajustés. Consultez le [Attachment Deduplication Guide](AttachmentDeduplication.md) pour plus de détails.
+
+- `AttachmentDeduplication__BatchSize`: Nombre de Pièces jointes existantes migrées par transaction lors de la migration de fond unique des données préexistantes. La valeur par défaut est `200`. Des valeurs plus élevées migrent plus rapidement mais utilisent plus de mémoire/charge DB par lot.
 - `AttachmentDeduplication__DelayBetweenBatchesMs`: Pause optionnelle (en millisecondes) entre les lots de migration pour limiter la charge de la base de données sur les systèmes occupés. La valeur par défaut est `0` (pas de pause).
-- `AttachmentDeduplication__StartupDelaySeconds`: Délai (en secondes) après le démarrage de l'application avant que la migration en arrière-plan ne commence, afin de laisser le temps à la migration du schéma de se terminer. La valeur par défaut est `20`.
+- `AttachmentDeduplication__StartupDelaySeconds`: Délai (en secondes) après le démarrage de l'application avant que la migration de fond ne commence, pour laisser le temps à la migration du schéma de se terminer. La valeur par défaut est `20`.
 - `AttachmentDeduplication__OrphanCleanupIntervalHours`: Intervalle (en heures) du ramasse-miettes (garbage collection) toujours actif qui supprime les charges utiles de Pièces jointes qui ne sont plus référencées par aucun e-mail. La valeur par défaut est `12`. Cela s'exécute indépendamment de `DatabaseMaintenance__Enabled`.
 - `AttachmentDeduplication__CommandTimeoutSeconds`: Délai d'expiration de la commande de base de données (en secondes) pour les opérations de lot de migration (INSERT avec hachage SHA-256 et UPDATE). La valeur par défaut est `300` (5 minutes). Augmentez cette valeur pour les bases de données ou les Pièces jointes très volumineuses, ou diminuez-la si vous souhaitez une détection d'échec plus rapide. Si un lot expire toujours, le service réessaie automatiquement avec une taille de lot réduite de moitié.
 
 ### 💾 Paramètres de stockage du Compte {#account-storage-settings}
-L'affichage du stockage par Compte montre l'utilisation du stockage de la base de données (tous les champs de mail + Pièce jointe) pour chaque Compte dans le tableau « Account Overview » du Dashboard et le tableau « Show All » de MailAccounts. Un service d'arrière-plan autarke (`AccountStorageRefreshService`) calcule les valeurs en additionnant les PostgreSQL `pg_column_size` par colonne (couvrant tous les champs d'un mail sans lire les corps de mail) et les met en cache dans la table `AccountStorageCache`. Ce service s'exécute indépendamment de `DatabaseMaintenance__Enabled`.
 
-- `AccountStorage__Enabled`: Activer ou désactiver le service de rafraîchissement du stockage (true/false). La valeur par défaut est `true`. Lorsqu'il est activé, le service effectue un remplissage (backfill) reprise possible des Comptes en attente au démarrage (sécurisé en cas de crash via `AccountStorageBackfillState`) et un rafraîchissement complet quotidien par la suite. Lorsqu'il est désactivé, les valeurs de stockage ne sont mises à jour que lorsque les e-mails sont synchronisés, importés ou supprimés, mais les valeurs affichées peuvent devenir obsolètes avec le temps.
-- `AccountStorage__DailyExecutionTime`: Heure de la journée (format 24 heures `HH:mm`) pour le rafraîchissement complet quotidien de tous les Comptes. La valeur par défaut est `02:30`. Choisissez une heure pendant une période de faible activité du système.
-- `AccountStorage__BackfillDelayMs`: Délai (en millisecondes) entre les Comptes lors du remplissage initial au démarrage. La valeur par défaut est `5000`. Des valeurs plus basses accélèrent le remplissage mais augmentent la charge de la base de données ; augmentez cette valeur pour les Archive très volumineuses afin d'éviter de surcharger la base de données.
-- `AccountStorage__RefreshBatchDelayMs`: Délai (en millisecondes) entre les Comptes lors du rafraîchissement complet quotidien. La valeur par défaut est `1000`. Des valeurs plus basses accélèrent le rafraîchissement mais augmentent la charge de la base de données ; augmentez cette valeur pour les Archive très volumineuses.
-- `AccountStorage__CommandTimeoutSeconds`: Délai d'expiration de la commande de base de données (en secondes) pour le calcul du stockage par Compte (`pg_column_size` sur toutes les lignes d'un Compte). La valeur par défaut est `300` (5 minutes). Le calcul lit chaque ligne de mail, y compris les données TOAST, ce qui peut prendre bien plus d'une minute sur des Archive très volumineuses (plus de 250k e-mails) ; l'ancien défaut Npgsql de 30 secondes faisait échouer le rafraîchissement silencieusement et laissait le dashboard afficher des valeurs obsolètes. Augmentez cette valeur si le calcul expire toujours sur votre Archive.
+L'affichage du stockage par Compte montre l'utilisation du stockage de la base de données (tous les champs de mail + Pièce jointe) pour chaque Compte dans le tableau « Account Overview » du Dashboard et le tableau « Show All » de MailAccounts. Un service d'arrière-plan autark (`AccountStorageRefreshService`) calcule les valeurs en additionnant les `pg_column_size` PostgreSQL par colonne (couvrant tous les champs d'un mail sans lire le corps du mail) et les met en cache dans la table `AccountStorageCache`. Ce service s'exécute indépendamment de `DatabaseMaintenance__Enabled`.
 
-> 💡 **Note** : Les valeurs de stockage sont rafraîchies immédiatement après chaque Synchronisation, import ou suppression de Conservation, de sorte que les valeurs affichées restent à jour même sans le rafraîchissement quotidien. Le rafraîchissement quotidien est un filet de sécurité qui capture les cas particuliers (par exemple, les modifications directes de la base de données).
+- `AccountStorage__Enabled`: Activer ou désactiver le service de rafraîchissement du stockage (true/false). La valeur par défaut est `true`. Lorsqu'il est activé, le service effectue un remplissage (backfill) repriseable des Compte en attente au démarrage (sécurisé en cas de crash via `AccountStorageBackfillState`) et un rafraîchissement complet quotidien par la suite. Lorsqu'il est désactivé, les valeurs de stockage ne sont mises à jour que lorsque les e-mails sont synchronisés, importés ou supprimés, mais les valeurs affichées peuvent devenir obsolètes avec le temps.
+- `AccountStorage__DailyExecutionTime`: Moment de la journée (format 24 heures `HH:mm`) pour le rafraîchissement complet quotidien de tous les Compte. La valeur par défaut est `02:30`. Choisissez un moment durant une période de faible activité du système.
+- `AccountStorage__BackfillDelayMs`: Délai (en millisecondes) entre les Compte lors du remplissage initial au démarrage. La valeur par défaut est `5000`. Des valeurs plus basses accélèrent le remplissage mais augmentent la charge de la base de données ; augmentez cette valeur pour les Archive très volumineuses afin d'éviter de surcharger la base de données.
+- `AccountStorage__RefreshBatchDelayMs`: Délai (en millisecondes) entre les Compte lors du rafraîchissement complet quotidien. La valeur par défaut est `1000`. Des valeurs plus basses accélèrent le rafraîchissement mais augmentent la charge de la base de données ; augmentez cette valeur pour les Archive très volumineuses.
+- `AccountStorage__CommandTimeoutSeconds`: Délai d'expiration de la commande de la base de données (en secondes) pour le calcul du stockage par Compte (`pg_column_size` sur toutes les lignes d'un Compte). La valeur par défaut est `300` (5 minutes). Le calcul lit chaque ligne de mail, y compris les données TOAST, ce qui peut prendre bien plus d'une minute sur des Archive très volumineuses (plus de 250k e-mails) ; l'ancien défaut Npgsql de 30 secondes provoquait l'échec silencieux du rafraîchissement et laissait le dashboard afficher des valeurs obsolètes. Augmentez cette valeur si le calcul expire toujours sur votre Archive.
+
+> 💡 **Note** : Les valeurs de stockage sont rafraîchies immédiatement après chaque synchronisation, import ou suppression de Conservation de mail, de sorte que les valeurs affichées restent à jour même sans le rafraîchissement quotidien. Le rafraîchissement quotidien est un filet de sécurité qui capture les cas particuliers (par exemple, les modifications directes de la base de données).
 
 ### 📝 Paramètres de journalisation {#logging-settings}
-- `Logging__LogLevel__Default`: Le niveau de journalisation par défaut pour l'application. Les niveaux disponibles sont : `Trace`, `Debug`, `Information`, `Warning`, `Error`, `Critical`, `None`. Le niveau par défaut est `Information`.
-- `Logging__LogLevel__Microsoft_AspNetCore`: Niveau de journalisation pour les messages du framework ASP.NET Core. Le niveau par défaut est `Warning`.
-- `Logging__LogLevel__Microsoft_EntityFrameworkCore_Database_Command`: Niveau de journalisation pour les commandes de base de données Entity Framework. Le niveau par défaut est `Warning`.
+- `Logging__LogLevel__Default`: Le niveau de journalisation par défaut pour l'application. Les niveaux disponibles sont : `Trace`, `Debug`, `Information`, `Warning`, `Error`, `Critical`, `None`. La valeur par défaut est `Information`.
+- `Logging__LogLevel__Microsoft_AspNetCore`: Niveau de journalisation pour les messages du framework ASP.NET Core. La valeur par défaut est `Warning`.
+- `Logging__LogLevel__Microsoft_EntityFrameworkCore_Database_Command`: Niveau de journalisation pour les commandes de base de données Entity Framework. La valeur par défaut est `Warning`.
 
 ### 🛡️ Paramètres de sécurité {#security-settings}
-- `AllowedHosts`: Une liste séparée par des points-virgules des noms d'hôtes que l'application est autorisée à desservir. Cela aide à prévenir les attaques par en-tête HTTP Host. Exemple : `AllowedHosts=mailarchiver.example.com;www.mailarchiver.example.com`. **Important** : N'utilisez pas `*` dans les environnements de production car cela désactive la validation de l'en-tête d'hôte.
+- `AllowedHosts`: Une liste de noms d'hôtes séparés par des points-virgules que l'application est autorisée à servir. Cela aide à prévenir les attaques par en-tête HTTP Host. Exemple : `AllowedHosts=mailarchiver.example.com;www.mailarchiver.example.com`. **Important** : N'utilisez pas `*` dans les environnements de production car cela désactive la validation de l'en-tête d'hôte.
 
 #### 🔐 Chiffrement des identifiants au repos {#credential-encryption-at-rest}
 Les identifiants du Compte de messagerie (mot de passe IMAP, secret client M365 et jetons OAuth MSA) peuvent être chiffrés dans la base de données. La clé de chiffrement est conservée **en dehors** de la base de données (variable d'environnement / Docker secret), de sorte qu'un simple dump de la base de données ne suffit pas pour lire les identifiants.
@@ -514,14 +529,14 @@ Les identifiants du Compte de messagerie (mot de passe IMAP, secret client M365 
   ```bash
   openssl rand -base64 32
   ```
-  Définissez la valeur comme une variable d'environnement (recommandé : `Security__CredentialEncryptionKey` dans votre fichier compose ou l'environnement de votre conteneur). L'application ne prend pas en charge les Docker secrets de style `_FILE` — si vous utilisez un Docker secret, montez-le et chargez son contenu dans la variable d'environnement de votre entrypoint. Ne commitez jamais la clé dans `appsettings.json`. Lorsqu'une clé est configurée, les identifiants sont chiffrés lors de l'écriture, et un service en arrière-plan chiffre les identifiants existants en texte clair une seule fois.
-- `Security__EncryptAccountCredentials`: Activer ou désactiver le chiffrement des valeurs d'identifiants nouvelles/mises à jour (true/false). La valeur par défaut est `true`. Lorsqu'aucune clé n'est configurée, les identifiants sont stockés en texte clair et un avertissement est consigné au démarrage — les installations existantes ne sont pas affectées tant qu'une clé n'est pas fournie.
-- `Security__CredentialEncryptionBackfill`: Indique si le service en arrière-plan doit chiffrer les identifiants existants en texte clair au démarrage (true/false). La valeur par défaut est `true`. Opération nulle sans clé configurée.
-- `Security__CredentialEncryptionKeyPrevious`: Ancienne clé optionnelle, utilisée uniquement pour déchiffrer les valeurs chiffrées avec celle-ci (pour la rotation de clé). Les nouvelles valeurs sont toujours chiffrées avec `Security__CredentialEncryptionKey`.
+  Définissez la valeur comme une variable d'environnement (recommandé : `Security__CredentialEncryptionKey` dans votre fichier compose ou l'environnement de votre conteneur). L'application ne prend pas en charge les Docker secrets de style `_FILE` — si vous utilisez un Docker secret, montez-le et chargez son contenu dans la variable d'environnement de votre entrypoint. Ne commitez jamais la clé dans `appsettings.json`. Lorsqu'une clé est configurée, les identifiants sont chiffrés lors de l'écriture, et un service d'arrière-plan chiffre les identifiants existants en texte clair une seule fois.
+- `Security__EncryptAccountCredentials`: Activer ou désactiver le chiffrement des nouvelles valeurs d'identifiants/valeurs mises à jour (true/false). La valeur par défaut est `true`. Lorsqu'aucune clé n'est configurée, les identifiants sont stockés en texte clair et un avertissement est consigné dans le journal au démarrage — les installations existantes ne sont pas affectées tant qu'une clé n'est pas fournie.
+- `Security__CredentialEncryptionBackfill`: Indique si le service d'arrière-plan doit chiffrer les identifiants existants en texte clair au démarrage (true/false). La valeur par défaut est `true`. Opération nulle sans clé configurée.
+- `Security__CredentialEncryptionKeyPrevious`: Ancienne clé optionnelle, utilisée uniquement pour déchiffrer les valeurs qui ont été chiffrées avec elle (pour la rotation de clé). Les nouvelles valeurs sont toujours chiffrées avec `Security__CredentialEncryptionKey`.
 
-  > ⚠️ **Rotation de clé** : après la rotation, conservez `Security__CredentialEncryptionKeyPrevious` configurée **jusqu'à ce que chaque identifiant ait été réécrit** (par exemple, en modifiant le Compte ou lors d'un rafraîchissement automatique d'un jeton OAuth) — les valeurs existantes chiffrées avec l'ancienne clé ne sont *pas* automatiquement rechiffrées avec la nouvelle clé. Une fois que vous supprimez l'ancienne clé, tout identifiant encore chiffré avec elle devient illisible et doit être saisi à nouveau. Tant qu'elle est configurée, elle doit être conservée aussi précieusement que la clé actuelle.
+  > ⚠️ **Rotation de clé** : après la rotation, conservez `Security__CredentialEncryptionKeyPrevious` configurée **jusqu'à ce que chaque identifiant ait été réécrit** (par exemple, en modifiant le Compte ou lors d'un rafraîchissement automatique de jeton OAuth) — les valeurs existantes chiffrées avec l'ancienne clé ne sont *pas* automatiquement rechiffrées avec la nouvelle clé. Une fois que vous supprimez l'ancienne clé, tout identifiant encore chiffré avec celle-ci devient illisible et doit être saisi à nouveau. Tant qu'elle est configurée, elle doit être conservée aussi précieusement que la clé actuelle.
 
-> ⚠️ **Gardez la clé en sécurité** : Sans la clé, les identifiants chiffrés ne peuvent pas être récupérés et doivent être saisis à nouveau. Effectuez une Sauvegarde de celle-ci en même temps que (mais séparément de) vos Sauvegarde de base de données.
+> ⚠️ **Gardez la clé en sécurité** : Sans la clé, les identifiants chiffrés ne peuvent pas être récupérés et doivent être saisis à nouveau. Sauvegardez-la en même temps que (mais séparément de) vos Sauvegardes de base de données.
 >
 > 💡 **Installations existantes** : Mettez à jour en toute sécurité — tant qu'aucune `Security__CredentialEncryptionKey` n'est définie, rien ne change. Définissez la clé lorsque vous êtes prêt ; les identifiants existants en texte clair restent lisibles et sont chiffrés en arrière-plan.
 
@@ -531,23 +546,23 @@ Pour des instructions de configuration détaillées concernant l'authentificatio
 
 #### Paramètres OIDC de base {#basic-oidc-settings}
 - `OAuth__Enabled`: Activer ou désactiver l'authentification OIDC (true/false)
-- `OAuth__Authority`: L'URL de l'autorité OpenID Connect (par exemple, https://sts.windows.net/{TENANT-ID}/ pour Azure AD)
+- `OAuth__Authority`: L'URL de l'autorité OpenID Connect (ex: https://sts.windows.net/{TENANT-ID}/ pour Azure AD)
 - `OAuth__ClientId`: Le client ID assigné par votre fournisseur d'identité
 - `OAuth__ClientSecret`: Le client secret assigné par votre fournisseur d'identité
-- `OAuth__DisplayName`: Nom d'affichage optionnel affiché sur le bouton de connexion OIDC et la page de redirection automatique (par exemple, `PocketID SSO`). Si omis, l'étiquette générique "Login with OAuth" est utilisée.
+- `OAuth__DisplayName`: Nom d'affichage optionnel affiché sur le bouton de connexion OIDC et la page de redirection automatique (ex: `PocketID SSO`). Si omis, l'étiquette générique "Login with OAuth" est utilisée.
 - `OAuth__ClientScopes__0`: Premier scope demandé au fournisseur d'identité (openid)
 - `OAuth__ClientScopes__1`: Deuxième scope demandé au fournisseur d'identité (profile)
 - `OAuth__ClientScopes__2`: Troisième scope demandé au fournisseur d'identité (email)
-- `OAuth__ResponseMode`: Mode de réponse optionnel de la requête d'autorisation (`query`, `fragment` ou `form_post`). La valeur par défaut est `form_post`, le défaut d'ASP.NET Core. Définissez sur `query` pour les fournisseurs qui ne supportent pas `form_post`, comme Synology SSO Server. Voir [Provider Compatibility](OIDC_Implementation.md#provider-compatibility).
+- `OAuth__ResponseMode`: Mode de réponse optionnel de la requête d'autorisation (`query`, `fragment` ou `form_post`). La valeur par défaut est `form_post`, la valeur par défaut d'ASP.NET Core. Définissez sur `query` pour les fournisseurs qui ne supportent pas `form_post`, comme Synology SSO Server. Voir [Provider Compatibility](OIDC_Implementation.md#provider-compatibility).
 - `OAuth__AutoApproveUsers`: Approuver automatiquement les nouveaux utilisateurs OIDC sans nécessiter d'approbation manuelle de l'administrateur (true/false). La valeur par défaut est `false`.
 
 #### Paramètres de provisionnement des utilisateurs {#user-provisioning-settings}
 - `OAuth__AutoApproveUsers`: Approuver automatiquement les nouveaux utilisateurs OIDC sans nécessiter d'approbation manuelle de l'administrateur (true/false). La valeur par défaut est `false`. Lorsqu'il est activé, les utilisateurs qui s'authentifient via le fournisseur OIDC sont immédiatement activés et peuvent accéder à l'application. Lorsqu'il est désactivé (par défaut), les nouveaux utilisateurs OIDC sont créés comme inactifs et nécessitent une activation manuelle par un administrateur. Voir [Auto-Approve OIDC Users](OIDC_Implementation.md#auto-approve-oidc-users) pour des informations détaillées.
-- `OAuth__AdminEmails__0`, `OAuth__AdminEmails__1`, etc.: Adresses e-mail qui doivent être automatiquement provisionnées en tant qu'administrateurs. Les utilisateurs possédant ces adresses e-mail seront créés en tant qu'admins actifs lors de leur première connexion OAuth, contournant le processus d'approbation normal. La correspondance des e-mails n'est pas sensible à la casse.
+- `OAuth__AdminEmails__0`, `OAuth__AdminEmails__1`, etc. : Adresses e-mail qui doivent être automatiquement provisionnées en tant qu'administrateurs. Les utilisateurs avec ces adresses e-mail seront créés en tant qu'admins actifs lors de la première connexion OAuth, contournant le processus d'approbation normal. La correspondance des e-mails ne tient pas compte de la casse.
 
 #### Paramètres de connexion sans mot de passe {#passwordless-login-settings}
 - `OAuth__DisablePasswordLogin`: Désactiver la connexion par nom d'utilisateur/mot de passe (true/false). La valeur par défaut est `false`. Lorsqu'il est activé, le formulaire de mot de passe est masqué **et** le serveur rejette chaque POST de mot de passe, de sorte que seule la connexion OAuth est disponible. Nécessite `OAuth__Enabled=true`. Si OAuth est désactivé, ce paramètre n'a aucun effet.
-- `OAuth__AutoRedirect`: Rediriger automatiquement les utilisateurs vers le fournisseur OAuth (true/false). La valeur par défaut est `false`. Nécessite que `OAuth__DisablePasswordLogin` soit `true`. Les utilisateurs verront un bref écran de chargement avant d'être redirigés.
+- `OAuth__AutoRedirect`: Rediriger automatiquement les utilisateurs vers le fournisseur OAuth (true/false). La valeur par défaut est `false`. Nécessite que `OAuth__DisablePasswordLogin` soit défini sur `true`. Les utilisateurs verront un bref écran de chargement avant d'être redirigés.
 
 #### Exemple : Configuration complète orientée OIDC {#example-full-oidc-first-configuration}
 ```yaml
@@ -569,7 +584,7 @@ environment:
 
 ## 🔐 Configuration HTTPS de Kestrel (Optionnel) {#kestrel-https-configuration-optional}
 
-Bien que l'application soit destinée à être accédée via un reverse proxy avec HTTPS, vous pouvez également configurer le serveur web Kestrel pour utiliser des certificats SSL/TLS. Cela permet un chiffrement de bout en bout entre le reverse proxy et le conteneur de l'application.
+Bien que l'application soit destinée à être accessible via un reverse proxy avec HTTPS, vous pouvez également configurer le serveur web Kestrel pour utiliser des certificats SSL/TLS. Cela fournit un chiffrement de bout en bout entre le reverse proxy et le conteneur de l'application.
 
 ### Étapes de configuration {#configuration-steps}
 
@@ -611,11 +626,11 @@ volumes:
 - `Kestrel__Endpoints__Https__Certificate__Path` : Chemin vers le fichier de certificat PFX à l'intérieur du conteneur
 - `Kestrel__Endpoints__Https__Certificate__Password` : Mot de passe pour le fichier de certificat PFX
 
-> 💡 **Note** : Cette configuration est optionnelle. Si vous utilisez un reverse proxy avec HTTPS (recommandé), la communication entre le reverse proxy et l'application peut rester en HTTP. Cependant, pour une sécurité maximale dans des environnements sensibles, vous pouvez également vouloir activer HTTPS sur Kestrel afin de chiffrer l'intégralité du chemin de communication.
+> 💡 **Note** : Cette configuration est optionnelle. Si vous utilisez un reverse proxy avec HTTPS (recommandé), la communication entre le reverse proxy et l'application peut rester en HTTP. Cependant, pour une sécurité maximale dans les environnements sensibles, vous pouvez également vouloir activer HTTPS sur Kestrel afin de chiffrer l'intégralité du chemin de communication.
 
 ## 🔑 Gestion des secrets pour la production {#secrets-management-for-production}
 
-L'intégration directe de données sensibles telles que les mots de passe de base de données, les identifiants d'administrateur et les secrets client OAuth dans `docker-compose.yml` est un risque de sécurité, en particulier lorsque le fichier est intégré au contrôle de version. L'approche recommandée consiste à externaliser ces valeurs dans un fichier `.env` que Docker Compose charge automatiquement.
+Le codage en dur de données sensibles telles que les mots de passe de base de données, les identifiants d'administrateur et les secrets client OAuth directement dans `docker-compose.yml` est un risque de sécurité, en particulier lorsque le fichier est versionné. L'approche recommandée consiste à externaliser ces valeurs dans un fichier `.env` que Docker Compose charge automatiquement.
 
 ### 📄 Le fichier `.env` {#the-env-file}
 
@@ -639,11 +654,11 @@ CREDENTIAL_ENCRYPTION_KEY=YourBase64Encoded32ByteKey
 KESTREL_CERT_PASSWORD=YourCertPassword
 ```
 
-**Important** : Docker Compose lit automatiquement le fichier `.env` du même répertoire — vous n'avez **pas** besoin d'y faire référence manuellement. Toutes les variables définies dans `.env` sont disponibles dans `docker-compose.yml` via la syntaxe `${VARIABLE_NAME}`.
+**Important** : Docker Compose lit automatiquement le fichier `.env` du même répertoire — vous n'avez **pas** besoin de le référencer manuellement. Toutes les variables définies dans `.env` sont disponibles dans `docker-compose.yml` via la syntaxe `${VARIABLE_NAME}`.
 
 ### 🐳 `docker-compose.yml` adapté {#adapted-docker-composeyml}
 
-Le `docker-compose.yml` des étapes d'installation doit être adapté pour utiliser des espaces réservés au lieu de secrets codés en dur :
+Le `docker-compose.yml` des étapes d'installation doit être adapté pour utiliser des placeholders au lieu de secrets codés en dur :
 
 ```yaml
 services:
@@ -678,7 +693,7 @@ services:
 
 ### 📋 Modèle `.env.example` pour les administrateurs {#envexample-template-for-administrators}
 
-Créez un fichier `.env.example` dans votre dépôt qui sert de modèle pour les autres administrateurs. Il contient des valeurs de substitution et de la documentation, mais **aucun vrai secret** :
+Créez un fichier `.env.example` dans votre dépôt qui sert de modèle pour les autres administrateurs. Il contient des valeurs de remplacement et de la documentation mais **aucun vrai secret** :
 
 ```env
 # ============================================
@@ -716,6 +731,6 @@ CREDENTIAL_ENCRYPTION_KEY=change_me_base64_32_byte_key
 
 ## 🔒 Notes de sécurité {#security-notes}
 
-- Utilisez des mots de passe forts et changez les identifiants par défaut. Les mots de passe doivent comporter au moins 12 caractères et inclure un mélange de lettres majuscules, de lettres minuscules, de chiffres et de caractères spéciaux. Évitez d'utiliser des mots courants ou des informations facilement devinables.
-- Envisagez de mettre en œuvre HTTPS avec un reverse proxy en production.
-- Des Sauvegardes régulières de la base de données PostgreSQL sont recommandées. Pour des procédures détaillées de Sauvegarde et de Restauration, consultez le [Backup and Restore Guide](BackupRestore.md).
+- Utilisez des mots de passe forts et changez les identifiants par défaut. Les mots de passe doivent comporter au moins 12 caractères et inclure un mélange de lettres majuscules, de lettres minuscules, de chiffres et de caractères spéciaux. Évitez d'utiliser des mots courants ou des informations faciles à deviner.
+- En production, envisagez de mettre en œuvre HTTPS avec un reverse proxy.
+- Des Sauvegardes régulières de la base de données PostgreSQL sont recommandées. Pour des procédures détaillées de Sauvegarde et de Restauration, consultez le [Guide de Sauvegarde et Restauration](BackupRestore.md).

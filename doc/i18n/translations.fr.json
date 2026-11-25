@@ -153,8 +153,8 @@
       },
       "RawMessages.md": {
         "model": "google/gemma-4-26b-a4b-it",
-        "source_sha256": "52526572ffe8ec048477b53a72a72448f6ecaf9e8a8440f106bc04d983609c93",
-        "translated_at": "2026-11-17T21:17:22Z"
+        "source_sha256": "c4d470d36b781424731746486af0e68e523d1c1ec1004dbb626dbb72d9f80474",
+        "translated_at": "2026-11-25T08:53:10Z"
       },
       "RetentionPolicies.md": {
         "model": "google/gemma-4-26b-a4b-it",
@@ -173,8 +173,8 @@
       },
       "Setup.md": {
         "model": "google/gemma-4-26b-a4b-it",
-        "source_sha256": "76d5f5f97721d52d78edfa01999334a1209d8e087d599bebc644c65e61e336c4",
-        "translated_at": "2026-11-17T18:34:51Z"
+        "source_sha256": "ed6d0c9ec17ecc4e06c1d767adcf9c88663ac470619412ae23b20c541253a7ae",
+        "translated_at": "2026-11-25T08:54:30Z"
       },
       "Synchronization.md": {
         "model": "google/gemma-4-26b-a4b-it",
