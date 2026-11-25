@@ -1,10 +1,10 @@
-# 🛠️ Vodnik za nastavitev Mail Archiverja {#mail-archiver-setup-guide}
+# 🛠️ Navodila za namestitev Mail Archiverja {#mail-archiver-setup-guide}
 
 [← Nazaj na indeks dokumentacije](index.md)
 
 ## 📋 Pregled {#overview}
 
-Ta vodnik nudi podrobne navodila za nastavitev aplikacije Mail Archiver z uporabo Docker Compose.
+Ta priročnik nudi podrobna navodila za namestitev aplikacije Mail Archiver z uporabo Docker Compose.
 
 ## 🛠️ Predpogoj {#prerequisites}
 
@@ -13,9 +13,9 @@ Ta vodnik nudi podrobne navodila za nastavitev aplikacije Mail Archiver z uporab
 
 ## 🚀 Koraki za namestitev {#installation-steps}
 
-1. Na svoj sistem namestite predpogojne programske opreme.
+1. Namestite predpogoje na svoj sistem.
 
-2. Ustvarite `docker-compose.yml` datoteko z naslednjo vsebino:
+2. Ustvarite datoteko `docker-compose.yml` z naslednjo vsebino:
 
 ```yaml
 services:
@@ -75,6 +75,7 @@ services:
       - RawMessages__FileSystem__BasePath=RawMessages
       - RawMessages__FileSystem__ShardDepth=2
       - RawMessages__FileSystem__VerifyChecksumOnRead=true
+      - RawMessages__FileSystem__OrphanCleanupStartupDelaySeconds=300
 
       # BatchRestore Settings
       - BatchRestore__AsyncThreshold=50
@@ -161,6 +162,7 @@ services:
       - ReleaseNotes__Enabled=true
       - ReleaseNotes__UpdateHintEnabled=true
       - ReleaseNotes__UpdateCheckIntervalHours=6
+      - ReleaseNotes__RequestTimeoutSeconds=10
 
       # Logging Settings (Optional - defaults to Information level)
       - Logging__LogLevel__Default=Information
@@ -221,17 +223,17 @@ networks:
   postgres:
 ```
 
-3. Uredite konfiguracijo baze podatkov v `docker-compose.yml` in nastavite varno geslo v spremenljivki `POSTGRES_PASSWORD` in `ConnectionString`.
+3. Uredite konfiguracijo baze podatkov v `docker-compose.yml` in nastavite varno geslo v spremenljivki `POSTGRES_PASSWORD` in v `ConnectionString`.
 
-4. Če želite uporabljati avtentikacijo (kar se močno priporoča), določite `Authentication__Username` in `Authentication__Password`, ki se uporablja za uporabnika administratorja.
+4. Če želite uporabljati avtentikacijo (kar se močno priporoča), določite `Authentication__Username` in `Authentication__Password`, ki se uporablja za administrativno uporabnika.
 
-5. Prilagodite okoljsko spremenljivo `TimeZone__DisplayTimeZoneId`, da ustreza vaši izbrani časovni coni (privzeto je "Etc/UCT"). Uporabite lahko katerikoli identifikator časovne zone IANA (npr. "Europe/Berlin", "Asia/Tokyo").
+5. Prilagodite spremenljivo okolja `TimeZone__DisplayTimeZoneId`, da ustreza vašemu izbranemu časovnem pasu (privzeto je "Etc/UCT"). Lahko uporabite katerikoli identifikator časovnega pasu IANA (npr. "Europe/Berlin", "Asia/Tokyo").
 
-6. Po želji konfigurirajte okoljske spremenljive `Logging__LogLevel` za nadzor podrobnosti dnevniškega zapisovanja aplikacije. Za razpoložljive možnosti si oglejte spodnji razdelek Logging Settings.
+6. Po želji konfigurirajte spremenljive okolja `Logging__LogLevel` za nadzor podrobnosti logov aplikacije. Za razpoložljive možnosti poglejte spodaj razdelek Logging Settings.
 
-7. Konfigurirajte reverse proxy po vaši izbiri s https in avtentikacijo za zaščito dostopa do aplikacije. 
+7. Konfigurirajte reverse proxy po svoji izbiri s https in avtentikacijo, da zagotovite varnostni dostop do aplikacije. 
 
-> ⚠️ **Pozor**: Sama aplikacija ne zagotavlja zaščenjenega dostopa prek https! Mora biti nameščena prek reverse proxy!
+> ⚠️ **Pozor**: Sama aplikacija ne zagotavlja zaščitenga dostopa prek https! Nastaviti jo je treba preko reverse proxy!
 
 8. Začetni zagon kontejnerjev:
 ```bash
@@ -245,61 +247,61 @@ docker compose restart
 
 10. Dostop do aplikacije
 
-11. Prijavite se s svojimi določenimi podatki in dodajte svoje prvo e-poštno račun:
+11. Prijavite se s svojimi določenimi podatki za prijavo in dodajte svoje prvo e-poštno račun:
    - Pojdite v razdelek "Email Accounts"
    - Kliknite "New Account"
-   - Vnesite podrobnosti o strežniku in svoje podatke za prijavo
+   - Vnesite podrobnosti o svojem strežniku in podatke za prijavo
    - Shranite in začnite z arhiviranjem!
    - Če želite, ustvarite druge uporabnike in dodelite račune.
 
-## 📚 Razlaga okoljskih spremenljivk {#environment-variable-explanations}
+## 📚 Razlagitev spremenljivih okolja {#environment-variable-explanations}
 
 ### 🗄️ Povezava z bazo podatkov {#database-connection}
-- `ConnectionStrings__DefaultConnection`: Nize za povezavo s PostgreSQL bazo podatkov. Po potrebi spremenite vrednosti `Host`, `Database`, `Username` in `Password`.
+- `ConnectionStrings__DefaultConnection`: Povezovalni niz do PostgreSQL baze podatkov. Po potrebi spremenite vrednosti `Host`, `Database`, `Username` in `Password`.
 
 ### 🔐 Nastavitve avtentikacije {#authentication-settings}
 - `Authentication__Username`: Uporabniško ime za administrativni račun.
 - `Authentication__Password`: Geslo za administrativni račun.
-- `Authentication__SessionTimeoutMinutes`: Čas izteka seje v minutah. To velja za nepermanentni kledeč za prijavo; uporabniki, ki ob prijavi obdmarkirajo **Remember Me**, prejmejo permanentni kledeč, ki velja 7 dni. Več o tem na [User Management → Remember Me](UserManagement.md#staying-signed-in-the-remember-me-checkbox).
-- `Authentication__CookieName`: Ime kledeča za avtentikacijo.
-- `Authentication__CookieSameSite`: Konfigurira atribut SameSite za kledeče za avtentikacijo, seje in zaščito pred CSRF. Veljavne vrednosti so:
-  - `Strict` (privzeto): Maksimalna varnost. Kledeči se pošljejo le pri zahtevah iste strani (same-site). To lahko povzroči težave pri navigaciji v aplikacijo iz zunanjih povezav (npr. klik na povezavo z drugega spletnega mesta), saj obstoječa seja ne bo prepoznana.
-  - `Lax`: Priporočeno pri uporabi obversega proxyja. Kledeči se pošljejo pri navigacijah na najvišji ravni in zahtevah iste strani, kar uporabnikom omogoča sledenje zunanjim povezavam do aplikacije, hkrati pa ohranja zaščito pred CSRF za POST zahteve.
-  - `None`: Kledeči se pošljejo pri vseh zahtevah. Zahteva HTTPS in atribut `Secure`. Uporabite to le, če imate specifične zahteve glede medstranskega komuniciranja in razumete varnostne posledice.
+- `Authentication__SessionTimeoutMinutes`: Čas izteka seance v minutah. To velja za kovček za prijavo, ki ni trajen; uporabniki, ki ob prijavi označijo **Remember Me**, namesto tega prejmejo trajen kovček, ki velja natančno 7 dni. Več na strani [User Management → Remember Me](UserManagement.md#staying-signed-in-the-remember-me-checkbox).
+- `Authentication__CookieName`: Ime kovčka za avtentikacijo.
+- `Authentication__CookieSameSite`: Konfigurira atribut SameSite za kovčke za avtentikacijo, seanco in CSRF zaščito. Veljavne vrednosti so:
+  - `Strict` (privzeto): Največja varnost. Kovčki se pošljejo le pri zahtevah iste strani (same-site). To lahko povzroči težave pri navigaciji v aplikacijo iz zunanjih povezav (npr. klik na povezavo z druge spletne strani), saj obstoječa seanca ne bo prepoznana.
+  - `Lax`: Priporočljivo pri uporabi obratnega proxyja. Kovčki se pošljejo pri navigacijah na najvišji ravni in zahtevah iste strani, kar uporabnikom omogoča sledenje zunanjim povezavam do aplikacije, hkrati pa ohranja CSRF zaščito za POST zahteve.
+  - `None`: Kovčki se pošljejo pri vseh zahtevah. Zahteva HTTPS in atribut `Secure`. Uporabite to le, če imate specizne zahteve glede medstranskega (cross-site) komuniciranja in razumete varnostne posledice.
 
 ### 🔌 Nastavitve REST API {#rest-api-settings}
-Neobvezni REST API v načinu samo branja je **samodejno onemogočen**. Za celoten pregled poglejte [vodnik za REST API](API.md).
-- `Api__Enabled`: Glavno stikalo za REST API v načinu samo branja (osnovna vrednost `false`). Ko je `false`, vsi `/api/*` poti vrnejo `404`.
-- `Api__AllowAttachmentDownloads`: Omogoči prenos bajtov prilog prek API-ja (osnovna vrednost `true`). Ko je `false`, endpoint za priloge vrne `403`.
-- `Api__AllowMessageDownloads`: Omogoči prenos celotnih sporočil prek API-ja, tako z obnovljenim `/eml` kot z izvirnim `/raw` (osnovna vrednost `true`). Ko je `false`, oba endpointa vrneta `403`. Celotno sporočilo vsebuje svoje priloge, zato morata biti **tako** to stikalo kot `Api__AllowAttachmentDownloads` nastavljena na `true`; izklop bilo katerega od njima onemogoči oba endpointa.
-- `Api__EnableSwaggerUi`: Razpoložljivost Swagger UI na `/apidocs` in OpenAPI dokumentacije na `/apidocs/spec/v1.json` (osnovna vrednost `true`). Oba zahtodata prijavljeno v brskalniku uporabniško nego.
-- `Api__DefaultPageSize`: Osnovna velikost strani za listne endpointe, če ni navedena (osnovna vrednost `20`).
-- `Api__MaxPageSize`: Maksimalna dovoljena velikost strani; večji zahtevi bodo omejeni (osnovna vrednost `100`).
-- `Api__RateLimitPerMinute`: Proračun zahtev v fiksnem oknu na ključ API na minuto (osnovna vrednost `120`).
+Neobvezen REST API v okolju samo za branje je **s privzetim nastavljen kot onemogočen**. Za celoten pregled poglejte [vodnik za REST API](API.md).
+- `Api__Enabled`: Glavno stikalo za REST API v okolju samo za branje (privzeto `false`). Ko je `false`, vsi `/api/*` poti vrnejo `404`.
+- `Api__AllowAttachmentDownloads`: Dovoli prenos bajt prilog skozi API (privzeto `true`). Ko je `false`, končnica za priloge vrne `403`.
+- `Api__AllowMessageDownloads`: Dovoli prenos celotnih sporočil skozi API, tako z obnovljeno `/eml` kot z originalno `/raw` (privzeto `true`). Ko je `false`, obe končnici vrneta `403`. Celotno sporočilo vsebuje svoje priloge, zato morata biti **obe** to stikalo in `Api__AllowAttachmentDownloads` nastavljena na `true`; izklop bilo katerega od obeh onemogoči obe končnici.
+- `Api__EnableSwaggerUi`: Razpoložljivost Swagger UI na `/apidocs` in OpenAPI dokumenta na `/apidocs/spec/v1.json` (privzeto `true`). Oba zahtevata prijavljeno sesijo v brskalniku.
+- `Api__DefaultPageSize`: Privzeta velikost strani za končnice za sezname, če ni navedena (privzeto `20`).
+- `Api__MaxPageSize`: Največja dovoljena velikost strani; večji zahtevki bodo omejeni (privzeto `100`).
+- `Api__RateLimitPerMinute`: Budžet zahtevov z določenim oknom na minuto na ključ API (privzeto `120`).
 
 ### 🤖 Nastavitve MCP strežnika {#mcp-server-settings}
-Neobvezni MCP (Model Context Protocol) strežnik omogoča enak dostop do e-pošte v modi samo branje kot REST API AI agentom prek Streamable HTTP prenosa. **Privzeto je onemogočen**. Za celoten pregled poglejte [vodnik za MCP](MCP.md). MCP ponovno uporablja popolnoma iste API ključe kot REST API (`ma_...` nosilne žetonov) in isto omejevanje dostopa do računov na uporabnika.
-- `Mcp__Enabled`: Glavno stikalo za MCP strežnik (privzeto `false`). Ko je `false`, končnica `/mcp` vrne `404`.
+Neobvezen MCP (Model Context Protocol) strežnik omogoča isti dostop do e-pošte v samo branju kot REST API za AI agente prek Streamable HTTP prenosa. **Privzeto je onemogočen**. Za celoten pregled poglejte [vodnik MCP](MCP.md). MCP ponovno uporablja prav iste API ključe kot REST API (`ma_...` bearer tokeni) in isto omejevanje dostopa do uporabniških računov.
+- `Mcp__Enabled`: Glavno stičalo za MCP strežnik (privzeto `false`). Ko je `false`, endpoint `/mcp` vrne `404`.
 - `Mcp__AllowAttachmentDownloads`: Dovoli orodju `get_attachment`, da vrne bajte prilog (privzeto `true`). Ko je `false`, orodje vrne napako.
-- `Mcp__DefaultPageSize`: Privzeta velikost strani, ki jo uporablja `search_emails`, ko klicatelj izpusti `pageSize` (privzeto `20`).
-- `Mcp__MaxResults`: Zgornja meja velikosti strani za `search_emails`; večje vrednosti so omejene (privzeto `100`).
-- `Mcp__MaxAttachmentBytes`: Maksimalna velikost priloge (v bajtih), ki jo bo orodje `get_attachment` vrnilo neposredno kot base64; večje priloge so zavrnjene (privzeto `10000000` ≈ 10 MB).
-- `Mcp__AllowMessageDownloads`: Dovoli orodju `get_email_eml` in `get_email_raw`, da vrneta celotna sporočila (privzeto `true`). Ko je `false`, orodja vrneta napako. Celotno sporočilo vsebuje svoje priloge, zato morata biti **tako** to stikalo kot `Mcp__AllowAttachmentDownloads` nastavljena na `true`; izklop bilo katerega od obeh onemogoči oba orodja.
-- `Mcp__MaxMessageBytes`: Maksimalna velikost sporočila (v bajtih), ki jo bosta orodja `get_email_eml` in `get_email_raw` vrnila neposredno; večja sporočila so zavrnena (privzeto `10000000` ≈ 10 MB).
-- `Mcp__RateLimitPerMinute`: Proračun zahtev v fiksnem oknu na API ključ na minuto (privzeto `120`).
+- `Mcp__DefaultPageSize`: Privzete število vrsti (page size), ki ga uporabi `search_emails`, ko klicatelj izpustijo `pageSize` (privzeto `20`).
+- `Mcp__MaxResults`: Zgornja meja števila vrsti za `search_emails`; večje vrednosti bodo omejene (privzeto `100`).
+- `Mcp__MaxAttachmentBytes`: Maksimalna velikost priloge (v bajtih), ki jo bo orodje `get_attachment` vrnilo neposredno kot base64; večje priloge bodo zavrnjene (privzeto `10000000` ≈ 10 MB).
+- `Mcp__AllowMessageDownloads`: Dovoli orodjem `get_email_eml` in `get_email_raw`, da vrneta celotna sporočila (privzeto `true`). Ko je `false`, orodja vrnejo napako. Celotno sporočilo vsebuje svoje priloge, zato morata biti **obe** to stičalo in `Mcp__AllowAttachmentDownloads` nastavljena na `true`; izklop katerega od obeh onemogoči oba orodja.
+- `Mcp__MaxMessageBytes`: Maksimalna velikost sporočila (v bajtih), ki jo bodo orodja `get_email_eml` in `get_email_raw` vrnila neposredno; večja sporočila bodo zavržena (privzeto `10000000` ≈ 10 MB).
+- `Mcp__RateLimitPerMinute`: Budžet zahtevov v fiknem oknu na ključ API na minuto (privzeto `120`).
 
 ### 📨 Nastavitve MailSync {#mailsync-settings}
-- `MailSync__IntervalMinutes`: Interval v minutah med sinhronizacijo e-pošte. To je globalni privzeto; vsak račun lahko to nastavoro prepiše posamezno na strani Create/Edit (pustite prazno, da uporabite to privzeto vrednost).
-- `MailSync__FullSyncIntervalHours`: Nepričakovana globalna privzeta vrednost za samodejne popolne ponovne sinhronizacije v urah. Ko ni nastavljena (privzeto), se nočna samodejna popolna sinhronizacija ne izvaja, razen če je na strani Create/Edit nastavljena vrednost `FullSyncIntervalHours` za posamezen račun. Vrednosti za posamezne račune prepišejo to globalno privzeto vrednost.
-- `MailSync__TimeoutMinutes`: Časovni omejitev (timeout) sinhronizacije za posamezen račun v minutah. Sinhronizacija, ki teče dlje, se ustavi pri naslednji meji sporočila, ohrani svoje kontrolne točke in nadaljuje pri naslednjem zagonu; delo se prijavi kot `Timed Out` in `LastSync` se ne napreduje. Velja le za načrtovane sinhronizacije; sinhronizacija, zagnana iz uporabniškega vmesnika (ročna sinhronizacija ali popolna ponovna sinhronizacija), teče brez časovne omejitve. `0` (privzeto) ali katera koli nepozitivna vrednost pomeni brez časovne omejitve. Pred nadgradnjo preglejte vrednost, če sinhronizirate velike predvalnike pošte. Več o tem v [Synchronization.md](Synchronization.md#-stopping-a-sync-early).
-- `MailSync__ConnectionTimeoutSeconds`: Časovna omejitev povezave za IMAP povezave v sekundah.
-- `MailSync__CommandTimeoutSeconds`: Časovna omejitev ukazov za IMAP ukaze v sekundah.
-- `MailSync__AlwaysForceFullSync`: Ali naj se vedno prisili popolna sinhronizacija (true/false).
-- `MailSync__IgnoreSelfSignedCert`: Ali naj se ignorirajo samodejno podpisana certifikata (true/false).
-- `MailSync__MaxConcurrentSyncs`: Koliko sinhronizacij računov lahko teče hkrati. Privzeto `1` (sekvencialno, združljivo navzoč). Razporejevalnik ponovno napolni razpoložljive mesta, ko postanejo prosti, namesto da bi čakal na celotno skupino, zato en počasen predvalnik ne zavira več ostalih. Povečajte za hkrati sinhronizirati več računov — upoštevajte omejitve števila zahtev ponudnika in lokalno porabo virov. Več o tem v [Synchronization.md](Synchronization.md#-how-accounts-are-scheduled).
-- `MailSync__InterAccountDelaySeconds`: Nepričakovana zakasnitev (stagger delay) v sekundah, ki se uporabi ob koncu vsake naloge sinhronizacije računa. Privzeto `0` (brez zakasnitve). Uporabno za preprečevanje kratkih udarjev ob zagonu, ko je `MaxConcurrentSyncs > 1`.
-- `MailSync__MaxIssuesPerKind`: Koliko težav vsake vrste si delo sinhronizacije zapomni za stran računa. Neuspešni mapi, manjkajoče mapi in neuspešna sporočila imajo ločen proračun, zato množica ene vrste ne more izbrisati drugih iz pregleda; vse, kar preseže proračun, se le šteje namesto shranjevanja. Privzeto `20`. `0` izključi podrobnosti in pusti le številke. Več o tem v [Synchronization.md](Synchronization.md#-observing-the-sync).
-- `MailSync__GlobalExcludedFolders__<n>`: Mapi, izključene iz sinhronizacije za **vsak** račun, poleg seznama izključene mapi za vsak posamezen račun. Privzeto prazno, zato obstoječe nastavitve niso vplivane. Oba seznama sta **dodajnilna** — mapa se preskoči, če ustreza kateremu izmed njima — in oba uporabljata iste pravila ujemanja: natančno ujemanje celotne poti, natančno ujemanje imena mapi, ujemanje z nastavkom poti (tako `Drafts` ustreza tudi `INBOX/Drafts` in `INBOX.Drafts`) in vse pod mapi, ki jo vnos navede, ko je `MailSync__ExcludeSubfolders` vklopljen. Ujemanje je neobčutno na velike in male črke. Uporabno pri uvozu številnih predvalnikov pošte z istega strežnika, kjer bi bila alternativa vzdrževanje identičnega seznama izključitev za vsak račun. Privzeto nobena mapa ni izključena; katera imena je smiselno navesti, je odvisno od strežnika in njegovega jezika. Primer za drevo predvalnika pošte, ki vsebuje tudi mapi za koledar in kontakte:
+- `MailSync__IntervalMinutes`: Interval v minutah med sinhronizacijo e-pošte. To je globalni privzeto; vsak račun lahko to spremeni individualno na strani Ustvari/Uredi (pustite prazno, da uporabite to privzeto vrednost).
+- `MailSync__FullSyncIntervalHours`: Neobvezna globalna privzeta vrednost za samodejne popolne ponovne sinhronizacije v urah. Ko ni nastavljeno (privzeto), se ne izvaja nobena samodejna popolna sinhronizacija, razen če je na strani Ustvari/Uredi nastavljena vrednost `FullSyncIntervalHours` za posamezen račun. Vrednosti za posamezen račun preprečijo to globalno privzeto vrednost.
+- `MailSync__TimeoutMinutes`: Čas izteka sinhronizacije (timeout) za posamezen račun v minutah. Sinhronizacija, ki traja dlje, se ustavi pri naslednji meji sporočila, ohrani svoje kontrolne točke in nadaljuje pri naslednjem zagonu; naloga je poročena kot `Timed Out` in `LastSync` se ne napreduje. Velja le za načrtovane sinhronizacije; sinhronizacija, začeta iz uporabniškega vmesnika (ročna sinhronizacija ali popolna ponovna sinhronizacija), poteka brez časovnega omejitev. `0` (privzeto) ali katera koli nepozitivna vrednost pomeni brez časovne omejitve. Pred nadgradnjo preglejte vrednost, če sinhronizirate velike nabiralnike. Sie [Synchronization.md](Synchronization.md#-stopping-a-sync-early).
+- `MailSync__ConnectionTimeoutSeconds`: Čas izteka povezave za IMAP povezave v sekundah.
+- `MailSync__CommandTimeoutSeconds`: Čas izteka ukaz za IMAP ukaze v sekundah.
+- `MailSync__AlwaysForceFullSync`: Ali vedno prisilno izvajati popolno sinhronizacijo (true/false).
+- `MailSync__IgnoreSelfSignedCert`: Ali ignorirati samodejavne certifikate (true/false).
+- `MailSync__MaxConcurrentSyncs`: Koliko sinhronizacij računov lahko teče hkrati. Privzeto `1` (sekvencialno, navzdolno zd compatible). Programator polnila mesta, ko postanejo prosti, namesto čakanja na celotno serijo, zato ena počasna posta ne zadržuje več ostalih. Povečajte za hkratično sinhronizacijo več računov — upoštevajte omejitve hitrosti ponudnika in uporabo lokalnih virov. Sie [Synchronization.md](Synchronization.md#-how-accounts-are-scheduled).
+- `MailSync__InterAccountDelaySeconds`: Neobvezno zakasnjanje (stagger delay) v sekundah, ki se uporabi na koncu vsake naloge sinhronizacije računa. Privzeto `0` (brez zakasnitve). Uporabno za izogibanje kratkim udarcem ob začetku, ko je `MaxConcurrentSyncs > 1`.
+- `MailSync__MaxIssuesPerKind`: Koliko težav posamezne vrste si naloga sinhronizacije zapomni za stran računa. Neuspeli mapi, manjkajoče mape in neuspela sporočila imajo svojega proračun, zato množica ene vrste ne lahko iztisne drugih iz pogleda; vse zunaj proračuna se šteje namesto shranjevanja. Privzeto `20`. `0` izklopi podrobnosti in pusti le številke. Sie [Synchronization.md](Synchronization.md#-observing-the-sync).
+- `MailSync__GlobalExcludedFolders__<n>`: Mape, izključene iz sinhronizacije za **vsak** račun, poleg seznama izločenih map posameznega računa. Privzeto prazno, zato obstoječe nastavitve niso ov prisite. Oba seznama sta **dodajanja** — mapa se preskoči, če ustreva kateremu izmed njima — in oba uporabljata iste pravila ujemanja: natančno ujemanje na celotno pot, natančno ujemanje na ime mape, ujemanje z končnico poti (tako `Drafts` ujema tudi `INBOX/Drafts` in `INBOX.Drafts`) in vse pod mapo, ki jo vnos imenuje, ko je `MailSync__ExcludeSubfolders` vklopljeno. Ujemanje je neobčudno glede velikih vsakih čustev (case-insensitive). Uporabno pri uvozu številnih nabiralnikov iz istega strežnika, kjer je alternativa vzdrževanje identičnega seznama izključitev na vsakem računu. Nobena mapa ni privzeto izključena; katera imena je smiselno navesti, je odvisno od strežnika in njegovega jezika. Primer za drevo nabiralnika, ki vsebuje tudi mape koledarja in stikov:
   ```yaml
       - MailSync__GlobalExcludedFolders__0=Calendar
       - MailSync__GlobalExcludedFolders__1=Calendars
@@ -311,237 +313,247 @@ Neobvezni MCP (Model Context Protocol) strežnik omogoča enak dostop do e-pošt
       - MailSync__GlobalExcludedFolders__7=NoteList
       - MailSync__GlobalExcludedFolders__8=Journal
   ```
-- `MailSync__ExcludeSubfolders`: Ali vnos za izključitev pokriva tudi mape pod tisto, ki jo navaja. Velja tako za seznam za posamezen račun kot za tistega za celotno namestitev, in za oba ponudnika. Privzeto `false`, kar ustreza vedenju, preden je ta možnost obstajala: vnos `Deleted Items` ustreza samo tej mapi, drevo pa ostane zunaj arhivacije z navajanjem njegove koreninske mapi in vsake mapi pod njo. Nastavite na `true`, da bo vnos zajel tudi celotno drevo pod njim — vnos `Deleted Items` nato tudi zadrži `Deleted Items/2024` in preostanek te veje zunaj arhivacije. Pravilo se navezuje na ločilnik poti, zato zajema celotne mape in nikoli dela imena: `Archive` pokriva `Archive` in `Archive/Team`, in pusti mapa z imenom `Team Archive Review` neopričmano. Tudi `.` šteje kot ločilnik, na enak način, kot ga obravnava pravilo nastavka poti.
+- `MailSync__ExcludeSubfolders`: Ali izključni vnos pokriva tudi mape pod tisto, ki jo imenuje. Velja tako za seznam za posamezen račun kot za tistega za celo instalacijo, in za oba ponudnika. Privzeto `false`, kar ustreza vedenju, preden je možnost obstajala: vnos `Deleted Items` ujema le to mapo, drevo pa je iz arhive izločeno z navajanjem njegovega korena in vsake mape pod njim. Nastavite na `true`, da vnos zajame tudi drevo pod njim — vnos `Deleted Items` nato tudi izključi `Deleted Items/2024` in preostalo vejo iz arhive. Pravilo se navezuje na ločitev poti, zato prevzame celotne mape in nikoli dela imena: `Archive` pokrije `Archive` in `Archive/Team`, in pusti mapo z imenom `Team Archive Review` brez sprememb. Tudi `.` šteje kot ločitev, na enak način kot pravilo končnice poti obravnava to.
 
-### 📧 Nastavitve shranjevanja originalnih sporočil {#original-message-storage-settings}
+### 📧 Nastavitve shiranja originalnih sporočil {#original-message-storage-settings}
 
-Privzeto arhiv shranjuje le razčlenjene dele e-pošte, zato je izvoženi `.eml` rekonstrukcija: kodiranje prenosa, MIME meje in prepogibanje zaglavja se razlikujejo od prejetega sporočila, DKIM podpisi pa niso več veljavni. S `RawMessages:Enabled` se shrani tudi celotno originalno sporočilo.
+Privzeto arhiv ohranja le razčlenjene dele e-pošte, zato je izvožen `.eml`
+rekonstrukcija: prenosi kodiranja, MIME meje in prepogibanje zaglavij se razlikujejo od
+prejetega sporočila, DKIM podpisi pa ne delujejo več pravilno. Z `RawMessages:Enabled` se
+hraniti posčuvano tudi celotno originalno sporočilo.
 
 | Parameter | Default | Namen |
 |-----------|---------|---------|
-| `RawMessages__Enabled` | `false` | Shranite original vsake novo arhivirane e-pošte. |
+| `RawMessages__Enabled` | `false` | Shranjuj original vsake novo arhivirane e-pošte. |
 | `RawMessages__Storage` | `postgres` | Kje se nahajajo bajti: `postgres` ali `filesystem`. |
-| `RawMessages__MaxMessageSizeMb` | `50` | Večja sporočila se arhivirajo brez njihovega originala. `0` = brez omejitve. |
-| `RawMessages__IncludeGraph` | `true` | Shranjujte originale tudi za Microsoft 365 (Graph) račune. |
-| `RawMessages__FileSystem__BasePath` | `RawMessages` | Direktorij za datoteke sporočil. Mora kazati na zmontiran volumen v Docker. |
-| `RawMessages__FileSystem__ShardDepth` | `2` | Stopnje direktorijev, na katerih je razpršen id e-pošte. |
-| `RawMessages__FileSystem__VerifyChecksumOnRead` | `true` | Preverite SHA-256 ob vsakem prenosu. |
-| `RawMessages__FileSystem__OrphanCleanupEnabled` | `true` | Odstranite datoteke sporočil, na katere se nobena e-pošta ne nanaša. |
-| `RawMessages__FileSystem__OrphanCleanupIntervalHours` | `24` | Kako pogosto se izvaja to čiščenje. |
-| `RawMessages__FileSystem__OrphanCleanupGraceHours` | `24` | Datoteke, ki so mlajše od tega, se nikoli ne odstranijo. |
+| `RawMessages__MaxMessageSizeMb` | `50` | Večja sporočila se arhivirajo brez njihovega originala. `0` = ni omejitve. |
+| `RawMessages__IncludeGraph` | `true` | Prav tako shranjuj originale za Microsoft 365 (Graph) račune. |
+| `RawMessages__FileSystem__BasePath` | `RawMessages` | Mreža za datoteke sporočil. Mora kazati na zmontiran volumen v Dockerju. |
+| `RawMessages__FileSystem__ShardDepth` | `2` | Stopnje direktorijev, na katere je razdeljena ID-ja e-pošte. |
+| `RawMessages__FileSystem__VerifyChecksumOnRead` | `true` | Preveri SHA-256 ob vsakem prenosu. |
+| `RawMessages__FileSystem__OrphanCleanupEnabled` | `true` | Odstrani datoteke sporočil, na katere se nobena e-pošta ne nanaša. |
+| `RawMessages__FileSystem__OrphanCleanupIntervalHours` | `24` | Kako pogosto se izvede ta čistilni proces. |
+| `RawMessages__FileSystem__OrphanCleanupGraceHours` | `24` | Datoteke, nav younger kot to, se nikoli ne odstranijo. |
+| `RawMessages__FileSystem__OrphanCleanupStartupDelaySeconds` | `300` | Zamika pred prvim čistilnim procesom po zagonu, da se uvoz, ki še vedno piše, ne zbere. |
 
-!!! warning "Backend datoteke potrebuje zmontiran volumen"
-    S `RawMessages__Storage=filesystem` datoteke sporočil zunaj baze podatkov.
-    Brez bind mounta bodo ostale v zapisljivem sloju posameznega kontejnerja in bodo izgubljene ob naslednjem ponovnem ustvarjanju kontejnerja, medtem ko vrstki v bazi podatkov ostanejo. Varnostno kopirajte direktorij skupaj s kopijo baze podatkov.
+!!! warning "Namestitev na datoteko potrebuje zmontiran volumen"
+    Z `RawMessages__Storage=filesystem` datoteke sporočil zunaj baze podatkov.
+    Brez bind mounta bodo le v zapisljivem sloju kontejnerja in bodo izgubljeni ob
+    naslednji ponovni ustavitvi kontejnerja, medtem ko vrstice v bazi podatkov preživijo.
+    Zasem direktori s kopijo baze podatkov.
 
-Za celoten opis si oglejte **[Original Message Storage](RawMessages.md)**: kje se poslužuje original, strežni sistemi za shranjevanje, kako premakniti obstoječa sporočila med njih z uporabo `--migrate-raw-storage` in kaj je treba varnostno kopirati.
+Za celoten opis poglejte **[Original Message Storage](RawMessages.md)**: kje se poslužuje
+original, namesti za shranjevanje, kako premakniti obstoječa sporočila med njimi z
+`--migrate-raw-storage` in kaj je treba varnostno zamejati.
 
 ### 📈 Nastavitve spremljanja {#monitoring-settings}
 
 | Parameter | Default | Namen |
 |-----------|---------|---------|
-| `Health__SyncStaleMinutes` | `0` | Aktivirana računa, starejša od tega, povzročijo `/api/v1/health` poročilo `Degraded`. `0` onemogoči preverjanje. |
-| `Metrics__Enabled` | `false` | Omogoči Prometheus metrics endpoint in njegov osveževalni z})} loop. |
-| `Metrics__RefreshMinutes` | `5` | Kako pogosto se znova zgradi snapshot metrik. Vrednosti pod 1 se povečajo na 1. |
+| `Health__SyncStaleMinutes` | `0` | Aktivirani računi, starejši od tega, povzročijo poročilo `/api/v1/health` `Degraded`. `0` onemogoči preverjanje. |
+| `Metrics__Enabled` | `false` | Aktiviraj končnico (endpoint) za Prometheus metrike in njen zbirčni zpet (refresh loop). |
+| `Metrics__RefreshMinutes` | `5` | Kako pogosto se znova zgradi posnetek (snapshot) metrik. Vrednosti pod 1 se dvignejo na 1. |
 
-Endpoints za zdravje in metrike zahtevajo admin API ključ in `Api__Enabled=true`. Za iskalnike (endpoints), imena metrik, konfiguracijo Prometheus in Docker health check si oglejte
+Končnici za stanje (health) in metrike zahtevajo admin API ključ in `Api__Enabled=true`. Za končnice, imena metrik, konfiguracijo Prometheus in Docker preverjanje zdravja (health check) poglejte
 **[Health and Metrics](Monitoring.md)**.
 
 ### 📤 Nastavitve BatchRestore {#batchrestore-settings}
 - `BatchRestore__AsyncThreshold`: Število e-poštnih sporočil, ki sproži asinkrono obdelavo.
-- `BatchRestore__MaxSyncEmails`: Najvišje število e-poštnih sporočil za sinhrono obdelavo.
-- `BatchRestore__MaxAsyncEmails`: Najvišje število e-poštnih sporočil za asinkrono obdelavo.
-- `BatchRestore__SessionTimeoutMinutes`: Čas izteka seje za batch restore v minutah.
-- `BatchRestore__DefaultBatchSize`: Z умолчанию velikost paketa (batch size) za operacije z e-pošto.
+- `BatchRestore__MaxSyncEmails`: Največ number e-poštnih sporočil za sinhrono obdelavo.
+- `BatchRestore__MaxAsyncEmails`: Največ number e-poštnih sporočil za asinkrono obdelavo.
+- `BatchRestore__SessionTimeoutMinutes`: Čas izteka seance za batch restore v minutah.
+- `BatchRestore__DefaultBatchSize`: Privzeta velikost paketa (batch size) za operacije z e-pošto.
 
-### 🏢 Nastavitve upravljanja s strani (Tenant Management) {#tenant-management-settings}
-- `TenantManagement__MaxSelectedMailboxes`: Najvišji število poštovnih predalov, ki jih je mogoče dodati v eni operaciji upravljanja s strani. Z умолчанию je vrednost `1000`. To vrednost povečajte za zelo velike strani ali jo zmanjšajte, da preprečite naključne masovne uvoze. Ko je omejitev presežena, operacija zavrže z napako pri validaciji in računi niso ustvarjeni. Za podrobnosti si oglejte [M365 Tenant Import Guide](M365TenantImport.md).
+### 🏢 Nastavitve upravljanja strank (Tenant Management) {#tenant-management-settings}
+- `TenantManagement__MaxSelectedMailboxes`: Največja števila poštovnih predalov, ki jih je mogoče dodati v eni operaciji upravljanja strank. Privzeto je `1000`. Povečajte to za zelo velike stranke ali to znižajte, da preprečite nenamerno masovno uvoz. Ko je limit presežen, operacija zavrne z napako pri validaciji in nobenega računa ni ustvarjeno. Za podrobnosti poglejte [M365 Tenant Import Guide](M365TenantImport.md).
 
 ### 🐄 Nastavitve Mailcow {#mailcow-settings}
-- `Mailcow__MaxSelectedMailboxes`: Najvišji število poštovnih predalov, ki jih je mogoče pripraviti v enem samostojnem Mailcow aktivacijskem koraku. Privzeto je `1000`. Zmanjšajte to vrednost, da preprečite accidentalno masovno pripravljanje, ali jo povečajte za velike instance. Ko je omejitev presežena, se računi ne ustvarijo. Za podrobnosti si oglejte [Mailcow Instances](Mailcow.md).
-- Integracija Mailcow dodatno zahteva `Security__CredentialEncryptionKey` (poglejte [Security Settings](#-security-settings)). Povezovanje instance in aktivacija poštovnih predalov sta zavržena, dokler šifriranje poveril ni onemogočeno, zato API ključ in generirana gesla aplikacij ne moreta biti nikoli shranjena kot navadni besedilo.
-- Za odhodni dostop je potreben dostop do Mailcow HTTPS API in do IMAP gostitelja prek TLS (običajno port `993`).
+- `Mailcow__MaxSelectedMailboxes`: Največja številka poštovnih predalov, ki jih je mogoče pripraviti v enem samem procesnem ciklu Mailcow aktivacije. Privzeto je `1000`. Zmanjšajte to vrednost, da preprečite nenamerno masovno pripravljanje, ali jo povečajte za velike primere. Ko je limit presežen, se računi ne ustvarijo. Za podrobnosti poglejte [Mailcow Instances](Mailcow.md).
+- Integracija Mailcow dodatno zahteva `Security__CredentialEncryptionKey` (glejte [Security Settings](#-security-settings)). Povezovanje instance in aktivacija poštovnih predalov sta zavrnjena, če je šifriranje poveril onemogočeno, zato API ključ in generirana gesla za aplikacije nikoli ne smata biti shranjena kot nešifrirana besedila.
+- Za odhajajoč dostop je potreben dostop do Mailcow HTTPS API in do IMAP gostitelja prek TLS (običajno port `993`).
 
 ### 📦 Nastavitve BatchOperation {#batchoperation-settings}
 - `BatchOperation__BatchSize`: Velikost paketa (batch size) za operacije z e-pošto.
 - `BatchOperation__PauseBetweenEmailsMs`: Premor med posameznimi e-poštnimi sporočili v milisekundah.
 - `BatchOperation__PauseBetweenBatchesMs`: Premor med paketi v milisekundah.
 
-### 📤 Nastavitve za offload {#offload-settings}
-Nastavitve za [date-windowed offload](Offload.md). Vse privzete vrednosti ponovijo vedenje, ki ga je aplikacija imela, preden je ta funkcija obstajala, zato namestitev, ki ne konfigurira tega razdelka, ni vplivana.
-- `Offload__MaxConcurrentJobs`: Koliko oprav za obnovitev (restore) ali offload lahko teče hkrati. Privzena vrednost je `1`, kar ohranja strogo serijsko obdelavo, ki jo je vrstica oprav v vedno uporabljala. Ne glede na to vrednost teče največ ena oprav na ciljno poštno predalo.
-- `Offload__PrefetchMaxMessages`: Zgornja meja števila sporočil, ki so indeksirana iz ciljnega poštnega predala za zaznavanje ponovitev. Privzena vrednost je `500000`. Nad to vrednostjo se preverjanje zoži na eno mapo in zabeleži, da je obseg bil zmanjšan.
-- `Offload__ExcludedSourceFolders__0`, `__1`, ...: Mapice izvora, ki se nikoli ne prenosijo (offload), ki se ujemajo pred preimenovanjem in pokrivajo podmapice. Privzeto so prazne.
-- `Offload__FolderRenameMap__<SourceFolder>`: Prepiše začetne dele poti mapice izvora, na primer `Offload__FolderRenameMap__Sent Items=Sent`. Privzeto je prazno.
-- `Offload__MarkAsSeen`: Ali je dodana pošta označena kot prebrana. Privzena vrednost je `true`, kar ustreza obstoječemu vedenju pri obnovitvi.
+### 📤 Nastavitve za Offload {#offload-settings}
+Nastavitve za [date-windowed offload](Offload.md). Vse privzeto vrednosti ponovijo vedenje, ki ga je aplikacija imela, preden je ta funkcija obstajala, zato namestitev, ki ne konfigurira tega dela, ni ovljena.
+- `Offload__MaxConcurrentJobs`: Koliko oprav (jobs) za ponovno odpiranje (restore) ali offload lahko teče hkrati. Privzeto je `1`, kar ohranja strogo serijsko obdelavo, ki jo je vrstica oprav (job queue) vedno uporabljala. Ne glede na to vrednost teče največ ena oprav na ciljno poštovno predal (mailbox).
+- `Offload__PrefetchMaxMessages`: Zgornja meja tem, koliko sporočil je indeksiranih iz ciljnega poštovnega predala za zaznavanje podvojenih sporočil. Privzeto je `500000`. Nad tem se preverjanje zozi na eno mapo in zabeleži, da je obseg bil zmanjšan.
+- `Offload__ExcludedSourceFolders__0`, `__1`, ...: Mapove izvora, ki se nikoli ne offloadajo, ki se ujamejo pred preimenovanjem in pokrivajo podmape. Privzeto so prazne.
+- `Offload__FolderRenameMap__<SourceFolder>`: Prepiše začetne dele poti mape izvora, na primer `Offload__FolderRenameMap__Sent Items=Sent`. Privzeto je prazno.
+- `Offload__MarkAsSeen`: Ali je dodana pošta označena kot prebrana. Privzeto je `true`, kar ustreza obstoječemu vedenju pri ponovnem odpiranju (restore).
 
-Obeh nastavitvah map je namerno pustilo praznih: prepisovanje ali izbrisovanje map brez izrecnega navodila bi presenetilo vsakogar, ki že uporablja pot za obnovitev. Zato z delovanjem brez konfiguracije migrirate vse, vključno s mapami z neželeno pošto, in ustvarite niz posebnih map poleg tistih v ciljni arhivi.
+Obி obe nastavitvi map sta namerno prazni: prepisovanje ali odstranjevanje map brez odpiranja bi presenetilo vsakogar, ki že uporablja pot za ponovno odpiranje (restore). Zato zagon brez konfiguracije migrirata vse, vključno s spam mapami, in ustvari drugo nabor posebnih map poleg map samega cilja.
 
-### 📊 Nastavitve sledenja širini h banda {#bandwidth-tracking-settings}
-- `BandwidthTracking__Enabled`: Omogoči ali onemogoči sledenje širini h banda za obdelavo omejitev hitrosti IMAP (true/false). Privzeto je `false`. Ko je funkcija omogočena, sistem sledi porabi širine h banda na posamezno konto in lahko ustavi sinhronizacijo, ko so dosežene omejitve ponudnika. Za podrobne informacije si oglejte [Rate Limit Handling](RateLimitHandling.md).
-- `BandwidthTracking__DailyLimitMb`: Dnevna omejitev prenosov v megabitih na konto. Privzeto je `25000` (25 GB). Za ponudnike z omejitvami širine h banda to nastavite tako, da ustreza njihovi omejitvi hitrosti (npr. `2500` za ponudnike z dnevno omejitvijo okoli ~2500 MB). Sistem bo ustavil sinhronizacijo, ko bo dosežena ta omejitev.
-- `BandwidthTracking__WarningThresholdPercent`: Delež dnevne omejitve, pri katerem se zabeležijo opozorilna sporočila. Privzeto je `80`. Ko poraba širine h banda doseže ta odstotek, se zabeležijo opozorila, da bi pomagali spremljati približevanje omejitve.
-- `BandwidthTracking__PauseHoursOnLimit`: Število ur, za obdobje, ko se sinhronizacija ustavi, ko je dosežena dnevna omejitev. Privzeto je `24`. Po tem obdobju se zastavka za omejitev samodejno odstrani in sinhronizacija nadaljuje.
-- `BandwidthTracking__TrackUploadBytes`: Ali želite slediti tudi širini h banda za prenese (upload) (true/false). Privzeto je `false`. Večina IMAP ponudnikov omejuje le prenose (download), zato to običajno ni potrebno.
+### 📊 Nastavitve za sledenje pasovni širini {#bandwidth-tracking-settings}
+- `BandwidthTracking__Enabled`: Omogoči ali onemogoči sledenje pasovne širine za obdelavo omejitev hitrosti IMAP (true/false). Privzeto je `false`. Ko je funkcija omogočena, sistem sledi uporabi pasovne širine na posamezen račun in lahko ustavi sinhronizacijo, ko so dosežene omejitve ponudnika. Za podrobne informacije poglejte [Obdelava omejitev hitrosti](RateLimitHandling.md).
+- `BandwidthTracking__DailyLimitMb`: Dnevna omejitev prenosov v megabajtih na račun. Privzeto je `25000` (25 GB). Za ponudnike z omejitvami pasovne širine nastavite to vrednost tako, da ustreza njihovi omejitvi hitrosti (npr. `2500` za ponudnike z dnevno omejitvijo okoli ~2500 MB). Sistem bo ustavil sinhronizacijo, ko bo dosežena ta omejitev.
+- `BandwidthTracking__WarningThresholdPercent`: Delež dnevne omejitve, pri katerem se zabeležejo opozorilna sporočila. Privzeto je `80`. Ko uporaba pasovne širine doseže ta odstotek, se zabeležejo opozorila, da bi pomagali spremljati približevanje omejitev.
+- `BandwidthTracking__PauseHoursOnLimit`: Število ur, za obdobje, ko je sinhronizacija ustavljena, ko je dosežena dnevna omejitev. Privzeto je `24`. Po tem obdobju se zastavica za omejitev samodejno izbriše in sinhronizacija nadaljuje.
+- `BandwidthTracking__TrackUploadBytes`: Ali slediti tudi pasovni širini naložbe (true/false). Privzeto je `false`. Večina IMAP ponudnikov omejuje le prenose, zato to običajno ni potrebno.
 
 ### 🎯 Nastavitve izbire {#selection-settings}
-- `Selection__MaxSelectableEmails`: Najvišja število e-poštnih sporočil, ki jih je mogoče izbrati hkrati.
+- `Selection__MaxSelectableEmails`: Največ number e-poštnih sporočil, ki jih je lahko hkrati izbrati.
 
 ### 👁️ Nastavitve ogleda (Zasebnost in prikaz) {#view-settings-privacy-display}
-- `View__DefaultToPlainText`: Nadzoruje privzeto vrsto pogleda e-pošte za zasebnost in preprečevanje sledenja (true/false). Privzeto je `false`.
-  - Ko je nastavljeno na `true`: E-pošte se privzeto odpirajo v obliki besedila (plain-text), kar preprečuje samodejno nalaganje pikselov za sledenje, zunanjih slik in spletnih žarometov (web beacons). To priporočamo uporabnikom, ki so zaskrbljeni glede sledenja e-pošte in zasebnosti.
-  - Ko je nastavljeno na `false`: E-pošte se privzeto odpirajo v HTML obliki, kar prikazuje oblikovano e-pošto s slikami in slogovanjem.
-  - Uporabniki lahko med HTML in besedilno (plain-text) vrsto preklapljajo z gumbom na strani s podrobnostmi e-pošte (vidno le, ko sta na voljo oba formata).
-  - Povezava "Full View" upošteva trenutno izbrano vrsto pogleda.
+- `View__DefaultToPlainText`: Nadzoruje privzeto vrsto pogleda e-pošte za preprečevanje sledenja in zaščito zasebnosti (true/false). Privzeto je `false`.
+  - Ko je nastavljeno na `true`: E-pošta se privzeto odpre v načalu besedil (plain-text), kar preprečuje samodejno nalaganje sledenja pikselov, zunanjih slik in spletnih žarnikov. To je priporočljivo za uporabnike, ki skrbi za zasebnost in sledenje e-pošti.
+  - Ko je nastavljeno na `false`: E-pošta se privzeto odpre v HTML načelu, s prikazom oblikovane e-pošte z slikami in slogi.
+  - Uporabniki lahko med HTML in besedilnim prikazom preklapljajo z uporabo gumba na strani z podrobnostiami e-pošte (vidno le, ko sta na voljo oba formata).
+  - Povezava "Full View" upošteva trenutno izbran način ogleda.
 
-- `View__BlockExternalResources`: Blokira zunanje vire (oddaljene slike, zunanje CSS, zunanje skripte, spletne police itd.) v HTML prikazih e-pošte, da prepreči sledenje in izboljša zasebnost (true/false). Privzeto je `false`.
-  - Ko je nastavljeno na `true`: Zunanji viri so pri prikazovanju HTML e-pošte filtrirani. Prikazujejo se le vključeni (inline) vsebine in data URIs (vključno z vključenimi prilogami prek referenčnih oznak `cid:`).
-  - Ko je nastavljeno na `false`: HTML e-pošta se prikazuje z vsemi njenimi prvotnimi zunanjimi viri.
-  - **Pomembno**: Ta nastavitev vpliva le na **prikaz** e-pošte. Arhivirane e-pošte so v bazi podatkov shranjene popolnoma nespremenjene, pri čemer je ohranjena vsa prvotna vsebina.
+- `View__BlockExternalResources`: Blokira zunanje vire (oddaljene slike, zunanje CSS slogovnike, zunanje skripte, spletne police itd.) v HTML prikazih e-pošte, da prepreči sledenje in izboljša zasebnost (true/false). Privzeto je `false`.
+  - Ko je nastavljeno na `true`: Zunanji viri so filtrirani pri prikazovanju HTML e-pošte. Prikazane so le vključene vsebine in data URIs (vključno z vključnimi prilogami prek `cid:` referenc).
+  - Ko je nastavljeno na `false`: HTML e-pošta je prikazana z vsemi svojimi prvotnimi zunanjimi viri.
+  - **Pomembno**: Ta nastavitev vpliva le na **prikaz** e-pošte. Arhivirana e-pošta je v bazi podatkov shranjena popolnoma nespremenjena, z vsemi prvotnimi vsebami.
   - Blokirani viri vključujejo:
-    - Oddaljene slike (pikseli za sledenje, zunanje slike, shranjene na strežnikih)
+    - Oddaljene slike (sledenje pikseli, zunanje slike, ki so shranjene na strežnikih)
     - Zunanje CSS slogovnike
     - Zunanje police prek @font-face
-    - Zunanje CSS uvoze prek @import
+    - Zanje CSS uvoze prek @import
     - Zunanje slike ozadja
   - dovoljeni viri:
     - Vključene slike, vključene kot data: URIs
     - Vključene priloge, ki se nanašajo na cid: URIs
-    - Vključeni CSS slogi in oznake style
+    - Vključeni CSS slogi in slogovni oznaki (style tags)
   - Ta nastavitev deluje neodvisno od `DefaultToPlainText` in zagotavlja dodatno plast zaščite zasebnosti pri ogledu HTML e-pošte.
 
-### 📊 Nastavitve nadzorne plošče {#dashboard-settings}
-- `Dashboard__ShowDirectionSplits`: Ali kartice številnic vsebujejo svoje dele za prejemno in pošiljateljsko korespondenco, kartica računa pa število različnih domen. Privzeto je `true`. Če nastavite na `false`, se te številke ne izračunajo, temveč so namesto izračunavanja le skrite: številniki prikazujejo preprosto število, število prilog pa ne izvaja združevanja z e-pošto, na katero je navezano, kar predstavlja eno zapyt, ki ga ti deli dodajo.
-- `Dashboard__SelectablePeriods`: Ali grafi na nadzorni plošči ponujajo ločljivost, obdobje in puščice za njihovo premikanje. Privzeto je `true`. Če nastavite na `false`, grafi prikazujejo zadnjih dvanajst mesecev po mesecih in pošiljatelje celotnega arhivščine; končnica grafa odgovarja, kot da ne bi obstajala, najstarejši datum pošiljanja pa ni iskan.
-- `Dashboard__CacheSeconds`: Kako dolgo so izračunana statistična podatki nadzorne plošče (skupna števila s razdelitvijo na prejemno in pošiljateljsko korespondenco, števila na račun, serije grafov, najpogostejši pošiljatelji, nedavne e-pošte, velikost baze podatkov) shranjeni v predpomnilniku strežnika v spominu. Privzeto je `60` sekund. Nastavite na `0`, da onemogočite predpomnilnik in vedno ponovno izračunate statistiko. Vsaka izbira ločljivosti in obdobja grafa je predpomniljena posebej, zato nadzorna plošča, ki se preključa med izbira, shrani en zapis za vsako izbiro. Višje vrednosti zmanjšajo obremenitev baze podatkov v velikih okoljih na račun zastarelih številk. Pripadki statusa sinhronizacije, vrednosti shranjevanja in seznam nedavnih e-pošt se vedno pridobivajo v živo in niso vplivni na ta predpomnilnik.
-- `Dashboard__RefreshIntervalMinutes`: Kako pogosto poslužba v ozadju `DashboardStatsRefreshService` ponovno izračuna zahtevne agregacije nadzorne plošče (skupna števila s razdelitvijo na prejemno in pošiljateljsko korespondenco, števila na račun, število domen računov, privzeto serijo grafov z najpogostejšimi pošiljatelji, velikost baze podatkov) v tabelo baze podatkov `DashboardStatsCache`. Pri namestitvah z več milijoni e-poštnih sporočil nadzorna plošča bere te pripravljene vrednosti namesto agregiranja celotne arhivščine v poti zahteve, kar skrajša prvi nalet iz približno 10 sekund na milisekunde. Končnica grafa odgovarja na privzeto izbiro (meseci v obdobju enega leta, prejemni pošiljatelji, trenutno obdobje) iz istega vrstice, zato se ob vrnitvi k njej prikažejo številke ob prvem prikazu; vsaka druga izbira se izračuna ob zahtevi in ohrani v zgornjem predpomnilniku v spominu. Privzeto je `15` minut. Nastavite na `0`, da onemogočite osveževanje v ozadju; nadzorna plošča nato ponovno izračuna statistiko v živo (ob še vedno veljavnem predpomnilniku v spominu, navedenem zgoraj). Prikazane vrednosti so lahko za največ konfigyurirani interval za zamudne za dejansko stanje arhivščine. Vrstica, izračunana z drugimi vrednostmi `ShowDirectionSplits` ali `SelectablePeriods` kot so trenutne, se ne uporabi; nadzorna plošča izračunava v živo do naslednjega osveževanja.
+### 📊 Nastavitve nadzornih plošč {#dashboard-settings}
+- `Dashboard__ShowDirectionSplits`: Ali prikazujejo kartice številčnikov svoje sestavne dele za prihajajoča in odhajajoča sporočila, kartica računa pa število različnih domen. Privzeto je `true`. Če nastavite na `false`, se te številke ne izračunajo, temveč se ne izračunajo in ne skrijejo: številčniki prikazujejo samo preprost števec, število prilog pa ne združuje več z e-pošto, na katero se nanaša, kar je ta enega od poizpitov, ki jih ti deli dodajo.
+- `Dashboard__SelectablePeriods`: Ali nadzorni grafi ponujajo razpoložljivost, obdobje in puščice za njihovo premikanje. Privzeto je `true`. Če nastavite na `false`, grafi prikazujejo zadnjih dvanajst mesecev po mesecih in pošiljatelje celotnega arhive, končnica grafa odgovarja, kot da ne bi obstajala, in najstarej datum pošiljanja ni iskan.
+- `Dashboard__CacheSeconds`: Kako dolgo so izračunana statistična podatki nadzorne plošče (skupni podatki s pripadajočimi razdelitvami na prihajajoča in odhajajoča sporočila, številke na račun, serije grafov, najboljši pošiljatelji, nedavne e-pošte, velikost baze podatkov) shranjeni v strežniščenem pom 기억u (in-memory cache). Privzeto je `60` sekund. Nastavite na `0`, da onemogočite predračunovanje in vedno izračunate statistiko na novo. Vsaka izbira razpoložljivosti in obdobja grafa je shranjena posebej, zato nadzorna plošča, ki se preključa med izbira, hrani en vnos za vsako izbiro. Višje vrednosti zmanjšajo obremenitev baze podatkov v velikih okoljih na račun zastarelih številk. Badgi za status sinhronizacije, vrednosti shranitve in seznam nedavnih e-pošt se vedno preizpolnjajo v živo in niso odvisni od tega predpomnilnika.
+- `Dashboard__RefreshIntervalMinutes`: Kako pogosto ozadinska storitev `DashboardStatsRefreshService` ponovno izračuna zahtevne agregacije nadzorne plošče (skupni številki s pripadajočimi razdelitvami na prihajajoča in odhajajoča sporočila, številke na račun, število domen računov, privzeto serije grafov z njihovimi najboljšimi pošiljatelji, velikost baze podatkov) v tabelo baze podatkov `DashboardStatsCache`. Pri namestitvah z več milijoni e-poštnih sporočil nadzorna plošča bere te pripravljene vrednosti namesto agregacije celotne arhive v poti za zahtevo, kar prvi nalog iz ~10 sekund spremeni v milisekunde. Končnica grafa odgovarja na privzeto izbiro (meseci v obdobju enega leta, prihajajoči pošiljatelji, trenutno obdobje) iz istega vrstca, zato se ob povračitku na to izbiro prikažejo številke ob prvem risanju; vsaka druga izbira se izračuna ob zahtevi in se hrani v zgorenjem pom 기억u (in-memory cache). Privzeto je `15` minut. Nastavite na `0`, da onemogočite ozadinsko osveževanje; nadzorna plošča nato znova izračunava statistiko v živo (ob upoštevanju zgornjega pom 기억a v pom 기억u). Prikazane vrednosti lahko začenjajo za največ konfigurirovani interval zaostajati za dejansim stanjem arhive. Vrstica, izračunana z drugimi vrednostmi `ShowDirectionSplits` ali `SelectablePeriods` kot so trenutne, se ne uporabi; nadzorna plošča izračunava podatke v živo do naslednjega osvežitve.
 
 ### 🔄 Nastavitve oprav (Jobs Settings) {#jobs-settings}
-- `Jobs__RefreshSeconds`: Kako pogosto se stran s procesi v ozadju samodejno osvežuje, ko je zagnan zagnan tab v brskalniku. Privzeto je `30` sekund. Nastavite na `0`, da izklopite samodejno osveževanje in ga opravite ročno. Vsako osveževanje ponovno zgradi stran iz vseh osmih virov oprav, zato pri namestitvah z veliko računov daljši interval zmanjša obremenitev, ki se мноži z vsakim odprtim tabom na strani.
+- `Jobs__RefreshSeconds`: Kako pogosto se stran s strežnimi opravami (background jobs) samodejno osveži, ko je odprta v zavijdniku brskalnika. Privzeto je `30` sekund. Nastavite na `0`, da izklopite samodejno osveževanje in ga izvajali ročno. Vsako osveževanje ponovno zgradi stran iz vseh osmih virov oprav, zato pri namestitvah z veliko računov daljši interval zmanjša obremenitev, ki se мноži z vsako odprto zavihkom na strani.
 
 ### 🗃️ Nastavitve Npgsql {#npgsql-settings}
-- `Npgsql__CommandTimeout`: Čas izteka za bazične ukaze v sekundah.
+- `Npgsql__CommandTimeout`: Čas izteka za ukaze baze podatkov v sekundah.
 
 ### 📥 Nastavitve nalaganja {#upload-settings}
 - `Upload__MaxFileSizeGB`: Maksimalna velikost datoteke za nalaganje v GB.
-- `Upload__KeepAliveTimeoutHours`: Keep alive časovni zamik za nalaganje v urah.
-- `Upload__RequestHeadersTimeoutHours`: Časovni zamik za glavice zahtevkov v urah.
+- `Upload__KeepAliveTimeoutHours`: Čas izteka (keep alive timeout) za nalaganje v urah.
+- `Upload__RequestHeadersTimeoutHours`: Čas izteka za zagoglje zahtevka (request headers) v urah.
 
 ### 📂 Nastavitve lokalnega uvoza {#local-import-settings}
-- `LocalImport__AllowedPaths__0`, `LocalImport__AllowedPaths__1` itd.: Beli seznam lokalnih direktorij, iz katerih lahko ukazom za uvoz CLI (`--import-mbox`, `--import-eml`) dovolite branje datotek. Vsak vnos je pot znotraj posameznega kontejnerja. Datoteke za uvoz morate z uporabo Docker volumnov zmontirati v eno od teh direktorij. Z умолчанию: `/data/import` (samodejno nastavljeno na `/app/uploads` kot nadomestno).
-  - Pri uporabi `docker exec` za zagon ukaza za uvoz mora biti pot do datoteke, ki jo je podana prek `--file`, v okviru ene od teh dovoljenih poti.
-  - Ta varnostni ukrep preprečuje naključen dostop do sistemskih datotek prek ukazov CLI.
-  - Za različne vire uvoza lahko nastavite več poti.
-  - Za podrobne navodila za uporabo si oglejte [CLI commands](CLI.md).
+- `LocalImport__AllowedPaths__0`, `LocalImport__AllowedPaths__1`, itd.: Seznam dovoljenih lokalnih direktorijev, iz katerih lahko povelavke za uvoz CLI (`--import-mbox`, `--import-eml`) brljejo datoteke. Vsak vnos je pot v okviru kontejnerja. Datoteke za uvoz morate z uporabo Docker volumnov uvoziti v eno izmed teh direktorijev. Privzeto: `/data/import` (samodejno nastaveno na `/app/uploads` kot nadomeščenec).
+  - Pri uporabi `docker exec` za izvedbo povelave za uvoz mora biti pot do datoteke, posredovana prek `--file`, v okviru ene izmed teh dovoljenih poti.
+  - Ta varnostni ukrep preprečuje naključen dostop do datoteke sistema iz povelav CLI.
+  - Za različne vire uvoza je lahko konfiguriranih več poti.
+  - Za podrobna navodila za uporabo poglejte [CLI commands](CLI.md).
 
 ### 📄 Nastavitve uvoza CSV {#csv-import-settings}
-- `CsvImport__MaxRows`: Najvišja število vrstic CSV-ja (poštovnih predalov), obdelanih pri enem samem masovnem uvozu. Privzeto je `5000`. Za velike implementacije povečajte to vrednost; za omejitev vpliva posameznega uvoza na obremenitev baze podatkov jo znižajte.
-- `CsvImport__MaxFileSizeBytes`: Najvišja dovoljena velikost (v bajtih) naložene CSV datoteke. Privzeto je `10000000` (10 MB). Če je potrebno, prilagodite to vrednost svojim omejitvam nalaganja.
-- Za podrobne navoditve o uporabi masovnega uvoza IMAP računov prek CSV poglejte [Account Import Guide](Account-Import.md).
+- `CsvImport__MaxRows`: Največja številka vrstic CSV-ja (poštovnih predalov), obdelanih v enem paketnem uvozu. Privzeto je `5000`. Za velike namene povečajte to vrednost; znižajte jo, da omejite vpliv enega paketnega uvoza na obremenitev baze podatkov.
+- `CsvImport__MaxFileSizeBytes`: Največja dovoljena velikost (v bajtih) naložene datoteke CSV. Privzeto je `10000000` (10 MB). Če je potrebno, prilagodite to vrednost svojim omejitvam nalaganja.
+- Za podrobna navodila za uporabo paketnega uvoza IMAP računov prek CSV poglejte [Account Import Guide](Account-Import.md).
 
 ### 📤 Nastavitve izvoza revizijskega poročila {#audit-export-settings}
-Nastavitve za stran za izvoz revizijskih podatkov (samo za administratorje, dostopna z strani Logs). Izvoz generira ZIP paket s tabelarnimi masovnimi podatki (INDEX.XML + CSV tabele + DTD) iz obstoječega arhivščnika za zunanje revizijske orodje. Za podrobnosti o uporabi si oglejte [Audit Data Export Guide](AuditExport.md).
-- `AuditExport__DataSupplierName`: Z умолчанию vrednost za polje obrazca "Data supplier name", ki identificira vašo organizacijo v izvoženem indeksi datoteki. Z умолчанию: prazno.
-- `AuditExport__DataSupplierLocation`: Z умолчанию vrednost za polje obrazca "Data supplier location" (npr. sedež podjetja). Z умолчанию: prazno.
-- `AuditExport__Comment`: Z умолчанию vrednost za polje obrazca "Comment", ki je vključeno kot prost tekst v izvoženi indeksi datoteki. Z умолчанию: prazno.
-- `AuditExport__OutputDirectory`: Nadполниčje, kjer so shranjene generirane ZIP datoteke. Relativne poti se razrešujejo glede na korenino vsebine aplikacije. Z умолчанию: `exports/audit`.
-- `AuditExport__RetentionDays`: Število dni, po katerih dnevno čiščenje izbriše dokončane datoteke izvoza. Z умолчанию: `30`.
-- `AuditExport__MaxRangeYears`: Najvišji dovoljeni razpon med začetnim in končnim datumom obdobja izvoza. Z умолчанию: `10`.
-- Polja obrazca so predpolnjen s temi privzetimi vrednostmi, vendar jih je mogoče urediti za vsak izvoz posebej.
-- Vsak izvoz v dostopni dnevnik zapiše vnos o začetku in vnos o rezultatu (tip "Audit Data Export"), zato je zgodovina varna pred spremembami brez kakršnihkoli sprememb sheme DB.
+Nastavitve za stran za izvoz revizijskih podatkov (le za administratorje, dostopno s strani Logs). Izvoz generira ZIP paket z tabelnimi masovnimi podatki (INDEX.XML + CSV tabele + DTD) iz obstoječega arhive za zunanje revizijske orodje. Za podrobnosti o uporabi si oglejte [Audit Data Export Guide](AuditExport.md).
+- `AuditExport__DataSupplierName`: Default vrednost za polje v obrazcu "Data supplier name", ki identificira vašo organizacijo v izvoženem indeksnem datoteki. Default: prazno.
+- `AuditExport__DataSupplierLocation`: Default vrednost za polje v obrazcu "Data supplier location" (npr. sedež podjetja). Default: prazno.
+- `AuditExport__Comment`: Default vrednost za polje v obrazcu "Comment", ki je vključeno kot prost tekst v izvoženi indeksni datoteki. Default: prazno.
+- `AuditExport__OutputDirectory`: Direktorij, kjer so shranjene generirane ZIP datoteke. Relativne poti se razširijo glede na korenino vsebine aplikacije. Default: `exports/audit`.
+- `AuditExport__RetentionDays`: Število dni, po katerih dnevno čiščenje izbriše izvožene datoteke. Default: `30`.
+- `AuditExport__MaxRangeYears`: Največ dovoljen razмах med začetnim in končnim datumom obdobja izvoza. Default: `10`.
+- Polja v obrazcu so predpolnila s temi predvzglavnimi vrednostmi, vendar jih je lahko treba urediti za vsak izvoz posebej.
+- Vsak izvoz v dnevnik dostopa zapiše vnos o začetku in vnos o rezultatu (tip "Audit Data Export"), tako da je zgodovina varna pred revizijami brez kakršnih koli sprememb sheme DB.
 
 ### 🔒 Nastavitve politike brisanja {#deletion-policy-settings}
-- `DeletionPolicy__DeletionAllowed`: Nadzoruje, ali je dovoljeno ročno brisanje arhiviranih e-poštnih sporočil (true/false). Z умолчанию je `true`. Ko je nastavljeno na `false`:
-  - Vse arhivirana e-poštna sporočila so ob zagonu zaklenjena (`IsLocked = true`) prek sprožitev skladnosti v bazi podatkov, kar preprečuje kakršno koli spremembo ali brisanje na ravni baze podatkov.
-  - Ročno brisanje (posameznih in množičnih) je blokirano na ravni aplikacije z napako.
-  - Privzeta vrednost stolpca je prilagojena tako, da so tudi novo uvožena e-poštna sporočila zaklenjena.
-  - Trenutno stanje politike se ob vsakem zagonu zabeleži v tabeli AccessLogs (na strani Logs je vidno kot vpiši "Deletion Policy") za potrebe revizije.
-  - Lokalno brisanje zaradi zadržanja (retention) je izjema: e-poštna sporočila, ki spadajo v konfigurirano obdobje zadržanja, se še vedno izbrišejo (pred brisanjem v procesu zadržanja so takoj odblokirana).
-- `DeletionPolicy__MaxBulkDeleteEmails`: Zgornja meja za eno množično brisanje na podlagi filtra (*Delete all matches*). Z умолчанию je `100000`. Filter, ki ustreza več e-poštnih sporočil, bo zavrnitven z sporočilom, da ga treba zoščititi; delo nikoli ne odreže podatkov tiho. E-poštna sporočila, zaklenjena zaradi politike zadržanja, so preskočena in poročana v statusu dela, ne pa odblokirana. Delo ob zagonu ponovno preveri to omejitev in `DeletionPolicy__DeletionAllowed`, zato se delo, ki je bilo v vrstici pred spremembo politike, ustavi namesto da bi se izvedlo s staro nastavitvijo.
-- **Zaščita neustreznosti (Immutability protection):** Ko je `IsLocked = true`, sprožitev skladnosti baze podatkov (`prevent_locked_email_changes`) blokira KAKOŠNO spremembo vrstice e-poštnega sporočila — zaščiteni so vsi stolpci, ne le seznam določenih polj. Izjeme so le stolpci `IsLocked` sama (tako da ostane mogoča odblokava za brisanje zaradi zadržanja in uporaba politike ob zagonu) in `FolderName` (tako da lahko IMAP sinhronizacija posodobi mapo, ko se e-poštno sporočilo premakne na strani strežnika). Zaščita je neodvisna od stolpcev (primerjava na podlagi JSONB) in samodejno zajema prihodnje dodajanja v shemo.
+- `DeletionPolicy__DeletionAllowed`: Nadzoruje, ali je dovoljeno ročno brisanje arhiviranih e-poštnih sporočil (true/false). Privzeto je `true`. Ko je nastaveno na `false`:
+  - Ob zagonu so vse arhivirane e-poštne pošiljke zaklenjene (`IsLocked = true`) prek sprožitev skladnosti v bazi podatkov, kar preprečuje kakršno koli spremembo ali brisanje na ravni baze podatkov.
+  - Ročno brisanje (posamezno in množično) je blokirano na ravni aplikacije z besedilom o napaki.
+  - Privzete vrednosti v stolpcih so prilagojene tako, da so tudi nedavno uvozenih e-poštnih sporočil zaklenjena.
+  - Trenutno stanje politike se ob vsakem zagonu zabeleži v tabelo AccessLogs (na strani Logs vidno kot zapisi "Deletion Policy") za potrebe revizije.
+  - Brisanje glede lokalnega obdobja shranjevanja je iz exceptions: e-poštna sporočila, ki spadajo pod konfigurirano obdobje shranjevanja, se še vedno izbrišejo (pred brisanjem v okviru postopka shranjevanja so takoj odblokirana).
+- `DeletionPolicy__MaxBulkDeleteEmails`: Zgornja meja za množično brisanje na podlagi enega filtra (*Delete all matches*). Privzeto je `100000`. Filter, ki ustreza več e-poštnih sporočil, bo zavrnjen z sporočilom, ki zahteva zožanje filtra; naloga nikoli ne krati števila sporočil tiho. E-poštna sporočila, ki so zaklenjena zaradi politike shranjevanja, so preskočena in prijavljena v statusu naloge, ne odblokirana. Naloga ob začetku ponovno preveri to omejitev in `DeletionPolicy__DeletionAllowed`, zato naloga, ki je bila v vrstici pred spremembo politike, ne nadaljuje delo, temveč se ustavi, namesto da bi delala z starimi nastavitvami.
+- **Zaščita nemembrabilnosti:** Ko je `IsLocked = true`, sprožitev skladnosti baze podatkov (`prevent_locked_email_changes`) blokira KAKŠNO KOLI spremembo vrstice e-poštnega sporočila — zaščitenih je vseh stolpcev, ne le določenega seznama polj. Edini iz exceptions stolpci sta `IsLocked` sama (da je odblokavanje za brisanje zaradi shranjevanja in uporabo politike ob zagonu še vedno mogoče) in `FolderName` (da lahko IMAP sinhronizacija posodobi mapo, ko je e-poštno sporočilo premeščeno na strani strežnika). Zaščita je neodvisna od stolpcev (primerjava na podlagi JSONB) in samodejno zajema prihodnje dodajanja v shemo.
 
-### 🕐 Nastavitve časovne zone {#timezone-settings}
-- `TimeZone__DisplayTimeZoneId`: Časovna zona, ki se uporablja za prikaz tidskih žigov e-pošte v uporabniškem vmesniku. Uporablja identifikatorje časovnih zon IANA (npr. "Europe/Berlin", "Asia/Tokyo"). Privzeta vrednost je "Etc/UCT" zaradi združljivosti s starejšimi različicami. Ob uvozu bodo tidski žigi e-pošte pret easykonvertirani v to časovno pono za namene prikaza.
+### 🕐 Nastavitve časovne cone {#timezone-settings}
+- `TimeZone__DisplayTimeZoneId`: Časovna zona, ki se uporablja za prikaz tismov e-pošte v uporabniškem vmesniku. Uporablja identifikatorje časovnih con IANA (npr. "Europe/Berlin", "Asia/Tokyo"). Privzeto je "Etc/UCT" za združljivost z starejšimi različicami. Ob uvozu e-pošte bodo časovni žigovi pretvorjeni v to časovno cono za namene prikaza.
 
-### 🎉 Nastavitve ReleaseNotes (Splash zaslon za posodobitev različice) {#releasenotes-settings-version-update-splash-screen}
-- `ReleaseNotes__AppVersion`: Nizek različice, ki ga prijavi ta instanca. Primerja se z GitHub oznakami izdaj (release tags) in določa, ali obstaja novejša različica. Če je prazno, se spremenki (changelog) zamenjajo z različico kompajlirane assemblies in opozorilo o posodobitvi ostane izklopljeno.
-- `ReleaseNotes__Enabled`: Omogoči ali onemogoči splash zaslon za posodobitev različice (true/false). Privzeto je `true`. Ko je funkcija omogočena, bodo administratorji po posodobitvi aplikacije videli enkratni modalni okno s spremenki, ki prikazuje zapiski o izdaji, pridobljene iz GitHub Releases za trenutno različico. Vsak administrator lahko modalno okno zapre in ponovno se bo pojavilo le pri novi različici. Nastavite na `false`, da popolnoma onemogočite to funkcijo, vključno z opozorilom o posodobitvi.
-- `ReleaseNotes__UpdateHintEnabled`: Administratorjem prikaži majhno obvestilo (toast) v spodnjem desnem kotu, ko GitHub objavi novejšo stabilno različico od nameščene različice (true/false). Privzeto je `true`. Obvestilo vodi do te izdaje in se v brskalniku zapre za vsako različico posebej. Osnutki (drafts) in predizdaje (prereleases) so prezrti. Zahteva `ReleaseNotes__AppVersion`; brez tega nobeno opozorilo ni prikazano.
-- `ReleaseNotes__UpdateCheckIntervalHours`: Kako pogosto se osveži seznam GitHub izdaj, v urah. Privzeto je `6`. Krajši interval omogoča, da je nova različica v dolgotrajni instanci hitreje vidna, daljši interval pa zmanjša število pozivov GitHub API. Minimalna vrednost je `1`.
+### 🎉 ReleaseNotes Settings (Splash zaslon za posodobitev različice) {#releasenotes-settings-version-update-splash-screen}
+- `ReleaseNotes__AppVersion`: String različice, ki ga ta instanca prijavlja. Primerjava s GitHub release oznakami (tags) določa, ali obstaja novejša različica. Če je prazno, se changelog kot nadomestek uporabi različica kompajlirane assemblies in se opozorilo o posodobitvi izklopi.
+- `ReleaseNotes__Enabled`: Omogoči ali onemogoči splash zaslon za posodobitev različice (true/false). Privzeto je `true`. Ko je omogočeno, bodo administratorji po posodobitvi aplikacije videli enkratni modalni okenj za changelog, ki prikazuje zapiske o izdaji (release notes), pridobljene s GitHub Releases za trenutno različico. Vsak administrator lahko okno zapre in ponovno se bo pojavilo le za novo različico. Nastavite na `false`, da popolnoma onemogočite to funkcijo, vključno z opozorilom o posodobitvi.
+- `ReleaseNotes__UpdateHintEnabled`: Administratorjem prikaži majhno obvestilo (toast) v spodnjem desnem kotu, ko GitHub objavi novejšo stabilno različico kot je nameščena različica (true/false). Privzeto je `true`. Obvestilo je povezano z to izdajo in se v brskovalniku zapre za vsako različico posebej. Predzadki (drafts) in predrelease se prezrejo. Zahteva `ReleaseNotes__AppVersion`; brez tega se nobeno opozorilo ne prikaže.
+- `ReleaseNotes__UpdateCheckIntervalHours`: Nameščeno v urah, kako pogosto se osveži seznam GitHub izdaj. Privzeto je `6`. Krajši interval povzroči, da je nova izdaja v dolgotrajno delujoči instanci hitreje vidna, daljši interval pa zmanjša število pozivov GitHub API. Minimum je `1`.
+- `ReleaseNotes__RequestTimeoutSeconds`: Čas izteka (timeout) za en poziv GitHub API, v sekundah. Privzeto je `10`. Ko čas poteče, changelog in opozorilo o posodobitvi ostata izključena za ta poskus namesto tega, da bi poziv obdržali odprt; naslednji preklop bo ponovil preverjanje.
 
 ### 🔧 Nastavitve vzdrževanja baze podatkov {#database-maintenance-settings}
-- `DatabaseMaintenance__Enabled`: Omogoči ali onemogoči samodejno dnevno vzdrževanje baze podatkov (true/false). Privzena vrednost je `false`. Ko je funkcija omogočena, bo sistem samodejno izvajal operacije VACUUM ANALYZE za optimizacijo zmogljivosti baze podatkov in preprečevanje zadeblanja (bloat). Za več informacij si oglejte [Database Maintenance Guide](DatabaseMaintenance.md).
-- `DatabaseMaintenance__DailyExecutionTime`: Čas dne, ko se mora izvesti vzdrževanje baze podatkov, v 24-urnem formatu (HH:mm). Privzena vrednost je `02:00`. Izberite čas med nizko aktivnostjo sistema.
-- `DatabaseMaintenance__TimeoutMinutes`: Najvišji dovoljeni čas za operacije vzdrževanja v minutah. Privzena vrednost je `30`. Za večje baze podatkov povečajte to vrednost.
+- `DatabaseMaintenance__Enabled`: Omogoči ali onemogoči samodejno dnevno vzdrževanje baze podatkov (true/false). Privzeto je `false`. Ko je omogočeno, bo sistem samodejno izvajal operacije VACUUM ANALYZE za optimizacijo zmogljivosti baze podatkov in preprečevanje zameglitve (bloat). Za več podrobnosti poglejte [Priročnik za vzdrževanje baze podatkov](DatabaseMaintenance.md).
+- `DatabaseMaintenance__DailyExecutionTime`: Čas v dnevu, ko se mora začeti vzdrževanje baze podatkov, v 24-urnem formatu (HH:mm). Privzeto je `02:00`. Izberite čas med nizko aktivnostjo sistema.
+- `DatabaseMaintenance__TimeoutMinutes`: Največ dovoljen čas za operacije vzdrževanja v minutah. Privzeto je `30`. Za večje baze podatkov povečajte to vrednost.
 
-### 🧬 Nastavitve za deduplikacijo prilog {#attachment-deduplication-settings}
-Deduplikacija prilog shranjuje vsako unikatno vsebino priloge le enkrat (s poimenovanjem vsebine po SHA-256) in je **ključna funkcija, ki je vedno vklopljena** – namensko ni na izbira za vklopljanje/izklop. Lahko se prilagajajo le spodnji parametri za obdelavo v serijah/urniki. Za vse podrobnosti si oglejte [Attachment Deduplication Guide](AttachmentDeduplication.md).
+### 🧬 Nastavitve deduplikacije prilog {#attachment-deduplication-settings}
+Deduplikacija prilog shrani vsako edinstveno vsebino priloge le enkrat (identificirano s SHA-256) in je **ključna funkcija, ki je vedno vključena** – namerno ni vklopljen ali izklopljen stik. Prilagoditi lahko lahko le spodnje parametre pakiranja/urnikovanja. Za celovite podrobnosti si oglejte [Attachment Deduplication Guide](AttachmentDeduplication.md).
 
-- `AttachmentDeduplication__BatchSize`: Število obstoječih prilog, ki se migrirajo v vsaki transakcici med enkratno migracijo obstoječih podatkov v ozadju. Privzeto je `200`. Večje vrednosti omogočajo hitrejšo migracijo, vendar povečajo porabo pomnilnika/obremenitev baze pri vsaki seriji.
-- `AttachmentDeduplication__DelayBetweenBatchesMs`: Nepriobvezni premor (v milisekundah) med serijami migracije za omejitev obremenitve baze na preobremenjenih sistemih. Privzeto je `0` (brez premora).
-- `AttachmentDeduplication__StartupDelaySeconds`: Zavod (v sekundah) po zagonu aplikacije, preden se začne migracija v ozadju, da se dajemo čas za dokončanje migracije sheme. Privzeto je `20`.
-- `AttachmentDeduplication__OrphanCleanupIntervalHours`: Interval (v urah) stalnega čiščenja (garbage collection), ki odstrani vsebine prilog, ki jih nobena e-pošta ne uporablja več. Privzeto je `12`. To teče neodvisno od `DatabaseMaintenance__Enabled`.
-- `AttachmentDeduplication__CommandTimeoutSeconds`: Čas izteka ukazov baze (v sekundah) za operacije serij migracije (INSERT s hashiranjem SHA-256 in UPDATE). Privzeto je `300` (5 minut). Zvočite to vrednost za zelo velike baze ali priloge ali pa jo zmanjšajte, če želite hitrejšo zaznavo napak. Če serija še vedno izteče, storitev samodejno poskusi ponovno s polovico velikosti serije.
+- `AttachmentDeduplication__BatchSize`: Število obstoječih prilog, prepeljenih po transakciji med enkratno ozadinsko migracijo obstoječih podatkov. Z умолчанию je `200`. Večje vrednosti omogočajo hitrejše prepelovanje, vendar povečajo porabo pomnilnika/obremenitev baze podatkov na paketo.
+- `AttachmentDeduplication__DelayBetweenBatchesMs`: Ob optionalni pavzi (v milisekundah) med paketi migracije za omejitev obremenitve baze podatkov na obremenjenih sistemih. Z умолчанию je `0` (brez pavze).
+- `AttachmentDeduplication__StartupDelaySeconds`: Zamuditev (v sekundah) po zagonu aplikacije, preden se začne ozadinska migracija, da se migraciji sheme zmeni čas za zaključek. Z умолчанию je `20`.
+- `AttachmentDeduplication__OrphanCleanupIntervalHours`: Interval (v urah) stalno delujočega čiščenja (garbage collection), ki odstranjuje vsebine prilog, ki jih nobena e-pošta več ne povezuje. Z умолчанию je `12`. To teče neodvisno od `DatabaseMaintenance__Enabled`.
+- `AttachmentDeduplication__CommandTimeoutSeconds`: Čas izteka ukazov baze podatkov (v sekundah) za operacije pakiranja migracije (INSERT s SHA-256 hashiranjem in UPDATE). Z умолчанию je `300` (5 minut). Povečajte to vrednost za zelo velike baze podatkov ali priloge, ali jo znižajte, če želite hitrejše zaznavanje napak. Če pakete še vedno izteče čas, storitev samodejno poskuša ponovno z polovico velikosti paketa.
 
-### 💾 Nastavitve shirvanja kontov {#account-storage-settings}
-Prikaz shirvanja na konto prikazuje porabo shirvanja baze podatkov (vsa polja e-pošte + priloge) za vsak račun v tabeli "Account Overview" v nadzorni plošči in v tabeli "Show All" v MailAccounts. Samostojna ozadinska storitev (`AccountStorageRefreshService`) izračuna vrednosti tako, da sešteve PostgreSQL `pg_column_size` po vrstici (pokriva vsa polja e-pošte brez branja telesa e-pošte) in jih predrami v tabeli `AccountStorageCache`. Ta storitev deluje neodvisno od `DatabaseMaintenance__Enabled`.
+### 💾 Nastavitve shrambe za posamezna računa {#account-storage-settings}
 
-- `AccountStorage__Enabled`: Omogoči ali onemogoči storitev osveževanja shirvanja (true/false). Z умолчанию je `true`. Ko je omogočena, storitev ob zagonu opravi obnavo (backfill) čakajočih računov, ki je lahko nadaljevanča (varen na okvare preko `AccountStorageBackfillState`), nato pa vsakodnevno popolno osveževanje. Ko je onemogočena, se vrednosti shirvanja posodobijo le, ko so e-poštna sporočila sinhronizirana, uvožena ali izbrisana, vendar se prikazane vrednosti lahko čezčas zastarejo.
-- `AccountStorage__DailyExecutionTime`: Čas dneva (24-urnski format `HH:mm`) za vsakodnevno popolno osveževanje vseh računov. Z умолчанию je `02:30`. Izberite čas med nizko aktivnostjo sistema.
-- `AccountStorage__BackfillDelayMs`: Zamika (v milisekundah) med računi med začetnim backfillom ob zagonu. Z умолчанию je `5000`. Nižje vrednosti pospešijo backfill, vendar povečajo obremenitev baze podatkov; za zelo velike arhive povečajte to vrednost, da preprečite preobremenitev baze podatkov.
-- `AccountStorage__RefreshBatchDelayMs`: Zamika (v milisekundah) med računi med dnevnim popolnim osveževanjem. Z умолчанию je `1000`. Nižje vrednosti pospešijo osveževanje, vendar povečajo obremenitev baze podatkov; za zelo velike arhive povečajte to vrednost.
-- `AccountStorage__CommandTimeoutSeconds`: Čas izteka ukaza baze podatkov (v sekundah) za izračun shirvanja na konto (`pg_column_size` nad vsemi vrsticami računa). Z умолчанию je `300` (5 minut). Izračun bere vsako vrstico e-pošte vključno s TOAST podatki, kar lahko pri zelo velikih arhivah (250k+ sporočil) traja več kot minuto; prejšnja 30-sekundna privzeta vrednost Npgsql je povzročala tiho neuspešno osveževanje in povzročala, da je nadzorna plošča prikazovala zastarele vrednosti. Povečajte to vrednost, če se izračun pri vašem arhivu še vedno izteče.
+Prikaz shrambe za posamezen račun prikazuje porabo baze podatkov (vsi polja e-pošte + priloge) za vsak račun v tabeli "Account Overview" v nadzornem panelu in v tabeli "Show All" v MailAccounts. Samostojna servisna procesja v ozadju (`AccountStorageRefreshService`) izračuna vrednosti tako, da izračuna PostgreSQL `pg_column_size` po vsaki koloni (pokriva vsa polja e-pošte brez branja telesa e-pošte) in jih pospravi v tabeli `AccountStorageCache`. Ta servis deluje neodvisno od `DatabaseMaintenance__Enabled`.
 
-> 💡 **Opomba**: Vrednosti shirvanja se osvežijo takoj po vsaki sinhronizaciji, uvozu ali izbrisu zaradi politike zadržanja (retention), zato prikazane vrednosti ostanejo aktualne tudi brez dnevnega osveževanja. Dnevno osveževanje je varnostna mreža, ki zajame izjemne primere (npr. neposredne spremembe v bazi podatkov).
+- `AccountStorage__Enabled`: Omogoči ali onemogoči servis za osveževanje shrambe (true/false). Privzeto je `true`. Ko je omogočen, servis ob zagonu opravi ponovljivo popolnilni proces (backfill) za preostala računa (zaščiteno pred okvarami preko `AccountStorageBackfillState`), nato pa izvaja dnevno popolno osveževanje. Ko je onemogočen, se vrednosti shrambe posodobijo le, ko so e-poštne ladje sinhronizirane, uvožene ali izbrisane, vendar se prikazane vrednosti lahko čez čas neujestremejo.
+- `AccountStorage__DailyExecutionTime`: Čas v dnevu (24-urnski format `HH:mm`) za dnevno popolno osveževanje vseh računov. Privzeto je `02:30`. Izberite čas med nizko sistemsko aktivnostjo.
+- `AccountStorage__BackfillDelayMs`: Zamuditev (v milisekundah) med računi med začetnim popolnilnim procesom ob zagonu. Privzeto je `5000`. Nižje vrednosti pospešijo popolnilni proces, vendar povečajo obremenitev baze podatkov; za zelo velike arhive povečajte to vrednost, da preprečite preobremenitev baze podatkov.
+- `AccountStorage__RefreshBatchDelayMs`: Zamuditev (v milisekundah) med računi med dnevnim popolnim osveževanjem. Privzeto je `1000`. Nižje vrednosti pospešijo osveževanje, vendar povečajo obremenitev baze podatkov; za zelo velike arhive povečajte to vrednost.
+- `AccountStorage__CommandTimeoutSeconds`: Čas izteka ukaza baze podatkov (v sekundah) za izračun shrambe za posamezen račun (`pg_column_size` nad vsemi vrsticami računa). Privzeto je `300` (5 minut). Izračun bere vsako vrstico e-pošte, vključno s TOAST podatki, kar lahko traja preštirik vrtic na zelo velikih arhivih (več kot 250k e-poštnih sporočil); prejšnja 30-sekundna privzeta vrednost Npgsql je povzročala tiho neuspšno osveževanje in povzročala, da je nadzorni panel prikazoval zastarele vrednosti. Če se izračun še vedno izteče v vašem arhivu, povečajte to vrednost.
+
+> 💡 **Opomba**: Vrednosti shrambe se osvežijo takoj po vsaki sinhronizaciji, uvozu ali izbrisu glede na politiko ohranjanja podatkov, zato prikazane vrednosti ostanejo aktualne tudi brez dnevnega osveževanja. Dnevno osveževanje je varnostna mreža, ki zajame izjemne primere (npr. neposredne spremembe v bazi podatkov).
 
 ### 📝 Nastavitve beleženja {#logging-settings}
 - `Logging__LogLevel__Default`: Privzeto raven beleženja za aplikacijo. Razpoložljive ravni so: `Trace`, `Debug`, `Information`, `Warning`, `Error`, `Critical`, `None`. Privzeto je `Information`.
-- `Logging__LogLevel__Microsoft_AspNetCore`: Raven beleženja za sporočila okvirja ASP.NET Core. Privzeto je `Warning`.
-- `Logging__LogLevel__Microsoft_EntityFrameworkCore_Database_Command`: Raven beleženja za ukaze baze podataka Entity Framework. Privzeto je `Warning`.
+- `Logging__LogLevel__Microsoft_AspNetCore`: Raven beleženja za sporočila ok框架a ASP.NET Core. Privzeto je `Warning`.
+- `Logging__LogLevel__Microsoft_EntityFrameworkCore_Database_Command`: Raven beleženja za ukazov baze podatkov Entity Framework. Privzeto je `Warning`.
 
 ### 🛡️ Varnostne nastavitve {#security-settings}
-- `AllowedHosts`: Seznam gostujočih imen, ločenih s poglavki, ki jih je aplikaciji dovoljeno postreči. To pomaga preprečiti napade na HTTP Host header. Primer: `AllowedHosts=mailarchiver.example.com;www.mailarchiver.example.com`. **Pomembno**: V produkcijskih okoljih ne uporabljajte `*`, saj to onemogoči preverjanje host headerja.
+- `AllowedHosts`: Seznam gostiteljskih imen, ločenih s poglavki, ki jih aplikacija lahko poslužuje. To pomaga preprečiti napade na HTTP Host glave. Primer: `AllowedHosts=mailarchiver.example.com;www.mailarchiver.example.com`. **Pomembno**: V produkcijskih okoljih ne uporabljajte `*`, saj to onemogoča preverjanje glave gostitelja.
 
-#### 🔐 Šifriranje poveril v stanju počitv {#credential-encryption-at-rest}
-Poverila e-poštnih računov (IMAP geslo, M365 client secret in MSA OAuth tokeni) lahko zašifrirate v bazi podatkov. Ključ za šifriranje se shranjuje **zunaj** baze podatkov (okoljska spremenljivka / Docker secret), zato sama kopija baze podatkov ni dovolj za branje poveril.
+#### 🔐 Šifriranje poveril ob mirovanju {#credential-encryption-at-rest}
+Poverja za e-poštne račune (IMAP geslo, M365 client secret in MSA OAuth tokeni) je mogoče zašifrirati v bazi podatkov. Ključ za šifriranje se shranjuje **zunaj** baze podatkov (okoljska spremenljivka / Docker secret), zato sama kopija baze podatkov ni dovolj za branje poveril.
 
-- `Security__CredentialEncryptionKey`: Base64 kodiran 256-bitni (32 bajtov) ključ za šifriranje. Generirajte ga z:
+- `Security__CredentialEncryptionKey`: Base64 kodiran 256-bitni (32 bajta) ključ za šifriranje. Generirajte ga z:
   ```bash
   openssl rand -base64 32
   ```
-  Vrednost nastavite kot okoljsko spremenljivko (priporočeno: `Security__CredentialEncryptionKey` v vašem compose文件中 ali okolju kontejnerja). Aplikacija ne podpira Docker secret v slogu `_FILE` — če uporabljate Docker secret, ga prepovejte in njegovo vsebino naložite v okoljsko spremenljivko v vašem entrypointu. Ključa nikoli ne oddajajte v `appsettings.json`. Ko je ključ konfiguriran, se poverila zašifrirajo ob zapisu, poslužba v ozadju pa enkrat zašifrir tudi obstoječa poverila v obliki nešifriranega besedila.
-- `Security__EncryptAccountCredentials`: Omogoči ali onemogoči šifriranje novih/posodobljenih vrednosti poveril (true/false). Privzeto je `true`. Ko ključ ni konfiguriran, se poverila shranjujejo kot nešifrirano besedilo in ob zagonu se zabeleži opozorilo — obstoječe namestitve niso ovirane, dokler ni zagotovljen ključ.
-- `Security__CredentialEncryptionBackfill`: Ali naj poslužba v ozadju ob zagonu zašifrir obstoječa poverila v obliki nešifriranega besedila (true/false). Privzeto je `true`. Brez konfiguriranega ključa ne bo opravilo ničesar.
-- `Security__CredentialEncryptionKeyPrevious`: Neobvezni prejšnji ključ, uporablja se le za dešifriranje vrednosti, ki so bile zašifrirane s tem ključem (za rotacijo ključev). Nove vrednosti so vedno zašifrirane s `Security__CredentialEncryptionKey`.
+  Vrednost nastavite kot okolensko spremenljivko (priporočeno: `Security__CredentialEncryptionKey` v vašem compose datoteki ali okolju kontejnerja). Aplikacija ne podpira Docker secret v slogu `_FILE` — če uporabljate Docker secret, ga montirajte in njegovo vsebino naložite v okoljsko spremenljivko v vašem entrypointu. Ključa nikoli ne objavljajte v `appsettings.json`. Ko je ključ konfiguriran, se poverila zašifrirajo ob zapisu, v ozadja proces pa enkrat zašifrirajo obstoječa poverila v obliki čistega besedila.
+- `Security__EncryptAccountCredentials`: Omogoči ali onemogoči šifriranje novih/posodobljenih vrednosti poveril (true/false). Privzeto je `true`. Ko ključ ni konfiguriran, se poverila shranjujejo kot čist tekst in se ob zagonu zabeleži opozorilo — obstoječe namestitve niso ov prisilno, dokler ni zagotovljen ključ.
+- `Security__CredentialEncryptionBackfill`: Ali naj bi storitev v ozadju ob zagonu zašifrirala obstoječa poverila v obliki čistega besedila (true/false). Privzeto je `true`. Če ključ ni konfiguriran, se ne izvede nothing.
+- `Security__CredentialEncryptionKeyPrevious`: Ob optionalni prejšnji ključ, uporablja se le za dešifriranje vrednosti, ki so bile zašifrirane z njim (za rotacijo ključev). Nove vrednosti so vedno zašifrirane z `Security__CredentialEncryptionKey`.
 
-  > ⚠️ **Rotacija ključev**: po rotaciji ohranite konfiguriran `Security__CredentialEncryptionKeyPrevious` **tako dolgo, dokler vsako poverilo ni ponovno zapisano** (npr. z urejanjem računa ali z avtomatskim osvežitvanjem OAuth tokena) — obstoječih vrednosti, zašifriranih s starim ključem, *ni* samodejno ponovno zašifrirano s novim ključem. Ko odstranite prejšnji ključ, postane vsako poverilo, ki je še vedno zašifrirano s tem ključem, nečitljivo in ga je treba ponovno vnesti. Dokler je konfiguriran, ga morate skrbi iti tako varno kot trenutni ključ.
+  > ⚠️ **Rotacija ključev**: po rotaciji ohranite konfiguriran `Security__CredentialEncryptionKeyPrevious` **takrat, ko je vsako poverilo ponovno predelano** (npr. z urejanjem računa ali samodečno osvežitvijo OAuth tokena) — obstoječe vrednosti, zašifrirane s starim ključem, *niso* samodejno ponovno zašifrirane z novim ključem. Ko odstranite prejšnji ključ, postane vsako poverilo, ki je še zašifrirano z njim, nečitljivo in ga je treba vnesti ponovno. Dokler je konfiguriran, ga je treba skrbeti tako varno kot trenutni ključ.
 
-> ⚠️ **Ključ shranjujte varno**: Brez ključa zašifriranih poveril ni mogoče obnoviti in jih je treba ponovno vnesti. Zabeležite ga skupaj z varnostnimi kopijami vaše baze podatkov (toda ločeno od njih).
+> ⚠️ **Ključ shranjujte varno**: Brez ključa zašifriranih poveril ni mogoče povrniti in jih je treba vnesti ponovno. Zupam ga skupaj z (vendar ločeno od) vašimi varnostnimi kopijami baze podatkov.
 >
-> 💡 **Obstoječe namestitve**: Nadgradite varno — dokler ni nastavljen `Security__CredentialEncryptionKey`, se nič ne spremeni. Ključ nastavite, ko ste pripravljeni; obstoječa poverila v obliki nešifriranega besedila ostanejo čitljiva in se v ozadju zašifrirajo.
+> 💡 **Obstoječe namestitve**: Nadgradite varno — dokler ni nastavljen `Security__CredentialEncryptionKey`, se nič ne spremeni. Ključ nastavite, ko ste pripravljeni; obstoječa poverila v obliki čistega besedila ostanejo čitljiva in se bodo zašifrirala v ozadju.
 
-### 🔐 Konfiguracija OIDC {#oidc-configuration}
+### 🔐 OIDC konfiguracija {#oidc-configuration}
 
-Za podrobne navodila za nastavitev avtentikacije OpenID Connect si oglejte [OIDC Implementation Guide](OIDC_Implementation.md).
+Za podrobna navodila za nastavitev avtentikacije OpenID Connect poglejte [OIDC Implementation Guide](OIDC_Implementation.md).
 
 #### Osnovne OIDC nastavitve {#basic-oidc-settings}
 - `OAuth__Enabled`: Omogoči ali onemogoči OIDC avtentikacijo (true/false)
 - `OAuth__Authority`: URL avtoritete OpenID Connect (npr. https://sts.windows.net/{TENANT-ID}/ za Azure AD)
-- `OAuth__ClientId`: ID klijenta (client ID), ki ga je dodelila vaša ponudba identitete
-- `OAuth__ClientSecret`: Tajna klijenta (client secret), ki jo je dodelala vaša ponudba identitete
-- `OAuth__DisplayName`: Izbirno ime, ki se prikaže na gumbu za OIDC prijava in strani za samodejno preusmerjanje (npr. `PocketID SSO`). Če je izpuščeno, se uporabi splošni napis "Login with OAuth".
-- `OAuth__ClientScopes__0`: Prva scope (obseg), zahtevana od ponudbe identitete (openid)
-- `OAuth__ClientScopes__1`: Druga scope (obseg), zahtevana od ponudbe identitete (profile)
-- `OAuth__ClientScopes__2`: Tretja scope (obseg), zahtevana od ponudbe identitete (email)
-- `OAuth__ResponseMode`: Izbirni način odgovora (response mode) za zahtevo avtorizacije (`query`, `fragment` ali `form_post`). Privzeto je `form_post`, privzeto za ASP.NET Core. Nastavite na `query` za ponudnike, ki ne podpirajo `form_post`, kot je Synology SSO Server. Poglejte [Provider Compatibility](OIDC_Implementation.md#provider-compatibility).
-- `OAuth__AutoApproveUsers`: Samodejno odobrite nove OIDC uporabnike brez potrebe po ročnem admin odobritvi (true/false). Privzeto je `false`.
+- `OAuth__ClientId`: ID klijenta, ki ga je dodelil vaš ponudnik identitete
+- `OAuth__ClientSecret`: Tajna klijenta (client secret), ki jo je dodelil vaš ponudnik identitete
+- `OAuth__DisplayName`: Izbirni izbrisni naziv, ki se prikaže na gumbu za OIDC prijavo in strani za samodejno preusmerjanje (npr. `PocketID SSO`). Če je izpuščen, se uporabi splošni oznaka "Login with OAuth".
+- `OAuth__ClientScopes__0`: Prvi zahtevan scope iz ponudnika identitete (openid)
+- `OAuth__ClientScopes__1`: Drugi zahtevan scope iz ponudnika identitete (profile)
+- `OAuth__ClientScopes__2`: Tretji zahtevan scope iz ponudnika identitete (email)
+- `OAuth__ResponseMode`: Izbirni način odziva (response mode) za zahtev za avtorizacijo (`query`, `fragment` ali `form_post`). Privzeto je `form_post`, privzeto za ASP.NET Core. Nastavite na `query` za ponudnike, ki ne podpirajo `form_post`, kot je Synology SSO Server. Poglejte [Provider Compatibility](OIDC_Implementation.md#provider-compatibility).
+- `OAuth__AutoApproveUsers`: Samodejno odobrite nove OIDC uporabnike brez potrebe po ročnem odobritvi administratorja (true/false). Privzeto je `false`.
 
 #### Nastavitve za zagotavljanje uporabnikov (User Provisioning) {#user-provisioning-settings}
-- `OAuth__AutoApproveUsers`: Samodejno odobrite nove OIDC uporabnike brez potrebe po ročnem admin odobritvi (true/false). Privzeto je `false`. Ko je funkcija omogočena, so uporabniki, ki se avtenticirajo prek OIDC ponudnika, takoj aktivirani in lahko dostopajo do aplikacije. Ko je onemogočena (privzeto), so novi OIDC uporabniki ustvarjeni kot neaktivni in zahtevajo ročno aktivacijo s strani administratorja. Za podrobne informacije si oglejte [Auto-Approve OIDC Users](OIDC_Implementation.md#auto-approve-oidc-users).
-- `OAuth__AdminEmails__0`, `OAuth__AdminEmails__1`, itd.: E-poštni naslovi, ki bi morali biti samodejno zagotovljeni kot administratorji. Uporabniki s temi e-poštnimi naslovi bodo ob prvi OAuth prijavi ustvarjeni kot aktivni administratorji, s čimer se obide normalni postopek odobritve. Primerjava e-poštnih naslovov ni občutljiva na velike in male črke.
+- `OAuth__AutoApproveUsers`: Samodejno odobrite nove OIDC uporabnike brez potrebe po ročnem odobritvi administratorja (true/false). Privzeto je `false`. Ko je omogočeno, so uporabniki, ki se avtenticirajo prek OIDC ponudnika, takoj aktivirani in lahko dostopajo do aplikacije. Ko je onemogočeno (privzeto), so novi OIDC uporabniki ustvarjeni kot neaktivni in zahtevajo ročno aktivacijo s strani administratorja. Za podrobne informacije poglejte [Auto-Approve OIDC Users](OIDC_Implementation.md#auto-approve-oidc-users).
+- `OAuth__AdminEmails__0`, `OAuth__AdminEmails__1`, itd.: E-poštni naslovi, ki bi morali biti samodejno zagotovljeni kot administratorji. Uporabniki z temi e-poštnimi naslovi bodo ob prvem OAuth prijavi ustvarjeni kot aktivni administratorji, s čimer ob bypassing normalnega postopka odobritve. Primerjava e-poštnih naslovov ni razlikovalna glede na velike/male črke.
 
-#### Nastavitve za prijavo brez gesla za dostop {#passwordless-login-settings}
-- `OAuth__DisablePasswordLogin`: Onemogoči prijavo z uporabniškim imenom/geslom (true/false). Privzeto je `false`. Ko je funkcija omogočena, je obrazec za geslo skrit **in** strežnik zavrne vsak POST zahtev za geslo, zato je na voljo le OAuth prijava. Zahteva `OAuth__Enabled=true`. Če je OAuth onemogočen, ta nastavitev nima učinka.
+#### Nastavitve za prijavo brez gesla {#passwordless-login-settings}
+- `OAuth__DisablePasswordLogin`: Onemogoči prijavo z uporabniškim imenom/geslom (true/false). Privzeto je `false`. Ko je omogočeno, je obrazec za geslo skrit **in** strežnik zavrne vsak POST za geslo, zato je na voljo le OAuth prijava. Zahteva `OAuth__Enabled=true`. Če je OAuth onemogočen, ta nastavitev nima učinka.
 - `OAuth__AutoRedirect`: Samodejno preusmeri uporabnike na OAuth ponudnika (true/false). Privzeto je `false`. Zahteva, da je `OAuth__DisablePasswordLogin` nastavljen na `true`. Uporabniki bodo pred preusmeritvijo videli kratek zaslon nalaganja.
 
 #### Primer: Celotna konfiguracija s prednostjo OIDC {#example-full-oidc-first-configuration}
@@ -562,13 +574,13 @@ environment:
   - OAuth__AdminEmails__1=manager@example.com
 ```
 
-## 🔐 Konfiguracija Kestrel HTTPS (neobvezno) {#kestrel-https-configuration-optional}
+## 🔐 Kestrel HTTPS konfiguracija (neobavezno) {#kestrel-https-configuration-optional}
 
-Čeprav je aplikacija namenjena dostopu prek obversega proxyja z HTTPS, lahko nastavite tudi spletni strežnik Kestrel za uporabo SSL/TLS certifikatov. To zagotavlja končnu enkripcijo med obversem proxyjem in poslodovalnim kontejnerjem aplikacije.
+Čeprav je namen aplikacije dostop do nje preko obverse proxyja z HTTPS, lahko Kestrel spletni strežnik konfigurirate tudi tako, da uporablja SSL/TLS certifikate. To zagotavlja končno šifriranje (end-to-end) med obversnim proxyjem in posameznim posode (container) aplikacije.
 
 ### Koraki konfiguracije {#configuration-steps}
 
-1. **Generirajte ali pridobite SSL certifikat** v formatu PFX (npr. `localhost.pfx`)
+1. **Generirajte ali pridobite SSL certifikat** v PFX formatu (npr. `localhost.pfx`)
 
 2. **Dodajte naslednje okoljske spremenljivke** v vaš `docker-compose.yml` za storitev `mailarchive-app`:
 
@@ -589,7 +601,7 @@ ports:
   - "5001:5001"  # HTTPS port
 ```
 
-4. **Dodajte preslikavo volumov** za certifikat:
+4. **Dodajte preslikavo volumnov** za certifikat:
 
 ```yaml
 volumes:
@@ -599,22 +611,22 @@ volumes:
 
 5. **Namestite datoteko certifikata** (npr. `localhost.pfx`) v direktorij `./certs` na vašem gostiteljskem sistemu.
 
-### Razlagava okoljskih spremenljivk {#environment-variable-explanations}
+### Razlaga okoljskih spremenljivk {#environment-variable-explanations}
 
 - `Kestrel__Endpoints__Http__Url`: URL končnice HTTP (privzeto: http://0.0.0.0:5000)
 - `Kestrel__Endpoints__Https__Url`: URL končnice HTTPS (privzeto: https://0.0.0.0:5001)
-- `Kestrel__Endpoints__Https__Certificate__Path`: Pot do datoteke PFX certifikata znotraj kontejnerja
+- `Kestrel__Endpoints__Https__Certificate__Path`: Pot do datoteke PFX certifikata znotraj posode
 - `Kestrel__Endpoints__Https__Certificate__Password`: Geslo za datoteko PFX certifikata
 
-> 💡 **Opomba**: Ta konfiguracija je neobvezna. Če uporabljate obversem proxy z HTTPS (priporočljivo), lahko komunikacija med obversem proxyjem in aplikacijo ostane na HTTP. Vendar pa za maksimalno varnost v občutljivih okoljih morda želite omogočiti tudi HTTPS na Kestrelu, da zašifrirate celotno pot komunikacije.
+> 💡 **Opomba**: Ta konfiguracija je neobavezna. Če uporabljate obversni proxy z HTTPS (priporočeno), lahko komunikacija med obversnim proxyjem in aplikacijo ostane na HTTP. Vendar pa za maksimalno varnost v občutljivih okoljih morda želite omogočiti tudi HTTPS na Kestrelu, da zašifrirate celotno pot komunikacije.
 
 ## 🔑 Upravljanje tajnosti za produkcijo {#secrets-management-for-production}
 
-Neposredno vstavljanje občutljivih podatkov, kot so gesla za bazo podatkov, administratorjeva poverilnica in OAuth client secrets, v `docker-compose.yml` predstavlja varnostno tveganje, še posebej, ko je datoteka shranjena v sistemu za nadzor različic. Priporočan pristop je izpeljenje teh vrednosti v datoteko `.env`, ki jo Docker Compose samodejno naloži.
+Neposredno v `docker-compose.yml` zapisovanje občutljivih podatkov, kot so gesla za baze podatkov, administratorjeva poverilnica in OAuth client secrets, predstavlja varnostno tveganje, še posebej, če je datoteka shranjena v sistemu za nadzor različic (version control). Priporočeni pristop je izpeljave teh vrednosti v datoteko `.env`, ki jo Docker Compose samodejno naloži.
 
 ### 📄 Datoteka `.env` {#the-env-file}
 
-V isti direktorij kot vaša `docker-compose.yml` ustvarite datoteko `.env` z naslednjo vsebino:
+V isti direktorij kot vaša `docker-compose.yml` ustvarite datoteko `.env` z naslednjim vsebino:
 
 ```env
 # Database
@@ -634,11 +646,11 @@ CREDENTIAL_ENCRYPTION_KEY=YourBase64Encoded32ByteKey
 KESTREL_CERT_PASSWORD=YourCertPassword
 ```
 
-**Pomembno**: Docker Compose samodejno bere datoteko `.env` iz istega direktorija — datoteke **ne** morate navajati ročno. Vse spremenljivke, določene v `.env`, so na voljo v `docker-compose.yml` prek sintakse `${VARIABLE_NAME}`.
+**Pomembno**: Docker Compose samodejno bere datoteko `.env` iz istega direktorija — datoteke ne morate navajati ročno. Vse spremenljivke, določene v `.env`, so na voljo v `docker-compose.yml` prek sintakse `${VARIABLE_NAME}`.
 
 ### 🐳 Prilagojena `docker-compose.yml` {#adapted-docker-composeyml}
 
-`docker-compose.yml` iz korakov za namestitev je treba prilagoditi tako, da namesto trdno vstavljenih tajnosti uporabite vstavke (placeholders):
+`docker-compose.yml` iz korakov za namestitev je treba prilagoditi tako, da namesto trdno zapisanih tajnosti uporabite meto (placeholders):
 
 ```yaml
 services:
@@ -671,9 +683,9 @@ services:
     # ... volumes, networks ...
 ```
 
-### 📋 Predloga `.env.example` za administratorje {#envexample-template-for-administrators}
+### 📋 `.env.example` predloga za administratorje {#envexample-template-for-administrators}
 
-V svojem repozitoriju ustvarite datoteko `.env.example`, ki služi kot predloga za druge administratorje. Vsežna vsebuje vstavke in dokumentacijo, vendar **brez dejanskih tajnosti**:
+V svojem repozitoriju ustvarite datoteko `.env.example`, ki služi kot predloga za druge administratorje. Vsebuje vrednosti met (placeholders) in dokumentacijo, vendar **brez dejanskih tajnosti**:
 
 ```env
 # ============================================
@@ -702,15 +714,15 @@ CREDENTIAL_ENCRYPTION_KEY=change_me_base64_32_byte_key
 ### ✅ Najboljše prakse {#best-practices}
 
 - **Uporabite `.env.example` kot predlogo**
-- **Nastavite stroge dovoljenja za datoteke** — Omejite dostop do datoteke `.env`:
+- **Nastavite stroge dovolilniki datotek** — Omejite dostop do datoteke `.env`:
   ```bash
   chmod 600 .env
   ```
-- **Uporabljajte močna gesla** — Generirajte dolga, naključna gesla (vsaj 16 znakov) z mešanico črk, številk in posebnih znakov.
-- **Omejite dostop do datoteke `.env`** — Le uporabnik, ki izvaja Docker Compose, mora imeti dovoljenja za branje datoteke `.env`.
+- **Uporabite močna gesla** — Generirajte dolga, naključna gesla (vsaj 16 znakov) z mešanico črn, številk in posebnih znakov.
+- **Omejite dostop do datoteke `.env`** — Le uporabnik, ki izvaja Docker Compose, mora imeti dovoljilnika za branje datoteke `.env`.
 
 ## 🔒 Varnostni opomini {#security-notes}
 
-- Uporabljajte močna gesla in spremenite privzete podatke za prijavo. Gesla morajo imeti vsaj 12 znakov in vključevati mešanico velikih in malih črk, številk ter posebnih znakov. Ne uporabljajte pogostih besed ali informacij, ki jih je lahko enostavno ugandeti.
-- Za produkcijo razmislite o implementaciji HTTPS z obratnim posrednikom (reverse proxy).
-- Priporočljive so redne varnostne kopije PostgreSQL baze podatkov. Podrobnejši postopki za varnostno kopiranje in obnovo so na strani [Backup and Restore Guide](BackupRestore.md).
+- Uporabite močna gesla in spremenite privzete poverilnice. Gesla morajo biti dolga vsaj 12 znakov in vključevati mešanico velikih in malih črk, številk ter posebnih znakov. Izogibajte se uporabi pogostih besed ali podatkov, ki jih je enostavno ugotoviti.
+- Za produkcijo upoštevajte implementacijo HTTPS z obratnim posrednikom (reverse proxy).
+- Priporočljivo je redno opravljanje varnostnih kopij PostgreSQL baze podatkov. Za podrobne postopke varnostnega kopiranja in obujave poglejte [Backup and Restore Guide](BackupRestore.md).
