@@ -1,10 +1,10 @@
-# 🛠️ Mail Archiver beállítási útmutató {#mail-archiver-setup-guide}
+# 🛠️ Mail Archiver Beállítási Útmutató {#mail-archiver-setup-guide}
 
-[← Vissza a dokumentáció indexéhez](index.md)
+[← Vissza a Dokumentáció Indexhez](index.md)
 
 ## 📋 Áttekintés {#overview}
 
-Ez az útmutató részletes utasításokat tartalmaz a Mail Archiver alkalmazás Docker Compose segítségével történő beállításához.
+Ez az útmutató részletes utasításokat nyújt a Mail Archiver alkalmazás Docker Compose segítségével történő beállításához.
 
 ## 🛠️ Előfeltételek {#prerequisites}
 
@@ -223,19 +223,19 @@ networks:
   postgres:
 ```
 
-3. Szerkesztse az adatbázis konfigurációját a `docker-compose.yml` fájlban, és állítson be biztonságos jelszót a `POSTGRES_PASSWORD` változóba és a `ConnectionString` beállításba.
+3. Szerkesztse az adatbázis konfigurációját a `docker-compose.yml` fájlban, és állítson be egy biztonságos jelszót a `POSTGRES_PASSWORD` változóba és a `ConnectionString` beállításba.
 
-4. Ha hitelesítést szeretne használni (ami erősen javasolt), határozzon meg egy `Authentication__Username` és `Authentication__Password` értéket, amelyet a rendszergazda felhasználóhoz használ.
+4. Ha hitelesítést szeretne használni (amit erősen javasolunk), határozzon meg egy `Authentication__Username` és `Authentication__Password`, amelyet az admin felhasználó használ.
 
-5. A `TimeZone__DisplayTimeZoneId` környezeti változót az Ön által preferált időzónához igazítsa (az alapértelmezett az "Etc/UCT"). Bármely IANA időzóna azonosítót használhat (pl. "Europe/Berlin", "Asia/Tokyo").
+5. A `TimeZone__DisplayTimeZoneId` környezeti változót az Ön által preferált időzónának megfelelően állítsa be (az alapértelmezett az "Etc/UCT"). Bármely IANA időzónamező azonosítót használhat (például: "Europe/Berlin", "Asia/Tokyo").
 
-6. Opcionálisan konfigurálhatja a `Logging__LogLevel` környezeti változókat az alkalmazás logok részletességének szabályozására. Az elérhető lehetőségekért tekintse meg az alábbi Logging Settings részt.
+6. Opcionálisan konfigurálhatja a `Logging__LogLevel` környezeti változókat az alkalmazás naplóinak részletességének szabályozására. Az elérhető lehetőségekért tekintse meg alább a Logging Settings szakaszt.
 
-7. Konfiguráljon egy a választásában álló reverse proxy-t https és hitelesítés mellett az alkalmazás biztonságos hozzáféréséhez.
+7. Konfiguráljon egy a választásuk szerinti reverse proxy-t https és hitelesítés használatával az alkalmazás hozzáférésének biztonságosításához.
 
-> ⚠️ **Figyelem**: Magán az alkalmazás nem biztosít titkosított hozzáférést https keresztül! Ez egy reverse proxy prostředvén kell beállítani!
+> ⚠️ **Figyelem**: Maga az alkalmazás nem biztosít titkosított hozzáférést https keresztül! Ezt egy reverse proxy segítségével kell beállítani!
 
-8. A konténerek kezdeti indítása:
+8. A konténerek első indítása:
 ```bash
 docker compose up -d
 ```
@@ -245,63 +245,63 @@ docker compose up -d
 docker compose restart
 ```
 
-10. Az alkalmazás elérése
+10. Az alkalmazás megtekintése
 
 11. Lépjen be a meghatározott hitelesítő adatokkal, és adja hozzá az első e-mail fiókját:
-   - Navigáljon az "Email Accounts" részhez
+   - Navigáljon az "Email Accounts" szekcióba
    - Kattintson a "New Account" gombra
-   - Adja meg a szerver adatait és a hitelesítő adatokat
+   - Adja meg a szerver részleteit és a hitelesítő adatokat
    - Mentés és az archiválás megkezdése!
-   - Ha szeretné, hozzon létre egyéb felhasználókat, és rendeljen hozzájuk fiókokat.
+   - Ha szeretné, hozzon létre egyéb felhasználókat és rendeljen hozzá fiókokat.
 
 ## 📚 Környezeti változók magyarázata {#environment-variable-explanations}
 
 ### 🗄️ Adatbázis-kapcsolat {#database-connection}
-- `ConnectionStrings__DefaultConnection`: A PostgreSQL adatbázishoz való csatlakozási karakterlánc. A szükséges esetén módosítsa a `Host`, `Database`, `Username`, és `Password` értékeket.
+- `ConnectionStrings__DefaultConnection`: A PostgreSQL adatbázishoz való csatlakozási karakterlánc. Szükség esetén módosítsa a `Host`, `Database`, `Username`, és `Password` értékeket.
 
 ### 🔐 Hitelesítési beállítások {#authentication-settings}
-- `Authentication__Username`: A rendszergazda fiók felhasználóneve.
-- `Authentication__Password`: A rendszergazda fiók jelszava.
-- `Authentication__SessionTimeoutMinutes`: A munkamenet lejárati ideje perces egységben. Ez a nem tartós (non-persistent) bejelentkezési cookie-ra vonatkozik; azok a felhasználók, akik bejelölték a **Remember Me** opciót a bejelentkezési űrlapon, helyette egy fix 7 napig érvényes, tartós (persistent) cookie-t kapnak. See [User Management → Remember Me](UserManagement.md#staying-signed-in-the-remember-me-checkbox).
+- `Authentication__Username`: Az admin fiók felhasználóneve.
+- `Authentication__Password`: Az admin fiók jelszava.
+- `Authentication__SessionTimeoutMinutes`: A munkamenet lejárati ideje perces egységben. Ez a nem tartós (non-persistent) bejelentkezési cookie-ra vonatkozik; a felhasználók, akik a bejelentkezési űrlapon bepipálják a **Remember Me** opciót, helyette egy fix 7 napig érvényes, tartós cookie-t kapnak. See [User Management → Remember Me](UserManagement.md#staying-signed-in-the-remember-me-checkbox).
 - `Authentication__CookieName`: A hitelesítési cookie neve.
-- `Authentication__CookieSameSite`: A hitelesítési, munkamenet (session) és CSRF védelem cookie-k SameSite attribútumának konfigurálása. Az érvényes értékek:
-  - `Strict` (alapértelmezett): Maximális biztonság. A cookie-k csak azonos oldalbeli (same-site) kérések esetén küldődnek. Ez problémákat okozhat, ha külső linkekről navigálnak az alkalmazáshoz (pl. egy másik weboldalról kattintanak egy linkre), mivel a meglévő munkamenet nem lesz felismerhető.
-  - `Lax`: Javasolt reverse proxy használata esetén. A cookie-k a legfelső szintű navigációk (top-level navigations) és az azonos oldalbeli kérések esetén is küldődnek, lehetővé téve a felhasználók számára, hogy külső linkről az alkalmazáshoz navigáljanak, miközben megmarad a CSRF védelem a POST kéréseknél.
-  - `None`: A cookie-k minden kérésrel küldődnek. HTTPS és a `Secure` attribútum szükséges hozzá. Csak akkor használja, ha specifikus, oldalközi (cross-site) igényei vannak, és érti a biztonsági következményeket.
+- `Authentication__CookieSameSite`: A hitelesítési, munkamenet (session) és CSRF védelem cookie-k SameSite attribútumának konfigurálása. Érvényes értékek:
+  - `Strict` (alapértelmezett): Maximális biztonság. A cookie-k csak azonos oldal (same-site) kérésekkel küldhetők. Ez problémákat okozhat, amikor külső linkekről navigálunk az alkalmazásba (például egy másik webhelyről kattintunk egy linkre), mivel a meglévő munkamenet nem lesz felismerhető.
+  - `Lax`: Javasolt reverse proxy használata esetén. A cookie-k a legfelső szintű (top-level) navigációk és az azonos oldal (same-site) kérések során is küldésre kerülnek, lehetővé téve a felhasználók számára, hogy külső linkeken keresztül is az alkalmazáshoz navigáljanak a POST kérések CSRF védelmének megőrzése mellett.
+  - `None`: A cookie-k minden kérésrel küldésre kerülnek. HTTPS és a `Secure` attribútum szükséges hozzá. Csak akkor használja, ha specifikus cross-site követelményei vannak, és megértette a biztonsági implikációkat.
 
 ### 🔌 REST API Beállítások {#rest-api-settings}
-Az opcionális, olvasható REST API **alapértelmezés szerint le van engedélyezve**. A teljes referenciához tekintse meg a [REST API guide](API.md) dokumentációt.
-- `Api__Enabled`: A master kapcsoló a olvasható REST API-hoz (alapértelmezett `false`). Ha `false`, minden `/api/*` útvonal `404` értéket ad vissza.
-- `Api__AllowAttachmentDownloads`: Engedélyezi a csatolmányбайtok letöltését az API keresztül (alapértelmezett `true`). Ha `false`, a csatolmány végpont `403` értéket ad vissza.
-- `Api__AllowMessageDownloads`: Engedélyezi a teljes üzenetek letöltését az API keresztül, mind az újból felépített `/eml`, mind az eredeti `/raw` formátumban (alapértelmezett `true`). Ha `false`, mindkét végpont `403` értéket ad vissza. Egy teljes üzenet magával viszi a csatolmányait, ezért **mind** ennek a kapcsolónak, mind a `Api__AllowAttachmentDownloads` beállításnak `true` kell lennie; bármelyik kikapcsolása mindkét végpont leállítását eredményezi.
-- `Api__EnableSwaggerUi`: A Swagger UI megjelenítése a `/apidocs` helyen, és az OpenAPI dokumentum a `/apidocs/spec/v1.json` helyen (alapértelmezett `true`). Mindkettőhez bejelentkezett böngésző-sesszió szükséges.
-- `Api__DefaultPageSize`: Az alapértelmezett oldalkelmézet a listázó végpontokhoz, ha nincs megadva (alapértelmezett `20`).
-- `Api__MaxPageSize`: A maximum megengedett oldalkelmézet; a nagyobb kéréseket korlátozni fogja (alapértelmezett `100`).
-- `Api__RateLimitPerMinute`: Fix ablakos kéresterjesztési keret API-kulcsonként percenként (alapértelmezett `120`).
+Az opcionális, csak olvasható REST API alapértelmezetten **ki van kapcsolva**. A teljes útmutatóért lásd a [REST API guide](API.md) dokumentációt.
+- `Api__Enabled`: A csak olvasható REST API fő kapcsolója (alapértelmezetten `false`). Ha `false`, minden `/api/*` útvonal `404` választ ad vissza.
+- `Api__AllowAttachmentDownloads`: Engedélyezi a csatolt fájlok (attachment) byte-ainak letöltését az API keresztül (alapértelmezetten `true`). Ha `false`, a csatolt fájl végpontja `403`-at ad vissza.
+- `Api__AllowMessageDownloads`: Engedélyezi a teljes üzenetek letöltését az API keresztül, mind az újránépített `/eml`, mind az eredeti `/raw` formátumban (alapértelmezetten `true`). Ha `false`, mindkét végpont `403`-et ad vissza. Egy teljes üzenet tartalmazza a csatolt fájljait, ezért **mind** ez a kapcsoló, **mind** a `Api__AllowAttachmentDownloads` kapcsoló `true` állapotban kell lennie; bármelyik kikapcsolása mindkét végpontot elérési körét megszűri.
+- `Api__EnableSwaggerUi`: A Swagger UI elérhető a `/apidocs` címen, az OpenAPI dokumentum pedig a `/apidocs/spec/v1.json` címen (alapértelmezetten `true`). Mindkeduanya bejelentkezett böngésző-űdzést igényel.
+- `Api__DefaultPageSize`: A listázó végpontok alapértelmezett oldalmérete, ha nincs megadva (alapértelmezetten `20`).
+- `Api__MaxPageSize`: A maximum megengedett oldalméret; a nagyobb kéréseket korlátozzuk (alapértelmezetten `100`).
+- `Api__RateLimitPerMinute`: Fix ablakos kéresek költségvetése (request budget) API-kulcsonként percenként (alapértelmezetten `120`).
 
 ### 🤖 MCP Server Beállítások {#mcp-server-settings}
-Az opcionális MCP (Model Context Protocol) szerver ugyanazt az olvasási joggal ellátott e-mail hozzáférést biztosítja az AI ügynökök számára a Streamable HTTP transzporthon keresztül, mint a REST API. Ez **alapértelmezetten ki van kapcsolva**. A teljes útmutatóért lásd az [MCP guide](MCP.md) dokumentációt. Az MCP ugyanazokat az API kulcsokat használja újra, mint a REST API (`ma_...` bearer tokenek), és ugyanazt a felhasználónkénti fiókalapú hozzáférést (per-user account-access scoping) biztosítja.
-- `Mcp__Enabled`: A MCP szerver fő kapcsolója (alapértelmezetten `false`). Ha `false`, a `/mcp` endpoint `404` értéket ad vissza.
-- `Mcp__AllowAttachmentDownloads`: Engedélyezi, hogy a `get_attachment` eszköz csatolmányбайt (attachment bytes) adjon vissza (alapértelmezetten `true`). Ha `false`, az eszköz hibát ad vissza.
-- `Mcp__DefaultPageSize`: Az `search_emails` által használt alapértelmezett oldalszín (page size), ha a hívó elhagyja a `pageSize` paramétert (alapértelmezetten `20`).
-- `Mcp__MaxResults`: A `search_emails` oldalszínének felső határa; a nagyobb értékek korlátozásra kerülnek (alapértelmezetten `100`).
-- `Mcp__MaxAttachmentBytes`: A maximális csatolt fájl mérete (byte-okban), amelyet a `get_attachment` eszköz base64 formátumban ad vissza inline módon; a nagyobb csatlakozmányokat elutasít (alapértelmezetten `10000000` ≈ 10 MB).
-- `Mcp__AllowMessageDownloads`: Engedélyezi a `get_email_eml` és a `get_email_raw` eszközök számára, hogy teljes üzeneteket adjanak vissza (alapértelmezetten `true`). Ha `false`, az eszközök hibát adnak vissza. Egy teljes üzenet tartalmazza a csatolt fájljait is, ezért **mind** ez a kapcsoló, mind a `Mcp__AllowAttachmentDownloads` értéknek `true` kell lennie; bármelyik egyikének kikapcsolása mindkét eszközt letiltja.
-- `Mcp__MaxMessageBytes`: A maximális üzenetméret (byte-okban), amelyet a `get_email_eml` és a `get_email_raw` eszköz inline módon ad vissza; a nagyobb üzeneteket elutasít (alapértelmezetten `10000000` ≈ 10 MB).
-- `Mcp__RateLimitPerMinute`: Fix ablakos (fixed-window) kérést budzsét API kulcsonként percenként (alapértelmezetten `120`).
+Az opcionális MCP (Model Context Protocol) szerver ugyanazt a csak olvasható levélalapú hozzáférést biztosítja az AI ügynökök számára a Streamable HTTP transzpor través, ugyanúgy, mint a REST API. Ez **alapértelmezés szerint le van kapcsolva**. A teljes útmutatóért lásd az [MCP guide](MCP.md) dokumentációt. Az MCP ugyanazokat az API kulcsokat használja, mint a REST API (`ma_...` bearer tokenek), és ugyanazt a felhasználónkénti számlahozzáfési korlátozást (scoping).
+- `Mcp__Enabled`: A MCP szerver fő kapcsolója (alapértelmezett `false`). Ha `false`, a `/mcp` végpont `404` értéket ad vissza.
+- `Mcp__AllowAttachmentDownloads`: Engedélyezi a `get_attachment` eszköz számára, hogy csatolt fájlok byteit adjon vissza (alapértelmezett `true`). Ha `false`, az eszköz hibát ad vissza.
+- `Mcp__DefaultPageSize`: Az `search_emails` által használt alapértelmezett oldalméret, ha a hívó elhagyja a `pageSize` paramétert (alapértelmezett `20`).
+- `Mcp__MaxResults`: A `search_emails` oldalméretének felső határa; a nagyobb értékek korlátozásra kerülnek (alapértelmezett `100`).
+- `Mcp__MaxAttachmentBytes`: Maximális csatolt fájl mérete (byte-okban), amelyet a `get_attachment` eszköz base64 formátumban ad vissza inline; a nagyobb csatolmányokat elutasítjuk (alapértelmezett `10000000` ≈ 10 MB).
+- `Mcp__AllowMessageDownloads`: Engedélyezi a `get_email_eml` és a `get_email_raw` eszköz számára a teljes üzenetek visszatérítését (alapértelmezett `true`). Ha `false`, az eszközök hibát adnak vissza. Egy teljes üzenet tartalmazza a csatolt fájljait, ezért **mindhalkul** ennek a kapcsolónak és a `Mcp__AllowAttachmentDownloads`-nek is `true` állapotban kell lenniük; bármelyik kikapcsolása mindkét eszközt elérgésszé teszi.
+- `Mcp__MaxMessageBytes`: Maximális üzenetméret (byte-okban), amelyet a `get_email_eml` és a `get_email_raw` eszköz inline ad vissza; a nagyobb üzeneteket elutasítjuk (alapértelmezett `10000000` ≈ 10 MB).
+- `Mcp__RateLimitPerMinute`: Fix ablakos kérelemkeret (request budget) API kulcsonként, percenként (alapértelmezett `120`).
 
 ### 📨 MailSync Beállítások {#mailsync-settings}
-- `MailSync__IntervalMinutes`: Az e-mail szinkronizálás közötti intervallum percében. Ez a globális alapértelmezett; minden egyes fiók ezt egyenként felülbírálhatja a Create/Edit oldalon (hagyja üresen a megmaradt alapértelmezettnek).
-- `MailSync__FullSyncIntervalHours`: Opcionális globális alapértelmezett az automatikus teljes újraszinkronizálásokhoz, órában. Ha nincs beállítva (az alapértelmezett), nem fut automatikus teljes szinkronizálás, hac Unless egy fiókra vonatkozó `FullSyncIntervalHours` érték van megadva a Create/Edit oldalon. A fiókonkénti értékek felülírják ezt a globális alapértelmezettet.
-- `MailSync__TimeoutMinutes`: Fiókonkénti szinkronizálási timeout minutespercében. Egy szinkronizálás, amely tovább tart, a következő üzenet határonál megáll, megőrzi a checkpointjeit, és a következő futtatáskor folytatja; a feladatot `Timed Out` jelzi, és a `LastSync` nem halad előre. Csak a tervezett szinkronizálásokra vonatkozik; a felületről indított szinkronizálás (manuális szinkronizálás vagy teljes újraszinkronizálás) timeout nélkül fut. A `0` (az alapértelmezett) vagy bármely nem pozitív érték nem jelent timeoutot. Frissítés előtt ellenőrizze az értéket, ha nagy postafiókokat szinkronizál. Lásd: [Synchronization.md](Synchronization.md#-stopping-a-sync-early).
-- `MailSync__ConnectionTimeoutSeconds`: Az IMAP kapcsolatoknak megfelelő kapcsolat megszakítási idő (connection timeout) másodpercekben.
-- `MailSync__CommandTimeoutSeconds`: Az IMAP parancsoknak megfelelő parancsmegszakítási idő (command timeout) másodpercekben.
-- `MailSync__AlwaysForceFullSync`: Az, hogy mindig kényszerítsen teljes szinkronizálást (true/false).
-- `MailSync__IgnoreSelfSignedCert`: way, hogy figyeljen-e az önmagában aláírt tanúsítványokra (true/false).
-- `MailSync__MaxConcurrentSyncs`: Hány fiók szinkronizálása futhat egyszerre. Alapértelmezett `1` (soros, háttatocompatibilis). Az ükemény (scheduler) akkor tölti vissza a helyeket, amint azok szabadon szólnak, nem pedig egy egész batch megvárására, így egy lassú postafiók már nem tartja vissza a többit. Növelje a több fiók egyidejű szinkronizálásához — vegye figyelembe a szolgáltató sebességkorlátait és a helyi erőforrás-használatot. Lásd: [Synchronization.md](Synchronization.md#-how-accounts-are-scheduled).
-- `MailSync__InterAccountDelaySeconds`: Opcionális csúszó késés másodpercekben, amelyet minden fiók szinkronizálási feladat végén alkalmaznak. Alapértelmezett `0` (nincs késés). Hasznos a hirtelen kezdetek elkerülésére, amikor `MaxConcurrentSyncs > 1`.
-- `MailSync__MaxIssuesPerKind`: Hány olyan problémát emlékezik meg egy szinkronizálási feladat minden típusból a fiók oldalán. A hibás mappák, a hiányzó mappák és a hibás üzenetek külön költségvetésűek, így egy típusú tömeges hiba nem tudja eltávolítani a többi fajta hibát a nézetből; a keret túlmutató bármit számlál, nem pedig tárol. Alapértelmezett `20`. A `0` kikapcsolja a részletezést, és csak a számlálókat hagyja meg. Lásd: [Synchronization.md](Synchronization.md#-observing-the-sync).
-- `MailSync__GlobalExcludedFolders__<n>`: Mely mappák kerülnek ki исклюva a szinkronizálásból **minden** fiók esetében, a fiókonkénti kizárási lista mellett is. Alapértelmezett üres, így a meglévő beállítások nem változnak. A két lista **kiegészíti egymást** — egy mappa akkor kerül át跳, ha bármelyik lista alapján megfelel — és mindkettő ugyanazokat a megfeleltetési szabályokat használja: pontos egyezés a teljes útvonalon, pontos egyezés a mappa neven, útvonali suffix egyezés (így `Drafts` is megfelel a `INBOX/Drafts` és `INBOX.Drafts` értékeknek), és minden, ami a mappa alatt található, amennyiben `MailSync__ExcludeSubfolders` be van kapcsolva. A megfeleltetés nem figyeli a kisbetű/nagybetű különbséget. Hasznos, ha sok postafiókot importál ugyanazon a szerveren, ahol az alternatíva minden fiókra azonos kizárási lista fenntartása lenne. Alapértelmezett nincs kivételes mappa; hogy mely neveket érdemes felsorolni, az a szerverről és annak nyelvéről függ. Példa egy postafiók-fánra, amely tartalmaz kalendárium és névjegyzék mappákat is:
+- `MailSync__IntervalMinutes`: Az e-mail szinkronizálás közötti intervallum perces egységben. Ez a globális alapértelmezett; minden egyes fiók ezt egyenként felülírhatja a Létrehozás/Szerkesztés oldalon (hagyja üresen a megmaradásához).
+- `MailSync__FullSyncIntervalHours`: Opcionális globális alapértelmezett az automatikus teljes újraszinkronizálásokhoz, órában. Ha nincs beállítva (az alapértelmezett), nem fut automatikus teljes szinkronizálás, hacsak nincs elhelyezve egy fiókonkénti `FullSyncIntervalHours` érték a Létrehozás/Szerkesztés oldalon. A fiókonkénti értékek felülírják ezt a globális alapértelmezettet.
+- `MailSync__TimeoutMinutes`: Fiókonkénti szinkronizálási timeout perces egységben. Egy szinkronizálás, amely tovább tart, mint amennyi az időkeret, megáll a következő üzenet határonál, megőrzi a checkpointjeit, és a következő futtatáskor folytatja; a feladatot `Timed Out` jelzi, és a `LastSync` nem halad előre. Csak időzített szinkronizálásokra vonatkozik; a felületről indított szinkronizálás (manuális szinkronizálás vagy teljes újraszinkronizálás) timeout nélkül fut. A `0` (az alapértelmezett) vagy bármely nem pozitív érték azt jelenti, hogy nincs timeout. Frissítés előtt ellenőrizze az értéket, ha nagy postafiókokat szinkronizál. Lásd: [Synchronization.md](Synchronization.md#-stopping-a-sync-early).
+- `MailSync__ConnectionTimeoutSeconds`: Az IMAP kapcsolatoknál alkalmazandó kapcsolattimeout másodpercekben.
+- `MailSync__CommandTimeoutSeconds`: Az IMAP parancsoknál alkalmazandó parancscs timeout másodpercekben.
+- `MailSync__AlwaysForceFullSync`: Arról, hogy mindig kényszerítsen-e teljes szinkronizálást (true/false).
+- `MailSync__IgnoreSelfSignedCert`: Arról, hogy figyeljen-e el az önmagában aláíró certifikátusokat (true/false).
+- `MailSync__MaxConcurrentSyncs`: Hány fiók szinkronizálása futhat egyszerre. Alapértelmezett: `1` (soros, visszafelé kompatibilis). Az ükemény (scheduler) akkor tölti vissza a helyeket, amint azok felszabadulnak, nem pedig egy egész batch befejezésére vár, így egy lassú postafiók már nem tartja vissza a többi folyamatot. Növelje a többszámú fiókok egyidejű szinkronizálásához — vegye figyelembe a szolgáltató sebességkorlátozását és a helyi erőforrás-használatot. Lásd: [Synchronization.md](Synchronization.md#-how-accounts-are-scheduled).
+- `MailSync__InterAccountDelaySeconds`: Opcionális, másodperces késleltetés (stagger delay), amely minden fiók szinkronizálási feladatának végén alkalmazható. Alapértelmezett: `0` (nincs késleltetés). Hasznos a hirtelen indulások elkerülésére, amikor `MaxConcurrentSyncs > 1`.
+- `MailSync__MaxIssuesPerKind`: Hány darab típusú probléma marad meg egy szinkronizálási feladatnál a fiókoldal megjelenítéséhez. A sikertelen mappák, a hiányzó mappák és a sikertelen üzenetek külön költségkeretedet (budget) kapnak, így egy típusból érkező tömeg nem tudja eltávolítani a többi fajt a nézetből; a keret túlsúlya esetén az értékek csak számolódnak, nem pedig tárolódnak. Alapértelmezett: `20`. A `0` kikapcsolja a részletezést, és csak a számlálókat hagyja meg. Lásd: [Synchronization.md](Synchronization.md#-observing-the-sync).
+- `MailSync__GlobalExcludedFolders__<n>`: Mappák, amelyek a szinkronizálásból kizárva vannak **minden** fiók esetében, a fiókonkénti kizárt mappák listáján felül. Alapértelmezett üres, így a meglévő beállítások nem változnak. A két lista **kiegészíti egymást** — egy mappa akkor kerül elkerülésre, ha bármelyik lista találatát idézi — és mindkét lista ugyanazokat a szabályokat használja: pontos egyezés a teljes útvonalon, pontos egyezés a mappa nevén, útvonali suffix egyezés (így a `Drafts` a `INBOX/Drafts` és a `INBOX.Drafts` értékeket is eléri), és minden, ami a mappa alatt található, amennyiben a `MailSync__ExcludeSubfolders` bekapcsolva van. Az egyezés nem figyeli az esetbet. Hasznos, ha sok postafiókot importál ugyanazon a szerveren, ahol az alternatíva minden fiókhoz azonos kizárási listát vezetni lenne. Alapértelmezett módon nincs kizárt mappa; az, hogy mely nevek érdemes listázni, a szervertől és annak nyelvétől függ. Példa egy postafiók-fáldrábra, amely tartalmaz kalendár- és névjegyzék-mappákat is:
   ```yaml
       - MailSync__GlobalExcludedFolders__0=Calendar
       - MailSync__GlobalExcludedFolders__1=Calendars
@@ -313,243 +313,242 @@ Az opcionális MCP (Model Context Protocol) szerver ugyanazt az olvasási joggal
       - MailSync__GlobalExcludedFolders__7=NoteList
       - MailSync__GlobalExcludedFolders__8=Journal
   ```
-- `MailSync__ExcludeSubfolders`: Azt, hogy egy kizárási bejegyzés a megnevezett mappa alatti mappákat is lefedi-e. Egyaránt vonatkozik a fiókonkénti listára és a telepítés-szintű listára is, valamint mindkét szolgáltatóra. Alapértelmezett `false`, ami a beállítás létezése előtti viselkedést követi: egy `Deleted Items` bejegyzés csak azt a mappát jelöli meg, és egy faveret a gyökér és minden alatta lévő mappa megnevezésével lehet távol tartani az archívumtól. Állítsa `true` értékre, hogy egy bejegyzés a maga alatt lévő fát is lefedje — egy `Deleted Items` bejegyzés ilyenkor a `Deleted Items/2024` és az ág többi részét is távol tartja az archívumtól. A szabály az útvonalszeparátorhoz rögzül, így egész mappákat vesz igénybe, és soha egy név részét: `Archive` lefedi a `Archive` és a `Archive/Team` elemeket, és érintetlenül hagy egy `Team Archive Review` nevű mappát. A `.` is szeparátorként számít, ugyanúgy, ahogy a suffix szabály is kezeli.
+- `MailSync__ExcludeSubfolders`: Arról, hogy egy kizárási bejegyzés tartalmazza-e a nevét viselő mappa alatti mappákat is. Ez egyszerre vonatkozik a fiókonkénti listára és a telepítés szintű listára, valamint mindkét szolgáltatóra. Alapértelmezett: `false`, ami a beállítás megjelenése előtti viselkedést követi: egy `Deleted Items` bejegyzés csak azt a mappát jelöli meg, és egy fa felidéret kerül a megőrzésből a gyökér és minden alatta lévő mappa megnevezésével. Állítsa `true` értékre, ha egy bejegyzés a maga alatt lévő fát is tartalmaz — egy `Deleted Items` bejegyzés ilyenkor a `Deleted Items/2024` és az ág többi részét is távol tartja az archívumból. A szabály az útvonal-szeparátorra támaszkodik, így egész mappákat vesz el, és soha nem egy név részét: a `Archive` lefed a `Archive` és a `Archive/Team` mappákat is, és magára hagy egy `Team Archive Review` nevű postafiók mappát. A `.` is úgy számít szeparátorként, ahogy a suffix szabály is kezeli.
 
 ### 📧 Eredeti üzenetek tárolási beállításai {#original-message-storage-settings}
 
-Alapértelmezés szerint az archívum csak az e-mail feldolgozott részeit őrzi meg, így egy exportált `.eml` egy rekonstrukció: az átviteli kódolások (transfer encodings), a MIME határértékek (MIME boundaries) és a fejlécösszezasztások (header folding) eltérhetnek a megkapott üzenettől, a DKIM aláírások pedig már nem igazolhatóak. `RawMessages:Enabled` esetén az eredeti üzenet teljes formájában is tárolásra kerül.
+Alapértelmezés szerint az archívum csak az e-mail feldolgozott részeit tárolja, így egy exportált `.eml` egy rekonstrukció: az átadási kódolások (transfer encodings), a MIME határértékek (boundaries) és a fejléc behajtása (header folding) eltérnek a megkapott üzenettől, a DKIM aláírások pedig már nem igazolhatóak. `RawMessages:Enabled` esetén az eredeti üzenet teljes változatát is tárolja.
 
 | Paraméter | Alapértelmezett | Cél |
 |-----------|---------|---------|
-| `RawMessages__Enabled` | `false` | Minden új archivált e-mail eredeti változatának tárolása. |
+| `RawMessages__Enabled` | `false` | Minden újból archivált e-mail eredeti változatának tárolása. |
 | `RawMessages__Storage` | `postgres` | A byte-ok tárolási helye: `postgres` vagy `filesystem`. |
-| `RawMessages__MaxMessageSizeMb` | `50` | A nagyobb üzenetek az eredeti változat nélkül kerülnek archiválásra. `0` = nincs limit. |
-| `RawMessages__IncludeGraph` | `true` | Microsoft 365 (Graph) fiókok esetén is az eredeti üzenetek tárolása. |
-| `RawMessages__FileSystem__BasePath` | `RawMessages` | Az üzenetfájlok könyvtára. Dockerben futó futtatás esetén egy felszerelt (mounted) volument kell指 指向. |
-| `RawMessages__FileSystem__ShardDepth` | `2` | A könyvtár mélysége, amelyre az e-mail azonosító kiterjed. |
+| `RawMessages__MaxMessageSizeMb` | `50` | A nagyobb üzenetek az eredeti változatuk nélkül kerülnek archiválásba. `0` = nincs limit. |
+| `RawMessages__IncludeGraph` | `true` | Microsoft 365 (Graph) fiókok eredeti változatainak tárolása is. |
+| `RawMessages__FileSystem__BasePath` | `RawMessages` | Az üzenetfájlok könyvtára. Egy Dockerben rákapcsolt (mounted) volument kell mutatnia. |
+| `RawMessages__FileSystem__ShardDepth` | `2` | A könyvtár mélysége, amelyeken az e-mail azonosító el van osztva. |
 | `RawMessages__FileSystem__VerifyChecksumOnRead` | `true` | A SHA-256 ellenőrzése minden letöltésnél. |
-| `RawMessages__FileSystem__OrphanCleanupEnabled` | `true` | Az olyan üzenetfájlok törlése, amelyekre már nincs hivatkozás. |
-| `RawMessages__FileSystem__OrphanCleanupIntervalHours` | `24` | Ezen tisztító futtatás gyakorisága. |
-| `RawMessages__FileSystem__OrphanCleanupGraceHours` | `24` | Ebbennél fiatalabb fájlok soha nem kerülnek törlésre. |
-| `RawMessages__FileSystem__OrphanCleanupStartupDelaySeconds` | `300` | Indítás utáni első tisztító futtatás késleltetése, hogy az éppen írás alatt lévő importálás ne kerüljön törlésre. |
+| `RawMessages__FileSystem__OrphanCleanupEnabled` | `true` | Az olyan üzenetfájlok eltávolítása, amelyekhez egyetlen e-mail sem vonatkozik. |
+| `RawMessages__FileSystem__OrphanCleanupIntervalHours` | `24` | Mennyi gyakran fut ez a tisztító folyamat. |
+| `RawMessages__FileSystem__OrphanCleanupGraceHours` | `24` | Ekkelnél fiatalabb fájlok soha nem kerülnek eltávolításra. |
+| `RawMessages__FileSystem__OrphanCleanupStartupDelaySeconds` | `300` | Indítás utáni első tisztítás előtti késleltetés, hogy az olyan importálások, amelyek még írást végeznek, ne kerüljenek ki elliptetésre. |
 
-!!! warning "A fájlrendszer háttérnek (filesystem backend) szükség van egy felszerelt volumentre"
-    `RawMessages__Storage=filesystem` esetén az üzenetfájlok a tároló adatbázison kívül élnek.
-    Bind mount nélkül a konténer írható rétegében (writable layer) vannak, és a következő konténer újrakreációkor elvesznek, míg az adatbázis sorai megmaradnak. A könyvtárat az adatbázis mentésével (database dump) együtt biztonságba mentse.
+!!! warning "A fájlrendszer háttérnek (backend) szükség van rákapcsolt volumenre"
+    `RawMessages__Storage=filesystem` esetén az üzenetfájlok aຖານ adatbázison kívül élnek.
+    Bind mount nélkül a konténer írható rétegében (writable layer) fognak lenni, és a következő konténer újrakreáláláskor elvesznek, míg az adatbázis sorai megmaradnak. A könyvtárat a database dump-al együtt biztonsárolja (backup).
 
-Részletes leírást itt talál: **[Original Message Storage](RawMessages.md)**: hol érhető el az eredeti üzenet, a tárolási háttértechnológiák, hogyan lehet a meglévő üzeneteket mozgatni közöttük a `--migrate-raw-storage` segítségével, és mit érdemes menteni.
+Tekintse meg az **[Original Message Storage](RawMessages.md)** dokumentációt a teljes leírásért: hol érhető el az eredeti változat, a tárolási háttér megoldások, hogól lehet a meglévő üzeneteket `--migrate-raw-storage` segítségével mozgatni közöttük, és mit kell biztonsárolni.
 
-### 📈 📈 Monitoring Beállítások {#monitoring-settings}
+### 📈 Monitor Beállítások {#monitoring-settings}
 
 | Paraméter | Alapértelmezett | Cél |
 |-----------|---------|---------|
-| `Health__SyncStaleMinutes` | `0` | Epektől idősebb engedélyezett fiókok esetén a `/api/v1/health` jelent `Degraded`. A `0` kikapcsolja a ellenőrzést. |
-| `Metrics__Enabled` | `false` | Engedélyezi a Prometheus metrics endpointet és annak frissítési ciklusát. |
-| `Metrics__RefreshMinutes` | `5` | Mennyire gyakran épül fel újra a metrics snapshot. 1 alatti értékek 1-re kerülnek emelve. |
+| `Health__SyncStaleMinutes` | `0` | Ezzelnél régebbi engedélyezett fiókok esetén a `/api/v1/health` jelentés `Degraded`. A `0` kikapcsolja a vizsgálatot. |
+| `Metrics__Enabled` | `false` | Engedélyezi a Prometheus metrikák végpontját és annak frissítési ciklusát. |
+| `Metrics__RefreshMinutes` | `5` | Mennyi gyakorisággal épül újra a metrika snapshot. 1 alatti értékek 1-re kerülnek emelésre. |
 
-Az egészségi (health) és metrics endpointekhez admin API key és `Api__Enabled=true` szükséges. Lásd a
-**[Health and Metrics](Monitoring.md)** részt az endpointekről, a metrik nevékről, a Prometheus
-konfigurációról és a Docker health checkről.
+Az egészségügyi és metrikák végpontjaihoz admin API kulcs és `Api__Enabled=true` szükséges. A konténer saját liveness ellenőrzése hitelesítés nélküli, és nincs szükség konfigurációra. A végpontok, a metrika nevek, a Prometheus konfiguráció és a Docker health check esetén lásd a **[Health and Metrics](Monitoring.md)** részt.
 
 ### 📤 BatchRestore Beállítások {#batchrestore-settings}
 - `BatchRestore__AsyncThreshold`: Az e-mailek száma, amely aszinkron feldolgozást vált ki.
-- `BatchRestore__MaxSyncEmails`: A szinkron feldolgozáshoz használható e-mailek maximális száma.
-- `BatchRestore__MaxAsyncEmails`: Az aszinkron feldolgozáshoz használható e-mailek maximális száma.
+- `BatchRestore__MaxSyncEmails`: A szinkron feldolgozáshoz alkalmazandó e-mailek maximális száma.
+- `BatchRestore__MaxAsyncEmails`: Az aszinkron feldolgozáshoz alkalmazandó e-mailek maximális száma.
 - `BatchRestore__SessionTimeoutMinutes`: A batch restore session timeout percenként.
 - `BatchRestore__DefaultBatchSize`: Az e-mail műveletek alapértelmezett batch mérete.
 
-### 🏢 Bérlőkezelési beállítások {#tenant-management-settings}
-- `TenantManagement__MaxSelectedMailboxes`: A single Tenant Management művelet során hozzáadható mailboxok maximális száma. Az alapértő érték `1000`. Növelje ezt nagyon nagy bérlők esetén, vagy csökkentse, hogy megakadályozza a véletlenszerű tömeges importálást. Ha a limit túllépésre kerül, a művelet elutasításra kerül validációs hibával, és nem kerülnek létre fiókok. Részletekért lásd a [M365 Tenant Import Guide](M365TenantImport.md) dokumentációt.
+### 🏢 Bárány (Tenant) kezelési beállítások {#tenant-management-settings}
+- `TenantManagement__MaxSelectedMailboxes`: A single Tenant Management művelet során hozzáadható mailboxok maximális száma. Az alapértelmezett érték `1000`. Növelje ezt nagyon nagy bárányok esetén, vagy csökkentse azt, hogy megelőzze a véletlenszerű tömeges importálást. Ha a limitek túllépésre kerülnek, a művelet hibával elutasításra kerül, és egyik fiókot sem hoz létre. Részletekért lásd a [M365 Tenant Import Guide](M365TenantImport.md) dokumentációt.
 
 ### 🐄 Mailcow beállítások {#mailcow-settings}
-- `Mailcow__MaxSelectedMailboxes`: A Mailcow egyetlen aktiválási futtatás során létrehozható mailboxok maximális száma. Az alapértelmezett érték `1000`. Csökkentse az értékét, hogy megakadályozza a véletlen tömeges létrehozást, vagy növelje a nagyobb példányok esetén. Ha a limite vượtılır, nem készülnek létre fiókok. Részletekért lásd a [Mailcow Instances](Mailcow.md) oldalt.
-- A Mailcow integráció emellett megköveteli a `Security__CredentialEncryptionKey` használatát (lásd a [Security Settings](#-security-settings) részt). Egy példány csatlakoztatása és a mailboxok aktiválása is elutasításra kerül, amíg a hitelesítő adatok titkosítása ki van kapcsolva, így az API key és a generált alkalmazási jelszavak soha nem tárolhatók szöveges formátumban.
-- Kibocsátási hozzáférés szükséges a Mailcow HTTPS API és az IMAP host felé TLS felett (általában a `993` porton).
+- `Mailcow__MaxSelectedMailboxes`: A Mailcow egyetlen aktiválási futtatása során létrehozható mailboxok maximális száma. Az alapértelmezett érték `1000`. Csökkentse az értéket a véletlen tömeges létrehozás megelőzésére, vagy növelje a nagyobb példányokhoz. Ha a limit túllépésre kerül, nem készülnek létre fiókok. Részletekért lásd a [Mailcow Instances](Mailcow.md) részt.
+- A Mailcow integráció emellett megköveteli a `Security__CredentialEncryptionKey` használatát (lásd a [Security Settings](#-security-settings) részt). Egy példány csatlakoztatása és a mailboxok aktiválása is elutasításra kerül, amíg a hitelesítő adatok titkosítása ki van kapcsolva, így az API key és a generált app passwordok soha nem tárolhatók tiszta szövegként.
+- Külső hozzáférés szükséges a Mailcow HTTPS API és az IMAP host felé TLS felett (általában a `993` porton).
 
-### 📦 BatchOperation Beállítások {#batchoperation-settings}
+### 📦 `BatchOperation__BatchSize` BatchOperation Beállítások {#batchoperation-settings}
 - `BatchOperation__BatchSize`: Az e-mail műveletek batch mérete.
 - `BatchOperation__PauseBetweenEmailsMs`: Az egyes e-mailek közötti szünet millisekundyban.
 - `BatchOperation__PauseBetweenBatchesMs`: A batchok közötti szünet millisekundyban.
 
-### 📤 Offload Beállítások {#offload-settings}
+### 📤 Offload beállítások {#offload-settings}
 A [date-windowed offload](Offload.md) beállításai. Az alapértelmezett értékek visszaállítják az alkalmazás korábbi viselkedését, így az olyan telepítések sem érintettek, amelyek nem konfigurálják ezt a szakaszt.
-- `Offload__MaxConcurrentJobs`: Hány visszaállítási vagy offload feladat futhat egyszerre. Az alapértelmezett érték `1`, ami megőrzi a feladatों sorosított feldolgozását, ahogyan azt a feladatlista eddig is alkalmazta. A megadott értéktől függetlenül maximum egy feladat futhat céllevan postaládánként.
-- `Offload__PrefetchMaxMessages`: A felső határ arra, hogy hány üzenet indexelődik egy cél postaládából a duplikáció detektálásához. Az alapértelmezett érték `500000`. E felett a ellenőrzés egyetlen mappára szűkül le, és logolja, hogy a lefedettség csökkentve lett.
-- `Offload__ExcludedSourceFolders__0`, `__1`, ...: Forrásmappák, amelyek soha nem kerülnek offload alá, az átnevezés előtt kerülnek összevetésre, és tartalmazzák a mappalábrécҳои is. Alapértelmezés szerint üresek.
-- `Offload__FolderRenameMap__<SourceFolder>`: A forrásmappa elérési út első részeit írja át, például `Offload__FolderRenameMap__Sent Items=Sent`. Alapértelmezés szerint üres.
-- `Offload__MarkAsSeen`: A hozzáadott levelek jelölése olvashatónak. Az alapértelmezett érték `true`, ami megegyezik a meglévő visszaállítási viselkedéssel.
+- `Offload__MaxConcurrentJobs`: Hány visszaállítási vagy offload feladat futhat egyszerre. Az alapértelmezett érték `1`, amely megőrzi a feladatlánc által eddig használt szigorúan szériális feldolgozást. A megadott értéktől függetlenül legfeljebb egy feladat futhat céllevélbOxonként.
+- `Offload__PrefetchMaxMessages`: A céllevélbOxból az indexelt üzenetek felső határa a duplikáció detektálásához. Az alapértelmezett érték `500000`. E felett a ellenőrzés egyetlen mappára szűkül le, és rögzíti, hogy a lefedettség csökkentve volt.
+- `Offload__ExcludedSourceFolders__0`, `__1`, ...: Forrásmappák, amelyeket soha nem vezetnek le (offload), az átnevezés előtt keresettek és tartalmazzák a mappalábrécéseket. Alapértelmezés szerint üres.
+- `Offload__FolderRenameMap__<SourceFolder>`: A forrásmappa elérési út első részeit írja át, például: `Offload__FolderRenameMap__Sent Items=Sent`. Alapértelmezés szerint üres.
+- `Offload__MarkAsSeen`: Ha a kitermelt levelek olvassottként van jelölve. Az alapértelmezett érték `true`, ami megfelel a meglévő visszaállítási viselkedésnek.
 
-Mindkét mappa beállítás szándékosan üres: a mappák átírása vagy törlése kérés nélkül meglepetés lenne minden olyan felhasználónak, aki már a visszaállítási útvonalat használja. Ezért egy konfiguráció nélküli futtatás mindent migrál, a spam mappákat is beleértve, és a cél mappa saját mappái mellé létrehoz egy második speciális mappák készletet.
+Mindkét mappa beállítás szándékosan üres: a mappák átírása vagy törlése utasítás nélkül meglepetés lenne azok számára, akik már használják a visszaállítási folyamatot. Ezért egy konfiguráció nélküli futtatás mindent migratál, a spam mappákat is, és a célmappák mellett létrehoz egy második speciális mappák készletet.
 
-### 📊 Sávszélesség Nyomon követési Beállítások {#bandwidth-tracking-settings}
-- `BandwidthTracking__Enabled`: Az IMAP sebességkorlátozás kezeléséhez használt sávszélesség nyomon követésének engedélyezése vagy letiltása (true/false). Az alapértelmezett érték `false`. Ha engedélyezve van, a rendszer fiókonként követi a sávszélesség használatát, és szinkronizálást állít meg, amikor a szolgáltató korlátai elérhetők. Részletes információkért lásd a [Rate Limit Handling](RateLimitHandling.md) részt.
-- `BandwidthTracking__DailyLimitMb`: Napi letöltési limit megabajtékban fiókonként. Az alapértelmezett érték `25000` (25 GB). A sávszélesség-korláttal rendelkező szolgáltatóknál állítsa ezt a sebességkorlátozásuknak megfelelően (például `2500` a ~2500 MB napi limitrel rendelkező szolgáltatóknál). A rendszer szinkronizálást állít meg, amikor ez a limit elérhető.
-- `BandwidthTracking__WarningThresholdPercent`: A napi limit százalékos értéke, amelynél figyelmeztető üzenetek kerülnek a logokba. Az alapértelmezett érték `80`. Amikor a sávszélesség használata eléri ezt a százalékot, figyelmeztetések kerülnek a logokba, hogy segítsenek a közelítő limitek nyomon követésében.
-- `BandwidthTracking__PauseHoursOnLimit`: Órák száma, amíg a szinkronizálás szünetel, ha a napi limit elérhető. Az alapértelmezett érték `24`. Ezen időszak után a limit jelző automatikusan törlődik, és a szinkronizálás folytatódik.
-- `BandwidthTracking__TrackUploadBytes`: A feltöltési sávszélesség nyomon követésének is engedélyezése (true/false). Az alapértelmezett érték `false`. A legtöbb IMAP szolgáltató csak a letöltéseket korlátozza, így ez általában nem szükséges.
+### 📊 Sávszélesség-követési beállítások {#bandwidth-tracking-settings}
+- `BandwidthTracking__Enabled`: Engedélyezi vagy letiltja a sávszélesség-követést az IMAP sebességkorlátozás kezeléséhez (true/false). Az alapértelmezett `false`. Engedélyezés esetén a rendszer fiókonként követi a sávszélesség-használatot, és szüneteltetheti a szinkronizálást, ha elérhetővé st az szolgáltató korlátai. Részletes információért lásd a [Rate Limit Handling](RateLimitHandling.md) részt.
+- `BandwidthTracking__DailyLimitMb`: Napi letöltési limit megabایتban, fiókonként. Az alapértelmezett `25000` (25 GB). A sávszélesség-korláttal rendelkező szolgáltatók esetén állítsa ezt a sebességkorlátozásuknak megfelelően (például `2500` a ~2500 MB napi limitrel rendelkező szolgáltatók esetén). A rendszer szünetelteti a szinkronizálást, amint elérhető a limit.
+- `BandwidthTracking__WarningThresholdPercent`: A napi limit százalékos értéke, amelynél figyelmeztető üzenetek kerülnek naplóba. Az alapértelmezett `80`. Amikor a sávszélesség-használat eléri ezt a százalékot, figyelmeztetések kerülnek a naplóba, hogy segítsenek a közelítő korlátok nyomon követésében.
+- `BandwidthTracking__PauseHoursOnLimit`: Órák száma, amennyi ideig szüneteltetni kell a szinkronizálást, ha elérhető a napi limit. Az alapértelmezett `24`. Ezen időszak után a limit jelző automatikusan törlődik, és a szinkronizálás folytatódik.
+- `BandwidthTracking__TrackUploadBytes`: Ez határozza meg, hogy a feltöltési sávszélességet is követni kell-e (true/false). Az alapértelmezett `false`. A legtöbb IMAP szolgáltató csak a letöltést korlátozza, így ez általában nem szükséges.
 
 ### 🎯 Kiválasztási beállítások {#selection-settings}
 - `Selection__MaxSelectableEmails`: Az e-mailek maximális száma, amelyeket egyszerre lehet kiválasztani.
 
-### 👁️ Nézet beállítások (Adatvédelem és Megjelenítés) {#view-settings-privacy-display}
+### 👁️ Megtekintési beállítások (Adatvédelem és megjelenítés) {#view-settings-privacy-display}
+- `View__DefaultToPlainText`: A megadott érték határozza meg az e-mailek alapértelmezett megtekintési módját az adatvédelem és a nyomon követés megakadályozása érdekében (true/false). Az alapértelmezett érték `false`.
+  - Ha `true` értékre van állítva: Az e-mailek alapértelmezetten plain-text módban nyílnak meg, megakadályozva a tracking pixel, külső képek és web beaconok automatikus betöltését. Ez ajánlott az adatvédelmi és a nyomon követés miatti aggályos felhasználóknak.
+  - Ha `false` értékre van állítva: Az e-mailek alapértelmezetten HTML módban nyílnak meg, megjelenítve a formázott e-mailt képekkel és stílusokkal együtt.
+  - A felhasználók az e-mail részleteinek oldalán található gomb segítségével váltogathatnak a HTML és a plain-text nézetek között (csak akkor látszik, ha mindkét formátum elérhető).
+  - A "Full View" link figyelembe veszi a jelenleg kiválasztott megtekintési módot.
 
-- `View__DefaultToPlainText`: A megrendelélt alapértelmezett e-mail nézet módját szabályozza az adatvédelmi és nyomon követési megelőzés érdekében (true/false). Az alapértelmezett érték `false`.
-  - Ha `true` értékre van állítva: Az e-mailek alapértelmezés szerint plain-text nézetben nyílnak meg, megakadályozva a nyomon követési pixel, külső képek és web beaconok automatikus betöltését. Ez az e-mail nyomon követéséről és az adatvédelemről concernsált felhasználóknak ajánlott.
-  - Ha `false` értékre van állítva: Az e-mailek alapértelmezés szerint HTML nézetben nyílnak meg, megjelenítve a formázott e-mailt képekkel és stílusokkal.
-  - A felhasználók az e-mail részleteinek oldalán található gombbal váltogathatnak az HTML és a plain-text nézetek között (csak akkor látható, ha mindkét formátum elérhető).
-  - A "Full View" link figyeli a jelenleg kiválasztott nézet módot.
-
-- `View__BlockExternalResources`: Megblokálja a külső erőforrásokat (távoli képek, külső CSS, külső szkriptek, webes betűtípusok stb.) az HTML e-mail nézetekben a nyomon követés megakadályozása és az adatvédelem javítása érdekében (true/false). Az alapértelmezett érték `false`.
-  - Ha `true` értékre van állítva: A külső erőforrásokat kiszűrjük az HTML e-mailek megjelenítésekor. Csak az inline tartalmak és a data URI-k (beleértve a `cid:` hivatkozásokon keresztüli inline csatolmányokat) jelennek meg.
+- `View__BlockExternalResources`: Megblokálja a külső erőforrásokat (távoli képek, külső CSS, külső skriptт, web betűtípusok stb.) az HTML e-mail nézetekben a nyomon követés megakadályozása és a jobb adatvédelem érdekében (true/false). Az alapértelmezett érték `false`.
+  - Ha `true` értékre van állítva: A külső erőforrásokat kiszűri az HTML e-mailek megjelenítésekor. Csak az inline tartalom és a data URI-k (beleértve a `cid:` hivatkozásokon keresztületi inline csatolmányokat) jelennek meg.
   - Ha `false` értékre van állítva: Az HTML e-mailek az összes eredeti külső erőforrásukkal együtt jelennek meg.
-  - **Fontos**: Ez a beállítás csak az e-mail **megjelenítésére** hatással van. Az archivált e-maileket változatlanul tároljuk az adatbázisban, az összes eredeti tartalom megőrzésével.
+  - **Fontos**: Ez a beállítás csak az e-mail **megjelenítésére** hatással van. A archivált e-maileket az adatbázisban változatlanul tároljuk, az összes eredeti tartalommal együtt.
   - A blokkolt erőforrások közé tartozik:
-    - Távoli képek (nyomon követési pixel, szervereken tárolt külső képek)
+    - Távoli képek (tracking pixelek, szervereken tárolt külső képek)
     - Külső CSS stíluslapok
-    - Külső betűtípusok @font-face hivatkozáson keresztül
-    - Külső CSS importok @import hivatkozáson keresztül
+    - Külső betűtípusok @font-face használatával
+    - Külső CSS importálások @import segítségével
     - Külső háttérképek
   - Engedélyezett erőforrások:
-    - Inline képek, amelyek data: URI-ként vannak beágyazva
-    - cid: URI-kon keresztül hivatkozott inline csatolmányok
+    - Data: URI-ként beágyazott inline képek
+    - cid: URI-n keresztül hivatkozott inline csatolmányok
     - Inline CSS stílusok és style tagek
-  - Ez a beállítás függetlenül működik a `DefaultToPlainText` beállítástól, és további adatvédelmi réteget biztosít az HTML e-mailek megtekintésekor.
+  - Ez a beállítás függetlenül működik a `DefaultToPlainText` beállítástól, és extra adatvédelmi réteget biztosít az HTML e-mailek megtekintésekor.
 
-### 📊 Dashboard Settings {#dashboard-settings}
+### 📊 Dashboard Beállítások {#dashboard-settings}
+- `Dashboard__ShowDirectionSplits`: Arról, hogy a számláló kártyák tartalmazzák-e a bejövő és kimenő részeket, illetve hogy a fiókkártya tartalmazza-e a különböző domainok számát. Az alapértelmezett érték `true`. Ha `false` értékre állítva, ezek a számok nem számolódnak ki, hanem nem számoltak és nem is rejtettek: a számlálók egyszerű számot olvasnak le, és a csatolt fájlok számlálója abbahagyja a levélhez való csatolást, ami az egyetlen lekérdezés, amit ezek a részek tesznek extra.
+- `Dashboard__SelectablePeriods`: Arról, hogy a dashboard diagramok kínálnak-e feloldást, egy időszakot és nyilasokat a mozgatáshoz. Az alapértelmezett érték `true`. Ha `false` értékre állítva, a diagramok a legutóbbi tizenkét hónapot havi bontozásban és az egész archivum küldőit mutatják, a diagram végpontja úgy válaszol, mintha a paraméter nem is létezne, és a leghatárolóbb küldési dátumot nem keresi fel.
+- `Dashboard__CacheSeconds`: Mennyi ideig tárolja a kiszámított dashboard statisztikákat (összesítés a bejövő és kimenő bontozással együtt, fiókonkénti számok, diagram sorozatok, legnépszerűbb küldők, legutóbbi e-mailek, adatbázis méret) a szerver belső memóriában tárolható gyorsítmányában (in-memory cache). Az alapértelmezett érték `60` másodperc. Ha `0` értékre állítja, a gyorsítástás kikapcsolódik, és a statisztikákat mindig újra kell számolni. A feloldás és az időszak minden egyes diagramválasztása külön kerül gyorsítva, így egy dashboard, amely váltogat a választások között, minden egyes választáshoz egyetlen bejegyzést tart meg. A magasabb értékek csökkentik az adatbázis terhelését nagy környezetekben, de cserébe aktuálisabb számok helyett elavultabb adatokat adhatnak. A szinkronizálási állapot jelzések, a tárolási értékek és a legutóbbi e-mailek listája mindig élőben kerülnek lekérdezésre, és nem érinti őket ez a gyorsítás.
+- `Dashboard__RefreshIntervalMinutes`: Milyen gyakran számolja újra a `DashboardStatsRefreshService` háttérszolgáltatás a költséges dashboard aggregációkat (összesítés a bejövő és kimenő bontozással együtt, fiókonkénti számok, a fiók domainjeinek száma, az alapértelmezett diagram sorozat a legnépszerűbb küldőkkel együtt, adatbázis méret) a `DashboardStatsCache` adatbázis táblába. Több millió e-mailet tartalmazó telepítéseknél a dashboard ezeket a készített értékeket olvassa ki a teljes archivum aggregálása helyett a lekérdezési útvonalon, ami az körülbelül 10 másodperces első betöltést millisekundok gyorsaságúra csökkenti. A diagram végpont a megadott alapértelmezett választásra (hónapok egy év alatt, bejövő küldők, a jelenlegi időszak) ugyanabból az oszlopból válaszol, így visszatérve az alapértelmezett nézetre az első megjelenítés száma látható; minden más választás a lekérdezéskor kerül kiszámításra, és a fentebb említett belső memória gyorsításban marad meg. Az alapértelmezett érték `15` perc. Ha `0` értékre állítja, a háttérfrissítés kikapcsolódik; ilyenkor a dashboard újra élőben számolja ki a statisztikákat (a fent említett belső memória gyorsítás továbbra is alkalmazható). A megjelenített értékek akár a konfigurált intervallummal elmaradhatnak a tényleges archiv állapot mögöttт. Egy olyan sor, amely más `ShowDirectionSplits` vagy `SelectablePeriods` értékekkel lett kiszámolva, mint amelyek jelenleg érvényesek, nem használható; a dashboard élőben számol tovább a következő frissítésig.
 
-- `Dashboard__ShowDirectionSplits`: Arról, hogy a számláló kártyák tartalmazzák-e a bejövő és kimenő részeket, illetve a fiók kártya tartalmazza-e a különböző domainok számát. Az alapértelmezett érték `true`. Ha `false` értékre állítjuk, ezek a számok nem számolódnak ki, hanem egyszerűen nem jelennek meg: a számlálók egyszerű számot mutatnak, és a csatolmányok számlálása abbahagyja a levélhez való csatolódást, ami az egyetlen lekérdezés, amit ezek a részek tesznek}`}>
-- `Dashboard__SelectablePeriods`: Arról, hogy a dashboard diagramok kínálnak-e fel feloldási módot (resolution), egy időszakot és nyilasokat a mozgatáshoz. Az alapértelmezett érték `true`. Ha `false` értékre állítjuk, a diagramok az utolsó tizenkét hónapot mutatják havi bontásban és az egész archívum küldőit; a diagram végpont (chart endpoint) olyan választ ad, mintha nem is létezne, és a leghatárértékű küldési dátumot nem keresi fel.
-- `Dashboard__CacheSeconds`: Mennyi ideig tárolja a kiszámolt dashboard statisztikákat (összesített számok a bejövő és kimenő bontással együtt, fiókonkénti számok, a diagram sorozatok, top küldők, legutóbbi e-mailek, adatbázis mérete) a szerver belső memóriájában tárolt gyorsítértékében (in-memory cache). Az alapértelmezett érték `60` másodperc. Ha `0` értékre állítjuk, a gyorsítértékelés kikapcsolódik, és a statisztikák mindig újra számolódnak. Minden egyes feloldási mód és időszak diagramválasztás saját külön gyorsítértékben kerül tárolásra, így egy olyan dashboard, amely váltogat a választások között, minden egyes választáshoz egyetlen bejegyzést tárol. A magasabb értékek csökkentik az adatbázis terhelését nagy környezetekben, de cserébe aktualitástalanabb számokat adhatnak. A szinkronizálási állapot jelzések, a tárolási értékek és a legutóbbi e-mailek listája mindig élőben kerülnek lekérdezésre, és nem érinti őket ez a gyorsítérték.
-- `Dashboard__RefreshIntervalMinutes`: Mennyire gyakran számolja újra a `DashboardStatsRefreshService` háttérszolgáltatás a költséges dashboard aggregációkat (összesített számok a bejövő és kimenő bontással együtt, fiókonkénti számok, a fiók domainjeinek száma, az alapértelmezett diagram sorozat a legnépszerűbb küldőkkel együtt, adatbázis mérete) a `DashboardStatsCache` adatbázis táblába. Több millió e-mailet tartalmazó telepítéseknél a dashboard ezeket a készített értékeket olvassa ki a teljes archívum aggregálása helyett a lekérdezési útvonalon, ami a ~10 másodperces első betöltést millisekundyá (\< 1 másodperc) gyorsítja. A diagram végpont a megadott alapértelmezett választást (egy év összes hónapja, bejövő küldők, az aktuális időszak) ugyanabból az egyes sorból válaszolja meg, így visszatéréskor az első megjelenítés száma kerül megjelenésre; minden egyéb választás a lekérdezéskor számolódik ki, és az előbb említett belső memóriában tárolt gyorsítértékben marad meg. Az alapértelmezett érték `15` perc. Ha `0` értékre állítjuk, a háttérfrissítés kikapcsolódik; ilyenkor a dashboard újra élőben számolja ki a statisztikákat (az előbb említett belső memóriában tárolt gyorsítérték továbbra is alkalmazódik). A megjelenített értékek akár a konfigurált intervallummal el is maradhatnak a tényleges archív állapot mögött. Egy olyan sor, amelyet más `ShowDirectionSplits` vagy `SelectablePeriods` értékekkel számoltak ki, mint az aktuálisak, nem kerül felhasználásra; a dashboard addig számol élőben, amíg a következő frissítés nem történik meg.
-
-### 🔄 Munka folyamat beállításai {#jobs-settings}
-- `Jobs__RefreshSeconds`: Mennyire gyakran tölti újra magát a háttérfolyamatok oldala, amíg egy böngésző fül nyitva van rajta. Az alapértelmezett `30` másodperc. Állítsa `0` értékre az automatikus újratöltés kikapcsolásához, hogy kézzel frissíthesseni. Minden újratöltés az összes egyes támféle munkaforrásból építi újra az oldalt, ezért sok fiókot tartalmazó telepítéseken a hosszabb intervallum csökkenti a terhelést, amelyet minden megnyitott fülben meg kell szorozni.
+### 🔄 Feladat Beállítások {#jobs-settings}
+- `Jobs__RefreshSeconds`: Mennyire gyakran töltődik újra magától a háttérben futó feladatok oldala, amíg egy böngészőfül nyitva tartja azt. Az alapértelmezett `30` másodpercig van beállítva. Állítsát l `0` értékre, hogy kikapcsolja az automatikus újratöltést, és kézzel frissíthessön. Minden egyes újratöltés az összes egyes feladatforrásból (job sources) újra építi fel az oldalt, így sok fiókot tartalmazó telepítéseknél a hosszabb intervallum csökkenti a terhelést, amelyet minden nyitott böngészőfül megismétel.
 
 ### 🗃️ Npgsql Beállítások {#npgsql-settings}
-- `Npgsql__CommandTimeout`: Az adatbázis-parancsok timeout értéke másodpercekben.
+- `Npgsql__CommandTimeout`: Az adatbázis parancsainak timeout értéke másodpercekben.
 
 ### 📥 Feltöltési beállítások {#upload-settings}
-- `Upload__MaxFileSizeGB`: A feltöltések maximális fájlmérete GB-ban.
-- `Upload__KeepAliveTimeoutHours`: A feltöltések élettartamának timeout értéke órában.
-- `Upload__RequestHeadersTimeoutHours`: A kérések fejléceinek (request headers) timeout értéke órában.
+- `Upload__MaxFileSizeGB`: A feltöltések maximum fájlmérete GB-ban.
+- `Upload__KeepAliveTimeoutHours`: A feltöltések keep alive timeout értéke órában.
+- `Upload__RequestHeadersTimeoutHours`: A request headers timeout értéke órában.
 
 ### 📂 Helyi importálási beállítások {#local-import-settings}
-- `LocalImport__AllowedPaths__0`, `LocalImport__AllowedPaths__1`, stb.: A helyi könyvtárak fehérlistája, amelyeket a CLI importálási parancsnak (`--import-mbox`, `--import-eml`) engedélyezett beolvasni. Minden egyes bejegyzés egy elérési út a konténeren belül. A beimportálni kívánt fájlokat az egyik ilyen könyvtárba kell csatolnia (mount) a Docker volume-ök segítségével. Alapértelmezett: `/data/import` (automatikusan `/app/uploads` értékre állítva, ha nincs megadva).
-  - Amikor a `docker exec` eszközt használja az importálási parancs futtatásához, a `--file` paraméteren keresztül megadott fájl elérési útának az egyik engedélyezett útvonal része kell, hogy legyen.
-  - Ez a biztonsági intézkedés megakadályozza a CLI parancsok által történő tetszőleges fájlrendszer-Hozzáférés lehetőséget.
+- `LocalImport__AllowedPaths__0`, `LocalImport__AllowedPaths__1`, stb.: A helyi könyvtárak fehérlistája, amelyeket a CLI importálási parancsnak (`--import-mbox`, `--import-eml`) szabad fájlokat olvasnia. Minden bejegyzés egy elérési út a konténeren belül. A beimportálandó fájlokat valamelyik ilyen könyvtárba kell csengősen (mount) rendelnie a Docker volume-ok segítségével. Alapértelmezett: `/data/import` (automatikusan `/app/uploads`-re állítva tartalékként).
+  - Amikor a `docker exec` eszközt használja az importálási parancs futtatásához, a `--file` paraméteren keresztül megadott fájl elérési útának valamelyik engedélyezett úton belül kell lennie.
+  - Ez a biztonsági intézkedés megakadályozza a tetszőleges fájlrendszer-Hozzáférés lehetőségét a CLI parancsokból.
   - Különféle import forrásokhoz több útvonal is konfigurálható.
-  - Részletes használati utasításért tekintse meg a [CLI parancsokat](CLI.md).
+  - Részletes használati útmutatóhoz tekintse meg a [CLI parancsokat](CLI.md).
 
-### 📄 CSV Import Beállítások {#csv-import-settings}
-- `CsvImport__MaxRows`: Egyetlen tömeges import során feldolgozott CSV sorok (postafiókok) maximális száma. Az alapértelmezett érték `5000`. Növelje ezt az értéket nagy implementációk esetén; csökkentse a hatást a single import futtatásának az adatbázterhelésre nézve.
-- `CsvImport__MaxFileSizeBytes`: A feltöltött CSV fájl maximális engedélyezett mérete (байtban). Az alapértelmezett érték `10000000` (10 MB). Szükség esetén állítsa ezt az értékét az upload limiteknek megfelelően.
-- A részletes használati útmutatóért tekintse meg a [Account Import Guide](Account-Import.md) dokumentációt a CSV útján végzett tömeges IMAP fiók importálásához.
+### 📄 📄 CSV Import beállítások {#csv-import-settings}
+- `CsvImport__MaxRows`: A single tömeges import során feldolgozandó CSV sorok (postafiókok) maximális száma. Az alapértelmezett érték `5000`. Növelje ezt az értéket nagy telepítéseknél; csökkentse a hatást a single import futtatás adatbázterhelésre.
+- `CsvImport__MaxFileSizeBytes`: A feltöltött CSV fájl maximális engedélyezett mérete (byte-okban). Az alapértelmezett érték `10000000` (10 MB). Szükség esetén állítsa ezt az értéket az upload limitjeihez megfelelően.
+- A részletes használati utasításokért a CSV útján történő tömeges IMAP fiók importálásról tekintse meg az [Account Import Guide](Account-Import.md) dokumentációt.
 
-### 📤 Audit Export Beállítások {#audit-export-settings}
-A felauditálási adatok exportálási oldalának beállításai (csak admin számára, a Logs oldalról elérhető). Az export egy ZIP csomagot generál a meglévő archívumból táblázatos tömegadatokkal (INDEX.XML + CSV táblák + DTD) külső auditálási eszközök számára. A használati részletekért lásd az [Audit Data Export Guide](AuditExport.md) dokumentációt.
-- `AuditExport__DataSupplierName`: Az "Data supplier name" űrlapmez défautértéke, amely az exportált index fájlban azonosítja az Ön szervezetét. Alapértelmezett: üres.
-- `AuditExport__DataSupplierLocation`: Az "Data supplier location" űrlapmez défautértéke (pl. céghelyszín). Alapértelmezett: üres.
-- `AuditExport__Comment`: A "Comment" űrlapmez défautértéke, amely szabad szöveges formátumban szerepel az exportált index fájlban. Alapértelmezett: üres.
-- `AuditExport__OutputDirectory`: A generált ZIP fájlok tárolására szolgáló könyvtár. A relatív útvonalak az alkalmazás tartalom gyökérpontjához (app content root) viszonyítva kerülnek ki_'rés_'űltetés_'re_' (resolved). Alapértelmezett: `exports/audit`.
-- `AuditExport__RetentionDays`: A napok száma, amely után a befejezett export fájlokat a napi tisztító folyamat törli. Alapértelmezett: `30`.
-- `AuditExport__MaxRangeYears`: A megengedett maximális időtartam az export időszak kezdő és vége között. Alapértelmezett: `10`.
-- Az űrlapmezeket ezek a alapértelmezett értékek töltik meg előre, de az exportonként szerte módosíthatók.
-- Minden export egy kezdési és egy eredmény bejegyzést ír az hozzáférés naplóba (típus: "Audit Data Export"), így a történet módosításbiztos (revision-safe) bármilyen DB schéma módosítás nélkül.
+### 📤 Audit Export Settings {#audit-export-settings}
+
+Beállítások az audit adatok exportálásának oldalán (csak adminisztrátor számára, a Logs oldalról elérhető). Az export egy ZIP csomagot generál a meglévő archívából táblázatos tömegadatokkal (INDEX.XML + CSV táblák + DTD) külső audit eszközök számára. A használati részletekért lásd az [Audit Data Export Guide](AuditExport.md) dokumentációt.
+
+- `AuditExport__DataSupplierName`: Az "Data supplier name" űrlapmez défautértéke, amely azonosítja az organization nevét a letöltött index fájlban. Alapértelmezett: üres.
+- `AuditExport__DataSupplierLocation`: Az "Data supplier location" űrlapmez défautértéke (pl. cég székhely). Alapértelmezett: üres.
+- `AuditExport__Comment`: A "Comment" űrlapmez défautértéke, amely szabad szövegként szerepel a letöltött index fájlban. Alapértelmezett: üres.
+- `AuditExport__OutputDirectory`: kịpönyű répertoire, ahol a generált ZIP fájlok tárolódnak. A relatív útvonalak az app content root alapján kerülnek feloldva. Alapértelmezett: `exports/audit`.
+- `AuditExport__RetentionDays`: Napok száma, amely után a befejezett export fájlokat a napi tisztító folyamat törli. Alapértelmezett: `30`.
+- `AuditExport__MaxRangeYears`: A megengedett maximális időtartam az export időszak kezdete és vége között. Alapértelmezett: `10`.
+- Az űrlapmezűeket ezek a défautértékek töltik ki előre, de az egyes exportok esetén szerkeszthetők.
+- Minden export egy kezdő és egy eredmény bejegyzést ír az access logba (típus: "Audit Data Export"), így a történet módosításálló (revision-safe) bármilyen DB schema változtatás nélkül.
 
 ### 🔒 Törlési szabályzat beállításai {#deletion-policy-settings}
-- `DeletionPolicy__DeletionAllowed`: Ez szabályozza, hogy az archivált e-mailek manuális törlése engedélyezett-e (true/false). Az alapértő érték `true`. Ha `false` értékre van állítva:
-  - Minden archivált e-mail le van zárva (`IsLocked = true`) az indításkor az adatbázis-megfelelőségi trigger (database compliance trigger) segítségével, megakadályozva a módosítást vagy törlést az adatbázis szintjén.
-  - A manuális törlés (egyedi és tömeges) az alkalmazás szintjén blokkolva van egy hibavisszajelzésrel.
-  - Az oszlop alapértelmezett értékét úgy állítják át, hogy az úján importált e-mailek is le legyenek zárva.
-  - A jelenlegi szabályzat állapota minden indításkor a megjegyzhetőség érdekében a megjegyzésbe (AccessLogs table) kerül feljegyzésre (a Logs oldalon "Deletion Policy" bejegyzésekként látható).
-- `DeletionPolicy__MaxBulkDeleteEmails`: A felső határ egy szűrőalapú tömeges törléshez (*Delete all matches*). Az alapértő érték `100000`. Ha egy szűrő több e-maillel is egyezik, a rendszer elutasítja azt egy üzenettel, amely kéri a szűrő szűkítését; a folyamat soha nem vágja le csendben a találatokat. A tárolási idő politikáján (retention policy) kereszt be zárt e-maileket kihagyja és a folyamat állapotsávában jelzi őket, nem pedig feloldja a zártságukat. A folyamat újra ellenőrzi ezt a limiteket és a `DeletionPolicy__DeletionAllowed` értékét indításkor, így a szabályzatváltozás előtt sorba került feladat leáll, ahelyett hogy a régi beállítással futtatná le.
-- **Változatlanság védelem (Immutability protection):** Amikor `IsLocked = true`, az adatbázis-megfelelőségi trigger (`prevent_locked_email_changes`) megakadályoz ANY módosítást az e-mail soron — minden oszlop védve van, nem csak egy fix mezőlista. Az egyetlen kivételt képező oszlopok magát a `IsLocked` (hogy a tárolási időhöz kapcsolódó törléshez és az indítási szabályzat alkalmazásához szükséges feloldás lehetséges maradjon), valamint a `FolderName` (hogy az IMAP szinkronizáció frissíthesse a mappát, ha egy e-mailt a szerver oldalon mozgatnak). A védelem oszlopfüggetlen (JSONB-alapú összehasonlítás), és automatikusan lefedi a jövőbeni sémakiterjesztéseket is.
+- `DeletionPolicy__DeletionAllowed`: Ez határozza meg, hogy az archivált e-mailek kézi törlése engedélyezett-e (true/false). Az alapértelmezett érték `true`. Ha `false` értékre van állítva:
+  - Minden archivált e-mail le van zárva (`IsLocked = true`) az indítás során az adatbázis-megfelelőségi trigger segítségével, megakadályozva bármilyen módosítást vagy törlést az adatbázis szintjén.
+  - A manuális törlés (egyedi és tömeges) az alkalmazás szintjén blokkolva van egy hibaüzenettel.
+  - Az oszlop alapértelmezett értékét úgy állítja át, hogy az újonnan importált e-mailek is le legyenek zárva.
+  - A jelenlegi szabályzat állapota minden indításkor bekerül az AccessLogs táblába (a Logs oldalon "Deletion Policy" bejegyzésekként látható) a módon ellenőrizhetőség érdekében.
+  - A helyi megőrzési törlés mentesül alatta: az e-mailek, amelyek egy konfigurált megőrzési időszakon belül esnek, továbbra is törlődnek (a megőrzési folyamat során a törlés előtt azonnal feloldják őket).
+- `DeletionPolicy__MaxBulkDeleteEmails`: A felső határ egy szűrőalapú tömeges törléshez (*Delete all matches*). Az alapértelmezett érték `100000`. Ha egy szűrő több e-maillel érint, azt üzenettel visszaküldik, amely kéri a szűrő szűkítését; a folyamat soha nem vágja le csendben a listát. A megőrzési szabályzat által lezárt e-maileket kihagyja és a folyamat állapotsávában jelzi, nem pedig feloldja őket. A folyamat újra ellenőrzi ezt a limiteket és a `DeletionPolicy__DeletionAllowed`-ot indításkor, így a szabályzatváltozás előtt sorba került folyamat leáll, ahelyett hogy a régi beállításokkal futna le.
+- **Változatlanság védelem (Immutability protection):** Amikor `IsLocked = true`, az adatbázis-megfelelőségi trigger (`prevent_locked_email_changes`) BLOKKOL MINDANYO MODOSÍTÁST az e-mail soron — minden oszlop védve van, nem csak egy fix mezolistát tartalmazó rész. Az egyetlen mentesült oszlop a `IsLocked` maga (hogy a megőrzési törléshez és az indítási szabályzat alkalmazásához szükséges feloldás lehetséges maradjon), valamint a `FolderName` (hogy az IMAP szinkronizálás frissíthesse a mappát, ha egy e-mail a szerver oldalon mozog). A védelem oszlopfüggenséget nem ismer (JSONB-alapú összehasonlítás), és automatikusan lefedi a későbbi sémakiterjesztéseket is.
 
 ### 🕐 Időzóna beállítások {#timezone-settings}
-- `TimeZone__DisplayTimeZoneId`: Az időzóna, amely az e-mail időbélyeggének megjelenítéséhez használható a UI-ban. IANA időzóna azonosítókat használ (pl. "Europe/Berlin", "Asia/Tokyo"). Az alapértelmezett érték az "Etc/UCT" a háttatartozó kompatibilitás érdekében. E-mailek importálásakor az időbélyegeket erre az időzónára konvertáljuk a megjelenítés céljából.
+- `TimeZone__DisplayTimeZoneId`: Az időzóna, amely az e-mailek időbélyegének megjelenítéséhez használja a felületen. IANA időzóna azonosítókat használ (pl. "Europe/Berlin", "Asia/Tokyo"). Az alapértelmezett az "Etc/UCT" a háttatólagos kompatibilitás érdekében. Az e-mailek importálásakor az időbélyegeket erre az időzónára konvertálja a megjelenítés céljából.
 
-### 🎉 ReleaseNotes Settings (Verziófrissítési Splash Screen) {#releasenotes-settings-version-update-splash-screen}
-- `ReleaseNotes__AppVersion`: A verzió karakterlánc, amelyet ez az példány jelent meg. Ezt a GitHub release tagekkel hasonlítják össze, hogy eldönthessék, létezik-e újabb kiadás. Ha üres, a changelog a fordított assembly verzióra tér vissza, és a frissítés jelzése (update hint) kikapcsolt marad.
-- `ReleaseNotes__Enabled`: A verziófrissítési splash screen engedélyezése vagy letiltása (true/false). Az alapértelmezett `true`. Ha engedélyezve van, a rendszergazdák egy egyszeri changelog modált fognak látni az alkalmazás frissítése után, amely a GitHub Releases oldalról lekelt verziójegyzéket mutatja az aktuális verzióhoz. Minden rendszergazda el tudja tüntetni a modalt, és ez csak egy újabb verzió esetén jelenik meg újra. Állítsa `false` értékre a funkció teljes kikapcsolásához, beleértve a frissítés jelzését is.
-- `ReleaseNotes__UpdateHintEnabled`: Mutasson-e egy kis toast értesítést a rendszergazdáknak a jobb alsó sarokban, ha a GitHub újabb stabil kiadást tesz közz, mint amelyik verzió telepítve van (true/false). Az alapértelmezett `true`. A toast linkel a megfelelő kiadáshoz, és a böngészőben verzióonként egyszer tekinthető elavultnak. A tervezetek (drafts) és előkiadások (prereleases) figyelmen kívül maradnak. Requires `ReleaseNotes__AppVersion`; nélküle semmilyen jelzés nem jelenik meg.
-- `ReleaseNotes__UpdateCheckIntervalHours`: Hányszor frissüljen a GitHub kiadási lista, órában megadva. Az alapértelmezett `6`. Egy rövidebb intervallum lehetővé teszi, hogy egy folyamatosan futó példányban a újabb kiadás hamarabb láthatóvá váljon, egy hosszabb pedig csökkenti a GitHub API hívások számát. A minimum `1`.
-- `ReleaseNotes__RequestTimeoutSeconds`: Egyetlen GitHub API kérés timeout értéke, másodpercekben. Az alapértelmezett `10`. Ha lejár az idő, a changelog és a frissítés jelzése az adott kísérlet esetében kikapcsolt marad, ahelyett hogy nyitva tartanák a kérést; a következő ellenőrzés megkísérli újra.
+### 🎉 ReleaseNotes Beállítások (Verziófrissítési Splash Screen) {#releasenotes-settings-version-update-splash-screen}
+- `ReleaseNotes__AppVersion`: Az az verziós zinó, amelyet ez az példány jelent. Ezt a GitHub release tagekkel hasonlítják össze, és ez dönt el, hogy létezik-e újabb kiadás. Ha üres, a changelog visszatér a fordított assembly verzióra, és a frissítési jelzés kikapcsolva marad.
+- `ReleaseNotes__Enabled`: A verziófrissítési splash screen engedélyezése vagy tiltása (true/false). Az alapértelmezett `true`. Ha engedélyezve van, az adminisztrátorok egyetlen alkalommal látni fognak egy changelog modált az alkalmazás frissítése után, amely megmutatja a jelenlegi verzióhoz a GitHub Releases oldalról lekelt release note-okat. Minden adminisztrátor el tud zárni a modalt, és ez csak egy újabb verzió esetén jelenik meg újra. Állítsa `false` értékre a funkció teljes kikapcsolásához, beleértve a frissítési jelzést is.
+- `ReleaseNotes__UpdateHintEnabled`: Mutasson-e egy kis toast üzenetet az adminisztrátoroknak a jobb alsó sarokban, ha a GitHub egy újabb, stabil kiadást tesz közzé, mint ami telepítve van (true/false). Az alapértelmezett `true`. A toast linkel a megfelelő kiadáshoz, és verzióonként elvação elhagyható a böngészőben. A tervezetek (drafts) és a előteszt verziók (prereleases) figyelmen kívül maradnak. `ReleaseNotes__AppVersion` igénylés; nélküle semmilyen jelzés nem jelenik meg.
+- `ReleaseNotes__UpdateCheckIntervalHours`: Milyen gyakran frissüljön a GitHub release lista, órában megadva. Az alapértelmezett `6`. Egy rövidebb intervallum miatt egy futó példányban hamarabb láthatóvá válik az új kiadás, egy hosszabb pedig csökkenti a GitHub API hívások számát. A minimum `1`.
+- `ReleaseNotes__RequestTimeoutSeconds`: Egy GitHub API kérés timeout értéke, másodperceken megadva. Az alapértelmezett `10`. Ha lejárt, a changelog és a frissítési jelzés kikapcsolva marad az adott kísérlet esetében ahelyett, hogy nyitva tartanák a kérést; a következő ellenőrzés megkísérli újra.
 
 ### 🔧 Adatbázis karbantartási beállítások {#database-maintenance-settings}
-- `DatabaseMaintenance__Enabled`: Az automatikus napi adatbázis karbantartás engedélyezése vagy kikapcsolása (true/false). Az alapértelmezett `false`. Ha engedélyezve van, a rendszer automatikusan futtat VACUUM ANALYZE műveleteket az adatbázis teljesítményének optimalizálása és a felesleges adatok (bloat) megelőzése érdekében. További részletekért lásd a [Database Maintenance Guide](DatabaseMaintenance.md) dokumentációt.
-- `DatabaseMaintenance__DailyExecutionTime`: Az az időpont a nap folyamán, amikor az adatbázis karbantartásnak futnia kell, 24 órás formátumban (HH:mm). Az alapértelmezett `02:00`. Egy olyan időpontot válasszon, amikor a rendszer aktivitása alacsony.
-- `DatabaseMaintenance__TimeoutMinutes`: A karbantartási műveletekhez megengedett maximális idő perces értékben. Az alapértelmezett `30`. Növelje ezt az értéket nagyobb adatbázusok esetén.
+- `DatabaseMaintenance__Enabled`: Az automatikus napi adatbázis karbantartás engedélyezése vagy tiltása (true/false). Az alapértelmezett érték `false`. Ha engedélyezve van, a rendszer automatikusan futtat VACUUM ANALYZE műveleteket az adatbázis teljesítményének optimalizálása és a felesleges adatok (bloat) elkerülése érdekében. További részletekért lásd a [Database Maintenance Guide](DatabaseMaintenance.md) dokumentációt.
+- `DatabaseMaintenance__DailyExecutionTime`: Az az időpont a nap folyamán, amikor az adatbázis karbantartásnak futnia kell, 24 órás formátumban (HH:mm). Az alapértelmezett érték `02:00`. Egy olyan időpontot válasszon, amikor alacsony a rendszer aktivitása.
+- `DatabaseMaintenance__TimeoutMinutes`: A karbantartási műveletekhez megengedett maximális időpercben. Az alapértelmezett érték `30`. Növelje ezt az értéket nagyobb adatbázusok esetén.
 
 ### 🧬 Melléklet de Duplikáció Beállításai {#attachment-deduplication-settings}
-A melléklet de duplikáció minden egyes egyedi melléklet-payloadot csak egyszer tárol (tartalom alapú azonosítás SHA-256 segítségével), és ez egy **alapvető funkció, amely mindig engedélyezve van** – szándékosan nincs be/ki kapcsoló. Kizárólag az alábbi tömeges/ütemezési paraméterek állíthatók be. A teljes részletekért lásd a [Melléklet De Duplikáció Útmutatót](AttachmentDeduplication.md).
+A melléklet de duplikáció minden egyedi melléklet-payloadt csak egyszer tárol (SHA-256 alapú tartalom alapú azonosítás), és ez egy **alapvető funkció, amely mindig engedélyezve van** – szándékosan nincs rá kapcsoló. Csak az alábbi tömb/ütemezési paraméterek finකරímíthatók. A teljes részletért lásd a [Attachment Deduplication Guide](AttachmentDeduplication.md) dokumentációt.
 
-- `AttachmentDeduplication__BatchSize`: Az egyszeri háttér migráció során egy tranzakciónként migrált meglévő mellékletek száma a korábbi adatok esetén. Az alapértelmezett érték `200`. A nagyobb értékek gyorsabban migráznak, de több memóriát/adatbázis-terhelést igényelnek batchelésごとに.
-- `AttachmentDeduplication__DelayBetweenBatchesMs`: Opcionális szünet (milliszekundokban) a migrációs batch-ek között a busy rendszereken tapasztalható adatbázis-terhelés korlátozására. Az alapértelmezett érték `0` (nincs szünet).
-- `AttachmentDeduplication__StartupDelaySeconds`: Késleltetés (másodpercekben) az alkalmazás indítása után, mielőtt a háttér migráció megkezdődne, hogy a schéma migrációnak legyen ideje befejeződni. Az alapértelmezett érték `20`.
-- `AttachmentDeduplication__OrphanCleanupIntervalHours`: Az állandóan futó „garbage collection” intervalluma (órákban), amely eltávolítja azokat a melléklet-payloadokat, amelyekre már egyetlen e-mail sem hivatkozik. Az alapértelmezett érték `12`. Ez `DatabaseMaintenance__Enabled` értékétől függetlenül fut.
-- `AttachmentDeduplication__CommandTimeoutSeconds`: Adatbázis parancs timeout (másodpercekben) a migrációs batch műveletekhez (INSERT SHA-256 hash-sel és UPDATE). Az alapértelmezett érték `300` (5 perc). Növelje ezt az értéket nagyon nagy adatbázusok vagy mellékletek esetén, vagy csökkentse, ha gyorsabb hibaérzékelést szeretne. Ha egy batch még mindig timeout-ot kap, a szolgáltatás automatikusan megpróbálkozik a batch méretének felével.
+- `AttachmentDeduplication__BatchSize`: Az meglévő adatok egyszeri háttérben történő migráciája során tranzakciónként migrált meglévő mellékletek száma. Az alapértelmezett érték `200`. A nagyobb értékek gyorsabban migráznak, de több memóriát/adatbázis-terhelést igényelnek batchelésenként.
+- `AttachmentDeduplication__DelayBetweenBatchesMs`: Opcionális szünet (millisekundyékban) a migrációs batchek között a leterhelt rendszereken a database load szabályozására. Az alapértelmezett érték `0` (nincs szünet).
+- `AttachmentDeduplication__StartupDelaySeconds`: Késleltetés (másodpercekben) az alkalmazás indítása után, mielőtt a háttérben futó migráció megkezdődne, hogy legyen ideje befejezni a schema migrációt. Az alapértelmezett érték `20`.
+- `AttachmentDeduplication__OrphanCleanupIntervalHours`: Az állandóan futó garbage collection intervalluma (órákban), amely eltávolítja azokat a melléklet-payloadokat, amelyekre már nincs hivatkozás egyetlen e-mailből sem. Az alapértelmezett érték `12`. Ez függetlenül fut `DatabaseMaintenance__Enabled` értékétől.
+- `AttachmentDeduplication__CommandTimeoutSeconds`: Az adatbázis parancs timeout (másodpercekben) a migrációs batch műveletekhez (INSERT SHA-256 hasholással és UPDATE). Az alapértelmezett érték `300` (5 perc). Növelje ezt az értéket nagyon nagy adatbázok vagy mellékletek esetén, vagy csökkentse, ha gyorsabb hibale discovery-t szeretne. Ha egy batch még mindig timeout-ot kap, a szolgáltatás automatikusan megpróbálkozik a batch méretének felével.
 
 ### 💾 Fiók tárolási beállítások {#account-storage-settings}
 
-A fiók alanyi tárolási megjelenítése megmutatja az adatbázis tárolási felhasználását (összes e-mail mez + csatolások) minden egyes fiók esetében a Dashboard "Account Overview" táblázatban és a MailAccounts "Show All" táblázatban. Egy autark háttérszolgáltatás (`AccountStorageRefreshService` kiszámítja az értékeket az egyes oszlopok PostgreSQL `pg_column_size` összeadása詈al (minden e-mail mez lefedésével anélkül, hogy az e-mail testét beolvasná), majd elmenti őket a `AccountStorageCache` táblázatba. Ez a szolgáltatás függetlenül fut a `DatabaseMaintenance__Enabled`-tól.
+A fiókonkénti tárolási megjelenítés a Dashboard "Account Overview" táblázatában és a MailAccounts "Show All" táblázatában minden egyes fiók adatbázis-tárolási felhasználását (összes e-mail mező + csatolmányok) mutatja. Egy autark háttérszolgáltatás (`AccountStorageRefreshService` kiszámítja az értékeket az egyes oszlopok PostgreSQL `pg_column_size` összeadása révén (minden e-mail mezőjét lefedve az e-mail testek beolvasása nélkül), majd elmenti őket a `AccountStorageCache` táblázatba. Ez a szolgáltatás függetlenül fut a `DatabaseMaintenance__Enabled`-tól.
 
-- `AccountStorage__Enabled`: A tárolási frissítés szolgáltatásos aktiválása vagy deaktiválása (true/false). Az alapértelmezett érték `true`. Ha engedélyezve van, a szolgáltatás a folyamat megindulásakor felfalható backfill eljárással végzi a függőben lévő fiókok feltöltését (hibatűrő a `AccountStorageBackfillState` révén), ezt követően pedig napi teljes frissítést végez. Ha deaktiválva van, a tárolási értékek csak akkor frissülnek, ha e-mailek szinkronizálódnak, importálódnak vagy törlődnek, de a megjelenített értékek az idővel a tócska lehetnek.
-- `AccountStorage__DailyExecutionTime`: A nap folyamán megadott idő (24 órás formátum `HH:mm`) az összes fiók napi teljes frissítéséhez. Az alapértelmezett érték `02:30`. Egy olyan időpontot válasszon, amikor alacsony a rendszer aktivitása.
-- `AccountStorage__BackfillDelayMs`: Késleltetés (milliszékonként) a fiókok között a folyamat megindulásakor végzett kezdeti backfill során. Az alapértelmezett érték `5000`. Az alacsonyabb értékek felgyorsítják a backfill folyamatot, de növelik az adatbázis terhelését; nagyon nagy archivák esetén emelje ezt az értéket az adatbázis túlterhelésének elkerülése érdekében.
-- `AccountStorage__RefreshBatchDelayMs`: Késleltetés (milliszékonként) a fiókok között a napi teljes frissítés során. Az alapértelmezett érték `1000`. Az alacsonyabb értékek felgyorsítják a frissítést, de növelik az adatbázis terhelését; nagyon nagy archivák esetén emelje ezt az értéket.
-- `AccountStorage__CommandTimeoutSeconds`: Adatbázis parancs timeout (másodpercekben) a fiók alanyi tárolási számításához (`pg_column_size` egy fiók összes során). Az alapértelmezett érték `300` (5 perc). A számítás minden e-mail sort beolvas, beleértve a TOAST adatokat is, ami nagyon nagy archiváknál (250k+ e-mail) jóval egy percnél töled is eltarthat; a korábbi 30 másodperces Npgsql alapértelmezett értéke miatt a frissítés csendben meghiúsult, és a dashboard régi értékeket mutatott. Emelje ezt az értéket, ha a számítás továbbra is időtúllépés (timeout) hibát idéz a saját archivájánál.
+- `AccountStorage__Enabled`: A tárolási frissítési szolgáltatás engenable vagy kikapcsolása (true/false). Az alapértelmezett érték `true`. Engedélyezés esetén a szolgáltatás indításkor felfüggeszthető backfill folyamatot futtat a függőben lévő fiókok számára (hibatűrő a `AccountStorageBackfillState` révén), ezt követően pedig napi teljes frissítést végez. Kikapcsolva a tárolási értékek csak az e-mailek szinkronizálása, importálása vagy törlésének során frissülnek, de a megjelenített értékek idővel elavultтá válhatnak.
+- `AccountStorage__DailyExecutionTime`: A nap folyamán megadott időpont (24 órás formátum `HH:mm`) az összes fiók napi teljes frissítéséhez. Az alapértelmezett érték `02:30`. Válasszon egy olyan időpontot, amikor a rendszer aktivitása alacsony.
+- `AccountStorage__BackfillDelayMs`: Késleltetés (millisekundyogban) a fiókok között az indítási kezdeti backfill során. Az alapértelmezett érték `5000`. Az alacsonyabb értékek felgyorsítják a backfill folyamatot, de növelik az adatbázis terhelését; nagyon nagy archívumok esetén emelje ezt az értéket az adatbázis túlterhelésének elkerülése érdekében.
+- `AccountStorage__RefreshBatchDelayMs`: Késleltetés (millisekundyogban) a fiókok között a napi teljes frissítés során. Az alapértelmezett érték `1000`. Az alacsonyabb értékek felgyorsítják a frissítést, de növelik az adatbázis terhelését; nagyon nagy archívumok esetén emelje ezt az értéket.
+- `AccountStorage__CommandTimeoutSeconds`: Adatbázis parancsbeküldési timeout (másodpercekben) a fiókonkénti tárolási számításhoz (`pg_column_size` egy fiók összes során). Az alapértelmezett érték `300` (5 perc). A számítás minden e-mail sort beolvas, beleértve a TOAST adatokat is, ami nagyon nagy archívumok esetén (250k+ e-mail) jóval egy percnél tövet is igénybe vehet; a korábbi 30 másodperces Npgsql alapértelmezett érték miatt a frissítés csendben elbukott, és a dashboard elavult értékeket mutatott. Ha a számítás még mindig timeoutot idéz az Ön archívumánál, emelje ezt az értéket.
 
-> 💡 **Megjegyzés**: A tárolási értékek azonnal frissülnek minden e-mail szinkronizálás, import vagy megőrzési törlés után, így a megjelenített értékek a napi frissítés nélkül is naprakészek maradnak. A napi frissítés egy biztonsági háló, amely az extrém eseteket (pl. közvetlen adatbázis módosítások) kezeli.
+> 💡 **Megjegyzés**: A tárolási értékek minden e-mail szinkronizálás, importálás vagy retention törlés után azonnal frissülnek, így a megjelenített értékek a napi frissítés nélkül is aktuálisak maradnak. A napi frissítés egy biztonsági háló, amely feldolgozza az extrém eseteket (pl. közvetlen adatbázis-módosítások).
 
 ### 📝 Naplózási beállítások {#logging-settings}
-- `Logging__LogLevel__Default`: Az alkalmazás alapértelmezett naplózási szintje. A rendelkezésre álló szintek: `Trace`, `Debug`, `Information`, `Warning`, `Error`, `Critical`, `None`. Az alapértelmezett érték: `Information`.
-- `Logging__LogLevel__Microsoft_AspNetCore`: A naplózási szint az ASP.NET Core framework üzenetekhez. Alapértelmezett: `Warning`.
-- `Logging__LogLevel__Microsoft_EntityFrameworkCore_Database_Command`: A naplózási szint az Entity Framework adatbázis parancsokhoz. Alapértelmezett: `Warning`.
+- `Logging__LogLevel__Default`: Az alkalmazás alapértelmezett naplózási szintje. A rendelkezésre álló szintek: `Trace`, `Debug`, `Information`, `Warning`, `Error`, `Critical`, `None`. Az alapértelmezett `Information`.
+- `Logging__LogLevel__Microsoft_AspNetCore`: A naplózási szint az ASP.NET Core framework üzenetekhez. Az alapértelmezett `Warning`.
+- `Logging__LogLevel__Microsoft_EntityFrameworkCore_Database_Command`: A naplózási szint az Entity Framework adatbázis parancsokhoz. Az alapértelmezett `Warning`.
 
 ### 🛡️ Biztonsági beállítások {#security-settings}
-- `AllowedHosts`: Pontáltal különített listája azoknak a host nevének, amelyeket az alkalmazásnak szolgáltatni szabad. Ez segít megelőzni az HTTP Host header támadásokat. Példa: `AllowedHosts=mailarchiver.example.com;www.mailarchiver.example.com`. **Fontos**: Ne használja a `*`-t termelési környezetben, mivel az kikapcsolja a host header validációt.
+- `AllowedHosts`: A host nevek pontosvesszővel tagolt listája, amelyeket az alkalmazás szolgálhat. Ez segít megelőzni az HTTP Host header támadásokat. Példa: `AllowedHosts=mailarchiver.example.com;www.mailarchiver.example.com`. **Fontos**: Ne használja a `*` értéket termelési környezetben, mivel az kikapcsolja a host header validációt.
 
 #### 🔐 Hitelesítő adatok tárolás alatti titkosítása {#credential-encryption-at-rest}
-A levelezési fiók hitelesítő adatai (IMAP jelszó, M365 client secret és MSA OAuth tokenek) titkosíthatók az adatbázisban. A titkosítási kulcsot **kívül** tárolják az adatbázis mellett (környezeti változó / Docker secret), így az adatbázis mentése önmagában nem elegendő a hitelesítő adatok olvasásához.
+A levelezési fiókok hitelesítő adatai (IMAP jelszó, M365 client secret és MSA OAuth tokenek) titkosíthatók az adatbázisban. A titkosítási kulcsot **kívül** tartjuk az adatbázison (környezeti változó / Docker secret), így az adatbázis mentés (dump) önmagában sem elég a hitelesítő adatok elolvasásához.
 
 - `Security__CredentialEncryptionKey`: Base64 kódolt 256 bites (32 byte) kulcs-titkosítási kulcs. Generáljon egyet a következővel:
   ```bash
   openssl rand -base64 32
   ```
-  A değeri beállítása környezeti változóként történik (ajánlott: `Security__CredentialEncryptionKey` a compose fájlban vagy a konténer környezetében). Az alkalmazás nem támogatja a `_FILE` stílusú Docker secreteket — ha Docker secretet használ, futtassa be (mount) azt, és töltse be a tartalmát a környezeti változóba az entrypointnél. Soha ne committeleyin kulcsot a `appsettings.json`-hoz. Ha egy kulcs konfigurálva van, a hitelesítő adatokat íráskor titkosítják, és egy háttérszolgáltatás egyszer le titkosítja a meglévő plain text hitelesítő adatokat.
-- `Security__EncryptAccountCredentials`: Az új/frissített hitelesítő adatértékek titkosításának engedélyezése vagy tiltása (true/false). Az alapértelmezett érték a `true`. Ha nincs konfigurálva kulcs, a hitelesítő adatok plain text formátumban kerülnek tárolásra, és a folyamat indításakor figyelmeztetés kerül a logokba — a meglévő telepítések nem érintettek, amíg kulcs nem érkezik meg.
-- `Security__CredentialEncryptionBackfill`: Arról, hogy a háttérszolgáltatás a folyamat indításakor le kell-e titkosítania a meglévő plain text hitelesítő adatokat (true/false). Az alapértelmezett érték a `true`. Nincs hatása, ha nincs konfigurálva kulcs.
-- `Security__CredentialEncryptionKeyPrevious`: Opcionális korábbi kulcs, amely csak az azzal titkosított értékek visszaoldásához használható (kulcscsere esetén). Az új értékeket mindig a `Security__CredentialEncryptionKey` kulccal titkosítják.
+  A değeri beállítása környezeti változóként (ajánlott: `Security__CredentialEncryptionKey` a compose fájlban vagy a konténer környezetében). Az alkalmazás nem támogatja a `_FILE` stílusú Docker secreteket — ha Docker secretet használ, mountolja azt, és töltse be a tartalmát a környezeti változóba az entrypointben. Soha ne committeleyin kulcsot a `appsettings.json`-be. Ha kulcs van konfigurálva, a hitelesítő adatokat íráskor titkosítják, és egy háttérszolgáltatás egyszer leírósítja a meglévő plain text hitelesítő adatokat.
+- `Security__EncryptAccountCredentials`: Az új/frissített hitelesítő adatértékek titkosításának engedélyezése vagy tiltása (true/false). Az alapért값 `true`. Ha nincs konfigurált kulcs, a hitelesítő adatok plain text formátumban vannak tárolva, és a folyamat megindulásakor figyelmeztetés kerül a logokba — a meglévő telepítések nem érintettek, amíg kulcsot nem adnak meg.
+- `Security__CredentialEncryptionBackfill`: Arról, hogy a háttérszolgáltatás a folyamat megindulásakor titkosítsa-e a meglévő plain text hitelesítő adatokat (true/false). Az alapért값 `true`. Ha nincs konfigurált kulcs, semmi nem történik.
+- `Security__CredentialEncryptionKeyPrevious`: Opcionális korábbi kulcs, amely csak az azzal titkosított értékek visszaengedéséhez szolgál (kulcscsere esetén). Az új értékeket mindig a `Security__CredentialEncryptionKey` kulccsal titkosítják.
 
-  > ⚠️ **Kulcscsere**: a csere után tartsa konfigurálva a `Security__CredentialEncryptionKeyPrevious`-at **amíg minden hitelesítő adat újrán nem íródódtik fel** (például a fiók szerkesztésével vagy egy automatikus OAuth token frissítéssel) — azంతో titkosított meglévő értékek *nem* kerülnek automatikusan az új kulccsal titkosítás alá. Amint eltávolítja a korábbi kulcsot, minden olyan hitelesítő adat, amely még azzal van titkosítva, olvashatatlan lesz, és újra kell adni. Amíg konfigurálva van, olyan biztonságosan kell kezelni, mint a jelenlegi kulcsot.
+  > ⚠️ **Kulcscsere (Key rotation)**: a csere után tartsa konfigurálva a `Security__CredentialEncryptionKeyPrevious` értéket **amíg minden hitelesítő adat nem íródta át** (például a fiók szerkesztésével vagy egy automatikus OAuth token frissítéssel) — az ól kulccsal titkosított meglévő értékek *nem* kerülnek automatikusan az új kulccsal újratitkosításra. Amint eltávolítja a korábbi kulcsot, minden olyan hitelesítő adat, amely még ezzel van titkosítva, olvashatatlanná válik, és újra kell megadni. Amíg konfigurálva van, olyan biztonságosan kell kezelni, mint a jelenlegi kulcsot.
 
-> ⚠️ **Tartsa biztonságban a kulcsot**: A kulcs nélkül a titkosított hitelesítő adatok nem állíthatók vissza, és újra kell őket adni. Mentse el a kulcsot az adatbázis mentéseivel együtt (de külön is) együtt.
+> ⚠️ **Tartja biztonságban a kulcsot**: A kulcs nélkül a titkosított hitelesítő adatok nem olvashatók vissza, és újra kell őket adni. Mentse el a kulcsot az adatbázis mentéseivel együtt (de különállóan)!
 >
-> 💡 **Meglévő telepítések**: Frissítsen biztonságosan — amíg nincs beállítva `Security__CredentialEncryptionKey`, semmi sem változik. A kulcsot akkor állítsa be, amikor készen áll; a meglévő plain text hitelesítő adatok olvashatóak maradnak, és a háttérben titkosítás alá kerülnek.
+> 💡 **Meglévő telepítések**: Frissítsen biztonságosan — amíg nincs beállítva `Security__CredentialEncryptionKey`, semmi sem változik. Csak akkor állítsa be a kulcsot, amikor készen áll; a meglévő plain text hitelesítő adatok olvashatók maradnak, és a háttérben titkosításra kerülnek.
 
 ### 🔐 OIDC Konfiguráció {#oidc-configuration}
 
-Az OpenID Connect hitelesítés részletes beállítási útmutatójához tekintse meg az [OIDC Implementation Guide](OIDC_Implementation.md) dokumentációt.
+Az OpenID Connect hitelesítés részletes beállítási útmutatóért lásd a [OIDC Implementation Guide](OIDC_Implementation.md) dokumentációt.
 
 #### Alapvető OIDC Beállítások {#basic-oidc-settings}
 - `OAuth__Enabled`: Az OIDC hitelesítés engedélyezése vagy tiltása (true/false)
 - `OAuth__Authority`: Az OpenID Connect authority URL (pl. https://sts.windows.net/{TENANT-ID}/ az Azure AD esetén)
-- `OAuth__ClientId`: Az identitásszolgáltató által kiosztott client ID
-- `OAuth__ClientSecret`: Az identitásszolgáltató által kiosztott client secret
-- `OAuth__DisplayName`: Opcionális megjelenítendő név az OIDC bejelentkezési gombon és az automatikus átirányítási oldalon (pl. `PocketID SSO`). Ha elhagyja, a generikus "Login with OAuth" felirat kerül használatra.
-- `OAuth__ClientScopes__0`: Az első kért scope az identitásszolgáltatótól (openid)
-- `OAuth__ClientScopes__1`: A második kért scope az identitásszolgáltatótól (profile)
-- `OAuth__ClientScopes__2`: A harmadik kért scope az identitásszolgáltatótól (email)
-- `OAuth__ResponseMode`: Az autorizációs kérés opcionális response mode-ja (`query`, `fragment` vagy `form_post`). Az alapértelmezett az `form_post`, az ASP.NET Core alapértelmezett értéke. Állítsa `query` értékre olyan szolgáltatók esetén, amelyek nem támogatják a `form_post`-ot, mint például a Synology SSO Server. Lásd: [Provider Compatibility](OIDC_Implementation.md#provider-compatibility).
-- `OAuth__AutoApproveUsers`: Az új OIDC felhasználók automatikus jóváhagyása manuális admin jóváhagyás nélkül (true/false). Az alapértelmezett az `false`.
+- `OAuth__ClientId`: Az azonosító szolgáltató által kiosztott client ID
+- `OAuth__ClientSecret`: Az azonosító szolgáltató által kiosztott client secret
+- `OAuth__DisplayName`: Opcionális megjelenítendő név, amely az OIDC bejelentkezési gombon és az automatikus átirányítási oldalon látható (pl. `PocketID SSO`). Ha elhagyja, az általános "Login with OAuth" felirat kerül alkalmazásra.
+- `OAuth__ClientScopes__0`: Az első kért scope az azonosító szolgáltatótól (openid)
+- `OAuth__ClientScopes__1`: A második kért scope az azonosító szolgáltatótól (profile)
+- `OAuth__ClientScopes__2`: A harmadik kért scope az azonosító szolgáltatótól (email)
+- `OAuth__ResponseMode`: Az engedélyezési kérelem opcionális válaszformátuma (`query`, `fragment` vagy `form_post`). Az alapértő érték `form_post`, az ASP.NET Core alapértelmezettje. `query` értékre kell állítani az olyan szolgáltatók esetén, amelyek nem támogatják a `form_post`-ot, például a Synology SSO Server. Lásd: [Provider Compatibility](OIDC_Implementation.md#provider-compatibility).
+- `OAuth__AutoApproveUsers`: Az új OIDC felhasználók automatikus jóváhagyása manuális admin jóváhagyás nélkül (true/false). Az alapértő érték `false`.
 
 #### Felhasználói Provisioning Beállítások {#user-provisioning-settings}
-- `OAuth__AutoApproveUsers`: Az új OIDC felhasználók automatikus jóváhagyása manuális admin jóváhagyás nélkül (true/false). Az alapértelmezett az `false`. Ha engedélyezve van, az OIDC szolgáltatón keresztül hitelesített felhasználók azonnal aktiválódnak és hozzáférhetnek az alkalmazáshoz. Ha letiltva van (alapértelmezett), az új OIDC felhasználók inaktív állapotban kerülnek létre, és adminisztrátori manuális aktiválást igényelnek. Részletes információkért lásd: [Auto-Approve OIDC Users](OIDC_Implementation.md#auto-approve-oidc-users).
-- `OAuth__AdminEmails__0`, `OAuth__AdminEmails__1`, stb.: E-mail címek, amelyek automatikusan adminisztrátorként kerülnek létre (provisioning). Az ezekkel az e-mail címekkel rendelkező felhasználók az első OAuth bejelentkezés során aktív adminisztrátorként kerülnek létre, megkerülve a normál jóváhagyási folyamatot. Az e-mail címek összehasonlítása nem érzékeny a kis- és nagybetűzésre.
+- `OAuth__AutoApproveUsers`: Az új OIDC felhasználók automatikus jóváhagyása manuális admin jóváhagyás nélkül (true/false). Az alapértő érték `false`. Ha engedélyezve van, az OIDC szolgáltatón keresztül hitelesített felhasználók azonnal aktiválódnak, és hozzáférhetnek az alkalmazáshoz. Ha letiltva van (alapértő), az új OIDC felhasználók inaktív állapotban kerülnek létreállításra, és szükség van a rendszergazda által történő manuális aktiválásra. Részletes információért lásd az [Auto-Approve OIDC Users](OIDC_Implementation.md#auto-approve-oidc-users) részt.
+- `OAuth__AdminEmails__0`, `OAuth__AdminEmails__1`, stb.: E-mail címek, amelyek automatikusan adminisztrátorként kerülnek provisionálva. Azok a felhasználók, akik ezekkel az e-mail címekkel rendelkeznek, az első OAuth bejelentkezéskor aktív adminisztrátorként kerülnek létreállításra, megkerülve a normál jóváhagyási folyamatot. Az e-mail címek összehasonlítása esetén nem számít a kis-/nagybetű.
 
 #### Jelszó nélküli Bejelentkezési Beállítások {#passwordless-login-settings}
-- `OAuth__DisablePasswordLogin`: A felhasználónév/jelszó bejelentkezés letiltása (true/false). Az alapértelmezett az `false`. Ha engedélyezve van, a jelszó űrlap el van rejtve, **és** a szerver minden jelszó POST kérést elutasít, így csak az OAuth bejelentkezés áll rendelkezésre. `OAuth__Enabled=true` szükséges hozzá. Ha az OAuth le van tiltva, ez a beállítás nem hatással bír.
-- `OAuth__AutoRedirect`: A felhasználók automatikus átirányítása az OAuth szolgáltatóhoz (true/false). Az alapértelmezett az `false`. A `OAuth__DisablePasswordLogin` értékének `true` állapotに kell lennie a `OAuth__DisablePasswordLogin` használatához. A felhasználók egy rövid betöltési képernyőt fognak látni, mielőtt átirányítanak.
+- `OAuth__DisablePasswordLogin`: A felhasználónév/jelszó bejelentkezés letiltása (true/false). Az alapértő érték `false`. Ha engedélyezve van, a jelszó űrlap elrejtésre kerül, **és** a szerver minden jelszó POST kérést elutasít, így csak az OAuth bejelentkezés áll rendelkezésre. A `OAuth__Enabled=true` beállítása szükséges hozzá. Ha az OAuth letiltva van, ez a beállítás nem hatással rendelkezik.
+- `OAuth__AutoRedirect`: A felhasználók automatikus átirányítása az OAuth szolgáltatóhoz (true/false). Az alapértő érték `false`. A működéshez szükséges, hogy a `OAuth__DisablePasswordLogin` értéke `true` legyen. A felhasználók egy rövid betöltési képernyőt fognak látni az átirányítás előtt.
 
 #### Példa: Teljes OIDC-First Konfiguráció {#example-full-oidc-first-configuration}
 ```yaml
@@ -571,13 +570,13 @@ environment:
 
 ## 🔐 Kestrel HTTPS konfiguráció (Opcionális) {#kestrel-https-configuration-optional}
 
-Bár az alkalmazáshoz HTTPS-sel ellátott reverse proxy keresztül kell valódi hozzáférést biztosítani, a Kestrel web szervert úgy is konfigurálhatja, hogy SSL/TLS tanúsítványokat használjon. Ez végrehajtott titkosítást biztosít a reverse proxy és az alkalmazás konténer között.
+Bár az alkalmazáshoz egy HTTPS-alapú reverse proxy keresztül valóHozzáférés a cél, a Kestrel web szervert úgy is konfigurálhatja, hogy SSL/TLS tanúsulványokat használjon. Ez végszélről végszélre védi a kommunikációt a reverse proxy és az alkalmazás konténer között.
 
 ### Konfigurációs lépések {#configuration-steps}
 
-1. **Generáljon vagy szerezzen egy SSL tanúsítványt** PFX formátumban (pl. `localhost.pfx`)
+1. **Generáljon vagy szerezzen be egy SSL tanúsulványt** PFX formátumban (például: `localhost.pfx`)
 
-2. **Adja meg a következő környezeti változókat** a `docker-compose.yml` fájlhoz a `mailarchive-app` szolgáltatáshoz:
+2. **Adja meg a következő környezeti változókat** a `docker-compose.yml` fájlban a `mailarchive-app` szolgáltatáshoz:
 
 ```yaml
 environment:
@@ -604,24 +603,24 @@ volumes:
   - ./certs:/https  # Certificate directory
 ```
 
-5. **Helyezze el a tanúsítvány fájlát** (pl. `localhost.pfx`) a gazdán futó rendszer `./certs` könyvtárában.
+5. **Helyezze el a tanúsítvány fájlát** (például: `localhost.pfx`) a gazdagép rendszerének `./certs` könyvtárában.
 
-### Környezeti változók magyarázata {#environment-variable-explanations}
+### A környezeti változók magyarázata {#environment-variable-explanations}
 
 - `Kestrel__Endpoints__Http__Url`: HTTP végpont URL (alapértelmezett: http://0.0.0.0:5000)
 - `Kestrel__Endpoints__Https__Url`: HTTPS végpont URL (alapértelmezett: https://0.0.0.0:5001)
-- `Kestrel__Endpoints__Https__Certificate__Path`: A PFX tanúsítvány fájlja elérési útja a konténeren belül
+- `Kestrel__Endpoints__Https__Certificate__Path`: A PFX tanúsítvány fájlának elérési útja a konténeren belül
 - `Kestrel__Endpoints__Https__Certificate__Password`: Jelszó a PFX tanúsítvány fájljához
 
-> 💡 **Megjegyzés**: Ez a konfiguráció opcionális. Ha HTTPS-sel ellátott reverse proxy-t használ (ajánlott), a reverse proxy és az alkalmazás közötti kommunikáció maradhat HTTP. Azonban érzékeny környezetben a maximális biztonság érdekében érdemes lehet a Kestrelen is engedélyezni a HTTPS-t, hogy az egész kommunikációs útvonalat titkosítsuk.
+> 💡 **Megjegyzés**: Ez a konfiguráció opcionális. Ha HTTPS-alapú reverse proxit használ (ajánlott), a reverse proxy és az alkalmazás közötti kommunikáció megmaradhat HTTP protokollon. Azonban érzékeny környezetekben a maximális biztonság érdekében érdemes lehet a Kestrelnél is engedélyezni a HTTPS-t az egész kommunikációs útvonal titkosításához érdekében.
 
-## 🔑 Titkos szavak kezelése a termeléshez {#secrets-management-for-production}
+## 🔑 Titkosítás kezelése a term production környezetben {#secrets-management-for-production}
 
-A szenet sensitive adatok, például az adatbázis jelszavak, admin hitelesítő adatok és OAuth client secret-ek közvetlen hardkodálása a `docker-compose.yml` fájlba biztonsági kockázatot jelent, különösen, ha a fájlt a verziókezelőbe (version control) beküldik. A javasolt megközelítés ezek az értékek externalizálása egy `.env` fájlba, amelyet a Docker Compose automatikusan betölt.
+A szenetit adatok, például az adatbázis jelszavak, admin hitelesítő adatok és OAuth client titkok közvetlen hardkodása a `docker-compose.yml` fájlban biztonsági kockázatot jelent, különösen, ha a fájl bekerül a verzióellenőrzésbe (version control). A javasolt megközelítés ezeknek az értékeknek a külső halegyítése egy `.env` fájlba, amelyet a Docker Compose automatikusan betölt.
 
 ### 📄 A `.env` fájl {#the-env-file}
 
-Hozzon létre egy `.env` fájlt a `docker-compose.yml` fájllal azonos könyvtárban a következő tartalommal:
+Hozzon létre egy `.env` fájlt ugyanabban a mappában, ahol a `docker-compose.yml` található, a következő tartalommal:
 
 ```env
 # Database
@@ -641,11 +640,11 @@ CREDENTIAL_ENCRYPTION_KEY=YourBase64Encoded32ByteKey
 KESTREL_CERT_PASSWORD=YourCertPassword
 ```
 
-**Fontos**: A Docker Compose automatikusan olvassa a `.env` fájlt ugyanabból a könyvtárból — nem kell manuálisan hivatkozni rá. A `.env` fájlban definiált összes változó elérhető a `docker-compose.yml` környezetben a `${VARIABLE_NAME}` szintaxis segítségével.
+**Fontos**: A Docker Compose automatikusan olvassa be a `.env` fájlt ugyanabból a mappából — nem kell manuálisan hivatkoznia rá. A `.env` fájlban definiált összes változó elérhető a `docker-compose.yml` számára a `${VARIABLE_NAME}` szintaxis segítségével.
 
 ### 🐳 Adaptált `docker-compose.yml` {#adapted-docker-composeyml}
 
-A telepítési lépésekben szereplő `docker-compose.yml`-at úgy kell adaptálni, hogy a hardkodált titkos szavak helyett helyőrzőket (placeholders) használjon:
+A telepítési lépésekből származó `docker-compose.yml`-at úgy kell adaptálni, hogy a hardkodált titkok helyett helyőrzőket (placeholders) használjon:
 
 ```yaml
 services:
@@ -678,9 +677,9 @@ services:
     # ... volumes, networks ...
 ```
 
-### 📋 `.env.example` sablon adminisztrátorok számára {#envexample-template-for-administrators}
+### 📋 `.env.example` sablon adminisztrátoroknak {#envexample-template-for-administrators}
 
-Hozzon létre egy `.env.example` fájlt a repository-ban, amely sablonként szolgál más adminisztrátorok számára. Ez a fájl helyőrző értékeket és dokumentációt tartalmaz, de **nem tartalmaz valódi titkos szavakat**:
+Hozzon létre egy `.env.example` fájlt a repellitoriumában, amely sablonként szolgál más adminisztrátorok számára. Ez tartalmaz helyőrző értékeket és dokumentációt, de **nem tartalmaz valódi titkokat**:
 
 ```env
 # ============================================
@@ -708,16 +707,16 @@ CREDENTIAL_ENCRYPTION_KEY=change_me_base64_32_byte_key
 
 ### ✅ Best Practices {#best-practices}
 
-- **Használjon `.env.example`-ot sablonként**
+- **Használja a `.env.example`-ot sablonként**
 - **Állítson be szigorú fájlengedélyeket** — Korlátozza a hozzáférést a `.env` fájlhoz:
   ```bash
   chmod 600 .env
   ```
-- **Használjon erős jelszavakat** — Generáljon hosszú, véletlenszerű jelszavakat (legalább 16 karakterrel), betűkkel, számokkal és speciális karakterekkel kevert formában.
-- **Korlátozza a `.env` fájlhoz való hozzáférést** — Csak a Docker Compose-t futtató felhasználónak kell legyen olvasási jogosultsága a `.env` fájlhoz.
+- **Használjon erős jelszavakat** — Generáljon hosszú, véletlenszerű jelszavakat (legalább 16 karakter), betűkkel, számokkal és speciális karakterekkel keverve.
+- **Korlátozza a `.env` fájlhoz való hozzáférést** — Csak a Docker Compose-t futtató felhasználónak kell legyen olvasási jogai a `.env` fájlhoz.
 
 ## 🔒 Biztonsági megjegyzések {#security-notes}
 
-- Használjon erős jelszavakat, és változtassa meg az alapértelmezett hitelesítő adatokat. A jelszavak legalább 12 karakter hosszúak powin быть, és tartalmazniuk kell nagybetűket, kisbetűket, számokat és speciális karaktereket. Kerülje a gyakori szavak vagy könnyen megக்erülhető információk használatát.
-- Üretelmi környezetben fontoljon fel HTTPS implementálását reverse proxy segítségével.
-- A PostgreSQL adatbázis rendszeres mentése javasolt. A részletes mentési és visszaállítási folyamatokért lászd a [Backup and Restore Guide](BackupRestore.md) dokumentációt.
+- Használjon erős jelszavakat, és változtassa meg a gyári hitelesítő adatokat. A jelszavak legalább 12 karakter hosszúak legyenek, és tartalmazzanak nagy és kisbetűket, számokat és speciális karaktereket. Kerülje a gyakori szavak vagy könnyen meg đoánható információk használatát.
+- Üretőben fontos lehet HTTPS implementálása reverse proxy segítségével
+- A PostgreSQL adatbázis rendszeres mentése javasolt. A részletes mentési és visszaállítási folyamatokért lásd a [Backup and Restore Guide](BackupRestore.md) dokumentációt.

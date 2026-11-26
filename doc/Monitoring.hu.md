@@ -1,27 +1,27 @@
 # Egészségállapot és metrikák {#health-and-metrics}
 
-A Mail-Archiver egészségállapot-végpontokat (health endpoints) és egy Prometheus-kompatibilis metrikák-végpontot tesz elérhetővé a külső monitorozás céljából. Mindkettő a REST API része: a `/api/v1` alatt érhetőek el, API kulcsot igényelnek, valamint azt a feltételt, hogy a kulcs egy adminisztrátorhoz tartozzon. Nincs anonim egészségállapot-útvonal és nincs külön monitorozási token.
+A Mail-Archiver egészségállapot-végpontokat (health endpoints) és egy Prometheus-kompatibilis metrikavégpontot tesz elérhetővé külső monitorozás céljából. Mindkettő a REST API része: a `/api/v1` alatt érhetőek el, API kulcsot igényelnek, és a kulcsnak adminisztrátornak kell byćnie. Nincs anonim egészségállapot-útvonal és nincs külön monitorozási token.
 
-## Követelmények {#requirements}
+## Requirements {#requirements}
 
 | Követelmény | Miért |
 |---|---|
-| `Api:Enabled=true` | Az endpointek a `/api/` alatt helyezkednek el. Ha az API le van tiltva, az authentication middleware 404-es választ ad. |
-| Egy admin API key | Az egész példányra vonatkozó állapotot mutatják ki az egészségügyi és mérési adatok, ezért egy nem admin kulcs 403-as választ kap. |
-| `Metrics:Enabled=true` | A metrics endpoint opcionális. Az egészségügyi adatok működnek nélküle is. |
+| `Api:Enabled=true` | A végpontok a `/api/` alatt vannak. Az API letiltásával az authentication middleware 404-et ad vissza. |
+| Egy admin API key | A health és a metrics az egész példányra vonatkozó állapotot mutatja meg, ezért a nem admin kulcs 403-at kap. |
+| `Metrics:Enabled=true` | A metrics végpont opcionális (opt-in). A health a nélküle is működik. |
 
-Hozzon létre egy kulcsot az **API Keys** alatt, miközben administratorként van bejelentkezve. Használjon külön kulcsot és, ha lehetséges, külön admin felhasználót a monitorozáshoz, hogy a kulcs cseréje vagy a felhasználó letiltása ne befolyásolja egy személy hozzáférését.
+Hozzon létre egy kulcsot a **API Keys** alatt, miközben adminisztrátorként van bejelentkezve. Használjon külön kulcsot és, amennyire lehetséges, egy külön admin felhasználót a monitorozáshoz, hogy a kulcs megcserélése vagy a felhasználó letiltása ne befolyásolja egy személy hozzáférését.
 
 ## Endpontok {#endpoints}
 
-| Metódus | Útvonal | Cél | Siker | Hibák |
+| Metódus | Útvonal | Cél | Sikeres | Hibák |
 |---|---|---|---|---|
 | GET | `/api/v1/health/live` | A folyamat életben van | 200 | 401, 403 |
 | GET | `/api/v1/health/ready` | A PostgreSQL elérhető és a schema jelen van | 200 | 503, 401, 403 |
-| GET | `/api/v1/health` | Aggregált állapot, beleértve a szinkron frissességét | 200 | 503, 401, 403 |
+| GET | `/api/v1/health` | Összesített állapot, beleértve a szinkron frissességét | 200 | 503, 401, 403 |
 | GET | `/api/v1/metrics` | Prometheus szöveges formátum | 200 | 404, ha letiltva van, 401, 403 |
 
-Mind a négy ugyanazt a hitelesítést használja, mint a API többi része:
+Mind a négy ugyanazt a hitelesítésmét használja, mint a többi API:
 
 - hiányzó vagy érvénytelen kulcs: `401` `WWW-Authenticate: Bearer` értékkel
 - érvényes kulcs admin szerepkör nélkül: `403` `application/problem+json` értékkel
@@ -38,7 +38,7 @@ curl -H "Authorization: Bearer <admin-key>" \
 {"status":"Healthy"}
 ```
 
-A Liveness nem érinti a PostgreSQL-t. Csak azt igazolja, hogy a folyamat elfogad kéréseket, így az adatbázis kiesése nem teszi lehetővé, hogy a Docker vagy a Kubernetes újraindítsa az egészséges folyamatot.
+A Liveness nem érinti a PostgreSQL-t. Csak azt igazolja, hogy a folyamat elfogad kéréseket, így egy adatbázis-leállás nem okozza azt, hogy a Docker vagy a Kubernetes újraindítsa az egészséges folyamatot.
 
 ### Readiness {#readiness}
 
@@ -51,7 +51,7 @@ curl -i -H "Authorization: Bearer <admin-key>" \
 {"status":"Healthy","checks":{"database":"Healthy"}}
 ```
 
-A ellenőrzés megnyitja a saját PostgreSQL kapcsolatát, megkéri az archive schemát, majd két másodperc után feladja a kérést. `503` értéket ad vissza, ha az adatbázis nem elérhető, vagy ha hiányzik a `mail_archiver` schema. Használja ezt az endpointet ahhoz, hogy eldönölje, egy példány pedig fogadjon-e forgalmat.
+A ellenőrzés megnyitja a saját PostgreSQL kapcsolatát, megkérdezi az archive schemat, és két másodperc után feladja a kérést. `503` értéket ad vissza, ha az adatbázis nem elérhető, vagy hiányzik a `mail_archiver` schema. Használja ezt az endpontot ahhoz, hogy döntse el, az adott példány fogadjon-e forgalmat.
 
 ### Aggregate health {#aggregate-health}
 
@@ -64,52 +64,52 @@ curl -i -H "Authorization: Bearer <admin-key>" \
 {"status":"Degraded","checks":{"database":"Healthy","sync":"Degraded"}}
 ```
 
-Ez futtatja az adatbázis-ellenőrzést és a szinkron frissesség-ellenőrzést. A elavult szinkron miatt a jelentés `Degraded` lesz, ami továbbra is HTTP 200, mivel a folyamat továbbra is képes kéréseket kiszolgálni. Csak a `Unhealthy` ad vissza `503` értéket.
+Ez futtatja az adatbázis-ellenőrzést és a szinkron frissességének ellenőrzését is. A elavult (stale) szinkron miatt a jelentés `Degraded` lesz, ami megőrzi a HTTP 200 állapotot, mivel a folyamat továbbra is képes kéréseket kiszolgálni. Csak a `Unhealthy` ad vissza `503` értéket.
 
-A szinkron ellenőrzés alapértelmezés szerint letiltva van. Állítsa a `Health:SyncStaleMinutes` értéket arra a percre, amely után egy engedélyezett fiók elavultnak számít:
+A szinkron ellenőrzés alapértelmezés szerint letiltva van. Állítsa a `Health:SyncStaleMinutes` értéket annak a percek számára, amely után egy engedélyezett fiók elavultnak számít:
 
 ```yaml
 Health:
   SyncStaleMinutes: 90
 ```
 
-Egy fiók, amely soha nem szinkronizált, a `LastSync` alapértelmezett értékkel rendelkezik, így amint az ellenőrzés engedélyezésre kerül, elavultnak számít.
+Egy fiók, amely soha nem szinkronizált, a `LastSync` alapértelmezett értékkel rendelkezik, így amint az ellenőrzés engedélyezésre kerül, elavultnak fog számítani.
 
 ## Metrics {#metrics}
 
-A végpont a Prometheus szöveges kiállítási formátumot (0.0.4-es verzió) adja vissza:
+A végpont a Prometheus szöveges kiadás (exposition) formátumát adja vissza (0.0.4-es verzió):
 
 ```bash
 curl -H "Authorization: Bearer <admin-key>" \
   https://host/api/v1/metrics
 ```
 
-`Metrics:Enabled` értéke `true` kell, hogy legyen. A `Metrics:RefreshMinutes` határozza meg, milyen gyakran készül el újra a snapshot (alapértelmezett 5, az 1 alatti értékeket 1-re emeli). Maga a scrape csak olvassa a snapshotot, így a Prometheus lekérdezés nem válthat át teljes tábla-szkenningre.
+`Metrics:Enabled` értékel `true`. A `Metrics:RefreshMinutes` szabályozza, milyen gyakran készül el a snapshot (alapértelmezetten 5, az 1 alatti értékek 1-re emelődnek). Mag本身 a scrape csak az snapshotot olvassa ki, így a Prometheus lekérdezés nem válhat táblavizsgálatossá (table scan).
 
-| Metric | Type | Labels | Meaning |
+| Metrika | Típus | Címkék | Jelentés |
 |---|---|---|---|
-| `mailarchiver_up` | gauge | | 1, ha a metrics endpoint válaszol. |
+| `mailarchiver_up` | gauge | | 1, amikor a metrikas végpont válaszol. |
 | `mailarchiver_metrics_ready` | gauge | | 1 az első sikeres snapshot után. |
 | `mailarchiver_db_up` | gauge | | 1, amikor az utolsó frissítés elérte a PostgreSQL-t. |
-| `mailarchiver_metrics_refresh_timestamp_seconds` | gauge | | Az utolsó sikeres frissítés Unix időpontja. |
-| `mailarchiver_emails` | gauge | | Az archivált e-mailek száma. |
-| `mailarchiver_accounts` | gauge | `state` (`enabled`, `disabled`) | A posta-fiókok száma. |
-| `mailarchiver_raw_messages` | gauge | | A tárolt eredeti üzenetek száma. |
+| `mailarchiver_metrics_refresh_timestamp_seconds` | gauge | | Az utolsó sikeres frissítés Unix időbélyeg. |
+| `mailarchiver_emails` | gauge | | Archívumba került e-mailek száma. |
+| `mailarchiver_accounts` | gauge | `state` (`enabled`, `disabled`) | Mail fiókok száma. |
+| `mailarchiver_raw_messages` | gauge | | Tárolt eredeti üzenetek száma. |
 | `mailarchiver_raw_messages_enabled` | gauge | | 1, ha a `RawMessages:Enabled` be van állítva. |
-| `mailarchiver_raw_messages_missing` | gauge | | Archivált e-mailek tárolt eredeti üzenet nélkül. |
-| `mailarchiver_account_never_synced` | gauge | `account_id`, `account`, `enabled` | 1, ha a fiók még soha nem végzett sikeres szinkronizálást. |
-| `mailarchiver_account_last_sync_timestamp_seconds` | gauge | `account_id`, `account`, `enabled` | Az utolsó sikeres szinkronizálás Unix időpontja. Hiányzik azoknál a fiókoknál, amelyek sosem szinkronizáltak. |
-| `mailarchiver_account_sync_age_seconds` | gauge | `account_id`, `account`, `enabled` | Másodpercek az utolsó sikeres szinkronizálás óta. Hiányzik azoknál a fiókoknál, amelyek sosem szinkronizáltak. |
-| `mailarchiver_raw_message_failures_total` | counter | `reason` (`size`, `write`, `no_capture`) | Eredeti üzenetek, amelyek nem tárolhatók voltak. |
-| `mailarchiver_sync_failures_total` | counter | `reason` (`failed`, `rate_limited`, `timeout`) | Szinkronizálási futások, amelyek hibával, sebességkorlátozással vagy időtúllépéssel kếttek véget. |
+| `mailarchiver_raw_messages_missing` | gauge | | Archív e-mailek tárolt eredeti üzenet nélkül. |
+| `mailarchiver_account_never_synced` | gauge | `account_id`, `account`, `enabled` | 1, ha a fiók még soha nem végezt sikeres szinkronizálást. |
+| `mailarchiver_account_last_sync_timestamp_seconds` | gauge | `account_id`, `account`, `enabled` | Az utolsó sikeres szinkronizálás Unix időbélyeg. Hiányzik azoknál a fiókoknál, amelyek sosem szinkronizáltak. |
+| `mailarchiver_account_sync_age_seconds` | gauge | `account_id`, `account`, `enabled` | Utolsó sikeres szinkronizálás óta eltelt másodpercek. Hiányzik azoknál a fiókoknál, amelyek sosem szinkronizáltak. |
+| `mailarchiver_raw_message_failures_total` | counter | `reason` (`size`, `write`, `no_capture`) | Eredeti üzenetek, amelyek nem tárolhatóak voltak. |
+| `mailarchiver_sync_failures_total` | counter | `reason` (`failed`, `rate_limited`, `timeout`) | Szinkronizációs futások, amelyek hibával, sebességkorlátozással vagy timeouttal értek véget. |
 
 Megjegyzések:
 
-- A counterek folyamat-helyi jellegűek, és egy újraindítás után 0-ról indulnak. A Prometheus `rate()` és `increase()` értékek ezt megfelelően kezelik.
-- A `mailarchiver_raw_messages_missing` minden olyan archivált e-mailt számlál, amelyhez nincs tárolt eredeti üzenet, beleértve azokat az e-maileket is, amelyeket a `RawMessages:Enabled` bekapcsolása előtt archiváltak. Egy olyan telepítésben, amely az első naptól kezdve tárolt eredeti üzeneteket, ez jelzi a releváns különbséget.
-- A `mailarchiver_account_sync_age_seconds` nem valódi hátralék (backlog). Azt jelzi, hogy mikor fejeződött be az utolsó szinkronizálás, nem azt, hogy hány üzenet vár a szerveren.
-- A `mailarchiver_account_never_synced` azért létezik, mert egy sosem szinkronizált fiók nem rendelkezik `sync_age` sorozattal. Egy kizárólag a `sync_age` alapján készült riasztás lemaradna róla.
-- A végpont tartalmazza a fiókneveket és az azonosítókat, de nem tartalmaz e-mail tartalmat, tárgyakat vagy hitelesítő adatokat.
+- A számlálók (counters) folyamat-lokálisak, és egy újraindítás után 0-ról indulnak. A Prometheus `rate()` és `increase()` értékek ezt megfelelően kezelik.
+- A `mailarchiver_raw_messages_missing` minden olyan archív e-mailt megszámol, amelyhez nincs nyers üzenet, beleértve azokat az e-maileket is, amelyek a `RawMessages:Enabled` bekapcsolása előtt kerültek az archívumba. Olyan telepítés esetén, amely az első naptól kezdve tárolt eredeti üzeneteket, ez a releváns különbség.
+- A `mailarchiver_account_sync_age_seconds` nem valódi hátralék (backlog). Azt jelzi, mikor fejeződött be az utolsó szinkronizálás, nem pedig azt, hogy hány üzenet vár a szerveren.
+- A `mailarchiver_account_never_synced` azért létezik, mert egy sosem szinkronizált fióknak nincs `sync_age` sorozata. Egy riasztás kizárólag a `sync_age` alapján ezt kihagyná.
+- A végpont tartalmaz fiókneveket és azonosítókat, de nem tartalmaz e-mail tartalmakat, tárgyakat vagy hitelesítő adatokat.
 
 ## Prometheus {#prometheus}
 
@@ -123,7 +123,7 @@ scrape_configs:
       - targets: ["mail-archiver:5000"]
 ```
 
-A hitelesítési fájl a nyers kulcsot tartalmazza, `Bearer` prefix nélkül. A jogosultságokat korlátozzák a Prometheus felhasználóra.
+A hitelesítő adatokat tartalmazó fájl a nyers kulcsot tartalmazza, a `Bearer` prefix nélkül. A fájl jogosultságait korlátozza a Prometheus felhasználó számára.
 
 Példa riasztások:
 
@@ -155,59 +155,49 @@ groups:
 
 ## Docker health check {#docker-health-check}
 
-A kép és a benne lévő `docker-compose.yml` ellenőrzi a `/api/v1/health/live`-et egy admin kulccsal. A kulcs nem létezhet az első indítás előtt, ezért az első indítás nélküle fut, és a konténer `unhealthy`-t jelent, amíg a kulcsot be nem állítják.
+A kép egy liveness ellenőrzést tartalmaz, amely hitelesítés nélkül hívja a gyökér utat (root path). A gyökér út a kontrollerek futása előtt átirányítja a bejelentkezési oldalra, így az ellenőrzéshez nincs szükség API kulcsra, működik a REST API kikapcsolva mellett, és nem érinti a PostgreSQL-t. Az új telepítések és frissítések `healthy` állapotot jelentenek konfiguráció nélkül.
 
-1. Indítsa el a stacket egyszer úgy, hogy a `MAILARCHIVER_HEALTH_API_KEY` üres.
-2. Jelentkezzen be adminisztrátorként, és hozzon létre egy `monitoring-health` nevű kulcsot az **API Keys** alatt.
-3. Helyezze a kulcsot a `.env`-be:
+```bash
+docker inspect --format '{{.State.Health.Status}}' <container>
+```
 
-   ```dotenv
-   MAILARCHIVER_HEALTH_API_KEY=<key>
-   ```
+Az ellenőrzés igazolja, hogy a folyamat elfogad HTTP kéréseket. Ez azonban nem igazolja, hogy a PostgreSQL elérhető. Ehhez hívja a `/api/v1/health/ready`-t egy külső monitorozó hostról admin API kulccsal és `Api:Enabled=true`; a végpont 503-as választ ad, ha az adatbázis le van állítva.
 
-4. Hozza létre újra a konténert a `docker compose up -d` segítségével.
-5. Ellenőrizze az állapotot:
+A csomagolt `docker-compose.yml` nem felülírja az ellenőrzést. Adj hozzá egy `healthcheck` blokkot a szolgáltatáshoz, ha más intervallumra, timeoutra vagy parancsra van szükséged, vagy állítsd be a `healthcheck: disable: true`-ot a ellenőrzés kikapcsolásához.
 
-   ```bash
-   docker inspect --format '{{.State.Health.Status}}' <container>
-   ```
-
-A `Api:Enabled=true` szükséges. Ha az API letiltva van, a health check 404-et kap, és a konténer unhealthy állapotban marad.
-
-Ha nem szeretne admin kulcsot a konténer környezetében, használjon TCP ellenőrzést a konténerben, és hívja meg a `/api/v1/health/ready`-at egy külső monitorozó hostról a kulccsal.
-A TCP ellenőrzés nem tudja megmondani, hogy a PostgreSQL elérhető-e.
+A korábbi `MAILARCHIVER_HEALTH_API_KEY` változó már nem használatos. Távolítsd el a meglévő compose fájlokból és `.env` fájlokból; a helyén hagyva semmi kárt nem okoz.
 
 ## Biztonság {#security}
 
-- A kulcs admin kulcs. Az API révén az egész archívumot be tudja olvasni. Kezelje úgy, mint egy
+- A kulcs egy admin kulcs. Az API keresztül az egész archivát olvashatja. Kezelje úgy, mint egy
   adminisztrátori jelszót.
-- Használjon külön admin felhasználót a monitorozáshoz. Ennek a felhasználónak a letiltása
-  letiltolja az állapotellenőrzést (health check) és a metrikákat is.
-- Tartsa a kulcsot egy fájlban vagy Docker secret-ben, soha ne használja query paraméterként. A query
-  paraméterek a proxy és az hozzáférési naplókban (access logs) végződnek.
+- Használjon külön admin felhasználót a monitorozáshoz. Az adott felhasználó letiltása a
+  külső health és metrics végpontokat tilts le, nem pedig a konténer saját liveness ellenőrzését.
+- A kulcsot tárolja fájlban vagy Docker secret formájában, soha ne használja query paraméterként. A query paraméterek
+  a proxy és az hozzáférési logokba kerülnek.
 - Korlátozza a hozzáférést a monitoring hosthoz vagy a Prometheus hálózathoz. Az API kulcs a
-  hitelesítés, nem hálózatbeli határok helyettesítője.
-- Az állapotellenőrző végpontok (health endpoints) csak állapot-szövegeket (status strings) térítenek vissza.
-  A kivétel részletei az alkalmazás naplójában (application log) maradnak.
+  hitelesítés, nem pedig a hálózati határok helyettesítője.
+- A health végpontok csak státusz szinteket adnak vissza. A hibarészletek az
+  alkalmazás logjában maradnak.
 
 ## Hibaelégítés {#troubleshooting}
 
 | Tünet | Ok | Megoldás |
 |---|---|---|
 | 404 mind a négy útvonalon | `Api:Enabled=false` | Állítsa be a `Api:Enabled=true` értéket, majd indítsa újra. |
-| 404 csak a `/metrics` útvonalon | `Metrics:Enabled=false` | Állítsa be a `Metrics:Enabled=true` értéket, majd indítsa újra. |
-| 401 | Hiányzó, rossz, visszavonott vagy lejárt kulcs | Hozzon létre új kulcsot, és ellenőrizze a `Authorization: Bearer` header értéket. |
+| Csak a `/metrics` útvonalon 404 | `Metrics:Enabled=false` | Állítsa be a `Metrics:Enabled=true` értéket, majd indítsa újra. |
+| 401 | Hiányzó, hibás, visszavonott vagy lejárt kulcs | Hozzon létre egy új kulcsot, és ellenőrizze a `Authorization: Bearer` header értéket. |
 | 403 | A kulcs nem admin felhasználóhoz tartozik | Használjon admin kulcsot. |
-| `mailarchiver_metrics_ready 0` több mint egy percig | A frissítő szolgáltatás még nem fejezte be az első futást, vagy nem éri el az adatbázist | Ellenőrizze az alkalmazás logjait a `Could not refresh the monitoring metrics snapshot` után. |
-| `mailarchiver_db_up 0` | Az utolsó frissítés elbukott | Ellenőrizze a PostgreSQL-t és a connection stringet. A régi számok addig maradnak meg, amíg meg nem történik a következő sikeres frissítés. |
-| A konténer unhealthy állapotban marad | Üres kulcs vagy `Api:Enabled=false` | Állítsa be mindkettőt, majd hozzon létre újra konténert. |
-| A `health/ready` 503-as kódot ad vissza | A PostgreSQL nem elérhető vagy hiányzik a schema | Ellenőrizze az adatbázist, és azt is, hogy lefutottak-e a migrációk. |
+| `mailarchiver_metrics_ready 0` több mint egy percnél | A frissítési szolgáltatás még nem fejezte be az első futást, vagy nem éri el az adatbázist | Ellenőrizze az alkalmazás logjait a `Could not refresh the monitoring metrics snapshot` után. |
+| `mailarchiver_db_up 0` | Az utolsó frissítés sikertelen volt | Ellenőrizze a PostgreSQL-t és a connection stringet. A régi számok addig maradnak, amíg nincs következő sikeres futás. |
+| A konténer unhealthy állapotban marad | Üres kulcs vagy `Api:Enabled=false` | Állítsa be mindkettőt, majd hozzon létre újra a konténert. |
+| A `health/ready` 503-as kóddal tér vissza | A PostgreSQL nem elérhető vagy hiányzik a schema | Ellenőrizze az adatbázist, és azt is, hogy futtak-e migrációk. |
 
-## Amit a metrikák nem fednek le {#what-the-metrics-do-not-cover}
+## Mit nem fednek le a metrikák {#what-the-metrics-do-not-cover}
 
 - IMAP vagy Graph elérhetőség fiókonként. A szinkronizálási kor (sync age) csak azt mutatja, hogy az utolsó futás régebbi.
-- A szerveren várakozó üzenetek száma, a valódi háttérfolyam (backlog).
-- Minden tárolt eredeti üzenet ellenőrzési összegének (checksum) ellenőrzése. Használja ehhez a meglévő nyers üzenet ellenőrzést (raw message verification) és az árva tisztítást (orphan cleanup).
-- Mappánkénti számok vagy postafiók méretei.
+- A szerveren várakozó üzenetek száma, a valódi hátralék (backlog).
+- Minden tárolt eredeti üzenet ellenőrző összegének (checksum) ellenőrzése. Ehhez használja a meglévő nyers üzenetellenőrzést (raw message verification) és az oszlop nélküli tisztítást (orphan cleanup).
+- Mappánkénti számok vagy postaíró méretek.
 
-Ezekhez használja a fiók oldalt, a háttérfolyamok (background jobs) oldalt és az alkalmazás naplóját (application log).
+Ezekhez használja a fiókoldalt (account page), a háttérfolyamat oldalát (background jobs page) és az alkalmazásnaplót (application log).
