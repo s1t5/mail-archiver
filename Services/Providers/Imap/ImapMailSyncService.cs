@@ -1537,8 +1537,19 @@ namespace MailArchiver.Services.Providers.Imap
                                         rawMessageId, normalizedMessageId);
                                 }
 
-                                var isArchived = await _context.ArchivedEmails
-                                    .AnyAsync(e => e.MailAccountId == account.Id && candidateMessageIds.Contains(e.MessageId));
+                                // Subject and date must match too, otherwise a mail with a
+                                // reused Message-ID is deleted without being archived (#622).
+                                // Null bytes are removed like PreCleanMessage does before archiving.
+                                var envelopeDate = summary.Envelope?.Date;
+                                var archivedMatch = new MessageIdMatch(
+                                    candidateMessageIds,
+                                    isHeaderMessageId: !string.IsNullOrEmpty(rawMessageId),
+                                    MailContentHelper.RemoveNullBytes(summary.Envelope?.Subject),
+                                    envelopeDate.HasValue ? _dateTimeHelper.ConvertToDisplayTimeZone(envelopeDate.Value) : null);
+
+                                var isArchived = await archivedMatch.AnyConfirmedAsync(_context.ArchivedEmails
+                                    .Where(e => e.MailAccountId == account.Id)
+                                    .Where(archivedMatch.Candidates));
 
                                 if (isArchived)
                                 {

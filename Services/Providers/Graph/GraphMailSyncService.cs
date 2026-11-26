@@ -890,7 +890,7 @@ namespace MailArchiver.Services.Providers.Graph
                         var messagesResponse = await graphClient.Users[account.EmailAddress].MailFolders[folder.Id].Messages.GetAsync((requestConfiguration) =>
                         {
                             requestConfiguration.QueryParameters.Filter = filter;
-                            requestConfiguration.QueryParameters.Select = new string[] { "id", "internetMessageId", "subject", "receivedDateTime" };
+                            requestConfiguration.QueryParameters.Select = new string[] { "id", "internetMessageId", "subject", "sentDateTime", "receivedDateTime" };
                             requestConfiguration.QueryParameters.Top = _batchOptions.BatchSize;
                         });
 
@@ -954,7 +954,7 @@ namespace MailArchiver.Services.Providers.Graph
                                         continue;
                                     }
 
-                                    // MEMORY FIX: Existence check only – use AsNoTracking with an Id
+                                    // MEMORY FIX: Existence check only – use AsNoTracking with a
                                     // projection so the change tracker does not accumulate full
                                     // ArchivedEmail entities over the whole deletion run.
                                     //
@@ -964,14 +964,16 @@ namespace MailArchiver.Services.Providers.Graph
                                     var messageIdCandidates = MailContentHelper
                                         .MessageIdMatchCandidates(normalizedMessageId).ToList();
 
-                                    var archivedEmailId = await _context.ArchivedEmails
+                                    //
+                                    // Subject and date must match too, otherwise a mail with a
+                                    // reused Message-ID is deleted without being archived (#622).
+                                    var archivedMatch = _archiver.CreateMessageIdMatch(message, messageIdCandidates);
+                                    var isArchived = await archivedMatch.AnyConfirmedAsync(_context.ArchivedEmails
                                         .AsNoTracking()
                                         .Where(e => e.MailAccountId == account.Id)
-                                        .Where(e => messageIdCandidates.Contains(e.MessageId))
-                                        .Select(e => (int?)e.Id)
-                                        .FirstOrDefaultAsync();
+                                        .Where(archivedMatch.Candidates));
 
-                                    if (archivedEmailId != null)
+                                    if (isArchived)
                                     {
                                         messageIdsToDelete.Add(message.Id!);
                                         _logger.LogDebug("Marking email with Message-ID {MessageId} (raw: {RawMessageId}) for deletion from folder {FolderName}",

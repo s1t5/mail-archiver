@@ -110,24 +110,13 @@ public class SentDateOverflowTests
     }
 
     /// <summary>
-    /// The predicate as it now stands in MailImporter and GraphMailArchiver: both sides of the
-    /// subtraction restricted to the plausible range.
+    /// The fingerprint predicate the archiving pipelines use.
     /// </summary>
     private static IQueryable<ArchivedEmail> ClampedDuplicateQuery(
         MailArchiverDbContext ctx, int accountId, DateTime checkSentDate)
-    {
-        var toleranceSeconds = MailMatchKey.TimestampToleranceSeconds;
-        var minSentDate = DateTimeHelper.MinimumPlausibleSentDate;
-        var maxSentDate = DateTimeHelper.MaximumPlausibleSentDate;
-
-        return ctx.ArchivedEmails
+        => ctx.ArchivedEmails
             .Where(e => e.MailAccountId == accountId)
-            .Where(e =>
-                e.From == From && e.To == To && e.Subject == Subject &&
-                Math.Abs(((e.SentDate < minSentDate ? minSentDate :
-                            e.SentDate > maxSentDate ? maxSentDate : e.SentDate)
-                          - checkSentDate).TotalSeconds) < toleranceSeconds);
-    }
+            .Where(ArchivedEmailMatch.ByFingerprint(From, To, Subject, checkSentDate));
 
     [Fact]
     public async Task UnclampedSubtraction_AgainstFarFutureSentDate_Overflows()
@@ -211,6 +200,29 @@ public class SentDateOverflowTests
 
         // One second apart: inside the two-second window, so the duplicate must still be found.
         var result = await ClampedDuplicateQuery(ctx, account.Id, stored.AddSeconds(1)).ToListAsync();
+
+        Assert.Single(result);
+
+        await scope.RollbackAsync();
+    }
+
+    [Fact]
+    public async Task ClampedQuery_ClampedIncomingDate_MatchesYearOneRow()
+    {
+        await using var scope = await _fixture.CreateTransactionalContextAsync();
+        var ctx = scope.Context;
+
+        var account = NewAccount();
+        ctx.MailAccounts.Add(account);
+        await ctx.SaveChangesAsync();
+
+        // A year-1 row counts as the lower bound, like a clamped incoming date.
+        ctx.ArchivedEmails.Add(NewEmail(account.Id, new DateTime(1, 1, 1, 0, 0, 0)));
+        await ctx.SaveChangesAsync();
+
+        var clampedIncoming = DateTimeHelper.ClampToPlausibleRange(new DateTime(1, 1, 1));
+
+        var result = await ClampedDuplicateQuery(ctx, account.Id, clampedIncoming).ToListAsync();
 
         Assert.Single(result);
 

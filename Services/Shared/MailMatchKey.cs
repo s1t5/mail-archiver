@@ -1,5 +1,7 @@
 // Services/Shared/MailMatchKey.cs
 using MailArchiver.Models;
+using MailArchiver.Utilities;
+using System.Text.RegularExpressions;
 
 namespace MailArchiver.Services.Shared
 {
@@ -132,6 +134,50 @@ namespace MailArchiver.Services.Shared
         /// </summary>
         public static bool WithinTolerance(DateTime a, DateTime b)
             => Math.Abs((a - b).TotalSeconds) < TimestampToleranceSeconds;
+
+        /// <summary>
+        /// Allowed send date difference for a Message-ID match. One day, because older rows can
+        /// be off by a timezone offset.
+        /// </summary>
+        public const double MessageIdDateToleranceSeconds = 24 * 60 * 60;
+
+        /// <summary>
+        /// True for dates on or outside the plausible range. Missing or invalid dates are stored
+        /// there.
+        /// </summary>
+        public static bool IsUnknownSentDate(DateTime sentDate)
+            => sentDate <= DateTimeHelper.MinimumPlausibleSentDate
+               || sentDate >= DateTimeHelper.MaximumPlausibleSentDate;
+
+        /// <summary>
+        /// Date part of the Message-ID match: within <see cref="MessageIdDateToleranceSeconds"/>,
+        /// or unknown on either side. Keep in sync with <see cref="MessageIdMatch.Candidates"/>.
+        /// </summary>
+        public static bool SentDatesConfirmMessageIdMatch(DateTime storedSentDate, DateTime? incomingSentDate)
+        {
+            if (!incomingSentDate.HasValue || IsUnknownSentDate(incomingSentDate.Value) || IsUnknownSentDate(storedSentDate))
+                return true;
+
+            return Math.Abs((storedSentDate - incomingSentDate.Value).TotalSeconds) < MessageIdDateToleranceSeconds;
+        }
+
+        /// <summary>
+        /// Subject as the Message-ID match compares it: whitespace collapsed and trimmed,
+        /// "(No Subject)" treated as empty. IMAP ENVELOPE collapses whitespace, and a missing
+        /// subject is stored as "(No Subject)" but comes from Graph as "".
+        /// </summary>
+        public static string LooseSubject(string? storedSubject)
+        {
+            if (string.IsNullOrEmpty(storedSubject) || storedSubject == NoSubject)
+                return string.Empty;
+
+            return SubjectWhitespaceRun.Replace(storedSubject, " ").Trim(' ');
+        }
+
+        private static readonly Regex SubjectWhitespaceRun = new("[ \t\r\n]+", RegexOptions.Compiled);
+
+        /// <summary>Hash of <see cref="LooseSubject"/>, for in-memory indexes.</summary>
+        public static long SubjectKeyFromStored(string? subject) => Hash64(LooseSubject(subject));
 
         /// <summary>
         /// FNV-1a. Chosen over <see cref="string.GetHashCode()"/> because that is randomised
