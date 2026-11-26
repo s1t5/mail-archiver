@@ -1,31 +1,31 @@
-# Salud y métricas {#health-and-metrics}
+# Salud y Métricas {#health-and-metrics}
 
-Mail-Archiver expone puntos de conexión de salud y un punto de conexión de métricas compatible con Prometheus para la monitorización externa. Ambos forman parte de la REST API: residen bajo `/api/v1`, requieren una clave de API y requieren que dicha clave pertenezca a un administrador. No existe una ruta de salud anónima ni un token de monitorización independiente.
+Mail-Archiver expone endpoints de salud y un endpoint de métricas compatible con Prometheus para el monitoreo externo. Ambos son parte de la REST API: residen bajo `/api/v1`, requieren una clave de API y requieren que dicha clave pertenezca a un administrador. No existe una ruta de salud anónima ni un token de monitoreo separado.
 
 ## Requisitos {#requirements}
 
 | Requisito | Por qué |
 |---|---|
-| `Api:Enabled=true` | Los endpoints residen bajo `/api/`. Con la API desactivada, el middleware de autenticación responde con un 404. |
+| `Api:Enabled=true` | Los endpoints residen bajo `/api/`. Con la API deshabilitada, el middleware de autenticación responde 404. |
 | Una clave de API de administrador | Health y metrics exponen el estado de toda la instancia, por lo que una clave que no sea de administrador recibe un 403. |
-| `Metrics:Enabled=true` | El endpoint de metrics es opcional. Health funciona sin él. |
+| `Metrics:Enabled=true` | El endpoint de metrics es opcional (opt-in). Health funciona sin él. |
 
-Cree la clave en **API Keys** mientras haya iniciado sesión como administrador. Utilice una clave dedicada y, si es posible, un usuario administrador dedicado para la monitorización, de modo que la rotación de la clave o la desactivación del usuario no afecte al acceso de una persona.
+Cree la clave en **API Keys** mientras esté conectado como administrador. Utilice una clave dedicada y, si es posible, un usuario administrador dedicado para el monitoreo, de modo que la rotación de la clave o la deshabilitación del usuario no afecte el acceso de una persona.
 
 ## Endpoints {#endpoints}
 
-| Method | Path | Purpose | Success | Errors |
+| Método | Ruta | Propósito | Éxito | Errores |
 |---|---|---|---|---|
 | GET | `/api/v1/health/live` | El proceso está vivo | 200 | 401, 403 |
-| GET | `/api/v1/health/ready` | PostgreSQL es alcanzable y el esquema está presente | 200 | 503, 401, 403 |
+| GET | `/api/v1/health/ready` | PostgreSQL es accesible y el esquema está presente | 200 | 503, 401, 403 |
 | GET | `/api/v1/health` | Estado agregado incluyendo la frescura de la Sincronización | 200 | 503, 401, 403 |
-| GET | `/api/v1/metrics` | Formato de texto de Prometheus | 200 | 404 cuando está desactivado, 401, 403 |
+| GET | `/api/v1/metrics` | Formato de texto de Prometheus | 200 | 404 cuando está deshabilitado, 401, 403 |
 
 Los cuatro utilizan la misma autenticación que el resto de la API:
 
 - clave faltante o inválida: `401` con `WWW-Authenticate: Bearer`
 - clave válida sin el rol de administrador: `403` con `application/problem+json`
-- API desactivada: `404`
+- API deshabilitada: `404`
 
 ### Liveness {#liveness}
 
@@ -53,7 +53,7 @@ curl -i -H "Authorization: Bearer <admin-key>" \
 ```
 
 La comprobación abre su propia conexión a PostgreSQL, solicita el esquema de Archivo y se rinde
-después de dos segundos. Devuelve `503` cuando la base de datos no es alcanzable o el
+después de dos segundos. Devuelve `503` cuando la base de datos no es accesible o el
 esquema `mail_archiver` falta. Use este endpoint para decidir si una instancia debe
 recibir tráfico.
 
@@ -68,19 +68,19 @@ curl -i -H "Authorization: Bearer <admin-key>" \
 {"status":"Degraded","checks":{"database":"Healthy","sync":"Degraded"}}
 ```
 
-Esto ejecuta la comprobación de la base de datos y la comprobación de frescura de la Sincronización. Una Sincronización obsoleta hace que el informe sea
+Esto ejecuta la comprobación de la base de datos y la comprobación de frescura de la Sincronización. Una Sincronización desactualizada hace que el informe sea
 `Degraded`, que permanece en HTTP 200 porque el proceso aún puede atender solicitudes. Solo
 `Unhealthy` devuelve `503`.
 
-La comprobación de Sincronización está desactivada por defecto. Establezca `Health:SyncStaleMinutes` al número de
-minutos después de los cuales una Cuenta habilitada se considera obsoleta:
+La comprobación de Sincronización está deshabilitada por defecto. Establezca `Health:SyncStaleMinutes` al número de
+minutos después de los cuales una Cuenta habilitada se considera desactualizada:
 
 ```yaml
 Health:
   SyncStaleMinutes: 90
 ```
 
-Una Cuenta que nunca ha realizado la Sincronización tiene `LastSync` en el valor por defecto, por lo que se considera obsoleta
+Una Cuenta que nunca se ha sincronizado tiene `LastSync` en el valor por defecto, por lo que se cuenta como desactualizada
 tan pronto como se habilita la comprobación.
 
 ## Métricas {#metrics}
@@ -93,7 +93,7 @@ curl -H "Authorization: Bearer <admin-key>" \
 ```
 
 `Metrics:Enabled` debe ser `true`. `Metrics:RefreshMinutes` controla con qué frecuencia se reconstruye el
-snapshot (predeterminado 5, los valores inferiores a 1 se elevan a 1). El scrape en sí mismo solo lee el
+snapshot (predeterminado 5, los valores inferiores a 1 se elevan a 1). El scrape en sí solo lee el
 snapshot, por lo que una consulta de Prometheus no puede convertirse en un escaneo de tabla.
 
 | Métrica | Tipo | Etiquetas | Significado |
@@ -102,29 +102,29 @@ snapshot, por lo que una consulta de Prometheus no puede convertirse en un escan
 | `mailarchiver_metrics_ready` | gauge | | 1 después del primer snapshot exitoso. |
 | `mailarchiver_db_up` | gauge | | 1 cuando la última actualización llegó a PostgreSQL. |
 | `mailarchiver_metrics_refresh_timestamp_seconds` | gauge | | Tiempo Unix de la última actualización exitosa. |
-| `mailarchiver_emails` | gauge | | Número de correos electrónicos en Archivo. |
-| `mailarchiver_accounts` | gauge | `state` (`enabled`, `disabled`) | Número de Cuenta de correo. |
+| `mailarchiver_emails` | gauge | | Número de correos electrónicos archivados. |
+| `mailarchiver_accounts` | gauge | `state` (`enabled`, `disabled`) | Número de cuentas de correo. |
 | `mailarchiver_raw_messages` | gauge | | Número de mensajes originales almacenados. |
 | `mailarchiver_raw_messages_enabled` | gauge | | 1 cuando `RawMessages:Enabled` está configurado. |
-| `mailarchiver_raw_messages_missing` | gauge | | Correos electrónicos en Archivo sin un original almacenado. |
+| `mailarchiver_raw_messages_missing` | gauge | | Correos electrónicos archivados sin un original almacenado. |
 | `mailarchiver_account_never_synced` | gauge | `account_id`, `account`, `enabled` | 1 cuando la Cuenta nunca ha completado una Sincronización. |
-| `mailarchiver_account_last_sync_timestamp_seconds` | gauge | `account_id`, `account`, `enabled` | Tiempo Unix de la última Sincronización exitosa. Ausente para Cuentas que nunca se sincronizaron. |
-| `mailarchiver_account_sync_age_seconds` | gauge | `account_id`, `account`, `enabled` | Segundos desde la última Sincronización exitosa. Ausente para Cuentas que nunca se sincronizaron. |
-| `mailarchiver_raw_message_failures_total` | counter | `reason` (`size`, `write`, `no_capture`) | Mensajes originales que no pudieron ser almacenados. |
-| `mailarchiver_sync_failures_total` | counter | `reason` (`failed`, `rate_limited`, `timeout`) | Ejecuciones de Sincronización que terminaron en fallo, limitación de tasa o tiempo de espera agotado. |
+| `mailarchiver_account_last_sync_timestamp_seconds` | gauge | `account_id`, `account`, `enabled` | Tiempo Unix de la última Sincronización exitosa. Ausente para cuentas que nunca se han sincronizado. |
+| `mailarchiver_account_sync_age_seconds` | gauge | `account_id`, `account`, `enabled` | Segundos desde la última Sincronización exitosa. Ausente para cuentas que nunca se han sincronizado. |
+| `mailarchiver_raw_message_failures_total` | counter | `reason` (`size`, `write`, `no_capture`) | Mensajes originales que no pudieron almacenarse. |
+| `mailarchiver_sync_failures_total` | counter | `reason` (`failed`, `rate_limited`, `timeout`) | Ejecuciones de Sincronización que terminaron en error, limitación de tasa o tiempo de espera agotado. |
 
 Notas:
 
 - Los contadores son locales al proceso y comienzan en 0 tras un reinicio. `rate()` y `increase()`
   en Prometheus gestionan eso correctamente.
-- `mailarchiver_raw_messages_missing` cuenta cada correo electrónico en Archivo sin un mensaje sin procesar,
-  incluyendo correos electrónicos archivados antes de que se activara `RawMessages:Enabled`. En una instalación
+- `mailarchiver_raw_messages_missing` cuenta cada correo electrónico archivado sin un mensaje bruto,
+  incluyendo correos archivados antes de que se activara `RawMessages:Enabled`. En una instalación
   que ha almacenado originales desde el primer día, es la brecha relevante.
 - `mailarchiver_account_sync_age_seconds` no es un backlog real. Indica cuándo terminó la última Sincronización,
   no cuántos mensajes están esperando en el servidor.
 - `mailarchiver_account_never_synced` existe porque una Cuenta que nunca se ha sincronizado no tiene una serie
-  `sync_age`. Una alerta solo sobre `sync_age` la pasaría por alto.
-- El endpoint contiene nombres e ids de Cuenta, pero no contenidos de correo, asuntos o
+  `sync_age`. Una alerta solo sobre `sync_age` la omitiría.
+- El endpoint contiene nombres e ids de cuentas, pero no contenidos de correo, asuntos o
   credenciales.
 
 ## Prometheus {#prometheus}
@@ -139,8 +139,8 @@ scrape_configs:
       - targets: ["mail-archiver:5000"]
 ```
 
-El archivo de credenciales contiene la clave sin el prefijo `Bearer`. Restrinja sus
-permisos al usuario Prometheus.
+El archivo de credenciales contiene la clave bruta, sin el prefijo `Bearer`. Restrinja sus
+Permisos al usuario de Prometheus.
 
 Ejemplos de alertas:
 
@@ -170,61 +170,51 @@ groups:
         expr: time() - mailarchiver_metrics_refresh_timestamp_seconds > 900
 ```
 
-## Docker health check {#docker-health-check}
+## Verificación de estado de Docker {#docker-health-check}
 
-La imagen y el `docker-compose.yml` incluido comprueban `/api/v1/health/live` con una clave de administrador. La clave no puede existir antes del primer inicio, por lo que el primer inicio se ejecuta sin ella y el contenedor informa `unhealthy` hasta que se establece la clave.
+La imagen incluye una verificación de vida (liveness check) que llama a la ruta raíz sin autenticación. La ruta raíz redirige a la página de inicio de sesión antes de que se ejecute cualquier controlador, por lo que la verificación no necesita una clave de API, funciona con la REST API desactivada y no toca PostgreSQL. Las instalaciones y actualizaciones nuevas reportan `healthy` sin ninguna configuración.
 
-1. Inicie la pila una vez con `MAILARCHIVER_HEALTH_API_KEY` vacío.
-2. Inicie sesión como administrador y cree una clave llamada `monitoring-health` en **API Keys**.
-3. Coloque la clave en `.env`:
+```bash
+docker inspect --format '{{.State.Health.Status}}' <container>
+```
 
-   ```dotenv
-   MAILARCHIVER_HEALTH_API_KEY=<key>
-   ```
+La verificación demuestra que el proceso acepta solicitudes HTTP. No demuestra que PostgreSQL sea accesible. Para ello, llame a `/api/v1/health/ready` desde un host de monitoreo externo con una clave de API de administrador y `Api:Enabled=true`; el endpoint responde 503 cuando la base de datos está caída.
 
-4. Recree el contenedor con `docker compose up -d`.
-5. Compruebe el estado:
+El `docker-compose.yml` incluido no sobrescribe la verificación. Agregue un bloque `healthcheck` al servicio si necesita un intervalo, tiempo de espera o comando diferente, o establezca `healthcheck: disable: true` para desactivar la verificación.
 
-   ```bash
-   docker inspect --format '{{.State.Health.Status}}' <container>
-   ```
-
-Se requiere `Api:Enabled=true`. Con la API desactivada, el health check recibe un 404 y el contenedor permanece en estado unhealthy.
-
-Si no desea una clave de administrador en el entorno del contenedor, utilice una comprobación TCP en el contenedor y llame a `/api/v1/health/ready` desde un host de monitorización externo con la clave.
-La comprobación TCP no puede determinar si PostgreSQL es accesible.
+La antigua variable `MAILARCHIVER_HEALTH_API_KEY` ya no se utiliza. Elimínela de los archivos compose y `.env` existentes; dejarla en su lugar no causa daños.
 
 ## Seguridad {#security}
 
 - La clave es una clave de administrador. Puede leer todo el Archivo a través de la API. Trátela como una
   contraseña de administrador.
-- Utilice un usuario administrador dedicado para el monitoreo. Deshabilitar ese usuario deshabilita el
-  control de salud y las métricas.
-- Mantenga la clave en un archivo o en un secreto de Docker, nunca en un parámetro de consulta. Los parámetros de consulta
-  terminan en los registros de acceso y del proxy.
+- Utilice un usuario administrador dedicado para el monitoreo. Deshabilitar ese usuario deshabilita los
+  endpoints externos de salud y métricas, no la propia comprobación de liveness del contenedor.
+- Mantenga la clave en un archivo o en un Docker secret, nunca en un parámetro de consulta. Los parámetros de consulta
+  terminan en los registros de proxy y de acceso.
 - Restrinja el acceso al host de monitoreo o a la red de Prometheus. La clave de la API es la
   autenticación, no un sustituto de los límites de red.
-- Los endpoints de salud devuelven solo cadenas de estado. Los detalles de las excepciones permanecen en el
+- Los endpoints de salud devuelven solo cadenas de estado. Los detalles de la excepción permanecen en el
   registro de la aplicación.
 
-## Resolución de problemas {#troubleshooting}
+## Solución de problemas {#troubleshooting}
 
 | Síntoma | Causa | Solución |
 |---|---|---|
-| 404 en las cuatro rutas | `Api:Enabled=false` | Establezca `Api:Enabled=true` y reinicie. |
-| 404 solo en `/metrics` | `Metrics:Enabled=false` | Establezca `Metrics:Enabled=true` y reinicie. |
-| 401 | Clave faltante, incorrecta, revocada o expirada | Cree una nueva clave y compruebe el encabezado `Authorization: Bearer`. |
-| 403 | La clave pertenece a un usuario que no es administrador | Use una clave de administrador. |
-| `mailarchiver_metrics_ready 0` durante más de un minuto | El servicio de actualización no ha completado su primera ejecución, o no puede llegar a la base de datos | Compruebe el registro de la aplicación para `Could not refresh the monitoring metrics snapshot`. |
-| `mailarchiver_db_up 0` | La última actualización falló | Compruebe PostgreSQL y la cadena de conexión. Los recuentos antiguos permanecen hasta el siguiente éxito. |
-| El contenedor permanece en estado unhealthy | Clave vacía o `Api:Enabled=false` | Establezca ambos y recree el contenedor. |
-| `health/ready` devuelve 503 | PostgreSQL inaccesible o falta el esquema | Compruebe la base de datos y si se ejecutaron las migraciones. |
+| 404 en las cuatro rutas | `Api:Enabled=false` | Establecer `Api:Enabled=true` y reiniciar. |
+| 404 solo en `/metrics` | `Metrics:Enabled=false` | Establecer `Metrics:Enabled=true` y reiniciar. |
+| 401 | Clave faltante, incorrecta, revocada o expirada | Crear una nueva clave y verificar el encabezado `Authorization: Bearer`. |
+| 403 | La clave pertenece a un usuario que no es administrador | Usar una clave de administrador. |
+| `mailarchiver_metrics_ready 0` durante más de un minuto | El servicio de actualización no ha completado su primera ejecución o no puede alcanzar la base de datos | Revisar el registro de la aplicación para `Could not refresh the monitoring metrics snapshot`. |
+| `mailarchiver_db_up 0` | La última actualización falló | Revisar PostgreSQL y la cadena de conexión. Los conteos antiguos permanecen hasta el siguiente éxito. |
+| El contenedor permanece en estado unhealthy | Clave vacía o `Api:Enabled=false` | Establecer ambos y recrear el contenedor. |
+| `health/ready` devuelve 503 | PostgreSQL inaccesible o falta el esquema | Revisar la base de datos y si las migraciones se ejecutaron. |
 
-## Lo que las métricas no cubren {#what-the-metrics-do-not-cover}
+## Qué no cubren las métricas {#what-the-metrics-do-not-cover}
 
 - Accesibilidad de IMAP o Graph por Cuenta. Una edad de Sincronización solo muestra que la última ejecución es antigua.
 - El número de mensajes esperando en el servidor, el backlog real.
-- Verificación de checksum de cada original almacenado. Utilice la verificación de mensajes sin procesar existente y la limpieza de huérfanos para ello.
-- Recuentos por Carpeta o tamaños de Buzón.
+- Verificación de Checksum de cada original almacenado. Utilice la verificación de mensajes raw existente y la limpieza de huérfanos para ello.
+- Conteos por Carpeta o tamaños de Buzón.
 
-Para esto, utilice la página de la Cuenta, la página de trabajos en segundo plano y el registro de la aplicación.
+Para esto, utilice la página de Cuenta, la página de trabajos en segundo plano y el registro de la aplicación.
