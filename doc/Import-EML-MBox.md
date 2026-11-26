@@ -79,7 +79,8 @@ Both forms behave the same way once you press **Start Import**:
 - **Background processing** — the upload is queued as a job; you do not have to
   keep the browser open.
 - **Duplicate handling** — messages that are already in the archive are skipped
-  and counted separately. Duplicates are matched on the `Message-ID` header.
+  and counted separately. Duplicates are matched on the `Message-ID` header,
+  the subject and the send date (within one day).
 - **Malformed input** — unreadable files are skipped individually and reported on
   the status page instead of aborting the whole import.
 - **Progress** — you are taken straight to the job status page, which shows the
