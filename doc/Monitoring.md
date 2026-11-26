@@ -177,39 +177,32 @@ groups:
 
 ## Docker health check
 
-The image and the bundled `docker-compose.yml` check `/api/v1/health/live` with an admin
-key. The key cannot exist before the first start, so the first start runs without it and
-the container reports `unhealthy` until the key is set.
+The image ships a liveness check that calls the root path without authentication. The root
+path redirects to the login page before any controller runs, so the check needs no API key,
+works with the REST API disabled and does not touch PostgreSQL. Fresh installs and upgrades
+report `healthy` without any configuration.
 
-1. Start the stack once with `MAILARCHIVER_HEALTH_API_KEY` empty.
-2. Sign in as an administrator and create a key named `monitoring-health` under
-   **API Keys**.
-3. Put the key in `.env`:
+```bash
+docker inspect --format '{{.State.Health.Status}}' <container>
+```
 
-   ```dotenv
-   MAILARCHIVER_HEALTH_API_KEY=<key>
-   ```
+The check proves that the process accepts HTTP requests. It does not prove that PostgreSQL
+is reachable. For that, call `/api/v1/health/ready` from an external monitoring host with an
+admin API key and `Api:Enabled=true`; the endpoint answers 503 when the database is down.
 
-4. Recreate the container with `docker compose up -d`.
-5. Check the state:
+The bundled `docker-compose.yml` does not override the check. Add a `healthcheck` block to
+the service if you need a different interval, timeout or command, or set
+`healthcheck: disable: true` to turn the check off.
 
-   ```bash
-   docker inspect --format '{{.State.Health.Status}}' <container>
-   ```
-
-`Api:Enabled=true` is required. With the API disabled the health check receives 404 and the
-container stays unhealthy.
-
-If you do not want an admin key in the container environment, use a TCP check in the
-container and call `/api/v1/health/ready` from an external monitoring host with the key.
-The TCP check cannot tell whether PostgreSQL is reachable.
+The former `MAILARCHIVER_HEALTH_API_KEY` variable is no longer used. Remove it from existing
+compose files and `.env` files; leaving it in place is harmless.
 
 ## Security
 
 - The key is an admin key. It can read the whole archive through the API. Treat it like an
   administrator password.
-- Use a dedicated admin user for monitoring. Disabling that user disables the health check
-  and the metrics.
+- Use a dedicated admin user for monitoring. Disabling that user disables the external
+  health and metrics endpoints, not the container's own liveness check.
 - Keep the key in a file or a Docker secret, never in a query parameter. Query parameters
   end up in proxy and access logs.
 - Restrict access to the monitoring host or the Prometheus network. The API key is the

@@ -11,17 +11,8 @@ services:
       - "5000:5000"
     networks:
       - postgres
-    environment:
-      # Admin API key used by the container health check. Leave empty on the first start,
-      # create a key under /ApiKeys, then put it in .env and restart. The container stays
-      # unhealthy until the key is present and Api:Enabled is true.
-      MAILARCHIVER_HEALTH_API_KEY: ${MAILARCHIVER_HEALTH_API_KEY:-}
-    healthcheck:
-      test: ["CMD-SHELL", "curl -fsS -H \"Authorization: Bearer $$MAILARCHIVER_HEALTH_API_KEY\" http://localhost:5000/api/v1/health/live"]
-      interval: 30s
-      timeout: 5s
-      retries: 3
-      start_period: 60s
+    # The image ships an unauthenticated liveness health check, so no healthcheck block is
+    # needed here. Override or disable it here if your setup needs a different check.
     volumes:
       # Uncomment the following line to mount a directory for local file imports
       # (also add the path to appsettings.json: LocalImport.AllowedPaths)

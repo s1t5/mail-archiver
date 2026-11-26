@@ -354,7 +354,8 @@ original is served, the storage backends, how to move existing messages between 
 | `Metrics__Enabled` | `false` | Enable the Prometheus metrics endpoint and its refresh loop. |
 | `Metrics__RefreshMinutes` | `5` | How often the metrics snapshot is rebuilt. Values below 1 are raised to 1. |
 
-The health and metrics endpoints require an admin API key and `Api__Enabled=true`. See
+The health and metrics endpoints require an admin API key and `Api__Enabled=true`. The
+container's own liveness check is unauthenticated and needs no configuration. See
 **[Health and Metrics](Monitoring.md)** for the endpoints, metric names, Prometheus
 configuration and the Docker health check.
 
