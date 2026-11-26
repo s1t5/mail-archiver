@@ -128,8 +128,8 @@
       },
       "Monitoring.md": {
         "model": "google/gemma-4-26b-a4b-it",
-        "source_sha256": "8c5d26440ee5d64b36a22a0d7485e26fde36b0832f9e0b7404c8c16a51cf9934",
-        "translated_at": "2026-11-17T18:33:37Z"
+        "source_sha256": "942cef45d0dbb8b79fe5f628e070b76ffa57fba678d407f8b2983f4bec98cd6a",
+        "translated_at": "2026-11-26T14:08:26Z"
       },
       "OIDC_Implementation.md": {
         "model": "google/gemma-4-26b-a4b-it",
@@ -173,8 +173,8 @@
       },
       "Setup.md": {
         "model": "google/gemma-4-26b-a4b-it",
-        "source_sha256": "ed6d0c9ec17ecc4e06c1d767adcf9c88663ac470619412ae23b20c541253a7ae",
-        "translated_at": "2026-11-25T08:54:31Z"
+        "source_sha256": "522e7a0f5c25613098a6d3a4d64df752a3af2430f69d99aeda721ce72d6f4cf5",
+        "translated_at": "2026-11-26T14:09:54Z"
       },
       "Synchronization.md": {
         "model": "google/gemma-4-26b-a4b-it",
