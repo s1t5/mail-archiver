@@ -1714,11 +1714,18 @@ namespace MailArchiver.Services.Core
                     messageId, fallbackFrom, fallbackTo, emailDate, folderName ?? string.Empty, account.Name);
             }
 
-            var existingEmail = await _context.ArchivedEmails
-                .FirstOrDefaultAsync(e => e.MailAccountId == account.Id &&
-                    (e.MessageId == messageId ||
-                     (legacyMessageId != null && e.MessageId == legacyMessageId) ||
-                     (importedMessageId != null && e.MessageId == importedMessageId)));
+            var messageIdCandidates = new[] { messageId, legacyMessageId, importedMessageId }
+                .OfType<string>();
+
+            var messageIdMatch = new MessageIdMatch(
+                messageIdCandidates, isHeaderMessageId: !string.IsNullOrWhiteSpace(message.MessageId),
+                message.Subject, _dateTimeHelper.ConvertToDisplayTimeZone(emailDate));
+
+            var existingEmail = await messageIdMatch.FirstConfirmedAsync(
+                _context.ArchivedEmails
+                    .Where(e => e.MailAccountId == account.Id)
+                    .Where(messageIdMatch.Candidates),
+                e => e.Subject);
 
             if (existingEmail != null)
             {

@@ -32,7 +32,12 @@ namespace MailArchiver.Services.Providers.Imap
     /// </summary>
     public class TargetMailboxIndex
     {
-        private readonly HashSet<long> _messageIdKeys = new();
+        // Subject and date per Message-ID, because some senders reuse IDs (#622). The first
+        // entry is stored directly; a list is only created for IDs that occur more than once.
+        private readonly Dictionary<long, MessageIdEntry> _messageIds = new();
+        private readonly Dictionary<long, List<MessageIdEntry>> _reusedMessageIds = new();
+
+        private readonly record struct MessageIdEntry(long SubjectKey, DateTime SentDate);
 
         // The second criterion needs a range comparison on the send time, so its timestamps
         // cannot be folded into the key. Quantising into two second buckets is not equivalent:
@@ -138,7 +143,7 @@ namespace MailArchiver.Services.Providers.Imap
             logger.LogInformation(
                 "Target mailbox index built: {Messages} messages across {Folders} folders, " +
                 "{MessageIdKeys} Message-ID keys, {Fingerprints} fingerprints, scope reduced: {Reduced}",
-                index.IndexedMessages, index.IndexedFolders, index._messageIdKeys.Count,
+                index.IndexedMessages, index.IndexedFolders, index._messageIds.Count,
                 index._fingerprints.Count, index.ScopeReduced);
 
             return index;
@@ -205,7 +210,11 @@ namespace MailArchiver.Services.Providers.Imap
                 var messageIdKey = MailMatchKey.MessageIdKey(envelope.MessageId);
                 if (messageIdKey.HasValue)
                 {
-                    _messageIdKeys.Add(messageIdKey.Value);
+                    // Only the Date header, not INTERNALDATE. Without it the date is unknown.
+                    AddMessageId(
+                        messageIdKey.Value,
+                        MailMatchKey.SubjectKeyFromStored(MailMatchKey.NormalizeSubject(envelope.Subject)),
+                        ToStoredTimestamp(envelope.Date));
                 }
 
                 AddFingerprint(
@@ -241,6 +250,38 @@ namespace MailArchiver.Services.Providers.Imap
         internal DateTime TimestampForEnvelope(DateTimeOffset? envelopeDate, DateTimeOffset? internalDate)
             => ToStoredTimestamp(envelopeDate ?? internalDate);
 
+        private void AddMessageId(long key, long subjectKey, DateTime sentDate)
+        {
+            var entry = new MessageIdEntry(subjectKey, sentDate);
+            if (_messageIds.TryAdd(key, entry)) return;
+
+            if (!_reusedMessageIds.TryGetValue(key, out var entries))
+            {
+                entries = new List<MessageIdEntry>();
+                _reusedMessageIds[key] = entries;
+            }
+            entries.Add(entry);
+        }
+
+        private bool ContainsMessageId(long key, long subjectKey, DateTime sentDate)
+        {
+            if (!_messageIds.TryGetValue(key, out var first)) return false;
+            if (Confirms(first)) return true;
+
+            if (_reusedMessageIds.TryGetValue(key, out var entries))
+            {
+                foreach (var entry in entries)
+                {
+                    if (Confirms(entry)) return true;
+                }
+            }
+            return false;
+
+            bool Confirms(MessageIdEntry entry)
+                => entry.SubjectKey == subjectKey
+                   && MailMatchKey.SentDatesConfirmMessageIdMatch(entry.SentDate, sentDate);
+        }
+
         private void AddFingerprint(long key, DateTime timestamp)
         {
             if (_fingerprints.TryGetValue(key, out var timestamps))
@@ -261,7 +302,8 @@ namespace MailArchiver.Services.Providers.Imap
         public OffloadMatchKind Match(ArchivedEmail email)
         {
             var messageIdKey = MailMatchKey.MessageIdKey(email.MessageId);
-            if (messageIdKey.HasValue && _messageIdKeys.Contains(messageIdKey.Value))
+            if (messageIdKey.HasValue && ContainsMessageId(
+                    messageIdKey.Value, MailMatchKey.SubjectKeyFromStored(email.Subject), email.SentDate))
             {
                 return OffloadMatchKind.MessageId;
             }
@@ -291,7 +333,7 @@ namespace MailArchiver.Services.Providers.Imap
             var messageIdKey = MailMatchKey.MessageIdKey(email.MessageId);
             if (messageIdKey.HasValue)
             {
-                _messageIdKeys.Add(messageIdKey.Value);
+                AddMessageId(messageIdKey.Value, MailMatchKey.SubjectKeyFromStored(email.Subject), email.SentDate);
             }
 
             AddFingerprint(MailMatchKey.FingerprintKeyFromStored(email), email.SentDate);
@@ -307,7 +349,7 @@ namespace MailArchiver.Services.Providers.Imap
         internal void AddRaw(string? messageId, string? from, string? to, string? subject, DateTime sentDate)
         {
             var key = MailMatchKey.MessageIdKey(messageId);
-            if (key.HasValue) _messageIdKeys.Add(key.Value);
+            if (key.HasValue) AddMessageId(key.Value, MailMatchKey.SubjectKeyFromStored(subject), sentDate);
             AddFingerprint(MailMatchKey.FingerprintKeyFromStored(from, to, subject), sentDate);
             IndexedMessages++;
         }

@@ -66,29 +66,20 @@ namespace MailArchiver.Services.Shared
                 var dateTimeHelper = scope.ServiceProvider.GetRequiredService<DateTimeHelper>();
                 var checkSentDate = dateTimeHelper.ConvertToDisplayTimeZone(
                     MailContentHelper.ExtractEmailDate(message.Date, message.Headers));
-                var toleranceSeconds = MailMatchKey.TimestampToleranceSeconds;
 
                 var messageIdCandidates = MailContentHelper.MessageIdMatchCandidates(messageId).ToList();
 
-                // Both sides of the timestamp criterion are restricted to the plausible range.
-                // The incoming value already went through ClampToPlausibleRange inside
-                // ConvertToDisplayTimeZone; the column side is clamped here, because rows written
-                // by earlier versions may hold a year-1 SentDate from a malformed Date header and
-                // the unclamped subtraction overflows PostgreSQL's interval type.
-                var minSentDate = DateTimeHelper.MinimumPlausibleSentDate;
-                var maxSentDate = DateTimeHelper.MaximumPlausibleSentDate;
+                var messageIdMatch = new MessageIdMatch(
+                    messageIdCandidates, isHeaderMessageId: !string.IsNullOrEmpty(message.MessageId),
+                    checkSubject, checkSentDate);
 
-                var existing = await context.ArchivedEmails
+                var exists = await messageIdMatch.AnyConfirmedAsync(context.ArchivedEmails
                     .Where(e => e.MailAccountId == account.Id)
-                    .Where(e =>
-                        messageIdCandidates.Contains(e.MessageId) ||
-                        (e.From == checkFrom && e.To == checkTo && e.Subject == checkSubject &&
-                         Math.Abs(((e.SentDate < minSentDate ? minSentDate :
-                                     e.SentDate > maxSentDate ? maxSentDate : e.SentDate)
-                                   - checkSentDate).TotalSeconds) < toleranceSeconds))
-                    .FirstOrDefaultAsync();
+                    .Where(ArchivedEmailMatch.Or(
+                        messageIdMatch.Candidates,
+                        ArchivedEmailMatch.ByFingerprint(checkFrom, checkTo, checkSubject, checkSentDate))));
 
-                if (existing != null)
+                if (exists)
                 {
                     _logger.LogInformation(
                         "Job {JobId}: Skipping duplicate email. Subject: '{Subject}', From: '{From}', MessageId: '{MessageId}'",

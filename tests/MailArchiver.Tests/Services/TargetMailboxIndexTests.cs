@@ -38,11 +38,67 @@ public class TargetMailboxIndexTests
     public void Match_ByMessageId()
     {
         var index = NewIndex();
-        index.AddRaw("<a@x.com>", "someone@else.com", "nobody@else.com", "Different", Sent.AddYears(-3));
+        // Fingerprint cannot match here, so this is a Message-ID match.
+        index.AddRaw("<a@x.com>", "someone@else.com", "nobody@else.com", "Hi", Sent.AddHours(-5));
 
-        // Message-ID alone is enough; none of the other fields agree.
         Assert.Equal(OffloadMatchKind.MessageId,
             index.Match(Row("<a@x.com>", "alice@x.com", "bob@y.com", "Hi", Sent)));
+    }
+
+    [Fact]
+    public void Match_ReusedMessageIdWithDifferentSubject_IsNotPresent()
+    {
+        // #622: some senders reuse a Message-ID.
+        var index = NewIndex();
+        index.AddRaw("<a@x.com>", "alice@x.com", "bob@y.com", "Reminder: A", Sent);
+
+        Assert.Equal(OffloadMatchKind.None,
+            index.Match(Row("<a@x.com>", "alice@x.com", "bob@y.com", "Reminder: B", Sent.AddHours(1))));
+    }
+
+    [Fact]
+    public void Match_ByMessageId_SubjectDifferingOnlyInWhitespace()
+    {
+        // IMAP ENVELOPE collapses whitespace.
+        var index = NewIndex();
+        index.AddRaw("<a@x.com>", "alice@x.com", "bob@y.com", "RE: Offer details", Sent);
+
+        Assert.Equal(OffloadMatchKind.MessageId,
+            index.Match(Row("<a@x.com>", "alice@x.com", "bob@y.com", "RE:  Offer\tdetails", Sent)));
+    }
+
+    [Fact]
+    public void Match_ReusedMessageIdWeeksApart_IsNotPresent()
+    {
+        var index = NewIndex();
+        index.AddRaw("<a@x.com>", "alice@x.com", "bob@y.com", "Reminder", Sent);
+
+        Assert.Equal(OffloadMatchKind.None,
+            index.Match(Row("<a@x.com>", "alice@x.com", "bob@y.com", "Reminder", Sent.AddDays(21))));
+    }
+
+    [Fact]
+    public void Match_ReusedMessageId_EachMailFindsItsOwnEntry()
+    {
+        var index = NewIndex();
+        index.Add(Row("<a@x.com>", "alice@x.com", "bob@y.com", "Reminder", Sent));
+        index.Add(Row("<a@x.com>", "alice@x.com", "bob@y.com", "Reminder", Sent.AddDays(21)));
+
+        Assert.Equal(OffloadMatchKind.MessageId,
+            index.Match(Row("<a@x.com>", "other@x.com", "bob@y.com", "Reminder", Sent.AddDays(21))));
+        Assert.Equal(OffloadMatchKind.None,
+            index.Match(Row("<a@x.com>", "alice@x.com", "bob@y.com", "Reminder", Sent.AddDays(42))));
+    }
+
+    [Fact]
+    public void Match_MessageIdWithoutUsableDate_MatchesOnSubject()
+    {
+        // Envelope without a Date header.
+        var index = NewIndex();
+        index.AddRaw("<a@x.com>", "alice@x.com", "bob@y.com", "Hi", DateTime.MinValue);
+
+        Assert.Equal(OffloadMatchKind.MessageId,
+            index.Match(Row("<a@x.com>", "other@x.com", "bob@y.com", "Hi", Sent)));
     }
 
     [Fact]

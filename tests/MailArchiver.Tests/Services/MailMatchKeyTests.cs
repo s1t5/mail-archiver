@@ -1,6 +1,7 @@
 using System.Text;
 using MailArchiver.Models;
 using MailArchiver.Services.Shared;
+using MailArchiver.Utilities;
 using MimeKit;
 
 namespace MailArchiver.Tests.Services;
@@ -254,6 +255,64 @@ public class MailMatchKeyTests
         var a = new DateTime(2026, 2, 3, 10, 11, 12);
         Assert.False(MailMatchKey.WithinTolerance(a, a.AddSeconds(2)));
         Assert.False(MailMatchKey.WithinTolerance(a, a.AddSeconds(-3)));
+    }
+
+    // ------------------------------------------------------------------ reused Message-ID (#622)
+
+    private static readonly DateTime ReminderSent = new(2026, 3, 4, 9, 0, 0);
+
+    [Fact]
+    public void SentDatesConfirmMessageIdMatch_SameDate_Confirms()
+        => Assert.True(MailMatchKey.SentDatesConfirmMessageIdMatch(ReminderSent, ReminderSent));
+
+    [Fact]
+    public void SentDatesConfirmMessageIdMatch_ShiftedByATimezoneOffset_Confirms()
+    {
+        // Older rows can be off by a timezone offset.
+        Assert.True(MailMatchKey.SentDatesConfirmMessageIdMatch(ReminderSent, ReminderSent.AddHours(14)));
+        Assert.True(MailMatchKey.SentDatesConfirmMessageIdMatch(ReminderSent, ReminderSent.AddHours(-14)));
+    }
+
+    [Fact]
+    public void SentDatesConfirmMessageIdMatch_WeeksApart_DoesNotConfirm()
+        => Assert.False(MailMatchKey.SentDatesConfirmMessageIdMatch(ReminderSent, ReminderSent.AddDays(21)));
+
+    [Fact]
+    public void SentDatesConfirmMessageIdMatch_ExactlyOneDayApart_DoesNotConfirm()
+        => Assert.False(MailMatchKey.SentDatesConfirmMessageIdMatch(ReminderSent, ReminderSent.AddDays(1)));
+
+    [Fact]
+    public void SentDatesConfirmMessageIdMatch_UnknownIncomingDate_Confirms()
+    {
+        // Without a send date the stored row holds a substitute, e.g. the archive time.
+        Assert.True(MailMatchKey.SentDatesConfirmMessageIdMatch(ReminderSent, null));
+        Assert.True(MailMatchKey.SentDatesConfirmMessageIdMatch(ReminderSent, DateTimeHelper.MinimumPlausibleSentDate));
+    }
+
+    [Fact]
+    public void SentDatesConfirmMessageIdMatch_UnknownStoredDate_Confirms()
+    {
+        // Invalid Date headers were stored as year 1.
+        Assert.True(MailMatchKey.SentDatesConfirmMessageIdMatch(DateTime.MinValue, ReminderSent));
+        Assert.True(MailMatchKey.SentDatesConfirmMessageIdMatch(DateTimeHelper.MaximumPlausibleSentDate, ReminderSent));
+    }
+
+    // ------------------------------------------------------------------ subject of the Message-ID match
+
+    [Theory]
+    [InlineData("A\tB", "A B")]            // IMAP ENVELOPE collapses whitespace
+    [InlineData("RE:  Offer", "RE: Offer")]
+    [InlineData("  Hello \r\n world  ", "Hello world")]
+    [InlineData("(No Subject)", "")]        // missing subject vs. Graph
+    [InlineData(null, "")]
+    public void LooseSubject_TreatsWhitespaceAndMissingSubjectAlike(string? stored, string expected)
+        => Assert.Equal(expected, MailMatchKey.LooseSubject(stored));
+
+    [Fact]
+    public void LooseSubject_KeepsCaseAndContent()
+    {
+        Assert.Equal("Reminder: Project A", MailMatchKey.LooseSubject("Reminder: Project A"));
+        Assert.NotEqual(MailMatchKey.LooseSubject("Reminder: A"), MailMatchKey.LooseSubject("Reminder: B"));
     }
 
     // ------------------------------------------------------------------ hashing

@@ -181,42 +181,25 @@ namespace MailArchiver.Services.Providers.Graph
                     MailMatchKey.ToMaxBytes);
                 var checkSubject = MailMatchKey.NormalizeSubject(message.Subject);
 
-                // SentDate is stored converted into the display timezone (see convertedSentDate
-                // on the write path), so the incoming value has to be converted the same way
-                // before the two-second window is applied. This mirrors that expression exactly,
-                // including which overload it calls: passing SentDateTime?.DateTime instead would
-                // hand over a DateTime of Kind Unspecified, which ConvertToDisplayTimeZone
-                // returns untouched, quietly reintroducing the mismatch this is fixing.
-                var checkDate = message.SentDateTime.HasValue
-                    ? _dateTimeHelper.ConvertToDisplayTimeZone(message.SentDateTime.Value)
-                    : _dateTimeHelper.ConvertToDisplayTimeZone(DateTime.UtcNow);
-                var toleranceSeconds = MailMatchKey.TimestampToleranceSeconds;
+                // Same value the write path stores.
+                var checkDate = StoredSentDateOrNow(message);
 
                 // Legacy rows archived before the write-side normalization may store the
                 // Message-ID with surrounding angle brackets - match every variant so
                 // existing archives are still recognized as duplicates.
                 var messageIdCandidates = MailContentHelper.MessageIdMatchCandidates(messageId).ToList();
 
-                // Same range restriction on both sides as MailImporter applies: the incoming value
-                // was clamped inside ConvertToDisplayTimeZone, the column side is clamped here so
-                // that rows written before the clamp cannot overflow PostgreSQL's interval type.
-                var minSentDate = DateTimeHelper.MinimumPlausibleSentDate;
-                var maxSentDate = DateTimeHelper.MaximumPlausibleSentDate;
+                var messageIdMatch = CreateMessageIdMatch(message, messageIdCandidates);
 
-                var existingInfo = await _context.ArchivedEmails
-                    .AsNoTracking()
-                    .Where(e => e.MailAccountId == accountId)
-                    .Where(e =>
-                        messageIdCandidates.Contains(e.MessageId) ||
-                        (e.From == checkFrom &&
-                         e.To == checkTo &&
-                         e.Subject == checkSubject &&
-                         Math.Abs(((e.SentDate < minSentDate ? minSentDate :
-                                     e.SentDate > maxSentDate ? maxSentDate : e.SentDate)
-                                   - checkDate).TotalSeconds) < toleranceSeconds)
-                    )
-                    .Select(e => new { e.Id, e.FolderName, e.Subject })
-                    .FirstOrDefaultAsync();
+                var existingInfo = await messageIdMatch.FirstConfirmedAsync(
+                    _context.ArchivedEmails
+                        .AsNoTracking()
+                        .Where(e => e.MailAccountId == accountId)
+                        .Where(ArchivedEmailMatch.Or(
+                            messageIdMatch.Candidates,
+                            ArchivedEmailMatch.ByFingerprint(checkFrom, checkTo, checkSubject, checkDate)))
+                        .Select(e => new { e.Id, e.FolderName, e.Subject }),
+                    e => e.Subject);
 
                 if (existingInfo != null)
                 {
@@ -250,6 +233,30 @@ namespace MailArchiver.Services.Providers.Graph
         }
 
         /// <summary>
+        /// Message-ID check for a Graph message, used by the duplicate check and by the deletion
+        /// after archiving. Only an InternetMessageId counts as a header ID.
+        /// </summary>
+        public MessageIdMatch CreateMessageIdMatch(Message message, IEnumerable<string> messageIdCandidates)
+            => new(
+                messageIdCandidates,
+                isHeaderMessageId: !string.IsNullOrEmpty(MailContentHelper.NormalizeMessageId(message.InternetMessageId)),
+                message.Subject,
+                StoredSentDate(message));
+
+        /// <summary>
+        /// SentDateTime in display timezone, or null. Converts the offset, not
+        /// SentDateTime.DateTime, which would be returned unconverted.
+        /// </summary>
+        private DateTime? StoredSentDate(Message message)
+            => message.SentDateTime.HasValue
+                ? _dateTimeHelper.ConvertToDisplayTimeZone(message.SentDateTime.Value)
+                : null;
+
+        /// <summary>The stored SentDate: <see cref="StoredSentDate"/>, or now if missing.</summary>
+        private DateTime StoredSentDateOrNow(Message message)
+            => StoredSentDate(message) ?? _dateTimeHelper.ConvertToDisplayTimeZone(DateTime.UtcNow);
+
+        /// <summary>
         /// Builds an ArchivedEmail entity from a Graph message, including attachments
         /// </summary>
         private async Task<(ArchivedEmail Email, RawMessageCapture? RawCapture)> BuildArchivedEmailAsync(
@@ -262,9 +269,7 @@ namespace MailArchiver.Services.Providers.Graph
         {
             RawMessageCapture? rawCapture = null;
 
-            var convertedSentDate = message.SentDateTime.HasValue
-                ? _dateTimeHelper.ConvertToDisplayTimeZone(message.SentDateTime.Value)
-                : _dateTimeHelper.ConvertToDisplayTimeZone(DateTime.UtcNow);
+            var convertedSentDate = StoredSentDateOrNow(message);
 
             var subject = MailContentHelper.CleanText(message.Subject ?? "(No Subject)");
             var from = MailContentHelper.CleanText(message.From?.EmailAddress?.Address ?? string.Empty);
