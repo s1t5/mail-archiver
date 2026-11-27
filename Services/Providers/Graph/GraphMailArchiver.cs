@@ -162,8 +162,10 @@ namespace MailArchiver.Services.Providers.Graph
         /// <summary>
         /// Checks whether an email with the given criteria already exists in the archive.
         /// Returns true if a duplicate was found (and optionally updates the folder name).
-        /// Note: the fuzzy From/To/Subject/Date fallback requires From and ToRecipients to be
-        /// populated on the message; the MessageId comparison works regardless.
+        /// A Message-ID match also requires the subject and send time to agree, because
+        /// some senders reuse a Message-ID for later distinct messages. The fuzzy
+        /// From/To/Subject/Date fallback still requires From and ToRecipients to be
+        /// populated on the message.
         /// </summary>
         public async Task<bool> IsDuplicateAsync(int accountId, string messageId, Message message, string folderName)
         {
@@ -197,23 +199,26 @@ namespace MailArchiver.Services.Providers.Graph
                 // existing archives are still recognized as duplicates.
                 var messageIdCandidates = MailContentHelper.MessageIdMatchCandidates(messageId).ToList();
 
-                // Same range restriction on both sides as MailImporter applies: the incoming value
-                // was clamped inside ConvertToDisplayTimeZone, the column side is clamped here so
-                // that rows written before the clamp cannot overflow PostgreSQL's interval type.
-                var minSentDate = DateTimeHelper.MinimumPlausibleSentDate;
-                var maxSentDate = DateTimeHelper.MaximumPlausibleSentDate;
+                // Compare against a precomputed send-time window instead of subtracting
+                // timestamps in SQL. Subtracting a legacy year-1 SentDate overflows
+                // PostgreSQL's interval type; a range comparison does not, and it is
+                // equivalent for any row whose SentDate is inside the plausible range.
+                var windowStart = checkDate.AddSeconds(-toleranceSeconds);
+                var windowEnd = checkDate.AddSeconds(toleranceSeconds);
 
+                // A Message-ID match is not enough on its own: some senders (Outlook
+                // calendar reminders in particular) reuse the same Message-ID for later,
+                // distinct messages. Require the subject and send time as well. The
+                // From/To/Subject/Date fallback is unchanged.
                 var existingInfo = await _context.ArchivedEmails
                     .AsNoTracking()
                     .Where(e => e.MailAccountId == accountId)
                     .Where(e =>
-                        messageIdCandidates.Contains(e.MessageId) ||
-                        (e.From == checkFrom &&
-                         e.To == checkTo &&
-                         e.Subject == checkSubject &&
-                         Math.Abs(((e.SentDate < minSentDate ? minSentDate :
-                                     e.SentDate > maxSentDate ? maxSentDate : e.SentDate)
-                                   - checkDate).TotalSeconds) < toleranceSeconds)
+                        e.Subject == checkSubject &&
+                        e.SentDate > windowStart &&
+                        e.SentDate < windowEnd &&
+                        (messageIdCandidates.Contains(e.MessageId) ||
+                         (e.From == checkFrom && e.To == checkTo))
                     )
                     .Select(e => new { e.Id, e.FolderName, e.Subject })
                     .FirstOrDefaultAsync();
