@@ -70,22 +70,25 @@ namespace MailArchiver.Services.Shared
 
                 var messageIdCandidates = MailContentHelper.MessageIdMatchCandidates(messageId).ToList();
 
-                // Both sides of the timestamp criterion are restricted to the plausible range.
-                // The incoming value already went through ClampToPlausibleRange inside
-                // ConvertToDisplayTimeZone; the column side is clamped here, because rows written
-                // by earlier versions may hold a year-1 SentDate from a malformed Date header and
-                // the unclamped subtraction overflows PostgreSQL's interval type.
-                var minSentDate = DateTimeHelper.MinimumPlausibleSentDate;
-                var maxSentDate = DateTimeHelper.MaximumPlausibleSentDate;
+                // Compare against a precomputed send-time window instead of subtracting
+                // timestamps in SQL. Subtracting a legacy year-1 SentDate overflows
+                // PostgreSQL's interval type; a range comparison does not, and it is
+                // equivalent for any row whose SentDate is inside the plausible range.
+                var windowStart = checkSentDate.AddSeconds(-toleranceSeconds);
+                var windowEnd = checkSentDate.AddSeconds(toleranceSeconds);
 
+                // A Message-ID match is not enough on its own: some senders (Outlook
+                // calendar reminders in particular) reuse the same Message-ID for later,
+                // distinct messages. Require the subject and send time as well. The
+                // From/To/Subject/Date fallback is unchanged.
                 var existing = await context.ArchivedEmails
                     .Where(e => e.MailAccountId == account.Id)
                     .Where(e =>
-                        messageIdCandidates.Contains(e.MessageId) ||
-                        (e.From == checkFrom && e.To == checkTo && e.Subject == checkSubject &&
-                         Math.Abs(((e.SentDate < minSentDate ? minSentDate :
-                                     e.SentDate > maxSentDate ? maxSentDate : e.SentDate)
-                                   - checkSentDate).TotalSeconds) < toleranceSeconds))
+                        e.Subject == checkSubject &&
+                        e.SentDate > windowStart &&
+                        e.SentDate < windowEnd &&
+                        (messageIdCandidates.Contains(e.MessageId) ||
+                         (e.From == checkFrom && e.To == checkTo)))
                     .FirstOrDefaultAsync();
 
                 if (existing != null)
